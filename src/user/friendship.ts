@@ -156,13 +156,7 @@ export class Friendship extends Accessory implements Acceptable {
   /**
    * @ignore
    */
-  protected get payload (): undefined | FriendshipPayload {
-    if (!this.id) {
-      return undefined
-    }
-
-    return this.puppet.friendshipPayloadCache(this.id)
-  }
+  protected payload?: FriendshipPayload
 
   constructor (
     public id: string,
@@ -195,19 +189,6 @@ export class Friendship extends Accessory implements Acceptable {
     ].join('')
   }
 
-  public async toStringAsync (): Promise<string> {
-    if (!this.payload) {
-      return this.constructor.name
-    }
-    return [
-      'Friendship#',
-      FriendshipType[this.payload.type],
-      '<',
-      this.payload.contactId,
-      '>',
-    ].join('')
-  }
-
   public isReady (): boolean {
     return !!this.payload && (Object.keys(this.payload).length > 0)
   }
@@ -217,11 +198,11 @@ export class Friendship extends Accessory implements Acceptable {
    * @ignore
    */
   public async ready (): Promise<void> {
-    if (this.payload) {
+    if (this.isReady()) {
       return
     }
 
-    await this.puppet.friendshipPayload(this.id)
+    this.payload = await this.puppet.friendshipPayload(this.id)
 
     if (!this.payload) {
       throw new Error('no payload')

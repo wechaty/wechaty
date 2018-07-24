@@ -75,6 +75,9 @@ export class RoomInvitation extends Accessory implements Acceptable {
     ].join('')
   }
 
+  /**
+   * @hidden
+   */
   public async toStringAsync (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
     return [
@@ -118,7 +121,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
 
       log.verbose('RoomInvitation', 'accept() with room(%s) & inviter(%s) ready()',
                                     topic,
-                                    await inviter.toStringAsync(),
+                                    inviter,
                   )
       return
     } catch (e) {

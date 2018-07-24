@@ -261,14 +261,7 @@ export class Room extends Accessory implements Sayable {
    *
    *
    */
-  protected get payload (): undefined | RoomPayload {
-    if (!this.id) {
-      return undefined
-    }
-
-    const readyPayload = this.puppet.roomPayloadCache(this.id)
-    return readyPayload
-  }
+  protected payload?: RoomPayload
 
   public readonly id: string  // Room Id
 
@@ -306,16 +299,6 @@ export class Room extends Accessory implements Sayable {
     return `Room<${this.id || ''}>`
   }
 
-  /**
-   * @private
-   */
-  public async toStringAsync (): Promise<string> {
-    if (this.payload && this.payload.topic) {
-      return `Room<${this.payload.topic}>`
-    }
-    return `Room<${this.id || ''}>`
-  }
-
   public async *[Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
     const memberList = await this.memberList()
     for (const contact of memberList) {
@@ -338,7 +321,11 @@ export class Room extends Accessory implements Sayable {
     if (dirty) {
       await this.puppet.roomPayloadDirty(this.id)
     }
-    await this.puppet.roomPayload(this.id)
+    this.payload = await this.puppet.roomPayload(this.id)
+
+    if (!this.payload) {
+      throw new Error('ready() no payload')
+    }
 
     const memberIdList = await this.puppet.roomMemberList(this.id)
 
