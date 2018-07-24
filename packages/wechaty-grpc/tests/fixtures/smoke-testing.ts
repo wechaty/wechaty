@@ -3,13 +3,13 @@
 // tslint:disable:no-console
 
 import {
-  Id,
+  SelfIdResponse,
   VERSION,
 }           from '@chatie/grpc'
 
 async function main () {
-  const pbId = new Id()
-  pbId.setId('id')
+  const selfIdResponse = new SelfIdResponse()
+  selfIdResponse.setId('id')
   console.log(`@chatie/grpc v${VERSION} smoking test passed.`)
   return 0
 }
