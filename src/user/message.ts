@@ -112,8 +112,6 @@ export class Message extends Accessory implements Sayable {
      */
     const msg = new this(id)
 
-    // msg.payload = this.puppet.cacheMessagePayload.get(id)
-
     return msg
   }
 

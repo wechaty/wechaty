@@ -111,7 +111,6 @@ export class Contact extends Accessory implements Sayable {
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
     const newContact = new (this as any)(id) as Contact
-    // newContact.payload = this.puppet.cacheContactPayload.get(id)
 
     this.pool.set(id, newContact)
 

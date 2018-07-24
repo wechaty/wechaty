@@ -249,7 +249,6 @@ export class Room extends Accessory implements Sayable {
     }
 
     const newRoom = new (this as any)(id) as Room
-    // newRoom.payload = this.puppet.cacheRoomPayload.get(id)
 
     this.pool.set(id, newRoom)
     return newRoom

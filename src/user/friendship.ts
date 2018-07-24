@@ -64,7 +64,6 @@ export class Friendship extends Accessory implements Acceptable {
     id   : string,
   ): T['prototype'] {
     const newFriendship = new (this as any)(id)
-    // newFriendRequest.payload = this.puppet.cacheFriendRequestPayload.get(id)
     return newFriendship
   }
 
