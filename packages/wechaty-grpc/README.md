@@ -11,24 +11,11 @@ gRPC for Chatie
 ## INSTALL
 
 ```shell
+./scripts/install-protoc.sh
 npm install
 ```
 
-### Install Protocol Buffer
-
 > <https://github.com/google/protobuf/releases/latest>
-
-#### Mac
-
-```shell
-brew install protoc
-```
-
-#### Linux
-
-```shell
-sudo apt install protobuf-compiler
-```
 
 ## GENERATE STUBS
 
