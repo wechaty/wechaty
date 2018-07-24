@@ -63,8 +63,8 @@ const client = new IoClient({
 client.start()
     .catch(onError.bind(client))
 
-client.initWeb()
-    .catch(onError.bind(client))
+// client.initWeb()
+//     .catch(onError.bind(client))
 
 async function onError (
   this : IoClient,
