@@ -383,9 +383,9 @@ export class Contact extends Accessory implements Sayable {
    *
    * Tests show it will failed if set alias too frequently(60 times in one minute).
    * @param {(none | string | null)} newAlias
-   * @returns {(string | null | Promise<boolean>)}
-   * @example <caption> GET the alias for a contact, return {(string | null)}</caption>
-   * const alias = contact.alias()
+   * @returns {(Promise<null | string | void>)}
+   * @example <caption> GET the alias for a contact, return {(Promise<string | null>)}</caption>
+   * const alias = await contact.alias()
    * if (alias === null) {
    *   console.log('You have not yet set any alias for contact ' + contact.name())
    * } else {
