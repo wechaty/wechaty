@@ -86,8 +86,14 @@ export class Room extends Accessory implements Sayable {
   public static async create (contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
-    if (!contactList || !Array.isArray(contactList)) {
+    if (   !contactList
+        || !Array.isArray(contactList)
+    ) {
       throw new Error('contactList not found')
+    }
+
+    if (contactList.length < 2) {
+      throw new Error('contactList need at least 2 contact to create a new room')
     }
 
     try {
