@@ -20,8 +20,7 @@
  * DO NOT use `require('../')` here!
  * because it will casue a LOOP require ERROR
  */
-// import Brolog       from 'brolog'
-import StateSwitch  from 'state-switch'
+import { StateSwitch }  from 'state-switch'
 
 import { Message }      from './user'
 
