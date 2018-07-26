@@ -57,9 +57,9 @@ export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 /** @hidden */
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
-  'data-ready': 'emitted when the data is loaded',
   dong      : 'todo: explain what this event is',
   error     : 'todo: explain what this event is',
+  ready     : 'emitted when the puppet is ready(you define the `ready`)',
   reset     : 'push to reset!',
   watchdog  : 'todo: explain what this event is',
 }
