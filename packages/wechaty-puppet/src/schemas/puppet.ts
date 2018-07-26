@@ -42,26 +42,26 @@ export interface PuppetRoomTopicEvent {
 
 /** @hidden */
 export const CHAT_EVENT_DICT = {
-  friendship    : 'todo: explain what this event is',
-  login         : 'todo: explain what this event is',
-  logout        : 'todo: explain what this event is',
-  message       : 'todo: explain what this event is',
-  'room-invite' : 'todo: explain what this event is',
-  'room-join'   : 'todo: explain what this event is',
-  'room-leave'  : 'todo: explain what this event is',
-  'room-topic'  : 'todo: explain what this event is',
-  scan          : 'todo: explain what this event is',
+  friendship    : 'receive a friend request',
+  login         : 'puppet had logined',
+  logout        : 'puppet had logouted',
+  message       : 'received a new message',
+  'room-invite' : 'received a room invitation',
+  'room-join'   : 'be added to a room',
+  'room-leave'  : 'leave or be removed from a room',
+  'room-topic'  : 'room topic had been changed',
+  scan          : 'a QR Code scan is required',
 }
 export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
 /** @hidden */
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
-  dong      : 'todo: explain what this event is',
-  error     : 'todo: explain what this event is',
-  ready     : 'emitted when the puppet is ready(you define the `ready`)',
-  reset     : 'push to reset!',
-  watchdog  : 'todo: explain what this event is',
+  dong      : 'emit this event if you received a ding() call',
+  error     : `emit an Error instance when there's any Error need to report to Wechaty`,
+  ready     : 'emit this event after the puppet is ready(you define it)',
+  reset     : 'reset the puppet by emit this event',
+  watchdog  : 'feed the watchdog by emit this event',
 }
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
