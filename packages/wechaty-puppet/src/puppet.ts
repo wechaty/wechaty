@@ -275,6 +275,7 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string, changerId: string) : boolean
   public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
   public emit (event: 'scan',         qrcode: string, status: number, data?: string)                                 : boolean
+  public emit (event: 'ready')                                                                                       : boolean
   // Internal Usage: watchdog
   public emit (event: 'watchdog',     food: WatchdogFood) : boolean
 
@@ -306,6 +307,7 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-topic',   listener: (roomId: string, newTopic:      string,   oldTopic:   string, changerId: string) => void) : this
   public on (event: 'room-invite',  listener: (roomInvitationId: string) => void)                                                       : this
   public on (event: 'scan',         listener: (qrcode: string, status: number, data?: string) => void)                                  : this
+  public on (event: 'ready',        listener: () => void)                                                                               : this
   // Internal Usage: watchdog
   public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
 
