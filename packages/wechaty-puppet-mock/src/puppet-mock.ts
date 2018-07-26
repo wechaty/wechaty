@@ -107,10 +107,10 @@ export class PuppetMock extends Puppet {
   }
 
   public async stop (): Promise<void> {
-    log.verbose('PuppetMock', 'quit()')
+    log.verbose('PuppetMock', 'stop()')
 
     if (this.state.off()) {
-      log.warn('PuppetMock', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      log.warn('PuppetMock', 'stop() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
