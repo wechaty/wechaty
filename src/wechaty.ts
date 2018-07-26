@@ -88,9 +88,9 @@ export const WECHATY_EVENT_DICT = {
   dong      : 'tbw',
   error     : 'tbw',
   heartbeat : 'tbw',
+  ready     : 'All underlined data source are ready for use.',
   start     : 'tbw',
   stop      : 'tbw',
-  'data-ready': 'tbw',
 }
 
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
@@ -129,7 +129,8 @@ export class Wechaty extends Accessory implements Sayable {
 
   public readonly VERSION = VERSION
 
-  public readonly state  : StateSwitch
+  public  readonly state      : StateSwitch
+  private readonly readyState : StateSwitch
 
   /**
    * singleton globalInstance
@@ -233,7 +234,9 @@ export class Wechaty extends Accessory implements Sayable {
 
     this.id     = cuid()
     this.memory = new MemoryCard(options.profile || undefined)
-    this.state  = new StateSwitch('Wechaty', log)
+
+    this.state      = new StateSwitch('Wechaty', log)
+    this.readyState = new StateSwitch('WechatyReady', log)
 
     /**
      * @ignore
@@ -274,13 +277,13 @@ export class Wechaty extends Accessory implements Sayable {
   public emit (event: 'heartbeat'  , data: any)                                                        : boolean
   public emit (event: 'login' | 'logout', user: ContactSelf)                                           : boolean
   public emit (event: 'message'    , message: Message)                                                 : boolean
+  public emit (event: 'ready')                                                                         : boolean
   public emit (event: 'room-invite', roomInvitation: RoomInvitation)                                   : boolean
   public emit (event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
   public emit (event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
   public emit (event: 'room-topic' , room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
   public emit (event: 'scan'       , qrcode: string, status: number, data?: string)                    : boolean
   public emit (event: 'start' | 'stop')                                                                : boolean
-  public emit (event: 'data-ready') : boolean
 
   // guard for the above event: make sure it includes all the possible values
   public emit (event: never, listener: never): never
@@ -298,13 +301,13 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                        : this
   public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                           : this
   public on (event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
+  public on (event: 'ready'      , listener: string | ((this: Wechaty) => void))                                                                   : this
   public on (event: 'room-invite', listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
   public on (event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
   public on (event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
   public on (event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
   public on (event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: number, data?: string) => void))                    : this
   public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                : this
-  public on (event: 'data-ready', listener: string | ((this: Wechaty) => void)) : this
 
   // guard for the above event: make sure it includes all the possible values
   public on (event: never, listener: never): never
@@ -548,7 +551,9 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   protected initPuppetEventBridge (puppet: Puppet) {
-    const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as any
+    log.verbose('Wechaty', 'initPuppetEventBridge(%s)', puppet)
+
+    const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
     for (const eventName of eventNameList) {
       log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', eventName)
 
@@ -612,6 +617,15 @@ export class Wechaty extends Accessory implements Sayable {
           })
           break
 
+        case 'ready':
+          puppet.on('ready', () => {
+            log.silly('Wechaty', 'initPuppetEventBridge() puppet.on(ready)')
+
+            this.emit('ready')
+            this.readyState.on(true)
+          })
+          break
+
         case 'room-invite':
           puppet.on('room-invite', async roomInvitationId => {
             const roomInvitation = this.RoomInvitation.load(roomInvitationId)
@@ -670,11 +684,6 @@ export class Wechaty extends Accessory implements Sayable {
         case 'scan':
           puppet.on('scan', async (qrcode, status, data) => {
             this.emit('scan', qrcode, status, data)
-          })
-          break
-        case 'data-ready':
-          puppet.on('data-ready', () => {
-            this.emit('data-ready')
           })
           break
 
@@ -751,6 +760,8 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
+    this.readyState.off(true)
+
     if (this.lifeTimer) {
       throw new Error('start() lifeTimer exist')
     }
@@ -819,6 +830,8 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
+    this.readyState.off(true)
+
     this.state.off('pending')
     await this.memory.save()
 
@@ -848,13 +861,14 @@ export class Wechaty extends Accessory implements Sayable {
     this.state.off(true)
     this.emit('stop')
 
-    /**
-     * MUST use setImmediate at here(the end of this function),
-     * because we need to run the micro task registered by the `emit` method
-     */
-    setImmediate(() => this.puppet.removeAllListeners())
-
     return
+  }
+
+  public async ready (): Promise<void> {
+    log.verbose('Wechaty', 'ready()')
+    return this.readyState.ready('on').then(() => {
+      log.silly('Wechaty', 'ready() this.readyState.ready(on) resolved')
+    })
   }
 
   /**

@@ -22,7 +22,6 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
-// import asyncHooks from 'async_hooks'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
@@ -180,4 +179,60 @@ test('Wechaty restart for many times', async t => {
     t.fail(e)
   }
 
+})
+
+test('@event ready', async t => {
+  const puppet = new PuppetMock()
+  const wechaty = new Wechaty({ puppet })
+
+  const sandbox = sinon.createSandbox()
+  const spy     = sandbox.spy()
+
+  wechaty.on('ready', spy)
+  t.true(spy.notCalled, 'should no ready event with new wechaty instance')
+
+  await wechaty.start()
+  t.true(spy.notCalled, 'should no ready event right start wechaty started')
+
+  puppet.emit('ready')
+  t.true(spy.calledOnce, 'should fire ready event after puppet ready')
+
+  await wechaty.stop()
+  await wechaty.start()
+  puppet.emit('ready')
+
+  t.true(spy.calledTwice, 'should fire ready event second time after stop/start wechaty')
+
+  await wechaty.stop()
+})
+
+test('ready()', async t => {
+  const puppet = new PuppetMock()
+  const wechaty = new Wechaty({ puppet })
+
+  const sandbox = sinon.createSandbox()
+
+  const spy = sandbox.spy()
+
+  wechaty.ready().then(spy)
+
+  t.true(spy.notCalled, 'should not ready with new wechaty instance')
+
+  await wechaty.start()
+
+  t.true(spy.notCalled, 'should not ready after right start wechaty')
+
+  puppet.emit('ready')
+  await new Promise(r => setImmediate(r))
+  t.true(spy.calledOnce, 'should ready after puppet ready')
+
+  await wechaty.stop()
+  await wechaty.start()
+  wechaty.ready().then(spy)
+
+  puppet.emit('ready')
+  await new Promise(r => setImmediate(r))
+  t.true(spy.calledTwice, 'should ready again after stop/start wechaty')
+
+  await wechaty.stop()
 })
