@@ -214,7 +214,9 @@ test('ready()', async t => {
 
   const spy = sandbox.spy()
 
-  wechaty.ready().then(spy)
+  wechaty.ready()
+    .then(spy)
+    .catch(e => t.fail('rejection: ' + e))
 
   t.true(spy.notCalled, 'should not ready with new wechaty instance')
 
@@ -228,7 +230,9 @@ test('ready()', async t => {
 
   await wechaty.stop()
   await wechaty.start()
-  wechaty.ready().then(spy)
+  wechaty.ready()
+    .then(spy)
+    .catch(e => t.fail('rejection: ' + e))
 
   puppet.emit('ready')
   await new Promise(r => setImmediate(r))
