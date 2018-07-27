@@ -324,6 +324,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  room-join  - Emit when anyone join any room.
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
+   * @property   {string}  room-invite - Emit when there is a room invitation, see more in  {@link RoomInvitation}
    *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
    * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
    *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
@@ -352,6 +353,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
    * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
+   * @property   {Function} room-invite     -(this: Wechaty, room: Room, leaverList: Contact[]) => void <br>
+   *                                        see more in  {@link RoomInvitation}
    */
 
   /**
@@ -441,6 +444,18 @@ export class Wechaty extends Accessory implements Sayable {
    * bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
+   *
+   * @example <caption>Event:room-invite, RoomInvitation has been encapsulated as a RoomInvitation Class. </caption>
+   * // room-invite Event will emit when there's an room invitation.
+   *
+   * bot.on('room-invite', async roomInvitation => {
+   *   try {
+   *     console.log(`received room-invite event.`)
+   *     await roomInvitation.accept()
+   *   } catch (e) {
+   *     console.error(e)
+   *   }
+   * }
    *
    * @example <caption>Event:error </caption>
    * // error Event will emit when there's an error occurred.
