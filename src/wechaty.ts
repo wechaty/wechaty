@@ -88,6 +88,7 @@ export const WECHATY_EVENT_DICT = {
   dong      : 'tbw',
   error     : 'tbw',
   heartbeat : 'tbw',
+  ready     : 'All underlined data source are ready for use.',
   start     : 'tbw',
   stop      : 'tbw',
 }
@@ -128,7 +129,8 @@ export class Wechaty extends Accessory implements Sayable {
 
   public readonly VERSION = VERSION
 
-  public readonly state  : StateSwitch
+  public  readonly state      : StateSwitch
+  private readonly readyState : StateSwitch
 
   /**
    * singleton globalInstance
@@ -232,7 +234,9 @@ export class Wechaty extends Accessory implements Sayable {
 
     this.id     = cuid()
     this.memory = new MemoryCard(options.profile || undefined)
-    this.state  = new StateSwitch('Wechaty', log)
+
+    this.state      = new StateSwitch('Wechaty', log)
+    this.readyState = new StateSwitch('WechatyReady', log)
 
     /**
      * @ignore
@@ -273,6 +277,7 @@ export class Wechaty extends Accessory implements Sayable {
   public emit (event: 'heartbeat'  , data: any)                                                        : boolean
   public emit (event: 'login' | 'logout', user: ContactSelf)                                           : boolean
   public emit (event: 'message'    , message: Message)                                                 : boolean
+  public emit (event: 'ready')                                                                         : boolean
   public emit (event: 'room-invite', roomInvitation: RoomInvitation)                                   : boolean
   public emit (event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
   public emit (event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
@@ -296,6 +301,7 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                        : this
   public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                           : this
   public on (event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
+  public on (event: 'ready'      , listener: string | ((this: Wechaty) => void))                                                                   : this
   public on (event: 'room-invite', listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
   public on (event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
   public on (event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
@@ -318,6 +324,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  room-join  - Emit when anyone join any room.
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
+   * @property   {string}  room-invite - Emit when there is a room invitation, see more in  {@link RoomInvitation}
    *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
    * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
    *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
@@ -346,6 +353,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
    * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
+   * @property   {Function} room-invite     -(this: Wechaty, room: Room, leaverList: Contact[]) => void <br>
+   *                                        see more in  {@link RoomInvitation}
    */
 
   /**
@@ -435,6 +444,18 @@ export class Wechaty extends Accessory implements Sayable {
    * bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
+   *
+   * @example <caption>Event:room-invite, RoomInvitation has been encapsulated as a RoomInvitation Class. </caption>
+   * // room-invite Event will emit when there's an room invitation.
+   *
+   * bot.on('room-invite', async roomInvitation => {
+   *   try {
+   *     console.log(`received room-invite event.`)
+   *     await roomInvitation.accept()
+   *   } catch (e) {
+   *     console.error(e)
+   *   }
+   * }
    *
    * @example <caption>Event:error </caption>
    * // error Event will emit when there's an error occurred.
@@ -545,7 +566,9 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   protected initPuppetEventBridge (puppet: Puppet) {
-    const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as any
+    log.verbose('Wechaty', 'initPuppetEventBridge(%s)', puppet)
+
+    const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
     for (const eventName of eventNameList) {
       log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', eventName)
 
@@ -606,6 +629,15 @@ export class Wechaty extends Accessory implements Sayable {
             const msg = this.Message.create(messageId)
             await msg.ready()
             this.emit('message', msg)
+          })
+          break
+
+        case 'ready':
+          puppet.on('ready', () => {
+            log.silly('Wechaty', 'initPuppetEventBridge() puppet.on(ready)')
+
+            this.emit('ready')
+            this.readyState.on(true)
           })
           break
 
@@ -743,6 +775,8 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
+    this.readyState.off(true)
+
     if (this.lifeTimer) {
       throw new Error('start() lifeTimer exist')
     }
@@ -811,6 +845,8 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
+    this.readyState.off(true)
+
     this.state.off('pending')
     await this.memory.save()
 
@@ -840,13 +876,14 @@ export class Wechaty extends Accessory implements Sayable {
     this.state.off(true)
     this.emit('stop')
 
-    /**
-     * MUST use setImmediate at here(the end of this function),
-     * because we need to run the micro task registered by the `emit` method
-     */
-    setImmediate(() => this.puppet.removeAllListeners())
-
     return
+  }
+
+  public async ready (): Promise<void> {
+    log.verbose('Wechaty', 'ready()')
+    return this.readyState.ready('on').then(() => {
+      log.silly('Wechaty', 'ready() this.readyState.ready(on) resolved')
+    })
   }
 
   /**

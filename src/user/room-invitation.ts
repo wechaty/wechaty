@@ -35,6 +35,10 @@ import {
   Contact,
 }               from './contact'
 
+/**
+ *
+ * accept room invitation
+ */
 export class RoomInvitation extends Accessory implements Acceptable {
 
   public static load<T extends typeof RoomInvitation> (
@@ -46,7 +50,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   }
 
   /**
-   *
+   * @ignore
    * Instance Properties
    *
    */
@@ -76,7 +80,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   }
 
   /**
-   * @hidden
+   * @ignore
    */
   public async toStringAsync (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
@@ -179,6 +183,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
 
   /**
    * List of Room Members that you known(is friend)
+   * @ignore
    */
   public async roomMemberList (): Promise<Contact[]> {
     log.verbose('RoomInvitation', 'roomMemberList()')
@@ -198,6 +203,11 @@ export class RoomInvitation extends Accessory implements Acceptable {
     return contactList
   }
 
+  /**
+   * Get the invitation time
+   *
+   * @returns {Promise<Date>}
+   */
   public async date (): Promise<Date> {
     log.verbose('RoomInvitation', 'date()')
 
