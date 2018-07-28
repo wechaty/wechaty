@@ -1,4 +1,4 @@
-# Wechaty v0.19.114 Documentation
+# Wechaty v0.19.115 Documentation
 
 * <https://blog.chatie.io>
 
@@ -410,7 +410,6 @@ All wechat rooms(groups) will be encapsulated as a Room.
         * [.memberAll(query)](#Room+memberAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.member(queryArg)](#Room+member) ⇒ <code>Promise.&lt;(null\|Contact)&gt;</code>
         * [.memberList()](#Room+memberList) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
-        * [.sync()](#Room+sync) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.owner()](#Room+owner) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
     * _static_
         * [.create(contactList, [topic])](#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
@@ -793,16 +792,6 @@ Get all room member from the room
 ```js
 await room.memberList()
 ```
-<a name="Room+sync"></a>
-
-### room.sync() ⇒ <code>Promise.&lt;void&gt;</code>
-Force reload data for Room, Sync data for Room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Example**  
-```js
-await room.sync()
-```
 <a name="Room+owner"></a>
 
 ### room.owner() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
@@ -919,17 +908,12 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.say(textOrContactOrFile)](#Contact+say) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.name()](#Contact+name) ⇒ <code>string</code>
         * [.alias(newAlias)](#Contact+alias) ⇒ <code>Promise.&lt;(null\|string\|void)&gt;</code>
-        * ~~[.stranger()](#Contact+stranger)~~
         * [.friend()](#Contact+friend) ⇒ <code>boolean</code> \| <code>null</code>
-        * ~~[.official()](#Contact+official)~~
-        * ~~[.personal()](#Contact+personal)~~
         * [.type()](#Contact+type) ⇒ <code>ContactType.Unknown</code> \| <code>ContactType.Personal</code> \| <code>ContactType.Official</code>
         * [.gender()](#Contact+gender) ⇒ <code>ContactGender.Unknown</code> \| <code>ContactGender.Male</code> \| <code>ContactGender.Female</code>
         * [.province()](#Contact+province) ⇒ <code>string</code> \| <code>null</code>
         * [.city()](#Contact+city) ⇒ <code>string</code> \| <code>null</code>
         * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;FileBox&gt;</code>
-        * ~~[.refresh()](#Contact+refresh)~~
-        * [.sync()](#Contact+sync) ⇒ <code>Promise.&lt;this&gt;</code>
         * [.self()](#Contact+self) ⇒ <code>boolean</code>
     * _static_
         * [.load(id)](#Contact.load) ⇒ [<code>Contact</code>](#Contact)
@@ -1022,14 +1006,6 @@ try {
   console.log(`failed to delete ${contact.name()}'s alias!`)
 }
 ```
-<a name="Contact+stranger"></a>
-
-### ~~contact.stranger()~~
-***Deprecated***
-
-Should use [friend](#Contact+friend) instead
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
 <a name="Contact+friend"></a>
 
 ### contact.friend() ⇒ <code>boolean</code> \| <code>null</code>
@@ -1045,22 +1021,6 @@ False for not friend of the bot, null for unknown.
 ```js
 const isFriend = contact.friend()
 ```
-<a name="Contact+official"></a>
-
-### ~~contact.official()~~
-***Deprecated***
-
-Check if it's a offical account, should use [type](#Contact+type) instead
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-<a name="Contact+personal"></a>
-
-### ~~contact.personal()~~
-***Deprecated***
-
-Check if it's a personal account, should use [type](#Contact+type) instead
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
 <a name="Contact+type"></a>
 
 ### contact.type() ⇒ <code>ContactType.Unknown</code> \| <code>ContactType.Personal</code> \| <code>ContactType.Official</code>
@@ -1119,24 +1079,6 @@ const file = await contact.avatar()
 const name = file.name
 await file.toFile(name, true)
 console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
-```
-<a name="Contact+refresh"></a>
-
-### ~~contact.refresh()~~
-***Deprecated***
-
-Force reload(re-ready()) data for Contact, use [sync](#Contact+sync) instead
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-<a name="Contact+sync"></a>
-
-### contact.sync() ⇒ <code>Promise.&lt;this&gt;</code>
-Force reload(re-ready()) data for Contact,
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-await contact.sync()
 ```
 <a name="Contact+self"></a>
 
@@ -1442,7 +1384,6 @@ All wechat messages will be encapsulated as a Message.
     * [.type()](#Message+type) ⇒ <code>MessageType</code>
     * [.self()](#Message+self) ⇒ <code>boolean</code>
     * [.mention()](#Message+mention) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
-    * ~~[.mentioned()](#Message+mentioned)~~
     * [.forward(to)](#Message+forward) ⇒ <code>Promise.&lt;void&gt;</code>
     * [.age()](#Message+age) ⇒ <code>number</code>
     * ~~[.file()](#Message+file)~~
@@ -1639,14 +1580,6 @@ Message event table as follows
 const contactList = await message.mention()
 console.log(contactList)
 ```
-<a name="Message+mentioned"></a>
-
-### ~~message.mentioned()~~
-***Deprecated***
-
-should use [mention](#Message+mention) instead
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+forward"></a>
 
 ### message.forward(to) ⇒ <code>Promise.&lt;void&gt;</code>
