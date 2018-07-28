@@ -313,7 +313,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @hidden
+   * @private
    */
   public async ready (
     dirty = false,
@@ -348,7 +348,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @hidden
+   * @private
    */
   public isReady (): boolean {
     return !!(this.payload)
@@ -358,7 +358,8 @@ export class Room extends Accessory implements Sayable {
   public say (text: string, mention: Contact)   : Promise<void>
   public say (text: string, mention: Contact[]) : Promise<void>
   public say (file: FileBox)                    : Promise<void>
-  public say (text: never, ...args: never[])    : never
+
+  public say (...args: never[]): never
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
@@ -934,6 +935,7 @@ export class Room extends Accessory implements Sayable {
    * @returns {Promise<void>}
    * @example
    * await room.sync()
+   * @private
    */
   public async sync (): Promise<void> {
     await this.ready(true)

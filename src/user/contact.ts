@@ -291,7 +291,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @hidden
+   * @private
    */
   public toString (): string {
     const identity = this.payload
@@ -437,6 +437,7 @@ export class Contact extends Accessory implements Sayable {
    * Should use {@link Contact#friend} instead
    *
    * @deprecated
+   * @private
    */
   public stranger (): null | boolean {
     log.warn('Contact', 'stranger() DEPRECATED. use friend() instead.')
@@ -474,7 +475,7 @@ export class Contact extends Accessory implements Sayable {
    * @description
    * Check if it's a offical account, should use {@link Contact#type} instead
    * @deprecated
-   *
+   * @private
    */
   public official (): boolean {
     log.warn('Contact', 'official() DEPRECATED. use type() instead')
@@ -485,6 +486,7 @@ export class Contact extends Accessory implements Sayable {
    * @description
    * Check if it's a personal account, should use {@link Contact#type} instead
    * @deprecated
+   * @private
    */
   public personal (): boolean {
     log.warn('Contact', 'personal() DEPRECATED. use type() instead')
@@ -599,6 +601,7 @@ export class Contact extends Accessory implements Sayable {
    * Force reload(re-ready()) data for Contact, use {@link Contact#sync} instead
    *
    * @deprecated
+   * @private
    */
   public refresh (): Promise<void> {
     log.warn('Contact', 'refresh() DEPRECATED. use sync() instead.')
@@ -611,6 +614,7 @@ export class Contact extends Accessory implements Sayable {
    * @returns {Promise<this>}
    * @example
    * await contact.sync()
+   * @private
    */
   public async sync (): Promise<void> {
     await this.ready(true)

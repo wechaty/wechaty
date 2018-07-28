@@ -743,6 +743,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @desc
    * use {@link Wechaty#start} instead
    * @deprecated
+   * @private
    */
   public async init (): Promise<void> {
     log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
@@ -925,6 +926,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @description
    * Should use {@link Wechaty#userSelf} instead
    * @deprecated Use `userSelf()` instead
+   * @private
    */
   public self (): Contact {
     log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
@@ -945,6 +947,11 @@ export class Wechaty extends Accessory implements Sayable {
     return user
   }
 
+  public async say (text: string)     : Promise<void>
+  public async say (contact: Contact) : Promise<void>
+  public async say (file: FileBox)    : Promise<void>
+
+  public async say (...args: never[]): Promise<never>
   /**
    * Send message to userSelf, in other words, bot send message to itself.
    * > Tips:
@@ -975,9 +982,10 @@ export class Wechaty extends Accessory implements Sayable {
    *
    * // 4. send Image to bot itself from local file
    * import { FileBox }  from 'file-box'
-   * const fileBox = FileBox.fromLocal('/tmp/text.jpg')
+   * const fileBox = FileBox.fromFile('/tmp/text.jpg')
    * await bot.say(fileBox)
    */
+
   public async say (textOrContactOrFile: string | Contact | FileBox): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', textOrContactOrFile)
 
