@@ -52,7 +52,7 @@
     "blue-tape": "^1.0.0",
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
-    "markdownlint-cli": "^0.11.0",
+    "markdownlint-cli": "^0.12.0",
     "memory-card": "^0.4",
     "read-pkg-up": "^4.0.0",
     "semver": "^5.5.0",
