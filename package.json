@@ -78,7 +78,7 @@
     "brolog": "^1.8.1",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
-    "file-box": "^0.8.22",
+    "file-box": "^0.8.23",
     "hot-import": "^0.2.1",
     "memory-card": "^0.4.9",
     "npm-programmatic": "0.0.11",
