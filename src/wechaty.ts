@@ -380,35 +380,35 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:scan</caption>
    * // Scan Event will emit when the bot needs to show you a QR Code for scanning
    *
-   * bot.on('scan', (url: string, code: number) => {
+   * bot.on('scan', (url, code) => {
    *   console.log(`[${code}] Scan ${url} to login.` )
    * })
    *
    * @example <caption>Event:login </caption>
    * // Login Event will emit when bot login full successful.
    *
-   * bot.on('login', (user: ContactSelf) => {
+   * bot.on('login', (user) => {
    *   console.log(`user ${user} login`)
    * })
    *
    * @example <caption>Event:logout </caption>
    * // Logout Event will emit when bot detected log out.
    *
-   * bot.on('logout', (user: ContactSelf) => {
+   * bot.on('logout', (user) => {
    *   console.log(`user ${user} logout`)
    * })
    *
    * @example <caption>Event:message </caption>
    * // Message Event will emit when there's a new message.
    *
-   * wechaty.on('message', (message: Message) => {
+   * wechaty.on('message', (message) => {
    *   console.log(`message ${message} received`)
    * })
    *
    * @example <caption>Event:friendship </caption>
    * // Friendship Event will emit when got a new friend request, or friendship is confirmed.
    *
-   * bot.on('friendship', (friendship: Friendship) => {
+   * bot.on('friendship', (friendship) => {
    *   if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
    *     const contact = friendship.contact()
    *     let result = await friendship.accept()
@@ -425,7 +425,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:room-join </caption>
    * // room-join Event will emit when someone join the room.
    *
-   * bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
+   * bot.on('room-join', (room, inviteeList, inviter) => {
    *   const nameList = inviteeList.map(c => c.name()).join(',')
    *   console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
    * })
@@ -433,7 +433,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:room-leave </caption>
    * // room-leave Event will emit when someone leave the room.
    *
-   * bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
+   * bot.on('room-leave', (room, leaverList) => {
    *   const nameList = leaverList.map(c => c.name()).join(',')
    *   console.log(`Room ${room.topic()} lost member ${nameList}`)
    * })
@@ -441,7 +441,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:room-topic </caption>
    * // room-topic Event will emit when someone change the room's topic.
    *
-   * bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
+   * bot.on('room-topic', (room, topic, oldTopic, changer) => {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
    *
