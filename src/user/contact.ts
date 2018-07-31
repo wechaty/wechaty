@@ -425,6 +425,7 @@ export class Contact extends Accessory implements Sayable {
 
     try {
       await this.puppet.contactAlias(this.id, newAlias)
+      this.payload!.alias = newAlias || undefined
     } catch (e) {
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
       Raven.captureException(e)
