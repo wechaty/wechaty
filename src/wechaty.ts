@@ -548,7 +548,7 @@ export class Wechaty extends Accessory implements Sayable {
     }
 
     const puppet       = this.options.puppet || config.systemPuppetName()
-    const puppetMemory = this.memory.sub(puppet.toString())
+    const puppetMemory = this.memory.sub('puppet')
 
     const puppetInstance = await PuppetManager.resolve({
       puppet,
@@ -952,6 +952,7 @@ export class Wechaty extends Accessory implements Sayable {
   public async say (file: FileBox)    : Promise<void>
 
   public async say (...args: never[]): Promise<never>
+
   /**
    * Send message to userSelf, in other words, bot send message to itself.
    * > Tips:
