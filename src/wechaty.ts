@@ -102,6 +102,8 @@ export interface WechatyOptions {
   ioToken?       : string,                  // Io TOKEN
 }
 
+const PUPPET_MEMORY_NAME = 'puppet'
+
 /**
  * Main bot class.
  *
@@ -548,7 +550,7 @@ export class Wechaty extends Accessory implements Sayable {
     }
 
     const puppet       = this.options.puppet || config.systemPuppetName()
-    const puppetMemory = this.memory.sub('puppet')
+    const puppetMemory = this.memory.sub(PUPPET_MEMORY_NAME)
 
     const puppetInstance = await PuppetManager.resolve({
       puppet,
