@@ -416,16 +416,21 @@ export class Contact extends Accessory implements Sayable {
                               : newAlias,
                 )
 
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
     if (typeof newAlias === 'undefined') {
-      if (!this.payload) {
-        throw new Error('no payload')
-      }
       return this.payload.alias || null
     }
 
     try {
       await this.puppet.contactAlias(this.id, newAlias)
-      this.payload!.alias = newAlias || undefined
+      await this.puppet.contactPayloadDirty(this.id)
+      this.payload = await this.puppet.contactPayload(this.id)
+      if (newAlias && newAlias !== this.payload.alias) {
+        log.warn('Contact', 'alias(%s) data got is not same as set', newAlias)
+      }
     } catch (e) {
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
       Raven.captureException(e)
