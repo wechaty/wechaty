@@ -429,7 +429,10 @@ export class Contact extends Accessory implements Sayable {
       await this.puppet.contactPayloadDirty(this.id)
       this.payload = await this.puppet.contactPayload(this.id)
       if (newAlias && newAlias !== this.payload.alias) {
-        log.warn('Contact', 'alias(%s) data got is not same as set', newAlias)
+        log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
+                            newAlias,
+                            this.payload.alias,
+                )
       }
     } catch (e) {
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
