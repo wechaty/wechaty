@@ -328,6 +328,7 @@ export class Message extends Accessory implements Sayable {
   public async say (contact: Contact)                               : Promise<void>
   public async say (file:    FileBox)                               : Promise<void>
 
+  public async say (...args: never[]): Promise<never>
   /**
    * Reply a Text or Media File message to the sender.
    * > Tips:
@@ -578,6 +579,7 @@ export class Message extends Accessory implements Sayable {
    * @description
    * should use {@link Message#mention} instead
    * @deprecated
+   * @private
    */
   public async mentioned (): Promise<Contact[]> {
     log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')

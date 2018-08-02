@@ -2,7 +2,7 @@
 
 import { Wechaty }    from 'wechaty'
 
-function getBotList() {
+function getBotList () {
   return [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
     new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
@@ -16,7 +16,7 @@ function getBotList() {
   ]
 }
 
-async function main() {
+async function main () {
   const botList = getBotList()
   try {
     await Promise.all(
