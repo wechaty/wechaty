@@ -3,7 +3,8 @@
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet.svg)](https://badge.fury.io/js/wechaty-puppet)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet) [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty-puppet.svg)](https://greenkeeper.io/)
+[![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet)
+[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty-puppet.svg)](https://greenkeeper.io/)
 
 ![chatie puppet](https://chatie.io/wechaty-puppet/images/puppet-logo.jpg)
 
@@ -41,8 +42,9 @@ The above puppet is for mocking, and also could be a good starter if you want to
 
 ### Peer Depedence
 
-1. `FileBox` (npm module `file-box`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
-1. `MemoryCard` (npm module `memory-card`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof MemoryCard`, we must be sure all `MemoryCard` is the same version.
+1. `FileBox` (npm module `file-box`) must be a _peerDependencies_, becasue all the Wechaty Framework need to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
+1. `MemoryCard` (npm module `memory-card`) must be a _peerDependencies_, becasue all the Wechaty Framework need to check `instanceof MemoryCard`, we must be sure all `MemoryCard` is the same version.
+1. `Puppet`(npm module `wechaty-puppet`) itself must be a _peer Dependencies_ for all the implmentations, and should only be installed via Wechaty, becasue all Puppet implementataions should share the same Puppet Base Class with Wechaty, we must be sure all `Puppet` is the same version.
 
 ## CODING WITH PUPPET
 
@@ -51,9 +53,9 @@ The above puppet is for mocking, and also could be a good starter if you want to
 You can get to know the puppet start/stop state from the `state` property:
 
 1. `puppet.state.on() === 'pending'` will be true when the puppet is starting
-1. `puppet.state.on() === true` will be true when the puppet is started
-1. `puppet.state.off() === 'pending'` will be true when the puppet is stoping
-1. `puppet.state.off() === true' will be true when the puppet is stopped
+2. `puppet.state.on() === true` will be true when the puppet is started
+3. `puppet.state.off() === 'pending'` will be true when the puppet is stoping
+4. `puppet.state.off() === true' will be true when the puppet is stopped
 
 Learn more about the puppet.state at <https://github.com/zixia/state-switch>
 
