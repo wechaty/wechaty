@@ -71,7 +71,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   public toString () {
     return [
       'RoomInvitation#',
-      this.id
+      this.id || 'loading'
     ].join('')
   }
 

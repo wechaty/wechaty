@@ -151,7 +151,7 @@ export class Message extends Accessory implements Sayable {
    * @private
    */
   public toString () {
-    if (!this.isReady()) {
+    if (!this.payload) {
       return this.constructor.name
     }
 

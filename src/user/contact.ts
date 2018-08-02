@@ -294,9 +294,15 @@ export class Contact extends Accessory implements Sayable {
    * @hidden
    */
   public toString (): string {
-    const identity = this.payload
-      ? this.payload && (this.payload.alias || this.payload.name) || this.id
-      : this.id
+    if (!this.payload) {
+      return this.constructor.name
+    }
+
+    const identity = this.payload.alias
+                    || this.payload.name
+                    || this.id
+                    || 'loading...'
+
     return `Contact<${identity}>`
   }
 
