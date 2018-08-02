@@ -1,18 +1,17 @@
 {
-  "typescript.tsdk": "./node_modules/typescript/lib"
-  , "update.channel": "none"
-, "files.exclude": {
-    "dist/": true
-  , "doc/": true
-  , "node_modules/": true
-  , "package/": true
-}
-, "protoc": {
-  "options": [
+    "typescript.tsdk": "./node_modules/typescript/lib"
+  , "files.exclude": {
+      "dist/": true
+    , "doc/": true
+    , "node_modules/": true
+    , "package/": true
+  }
+  , "protoc": {
+    "options": [
       "--proto_path=protobuf"
-  ]
-}
-, "alignment": {
+    ]
+  }
+  , "alignment": {
       "operatorPadding": "right"
     , "indentBase":      "firstline"
     , "surroundSpace":   {
@@ -26,5 +25,4 @@
   , "eslint.autoFixOnSave": false
   , "tslint.autoFixOnSave": false
   , "editor.formatOnSave": false
-  , "typescript.extension.sortImports.sortOnSave": false
 }
