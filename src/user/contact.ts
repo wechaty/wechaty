@@ -17,8 +17,8 @@
  *
  *   @ignore
  */
-import { instanceToClass } from 'clone-class'
-import { FileBox } from 'file-box'
+import { instanceToClass }  from 'clone-class'
+import { FileBox }          from 'file-box'
 
 import {
   Accessory,
