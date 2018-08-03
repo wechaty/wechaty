@@ -61,7 +61,7 @@
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.1.0",
     "tslint-eslint-rules": "^5.1.0",
-    "typescript": "^2.8.3"
+    "typescript": "^3.0.1"
   },
   "git": {
     "scripts": {
