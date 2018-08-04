@@ -55,6 +55,11 @@ WORKDIR   /wechaty
 
 COPY package.json .
 RUN npm install \
+  && npm install \
+    wechaty-puppet-ioscat \
+    wechaty-puppet-puppeteer \
+    wechaty-puppet-padchat \
+    wechaty-puppet-wechat4u \
   && sudo rm -fr /tmp/* ~/.npm
 
 COPY . .

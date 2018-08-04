@@ -102,6 +102,8 @@ export interface WechatyOptions {
   ioToken?       : string,                  // Io TOKEN
 }
 
+const PUPPET_MEMORY_NAME = 'puppet'
+
 /**
  * Main bot class.
  *
@@ -324,6 +326,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  room-join  - Emit when anyone join any room.
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
+   * @property   {string}  room-invite - Emit when there is a room invitation, see more in  {@link RoomInvitation}
    *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
    * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
    *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
@@ -352,6 +355,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
    * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
+   * @property   {Function} room-invite     -(this: Wechaty, room: Room, leaverList: Contact[]) => void <br>
+   *                                        see more in  {@link RoomInvitation}
    */
 
   /**
@@ -377,35 +382,35 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:scan</caption>
    * // Scan Event will emit when the bot needs to show you a QR Code for scanning
    *
-   * bot.on('scan', (url: string, code: number) => {
+   * bot.on('scan', (url, code) => {
    *   console.log(`[${code}] Scan ${url} to login.` )
    * })
    *
    * @example <caption>Event:login </caption>
    * // Login Event will emit when bot login full successful.
    *
-   * bot.on('login', (user: ContactSelf) => {
+   * bot.on('login', (user) => {
    *   console.log(`user ${user} login`)
    * })
    *
    * @example <caption>Event:logout </caption>
    * // Logout Event will emit when bot detected log out.
    *
-   * bot.on('logout', (user: ContactSelf) => {
+   * bot.on('logout', (user) => {
    *   console.log(`user ${user} logout`)
    * })
    *
    * @example <caption>Event:message </caption>
    * // Message Event will emit when there's a new message.
    *
-   * wechaty.on('message', (message: Message) => {
+   * wechaty.on('message', (message) => {
    *   console.log(`message ${message} received`)
    * })
    *
    * @example <caption>Event:friendship </caption>
    * // Friendship Event will emit when got a new friend request, or friendship is confirmed.
    *
-   * bot.on('friendship', (friendship: Friendship) => {
+   * bot.on('friendship', (friendship) => {
    *   if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
    *     const contact = friendship.contact()
    *     let result = await friendship.accept()
@@ -422,7 +427,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:room-join </caption>
    * // room-join Event will emit when someone join the room.
    *
-   * bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
+   * bot.on('room-join', (room, inviteeList, inviter) => {
    *   const nameList = inviteeList.map(c => c.name()).join(',')
    *   console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
    * })
@@ -430,7 +435,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:room-leave </caption>
    * // room-leave Event will emit when someone leave the room.
    *
-   * bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
+   * bot.on('room-leave', (room, leaverList) => {
    *   const nameList = leaverList.map(c => c.name()).join(',')
    *   console.log(`Room ${room.topic()} lost member ${nameList}`)
    * })
@@ -438,9 +443,21 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:room-topic </caption>
    * // room-topic Event will emit when someone change the room's topic.
    *
-   * bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
+   * bot.on('room-topic', (room, topic, oldTopic, changer) => {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
+   *
+   * @example <caption>Event:room-invite, RoomInvitation has been encapsulated as a RoomInvitation Class. </caption>
+   * // room-invite Event will emit when there's an room invitation.
+   *
+   * bot.on('room-invite', async roomInvitation => {
+   *   try {
+   *     console.log(`received room-invite event.`)
+   *     await roomInvitation.accept()
+   *   } catch (e) {
+   *     console.error(e)
+   *   }
+   * }
    *
    * @example <caption>Event:error </caption>
    * // error Event will emit when there's an error occurred.
@@ -533,7 +550,7 @@ export class Wechaty extends Accessory implements Sayable {
     }
 
     const puppet       = this.options.puppet || config.systemPuppetName()
-    const puppetMemory = this.memory.sub(puppet.toString())
+    const puppetMemory = this.memory.sub(PUPPET_MEMORY_NAME)
 
     const puppetInstance = await PuppetManager.resolve({
       puppet,
@@ -728,6 +745,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @desc
    * use {@link Wechaty#start} instead
    * @deprecated
+   * @private
    */
   public async init (): Promise<void> {
     log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
@@ -910,6 +928,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @description
    * Should use {@link Wechaty#userSelf} instead
    * @deprecated Use `userSelf()` instead
+   * @private
    */
   public self (): Contact {
     log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
@@ -929,6 +948,12 @@ export class Wechaty extends Accessory implements Sayable {
     const user = this.ContactSelf.load(userId)
     return user
   }
+
+  public async say (text: string)     : Promise<void>
+  public async say (contact: Contact) : Promise<void>
+  public async say (file: FileBox)    : Promise<void>
+
+  public async say (...args: never[]): Promise<never>
 
   /**
    * Send message to userSelf, in other words, bot send message to itself.
@@ -960,9 +985,10 @@ export class Wechaty extends Accessory implements Sayable {
    *
    * // 4. send Image to bot itself from local file
    * import { FileBox }  from 'file-box'
-   * const fileBox = FileBox.fromLocal('/tmp/text.jpg')
+   * const fileBox = FileBox.fromFile('/tmp/text.jpg')
    * await bot.say(fileBox)
    */
+
   public async say (textOrContactOrFile: string | Contact | FileBox): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', textOrContactOrFile)
 
