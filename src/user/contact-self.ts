@@ -115,4 +115,21 @@ export class ContactSelf extends Contact {
     return qrcodeData
   }
 
+  public async setName (name: string): Promise<boolean> {
+    log.verbose('Contact-self', 'setName()')
+    if (this.id !== this.puppet.selfId()) {
+      throw new Error('only can set name for user self')
+    }
+
+    return this.puppet.contactSelfName(name)
+  }
+
+  public async signature (signature: string): Promise<boolean> {
+    log.verbose('Contact-self', 'signature()')
+    if (this.id !== this.puppet.selfId()) {
+      throw new Error('only can change signature for user self')
+    }
+
+    return this.puppet.contactSelfSignature(signature)
+  }
 }
