@@ -299,10 +299,11 @@ export class Room extends Accessory implements Sayable {
    * @private
    */
   public toString () {
-    if (this.payload && this.payload.topic) {
-      return `Room<${this.payload.topic}>`
+    if (!this.payload) {
+      return this.constructor.name
     }
-    return `Room<${this.id || ''}>`
+
+    return `Room<${this.payload.topic || 'loadind...'}>`
   }
 
   public async *[Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {

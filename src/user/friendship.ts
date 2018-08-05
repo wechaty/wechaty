@@ -180,6 +180,7 @@ export class Friendship extends Accessory implements Acceptable {
     if (!this.payload) {
       return this.constructor.name
     }
+
     return [
       'Friendship#',
       FriendshipType[this.payload.type],
