@@ -67,9 +67,12 @@ export class IoClient {
     this.state.on('pending')
 
     try {
-      await this.initIo()
+
+      await this.startIo()
       await this.hookWechaty(this.options.wechaty)
+
       this.state.on(true)
+
     } catch (e) {
       log.error('IoClient', 'init() exception: %s', e.message)
       this.state.off(true)
@@ -96,11 +99,11 @@ export class IoClient {
     return
   }
 
-  private async initIo (): Promise<void> {
-    log.verbose('IoClient', 'initIo() with token %s', this.options.token)
+  private async startIo (): Promise<void> {
+    log.verbose('IoClient', 'startIo() with token %s', this.options.token)
 
     if (this.state.off()) {
-      const e = new Error('initIo() state.off() is true, skipped')
+      const e = new Error('startIo() state.off() is true, skipped')
       log.warn('IoClient', e.message)
       throw e
     }
@@ -108,7 +111,7 @@ export class IoClient {
     try {
       await this.io.start()
     } catch (e) {
-      log.verbose('IoClient', 'initIo() init fail: %s', e.message)
+      log.verbose('IoClient', 'startIo() init fail: %s', e.message)
       throw e
     }
 
