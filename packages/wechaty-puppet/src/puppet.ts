@@ -471,6 +471,8 @@ export abstract class Puppet extends EventEmitter {
   public abstract async contactList ()                   : Promise<string[]>
 
   public abstract async contactQrcode (contactId: string) : Promise<string /*QR Code Value*/>
+  public abstract async contactSelfName (newName: string) : Promise<boolean>
+  public abstract async contactSelfSignature (signature: string) : Promise<boolean>
 
   protected abstract async contactRawPayload (contactId: string)     : Promise<any>
   protected abstract async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
