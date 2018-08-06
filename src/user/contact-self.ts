@@ -111,8 +111,65 @@ export class ContactSelf extends Contact {
       throw new Error('only can get qrcode for the login userself')
     }
 
-    const qrcodeData = await this.puppet.contactQrcode(this.id)
-    return qrcodeData
+    const qrcodeValue = await this.puppet.contactSelfQrcode()
+    return qrcodeValue
   }
 
+  /**
+   * Change bot name
+   *
+   * @param name The new name that the bot will change to
+   *
+   * @example
+   * bot.on('login', async user => {
+   *   console.log(`user ${user} login`)
+   *   const oldName = user.name()
+   *   try {
+   *     await user.setName(`${oldName}-${new Date().getTime()}`)
+   *   } catch (e) {
+   *     console.error('change name failed', e)
+   *   }
+   * })
+   */
+  public name (): string
+  public name (name: string): Promise<void>
+
+  public name (name?: string): string | Promise<void> {
+    log.verbose('ContactSelf', 'name(%s)', name)
+
+    if (typeof name === 'undefined') {
+      return super.name()
+    }
+
+    if (this.id !== this.puppet.selfId()) {
+      throw new Error('only can set name for user self')
+    }
+
+    return this.puppet.contactSelfName(name)
+  }
+
+  /**
+   * Change bot signature
+   *
+   * @param signature The new signature that the bot will change to
+   *
+   * @example
+   * bot.on('login', async user => {
+   *   console.log(`user ${user} login`)
+   *   try {
+   *     await user.signature(`Signature changed by wechaty on ${new Date()}`)
+   *   } catch (e) {
+   *     console.error('change signature failed', e)
+   *   }
+   * })
+   */
+  public async signature (signature: string): Promise<void> {
+    log.verbose('ContactSelf', 'signature()')
+
+    if (this.id !== this.puppet.selfId()) {
+      throw new Error('only can change signature for user self')
+    }
+
+    return this.puppet.contactSelfSignature(signature)
+  }
 }
