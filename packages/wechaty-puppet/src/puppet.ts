@@ -459,6 +459,15 @@ export abstract class Puppet extends EventEmitter {
 
   /**
    *
+   * ContactSelf
+   *
+   */
+  public abstract async contactSelfQrcode ()                     : Promise<string /*QR Code Value*/>
+  public abstract async contactSelfName (name: string)           : Promise<void>
+  public abstract async contactSelfSignature (signature: string) : Promise<void>
+
+  /**
+   *
    * Contact
    *
    */
@@ -469,10 +478,6 @@ export abstract class Puppet extends EventEmitter {
   public abstract async contactAvatar (contactId: string, file: FileBox) : Promise<void>
 
   public abstract async contactList ()                   : Promise<string[]>
-
-  public abstract async contactQrcode (contactId: string) : Promise<string /*QR Code Value*/>
-  public abstract async contactSelfName (newName: string) : Promise<void>
-  public abstract async contactSelfSignature (signature: string) : Promise<void>
 
   protected abstract async contactRawPayload (contactId: string)     : Promise<any>
   protected abstract async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
