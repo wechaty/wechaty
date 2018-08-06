@@ -558,7 +558,7 @@ export class Wechaty extends Accessory implements Sayable {
     }
 
     const puppet       = this.options.puppet || config.systemPuppetName()
-    const puppetMemory = this.memory.sub(PUPPET_MEMORY_NAME)
+    const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
     const puppetInstance = await PuppetManager.resolve({
       puppet,
