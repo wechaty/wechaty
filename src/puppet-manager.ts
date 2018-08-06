@@ -77,7 +77,7 @@ export class PuppetManager {
     await this.checkModule(puppetName)
 
     const puppetModule = await import(puppetName)
-    const MyPuppet = puppetModule.default as PuppetImplementation
+    const MyPuppet     = puppetModule.default as PuppetImplementation
 
     return MyPuppet
   }
