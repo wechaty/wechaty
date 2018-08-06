@@ -111,8 +111,8 @@ export class ContactSelf extends Contact {
       throw new Error('only can get qrcode for the login userself')
     }
 
-    const qrcodeData = await this.puppet.contactQrcode(this.id)
-    return qrcodeData
+    const qrcodeValue = await this.puppet.contactSelfQrcode()
+    return qrcodeValue
   }
 
   /**
@@ -131,8 +131,16 @@ export class ContactSelf extends Contact {
    *   }
    * })
    */
-  public async setName (name: string): Promise<boolean> {
-    log.verbose('ContactSelf', 'setName()')
+  public name (): string
+  public name (name: string): Promise<void>
+
+  public name (name?: string): string | Promise<void> {
+    log.verbose('ContactSelf', 'name(%s)', name)
+
+    if (typeof name === 'undefined') {
+      return super.name()
+    }
+
     if (this.id !== this.puppet.selfId()) {
       throw new Error('only can set name for user self')
     }
@@ -155,8 +163,9 @@ export class ContactSelf extends Contact {
    *   }
    * })
    */
-  public async signature (signature: string): Promise<boolean> {
+  public async signature (signature: string): Promise<void> {
     log.verbose('ContactSelf', 'signature()')
+
     if (this.id !== this.puppet.selfId()) {
       throw new Error('only can change signature for user self')
     }
