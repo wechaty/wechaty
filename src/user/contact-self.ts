@@ -115,8 +115,24 @@ export class ContactSelf extends Contact {
     return qrcodeData
   }
 
+  /**
+   * Change bot name
+   *
+   * @param name The new name that the bot will change to
+   *
+   * @example
+   * bot.on('login', async user => {
+   *   console.log(`user ${user} login`)
+   *   const oldName = user.name()
+   *   try {
+   *     await user.setName(`${oldName}-${new Date().getTime()}`)
+   *   } catch (e) {
+   *     console.error('change name failed', e)
+   *   }
+   * })
+   */
   public async setName (name: string): Promise<boolean> {
-    log.verbose('Contact-self', 'setName()')
+    log.verbose('ContactSelf', 'setName()')
     if (this.id !== this.puppet.selfId()) {
       throw new Error('only can set name for user self')
     }
@@ -124,8 +140,23 @@ export class ContactSelf extends Contact {
     return this.puppet.contactSelfName(name)
   }
 
+  /**
+   * Change bot signature
+   *
+   * @param signature The new signature that the bot will change to
+   *
+   * @example
+   * bot.on('login', async user => {
+   *   console.log(`user ${user} login`)
+   *   try {
+   *     await user.signature(`Signature changed by wechaty on ${new Date()}`)
+   *   } catch (e) {
+   *     console.error('change signature failed', e)
+   *   }
+   * })
+   */
   public async signature (signature: string): Promise<boolean> {
-    log.verbose('Contact-self', 'signature()')
+    log.verbose('ContactSelf', 'signature()')
     if (this.id !== this.puppet.selfId()) {
       throw new Error('only can change signature for user self')
     }
