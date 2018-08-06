@@ -55,6 +55,16 @@ class PuppetTest extends Puppet {
 
   /**
    *
+   * ContactSelf
+   *
+   *
+   */
+  public async contactSelfQrcode ()                     : Promise<string> { return '' }
+  public async contactSelfName (name: string)           : Promise<void> { return }
+  public async contactSelfSignature (signature: string) : Promise<void> { return }
+
+  /**
+   *
    * Contact
    *
    */
@@ -67,7 +77,6 @@ class PuppetTest extends Puppet {
   public async contactAvatar (contactId: string, file?: FileBox) : Promise<void | FileBox> { return { contactId, file } as any }
 
   public async contactList ()                    : Promise<string[]> { return {} as any }
-  public async contactQrcode (contactId: string) : Promise<string> { return { contactId } as any }
 
   public async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload> { return { rawPayload } as any }
