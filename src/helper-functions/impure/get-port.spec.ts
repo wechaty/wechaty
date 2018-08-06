@@ -21,7 +21,8 @@
 import test  from 'blue-tape'
 
 // import http      from 'http'
-import express   from 'express'
+// import express   from 'express'
+import net from 'net'
 
 import { getPort } from './get-port'
 
@@ -35,11 +36,14 @@ test('getPort() for an available socket port', async t => {
 
   while (ttl-- > 0) {
     try {
-      const app = express()
-      const server = app.listen(port)
+      const server = net.createServer(socket => {
+        console.log(socket)
+      })
+      server.listen(port, '127.0.0.1')
+      serverList.push(server)
+
       port = await getPort(PORT)
 
-      serverList.push(server)
     } catch (e) {
       t.fail('should not exception: ' + e.message + ', ' + e.stack)
     }
