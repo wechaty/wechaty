@@ -96,10 +96,11 @@ export const WECHATY_EVENT_DICT = {
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  profile?       : null | string,           // Wechaty Name
-  puppet?        : PuppetName | Puppet,     // Puppet name or instance
-  puppetOptions? : PuppetOptions,           // Puppet TOKEN
-  ioToken?       : string,                  // Io TOKEN
+  memory?        : MemoryCard,
+  profile?       : null | string,         // Wechaty Name
+  puppet?        : PuppetName | Puppet,   // Puppet name or instance
+  puppetOptions? : PuppetOptions,         // Puppet TOKEN
+  ioToken?       : string,                // Io TOKEN
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'
@@ -235,7 +236,14 @@ export class Wechaty extends Accessory implements Sayable {
                       : (options.profile || config.default.DEFAULT_PROFILE)
 
     this.id     = cuid()
-    this.memory = new MemoryCard(options.profile || undefined)
+
+    this.memory = options.memory
+      ? options.memory
+      : new MemoryCard(
+          options.profile
+          ? { name: options.profile }
+          : undefined,
+        )
 
     this.state      = new StateSwitch('Wechaty', log)
     this.readyState = new StateSwitch('WechatyReady', log)
@@ -269,7 +277,7 @@ export class Wechaty extends Accessory implements Sayable {
       'Wechaty#',
       this.id,
       `<${this.options && this.options.puppet || ''}>`,
-      `(${this.memory  && this.memory.name    || ''})`,
+      `(${this.memory.options && this.memory.options.name || ''})`,
     ].join('')
   }
 
