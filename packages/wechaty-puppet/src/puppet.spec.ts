@@ -69,8 +69,8 @@ class PuppetTest extends Puppet {
   public async contactList ()                    : Promise<string[]> { return {} as any }
   public async contactQrcode (contactId: string) : Promise<string> { return { contactId } as any }
 
-  public async contactSelfName (newName: string) : Promise<boolean> { return true }
-  public async contactSelfSignature (signature: string) : Promise<boolean> { return true }
+  public async contactSelfName (newName: string) : Promise<void> { return }
+  public async contactSelfSignature (signature: string) : Promise<void> { return }
 
   public async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload> { return { rawPayload } as any }
