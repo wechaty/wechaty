@@ -587,6 +587,21 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
+   * Check if a message is mentioned me.
+   *
+   * @returns {boolean} - Return `true` for mentioned me.
+   * @example
+   * if (message.isMentionedMe()) {
+   *  console.log('this message is mentioned me! [You were mentioned] tip ([有人@我]的提示)')
+   * }
+   */
+  public async isMentionedMe (msg: Message): boolean {
+    const userId = this.puppet.selfId()
+    const mentionList = await msg.metion()
+    return mentionList.some(contact => contact.id === userId)
+  }
+
+  /**
    * @private
    */
   public isReady (): boolean {
