@@ -277,7 +277,7 @@ export class Wechaty extends Accessory implements Sayable {
       'Wechaty#',
       this.id,
       `<${this.options && this.options.puppet || ''}>`,
-      `(${this.memory.options && this.memory.options.name || ''})`,
+      `(${this.memory.name || ''})`,
     ].join('')
   }
 
