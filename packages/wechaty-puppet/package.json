@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.11.3",
+  "version": "0.11.4",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -50,7 +50,7 @@
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
     "markdownlint-cli": "^0.12.0",
-    "memory-card": "^0.4.5",
+    "memory-card": "^0.5.1",
     "shx": "^0.3.1",
     "sinon": "^6.0.1",
     "ts-node": "^7.0.0",
@@ -66,7 +66,7 @@
     }
   },
   "peerDependencies": {
-    "memory-card": "^0.4.5",
+    "memory-card": "^0.5.1",
     "file-box": "^0.8.22"
   },
   "dependencies": {

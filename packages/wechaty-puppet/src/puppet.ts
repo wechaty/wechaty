@@ -228,7 +228,7 @@ export abstract class Puppet extends EventEmitter {
       this.constructor.name,
       '>',
       '(',
-      this.memory.name || '',
+      this.memory.options && this.memory.options.name || '',
       ')',
     ].join('')
   }
@@ -249,8 +249,8 @@ export abstract class Puppet extends EventEmitter {
   public setMemory (memory: MemoryCard): void {
     log.verbose('Puppet', 'setMemory()')
 
-    if (this.memory.name) {
-      throw new Error('puppet has already had a memory with name set: ' + this.memory.name)
+    if (this.memory.options && this.memory.options.name) {
+      throw new Error('puppet has already had a memory with name set: ' + this.memory.options.name)
     }
 
     this.memory = memory
