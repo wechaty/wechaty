@@ -75,10 +75,10 @@ interface IoEventAny {
 type IoEvent = IoEventScan | IoEventAny
 
 export class Io {
-  private readonly cuid     : string
+  private readonly id       : string
   private readonly protocol : string
-  private eventBuffer : IoEvent[] = []
-  private ws          : undefined | WebSocket
+  private eventBuffer       : IoEvent[] = []
+  private ws                : undefined | WebSocket
 
   private readonly state = new StateSwitch('Io', log)
 
@@ -97,14 +97,14 @@ export class Io {
     options.apihost   = options.apihost   || config.apihost
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
-    this.cuid = options.wechaty.id
+    this.id = options.wechaty.id
 
     this.protocol = options.protocol + '|' + options.wechaty.id
     log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], cuid[%s]',
                       options.apihost,
                       options.token,
                       options.protocol,
-                      this.cuid,
+                      this.id,
               )
   }
 
@@ -161,7 +161,7 @@ export class Io {
     const wechaty = this.options.wechaty
 
     wechaty.on('error'    , error =>        this.send({ name: 'error',      payload: error }))
-    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.cuid, data } }))
+    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
     wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
     wechaty.on('logout' ,   user =>         this.send({ name: 'logout',     payload: user }))
     wechaty.on('message',   message =>      this.ioMessage(message))
@@ -169,56 +169,6 @@ export class Io {
     // FIXME: payload schema need to be defined universal
     // wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
     wechaty.on('scan',      (qrcode, status) =>  this.send({ name: 'scan',  payload: { qrcode, status } } as IoEventScan ))
-
-    // const hookEvents: WechatyEventName[] = [
-    //   'scan'
-    //   , 'login'
-    //   , 'logout'
-    //   , 'heartbeat'
-    //   , 'error'
-    // ]
-    // hookEvents.map(event => {
-    //   wechaty.on(event, (data) => {
-    //     const ioEvent: IoEvent = {
-    //       name:       event
-    //       , payload:  data
-    //     }
-
-    //     switch (event) {
-    //       case 'login':
-    //       case 'logout':
-    //         if (data instanceof Contact) {
-    //           // ioEvent.payload = data.obj
-    //           ioEvent.payload = data
-    //         }
-    //         break
-
-    //       case 'error':
-    //         ioEvent.payload = data.toString()
-    //         break
-
-        //   case 'heartbeat':
-        //     ioEvent.payload = {
-        //       cuid: this.cuid
-        //       , data: data
-        //     }
-        //     break
-
-        //   default:
-        //     break
-        // }
-
-    //     this.send(ioEvent)
-    //   })
-    // })
-
-    // wechaty.on('message', m => {
-    //   const text = (m.room() ? '[' + m.room().topic() + ']' : '')
-    //               + '<' + m.from().name() + '>'
-    //               + ':' + m.toStringDigest()
-
-    //   this.send({ name: 'message', payload:  text })
-    // })
 
     return
   }
@@ -273,7 +223,7 @@ export class Io {
     this.reconnectTimeout = undefined
 
     const name    = 'sys'
-    const payload = 'Wechaty version ' + this.options.wechaty.version() + ` with CUID: ${this.cuid}`
+    const payload = 'Wechaty version ' + this.options.wechaty.version() + ` with CUID: ${this.id}`
 
     const initEvent: IoEvent = {
       name,
