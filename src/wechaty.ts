@@ -283,7 +283,7 @@ export class Wechaty extends Accessory implements Sayable {
       'Wechaty#',
       this.id,
       `<${this.options && this.options.puppet || ''}>`,
-      `(${this.memory.options && this.memory.options.name || ''})`,
+      `(${this.memory.name || ''})`,
     ].join('')
   }
 
@@ -337,6 +337,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  heartbeat  - Get bot's heartbeat.
    * @property   {string}  friend     - When someone sends you a friend request, there will be a Wechaty friend event fired.
    * @property   {string}  message    - Emit when there's a new message.
+   * @property   {string}  ready      - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
    * @property   {string}  room-join  - Emit when anyone join any room.
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
@@ -366,6 +367,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
    * @property   {Function} friendship      -(this: Wechaty, friendship: Friendship) => void
    * @property   {Function} message         -(this: Wechaty, message: Message) => void
+   * @property   {Function} ready           -(this: Wechaty) => void
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
    * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
