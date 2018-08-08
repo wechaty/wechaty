@@ -25,6 +25,7 @@
     "lint:md": "markdownlint README.md",
     "lint:ts": "tslint --project tsconfig.json && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
+    "puppet-install": "ts-node bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "ts-node": "ts-node",
     "test": "npm run lint && npm run test:unit && npm run test:shell && npm run sloc",
