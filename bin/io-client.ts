@@ -57,7 +57,7 @@ log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
 const client = new IoClient({
   token,
-  wechaty: new Wechaty({ profile: token }),
+  wechaty: new Wechaty({ name: token }),
 })
 
 client.start()

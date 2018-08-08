@@ -97,7 +97,8 @@ export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
-  profile?       : null | string,         // Wechaty Name
+  name?          : null | string,         // Wechaty Name
+  profile?       : null | string,         // DEPRECATED: use name instead
   puppet?        : PuppetName | Puppet,   // Puppet name or instance
   puppetOptions? : PuppetOptions,         // Puppet TOKEN
   ioToken?       : string,                // Io TOKEN
@@ -231,17 +232,22 @@ export class Wechaty extends Accessory implements Sayable {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    options.profile = options.profile === null
-                      ? null
-                      : (options.profile || config.default.DEFAULT_PROFILE)
+    if (!options.name && options.profile) {
+      log.verbose('Wechaty', 'constuctor() WechatyOptions.profile DEPRECATED. use WechatyOptions.name instead.')
+      options.name = options.profile
+    }
 
-    this.id     = cuid()
+    options.name = options.name === null
+                    ? null
+                    : (options.name || config.default.DEFAULT_PROFILE)
+
+    this.id = cuid()
 
     this.memory = options.memory
       ? options.memory
       : new MemoryCard(
-          options.profile
-          ? { name: options.profile }
+          options.name
+          ? { name: options.name }
           : undefined,
         )
 
@@ -776,7 +782,7 @@ export class Wechaty extends Accessory implements Sayable {
                         this.version(),
             )
     log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
-    log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
+    log.verbose('Wechaty', 'profile: %s'  , this.options.name)
     log.verbose('Wechaty', 'id: %s'       , this.id)
 
     if (this.state.on()) {
