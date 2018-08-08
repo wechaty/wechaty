@@ -68,7 +68,7 @@ import {
   Io,
 }                       from './io'
 import {
-  PuppetName,
+  PuppetModuleName,
 }                       from './puppet-config'
 import {
   PuppetManager,
@@ -99,7 +99,7 @@ export interface WechatyOptions {
   memory?        : MemoryCard,
   name?          : null | string,         // Wechaty Name
   profile?       : null | string,         // DEPRECATED: use name instead
-  puppet?        : PuppetName | Puppet,   // Puppet name or instance
+  puppet?        : PuppetModuleName | Puppet,   // Puppet name or instance
   puppetOptions? : PuppetOptions,         // Puppet TOKEN
   ioToken?       : string,                // Io TOKEN
 }
@@ -216,7 +216,7 @@ export class Wechaty extends Accessory implements Sayable {
    *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
    *          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>
    *          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js`
-   * @property   {PuppetName | Puppet}    puppet             -Puppet name or instance
+   * @property   {PuppetModuleName | Puppet}    puppet             -Puppet name or instance
    * @property   {Partial<PuppetOptions>} puppetOptions      -Puppet TOKEN
    * @property   {string}                 ioToken            -Io TOKEN
    */

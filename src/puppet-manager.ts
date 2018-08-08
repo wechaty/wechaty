@@ -17,7 +17,7 @@ import {
 import {
   PUPPET_DEFAULT,
   PUPPET_DEPENDENCIES,
-  PuppetName,
+  PuppetModuleName,
 }                       from './puppet-config'
 import {
   Wechaty,
@@ -25,7 +25,7 @@ import {
 
 export interface ResolveOptions {
   wechaty        : Wechaty,
-  puppet         : Puppet | PuppetName,
+  puppet         : Puppet | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
 
@@ -71,7 +71,7 @@ export class PuppetManager {
     return puppetInstance
   }
 
-  protected static async resolveName (puppetName: PuppetName): Promise<PuppetImplementation> {
+  protected static async resolveName (puppetName: PuppetModuleName): Promise<PuppetImplementation> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
     await this.checkModule(puppetName)
@@ -82,7 +82,7 @@ export class PuppetManager {
     return MyPuppet
   }
 
-  protected static async checkModule (puppetName: PuppetName): Promise<void> {
+  protected static async checkModule (puppetName: PuppetModuleName): Promise<void> {
     log.verbose('PuppetManager', 'checkModule(%s)', puppetName)
 
     const versionRange = PUPPET_DEPENDENCIES[puppetName]
@@ -177,4 +177,23 @@ export class PuppetManager {
     log.info('PuppetManager', 'install(%s@%s) done', puppetModule, puppetVersion)
   }
 
+  public static async installAll (): Promise<void> {
+    log.info('PuppetManager', 'installAll() please wait ...')
+
+    for (const puppetModuleName of Object.keys(PUPPET_DEPENDENCIES)) {
+      const version = PUPPET_DEPENDENCIES[puppetModuleName as any as PuppetModuleName]
+      if (version === '0.0.0') {
+        continue
+      }
+
+      await npm.install(
+        `${puppetModuleName}@${version}`,
+        {
+          cwd    : await pkgDir(__dirname),
+          output : true,
+          save   : false,
+        },
+      )
+    }
+  }
 }

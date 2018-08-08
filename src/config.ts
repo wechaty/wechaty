@@ -33,7 +33,7 @@ import {
 }                 from 'file-box'
 
 import {
-  PuppetName,
+  PuppetModuleName,
 }                 from './puppet-config'
 
 // https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
@@ -119,10 +119,10 @@ export class Config {
   public apihost = process.env.WECHATY_APIHOST    || DEFAULT_SETTING.DEFAULT_APIHOST
   public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env.WECHATY_HEAD) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
 
-  public systemPuppetName (): PuppetName {
+  public systemPuppetName (): PuppetModuleName {
     return (
       process.env.WECHATY_PUPPET || 'default'
-    ).toLowerCase() as PuppetName
+    ).toLowerCase() as PuppetModuleName
   }
 
   public profile = process.env.WECHATY_PROFILE    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
