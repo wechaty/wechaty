@@ -597,7 +597,7 @@ export class Message extends Accessory implements Sayable {
    */
   public async isMentionedMe (msg: Message): boolean {
     const userId = this.puppet.selfId()
-    const mentionList = await msg.metion()
+    const mentionList = await msg.mention()
     return mentionList.some(contact => contact.id === userId)
   }
 
