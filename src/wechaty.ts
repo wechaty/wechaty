@@ -631,6 +631,7 @@ export class Wechaty extends Accessory implements Sayable {
             const contact = this.ContactSelf.load(contactId)
             await contact.ready()
             this.emit('login', contact)
+            await this.memory.save()
           })
           break
 
@@ -639,6 +640,7 @@ export class Wechaty extends Accessory implements Sayable {
             const contact = this.ContactSelf.load(contactId)
             await contact.ready()
             this.emit('logout', contact)
+            await this.memory.save()
           })
           break
 

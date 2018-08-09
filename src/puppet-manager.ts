@@ -180,20 +180,23 @@ export class PuppetManager {
   public static async installAll (): Promise<void> {
     log.info('PuppetManager', 'installAll() please wait ...')
 
+    const moduleList: string[] = []
+
     for (const puppetModuleName of Object.keys(PUPPET_DEPENDENCIES)) {
       const version = PUPPET_DEPENDENCIES[puppetModuleName as any as PuppetModuleName]
-      if (version === '0.0.0') {
-        continue
+      if (version !== '0.0.0') {
+        moduleList.push(`${puppetModuleName}@${version}`)
       }
-
-      await npm.install(
-        `${puppetModuleName}@${version}`,
-        {
-          cwd    : await pkgDir(__dirname),
-          output : true,
-          save   : false,
-        },
-      )
     }
+
+    await npm.install(
+      moduleList,
+      {
+        cwd    : await pkgDir(__dirname),
+        output : true,
+        save   : false,
+      },
+    )
+
   }
 }
