@@ -135,7 +135,7 @@ export class ContactSelf extends Contact {
   public name (name: string): Promise<void>
 
   public name (name?: string): string | Promise<void> {
-    log.verbose('ContactSelf', 'name(%s)', name)
+    log.verbose('ContactSelf', 'name(%s)', name || '')
 
     if (typeof name === 'undefined') {
       return super.name()
