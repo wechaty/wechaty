@@ -32,7 +32,7 @@ import { generate } from 'qrcode-terminal'
  *
  */
 const bot = new Wechaty({
-  profile : config.default.DEFAULT_PROFILE,
+  name : config.default.DEFAULT_PROFILE,
 })
 
 /**

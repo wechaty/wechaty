@@ -14,4 +14,4 @@ export const PUPPET_DEPENDENCIES = {
 
 export const PUPPET_DEFAULT = 'wechaty-puppet-puppeteer'
 
-export type PuppetName = keyof typeof PUPPET_DEPENDENCIES
+export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES

@@ -68,7 +68,7 @@ import {
   Io,
 }                       from './io'
 import {
-  PuppetName,
+  PuppetModuleName,
 }                       from './puppet-config'
 import {
   PuppetManager,
@@ -97,8 +97,9 @@ export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
-  profile?       : null | string,         // Wechaty Name
-  puppet?        : PuppetName | Puppet,   // Puppet name or instance
+  name?          : null | string,         // Wechaty Name
+  profile?       : null | string,         // DEPRECATED: use name instead
+  puppet?        : PuppetModuleName | Puppet,   // Puppet name or instance
   puppetOptions? : PuppetOptions,         // Puppet TOKEN
   ioToken?       : string,                // Io TOKEN
 }
@@ -215,7 +216,7 @@ export class Wechaty extends Accessory implements Sayable {
    *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
    *          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>
    *          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js`
-   * @property   {PuppetName | Puppet}    puppet             -Puppet name or instance
+   * @property   {PuppetModuleName | Puppet}    puppet             -Puppet name or instance
    * @property   {Partial<PuppetOptions>} puppetOptions      -Puppet TOKEN
    * @property   {string}                 ioToken            -Io TOKEN
    */
@@ -231,17 +232,22 @@ export class Wechaty extends Accessory implements Sayable {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    options.profile = options.profile === null
-                      ? null
-                      : (options.profile || config.default.DEFAULT_PROFILE)
+    if (!options.name && options.profile) {
+      log.verbose('Wechaty', 'constuctor() WechatyOptions.profile DEPRECATED. use WechatyOptions.name instead.')
+      options.name = options.profile
+    }
 
-    this.id     = cuid()
+    options.name = options.name === null
+                    ? null
+                    : (options.name || config.default.DEFAULT_PROFILE)
+
+    this.id = cuid()
 
     this.memory = options.memory
       ? options.memory
       : new MemoryCard(
-          options.profile
-          ? { name: options.profile }
+          options.name
+          ? { name: options.name }
           : undefined,
         )
 
@@ -331,6 +337,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  heartbeat  - Get bot's heartbeat.
    * @property   {string}  friend     - When someone sends you a friend request, there will be a Wechaty friend event fired.
    * @property   {string}  message    - Emit when there's a new message.
+   * @property   {string}  ready      - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
    * @property   {string}  room-join  - Emit when anyone join any room.
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
@@ -360,6 +367,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
    * @property   {Function} friendship      -(this: Wechaty, friendship: Friendship) => void
    * @property   {Function} message         -(this: Wechaty, message: Message) => void
+   * @property   {Function} ready           -(this: Wechaty) => void
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
    * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
@@ -778,7 +786,7 @@ export class Wechaty extends Accessory implements Sayable {
                         this.version(),
             )
     log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
-    log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
+    log.verbose('Wechaty', 'profile: %s'  , this.options.name)
     log.verbose('Wechaty', 'id: %s'       , this.id)
 
     if (this.state.on()) {
