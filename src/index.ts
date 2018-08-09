@@ -25,6 +25,7 @@ export {
   Moment,
   Money,
   Room,
+  RoomInvitation,
 }                         from './user'
 
 export {
