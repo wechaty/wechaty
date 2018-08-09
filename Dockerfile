@@ -55,10 +55,14 @@ WORKDIR   /wechaty
 
 COPY package.json .
 RUN npm install \
-  && npm run puppet-install \
   && sudo rm -fr /tmp/* ~/.npm
 
 COPY . .
+
+# Pre-Install All Puppets
+RUN npm run puppet-install \
+  && sudo rm -fr /tmp/* ~/.npm
+
 # RUN npm run test:debug
 RUN npm test
 RUN npm run dist
