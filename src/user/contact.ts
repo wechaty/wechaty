@@ -21,8 +21,15 @@ import { instanceToClass }  from 'clone-class'
 import { FileBox }          from 'file-box'
 
 import {
+  ContactGender,
+  ContactPayload,
+  ContactQueryFilter,
+  ContactType,
+}                         from 'wechaty-puppet'
+
+import {
   Accessory,
-}             from '../accessory'
+}                   from '../accessory'
 import {
   log,
   qrCodeForChatie,
@@ -30,14 +37,9 @@ import {
 }                   from '../config'
 import {
   Sayable,
-}             from '../types'
+}                   from '../types'
 
-import {
-  ContactGender,
-  ContactPayload,
-  ContactQueryFilter,
-  ContactType,
-}                         from 'wechaty-puppet'
+import { UrlLink }  from './url-link'
 
 export const POOL = Symbol('pool')
 
@@ -306,15 +308,16 @@ export class Contact extends Accessory implements Sayable {
     return `Contact<${identity}>`
   }
 
-  public async say (text: string): Promise<void>
+  public async say (text: string)     : Promise<void>
   public async say (file: FileBox)    : Promise<void>
   public async say (contact: Contact) : Promise<void>
+  public async say (url: UrlLink)     : Promise<void>
 
   /**
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox)} textOrContactOrFile
+   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrl
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void>}
@@ -340,32 +343,39 @@ export class Contact extends Accessory implements Sayable {
    * const contactCard = bot.Contact.load('contactId')
    * await contact.say(contactCard)
    */
-  public async say (textOrContactOrFile: string | Contact | FileBox): Promise<void> {
-    log.verbose('Contact', 'say(%s)', textOrContactOrFile)
+  public async say (textOrContactOrFileOrUrl: string | Contact | FileBox | UrlLink): Promise<void> {
+    log.verbose('Contact', 'say(%s)', textOrContactOrFileOrUrl)
 
-    if (typeof textOrContactOrFile === 'string') {
+    if (typeof textOrContactOrFileOrUrl === 'string') {
       /**
        * 1. Text
        */
       await this.puppet.messageSendText({
         contactId: this.id,
-      }, textOrContactOrFile)
-    } else if (textOrContactOrFile instanceof Contact) {
+      }, textOrContactOrFileOrUrl)
+    } else if (textOrContactOrFileOrUrl instanceof Contact) {
       /**
        * 2. Contact
        */
       await this.puppet.messageSendContact({
         contactId: this.id,
-      }, textOrContactOrFile.id)
-    } else if (textOrContactOrFile instanceof FileBox) {
+      }, textOrContactOrFileOrUrl.id)
+    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
       /**
        * 3. File
        */
       await this.puppet.messageSendFile({
         contactId: this.id,
-      }, textOrContactOrFile)
+      }, textOrContactOrFileOrUrl)
+    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+      /**
+       * 4. Link Message
+       */
+      await this.puppet.messageSendUrl({
+        contactId : this.id
+      }, textOrContactOrFileOrUrl.payload)
     } else {
-      throw new Error('unsupported')
+      throw new Error('unsupported arg: ' + textOrContactOrFileOrUrl)
     }
   }
 
