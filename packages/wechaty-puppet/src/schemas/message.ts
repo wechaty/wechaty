@@ -67,8 +67,11 @@ export enum WechatMessageType {
 /** @hidden */
 export interface MessagePayloadBase {
   id            : string,
-  contactId?    : string,        // Contact ShareCard
-  filename?     : string,
+
+  // use message id to get rawPayload to get those informations when needed
+  // contactId?    : string,        // Contact ShareCard
+  // filename?     : string,
+
   text?         : string,
   timestamp     : number,        // Unix Timestamp(in seconds)
   type          : MessageType,

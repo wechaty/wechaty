@@ -76,6 +76,9 @@ import {
 import {
   RoomInvitationPayload,
 }                                 from './schemas/room-invitation'
+import {
+  UrlPayload,
+}                                 from './schemas/url'
 
 import {
   PuppetEventName,
@@ -747,11 +750,14 @@ export abstract class Puppet extends EventEmitter {
    * Message
    *
    */
-  public abstract async messageFile (messageId: string)                            : Promise<FileBox>
+  public abstract async messageFile (messageId: string) : Promise<FileBox>
+  public abstract async messageUrl (messageId: string)  : Promise<UrlPayload>
+
   public abstract async messageForward (receiver: Receiver, messageId: string)     : Promise<void>
   public abstract async messageSendText (receiver: Receiver, text: string)         : Promise<void>
   public abstract async messageSendContact (receiver: Receiver, contactId: string) : Promise<void>
   public abstract async messageSendFile (receiver: Receiver, file: FileBox)        : Promise<void>
+  public abstract async messageSendUrl (receiver: Receiver, urlPayload: UrlPayload): Promise<void>
 
   protected abstract async messageRawPayload (messageId: string)     : Promise<any>
   protected abstract async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>

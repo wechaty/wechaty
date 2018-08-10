@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.11.6",
+  "version": "0.13.5",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -58,7 +58,7 @@
     "tslint-config-standard": "^7.1.0",
     "typedoc": "^0.11.1",
     "typedoc-plugin-markdown": "^1.1.13",
-    "typescript": "^2.9.2"
+    "typescript": "^3.0.1"
   },
   "git": {
     "scripts": {
