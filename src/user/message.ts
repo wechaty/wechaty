@@ -47,6 +47,7 @@ import {
 import {
   MessagePayload,
   MessageType,
+  LinkPayload,
 }                 from 'wechaty-puppet'
 
 /**
@@ -327,6 +328,7 @@ export class Message extends Accessory implements Sayable {
   public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
   public async say (contact: Contact)                               : Promise<void>
   public async say (file:    FileBox)                               : Promise<void>
+  public async say (link:    LinkPayload)                           : Promise<void>
 
   public async say (...args: never[]): Promise<never>
   /**
@@ -376,11 +378,11 @@ export class Message extends Accessory implements Sayable {
    * .start()
    */
   public async say (
-    textOrContactOrFile : string | Contact | FileBox,
+    textOrContactOrFileOrLink : string | Contact | FileBox | LinkPayload,
     mention?   : Contact | Contact[],
   ): Promise<void> {
     log.verbose('Message', 'say(%s%s)',
-                            textOrContactOrFile.toString(),
+                            textOrContactOrFileOrLink.toString(),
                             mention
                               ? ', ' + mention
                               : '',
@@ -397,29 +399,37 @@ export class Message extends Accessory implements Sayable {
                             : [mention]
                           : []
 
-    if (typeof textOrContactOrFile === 'string') {
+    if (typeof textOrContactOrFileOrLink === 'string') {
       await this.sayText(
-        textOrContactOrFile,
+        textOrContactOrFileOrLink,
         from || undefined,
         room || undefined,
         mentionList,
       )
-    } else if (textOrContactOrFile instanceof Contact) {
+    } else if (textOrContactOrFileOrLink instanceof Contact) {
       /**
        * Contact Card
        */
       await this.puppet.messageSendContact({
         contactId : from && from.id || undefined,
         roomId    : room && room.id || undefined,
-      }, textOrContactOrFile.id)
-    } else {
+      }, textOrContactOrFileOrLink.id)
+    } else if (textOrContactOrFileOrLink instanceof FileBox) {
       /**
        * File Message
        */
       await this.puppet.messageSendFile({
         contactId : from && from.id || undefined,
         roomId    : room && room.id || undefined,
-      }, textOrContactOrFile)
+      }, textOrContactOrFileOrLink)
+    } else {
+      /**
+       * Link Message
+       */
+      await this.puppet.messageSendLink({
+        contactId : from && from.id || undefined,
+        roomId    : room && room.id || undefined,
+      }, textOrContactOrFileOrLink)
     }
   }
 
@@ -461,6 +471,7 @@ export class Message extends Accessory implements Sayable {
    * - MessageType.Image       </br>
    * - MessageType.Text        </br>
    * - MessageType.Video       </br>
+   * - MessageType.Link        </br>
    * @returns {MessageType}
    *
    * @example
@@ -772,6 +783,23 @@ export class Message extends Accessory implements Sayable {
     // TODO: return the ShareCard Contact
     const contact = this.wechaty.userSelf()
     return contact
+  }
+
+  public linkContent (): LinkPayload {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+    log.verbose('Message', 'appContent()')
+
+    if (this.type() !== Message.Type.Link) {
+      throw new Error('message not a Link')
+    }
+
+    if (!this.payload.linkPayload) {
+      throw new Error(`no app payload for message ${this.id}`)
+    }
+
+    return this.payload.linkPayload
   }
 
 }
