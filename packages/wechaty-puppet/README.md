@@ -60,6 +60,35 @@ You can get to know the puppet start/stop state from the `state` property:
 
 Learn more about the puppet.state at <https://github.com/zixia/state-switch>
 
+### Brolog
+
+Using Brolog to output necessary log messages.
+
+#### Get log from Brolog
+
+```ts
+import { log } from 'brolog'
+```
+
+#### Log Format
+
+```ts
+log.verbose('ModuleName', 'methodName() Your Verbose Message Here')
+log.verbose('ModuleName', 'methodName() Your Silly Message Here')
+```
+
+#### Log Level
+
+Brolog has five log levels, it should be used and follow the following rules:
+
+| Log Level | What does it means | Usage in Puppet |
+| :---      | :---               | :---            |
+| `log.silly()` | There's some detail debug information | Can be used in everywhere as you like |
+| `log.verbose()` | There's some debug information | Should be used at the beginning of every method() |
+| ~~`log.info()`~~ | ~~There's something we need to let user know~~ | ~~Should NEVER to be used because Puppet is Library~~ |
+| `log.warn()` | There's a Coverable Error | **Should not be used** unless we have to |
+| `log.error()` | There's a Un-covered Error | **Should not be used** unless we have to |
+
 ## Resources
 
 ### Pure Function
