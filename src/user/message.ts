@@ -43,11 +43,13 @@ import {
 import {
   Room,
 }                 from './room'
+import {
+  UrlLink,
+}                 from './url-link'
 
 import {
   MessagePayload,
   MessageType,
-  LinkPayload,
 }                 from 'wechaty-puppet'
 
 /**
@@ -181,7 +183,7 @@ export class Message extends Accessory implements Sayable {
       if (!this.payload) {
         throw new Error('no payload')
       }
-      const filename = this.payload.filename
+      // const filename = this.puppet.messagefile payload.filename
       // if (!filename) {
       //   throw new Error(
       //     'no file for message id: ' + this.id
@@ -189,7 +191,7 @@ export class Message extends Accessory implements Sayable {
       //     + '(' + this.payload.type + ')',
       //   )
       // }
-      msgStrList.push(`<${filename || 'unknown file name'}>`)
+      // msgStrList.push(`<${filename || 'unknown file name'}>`)
     }
 
     return msgStrList.join('')
@@ -328,7 +330,7 @@ export class Message extends Accessory implements Sayable {
   public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
   public async say (contact: Contact)                               : Promise<void>
   public async say (file:    FileBox)                               : Promise<void>
-  public async say (link:    LinkPayload)                           : Promise<void>
+  public async say (url:     UrlLink)                               : Promise<void>
 
   public async say (...args: never[]): Promise<never>
   /**
@@ -378,11 +380,11 @@ export class Message extends Accessory implements Sayable {
    * .start()
    */
   public async say (
-    textOrContactOrFileOrLink : string | Contact | FileBox | LinkPayload,
+    textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
     mention?   : Contact | Contact[],
   ): Promise<void> {
     log.verbose('Message', 'say(%s%s)',
-                            textOrContactOrFileOrLink.toString(),
+                            textOrContactOrFileOrUrl,
                             mention
                               ? ', ' + mention
                               : '',
@@ -399,37 +401,39 @@ export class Message extends Accessory implements Sayable {
                             : [mention]
                           : []
 
-    if (typeof textOrContactOrFileOrLink === 'string') {
+    if (typeof textOrContactOrFileOrUrl === 'string') {
       await this.sayText(
-        textOrContactOrFileOrLink,
+        textOrContactOrFileOrUrl,
         from || undefined,
         room || undefined,
         mentionList,
       )
-    } else if (textOrContactOrFileOrLink instanceof Contact) {
+    } else if (textOrContactOrFileOrUrl instanceof Contact) {
       /**
        * Contact Card
        */
       await this.puppet.messageSendContact({
         contactId : from && from.id || undefined,
         roomId    : room && room.id || undefined,
-      }, textOrContactOrFileOrLink.id)
-    } else if (textOrContactOrFileOrLink instanceof FileBox) {
+      }, textOrContactOrFileOrUrl.id)
+    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
       /**
        * File Message
        */
       await this.puppet.messageSendFile({
         contactId : from && from.id || undefined,
         roomId    : room && room.id || undefined,
-      }, textOrContactOrFileOrLink)
-    } else {
+      }, textOrContactOrFileOrUrl)
+    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
       /**
        * Link Message
        */
-      await this.puppet.messageSendLink({
+      await this.puppet.messageSendUrl({
         contactId : from && from.id || undefined,
         roomId    : room && room.id || undefined,
-      }, textOrContactOrFileOrLink)
+      }, textOrContactOrFileOrUrl.payload)
+    } else {
+      throw new Error('unknown msg: ' + textOrContactOrFileOrUrl)
     }
   }
 
@@ -785,21 +789,24 @@ export class Message extends Accessory implements Sayable {
     return contact
   }
 
-  public linkContent (): LinkPayload {
+  public async toUrl (): Promise<UrlLink> {
+    log.verbose('Message', 'toUrl()')
+
     if (!this.payload) {
       throw new Error('no payload')
     }
-    log.verbose('Message', 'appContent()')
 
-    if (this.type() !== Message.Type.Link) {
-      throw new Error('message not a Link')
+    if (this.type() !== Message.Type.Url) {
+      throw new Error('message not a Url Link')
     }
 
-    if (!this.payload.linkPayload) {
-      throw new Error(`no app payload for message ${this.id}`)
+    const urlPayload = await this.puppet.messageUrl(this.id)
+
+    if (!urlPayload) {
+      throw new Error(`no url payload for message ${this.id}`)
     }
 
-    return this.payload.linkPayload
+    return new UrlLink(urlPayload)
   }
 
 }

@@ -81,6 +81,7 @@ import {
   Message,
   Room,
   RoomInvitation,
+  UrlLink,
 }                       from './user/'
 
 export const WECHATY_EVENT_DICT = {
@@ -159,6 +160,7 @@ export class Wechaty extends Accessory implements Sayable {
   public readonly Message       : typeof Message
   public readonly RoomInvitation: typeof RoomInvitation
   public readonly Room          : typeof Room
+  public readonly UrlLink       : typeof UrlLink
 
   /**
    * Get the global instance of Wechaty
@@ -269,6 +271,9 @@ export class Wechaty extends Accessory implements Sayable {
     this.Message        = cloneClass(Message)
     this.Room           = cloneClass(Room)
     this.RoomInvitation = cloneClass(RoomInvitation)
+
+    // No need to set puppet/wechaty, so no need to clone
+    this.UrlLink        = UrlLink
   }
 
   /**
@@ -970,6 +975,7 @@ export class Wechaty extends Accessory implements Sayable {
   public async say (text: string)     : Promise<void>
   public async say (contact: Contact) : Promise<void>
   public async say (file: FileBox)    : Promise<void>
+  public async say (url: UrlLink)     : Promise<void>
 
   public async say (...args: never[]): Promise<never>
 
@@ -978,7 +984,7 @@ export class Wechaty extends Accessory implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox)} textOrContactOrFile
+   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrl
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    *
@@ -1007,18 +1013,20 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.say(fileBox)
    */
 
-  public async say (textOrContactOrFile: string | Contact | FileBox): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', textOrContactOrFile)
+  public async say (textOrContactOrFileOrUrl: string | Contact | FileBox | UrlLink): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', textOrContactOrFileOrUrl)
 
     // Make Typescript Happy:
-    if (typeof textOrContactOrFile === 'string') {
-      await this.userSelf().say(textOrContactOrFile)
-    } else if (textOrContactOrFile instanceof Contact) {
-      await this.userSelf().say(textOrContactOrFile)
-    } else if (textOrContactOrFile instanceof FileBox) {
-      await this.userSelf().say(textOrContactOrFile)
+    if (typeof textOrContactOrFileOrUrl === 'string') {
+      await this.userSelf().say(textOrContactOrFileOrUrl)
+    } else if (textOrContactOrFileOrUrl instanceof Contact) {
+      await this.userSelf().say(textOrContactOrFileOrUrl)
+    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
+      await this.userSelf().say(textOrContactOrFileOrUrl)
+    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+      await this.userSelf().say(textOrContactOrFileOrUrl)
     } else {
-      throw new Error('unsupported')
+      throw new Error('unsupported: ' + textOrContactOrFileOrUrl)
     }
   }
 

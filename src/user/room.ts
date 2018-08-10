@@ -26,7 +26,7 @@ import {
 
 import {
   Accessory,
-}               from '../accessory'
+}                       from '../accessory'
 import {
   // config,
   FOUR_PER_EM_SPACE,
@@ -35,10 +35,11 @@ import {
 }                       from '../config'
 import {
   Sayable,
-}             from '../types'
+}                       from '../types'
 
 import { Contact }        from './contact'
 import { RoomInvitation } from './room-invitation'
+import { UrlLink }        from './url-link'
 
 export const ROOM_EVENT_DICT = {
   invite: 'tbw',
@@ -359,6 +360,7 @@ export class Room extends Accessory implements Sayable {
   public say (text: string, mention: Contact)   : Promise<void>
   public say (text: string, mention: Contact[]) : Promise<void>
   public say (file: FileBox)                    : Promise<void>
+  public say (url: UrlLink)                     : Promise<void>
 
   public say (...args: never[]): never
 
@@ -367,7 +369,7 @@ export class Room extends Accessory implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox)} textOrContactOrFile - Send `text` or `media file` inside Room. <br>
+   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrl - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact | Contact[])} [mention] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<void>}
@@ -398,11 +400,11 @@ export class Room extends Accessory implements Sayable {
    * await room.say('Hello world!', contact)
    */
   public async say (
-    textOrContactOrFile : string | Contact | FileBox,
-    mention?            : Contact | Contact[],
+    textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
+    mention?                 : Contact | Contact[],
   ): Promise<void> {
     log.verbose('Room', 'say(%s, %s)',
-                                  textOrContactOrFile,
+                                  textOrContactOrFileOrUrl,
                                   Array.isArray(mention)
                                   ? mention.map(c => c.name()).join(', ')
                                   : mention ? mention.name() : '',
@@ -411,31 +413,38 @@ export class Room extends Accessory implements Sayable {
 
     const replyToList: Contact[] = [].concat(mention as any || [])
 
-    if (typeof textOrContactOrFile === 'string') {
+    if (typeof textOrContactOrFileOrUrl === 'string') {
 
       if (replyToList.length > 0) {
         // const AT_SEPRATOR = String.fromCharCode(8197)
         const AT_SEPRATOR = FOUR_PER_EM_SPACE
 
         const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
-        text = mentionList + ' ' + textOrContactOrFile
+        text = mentionList + ' ' + textOrContactOrFileOrUrl
       } else {
-        text = textOrContactOrFile
+        text = textOrContactOrFileOrUrl
       }
       await this.puppet.messageSendText({
         contactId : replyToList.length && replyToList[0].id || undefined,
         roomId    : this.id,
       }, text)
-    } else if (textOrContactOrFile instanceof FileBox) {
+    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
       await this.puppet.messageSendFile({
         roomId: this.id,
-      }, textOrContactOrFile)
-    } else if (textOrContactOrFile instanceof Contact) {
+      }, textOrContactOrFileOrUrl)
+    } else if (textOrContactOrFileOrUrl instanceof Contact) {
       await this.puppet.messageSendContact({
         roomId: this.id,
-      }, textOrContactOrFile.id)
+      }, textOrContactOrFileOrUrl.id)
+    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+      /**
+       * 4. Link Message
+       */
+      await this.puppet.messageSendUrl({
+        contactId : this.id
+      }, textOrContactOrFileOrUrl.payload)
     } else {
-      throw new Error('arg unsupported')
+      throw new Error('arg unsupported: ' + textOrContactOrFileOrUrl)
     }
   }
 
