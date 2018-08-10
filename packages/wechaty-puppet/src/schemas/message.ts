@@ -33,8 +33,8 @@ export enum WechatAppMessageType {
   Emotion               = 15,
   CardTicket            = 16,
   RealtimeShareLocation = 17,
-  ChatHistory           = 19, // To Be Confirmed, see https://github.com/Chatie/wechaty-puppet/pull/19/files
-  MiniProgram           = 33, // To Be Confirmed, see https://github.com/Chatie/wechaty-puppet/pull/19/files
+  ChatHistory           = 19,
+  MiniProgram           = 33,
   Transfers             = 2000,
   RedEnvelopes          = 2001,
   ReaderType            = 100001,
