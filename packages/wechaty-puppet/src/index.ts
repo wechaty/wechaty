@@ -22,8 +22,8 @@ export {
   RoomInvitationPayload,
 }                         from './schemas/room-invitation'
 export {
-  UrlPayload,
-}                         from './schemas/url'
+  UrlLinkPayload,
+}                         from './schemas/url-link'
 
 export {
   PuppetOptions,

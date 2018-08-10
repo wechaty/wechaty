@@ -1,4 +1,4 @@
-export interface UrlPayload {
+export interface UrlLinkPayload {
   description?  : string,
   thumbnailUrl? : string,
   title         : string,

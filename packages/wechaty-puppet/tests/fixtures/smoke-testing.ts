@@ -26,7 +26,7 @@ import {
   RoomPayload,
   RoomQueryFilter,
 
-  UrlPayload,
+  UrlLinkPayload,
 }                             from 'wechaty-puppet'
 
 import {
@@ -65,7 +65,7 @@ class PuppetTest extends Puppet {
   public async contactAvatar (contactId: string, file: FileBox)  : Promise<void>
   public async contactAvatar (contactId: string, file?: FileBox) : Promise<void | FileBox> { return { contactId, file } as any }
 
-  public async contactList ()                    : Promise<string[]> { return {} as any }
+  public async contactList () : Promise<string[]> { return {} as any }
 
   public async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload> { return { rawPayload } as any }
@@ -87,13 +87,13 @@ class PuppetTest extends Puppet {
    *
    */
   public async messageFile (messageId: string) : Promise<FileBox> { return { messageId } as any }
-  public async messageUrl (messageId: string)  : Promise<UrlPayload> { return { messageId } as any }
+  public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
 
-  public async messageForward (to: Receiver, messageId: string)           : Promise<void> { return { to, messageId } as any }
-  public async messageSendContact (receiver: Receiver, contactId: string) : Promise<void> { return { receiver, contactId } as any }
-  public async messageSendFile (to: Receiver, file: FileBox)              : Promise<void> { return { to, file } as any }
-  public async messageSendText (to: Receiver, text: string)               : Promise<void> { return { to, text } as any }
-  public async messageSendUrl (to: Receiver, urlPayload: UrlPayload)      : Promise<void> { return { to, urlPayload } as any }
+  public async messageForward (to: Receiver, messageId: string)              : Promise<void> { return { to, messageId } as any }
+  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void> { return { receiver, contactId } as any }
+  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void> { return { to, file } as any }
+  public async messageSendText (to: Receiver, text: string)                  : Promise<void> { return { to, text } as any }
+  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void> { return { to, urlLinkPayload } as any }
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
