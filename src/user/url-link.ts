@@ -7,7 +7,16 @@ import {
 }               from '../config'
 
 export class UrlLink {
+
+  /**
+   *
+   * Create from URL
+   *
+   */
   public static async create (url: string): Promise<UrlLink> {
+    log.verbose('UrlLink', 'create(%s)', url)
+
+    // TODO: get title/description/thumbnailUrl from url automatically
     const payload: UrlLinkPayload = {
       description  : 'todo',
       thumbnailUrl : 'todo',

@@ -475,7 +475,7 @@ export class Message extends Accessory implements Sayable {
    * - MessageType.Image       </br>
    * - MessageType.Text        </br>
    * - MessageType.Video       </br>
-   * - MessageType.Link        </br>
+   * - MessageType.Url         </br>
    * @returns {MessageType}
    *
    * @example
