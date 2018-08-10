@@ -49,7 +49,7 @@ The above puppet provider is just for mocking and easy to understand. It will be
 
 ## CODING WITH PUPPET
 
-### SwitchState
+### 1. Using SwitchState
 
 You can get to know the puppet start/stop state from the `state` property:
 
@@ -60,7 +60,7 @@ You can get to know the puppet start/stop state from the `state` property:
 
 Learn more about the puppet.state at <https://github.com/zixia/state-switch>
 
-### Brolog
+### 2. Using Brolog
 
 Using Brolog to output necessary log messages.
 
