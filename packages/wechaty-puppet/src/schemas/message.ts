@@ -5,8 +5,7 @@ export enum MessageType {
   Audio,          // Audio(1), Voice(34)
   Contact,        // ShareCard(42)
   ChatHistory,    // ChatHistory(19)
-  Emoticon,       // Sticker: Emotion(15), Emotion(47)
-  Image,          // Img(2), Image(3)
+  Image,          // Img(2), Image(3), Sticker[Emotion(15), Emotion(47)]
   Text,           // Text(1)
   Location,       // Location(48)
   MiniProgram,    // MiniProgram(33)
