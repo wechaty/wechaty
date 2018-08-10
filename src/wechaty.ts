@@ -273,7 +273,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.RoomInvitation = cloneClass(RoomInvitation)
 
     // No need to set puppet/wechaty, so no need to clone
-    this.UrlLink        = UrlLink
+    this.UrlLink = UrlLink
   }
 
   /**
