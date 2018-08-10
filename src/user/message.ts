@@ -589,10 +589,10 @@ export class Message extends Accessory implements Sayable {
   /**
    * Check if a message is mentioned me.
    *
-   * @returns {boolean} - Return `true` for mentioned me.
+   * @returns {Promise<boolean>} - Return `true` for mention me.
    * @example
    * if (message.isMentionMe()) {
-   *  console.log('this message is mentioned me! [You were mentioned] tip ([有人@我]的提示)')
+   *  console.log('this message were mentioned me! [You were mentioned] tip ([有人@我]的提示)')
    * }
    */
   public async isMentionMe (msg: Message): Promise<boolean> {
