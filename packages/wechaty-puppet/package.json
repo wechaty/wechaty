@@ -50,7 +50,7 @@
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
     "markdownlint-cli": "^0.12.0",
-    "memory-card": "^0.4.5",
+    "memory-card": "^0.5.5",
     "shx": "^0.3.1",
     "sinon": "^6.0.1",
     "ts-node": "^7.0.0",
@@ -66,7 +66,7 @@
     }
   },
   "peerDependencies": {
-    "memory-card": "^0.4.5",
+    "memory-card": "^0.5.5",
     "file-box": "^0.8.22"
   },
   "dependencies": {

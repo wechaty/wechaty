@@ -402,7 +402,7 @@ test('setMemory() memory without name', async t => {
 
 test('setMemory() memory with a name', async t => {
   const puppet = new PuppetTest()
-  const memory = new MemoryCard('name')
+  const memory = new MemoryCard({ name: 'name' })
 
   t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a named memory first time ')
   t.throws(() => puppet.setMemory(memory), 'should throw when set a named memory second time')
