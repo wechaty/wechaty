@@ -2,7 +2,7 @@
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet.svg)](https://www.npmjs.com/package/wechaty-puppet)
-[![npm (tag)](https://img.shields.io/npm/v/wechaty/next.svg)](https://www.npmjs.com/package/wechaty-puppet?activeTab=versions)
+[![npm (tag)](https://img.shields.io/npm/v/wechaty-puppet/next.svg)](https://www.npmjs.com/package/wechaty-puppet?activeTab=versions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet)
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty-puppet.svg)](https://greenkeeper.io/)
