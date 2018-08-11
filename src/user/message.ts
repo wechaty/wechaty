@@ -71,8 +71,7 @@ export class Message extends Accessory implements Sayable {
   public static readonly Type = MessageType
 
   /**
-   * @ignore
-   * @todo add function
+   * Find message in cache
    */
   public static async find<T extends typeof Message> (
     this: T,
@@ -97,8 +96,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @ignore
-   * @todo add function
+   * Find messages in cache
    */
   public static async findAll<T extends typeof Message> (
     this  : T,
