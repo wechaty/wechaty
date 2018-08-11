@@ -16,41 +16,40 @@
  *   limitations under the License.
  *   @ignore
  */
-// import path from 'path'
-// import cuid from 'cuid'
-
 import {
   instanceToClass,
-}                     from 'clone-class'
+}                       from 'clone-class'
 import {
   FileBox,
-}                     from 'file-box'
-
-import {
-  Accessory,
-}                 from '../accessory'
-import {
-  FOUR_PER_EM_SPACE,
-  log,
-}                     from '../config'
-import {
-  Sayable,
-}             from '../types'
-
-import {
-  Contact,
-}                 from './contact'
-import {
-  Room,
-}                 from './room'
-import {
-  UrlLink,
-}                 from './url-link'
+}                       from 'file-box'
 
 import {
   MessagePayload,
+  MessageQueryFilter,
   MessageType,
-}                 from 'wechaty-puppet'
+}                       from 'wechaty-puppet'
+
+import {
+  Accessory,
+}                       from '../accessory'
+import {
+  FOUR_PER_EM_SPACE,
+  log,
+  Raven,
+}                       from '../config'
+import {
+  Sayable,
+}                       from '../types'
+
+import {
+  Contact,
+}                       from './contact'
+import {
+  Room,
+}                       from './room'
+import {
+  UrlLink,
+}                       from './url-link'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -77,9 +76,24 @@ export class Message extends Accessory implements Sayable {
    */
   public static async find<T extends typeof Message> (
     this: T,
-    query: any,
+    query : string | MessageQueryFilter,
   ): Promise<T['prototype'] | null> {
-    return (await this.findAll(query))[0]
+    log.verbose('Message', 'find(%s)', JSON.stringify(query))
+
+    if (typeof query === 'string') {
+      query = { text: query }
+    }
+
+    const messageList = await this.findAll(query)
+    if (messageList.length < 1) {
+      return null
+    }
+
+    if (messageList.length > 1) {
+      log.warn('Message', 'findAll() got more than one(%d) result', messageList.length)
+    }
+
+    return messageList[0]
   }
 
   /**
@@ -87,14 +101,34 @@ export class Message extends Accessory implements Sayable {
    * @todo add function
    */
   public static async findAll<T extends typeof Message> (
-    this: T,
-    query: any,
+    this  : T,
+    query?: MessageQueryFilter,
   ): Promise<Array<T['prototype']>> {
-    log.verbose('Message', 'findAll(%s)', query)
-    return [
-      new (this as any)({ MsgId: 'id1' }),
-      new (this as any)({ MsdId: 'id2' }),
-    ]
+    log.verbose('Message', 'findAll(%s)', JSON.stringify(query))
+
+    try {
+      const MessageIdList = await this.puppet.messageSearch(query)
+      const messageList = MessageIdList.map(id => this.load(id))
+      await Promise.all(
+        messageList.map(
+          message => {
+            try {
+              return message.ready()
+            } catch (e) {
+              return {} as any
+            }
+          },
+        ),
+      )
+
+      return messageList.filter(message => !!message.id)
+
+    } catch (e) {
+      log.verbose('Message', 'findAll() rejected: %s', e.message)
+      console.error(e)
+      Raven.captureException(e)
+      return [] // fail safe
+    }
   }
 
  /**
@@ -103,9 +137,8 @@ export class Message extends Accessory implements Sayable {
   * "mobile originated" or "mobile terminated"
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */
-  // TODO: rename create to load ??? Huan 201806
-  public static create (id: string): Message {
-    log.verbose('Message', 'static create(%s)', id)
+  public static load (id: string): Message {
+    log.verbose('Message', 'static load(%s)', id)
 
     /**
      * Must NOT use `Message` at here
@@ -116,6 +149,17 @@ export class Message extends Accessory implements Sayable {
     const msg = new this(id)
 
     return msg
+  }
+
+  /**
+   * TODO: rename create to load ??? Huan 201806
+   * @deprecated: use load() instead
+   * @private
+   */
+
+  public static create (id: string): Message {
+    log.warn('Message', 'static create(%s) DEPRECATED. Use load() instead', id)
+    return this.load(id)
   }
 
   /**
