@@ -7,7 +7,6 @@
 Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
-[![npm (tag)](https://img.shields.io/npm/v/wechaty/next.svg)](https://www.npmjs.com/package/wechaty?activeTab=versions)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/Chatie/wechaty.svg?label=github%20stars)](https://github.com/chatie/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
@@ -57,6 +56,11 @@ This bot can log all messages to the console after login by scan.
 
 You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Examples) and [Example Directory](https://github.com/chatie/wechaty/blob/master/examples/).
 
+## REQUIREMENTS
+
+1. Node.js 10 or above
+1. Global Network Connection
+
 ## GETTING STARTED
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
@@ -72,6 +76,7 @@ Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of
 ### 1. NPM
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
+[![npm (tag)](https://img.shields.io/npm/v/wechaty/next.svg)](https://www.npmjs.com/package/wechaty?activeTab=versions)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 
 ```shell
@@ -155,10 +160,10 @@ Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.co
 ### Projects Using Wechaty
 
 1. [一个用CNN深度神剧网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
-1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
-1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
-1. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
-1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
+2. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
+3. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
+4. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
+5. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 
 Pull Request is welcome to add yours!
 
