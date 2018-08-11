@@ -11,6 +11,7 @@ export {
 export {
   MessagePayload,
   MessageType,
+  MessageQueryFilter,
 }                         from './schemas/message'
 export {
   RoomPayload,
