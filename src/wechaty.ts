@@ -651,7 +651,7 @@ export class Wechaty extends Accessory implements Sayable {
 
         case 'message':
           puppet.on('message', async messageId => {
-            const msg = this.Message.create(messageId)
+            const msg = this.Message.load(messageId)
             await msg.ready()
             this.emit('message', msg)
           })
