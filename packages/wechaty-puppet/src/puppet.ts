@@ -65,6 +65,9 @@ import {
 }                                 from './schemas/friendship'
 import {
   MessagePayload,
+  MessagePayloadFilterFunction,
+  MessageQueryFilter,
+  MessageType,
 }                                 from './schemas/message'
 import {
   RoomMemberPayload,
@@ -809,6 +812,78 @@ export abstract class Puppet extends EventEmitter {
     log.silly('Puppet', 'messagePayload(%s) cache SET', messageId)
 
     return payload
+  }
+
+  public messageList (): string[] {
+    log.verbose('Puppet', 'messageList()')
+    return this.cacheMessagePayload.keys()
+  }
+
+  public async messageSearch (
+    query?: MessageQueryFilter,
+  ): Promise<string[] /* Message Id List*/> {
+    log.verbose('Puppet', 'messageSearch(%s)', JSON.stringify(query))
+
+    const allMessageIdList: string[] = this.messageList()
+    log.silly('Puppet', 'messageSearch() allMessageIdList.length=%d', allMessageIdList.length)
+
+    if (!query || Object.keys(query).length <= 0) {
+      return allMessageIdList
+    }
+
+    const messagePayloadList: MessagePayload[] = await Promise.all(
+      allMessageIdList.map(
+        id => this.messagePayload(id)
+      ),
+    )
+
+    const filterFunction = this.messageQueryFilterFactory(query)
+
+    const messageIdList = messagePayloadList
+                        .filter(filterFunction)
+                        .map(payload => payload.id)
+
+    log.silly('Puppet', 'messageSearch() messageIdList filtered. result length=%d', messageIdList.length)
+
+    return messageIdList
+  }
+
+  protected messageQueryFilterFactory (
+    query: MessageQueryFilter,
+  ): MessagePayloadFilterFunction {
+    log.verbose('Puppet', 'messageQueryFilterFactory(%s)',
+                          JSON.stringify(query),
+                )
+
+    if (Object.keys(query).length < 1) {
+      throw new Error('query empty')
+    }
+
+    const filterFunctionList: MessagePayloadFilterFunction[] = []
+
+    // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
+    const filterKeyList = Object.keys(query) as Array<keyof MessageQueryFilter>
+
+    for (const filterKey of filterKeyList) {
+      const filterValue: undefined | string | MessageType | RegExp = query[filterKey]
+      if (!filterValue) {
+        throw new Error('filterValue not found for filterKey: ' + filterKey)
+      }
+
+      let filterFunction: MessagePayloadFilterFunction
+
+      if (filterValue instanceof RegExp) {
+        filterFunction = (payload: MessagePayload) => filterValue.test(payload[filterKey] as string)
+      } else { // if (typeof filterValue === 'string') {
+        filterFunction = (payload: MessagePayload) => filterValue === payload[filterKey]
+      }
+
+      filterFunctionList.push(filterFunction)
+    }
+
+    const allFilterFunction: MessagePayloadFilterFunction = payload => filterFunctionList.every(func => func(payload))
+
+    return allFilterFunction
   }
 
   /**

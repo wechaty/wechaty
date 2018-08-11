@@ -97,3 +97,17 @@ export type MessagePayload = MessagePayloadBase
                                 MessagePayloadRoom
                               | MessagePayloadTo
                             )
+
+export interface MessageQueryFilter {
+  fromId? : string,
+  text?   : string | RegExp,
+  roomId? : string
+  type?   : MessageType,
+  toId?   : string,
+}
+
+/** @hidden */
+export type MessagePayloadFilterFunction = (payload: MessagePayload)    => boolean
+
+/** @hidden */
+export type MessagePayloadFilterFactory  = (query: MessageQueryFilter)  => MessagePayloadFilterFunction
