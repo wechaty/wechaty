@@ -5,7 +5,8 @@ export enum MessageType {
   Audio,          // Audio(1), Voice(34)
   Contact,        // ShareCard(42)
   ChatHistory,    // ChatHistory(19)
-  Image,          // Img(2), Image(3), Sticker[Emotion(15), Emotion(47)]
+  Emoticon,       // Sticker: Emoticon(15), Emoticon(47)
+  Image,          // Img(2), Image(3)
   Text,           // Text(1)
   Location,       // Location(48)
   MiniProgram,    // MiniProgram(33)
@@ -70,8 +71,8 @@ export interface MessagePayloadBase {
 
   // use message id to get rawPayload to get those informations when needed
   // contactId?    : string,        // Contact ShareCard
-  // filename?     : string,
 
+  filename?     : string,
   text?         : string,
   timestamp     : number,        // Unix Timestamp(in seconds)
   type          : MessageType,
