@@ -65,20 +65,20 @@ Learn more about the puppet.state at <https://github.com/zixia/state-switch>
 
 Using Brolog to output necessary log messages.
 
-#### Get log from Brolog
+#### 2.1 Get log from Brolog
 
 ```ts
 import { log } from 'brolog'
 ```
 
-#### Log Format
+#### 2.2 Log Format
 
 ```ts
 log.verbose('ModuleName', 'methodName() Your Verbose Message Here')
-log.verbose('ModuleName', 'methodName() Your Silly Message Here')
+log.silly('ModuleName', 'methodName() Your Silly Message Here')
 ```
 
-#### Log Level
+#### 2.3 Log Level
 
 Brolog has five log levels, it should be used and follow the following rules:
 
