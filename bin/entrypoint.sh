@@ -75,7 +75,8 @@ function wechaty::diagnose() {
   local -i ret=$1  && shift
   local file=$1 && shift
 
-: echo " exit code $ret "
+  echo "ERROR: Bot exited with code $ret"
+
   figlet ' BUG REPORT '
   wechaty::pressEnterToContinue 30
 
@@ -152,19 +153,23 @@ function wechaty::runBot() {
   local -i ret=0
   case "$botFile" in
     *.js)
-      if [ "$NODE_ENV" != "production" ]; then
+      if [ "$NODE_ENV" = "production" ]; then
+        echo "Executing node $*"
+        node "$@" &
+      else
         echo "Executing babel-node --presets @babel/env $*"
         # https://stackoverflow.com/a/34025957/1123955
         BABEL_DISABLE_CACHE=1 babel-node --presets @babel/env "$@" &
-      else
-        echo "Executing node $*"
-        node "$@" &
       fi
       ;;
     *.ts)
-      # yarn add @types/node
-      echo "Executing ts-node $*"
-      ts-node --type-check "$@" &
+      if [ "$NODE_ENV" = "production" ]; then
+        echo "Executing ts-node $*"
+        ts-node "$@" &
+      else
+        echo "Executing ts-node --type-check $*"
+        ts-node --type-check "$@" &
+      fi
       ;;
     *)
       echo "ERROR: wechaty::runBot() neith .js nor .ts"
@@ -244,7 +249,7 @@ HELP
 
 function main() {
   # issue #84
-  echo -e 'nameserver 114.114.114.114\nnameserver 114.114.115.115' | sudo tee -a /etc/resolv.conf > /dev/null
+  echo -e 'nameserver 114.114.114.114\nnameserver 1.1.1.1\nnameserver 8.8.8.8' | sudo tee -a /etc/resolv.conf > /dev/null
 
   wechaty::banner
   figlet Connecting
