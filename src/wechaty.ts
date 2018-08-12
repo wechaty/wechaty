@@ -98,11 +98,11 @@ export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
-  name?          : null | string,         // Wechaty Name
-  profile?       : null | string,         // DEPRECATED: use name instead
-  puppet?        : PuppetModuleName | Puppet,   // Puppet name or instance
-  puppetOptions? : PuppetOptions,         // Puppet TOKEN
-  ioToken?       : string,                // Io TOKEN
+  name?          : string,                    // Wechaty Name
+  profile?       : null | string,             // DEPRECATED: use name instead
+  puppet?        : PuppetModuleName | Puppet, // Puppet name or instance
+  puppetOptions? : PuppetOptions,             // Puppet TOKEN
+  ioToken?       : string,                    // Io TOKEN
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'
@@ -143,7 +143,7 @@ export class Wechaty extends Accessory implements Sayable {
    */
   private static globalInstance: Wechaty
 
-  private readonly memory : MemoryCard
+  private memory?: MemoryCard
 
   private lifeTimer? : NodeJS.Timer
   private io?        : Io
@@ -239,19 +239,7 @@ export class Wechaty extends Accessory implements Sayable {
       options.name = options.profile
     }
 
-    options.name = options.name === null
-                    ? null
-                    : (options.name || config.default.DEFAULT_PROFILE)
-
     this.id = cuid()
-
-    this.memory = options.memory
-      ? options.memory
-      : new MemoryCard(
-          options.name
-          ? { name: options.name }
-          : undefined,
-        )
 
     this.state      = new StateSwitch('Wechaty', log)
     this.readyState = new StateSwitch('WechatyReady', log)
@@ -288,7 +276,7 @@ export class Wechaty extends Accessory implements Sayable {
       'Wechaty#',
       this.id,
       `<${this.options && this.options.puppet || ''}>`,
-      `(${this.memory.name || ''})`,
+      `(${this.memory && this.memory.name || ''})`,
     ].join('')
   }
 
@@ -570,6 +558,10 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
+    if (!this.memory) {
+      throw new Error('no memory')
+    }
+
     const puppet       = this.options.puppet || config.systemPuppetName()
     const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
@@ -636,7 +628,6 @@ export class Wechaty extends Accessory implements Sayable {
             const contact = this.ContactSelf.load(contactId)
             await contact.ready()
             this.emit('login', contact)
-            await this.memory.save()
           })
           break
 
@@ -645,7 +636,6 @@ export class Wechaty extends Accessory implements Sayable {
             const contact = this.ContactSelf.load(contactId)
             await contact.ready()
             this.emit('logout', contact)
-            await this.memory.save()
           })
           break
 
@@ -810,8 +800,10 @@ export class Wechaty extends Accessory implements Sayable {
     this.state.on('pending')
 
     try {
-      await this.memory.load()
-
+      if (!this.memory) {
+        this.memory = new MemoryCard(this.options.name)
+        await this.memory.load()
+      }
       await this.initPuppet()
       await this.puppet.start()
 
@@ -874,7 +866,6 @@ export class Wechaty extends Accessory implements Sayable {
     this.readyState.off(true)
 
     this.state.off('pending')
-    await this.memory.save()
 
     if (this.lifeTimer) {
       clearInterval(this.lifeTimer)

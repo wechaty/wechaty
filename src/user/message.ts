@@ -846,8 +846,8 @@ export class Message extends Accessory implements Sayable {
     return contact
   }
 
-  public async toUrl (): Promise<UrlLink> {
-    log.verbose('Message', 'toUrl()')
+  public async toUrlLink (): Promise<UrlLink> {
+    log.verbose('Message', 'toUrlLink()')
 
     if (!this.payload) {
       throw new Error('no payload')

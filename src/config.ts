@@ -104,7 +104,7 @@ export interface DefaultSetting {
   DEFAULT_PORT     : number,
   // DEFAULT_PUPPET   : PuppetName,
   DEFAULT_APIHOST  : string,
-  DEFAULT_PROFILE  : string,
+  // DEFAULT_PROFILE  : string,
   DEFAULT_TOKEN    : string,
   DEFAULT_PROTOCOL : string,
 }
@@ -125,8 +125,12 @@ export class Config {
     ).toLowerCase() as PuppetModuleName
   }
 
-  public profile = process.env.WECHATY_PROFILE    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  public token   = process.env.WECHATY_TOKEN      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  // DEPRECATED: Use WECHATY_NAME instead
+  public profile = process.env.WECHATY_PROFILE
+
+  public name    = process.env.WECHATY_NAME || process.env.WECHATY_PROFILE  // replace WECHATY_PROFILE
+
+  public token   = process.env.WECHATY_TOKEN      // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
   public debug   = !!(process.env.WECHATY_DEBUG)
 
   public httpPort = process.env.PORT || process.env.WECHATY_PORT || DEFAULT_SETTING.DEFAULT_PORT
@@ -137,6 +141,10 @@ export class Config {
   constructor () {
     log.verbose('Config', 'constructor()')
     this.validApiHost(this.apihost)
+
+    if (this.profile) {
+      log.warn('Config', 'constructor() WECHATY_PROFILE is DEPRECATED, use WECHATY_NAME instead.')
+    }
   }
 
   /**
