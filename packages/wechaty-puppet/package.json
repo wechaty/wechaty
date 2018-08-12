@@ -46,11 +46,10 @@
     "@types/semver": "^5.5.0",
     "@types/sinon": "^5.0.1",
     "blue-tape": "^1.0.0",
-    "clone-class": "^0.6.19",
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
     "markdownlint-cli": "^0.12.0",
-    "memory-card": "^0.5.5",
+    "memory-card": "^0.6.7",
     "shx": "^0.3.1",
     "sinon": "^6.0.1",
     "ts-node": "^7.0.0",
@@ -66,11 +65,12 @@
     }
   },
   "peerDependencies": {
-    "memory-card": "^0.5.5",
+    "memory-card": "^0.6.7",
     "file-box": "^0.8.22"
   },
   "dependencies": {
     "brolog": "^1.6.5",
+    "clone-class": "^0.6.19",
     "hot-import": "^0.2.1",
     "lru-cache": "^4.1.3",
     "normalize-package-data": "^2.4.0",

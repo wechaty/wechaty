@@ -151,7 +151,11 @@ export abstract class Puppet extends EventEmitter {
     log.verbose('Puppet', 'constructor(%s) #%d', JSON.stringify(options), this.counter)
 
     this.state  = new StateSwitch(this.constructor.name, log)
-    this.memory = new MemoryCard()                             // dummy memory
+
+    this.memory = new MemoryCard() // dummy memory
+    this.memory.load()  // load here is for testing only
+    .then(() => log.verbose('Puppet', 'constructor() memory.load() done'))
+    .catch(e => log.warn('Puppet', 'constructor() memory.load() rejection: %s', e))
 
     /**
      * 1. Setup Watchdog
@@ -256,7 +260,7 @@ export abstract class Puppet extends EventEmitter {
     log.verbose('Puppet', 'setMemory()')
 
     if (this.memory.name) {
-      throw new Error('puppet has already had a memory with name set: ' + this.memory.name)
+      throw new Error('puppet has already had a named memory: ' + this.memory.name)
     }
 
     this.memory = memory
