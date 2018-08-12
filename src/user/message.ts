@@ -119,10 +119,10 @@ export class Message extends Accessory implements Sayable {
         ),
       )
 
-      return messageList.filter(message => !!message.id)
+      return messageList
 
     } catch (e) {
-      log.verbose('Message', 'findAll() rejected: %s', e.message)
+      log.warn('Message', 'findAll() rejected: %s', e.message)
       console.error(e)
       Raven.captureException(e)
       return [] // fail safe
