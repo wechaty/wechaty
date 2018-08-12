@@ -3,28 +3,31 @@ export {
   ContactType,
   ContactPayload,
   ContactQueryFilter
-}                         from './schemas/contact'
+}                             from './schemas/contact'
 export {
   FriendshipPayload,
+  FriendshipPayloadConfirm,
+  FriendshipPayloadReceive,
+  FriendshipPayloadVerify,
   FriendshipType,
-}                         from './schemas/friendship'
+}                             from './schemas/friendship'
 export {
   MessagePayload,
   MessageType,
   MessageQueryFilter,
-}                         from './schemas/message'
+}                             from './schemas/message'
 export {
   RoomPayload,
   RoomQueryFilter,
   RoomMemberPayload,
   RoomMemberQueryFilter,
-}                         from './schemas/room'
+}                             from './schemas/room'
 export {
   RoomInvitationPayload,
-}                         from './schemas/room-invitation'
+}                             from './schemas/room-invitation'
 export {
   UrlLinkPayload,
-}                         from './schemas/url-link'
+}                             from './schemas/url-link'
 
 export {
   PuppetOptions,
