@@ -26,6 +26,7 @@ export {
   Money,
   Room,
   RoomInvitation,
+  UrlLink,
 }                         from './user'
 
 export {
