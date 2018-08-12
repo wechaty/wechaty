@@ -17,7 +17,6 @@
  *
  */
 import {
-  config,
   Contact,
   Message,
   Wechaty,
@@ -32,7 +31,7 @@ import { generate } from 'qrcode-terminal'
  *
  */
 const bot = new Wechaty({
-  name : config.default.DEFAULT_PROFILE,
+  name : 'ding-dong-bot',
 })
 
 /**
