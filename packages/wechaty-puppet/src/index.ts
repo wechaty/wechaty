@@ -30,6 +30,10 @@ export {
 }                             from './schemas/url-link'
 
 export {
+  throwUnsupportedError,
+}                             from './throw-unsupported-error'
+
+export {
   PuppetOptions,
   PuppetEventName,
   PuppetQrcodeScanEvent,
