@@ -7,9 +7,9 @@ export const PUPPET_DEPENDENCIES = {
   /////////////////////////////////////
   'wechaty-puppet-ioscat'    : '^0.4.12',
   'wechaty-puppet-mock'      : '^0.8.2',
-  'wechaty-puppet-padchat'   : '^0.9.12',
-  'wechaty-puppet-puppeteer' : '^0.8.2',
-  'wechaty-puppet-wechat4u'  : '^0.8.3',
+  'wechaty-puppet-padchat'   : '^0.9.27',
+  'wechaty-puppet-puppeteer' : '^0.9.0',
+  'wechaty-puppet-wechat4u'  : '^0.9.0',
 }
 
 export const PUPPET_DEFAULT = 'wechaty-puppet-puppeteer'
