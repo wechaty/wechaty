@@ -37,15 +37,19 @@ import {
 
   Receiver,
 
+  RoomInvitationPayload,
   RoomMemberPayload,
   RoomPayload,
-}                       from 'wechaty-puppet'
+
+  UrlLinkPayload,
+}                           from 'wechaty-puppet'
 
 import {
+  CHATIE_OFFICIAL_ACCOUNT_QRCODE,
   log,
   qrCodeForChatie,
   VERSION,
-}                   from './config'
+}                                   from './config'
 
 export interface MockContactRawPayload {
   name : string,
@@ -140,6 +144,26 @@ export class PuppetMock extends Puppet {
 
   /**
    *
+   * ContactSelf
+   *
+   *
+   */
+  public async contactSelfQrcode (): Promise<string> {
+    log.verbose('PuppetMock', 'contactSelfQrcode()')
+    return CHATIE_OFFICIAL_ACCOUNT_QRCODE
+  }
+
+  public async contactSelfName (name: string): Promise<void> {
+    log.verbose('PuppetMock', 'contactSelfName(%s)', name)
+    return
+  }
+
+  public async contactSelfSignature (signature: string): Promise<void> {
+    log.verbose('PuppetMock', 'contactSelfSignature(%s)', signature)
+  }
+
+  /**
+   *
    * Contact
    *
    */
@@ -223,6 +247,15 @@ export class PuppetMock extends Puppet {
     )
   }
 
+  public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> {
+    log.verbose('PuppetMock', 'messageUrl(%s)')
+
+    return {
+      title : 'mock title',
+      url   : 'https://mock.url',
+    }
+  }
+
   public async messageRawPayload (id: string): Promise<MockMessageRawPayload> {
     log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
     const rawPayload: MockMessageRawPayload = {
@@ -267,6 +300,13 @@ export class PuppetMock extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
     return
+  }
+
+  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void> {
+    log.verbose('PuppetMock', 'messageSendUrl("%s", %s)',
+                              JSON.stringify(to),
+                              JSON.stringify(urlLinkPayload),
+                )
   }
 
   public async messageForward (
@@ -403,6 +443,24 @@ export class PuppetMock extends Puppet {
       return
     }
     return 'mock announcement for ' + roomId
+  }
+
+  /**
+   *
+   * Room Invitation
+   *
+   */
+  public async roomInvitationAccept (roomInvitationId: string): Promise<void> {
+    log.verbose('PuppetMock', 'roomInvitationAccept(%s)', roomInvitationId)
+  }
+
+  public async roomInvitationRawPayload (roomInvitationId: string): Promise<any> {
+    log.verbose('PuppetMock', 'roomInvitationRawPayload(%s)', roomInvitationId)
+  }
+
+  public async roomInvitationRawPayloadParser (rawPayload: any): Promise<RoomInvitationPayload> {
+    log.verbose('PuppetMock', 'roomInvitationRawPayloadParser(%s)', JSON.stringify(rawPayload))
+    return rawPayload
   }
 
   /**
