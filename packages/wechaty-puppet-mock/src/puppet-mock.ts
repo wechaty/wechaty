@@ -44,6 +44,7 @@ import {
 import {
   log,
   qrCodeForChatie,
+  VERSION,
 }                   from './config'
 
 export interface MockContactRawPayload {
@@ -65,6 +66,8 @@ export interface MockRoomRawPayload {
 
 export class PuppetMock extends Puppet {
 
+  public static readonly VERSION = VERSION
+
   private loopTimer?: NodeJS.Timer
 
   constructor (
@@ -79,6 +82,8 @@ export class PuppetMock extends Puppet {
     this.state.on('pending')
     // await some tasks...
     this.state.on(true)
+
+    this.emit('scan', 'https://not-exist.com', 0)
 
     this.id = 'logined_user_id'
     // const user = this.Contact.load(this.id)
@@ -102,10 +107,10 @@ export class PuppetMock extends Puppet {
   }
 
   public async stop (): Promise<void> {
-    log.verbose('PuppetMock', 'quit()')
+    log.verbose('PuppetMock', 'stop()')
 
     if (this.state.off()) {
-      log.warn('PuppetMock', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      log.warn('PuppetMock', 'stop() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
@@ -431,6 +436,13 @@ export class PuppetMock extends Puppet {
     return
   }
 
+  public unref (): void {
+    log.verbose('PuppetMock', 'unref()')
+    super.unref()
+    if (this.loopTimer) {
+      this.loopTimer.unref()
+    }
+  }
 }
 
 export default PuppetMock

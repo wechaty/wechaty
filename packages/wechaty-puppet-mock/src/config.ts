@@ -1,3 +1,4 @@
+import { log }      from 'brolog'
 import { FileBox }  from 'file-box'
 import qrImage      from 'qr-image'
 
@@ -9,13 +10,14 @@ export function qrCodeForChatie (): FileBox {
   const qrStream = qrImage.image(CHATIE_OFFICIAL_ACCOUNT_QRCODE, { type })
   return FileBox.fromStream(qrStream, name)
 }
+/**
+ * VERSION
+ */
+import readPkgUp from 'read-pkg-up'
 
-import {
-  // Brolog,
-  log,
-}                       from 'brolog'
+const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+export const VERSION = pkg.version
 
-// export const log = new Brolog()
 export {
   log,
 }
