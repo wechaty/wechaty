@@ -232,7 +232,7 @@ export class Contact extends Accessory implements Sayable {
           batchContactList.map(
             c => c.ready()
                   .catch(e => {
-                    log.error('Contact', 'findAll() ready() exception: %s', e.message)
+                    log.error('Contact', 'findAll() contact.ready() exception: %s', e.message)
                     invalidDict[c.id] = true
                   }),
           ),
