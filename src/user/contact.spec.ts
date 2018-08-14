@@ -28,9 +28,9 @@ import { PuppetMock } from 'wechaty-puppet-mock'
 import { Wechaty }    from '../wechaty'
 
 test('findAll()', async t => {
-  const EXPECTED_ROOM_ID      = 'test-id'
-  const EXPECTED_ROOM_TOPIC   = 'test-topic'
-  const EXPECTED_ROOM_ID_LIST = [EXPECTED_ROOM_ID]
+  const EXPECTED_CONTACT_ID      = 'test-id'
+  const EXPECTED_CONTACT_NAME    = 'test-name'
+  const EXPECTED_CONTACT_ID_LIST = [EXPECTED_CONTACT_ID]
 
   const sandbox = sinon.createSandbox()
 
@@ -39,17 +39,17 @@ test('findAll()', async t => {
 
   await wechaty.start()
 
-  sandbox.stub(puppet, 'roomSearch').resolves(EXPECTED_ROOM_ID_LIST)
-  sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
+  sandbox.stub(puppet, 'contactSearch').resolves(EXPECTED_CONTACT_ID_LIST)
+  sandbox.stub(puppet, 'contactPayload').callsFake(async () => {
     await new Promise(r => setImmediate(r))
     return {
-      topic: EXPECTED_ROOM_TOPIC,
+      name: EXPECTED_CONTACT_NAME,
     }
   })
 
-  const roomList = await wechaty.Room.findAll()
-  t.equal(roomList.length, 1, 'should find 1 room')
-  t.equal(await roomList[0].topic(), EXPECTED_ROOM_TOPIC, 'should get topic from payload')
+  const contactList = await wechaty.Contact.findAll()
+  t.equal(contactList.length, 1, 'should find 1 contact')
+  t.equal(contactList[0].name(), EXPECTED_CONTACT_NAME, 'should get name from payload')
 
   await wechaty.stop()
 })

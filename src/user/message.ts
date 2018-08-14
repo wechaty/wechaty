@@ -110,7 +110,7 @@ export class Message extends Accessory implements Sayable {
     this       : T,
     userQuery? : MessageUserQueryFilter,
   ): Promise<Array<T['prototype']>> {
-    log.verbose('Message', 'findAll(%s)', JSON.stringify(userQuery))
+    log.verbose('Message', 'findAll(%s)', JSON.stringify(userQuery) || '')
 
     let puppetQuery: undefined | MessageQueryFilter
 
@@ -124,22 +124,22 @@ export class Message extends Accessory implements Sayable {
       }
     }
 
+    const invalidDict: { [id: string]: true } = {}
+
     try {
       const MessageIdList = await this.puppet.messageSearch(puppetQuery)
       const messageList = MessageIdList.map(id => this.load(id))
       await Promise.all(
         messageList.map(
-          message => {
-            try {
-              return message.ready()
-            } catch (e) {
-              return {} as any
-            }
-          },
+          message => message.ready()
+                            .catch(e => {
+                              log.warn('Room', 'findAll() message.ready() rejection: %s', e)
+                              invalidDict[message.id] = true
+                            })
         ),
       )
 
-      return messageList
+      return messageList.filter(message => !invalidDict[message.id])
 
     } catch (e) {
       log.warn('Message', 'findAll() rejected: %s', e.message)

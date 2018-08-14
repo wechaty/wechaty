@@ -200,15 +200,15 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const bot = new Wechaty()
    * await bot.start()
-   * const contactList = await bot.Contact.findAll()                    // get the contact list of the bot
-   * const contactList = await bot.Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
-   * const contactList = await bot.Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
+   * const contactList = await bot.Contact.findAll()                      // get the contact list of the bot
+   * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find allof the contacts whose name is 'ruirui'
+   * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
   public static async findAll<T extends typeof Contact> (
     this  : T,
     query? : string | ContactQueryFilter,
   ): Promise<Array<T['prototype']>> {
-    log.verbose('Contact', 'findAll(%s)', JSON.stringify(query))
+    log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
     if (query && Object.keys(query).length !== 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
@@ -221,7 +221,7 @@ export class Contact extends Accessory implements Sayable {
       const BATCH_SIZE = 16
       let   batchIndex = 0
 
-      const invalidContactId: string[] = []
+      const invalidDict: { [id: string]: true } = {}
 
       while (batchIndex * BATCH_SIZE < contactList.length) {
         const batchContactList = contactList.slice(
@@ -230,20 +230,18 @@ export class Contact extends Accessory implements Sayable {
         )
         await Promise.all(
           batchContactList.map(
-            c => {
-              c.ready()
-              .catch(e => {
-                log.error('Contact', 'findAll() ready() exception: %s', e.message)
-                invalidContactId.push(c.id)
-              })
-            },
+            c => c.ready()
+                  .catch(e => {
+                    log.error('Contact', 'findAll() ready() exception: %s', e.message)
+                    invalidDict[c.id] = true
+                  }),
           ),
         )
 
         batchIndex++
       }
 
-      return contactList.filter(contact => !(contact.id in invalidContactId))
+      return contactList.filter(contact => !invalidDict[contact.id])
 
     } catch (e) {
       log.error('Contact', 'this.puppet.contactFindAll() rejected: %s', e.message)

@@ -132,28 +132,28 @@ export class Room extends Accessory implements Sayable {
     this  : T,
     query : RoomQueryFilter = { topic: /.*/ },
   ): Promise<Array<T['prototype']>> {
-    log.verbose('Room', 'findAll(%s)', JSON.stringify(query))
+    log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
 
     if (!query.topic) {
       throw new Error('topicFilter not found')
     }
+
+    const invalidDict: { [id: string]: true } = {}
 
     try {
       const roomIdList = await this.puppet.roomSearch(query)
       const roomList = roomIdList.map(id => this.load(id))
       await Promise.all(
         roomList.map(
-          room => {
-            try {
-              return room.ready()
-            } catch (e) {
-              return {} as any
-            }
-          },
+          room => room.ready()
+                      .catch(e => {
+                        log.warn('Room', 'findAll() room.ready() rejection: %s', e)
+                        invalidDict[room.id] = true
+                      })
         ),
       )
 
-      return roomList
+      return roomList.filter(room => !invalidDict[room.id])
 
     } catch (e) {
       log.verbose('Room', 'findAll() rejected: %s', e.message)
