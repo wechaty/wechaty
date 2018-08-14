@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.19.152",
+  "version": "0.19.153",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -127,7 +127,7 @@
     "gl-matrix": "^2.6.1",
     "glob": "^7.1.0",
     "jsdoc-to-markdown": "^4.0.0",
-    "markdownlint-cli": "^0.12.0",
+    "markdownlint-cli": "^0.13.0",
     "nyc": "^12.0.1",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.87.0",
