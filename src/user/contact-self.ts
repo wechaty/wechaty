@@ -106,8 +106,13 @@ export class ContactSelf extends Contact {
    */
   public async qrcode (): Promise<string> {
     log.verbose('Contact', 'qrcode()')
-
-    if (this.id !== this.puppet.selfId()) {
+    let puppetId: string
+    try {
+      puppetId = this.puppet.selfId()
+    } catch (e) {
+      throw Error('Can not get qrcode, user might be either not logged in or already logged out')
+    }
+    if (this.id !== puppetId) {
       throw new Error('only can get qrcode for the login userself')
     }
 
@@ -141,7 +146,14 @@ export class ContactSelf extends Contact {
       return super.name()
     }
 
-    if (this.id !== this.puppet.selfId()) {
+    let puppetId: string
+    try {
+      puppetId = this.puppet.selfId()
+    } catch (e) {
+      throw Error('Can not set name for user self, user might be either not logged in or already logged out')
+    }
+
+    if (this.id !== puppetId) {
       throw new Error('only can set name for user self')
     }
 
@@ -166,7 +178,14 @@ export class ContactSelf extends Contact {
   public async signature (signature: string): Promise<void> {
     log.verbose('ContactSelf', 'signature()')
 
-    if (this.id !== this.puppet.selfId()) {
+    let puppetId: string
+    try {
+      puppetId = this.puppet.selfId()
+    } catch (e) {
+      throw Error('Can not set signature for user self, user might be either not logged in or already logged out')
+    }
+
+    if (this.id !== puppetId) {
       throw new Error('only can change signature for user self')
     }
 
