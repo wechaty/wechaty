@@ -1,5 +1,7 @@
 import net     from 'net'
 
+const DEFAULT_PORT = 38788
+
 /**
  *
  * @param port is just a suggestion.
@@ -11,8 +13,8 @@ import net     from 'net'
  * const DEFAULT_IANA_RANGE = {min: 49152, max: 65535}
  *
  */
-export function getPort (port: number): Promise<number> {
-  let tryPort = nextPort(port || 38788)
+export function getPort (port = DEFAULT_PORT): Promise<number> {
+  let tryPort = nextPort(port)
 
   return new Promise(resolve => {
     // https://gist.github.com/mikeal/1840641
@@ -39,13 +41,13 @@ export function getPort (port: number): Promise<number> {
   function nextPort (currentPort: number): number {
     const RANGE = 1733
     // do not use Math.random() here, because AVA will fork, then here will get the same random number, cause a race condition for socket listen
-    // const n = Math.floor(Math.random() * BETWEEN_RANGE)
+    const n = Math.floor(Math.random() * RANGE)
 
     /**
      * nano seconds from node: http://stackoverflow.com/a/18197438/1123955
      */
-    const [, nanoSeed] = process.hrtime()
-    const n = 1 + nanoSeed % RANGE // +1 to prevent same port
+    // const [, nanoSeed] = process.hrtime()
+    // const n = 1 + nanoSeed % RANGE // +1 to prevent same port
 
     if (currentPort + n > 65000) {
       return currentPort + n - RANGE
