@@ -328,6 +328,7 @@ export class Room extends Accessory implements Sayable {
 
     if (dirty) {
       await this.puppet.roomPayloadDirty(this.id)
+      await this.puppet.roomMemberPayloadDirty(this.id)
     }
     this.payload = await this.puppet.roomPayload(this.id)
 
