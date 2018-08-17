@@ -1157,7 +1157,7 @@ export abstract class Puppet extends EventEmitter {
     return contactId + '@@@' + roomId
   }
 
-  protected async roomMemberPayloadDirty (roomId: string): Promise<void> {
+  public async roomMemberPayloadDirty (roomId: string): Promise<void> {
     log.verbose('Puppet', 'roomMemberPayloadDirty(%s)', roomId)
 
     const contactIdList = await this.roomMemberList(roomId)
