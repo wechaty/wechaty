@@ -667,7 +667,7 @@ export class Wechaty extends Accessory implements Sayable {
         case 'room-join':
           puppet.on('room-join', async (roomId, inviteeIdList, inviterId) => {
             const room = this.Room.load(roomId)
-            await room.ready()
+            await room.sync()
 
             const inviteeList = inviteeIdList.map(id => this.Contact.load(id))
             await Promise.all(inviteeList.map(c => c.ready()))
@@ -683,7 +683,7 @@ export class Wechaty extends Accessory implements Sayable {
         case 'room-leave':
           puppet.on('room-leave', async (roomId, leaverIdList, removerId) => {
             const room = this.Room.load(roomId)
-            await room.ready()
+            await room.sync()
 
             const leaverList = leaverIdList.map(id => this.Contact.load(id))
             await Promise.all(leaverList.map(c => c.ready()))
@@ -702,7 +702,7 @@ export class Wechaty extends Accessory implements Sayable {
         case 'room-topic':
           puppet.on('room-topic', async (roomId, newTopic, oldTopic, changerId) => {
             const room = this.Room.load(roomId)
-            await room.ready()
+            await room.sync()
 
             const changer = this.Contact.load(changerId)
             await changer.ready()
