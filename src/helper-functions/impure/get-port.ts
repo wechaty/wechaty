@@ -34,7 +34,9 @@ export function getPort (port = DEFAULT_PORT): Promise<number> {
       })
     }
     _getPort(okPort => {
-      resolve(okPort)
+      // put to the end of the event loop
+      // make sure that all tasks had been done, esp. server.close()
+      setImmediate(() => resolve(okPort))
     })
   })
 
