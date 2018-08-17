@@ -315,19 +315,45 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
+   * @ignore
+   * @private
+   * @deprecated: Use `sync()` instead
+   */
+  public async refresh (): Promise<void> {
+    await this.sync()
+  }
+
+  /**
+   * Force reload data for Room, Sync data from lowlevel API again.
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await room.sync()
+   */
+  public async sync (): Promise<void> {
+    await this.ready(true)
+  }
+
+  /**
+   * `ready()` is For FrameWork ONLY!
+   *
+   * Please not to use `ready()` at the user land.
+   * If you want to sync data, uyse `sync()` instead.
+   *
    * @private
    */
   public async ready (
-    dirty = false,
+    forceSync = false,
   ): Promise<void> {
     log.verbose('Room', 'ready()')
 
-    if (!dirty && this.isReady()) {
+    if (!forceSync && this.isReady()) {
       return
     }
 
-    if (dirty) {
+    if (forceSync) {
       await this.puppet.roomPayloadDirty(this.id)
+      await this.puppet.roomMemberPayloadDirty(this.id)
     }
     this.payload = await this.puppet.roomPayload(this.id)
 
@@ -342,8 +368,8 @@ export class Room extends Accessory implements Sayable {
         .map(id => this.wechaty.Contact.load(id))
         .map(contact => {
           contact.ready()
-            .catch(() => {
-              //
+            .catch(e => {
+              log.verbose('Room', 'ready() member.ready() rejection: %s', e)
             })
         }),
     )
@@ -930,25 +956,6 @@ export class Room extends Accessory implements Sayable {
       id => this.wechaty.Contact.load(id),
     )
     return contactList
-  }
-
-  /**
-   * @ignore
-   */
-  public async refresh (): Promise<void> {
-    return this.sync()
-  }
-
-  /**
-   * Force reload data for Room, Sync data for Room
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await room.sync()
-   * @private
-   */
-  public async sync (): Promise<void> {
-    await this.ready(true)
   }
 
   /**
