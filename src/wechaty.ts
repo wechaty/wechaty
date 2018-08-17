@@ -238,6 +238,7 @@ export class Wechaty extends Accessory implements Sayable {
       log.verbose('Wechaty', 'constuctor() WechatyOptions.profile DEPRECATED. use WechatyOptions.name instead.')
       options.name = options.profile
     }
+    this.memory = this.options.memory
 
     this.id = cuid()
 
