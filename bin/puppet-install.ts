@@ -3,4 +3,7 @@
 import { PuppetManager } from '../src/puppet-manager'
 
 PuppetManager.installAll()
-.catch(console.error)
+.catch(e => {
+  console.error(e)
+  process.exit(1)
+})
