@@ -10,8 +10,7 @@ python:
 branches:
   only:
     - master
-    - v0.14
-    - v0.18
+    - v*.*
 
 env:
   global:
