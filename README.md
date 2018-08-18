@@ -35,7 +35,7 @@ Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a
 > "If you know js ... try Chatie/wechaty, it's easy to use."  
 > -- @Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)
 
-See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/VoiceOfDeveloper)
+See more at [Wiki:Voice Of Developer](https://github.com/Chatie/wechaty/wiki/Voice%20Of%20Developer)
 
 ## The World's Shortest ChatBot Code: 6 lines of JavaScript
 
