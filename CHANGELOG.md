@@ -32,9 +32,8 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/chatie/wechaty/tree/HEAD)
-
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.18.0...HEAD)
+## [v0.20.0](https://github.com/chatie/wechaty/tree/v0.20.0) (2018-08-18)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.18.0...v0.20.0)
 
 **Implemented enhancements:**
 
@@ -77,6 +76,7 @@
 
 **Closed issues:**
 
+- appear bug when logout use padchat [\#1559](https://github.com/Chatie/wechaty/issues/1559)
 - \[RFC\] Shall we clean up room information when we receive room events? [\#1552](https://github.com/Chatie/wechaty/issues/1552)
 - Want to create UrlLink with control on all properties [\#1541](https://github.com/Chatie/wechaty/issues/1541)
 - memory-card cannot save successfully [\#1537](https://github.com/Chatie/wechaty/issues/1537)
@@ -675,7 +675,7 @@
 - enhance \#155 fire `room-join` when someone joins from a QR Code [\#162](https://github.com/Chatie/wechaty/pull/162) ([lijiarui](https://github.com/lijiarui))
 
 ## [v0.7.0](https://github.com/chatie/wechaty/tree/v0.7.0) (2016-12-29)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.6.32...v0.7.0)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.6.0...v0.7.0)
 
 **Implemented enhancements:**
 
@@ -683,6 +683,7 @@
 - Function Room.add\(\) should return Promise\<boolean\> [\#119](https://github.com/Chatie/wechaty/issues/119)
 - Could you add api to find contact by remark [\#117](https://github.com/Chatie/wechaty/issues/117)
 - Need to support AppMsgType: 100001 with MsgType: 49 [\#114](https://github.com/Chatie/wechaty/issues/114)
+- get room owner on event 'room-join','room-topic' [\#105](https://github.com/Chatie/wechaty/pull/105) ([JasLin](https://github.com/JasLin))
 
 **Fixed bugs:**
 
@@ -691,6 +692,9 @@
 - remark\(null\) doesn't work [\#130](https://github.com/Chatie/wechaty/issues/130)
 - Cannot identify \['\] in room topic [\#116](https://github.com/Chatie/wechaty/issues/116)
 - room.member\(\) cannot get member when bot set remark for friend [\#104](https://github.com/Chatie/wechaty/issues/104)
+- contactFind\(function \(c\) { return /.\*/.test\(c\) }\) rejected: javascript error: Unexpected token [\#98](https://github.com/Chatie/wechaty/issues/98)
+- Error: Chrome failed to start: was killed [\#95](https://github.com/Chatie/wechaty/issues/95)
+- Function `message.to\(\): Contact|Room` bug [\#88](https://github.com/Chatie/wechaty/issues/88)
 - Session Cookies not loaded correctly? [\#31](https://github.com/Chatie/wechaty/issues/31)
 
 **Closed issues:**
@@ -705,7 +709,11 @@
 - enhance request.hello function [\#120](https://github.com/Chatie/wechaty/issues/120)
 - 无法自动通过好友请求 [\#115](https://github.com/Chatie/wechaty/issues/115)
 - \[EVENT INVITATION\] Welcome to join Beijing Node Party 18: Wechaty & ChatBot on 11th Dec. [\#107](https://github.com/Chatie/wechaty/issues/107)
+- another problem about docker run [\#103](https://github.com/Chatie/wechaty/issues/103)
+-  Error: Server terminated early with status 127 [\#102](https://github.com/Chatie/wechaty/issues/102)
 - failed run demo in docker under centos [\#101](https://github.com/Chatie/wechaty/issues/101)
+- Wechaty.send\(\) error when send message to the room [\#89](https://github.com/Chatie/wechaty/issues/89)
+- 基础运行报错.....我都有点不好意思问了.....汗.... [\#82](https://github.com/Chatie/wechaty/issues/82)
 
 **Merged pull requests:**
 
@@ -719,46 +727,8 @@
 - Update README.md [\#139](https://github.com/Chatie/wechaty/pull/139) ([lijiarui](https://github.com/lijiarui))
 - qrcode [\#112](https://github.com/Chatie/wechaty/pull/112) ([lijiarui](https://github.com/lijiarui))
 - Update README.md [\#110](https://github.com/Chatie/wechaty/pull/110) ([lijiarui](https://github.com/lijiarui))
-
-## [v0.6.32](https://github.com/chatie/wechaty/tree/v0.6.32) (2016-11-28)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.6.22...v0.6.32)
-
-**Implemented enhancements:**
-
-- get room owner on event 'room-join','room-topic' [\#105](https://github.com/Chatie/wechaty/pull/105) ([JasLin](https://github.com/JasLin))
-
-**Fixed bugs:**
-
-- contactFind\(function \(c\) { return /.\*/.test\(c\) }\) rejected: javascript error: Unexpected token [\#98](https://github.com/Chatie/wechaty/issues/98)
-- Error: Chrome failed to start: was killed [\#95](https://github.com/Chatie/wechaty/issues/95)
-
-**Closed issues:**
-
-- another problem about docker run [\#103](https://github.com/Chatie/wechaty/issues/103)
--  Error: Server terminated early with status 127 [\#102](https://github.com/Chatie/wechaty/issues/102)
-
-**Merged pull requests:**
-
 - fixed javascript error: attempt is not defined [\#100](https://github.com/Chatie/wechaty/pull/100) ([JasLin](https://github.com/JasLin))
 - convert wechaty-bro.js to plain old javascript syntax \#60 [\#97](https://github.com/Chatie/wechaty/pull/97) ([cherry-geqi](https://github.com/cherry-geqi))
-
-## [v0.6.22](https://github.com/chatie/wechaty/tree/v0.6.22) (2016-11-14)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.6.21...v0.6.22)
-
-## [v0.6.21](https://github.com/chatie/wechaty/tree/v0.6.21) (2016-11-14)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.6.0...v0.6.21)
-
-**Fixed bugs:**
-
-- Function `message.to\(\): Contact|Room` bug [\#88](https://github.com/Chatie/wechaty/issues/88)
-
-**Closed issues:**
-
-- Wechaty.send\(\) error when send message to the room [\#89](https://github.com/Chatie/wechaty/issues/89)
-- 基础运行报错.....我都有点不好意思问了.....汗.... [\#82](https://github.com/Chatie/wechaty/issues/82)
-
-**Merged pull requests:**
-
 - Update README.md [\#93](https://github.com/Chatie/wechaty/pull/93) ([lijiarui](https://github.com/lijiarui))
 - Update README.md [\#92](https://github.com/Chatie/wechaty/pull/92) ([lijiarui](https://github.com/lijiarui))
 - fix anchor link error [\#91](https://github.com/Chatie/wechaty/pull/91) ([lijiarui](https://github.com/lijiarui))
@@ -772,10 +742,7 @@
 - \[Docker\] Config.isDocker is not right in some Docker version / Linux distribution [\#84](https://github.com/Chatie/wechaty/issues/84)
 
 ## [v0.5.22](https://github.com/chatie/wechaty/tree/v0.5.22) (2016-11-10)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.5.21...v0.5.22)
-
-## [v0.5.21](https://github.com/chatie/wechaty/tree/v0.5.21) (2016-11-09)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.5.9...v0.5.21)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.5.9...v0.5.22)
 
 **Implemented enhancements:**
 
@@ -836,7 +803,7 @@
 - webdrive login always occur error, for one success login always cost 4-5 log trys [\#42](https://github.com/Chatie/wechaty/issues/42)
 
 ## [v0.4.0](https://github.com/chatie/wechaty/tree/v0.4.0) (2016-10-08)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.3.12...v0.4.0)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.2.0...v0.4.0)
 
 **Implemented enhancements:**
 
@@ -861,26 +828,11 @@
 - add hubot introduction in readme [\#38](https://github.com/Chatie/wechaty/pull/38) ([lijiarui](https://github.com/lijiarui))
 - Ava [\#25](https://github.com/Chatie/wechaty/pull/25) ([zixia](https://github.com/zixia))
 
-## [v0.3.12](https://github.com/chatie/wechaty/tree/v0.3.12) (2016-08-25)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.2.0...v0.3.12)
-
-**Merged pull requests:**
-
-
 ## [v0.2.0](https://github.com/chatie/wechaty/tree/v0.2.0) (2016-06-28)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.1.7...v0.2.0)
-
-## [v0.1.7](https://github.com/chatie/wechaty/tree/v0.1.7) (2016-06-18)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.1.3...v0.1.7)
-
-## [v0.1.3](https://github.com/chatie/wechaty/tree/v0.1.3) (2016-06-11)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.1.1...v0.1.3)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.1.1...v0.2.0)
 
 ## [v0.1.1](https://github.com/chatie/wechaty/tree/v0.1.1) (2016-06-09)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.1.0...v0.1.1)
-
-## [v0.1.0](https://github.com/chatie/wechaty/tree/v0.1.0) (2016-06-09)
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.0.6...v0.1.0)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.0.6...v0.1.1)
 
 **Fixed bugs:**
 
