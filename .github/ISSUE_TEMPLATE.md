@@ -1,45 +1,44 @@
-### Provide Your Network Information
+### 0. Report Issue Guide
 
-1. Where is the location of your server? (i.e. City, or In/Out China)
-1. Which cloud platform(AliYun/Qcloud/DigitalOcean/etc) are you using?
+0. Please search in the issue first, and make sure your problem had not been reported before.
+1. If your issue is related to _wechaty-puppet-padchat_, please report the issue at <https://github.com/lijiarui/wechaty-puppet-padchat/issues/new>
+2. If your issue is related to _wechaty-puppet-puppeteer_, please report the issue at <https://github.com/Chatie/wechaty-puppet-puppeteer/issues/new>
+3. If your issue is DIRECT related to Wechaty, then please follow the below template and make sure you fill it as required in detail.
 
-### Run `npm run doctor` or `wechaty run doctor`(for docker user), paste output here 
+### 1. Expected behavior
 
+**Question: What behavior do you expect?**
 
+Answer:
 
-### Expected behavior
+### 2. Actual behavior
 
+**Question: What actual behavior did you experience?**
 
+Answer:
 
-### Actual behavior
+### 3. Steps to reproduce your problem (and fixes, if any)
 
+This part is very important: if you can not provide any reproduce steps, then the problem will be very hard to be recognized.
 
+**Question: What're the reproducible steps for us to see your problem?**
 
-### Steps to reproduce the behavior (and fixes, if any)
+Answer:
 
-> If you know c9 IDE, please goto https://ide.c9.io/zixia/wechaty-bug-reproducer to apply a write access for the workspace so that you can put your reproduceable code over there. If you did that, your issue will be classified with HIGH priority and we will deal with the high priority issues first.
-
-### Full Output Logs
-
-```shell
-$ WECHATY_LOG=silly npm run ts-node mybot.ts
-
-# or 
-
-$ WECHATY_LOG=silly node dist/mybot.js
-```
+### 4. Full Output Logs
 
 <details>
 <summary>
 Show Logs
 </summary>
 
-### Paste the full output logs here with `WECHATY_LOG=silly` set 
-
 ```shell
-# PASTE FULL LOG OUTPUT AT HERE:
+$ WECHATY_LOG=silly node yourbot.js
 
-
+Question: Paste your FULL(DO NOT ONLY PROVIDE FRAGMENTS) log messages
+Answer:
 
 ```
+
 </details>
+
