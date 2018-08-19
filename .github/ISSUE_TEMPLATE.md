@@ -1,5 +1,6 @@
 ### 0. Report Issue Guide
 
+0. Please search in the issue first, and make sure your problem had not been reported before.
 1. If your issue is related to _wechaty-puppet-padchat_, please report the issue at <https://github.com/lijiarui/wechaty-puppet-padchat/issues/new>
 2. If your issue is related to _wechaty-puppet-puppeteer_, please report the issue at <https://github.com/Chatie/wechaty-puppet-puppeteer/issues/new>
 3. If your issue is DIRECT related to Wechaty, then please follow the below template and make sure you fill it as required in detail.
