@@ -698,7 +698,7 @@ export class Wechaty extends Accessory implements Sayable {
             room.emit('leave', leaverList, remover)
 
             // issue #254
-            if (leaverIdList.includes(this.self().id)) {
+            if (leaverIdList.includes(this.puppet.selfId())) {
               await this.puppet.roomPayloadDirty(roomId)
               await this.puppet.roomMemberPayloadDirty(roomId)
             }
