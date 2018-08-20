@@ -1,4 +1,4 @@
-# Wechaty v0.19.159 Documentation
+# Wechaty v0.20 Documentation
 
 * <https://blog.chatie.io>
 
