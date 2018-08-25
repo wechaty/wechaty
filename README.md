@@ -159,12 +159,6 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://g
 
 | Wechaty | API | Description |
 | :--- | :--- | :---        |
-|  | `start(): Promise<void>` | start the bot |
-|  | `stop(): Promise<void>` | stop the bot |
-|  | `logonoff(): boolean` | bot login status |
-|  | `logout(): Promise<void>` | logout the bot |
-|  | `userSelf(): ContactSelf` | get the login-ed bot contact |
-|  | `say(text: string): Promise<void>` | let bot say `text` to itself |
 | event | `login` | emit after bot login full successful |
 | event | `logout` | emit after the bot log out |
 | event | `friendship` | emit when someone sends bot a friend request|
@@ -174,6 +168,12 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://g
 | event | `room-leave` | emit when anyone leave the room |
 | event | `room-invite` | emit when there is a room invitation |
 | event | `scan` | emit when the bot needs to show you a QR Code for scanning |
+|  | `start(): Promise<void>` | start the bot |
+|  | `stop(): Promise<void>` | stop the bot |
+|  | `logonoff(): boolean` | bot login status |
+|  | `logout(): Promise<void>` | logout the bot |
+|  | `userSelf(): ContactSelf` | get the login-ed bot contact |
+|  | `say(text: string): Promise<void>` | let bot say `text` to itself |
 
 ### 2 Class `Contact`
 
@@ -210,11 +210,11 @@ All wechat messages will be encapsulated as a Message.
 
 | Message | API | Description |
 | :--- | :--- | :---        |
-| static | `find(query: string): Promise<null | Message>` |  |
+| static | `find(query: string): Promise<null \| Message>` |  |
 | static | `findAll(query: string): Promise<Message[]>` |  |
 |  | `from(): Contact` |  |
 |  | `to(): Contact` |  |
-|  | `room(): null | Room` |  |
+|  | `room(): null \| Room` |  |
 |  | `text(): string` |  |
 |  | `say(text: string): Promise<void>` |  |
 |  | `type(): MessageType` |  |
@@ -233,7 +233,7 @@ All wechat rooms(groups) will be encapsulated as a Room.
 | Room | API | Description |
 | :--- | :--- | :---        |
 | static | `create(contactList: Contact[], topic?: string): Promise<Room>` |  |
-| static | `find(query: string): Promise<null | Room>` |  |
+| static | `find(query: string): Promise<null \| Room>` |  |
 | static | `findAll(query: string): Promise<Room[]>` |  |
 | property | `id: readonly string` |  |
 |  | `say(text: string): Promise<void>` |  |
