@@ -183,6 +183,18 @@ Class `ContactSelf` is extended from `Contact`.
 |  | `qrcode(): Promise<string>` | get qrcode for bot |
 |  | `signature(text: string): Promise<void>` | set signature for bot |
 
+#### 2.2 Class `Friendship`
+
+Send, receive friend request, and friend confirmation events.
+
+| Friendship | API | Description |
+| :--- | :--- | :---        |
+|  | `add(contact: Contact, hello?: string): Promise<void>` | send a friend invitation to contact |
+|  | `accept(): Promise<void>` |  |
+|  | `hello(): string` | get the hello string from a friendship invitation |
+|  | `contact(): Contact` |  |
+|  | `type(): FriendshipType` |  |
+
 ### 3 Class `Message`
 
 All wechat messages will be encapsulated as a Message.
@@ -243,18 +255,6 @@ Accept room invitation
 |  | `inviter(): Contact` |  |
 |  | `topic(): Promise<string>` |  |
 |  | `date(): Date` |  |
-
-### 5 Class `Friendship`
-
-Send, receive friend request, and friend confirmation events.
-
-| Friendship | API | Description |
-| :--- | :--- | :---        |
-|  | `add(contact: Contact, hello?: string): Promise<void>` | send a friend invitation to contact |
-|  | `accept(): Promise<void>` |  |
-|  | `hello(): string` | get the hello string from a friendship invitation |
-|  | `contact(): Contact` |  |
-|  | `type(): FriendshipType` |  |
 
 ## TEST
 
