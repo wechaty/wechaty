@@ -59,6 +59,9 @@ export class Friendship extends Accessory implements Acceptable {
   // tslint:disable-next-line:variable-name
   public static Type = FriendshipType
 
+  /**
+   * @private
+   */
   public static load<T extends typeof Friendship> (
     this : T,
     id   : string,

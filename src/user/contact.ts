@@ -74,8 +74,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    * @private
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
-   */
-  /**
+   *
    * Get Contact by id
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)

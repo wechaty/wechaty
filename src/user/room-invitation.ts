@@ -118,7 +118,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
     await this.puppet.roomInvitationAccept(this.id)
 
     const inviter = await this.inviter()
-    const topic   = await this.roomTopic()
+    const topic   = await this.topic()
 
     try {
       await inviter.ready()
@@ -164,14 +164,21 @@ export class RoomInvitation extends Accessory implements Acceptable {
    * @example
    * const bot = new Wechaty()
    * bot.on('room-invite', async roomInvitation => {
-   *   const topic = await roomInvitation.roomTopic()
+   *   const topic = await roomInvitation.topic()
    *   console.log(`received room invitation event from room ${topic}`)
    * }
    * .start()
    */
-  public async roomTopic (): Promise<string> {
+  public async topic (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
     return payload.roomTopic
+  }
+
+  /**
+   * @deprecated: use topic() instead
+   */
+  public async roomTopic (): Promise<string> {
+    return this.topic()
   }
 
   public async roomMemberCount (): Promise<number> {
@@ -216,4 +223,22 @@ export class RoomInvitation extends Accessory implements Acceptable {
     // (from seconds to milliseconds)
     return new Date(1000 * payload.timestamp)
   }
+
+  /**
+   * Returns the roopm invitation age in seconds. <br>
+   *
+   * For example, the invitation is sent at time `8:43:01`,
+   * and when we received it in Wechaty, the time is `8:43:15`,
+   * then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
+   * @returns {number}
+   */
+  public async age (): Promise<number> {
+    const recvDate = await this.date()
+
+    const ageMilliseconds = Date.now() - recvDate.getTime()
+    const ageSeconds = Math.floor(ageMilliseconds / 1000)
+
+    return ageSeconds
+  }
+
 }

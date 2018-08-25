@@ -329,7 +329,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  login      - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
    * @property   {string}  logout     - Logout will be emitted when bot detected log out, with a Contact of the current login user.
    * @property   {string}  heartbeat  - Get bot's heartbeat.
-   * @property   {string}  friend     - When someone sends you a friend request, there will be a Wechaty friend event fired.
+   * @property   {string}  friendship - When someone sends you a friend request, there will be a Wechaty friendship event fired.
    * @property   {string}  message    - Emit when there's a new message.
    * @property   {string}  ready      - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
    * @property   {string}  room-join  - Emit when anyone join any room.

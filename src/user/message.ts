@@ -152,6 +152,7 @@ export class Message extends Accessory implements Sayable {
  /**
   * Create a Mobile Terminated Message
   * @ignore
+  * @private
   * "mobile originated" or "mobile terminated"
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */
@@ -796,7 +797,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * Message sent date
    */
   public date (): Date {
     if (!this.payload) {
