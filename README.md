@@ -180,7 +180,7 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 
 | Contact | API | Description |
 | :--- | :--- | :---        |
-| static | `find(query: string): Promise<null | Contact>` |  |
+| static | `find(query: string): Promise<null \| Contact>` |  |
 | static | `findAll(query: string): Promise<Contact[]>` |  |
 | property | `id: readonly string` | |
 |  | `say(text: string): Promise<void>` | |
@@ -246,8 +246,8 @@ All wechat rooms(groups) will be encapsulated as a Room.
 |  | `alias(contact: Contact): Promise<string>` |  |
 |  | `has(contact: Contact): Promise<boolean>` |  |
 |  | `memberAll(query?: string): Promise<Contact[]>` |  |
-|  | `member(query: string): Promise<null | Contact>` |  |
-|  | `owner(): null | Contact` |  |
+|  | `member(query: string): Promise<null \| Contact>` |  |
+|  | `owner(): null \| Contact` |  |
 | event | `join` | emit when anyone join any room |
 | event | `topic` | emit when someone change room topic |
 | event | `leave` | emit when anyone leave the room |
