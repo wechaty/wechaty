@@ -211,7 +211,8 @@ All wechat messages will be encapsulated as a Message.
 |  | `mention(): Contact[]` |  |
 |  | `mentionSelf(): boolean` |  |
 |  | `forward(to: Contact): Promise<void>` |  |
-|  | `age(): number` |  |
+|  | `age(): number` | the number of seconds since it has been created |
+|  | `date(): Date` | the time it was created |
 |  | `toFileBox(): Promise<FileBox>` |  |
 |  | `toContact(): Promise<Contact>` |  |
 
@@ -252,7 +253,8 @@ Accept room invitation
 |  | `accept(): Promise<void>` |  |
 |  | `inviter(): Contact` |  |
 |  | `topic(): Promise<string>` |  |
-|  | `date(): Date` |  |
+|  | `date(): Promise<Date>` | the time it was created |
+|  | `age(): Promise<number>` | the number of seconds since it has been created |
 
 ## TEST
 

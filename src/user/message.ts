@@ -797,7 +797,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * Message sent date
    */
   public date (): Date {
     if (!this.payload) {
