@@ -235,6 +235,10 @@ All wechat rooms(groups) will be encapsulated as a Room.
 | static | `find(query: string): Promise<null \| Room>` |  |
 | static | `findAll(query: string): Promise<Room[]>` |  |
 | property | `id: readonly string` |  |
+| event | `join` | emit when anyone join any room |
+| event | `topic` | emit when someone change room topic |
+| event | `leave` | emit when anyone leave the room |
+| event | `invite` | emit when receive a room invitation |
 |  | `say(text: string): Promise<void>` |  |
 |  | `add(contact: Contact): Promise<void>` |  |
 |  | `del(contact: Contact): Promise<void>` |  |
@@ -248,10 +252,6 @@ All wechat rooms(groups) will be encapsulated as a Room.
 |  | `memberAll(query?: string): Promise<Contact[]>` |  |
 |  | `member(query: string): Promise<null \| Contact>` |  |
 |  | `owner(): null \| Contact` |  |
-| event | `join` | emit when anyone join any room |
-| event | `topic` | emit when someone change room topic |
-| event | `leave` | emit when anyone leave the room |
-| event | `invite` | emit when receive a room invitation |
 
 ### 6 Class `Friendship`
 
