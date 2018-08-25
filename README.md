@@ -115,9 +115,7 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 
 ## API
 
-This is a overview of most of the easy to use Wechaty APIs.
-
-You can get the full Documentation from [Wechaty Official API Reference](https://chatie.github.io/wechaty/)
+Read the Full Documentation at [Wechaty Official API Reference](https://chatie.github.io/wechaty/)
 
 ### 1 Class `Wechaty`
 
@@ -125,14 +123,14 @@ Main bot class.
 
 A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://github.com/Chatie/wechaty/wiki/Puppet).
 
-* `const wechaty = new Wechaty(options: WechatyOptions)`
+* `new Wechaty(options?: WechatyOptions)`
     1. `options.name?: string` the name to identify this bot
     2. `optoins.puppet?: string` select which puppet we use. must be one of
         1. [wechaty-puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
         2. [wechaty-puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
         3. [wechaty-puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat) - iPad App Protocol
         4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
-    3. `optoins.puppetOptions: PuppetOptions` puppet options.
+    3. `optoins.puppetOptions?: PuppetOptions` puppet options.
 
 | Wechaty | API | Description |
 | :--- | :--- | :---        |
