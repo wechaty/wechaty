@@ -93,6 +93,8 @@ node mybot.js
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
+* Wechaty Starter Repository for Docker - <https://github.com/Chatie/docker-wechaty-getting-started>
+
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
 2.1. Run JavaScript
@@ -165,7 +167,7 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://g
 
 #### 1.6 `wechaty.userSelf(): ContactSelf` return the login-ed bot contact
 
-#### 1.7 Event `wechaty.say(something)` let bot say something to itself
+#### 1.7 `wechaty.say(something)` let bot say something to itself
 
 #### 1.8 Event `wechaty.on('login', ...)` emit after bot login full successful
 
