@@ -118,7 +118,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
     await this.puppet.roomInvitationAccept(this.id)
 
     const inviter = await this.inviter()
-    const topic   = await this.roomTopic()
+    const topic   = await this.topic()
 
     try {
       await inviter.ready()
