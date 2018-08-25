@@ -157,197 +157,125 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://g
     4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
 3. `optoins.puppetOptions: PuppetOptions` puppet options.
 
-#### 1.2 `wechaty.start(): Promise<void>` start the bot
-
-#### 1.3 `wechaty.stop(): Promise<void>` stop the bot
-
-#### 1.4 `wechaty.logonoff(): boolean` get the bot login/logout status
-
-#### 1.5 `wechaty.logout(): Promise<void>` logout the bot
-
-#### 1.6 `wechaty.userSelf(): ContactSelf` return the login-ed bot contact
-
-#### 1.7 `wechaty.say(something)` let bot say something to itself
-
-#### 1.8 Event `wechaty.on('login', ...)` emit after bot login full successful
-
-#### 1.9 Event `wechaty.on('logout', ...)` emit after the bot log out
-
-#### 1.10 Event `wechaty.on('friendship`, ...)` emit when someone sends bot a friend request
-
-#### 1.11 Event `wechaty.on('message', ...)` emit when there's a new message
-
-#### 1.12 Event `wechaty.on('room-join', ...)` emit when anyone join any room
-
-#### 1.13 Event `wechaty.on('room-topic', ...)` emit when someone change room topic
-
-#### 1.14 Event `wechaty.on('room-leave', ...)` emit when anyone leave the room
-
-#### 1.15 Event `wechaty.on('room-invite', ...)` emit when there is a room invitation
-
-#### 1.16 Event `wechaty.on('scan', ...)` A scan event will be emitted when the bot needs to show you a QR Code for scanning
+| Wechaty | API | Description |
+| :--- | :--- | :---        |
+|  | `start(): Promise<void>` | start the bot |
+|  | `stop(): Promise<void>` | stop the bot |
+|  | `logonoff(): boolean` | bot login status |
+|  | `logout(): Promise<void>` | logout the bot |
+|  | `userSelf(): ContactSelf` | get the login-ed bot contact |
+|  | `say(text: string): Promise<void>` | let bot say `text` to itself |
+| event | `login` | emit after bot login full successful |
+| event | `logout` | emit after the bot log out |
+| event | `friendship` | emit when someone sends bot a friend request|
+| event | `message` | emit when there's a new message |
+| event | `room-join` | emit when anyone join any room |
+| event | `room-topic` | emit when someone change room topic |
+| event | `room-leave` | emit when anyone leave the room |
+| event | `room-invite` | emit when there is a room invitation |
+| event | `scan` | emit when the bot needs to show you a QR Code for scanning |
 
 ### 2 Class `Contact`
 
 All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 
-#### 2.1 `Contact.find(query: string): Promise<Contact>`
-
-#### 2.2 `Contact.findAll(query: string): Promise<Contact[]>`
-
-#### 2.3 `contact.id: readonly string` Contact id
-
-#### 2.4 `contact.say(something): Promise<void>` say something to this contact
-
-#### 2.5 `contact.self(): boolean` whether this contact is the bot itself
-
-#### 2.6 `contact.name(): string`
-
-#### 2.7 `contact.alias(): Promise<string>` get alias
-
-#### 2.8 `contact.alias(newAlias: string): Promise<void>` set alias
-
-#### 2.9 `contact.friend(): boolean`
-
-#### 2.10 `contact.type(): ContactType`
-
-- ContactType.Unknown
-- ContactType.Personal
-- ContactType.Official
-
-#### 2.11 `contact.province(): string`
-
-#### 2.12 `contact.city(): string`
-
-#### 2.13 `contact.avatar(): Promise<FileBox>` get profile avatar from contact
-
-#### 2.14 `contact.gender(): ContactGender` get gender
-
-- ContactGender.Unknown
-- ContactGender.Male
-- ContactGender.Female
+| Contact | API | Description |
+| :--- | :--- | :---        |
+| static | `find(query: string): Promise<null | Contact>` |  |
+| static | `findAll(query: string): Promise<Contact[]>` |  |
+| property | `id: readonly string` | |
+|  | `say(text: string): Promise<void>` | |
+|  | `self(): boolean` |  |
+|  | `name(): string` |  |
+|  | `alias(): Promise<string>` |  |
+|  | `alias(newAlias: string): Promise<void>` |  |
+|  | `friend(): boolean` |  |
+|  | `type(): ContactType` |  |
+|  | `provence(): string` |  |
+|  | `city(): string` |  |
+|  | `avatar(): Promise<FileBox>` |  |
+|  | `gender(): ContactGender` |  |
 
 ### 3 Class `ContactSelf`
 
-#### 3.1 `contactSelf.avatar(file: FileBox): Promise<void>` set avatar for bot
-
-#### 3.2 `contactSelf.qrcode(): Promise<string>` get qrcode for bot
-
-#### 3.3 `contactSelf.signature(signature: string)` set signature for bot
+| ContactSelf | API | Description |
+| :--- | :--- | :---        |
+|  | `avatar(file: FileBox): Promise<void>` | set avatar for bot |
+|  | `qrcode(): Promise<string>` | get qrcode for bot |
+|  | `signature(text: string): Promise<void>` | set signature for bot |
 
 ### 4 Class `Message`
 
 All wechat messages will be encapsulated as a Message.
 
-#### 4.1 `Message.find(query: string): Promise<Message>` search message in the recent cache
-
-#### 4.2 `Message.findAll(query: string): Promise<Message[]>`
-
-#### 4.3 `message.from(): Contact`
-
-#### 4.4 `message.to(): Contact`
-
-#### 4.5 `message.room(): null | Room`
-
-#### 4.6 `message.text(): string`
-
-#### 4.7 `message.say(text: string, mention?: Contact[]): Promise<void>`
-
-#### 4.8 `message.type(): MessageType`
-
-- MessageType.Text
-- MessageType.Image
-- MessageType.Audio
-- MessageType.Video
-- MessageType.Attachment
-
-#### 4.9 `message.self(): boolean`
-
-#### 4.10 `message.mention(): Contact[]`
-
-#### 4.11 `message.mentionSelf(): boolean`
-
-#### 4.12 `message.forward(to: Contact): Promise<void>`
-
-#### 4.13 `message.age(): number`
-
-#### 4.14 `message.toFileBox(): Promise<FileBox>`
-
-#### 4.15 `message.toContact(): Promise<Contact>`
+| Message | API | Description |
+| :--- | :--- | :---        |
+| static | `find(query: string): Promise<null | Message>` |  |
+| static | `findAll(query: string): Promise<Message[]>` |  |
+|  | `from(): Contact` |  |
+|  | `to(): Contact` |  |
+|  | `room(): null | Room` |  |
+|  | `text(): string` |  |
+|  | `say(text: string): Promise<void>` |  |
+|  | `type(): MessageType` |  |
+|  | `self(): boolean` |  |
+|  | `mention(): Contact[]` |  |
+|  | `mentionSelf(): boolean` |  |
+|  | `forward(to: Contact): Promise<void>` |  |
+|  | `age(): number` |  |
+|  | `toFileBox(): Promise<FileBox>` |  |
+|  | `toContact(): Promise<Contact>` |  |
 
 ### 5 Class `Room`
 
 All wechat rooms(groups) will be encapsulated as a Room.
 
-#### 5.1 `room.create(contactList: Contact[], topic?: string): Promise<Room>`
-
-#### 5.2 `room.find(query: string): Promise<null | Room>`
-
-#### 5.3 `room.findAll(query?: string): Promise<room[]>`
-
-#### 5.4 `room.id: readonly string`
-
-#### 5.5 `room.say(something: string): Promise<void>`
-
-#### 5.6 `room.add(contact: Contact): Promise<void>`
-
-#### 5.7 `room.del(contact: Cotnact): Promise<void>`
-
-#### 5.8 `room.quit(): Promise<void>`
-
-#### 5.9 `room.topic(): Promise<string` get topic
-
-#### 5.10 `room.topic(newTopic: string): Promise<void>` set topic
-
-#### 5.11 `room.announce(announcement: string): Promise<void>`
-
-#### 5.12`room.qrcode(): Promise<string>` get a qrcode for joining this room
-
-#### 5.13 `room.alias(contact: Cotnact): Promise<string>` get the room alias from a room member contact
-
-#### 5.14 `room.has(contact: Contact): Promise<boolean>`
-
-#### 5.15 `room.memberAll(query?: string): Promise<Contact[]>`
-
-#### 5.16 `room.member(query: string): Promise<null | Contact>`
-
-#### 5.17 `room.owner(): null | Contact`
-
-#### 5.18 Event `room.on('join', ...)` emit when anyone join any room
-
-#### 5.19 Event `room.on('topic', ...)` emit when someone change room topic
-
-#### 5.20 Event `room.on('leave', ...)` emit when anyone leave the room
+| Room | API | Description |
+| :--- | :--- | :---        |
+| static | `create(contactList: Contact[], topic?: string): Promise<Room>` |  |
+| static | `find(query: string): Promise<null | Room>` |  |
+| static | `findAll(query: string): Promise<Room[]>` |  |
+| property | `id: readonly string` |  |
+|  | `say(text: string): Promise<void>` |  |
+|  | `add(contact: Contact): Promise<void>` |  |
+|  | `del(contact: Contact): Promise<void>` |  |
+|  | `quit(): Promise<void>` |  |
+|  | `topic(): Promise<string>` |  |
+|  | `topic(newTopic: string): Promise<void>` |  |
+|  | `announce(text: string): Promise<void>` |  |
+|  | `qrcode(): Promise<string>` |  |
+|  | `alias(contact: Contact): Promise<string>` |  |
+|  | `has(contact: Contact): Promise<boolean>` |  |
+|  | `memberAll(query?: string): Promise<Contact[]>` |  |
+|  | `member(query: string): Promise<null | Contact>` |  |
+|  | `owner(): null | Contact` |  |
+| event | `join` | emit when anyone join any room |
+| event | `topic` | emit when someone change room topic |
+| event | `leave` | emit when anyone leave the room |
+| event | `invite` | emit when receive a room invitation |
 
 ### 6 Class `Friendship`
 
 Send, receive friend request, and friend confirmation events.
 
-#### 6.1 `Friendship.add(contact: Cotnact, hello?: string): Promise<void>` send a friend invitation to contact
-
-#### 6.2 `friendship.accept(): Promise<void>`
-
-#### 6.3 `friendship.hello(): string` get the hello string from a friendship invitation
-
-#### 6.4 `friendship.contact(): Contact`
-
-#### 6.5 `friendship.type(): FriendshipType`
-
-- FriendshipType.Confirm
-- FriendshipType.Receive
-- FriendshipType.Verify
+| Friendship | API | Description |
+| :--- | :--- | :---        |
+|  | `add(contact: Contact, hello?: string): Promise<void>` | send a friend invitation to contact |
+|  | `accept(): Promise<void>` |  |
+|  | `hello(): string` | get the hello string from a friendship invitation |
+|  | `contact(): Contact` |  |
+|  | `type(): FriendshipType` |  |
 
 ### 7 Class `RoomInvitation`
 
 Accept room invitation
 
-#### 7.1 `roomInvitation.accept(): Promise<void>`
-
-#### 7.2 `roomInvitation.inviter(): Contact`
-
-#### 7.3 `roomInvitation.topic(): Promise<string>`
-
-#### 7.4 `roomInvitation.date(): Date`
+| RoomInvitation | API | Description |
+| :--- | :--- | :---        |
+|  | `accept(): Promise<void>` |  |
+|  | `inviter(): Contact` |  |
+|  | `topic(): Promise<string>` |  |
+|  | `date(): Date` |  |
 
 ## RELEASE NOTES
 

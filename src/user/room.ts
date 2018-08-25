@@ -550,6 +550,15 @@ export class Room extends Accessory implements Sayable {
    *   })
    * }
    *
+   * @example <caption>Event:invite </caption>
+   * const bot = new Wechaty()
+   * await bot.start()
+   * // after logged in...
+   * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
+   * if (room) {
+   *   room.on('invite', roomInvitation => roomInvitation.accept())
+   * }
+   *
    */
   public on (event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
