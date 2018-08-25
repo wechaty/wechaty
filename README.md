@@ -173,7 +173,9 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 |  | `avatar(): Promise<FileBox>` |  |
 |  | `gender(): ContactGender` |  |
 
-### 3 Class `ContactSelf`
+#### 2.1 Class `ContactSelf`
+
+Class `ContactSelf` is extended from `Contact`.
 
 | ContactSelf | API | Description |
 | :--- | :--- | :---        |
@@ -181,7 +183,7 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 |  | `qrcode(): Promise<string>` | get qrcode for bot |
 |  | `signature(text: string): Promise<void>` | set signature for bot |
 
-### 4 Class `Message`
+### 3 Class `Message`
 
 All wechat messages will be encapsulated as a Message.
 
@@ -203,7 +205,7 @@ All wechat messages will be encapsulated as a Message.
 |  | `toFileBox(): Promise<FileBox>` |  |
 |  | `toContact(): Promise<Contact>` |  |
 
-### 5 Class `Room`
+### 4 Class `Room`
 
 All wechat rooms(groups) will be encapsulated as a Room.
 
@@ -231,7 +233,18 @@ All wechat rooms(groups) will be encapsulated as a Room.
 |  | `member(query: string): Promise<null \| Contact>` |  |
 |  | `owner(): null \| Contact` |  |
 
-### 6 Class `Friendship`
+#### 4.1 Class `RoomInvitation`
+
+Accept room invitation
+
+| RoomInvitation | API | Description |
+| :--- | :--- | :---        |
+|  | `accept(): Promise<void>` |  |
+|  | `inviter(): Contact` |  |
+|  | `topic(): Promise<string>` |  |
+|  | `date(): Date` |  |
+
+### 5 Class `Friendship`
 
 Send, receive friend request, and friend confirmation events.
 
@@ -242,17 +255,6 @@ Send, receive friend request, and friend confirmation events.
 |  | `hello(): string` | get the hello string from a friendship invitation |
 |  | `contact(): Contact` |  |
 |  | `type(): FriendshipType` |  |
-
-### 7 Class `RoomInvitation`
-
-Accept room invitation
-
-| RoomInvitation | API | Description |
-| :--- | :--- | :---        |
-|  | `accept(): Promise<void>` |  |
-|  | `inviter(): Contact` |  |
-|  | `topic(): Promise<string>` |  |
-|  | `date(): Date` |  |
 
 ## TEST
 
