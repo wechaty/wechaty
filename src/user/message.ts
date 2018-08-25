@@ -152,6 +152,7 @@ export class Message extends Accessory implements Sayable {
  /**
   * Create a Mobile Terminated Message
   * @ignore
+  * @private
   * "mobile originated" or "mobile terminated"
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */

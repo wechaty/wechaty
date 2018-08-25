@@ -164,14 +164,21 @@ export class RoomInvitation extends Accessory implements Acceptable {
    * @example
    * const bot = new Wechaty()
    * bot.on('room-invite', async roomInvitation => {
-   *   const topic = await roomInvitation.roomTopic()
+   *   const topic = await roomInvitation.topic()
    *   console.log(`received room invitation event from room ${topic}`)
    * }
    * .start()
    */
-  public async roomTopic (): Promise<string> {
+  public async topic (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
     return payload.roomTopic
+  }
+
+  /**
+   * @deprecated: use topic() instead
+   */
+  public async roomTopic (): Promise<string> {
+    return this.topic()
   }
 
   public async roomMemberCount (): Promise<number> {
