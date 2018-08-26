@@ -20,16 +20,14 @@
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
 
-// import http      from 'http'
-// import express   from 'express'
 import net from 'net'
 
 import { getPort } from './get-port'
 
 test('getPort() for an available socket port', async t => {
-  const PORT = 8788
+  // const PORT = 8788
 
-  let port = await getPort(PORT)
+  let port = await getPort()
   let ttl = 17
 
   const serverList = []
@@ -42,7 +40,7 @@ test('getPort() for an available socket port', async t => {
       server.listen(port, '127.0.0.1')
       serverList.push(server)
 
-      port = await getPort(PORT)
+      port = await getPort()
 
     } catch (e) {
       t.fail('should not exception: ' + e.message + ', ' + e.stack)

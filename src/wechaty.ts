@@ -238,6 +238,7 @@ export class Wechaty extends Accessory implements Sayable {
       log.verbose('Wechaty', 'constuctor() WechatyOptions.profile DEPRECATED. use WechatyOptions.name instead.')
       options.name = options.profile
     }
+    this.memory = this.options.memory
 
     this.id = cuid()
 
@@ -328,7 +329,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  login      - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
    * @property   {string}  logout     - Logout will be emitted when bot detected log out, with a Contact of the current login user.
    * @property   {string}  heartbeat  - Get bot's heartbeat.
-   * @property   {string}  friend     - When someone sends you a friend request, there will be a Wechaty friend event fired.
+   * @property   {string}  friendship - When someone sends you a friend request, there will be a Wechaty friendship event fired.
    * @property   {string}  message    - Emit when there's a new message.
    * @property   {string}  ready      - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
    * @property   {string}  room-join  - Emit when anyone join any room.
@@ -666,7 +667,7 @@ export class Wechaty extends Accessory implements Sayable {
         case 'room-join':
           puppet.on('room-join', async (roomId, inviteeIdList, inviterId) => {
             const room = this.Room.load(roomId)
-            await room.ready()
+            await room.sync()
 
             const inviteeList = inviteeIdList.map(id => this.Contact.load(id))
             await Promise.all(inviteeList.map(c => c.ready()))
@@ -682,7 +683,7 @@ export class Wechaty extends Accessory implements Sayable {
         case 'room-leave':
           puppet.on('room-leave', async (roomId, leaverIdList, removerId) => {
             const room = this.Room.load(roomId)
-            await room.ready()
+            await room.sync()
 
             const leaverList = leaverIdList.map(id => this.Contact.load(id))
             await Promise.all(leaverList.map(c => c.ready()))
@@ -695,13 +696,20 @@ export class Wechaty extends Accessory implements Sayable {
 
             this.emit('room-leave', room, leaverList, remover)
             room.emit('leave', leaverList, remover)
+
+            // issue #254
+            if (leaverIdList.includes(this.puppet.selfId())) {
+              await this.puppet.roomPayloadDirty(roomId)
+              await this.puppet.roomMemberPayloadDirty(roomId)
+            }
+
           })
           break
 
         case 'room-topic':
           puppet.on('room-topic', async (roomId, newTopic, oldTopic, changerId) => {
             const room = this.Room.load(roomId)
-            await room.ready()
+            await room.sync()
 
             const changer = this.Contact.load(changerId)
             await changer.ready()

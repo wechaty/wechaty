@@ -74,8 +74,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    * @private
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
-   */
-  /**
+   *
    * Get Contact by id
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
@@ -632,30 +631,36 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * Force reload(re-ready()) data for Contact,
+   * Force reload data for Contact, Sync data from lowlevel API again.
    *
    * @returns {Promise<this>}
    * @example
    * await contact.sync()
-   * @private
    */
   public async sync (): Promise<void> {
     await this.ready(true)
   }
 
   /**
+   * `ready()` is For FrameWork ONLY!
+   *
+   * Please not to use `ready()` at the user land.
+   * If you want to sync data, uyse `sync()` instead.
+   *
    * @private
    */
-  public async ready (noCache = false): Promise<void> {
+  public async ready (
+    forceSync = false,
+  ): Promise<void> {
     log.silly('Contact', 'ready() @ %s', this.puppet)
 
-    if (this.isReady()) { // already ready
+    if (!forceSync && this.isReady()) { // already ready
       log.silly('Contact', 'ready() isReady() true')
       return
     }
 
     try {
-      if (noCache) {
+      if (forceSync) {
         await this.puppet.contactPayloadDirty(this.id)
       }
       this.payload = await this.puppet.contactPayload(this.id)

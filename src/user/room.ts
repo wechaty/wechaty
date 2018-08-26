@@ -129,12 +129,12 @@ export class Room extends Accessory implements Sayable {
    * const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
    */
   public static async findAll<T extends typeof Room> (
-    this  : T,
-    query : RoomQueryFilter = { topic: /.*/ },
+    this   : T,
+    query? : RoomQueryFilter,
   ): Promise<Array<T['prototype']>> {
     log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
 
-    if (!query.topic) {
+    if (query && !query.topic) {
       throw new Error('topicFilter not found')
     }
 
@@ -225,8 +225,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * @private
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
-   */
-  /**
+   *
    * Load room by topic. <br>
    * > Tips: For Web solution, it cannot get the unique topic id,
    * but for other solutions besides web,
@@ -315,19 +314,45 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
+   * @ignore
+   * @private
+   * @deprecated: Use `sync()` instead
+   */
+  public async refresh (): Promise<void> {
+    await this.sync()
+  }
+
+  /**
+   * Force reload data for Room, Sync data from lowlevel API again.
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await room.sync()
+   */
+  public async sync (): Promise<void> {
+    await this.ready(true)
+  }
+
+  /**
+   * `ready()` is For FrameWork ONLY!
+   *
+   * Please not to use `ready()` at the user land.
+   * If you want to sync data, uyse `sync()` instead.
+   *
    * @private
    */
   public async ready (
-    dirty = false,
+    forceSync = false,
   ): Promise<void> {
     log.verbose('Room', 'ready()')
 
-    if (!dirty && this.isReady()) {
+    if (!forceSync && this.isReady()) {
       return
     }
 
-    if (dirty) {
+    if (forceSync) {
       await this.puppet.roomPayloadDirty(this.id)
+      await this.puppet.roomMemberPayloadDirty(this.id)
     }
     this.payload = await this.puppet.roomPayload(this.id)
 
@@ -342,8 +367,8 @@ export class Room extends Accessory implements Sayable {
         .map(id => this.wechaty.Contact.load(id))
         .map(contact => {
           contact.ready()
-            .catch(() => {
-              //
+            .catch(e => {
+              log.verbose('Room', 'ready() member.ready() rejection: %s', e)
             })
         }),
     )
@@ -523,6 +548,15 @@ export class Room extends Accessory implements Sayable {
    *   room.on('topic', (room, topic, oldTopic, changer) => {
    *     console.log(`Room topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    *   })
+   * }
+   *
+   * @example <caption>Event:invite </caption>
+   * const bot = new Wechaty()
+   * await bot.start()
+   * // after logged in...
+   * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
+   * if (room) {
+   *   room.on('invite', roomInvitation => roomInvitation.accept())
    * }
    *
    */
@@ -745,7 +779,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * Return contact's roomAlias in the room, the same as roomAlias
+   * Return contact's roomAlias in the room
    * @param {Contact} contact
    * @returns {Promise<string | null>} - If a contact has an alias in room, return string, otherwise return null
    * @example
@@ -762,16 +796,6 @@ export class Room extends Accessory implements Sayable {
    * .start()
    */
   public async alias (contact: Contact): Promise<null | string> {
-    return this.roomAlias(contact)
-  }
-
-  /**
-   * Same as function alias
-   * @param {Contact} contact
-   * @returns {Promise<string | null>}
-   */
-  public async roomAlias (contact: Contact): Promise<null | string> {
-
     const memberPayload = await this.puppet.roomMemberPayload(this.id, contact.id)
 
     if (memberPayload && memberPayload.roomAlias) {
@@ -779,6 +803,18 @@ export class Room extends Accessory implements Sayable {
     }
 
     return null
+  }
+
+  /**
+   * Same as function alias
+   * @param {Contact} contact
+   * @returns {Promise<string | null>}
+   * @deprecated: use room.alias() instead
+   * @private
+   */
+  public async roomAlias (contact: Contact): Promise<null | string> {
+    log.warn('Room', 'roomAlias() DEPRECATED. use room.alias() instead')
+    return this.alias(contact)
   }
 
   /**
@@ -836,11 +872,15 @@ export class Room extends Accessory implements Sayable {
    * @returns {Promise<Contact[]>}
    */
   public async memberAll (
-    query: string | RoomMemberQueryFilter,
+    query?: string | RoomMemberQueryFilter,
   ): Promise<Contact[]> {
     log.silly('Room', 'memberAll(%s)',
-                      JSON.stringify(query),
+                      JSON.stringify(query) || '',
               )
+
+    if (!query) {
+      return this.memberList()
+    }
 
     const contactIdList = await this.puppet.roomMemberSearch(this.id, query)
     const contactList   = contactIdList.map(id => this.wechaty.Contact.load(id))
@@ -910,13 +950,15 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
+   * @private
+   *
    * Get all room member from the room
    *
    * @returns {Promise<Contact[]>}
    * @example
    * await room.memberList()
    */
-  public async memberList (): Promise<Contact[]> {
+  private async memberList (): Promise<Contact[]> {
     log.verbose('Room', 'memberList()')
 
     const memberIdList = await this.puppet.roomMemberList(this.id)
@@ -933,25 +975,6 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @ignore
-   */
-  public async refresh (): Promise<void> {
-    return this.sync()
-  }
-
-  /**
-   * Force reload data for Room, Sync data for Room
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await room.sync()
-   * @private
-   */
-  public async sync (): Promise<void> {
-    await this.ready(true)
-  }
-
-  /**
    * Get room's owner from the room.
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
@@ -959,7 +982,7 @@ export class Room extends Accessory implements Sayable {
    * @example
    * const owner = room.owner()
    */
-  public owner (): Contact | null {
+  public owner (): null | Contact {
     log.info('Room', 'owner()')
 
     const ownerId = this.payload && this.payload.ownerId

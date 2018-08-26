@@ -35,7 +35,7 @@ Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a
 > "If you know js ... try Chatie/wechaty, it's easy to use."  
 > -- @Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)
 
-See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/VoiceOfDeveloper)
+See more at [Wiki:Voice Of Developer](https://github.com/Chatie/wechaty/wiki/Voice%20Of%20Developer)
 
 ## The World's Shortest ChatBot Code: 6 lines of JavaScript
 
@@ -93,6 +93,8 @@ node mybot.js
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
+* Wechaty Starter Repository for Docker - <https://github.com/Chatie/docker-wechaty-getting-started>
+
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
 2.1. Run JavaScript
@@ -110,6 +112,149 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 ```
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+
+## API
+
+Read the Full Documentation at [Wechaty Official API Reference](https://chatie.github.io/wechaty/)
+
+### 1 Class `Wechaty`
+
+Main bot class.
+
+A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://github.com/Chatie/wechaty/wiki/Puppet).
+
+* `new Wechaty(options?: WechatyOptions)`
+    1. `options.name?: string` the name to identify this bot
+    2. `optoins.puppet?: string` select which puppet provider we use. must be one of
+        1. [wechaty-puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
+        2. [wechaty-puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
+        3. [wechaty-puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat) - iPad App Protocol
+        4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
+    3. `optoins.puppetOptions?: PuppetOptions` puppet provider options.
+
+| Wechaty | API | Description |
+| :--- | :--- | :---        |
+| event | `login` | emit after bot login full successful |
+| event | `logout` | emit after the bot log out |
+| event | `friendship` | emit when someone sends bot a friend request|
+| event | `message` | emit when there's a new message |
+| event | `room-join` | emit when anyone join any room |
+| event | `room-topic` | emit when someone change room topic |
+| event | `room-leave` | emit when anyone leave the room |
+| event | `room-invite` | emit when there is a room invitation |
+| event | `scan` | emit when the bot needs to show you a QR Code for scanning |
+|  | `start(): Promise<void>` | start the bot |
+|  | `stop(): Promise<void>` | stop the bot |
+|  | `logonoff(): boolean` | bot login status |
+|  | `logout(): Promise<void>` | logout the bot |
+|  | `userSelf(): ContactSelf` | get the login-ed bot contact |
+|  | `say(text: string): Promise<void>` | let bot say `text` to itself |
+
+### 2 Class `Contact`
+
+All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
+
+| Contact | API | Description |
+| :--- | :--- | :---        |
+| static | `find(query: string): Promise<null \| Contact>` |  |
+| static | `findAll(query: string): Promise<Contact[]>` |  |
+| property | `id: readonly string` | |
+|  | `say(text: string): Promise<void>` | |
+|  | `self(): boolean` |  |
+|  | `name(): string` |  |
+|  | `alias(): Promise<string>` |  |
+|  | `alias(newAlias: string): Promise<void>` |  |
+|  | `friend(): boolean` |  |
+|  | `type(): ContactType` |  |
+|  | `provence(): string` |  |
+|  | `city(): string` |  |
+|  | `avatar(): Promise<FileBox>` |  |
+|  | `gender(): ContactGender` |  |
+
+#### 2.1 Class `ContactSelf`
+
+Class `ContactSelf` is extended from `Contact`.
+
+| ContactSelf | API | Description |
+| :--- | :--- | :---        |
+|  | `avatar(file: FileBox): Promise<void>` | set avatar for bot |
+|  | `qrcode(): Promise<string>` | get qrcode for bot |
+|  | `signature(text: string): Promise<void>` | set signature for bot |
+
+#### 2.2 Class `Friendship`
+
+Send, receive friend request, and friend confirmation events.
+
+| Friendship | API | Description |
+| :--- | :--- | :---        |
+|  | `add(contact: Contact, hello?: string): Promise<void>` | send a friend invitation to contact |
+|  | `accept(): Promise<void>` |  |
+|  | `hello(): string` | get the hello string from a friendship invitation |
+|  | `contact(): Contact` |  |
+|  | `type(): FriendshipType` |  |
+
+### 3 Class `Message`
+
+All wechat messages will be encapsulated as a Message.
+
+| Message | API | Description |
+| :--- | :--- | :---        |
+| static | `find(query: string): Promise<null \| Message>` |  |
+| static | `findAll(query: string): Promise<Message[]>` |  |
+|  | `from(): Contact` |  |
+|  | `to(): Contact` |  |
+|  | `room(): null \| Room` |  |
+|  | `text(): string` |  |
+|  | `say(text: string): Promise<void>` |  |
+|  | `type(): MessageType` |  |
+|  | `self(): boolean` |  |
+|  | `mention(): Contact[]` |  |
+|  | `mentionSelf(): boolean` |  |
+|  | `forward(to: Contact): Promise<void>` |  |
+|  | `age(): number` | the number of seconds since it has been created |
+|  | `date(): Date` | the time it was created |
+|  | `toFileBox(): Promise<FileBox>` |  |
+|  | `toContact(): Promise<Contact>` |  |
+
+### 4 Class `Room`
+
+All wechat rooms(groups) will be encapsulated as a Room.
+
+| Room | API | Description |
+| :--- | :--- | :---        |
+| static | `create(contactList: Contact[], topic?: string): Promise<Room>` |  |
+| static | `find(query: string): Promise<null \| Room>` |  |
+| static | `findAll(query: string): Promise<Room[]>` |  |
+| property | `id: readonly string` |  |
+| event | `join` | emit when anyone join any room |
+| event | `topic` | emit when someone change room topic |
+| event | `leave` | emit when anyone leave the room |
+| event | `invite` | emit when receive a room invitation |
+|  | `say(text: string): Promise<void>` |  |
+|  | `add(contact: Contact): Promise<void>` |  |
+|  | `del(contact: Contact): Promise<void>` |  |
+|  | `quit(): Promise<void>` |  |
+|  | `topic(): Promise<string>` |  |
+|  | `topic(newTopic: string): Promise<void>` |  |
+|  | `announce(text: string): Promise<void>` |  |
+|  | `qrcode(): Promise<string>` |  |
+|  | `alias(contact: Contact): Promise<string>` |  |
+|  | `has(contact: Contact): Promise<boolean>` |  |
+|  | `memberAll(query?: string): Promise<Contact[]>` |  |
+|  | `member(query: string): Promise<null \| Contact>` |  |
+|  | `owner(): null \| Contact` |  |
+
+#### 4.1 Class `RoomInvitation`
+
+Accept room invitation
+
+| RoomInvitation | API | Description |
+| :--- | :--- | :---        |
+|  | `accept(): Promise<void>` |  |
+|  | `inviter(): Contact` |  |
+|  | `topic(): Promise<string>` |  |
+|  | `date(): Promise<Date>` | the time it was created |
+|  | `age(): Promise<number>` | the number of seconds since it has been created |
 
 ## TEST
 
@@ -132,12 +277,6 @@ npm test
 ```
 
 Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wechaty/wiki/Tests)
-
-## DOCUMATAION
-
-In order to sync the doc with the lastest code, we are using [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
-
-See: [Official API Reference](https://chatie.github.io/wechaty/)
 
 ## RELEASE NOTES
 

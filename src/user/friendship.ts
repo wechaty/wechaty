@@ -59,6 +59,9 @@ export class Friendship extends Accessory implements Acceptable {
   // tslint:disable-next-line:variable-name
   public static Type = FriendshipType
 
+  /**
+   * @private
+   */
   public static load<T extends typeof Friendship> (
     this : T,
     id   : string,
@@ -266,12 +269,14 @@ export class Friendship extends Accessory implements Acceptable {
         log.verbose('Friendship', 'accept() with contact %s ready()', contact.name())
         return
       }
-      retry(new Error('Friendship.accept() content.ready() not ready'))
+      retry(new Error('Friendship.accept() contact.ready() not ready'))
 
     }).catch((e: Error) => {
       log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, e && e.message || e)
     })
 
+    // try to fix issue #293
+    await contact.sync()
   }
 
   /**
