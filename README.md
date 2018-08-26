@@ -125,12 +125,12 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://g
 
 * `new Wechaty(options?: WechatyOptions)`
     1. `options.name?: string` the name to identify this bot
-    2. `optoins.puppet?: string` select which puppet we use. must be one of
+    2. `optoins.puppet?: string` select which puppet provider we use. must be one of
         1. [wechaty-puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
         2. [wechaty-puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
         3. [wechaty-puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat) - iPad App Protocol
         4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
-    3. `optoins.puppetOptions?: PuppetOptions` puppet options.
+    3. `optoins.puppetOptions?: PuppetOptions` puppet provider options.
 
 | Wechaty | API | Description |
 | :--- | :--- | :---        |
