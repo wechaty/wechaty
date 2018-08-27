@@ -17,19 +17,13 @@ cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 cd $TMPDIR
 npm init -y
 npm install *-*.*.*.tgz \
-  @types/lru-cache \
+  @types/quick-lru \
   @types/node \
   @types/normalize-package-data \
-  brolog \
-  file-box \
-  hot-import \
-  lru-cache \
-  memory-card \
-  normalize-package-data \
-  state-switch \
   typescript \
+  file-box \
+  memory-card \
   "wechaty-puppet@$NPM_TAG" \
-  watchdog \
 
 ./node_modules/.bin/tsc \
   --esModuleInterop \
