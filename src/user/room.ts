@@ -875,7 +875,7 @@ export class Room extends Accessory implements Sayable {
    * const roomList:Conatct[] | null = await room.findAll()
    * if(roomList)
    *  console.log("room all member list: ", room_list)
-   * const memberContactList: Conatct[] | null =await room.findAll("abc")
+   * const memberContactList: Conatct[] | null =await room.findAll('abc')
    * console.log("contact list with all name, room alias, alias are abc:", member_contact_list)
    */
   public async memberAll (
