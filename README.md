@@ -157,20 +157,20 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 
 | Contact | API | Description |
 | :--- | :--- | :---        |
-| static | `find(query: string): Promise<null \| Contact>` |  |
-| static | `findAll(query: string): Promise<Contact[]>` |  |
-| property | `id: readonly string` | |
-|  | `say(text: string): Promise<void>` | |
-|  | `self(): boolean` |  |
-|  | `name(): string` |  |
-|  | `alias(): Promise<string>` |  |
-|  | `alias(newAlias: string): Promise<void>` |  |
-|  | `friend(): boolean` |  |
-|  | `type(): ContactType` |  |
-|  | `provence(): string` |  |
-|  | `city(): string` |  |
-|  | `avatar(): Promise<FileBox>` |  |
-|  | `gender(): ContactGender` |  |
+| static | `find(query: string): Promise<null \| Contact>` | find contact by name or alias, if the result more than one, return the first one. |
+| static | `findAll(query: string): Promise<Contact[]>` | find contact by `name` or `alias` |
+| property | `id: readonly string` | get contact id |
+|  | `say(text: string): Promise<void>` | send text, Contact, or file to contact |
+|  | `self(): boolean` | check if contact is self |
+|  | `name(): string` | get the name from a contact |
+|  | `alias(): Promise<string>` | get the alias for a contact |
+|  | `alias(newAlias: string): Promise<void>` | set or delete the alias for a contact |
+|  | `friend(): boolean` | check if contact is friend |
+|  | `type(): ContactType` | return the type of the Contact |
+|  | `provence(): string` | get the region 'province' from a contact |
+|  | `city(): string` | get the region 'city' from a contact |
+|  | `avatar(): Promise<FileBox>` | get avatar picture file stream |
+|  | `gender(): ContactGender` | get gender from a contact |
 
 #### 2.1 Class `ContactSelf`
 
@@ -189,10 +189,10 @@ Send, receive friend request, and friend confirmation events.
 | Friendship | API | Description |
 | :--- | :--- | :---        |
 |  | `add(contact: Contact, hello?: string): Promise<void>` | send a friend invitation to contact |
-|  | `accept(): Promise<void>` |  |
+|  | `accept(): Promise<void>` | accept Friend Request |
 |  | `hello(): string` | get the hello string from a friendship invitation |
-|  | `contact(): Contact` |  |
-|  | `type(): FriendshipType` |  |
+|  | `contact(): Contact` | get the contact from friendship |
+|  | `type(): FriendshipType` | return the Friendship Type(unknown, confirm, receive, verify) |
 
 ### 3 Class `Message`
 
@@ -200,22 +200,22 @@ All wechat messages will be encapsulated as a Message.
 
 | Message | API | Description |
 | :--- | :--- | :---        |
-| static | `find(query: string): Promise<null \| Message>` |  |
-| static | `findAll(query: string): Promise<Message[]>` |  |
-|  | `from(): Contact` |  |
-|  | `to(): Contact` |  |
-|  | `room(): null \| Room` |  |
-|  | `text(): string` |  |
-|  | `say(text: string): Promise<void>` |  |
-|  | `type(): MessageType` |  |
-|  | `self(): boolean` |  |
-|  | `mention(): Contact[]` |  |
-|  | `mentionSelf(): boolean` |  |
-|  | `forward(to: Contact): Promise<void>` |  |
+| static | `find(query: string): Promise<null \| Message>` | find message in cache and return the first one |
+| static | `findAll(query: string): Promise<Message[]>` | find messages in cache, return a message list |
+|  | `from(): Contact` | get the sender from a message |
+|  | `to(): Contact` | get the destination of the message |
+|  | `room(): null \| Room` | get the room from the message.(If the message is not in a room, then will return `null`) |
+|  | `text(): string` | get the text content of the message |
+|  | `say(text: string): Promise<void>` | reply a Text, Media File , or contact message to the sender. |
+|  | `type(): MessageType` | get the type from the message |
+|  | `self(): boolean` | check if a message is sent by self |
+|  | `mention(): Contact[]` | get message mentioned contactList. |
+|  | `mentionSelf(): boolean` | check if a message is mention self |
+|  | `forward(to: Contact): Promise<void>` | Forward the received message |
 |  | `age(): number` | the number of seconds since it has been created |
 |  | `date(): Date` | the time it was created |
-|  | `toFileBox(): Promise<FileBox>` |  |
-|  | `toContact(): Promise<Contact>` |  |
+|  | `toFileBox(): Promise<FileBox>` | extract the Media File from the Message, and put it into the FileBox. |
+|  | `toContact(): Promise<Contact>` | get Share Card of the Message |
 
 ### 4 Class `Room`
 
@@ -223,27 +223,27 @@ All wechat rooms(groups) will be encapsulated as a Room.
 
 | Room | API | Description |
 | :--- | :--- | :---        |
-| static | `create(contactList: Contact[], topic?: string): Promise<Room>` |  |
-| static | `find(query: string): Promise<null \| Room>` |  |
-| static | `findAll(query: string): Promise<Room[]>` |  |
+| static | `create(contactList: Contact[], topic?: string): Promise<Room>` | create a new room |
+| static | `find(query: string): Promise<null \| Room>` | Try to find a room by filter. If get many, return the first one. |
+| static | `findAll(query: string): Promise<Room[]>` | Find all contacts in a room |
 | property | `id: readonly string` |  |
 | event | `join` | emit when anyone join any room |
 | event | `topic` | emit when someone change room topic |
 | event | `leave` | emit when anyone leave the room |
 | event | `invite` | emit when receive a room invitation |
-|  | `say(text: string): Promise<void>` |  |
-|  | `add(contact: Contact): Promise<void>` |  |
-|  | `del(contact: Contact): Promise<void>` |  |
-|  | `quit(): Promise<void>` |  |
-|  | `topic(): Promise<string>` |  |
-|  | `topic(newTopic: string): Promise<void>` |  |
-|  | `announce(text: string): Promise<void>` |  |
-|  | `qrcode(): Promise<string>` |  |
-|  | `alias(contact: Contact): Promise<string>` |  |
-|  | `has(contact: Contact): Promise<boolean>` |  |
-|  | `memberAll(query?: string): Promise<Contact[]>` |  |
-|  | `member(query: string): Promise<null \| Contact>` |  |
-|  | `owner(): null \| Contact` |  |
+|  | `say(text: string): Promise<void>` | Send text,media file, contact card, or text with mention @mention contact inside Room |
+|  | `add(contact: Contact): Promise<void>` | Add contact in a room |
+|  | `del(contact: Contact): Promise<void>` | Delete a contact from the room |
+|  | `quit(): Promise<void>` | Bot quit the room itself |
+|  | `topic(): Promise<string>` | GET topic from the room |
+|  | `topic(newTopic: string): Promise<void>` | SET topic from the room |
+|  | `announce(text: string): Promise<void>` | SET/GET announce from the room |
+|  | `qrcode(): Promise<string>` | Get QR Code of the Room from the room, which can be used as scan and join the room. |
+|  | `alias(contact: Contact): Promise<string>` | Return contact's roomAlias in the room |
+|  | `has(contact: Contact): Promise<boolean>` | Check if the room has member `contact` |
+|  | `memberAll(query?: string): Promise<Contact[]>` | Find all contacts or with specific name in a room |
+|  | `member(query: string): Promise<null \| Contact>` | Find all contacts in a room, if get many, return the first one. |
+|  | `owner(): null \| Contact` | Get room's owner from the room. |
 
 #### 4.1 Class `RoomInvitation`
 
@@ -251,9 +251,9 @@ Accept room invitation
 
 | RoomInvitation | API | Description |
 | :--- | :--- | :---        |
-|  | `accept(): Promise<void>` |  |
-|  | `inviter(): Contact` |  |
-|  | `topic(): Promise<string>` |  |
+|  | `accept(): Promise<void>` | accept Room Invitation |
+|  | `inviter(): Contact` | get the inviter from room invitation |
+|  | `topic(): Promise<string>` | get the room topic from room invitation |
 |  | `date(): Promise<Date>` | the time it was created |
 |  | `age(): Promise<number>` | the number of seconds since it has been created |
 

@@ -869,8 +869,14 @@ export class Room extends Accessory implements Sayable {
    * - `name`                 the name-string set by user-self, should be called name, equal to `Contact.name()`
    * - `roomAlias`            the name-string set by user-self in the room, should be called roomAlias
    * - `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
-   * @param {(RoomMemberQueryFilter | string)} query -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
+   * @param {(RoomMemberQueryFilter | string)} [query] -Optional parameter, When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    * @returns {Promise<Contact[]>}
+   * @example
+   * const roomList:Conatct[] | null = await room.findAll()
+   * if(roomList)
+   *  console.log(`room all member list: `, roomList)
+   * const memberContactList: Conatct[] | null =await room.findAll(`abc`)
+   * console.log(`contact list with all name, room alias, alias are abc:`, memberContactList)
    */
   public async memberAll (
     query?: string | RoomMemberQueryFilter,
@@ -951,6 +957,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
+   * @ignore
    * @private
    *
    * Get all room member from the room
