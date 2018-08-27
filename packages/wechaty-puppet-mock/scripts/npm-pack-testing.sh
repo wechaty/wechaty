@@ -21,6 +21,7 @@ npm install *-*.*.*.tgz \
   @types/node \
   @types/normalize-package-data \
   typescript \
+  \
   file-box \
   memory-card \
   "wechaty-puppet@$NPM_TAG" \
