@@ -848,6 +848,7 @@ export class Room extends Accessory implements Sayable {
             .length > 0
   }
 
+  public async memberAll ()                              : Promise<Contact[]>
   public async memberAll (name: string)                  : Promise<Contact[]>
   public async memberAll (filter: RoomMemberQueryFilter) : Promise<Contact[]>
 
