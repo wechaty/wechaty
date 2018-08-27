@@ -6,7 +6,7 @@ export const PUPPET_DEPENDENCIES = {
   'padchat'                  : '0.0.0',    // compatible with v0.18, will be replaced with wechaty-puppet-padchat
   /////////////////////////////////////
   // 'wechaty-puppet-hostie'    : '^0.0.1',
-  // 'wechaty-puppet-ioscat'    : '^0.5',
+  'wechaty-puppet-ioscat'    : '^0.5.10',
   'wechaty-puppet-mock'      : '^0.14.1',
   'wechaty-puppet-padchat'   : '^0.14.1',
   'wechaty-puppet-puppeteer' : '^0.14.1',
