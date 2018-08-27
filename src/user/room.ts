@@ -872,10 +872,10 @@ export class Room extends Accessory implements Sayable {
    * @param {(RoomMemberQueryFilter | string)} [query] -Optional parameter, When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    * @returns {Promise<Contact[]>}
    * @example
-   * const room_list:Conatct[]|null = await room.findAll()
-   * if(room_list)
+   * const roomList:Conatct[] | null = await room.findAll()
+   * if(roomList)
    *  console.log("room all member list: ", room_list)
-   * const member_contact_list: Conatct[]|null =await room.findAll("abc")
+   * const memberContactList: Conatct[] | null =await room.findAll("abc")
    * console.log("contact list with all name, room alias, alias are abc:", member_contact_list)
    */
   public async memberAll (
