@@ -6,7 +6,7 @@ function getBotList () {
   return [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
     new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
-    // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
+    new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
     new Wechaty({
       puppet: 'wechaty-puppet-padchat',
       // we use WECHATY_PUPPET_PADCHAT_TOKEN environment variable at here.
