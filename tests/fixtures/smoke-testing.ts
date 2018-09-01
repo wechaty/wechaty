@@ -2,16 +2,23 @@
 
 import { Wechaty }    from 'wechaty'
 
-function getBotList () {
-  return [
+function getBotList (): Wechaty[] {
+  const botList = [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
     new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
     new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
-    new Wechaty({
-      puppet: 'wechaty-puppet-padchat',
-      // we use WECHATY_PUPPET_PADCHAT_TOKEN environment variable at here.
-    }),
   ]
+
+  if (!process.env.TRAVIS_PULL_REQUEST) {
+    botList.push(
+      new Wechaty({
+        puppet: 'wechaty-puppet-padchat',
+        // we use WECHATY_PUPPET_PADCHAT_TOKEN environment variable at here.
+      })
+    )
+  }
+
+  return botList
 }
 
 async function main () {

@@ -157,7 +157,7 @@ export class ContactSelf extends Contact {
       throw new Error('only can set name for user self')
     }
 
-    return this.puppet.contactSelfName(name)
+    return this.puppet.contactSelfName(name).then(this.sync.bind(this))
   }
 
   /**
@@ -189,6 +189,6 @@ export class ContactSelf extends Contact {
       throw new Error('only can change signature for user self')
     }
 
-    return this.puppet.contactSelfSignature(signature)
+    return this.puppet.contactSelfSignature(signature).then(this.sync.bind(this))
   }
 }
