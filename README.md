@@ -135,21 +135,21 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://g
 
 | Wechaty | API | Description |
 | :--- | :--- | :---        |
-| event | `login` | emit after bot login full successful |
-| event | `logout` | emit after the bot log out |
-| event | `friendship` | emit when someone sends bot a friend request|
-| event | `message` | emit when there's a new message |
-| event | `room-join` | emit when anyone join any room |
-| event | `room-topic` | emit when someone change room topic |
-| event | `room-leave` | emit when anyone leave the room |
-| event | `room-invite` | emit when there is a room invitation |
-| event | `scan` | emit when the bot needs to show you a QR Code for scanning |
-| method | `start(): Promise<void>` | start the bot |
-| method | `stop(): Promise<void>` | stop the bot |
-| method | `logonoff(): boolean` | bot login status |
-| method | `logout(): Promise<void>` | logout the bot |
-| method | `userSelf(): ContactSelf` | get the login-ed bot contact |
-| method | `say(text: string): Promise<void>` | let bot say `text` to itself |
+| event | [`login`](https://chatie.io/wechaty/#Wechaty+on) | emit after bot login full successful |
+| event | [`logout`](https://chatie.io/wechaty/#Wechaty+on) | emit after the bot log out |
+| event | [`friendship`](https://chatie.io/wechaty/#Wechaty+on) | emit when someone sends bot a friend request|
+| event | [`message`](https://chatie.io/wechaty/#Wechaty+on) | emit when there's a new message |
+| event | [`room-join`](https://chatie.io/wechaty/#Wechaty+on) | emit when anyone join any room |
+| event | [`room-topic`](https://chatie.io/wechaty/#Wechaty+on) | emit when someone change room topic |
+| event | [`room-leave`](https://chatie.io/wechaty/#Wechaty+on) | emit when anyone leave the room |
+| event | [`room-invite`](https://chatie.io/wechaty/#Wechaty+on) | emit when there is a room invitation |
+| event | [`scan`](https://chatie.io/wechaty/#Wechaty+on) | emit when the bot needs to show you a QR Code for scanning |
+| method | [`start(): Promise<void>`](https://chatie.io/wechaty/#Wechaty+start) | start the bot |
+| method | [`stop(): Promise<void>`](https://chatie.io/wechaty/#Wechaty+stop) | stop the bot |
+| method | [`logonoff(): boolean`](https://chatie.io/wechaty/#Wechaty+logonoff) | bot login status |
+| method | [`logout(): Promise<void>`](https://chatie.io/wechaty/#Wechaty+logout) | logout the bot |
+| method | [`userSelf(): ContactSelf`](https://chatie.io/wechaty/#Wechaty+userSelf) | get the login-ed bot contact |
+| method | [`say(text: string): Promise<void>`](https://chatie.io/wechaty/#Wechaty+say) | let bot say `text` to itself |
 
 ### 2 Class `Contact`
 
@@ -157,22 +157,22 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 
 | Contact | API | Description |
 | :--- | :--- | :---        |
-| static | `find(query: string): Promise<null \| Contact>` | find contact by name or alias, if the result more than one, return the first one. |
-| static | `findAll(query: string): Promise<Contact[]>` | find contact by `name` or `alias` |
-| static | `load(query: string): Contact` | get contact by id |
+| static | [`find(query: string): Promise<null \| Contact>`](https://chatie.io/wechaty/#Contact.find) | find contact by name or alias, if the result more than one, return the first one. |
+| static | [`findAll(query: string): Promise<Contact[]>`](https://chatie.io/wechaty/#Contact.findAll) | find contact by `name` or `alias` |
+| static | [`load(query: string): Contact`](https://chatie.io/wechaty/#Contact.load) | get contact by id |
 | property | `id: readonly string` | get contact id |
-| method | `sync(): Promise<void>` | force reload data for contact , sync data from lowlevel API again|
-| method | `say(text: string): Promise<void>` | send text, Contact, or file to contact |
-| method | `self(): boolean` | check if contact is self |
-| method | `name(): string` | get the name from a contact |
-| method | `alias(): Promise<string>` | get the alias for a contact |
-| method | `alias(newAlias: string): Promise<void>` | set or delete the alias for a contact |
-| method | `friend(): boolean` | check if contact is friend |
-| method | `type(): ContactType` | return the type of the Contact |
-| method | `provence(): string` | get the region 'province' from a contact |
-| method | `city(): string` | get the region 'city' from a contact |
-| method | `avatar(): Promise<FileBox>` | get avatar picture file stream |
-| method | `gender(): ContactGender` | get gender from a contact |
+| method | [`sync(): Promise<void>`](https://chatie.io/wechaty/#Contact+sync) | force reload data for contact , sync data from lowlevel API again|
+| method | [`say(text: string): Promise<void>`](https://chatie.io/wechaty/#Contact+say) | send text, Contact, or file to contact |
+| method | [`self(): boolean`](https://chatie.io/wechaty/#Contact+self) | check if contact is self |
+| method | [`name(): string`](https://chatie.io/wechaty/#Contact+name) | get the name from a contact |
+| method | [`alias(): Promise<string>`](https://chatie.io/wechaty/#Contact+alias) | get the alias for a contact |
+| method | [`alias(newAlias: string): Promise<void>`](https://chatie.io/wechaty/#Contact+alias) | set or delete the alias for a contact |
+| method | [`friend(): boolean`](https://chatie.io/wechaty/#Contact+friend) | check if contact is friend |
+| method | [`type(): ContactType`](https://chatie.io/wechaty/#Contact+type) | return the type of the Contact |
+| method | [`provence(): string`](https://chatie.io/wechaty/#Contact+province) | get the region 'province' from a contact |
+| method | [`city(): string`](https://chatie.io/wechaty/#Contact+city) | get the region 'city' from a contact |
+| method | [`avatar(): Promise<FileBox>`](https://chatie.io/wechaty/#Contact+avatar) | get avatar picture file stream |
+| method | [`gender(): ContactGender`](https://chatie.io/wechaty/#Contact+gender) | get gender from a contact |
 
 #### 2.1 Class `ContactSelf`
 
@@ -180,9 +180,9 @@ Class `ContactSelf` is extended from `Contact`.
 
 | ContactSelf | API | Description |
 | :--- | :--- | :---        |
-| method | `avatar(file: FileBox): Promise<void>` | set avatar for bot |
-| method | `qrcode(): Promise<string>` | get qrcode for bot |
-| method | `signature(text: string): Promise<void>` | set signature for bot |
+| method | [`avatar(file: FileBox): Promise<void>`](https://chatie.io/wechaty/#ContactSelf+avatar) | set avatar for bot |
+| method | [`qrcode(): Promise<string>`](https://chatie.io/wechaty/#ContactSelf+qrcode) | get qrcode for bot |
+| method | [`signature(text: string): Promise<void>`](https://chatie.io/wechaty/#ContactSelf+signature) | set signature for bot |
 
 #### 2.2 Class `Friendship`
 
@@ -190,11 +190,11 @@ Send, receive friend request, and friend confirmation events.
 
 | Friendship | API | Description |
 | :--- | :--- | :---        |
-| static | `add(contact: Contact, hello?: string): Promise<void>` | send a friend invitation to contact |
-| method | `accept(): Promise<void>` | accept Friend Request |
-| method | `hello(): string` | get the hello string from a friendship invitation |
-| method | `contact(): Contact` | get the contact from friendship |
-| method | `type(): FriendshipType` | return the Friendship Type(unknown, confirm, receive, verify) |
+| static | [`add(contact: Contact, hello?: string): Promise<void>`](https://chatie.io/wechaty/#Friendship.add) | send a friend invitation to contact |
+| method | [`accept(): Promise<void>`](https://chatie.io/wechaty/#Friendship+accept) | accept Friend Request |
+| method | [`hello(): string`](https://chatie.io/wechaty/#Friendship+hello) | get the hello string from a friendship invitation |
+| method | [`contact(): Contact`](https://chatie.io/wechaty/#Friendship+contact) | get the contact from friendship |
+| method | [`type(): FriendshipType`](https://chatie.io/wechaty/#Friendship+type) | return the Friendship Type(unknown, confirm, receive, verify) |
 
 ### 3 Class `Message`
 
@@ -202,22 +202,22 @@ All wechat messages will be encapsulated as a Message.
 
 | Message | API | Description |
 | :--- | :--- | :---        |
-| static | `find(query: string): Promise<null \| Message>` | find message in cache and return the first one |
-| static | `findAll(query: string): Promise<Message[]>` | find messages in cache, return a message list |
-| method | `from(): Contact` | get the sender from a message |
-| method | `to(): Contact` | get the destination of the message |
-| method | `room(): null \| Room` | get the room from the message.(If the message is not in a room, then will return `null`) |
-| method | `text(): string` | get the text content of the message |
-| method | `say(text: string): Promise<void>` | reply a Text, Media File , or contact message to the sender. |
-| method | `type(): MessageType` | get the type from the message |
-| method | `self(): boolean` | check if a message is sent by self |
-| method | `mention(): Contact[]` | get message mentioned contactList. |
-| method | `mentionSelf(): boolean` | check if a message is mention self |
-| method | `forward(to: Contact): Promise<void>` | Forward the received message |
-| method | `age(): number` | the number of seconds since it has been created |
+| static | [`find(query: string): Promise<null \| Message>`](https://chatie.io/wechaty/#Message.find) | find message in cache and return the first one |
+| static | [`findAll(query: string): Promise<Message[]>`](https://chatie.io/wechaty/#Message.findAll) | find messages in cache, return a message list |
+| method | [`from(): Contact`](https://chatie.io/wechaty/#Message+from) | get the sender from a message |
+| method | [`to(): Contact`](https://chatie.io/wechaty/#Message+to) | get the destination of the message |
+| method | [`room(): null \| Room`](https://chatie.io/wechaty/#Message+room) | get the room from the message.(If the message is not in a room, then will return `null`) |
+| method | [`text(): string`](https://chatie.io/wechaty/#Message+text) | get the text content of the message |
+| method | [`say(text: string): Promise<void>`](https://chatie.io/wechaty/#Message+say) | reply a Text, Media File , or contact message to the sender. |
+| method | [`type(): MessageType`](https://chatie.io/wechaty/#Message+type) | get the type from the message |
+| method | [`self(): boolean`](https://chatie.io/wechaty/#Message+self) | check if a message is sent by self |
+| method | [`mention(): Contact[]`](https://chatie.io/wechaty/#Message+mention) | get message mentioned contactList. |
+| method | [`mentionSelf(): boolean`](https://chatie.io/wechaty/#Message+mentionSelf) | check if a message is mention self |
+| method | [`forward(to: Contact): Promise<void>`](https://chatie.io/wechaty/#Message+forward) | Forward the received message |
+| method | [`age(): number`](https://chatie.io/wechaty/#Message+age) | the number of seconds since it has been created |
 | method | `date(): Date` | the time it was created |
-| method | `toFileBox(): Promise<FileBox>` | extract the Media File from the Message, and put it into the FileBox. |
-| method | `toContact(): Promise<Contact>` | get Share Card of the Message |
+| method | [`toFileBox(): Promise<FileBox>`](https://chatie.io/wechaty/#Message+toFileBox) | extract the Media File from the Message, and put it into the FileBox. |
+| method | [`toContact(): Promise<Contact>`](https://chatie.io/wechaty/#Message+toContact) | get Share Card of the Message |
 
 ### 4 Class `Room`
 
@@ -225,31 +225,31 @@ All wechat rooms(groups) will be encapsulated as a Room.
 
 | Room | API | Description |
 | :--- | :--- | :---        |
-| static | `create(contactList: Contact[], topic?: string): Promise<Room>` | create a new room |
-| static | `find(query: string): Promise<null \| Room>` | Try to find a room by filter. If get many, return the first one. |
-| static | `findAll(query: string): Promise<Room[]>` | Find all contacts in a room |
-| static | `load(query: string): Room` | load room by room id |
+| static | [`create(contactList: Contact[], topic?: string): Promise<Room>`](https://chatie.io/wechaty/#Room.create) | create a new room |
+| static | [`find(query: string): Promise<null \| Room>`](https://chatie.io/wechaty/#Room.find) | Try to find a room by filter. If get many, return the first one. |
+| static | [`findAll(query: string): Promise<Room[]>`](https://chatie.io/wechaty/#Room.findAll) | Find all contacts in a room |
+| static | [`load(query: string): Room`](https://chatie.io/wechaty/#Room.load) | load room by room id |
 | property | `id: readonly string` |  |
-| event | `join` | emit when anyone join any room |
-| event | `topic` | emit when someone change room topic |
-| event | `leave` | emit when anyone leave the room |
-| event | `invite` | emit when receive a room invitation |
-| method | `sync(): <Promise<void>` | force reload data for room, sync data from lowlevel API again.
-| method | `say(text: string): Promise<void>` | Send text,media file, contact card, or text with mention @mention contact inside Room |
-| method | `add(contact: Contact): Promise<void>` | Add contact in a room |
-| method | `del(contact: Contact): Promise<void>` | Delete a contact from the room |
-| method | `quit(): Promise<void>` | Bot quit the room itself |
-| method | `topic(): Promise<string>` | GET topic from the room |
-| method | `topic(newTopic: string): Promise<void>` | SET topic from the room |
-| method | `announce(text: string): Promise<void>` | SET/GET announce from the room |
-| method | `qrcode(): Promise<string>` | Get QR Code of the Room from the room, which can be used as scan and join the room. |
-| method | `alias(contact: Contact): Promise<string>` | Return contact's roomAlias in the room |
-| method | `roomAlias(contact: Contact): Promise<string|null>` | Same as function alias|
-| method | `has(contact: Contact): Promise<boolean>` | Check if the room has member `contact` |
-| method | `memberAll(query?: string): Promise<Contact[]>` | Find all contacts or with specific name in a room |
-| method | `member(query: string): Promise<null | Contact>` | Find all contacts in a room, if get many, return the first one. |
-| method | `memberList():Promise<Contact[]>` | get all room member from the room|
-| method | `owner(): null \| Contact` | Get room's owner from the room. |
+| event | [`join`](https://chatie.io/wechaty/#Room+on) | emit when anyone join any room |
+| event | [`topic`](https://chatie.io/wechaty/#Room+on) | emit when someone change room topic |
+| event | [`leave`](https://chatie.io/wechaty/#Room+on) | emit when anyone leave the room |
+| event | [`invite`](https://chatie.io/wechaty/#Room+on) | emit when receive a room invitation |
+| method | [`sync(): <Promise<void>`](https://chatie.io/wechaty/#Room+sync) | force reload data for room, sync data from lowlevel API again.
+| method | [`say(text: string): Promise<void>`](https://chatie.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room |
+| method | [`add(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+add) | Add contact in a room |
+| method | [`del(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+del) | Delete a contact from the room |
+| method | [`quit(): Promise<void>`](https://chatie.io/wechaty/#Room+quit) | Bot quit the room itself |
+| method | [`topic(): Promise<string>`](https://chatie.io/wechaty/#Room+topic) | GET topic from the room |
+| method | [`topic(newTopic: string): Promise<void>`](https://chatie.io/wechaty/#Room+topic) | SET topic from the room |
+| method | [`announce(text: string): Promise<void>`](https://chatie.io/wechaty/#Room+announce) | SET/GET announce from the room |
+| method | [`qrcode(): Promise<string>`](https://chatie.io/wechaty/#Room+qrcode) | Get QR Code of the Room from the room, which can be used as scan and join the room. |
+| method | [`alias(contact: Contact): Promise<string>`](https://chatie.io/wechaty/#Room+alias) | Return contact's roomAlias in the room |
+| method | [`roomAlias(contact: Contact): Promise<string|null>`](https://chatie.io/wechaty/#Room+roomAlias) | Same as function alias|
+| method | [`has(contact: Contact): Promise<boolean>`](https://chatie.io/wechaty/#Room+has) | Check if the room has member `contact` |
+| method | [`memberAll(query?: string): Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberAll) | Find all contacts or with specific name in a room |
+| method | [`member(query: string): Promise<null | Contact>`](https://chatie.io/wechaty/#Room+member) | Find all contacts in a room, if get many, return the first one. |
+| method | [`memberList():Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberList) | get all room member from the room|
+| method | [`owner(): null \| Contact`](https://chatie.io/wechaty/#Room+owner) | Get room's owner from the room. |
 
 #### 4.1 Class `RoomInvitation`
 
@@ -257,10 +257,10 @@ Accept room invitation
 
 | RoomInvitation | API | Description |
 | :--- | :--- | :---        |
-| method | `accept(): Promise<void>` | accept Room Invitation |
-| method | `inviter(): Contact` | get the inviter from room invitation |
-| method | `topic(): Promise<string>` | get the room topic from room invitation |
-| method | `date(): Promise<Date>` | the time it was created |
+| method | [`accept(): Promise<void>`](https://chatie.io/wechaty/#RoomInvitation+accept) | accept Room Invitation |
+| method | [`inviter(): Contact`](https://chatie.io/wechaty/#RoomInvitation+inviter) | get the inviter from room invitation |
+| method | [`roomTopic(): Promise<string>`](https://chatie.io/wechaty/#RoomInvitation+inviter) | get the room topic from room invitation |
+| method | [`date(): Promise<Date>`](https://chatie.io/wechaty/#RoomInvitation+date) | the time it was created |
 | method | `age(): Promise<number>` | the number of seconds since it has been created |
 
 ## TEST
