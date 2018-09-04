@@ -85,6 +85,18 @@ export class PuppetManager {
   protected static async checkModule (puppetName: PuppetModuleName): Promise<void> {
     log.verbose('PuppetManager', 'checkModule(%s)', puppetName)
 
+    if (!(puppetName in PUPPET_DEPENDENCIES)) {
+      throw new Error(
+        [
+          '',
+          'puppet npm module not supported: "' + puppetName + '"',
+          'learn more about supported Wechaty Puppet from our directory at',
+          '<https://github.com/Chatie/wechaty-puppet/wiki/Directory>',
+          '',
+        ].join('\n')
+      )
+    }
+
     const versionRange = PUPPET_DEPENDENCIES[puppetName]
 
     /**
