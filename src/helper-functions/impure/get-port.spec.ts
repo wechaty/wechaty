@@ -25,8 +25,6 @@ import net from 'net'
 import { getPort } from './get-port'
 
 test('getPort() for an available socket port', async t => {
-  // const PORT = 8788
-
   let port = await getPort()
   let ttl = 17
 
@@ -37,7 +35,7 @@ test('getPort() for an available socket port', async t => {
       const server = net.createServer(socket => {
         console.log(socket)
       })
-      server.listen(port, '127.0.0.1')
+      await new Promise(r => server.listen(port, r))
       serverList.push(server)
 
       port = await getPort()
