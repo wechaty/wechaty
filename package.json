@@ -97,7 +97,7 @@
   "devDependencies": {
     "@babel/core": "^7.0.1",
     "@babel/node": "^7.0.0",
-    "@babel/preset-env": "^7.0.0-beta.51",
+    "@babel/preset-env": "^7.0.0",
     "@types/blessed": "^0.1.10",
     "@types/blue-tape": "^0.1.0",
     "@types/cuid": "^1.3.0",
