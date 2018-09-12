@@ -95,7 +95,7 @@
     "ws": "^6.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.51",
+    "@babel/core": "^7.0.1",
     "@babel/node": "^7.0.0-beta.51",
     "@babel/preset-env": "^7.0.0-beta.51",
     "@types/blessed": "^0.1.10",
