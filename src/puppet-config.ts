@@ -3,6 +3,7 @@
  */
 export const PUPPET_DEPENDENCIES = {
   'default'                  : '0.0.0',    // will be replaced with PUPPET_DEFAULT
+  'mock'                     : '0.0.0',    // compatible with v0.18, will be replaced with wechaty-puppet-padchat
   'padchat'                  : '0.0.0',    // compatible with v0.18, will be replaced with wechaty-puppet-padchat
   /////////////////////////////////////
   // 'wechaty-puppet-hostie'    : '^0.0.1',
@@ -13,6 +14,6 @@ export const PUPPET_DEPENDENCIES = {
   'wechaty-puppet-wechat4u'  : '^0.14.1',
 }
 
-export const PUPPET_DEFAULT = 'wechaty-puppet-puppeteer'
-
 export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
+
+export const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-puppeteer'

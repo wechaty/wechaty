@@ -569,7 +569,7 @@ export class Wechaty extends Accessory implements Sayable {
     const puppetInstance = await PuppetManager.resolve({
       puppet,
       puppetOptions : this.options.puppetOptions,
-      wechaty       : this,
+      // wechaty       : this,
     })
 
     /**
