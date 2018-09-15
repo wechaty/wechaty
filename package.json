@@ -127,6 +127,7 @@
     "git-scripts": "git+https://github.com/nkzawa/git-scripts.git",
     "gl-matrix": "^2.6.1",
     "glob": "^7.1.0",
+    "is-pr": "^1.0.0",
     "jsdoc-to-markdown": "^4.0.0",
     "markdownlint-cli": "^0.13.0",
     "nyc": "^12.0.1",

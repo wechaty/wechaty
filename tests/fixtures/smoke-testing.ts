@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+import isPR from 'is-pr'
+
 import { Wechaty }    from 'wechaty'
 
 function getBotList (): Wechaty[] {
@@ -9,7 +11,7 @@ function getBotList (): Wechaty[] {
     new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
-  if (!process.env.TRAVIS_PULL_REQUEST) {
+  if (!isPR) {
     botList.push(
       new Wechaty({
         puppet: 'wechaty-puppet-padchat',
