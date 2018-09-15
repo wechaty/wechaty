@@ -1,6 +1,7 @@
 #!/usr/bin/env ts-node
 
-import isPR from 'is-pr'
+// tslint:disable:no-var-requires
+const isPR = require('is-pr')
 
 import { Wechaty }    from 'wechaty'
 
