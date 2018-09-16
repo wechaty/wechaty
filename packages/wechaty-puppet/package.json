@@ -75,7 +75,7 @@
     "normalize-package-data": "^2.4.0",
     "quick-lru": "^1.1.0",
     "read-pkg-up": "^4.0.0",
-    "rx-queue": "^0.4.26",
+    "rx-queue": "^0.6.1",
     "rxjs": "^6.2.1",
     "semver": "^5.5.0",
     "state-switch": "^0.6.2",
