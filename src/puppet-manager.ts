@@ -34,7 +34,7 @@ export class PuppetManager {
   public static async resolve (
     options: ResolveOptions
   ): Promise<Puppet> {
-    log.verbose('PuppetManager', 'resolve({wechaty: %s, puppet: %s, puppetOptions: %s})',
+    log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
                                   // options.wechaty,
                                   options.puppet,
                                   JSON.stringify(options.puppetOptions),
