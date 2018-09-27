@@ -428,12 +428,31 @@ export class Room extends Accessory implements Sayable {
     textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
     mention?                 : Contact | Contact[],
   ): Promise<void> {
+
+    const getRoomAlias: (c: Contact) => Promise<string> =
+    async (c: Contact) => {
+      try {
+        const alias: string | null = await c.alias()
+        return alias ? alias : c.name()
+      } catch (e) {
+        log.error('Room', 'say(%s,%s) get menction roomAlias error',
+                                        textOrContactOrFileOrUrl,
+                                        c.name())
+        return c.name()
+      }
+    }
+
+    const mentionAlias: string = Array.isArray(mention)
+                                  ? mention.map(async (c) => {
+                                      const roomAlias = await getRoomAlias(c)
+                                      return roomAlias
+                                    }).join(', ')
+                                  : mention ? await getRoomAlias(mention) : ''
+
     log.verbose('Room', 'say(%s, %s)',
                                   textOrContactOrFileOrUrl,
-                                  Array.isArray(mention)
-                                  ? mention.map(c => c.name()).join(', ')
-                                  : mention ? mention.name() : '',
-                )
+                                  mentionAlias)
+
     let text: string
 
     const replyToList: Contact[] = [].concat(mention as any || [])
@@ -444,7 +463,11 @@ export class Room extends Accessory implements Sayable {
         // const AT_SEPRATOR = String.fromCharCode(8197)
         const AT_SEPRATOR = FOUR_PER_EM_SPACE
 
-        const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
+        const mentionList = replyToList.map(async c => {
+          const roomAlias = await getRoomAlias(c)
+          return '@' + roomAlias
+        }).join(AT_SEPRATOR)
+
         text = mentionList + ' ' + textOrContactOrFileOrUrl
       } else {
         text = textOrContactOrFileOrUrl
