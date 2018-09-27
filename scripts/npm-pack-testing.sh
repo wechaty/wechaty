@@ -14,6 +14,7 @@ npm init -y
 npm install --production \
   *-*.*.*.tgz \
   @types/node \
+  is-pr \
   typescript
 
 ./node_modules/.bin/tsc \

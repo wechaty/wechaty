@@ -1,17 +1,27 @@
 #!/usr/bin/env ts-node
 
+// tslint:disable:no-var-requires
+const isPR = require('is-pr')
+
 import { Wechaty }    from 'wechaty'
 
-function getBotList () {
-  return [
+function getBotList (): Wechaty[] {
+  const botList = [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
     new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
     new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
-    new Wechaty({
-      puppet: 'wechaty-puppet-padchat',
-      // we use WECHATY_PUPPET_PADCHAT_TOKEN environment variable at here.
-    }),
   ]
+
+  if (!isPR) {
+    botList.push(
+      new Wechaty({
+        puppet: 'wechaty-puppet-padchat',
+        // we use WECHATY_PUPPET_PADCHAT_TOKEN environment variable at here.
+      })
+    )
+  }
+
+  return botList
 }
 
 async function main () {

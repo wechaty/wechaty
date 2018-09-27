@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -20,30 +21,29 @@
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
 
-import net from 'net'
+import {
+  PuppetManager,
+}                 from './puppet-manager'
 
-import { getPort } from './get-port'
-
-test('getPort() for an available socket port', async t => {
-  let port = await getPort()
-  let ttl = 17
-
-  const serverList = []
-
-  while (ttl-- > 0) {
-    try {
-      const server = net.createServer(socket => {
-        console.log(socket)
-      })
-      await new Promise(r => server.listen(port, r))
-      serverList.push(server)
-
-      port = await getPort()
-
-    } catch (e) {
-      t.fail('should not exception: ' + e.message + ', ' + e.stack)
-    }
+test('resolve an unsupported puppet name', async t => {
+  try {
+    await PuppetManager.resolve('fasdfsfasfsfdfs' as any)
+    t.fail('should reject')
+  } catch (e) {
+    t.ok('reject when options is a string')
   }
-  serverList.map(server => server.close())
-  t.pass('should has no exception after loop test')
+
+  try {
+    await PuppetManager.resolve({ puppet: 'fadfdsafa' as any })
+    t.fail('should reject')
+  } catch (e) {
+    t.ok('reject when options.puppet is unknown')
+  }
+
+  try {
+    await PuppetManager.resolve({ puppet: 'mock' })
+    t.pass('should allow "mock" as puppet name')
+  } catch (e) {
+    t.fail('should pass "mock" as puppet name')
+  }
 })

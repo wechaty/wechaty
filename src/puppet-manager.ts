@@ -15,16 +15,16 @@ import {
   log,
 }                       from './config'
 import {
-  PUPPET_DEFAULT,
   PUPPET_DEPENDENCIES,
+  PUPPET_NAME_DEFAULT,
   PuppetModuleName,
 }                       from './puppet-config'
 import {
-  Wechaty,
+  // Wechaty,
 }                       from './wechaty'
 
 export interface ResolveOptions {
-  wechaty        : Wechaty,
+  // wechaty        : Wechaty,
   puppet         : Puppet | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
@@ -34,19 +34,11 @@ export class PuppetManager {
   public static async resolve (
     options: ResolveOptions
   ): Promise<Puppet> {
-    log.verbose('PuppetManager', 'resolve({wechaty: %s, puppet: %s, puppetOptions: %s})',
-                                  options.wechaty,
+    log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
+                                  // options.wechaty,
                                   options.puppet,
                                   JSON.stringify(options.puppetOptions),
                 )
-
-    if (!options.puppet || options.puppet === 'default') {
-      options.puppet = PUPPET_DEFAULT
-    } else if (options.puppet === 'padchat') {
-      // issue #1496 https://github.com/Chatie/wechaty/issues/1496
-      // compatible old settings for padchat
-      options.puppet = 'wechaty-puppet-padchat'
-    }
 
     let puppetInstance: Puppet
 
@@ -73,6 +65,40 @@ export class PuppetManager {
 
   protected static async resolveName (puppetName: PuppetModuleName): Promise<PuppetImplementation> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
+
+    if (!puppetName) {
+      throw new Error('must provide a puppet name')
+    }
+
+    switch (puppetName) {
+      case 'padchat':
+        // issue #1496 https://github.com/Chatie/wechaty/issues/1496
+        // compatible old settings for padchat
+        puppetName = 'wechaty-puppet-padchat'
+        break
+
+      case 'mock':
+        puppetName = 'wechaty-puppet-mock'
+        break
+
+      case 'default':
+        puppetName = PUPPET_NAME_DEFAULT
+        break
+
+      default:
+        if (!(puppetName in PUPPET_DEPENDENCIES)) {
+          throw new Error(
+            [
+              '',
+              'puppet npm module not supported: "' + puppetName + '"',
+              'learn more about supported Wechaty Puppet from our directory at',
+              '<https://github.com/Chatie/wechaty-puppet/wiki/Directory>',
+              '',
+            ].join('\n')
+          )
+        }
+        break
+    }
 
     await this.checkModule(puppetName)
 

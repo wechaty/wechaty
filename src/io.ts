@@ -401,11 +401,12 @@ export class Io {
 
     const list: Array<Promise<any>> = []
     while (this.eventBuffer.length) {
+      const data = JSON.stringify(
+        this.eventBuffer.shift(),
+      )
       const p = new Promise((resolve, reject) => ws.send(
-        JSON.stringify(
-          this.eventBuffer.shift(),
-        ),
-        (err: Error) => {
+        data,
+        (err: undefined | Error) => {
           if (err)  {
             reject(err)
           } else {
