@@ -432,14 +432,13 @@ export class Room extends Accessory implements Sayable {
     const replyToList: Contact[] = [].concat(mention as any || [])
 
     const mentionAliasPromiseList = replyToList.length > 0
-                                     ? await Promise.all(
+                                    ? await Promise.all(
                                       replyToList
-                                      .map(c => this.alias(c) || c.name())
-                                      )
+                                      .map(c => this.alias(c) || c.name()))
                                     : []
 
-    const mentionAliasList : string[] = []
-    mentionAliasPromiseList.forEach(a => a ? mentionAliasList.push(a) : null)
+    const mentionAliasList: string[] = mentionAliasPromiseList
+                                        .filter(a => a !== null) as string[]
 
     log.verbose('Room', 'say(%s, %s)',
                                   textOrContactOrFileOrUrl,
