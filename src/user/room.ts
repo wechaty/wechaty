@@ -429,44 +429,32 @@ export class Room extends Accessory implements Sayable {
     mention?                 : Contact | Contact[],
   ): Promise<void> {
 
-    const getRoomAlias: (c: Contact) => Promise<string> =
-    async (c: Contact) => {
-      try {
-        const alias: string | null = await this.roomAlias(c)
-        return alias ? alias : c.name()
-      } catch (e) {
-        log.error('Room', 'say(%s,%s) get menction roomAlias error',
-                                        textOrContactOrFileOrUrl,
-                                        c.name())
-        return c.name()
-      }
-    }
+    const replyToList: Contact[] = [].concat(mention as any || [])
 
-    const mentionAlias: string = Array.isArray(mention)
-                                  ? mention.map(async (c) => {
-                                      const roomAlias = await getRoomAlias(c)
-                                      return roomAlias
-                                    }).join(', ')
-                                  : mention ? await getRoomAlias(mention) : ''
+    const mentionAliasPromiseList = replyToList.length > 0
+                                     ? await Promise.all(
+                                      replyToList
+                                      .map(c => this.alias(c) || c.name())
+                                      )
+                                    : []
+
+    const mentionAliasList : string[] = []
+    mentionAliasPromiseList.forEach(a => a ? mentionAliasList.push(a) : null)
 
     log.verbose('Room', 'say(%s, %s)',
                                   textOrContactOrFileOrUrl,
-                                  mentionAlias)
+                                  mentionAliasList.length > 1
+                                  ? mentionAliasList.join(', ')
+                                  : mentionAliasList.length === 1 ? mentionAliasList[0] : '')
 
     let text: string
 
-    const replyToList: Contact[] = [].concat(mention as any || [])
-
     if (typeof textOrContactOrFileOrUrl === 'string') {
 
-      if (replyToList.length > 0) {
+      if (mentionAliasList.length > 0) {
         // const AT_SEPRATOR = String.fromCharCode(8197)
         const AT_SEPRATOR = FOUR_PER_EM_SPACE
-
-        const mentionList = replyToList.map(async c => {
-          const roomAlias = await getRoomAlias(c)
-          return '@' + roomAlias
-        }).join(AT_SEPRATOR)
+        const mentionList = replyToList.map(roomAlias => '@' + roomAlias).join(AT_SEPRATOR)
 
         text = mentionList + ' ' + textOrContactOrFileOrUrl
       } else {
