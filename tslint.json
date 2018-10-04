@@ -1,4 +1,7 @@
 {
+  "rulesDirectory": [
+    "node_modules/@wwwouter/tslint-contrib"
+  ],
   "extends": ["tslint:recommended", "tslint-config-standard"],
   "rules": {
     "interface-name": [true, "never-prefix"],
@@ -12,6 +15,7 @@
     "unified-signatures": false,
     "ter-indent": false,
     "member-ordering": false,
+    "no-promise-as-boolean": true,
     "typedef-whitespace": false
   }
 }

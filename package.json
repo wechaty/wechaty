@@ -115,6 +115,7 @@
     "@types/semver": "^5.5.0",
     "@types/sinon": "^5.0.0",
     "@types/ws": "^6.0.0",
+    "@wwwouter/tslint-contrib": "^1.0.0",
     "apiai": "^4.0.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.5",
