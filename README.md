@@ -368,6 +368,8 @@ Make sure to add tests for your features and bugfixes and update the documentati
 - Answer questions on the Wechaty Developers Home or Github issues
 - Organize Chatie meetups or user groups in your area
 
+Contact rui@chatie.io to learn more
+
 ### Contributors List
 
 <https://github.com/Chatie/wechaty/wiki/Contributors>
