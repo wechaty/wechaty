@@ -421,7 +421,7 @@ export class Wechaty extends Accessory implements Sayable {
    * // Friendship Event will emit when got a new friend request, or friendship is confirmed.
    *
    * bot.on('friendship', (friendship) => {
-   *   if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
+   *   if(friendship.type() === Friendship.Type.Receive){ // 1. receive new friendship request from new contact
    *     const contact = friendship.contact()
    *     let result = await friendship.accept()
    *       if(result){
@@ -429,7 +429,7 @@ export class Wechaty extends Accessory implements Sayable {
    *       } else{
    *         console.log(`Request from ${contact.name()} failed to accept!`)
    *       }
-   * 	  } else if (friendship.type() === Friendship.Type.CONFIRM) { // 2. confirm friendship
+   * 	  } else if (friendship.type() === Friendship.Type.Confirm) { // 2. confirm friendship
    *       console.log(`new friendship confirmed with ${contact.name()}`)
    *    }
    *  })
