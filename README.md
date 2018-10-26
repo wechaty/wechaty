@@ -169,7 +169,7 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 | method | [`alias(newAlias: string): Promise<void>`](https://chatie.io/wechaty/#Contact+alias) | set or delete the alias for a contact |
 | method | [`friend(): boolean`](https://chatie.io/wechaty/#Contact+friend) | check if contact is friend |
 | method | [`type(): ContactType`](https://chatie.io/wechaty/#Contact+type) | return the type of the Contact |
-| method | [`provence(): string`](https://chatie.io/wechaty/#Contact+province) | get the region 'province' from a contact |
+| method | [`province(): string`](https://chatie.io/wechaty/#Contact+province) | get the region 'province' from a contact |
 | method | [`city(): string`](https://chatie.io/wechaty/#Contact+city) | get the region 'city' from a contact |
 | method | [`avatar(): Promise<FileBox>`](https://chatie.io/wechaty/#Contact+avatar) | get avatar picture file stream |
 | method | [`gender(): ContactGender`](https://chatie.io/wechaty/#Contact+gender) | get gender from a contact |
