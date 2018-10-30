@@ -195,14 +195,16 @@ export class Wechaty extends Accessory implements Sayable {
    * - [PuppetPuppeteer](https://github.com/Chatie/wechaty-puppet-puppeteer):
    * - [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat)
    *
-   * @typedef    PuppetName
-   * @property   {string}  wechat4u
+   * @typedef    PuppetModuleName
+   * @property   {string}  PUPPET_DEFAULT
+   * The default puppet.
+   * @property   {string}  wechaty-puppet-wechat4u
    * The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
-   * @property   {string}  padchat
+   * @property   {string}  wechaty-puppet-padchat
    * - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad Wechat program.
-   * @property   {string}  puppeteer
+   * @property   {string}  wechaty-puppet-puppeteer
    * - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
-   * @property   {string}  mock
+   * @property   {string}  wechaty-puppet-mock
    * - Using the mock data to mock wechat operation, just for test.
    */
 
