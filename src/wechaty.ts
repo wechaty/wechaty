@@ -218,8 +218,8 @@ export class Wechaty extends Accessory implements Sayable {
    *          it will generate a file called `wechatyName.memory-card.json`. </br>
    *          This file stores the bot's login information. </br>
    *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
-   *          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>
-   *          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js`
+   *          Also, you can set the environment variable for `WECHATY_NAME` to set this value when you start. </br>
+   *          eg:  `WECHATY_NAME="your-cute-bot-name" node bot.js`
    * @property   {PuppetModuleName | Puppet}    puppet             -Puppet name or instance
    * @property   {Partial<PuppetOptions>} puppetOptions      -Puppet TOKEN
    * @property   {string}                 ioToken            -Io TOKEN
