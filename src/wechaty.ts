@@ -218,8 +218,8 @@ export class Wechaty extends Accessory implements Sayable {
    *          it will generate a file called `wechatyName.memory-card.json`. </br>
    *          This file stores the bot's login information. </br>
    *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
-   *          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>
-   *          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js`
+   *          Also, you can set the environment variable for `WECHATY_NAME` to set this value when you start. </br>
+   *          eg:  `WECHATY_NAME="your-cute-bot-name" node bot.js`
    * @property   {PuppetModuleName | Puppet}    puppet             -Puppet name or instance
    * @property   {Partial<PuppetOptions>} puppetOptions      -Puppet TOKEN
    * @property   {string}                 ioToken            -Io TOKEN
@@ -327,19 +327,19 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * @desc       Wechaty Class Event Type
    * @typedef    WechatyEventName
-   * @property   {string}  error      - When the bot get error, there will be a Wechaty error event fired.
-   * @property   {string}  login      - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
-   * @property   {string}  logout     - Logout will be emitted when bot detected log out, with a Contact of the current login user.
-   * @property   {string}  heartbeat  - Get bot's heartbeat.
-   * @property   {string}  friendship - When someone sends you a friend request, there will be a Wechaty friendship event fired.
-   * @property   {string}  message    - Emit when there's a new message.
-   * @property   {string}  ready      - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
-   * @property   {string}  room-join  - Emit when anyone join any room.
-   * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
-   * @property   {string}  room-leave - Emit when anyone leave the room.<br>
+   * @property   {string}  error       - When the bot get error, there will be a Wechaty error event fired.
+   * @property   {string}  login       - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
+   * @property   {string}  logout      - Logout will be emitted when bot detected log out, with a Contact of the current login user.
+   * @property   {string}  heartbeat   - Get bot's heartbeat.
+   * @property   {string}  friendship  - When someone sends you a friend request, there will be a Wechaty friendship event fired.
+   * @property   {string}  message     - Emit when there's a new message.
+   * @property   {string}  ready       - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
+   * @property   {string}  room-join   - Emit when anyone join any room.
+   * @property   {string}  room-topic  - Get topic event, emitted when someone change room topic.
+   * @property   {string}  room-leave  - Emit when anyone leave the room.<br>
+   *                                   - If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
    * @property   {string}  room-invite - Emit when there is a room invitation, see more in  {@link RoomInvitation}
-   *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
-   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
+   * @property   {string}  scan        - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
    *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
    */
 
