@@ -391,3 +391,17 @@ At last, It's built for my personal study purpose of Automatically Testing.
 * Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
+
+
+### FiraCode
+
+<https://github.com/tonsky/FiraCode>
+
+`Font Book` -> New Collection -> Downloaded -> Save Fira Code TTFs in it.
+
+`.vscode/settings.json`
+
+```
+  , "editor.fontLigatures": true
+  , "editor.fontFamily": "Fira Code"
+```

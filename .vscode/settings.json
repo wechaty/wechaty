@@ -1,7 +1,9 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib"
   , "update.channel": "none"
-, "files.exclude": {
+  , "editor.fontLigatures": true
+  , "editor.fontFamily": "Fira Code"
+  , "files.exclude": {
     "dist/": true
   , "doc/": true
   , "node_modules/": true
@@ -20,5 +22,5 @@
   }
   , "tslint.autoFixOnSave": false
   , "editor.formatOnSave": false
-  , "typescript.extension.sortImports.sortOnSave": false
+  , "python.pythonPath": "python3"
 }
