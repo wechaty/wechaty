@@ -113,6 +113,25 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
 
+### 3. Switch Protocol(Puppet)
+
+Wechaty is very powerful that it can run with different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
+
+Currently we support the following puppet providers:
+
+| Puppet Provider | Environment Variable |
+| --- | --- |
+| PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
+| PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
+| PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+
+Learn more about Wechaty Puppet from the Puppet Wiki:
+
+1. Puppet Directory: <https://github.com/Chatie/wechaty-puppet/wiki/Directory>
+1. Puppet Compatibility: <https://github.com/Chatie/wechaty-puppet/wiki/Compatibility>
+
+
 ## API
 
 Read the Full Documentation at [Wechaty Official API Reference](https://chatie.github.io/wechaty/)
