@@ -706,11 +706,11 @@ export class Message extends Accessory implements Sayable {
     const roomId = this.payload.roomId
     const toId   = this.payload.toId
 
-    if (fromId) {
-      await this.wechaty.Contact.load(fromId).ready()
-    }
     if (roomId) {
       await this.wechaty.Room.load(roomId).ready()
+    }
+    if (fromId) {
+      await this.wechaty.Contact.load(fromId).ready()
     }
     if (toId) {
       await this.wechaty.Contact.load(toId).ready()
