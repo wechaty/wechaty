@@ -754,11 +754,11 @@ export abstract class Puppet extends EventEmitter {
   public abstract async messageFile (messageId: string) : Promise<FileBox>
   public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
 
-  public abstract async messageForward (receiver: Receiver, messageId: string)              : Promise<void>
-  public abstract async messageSendText (receiver: Receiver, text: string)                  : Promise<void>
-  public abstract async messageSendContact (receiver: Receiver, contactId: string)          : Promise<void>
-  public abstract async messageSendFile (receiver: Receiver, file: FileBox)                 : Promise<void>
-  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void>
+  public abstract async messageForward (receiver: Receiver, messageId: string)                       : Promise<void>
+  public abstract async messageSendText (receiver: Receiver, text: string, mentionIdList?: string[]) : Promise<void>
+  public abstract async messageSendContact (receiver: Receiver, contactId: string)                   : Promise<void>
+  public abstract async messageSendFile (receiver: Receiver, file: FileBox)                          : Promise<void>
+  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload)          : Promise<void>
 
   protected abstract async messageRawPayload (messageId: string)     : Promise<any>
   protected abstract async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
