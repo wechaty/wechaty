@@ -51,8 +51,6 @@ import {
   UrlLink,
 }                       from './url-link'
 
-import { MessagePayloadBase, MessagePayloadRoom } from 'wechaty-puppet/dist/src/schemas/message'
-
 export interface MessageUserQueryFilter {
   from? : Contact,
   text? : string | RegExp
@@ -514,19 +512,27 @@ export class Message extends Accessory implements Sayable {
        */
       const mentionContact = mentionList[0]
       const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
-      await this.puppet.messageSendText({
+      const receiver = {
         contactId: mentionContact.id,
-        roomId: room.id,
-      }, textMentionList + ' ' + text,
-      mentionList.map(c => c.id))
+        roomId   : room.id,
+      }
+      await this.puppet.messageSendText(
+        receiver,
+        textMentionList + ' ' + text,
+        mentionList.map(c => c.id),
+      )
     } else {
       /**
        * 2 did not mention anyone
        */
-      await this.puppet.messageSendText({
+      const receiver = {
         contactId : to && to.id,
         roomId    : room && room.id,
-      }, text)
+      }
+      await this.puppet.messageSendText(
+        receiver,
+        text,
+      )
     }
   }
 
@@ -599,11 +605,11 @@ export class Message extends Accessory implements Sayable {
     if (this.type() !== MessageType.Text || !room ) {
       return []
     }
+
     // Use mention list if mention list is available
     // Otherwise, process the message and get the mention list
-    const payload = this.payload as (MessagePayloadBase & MessagePayloadRoom) | undefined
-    if (payload && payload.mentionIdList) {
-      return Promise.all(payload.mentionIdList.map(async id => {
+    if (this.payload && this.payload.mentionIdList) {
+      return Promise.all(this.payload.mentionIdList.map(async id => {
         const contact = this.wechaty.Contact.load(id)
         await contact.ready()
         return contact
