@@ -51,6 +51,8 @@ import {
   UrlLink,
 }                       from './url-link'
 
+import { MessagePayloadBase, MessagePayloadRoom } from 'wechaty-puppet/dist/src/schemas/message'
+
 export interface MessageUserQueryFilter {
   from? : Contact,
   text? : string | RegExp
@@ -515,7 +517,8 @@ export class Message extends Accessory implements Sayable {
       await this.puppet.messageSendText({
         contactId: mentionContact.id,
         roomId: room.id,
-      }, textMentionList + ' ' + text)
+      }, textMentionList + ' ' + text,
+      mentionList.map(c => c.id))
     } else {
       /**
        * 2 did not mention anyone
@@ -595,6 +598,16 @@ export class Message extends Accessory implements Sayable {
     const room = this.room()
     if (this.type() !== MessageType.Text || !room ) {
       return []
+    }
+    // Use mention list if mention list is available
+    // Otherwise, process the message and get the mention list
+    const payload = this.payload as (MessagePayloadBase & MessagePayloadRoom) | undefined
+    if (payload && payload.mentionIdList) {
+      return Promise.all(payload.mentionIdList.map(async id => {
+        const contact = this.wechaty.Contact.load(id)
+        await contact.ready()
+        return contact
+      }))
     }
 
     // define magic code `8197` to identify @xxx
