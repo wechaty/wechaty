@@ -229,6 +229,8 @@ export function qrCodeForChatie (): FileBox {
 // http://jkorpela.fi/chars/spaces.html
 // String.fromCharCode(8197)
 export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
+// mobile: \u2005, PC、mac: \u0020
+export const AT_SEPRATOR_REGEX = /[\u2005\u0020]/
 
 export function qrcodeValueToImageUrl (qrcodeValue: string): string {
   return [
