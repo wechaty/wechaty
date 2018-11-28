@@ -607,7 +607,7 @@ export class Message extends Accessory implements Sayable {
     }
 
     // Use mention list if mention list is available
-    // Otherwise, process the message and get the mention list
+    // otherwise, process the message and get the mention list
     if (this.payload && this.payload.mentionIdList) {
       return Promise.all(this.payload.mentionIdList.map(async id => {
         const contact = this.wechaty.Contact.load(id)
