@@ -23,11 +23,10 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
-import { PuppetMock } from 'wechaty-puppet-mock'
+import { RoomPayload }  from 'wechaty-puppet'
+import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }    from '../wechaty'
-
-import { RoomPayload } from 'wechaty-puppet'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
@@ -44,12 +43,9 @@ test('findAll()', async t => {
   sandbox.stub(puppet, 'roomSearch').resolves(EXPECTED_ROOM_ID_LIST)
   sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
     await new Promise(r => setImmediate(r))
-    const fakeResult: RoomPayload = {
-      id: EXPECTED_ROOM_ID,
-      memberIdList: [],
+    return {
       topic: EXPECTED_ROOM_TOPIC,
-    }
-    return fakeResult
+    } as RoomPayload
   })
 
   const roomList = await wechaty.Room.findAll()

@@ -23,15 +23,10 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
+import { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import { Wechaty }    from '../wechaty'
-
-import {
-  ContactGender,
-  ContactPayload,
-  ContactType,
-}                     from 'wechaty-puppet'
 
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
@@ -49,14 +44,9 @@ test('findAll()', async t => {
   sandbox.stub(puppet, 'contactSearch').resolves(EXPECTED_CONTACT_ID_LIST)
   sandbox.stub(puppet, 'contactPayload').callsFake(async () => {
     await new Promise(r => setImmediate(r))
-    const fakeResult: ContactPayload = {
-      avatar: EXPECTED_AVATAR,
-      gender: ContactGender.Unknown,
-      id: EXPECTED_CONTACT_ID,
+    return {
       name: EXPECTED_CONTACT_NAME,
-      type: ContactType.Personal,
-    }
-    return fakeResult
+    } as ContactPayload
   })
 
   const contactList = await wechaty.Contact.findAll()
