@@ -456,10 +456,15 @@ export class Room extends Accessory implements Sayable {
       } else {
         text = textOrContactOrFileOrUrl
       }
-      await this.puppet.messageSendText({
+      const receiver = {
         contactId : replyToList.length && replyToList[0].id || undefined,
         roomId    : this.id,
-      }, text)
+      }
+      await this.puppet.messageSendText(
+        receiver,
+        text,
+        replyToList.map(c => c.id),
+      )
     } else if (textOrContactOrFileOrUrl instanceof FileBox) {
       await this.puppet.messageSendFile({
         roomId: this.id,
