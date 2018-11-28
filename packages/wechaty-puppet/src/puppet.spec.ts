@@ -367,7 +367,7 @@ test('contactRoomList()', async t => {
     },
   ]
   sandbox.stub(puppet, 'roomList').resolves(ROOM_PAYLOAD_LIST.map(payload => payload.id))
-  sandbox.stub(puppet, 'roomPayload').callsFake(roomId => {
+  sandbox.stub(puppet, 'roomPayload').callsFake(async roomId => {
     for (const payload of ROOM_PAYLOAD_LIST) {
       if (payload.id === roomId) {
         return payload
