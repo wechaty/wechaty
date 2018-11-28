@@ -31,7 +31,6 @@ import { Wechaty }    from '../wechaty'
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
   const EXPECTED_CONTACT_NAME    = 'test-name'
-  const EXPECTED_AVATAR          = 'http://wechaty-avatar'
   const EXPECTED_CONTACT_ID_LIST = [EXPECTED_CONTACT_ID]
 
   const sandbox = sinon.createSandbox()

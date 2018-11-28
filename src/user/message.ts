@@ -444,33 +444,22 @@ export class Message extends Accessory implements Sayable {
    */
   public async say (
     textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
-    mention?   : Contact | Contact[],
   ): Promise<void> {
-    log.verbose('Message', 'say(%s%s)',
-                            textOrContactOrFileOrUrl,
-                            mention
-                              ? ', ' + mention
-                              : '',
-                )
+    log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrl)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
 
-    const mentionList = mention
-                          ? Array.isArray(mention)
-                            ? mention
-                            : [mention]
-                          : []
-
     if (typeof textOrContactOrFileOrUrl === 'string') {
-      await this.sayText(
-        textOrContactOrFileOrUrl,
-        from || undefined,
-        room || undefined,
-        mentionList,
-      )
+      /**
+       * Text Message
+       */
+      await this.puppet.messageSendText({
+        contactId : from && from.id || undefined,
+        roomId    : room && room.id || undefined,
+      }, textOrContactOrFileOrUrl)
     } else if (textOrContactOrFileOrUrl instanceof Contact) {
       /**
        * Contact Card
@@ -497,42 +486,6 @@ export class Message extends Accessory implements Sayable {
       }, textOrContactOrFileOrUrl.payload)
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrl)
-    }
-  }
-
-  private async sayText (
-    text         : string,
-    to?          : Contact,
-    room?        : Room,
-    mentionList? : Contact[],
-  ): Promise<void> {
-    if (room && mentionList && mentionList.length > 0) {
-      /**
-       * 1 had mentioned someone
-       */
-      const mentionContact = mentionList[0]
-      const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
-      const receiver = {
-        contactId: mentionContact.id,
-        roomId   : room.id,
-      }
-      await this.puppet.messageSendText(
-        receiver,
-        textMentionList + ' ' + text,
-        mentionList.map(c => c.id),
-      )
-    } else {
-      /**
-       * 2 did not mention anyone
-       */
-      const receiver = {
-        contactId : to && to.id,
-        roomId    : room && room.id,
-      }
-      await this.puppet.messageSendText(
-        receiver,
-        text,
-      )
     }
   }
 
