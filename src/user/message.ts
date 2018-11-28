@@ -444,33 +444,22 @@ export class Message extends Accessory implements Sayable {
    */
   public async say (
     textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
-    mention?   : Contact | Contact[],
   ): Promise<void> {
-    log.verbose('Message', 'say(%s%s)',
-                            textOrContactOrFileOrUrl,
-                            mention
-                              ? ', ' + mention
-                              : '',
-                )
+    log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrl)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
 
-    const mentionList = mention
-                          ? Array.isArray(mention)
-                            ? mention
-                            : [mention]
-                          : []
-
     if (typeof textOrContactOrFileOrUrl === 'string') {
-      await this.sayText(
-        textOrContactOrFileOrUrl,
-        from || undefined,
-        room || undefined,
-        mentionList,
-      )
+      /**
+       * Text Message
+       */
+      await this.puppet.messageSendText({
+        contactId : from && from.id || undefined,
+        roomId    : room && room.id || undefined,
+      }, textOrContactOrFileOrUrl)
     } else if (textOrContactOrFileOrUrl instanceof Contact) {
       /**
        * Contact Card
@@ -497,33 +486,6 @@ export class Message extends Accessory implements Sayable {
       }, textOrContactOrFileOrUrl.payload)
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrl)
-    }
-  }
-
-  private async sayText (
-    text         : string,
-    to?          : Contact,
-    room?        : Room,
-    mentionList? : Contact[],
-  ): Promise<void> {
-    if (room && mentionList && mentionList.length > 0) {
-      /**
-       * 1 had mentioned someone
-       */
-      const mentionContact = mentionList[0]
-      const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
-      await this.puppet.messageSendText({
-        contactId: mentionContact.id,
-        roomId: room.id,
-      }, textMentionList + ' ' + text)
-    } else {
-      /**
-       * 2 did not mention anyone
-       */
-      await this.puppet.messageSendText({
-        contactId : to && to.id,
-        roomId    : room && room.id,
-      }, text)
     }
   }
 
@@ -595,6 +557,16 @@ export class Message extends Accessory implements Sayable {
     const room = this.room()
     if (this.type() !== MessageType.Text || !room ) {
       return []
+    }
+
+    // Use mention list if mention list is available
+    // otherwise, process the message and get the mention list
+    if (this.payload && this.payload.mentionIdList) {
+      return Promise.all(this.payload.mentionIdList.map(async id => {
+        const contact = this.wechaty.Contact.load(id)
+        await contact.ready()
+        return contact
+      }))
     }
 
     // define magic code `8197` to identify @xxx
