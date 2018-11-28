@@ -27,9 +27,16 @@ import { PuppetMock } from 'wechaty-puppet-mock'
 
 import { Wechaty }    from '../wechaty'
 
+import {
+  ContactGender,
+  ContactPayload,
+  ContactType,
+}                     from 'wechaty-puppet'
+
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
   const EXPECTED_CONTACT_NAME    = 'test-name'
+  const EXPECTED_AVATAR          = 'http://wechaty-avatar'
   const EXPECTED_CONTACT_ID_LIST = [EXPECTED_CONTACT_ID]
 
   const sandbox = sinon.createSandbox()
@@ -42,9 +49,14 @@ test('findAll()', async t => {
   sandbox.stub(puppet, 'contactSearch').resolves(EXPECTED_CONTACT_ID_LIST)
   sandbox.stub(puppet, 'contactPayload').callsFake(async () => {
     await new Promise(r => setImmediate(r))
-    return {
+    const fakeResult: ContactPayload = {
+      avatar: EXPECTED_AVATAR,
+      gender: ContactGender.Unknown,
+      id: EXPECTED_CONTACT_ID,
       name: EXPECTED_CONTACT_NAME,
+      type: ContactType.Personal,
     }
+    return fakeResult
   })
 
   const contactList = await wechaty.Contact.findAll()
