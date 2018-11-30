@@ -119,12 +119,12 @@ Wechaty is very powerful that it can run with different protocols. You can speci
 
 Currently we support the following puppet providers:
 
-| Puppet Provider | Environment Variable |
-| --- | --- |
-| PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
-| PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
-| PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+| Protocol | Puppet Provider | Environment Variable |
+| --- | --- | --- |
+| Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
+| iPad | PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
+| Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
 
 Learn more about Wechaty Puppet from the Puppet Wiki:
 
