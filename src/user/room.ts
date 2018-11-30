@@ -429,8 +429,8 @@ export class Room extends Accessory implements Sayable {
     mention?                 : Contact | Contact[],
   ): Promise<void> {
 
-    const replyToList: Contact[] = []
-    replyToList.concat(mention || [])
+    let replyToList: Contact[] = []
+    replyToList = replyToList.concat(mention || [])
 
     const mentionAliasList = await Promise.all(
                                       replyToList.map(
@@ -450,7 +450,7 @@ export class Room extends Accessory implements Sayable {
       if (mentionAliasList.length > 0) {
         // const AT_SEPRATOR = String.fromCharCode(8197)
         const AT_SEPRATOR = FOUR_PER_EM_SPACE
-        const mentionList = replyToList.map(roomAlias => '@' + roomAlias).join(AT_SEPRATOR)
+        const mentionList = mentionAliasList.map(roomAlias => '@' + roomAlias).join(AT_SEPRATOR)
 
         text = mentionList + ' ' + textOrContactOrFileOrUrl
       } else {
