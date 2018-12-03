@@ -1,8 +1,10 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib"
   , "update.channel": "none"
+
+  , "editor.fontFamily": "'Fira Code iScript', 'Fira Code', 'Courier New', Consolas, monospace"
   , "editor.fontLigatures": true
-  , "editor.fontFamily": "Fira Code"
+
   , "files.exclude": {
     "dist/": true
   , "doc/": true
