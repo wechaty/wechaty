@@ -405,7 +405,7 @@ export class Io {
         JSON.stringify(
           this.eventBuffer.shift(),
         ),
-        (err: Error) => {
+        err => {
           if (err)  {
             reject(err)
           } else {

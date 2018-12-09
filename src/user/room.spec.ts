@@ -44,7 +44,7 @@ test('findAll()', async t => {
     await new Promise(r => setImmediate(r))
     return {
       topic: EXPECTED_ROOM_TOPIC,
-    }
+    } as any
   })
 
   const roomList = await wechaty.Room.findAll()
