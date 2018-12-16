@@ -113,7 +113,7 @@
     "@types/read-pkg-up": "^3.0.1",
     "@types/request": "^2.47.1",
     "@types/semver": "^5.5.0",
-    "@types/sinon": "^5.0.0",
+    "@types/sinon": "^7.0.0",
     "@types/ws": "^6.0.0",
     "@wwwouter/tslint-contrib": "^1.0.0",
     "apiai": "^4.0.0",
