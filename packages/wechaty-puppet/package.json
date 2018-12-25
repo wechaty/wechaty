@@ -41,7 +41,7 @@
     "@types/blue-tape": "^0.1.31",
     "@types/node": "^10.3.6",
     "@types/normalize-package-data": "^2.4.0",
-    "@types/quick-lru": "^1.1.0",
+    "@types/quick-lru": "^2.0.0",
     "@types/read-pkg-up": "^3.0.1",
     "@types/semver": "^5.5.0",
     "@types/sinon": "^5.0.1",
