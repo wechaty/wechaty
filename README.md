@@ -345,6 +345,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+| Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
 
 ## SEE ALSO
 
