@@ -224,22 +224,19 @@ export class Message extends Accessory implements Sayable {
     const msgStrList = [
       'Message',
       `#${MessageType[this.type()]}`,
-      '(',
-        this.room()
-          ? '👥' + this.room()
-          : '',
+      '[',
         this.from()
           ? '🗣' + this.from()
           : '',
-        this.to()
-          ? '👤' + this.to()
+        this.room()
+          ? '@👥' + this.room()
           : '',
-      ')',
+      ']',
     ]
     if (   this.type() === Message.Type.Text
         || this.type() === Message.Type.Unknown
     ) {
-      msgStrList.push(`<${this.text().substr(0, 70)}>`)
+      msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
 
