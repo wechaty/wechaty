@@ -12,8 +12,9 @@
     "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
+    "build": "tsc",
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc",
+    "dist": "npm run clean && npm run build",
     "pack": "npm pack",
     "doc": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
