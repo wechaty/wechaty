@@ -143,7 +143,7 @@
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.0",
     "tuling123-client": "^0.0.2",
-    "typedoc": "^0.13.0",
+    "typedoc": "^0.14.0",
     "typescript": "^3.1.0-dev.20180731",
     "wechaty-puppet-mock": "^0.14.1"
   },
