@@ -8,12 +8,12 @@ export const PUPPET_DEPENDENCIES = {
   'padpro'                   : '0.0.0',
   /////////////////////////////////////
   // 'wechaty-puppet-hostie'    : '^0.0.1',
-  'wechaty-puppet-ioscat'    : '^0.5.19',
-  'wechaty-puppet-mock'      : '^0.14.1',
-  'wechaty-puppet-padchat'   : '^0.17.2',
-  'wechaty-puppet-padpro'    : '^0.0.1',
-  'wechaty-puppet-puppeteer' : '^0.14.1',
-  'wechaty-puppet-wechat4u'  : '^0.14.1',
+  'wechaty-puppet-ioscat'    : '^0.5.19',   // https://www.npmjs.com/package/wechaty-puppet-ioscat
+  'wechaty-puppet-mock'      : '^0.14.1',   // https://www.npmjs.com/package/wechaty-puppet-mock
+  'wechaty-puppet-padchat'   : '^0.18.1',   // https://www.npmjs.com/package/wechaty-puppet-padchat
+  'wechaty-puppet-padpro'    : '^0.0.1',    // https://www.npmjs.com/package/wechaty-puppet-padpro
+  'wechaty-puppet-puppeteer' : '^0.14.1',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
+  'wechaty-puppet-wechat4u'  : '^0.14.1',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
 }
 
 export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES

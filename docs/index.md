@@ -1,6 +1,7 @@
-# Wechaty v0.20 Documentation
+# Wechaty v0.23.31 Documentation
 
-* <https://blog.chatie.io>
+- Blog - <https://blog.chatie.io>
+- Docs - <https://docs.chatie.io>
 
 
 ## Classes
@@ -59,7 +60,7 @@ If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
 ## Typedefs
 
 <dl>
-<dt><a href="#PuppetName">PuppetName</a></dt>
+<dt><a href="#PuppetModuleName">PuppetModuleName</a></dt>
 <dd><p>The term <a href="https://github.com/Chatie/wechaty/wiki/Puppet">Puppet</a> in Wechaty is an Abstract Class for implementing protocol plugins.
 The plugins are the component that helps Wechaty to control the Wechat(that&#39;s the reason we call it puppet).
 The plugins are named XXXPuppet, for example:</p>
@@ -406,17 +407,14 @@ All wechat rooms(groups) will be encapsulated as a Room.
         * [.announce([text])](#Room+announce) ⇒ <code>Promise.&lt;(void\|string)&gt;</code>
         * [.qrcode()](#Room+qrcode) ⇒ <code>Promise.&lt;string&gt;</code>
         * [.alias(contact)](#Room+alias) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
-        * [.roomAlias(contact)](#Room+roomAlias) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
         * [.has(contact)](#Room+has) ⇒ <code>Promise.&lt;boolean&gt;</code>
-        * [.memberAll(query)](#Room+memberAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+        * [.memberAll([query])](#Room+memberAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.member(queryArg)](#Room+member) ⇒ <code>Promise.&lt;(null\|Contact)&gt;</code>
-        * [.memberList()](#Room+memberList) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.owner()](#Room+owner) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
     * _static_
         * [.create(contactList, [topic])](#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
         * [.findAll([query])](#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
         * [.find(query)](#Room.find) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
-        * [.load(id)](#Room.load) ⇒ [<code>Room</code>](#Room)
 
 <a name="Room+sync"></a>
 
@@ -515,6 +513,16 @@ if (room) {
   room.on('topic', (room, topic, oldTopic, changer) => {
     console.log(`Room topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
   })
+}
+```
+**Example** *(Event:invite )*  
+```js
+const bot = new Wechaty()
+await bot.start()
+// after logged in...
+const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
+if (room) {
+  room.on('invite', roomInvitation => roomInvitation.accept())
 }
 ```
 <a name="Room+add"></a>
@@ -675,7 +683,7 @@ This function is depending on the Puppet Implementation, see [puppet-compatible-
 <a name="Room+alias"></a>
 
 ### room.alias(contact) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
-Return contact's roomAlias in the room, the same as roomAlias
+Return contact's roomAlias in the room
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 **Returns**: <code>Promise.&lt;(string\|null)&gt;</code> - - If a contact has an alias in room, return string, otherwise return null  
@@ -698,17 +706,6 @@ bot
 })
 .start()
 ```
-<a name="Room+roomAlias"></a>
-
-### room.roomAlias(contact) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
-Same as function alias
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
 <a name="Room+has"></a>
 
 ### room.has(contact) ⇒ <code>Promise.&lt;boolean&gt;</code>
@@ -738,7 +735,7 @@ if (contact && room) {
 ```
 <a name="Room+memberAll"></a>
 
-### room.memberAll(query) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+### room.memberAll([query]) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 Find all contacts in a room
 
 #### definition
@@ -750,8 +747,16 @@ Find all contacts in a room
 
 | Param | Type | Description |
 | --- | --- | --- |
-| query | [<code>RoomMemberQueryFilter</code>](#RoomMemberQueryFilter) \| <code>string</code> | When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias |
+| [query] | [<code>RoomMemberQueryFilter</code>](#RoomMemberQueryFilter) \| <code>string</code> | Optional parameter, When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias |
 
+**Example**  
+```js
+const roomList:Conatct[] | null = await room.findAll()
+if(roomList)
+ console.log(`room all member list: `, roomList)
+const memberContactList: Conatct[] | null =await room.findAll(`abc`)
+console.log(`contact list with all name, room alias, alias are abc:`, memberContactList)
+```
 <a name="Room+member"></a>
 
 ### room.member(queryArg) ⇒ <code>Promise.&lt;(null\|Contact)&gt;</code>
@@ -792,16 +797,6 @@ if (room) {
     console.log(`cannot get member in wechaty room!`)
   }
 }
-```
-<a name="Room+memberList"></a>
-
-### room.memberList() ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
-Get all room member from the room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Example**  
-```js
-await room.memberList()
 ```
 <a name="Room+owner"></a>
 
@@ -877,29 +872,6 @@ await bot.start()
 const roomList = await bot.Room.find()
 const roomList = await bot.Room.find({topic: 'wechaty'})
 ```
-<a name="Room.load"></a>
-
-### Room.load(id) ⇒ [<code>Room</code>](#Room)
-Load room by topic. <br>
-> Tips: For Web solution, it cannot get the unique topic id,
-but for other solutions besides web,
-we can get unique and permanent topic id.
-
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
-
-**Kind**: static method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| id | <code>string</code> | 
-
-**Example**  
-```js
-const bot = new Wechaty()
-await bot.start()
-// after logged in...
-const room = bot.Room.load('roomId')
-```
 <a name="Contact"></a>
 
 ## Contact
@@ -928,7 +900,6 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.sync()](#Contact+sync) ⇒ <code>Promise.&lt;this&gt;</code>
         * [.self()](#Contact+self) ⇒ <code>boolean</code>
     * _static_
-        * [.load(id)](#Contact.load) ⇒ [<code>Contact</code>](#Contact)
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
         * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 
@@ -1112,25 +1083,6 @@ Check if contact is self
 **Example**  
 ```js
 const isSelf = contact.self()
-```
-<a name="Contact.load"></a>
-
-### Contact.load(id) ⇒ [<code>Contact</code>](#Contact)
-Get Contact by id
-> Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
-
-**Kind**: static method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| id | <code>string</code> | 
-
-**Example**  
-```js
-const bot = new Wechaty()
-await bot.start()
-const contact = bot.Contact.load('contactId')
 ```
 <a name="Contact.find"></a>
 
@@ -1432,6 +1384,7 @@ All wechat messages will be encapsulated as a Message.
         * [.mention()](#Message+mention) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.mentionSelf()](#Message+mentionSelf) ⇒ <code>Promise.&lt;boolean&gt;</code>
         * [.forward(to)](#Message+forward) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.date()](#Message+date)
         * [.age()](#Message+age) ⇒ <code>number</code>
         * ~~[.file()](#Message+file)~~
         * [.toFileBox()](#Message+toFileBox) ⇒ <code>Promise.&lt;FileBox&gt;</code>
@@ -1668,6 +1621,12 @@ bot
 })
 .start()
 ```
+<a name="Message+date"></a>
+
+### message.date()
+Message sent date
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+age"></a>
 
 ### message.age() ⇒ <code>number</code>
@@ -1725,8 +1684,10 @@ accept room invitation
 * [RoomInvitation](#RoomInvitation)
     * [.accept()](#RoomInvitation+accept) ⇒ <code>Promise.&lt;void&gt;</code>
     * [.inviter()](#RoomInvitation+inviter) ⇒ [<code>Contact</code>](#Contact)
-    * [.roomTopic()](#RoomInvitation+roomTopic) ⇒ [<code>Contact</code>](#Contact)
+    * [.topic()](#RoomInvitation+topic) ⇒ [<code>Contact</code>](#Contact)
+    * [.roomTopic()](#RoomInvitation+roomTopic)
     * [.date()](#RoomInvitation+date) ⇒ <code>Promise.&lt;Date&gt;</code>
+    * [.age()](#RoomInvitation+age) ⇒ <code>number</code>
 
 <a name="RoomInvitation+accept"></a>
 
@@ -1763,9 +1724,9 @@ bot.on('room-invite', async roomInvitation => {
 }
 .start()
 ```
-<a name="RoomInvitation+roomTopic"></a>
+<a name="RoomInvitation+topic"></a>
 
-### roomInvitation.roomTopic() ⇒ [<code>Contact</code>](#Contact)
+### roomInvitation.topic() ⇒ [<code>Contact</code>](#Contact)
 Get the room topic from room invitation
 
 **Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
@@ -1773,20 +1734,35 @@ Get the room topic from room invitation
 ```js
 const bot = new Wechaty()
 bot.on('room-invite', async roomInvitation => {
-  const topic = await roomInvitation.roomTopic()
+  const topic = await roomInvitation.topic()
   console.log(`received room invitation event from room ${topic}`)
 }
 .start()
 ```
+<a name="RoomInvitation+roomTopic"></a>
+
+### roomInvitation.roomTopic()
+**Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
+**Deprecated:**: use topic() instead  
 <a name="RoomInvitation+date"></a>
 
 ### roomInvitation.date() ⇒ <code>Promise.&lt;Date&gt;</code>
 Get the invitation time
 
 **Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
-<a name="PuppetName"></a>
+<a name="RoomInvitation+age"></a>
 
-## PuppetName
+### roomInvitation.age() ⇒ <code>number</code>
+Returns the roopm invitation age in seconds. <br>
+
+For example, the invitation is sent at time `8:43:01`,
+and when we received it in Wechaty, the time is `8:43:15`,
+then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
+
+**Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
+<a name="PuppetModuleName"></a>
+
+## PuppetModuleName
 The term [Puppet](https://github.com/Chatie/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
 The plugins are the component that helps Wechaty to control the Wechat(that's the reason we call it puppet).
 The plugins are named XXXPuppet, for example:
@@ -1798,10 +1774,11 @@ The plugins are named XXXPuppet, for example:
 
 | Name | Type | Description |
 | --- | --- | --- |
-| wechat4u | <code>string</code> | The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser. |
-| padchat | <code>string</code> | - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad Wechat program. |
-| puppeteer | <code>string</code> | - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser. |
-| mock | <code>string</code> | - Using the mock data to mock wechat operation, just for test. |
+| PUPPET_DEFAULT | <code>string</code> | The default puppet. |
+| wechaty-puppet-wechat4u | <code>string</code> | The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser. |
+| wechaty-puppet-padchat | <code>string</code> | - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad Wechat program. |
+| wechaty-puppet-puppeteer | <code>string</code> | - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser. |
+| wechaty-puppet-mock | <code>string</code> | - Using the mock data to mock wechat operation, just for test. |
 
 <a name="WechatyOptions"></a>
 
@@ -1813,8 +1790,8 @@ The option parameter to create a wechaty instance
 
 | Name | Type | Description |
 | --- | --- | --- |
-| profile | <code>string</code> | Wechaty Name. </br>          When you set this: </br>          `new Wechaty({profile: 'wechatyName'}) ` </br>          it will generate a file called `wechatyName.memory-card.json`. </br>          This file stores the bot's login information. </br>          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js` |
-| puppet | <code>PuppetModuleName</code> \| <code>Puppet</code> | Puppet name or instance |
+| profile | <code>string</code> | Wechaty Name. </br>          When you set this: </br>          `new Wechaty({profile: 'wechatyName'}) ` </br>          it will generate a file called `wechatyName.memory-card.json`. </br>          This file stores the bot's login information. </br>          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>          Also, you can set the environment variable for `WECHATY_NAME` to set this value when you start. </br>          eg:  `WECHATY_NAME="your-cute-bot-name" node bot.js` |
+| puppet | [<code>PuppetModuleName</code>](#PuppetModuleName) \| <code>Puppet</code> | Puppet name or instance |
 | puppetOptions | <code>Partial.&lt;PuppetOptions&gt;</code> | Puppet TOKEN |
 | ioToken | <code>string</code> | Io TOKEN |
 
@@ -1832,13 +1809,13 @@ Wechaty Class Event Type
 | login | <code>string</code> | After the bot login full successful, the event login will be emitted, with a Contact of current logined user. |
 | logout | <code>string</code> | Logout will be emitted when bot detected log out, with a Contact of the current login user. |
 | heartbeat | <code>string</code> | Get bot's heartbeat. |
-| friend | <code>string</code> | When someone sends you a friend request, there will be a Wechaty friend event fired. |
+| friendship | <code>string</code> | When someone sends you a friend request, there will be a Wechaty friendship event fired. |
 | message | <code>string</code> | Emit when there's a new message. |
 | ready | <code>string</code> | Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed |
 | room-join | <code>string</code> | Emit when anyone join any room. |
 | room-topic | <code>string</code> | Get topic event, emitted when someone change room topic. |
-| room-leave | <code>string</code> | Emit when anyone leave the room.<br> |
-| room-invite | <code>string</code> | Emit when there is a room invitation, see more in  [RoomInvitation](#RoomInvitation)                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
+| room-leave | <code>string</code> | Emit when anyone leave the room.<br>                                   - If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
+| room-invite | <code>string</code> | Emit when there is a room invitation, see more in  [RoomInvitation](#RoomInvitation) |
 | scan | <code>string</code> | A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal. |
 
 <a name="WechatyEventFunction"></a>

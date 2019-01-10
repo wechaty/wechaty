@@ -78,6 +78,7 @@ Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty/next.svg)](https://www.npmjs.com/package/wechaty?activeTab=versions)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
+[![install size](https://packagephobia.now.sh/badge?p=wechaty)](https://packagephobia.now.sh/result?p=wechaty)
 
 ```shell
 npm init
@@ -112,6 +113,25 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 ```
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+
+### 3. Switch Protocol(Puppet)
+
+Wechaty is very powerful that it can run with different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
+
+Currently we support the following puppet providers:
+
+| Protocol | Puppet Provider | Environment Variable |
+| --- | --- | --- |
+| Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
+| iPad | PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
+| Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+
+Learn more about Wechaty Puppet from the Puppet Wiki:
+
+1. Puppet Directory: <https://github.com/Chatie/wechaty-puppet/wiki/Directory>
+1. Puppet Compatibility: <https://github.com/Chatie/wechaty-puppet/wiki/Compatibility>
+
 
 ## API
 
@@ -326,6 +346,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+| Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
 
 ## SEE ALSO
 
@@ -374,7 +395,6 @@ Contact rui@chatie.io to learn more
 
 <https://github.com/Chatie/wechaty/wiki/Contributors>
 
-
 ### Join Us
 
 Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
@@ -385,7 +405,7 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 ## AUTHOR
 
-[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+[Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
 
 <a href="https://stackexchange.com/users/265499">
   <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
@@ -406,6 +426,6 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 ## COPYRIGHT & LICENSE
 
-* Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
-* Code released under the Apache-2.0 License
-* Docs released under Creative Commons
+- Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
+- Code released under the Apache-2.0 License
+- Docs released under Creative Commons

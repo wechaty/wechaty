@@ -23,7 +23,8 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
-import { PuppetMock } from 'wechaty-puppet-mock'
+import { RoomPayload }  from 'wechaty-puppet'
+import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }    from '../wechaty'
 
@@ -44,7 +45,7 @@ test('findAll()', async t => {
     await new Promise(r => setImmediate(r))
     return {
       topic: EXPECTED_ROOM_TOPIC,
-    }
+    } as RoomPayload
   })
 
   const roomList = await wechaty.Room.findAll()

@@ -429,8 +429,8 @@ export class Room extends Accessory implements Sayable {
     mention?                 : Contact | Contact[],
   ): Promise<void> {
 
-    const replyToList: Contact[] = []
-    replyToList.concat(mention || [])
+    let replyToList: Contact[] = []
+    replyToList = replyToList.concat(mention || [])
 
     const mentionAliasList = await Promise.all(
                                       replyToList.map(
@@ -450,16 +450,21 @@ export class Room extends Accessory implements Sayable {
       if (mentionAliasList.length > 0) {
         // const AT_SEPRATOR = String.fromCharCode(8197)
         const AT_SEPRATOR = FOUR_PER_EM_SPACE
-        const mentionList = replyToList.map(roomAlias => '@' + roomAlias).join(AT_SEPRATOR)
+        const mentionList = mentionAliasList.map(roomAlias => '@' + roomAlias).join(AT_SEPRATOR)
 
         text = mentionList + ' ' + textOrContactOrFileOrUrl
       } else {
         text = textOrContactOrFileOrUrl
       }
-      await this.puppet.messageSendText({
+      const receiver = {
         contactId : replyToList.length && replyToList[0].id || undefined,
         roomId    : this.id,
-      }, text)
+      }
+      await this.puppet.messageSendText(
+        receiver,
+        text,
+        replyToList.map(c => c.id),
+      )
     } else if (textOrContactOrFileOrUrl instanceof FileBox) {
       await this.puppet.messageSendFile({
         roomId: this.id,
