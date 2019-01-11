@@ -65,7 +65,7 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-* Wechaty Starter Repository - <https://github.com/Chatie/wechaty-getting-started>
+* Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
 
 We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
@@ -94,7 +94,7 @@ node mybot.js
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-* Wechaty Starter Repository for Docker - <https://github.com/Chatie/docker-wechaty-getting-started>
+* Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
