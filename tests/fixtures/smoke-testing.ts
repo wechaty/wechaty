@@ -3,13 +3,13 @@
 // tslint:disable:no-var-requires
 const isPR = require('is-pr')
 
-import { Wechaty }    from 'wechaty'
+import { Wechaty } from 'wechaty'
 
 function getBotList (): Wechaty[] {
   const botList = [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
     new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
-    new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
+    // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
   if (!isPR) {

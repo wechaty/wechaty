@@ -65,7 +65,7 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-* Wechaty Starter Repository - <https://github.com/Chatie/wechaty-getting-started>
+* Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
 
 We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
@@ -94,7 +94,7 @@ node mybot.js
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-* Wechaty Starter Repository for Docker - <https://github.com/Chatie/docker-wechaty-getting-started>
+* Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
@@ -346,6 +346,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+| Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
 
 ## SEE ALSO
 
@@ -404,7 +405,7 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 ## AUTHOR
 
-[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+[Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
 
 <a href="https://stackexchange.com/users/265499">
   <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
@@ -425,6 +426,6 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 ## COPYRIGHT & LICENSE
 
-* Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
-* Code released under the Apache-2.0 License
-* Docs released under Creative Commons
+- Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
+- Code released under the Apache-2.0 License
+- Docs released under Creative Commons
