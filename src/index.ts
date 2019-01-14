@@ -13,8 +13,9 @@ export {
  * We need to put `Wechaty` at the beginning of this file for import
  * because we have circluar dependencies between `Puppet` & `Wechaty`
  */
-import {
+export {
   Wechaty,
+  WechatyOptions,
 }                     from './wechaty'
 
 export {
@@ -34,7 +35,3 @@ export {
 }                     from './deprecated'
 
 export { IoClient }   from './io-client'
-
-export {
-  Wechaty,
-}
