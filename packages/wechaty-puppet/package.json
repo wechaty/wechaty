@@ -51,7 +51,7 @@
     "markdownlint-cli": "^0.13.0",
     "memory-card": "^0.6.7",
     "shx": "^0.3.1",
-    "sinon": "^6.0.1",
+    "sinon": "^7.2.3",
     "ts-node": "^7.0.0",
     "tslint": "^5.11.0",
     "typedoc": "^0.14.0",
