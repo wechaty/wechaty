@@ -1,5 +1,5 @@
 ---
-name: Wechaty Question
+name: wechaty Question
 about: The issue tracker is not for questions. Please ask questions on https://stackoverflow.com/questions/tagged/wechaty
 
 ---

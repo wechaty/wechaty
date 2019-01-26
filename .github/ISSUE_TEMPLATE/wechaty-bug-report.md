@@ -1,5 +1,5 @@
 ---
-name: Wechaty Bug report
+name: wechaty Bug report
 about: Create a bug report for a bug you found in wechaty
 
 ---

@@ -1,5 +1,5 @@
 ---
-name: Wechaty Feature request
+name: wechaty Feature request
 about: Suggest a feature for wechaty
 
 ---
