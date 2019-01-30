@@ -360,6 +360,13 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 
 How to [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
 
+* Write a blog about Wechaty
+* Create a tutorial for Wechaty
+* Help expand the [wiki](https://github.com/Chatie/wechaty/wiki)
+* Answer questions on the [issue](https://github.com/Chatie/wechaty/issues)
+* Review [pull requests](https://github.com/Chatie/wechaty/pulls)
+* Start [hacking on Wechaty](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
+
 ### Why contribute?
 
 As an open source product, Chatie thrives from contributions of community members. Whatever your skill set is, there is a lot you can do to help us make Chatie better! 
