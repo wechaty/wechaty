@@ -1190,6 +1190,9 @@ export abstract class Puppet extends EventEmitter {
      * 2. Cache not found
      */
     const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
+    if (!rawPayload) {
+      throw new Error('contact(' + contactId + ') is not in the Room(' + roomId + ')');
+    }
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 
     this.cacheRoomMemberPayload.set(CACHE_KEY, payload)
