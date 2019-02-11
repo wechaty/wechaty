@@ -133,7 +133,7 @@
     "is-pr": "^1.0.0",
     "jsdoc-to-markdown": "^4.0.0",
     "markdownlint-cli": "^0.13.0",
-    "nyc": "^12.0.1",
+    "nyc": "^13.2.0",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.87.0",
     "semver": "^5.5.0",
