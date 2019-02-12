@@ -43,7 +43,7 @@
   "homepage": "https://github.com/Chatie/wechaty-puppet-hostie#readme",
   "devDependencies": {
     "@types/blue-tape": "^0.1.32",
-    "@types/node": "^10.5.2",
+    "@types/node": "^11.9.0",
     "@types/read-pkg-up": "^3.0.1",
     "blue-tape": "^1.0.0",
     "file-box": "^0.8.22",
