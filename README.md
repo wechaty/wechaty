@@ -12,7 +12,6 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
-[![HitCount](http://hits.dwyl.io/chatie/wechaty.svg)](http://hits.dwyl.io/chatie/wechaty)
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
@@ -310,6 +309,10 @@ Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wec
 
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
+
+### Views Since Feb 15, 2019
+
+[![HitCount](http://hits.dwyl.io/chatie/wechaty.svg)](http://hits.dwyl.io/chatie/wechaty)
 
 ## POWERED BY WECHATY
 
