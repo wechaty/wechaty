@@ -244,11 +244,11 @@ All wechat rooms(groups) will be encapsulated as a Room.
 | method | [`announce(text: string): Promise<void>`](https://chatie.io/wechaty/#Room+announce) | SET/GET announce from the room |
 | method | [`qrcode(): Promise<string>`](https://chatie.io/wechaty/#Room+qrcode) | Get QR Code of the Room from the room, which can be used as scan and join the room. |
 | method | [`alias(contact: Contact): Promise<string>`](https://chatie.io/wechaty/#Room+alias) | Return contact's roomAlias in the room |
-| method | [`roomAlias(contact: Contact): Promise<string|null>`](https://chatie.io/wechaty/#Room+roomAlias) | Same as function alias|
+| method | [`roomAlias(contact: Contact): Promise<string \| null>`](https://chatie.io/wechaty/#Room+roomAlias) | Same as function alias |
 | method | [`has(contact: Contact): Promise<boolean>`](https://chatie.io/wechaty/#Room+has) | Check if the room has member `contact` |
 | method | [`memberAll(query?: string): Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberAll) | Find all contacts or with specific name in a room |
-| method | [`member(query: string): Promise<null | Contact>`](https://chatie.io/wechaty/#Room+member) | Find all contacts in a room, if get many, return the first one. |
-| method | [`memberList():Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberList) | get all room member from the room|
+| method | [`member(query: string): Promise<null \| Contact>`](https://chatie.io/wechaty/#Room+member) | Find all contacts in a room, if get many, return the first one. |
+| method | [`memberList():Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberList) | get all room member from the room |
 | method | [`owner(): null \| Contact`](https://chatie.io/wechaty/#Room+owner) | Get room's owner from the room. |
 
 #### 4.1 Class `RoomInvitation`
