@@ -416,24 +416,27 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 ## AUTHOR
 
-[Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. [Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. Grace @[lijiarui](https://github.com/lijiarui)
 
 <a href="https://stackexchange.com/users/265499">
   <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
 </a>
 
-## My Story
+## The Story
 
-My daily life/work depends on too much chat on wechat.
+In 2017 ...
 
-* I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
-* I almost have 400 wechat rooms, and most of them have more than 400 members.
+Huan's daily life/work depends on too much chat on wechat.
 
-Can you imagine that? I'm dying...
+* Almost 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
+* Almost 400 wechat rooms, and most of them have more than 400 members.
 
-So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
+Can you imagine that? He was dying...
 
-At last, It's built for my personal study purpose of Automatically Testing.
+So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which he want to follow up(especially in a noisy room). ;-)
+
+At last, It's built for huan's personal study purpose of Automatically Testing.
 
 ## COPYRIGHT & LICENSE
 
