@@ -26,7 +26,7 @@ import { Message }      from './user'
 
 import {
   log,
-}                       from './config'
+}                      from './config'
 import { Io }           from './io'
 import { Wechaty }      from './wechaty'
 

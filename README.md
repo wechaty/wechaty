@@ -4,7 +4,7 @@
 
 ## CONNECTING CHATBOTS
 
-Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
+Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
@@ -65,7 +65,7 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-* Wechaty Starter Repository - <https://github.com/Chatie/wechaty-getting-started>
+* Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
 
 We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
@@ -78,6 +78,7 @@ Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty/next.svg)](https://www.npmjs.com/package/wechaty?activeTab=versions)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
+[![install size](https://packagephobia.now.sh/badge?p=wechaty)](https://packagephobia.now.sh/result?p=wechaty)
 
 ```shell
 npm init
@@ -93,7 +94,7 @@ node mybot.js
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-* Wechaty Starter Repository for Docker - <https://github.com/Chatie/docker-wechaty-getting-started>
+* Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
@@ -112,6 +113,25 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 ```
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+
+### 3. Switch Protocol(Puppet)
+
+Wechaty is very powerful that it can run with different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
+
+Currently we support the following puppet providers:
+
+| Protocol | Puppet Provider | Environment Variable |
+| --- | --- | --- |
+| Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
+| iPad | PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
+| Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+
+Learn more about Wechaty Puppet from the Puppet Wiki:
+
+1. Puppet Directory: <https://github.com/Chatie/wechaty-puppet/wiki/Directory>
+1. Puppet Compatibility: <https://github.com/Chatie/wechaty-puppet/wiki/Compatibility>
+
 
 ## API
 
@@ -169,7 +189,7 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 | method | [`alias(newAlias: string): Promise<void>`](https://chatie.io/wechaty/#Contact+alias) | set or delete the alias for a contact |
 | method | [`friend(): boolean`](https://chatie.io/wechaty/#Contact+friend) | check if contact is friend |
 | method | [`type(): ContactType`](https://chatie.io/wechaty/#Contact+type) | return the type of the Contact |
-| method | [`provence(): string`](https://chatie.io/wechaty/#Contact+province) | get the region 'province' from a contact |
+| method | [`province(): string`](https://chatie.io/wechaty/#Contact+province) | get the region 'province' from a contact |
 | method | [`city(): string`](https://chatie.io/wechaty/#Contact+city) | get the region 'city' from a contact |
 | method | [`avatar(): Promise<FileBox>`](https://chatie.io/wechaty/#Contact+avatar) | get avatar picture file stream |
 | method | [`gender(): ContactGender`](https://chatie.io/wechaty/#Contact+gender) | get gender from a contact |
@@ -290,6 +310,10 @@ Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wec
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
+### Views Since Feb 15, 2019
+
+[![HitCount](http://hits.dwyl.io/chatie/wechaty.svg)](http://hits.dwyl.io/chatie/wechaty)
+
 ## POWERED BY WECHATY
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
@@ -326,6 +350,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+| Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
 
 ## SEE ALSO
 
@@ -337,25 +362,49 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Howto [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
+How to [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
 
-Contributions in any form are highly encouraged and welcome! Be it new or improved presets, optimized streaming code or just some cleanup. So start forking!
+* Write a blog about Wechaty
+* Create a tutorial for Wechaty
+* Help expand the [wiki](https://github.com/Chatie/wechaty/wiki)
+* Answer questions on the [issue](https://github.com/Chatie/wechaty/issues)
+* Review [pull requests](https://github.com/Chatie/wechaty/pulls)
+* Start [hacking on Wechaty](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
+
+### Why contribute?
+
+As an open source product, Chatie thrives from contributions of community members. Whatever your skill set is, there is a lot you can do to help us make Chatie better! 
+So start forking!
+
+### Not sure where to start?
+
+It's a myth that writing code is the only way to contribute to open source. Chatie community is open to new ideas and there are so many different ways to make valuable contributions. We have some ideas of how you can get started!
+
+#### 1. Contribute Code
+
+- Check out GitHub issues with the tags `good first issue`, `pull request welcome` or `help wanted`
+- Write code examples for documentation
+- Report a bug and work on resolving it
+- Collaborate with others on building new features
+
+**Tips:** 
+If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.
+
+Make sure to add tests for your features and bugfixes and update the documentation (see below) before submitting your code!
+
+#### 2. Contribute Support
+
+- Fix typos in documentation
+- Translate documentation to your local language
+- Write tutorials and blog posts, see more: https://github.com/chatie/blog
+- Answer questions on the Wechaty Developers Home or Github issues
+- Organize Chatie meetups or user groups in your area
+
+Contact rui@chatie.io to learn more
 
 ### Contributors List
 
 <https://github.com/Chatie/wechaty/wiki/Contributors>
-
-### Code Contributions
-
-If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.
-
-When fixing bugs, you can directly submit a pull request.
-
-Make sure to add tests for your features and bugfixes and update the documentation (see below) before submitting your code!
-
-### Documentation Contributions
-
-You can directly submit pull requests for documentation changes.
 
 ### Join Us
 
@@ -367,27 +416,30 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 ## AUTHOR
 
-[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. [Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. Grace @[lijiarui](https://github.com/lijiarui)
 
 <a href="https://stackexchange.com/users/265499">
   <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
 </a>
 
-## My Story
+## The Story
 
-My daily life/work depends on too much chat on wechat.
+In 2017 ...
 
-* I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
-* I almost have 400 wechat rooms, and most of them have more than 400 members.
+Huan's daily life/work depends on too much chat on wechat.
 
-Can you imagine that? I'm dying...
+* Almost 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
+* Almost 400 wechat rooms, and most of them have more than 400 members.
 
-So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
+Can you imagine that? He was dying...
 
-At last, It's built for my personal study purpose of Automatically Testing.
+So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which he want to follow up(especially in a noisy room). ;-)
+
+At last, It's built for huan's personal study purpose of Automatically Testing.
 
 ## COPYRIGHT & LICENSE
 
-* Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
-* Code released under the Apache-2.0 License
-* Docs released under Creative Commons
+- Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
+- Code released under the Apache-2.0 License
+- Docs released under Creative Commons

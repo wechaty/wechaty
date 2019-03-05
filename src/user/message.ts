@@ -33,7 +33,7 @@ import {
   Accessory,
 }                       from '../accessory'
 import {
-  FOUR_PER_EM_SPACE,
+  AT_SEPRATOR_REGEX,
   log,
   Raven,
 }                       from '../config'
@@ -224,22 +224,19 @@ export class Message extends Accessory implements Sayable {
     const msgStrList = [
       'Message',
       `#${MessageType[this.type()]}`,
-      '(',
-        this.room()
-          ? '👥' + this.room()
-          : '',
+      '[',
         this.from()
           ? '🗣' + this.from()
           : '',
-        this.to()
-          ? '👤' + this.to()
+        this.room()
+          ? '@👥' + this.room()
           : '',
-      ')',
+      ']',
     ]
     if (   this.type() === Message.Type.Text
         || this.type() === Message.Type.Unknown
     ) {
-      msgStrList.push(`<${this.text().substr(0, 70)}>`)
+      msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
 
@@ -444,33 +441,22 @@ export class Message extends Accessory implements Sayable {
    */
   public async say (
     textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
-    mention?   : Contact | Contact[],
   ): Promise<void> {
-    log.verbose('Message', 'say(%s%s)',
-                            textOrContactOrFileOrUrl,
-                            mention
-                              ? ', ' + mention
-                              : '',
-                )
+    log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrl)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
 
-    const mentionList = mention
-                          ? Array.isArray(mention)
-                            ? mention
-                            : [mention]
-                          : []
-
     if (typeof textOrContactOrFileOrUrl === 'string') {
-      await this.sayText(
-        textOrContactOrFileOrUrl,
-        from || undefined,
-        room || undefined,
-        mentionList,
-      )
+      /**
+       * Text Message
+       */
+      await this.puppet.messageSendText({
+        contactId : from && from.id || undefined,
+        roomId    : room && room.id || undefined,
+      }, textOrContactOrFileOrUrl)
     } else if (textOrContactOrFileOrUrl instanceof Contact) {
       /**
        * Contact Card
@@ -497,33 +483,6 @@ export class Message extends Accessory implements Sayable {
       }, textOrContactOrFileOrUrl.payload)
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrl)
-    }
-  }
-
-  private async sayText (
-    text         : string,
-    to?          : Contact,
-    room?        : Room,
-    mentionList? : Contact[],
-  ): Promise<void> {
-    if (room && mentionList && mentionList.length > 0) {
-      /**
-       * 1 had mentioned someone
-       */
-      const mentionContact = mentionList[0]
-      const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
-      await this.puppet.messageSendText({
-        contactId: mentionContact.id,
-        roomId: room.id,
-      }, textMentionList + ' ' + text)
-    } else {
-      /**
-       * 2 did not mention anyone
-       */
-      await this.puppet.messageSendText({
-        contactId : to && to.id,
-        roomId    : room && room.id,
-      }, text)
     }
   }
 
@@ -597,9 +556,19 @@ export class Message extends Accessory implements Sayable {
       return []
     }
 
+    // Use mention list if mention list is available
+    // otherwise, process the message and get the mention list
+    if (this.payload && this.payload.mentionIdList) {
+      return Promise.all(this.payload.mentionIdList.map(async id => {
+        const contact = this.wechaty.Contact.load(id)
+        await contact.ready()
+        return contact
+      }))
+    }
+
     // define magic code `8197` to identify @xxx
     // const AT_SEPRATOR = String.fromCharCode(8197)
-    const AT_SEPRATOR = FOUR_PER_EM_SPACE
+    const AT_SEPRATOR = AT_SEPRATOR_REGEX
 
     const atList = this.text().split(AT_SEPRATOR)
     // console.log('atList: ', atList)
@@ -706,11 +675,11 @@ export class Message extends Accessory implements Sayable {
     const roomId = this.payload.roomId
     const toId   = this.payload.toId
 
-    if (fromId) {
-      await this.wechaty.Contact.load(fromId).ready()
-    }
     if (roomId) {
       await this.wechaty.Room.load(roomId).ready()
+    }
+    if (fromId) {
+      await this.wechaty.Contact.load(fromId).ready()
     }
     if (toId) {
       await this.wechaty.Contact.load(toId).ready()

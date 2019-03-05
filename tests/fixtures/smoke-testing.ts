@@ -1,15 +1,18 @@
 #!/usr/bin/env ts-node
 
-import { Wechaty }    from 'wechaty'
+// tslint:disable:no-var-requires
+const isPR = require('is-pr')
+
+import { Wechaty } from 'wechaty'
 
 function getBotList (): Wechaty[] {
   const botList = [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
     new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
-    new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
+    // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
-  if (!process.env.TRAVIS_PULL_REQUEST) {
+  if (!isPR) {
     botList.push(
       new Wechaty({
         puppet: 'wechaty-puppet-padchat',

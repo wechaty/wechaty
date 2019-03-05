@@ -23,6 +23,7 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
+import { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import { Wechaty }    from '../wechaty'
@@ -44,7 +45,7 @@ test('findAll()', async t => {
     await new Promise(r => setImmediate(r))
     return {
       name: EXPECTED_CONTACT_NAME,
-    }
+    } as ContactPayload
   })
 
   const contactList = await wechaty.Contact.findAll()

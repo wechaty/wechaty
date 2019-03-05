@@ -337,7 +337,7 @@ export class Room extends Accessory implements Sayable {
    * `ready()` is For FrameWork ONLY!
    *
    * Please not to use `ready()` at the user land.
-   * If you want to sync data, uyse `sync()` instead.
+   * If you want to sync data, use `sync()` instead.
    *
    * @private
    */
@@ -428,31 +428,43 @@ export class Room extends Accessory implements Sayable {
     textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
     mention?                 : Contact | Contact[],
   ): Promise<void> {
-    log.verbose('Room', 'say(%s, %s)',
-                                  textOrContactOrFileOrUrl,
-                                  Array.isArray(mention)
-                                  ? mention.map(c => c.name()).join(', ')
-                                  : mention ? mention.name() : '',
-                )
-    let text: string
 
-    const replyToList: Contact[] = [].concat(mention as any || [])
+    let replyToList: Contact[] = []
+    replyToList = replyToList.concat(mention || [])
+
+    const mentionAliasList = await Promise.all(
+                                      replyToList.map(
+                                        async c => await this.alias(c) || c.name()
+                                      )
+                                    )
+
+    log.verbose('Room', 'say(%s, %s)',
+                        textOrContactOrFileOrUrl,
+                        mentionAliasList.join(', '),
+                )
+
+    let text: string
 
     if (typeof textOrContactOrFileOrUrl === 'string') {
 
-      if (replyToList.length > 0) {
+      if (mentionAliasList.length > 0) {
         // const AT_SEPRATOR = String.fromCharCode(8197)
         const AT_SEPRATOR = FOUR_PER_EM_SPACE
+        const mentionList = mentionAliasList.map(roomAlias => '@' + roomAlias).join(AT_SEPRATOR)
 
-        const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
         text = mentionList + ' ' + textOrContactOrFileOrUrl
       } else {
         text = textOrContactOrFileOrUrl
       }
-      await this.puppet.messageSendText({
+      const receiver = {
         contactId : replyToList.length && replyToList[0].id || undefined,
         roomId    : this.id,
-      }, text)
+      }
+      await this.puppet.messageSendText(
+        receiver,
+        text,
+        replyToList.map(c => c.id),
+      )
     } else if (textOrContactOrFileOrUrl instanceof FileBox) {
       await this.puppet.messageSendFile({
         roomId: this.id,

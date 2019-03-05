@@ -173,7 +173,7 @@ function wechaty::runBot() {
       ;;
     *)
       echo "ERROR: wechaty::runBot() neith .js nor .ts"
-      exit -1 &
+      exit 1 &
   esac
 
   wait "$!" || ret=$? # fix `can only `return' from a function or sourced script` error
