@@ -78,7 +78,7 @@
     "hot-import": "^0.2.1",
     "normalize-package-data": "^2.4.0",
     "qr-image": "^3.2.0",
-    "quick-lru": "^2.0.0",
+    "quick-lru": "^3.0.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.10"
   }
