@@ -46,7 +46,7 @@
     "@types/node": "^10.3.6",
     "@types/normalize-package-data": "^2.4.0",
     "@types/qr-image": "^3.2.1",
-    "@types/quick-lru": "^2.0.0",
+    "@types/quick-lru": "^3.0.0",
     "@types/read-pkg-up": "^3.0.1",
     "@types/semver": "^5.5.0",
     "blue-tape": "^1.0.0",
