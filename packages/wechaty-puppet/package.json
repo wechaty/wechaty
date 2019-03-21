@@ -74,7 +74,7 @@
     "hot-import": "^0.2.1",
     "normalize-package-data": "^2.4.0",
     "quick-lru": "^2.0.0",
-    "read-pkg-up": "^4.0.0",
+    "read-pkg-up": "^5.0.0",
     "rx-queue": "^0.6.1",
     "rxjs": "^6.2.1",
     "semver": "^5.5.0",
