@@ -116,7 +116,7 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 
 ### 3. Switch Protocol(Puppet)
 
-Wechaty is very powerful that it can run with different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
+Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
 
 Currently we support the following puppet providers:
 
