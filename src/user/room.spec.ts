@@ -23,7 +23,7 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
-import { RoomPayload }  from 'wechaty-puppet'
+import { ContactPayload, RoomMemberPayload, RoomPayload }  from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }    from '../wechaty'
@@ -51,6 +51,78 @@ test('findAll()', async t => {
   const roomList = await wechaty.Room.findAll()
   t.equal(roomList.length, 1, 'should find 1 room')
   t.equal(await roomList[0].topic(), EXPECTED_ROOM_TOPIC, 'should get topic from payload')
+
+  await wechaty.stop()
+})
+
+test('say()', async t => {
+
+  const sandbox = sinon.createSandbox()
+  const callback = sinon.spy()
+
+  const puppet = new PuppetMock()
+  const wechaty = new Wechaty({ puppet })
+
+  await wechaty.start()
+
+  const EXPECTED_ROOM_ID = 'roomId'
+  const EXPECTED_ROOM_TOPIC = 'test-topic'
+  const EXPECTED_CONTACT_1_ID = 'contact1'
+  const EXPECTED_CONTACT_1_ALIAS = 'little1'
+  const EXPECTED_CONTACT_2_ID = 'contact2'
+  const EXPECTED_CONTACT_2_ALIAS = 'big2'
+  const CONTACT_MAP: { [contactId: string]: string } = {}
+  CONTACT_MAP[EXPECTED_CONTACT_1_ID] = EXPECTED_CONTACT_1_ALIAS
+  CONTACT_MAP[EXPECTED_CONTACT_2_ID] = EXPECTED_CONTACT_2_ALIAS
+
+  sandbox.stub(puppet, 'roomMemberPayload').callsFake(async (_, contactId) => {
+    await new Promise(r => setImmediate(r))
+    return {
+      id: contactId,
+      roomAlias: CONTACT_MAP[contactId],
+    } as RoomMemberPayload
+  })
+  sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
+    await new Promise(r => setImmediate(r))
+    return {
+      topic: EXPECTED_ROOM_TOPIC,
+    } as RoomPayload
+  })
+  sandbox.stub(puppet, 'contactPayload').callsFake(async (contactId) => {
+    await new Promise(r => setImmediate(r))
+    return {
+      id: contactId,
+    } as ContactPayload
+  })
+  // sandbox.spy(puppet, 'messageSendText')
+  sandbox.stub(puppet, 'messageSendText').callsFake(callback)
+
+  const room = wechaty.Room.load(EXPECTED_ROOM_ID)
+  const contact1 = wechaty.Contact.load(EXPECTED_CONTACT_1_ID)
+  const contact2 = wechaty.Contact.load(EXPECTED_CONTACT_2_ID)
+  await contact1.sync()
+  await contact2.sync()
+  await room.sync()
+  await room.say`To be ${contact1} or not to be ${contact2}`
+  await room.say('Yo', contact1)
+  await room.say('hey buddies, let\'s party', contact1, contact2)
+  await room.say('')
+
+  t.deepEqual(callback.getCall(0).args, [
+    { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
+    'To be @little1 or not to be @big2',
+    [EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID],
+  ], 'Tagged Template say should be matched')
+  t.deepEqual(callback.getCall(1).args, [
+    { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
+    '@little1 Yo',
+    [EXPECTED_CONTACT_1_ID],
+  ], 'Single mention should work with old ways')
+  t.deepEqual(callback.getCall(2).args, [
+    { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
+    '@little1 @big2 hey buddies, let\'s party',
+    [EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID],
+  ], 'Multiple mention should work with new way')
 
   await wechaty.stop()
 })
