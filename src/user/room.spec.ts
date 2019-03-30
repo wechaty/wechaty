@@ -109,6 +109,7 @@ test('say()', async _ => {
   await room.sync()
 
   test('say with Tagged Template', async t => {
+    callback.resetHistory()
     await room.say`To be ${contact1} or not to be ${contact2}`
 
     t.deepEqual(callback.getCall(0).args, [
@@ -119,9 +120,10 @@ test('say()', async _ => {
   })
 
   test('say with regular mention contact', async t => {
+    callback.resetHistory()
     await room.say('Yo', contact1)
 
-    t.deepEqual(callback.getCall(1).args, [
+    t.deepEqual(callback.getCall(0).args, [
       { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       '@little1 Yo',
       [EXPECTED_CONTACT_1_ID],
@@ -129,9 +131,10 @@ test('say()', async _ => {
   })
 
   test('say with multiple mention contact', async t => {
+    callback.resetHistory()
     await room.say('hey buddies, let\'s party', contact1, contact2)
 
-    t.deepEqual(callback.getCall(2).args, [
+    t.deepEqual(callback.getCall(0).args, [
       { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       '@little1 @big2 hey buddies, let\'s party',
       [EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID],
