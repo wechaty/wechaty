@@ -382,10 +382,10 @@ export class Room extends Accessory implements Sayable {
   }
 
   public say (text: string)                     : Promise<void>
-  public say (text: string, mention: Contact)   : Promise<void>
-  public say (text: string, mention: Contact[]) : Promise<void>
+  public say (text: string, ...mentionList: Contact[])   : Promise<void>
   public say (file: FileBox)                    : Promise<void>
   public say (url: UrlLink)                     : Promise<void>
+  public say (textList: TemplateStringsArray, ...mentionList: Contact[]): Promise<void>
 
   public say (...args: never[]): never
 
@@ -423,65 +423,121 @@ export class Room extends Accessory implements Sayable {
    * // 4. Send text inside room and mention @mention contact
    * const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
    * await room.say('Hello world!', contact)
+   *
+   * // 5. Send text inside room and mention someone with Tagged Template
+   * const contact2 = await bot.Contact.find({name: 'zixia'}) // change 'zixia' to any of the room member
+   * await room.say`Hello ${contact}, here is the world ${contact2}`
    */
   public async say (
-    textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
-    mention?                 : Contact | Contact[],
+    textOrListOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink | TemplateStringsArray,
+    ...mentionList                 : Contact[]
   ): Promise<void> {
 
-    let replyToList: Contact[] = []
-    replyToList = replyToList.concat(mention || [])
-
-    const mentionAliasList = await Promise.all(
-                                      replyToList.map(
-                                        async c => await this.alias(c) || c.name()
-                                      )
-                                    )
-
     log.verbose('Room', 'say(%s, %s)',
-                        textOrContactOrFileOrUrl,
-                        mentionAliasList.join(', '),
+                        textOrListOrContactOrFileOrUrl,
+                        mentionList.join(', '),
                 )
 
     let text: string
 
-    if (typeof textOrContactOrFileOrUrl === 'string') {
+    if (typeof textOrListOrContactOrFileOrUrl === 'string') {
 
-      if (mentionAliasList.length > 0) {
-        // const AT_SEPRATOR = String.fromCharCode(8197)
-        const AT_SEPRATOR = FOUR_PER_EM_SPACE
-        const mentionList = mentionAliasList.map(roomAlias => '@' + roomAlias).join(AT_SEPRATOR)
+      if (mentionList.length > 0) {
+        const AT_SEPARATOR = FOUR_PER_EM_SPACE
+        const mentionAlias = await Promise.all(mentionList.map(async contact =>
+          '@' + (await this.alias(contact) || contact.name())
+        ))
+        const mentionText = mentionAlias.join(AT_SEPARATOR)
 
-        text = mentionList + ' ' + textOrContactOrFileOrUrl
+        text = mentionText + ' ' + textOrListOrContactOrFileOrUrl
       } else {
-        text = textOrContactOrFileOrUrl
+        text = textOrListOrContactOrFileOrUrl
       }
       const receiver = {
-        contactId : replyToList.length && replyToList[0].id || undefined,
+        contactId : mentionList.length && mentionList[0].id || undefined,
         roomId    : this.id,
       }
       await this.puppet.messageSendText(
         receiver,
         text,
-        replyToList.map(c => c.id),
+        mentionList.map(c => c.id),
       )
-    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
+    } else if (textOrListOrContactOrFileOrUrl instanceof FileBox) {
+      /**
+       * 2. File Message
+       */
       await this.puppet.messageSendFile({
         roomId: this.id,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof Contact) {
+      }, textOrListOrContactOrFileOrUrl)
+    } else if (textOrListOrContactOrFileOrUrl instanceof Contact) {
+      /**
+       * 3. Contact Card
+       */
       await this.puppet.messageSendContact({
         roomId: this.id,
-      }, textOrContactOrFileOrUrl.id)
-    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+      }, textOrListOrContactOrFileOrUrl.id)
+    } else if (textOrListOrContactOrFileOrUrl instanceof UrlLink) {
       /**
        * 4. Link Message
        */
       await this.puppet.messageSendUrl({
         contactId : this.id
-      }, textOrContactOrFileOrUrl.payload)
+      }, textOrListOrContactOrFileOrUrl.payload)
+    } else if (textOrListOrContactOrFileOrUrl instanceof Array) {
+      await this.sayTemplateStringsArray(
+        textOrListOrContactOrFileOrUrl,
+        ...mentionList,
+      )
     } else {
-      throw new Error('arg unsupported: ' + textOrContactOrFileOrUrl)
+      throw new Error('arg unsupported: ' + textOrListOrContactOrFileOrUrl)
+    }
+  }
+
+  private async sayTemplateStringsArray (
+    textList: TemplateStringsArray,
+    ...mentionList: Contact[]
+  ) {
+    const receiver = {
+      contactId : mentionList.length && mentionList[0].id || undefined,
+      roomId    : this.id,
+    }
+    if (mentionList.length === 0) {
+      /**
+       * No mention in the string
+       */
+      await this.puppet.messageSendText(
+        receiver,
+        textList[0],
+      )
+    } else if (textList.length === 1) {
+      /**
+       * Constructed mention string, skip inserting @ signs
+       */
+      await this.puppet.messageSendText(
+        receiver,
+        textList[0],
+        mentionList.map(c => c.id),
+      )
+    } else {
+      /**
+       * Mention in the string
+       */
+      const strLength = textList.length
+      const mentionLength = mentionList.length
+      if (strLength - mentionLength !== 1) {
+        throw new Error(`Can not say message, invalid Tagged Template.`)
+      }
+      let constructedString = ''
+      let i = 0
+      for (; i < mentionLength; i++) {
+        constructedString += textList[i] + '@' + (await this.alias(mentionList[i]) || mentionList[i].name())
+      }
+      constructedString += textList[i]
+      await this.puppet.messageSendText(
+        receiver,
+        constructedString,
+        mentionList.map(c => c.id),
+      )
     }
   }
 
