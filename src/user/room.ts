@@ -480,51 +480,60 @@ export class Room extends Accessory implements Sayable {
         contactId : this.id
       }, textOrListOrContactOrFileOrUrl.payload)
     } else if (textOrListOrContactOrFileOrUrl instanceof Array) {
-      const textList = textOrListOrContactOrFileOrUrl as TemplateStringsArray
-      const receiver = {
-        contactId : mentionList.length && mentionList[0].id || undefined,
-        roomId    : this.id,
-      }
-      if (mentionList.length === 0) {
-        /**
-         * No mention in the string
-         */
-        await this.puppet.messageSendText(
-          receiver,
-          textList[0],
-        )
-      } else if (textList.length === 1) {
-        /**
-         * Constructed mention string, skip inserting @ signs
-         */
-        await this.puppet.messageSendText(
-          receiver,
-          textList[0],
-          mentionList.map(c => c.id),
-        )
-      } else {
-        /**
-         * Mention in the string
-         */
-        const strLength = textList.length
-        const mentionLength = mentionList.length
-        if (strLength - mentionLength !== 1) {
-          throw new Error(`Can not say message, invalid Tagged Template.`)
-        }
-        let constructedString = ''
-        let i = 0
-        for (; i < mentionLength; i++) {
-          constructedString += textList[i] + '@' + (await this.alias(mentionList[i]) || mentionList[i].name())
-        }
-        constructedString += textList[i]
-        await this.puppet.messageSendText(
-          receiver,
-          constructedString,
-          mentionList.map(c => c.id),
-        )
-      }
+      await this.sayTemplateStringsArray(
+        textOrListOrContactOrFileOrUrl,
+        ...mentionList,
+      )
     } else {
       throw new Error('arg unsupported: ' + textOrListOrContactOrFileOrUrl)
+    }
+  }
+
+  private async sayTemplateStringsArray (
+    textList: TemplateStringsArray,
+    ...mentionList: Contact[]
+  ) {
+    const receiver = {
+      contactId : mentionList.length && mentionList[0].id || undefined,
+      roomId    : this.id,
+    }
+    if (mentionList.length === 0) {
+      /**
+       * No mention in the string
+       */
+      await this.puppet.messageSendText(
+        receiver,
+        textList[0],
+      )
+    } else if (textList.length === 1) {
+      /**
+       * Constructed mention string, skip inserting @ signs
+       */
+      await this.puppet.messageSendText(
+        receiver,
+        textList[0],
+        mentionList.map(c => c.id),
+      )
+    } else {
+      /**
+       * Mention in the string
+       */
+      const strLength = textList.length
+      const mentionLength = mentionList.length
+      if (strLength - mentionLength !== 1) {
+        throw new Error(`Can not say message, invalid Tagged Template.`)
+      }
+      let constructedString = ''
+      let i = 0
+      for (; i < mentionLength; i++) {
+        constructedString += textList[i] + '@' + (await this.alias(mentionList[i]) || mentionList[i].name())
+      }
+      constructedString += textList[i]
+      await this.puppet.messageSendText(
+        receiver,
+        constructedString,
+        mentionList.map(c => c.id),
+      )
     }
   }
 

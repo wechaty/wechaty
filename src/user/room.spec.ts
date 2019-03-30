@@ -23,10 +23,14 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
-import { ContactPayload, RoomMemberPayload, RoomPayload }  from 'wechaty-puppet'
+import {
+  ContactPayload,
+  RoomMemberPayload,
+  RoomPayload
+}                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
-import { Wechaty }    from '../wechaty'
+import { Wechaty }      from '../wechaty'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
@@ -55,7 +59,7 @@ test('findAll()', async t => {
   await wechaty.stop()
 })
 
-test('say()', async t => {
+test('say()', async _ => {
 
   const sandbox = sinon.createSandbox()
   const callback = sinon.spy()
@@ -103,26 +107,36 @@ test('say()', async t => {
   await contact1.sync()
   await contact2.sync()
   await room.sync()
-  await room.say`To be ${contact1} or not to be ${contact2}`
-  await room.say('Yo', contact1)
-  await room.say('hey buddies, let\'s party', contact1, contact2)
-  await room.say('')
 
-  t.deepEqual(callback.getCall(0).args, [
-    { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
-    'To be @little1 or not to be @big2',
-    [EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID],
-  ], 'Tagged Template say should be matched')
-  t.deepEqual(callback.getCall(1).args, [
-    { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
-    '@little1 Yo',
-    [EXPECTED_CONTACT_1_ID],
-  ], 'Single mention should work with old ways')
-  t.deepEqual(callback.getCall(2).args, [
-    { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
-    '@little1 @big2 hey buddies, let\'s party',
-    [EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID],
-  ], 'Multiple mention should work with new way')
+  test('say with Tagged Template', async t => {
+    await room.say`To be ${contact1} or not to be ${contact2}`
+
+    t.deepEqual(callback.getCall(0).args, [
+      { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
+      'To be @little1 or not to be @big2',
+      [EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID],
+    ], 'Tagged Template say should be matched')
+  })
+
+  test('say with regular mention contact', async t => {
+    await room.say('Yo', contact1)
+
+    t.deepEqual(callback.getCall(1).args, [
+      { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
+      '@little1 Yo',
+      [EXPECTED_CONTACT_1_ID],
+    ], 'Single mention should work with old ways')
+  })
+
+  test('say with multiple mention contact', async t => {
+    await room.say('hey buddies, let\'s party', contact1, contact2)
+
+    t.deepEqual(callback.getCall(2).args, [
+      { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
+      '@little1 @big2 hey buddies, let\'s party',
+      [EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID],
+    ], 'Multiple mention should work with new way')
+  })
 
   await wechaty.stop()
 })
