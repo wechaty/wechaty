@@ -1,5 +1,5 @@
 import promiseRetry     from 'promise-retry'
-import { WrapOptions }  from 'retry'
+import { OperationOptions }  from 'retry'
 
 export async function tryWait<T> (
   retryableFn: (
@@ -20,7 +20,7 @@ export async function tryWait<T> (
   const retries    = 9
   // const unref      = true
 
-  const retryOptions: WrapOptions = {
+  const retryOptions: OperationOptions = {
     factor,
     maxTimeout,
     minTimeout,
