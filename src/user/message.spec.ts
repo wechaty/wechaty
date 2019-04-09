@@ -28,11 +28,11 @@ import {
   ContactPayload,
   MessagePayload,
   MessageType,
-  RoomPayload,
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }      from '../wechaty'
+import { mockRoomPayload } from './common.spec'
 
 test('recalled()', async t => {
 
@@ -72,12 +72,8 @@ test('recalled()', async t => {
       } as MessagePayload
     }
   })
-  sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
-    await new Promise(r => setImmediate(r))
-    return {
-      topic: EXPECTED_ROOM_TOPIC,
-    } as RoomPayload
-  })
+
+  mockRoomPayload(sandbox, puppet, EXPECTED_ROOM_TOPIC)
 
   sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
     await new Promise(r => setImmediate(r))
