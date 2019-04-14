@@ -26,11 +26,11 @@ import sinon from 'sinon'
 import {
   ContactPayload,
   RoomMemberPayload,
+  RoomPayload
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }      from '../wechaty'
-import { mockRoomPayload } from './common.spec'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
@@ -45,7 +45,12 @@ test('findAll()', async t => {
   await wechaty.start()
 
   sandbox.stub(puppet, 'roomSearch').resolves(EXPECTED_ROOM_ID_LIST)
-  mockRoomPayload(sandbox, puppet, EXPECTED_ROOM_TOPIC)
+  sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
+    await new Promise(r => setImmediate(r))
+    return {
+      topic: EXPECTED_ROOM_TOPIC,
+    } as RoomPayload
+  })
 
   const roomList = await wechaty.Room.findAll()
   t.equal(roomList.length, 1, 'should find 1 room')
@@ -81,7 +86,12 @@ test('say()', async _ => {
       roomAlias: CONTACT_MAP[contactId],
     } as RoomMemberPayload
   })
-  mockRoomPayload(sandbox, puppet, EXPECTED_ROOM_TOPIC)
+  sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
+    await new Promise(r => setImmediate(r))
+    return {
+      topic: EXPECTED_ROOM_TOPIC,
+    } as RoomPayload
+  })
   sandbox.stub(puppet, 'contactPayload').callsFake(async (contactId) => {
     await new Promise(r => setImmediate(r))
     return {
