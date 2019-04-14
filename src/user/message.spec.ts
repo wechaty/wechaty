@@ -94,7 +94,7 @@ test('recalled()', async t => {
 
   const message = wechaty.Message.load(EXPECTED_RECALL_MESSAGE_ID)
   await message.ready()
-  const recalledMessage = await message.recalled()
+  const recalledMessage = await message.toRecalled()
   t.assert(recalledMessage, 'recalled message should exist.')
   t.equal(recalledMessage!.id, EXPECTED_RECALLED_MESSAGE_ID, 'Recalled message should have the right id.')
   t.equal(recalledMessage!.from()!.id, EXPECTED_FROM_CONTACT_ID, 'Recalled message should have the right from contact id.')
