@@ -387,6 +387,38 @@ export class Message extends Accessory implements Sayable {
     return this.payload.text || ''
   }
 
+  /**
+   * Get the recalled message
+   *
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   if (m.type() === MessageType.Recalled) {
+   *     const recalledMessage = await m.toRecalled()
+   *     console.log(`Message: ${recalledMessage} has been recalled.`)
+   *   }
+   * })
+   * .start()
+   */
+  public async toRecalled (): Promise<Message | null> {
+    if (this.type() !== MessageType.Recalled) {
+      throw new Error('Can not call toRecalled() on message which is not recalled type.')
+    }
+    const originalMessageId = this.text()
+    if (!originalMessageId) {
+      throw new Error('Can not find recalled message')
+    }
+    try {
+      const message = this.wechaty.Message.load(originalMessageId)
+      await message.ready()
+      return message
+    } catch (e) {
+      log.verbose(`Can not retrieve the recalled message with id ${originalMessageId}.`)
+      return null
+    }
+  }
+
   public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
   public async say (contact: Contact)                               : Promise<void>
   public async say (file:    FileBox)                               : Promise<void>
