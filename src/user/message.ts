@@ -409,12 +409,12 @@ export class Message extends Accessory implements Sayable {
     if (!originalMessageId) {
       throw new Error('Can not find recalled message')
     }
-    const message = this.wechaty.Message.load(originalMessageId)
     try {
+      const message = this.wechaty.Message.load(originalMessageId)
       await message.ready()
       return message
     } catch (e) {
-      log.verbose(`Can not retrieve the recalled message with id ${message.id}.`)
+      log.verbose(`Can not retrieve the recalled message with id ${originalMessageId}.`)
       return null
     }
   }
