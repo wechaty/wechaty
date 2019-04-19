@@ -314,7 +314,7 @@ export class Contact extends Accessory implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrl
+   * @param {(string | Contact | FileBox | UrlLink)} textOrContactOrFileOrUrl
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void>}
@@ -339,6 +339,16 @@ export class Contact extends Accessory implements Sayable {
    *
    * const contactCard = bot.Contact.load('contactId')
    * await contact.say(contactCard)
+   *
+   * // 4. send url link to contact
+   *
+   * const urlLink = new UrlLink ({
+   *  description: 'this is url link description',
+   *  thumbnailUrl: 'this is a thumbnail url',
+   *  title: 'this is url link title',
+   *  url: 'this is the url',
+   * })
+   * await contact.say(urlLink)
    */
   public async say (textOrContactOrFileOrUrl: string | Contact | FileBox | UrlLink): Promise<void> {
     log.verbose('Contact', 'say(%s)', textOrContactOrFileOrUrl)
