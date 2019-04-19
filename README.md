@@ -4,7 +4,7 @@
 
 ## CONNECTING CHATBOTS
 
-Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
+Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
@@ -65,7 +65,7 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-* Wechaty Starter Repository - <https://github.com/Chatie/wechaty-getting-started>
+* Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
 
 We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
@@ -94,7 +94,7 @@ node mybot.js
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-* Wechaty Starter Repository for Docker - <https://github.com/Chatie/docker-wechaty-getting-started>
+* Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
@@ -116,7 +116,7 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 
 ### 3. Switch Protocol(Puppet)
 
-Wechaty is very powerful that it can run with different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
+Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
 
 Currently we support the following puppet providers:
 
@@ -264,11 +264,11 @@ All wechat rooms(groups) will be encapsulated as a Room.
 | method | [`announce(text: string): Promise<void>`](https://chatie.io/wechaty/#Room+announce) | SET/GET announce from the room |
 | method | [`qrcode(): Promise<string>`](https://chatie.io/wechaty/#Room+qrcode) | Get QR Code of the Room from the room, which can be used as scan and join the room. |
 | method | [`alias(contact: Contact): Promise<string>`](https://chatie.io/wechaty/#Room+alias) | Return contact's roomAlias in the room |
-| method | [`roomAlias(contact: Contact): Promise<string|null>`](https://chatie.io/wechaty/#Room+roomAlias) | Same as function alias|
+| method | [`roomAlias(contact: Contact): Promise<string \| null>`](https://chatie.io/wechaty/#Room+roomAlias) | Same as function alias |
 | method | [`has(contact: Contact): Promise<boolean>`](https://chatie.io/wechaty/#Room+has) | Check if the room has member `contact` |
 | method | [`memberAll(query?: string): Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberAll) | Find all contacts or with specific name in a room |
-| method | [`member(query: string): Promise<null | Contact>`](https://chatie.io/wechaty/#Room+member) | Find all contacts in a room, if get many, return the first one. |
-| method | [`memberList():Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberList) | get all room member from the room|
+| method | [`member(query: string): Promise<null \| Contact>`](https://chatie.io/wechaty/#Room+member) | Find all contacts in a room, if get many, return the first one. |
+| method | [`memberList():Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberList) | get all room member from the room |
 | method | [`owner(): null \| Contact`](https://chatie.io/wechaty/#Room+owner) | Get room's owner from the room. |
 
 #### 4.1 Class `RoomInvitation`
@@ -310,6 +310,10 @@ Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wec
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
+### Views Since Feb 15, 2019
+
+[![HitCount](http://hits.dwyl.io/chatie/wechaty.svg)](http://hits.dwyl.io/chatie/wechaty)
+
 ## POWERED BY WECHATY
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
@@ -346,6 +350,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+| Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
 
 ## SEE ALSO
 
@@ -358,6 +363,13 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 How to [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
+
+* Write a blog about Wechaty
+* Create a tutorial for Wechaty
+* Help expand the [wiki](https://github.com/Chatie/wechaty/wiki)
+* Answer questions on the [issue](https://github.com/Chatie/wechaty/issues)
+* Review [pull requests](https://github.com/Chatie/wechaty/pulls)
+* Start [hacking on Wechaty](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
 
 ### Why contribute?
 
@@ -404,27 +416,30 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 ## AUTHOR
 
-[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. [Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. Grace @[lijiarui](https://github.com/lijiarui)
 
 <a href="https://stackexchange.com/users/265499">
   <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
 </a>
 
-## My Story
+## The Story
 
-My daily life/work depends on too much chat on wechat.
+In 2017 ...
 
-* I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
-* I almost have 400 wechat rooms, and most of them have more than 400 members.
+Huan's daily life/work depends on too much chat on wechat.
 
-Can you imagine that? I'm dying...
+* Almost 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
+* Almost 400 wechat rooms, and most of them have more than 400 members.
 
-So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
+Can you imagine that? He was dying...
 
-At last, It's built for my personal study purpose of Automatically Testing.
+So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which he want to follow up(especially in a noisy room). ;-)
+
+At last, It's built for huan's personal study purpose of Automatically Testing.
 
 ## COPYRIGHT & LICENSE
 
-* Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
-* Code released under the Apache-2.0 License
-* Docs released under Creative Commons
+- Code & Docs © 2016-2019 Huan LI \<zixia@zixia.net\>
+- Code released under the Apache-2.0 License
+- Docs released under Creative Commons

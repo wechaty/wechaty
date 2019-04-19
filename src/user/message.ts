@@ -224,22 +224,19 @@ export class Message extends Accessory implements Sayable {
     const msgStrList = [
       'Message',
       `#${MessageType[this.type()]}`,
-      '(',
-        this.room()
-          ? '👥' + this.room()
-          : '',
+      '[',
         this.from()
           ? '🗣' + this.from()
           : '',
-        this.to()
-          ? '👤' + this.to()
+        this.room()
+          ? '@👥' + this.room()
           : '',
-      ')',
+      ']',
     ]
     if (   this.type() === Message.Type.Text
         || this.type() === Message.Type.Unknown
     ) {
-      msgStrList.push(`<${this.text().substr(0, 70)}>`)
+      msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
 
@@ -388,6 +385,38 @@ export class Message extends Accessory implements Sayable {
     }
 
     return this.payload.text || ''
+  }
+
+  /**
+   * Get the recalled message
+   *
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   if (m.type() === MessageType.Recalled) {
+   *     const recalledMessage = await m.toRecalled()
+   *     console.log(`Message: ${recalledMessage} has been recalled.`)
+   *   }
+   * })
+   * .start()
+   */
+  public async toRecalled (): Promise<Message | null> {
+    if (this.type() !== MessageType.Recalled) {
+      throw new Error('Can not call toRecalled() on message which is not recalled type.')
+    }
+    const originalMessageId = this.text()
+    if (!originalMessageId) {
+      throw new Error('Can not find recalled message')
+    }
+    try {
+      const message = this.wechaty.Message.load(originalMessageId)
+      await message.ready()
+      return message
+    } catch (e) {
+      log.verbose(`Can not retrieve the recalled message with id ${originalMessageId}.`)
+      return null
+    }
   }
 
   public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
