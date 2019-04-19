@@ -427,6 +427,16 @@ export class Room extends Accessory implements Sayable {
    * // 5. Send text inside room and mention someone with Tagged Template
    * const contact2 = await bot.Contact.find({name: 'zixia'}) // change 'zixia' to any of the room member
    * await room.say`Hello ${contact}, here is the world ${contact2}`
+   *
+   * // 6. send url link in a room
+   *
+   * const urlLink = new UrlLink ({
+   *   description  : 'this is url link description',
+   *   thumbnailUrl : 'this is a thumbnail url',
+   *   title        : 'this is url link title',
+   *   url          : 'this is the url',
+   * })
+   * await room.say(urlLink)
    */
   public async say (
     textOrListOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink | TemplateStringsArray,
