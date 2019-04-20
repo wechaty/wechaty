@@ -130,7 +130,7 @@ export class ContactSelf extends Contact {
    *   console.log(`user ${user} login`)
    *   const oldName = user.name()
    *   try {
-   *     await user.setName(`${oldName}-${new Date().getTime()}`)
+   *     await user.name(`${oldName}-${new Date().getTime()}`)
    *   } catch (e) {
    *     console.error('change name failed', e)
    *   }
