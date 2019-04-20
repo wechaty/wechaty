@@ -361,6 +361,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty)
 [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Open Collective Backers](https://opencollective.com/wechaty/tiers/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
 
 How to [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
 
