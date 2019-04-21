@@ -431,9 +431,9 @@ export class Room extends Accessory implements Sayable {
    * // 6. send url link in a room
    *
    * const urlLink = new UrlLink ({
-   *   description  : '关于netty处理网络中粘包，拆包的方式总结',
+   *   description  : 'Netty',
    *   thumbnailUrl : 'http://mmbiz.qpic.cn/mmbiz_jpg/48MFTQpxichmmxEoXZ1w7eno72H2MQdx1WC6JiaVdYRmwAp4MCcQbctE2IE7jWqkWOlgMPqMBXVAdR1N46xEibvoQ/640?wx_fmt=jpeg&wxtype=jpeg&wxfrom=0',
-   *   title        : 'Netty里面的粘包拆包处理',
+   *   title        : 'Netty',
    *   url          : 'http://mp.weixin.qq.com/s?__biz=MzU2MDU3MzE1Mg==&mid=2247484375&idx=1&sn=5ee91b0a8607a1766b5212a23d3c9179&chksm=fc04bc58cb73354e798403bcc03e293149bb115a0755940e334c0fbe33d7c3b0b0797120a213&scene=0&xtrack=1#rd',
    * })
    * await room.say(urlLink)
