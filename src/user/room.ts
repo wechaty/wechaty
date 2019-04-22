@@ -431,10 +431,10 @@ export class Room extends Accessory implements Sayable {
    * // 6. send url link in a room
    *
    * const urlLink = new UrlLink ({
-   *   description  : 'Netty',
-   *   thumbnailUrl : 'http://mmbiz.qpic.cn/mmbiz_jpg/48MFTQpxichmmxEoXZ1w7eno72H2MQdx1WC6JiaVdYRmwAp4MCcQbctE2IE7jWqkWOlgMPqMBXVAdR1N46xEibvoQ/640?wx_fmt=jpeg&wxtype=jpeg&wxfrom=0',
-   *   title        : 'Netty',
-   *   url          : 'http://mp.weixin.qq.com/s?__biz=MzU2MDU3MzE1Mg==&mid=2247484375&idx=1&sn=5ee91b0a8607a1766b5212a23d3c9179&chksm=fc04bc58cb73354e798403bcc03e293149bb115a0755940e334c0fbe33d7c3b0b0797120a213&scene=0&xtrack=1#rd',
+   *  description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+   *  thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+   *  title       : 'Welcome to Wechaty',
+   *  url         : 'https://github.com/chatie/wechaty',
    * })
    * await room.say(urlLink)
    */
