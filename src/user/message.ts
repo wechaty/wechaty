@@ -431,7 +431,7 @@ export class Message extends Accessory implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | Contact | FileBox)} textOrContactOrFile
+   * @param {(string | Contact | FileBox | UrlLink)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
@@ -469,6 +469,18 @@ export class Message extends Accessory implements Sayable {
    *   }
    *
    * })
+   *
+   * // 4. send Link
+   *
+   *   if (/^link$/i.test(m.text())) {
+   *     const linkPayload = new UrlLink ({
+   *       description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+   *       thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+   *       title       : 'Welcome to Wechaty',
+   *       url         : 'https://github.com/chatie/wechaty',
+   *     })
+   *     await msg.say(linkPayload)
+   *   }
    * .start()
    */
   public async say (
