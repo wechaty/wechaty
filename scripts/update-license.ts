@@ -22,8 +22,9 @@ const LICENSE = `/**
 import {
   createReadStream,
   createWriteStream,
-  link    as linkCallback,
-  unlink  as unlinkCallback,
+  promises as fsPromises,
+  // link    as linkCallback,
+  // unlink  as unlinkCallback,
 }                             from 'fs'
 import {
   Transform,
@@ -129,9 +130,12 @@ async function updateLicense (file: string): Promise<void> {
       .on('close', resolve)
       .on('error', reject)
   })
-  await promisify(unlinkCallback)(file)
-  await promisify(linkCallback)(tmpFile, file)
-  await promisify(unlinkCallback)(tmpFile)
+  // await promisify(unlinkCallback)
+  await fsPromises.unlink(file)
+  // await promisify(linkCallback)(tmpFile, file)
+  await fsPromises.link(tmpFile, file)
+  // await promisify(unlinkCallback)(tmpFile)
+  await fsPromises.unlink(tmpFile)
 }
 
 async function glob (pattern: string): Promise<string[]> {
