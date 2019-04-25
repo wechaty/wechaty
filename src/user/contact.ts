@@ -343,10 +343,10 @@ export class Contact extends Accessory implements Sayable {
    * // 4. send url link to contact
    *
    * const urlLink = new UrlLink ({
-   *  description: 'this is url link description',
-   *  thumbnailUrl: 'this is a thumbnail url',
-   *  title: 'this is url link title',
-   *  url: 'this is the url',
+   *   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+   *   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+   *   title       : 'Welcome to Wechaty',
+   *   url         : 'https://github.com/chatie/wechaty',
    * })
    * await contact.say(urlLink)
    */
