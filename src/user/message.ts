@@ -468,8 +468,6 @@ export class Message extends Accessory implements Sayable {
    *     await msg.say(contactCard)
    *   }
    *
-   * })
-   *
    * // 4. send Link
    *
    *   if (/^link$/i.test(m.text())) {
@@ -481,6 +479,7 @@ export class Message extends Accessory implements Sayable {
    *     })
    *     await msg.say(linkPayload)
    *   }
+   * })
    * .start()
    */
   public async say (
