@@ -14,6 +14,8 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
+[![Pull Request Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty)
+[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
@@ -38,6 +40,14 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 > -- @Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)
 
 See more at [Wiki:Voice Of Developer](https://github.com/Chatie/wechaty/wiki/Voice%20Of%20Developer)
+
+### Join Us
+
+Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
+
+![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
+
+Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
 ## The World's Shortest ChatBot Code: 6 lines of JavaScript
 
@@ -358,66 +368,6 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 
 * [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
 
-## CONTRIBUTING
-
-[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty)
-[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
-[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Open Collective Backers](https://opencollective.com/wechaty/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
-[![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
-
-How to [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
-
-* Write a blog about Wechaty
-* Create a tutorial for Wechaty
-* Help expand the [wiki](https://github.com/Chatie/wechaty/wiki)
-* Answer questions on the [issue](https://github.com/Chatie/wechaty/issues)
-* Review [pull requests](https://github.com/Chatie/wechaty/pulls)
-* Start [hacking on Wechaty](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
-
-### Why contribute?
-
-As an open source product, Chatie thrives from contributions of community members. Whatever your skill set is, there is a lot you can do to help us make Chatie better! 
-So start forking!
-
-### Not sure where to start?
-
-It's a myth that writing code is the only way to contribute to open source. Chatie community is open to new ideas and there are so many different ways to make valuable contributions. We have some ideas of how you can get started!
-
-#### 1. Contribute Code
-
-- Check out GitHub issues with the tags `good first issue`, `pull request welcome` or `help wanted`
-- Write code examples for documentation
-- Report a bug and work on resolving it
-- Collaborate with others on building new features
-
-**Tips:** 
-If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.
-
-Make sure to add tests for your features and bugfixes and update the documentation (see below) before submitting your code!
-
-#### 2. Contribute Support
-
-- Fix typos in documentation
-- Translate documentation to your local language
-- Write tutorials and blog posts, see more: https://github.com/chatie/blog
-- Answer questions on the Wechaty Developers Home or Github issues
-- Organize Chatie meetups or user groups in your area
-
-Contact rui@chatie.io to learn more
-
-### Contributors List
-
-<https://github.com/Chatie/wechaty/wiki/Contributors>
-
-### Join Us
-
-Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
-
-![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
-
-Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
-
 ## AUTHOR
 
 1. [Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
@@ -444,16 +394,18 @@ At last, It's built for huan's personal study purpose of Automatically Testing.
 
 ## Contributors
 
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Open Collective Backers](https://opencollective.com/wechaty/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
+[![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
+
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
 <a href="https://github.com/Chatie/wechaty/graphs/contributors"><img src="https://opencollective.com/wechaty/contributors.svg?width=890&button=false" /></a>
-
 
 ## Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
 
 <a href="https://opencollective.com/wechaty#backers" target="_blank"><img src="https://opencollective.com/wechaty/backers.svg?width=890"></a>
-
 
 ## Sponsors
 
@@ -470,10 +422,8 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/wechaty/sponsor/8/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/wechaty/sponsor/9/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/9/avatar.svg"></a>
 
-
-
 ## COPYRIGHT & LICENSE
 
-- Code & Docs © 2016-2019 Huan LI \<zixia@zixia.net\>
-- Code released under the Apache-2.0 License
-- Docs released under Creative Commons
+* Code & Docs © 2016-2019 Huan LI \<zixia@zixia.net\>
+* Code released under the Apache-2.0 License
+* Docs released under Creative Commons
