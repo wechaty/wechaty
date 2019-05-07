@@ -1069,7 +1069,7 @@ export class Room extends Accessory implements Sayable {
    * const owner = room.owner()
    */
   public owner (): null | Contact {
-    log.info('Room', 'owner()')
+    log.verbose('Room', 'owner()')
 
     const ownerId = this.payload && this.payload.ownerId
     if (!ownerId) {
