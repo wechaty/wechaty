@@ -1,8 +1,6 @@
 # WECHATY
 
 [![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
-[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#backers)
- [![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors) 
 
 ## CONNECTING CHATBOTS
 
@@ -403,11 +401,15 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 
 ## Backers
 
+[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#backers)
+
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
 
 <a href="https://opencollective.com/wechaty#backers" target="_blank"><img src="https://opencollective.com/wechaty/backers.svg?width=890"></a>
 
 ## Sponsors
+
+[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors) 
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
 
