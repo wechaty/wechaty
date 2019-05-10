@@ -117,6 +117,7 @@ export class PuppetManager {
      * 1. Not Installed
      */
     if (!this.installed(puppetName)) {
+      log.silly('PuppetManager', 'checkModule(%s) not installed.', puppetName)
       await this.install(puppetName, versionRange)
       return
     }
