@@ -97,6 +97,7 @@ export class PuppetManager {
             ].join('\n')
           )
         }
+        // PuppetName is valid
         break
     }
 

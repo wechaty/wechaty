@@ -30,14 +30,14 @@ test('resolve an unsupported puppet name', async t => {
     await PuppetManager.resolve('fasdfsfasfsfdfs' as any)
     t.fail('should reject')
   } catch (e) {
-    t.ok('reject when options is a string')
+    t.pass('reject when options is a string: ' + e)
   }
 
   try {
     await PuppetManager.resolve({ puppet: 'fadfdsafa' as any })
     t.fail('should reject')
   } catch (e) {
-    t.ok('reject when options.puppet is unknown')
+    t.pass('reject when options.puppet is unknown: ' + e)
   }
 
   try {
