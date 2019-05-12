@@ -1,11 +1,10 @@
 {
-  "typescript.tsdk": "./node_modules/typescript/lib"
-  , "update.channel": "none"
+  "typescript.tsdk": "./node_modules/typescript/lib",
 
-  , "editor.fontFamily": "'Fira Code iScript', Consolas, 'Courier New', monospace"
-  , "editor.fontLigatures": true
+  "editor.fontFamily": "'Fira Code iScript', Consolas, 'Courier New', monospace",
+  "editor.fontLigatures": true,
 
-  , "editor.tokenColorCustomizations": {
+  "editor.tokenColorCustomizations": {
     "textMateRules": [
       {
         "scope": [
@@ -27,8 +26,8 @@
           "keyword.operator.new.js", // new
         ],
         "settings": {
-          "fontStyle": "italic"
-        }
+          "fontStyle": "italic",
+        },
       },
       {
         "scope": [
@@ -42,30 +41,29 @@
           "entity.name.type.class.js"
         ],
         "settings": {
-          "fontStyle": ""
-        }
+          "fontStyle": "",
+        },
       }
     ]
-  }
+  },
 
-  , "files.exclude": {
-    "dist/": true
-  , "doc/": true
-  , "node_modules/": true
-  , "package/": true
-}
-, "alignment": {
-      "operatorPadding": "right"
-    , "indentBase":      "firstline"
-    , "surroundSpace":   {
+  "files.exclude": {
+    "dist/": true,
+    "doc/": true,
+    "node_modules/": true,
+    "package/": true,
+  },
+  "alignment": {
+    "operatorPadding": "right",
+    "indentBase":      "firstline",
+    "surroundSpace":   {,
       "colon":      [1, 1],   // The first number specify how much space to add to the left, can be negative. The second number is how much space to the right, can be negative.
       "assignment": [1, 1],    // The same as above.
       "arrow":      [1, 1],    // The same as above.
-      "comment":    2          // Special how much space to add between the trailing comment and the code.
-                             // If this value is negative, it means don't align the trailing comment.
+      "comment":    2,         // Special how much space to add between the trailing comment and the code.
+                               // If this value is negative, it means don't align the trailing comment.
     }
-  }
-  , "tslint.autoFixOnSave": false
-  , "editor.formatOnSave": false
-  , "python.pythonPath": "python3"
+  },
+  "editor.formatOnSave": false,
+  "python.pythonPath": "python3",
 }
