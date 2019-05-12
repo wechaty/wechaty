@@ -1000,7 +1000,7 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.say('hello!')
    *
    * // 2. send Contact to bot itself
-   * const contact = bot.Contact.load('contactId')
+   * const contact = await bot.Contact.find()
    * await bot.say(contact)
    *
    * // 3. send Image to bot itself from remote url

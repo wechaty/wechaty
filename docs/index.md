@@ -1,4 +1,4 @@
-# Wechaty v0.23.31 Documentation
+# Wechaty v0.26 Documentation
 
 - Blog - <https://blog.chatie.io>
 - Docs - <https://docs.chatie.io>
@@ -334,7 +334,7 @@ This function is depending on the Puppet Implementation, see [puppet-compatible-
 
 | Param | Type | Description |
 | --- | --- | --- |
-| textOrContactOrFileOrUrl | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
+| textOrContactOrFileOrUrl | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> \| <code>UrlLink</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
 
 **Example**  
 ```js
@@ -346,7 +346,7 @@ await bot.start()
 await bot.say('hello!')
 
 // 2. send Contact to bot itself
-const contact = bot.Contact.load('contactId')
+const contact = await bot.Contact.find()
 await bot.say(contact)
 
 // 3. send Image to bot itself from remote url
@@ -358,6 +358,15 @@ await bot.say(fileBox)
 import { FileBox }  from 'file-box'
 const fileBox = FileBox.fromFile('/tmp/text.jpg')
 await bot.say(fileBox)
+
+// 5. send Link to bot itself
+const linkPayload = new UrlLink ({
+  description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+  thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+  title       : 'Welcome to Wechaty',
+  url         : 'https://github.com/chatie/wechaty',
+})
+await bot.say(linkPayload)
 ```
 <a name="Wechaty.instance"></a>
 
@@ -465,6 +474,20 @@ await room.say(contactCard)
 // 4. Send text inside room and mention @mention contact
 const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
 await room.say('Hello world!', contact)
+
+// 5. Send text inside room and mention someone with Tagged Template
+const contact2 = await bot.Contact.find({name: 'zixia'}) // change 'zixia' to any of the room member
+await room.say`Hello ${contact}, here is the world ${contact2}`
+
+// 6. send url link in a room
+
+const urlLink = new UrlLink ({
+  description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+  thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+  title       : 'Welcome to Wechaty',
+  url         : 'https://github.com/chatie/wechaty',
+})
+await room.say(urlLink)
 ```
 <a name="Room+on"></a>
 
@@ -913,7 +936,7 @@ This function is depending on the Puppet Implementation, see [puppet-compatible-
 
 | Param | Type | Description |
 | --- | --- | --- |
-| textOrContactOrFileOrUrl | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> | send text, Contact, or file to contact. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
+| textOrContactOrFileOrUrl | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> \| <code>UrlLink</code> | send text, Contact, or file to contact. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
 
 **Example**  
 ```js
@@ -937,6 +960,16 @@ await contact.say(fileBox2)
 
 const contactCard = bot.Contact.load('contactId')
 await contact.say(contactCard)
+
+// 4. send url link to contact
+
+const urlLink = new UrlLink ({
+  description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+  thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+  title       : 'Welcome to Wechaty',
+  url         : 'https://github.com/chatie/wechaty',
+})
+await contact.say(urlLink)
 ```
 <a name="Contact+name"></a>
 
@@ -1378,6 +1411,7 @@ All wechat messages will be encapsulated as a Message.
         * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
         * ~~[.content()](#Message+content)~~
         * [.text()](#Message+text) ⇒ <code>string</code>
+        * [.toRecalled()](#Message+toRecalled)
         * [.say(textOrContactOrFile, [mention])](#Message+say) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.type()](#Message+type) ⇒ <code>MessageType</code>
         * [.self()](#Message+self) ⇒ <code>boolean</code>
@@ -1478,6 +1512,24 @@ bot
 })
 .start()
 ```
+<a name="Message+toRecalled"></a>
+
+### message.toRecalled()
+Get the recalled message
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  if (m.type() === MessageType.Recalled) {
+    const recalledMessage = await m.toRecalled()
+    console.log(`Message: ${recalledMessage} has been recalled.`)
+  }
+})
+.start()
+```
 <a name="Message+say"></a>
 
 ### message.say(textOrContactOrFile, [mention]) ⇒ <code>Promise.&lt;void&gt;</code>
@@ -1490,7 +1542,7 @@ This function is depending on the Puppet Implementation, see [puppet-compatible-
 
 | Param | Type | Description |
 | --- | --- | --- |
-| textOrContactOrFile | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
+| textOrContactOrFile | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> \| <code>UrlLink</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
 | [mention] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | If this is a room message, when you set mention param, you can `@` Contact in the room. |
 
 **Example**  
@@ -1524,6 +1576,17 @@ bot
     await msg.say(contactCard)
   }
 
+// 4. send Link
+
+  if (/^link$/i.test(m.text())) {
+    const linkPayload = new UrlLink ({
+      description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+      thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+      title       : 'Welcome to Wechaty',
+      url         : 'https://github.com/chatie/wechaty',
+    })
+    await msg.say(linkPayload)
+  }
 })
 .start()
 ```
