@@ -54,7 +54,7 @@
     "git-scripts": "^0.2.1",
     "memory-card": "^0.6.2",
     "markdownlint-cli": "^0.13.0",
-    "read-pkg-up": "^4.0.0",
+    "read-pkg-up": "^6.0.0",
     "semver": "^5.5.0",
     "shx": "^0.3.1",
     "ts-node": "^7.0.0",
