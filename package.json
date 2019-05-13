@@ -148,7 +148,7 @@
     "tslint-config-standard": "^8.0.0",
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.14.0",
-    "typescript": "^3.1.0-dev.20180731",
+    "typescript": "^3.4.5",
     "wechaty-puppet-mock": "^0.14.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
