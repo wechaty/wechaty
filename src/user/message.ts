@@ -595,7 +595,7 @@ export class Message extends Accessory implements Sayable {
     log.verbose('Message', 'mention()')
 
     const room = this.room()
-    if (this.type() !== MessageType.Text || !room ) {
+    if (this.type() !== MessageType.Text || !room) {
       return []
     }
 
