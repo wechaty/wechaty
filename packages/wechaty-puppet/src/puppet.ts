@@ -24,9 +24,10 @@
 
 import { EventEmitter } from 'events'
 
-import LRU         from 'lru-cache'
-import normalize   from 'normalize-package-data'
-import readPkgUp   from 'read-pkg-up'
+// import LRU         from 'lru-cache'
+import normalize  from 'normalize-package-data'
+import QuickLru   from 'quick-lru'
+import readPkgUp  from 'read-pkg-up'
 
 import {
   Constructor,
@@ -106,13 +107,13 @@ export abstract class Puppet extends EventEmitter {
   /**
    * Must overwrite by child class to identify their version
    */
-  public static readonly VERSION = '0.0.0'
+  public static readonly VERSION: string = '0.0.0'
 
-  protected readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
-  protected readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
-  protected readonly cacheMessagePayload    : LRU.Cache<string, MessagePayload>
-  protected readonly cacheRoomPayload       : LRU.Cache<string, RoomPayload>
-  protected readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
+  protected readonly cacheContactPayload    : QuickLru<string, ContactPayload>
+  protected readonly cacheFriendshipPayload : QuickLru<string, FriendshipPayload>
+  protected readonly cacheMessagePayload    : QuickLru<string, MessagePayload>
+  protected readonly cacheRoomPayload       : QuickLru<string, RoomPayload>
+  protected readonly cacheRoomMemberPayload : QuickLru<string, RoomMemberPayload>
 
   protected readonly state   : StateSwitch
   protected readonly counter : number
@@ -191,22 +192,15 @@ export abstract class Puppet extends EventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions: LRU.Options = {
-      dispose (key: string, val: object) {
-        log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val).substr(0, 140))
-      },
-      // Sometims a wechat account that join too many rooms
-      // will have over 100,000 Contact Payloads after sync
-      max: 100 * 1000,
-      // length: function (n) { return n * 2},
-      maxAge: 1000 * 60 * 60,
+    const lruOptions: QuickLru.Options = {
+      maxSize: 10 * 1000
     }
 
-    this.cacheContactPayload    = new LRU<string, ContactPayload>(lruOptions)
-    this.cacheFriendshipPayload = new LRU<string, FriendshipPayload>(lruOptions)
-    this.cacheMessagePayload    = new LRU<string, MessagePayload>(lruOptions)
-    this.cacheRoomPayload       = new LRU<string, RoomPayload>(lruOptions)
-    this.cacheRoomMemberPayload = new LRU<string, RoomMemberPayload>(lruOptions)
+    this.cacheContactPayload    = new QuickLru<string, ContactPayload>(lruOptions)
+    this.cacheFriendshipPayload = new QuickLru<string, FriendshipPayload>(lruOptions)
+    this.cacheMessagePayload    = new QuickLru<string, MessagePayload>(lruOptions)
+    this.cacheRoomPayload       = new QuickLru<string, RoomPayload>(lruOptions)
+    this.cacheRoomMemberPayload = new QuickLru<string, RoomMemberPayload>(lruOptions)
 
     /**
      * 4. Load the package.json for Puppet Plugin version range matching
@@ -512,7 +506,7 @@ export abstract class Puppet extends EventEmitter {
 
   public async contactPayloadDirty (contactId: string): Promise<void> {
     log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
-    this.cacheContactPayload.del(contactId)
+    this.cacheContactPayload.delete(contactId)
   }
 
   public async contactSearch (
@@ -721,7 +715,7 @@ export abstract class Puppet extends EventEmitter {
 
   protected async friendshipPayloadDirty (friendshipId: string): Promise<void> {
     log.verbose('Puppet', 'friendshipPayloadDirty(%s)', friendshipId)
-    this.cacheFriendshipPayload.del(friendshipId)
+    this.cacheFriendshipPayload.delete(friendshipId)
   }
 
   public async friendshipPayload (
@@ -760,11 +754,11 @@ export abstract class Puppet extends EventEmitter {
   public abstract async messageFile (messageId: string) : Promise<FileBox>
   public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
 
-  public abstract async messageForward (receiver: Receiver, messageId: string)              : Promise<void>
-  public abstract async messageSendText (receiver: Receiver, text: string)                  : Promise<void>
-  public abstract async messageSendContact (receiver: Receiver, contactId: string)          : Promise<void>
-  public abstract async messageSendFile (receiver: Receiver, file: FileBox)                 : Promise<void>
-  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void>
+  public abstract async messageForward (receiver: Receiver, messageId: string)                       : Promise<void>
+  public abstract async messageSendText (receiver: Receiver, text: string, mentionIdList?: string[]) : Promise<void>
+  public abstract async messageSendContact (receiver: Receiver, contactId: string)                   : Promise<void>
+  public abstract async messageSendFile (receiver: Receiver, file: FileBox)                          : Promise<void>
+  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload)          : Promise<void>
 
   protected abstract async messageRawPayload (messageId: string)     : Promise<any>
   protected abstract async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
@@ -786,7 +780,7 @@ export abstract class Puppet extends EventEmitter {
 
   protected async messagePayloadDirty (messageId: string): Promise<void> {
     log.verbose('Puppet', 'messagePayloadDirty(%s)', messageId)
-    this.cacheMessagePayload.del(messageId)
+    this.cacheMessagePayload.delete(messageId)
   }
 
   public async messagePayload (
@@ -820,7 +814,7 @@ export abstract class Puppet extends EventEmitter {
 
   public messageList (): string[] {
     log.verbose('Puppet', 'messageList()')
-    return this.cacheMessagePayload.keys()
+    return [...this.cacheMessagePayload.keys()]
   }
 
   public async messageSearch (
@@ -1115,7 +1109,7 @@ export abstract class Puppet extends EventEmitter {
 
   public async roomPayloadDirty (roomId: string): Promise<void> {
     log.verbose('Puppet', 'roomPayloadDirty(%s)', roomId)
-    this.cacheRoomPayload.del(roomId)
+    this.cacheRoomPayload.delete(roomId)
   }
 
   public async roomPayload (
@@ -1165,7 +1159,7 @@ export abstract class Puppet extends EventEmitter {
     let cacheKey
     contactIdList.forEach(contactId => {
       cacheKey = this.cacheKeyRoomMember(roomId, contactId)
-      this.cacheRoomMemberPayload.del(cacheKey)
+      this.cacheRoomMemberPayload.delete(cacheKey)
     })
   }
 
