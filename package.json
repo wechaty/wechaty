@@ -146,7 +146,6 @@
     "ts-node": "^8.0.2",
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.0",
-    "tuling123-client": "^0.0.3",
     "typedoc": "^0.14.0",
     "typescript": "^3.4.5",
     "wechaty-puppet-mock": "^0.15.5"
