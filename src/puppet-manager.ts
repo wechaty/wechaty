@@ -160,7 +160,7 @@ export class PuppetManager {
         moduleName,
       ),
     )
-    const pkg     = readPkgUp.sync({ cwd: modulePath }).pkg
+    const pkg     = readPkgUp.sync({ cwd: modulePath })!.package
     const version = pkg.version
 
     return version

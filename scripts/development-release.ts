@@ -7,7 +7,7 @@
 import readPkgUp from 'read-pkg-up'
 import { minor } from 'semver'
 
-const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+const pkg = readPkgUp.sync({ cwd: __dirname })!.package
 export const VERSION = pkg.version
 
 if (minor(VERSION) % 2 === 0) { // production release

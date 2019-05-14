@@ -41,7 +41,7 @@ import {
 //   (Symbol as any).asyncIterator = Symbol.for('Symbol.asyncIterator')
 // }
 
-const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+const pkg = readPkgUp.sync({ cwd: __dirname })!.package
 export const VERSION = pkg.version
 
 /**

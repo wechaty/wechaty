@@ -5,7 +5,7 @@ import readPkgUp  from 'read-pkg-up'
 
 const PACKAGE_JSON = path.join(__dirname, '../package.json')
 
-const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+const pkg = readPkgUp.sync({ cwd: __dirname })!.package
 
 // pkg.publishConfig.tag = 'next'
 pkg.publishConfig = {
