@@ -52,7 +52,7 @@
     "blue-tape": "^1.0.0",
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
-    "memory-card": "^0.6.2",
+    "memory-card": "^0.6.13",
     "markdownlint-cli": "^0.13.0",
     "read-pkg-up": "^4.0.0",
     "semver": "^5.5.0",
@@ -70,7 +70,7 @@
   },
   "peerDependencies": {
     "file-box": "^0.8.22",
-    "memory-card": "^0.4.10",
+    "memory-card": "^0.6.13",
     "wechaty-puppet": "^0.15.3"
   },
   "dependencies": {
