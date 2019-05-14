@@ -3,6 +3,10 @@ export {
 }           from 'file-box'
 
 export {
+  ScanStatus,
+}               from 'wechaty-puppet'
+
+export {
   config,
   log,
   qrcodeValueToImageUrl,
