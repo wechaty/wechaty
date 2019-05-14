@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.27.4",
+  "version": "0.27.6",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -102,6 +102,7 @@
     "@babel/core": "^7.0.1",
     "@babel/node": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
+    "@chatie/tsconfig": "^0.2.4",
     "@types/blessed": "^0.1.10",
     "@types/blue-tape": "^0.1.0",
     "@types/cuid": "^1.3.0",
@@ -147,7 +148,7 @@
     "tslint-config-standard": "^8.0.0",
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.14.0",
-    "typescript": "^3.1.0-dev.20180731",
+    "typescript": "^3.4.5",
     "wechaty-puppet-mock": "^0.14.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
