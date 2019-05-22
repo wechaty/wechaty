@@ -1902,7 +1902,7 @@ Wechaty Class Event Function
 | room-join | <code>function</code> | (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void |
 | room-topic | <code>function</code> | (this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void |
 | room-leave | <code>function</code> | (this: Wechaty, room: Room, leaverList: Contact[]) => void |
-| room-invite | <code>function</code> | (this: Wechaty, room: Room, leaverList: Contact[]) => void <br>                                        see more in  [RoomInvitation](#RoomInvitation) |
+| room-invite | <code>function</code> | (this: Wechaty, room: Room, roomInvitation: RoomInvitation) => void <br>                                        see more in  [RoomInvitation](#RoomInvitation) |
 
 <a name="RoomQueryFilter"></a>
 
