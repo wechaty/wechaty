@@ -46,6 +46,7 @@ import {
   PUPPET_EVENT_DICT,
   PuppetEventName,
   PuppetOptions,
+  ScanStatus,
 }                       from 'wechaty-puppet'
 
 import {
@@ -171,7 +172,7 @@ export class Wechaty extends Accessory implements Sayable {
    * const { Wechaty } = require('wechaty')
    *
    * Wechaty.instance() // Global instance
-   * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
+   * .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
    * .on('login',       user => console.log(`User ${user} logined`))
    * .on('message',  message => console.log(`Message: ${message}`))
    * .start()
@@ -294,7 +295,7 @@ export class Wechaty extends Accessory implements Sayable {
   public emit (event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
   public emit (event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
   public emit (event: 'room-topic' , room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
-  public emit (event: 'scan'       , qrcode: string, status: number, data?: string)                    : boolean
+  public emit (event: 'scan'       , qrcode: string, status: ScanStatus, data?: string)                    : boolean
   public emit (event: 'start' | 'stop')                                                                : boolean
 
   // guard for the above event: make sure it includes all the possible values
@@ -318,7 +319,7 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
   public on (event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
   public on (event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
-  public on (event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: number, data?: string) => void))                    : this
+  public on (event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                : this
   public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                : this
 
   // guard for the above event: make sure it includes all the possible values
@@ -394,8 +395,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @example <caption>Event:scan</caption>
    * // Scan Event will emit when the bot needs to show you a QR Code for scanning
    *
-   * bot.on('scan', (url, code) => {
-   *   console.log(`[${code}] Scan ${url} to login.` )
+   * bot.on('scan', (url, status) => {
+   *   console.log(`[${status}] Scan ${url} to login.` )
    * })
    *
    * @example <caption>Event:login </caption>
