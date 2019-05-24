@@ -205,6 +205,9 @@ export class PuppetManager {
     log.info('PuppetManager', 'install(%s@%s) done', puppetModule, puppetVersion)
   }
 
+  /**
+   * Install all `wechaty-puppet-*` modules from `puppet-config.ts`
+   */
   public static async installAll (): Promise<void> {
     log.info('PuppetManager', 'installAll() please wait ...')
 
