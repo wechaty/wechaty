@@ -43,7 +43,7 @@
   "homepage": "https://github.com/Chatie/wechaty-puppet-mock#readme",
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
-    "@types/node": "^10.3.6",
+    "@types/node": "^11.9.0",
     "@types/normalize-package-data": "^2.4.0",
     "@types/qr-image": "^3.2.1",
     "@types/quick-lru": "^2.0.0",
