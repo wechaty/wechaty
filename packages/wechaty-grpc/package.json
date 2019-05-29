@@ -45,7 +45,7 @@
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
     "@types/google-protobuf": "^3.2.7",
-    "@types/node": "^10.0.4",
+    "@types/node": "^11.9.0",
     "@types/protobufjs": "^5.0.31",
     "@types/read-pkg-up": "^3.0.1",
     "@types/semver": "^5.5.0",
