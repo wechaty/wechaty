@@ -33,7 +33,7 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
 > -- @lijiarui, CEO of BotOrange.
 
-> "If you know js ... try Chatie/wechaty, it's easy to use."  
+> "If you know js ... try Wechaty, it's easy to use."  
 > -- @Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)
 
 See more at [Wiki:Voice Of Developer](https://github.com/Chatie/wechaty/wiki/Voice%20Of%20Developer)
