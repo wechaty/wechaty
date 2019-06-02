@@ -39,7 +39,7 @@
   "homepage": "https://github.com/Chatie/wechaty-puppet#readme",
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
-    "@types/node": "^11.9.0",
+    "@types/node": "^12.0.4",
     "@types/normalize-package-data": "^2.4.0",
     "@types/quick-lru": "^1.1.0",
     "@types/read-pkg-up": "^3.0.1",
