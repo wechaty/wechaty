@@ -44,7 +44,7 @@
     "@types/quick-lru": "^1.1.0",
     "@types/read-pkg-up": "^3.0.1",
     "@types/semver": "^5.5.0",
-    "@types/sinon": "^5.0.1",
+    "@types/sinon": "^7.0.0",
     "blue-tape": "^1.0.0",
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
