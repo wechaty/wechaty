@@ -1191,7 +1191,7 @@ export abstract class Puppet extends EventEmitter {
      */
     const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
     if (!rawPayload) {
-      throw new Error('contact(' + contactId + ') is not in the Room(' + roomId + ')');
+      throw new Error('contact(' + contactId + ') is not in the Room(' + roomId + ')')
     }
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 
