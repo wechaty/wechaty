@@ -213,10 +213,10 @@ export class Wechaty extends Accessory implements Sayable {
    * The option parameter to create a wechaty instance
    *
    * @typedef    WechatyOptions
-   * @property   {string}                 profile            -Wechaty Name. </br>
+   * @property   {string}                 name            -Wechaty Name. </br>
    *          When you set this: </br>
-   *          `new Wechaty({profile: 'wechatyName'}) ` </br>
-   *          it will generate a file called `wechatyName.memory-card.json`. </br>
+   *          `new Wechaty({name: 'wechaty-name'}) ` </br>
+   *          it will generate a file called `wechaty-name.memory-card.json`. </br>
    *          This file stores the bot's login information. </br>
    *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
    *          Also, you can set the environment variable for `WECHATY_NAME` to set this value when you start. </br>
@@ -792,7 +792,7 @@ export class Wechaty extends Accessory implements Sayable {
                         this.version(),
             )
     log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
-    log.verbose('Wechaty', 'profile: %s'  , this.options.name)
+    log.verbose('Wechaty', 'name: %s'  , this.options.name)
     log.verbose('Wechaty', 'id: %s'       , this.id)
 
     if (this.state.on()) {
