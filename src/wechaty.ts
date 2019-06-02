@@ -100,7 +100,10 @@ export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 export interface WechatyOptions {
   memory?        : MemoryCard,
   name?          : string,                    // Wechaty Name
+
+  // @deprecated: use `name` instead of `profile`
   profile?       : null | string,             // DEPRECATED: use name instead
+
   puppet?        : PuppetModuleName | Puppet, // Puppet name or instance
   puppetOptions? : PuppetOptions,             // Puppet TOKEN
   ioToken?       : string,                    // Io TOKEN
