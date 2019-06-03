@@ -24,10 +24,12 @@
 
 import { EventEmitter } from 'events'
 
-// import LRU         from 'lru-cache'
-import normalize  from 'normalize-package-data'
-import QuickLru   from 'quick-lru'
-import readPkgUp  from 'read-pkg-up'
+import normalize                from 'normalize-package-data'
+import {
+  default as QuickLru,
+  Options as QuickLruOptions,
+}                               from 'quick-lru'
+import readPkgUp                from 'read-pkg-up'
 
 import {
   Constructor,
@@ -193,7 +195,7 @@ export abstract class Puppet extends EventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions: QuickLru.Options = {
+    const lruOptions: QuickLruOptions = {
       maxSize: 10 * 1000
     }
 
