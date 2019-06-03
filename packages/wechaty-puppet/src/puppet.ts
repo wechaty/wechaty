@@ -61,6 +61,7 @@ import {
   ContactPayloadFilterFunction,
   ContactQueryFilter,
 }                                 from './schemas/contact'
+import { ScanStatus }             from './schemas/event'
 import {
   FriendshipPayload,
 }                                 from './schemas/friendship'
@@ -278,7 +279,7 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover?: string)                    : boolean
   public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string, changerId: string) : boolean
   public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
-  public emit (event: 'scan',         qrcode: string, status: number, data?: string)                                 : boolean
+  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                             : boolean
   public emit (event: 'ready')                                                                                       : boolean
   // Internal Usage: watchdog
   public emit (event: 'watchdog',     food: WatchdogFood) : boolean
@@ -310,7 +311,7 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-leave',   listener: (roomId: string, leaverIdList:  string[], removerId?: string) => void)                    : this
   public on (event: 'room-topic',   listener: (roomId: string, newTopic:      string,   oldTopic:   string, changerId: string) => void) : this
   public on (event: 'room-invite',  listener: (roomInvitationId: string) => void)                                                       : this
-  public on (event: 'scan',         listener: (qrcode: string, status: number, data?: string) => void)                                  : this
+  public on (event: 'scan',         listener: (qrcode: string, status: ScanStatus, data?: string) => void)                              : this
   public on (event: 'ready',        listener: () => void)                                                                               : this
   // Internal Usage: watchdog
   public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
@@ -1190,6 +1191,9 @@ export abstract class Puppet extends EventEmitter {
      * 2. Cache not found
      */
     const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
+    if (!rawPayload) {
+      throw new Error('contact(' + contactId + ') is not in the Room(' + roomId + ')')
+    }
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 
     this.cacheRoomMemberPayload.set(CACHE_KEY, payload)
