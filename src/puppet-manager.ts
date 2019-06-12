@@ -20,7 +20,7 @@ import {
   PuppetModuleName,
 }                       from './puppet-config'
 import {
-  // Wechaty,
+// Wechaty,
 }                       from './wechaty'
 
 export interface ResolveOptions {
@@ -38,7 +38,7 @@ export class PuppetManager {
                                   // options.wechaty,
                                   options.puppet,
                                   JSON.stringify(options.puppetOptions),
-                )
+    )
 
     let puppetInstance: Puppet
 
@@ -138,7 +138,7 @@ export class PuppetManager {
                                   puppetName,
                                   moduleVersion,
                                   versionRange,
-                )
+      )
       await this.install(puppetName, versionRange)
       return
     }
@@ -150,8 +150,7 @@ export class PuppetManager {
                                 puppetName,
                                 moduleVersion,
                                 versionRange,
-              )
-    return
+    )
   }
 
   protected static getModuleVersion (moduleName: string): string {
@@ -194,6 +193,13 @@ export class PuppetManager {
     puppetVersion = 'latest',
   ): Promise<void> {
     log.info('PuppetManager', 'install(%s@%s) please wait ...', puppetModule, puppetVersion)
+
+    // https://github.com/GoogleChrome/puppeteer/issues/1597#issuecomment-351945645
+    if (puppetModule.match(/-puppeteer$/i) && !process.env['PUPPETEER_DOWNLOAD_HOST']) {
+      log.info('PuppetManager', 'install(%s@%s) set PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors/', puppetModule, puppetVersion)
+      process.env['PUPPETEER_DOWNLOAD_HOST'] = 'https://npm.taobao.org/mirrors/'
+    }
+
     await npm.install(
       `${puppetModule}@${puppetVersion}`,
       {
@@ -230,4 +236,5 @@ export class PuppetManager {
     )
 
   }
+
 }
