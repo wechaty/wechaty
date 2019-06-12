@@ -101,7 +101,7 @@
     "ws": "^7.0.0"
   },
   "devDependencies": {
-    "@chatie/eslint-config": "^0.6.5",
+    "@chatie/eslint-config": "^0.6.8",
     "@chatie/git-scripts": "^0.2.1",
     "@chatie/tsconfig": "^0.6.1",
     "@types/blessed": "^0.1.10",
