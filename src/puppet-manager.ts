@@ -35,9 +35,9 @@ export class PuppetManager {
     options: ResolveOptions
   ): Promise<Puppet> {
     log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
-                                  // options.wechaty,
-                                  options.puppet,
-                                  JSON.stringify(options.puppetOptions),
+      // options.wechaty,
+      options.puppet,
+      JSON.stringify(options.puppetOptions),
     )
 
     let puppetInstance: Puppet
@@ -135,9 +135,9 @@ export class PuppetManager {
      */
     if (!satisfy) {
       log.silly('PuppetManager', 'checkModule() %s installed version %s NOT satisfied range %s',
-                                  puppetName,
-                                  moduleVersion,
-                                  versionRange,
+        puppetName,
+        moduleVersion,
+        versionRange,
       )
       await this.install(puppetName, versionRange)
       return
@@ -147,9 +147,9 @@ export class PuppetManager {
      * 3. Installed and Version Satisfy
      */
     log.silly('PuppetManager', 'checkModule() %s installed version %s satisfied range %s',
-                                puppetName,
-                                moduleVersion,
-                                versionRange,
+      puppetName,
+      moduleVersion,
+      versionRange,
     )
   }
 

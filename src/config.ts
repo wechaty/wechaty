@@ -29,7 +29,8 @@ import Raven     from 'raven'
 import { log }    from 'brolog'
 import {
   FileBox,
-}                 from 'file-box'
+}                from 'file-box'
+import readPkgUp  from 'read-pkg-up'
 
 import {
   PuppetModuleName,
@@ -40,6 +41,8 @@ import { VERSION }      from './version'
 // if (!Symbol.asyncIterator) {
 //   (Symbol as any).asyncIterator = Symbol.for('Symbol.asyncIterator')
 // }
+
+const pkg = readPkgUp.sync({ cwd: __dirname })!.package
 
 /**
  * Raven.io
@@ -55,8 +58,8 @@ Raven
       tags: {
         git_commit: '',
         platform: process.env.WECHATY_DOCKER
-                  ? 'docker'
-                  : os.platform(),
+          ? 'docker'
+          : os.platform(),
       },
     },
   )
@@ -111,6 +114,7 @@ export interface DefaultSetting {
 const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 
 export class Config {
+
   public default = DEFAULT_SETTING
 
   public apihost = process.env.WECHATY_APIHOST    || DEFAULT_SETTING.DEFAULT_APIHOST
@@ -182,16 +186,16 @@ export class Config {
       fs.statSync(dotGitPath).isDirectory()
 
       const ss = require('child_process')
-                  .spawnSync('git', gitArgs, { cwd:  __dirname })
+        .spawnSync('git', gitArgs, { cwd:  __dirname })
 
       if (ss.status !== 0) {
         throw new Error(ss.error)
       }
 
       const revision = ss.stdout
-                        .toString()
-                        .trim()
-                        .slice(0, 7)
+        .toString()
+        .trim()
+        .slice(0, 7)
       return revision
 
     } catch (e) { /* fall safe */
@@ -205,11 +209,12 @@ export class Config {
   }
 
   public validApiHost (apihost: string): boolean {
-    if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
+    if (/^[a-zA-Z0-9.\-_]+:?[0-9]*$/.test(apihost)) {
       return true
     }
     throw new Error('validApiHost() fail for ' + apihost)
   }
+
 }
 
 export const CHATIE_OFFICIAL_ACCOUNT_ID = 'gh_051c89260e5d'

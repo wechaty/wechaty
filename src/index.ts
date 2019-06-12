@@ -35,7 +35,6 @@ export {
 }                         from './user'
 
 export {
-  MediaMessage,
-}                     from './deprecated'
+}                         from './deprecated'
 
 export { IoClient }   from './io-client'

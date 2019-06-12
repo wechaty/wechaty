@@ -132,10 +132,10 @@ export class Message extends Accessory implements Sayable {
       await Promise.all(
         messageList.map(
           message => message.ready()
-                            .catch(e => {
-                              log.warn('Room', 'findAll() message.ready() rejection: %s', e)
-                              invalidDict[message.id] = true
-                            })
+            .catch(e => {
+              log.warn('Room', 'findAll() message.ready() rejection: %s', e)
+              invalidDict[message.id] = true
+            })
         ),
       )
 
@@ -149,13 +149,13 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
- /**
-  * Create a Mobile Terminated Message
-  * @ignore
-  * @private
-  * "mobile originated" or "mobile terminated"
-  * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
-  */
+  /**
+   * Create a Mobile Terminated Message
+   * @ignore
+   * @private
+   * "mobile originated" or "mobile terminated"
+   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
+   */
   public static load (id: string): Message {
     log.verbose('Message', 'static load(%s)', id)
 
@@ -197,9 +197,9 @@ export class Message extends Accessory implements Sayable {
   ) {
     super()
     log.verbose('Message', 'constructor(%s) for class %s',
-                          id || '',
-                          this.constructor.name,
-              )
+      id || '',
+      this.constructor.name,
+    )
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Message)
@@ -225,16 +225,16 @@ export class Message extends Accessory implements Sayable {
       'Message',
       `#${MessageType[this.type()]}`,
       '[',
-        this.from()
-          ? '🗣' + this.from()
-          : '',
-        this.room()
-          ? '@👥' + this.room()
-          : '',
+      this.from()
+        ? '🗣' + this.from()
+        : '',
+      this.room()
+        ? '@👥' + this.room()
+        : '',
       ']',
     ]
-    if (   this.type() === Message.Type.Text
-        || this.type() === Message.Type.Unknown
+    if (this.type() === Message.Type.Text
+     || this.type() === Message.Type.Unknown
     ) {
       msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
@@ -497,32 +497,32 @@ export class Message extends Accessory implements Sayable {
        * Text Message
        */
       await this.puppet.messageSendText({
-        contactId : from && from.id || undefined,
-        roomId    : room && room.id || undefined,
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrl)
     } else if (textOrContactOrFileOrUrl instanceof Contact) {
       /**
        * Contact Card
        */
       await this.puppet.messageSendContact({
-        contactId : from && from.id || undefined,
-        roomId    : room && room.id || undefined,
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrl.id)
     } else if (textOrContactOrFileOrUrl instanceof FileBox) {
       /**
        * File Message
        */
       await this.puppet.messageSendFile({
-        contactId : from && from.id || undefined,
-        roomId    : room && room.id || undefined,
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrl)
     } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
       /**
        * Link Message
        */
       await this.puppet.messageSendUrl({
-        contactId : from && from.id || undefined,
-        roomId    : room && room.id || undefined,
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrl.payload)
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrl)
@@ -646,9 +646,9 @@ export class Message extends Accessory implements Sayable {
     mentionNameList = mentionNameList.filter(s => !!s)
 
     log.verbose('Message', 'mention() text = "%s", mentionNameList = "%s"',
-                            this.text(),
-                            JSON.stringify(mentionNameList),
-                )
+      this.text(),
+      JSON.stringify(mentionNameList),
+    )
 
     const contactListNested = await Promise.all(
       mentionNameList.map(

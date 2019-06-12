@@ -115,9 +115,9 @@ async function onMessage (msg: Message) {
     return
   }
 
-  if (   msg.type() !== bot.Message.Type.Text
-      || !/^(ding|ping|bing|code)$/i.test(msg.text())
-      /*&& !msg.self()*/
+  if (msg.type() !== bot.Message.Type.Text
+    || !/^(ding|ping|bing|code)$/i.test(msg.text())
+    /* && !msg.self() */
   ) {
     console.info('Message discarded because it does not match ding/ping/bing/code')
     return

@@ -41,6 +41,12 @@ import { Contact }        from './contact'
 import { RoomInvitation } from './room-invitation'
 import { UrlLink }        from './url-link'
 
+import {
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+}                         from 'wechaty-puppet'
+
 export const ROOM_EVENT_DICT = {
   invite: 'tbw',
   join: 'tbw',
@@ -48,12 +54,6 @@ export const ROOM_EVENT_DICT = {
   topic: 'tbw',
 }
 export type RoomEventName = keyof typeof ROOM_EVENT_DICT
-
-import {
-  RoomMemberQueryFilter,
-  RoomPayload,
-  RoomQueryFilter,
-}                         from 'wechaty-puppet'
 
 /**
  * All wechat rooms(groups) will be encapsulated as a Room.
@@ -87,8 +87,8 @@ export class Room extends Accessory implements Sayable {
   public static async create (contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
-    if (   !contactList
-        || !Array.isArray(contactList)
+    if (!contactList
+      || !Array.isArray(contactList)
     ) {
       throw new Error('contactList not found')
     }
@@ -103,7 +103,7 @@ export class Room extends Accessory implements Sayable {
       const room = this.load(roomId)
       return room
     } catch (e) {
-      log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
+      log.error('Room', 'create() exception: %s', (e && e.stack) || e.message || e)
       Raven.captureException(e)
       throw e
     }
@@ -146,10 +146,10 @@ export class Room extends Accessory implements Sayable {
       await Promise.all(
         roomList.map(
           room => room.ready()
-                      .catch(e => {
-                        log.warn('Room', 'findAll() room.ready() rejection: %s', e)
-                        invalidDict[room.id] = true
-                      })
+            .catch(e => {
+              log.warn('Room', 'findAll() room.ready() rejection: %s', e)
+              invalidDict[room.id] = true
+            })
         ),
       )
 
@@ -207,15 +207,15 @@ export class Room extends Accessory implements Sayable {
       const valid = await this.puppet.roomValidate(room.id)
       if (valid) {
         log.verbose('Room', 'find() confirm room[#%d] with id=%d is vlaid result, return it.',
-                            n,
-                            room.id,
-                  )
+          n,
+          room.id,
+        )
         return room
       } else {
         log.verbose('Room', 'find() confirm room[#%d] with id=%d is INVALID result, try next',
-                            n,
-                            room.id,
-                    )
+          n,
+          room.id,
+        )
       }
     }
     log.warn('Room', 'find() got %d rooms but no one is valid.', roomList.length)
@@ -306,7 +306,7 @@ export class Room extends Accessory implements Sayable {
     return `Room<${this.payload.topic || 'loadind...'}>`
   }
 
-  public async *[Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
+  public async * [Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
     const memberList = await this.memberList()
     for (const contact of memberList) {
       yield contact
@@ -444,9 +444,9 @@ export class Room extends Accessory implements Sayable {
   ): Promise<void> {
 
     log.verbose('Room', 'say(%s, %s)',
-                        textOrListOrContactOrFileOrUrl,
-                        mentionList.join(', '),
-                )
+      textOrListOrContactOrFileOrUrl,
+      mentionList.join(', '),
+    )
 
     let text: string
 
@@ -464,7 +464,7 @@ export class Room extends Accessory implements Sayable {
         text = textOrListOrContactOrFileOrUrl
       }
       const receiver = {
-        contactId : mentionList.length && mentionList[0].id || undefined,
+        contactId : (mentionList.length && mentionList[0].id) || undefined,
         roomId    : this.id,
       }
       await this.puppet.messageSendText(
@@ -491,7 +491,7 @@ export class Room extends Accessory implements Sayable {
        * 4. Link Message
        */
       await this.puppet.messageSendUrl({
-        contactId : this.id
+        contactId : this.id,
       }, textOrListOrContactOrFileOrUrl.payload)
     } else if (textOrListOrContactOrFileOrUrl instanceof Array) {
       await this.sayTemplateStringsArray(
@@ -508,7 +508,7 @@ export class Room extends Accessory implements Sayable {
     ...mentionList: Contact[]
   ) {
     const receiver = {
-      contactId : mentionList.length && mentionList[0].id || undefined,
+      contactId : (mentionList.length && mentionList[0].id) || undefined,
       roomId    : this.id,
     }
     if (mentionList.length === 0) {
@@ -551,10 +551,10 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  public emit (event: 'invite',inviter: Contact, invitation: RoomInvitation)                 : boolean
-  public emit (event: 'leave', leaverList:   Contact[],  remover?: Contact)                    : boolean
-  public emit (event: 'join' , inviteeList:  Contact[] , inviter:  Contact)                    : boolean
-  public emit (event: 'topic', topic:        string,     oldTopic: string,   changer: Contact) : boolean
+  public emit (event: 'invite', inviter: Contact,         invitation: RoomInvitation)           : boolean
+  public emit (event: 'leave',  leaverList:   Contact[],  remover?: Contact)                    : boolean
+  public emit (event: 'join',   inviteeList:  Contact[],  inviter:  Contact)                    : boolean
+  public emit (event: 'topic',  topic:        string,     oldTopic: string,   changer: Contact) : boolean
   public emit (event: never, ...args: never[]): never
 
   public emit (
@@ -564,20 +564,20 @@ export class Room extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)              : this
-  public on (event: 'leave', listener: (this: Room, leaverList:  Contact[], remover?: Contact) => void)                  : this
-  public on (event: 'join' , listener: (this: Room, inviteeList: Contact[], inviter:  Contact) => void)                  : this
-  public on (event: 'topic', listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact) => void) : this
-  public on (event: never,   ...args: never[])                                                                           : never
+  public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
+  public on (event: 'leave',  listener: (this: Room, leaverList:  Contact[], remover?: Contact) => void)                  : this
+  public on (event: 'join',   listener: (this: Room, inviteeList: Contact[], inviter:  Contact) => void)                  : this
+  public on (event: 'topic',  listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact) => void) : this
+  public on (event: never,   ...args: never[])                                                                            : never
 
-   /**
-    * @desc       Room Class Event Type
-    * @typedef    RoomEventName
-    * @property   {string}  join  - Emit when anyone join any room.
-    * @property   {string}  topic - Get topic event, emitted when someone change room topic.
-    * @property   {string}  leave - Emit when anyone leave the room.<br>
-    *                               If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
-    */
+  /**
+   * @desc       Room Class Event Type
+   * @typedef    RoomEventName
+   * @property   {string}  join  - Emit when anyone join any room.
+   * @property   {string}  topic - Get topic event, emitted when someone change room topic.
+   * @property   {string}  leave - Emit when anyone leave the room.<br>
+   *                               If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
+   */
 
   /**
    * @desc       Room Class Event Function
@@ -769,7 +769,7 @@ export class Room extends Accessory implements Sayable {
    * .start()
    */
   public async topic (newTopic?: string): Promise<void | string> {
-    log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
+    log.verbose('Room', 'topic(%s)', newTopic || '')
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
       throw new Error('not ready')
@@ -781,10 +781,10 @@ export class Room extends Accessory implements Sayable {
       } else {
         const memberIdList = await this.puppet.roomMemberList(this.id)
         const memberList = memberIdList
-                            .filter(id => id !== this.puppet.selfId())
-                            .map(id => this.wechaty.Contact.load(id))
+          .filter(id => id !== this.puppet.selfId())
+          .map(id => this.wechaty.Contact.load(id))
 
-        let defaultTopic = memberList[0] && memberList[0].name() || ''
+        let defaultTopic = (memberList[0] && memberList[0].name()) || ''
         for (let i = 1; i < 3 && memberList[i]; i++) {
           defaultTopic += ',' + memberList[i].name()
         }
@@ -793,13 +793,13 @@ export class Room extends Accessory implements Sayable {
     }
 
     const future = this.puppet
-        .roomTopic(this.id, newTopic)
-        .catch(e => {
-          log.warn('Room', 'topic(newTopic=%s) exception: %s',
-                            newTopic, e && e.message || e,
-                  )
-          Raven.captureException(e)
-        })
+      .roomTopic(this.id, newTopic)
+      .catch(e => {
+        log.warn('Room', 'topic(newTopic=%s) exception: %s',
+          newTopic, (e && e.message) || e,
+        )
+        Raven.captureException(e)
+      })
 
     return future
   }
@@ -834,7 +834,7 @@ export class Room extends Accessory implements Sayable {
    * console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
    */
   public async announce (text?: string): Promise<void | string> {
-    log.verbose('Room', 'announce(%s)', text ? text : '')
+    log.verbose('Room', 'announce(%s)', text || '')
 
     if (text) {
       await this.puppet.roomAnnounce(this.id, text)
@@ -922,8 +922,8 @@ export class Room extends Accessory implements Sayable {
     }
 
     return memberIdList
-            .filter(id => id === contact.id)
-            .length > 0
+      .filter(id => id === contact.id)
+      .length > 0
   }
 
   public async memberAll ()                              : Promise<Contact[]>
@@ -960,8 +960,8 @@ export class Room extends Accessory implements Sayable {
     query?: string | RoomMemberQueryFilter,
   ): Promise<Contact[]> {
     log.silly('Room', 'memberAll(%s)',
-                      JSON.stringify(query) || '',
-              )
+      JSON.stringify(query) || '',
+    )
 
     if (!query) {
       return this.memberList()

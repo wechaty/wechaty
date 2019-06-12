@@ -26,15 +26,16 @@ import {
 }                   from './config'
 
 export class Doctor {
+
   constructor () {
     log.verbose('Doctor', 'constructor()')
   }
 
   public chromedriverVersion (): string {
-    const spawn = require( 'child_process' ).spawnSync
+    const spawn = require('child_process').spawnSync
     let version: string
     try {
-      const cmd = spawn( 'chromedriver', [ '--version' ] )
+      const cmd = spawn('chromedriver', [ '--version' ])
       version = cmd.error || cmd.stdout.toString() || cmd.stderr.toString()
     } catch (e) {
       version = e.message
@@ -82,8 +83,9 @@ export class Doctor {
          */
         client.on('error', reject)
 
-        client.on('close', _ => server.close())
+        client.on('close', () => server.close())
       })
     })
   }
+
 }

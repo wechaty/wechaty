@@ -35,6 +35,7 @@ const LICENSE = `/**
  */`
 
 class LicenseTransformer extends Transform {
+
   private lineBuf = ''
   private lineNum = 0
 
@@ -113,6 +114,7 @@ class LicenseTransformer extends Transform {
     }
     done()
   }
+
 }
 
 async function updateLicense (file: string): Promise<void> {

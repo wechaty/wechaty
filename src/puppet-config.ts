@@ -7,9 +7,9 @@ export const PUPPET_DEPENDENCIES = {
   'padchat'                  : '0.0.0',    // compatible with v0.18, will be replaced with wechaty-puppet-padchat
   'padpro'                   : '0.0.0',
 
-  /////////////////////////////////////////////////////////////
-  // The Above is Alias for the following full NPM module names
-  /////////////////////////////////////////////////////////////
+  /**************************************************************
+   * The Above is Alias for the following full NPM module names *
+   **************************************************************/
 
   // 'wechaty-puppet-hostie'    : '^0.0.1',
   'wechaty-puppet-ioscat'    : '^0.5.19',   // https://www.npmjs.com/package/wechaty-puppet-ioscat

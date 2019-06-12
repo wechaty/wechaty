@@ -169,15 +169,15 @@ export class Contact extends Accessory implements Sayable {
       const valid = await this.puppet.contactValidate(contact.id)
       if (valid) {
         log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is vlaid result, return it.',
-                            n,
-                            contact.id,
-                  )
+          n,
+          contact.id,
+        )
         return contact
       } else {
         log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is INVALID result, try next',
-                            n,
-                            contact.id,
-                    )
+          n,
+          contact.id,
+        )
       }
     }
     log.warn('Contact', 'find() got %d contacts but no one is valid.', contactList.length)
@@ -230,10 +230,10 @@ export class Contact extends Accessory implements Sayable {
         await Promise.all(
           batchContactList.map(
             c => c.ready()
-                  .catch(e => {
-                    log.error('Contact', 'findAll() contact.ready() exception: %s', e.message)
-                    invalidDict[c.id] = true
-                  }),
+              .catch(e => {
+                log.error('Contact', 'findAll() contact.ready() exception: %s', e.message)
+                invalidDict[c.id] = true
+              }),
           ),
         )
 
@@ -379,7 +379,7 @@ export class Contact extends Accessory implements Sayable {
        * 4. Link Message
        */
       await this.puppet.messageSendUrl({
-        contactId : this.id
+        contactId : this.id,
       }, textOrContactOrFileOrUrl.payload)
     } else {
       throw new Error('unsupported arg: ' + textOrContactOrFileOrUrl)
@@ -394,7 +394,7 @@ export class Contact extends Accessory implements Sayable {
    * const name = contact.name()
    */
   public name (): string {
-    return this.payload && this.payload.name || ''
+    return (this.payload && this.payload.name) || ''
   }
 
   public async alias ()                  : Promise<null | string>
@@ -434,10 +434,10 @@ export class Contact extends Accessory implements Sayable {
    */
   public async alias (newAlias?: null | string): Promise<null | string | void> {
     log.silly('Contact', 'alias(%s)',
-                            newAlias === undefined
-                              ? ''
-                              : newAlias,
-                )
+      newAlias === undefined
+        ? ''
+        : newAlias,
+    )
 
     if (!this.payload) {
       throw new Error('no payload')
@@ -453,9 +453,9 @@ export class Contact extends Accessory implements Sayable {
       this.payload = await this.puppet.contactPayload(this.id)
       if (newAlias && newAlias !== this.payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
-                            newAlias,
-                            this.payload.alias,
-                )
+          newAlias,
+          this.payload.alias,
+        )
       }
     } catch (e) {
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
@@ -590,7 +590,7 @@ export class Contact extends Accessory implements Sayable {
    * const province = contact.province()
    */
   public province (): null | string {
-    return this.payload && this.payload.province || null
+    return (this.payload && this.payload.province) || null
   }
 
   /**
@@ -601,7 +601,7 @@ export class Contact extends Accessory implements Sayable {
    * const city = contact.city()
    */
   public city (): null | string {
-    return this.payload && this.payload.city || null
+    return (this.payload && this.payload.city) || null
   }
 
   /**
@@ -678,9 +678,9 @@ export class Contact extends Accessory implements Sayable {
 
     } catch (e) {
       log.verbose('Contact', `ready() this.puppet.contactPayload(%s) exception: %s`,
-                            this,
-                            e.message,
-                )
+        this,
+        e.message,
+      )
       Raven.captureException(e)
       throw e
     }
@@ -721,6 +721,7 @@ export class Contact extends Accessory implements Sayable {
    * const weixin = contact.weixin()
    */
   public weixin (): null | string {
-    return this.payload && this.payload.weixin || null
+    return (this.payload && this.payload.weixin) || null
   }
+
 }
