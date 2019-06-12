@@ -103,7 +103,7 @@
   "devDependencies": {
     "@chatie/eslint-config": "^0.6.5",
     "@chatie/git-scripts": "^0.2.1",
-    "@chatie/tsconfig": "^0.4.5",
+    "@chatie/tsconfig": "^0.6.1",
     "@types/blessed": "^0.1.10",
     "@types/blue-tape": "^0.1.0",
     "@types/cuid": "^1.3.0",
