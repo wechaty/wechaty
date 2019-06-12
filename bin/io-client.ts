@@ -52,7 +52,7 @@ if (!token) {
   log.warn('Client', `set token to "${token}" for demo purpose`)
 }
 
-console.log(welcome)
+console.info(welcome)
 log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
 const client = new IoClient({
@@ -61,7 +61,7 @@ const client = new IoClient({
 })
 
 client.start()
-    .catch(onError.bind(client))
+  .catch(onError.bind(client))
 
 // client.initWeb()
 //     .catch(onError.bind(client))

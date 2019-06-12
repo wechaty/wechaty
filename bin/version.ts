@@ -20,4 +20,4 @@
 
 import { Wechaty } from '../src/wechaty'
 
-console.log(Wechaty.version())
+console.info(Wechaty.version())

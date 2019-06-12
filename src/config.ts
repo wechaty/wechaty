@@ -25,7 +25,6 @@ import path  from 'path'
 
 import qrImage   from 'qr-image'
 import Raven     from 'raven'
-import readPkgUp from 'read-pkg-up'
 
 import { log }    from 'brolog'
 import {
@@ -34,15 +33,13 @@ import {
 
 import {
   PuppetModuleName,
-}                 from './puppet-config'
+}                      from './puppet-config'
+import { VERSION }      from './version'
 
 // https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
 // if (!Symbol.asyncIterator) {
 //   (Symbol as any).asyncIterator = Symbol.for('Symbol.asyncIterator')
 // }
-
-const pkg = readPkgUp.sync({ cwd: __dirname })!.package
-export const VERSION = pkg.version
 
 /**
  * Raven.io
@@ -50,20 +47,20 @@ export const VERSION = pkg.version
 Raven.disableConsoleAlerts()
 
 Raven
-.config(
-  isProduction()
-    && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
-  {
-    release: VERSION,
-    tags: {
-      git_commit: '',
-      platform: process.env.WECHATY_DOCKER
-                ? 'docker'
-                : os.platform(),
+  .config(
+    isProduction()
+      && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
+    {
+      release: VERSION,
+      tags: {
+        git_commit: '',
+        platform: process.env.WECHATY_DOCKER
+                  ? 'docker'
+                  : os.platform(),
+      },
     },
-  },
-)
-.install()
+  )
+  .install()
 
 /*
 try {
@@ -248,6 +245,7 @@ export function isProduction (): boolean {
 export {
   log,
   Raven,
+  VERSION,
 }
 
 export const config = new Config()
