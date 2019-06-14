@@ -184,7 +184,7 @@ export class PuppetManager {
     }
   }
 
-  public static async preInstallPuppeteer (): Promise<void> {
+  private static async preInstallPuppeteer (): Promise<void> {
     let gfw = false
     try {
       gfw = await inGfw()
