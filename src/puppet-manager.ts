@@ -1,9 +1,10 @@
 import path       from 'path'
-import readPkgUp  from 'read-pkg-up'
 
-import npm          from 'npm-programmatic'
-import pkgDir       from 'pkg-dir'
-import semver       from 'semver'
+import readPkgUp  from 'read-pkg-up'
+import npm        from 'npm-programmatic'
+import pkgDir     from 'pkg-dir'
+import semver     from 'semver'
+import inGfw      from 'in-gfw'
 
 import {
   Puppet,
@@ -19,12 +20,8 @@ import {
   PUPPET_NAME_DEFAULT,
   PuppetModuleName,
 }                       from './puppet-config'
-import {
-// Wechaty,
-}                       from './wechaty'
 
 export interface ResolveOptions {
-  // wechaty        : Wechaty,
   puppet         : Puppet | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
@@ -35,7 +32,6 @@ export class PuppetManager {
     options: ResolveOptions
   ): Promise<Puppet> {
     log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
-      // options.wechaty,
       options.puppet,
       JSON.stringify(options.puppetOptions),
     )
@@ -188,16 +184,32 @@ export class PuppetManager {
     }
   }
 
+  public static async preInstallPuppeteer (): Promise<void> {
+    let gfw = false
+    try {
+      gfw = await inGfw()
+      if (gfw) {
+        log.verbose('PuppetManager', 'preInstallPuppeteer() inGfw = true')
+      }
+    } catch (e) {
+      log.verbose('PuppetManager', 'preInstallPuppeteer() exception: %s', e)
+    }
+
+    // https://github.com/GoogleChrome/puppeteer/issues/1597#issuecomment-351945645
+    if (gfw && !process.env['PUPPETEER_DOWNLOAD_HOST']) {
+      log.info('PuppetManager', 'preInstallPuppeteer() set PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors/')
+      process.env['PUPPETEER_DOWNLOAD_HOST'] = 'https://npm.taobao.org/mirrors/'
+    }
+  }
+
   public static async install (
     puppetModule: string,
     puppetVersion = 'latest',
   ): Promise<void> {
     log.info('PuppetManager', 'install(%s@%s) please wait ...', puppetModule, puppetVersion)
 
-    // https://github.com/GoogleChrome/puppeteer/issues/1597#issuecomment-351945645
-    if (puppetModule === 'wechaty-puppet-puppeteer' && !process.env['PUPPETEER_DOWNLOAD_HOST']) {
-      log.info('PuppetManager', 'install(%s) set PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors/', puppetModule)
-      process.env['PUPPETEER_DOWNLOAD_HOST'] = 'https://npm.taobao.org/mirrors/'
+    if (puppetModule === 'wechaty-puppet-puppeteer') {
+      await this.preInstallPuppeteer()
     }
 
     await npm.install(
