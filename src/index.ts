@@ -23,6 +23,10 @@ export {
 }                     from './wechaty'
 
 export {
+  PuppetModuleName,
+}                     from './puppet-config'
+
+export {
   Contact,
   Friendship,
   Favorite,
