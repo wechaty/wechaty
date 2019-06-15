@@ -155,7 +155,6 @@ export class PuppetMock extends Puppet {
 
   public async contactSelfName (name: string): Promise<void> {
     log.verbose('PuppetMock', 'contactSelfName(%s)', name)
-    return
   }
 
   public async contactSelfSignature (signature: string): Promise<void> {
@@ -176,7 +175,6 @@ export class PuppetMock extends Puppet {
     if (typeof alias === 'undefined') {
       return 'mock alias'
     }
-    return
   }
 
   public async contactList (): Promise<string[]> {
@@ -251,7 +249,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'messageUrl(%s)')
 
     return {
-      title : 'mock title',
+      title : 'mock title for ' + messageId,
       url   : 'https://mock.url',
     }
   }
@@ -299,14 +297,13 @@ export class PuppetMock extends Puppet {
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
-    return
   }
 
   public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void> {
     log.verbose('PuppetMock', 'messageSendUrl("%s", %s)',
-                              JSON.stringify(to),
-                              JSON.stringify(urlLinkPayload),
-                )
+      JSON.stringify(to),
+      JSON.stringify(urlLinkPayload),
+    )
   }
 
   public async messageForward (
@@ -314,9 +311,9 @@ export class PuppetMock extends Puppet {
     messageId : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageForward(%s, %s)',
-                              receiver,
-                              messageId,
-              )
+      receiver,
+      messageId,
+    )
   }
 
   /**
@@ -395,7 +392,6 @@ export class PuppetMock extends Puppet {
     if (typeof topic === 'undefined') {
       return 'mock room topic'
     }
-    return
   }
 
   public async roomCreate (
@@ -491,7 +487,6 @@ export class PuppetMock extends Puppet {
   public ding (data?: string): void {
     log.silly('PuppetMock', 'ding(%s)', data || '')
     this.emit('dong', data)
-    return
   }
 
   public unref (): void {
@@ -501,6 +496,7 @@ export class PuppetMock extends Puppet {
       this.loopTimer.unref()
     }
   }
+
 }
 
 export default PuppetMock
