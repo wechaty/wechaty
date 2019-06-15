@@ -143,7 +143,7 @@
     "shx": "^0.3.0",
     "sinon": "^7.2.3",
     "sloc": "^0.2.0",
-    "tstest": "^0.2.4",
+    "tstest": "^0.4.1",
     "typedoc": "^0.14.0",
     "wechaty-puppet-mock": "^0.15.5"
   },
