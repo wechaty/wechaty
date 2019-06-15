@@ -1,4 +1,4 @@
-export function throwUnsupportedError (...args: any[]): never {
+export function throwUnsupportedError (...args: any): never {
   throw new Error([
     'Wechaty Puppet Unsupported API Error.',
     ' ',
