@@ -136,7 +136,7 @@
     "glob": "^7.1.0",
     "is-pr": "^1.0.0",
     "jsdoc-to-markdown": "^5.0.0",
-    "markdownlint-cli": "^0.16.0",
+    "markdownlint-cli": "^0.17.0",
     "nyc": "^14.0.0",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.87.0",
