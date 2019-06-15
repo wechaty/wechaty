@@ -1,27 +1,20 @@
 {
+  "extends": "@chatie/tsconfig",
   "compilerOptions": {
-    "target": "es6"
-    , "module": "commonjs"
-    , "outDir": "dist"
-    , "declaration": true
-    , "sourceMap": true
-    , "strict": true
-    , "traceResolution": false
-    , "esModuleInterop" : true
-    , "resolveJsonModule": true
-    , "lib": [
-        "esnext"
-    ]
-  }
-  , "exclude": [
-      "node_modules/"
-    , "dist/"
-  ]
-  , "include": [
-       "bin/*.ts"
-     , "scripts/**/*.ts"
-     , "examples/**/*.ts"
-     , "src/**/*.ts"
-     , "tests/**/*.spec.ts"
-  ]
+    "outDir": "dist",
+  },
+  "exclude": [
+    "node_modules/",
+    "dist/",
+    "tests/fixtures/",
+  ],
+  "include": [
+    "app/**/*.ts",
+    "bin/*.ts",
+    "bot/**/*.ts",
+    "examples/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts",
+    "tests/**/*.spec.ts",
+  ],
 }

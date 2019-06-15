@@ -27,6 +27,8 @@ import {
   RoomQueryFilter,
 
   UrlLinkPayload,
+
+  VERSION,
 }                             from 'wechaty-puppet'
 
 import {
@@ -155,6 +157,10 @@ class PuppetTest extends Puppet {
 }
 
 async function main () {
+  if (VERSION === '0.0.0') {
+    throw new Error('version should not be 0.0.0 when publishing')
+  }
+
   const puppet = new PuppetTest()
   console.log(`Puppet v${puppet.version()} smoking test passed.`)
   return 0
