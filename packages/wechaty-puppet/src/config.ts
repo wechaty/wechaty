@@ -3,5 +3,5 @@ export {
 }               from 'brolog'
 
 export {
-  VERSION
+  VERSION,
 }               from './version'

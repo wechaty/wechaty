@@ -2,7 +2,7 @@ export {
   ContactGender,
   ContactType,
   ContactPayload,
-  ContactQueryFilter
+  ContactQueryFilter,
 }                             from './schemas/contact'
 export {
   ScanStatus,
