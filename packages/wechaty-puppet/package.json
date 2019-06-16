@@ -47,13 +47,12 @@
     "@types/quick-lru": "^2.0.0",
     "@types/read-pkg-up": "^3.0.1",
     "file-box": "^0.8.22",
-    "markdownlint-cli": "^0.17.0",
     "memory-card": "^0.6.7",
     "pkg-jq": "^0.2.2",
     "shx": "^0.3.1",
     "tstest": "^0.4.1",
     "typedoc": "^0.14.0",
-    "typedoc-plugin-markdown": "^1.1.13"
+    "typedoc-plugin-markdown": "^2.0.0",
   },
   "peerDependencies": {
     "memory-card": "^0.6.7",
