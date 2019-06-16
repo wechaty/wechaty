@@ -21,8 +21,8 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
-import promiseRetry = require('promise-retry')
 import { tryWait } from './try-wait'
+import promiseRetry = require('promise-retry')
 
 test('promiseRetry()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
@@ -62,13 +62,13 @@ test('promiseRetry()', async t => {
       minTimeout: 1,
       retries: 100,
     },
-    (retry, _) => {
+    (retry) => {
       return anotherDelay50().catch(retry)
     },
   )
-  .then((r: string) => {
-    thenSpy(r)
-  })
+    .then((r: string) => {
+      thenSpy(r)
+    })
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
 
@@ -91,12 +91,12 @@ test('retry()', async t => {
 
   const anotherDelay50 = delayedFactory(50)
   await tryWait(
-    (retry, _) => {
+    (retry) => {
       return anotherDelay50().catch(retry)
     },
   )
-  .then((r: string) => {
-    thenSpy(r)
-  })
+    .then((r: string) => {
+      thenSpy(r)
+    })
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })

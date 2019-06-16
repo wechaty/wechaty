@@ -36,7 +36,6 @@ script:
   - npm test
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
   - echo "Testing Finished"
-  - echo "TRAVIS_TEST_RESULT=$TRAVIS_TEST_RESULT"
 
 jobs:
   include:
@@ -45,18 +44,18 @@ jobs:
       script:
         - echo "NPM Pack Testing Started ..."
         - npm version
+        - ./scripts/generate-version.sh
         - npm run test:pack
         - echo "NPM Pack Testing Finished."
-        - echo "TRAVIS_TEST_RESULT=$TRAVIS_TEST_RESULT"
 
     - stage: deploy
       script:
         - echo "NPM Deploying Started ..."
         - npm version
-        - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
+        - ./scripts/generate-version.sh
+        - ./scripts/package-publish-config-tag.sh
         - npm run dist
         - echo "NPM Building Finished."
-        - echo "TRAVIS_TEST_RESULT=$TRAVIS_TEST_RESULT"
 
       deploy:
         provider: npm

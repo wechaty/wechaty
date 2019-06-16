@@ -23,6 +23,10 @@ export {
 }                     from './wechaty'
 
 export {
+  PuppetModuleName,
+}                     from './puppet-config'
+
+export {
   Contact,
   Friendship,
   Favorite,
@@ -35,7 +39,6 @@ export {
 }                         from './user'
 
 export {
-  MediaMessage,
-}                     from './deprecated'
+}                         from './deprecated'
 
 export { IoClient }   from './io-client'

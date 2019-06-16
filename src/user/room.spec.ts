@@ -26,7 +26,7 @@ import sinon from 'sinon'
 import {
   ContactPayload,
   RoomMemberPayload,
-  RoomPayload
+  RoomPayload,
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
@@ -46,7 +46,7 @@ test('findAll()', async t => {
 
   sandbox.stub(puppet, 'roomSearch').resolves(EXPECTED_ROOM_ID_LIST)
   sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
     } as RoomPayload
@@ -59,7 +59,7 @@ test('findAll()', async t => {
   await wechaty.stop()
 })
 
-test('say()', async _ => {
+test('say()', async () => {
 
   const sandbox = sinon.createSandbox()
   const callback = sinon.spy()
@@ -80,20 +80,20 @@ test('say()', async _ => {
   CONTACT_MAP[EXPECTED_CONTACT_2_ID] = EXPECTED_CONTACT_2_ALIAS
 
   sandbox.stub(puppet, 'roomMemberPayload').callsFake(async (_, contactId) => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     return {
       id: contactId,
       roomAlias: CONTACT_MAP[contactId],
     } as RoomMemberPayload
   })
   sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
     } as RoomPayload
   })
   sandbox.stub(puppet, 'contactPayload').callsFake(async (contactId) => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     return {
       id: contactId,
     } as ContactPayload

@@ -1,5 +1,7 @@
 export class Money {
+
   constructor () {
     //
   }
+
 }

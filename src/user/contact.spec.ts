@@ -42,7 +42,7 @@ test('findAll()', async t => {
 
   sandbox.stub(puppet, 'contactSearch').resolves(EXPECTED_CONTACT_ID_LIST)
   sandbox.stub(puppet, 'contactPayload').callsFake(async () => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     return {
       name: EXPECTED_CONTACT_NAME,
     } as ContactPayload

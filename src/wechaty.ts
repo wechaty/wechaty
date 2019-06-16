@@ -87,12 +87,12 @@ import {
 
 export const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
-  dong      : 'tbw',
-  error     : 'tbw',
-  heartbeat : 'tbw',
+  dong      : 'Should be emitted after we call `Wechaty.ding()`',
+  error     : `Will be emit when there's an Error occurred.`,
+  heartbeat : 'Will be emited periodly after the Wechaty started. If not, means that the Wechaty had died.',
   ready     : 'All underlined data source are ready for use.',
-  start     : 'tbw',
-  stop      : 'tbw',
+  start     : 'Will be emitted after the Wechaty had been started.',
+  stop      : 'Will be emitted after the Wechaty had been stopped.',
 }
 
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
@@ -100,7 +100,10 @@ export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 export interface WechatyOptions {
   memory?        : MemoryCard,
   name?          : string,                    // Wechaty Name
+
+  // @deprecated: use `name` instead of `profile`
   profile?       : null | string,             // DEPRECATED: use name instead
+
   puppet?        : PuppetModuleName | Puppet, // Puppet name or instance
   puppetOptions? : PuppetOptions,             // Puppet TOKEN
   ioToken?       : string,                    // Io TOKEN
@@ -213,10 +216,10 @@ export class Wechaty extends Accessory implements Sayable {
    * The option parameter to create a wechaty instance
    *
    * @typedef    WechatyOptions
-   * @property   {string}                 profile            -Wechaty Name. </br>
+   * @property   {string}                 name            -Wechaty Name. </br>
    *          When you set this: </br>
-   *          `new Wechaty({profile: 'wechatyName'}) ` </br>
-   *          it will generate a file called `wechatyName.memory-card.json`. </br>
+   *          `new Wechaty({name: 'wechaty-name'}) ` </br>
+   *          it will generate a file called `wechaty-name.memory-card.json`. </br>
    *          This file stores the bot's login information. </br>
    *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
    *          Also, you can set the environment variable for `WECHATY_NAME` to set this value when you start. </br>
@@ -279,24 +282,24 @@ export class Wechaty extends Accessory implements Sayable {
     return [
       'Wechaty#',
       this.id,
-      `<${this.options && this.options.puppet || ''}>`,
-      `(${this.memory && this.memory.name || ''})`,
+      `<${(this.options && this.options.puppet) || ''}>`,
+      `(${(this.memory && this.memory.name) || ''})`,
     ].join('')
   }
 
-  public emit (event: 'dong'       , data?: string)                                                    : boolean
-  public emit (event: 'error'      , error: Error)                                                     : boolean
-  public emit (event: 'friendship' , friendship: Friendship)                                           : boolean
-  public emit (event: 'heartbeat'  , data: any)                                                        : boolean
-  public emit (event: 'login' | 'logout', user: ContactSelf)                                           : boolean
-  public emit (event: 'message'    , message: Message)                                                 : boolean
-  public emit (event: 'ready')                                                                         : boolean
-  public emit (event: 'room-invite', roomInvitation: RoomInvitation)                                   : boolean
-  public emit (event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
-  public emit (event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
-  public emit (event: 'room-topic' , room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
-  public emit (event: 'scan'       , qrcode: string, status: ScanStatus, data?: string)                    : boolean
-  public emit (event: 'start' | 'stop')                                                                : boolean
+  public emit (event: 'dong',       data?: string)                                                      : boolean
+  public emit (event: 'error',      error: Error)                                                       : boolean
+  public emit (event: 'friendship', friendship: Friendship)                                             : boolean
+  public emit (event: 'heartbeat',  data: any)                                                          : boolean
+  public emit (event: 'login' | 'logout', user: ContactSelf)                                            : boolean
+  public emit (event: 'message',    message: Message)                                                   : boolean
+  public emit (event: 'ready')                                                                          : boolean
+  public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                   : boolean
+  public emit (event: 'room-join',    room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
+  public emit (event: 'room-leave',   room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
+  public emit (event: 'room-topic',   room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
+  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                : boolean
+  public emit (event: 'start' | 'stop')                                                                 : boolean
 
   // guard for the above event: make sure it includes all the possible values
   public emit (event: never, listener: never): never
@@ -308,19 +311,19 @@ export class Wechaty extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on (event: 'dong'       , listener: string | ((this: Wechaty, data?: string) => void))                                                    : this
-  public on (event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
-  public on (event: 'friendship' , listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
-  public on (event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                        : this
-  public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                           : this
-  public on (event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
-  public on (event: 'ready'      , listener: string | ((this: Wechaty) => void))                                                                   : this
-  public on (event: 'room-invite', listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
-  public on (event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
-  public on (event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
-  public on (event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
-  public on (event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                : this
-  public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                : this
+  public on (event: 'dong',         listener: string | ((this: Wechaty, data?: string) => void))                                                    : this
+  public on (event: 'error',        listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
+  public on (event: 'friendship',   listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
+  public on (event: 'heartbeat',    listener: string | ((this: Wechaty, data: any) => void))                                                        : this
+  public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                            : this
+  public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
+  public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                   : this
+  public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
+  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
+  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
+  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
+  public on (event: 'scan',         listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                : this
+  public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                 : this
 
   // guard for the above event: make sure it includes all the possible values
   public on (event: never, listener: never): never
@@ -432,7 +435,7 @@ export class Wechaty extends Accessory implements Sayable {
    *       } else{
    *         console.log(`Request from ${contact.name()} failed to accept!`)
    *       }
-   * 	  } else if (friendship.type() === Friendship.Type.Confirm) { // 2. confirm friendship
+   *  } else if (friendship.type() === Friendship.Type.Confirm) { // 2. confirm friendship
    *       console.log(`new friendship confirmed with ${contact.name()}`)
    *    }
    *  })
@@ -481,11 +484,11 @@ export class Wechaty extends Accessory implements Sayable {
    */
   public on (event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
     log.verbose('Wechaty', 'on(%s, %s) registered',
-                            event,
-                            typeof listener === 'string'
-                              ? listener
-                              : typeof listener,
-                )
+      event,
+      typeof listener === 'string'
+        ? listener
+        : typeof listener,
+    )
 
     // DEPRECATED for 'friend' event
     if (event as any === 'friend') {
@@ -517,13 +520,15 @@ export class Wechaty extends Accessory implements Sayable {
           func.apply(this, args)
         } catch (e) {
           log.error('Wechaty', 'onModulePath(%s, %s) listener exception: %s',
-                                event, modulePath, e)
+            event, modulePath, e,
+          )
           this.emit('error', e)
         }
       }))
       .catch(e => {
         log.error('Wechaty', 'onModulePath(%s, %s) hotImport() exception: %s',
-                              event, modulePath, e)
+          event, modulePath, e,
+        )
         this.emit('error', e)
       })
 
@@ -728,7 +733,6 @@ export class Wechaty extends Accessory implements Sayable {
           })
           break
 
-        case 'watchdog':
         case 'reset':
           break
 
@@ -787,13 +791,13 @@ export class Wechaty extends Accessory implements Sayable {
    * // do other stuff with bot here
    */
   public async start (): Promise<void> {
-    log.info('Wechaty', '<%s> start() v%s is starting...' ,
-                        this.options.puppet || config.systemPuppetName(),
-                        this.version(),
-            )
-    log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
-    log.verbose('Wechaty', 'profile: %s'  , this.options.name)
-    log.verbose('Wechaty', 'id: %s'       , this.id)
+    log.info('Wechaty', '<%s> start() v%s is starting...',
+      this.options.puppet || config.systemPuppetName(),
+      this.version(),
+    )
+    log.verbose('Wechaty', 'puppet: %s',  this.options.puppet)
+    log.verbose('Wechaty', 'name: %s',    this.options.name)
+    log.verbose('Wechaty', 'id: %s',      this.id)
 
     if (this.state.on()) {
       log.silly('Wechaty', 'start() on a starting/started instance')
@@ -850,8 +854,6 @@ export class Wechaty extends Accessory implements Sayable {
 
     this.state.on(true)
     this.emit('start')
-
-    return
   }
 
   /**
@@ -862,10 +864,10 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.stop()
    */
   public async stop (): Promise<void> {
-    log.info('Wechaty', '<%s> stop() v%s is stoping ...' ,
-                        this.options.puppet || config.systemPuppetName(),
-                        this.version(),
-            )
+    log.info('Wechaty', '<%s> stop() v%s is stoping ...',
+      this.options.puppet || config.systemPuppetName(),
+      this.version(),
+    )
 
     if (this.state.off()) {
       log.silly('Wechaty', 'stop() on an stopping/stopped instance')
@@ -903,8 +905,6 @@ export class Wechaty extends Accessory implements Sayable {
 
     this.state.off(true)
     this.emit('stop')
-
-    return
   }
 
   public async ready (): Promise<void> {
@@ -931,7 +931,6 @@ export class Wechaty extends Accessory implements Sayable {
       Raven.captureException(e)
       throw e
     }
-    return
   }
 
   /**
@@ -1054,17 +1053,17 @@ export class Wechaty extends Accessory implements Sayable {
     return VERSION
   }
 
- /**
-  * @private
-  * Return version of Wechaty
-  *
-  * @param {boolean} [forceNpm=false]  - If set to true, will only return the version in package.json. </br>
-  *                                      Otherwise will return git commit hash if .git exists.
-  * @returns {string}                  - the version number
-  * @example
-  * console.log(Wechaty.instance().version())       // return '#git[af39df]'
-  * console.log(Wechaty.instance().version(true))   // return '0.7.9'
-  */
+  /**
+   * @private
+   * Return version of Wechaty
+   *
+   * @param {boolean} [forceNpm=false]  - If set to true, will only return the version in package.json. </br>
+   *                                      Otherwise will return git commit hash if .git exists.
+   * @returns {string}                  - the version number
+   * @example
+   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
+   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
+   */
   public version (forceNpm = false): string {
     return Wechaty.version(forceNpm)
   }
@@ -1099,7 +1098,8 @@ export class Wechaty extends Accessory implements Sayable {
   private memoryCheck (minMegabyte = 4): void {
     const freeMegabyte = Math.floor(os.freemem() / 1024 / 1024)
     log.silly('Wechaty', 'memoryCheck() free: %d MB, require: %d MB',
-                          freeMegabyte, minMegabyte)
+      freeMegabyte, minMegabyte,
+    )
 
     if (freeMegabyte < minMegabyte) {
       const e = new Error(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
@@ -1115,7 +1115,6 @@ export class Wechaty extends Accessory implements Sayable {
     log.verbose('Wechaty', 'reset() because %s', reason || 'no reason')
     await this.puppet.stop()
     await this.puppet.start()
-    return
   }
 
   public unref (): void {
@@ -1127,4 +1126,5 @@ export class Wechaty extends Accessory implements Sayable {
 
     this.puppet.unref()
   }
+
 }

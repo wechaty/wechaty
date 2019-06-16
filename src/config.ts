@@ -25,16 +25,17 @@ import path  from 'path'
 
 import qrImage   from 'qr-image'
 import Raven     from 'raven'
-import readPkgUp from 'read-pkg-up'
 
 import { log }    from 'brolog'
 import {
   FileBox,
-}                 from 'file-box'
+}                from 'file-box'
+import readPkgUp  from 'read-pkg-up'
 
 import {
   PuppetModuleName,
-}                 from './puppet-config'
+}                      from './puppet-config'
+import { VERSION }      from './version'
 
 // https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
 // if (!Symbol.asyncIterator) {
@@ -42,7 +43,6 @@ import {
 // }
 
 const pkg = readPkgUp.sync({ cwd: __dirname })!.package
-export const VERSION = pkg.version
 
 /**
  * Raven.io
@@ -50,20 +50,20 @@ export const VERSION = pkg.version
 Raven.disableConsoleAlerts()
 
 Raven
-.config(
-  isProduction()
-    && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
-  {
-    release: VERSION,
-    tags: {
-      git_commit: '',
-      platform: process.env.WECHATY_DOCKER
-                ? 'docker'
-                : os.platform(),
+  .config(
+    isProduction()
+      && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
+    {
+      release: VERSION,
+      tags: {
+        git_commit: '',
+        platform: process.env.WECHATY_DOCKER
+          ? 'docker'
+          : os.platform(),
+      },
     },
-  },
-)
-.install()
+  )
+  .install()
 
 /*
 try {
@@ -114,6 +114,7 @@ export interface DefaultSetting {
 const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 
 export class Config {
+
   public default = DEFAULT_SETTING
 
   public apihost = process.env.WECHATY_APIHOST    || DEFAULT_SETTING.DEFAULT_APIHOST
@@ -185,16 +186,16 @@ export class Config {
       fs.statSync(dotGitPath).isDirectory()
 
       const ss = require('child_process')
-                  .spawnSync('git', gitArgs, { cwd:  __dirname })
+        .spawnSync('git', gitArgs, { cwd:  __dirname })
 
       if (ss.status !== 0) {
         throw new Error(ss.error)
       }
 
       const revision = ss.stdout
-                        .toString()
-                        .trim()
-                        .slice(0, 7)
+        .toString()
+        .trim()
+        .slice(0, 7)
       return revision
 
     } catch (e) { /* fall safe */
@@ -208,11 +209,12 @@ export class Config {
   }
 
   public validApiHost (apihost: string): boolean {
-    if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
+    if (/^[a-zA-Z0-9.\-_]+:?[0-9]*$/.test(apihost)) {
       return true
     }
     throw new Error('validApiHost() fail for ' + apihost)
   }
+
 }
 
 export const CHATIE_OFFICIAL_ACCOUNT_ID = 'gh_051c89260e5d'
@@ -248,6 +250,7 @@ export function isProduction (): boolean {
 export {
   log,
   Raven,
+  VERSION,
 }
 
 export const config = new Config()

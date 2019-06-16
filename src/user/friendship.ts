@@ -101,9 +101,9 @@ export class Friendship extends Accessory implements Acceptable {
     hello   : string,
   ): Promise<void> {
     log.verbose('Friendship', 'static add(%s, %s)',
-                                  contact.id,
-                                  hello,
-                )
+      contact.id,
+      hello,
+    )
     await this.puppet.friendshipAdd(contact.id, hello)
   }
 
@@ -272,7 +272,7 @@ export class Friendship extends Accessory implements Acceptable {
       retry(new Error('Friendship.accept() contact.ready() not ready'))
 
     }).catch((e: Error) => {
-      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, e && e.message || e)
+      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && e.message) || e)
     })
 
     // try to fix issue #293
@@ -351,7 +351,8 @@ export class Friendship extends Accessory implements Acceptable {
    */
   public type (): FriendshipType {
     return this.payload
-            ? this.payload.type
-            : FriendshipType.Unknown
+      ? this.payload.type
+      : FriendshipType.Unknown
   }
+
 }

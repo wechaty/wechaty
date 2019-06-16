@@ -39,11 +39,12 @@ import {
  * })
  */
 export class ContactSelf extends Contact {
-  constructor (
-    id: string,
-  ) {
-    super(id)
-  }
+
+  // constructor (
+  //   id: string,
+  // ) {
+  //   super(id)
+  // }
 
   public async avatar ()              : Promise<FileBox>
   public async avatar (file: FileBox) : Promise<void>
@@ -191,4 +192,5 @@ export class ContactSelf extends Contact {
 
     return this.puppet.contactSelfSignature(signature).then(this.sync.bind(this))
   }
+
 }

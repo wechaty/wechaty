@@ -56,7 +56,7 @@
   "alignment": {
     "operatorPadding": "right",
     "indentBase":      "firstline",
-    "surroundSpace":   {,
+    "surroundSpace":   {
       "colon":      [1, 1],   // The first number specify how much space to add to the left, can be negative. The second number is how much space to the right, can be negative.
       "assignment": [1, 1],    // The same as above.
       "arrow":      [1, 1],    // The same as above.
@@ -66,4 +66,8 @@
   },
   "editor.formatOnSave": false,
   "python.pythonPath": "python3",
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+  ],
 }

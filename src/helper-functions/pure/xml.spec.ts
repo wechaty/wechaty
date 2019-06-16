@@ -79,9 +79,9 @@ test('unifyEmoji()', async t => {
     [
       [
         '<img class="emoji emoji1f602" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
-        '<span class=\"emoji emoji1f602\"></span>',
+        '<span class="emoji emoji1f602"></span>',
       ],
-        '<emoji code="emoji1f602"/>',
+      '<emoji code="emoji1f602"/>',
     ],
   ]
 

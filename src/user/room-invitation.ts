@@ -75,7 +75,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   public toString () {
     return [
       'RoomInvitation#',
-      this.id || 'loading'
+      this.id || 'loading',
     ].join('')
   }
 
@@ -124,15 +124,15 @@ export class RoomInvitation extends Accessory implements Acceptable {
       await inviter.ready()
 
       log.verbose('RoomInvitation', 'accept() with room(%s) & inviter(%s) ready()',
-                                    topic,
-                                    inviter,
-                  )
+        topic,
+        inviter,
+      )
       return
     } catch (e) {
       log.warn('RoomInvitation', 'accept() inviter(%s) is not ready because of %s',
-                                  inviter,
-                                  e && e.message || e,
-              )
+        inviter,
+        (e && e.message) || e,
+      )
     }
   }
 

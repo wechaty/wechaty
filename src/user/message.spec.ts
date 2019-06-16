@@ -52,7 +52,7 @@ test('recalled()', async t => {
   await wechaty.start()
 
   sandbox.stub(puppet, 'messagePayload').callsFake(async (id) => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     if (id === EXPECTED_RECALL_MESSAGE_ID) {
       return {
         id: EXPECTED_RECALL_MESSAGE_ID,
@@ -73,19 +73,19 @@ test('recalled()', async t => {
     }
   })
   sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
     } as RoomPayload
   })
 
   sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
-    await new Promise(r => setImmediate(r))
+    await new Promise((resolve) => setImmediate(resolve))
     return [ EXPECTED_FROM_CONTACT_ID, EXPECTED_TO_CONTACT_ID ]
   })
 
   sandbox.stub(puppet, 'contactPayload').callsFake(async (id: string) => {
-    await new Promise(r => setImmediate(r))
+    await new Promise(resolve => setImmediate(resolve))
     return {
       id,
       name: id,

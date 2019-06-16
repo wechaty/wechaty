@@ -78,9 +78,9 @@ test('Throw error when set the value again', async t => {
 
   const fixture = new FixtureClass()
 
-  t.doesNotThrow(() => fixture.puppet = {} as any,  'instance: should not throw when set at 1st time')
-  t.throws(() => fixture.puppet = {} as any,        'instance: should throw when set at 2nd time')
+  t.doesNotThrow(() => { fixture.puppet = {} as any },  'instance: should not throw when set at 1st time')
+  t.throws(() => { fixture.puppet = {} as any },        'instance: should throw when set at 2nd time')
 
-  t.doesNotThrow(() => FixtureClass.puppet = {} as any,  'static: should not throw when set at 1st time')
-  t.throws(() => FixtureClass.puppet = {} as any,        'static: should throw when set at 2nd time')
+  t.doesNotThrow(() => { FixtureClass.puppet = {} as any },  'static: should not throw when set at 1st time')
+  t.throws(() => { FixtureClass.puppet = {} as any },        'static: should throw when set at 2nd time')
 })
