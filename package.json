@@ -137,6 +137,7 @@
     "jsdoc-to-markdown": "^5.0.0",
     "markdownlint-cli": "^0.16.0",
     "nyc": "^14.0.0",
+    "pkg-jq": "^0.2.2",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.87.0",
     "semver": "^6.0.0",
