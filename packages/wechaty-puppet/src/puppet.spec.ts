@@ -1,10 +1,7 @@
 #!/usr/bin/env ts-node
 
-// tslint:disable:arrow-parens
-// tslint:disable:max-line-length
-// tslint:disable:member-ordering
-// tslint:disable:no-shadowed-variable
-// tslint:disable:unified-signatures
+/* eslint @typescript-eslint/no-unused-vars: off */
+
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
@@ -53,6 +50,7 @@ import {
 }                                 from './puppet'
 
 class PuppetTest extends Puppet {
+
   public async start () : Promise<void> { return {} as any }
   public async stop ()  : Promise<void> { return {} as any }
 
@@ -66,8 +64,8 @@ class PuppetTest extends Puppet {
    *
    */
   public async contactSelfQrcode ()                     : Promise<string> { return '' }
-  public async contactSelfName (name: string)           : Promise<void> { return }
-  public async contactSelfSignature (signature: string) : Promise<void> { return }
+  public async contactSelfName (_: string)           : Promise<void> { }
+  public async contactSelfSignature (_: string) : Promise<void> { }
 
   /**
    *
@@ -126,7 +124,7 @@ class PuppetTest extends Puppet {
    * Room Invitation
    *
    */
-  public async roomInvitationAccept (roomInvitationId: string): Promise<void> { return }
+  public async roomInvitationAccept (_: string): Promise<void> { }
 
   public async roomInvitationRawPayload (roomInvitationId: string) : Promise<any> { return { roomInvitationId } as any }
   public async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload> { return rawPayload }
@@ -178,6 +176,7 @@ class PuppetTest extends Puppet {
   public reset (reason: string): void {
     return super.reset(reason)
   }
+
 }
 
 test('contactQueryFilterFunction()', async t => {
@@ -490,15 +489,15 @@ test('messageQueryFilterFactory() two condition', async t => {
   const PAYLOAD_LIST = [
     {
       text: EXPECTED_TEXT_DATA,
-      type: MessageType.Text
+      type: MessageType.Text,
     },
     {
       text: EXPECTED_TEXT_DATA,
-      type: MessageType.Url
+      type: MessageType.Url,
     },
     {
       text: EXPECTED_TEXT_LINK,
-      type: MessageType.Text
+      type: MessageType.Text,
     },
     {
       text: EXPECTED_TEXT_LINK,
