@@ -24,10 +24,11 @@
 
 import { EventEmitter } from 'events'
 
-// import LRU         from 'lru-cache'
-import normalize  from 'normalize-package-data'
-import QuickLru   from 'quick-lru'
-import readPkgUp  from 'read-pkg-up'
+import normalize               from 'normalize-package-data'
+import QuickLru, {
+  Options as QuickLruOptions,
+}                             from 'quick-lru'
+import readPkgUp               from 'read-pkg-up'
 
 import {
   Constructor,
@@ -61,6 +62,7 @@ import {
   ContactPayloadFilterFunction,
   ContactQueryFilter,
 }                                 from './schemas/contact'
+import { ScanStatus }             from './schemas/event'
 import {
   FriendshipPayload,
 }                                 from './schemas/friendship'
@@ -155,8 +157,8 @@ export abstract class Puppet extends EventEmitter {
 
     this.memory = new MemoryCard() // dummy memory
     this.memory.load()  // load here is for testing only
-    .then(() => log.verbose('Puppet', 'constructor() memory.load() done'))
-    .catch(e => log.warn('Puppet', 'constructor() memory.load() rejection: %s', e))
+      .then(() => log.verbose('Puppet', 'constructor() memory.load() done'))
+      .catch(e => log.warn('Puppet', 'constructor() memory.load() rejection: %s', e))
 
     /**
      * 1. Setup Watchdog
@@ -192,8 +194,8 @@ export abstract class Puppet extends EventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions: QuickLru.Options = {
-      maxSize: 10 * 1000
+    const lruOptions: QuickLruOptions = {
+      maxSize: 10 * 1000,
     }
 
     this.cacheContactPayload    = new QuickLru<string, ContactPayload>(lruOptions)
@@ -278,7 +280,7 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover?: string)                    : boolean
   public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string, changerId: string) : boolean
   public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
-  public emit (event: 'scan',         qrcode: string, status: number, data?: string)                                 : boolean
+  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                             : boolean
   public emit (event: 'ready')                                                                                       : boolean
   // Internal Usage: watchdog
   public emit (event: 'watchdog',     food: WatchdogFood) : boolean
@@ -310,7 +312,7 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-leave',   listener: (roomId: string, leaverIdList:  string[], removerId?: string) => void)                    : this
   public on (event: 'room-topic',   listener: (roomId: string, newTopic:      string,   oldTopic:   string, changerId: string) => void) : this
   public on (event: 'room-invite',  listener: (roomInvitationId: string) => void)                                                       : this
-  public on (event: 'scan',         listener: (qrcode: string, status: number, data?: string) => void)                                  : this
+  public on (event: 'scan',         listener: (qrcode: string, status: ScanStatus, data?: string) => void)                              : this
   public on (event: 'ready',        listener: () => void)                                                                               : this
   // Internal Usage: watchdog
   public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
@@ -351,12 +353,12 @@ export abstract class Puppet extends EventEmitter {
     }
 
     Promise.resolve()
-    .then(() => this.stop())
-    .then(() => this.start())
-    .catch(e => {
-      log.warn('Puppet', 'reset() exception: %s', e)
-      this.emit('error', e)
-    })
+      .then(() => this.stop())
+      .then(() => this.start())
+      .catch(e => {
+        log.warn('Puppet', 'reset() exception: %s', e)
+        this.emit('error', e)
+      })
   }
 
   /**
@@ -367,10 +369,10 @@ export abstract class Puppet extends EventEmitter {
    *
    */
 
-   /**
-    * Need to be called internaly when the puppet is logined.
-    * this method will emit a `login` event
-    */
+  /**
+   * Need to be called internaly when the puppet is logined.
+   * this method will emit a `login` event
+   */
   protected async login (userId: string): Promise<void> {
     log.verbose('Puppet', 'login(%s)', userId)
 
@@ -466,7 +468,7 @@ export abstract class Puppet extends EventEmitter {
    * ContactSelf
    *
    */
-  public abstract async contactSelfQrcode ()                     : Promise<string /*QR Code Value*/>
+  public abstract async contactSelfQrcode ()                     : Promise<string /* QR Code Value */>
   public abstract async contactSelfName (name: string)           : Promise<void>
   public abstract async contactSelfSignature (signature: string) : Promise<void>
 
@@ -514,11 +516,11 @@ export abstract class Puppet extends EventEmitter {
     searchIdList? : string[],
   ): Promise<string[]> {
     log.verbose('Puppet', 'contactSearch(query=%s, %s)',
-                          JSON.stringify(query),
-                          searchIdList
-                            ? `idList.length = ${searchIdList.length}`
-                            : '',
-                )
+      JSON.stringify(query),
+      searchIdList
+        ? `idList.length = ${searchIdList.length}`
+        : '',
+    )
 
     if (!searchIdList) {
       searchIdList = await this.contactList()
@@ -531,8 +533,8 @@ export abstract class Puppet extends EventEmitter {
     }
 
     if (typeof query === 'string') {
-      const nameIdList  = await this.contactSearch({ name: query }  , searchIdList)
-      const aliasIdList = await this.contactSearch({ alias: query } , searchIdList)
+      const nameIdList  = await this.contactSearch({ name: query },  searchIdList)
+      const aliasIdList = await this.contactSearch({ alias: query }, searchIdList)
 
       return Array.from(
         new Set([
@@ -582,7 +584,7 @@ export abstract class Puppet extends EventEmitter {
 
       resultIdList.push(...batchSearchIdResultList)
 
-      batchIndex ++
+      batchIndex++
     }
 
     log.silly('Puppet', 'contactSearch() searchContactPayloadList.length = %d', resultIdList.length)
@@ -594,8 +596,8 @@ export abstract class Puppet extends EventEmitter {
     query: ContactQueryFilter,
   ): ContactPayloadFilterFunction {
     log.verbose('Puppet', 'contactQueryFilterFactory(%s)',
-                            JSON.stringify(query),
-                )
+      JSON.stringify(query),
+    )
 
     Object.keys(query).forEach(key => {
       if (query[key as keyof ContactQueryFilter] === undefined) {
@@ -754,11 +756,11 @@ export abstract class Puppet extends EventEmitter {
   public abstract async messageFile (messageId: string) : Promise<FileBox>
   public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
 
-  public abstract async messageForward (receiver: Receiver, messageId: string)              : Promise<void>
-  public abstract async messageSendText (receiver: Receiver, text: string)                  : Promise<void>
-  public abstract async messageSendContact (receiver: Receiver, contactId: string)          : Promise<void>
-  public abstract async messageSendFile (receiver: Receiver, file: FileBox)                 : Promise<void>
-  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void>
+  public abstract async messageForward (receiver: Receiver, messageId: string)                       : Promise<void>
+  public abstract async messageSendText (receiver: Receiver, text: string, mentionIdList?: string[]) : Promise<void>
+  public abstract async messageSendContact (receiver: Receiver, contactId: string)                   : Promise<void>
+  public abstract async messageSendFile (receiver: Receiver, file: FileBox)                          : Promise<void>
+  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload)          : Promise<void>
 
   protected abstract async messageRawPayload (messageId: string)     : Promise<any>
   protected abstract async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
@@ -819,7 +821,7 @@ export abstract class Puppet extends EventEmitter {
 
   public async messageSearch (
     query?: MessageQueryFilter,
-  ): Promise<string[] /* Message Id List*/> {
+  ): Promise<string[] /* Message Id List */> {
     log.verbose('Puppet', 'messageSearch(%s)', JSON.stringify(query))
 
     const allMessageIdList: string[] = this.messageList()
@@ -838,8 +840,8 @@ export abstract class Puppet extends EventEmitter {
     const filterFunction = this.messageQueryFilterFactory(query)
 
     const messageIdList = messagePayloadList
-                        .filter(filterFunction)
-                        .map(payload => payload.id)
+      .filter(filterFunction)
+      .map(payload => payload.id)
 
     log.silly('Puppet', 'messageSearch() messageIdList filtered. result length=%d', messageIdList.length)
 
@@ -850,8 +852,8 @@ export abstract class Puppet extends EventEmitter {
     query: MessageQueryFilter,
   ): MessagePayloadFilterFunction {
     log.verbose('Puppet', 'messageQueryFilterFactory(%s)',
-                          JSON.stringify(query),
-                )
+      JSON.stringify(query),
+    )
 
     if (Object.keys(query).length < 1) {
       throw new Error('query empty')
@@ -1012,7 +1014,7 @@ export abstract class Puppet extends EventEmitter {
 
   public async roomSearch (
     query?: RoomQueryFilter,
-  ): Promise<string[] /* Room Id List*/> {
+  ): Promise<string[] /* Room Id List */> {
     log.verbose('Puppet', 'roomSearch(%s)', JSON.stringify(query))
 
     const allRoomIdList: string[] = await this.roomList()
@@ -1042,8 +1044,8 @@ export abstract class Puppet extends EventEmitter {
     const filterFunction = this.roomQueryFilterFactory(query)
 
     const roomIdList = roomPayloadList
-                        .filter(filterFunction)
-                        .map(payload => payload.id)
+      .filter(filterFunction)
+      .map(payload => payload.id)
 
     log.silly('Puppet', 'roomSearch() roomIdList filtered. result length=%d', roomIdList.length)
 
@@ -1054,8 +1056,8 @@ export abstract class Puppet extends EventEmitter {
     query: RoomQueryFilter,
   ): RoomPayloadFilterFunction {
     log.verbose('Puppet', 'roomQueryFilterFactory(%s)',
-                            JSON.stringify(query),
-                )
+      JSON.stringify(query),
+    )
 
     if (Object.keys(query).length !== 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
@@ -1168,9 +1170,9 @@ export abstract class Puppet extends EventEmitter {
     contactId : string,
   ): Promise<RoomMemberPayload> {
     log.verbose('Puppet', 'roomMemberPayload(roomId=%s, contactId=%s)',
-                          roomId,
-                          contactId,
-                )
+      roomId,
+      contactId,
+    )
 
     if (!roomId || !contactId) {
       throw new Error('no id')
@@ -1190,6 +1192,9 @@ export abstract class Puppet extends EventEmitter {
      * 2. Cache not found
      */
     const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
+    if (!rawPayload) {
+      throw new Error('contact(' + contactId + ') is not in the Room(' + roomId + ')')
+    }
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 
     this.cacheRoomMemberPayload.set(CACHE_KEY, payload)

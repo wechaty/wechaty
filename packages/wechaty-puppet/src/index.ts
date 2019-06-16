@@ -2,8 +2,11 @@ export {
   ContactGender,
   ContactType,
   ContactPayload,
-  ContactQueryFilter
+  ContactQueryFilter,
 }                             from './schemas/contact'
+export {
+  ScanStatus,
+}                             from './schemas/event'
 export {
   FriendshipPayload,
   FriendshipPayloadConfirm,
