@@ -55,7 +55,7 @@
     "shx": "^0.3.1",
     "tstest": "^0.4.1",
     "typedoc": "^0.14.0",
-    "typedoc-plugin-markdown": "^1.1.13",
+    "typedoc-plugin-markdown": "^2.0.0",
     "typescript": "^3.0.1"
   },
   "peerDependencies": {
