@@ -43,11 +43,9 @@
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.6.1",
-    "@types/node": "^12.0.4",
     "@types/normalize-package-data": "^2.4.0",
     "@types/quick-lru": "^2.0.0",
     "@types/read-pkg-up": "^3.0.1",
-    "@types/sinon": "^7.0.13",
     "file-box": "^0.8.22",
     "markdownlint-cli": "^0.17.0",
     "memory-card": "^0.6.7",
@@ -55,8 +53,7 @@
     "shx": "^0.3.1",
     "tstest": "^0.4.1",
     "typedoc": "^0.14.0",
-    "typedoc-plugin-markdown": "^1.1.13",
-    "typescript": "^3.0.1"
+    "typedoc-plugin-markdown": "^1.1.13"
   },
   "peerDependencies": {
     "memory-card": "^0.6.7",
