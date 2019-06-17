@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.27.21",
+  "version": "0.27.24",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -98,7 +98,7 @@
     "semver": "^6.0.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
-    "wechaty-puppet": "^0.15.9",
+    "wechaty-puppet": "^0.15.15",
     "ws": "^7.0.0"
   },
   "devDependencies": {

@@ -326,7 +326,6 @@ Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wec
 ## POWERED BY WECHATY
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
-[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-blue.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 ### Wechaty Badge
 
