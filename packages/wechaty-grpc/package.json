@@ -51,7 +51,7 @@
     "@types/semver": "^5.5.0",
     "blue-tape": "^1.0.0",
     "git-scripts": "^0.2.1",
-    "grpc-tools": "^1.6.6",
+    "grpc-tools": "^1.8.0",
     "grpc_tools_node_protoc_ts": "^2.3.0",
     "nodemon": "^1.17.4",
     "semver": "^5.5.0",
