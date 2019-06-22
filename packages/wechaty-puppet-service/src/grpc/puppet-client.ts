@@ -1,7 +1,12 @@
 import {
-  ContactList,
+  // ContactList,
   Empty,
-  Id,
+  // Id,
   PuppetClient,
 }                     from '@chatie/grpc'
-const EMPTY = new Empty()
+
+export const EMPTY = new Empty()
+
+export {
+  PuppetClient,
+}

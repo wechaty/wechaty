@@ -3,27 +3,37 @@ import path  from 'path'
 import grpc from 'grpc'
 
 import {
-  ContactGender,
+  // ContactGender,
   ContactPayload,
-  ContactType,
+  // ContactType,
 
   FriendshipPayload,
 
   MessagePayload,
-  MessageType,
+  // MessageType,
 
   Puppet,
   PuppetOptions,
 
   Receiver,
 
+  RoomInvitationPayload,
   RoomMemberPayload,
   RoomPayload,
-}                       from 'wechaty-puppet'
+
+  UrlLinkPayload,
+
+  throwUnsupportedError,
+}                         from 'wechaty-puppet'
 
 import {
   FileBox,
 }             from 'file-box'
+
+import {
+  EMPTY,
+  PuppetClient,
+}                   from './grpc/puppet-client'
 
 import {
   log,
@@ -73,24 +83,16 @@ export class PuppetHostie extends Puppet {
 
     this.initGrpcClient()
 
-    this.state.on(true)
-
-    this.emit('scan', 'https://not-exist.com', 0)
-
-    this.id = 'logined_user_id'
-    // const user = this.Contact.load(this.id)
-    this.emit('login', this.id)
-
-    const MOCK_MSG_ID = 'mockid'
-    this.cacheMessagePayload.set(MOCK_MSG_ID, {
-      fromId    : 'xxx',
-      id        : MOCK_MSG_ID,
-      text      : 'mock text',
-      timestamp : Date.now(),
-      toId      : 'xxx',
-      type      : MessageType.Text,
+    await new Promise((resolve, reject) => {
+      this.grpcClient!.start(EMPTY, (error, response) => {
+        if (error) {
+          return reject(error)
+        }
+        return resolve(response)
+      })
     })
 
+    this.state.on(true)
   }
 
   public async stop (): Promise<void> {
@@ -108,10 +110,18 @@ export class PuppetHostie extends Puppet {
 
     this.state.off('pending')
 
+    await new Promise((resolve, reject) => {
+      this.grpcClient!.stop(EMPTY, (error, response) => {
+        if (error) {
+          return reject(error)
+        }
+        return resolve(response)
+      })
+    })
+
     this.grpcClient.close()
     this.grpcClient = undefined
 
-    // await some tasks...
     this.state.off(true)
   }
 
@@ -142,7 +152,6 @@ export class PuppetHostie extends Puppet {
     if (typeof alias === 'undefined') {
       return 'mock alias'
     }
-    return
   }
 
   public async contactList (): Promise<string[]> {
@@ -168,7 +177,6 @@ export class PuppetHostie extends Puppet {
     }
 
     throw new Error('not supported')
-    // return await this.bridge.WXqr
   }
 
   public async contactAvatar (contactId: string)                : Promise<FileBox>
@@ -203,6 +211,18 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'contactRawPayloadParser(%s)', rawPayload)
 
     return rawPayload
+  }
+
+  public async contactSelfName (name: string): Promise<void> {
+    return throwUnsupportedError(name)
+  }
+
+  public async contactSelfQrcode (): Promise<string> {
+    return throwUnsupportedError()
+  }
+
+  public async contactSelfSignature (signature: string): Promise<void> {
+    throwUnsupportedError(signature)
   }
 
   /**
@@ -252,7 +272,6 @@ export class PuppetHostie extends Puppet {
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetHostie', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
-    return
   }
 
   public async messageForward (
@@ -260,9 +279,20 @@ export class PuppetHostie extends Puppet {
     messageId : string,
   ): Promise<void> {
     log.verbose('PuppetHostie', 'messageForward(%s, %s)',
-                              receiver,
-                              messageId,
-              )
+      receiver,
+      messageId,
+    )
+  }
+
+  public async messageSendUrl (
+    receiver: Receiver,
+    urlLinkPayload: UrlLinkPayload,
+  ): Promise<void> {
+    return throwUnsupportedError(receiver, urlLinkPayload)
+  }
+
+  public async messageUrl (messageId: string): Promise<UrlLinkPayload> {
+    return throwUnsupportedError(messageId)
   }
 
   /**
@@ -330,7 +360,6 @@ export class PuppetHostie extends Puppet {
     if (typeof topic === 'undefined') {
       return 'mock room topic'
     }
-    return
   }
 
   public async roomCreate (
@@ -380,6 +409,24 @@ export class PuppetHostie extends Puppet {
     return 'mock announcement for ' + roomId
   }
 
+  public async roomInvitationAccept (
+    roomInvitationId: string,
+  ): Promise<void> {
+    throwUnsupportedError(roomInvitationId)
+  }
+
+  public async roomInvitationRawPayload (
+    roomInvitationId: string,
+  ): Promise<any> {
+    throwUnsupportedError(roomInvitationId)
+  }
+
+  public roomInvitationRawPayloadParser (
+    rawPayload: any,
+  ): Promise<RoomInvitationPayload> {
+    return throwUnsupportedError(rawPayload)
+  }
+
   /**
    *
    * Friendship
@@ -408,13 +455,13 @@ export class PuppetHostie extends Puppet {
   public ding (data?: string): void {
     log.silly('PuppetHostie', 'ding(%s)', data || '')
     this.emit('dong', data)
-    return
   }
 
   public unref (): void {
     log.verbose('PuppetHostie', 'unref()')
     super.unref()
   }
+
 }
 
 export default PuppetHostie

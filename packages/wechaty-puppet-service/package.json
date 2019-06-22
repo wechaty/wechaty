@@ -20,7 +20,7 @@
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "lint:es": "eslint --ignore-pattern fixtures/ 'src/**/*.ts' 'tests/**/*.ts' 'scripts/**/*.ts' 'examples/**/*.ts' 'bin/**/*.ts'"
+    "lint:es": "eslint --ignore-pattern fixtures/ 'src/**/*.ts' 'tests/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -46,20 +46,18 @@
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.6.1",
-    "@types/read-pkg-up": "^3.0.1",
     "file-box": "^0.8.22",
     "memory-card": "^0.6.2",
     "pkg-jq": "^0.2.4",
     "tstest": "^0.4.2",
-    "wechaty-puppet": "^0.14.1"
+    "wechaty-puppet": "^0.15.18"
   },
   "peerDependencies": {
     "file-box": "^0.8.22",
     "wechaty-puppet": "^0.8.5"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.2.4",
-    "read-pkg-up": "^4.0.0"
+    "@chatie/grpc": "^0.2.4"
   },
   "git": {
     "scripts": {

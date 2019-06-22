@@ -1,12 +1,21 @@
 #!/usr/bin/env ts-node
+import {
+  Wechaty,
+}           from 'wechaty'
+import {
+  Grpc,
+  VERSION,
+}             from '@chatie/grpc'
 
-import { Grpc } from '@chatie/grpc'
+async function main () {
+  if (VERSION === '0.0.0') {
+    throw new Error('version should be set before publishing')
+  }
 
-async function main() {
   const bot = Wechaty.instance()
   try {
     await bot.start()
-    console.log(`Wechaty v${bot.version()} smoking test passed.`)
+    console.info(`Wechaty v${bot.version()} smoking test passed.`)
   } catch (e) {
     console.error(e)
     // Error!
@@ -18,8 +27,8 @@ async function main() {
 }
 
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })
