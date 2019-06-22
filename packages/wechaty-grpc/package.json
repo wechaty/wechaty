@@ -14,11 +14,12 @@
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
     "generate": "bash -x scripts/generate-stub.sh",
-    "lint": "npm run lint:ts",
+    "lint": "npm run lint:es && npm run lint:ts",
     "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
     "pack": "npm pack",
     "test": "npm run lint",
-    "test:pack": "bash -x scripts/npm-pack-testing.sh"
+    "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "lint:es": "eslint --ignore-pattern fixtures/ 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -43,36 +44,31 @@
     "read-pkg-up": "^4.0.0"
   },
   "devDependencies": {
-    "@types/blue-tape": "^0.1.31",
+    "@chatie/eslint-config": "^0.6.17",
+    "@chatie/git-scripts": "^0.2.5",
+    "@chatie/semver": "^0.4.7",
+    "@chatie/tsconfig": "^0.6.1",
     "@types/google-protobuf": "^3.2.7",
-    "@types/node": "^11.9.0",
     "@types/protobufjs": "^5.0.31",
     "@types/read-pkg-up": "^3.0.1",
-    "@types/semver": "^5.5.0",
-    "blue-tape": "^1.0.0",
-    "git-scripts": "^0.2.1",
     "grpc-tools": "^1.6.6",
     "grpc_tools_node_protoc_ts": "^2.3.0",
     "nodemon": "^1.17.4",
-    "semver": "^5.5.0",
+    "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
-    "ts-node": "^7.0.0",
     "ts-protoc-gen": "^0.7.3",
-    "tslint": "^5.10.0",
-    "tslint-config-standard": "^7.1.0",
-    "tslint-eslint-rules": "^5.1.0",
-    "typescript": "^3.0.1"
-  },
-  "git": {
-    "scripts": {
-      "pre-push": "./scripts/pre-push.sh"
-    }
+    "tstest": "^0.4.2"
   },
   "engines": {
     "node": ">= 10"
   },
   "publishConfig": {
     "access": "public",
-    "tag": "latest"
+    "tag": "next"
+  },
+  "git": {
+    "scripts": {
+      "pre-push": "npx git-scripts-pre-push"
+    }
   }
 }
