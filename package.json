@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.27.23",
+  "version": "0.27.24",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
