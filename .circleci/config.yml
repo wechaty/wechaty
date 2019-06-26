@@ -20,7 +20,7 @@ jobs:
           name: Install RedHat Packages
           command: |
             sudo yum -y install gcc-c++ make redhat-lsb libtool autoconf
-            rpm -e --nodeps automake
+            sudo rpm -e --nodeps automake
             cd /tmp
             wget http://ftp.gnu.org/gnu/automake/automake-1.14.tar.gz
             tar xvzf automake-1.14.tar.gz
