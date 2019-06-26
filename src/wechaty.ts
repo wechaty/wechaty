@@ -910,7 +910,7 @@ export class Wechaty extends Accessory implements Sayable {
   public async ready (): Promise<void> {
     log.verbose('Wechaty', 'ready()')
     return this.readyState.ready('on').then(() => {
-      log.silly('Wechaty', 'ready() this.readyState.ready(on) resolved')
+      return log.silly('Wechaty', 'ready() this.readyState.ready(on) resolved')
     })
   }
 

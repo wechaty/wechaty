@@ -67,7 +67,7 @@ test('promiseRetry()', async t => {
     },
   )
     .then((r: string) => {
-      thenSpy(r)
+      return thenSpy(r)
     })
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
@@ -96,7 +96,7 @@ test('retry()', async t => {
     },
   )
     .then((r: string) => {
-      thenSpy(r)
+      return thenSpy(r)
     })
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
