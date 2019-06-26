@@ -12,6 +12,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 # https://peteris.rocks/blog/quiet-and-unattended-installation-with-apt-get/
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
+    autoconf \
     bash \
     build-essential \
     ca-certificates \
@@ -23,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 \
     jq \
     libgconf-2-4 \
+    libtool \
     moreutils \
     python-dev \
     shellcheck \
