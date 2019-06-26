@@ -13,6 +13,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
     autoconf \
+    automake \
     bash \
     build-essential \
     ca-certificates \
