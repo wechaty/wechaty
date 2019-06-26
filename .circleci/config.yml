@@ -18,7 +18,16 @@ jobs:
 
       - run:
           name: Install RedHat Packages
-          command: sudo yum -y install gcc-c++ make redhat-lsb libtool autoconf automake
+          command: |
+            sudo yum -y install gcc-c++ make redhat-lsb libtool autoconf
+            cd /tmp
+            wget http://ftp.gnu.org/gnu/automake/automake-1.14.tar.gz
+            tar xvzf automake-1.14.tar.gz
+            cd automake-1.14
+            ./configure
+            make
+            sudo make install
+
 
       - run:
           name: NPM Install
