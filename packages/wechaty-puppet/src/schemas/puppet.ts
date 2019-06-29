@@ -67,6 +67,7 @@ export const PUPPET_EVENT_DICT = {
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
 /**
+ * endpoint: URL/Path for the puppet underlining system
  * timeout: WatchDog Timeout in Seconds
  */
 export interface PuppetOptions {
