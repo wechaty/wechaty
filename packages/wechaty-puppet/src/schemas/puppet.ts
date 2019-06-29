@@ -74,6 +74,9 @@ export interface PuppetOptions {
   endpoint? : string,
   timeout?  : number,
   token?    : string,
+
+  [ puppetOptionKey: string ]: unknown,
+
 }
 
 export interface Receiver {
