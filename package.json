@@ -22,7 +22,7 @@
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "check-node-version": "check-node-version --node \">= 10\"",
     "lint": "npm run check-node-version && npm run lint:es && npm run lint:ts && npm run lint:sh",
-    "lint:es": "eslint --ignore-pattern fixtures/ 'src/**/*.ts' 'tests/**/*.ts' 'scripts/**/*.ts' 'examples/**/*.ts' 'bin/**/*.ts'",
+    "lint:es": "eslint --ignore-pattern fixtures/ '{bin,examples,src,scripts,tests}/**/*.ts'",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
