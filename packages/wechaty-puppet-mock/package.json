@@ -52,7 +52,6 @@
     "@types/quick-lru": "^2.0.0",
     "@types/read-pkg-up": "^3.0.1",
     "file-box": "^0.8.22",
-    "markdownlint-cli": "^0.13.0",
     "memory-card": "^0.6.13",
     "pkg-jq": "^0.2.2",
     "read-pkg-up": "^6.0.0",
