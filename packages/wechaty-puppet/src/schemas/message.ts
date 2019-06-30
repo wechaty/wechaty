@@ -100,10 +100,11 @@ export type MessagePayload = MessagePayloadBase
 
 export interface MessageQueryFilter {
   fromId? : string,
-  text?   : string | RegExp,
+  id?     : string,
   roomId? : string
-  type?   : MessageType,
+  text?   : string | RegExp,
   toId?   : string,
+  type?   : MessageType,
 }
 
 /** @hidden */

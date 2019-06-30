@@ -74,7 +74,7 @@ class PuppetTest extends Puppet {
    */
   public async contactAlias (contactId: string)                        : Promise<string>
   public async contactAlias (contactId: string, alias: string | null)  : Promise<void>
-  public async contactAlias (contactId: string, alias?: string | null) : Promise<string | void> { return { contactId, alias } as any }
+  public async contactAlias (contactId: string, alias?: string | null) : Promise<string | void> { return { alias, contactId } as any }
 
   public async contactAvatar (contactId: string)                 : Promise<FileBox>
   public async contactAvatar (contactId: string, file: FileBox)  : Promise<void>
@@ -104,10 +104,10 @@ class PuppetTest extends Puppet {
   public async messageFile (messageId: string) : Promise<FileBox> { return { messageId } as any }
   public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
 
-  public async messageForward (to: Receiver, messageId: string)              : Promise<void> { return { to, messageId } as any }
-  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void> { return { receiver, contactId } as any }
-  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void> { return { to, file } as any }
-  public async messageSendText (to: Receiver, text: string)                  : Promise<void> { return { to, text } as any }
+  public async messageForward (to: Receiver, messageId: string)              : Promise<void> { return { messageId, to } as any }
+  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void> { return { contactId, receiver } as any }
+  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void> { return { file, to } as any }
+  public async messageSendText (to: Receiver, text: string)                  : Promise<void> { return { text, to } as any }
   public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void> { return { to, urlLinkPayload } as any }
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
@@ -138,10 +138,10 @@ class PuppetTest extends Puppet {
   public async roomAnnounce (roomId: string, text: string)  : Promise<void>
   public async roomAnnounce (roomId: string, text?: string) : Promise<void | string> { return { roomId, text } as any }
 
-  public async roomAdd (roomId: string, contactId: string)          : Promise<void> { return { roomId, contactId } as any }
+  public async roomAdd (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
   public async roomAvatar (roomId: string)                          : Promise<FileBox> { return { roomId } as any }
   public async roomCreate (contactIdList: string[], topic?: string) : Promise<string> { return { contactIdList, topic } as any }
-  public async roomDel (roomId: string, contactId: string)          : Promise<void> { return { roomId, contactId } as any }
+  public async roomDel (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
   public async roomQuit (roomId: string)                            : Promise<void> { return { roomId } as any }
   public async roomQrcode (roomId: string)                          : Promise<string> { return { roomId } as any }
 
@@ -155,7 +155,7 @@ class PuppetTest extends Puppet {
   public async roomRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload> { return { rawPayload } as any }
 
-  public async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any> { return { roomId, contactId } as any }
+  public async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any> { return { contactId, roomId } as any }
   public async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload> { return rawPayload }
 
   /**
@@ -260,6 +260,24 @@ test('contactQueryFilterFunction()', async t => {
     t.deepEqual(idList, ID_LIST, 'should filter query to id list')
   })
 
+  t.test('filter contact existing id', async t => {
+    const QUERY = { id: 'id1' }
+    const ID_LIST = ['id1']
+
+    const func = puppet.contactQueryFilterFactory(QUERY)
+    const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
+    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
+  })
+
+  t.test('filter contact non-existing id', async t => {
+    const QUERY = { id: 'fasdfsdfasfas' }
+    const ID_LIST = [] as string[]
+
+    const func = puppet.contactQueryFilterFactory(QUERY)
+    const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
+    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
+  })
+
   t.test('throw if filter key unknown', async t => {
     t.throws(() => puppet.contactQueryFilterFactory({ xxxx: 'test' } as any), 'should throw')
   })
@@ -320,7 +338,25 @@ test('roomQueryFilterFunction()', async t => {
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list')
+    t.deepEqual(idList, ID_LIST, 'should filter query to id list by text')
+  })
+
+  t.test('filter name by existing id', async t => {
+    const QUERY = { id: 'id4' }
+    const ID_LIST = ['id4']
+
+    const func = puppet.roomQueryFilterFactory(QUERY)
+    const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
+    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
+  })
+
+  t.test('filter name by non-existing id', async t => {
+    const QUERY = { id: 'fsdfasfasfsdfsaf' }
+    const ID_LIST = [] as string[]
+
+    const func = puppet.roomQueryFilterFactory(QUERY)
+    const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
+    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
   })
 
   t.test('throw if filter key unknown', async t => {
@@ -426,8 +462,10 @@ test('messageQueryFilterFactory() one condition', async t => {
   const EXPECTED_TEXT1 = 'text'
   const EXPECTED_TEXT2 = 'regexp'
   const EXPECTED_TEXT3 = 'fdsafasdfsdakljhj;lds'
+  const EXPECTED_ID1   = 'id1'
 
   const TEXT_QUERY_TEXT = EXPECTED_TEXT1
+  const TEXT_QUERY_ID   = EXPECTED_ID1
   const TEXT_QUERY_RE = new RegExp(EXPECTED_TEXT2)
 
   const QUERY_TEXT: MessageQueryFilter = {
@@ -438,8 +476,13 @@ test('messageQueryFilterFactory() one condition', async t => {
     text: TEXT_QUERY_RE,
   }
 
+  const QUERY_ID: MessageQueryFilter = {
+    id: TEXT_QUERY_ID,
+  }
+
   const PAYLOAD_LIST = [
     {
+      id: EXPECTED_ID1,
       text: EXPECTED_TEXT1,
     },
     {
@@ -464,6 +507,11 @@ test('messageQueryFilterFactory() one condition', async t => {
   resultPayload = PAYLOAD_LIST.filter(filterFuncText)
   t.equal(resultPayload.length, 1, 'should get one result')
   t.equal(resultPayload[0].text, EXPECTED_TEXT2, 'should get text2')
+
+  filterFuncText = puppet.messageQueryFilterFactory(QUERY_ID)
+  resultPayload = PAYLOAD_LIST.filter(filterFuncText)
+  t.equal(resultPayload.length, 1, 'should get one result')
+  t.equal(resultPayload[0].id, EXPECTED_ID1, 'should get id1')
 })
 
 test('messageQueryFilterFactory() two condition', async t => {
