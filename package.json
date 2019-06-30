@@ -105,7 +105,7 @@
     "@babel/core": "^7.0.1",
     "@babel/node": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "@chatie/eslint-config": "^0.6.8",
+    "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.3",
     "@chatie/tsconfig": "^0.6.1",
     "@types/blessed": "^0.1.10",
