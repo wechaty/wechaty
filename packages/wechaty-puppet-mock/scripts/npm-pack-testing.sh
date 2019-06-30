@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-NPM_TAG=latest
-if [ ./development-release.ts ]; then
+VERSION=$(npx pkg-jq -r .version)
+
+if npx --package @chatie/semver semver-is-prod "$VERSION"; then
+  NPM_TAG=latest
+else
   NPM_TAG=next
 fi
 
@@ -11,16 +14,15 @@ npm run pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-mv *-*.*.*.tgz "$TMPDIR"
+mv ./*-*.*.*.tgz "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
 cd $TMPDIR
 npm init -y
-npm install *-*.*.*.tgz \
+npm install ./*-*.*.*.tgz \
+  @chatie/tsconfig \
   @types/quick-lru \
-  @types/node \
   @types/normalize-package-data \
-  typescript \
   \
   file-box \
   memory-card \
