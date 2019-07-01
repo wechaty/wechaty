@@ -136,7 +136,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  */
 export class Wechaty extends Accessory implements Sayable {
 
-  public readonly VERSION = VERSION
+  public static readonly VERSION = VERSION
 
   public  readonly state      : StateSwitch
   private readonly readyState : StateSwitch

@@ -62,6 +62,10 @@ test('Export of the Framework', async t => {
   t.ok(log,         'should export log')
 })
 
+test('static VERSION', async t => {
+  t.true('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
+})
+
 test('Config setting', async t => {
   t.ok(config, 'should export Config')
   // t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
