@@ -23,24 +23,18 @@ import fs    from 'fs'
 import os    from 'os'
 import path  from 'path'
 
-import qrImage   from 'qr-image'
-import Raven     from 'raven'
-
-import { log }    from 'brolog'
-import {
-  FileBox,
-}                from 'file-box'
+import qrImage    from 'qr-image'
+import Raven      from 'raven'
 import readPkgUp  from 'read-pkg-up'
+
+import { log }      from 'brolog'
+import { FileBox }  from 'file-box'
 
 import {
   PuppetModuleName,
+  PUPPET_NAME_DEFAULT,
 }                      from './puppet-config'
 import { VERSION }      from './version'
-
-// https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
-// if (!Symbol.asyncIterator) {
-//   (Symbol as any).asyncIterator = Symbol.for('Symbol.asyncIterator')
-// }
 
 const pkg = readPkgUp.sync({ cwd: __dirname })!.package
 
@@ -109,8 +103,6 @@ export interface DefaultSetting {
   DEFAULT_PROTOCOL : string,
 }
 
-/* tslint:disable:variable-name */
-/* tslint:disable:no-var-requires */
 const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 
 export class Config {
@@ -122,7 +114,7 @@ export class Config {
 
   public systemPuppetName (): PuppetModuleName {
     return (
-      process.env.WECHATY_PUPPET || 'default'
+      process.env.WECHATY_PUPPET || PUPPET_NAME_DEFAULT
     ).toLowerCase() as PuppetModuleName
   }
 
@@ -147,33 +139,6 @@ export class Config {
       log.warn('Config', 'constructor() WECHATY_PROFILE is DEPRECATED, use WECHATY_NAME instead.')
     }
   }
-
-  /**
-   * 5. live setting
-   */
-  // public puppetInstance(): Puppet
-  // public puppetInstance(empty: null): void
-  // public puppetInstance(instance: Puppet): void
-
-  // public puppetInstance(instance?: Puppet | null): Puppet | void {
-
-  //   if (typeof instance === 'undefined') {
-  //     if (!this._puppetInstance) {
-  //       throw new Error('no puppet instance')
-  //     }
-  //     return this._puppetInstance
-
-  //   } else if (instance === null) {
-  //     log.verbose('Config', 'puppetInstance(null)')
-  //     this._puppetInstance = null
-  //     return
-  //   }
-
-  //   log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-  //   this._puppetInstance = instance
-  //   return
-
-  // }
 
   public gitRevision (): string | null {
     const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
