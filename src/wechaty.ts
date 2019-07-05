@@ -136,7 +136,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  */
 export class Wechaty extends Accessory implements Sayable {
 
-  public readonly VERSION = VERSION
+  public static readonly VERSION = VERSION
 
   public  readonly state      : StateSwitch
   private readonly readyState : StateSwitch
@@ -791,7 +791,8 @@ export class Wechaty extends Accessory implements Sayable {
    * // do other stuff with bot here
    */
   public async start (): Promise<void> {
-    log.info('Wechaty', '<%s> start() v%s is starting...',
+    log.info('Wechaty', '<%s@%s> start() v%s is starting...',
+      this.options.name || '',
       this.options.puppet || config.systemPuppetName(),
       this.version(),
     )
