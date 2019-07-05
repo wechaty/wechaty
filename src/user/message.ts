@@ -851,6 +851,11 @@ export class Message extends Accessory implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {Promise<FileBox>}
+   *
+   * @example <caption>Save media file from a message</caption>
+   * const fileBox = await message.toFileBox()
+   * const fileName = fileBox.name
+   * fileBox.toFile(fileName)
    */
   public async toFileBox (): Promise<FileBox> {
     if (this.type() === Message.Type.Text) {
