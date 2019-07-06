@@ -818,8 +818,14 @@ export class Wechaty extends Accessory implements Sayable {
     try {
       if (!this.memory) {
         this.memory = new MemoryCard(this.options.name)
-        await this.memory.load()
       }
+
+      try {
+        await this.memory.load()
+      } catch (e) {
+        log.silly('Wechaty', 'start() memory.load() had already loaded')
+      }
+
       await this.initPuppet()
       await this.puppet.start()
 
