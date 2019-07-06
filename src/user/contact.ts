@@ -209,10 +209,6 @@ export class Contact extends Accessory implements Sayable {
   ): Promise<Array<T['prototype']>> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
-    if (query && Object.keys(query).length !== 1) {
-      throw new Error('query only support one key. multi key support is not availble now.')
-    }
-
     try {
       const contactIdList: string[] = await this.puppet.contactSearch(query)
       const contactList = contactIdList.map(id => this.load(id))
