@@ -19,7 +19,7 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 :book: <https://github.com/chatie/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
-## VOICE OF THE DEVELOPER
+## VOICE OF DEVELOPERS
 
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
 > &mdash; <cite>@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)</cite>
