@@ -36,7 +36,7 @@ jobs:
 
       - run:
           name: Unit Testing
-          command: npm run test:unit:retry
+          command: npm run test:unit
 
       - run:
           name: Show CentOS Version
