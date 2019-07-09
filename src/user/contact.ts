@@ -168,7 +168,7 @@ export class Contact extends Accessory implements Sayable {
       // https://github.com/Chatie/wechaty/issues/1345
       const valid = await this.puppet.contactValidate(contact.id)
       if (valid) {
-        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is vlaid result, return it.',
+        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is valid result, return it.',
           n,
           contact.id,
         )

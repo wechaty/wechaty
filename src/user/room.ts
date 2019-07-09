@@ -206,7 +206,7 @@ export class Room extends Accessory implements Sayable {
       // https://github.com/Chatie/wechaty/issues/1345
       const valid = await this.puppet.roomValidate(room.id)
       if (valid) {
-        log.verbose('Room', 'find() confirm room[#%d] with id=%d is vlaid result, return it.',
+        log.verbose('Room', 'find() confirm room[#%d] with id=%d is valid result, return it.',
           n,
           room.id,
         )
