@@ -791,9 +791,9 @@ export class Wechaty extends Accessory implements Sayable {
    * // do other stuff with bot here
    */
   public async start (): Promise<void> {
-    log.info('Wechaty', '<%s@%s> start() v%s is starting...',
-      this.options.name || '',
+    log.info('Wechaty', '<%s>(%s) start() v%s is starting...',
       this.options.puppet || config.systemPuppetName(),
+      this.options.name   || '',
       this.version(),
     )
     log.verbose('Wechaty', 'puppet: %s',  this.options.puppet)
