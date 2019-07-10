@@ -55,7 +55,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
    *
    */
   constructor (
-    public id: string,
+    public readonly id: string,
   ) {
     super()
     log.verbose('RoomInvitation', 'constructor(id=%s)', id)

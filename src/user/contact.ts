@@ -257,18 +257,14 @@ export class Contact extends Accessory implements Sayable {
    */
   protected payload?: ContactPayload
 
-  public readonly id: string // Contact Id
-
   /**
    * @private
    */
   constructor (
-    id: string,
+    public readonly id: string,
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
-
-    this.id = id
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Contact)

@@ -114,42 +114,6 @@ export class Friendship extends Accessory implements Acceptable {
     throw new Error('to be implemented')
   }
 
-  // public static createConfirm(
-  //   contactId: string,
-  // ): FriendRequestPayload {
-  //   log.verbose('Friendship', 'createConfirm(%s)',
-  //                                         contactId,
-  //               )
-
-  //   const payload: FriendRequestPayloadConfirm = {
-  //     type : FriendRequestType.Confirm,
-  //     contactId,
-  //   }
-
-  //   return payload
-  // }
-
-  // public static createReceive(
-  //   contactId : string,
-  //   hello     : string,
-  //   ticket    : string,
-  // ): FriendRequestPayload {
-  //   log.verbose('Friendship', 'createReceive(%s, %s, %s)',
-  //                                         contactId,
-  //                                         hello,
-  //                                         ticket,
-  //               )
-
-  //   const payload: FriendRequestPayloadReceive = {
-  //     type : FriendRequestType.Receive,
-  //     contactId,
-  //     hello,
-  //     ticket,
-  //   }
-
-  //   return payload
-  // }
-
   /**
    *
    * Instance Properties
@@ -162,7 +126,7 @@ export class Friendship extends Accessory implements Acceptable {
   protected payload?: FriendshipPayload
 
   constructor (
-    public id: string,
+    public readonly id: string,
   ) {
     super()
     log.verbose('Friendship', 'constructor(id=%s)', id)
