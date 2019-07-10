@@ -605,7 +605,9 @@ export abstract class Puppet extends EventEmitter {
       }
     })
 
-    if (Object.keys(query).length !== 1) {
+    if (Object.keys(query).length < 1) {
+      throw new Error('query must provide at least one key. current query is empty.')
+    } else if (Object.keys(query).length > 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
 
@@ -1059,7 +1061,9 @@ export abstract class Puppet extends EventEmitter {
       JSON.stringify(query),
     )
 
-    if (Object.keys(query).length !== 1) {
+    if (Object.keys(query).length < 1) {
+      throw new Error('query must provide at least one key. current query is empty.')
+    } else if (Object.keys(query).length > 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
 
