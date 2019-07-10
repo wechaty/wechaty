@@ -17,41 +17,25 @@
  *
  */
 
-// tslint:disable:arrow-parens
-// tslint:disable:max-line-length
-// tslint:disable:member-ordering
-// tslint:disable:unified-signatures
+import { EventEmitter }   from 'events'
 
-import { EventEmitter } from 'events'
-
-import normalize               from 'normalize-package-data'
 import QuickLru, {
   Options as QuickLruOptions,
 }                             from 'quick-lru'
-import readPkgUp               from 'read-pkg-up'
 
-import {
-  Constructor,
-}                       from 'clone-class'
-import {
-  FileBox,
-}                       from 'file-box'
-import {
-  callerResolve,
-}                       from 'hot-import'
-import {
-  MemoryCard,
-}                       from 'memory-card'
-import {
-  ThrottleQueue,
-}                       from 'rx-queue'
-import {
-  StateSwitch,
-}                       from 'state-switch'
 import {
   Watchdog,
   WatchdogFood,
-}                       from 'watchdog'
+}                        from 'watchdog'
+import { Constructor }    from 'clone-class'
+import { FileBox }        from 'file-box'
+import { MemoryCard }     from 'memory-card'
+import { StateSwitch }    from 'state-switch'
+import { ThrottleQueue }  from 'rx-queue'
+import { callerResolve }  from 'hot-import'
+
+import normalize               from 'normalize-package-data'
+import readPkgUp               from 'read-pkg-up'
 
 import {
   log,
@@ -62,7 +46,9 @@ import {
   ContactPayloadFilterFunction,
   ContactQueryFilter,
 }                                 from './schemas/contact'
-import { ScanStatus }             from './schemas/event'
+import {
+  ScanStatus,
+}                                 from './schemas/event'
 import {
   FriendshipPayload,
 }                                 from './schemas/friendship'
@@ -85,14 +71,13 @@ import {
 import {
   UrlLinkPayload,
 }                                 from './schemas/url-link'
-
 import {
   PuppetEventName,
   PuppetOptions,
   Receiver,
 
   YOU,
-}                       from './schemas/puppet'
+}                                 from './schemas/puppet'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -611,9 +596,15 @@ export abstract class Puppet extends EventEmitter {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
 
-    const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
+    const filterKey = Object.keys(query)[0].toLowerCase() as keyof ContactQueryFilter
 
-    if (!/^name|alias$/.test(filterKey)) {
+    const isValid = [
+      'alias',
+      'id',
+      'name',
+    ].includes(filterKey)
+
+    if (!isValid) {
       throw new Error('key not supported: ' + filterKey)
     }
 
@@ -863,10 +854,10 @@ export abstract class Puppet extends EventEmitter {
 
     const filterFunctionList: MessagePayloadFilterFunction[] = []
 
-    // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
     const filterKeyList = Object.keys(query) as Array<keyof MessageQueryFilter>
 
     for (const filterKey of filterKeyList) {
+      // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
       const filterValue: undefined | string | MessageType | RegExp = query[filterKey]
       if (!filterValue) {
         throw new Error('filterValue not found for filterKey: ' + filterKey)
@@ -1068,8 +1059,14 @@ export abstract class Puppet extends EventEmitter {
     }
 
     // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
-    const filterKey = Object.keys(query)[0] as keyof RoomQueryFilter
-    if (filterKey !== 'topic') {
+    const filterKey = Object.keys(query)[0].toLowerCase() as keyof RoomQueryFilter
+
+    const isValid = [
+      'topic',
+      'id',
+    ].includes(filterKey)
+
+    if (!isValid) {
       throw new Error('query key unknown: ' + filterKey)
     }
 
