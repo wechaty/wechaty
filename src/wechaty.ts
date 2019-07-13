@@ -371,7 +371,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
    * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
-   * @property   {Function} room-invite     -(this: Wechaty, room: Room, leaverList: Contact[]) => void <br>
+   * @property   {Function} room-invite     -(this: Wechaty, room: Room, roomInvitation: RoomInvitation) => void <br>
    *                                        see more in  {@link RoomInvitation}
    */
 
