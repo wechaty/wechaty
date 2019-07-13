@@ -134,10 +134,6 @@ export class Room extends Accessory implements Sayable {
   ): Promise<Array<T['prototype']>> {
     log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
 
-    if (query && !query.topic) {
-      throw new Error('topicFilter not found')
-    }
-
     const invalidDict: { [id: string]: true } = {}
 
     try {
