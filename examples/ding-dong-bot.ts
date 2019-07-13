@@ -110,8 +110,8 @@ function onError (e: Error) {
 async function onMessage (msg: Message) {
   console.info(msg.toString())
 
-  if (msg.age() > 60) {
-    console.info('Message discarded because its TOO OLD(than 1 minute)')
+  if (msg.age() > 2 * 60) {
+    console.info('Message discarded because its TOO OLD(than 2 minutes)')
     return
   }
 
