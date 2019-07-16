@@ -342,6 +342,7 @@ Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.co
 3. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
 4. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
 5. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
+6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
 
 Pull Request is welcome to add yours!
 
