@@ -31,6 +31,9 @@ export {
 export {
   UrlLinkPayload,
 }                             from './schemas/url-link'
+export {
+  MiniProgramPayload,
+}                             from './schemas/mini-program'
 
 export {
   throwUnsupportedError,
