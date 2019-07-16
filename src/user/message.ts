@@ -50,6 +50,9 @@ import {
 import {
   UrlLink,
 }                       from './url-link'
+import {
+  MiniProgram,
+}                       from './mini-program'
 
 export interface MessageUserQueryFilter {
   from? : Contact,
@@ -423,6 +426,7 @@ export class Message extends Accessory implements Sayable {
   public async say (contact: Contact)                               : Promise<void>
   public async say (file:    FileBox)                               : Promise<void>
   public async say (url:     UrlLink)                               : Promise<void>
+  public async say (mini:    MiniProgram)                           : Promise<void>
 
   public async say (...args: never[]): Promise<never>
   /**
@@ -431,7 +435,7 @@ export class Message extends Accessory implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | Contact | FileBox | UrlLink)} textOrContactOrFile
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
@@ -479,53 +483,74 @@ export class Message extends Accessory implements Sayable {
    *     })
    *     await msg.say(linkPayload)
    *   }
+   *
+   * // 5. send MiniProgram
+   *
+   *   if (/^link$/i.test(m.text())) {
+   *     const miniProgramPayload = new MiniProgram ({
+   *       description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+   *       thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+   *       title       : 'Welcome to Wechaty',
+   *       url         : 'https://github.com/chatie/wechaty',
+   *     })
+   *     await msg.say(miniProgramPayload)
+   *   }
+   *
    * })
    * .start()
    */
   public async say (
-    textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
+    textOrContactOrFileOrUrlOrMini : string | Contact | FileBox | UrlLink | MiniProgram,
   ): Promise<void> {
-    log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrl)
+    log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
 
-    if (typeof textOrContactOrFileOrUrl === 'string') {
+    if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
       /**
        * Text Message
        */
       await this.puppet.messageSendText({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof Contact) {
+      }, textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
       /**
        * Contact Card
        */
       await this.puppet.messageSendContact({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrl.id)
-    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
+      }, textOrContactOrFileOrUrlOrMini.id)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
       /**
        * File Message
        */
       await this.puppet.messageSendFile({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+      }, textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
       /**
        * Link Message
        */
       await this.puppet.messageSendUrl({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrl.payload)
+      }, textOrContactOrFileOrUrlOrMini.payload)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
+      /**
+       * MiniProgram
+       */
+      await this.puppet.messageSendMiniProgram({
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
+      }, textOrContactOrFileOrUrlOrMini.payload)
     } else {
-      throw new Error('unknown msg: ' + textOrContactOrFileOrUrl)
+      throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
     }
   }
 
@@ -902,6 +927,26 @@ export class Message extends Accessory implements Sayable {
     }
 
     return new UrlLink(urlPayload)
+  }
+
+  public async toMiniProgram (): Promise<MiniProgram> {
+    log.verbose('Message', 'toMiniProgram()')
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (this.type() !== Message.Type.MiniProgram) {
+      throw new Error('message not a MiniProgram')
+    }
+
+    const miniProgramPayload = await this.puppet.messageMiniProgram(this.id)
+
+    if (!miniProgramPayload) {
+      throw new Error(`no miniProgram payload for message ${this.id}`)
+    }
+
+    return new MiniProgram(miniProgramPayload)
   }
 
 }

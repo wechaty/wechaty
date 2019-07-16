@@ -108,7 +108,7 @@ See more:
         * [.logout()](#Wechaty+logout) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.logonoff()](#Wechaty+logonoff) ⇒ <code>boolean</code>
         * [.userSelf()](#Wechaty+userSelf) ⇒ [<code>ContactSelf</code>](#ContactSelf)
-        * [.say(textOrContactOrFileOrUrl)](#Wechaty+say) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.say(textOrContactOrFileOrUrlOrMini)](#Wechaty+say) ⇒ <code>Promise.&lt;void&gt;</code>
     * _static_
         * [.instance([options])](#Wechaty.instance)
 
@@ -310,7 +310,7 @@ console.log(`Bot is ${contact.name()}`)
 ```
 <a name="Wechaty+say"></a>
 
-### wechaty.say(textOrContactOrFileOrUrl) ⇒ <code>Promise.&lt;void&gt;</code>
+### wechaty.say(textOrContactOrFileOrUrlOrMini) ⇒ <code>Promise.&lt;void&gt;</code>
 Send message to userSelf, in other words, bot send message to itself.
 > Tips:
 This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
@@ -319,7 +319,7 @@ This function is depending on the Puppet Implementation, see [puppet-compatible-
 
 | Param | Type | Description |
 | --- | --- | --- |
-| textOrContactOrFileOrUrl | <code>string</code> \| <code>Contact</code> \| <code>FileBox</code> \| <code>UrlLink</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
+| textOrContactOrFileOrUrlOrMini | <code>string</code> \| <code>Contact</code> \| <code>FileBox</code> \| <code>UrlLink</code> \| <code>MiniProgram</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
 
 **Example**  
 ```js
@@ -352,6 +352,15 @@ const linkPayload = new UrlLink ({
   url         : 'https://github.com/chatie/wechaty',
 })
 await bot.say(linkPayload)
+
+// 6. send MiniProgram to bot itself
+const miniProgramPayload = new MiniProgram ({
+  description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+  thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+  title       : 'Welcome to Wechaty',
+  url         : 'https://github.com/chatie/wechaty',
+})
+await bot.say(miniProgramPayload)
 ```
 <a name="Wechaty.instance"></a>
 

@@ -40,6 +40,7 @@ import {
 }                   from '../types'
 
 import { UrlLink }  from './url-link'
+import { MiniProgram }  from './mini-program'
 
 export const POOL = Symbol('pool')
 
@@ -301,12 +302,13 @@ export class Contact extends Accessory implements Sayable {
   public async say (file: FileBox)    : Promise<void>
   public async say (contact: Contact) : Promise<void>
   public async say (url: UrlLink)     : Promise<void>
+  public async say (mini: MiniProgram): Promise<void>
 
   /**
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink)} textOrContactOrFileOrUrl
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} textOrContactOrFileOrUrlOrMini
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void>}
@@ -341,40 +343,57 @@ export class Contact extends Accessory implements Sayable {
    *   url         : 'https://github.com/chatie/wechaty',
    * })
    * await contact.say(urlLink)
+   *
+   * // 5. send mini program to contact
+   *
+   * const miniProgram = new MiniProgram ({
+   *   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+   *   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+   *   title       : 'Welcome to Wechaty',
+   *   url         : 'https://github.com/chatie/wechaty',
+   * })
+   * await contact.say(miniProgram)
    */
-  public async say (textOrContactOrFileOrUrl: string | Contact | FileBox | UrlLink): Promise<void> {
-    log.verbose('Contact', 'say(%s)', textOrContactOrFileOrUrl)
+  public async say (textOrContactOrFileOrUrlOrMini: string | Contact | FileBox | UrlLink | MiniProgram): Promise<void> {
+    log.verbose('Contact', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
-    if (typeof textOrContactOrFileOrUrl === 'string') {
+    if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
       /**
        * 1. Text
        */
       await this.puppet.messageSendText({
         contactId: this.id,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof Contact) {
+      }, textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
       /**
        * 2. Contact
        */
       await this.puppet.messageSendContact({
         contactId: this.id,
-      }, textOrContactOrFileOrUrl.id)
-    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
+      }, textOrContactOrFileOrUrlOrMini.id)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
       /**
        * 3. File
        */
       await this.puppet.messageSendFile({
         contactId: this.id,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+      }, textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
       /**
        * 4. Link Message
        */
       await this.puppet.messageSendUrl({
         contactId : this.id,
-      }, textOrContactOrFileOrUrl.payload)
+      }, textOrContactOrFileOrUrlOrMini.payload)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
+      /**
+       * 4. Mini Program
+       */
+      await this.puppet.messageSendMiniProgram({
+        contactId : this.id,
+      }, textOrContactOrFileOrUrlOrMini.payload)
     } else {
-      throw new Error('unsupported arg: ' + textOrContactOrFileOrUrl)
+      throw new Error('unsupported arg: ' + textOrContactOrFileOrUrlOrMini)
     }
   }
 
