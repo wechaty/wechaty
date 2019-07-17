@@ -43,7 +43,7 @@
   },
   "homepage": "https://github.com/Chatie/wechaty-puppet-mock#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.6.8",
+    "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.6.1",
@@ -51,7 +51,6 @@
     "@types/qr-image": "^3.2.1",
     "@types/quick-lru": "^2.0.0",
     "file-box": "^0.8.22",
-    "markdownlint-cli": "^0.13.0",
     "memory-card": "^0.6.13",
     "pkg-jq": "^0.2.2",
     "shx": "^0.3.1",
