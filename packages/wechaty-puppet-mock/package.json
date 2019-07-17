@@ -50,12 +50,10 @@
     "@types/normalize-package-data": "^2.4.0",
     "@types/qr-image": "^3.2.1",
     "@types/quick-lru": "^2.0.0",
-    "@types/read-pkg-up": "^3.0.1",
     "file-box": "^0.8.22",
     "markdownlint-cli": "^0.13.0",
     "memory-card": "^0.6.13",
     "pkg-jq": "^0.2.2",
-    "read-pkg-up": "^4.0.0",
     "shx": "^0.3.1",
     "tstest": "^0.4.1",
     "wechaty-puppet": "^0.15.3"
