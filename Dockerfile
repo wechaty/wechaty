@@ -62,8 +62,8 @@ RUN npm install \
 
 COPY . .
 
+RUN ./scripts/generate-version.sh && rm -f src/version.spec.ts
 RUN npm test
-RUN ./scripts/generate-version.sh
 RUN npm run dist
 
 # Pre-Install All Puppets
