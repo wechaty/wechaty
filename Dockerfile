@@ -63,7 +63,8 @@ RUN npm install \
 COPY . .
 
 RUN npm test
-RUN ./scripts/generate-version.sh && npm run dist
+RUN ./scripts/generate-version.sh
+RUN npm run dist
 
 # Pre-Install All Puppets
 RUN npm run puppet-install \
