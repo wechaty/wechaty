@@ -62,13 +62,12 @@ RUN npm install \
 
 COPY . .
 
+RUN npm test
+RUN ./scripts/generate-version.sh && npm run dist
+
 # Pre-Install All Puppets
 RUN npm run puppet-install \
   && sudo rm -fr /tmp/* ~/.npm
-
-# RUN npm run test:debug
-RUN npm test
-RUN npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
