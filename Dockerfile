@@ -66,10 +66,6 @@ RUN ./scripts/generate-version.sh && rm -f src/version.spec.ts
 RUN npm test
 RUN npm run dist
 
-# Pre-Install All Puppets
-RUN npm run puppet-install \
-  && sudo rm -fr /tmp/* ~/.npm
-
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN sudo mkdir /bot \
@@ -78,6 +74,11 @@ RUN sudo mkdir /bot \
     && sudo ln -sfv /wechaty/node_modules/* /node_modules/ \
     && sudo ln -sfv /wechaty/tsconfig.json / \
     && echo 'Linked Wechaty to Global'
+
+# Pre-install all puppets.
+# Must be placed after `npm link`, or it will be all deleted by `npm link`
+RUN npm run puppet-install \
+  && sudo rm -fr /tmp/* ~/.npm
 
 ENTRYPOINT  [ "/wechaty/bin/entrypoint.sh" ]
 CMD         [ "" ]
