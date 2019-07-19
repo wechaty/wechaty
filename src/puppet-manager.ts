@@ -232,7 +232,7 @@ export class PuppetManager {
     const moduleList: string[] = []
 
     for (const puppetModuleName of Object.keys(PUPPET_DEPENDENCIES)) {
-      const version = PUPPET_DEPENDENCIES[puppetModuleName as any as PuppetModuleName]
+      const version = PUPPET_DEPENDENCIES[puppetModuleName as PuppetModuleName]
       if (version !== '0.0.0') {
         moduleList.push(`${puppetModuleName}@${version}`)
       }
