@@ -17,7 +17,6 @@ import {
 }                       from './config'
 import {
   PUPPET_DEPENDENCIES,
-  PUPPET_NAME_DEFAULT,
   PuppetModuleName,
 }                       from './puppet-config'
 
@@ -66,6 +65,7 @@ export class PuppetManager {
       throw new Error('must provide a puppet name')
     }
 
+    // TODO(huan): remove the unnecessary switch
     switch (puppetName) {
       // case 'padchat':
       //   // issue #1496 https://github.com/Chatie/wechaty/issues/1496
@@ -77,9 +77,9 @@ export class PuppetManager {
       //   puppetName = 'wechaty-puppet-mock'
       //   break
 
-      case 'default':
-        puppetName = PUPPET_NAME_DEFAULT
-        break
+      // case 'default':
+      //   puppetName = PUPPET_NAME_DEFAULT
+      //   break
 
       default:
         if (!(puppetName in PUPPET_DEPENDENCIES)) {
