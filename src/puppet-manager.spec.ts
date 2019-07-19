@@ -41,8 +41,8 @@ test('resolve an unsupported puppet name', async t => {
   }
 
   try {
-    await PuppetManager.resolve({ puppet: 'mock' })
-    t.pass('should allow "mock" as puppet name')
+    await PuppetManager.resolve({ puppet: 'wechaty-puppet-mock' })
+    t.pass('should allow "wechaty-puppet-mock" as puppet name')
   } catch (e) {
     t.fail('should pass "mock" as puppet name')
   }
