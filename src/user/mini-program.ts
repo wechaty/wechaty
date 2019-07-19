@@ -10,18 +10,20 @@ export class MiniProgram {
 
   /**
    *
-   * Create from URL
+   * Create
    *
    */
-  public static async create (url: string): Promise<MiniProgram> {
-    log.verbose('MiniProgram', 'create(%s)', url)
+  public static async create (): Promise<MiniProgram> {
+    log.verbose('MiniProgram', 'create()')
 
-    // TODO: get title/description/thumbnailUrl from url automatically
+    // TODO: get appid and username from wechat
     const payload: MiniProgramPayload = {
-      description  : 'todo',
-      thumbnailUrl : 'todo',
-      title        : 'todo',
-      url,
+      appid              : 'todo',
+      description        : 'todo',
+      pagepath           : 'todo',
+      thumbnailurl       : 'todo',
+      title              : 'todo',
+      username           : 'todo',
     }
 
     return new MiniProgram(payload)
@@ -33,24 +35,28 @@ export class MiniProgram {
     log.verbose('MiniProgram', 'constructor()')
   }
 
-  public toString (): string {
-    return `MiniProgram<${this.payload.url}>`
+  public appid (): undefined | string {
+    return this.payload.appid
   }
 
-  public url (): string {
-    return this.payload.url
-  }
-
-  public title (): string {
+  public title (): undefined | string {
     return this.payload.title
   }
 
-  public thumbnailUrl (): undefined | string {
-    return this.payload.thumbnailUrl
+  public pagepath (): undefined | string {
+    return this.payload.pagepath
+  }
+
+  public username (): undefined | string {
+    return this.payload.username
   }
 
   public description (): undefined | string {
     return this.payload.description
+  }
+
+  public thumbnailurl (): undefined | string {
+    return this.payload.thumbnailurl
   }
 
 }

@@ -355,10 +355,12 @@ await bot.say(linkPayload)
 
 // 6. send MiniProgram to bot itself
 const miniProgramPayload = new MiniProgram ({
-  description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
-  thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
-  title       : 'Welcome to Wechaty',
-  url         : 'https://github.com/chatie/wechaty',
+   username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
+   appid              : '',               //optional, get from mp.weixin.qq.com
+   title              : '',               //optional
+   pagepath           : '',               //optional
+   description        : '',               //optional
+   thumbnailurl       : '',               //optional
 })
 await bot.say(miniProgramPayload)
 ```
