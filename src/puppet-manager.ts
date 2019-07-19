@@ -67,15 +67,15 @@ export class PuppetManager {
     }
 
     switch (puppetName) {
-      case 'padchat':
-        // issue #1496 https://github.com/Chatie/wechaty/issues/1496
-        // compatible old settings for padchat
-        puppetName = 'wechaty-puppet-padchat'
-        break
+      // case 'padchat':
+      //   // issue #1496 https://github.com/Chatie/wechaty/issues/1496
+      //   // compatible old settings for padchat
+      //   puppetName = 'wechaty-puppet-padchat'
+      //   break
 
-      case 'mock':
-        puppetName = 'wechaty-puppet-mock'
-        break
+      // case 'mock':
+      //   puppetName = 'wechaty-puppet-mock'
+      //   break
 
       case 'default':
         puppetName = PUPPET_NAME_DEFAULT
