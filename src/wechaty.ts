@@ -83,6 +83,7 @@ import {
   Room,
   RoomInvitation,
   UrlLink,
+  MiniProgram,
 }                       from './user/'
 
 export const WECHATY_EVENT_DICT = {
@@ -165,6 +166,7 @@ export class Wechaty extends Accessory implements Sayable {
   public readonly RoomInvitation: typeof RoomInvitation
   public readonly Room          : typeof Room
   public readonly UrlLink       : typeof UrlLink
+  public readonly MiniProgram   : typeof MiniProgram
 
   /**
    * Get the global instance of Wechaty
@@ -269,6 +271,7 @@ export class Wechaty extends Accessory implements Sayable {
 
     // No need to set puppet/wechaty, so no need to clone
     this.UrlLink = UrlLink
+    this.MiniProgram = MiniProgram
   }
 
   /**
@@ -984,6 +987,7 @@ export class Wechaty extends Accessory implements Sayable {
   public async say (contact: Contact) : Promise<void>
   public async say (file: FileBox)    : Promise<void>
   public async say (url: UrlLink)     : Promise<void>
+  public async say (mini: MiniProgram): Promise<void>
 
   public async say (...args: never[]): Promise<never>
 
@@ -992,7 +996,7 @@ export class Wechaty extends Accessory implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink)} textOrContactOrFileOrUrl
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} textOrContactOrFileOrUrlOrMini
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    *
@@ -1028,22 +1032,35 @@ export class Wechaty extends Accessory implements Sayable {
    *   url         : 'https://github.com/chatie/wechaty',
    * })
    * await bot.say(linkPayload)
+   *
+   * // 6. send MiniProgram to bot itself
+   * const miniPayload = new MiniProgram ({
+   *   username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
+   *   appid              : '',               //optional, get from mp.weixin.qq.com
+   *   title              : '',               //optional
+   *   pagepath           : '',               //optional
+   *   description        : '',               //optional
+   *   thumbnailurl       : '',               //optional
+   * })
+   * await bot.say(miniPayload)
    */
 
-  public async say (textOrContactOrFileOrUrl: string | Contact | FileBox | UrlLink): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', textOrContactOrFileOrUrl)
+  public async say (textOrContactOrFileOrUrlOrMini: string | Contact | FileBox | UrlLink | MiniProgram): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
     // Make Typescript Happy:
-    if (typeof textOrContactOrFileOrUrl === 'string') {
-      await this.userSelf().say(textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof Contact) {
-      await this.userSelf().say(textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
-      await this.userSelf().say(textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
-      await this.userSelf().say(textOrContactOrFileOrUrl)
+    if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
+      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
+      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
+      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
+      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
+      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
     } else {
-      throw new Error('unsupported: ' + textOrContactOrFileOrUrl)
+      throw new Error('unsupported: ' + textOrContactOrFileOrUrlOrMini)
     }
   }
 

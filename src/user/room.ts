@@ -40,6 +40,7 @@ import {
 import { Contact }        from './contact'
 import { RoomInvitation } from './room-invitation'
 import { UrlLink }        from './url-link'
+import { MiniProgram }    from './mini-program'
 
 import {
   RoomMemberQueryFilter,
@@ -377,6 +378,7 @@ export class Room extends Accessory implements Sayable {
   public say (text: string, ...mentionList: Contact[])   : Promise<void>
   public say (file: FileBox)                    : Promise<void>
   public say (url: UrlLink)                     : Promise<void>
+  public say (mini: MiniProgram)                : Promise<void>
   public say (textList: TemplateStringsArray, ...mentionList: Contact[]): Promise<void>
 
   public say (...args: never[]): never
@@ -386,7 +388,7 @@ export class Room extends Accessory implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrl - Send `text` or `media file` inside Room. <br>
+   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrlOrMini - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact | Contact[])} [mention] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<void>}
@@ -429,9 +431,21 @@ export class Room extends Accessory implements Sayable {
    *   url         : 'https://github.com/chatie/wechaty',
    * })
    * await room.say(urlLink)
+   *
+   * // 7. send mini program in a room
+   *
+   * const miniProgram = new MiniProgram ({
+   *   username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
+   *   appid              : '',               //optional, get from mp.weixin.qq.com
+   *   title              : '',               //optional
+   *   pagepath           : '',               //optional
+   *   description        : '',               //optional
+   *   thumbnailurl       : '',               //optional
+   * })
+   * await room.say(miniProgram)
    */
   public async say (
-    textOrListOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink | TemplateStringsArray,
+    textOrListOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink | MiniProgram | TemplateStringsArray,
     ...mentionList                 : Contact[]
   ): Promise<void> {
 
@@ -483,6 +497,13 @@ export class Room extends Accessory implements Sayable {
        * 4. Link Message
        */
       await this.puppet.messageSendUrl({
+        contactId : this.id,
+      }, textOrListOrContactOrFileOrUrl.payload)
+    } else if (textOrListOrContactOrFileOrUrl instanceof MiniProgram) {
+      /**
+       * 5. Mini Program
+       */
+      await this.puppet.messageSendMiniProgram({
         contactId : this.id,
       }, textOrListOrContactOrFileOrUrl.payload)
     } else if (textOrListOrContactOrFileOrUrl instanceof Array) {
