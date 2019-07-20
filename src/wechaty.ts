@@ -983,11 +983,11 @@ export class Wechaty extends Accessory implements Sayable {
     return user
   }
 
-  public async say (text: string)     : Promise<void>
-  public async say (contact: Contact) : Promise<void>
-  public async say (file: FileBox)    : Promise<void>
-  public async say (url: UrlLink)     : Promise<void>
-  public async say (mini: MiniProgram): Promise<void>
+  public async say (text:     string)      : Promise<void>
+  public async say (contact:  Contact)     : Promise<void>
+  public async say (file:     FileBox)     : Promise<void>
+  public async say (mini:     MiniProgram) : Promise<void>
+  public async say (url:      UrlLink)     : Promise<void>
 
   public async say (...args: never[]): Promise<never>
 
@@ -996,7 +996,7 @@ export class Wechaty extends Accessory implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} textOrContactOrFileOrUrlOrMini
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    *
@@ -1045,23 +1045,16 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.say(miniPayload)
    */
 
-  public async say (textOrContactOrFileOrUrlOrMini: string | Contact | FileBox | UrlLink | MiniProgram): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', textOrContactOrFileOrUrlOrMini)
-
-    // Make Typescript Happy:
-    if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
-      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
-    } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
-      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
-    } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
-      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
-    } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
-      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
-    } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
-      await this.userSelf().say(textOrContactOrFileOrUrlOrMini)
-    } else {
-      throw new Error('unsupported: ' + textOrContactOrFileOrUrlOrMini)
-    }
+  public async say (
+    something:  string
+              | Contact
+              | FileBox
+              | MiniProgram
+              | UrlLink
+  ): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', something)
+    // huan: to make TypeScript happy
+    await this.userSelf().say(something as any)
   }
 
   /**
