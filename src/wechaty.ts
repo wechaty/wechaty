@@ -287,19 +287,19 @@ export class Wechaty extends Accessory implements Sayable {
     ].join('')
   }
 
-  public emit (event: 'dong',       data?: string)                                                      : boolean
-  public emit (event: 'error',      error: Error)                                                       : boolean
-  public emit (event: 'friendship', friendship: Friendship)                                             : boolean
-  public emit (event: 'heartbeat',  data: any)                                                          : boolean
-  public emit (event: 'login' | 'logout', user: ContactSelf)                                            : boolean
-  public emit (event: 'message',    message: Message)                                                   : boolean
-  public emit (event: 'ready')                                                                          : boolean
-  public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                   : boolean
-  public emit (event: 'room-join',    room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
-  public emit (event: 'room-leave',   room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
-  public emit (event: 'room-topic',   room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
-  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                : boolean
-  public emit (event: 'start' | 'stop')                                                                 : boolean
+  public emit (event: 'dong',       data?: string)                                                                  : boolean
+  public emit (event: 'error',      error: Error)                                                                   : boolean
+  public emit (event: 'friendship', friendship: Friendship)                                                         : boolean
+  public emit (event: 'heartbeat',  data: any)                                                                      : boolean
+  public emit (event: 'login' | 'logout', user: ContactSelf)                                                        : boolean
+  public emit (event: 'message',    message: Message)                                                               : boolean
+  public emit (event: 'ready')                                                                                      : boolean
+  public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                               : boolean
+  public emit (event: 'room-join',    room: Room, time: Date, inviteeList : Contact[], inviter  : Contact)          : boolean
+  public emit (event: 'room-leave',   room: Room, time: Date, leaverList  : Contact[], remover? : Contact)          : boolean
+  public emit (event: 'room-topic',   room: Room, time: Date, newTopic: string, oldTopic: string, changer: Contact) : boolean
+  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                            : boolean
+  public emit (event: 'start' | 'stop')                                                                             : boolean
 
   // guard for the above event: make sure it includes all the possible values
   public emit (event: never, listener: never): never
@@ -311,19 +311,19 @@ export class Wechaty extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on (event: 'dong',         listener: string | ((this: Wechaty, data?: string) => void))                                                    : this
-  public on (event: 'error',        listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
-  public on (event: 'friendship',   listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
-  public on (event: 'heartbeat',    listener: string | ((this: Wechaty, data: any) => void))                                                        : this
-  public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                            : this
-  public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
-  public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                   : this
-  public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
-  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
-  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
-  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
-  public on (event: 'scan',         listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                : this
-  public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                 : this
+  public on (event: 'dong',         listener: string | ((this: Wechaty, data?: string) => void))                                                                : this
+  public on (event: 'error',        listener: string | ((this: Wechaty, error: Error) => void))                                                                 : this
+  public on (event: 'friendship',   listener: string | ((this: Wechaty, friendship: Friendship) => void))                                                       : this
+  public on (event: 'heartbeat',    listener: string | ((this: Wechaty, data: any) => void))                                                                    : this
+  public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                        : this
+  public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                             : this
+  public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                               : this
+  public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                               : this
+  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, time: Date, inviteeList: Contact[],  inviter: Contact) => void))            : this
+  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, time: Date, leaverList: Contact[], remover?: Contact) => void))             : this
+  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, time: Date, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
+  public on (event: 'scan',         listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                            : this
+  public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                             : this
 
   // guard for the above event: make sure it includes all the possible values
   public on (event: never, listener: never): never
@@ -673,7 +673,7 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'room-join':
-          puppet.on('room-join', async (roomId, inviteeIdList, inviterId) => {
+          puppet.on('room-join', async (roomId, timestamp, inviteeIdList, inviterId) => {
             const room = this.Room.load(roomId)
             await room.sync()
 
@@ -683,13 +683,13 @@ export class Wechaty extends Accessory implements Sayable {
             const inviter = this.Contact.load(inviterId)
             await inviter.ready()
 
-            this.emit('room-join', room, inviteeList, inviter)
-            room.emit('join', inviteeList, inviter)
+            this.emit('room-join', room, new Date(timestamp), inviteeList, inviter)
+            room.emit('join', new Date(timestamp), inviteeList, inviter)
           })
           break
 
         case 'room-leave':
-          puppet.on('room-leave', async (roomId, leaverIdList, removerId) => {
+          puppet.on('room-leave', async (roomId, timestamp, leaverIdList, removerId) => {
             const room = this.Room.load(roomId)
             await room.sync()
 
@@ -702,8 +702,8 @@ export class Wechaty extends Accessory implements Sayable {
               await remover.ready()
             }
 
-            this.emit('room-leave', room, leaverList, remover)
-            room.emit('leave', leaverList, remover)
+            this.emit('room-leave', room, new Date(timestamp), leaverList, remover)
+            room.emit('leave', new Date(timestamp), leaverList, remover)
 
             // issue #254
             if (leaverIdList.includes(this.puppet.selfId())) {
@@ -715,15 +715,15 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'room-topic':
-          puppet.on('room-topic', async (roomId, newTopic, oldTopic, changerId) => {
+          puppet.on('room-topic', async (roomId, timestamp, newTopic, oldTopic, changerId) => {
             const room = this.Room.load(roomId)
             await room.sync()
 
             const changer = this.Contact.load(changerId)
             await changer.ready()
 
-            this.emit('room-topic', room, newTopic, oldTopic, changer)
-            room.emit('topic', newTopic, oldTopic, changer)
+            this.emit('room-topic', room, new Date(timestamp), newTopic, oldTopic, changer)
+            room.emit('topic', new Date(timestamp), newTopic, oldTopic, changer)
           })
           break
 
