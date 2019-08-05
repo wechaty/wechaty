@@ -11,6 +11,7 @@ export interface FriendshipPayloadBase {
 
   contactId : string,
   hello?    : string,
+  timestamp : number,
 }
 
 /** @hidden */
