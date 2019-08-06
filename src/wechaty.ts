@@ -694,7 +694,6 @@ export class Wechaty extends Accessory implements Sayable {
         case 'room-leave':
           puppet.on('room-leave', async (roomId, leaverIdList, removerId) => {
             const room = this.Room.load(roomId)
-            await room.sync()
 
             const leaverList = leaverIdList.map(id => this.Contact.load(id))
             await Promise.all(leaverList.map(c => c.ready()))
