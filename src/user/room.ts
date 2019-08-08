@@ -543,10 +543,10 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  public emit (event: 'invite', inviter: Contact,         invitation: RoomInvitation)                       : boolean
-  public emit (event: 'leave',  time: Date, leaverList:   Contact[],  remover?: Contact)                    : boolean
-  public emit (event: 'join',   time: Date, inviteeList:  Contact[],  inviter:  Contact)                    : boolean
-  public emit (event: 'topic',  time: Date, topic:        string,     oldTopic: string,   changer: Contact) : boolean
+  public emit (event: 'invite', inviter: Contact,         invitation: RoomInvitation)           : boolean
+  public emit (event: 'leave',  leaverList:   Contact[],  remover:  Contact, time?: Date)                    : boolean
+  public emit (event: 'join',   inviteeList:  Contact[],  inviter:  Contact, time?: Date)                    : boolean
+  public emit (event: 'topic',  topic:        string,     oldTopic: string,  changer: Contact, time?: Date)  : boolean
   public emit (event: never, ...args: never[]): never
 
   public emit (
@@ -556,11 +556,11 @@ export class Room extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)                           : this
-  public on (event: 'leave',  listener: (this: Room, time: Date, leaverList:  Contact[], remover?: Contact) => void)                  : this
-  public on (event: 'join',   listener: (this: Room, time: Date, inviteeList: Contact[], inviter:  Contact) => void)                  : this
-  public on (event: 'topic',  listener: (this: Room, time: Date, topic:       string,    oldTopic: string, changer: Contact) => void) : this
-  public on (event: never,   ...args: never[])                                                                                        : never
+  public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
+  public on (event: 'leave',  listener: (this: Room, leaverList:  Contact[], remover:  Contact, time?: Date) => void)                  : this
+  public on (event: 'join',   listener: (this: Room, inviteeList: Contact[], inviter:  Contact, time?: Date) => void)                  : this
+  public on (event: 'topic',  listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact, time?: Date) => void) : this
+  public on (event: never,   ...args: never[])                                                                            : never
 
   /**
    * @desc       Room Class Event Type
