@@ -583,9 +583,9 @@ export class Room extends Accessory implements Sayable {
   }
 
   public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
-  public on (event: 'leave',  listener: (this: Room, leaverList:  Contact[], remover:  Contact, date: Date) => void)                  : this
-  public on (event: 'join',   listener: (this: Room, inviteeList: Contact[], inviter:  Contact, date: Date) => void)                  : this
-  public on (event: 'topic',  listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact, date: Date) => void) : this
+  public on (event: 'leave',  listener: (this: Room, leaverList:  Contact[], remover?:  Contact, date?: Date) => void)                   : this
+  public on (event: 'join',   listener: (this: Room, inviteeList: Contact[], inviter:  Contact,  date?: Date) => void)                   : this
+  public on (event: 'topic',  listener: (this: Room, topic:       string,    oldTopic: string,   changer: Contact, date?: Date) => void) : this
   public on (event: never,   ...args: never[])                                                                            : never
 
   /**
