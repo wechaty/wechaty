@@ -319,9 +319,9 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
   public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                   : this
   public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
-  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[], inviter: Contact, date: Date) => void))             : this
-  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, leaverList: Contact[],  remover: Contact, date: Date) => void))             : this
-  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact, date: Date) => void)) : this
+  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[], inviter: Contact, date?: Date) => void))             : this
+  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, leaverList: Contact[],  remover: Contact, date?: Date) => void))             : this
+  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact, date?: Date) => void)) : this
   public on (event: 'scan',         listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                : this
   public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                 : this
 
