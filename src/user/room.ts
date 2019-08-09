@@ -544,9 +544,9 @@ export class Room extends Accessory implements Sayable {
   }
 
   public emit (event: 'invite', inviter: Contact,         invitation: RoomInvitation)           : boolean
-  public emit (event: 'leave',  leaverList:   Contact[],  remover:  Contact, time?: Date)                    : boolean
-  public emit (event: 'join',   inviteeList:  Contact[],  inviter:  Contact, time?: Date)                    : boolean
-  public emit (event: 'topic',  topic:        string,     oldTopic: string,  changer: Contact, time?: Date)  : boolean
+  public emit (event: 'leave',  leaverList:   Contact[],  remover:  Contact, date: Date)                    : boolean
+  public emit (event: 'join',   inviteeList:  Contact[],  inviter:  Contact, date: Date)                    : boolean
+  public emit (event: 'topic',  topic:        string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
   public emit (event: never, ...args: never[]): never
 
   public emit (
@@ -557,9 +557,9 @@ export class Room extends Accessory implements Sayable {
   }
 
   public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
-  public on (event: 'leave',  listener: (this: Room, leaverList:  Contact[], remover:  Contact, time?: Date) => void)                  : this
-  public on (event: 'join',   listener: (this: Room, inviteeList: Contact[], inviter:  Contact, time?: Date) => void)                  : this
-  public on (event: 'topic',  listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact, time?: Date) => void) : this
+  public on (event: 'leave',  listener: (this: Room, leaverList:  Contact[], remover:  Contact, date: Date) => void)                  : this
+  public on (event: 'join',   listener: (this: Room, inviteeList: Contact[], inviter:  Contact, date: Date) => void)                  : this
+  public on (event: 'topic',  listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact, date: Date) => void) : this
   public on (event: never,   ...args: never[])                                                                            : never
 
   /**
