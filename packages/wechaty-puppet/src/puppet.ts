@@ -264,9 +264,9 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'logout',       contactId: string)                                                             : boolean
   public emit (event: 'message',      messageId: string)                                                             : boolean
   public emit (event: 'reset',        reason: string)                                                                : boolean
-  public emit (event: 'room-join',    roomId: string, inviteeIdList:  string[], inviterId: string)                   : boolean
-  public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover?: string)                    : boolean
-  public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string, changerId: string) : boolean
+  public emit (event: 'room-join',    roomId: string, inviteeIdList:  string[], inviterId: string, timestamp: number)                    : boolean
+  public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover: string,   timestamp: number)                    : boolean
+  public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string,  changerId: string, timestamp: number) : boolean
   public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
   public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                             : boolean
   public emit (event: 'ready')                                                                                       : boolean
