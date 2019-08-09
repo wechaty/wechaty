@@ -17,7 +17,6 @@ import {
 }                       from './config'
 import {
   PUPPET_DEPENDENCIES,
-  PUPPET_NAME_DEFAULT,
   PuppetModuleName,
 }                       from './puppet-config'
 
@@ -66,20 +65,21 @@ export class PuppetManager {
       throw new Error('must provide a puppet name')
     }
 
+    // TODO(huan): remove the unnecessary switch
     switch (puppetName) {
-      case 'padchat':
-        // issue #1496 https://github.com/Chatie/wechaty/issues/1496
-        // compatible old settings for padchat
-        puppetName = 'wechaty-puppet-padchat'
-        break
+      // case 'padchat':
+      //   // issue #1496 https://github.com/Chatie/wechaty/issues/1496
+      //   // compatible old settings for padchat
+      //   puppetName = 'wechaty-puppet-padchat'
+      //   break
 
-      case 'mock':
-        puppetName = 'wechaty-puppet-mock'
-        break
+      // case 'mock':
+      //   puppetName = 'wechaty-puppet-mock'
+      //   break
 
-      case 'default':
-        puppetName = PUPPET_NAME_DEFAULT
-        break
+      // case 'default':
+      //   puppetName = PUPPET_NAME_DEFAULT
+      //   break
 
       default:
         if (!(puppetName in PUPPET_DEPENDENCIES)) {
@@ -232,7 +232,7 @@ export class PuppetManager {
     const moduleList: string[] = []
 
     for (const puppetModuleName of Object.keys(PUPPET_DEPENDENCIES)) {
-      const version = PUPPET_DEPENDENCIES[puppetModuleName as any as PuppetModuleName]
+      const version = PUPPET_DEPENDENCIES[puppetModuleName as PuppetModuleName]
       if (version !== '0.0.0') {
         moduleList.push(`${puppetModuleName}@${version}`)
       }

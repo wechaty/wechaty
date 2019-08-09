@@ -36,6 +36,7 @@ export {
   Room,
   RoomInvitation,
   UrlLink,
+  MiniProgram,
 }                         from './user'
 
 export {

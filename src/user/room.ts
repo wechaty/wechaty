@@ -40,6 +40,7 @@ import {
 import { Contact }        from './contact'
 import { RoomInvitation } from './room-invitation'
 import { UrlLink }        from './url-link'
+import { MiniProgram }    from './mini-program'
 
 import {
   RoomMemberQueryFilter,
@@ -373,11 +374,12 @@ export class Room extends Accessory implements Sayable {
     return !!(this.payload)
   }
 
-  public say (text: string)                     : Promise<void>
-  public say (text: string, ...mentionList: Contact[])   : Promise<void>
-  public say (file: FileBox)                    : Promise<void>
-  public say (url: UrlLink)                     : Promise<void>
-  public say (textList: TemplateStringsArray, ...mentionList: Contact[]): Promise<void>
+  public say (text:     string)                                          : Promise<void>
+  public say (text:     string, ...mentionList: Contact[])               : Promise<void>
+  public say (textList: TemplateStringsArray, ...mentionList: Contact[]) : Promise<void>
+  public say (file:     FileBox)                                         : Promise<void>
+  public say (url:      UrlLink)                                         : Promise<void>
+  public say (mini:     MiniProgram)                                     : Promise<void>
 
   public say (...args: never[]): never
 
@@ -386,7 +388,7 @@ export class Room extends Accessory implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrl - Send `text` or `media file` inside Room. <br>
+   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrlOrMini - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact | Contact[])} [mention] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<void>}
@@ -429,20 +431,37 @@ export class Room extends Accessory implements Sayable {
    *   url         : 'https://github.com/chatie/wechaty',
    * })
    * await room.say(urlLink)
+   *
+   * // 7. send mini program in a room
+   *
+   * const miniProgram = new MiniProgram ({
+   *   username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
+   *   appid              : '',               //optional, get from mp.weixin.qq.com
+   *   title              : '',               //optional
+   *   pagepath           : '',               //optional
+   *   description        : '',               //optional
+   *   thumbnailurl       : '',               //optional
+   * })
+   * await room.say(miniProgram)
    */
   public async say (
-    textOrListOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink | TemplateStringsArray,
-    ...mentionList                 : Contact[]
+    something : string
+              | Contact
+              | FileBox
+              | MiniProgram
+              | TemplateStringsArray
+              | UrlLink,
+    ...mentionList : Contact[]
   ): Promise<void> {
 
     log.verbose('Room', 'say(%s, %s)',
-      textOrListOrContactOrFileOrUrl,
+      something,
       mentionList.join(', '),
     )
 
     let text: string
 
-    if (typeof textOrListOrContactOrFileOrUrl === 'string') {
+    if (typeof something === 'string') {
 
       if (mentionList.length > 0) {
         const AT_SEPARATOR = FOUR_PER_EM_SPACE
@@ -451,9 +470,9 @@ export class Room extends Accessory implements Sayable {
         ))
         const mentionText = mentionAlias.join(AT_SEPARATOR)
 
-        text = mentionText + ' ' + textOrListOrContactOrFileOrUrl
+        text = mentionText + ' ' + something
       } else {
-        text = textOrListOrContactOrFileOrUrl
+        text = something
       }
       const receiver = {
         contactId : (mentionList.length && mentionList[0].id) || undefined,
@@ -464,34 +483,41 @@ export class Room extends Accessory implements Sayable {
         text,
         mentionList.map(c => c.id),
       )
-    } else if (textOrListOrContactOrFileOrUrl instanceof FileBox) {
+    } else if (something instanceof FileBox) {
       /**
        * 2. File Message
        */
       await this.puppet.messageSendFile({
         roomId: this.id,
-      }, textOrListOrContactOrFileOrUrl)
-    } else if (textOrListOrContactOrFileOrUrl instanceof Contact) {
+      }, something)
+    } else if (something instanceof Contact) {
       /**
        * 3. Contact Card
        */
       await this.puppet.messageSendContact({
         roomId: this.id,
-      }, textOrListOrContactOrFileOrUrl.id)
-    } else if (textOrListOrContactOrFileOrUrl instanceof UrlLink) {
+      }, something.id)
+    } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
       await this.puppet.messageSendUrl({
         contactId : this.id,
-      }, textOrListOrContactOrFileOrUrl.payload)
-    } else if (textOrListOrContactOrFileOrUrl instanceof Array) {
+      }, something.payload)
+    } else if (something instanceof MiniProgram) {
+      /**
+       * 5. Mini Program
+       */
+      await this.puppet.messageSendMiniProgram({
+        contactId : this.id,
+      }, something.payload)
+    } else if (something instanceof Array) {
       await this.sayTemplateStringsArray(
-        textOrListOrContactOrFileOrUrl,
+        something,
         ...mentionList,
       )
     } else {
-      throw new Error('arg unsupported: ' + textOrListOrContactOrFileOrUrl)
+      throw new Error('arg unsupported: ' + something)
     }
   }
 
