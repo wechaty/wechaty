@@ -19,8 +19,9 @@
 import {
   Contact,
   Message,
+  ScanStatus,
   Wechaty,
-}           from '../src/' // from 'wechaty'
+}               from '../src/' // from 'wechaty'
 
 import { FileBox }  from 'file-box'
 import { generate } from 'qrcode-terminal'
@@ -40,11 +41,11 @@ const bot = new Wechaty({
  *
  */
 bot
-.on('logout', onLogout)
-.on('login',  onLogin)
-.on('scan',   onScan)
-.on('error',  onError)
-.on('message', onMessage)
+  .on('logout', onLogout)
+  .on('login',  onLogin)
+  .on('scan',   onScan)
+  .on('error',  onError)
+  .on('message', onMessage)
 
 /**
  *
@@ -52,11 +53,11 @@ bot
  *
  */
 bot.start()
-.catch(async e => {
-  console.error('Bot start() fail:', e)
-  await bot.stop()
-  process.exit(-1)
-})
+  .catch(async e => {
+    console.error('Bot start() fail:', e)
+    await bot.stop()
+    process.exit(-1)
+  })
 
 /**
  *
@@ -70,8 +71,8 @@ bot.start()
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
-function onScan (qrcode: string, status: number) {
-  generate(qrcode, { small: true })
+function onScan (qrcode: string, status: ScanStatus) {
+  generate(qrcode)
 
   // Generate a QR Code online via
   // http://goqr.me/api/doc/create-qr-code/
@@ -80,16 +81,18 @@ function onScan (qrcode: string, status: number) {
     encodeURIComponent(qrcode),
   ].join('')
 
-  console.log(`[${status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
+  console.info('%s(%s) - %s', ScanStatus[status], status, qrcodeImageUrl)
+
+  // console.info(`[${ScanStatus[status]}(${status})] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
 }
 
 function onLogin (user: Contact) {
-  console.log(`${user.name()} login`)
+  console.info(`${user.name()} login`)
   bot.say('Wechaty login').catch(console.error)
 }
 
 function onLogout (user: Contact) {
-  console.log(`${user.name()} logouted`)
+  console.info(`${user.name()} logouted`)
 }
 
 function onError (e: Error) {
@@ -108,18 +111,18 @@ function onError (e: Error) {
  *
  */
 async function onMessage (msg: Message) {
-  console.log(msg.toString())
+  console.info(msg.toString())
 
-  if (msg.age() > 60) {
-    console.log('Message discarded because its TOO OLD(than 1 minute)')
+  if (msg.age() > 2 * 60) {
+    console.info('Message discarded because its TOO OLD(than 2 minutes)')
     return
   }
 
-  if (   msg.type() !== bot.Message.Type.Text
-      || !/^(ding|ping|bing|code)$/i.test(msg.text())
-      /*&& !msg.self()*/
+  if (msg.type() !== bot.Message.Type.Text
+    || !/^(ding|ping|bing|code)$/i.test(msg.text())
+    /* && !msg.self() */
   ) {
-    console.log('Message discarded because it does not match ding/ping/bing/code')
+    console.info('Message discarded because it does not match ding/ping/bing/code')
     return
   }
 
@@ -127,7 +130,7 @@ async function onMessage (msg: Message) {
    * 1. reply 'dong'
    */
   await msg.say('dong')
-  console.log('REPLY: dong')
+  console.info('REPLY: dong')
 
   /**
    * 2. reply image(qrcode image)
@@ -135,7 +138,7 @@ async function onMessage (msg: Message) {
   const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
 
   await msg.say(fileBox)
-  console.log('REPLY: %s', fileBox.toString())
+  console.info('REPLY: %s', fileBox.toString())
 
   /**
    * 3. reply 'scan now!'
@@ -175,4 +178,4 @@ upgrade me to more superpowers!
 Please wait... I'm trying to login in...
 
 `
-console.log(welcome)
+console.info(welcome)

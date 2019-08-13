@@ -5,3 +5,4 @@ languages:
   Python: false
 exclude_paths:
   - "/doc/"
+  - "**/*.spec.ts"

@@ -40,6 +40,7 @@ import {
 }                   from '../types'
 
 import { UrlLink }  from './url-link'
+import { MiniProgram }  from './mini-program'
 
 export const POOL = Symbol('pool')
 
@@ -168,16 +169,16 @@ export class Contact extends Accessory implements Sayable {
       // https://github.com/Chatie/wechaty/issues/1345
       const valid = await this.puppet.contactValidate(contact.id)
       if (valid) {
-        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is vlaid result, return it.',
-                            n,
-                            contact.id,
-                  )
+        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is valid result, return it.',
+          n,
+          contact.id,
+        )
         return contact
       } else {
         log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is INVALID result, try next',
-                            n,
-                            contact.id,
-                    )
+          n,
+          contact.id,
+        )
       }
     }
     log.warn('Contact', 'find() got %d contacts but no one is valid.', contactList.length)
@@ -209,10 +210,6 @@ export class Contact extends Accessory implements Sayable {
   ): Promise<Array<T['prototype']>> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
-    if (query && Object.keys(query).length !== 1) {
-      throw new Error('query only support one key. multi key support is not availble now.')
-    }
-
     try {
       const contactIdList: string[] = await this.puppet.contactSearch(query)
       const contactList = contactIdList.map(id => this.load(id))
@@ -230,10 +227,10 @@ export class Contact extends Accessory implements Sayable {
         await Promise.all(
           batchContactList.map(
             c => c.ready()
-                  .catch(e => {
-                    log.error('Contact', 'findAll() contact.ready() exception: %s', e.message)
-                    invalidDict[c.id] = true
-                  }),
+              .catch(e => {
+                log.error('Contact', 'findAll() contact.ready() exception: %s', e.message)
+                invalidDict[c.id] = true
+              }),
           ),
         )
 
@@ -261,18 +258,14 @@ export class Contact extends Accessory implements Sayable {
    */
   protected payload?: ContactPayload
 
-  public readonly id: string // Contact Id
-
   /**
    * @private
    */
   constructor (
-    id: string,
+    public readonly id: string,
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
-
-    this.id = id
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Contact)
@@ -305,16 +298,17 @@ export class Contact extends Accessory implements Sayable {
     return `Contact<${identity}>`
   }
 
-  public async say (text: string)     : Promise<void>
-  public async say (file: FileBox)    : Promise<void>
-  public async say (contact: Contact) : Promise<void>
-  public async say (url: UrlLink)     : Promise<void>
+  public async say (text:     string)      : Promise<void>
+  public async say (contact:  Contact)     : Promise<void>
+  public async say (file:     FileBox)     : Promise<void>
+  public async say (mini:     MiniProgram) : Promise<void>
+  public async say (url:      UrlLink)     : Promise<void>
 
   /**
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrl
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void>}
@@ -339,40 +333,75 @@ export class Contact extends Accessory implements Sayable {
    *
    * const contactCard = bot.Contact.load('contactId')
    * await contact.say(contactCard)
+   *
+   * // 4. send url link to contact
+   *
+   * const urlLink = new UrlLink ({
+   *   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+   *   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+   *   title       : 'Welcome to Wechaty',
+   *   url         : 'https://github.com/chatie/wechaty',
+   * })
+   * await contact.say(urlLink)
+   *
+   * // 5. send mini program to contact
+   *
+   * const miniProgram = new MiniProgram ({
+   *   username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
+   *   appid              : '',               //optional, get from mp.weixin.qq.com
+   *   title              : '',               //optional
+   *   pagepath           : '',               //optional
+   *   description        : '',               //optional
+   *   thumbnailurl       : '',               //optional
+   * })
+   * await contact.say(miniProgram)
    */
-  public async say (textOrContactOrFileOrUrl: string | Contact | FileBox | UrlLink): Promise<void> {
-    log.verbose('Contact', 'say(%s)', textOrContactOrFileOrUrl)
+  public async say (
+    something:  string
+              | Contact
+              | FileBox
+              | MiniProgram
+              | UrlLink
+  ): Promise<void> {
+    log.verbose('Contact', 'say(%s)', something)
 
-    if (typeof textOrContactOrFileOrUrl === 'string') {
+    if (typeof something === 'string') {
       /**
        * 1. Text
        */
       await this.puppet.messageSendText({
         contactId: this.id,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof Contact) {
+      }, something)
+    } else if (something instanceof Contact) {
       /**
        * 2. Contact
        */
       await this.puppet.messageSendContact({
         contactId: this.id,
-      }, textOrContactOrFileOrUrl.id)
-    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
+      }, something.id)
+    } else if (something instanceof FileBox) {
       /**
        * 3. File
        */
       await this.puppet.messageSendFile({
         contactId: this.id,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+      }, something)
+    } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
       await this.puppet.messageSendUrl({
-        contactId : this.id
-      }, textOrContactOrFileOrUrl.payload)
+        contactId : this.id,
+      }, something.payload)
+    } else if (something instanceof MiniProgram) {
+      /**
+       * 5. Mini Program
+       */
+      await this.puppet.messageSendMiniProgram({
+        contactId : this.id,
+      }, something.payload)
     } else {
-      throw new Error('unsupported arg: ' + textOrContactOrFileOrUrl)
+      throw new Error('unsupported arg: ' + something)
     }
   }
 
@@ -384,7 +413,7 @@ export class Contact extends Accessory implements Sayable {
    * const name = contact.name()
    */
   public name (): string {
-    return this.payload && this.payload.name || ''
+    return (this.payload && this.payload.name) || ''
   }
 
   public async alias ()                  : Promise<null | string>
@@ -424,10 +453,10 @@ export class Contact extends Accessory implements Sayable {
    */
   public async alias (newAlias?: null | string): Promise<null | string | void> {
     log.silly('Contact', 'alias(%s)',
-                            newAlias === undefined
-                              ? ''
-                              : newAlias,
-                )
+      newAlias === undefined
+        ? ''
+        : newAlias,
+    )
 
     if (!this.payload) {
       throw new Error('no payload')
@@ -443,9 +472,9 @@ export class Contact extends Accessory implements Sayable {
       this.payload = await this.puppet.contactPayload(this.id)
       if (newAlias && newAlias !== this.payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
-                            newAlias,
-                            this.payload.alias,
-                )
+          newAlias,
+          this.payload.alias,
+        )
       }
     } catch (e) {
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
@@ -580,7 +609,7 @@ export class Contact extends Accessory implements Sayable {
    * const province = contact.province()
    */
   public province (): null | string {
-    return this.payload && this.payload.province || null
+    return (this.payload && this.payload.province) || null
   }
 
   /**
@@ -591,7 +620,7 @@ export class Contact extends Accessory implements Sayable {
    * const city = contact.city()
    */
   public city (): null | string {
-    return this.payload && this.payload.city || null
+    return (this.payload && this.payload.city) || null
   }
 
   /**
@@ -668,9 +697,9 @@ export class Contact extends Accessory implements Sayable {
 
     } catch (e) {
       log.verbose('Contact', `ready() this.puppet.contactPayload(%s) exception: %s`,
-                            this,
-                            e.message,
-                )
+        this,
+        e.message,
+      )
       Raven.captureException(e)
       throw e
     }
@@ -711,6 +740,7 @@ export class Contact extends Accessory implements Sayable {
    * const weixin = contact.weixin()
    */
   public weixin (): null | string {
-    return this.payload && this.payload.weixin || null
+    return (this.payload && this.payload.weixin) || null
   }
+
 }

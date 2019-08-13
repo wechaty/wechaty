@@ -31,8 +31,8 @@ test('important variables', async t => {
 
   // t.ok(config.default.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
   // t.ok(config.default.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
-  t.ok(config.default.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
-  t.ok(config.default.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
+  t.ok(config.default.DEFAULT_PROTOCOL, 'should export DEFAULT_PROTOCOL')
+  t.ok(config.default.DEFAULT_APIHOST,  'should export DEFAULT_APIHOST')
 })
 
 test('validApiHost()', async t => {
@@ -87,10 +87,10 @@ test('systemPuppetName ()', async t => {
   const WECHATY_PUPPET_ORIG = process.env.WECHATY_PUPPET
 
   delete process.env.WECHATY_PUPPET
-  t.equal(config.systemPuppetName(), 'default', 'should get default as pupet name')
+  t.equal(config.systemPuppetName(), 'wechaty-puppet-puppeteer', 'should get wechaty-puppet-puppeteer as puppet name')
 
-  process.env.WECHATY_PUPPET = 'mock'
-  t.equal(config.systemPuppetName(), 'mock', 'should get pupet name from process.env')
+  process.env.WECHATY_PUPPET = 'wechaty-puppet-mock'
+  t.equal(config.systemPuppetName(), 'wechaty-puppet-mock', 'should get puppet name from process.env')
 
   // restore the original value
   process.env.WECHATY_PUPPET = WECHATY_PUPPET_ORIG

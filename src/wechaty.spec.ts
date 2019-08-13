@@ -37,7 +37,6 @@ import {
   Message,
 
   Room,
-  VERSION,
 }                 from './'
 
 import {
@@ -45,32 +44,30 @@ import {
 }                     from 'wechaty-puppet'
 
 class WechatyTest extends Wechaty {
+
   public initPuppetAccessoryTest (puppet: Puppet): void {
     return this.initPuppetAccessory(puppet)
   }
+
 }
 
 test('Export of the Framework', async t => {
-  t.ok(Contact        , 'should export Contact')
-  t.ok(Friendship     , 'should export Friendship')
-  t.ok(IoClient       , 'should export IoClient')
-  t.ok(Message        , 'should export Message')
-  t.ok(Puppet , 'should export Puppet')
-  t.ok(Room           , 'should export Room')
-  t.ok(Wechaty        , 'should export Wechaty')
-  t.ok(log            , 'should export log')
+  t.ok(Contact,     'should export Contact')
+  t.ok(Friendship,  'should export Friendship')
+  t.ok(IoClient,    'should export IoClient')
+  t.ok(Message,     'should export Message')
+  t.ok(Puppet,      'should export Puppet')
+  t.ok(Room,        'should export Room')
+  t.ok(Wechaty,     'should export Wechaty')
+  t.ok(log,         'should export log')
+})
 
-  const bot = Wechaty.instance()
-  t.is(bot.version(true), require('../package.json').version,
-                          'should return version as the same in package.json',
-  )
-  t.is(VERSION, require('../package.json').version,
-                  'should export version in package.json',
-  )
+test('static VERSION', async t => {
+  t.true('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
 })
 
 test('Config setting', async t => {
-  t.ok(config                         , 'should export Config')
+  t.ok(config, 'should export Config')
   // t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
 })
 
@@ -225,7 +222,7 @@ test('ready()', async t => {
   t.true(spy.notCalled, 'should not ready after right start wechaty')
 
   puppet.emit('ready')
-  await new Promise(r => setImmediate(r))
+  await new Promise(resolve => setImmediate(resolve))
   t.true(spy.calledOnce, 'should ready after puppet ready')
 
   await wechaty.stop()
@@ -235,7 +232,7 @@ test('ready()', async t => {
     .catch(e => t.fail('rejection: ' + e))
 
   puppet.emit('ready')
-  await new Promise(r => setImmediate(r))
+  await new Promise(resolve => setImmediate(resolve))
   t.true(spy.calledTwice, 'should ready again after stop/start wechaty')
 
   await wechaty.stop()

@@ -18,7 +18,17 @@ jobs:
 
       - run:
           name: Install RedHat Packages
-          command: sudo yum -y install gcc-c++ make redhat-lsb
+          command: |
+            sudo yum -y install gcc-c++ make redhat-lsb libtool autoconf
+            sudo rpm -e --nodeps automake
+            cd /tmp
+            wget http://ftp.gnu.org/gnu/automake/automake-1.14.tar.gz
+            tar xvzf automake-1.14.tar.gz
+            cd automake-1.14
+            ./configure --prefix=/usr
+            make
+            sudo make install
+
 
       - run:
           name: NPM Install
@@ -26,7 +36,7 @@ jobs:
 
       - run:
           name: Unit Testing
-          command: npm run test:unit:retry
+          command: npm run test:unit
 
       - run:
           name: Show CentOS Version

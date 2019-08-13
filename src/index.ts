@@ -3,6 +3,10 @@ export {
 }           from 'file-box'
 
 export {
+  ScanStatus,
+}               from 'wechaty-puppet'
+
+export {
   config,
   log,
   qrcodeValueToImageUrl,
@@ -13,9 +17,14 @@ export {
  * We need to put `Wechaty` at the beginning of this file for import
  * because we have circluar dependencies between `Puppet` & `Wechaty`
  */
-import {
+export {
   Wechaty,
+  WechatyOptions,
 }                     from './wechaty'
+
+export {
+  PuppetModuleName,
+}                     from './puppet-config'
 
 export {
   Contact,
@@ -27,14 +36,10 @@ export {
   Room,
   RoomInvitation,
   UrlLink,
+  MiniProgram,
 }                         from './user'
 
 export {
-  MediaMessage,
-}                     from './deprecated'
+}                         from './deprecated'
 
 export { IoClient }   from './io-client'
-
-export {
-  Wechaty,
-}

@@ -23,26 +23,20 @@ import fs    from 'fs'
 import os    from 'os'
 import path  from 'path'
 
-import qrImage   from 'qr-image'
-import Raven     from 'raven'
-import readPkgUp from 'read-pkg-up'
+import qrImage    from 'qr-image'
+import Raven      from 'raven'
+import readPkgUp  from 'read-pkg-up'
 
-import { log }    from 'brolog'
-import {
-  FileBox,
-}                 from 'file-box'
+import { log }      from 'brolog'
+import { FileBox }  from 'file-box'
 
 import {
   PuppetModuleName,
-}                 from './puppet-config'
+  PUPPET_NAME_DEFAULT,
+}                      from './puppet-config'
+import { VERSION }      from './version'
 
-// https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
-// if (!Symbol.asyncIterator) {
-//   (Symbol as any).asyncIterator = Symbol.for('Symbol.asyncIterator')
-// }
-
-const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
-export const VERSION = pkg.version
+const pkg = readPkgUp.sync({ cwd: __dirname })!.package
 
 /**
  * Raven.io
@@ -50,20 +44,20 @@ export const VERSION = pkg.version
 Raven.disableConsoleAlerts()
 
 Raven
-.config(
-  isProduction()
-    && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
-  {
-    release: VERSION,
-    tags: {
-      git_commit: '',
-      platform: process.env.WECHATY_DOCKER
-                ? 'docker'
-                : os.platform(),
+  .config(
+    isProduction()
+      && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
+    {
+      release: VERSION,
+      tags: {
+        git_commit: '',
+        platform: process.env.WECHATY_DOCKER
+          ? 'docker'
+          : os.platform(),
+      },
     },
-  },
-)
-.install()
+  )
+  .install()
 
 /*
 try {
@@ -109,11 +103,10 @@ export interface DefaultSetting {
   DEFAULT_PROTOCOL : string,
 }
 
-/* tslint:disable:variable-name */
-/* tslint:disable:no-var-requires */
 const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 
 export class Config {
+
   public default = DEFAULT_SETTING
 
   public apihost = process.env.WECHATY_APIHOST    || DEFAULT_SETTING.DEFAULT_APIHOST
@@ -121,7 +114,7 @@ export class Config {
 
   public systemPuppetName (): PuppetModuleName {
     return (
-      process.env.WECHATY_PUPPET || 'default'
+      process.env.WECHATY_PUPPET || PUPPET_NAME_DEFAULT
     ).toLowerCase() as PuppetModuleName
   }
 
@@ -147,33 +140,6 @@ export class Config {
     }
   }
 
-  /**
-   * 5. live setting
-   */
-  // public puppetInstance(): Puppet
-  // public puppetInstance(empty: null): void
-  // public puppetInstance(instance: Puppet): void
-
-  // public puppetInstance(instance?: Puppet | null): Puppet | void {
-
-  //   if (typeof instance === 'undefined') {
-  //     if (!this._puppetInstance) {
-  //       throw new Error('no puppet instance')
-  //     }
-  //     return this._puppetInstance
-
-  //   } else if (instance === null) {
-  //     log.verbose('Config', 'puppetInstance(null)')
-  //     this._puppetInstance = null
-  //     return
-  //   }
-
-  //   log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-  //   this._puppetInstance = instance
-  //   return
-
-  // }
-
   public gitRevision (): string | null {
     const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
     // const gitLogArgs  = ['log', '--oneline', '-1']
@@ -185,16 +151,16 @@ export class Config {
       fs.statSync(dotGitPath).isDirectory()
 
       const ss = require('child_process')
-                  .spawnSync('git', gitArgs, { cwd:  __dirname })
+        .spawnSync('git', gitArgs, { cwd:  __dirname })
 
       if (ss.status !== 0) {
         throw new Error(ss.error)
       }
 
       const revision = ss.stdout
-                        .toString()
-                        .trim()
-                        .slice(0, 7)
+        .toString()
+        .trim()
+        .slice(0, 7)
       return revision
 
     } catch (e) { /* fall safe */
@@ -208,11 +174,12 @@ export class Config {
   }
 
   public validApiHost (apihost: string): boolean {
-    if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
+    if (/^[a-zA-Z0-9.\-_]+:?[0-9]*$/.test(apihost)) {
       return true
     }
     throw new Error('validApiHost() fail for ' + apihost)
   }
+
 }
 
 export const CHATIE_OFFICIAL_ACCOUNT_ID = 'gh_051c89260e5d'
@@ -229,6 +196,8 @@ export function qrCodeForChatie (): FileBox {
 // http://jkorpela.fi/chars/spaces.html
 // String.fromCharCode(8197)
 export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
+// mobile: \u2005, PC、mac: \u0020
+export const AT_SEPRATOR_REGEX = /[\u2005\u0020]/
 
 export function qrcodeValueToImageUrl (qrcodeValue: string): string {
   return [
@@ -246,6 +215,7 @@ export function isProduction (): boolean {
 export {
   log,
   Raven,
+  VERSION,
 }
 
 export const config = new Config()

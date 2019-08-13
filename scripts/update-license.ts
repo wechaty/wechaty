@@ -1,5 +1,20 @@
 #!/usr/bin/env ts-node
 
+import {
+  createReadStream,
+  createWriteStream,
+  promises as fsPromises,
+  // link    as linkCallback,
+  // unlink  as unlinkCallback,
+}                            from 'fs'
+import {
+  Transform,
+  // TransformOptions,
+}                            from 'stream'
+import { promisify }          from 'util'
+
+import * as globCallback      from 'glob'
+
 const LICENSE = `/**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -19,20 +34,6 @@ const LICENSE = `/**
  *
  */`
 
-import {
-  createReadStream,
-  createWriteStream,
-  link    as linkCallback,
-  unlink  as unlinkCallback,
-}                             from 'fs'
-import {
-  Transform,
-  TransformOptions,
-}                             from 'stream'
-import { promisify }          from 'util'
-
-import * as globCallback      from 'glob'
-
 class LicenseTransformer extends Transform {
 
   private lineBuf = ''
@@ -41,9 +42,9 @@ class LicenseTransformer extends Transform {
   private updating  = false
   private updated   = false
 
-  constructor (options?: TransformOptions) {
-    super(options)
-  }
+  // constructor (options?: TransformOptions) {
+  //   super(options)
+  // }
 
   public _transform (chunk: any, _: string /* encoding: string */, done: () => void) {
     if (this.updated) {
@@ -68,40 +69,40 @@ class LicenseTransformer extends Transform {
     const updatedLineList: string[] = []
 
     buffer
-    .split(/\n/)
-    .forEach(line => {
-      if (this.lineNum === 0 && line.startsWith('#!')) {
-        updatedLineList.push(line)
-      } else if (this.updated) {
-        updatedLineList.push(line)
-      } else if (this.updating) {
-        if (/\*\//.test(line)) {
-          updatedLineList.push(line.replace(/.*\*\//, LICENSE))
-          this.updating = false
-          this.updated  = true
-        } else {
-          // drop the old comments
-        }
-      } else {  // not updating and not updated. searching...
-        if (!line) {
+      .split(/\n/)
+      .forEach(line => {
+        if (this.lineNum === 0 && line.startsWith('#!')) {
           updatedLineList.push(line)
-        } else if (/\s*\/\*\*/.test(line)) {  // comment start
-          if (/\*\//.test(line)) {  // comment end at the same line with start
-            updatedLineList.push(line.replace(/\/\*\*.*\*\//, LICENSE))
-            this.updated = true
+        } else if (this.updated) {
+          updatedLineList.push(line)
+        } else if (this.updating) {
+          if (/\*\//.test(line)) {
+            updatedLineList.push(line.replace(/.*\*\//, LICENSE))
+            this.updating = false
+            this.updated  = true
           } else {
-            this.updating = true
+            // drop the old comments
           }
-        } else {  // not a comment. INSERT here
-          updatedLineList.push(LICENSE)
-          updatedLineList.push(line)
-          this.updated = true
+        } else {  // not updating and not updated. searching...
+          if (!line) {
+            updatedLineList.push(line)
+          } else if (/\s*\/\*\*/.test(line)) {  // comment start
+            if (/\*\//.test(line)) {  // comment end at the same line with start
+              updatedLineList.push(line.replace(/\/\*\*.*\*\//, LICENSE))
+              this.updated = true
+            } else {
+              this.updating = true
+            }
+          } else {  // not a comment. INSERT here
+            updatedLineList.push(LICENSE)
+            updatedLineList.push(line)
+            this.updated = true
+          }
         }
-      }
 
-      this.lineBuf = line
-      this.lineNum++
-    })
+        this.lineBuf = line
+        this.lineNum++
+      })
 
     return updatedLineList.join('\n')
   }
@@ -113,6 +114,7 @@ class LicenseTransformer extends Transform {
     }
     done()
   }
+
 }
 
 async function updateLicense (file: string): Promise<void> {
@@ -121,7 +123,7 @@ async function updateLicense (file: string): Promise<void> {
   const writeStream = createWriteStream(tmpFile)
   const tranStream  = new LicenseTransformer()
 
-  console.log(`Updating LICENSE for file ${file}...`)
+  console.info(`Updating LICENSE for file ${file}...`)
   await new Promise<void>((resolve, reject) => {
     readStream
       .pipe(tranStream)
@@ -129,9 +131,12 @@ async function updateLicense (file: string): Promise<void> {
       .on('close', resolve)
       .on('error', reject)
   })
-  await promisify(unlinkCallback)(file)
-  await promisify(linkCallback)(tmpFile, file)
-  await promisify(unlinkCallback)(tmpFile)
+  // await promisify(unlinkCallback)
+  await fsPromises.unlink(file)
+  // await promisify(linkCallback)(tmpFile, file)
+  await fsPromises.link(tmpFile, file)
+  // await promisify(unlinkCallback)(tmpFile)
+  await fsPromises.unlink(tmpFile)
 }
 
 async function glob (pattern: string): Promise<string[]> {
@@ -148,8 +153,8 @@ async function main (): Promise<number> {
 }
 
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })

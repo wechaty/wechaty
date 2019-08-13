@@ -33,11 +33,11 @@ async function main () {
     await doctor.testTcp()
     ipcTestResult = 'PASS'
   } catch (err) {
-    console.log(err)
+    console.info(err)
     ipcTestResult = 'FAIL. Please check your tcp network, Wechaty need to listen on localhost and connect to it.'
   }
 
-  console.log(`
+  console.info(`
   #### Wechaty Doctor
 
   1. Wechaty version: ${wechaty.version()}
@@ -51,4 +51,4 @@ async function main () {
 }
 
 main()
-.catch(err => console.error('main() exception: %s', err))
+  .catch(err => console.error('main() exception: %s', err))

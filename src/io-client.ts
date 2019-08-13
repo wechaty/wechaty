@@ -26,7 +26,7 @@ import { Message }      from './user'
 
 import {
   log,
-}                       from './config'
+}                      from './config'
 import { Io }           from './io'
 import { Wechaty }      from './wechaty'
 
@@ -78,7 +78,6 @@ export class IoClient {
       this.state.off(true)
       throw e
     }
-    return
   }
 
   private async hookWechaty (wechaty: Wechaty): Promise<void> {
@@ -91,12 +90,10 @@ export class IoClient {
     }
 
     wechaty
-    .on('login'	     , user => log.info('IoClient', `${user.name()} logined`))
-    .on('logout'	   , user => log.info('IoClient', `${user.name()} logouted`))
-    .on('scan', (url, code) => log.info('IoClient', `[${code}] ${url}`))
-    .on('message'     , msg => this.onMessage(msg))
-
-    return
+      .on('login',    user => log.info('IoClient', `${user.name()} logined`))
+      .on('logout',   user => log.info('IoClient', `${user.name()} logouted`))
+      .on('scan',     (url, code) => log.info('IoClient', `[${code}] ${url}`))
+      .on('message',  msg => this.onMessage(msg))
   }
 
   private async startIo (): Promise<void> {
@@ -114,30 +111,11 @@ export class IoClient {
       log.verbose('IoClient', 'startIo() init fail: %s', e.message)
       throw e
     }
-
-    return
   }
 
-//   public initWeb (port = config.httpPort) {
-// //    if (process.env.DYNO) {
-// //    }
-//     const app = express()
+  private async onMessage (msg: Message) {
+    log.verbose('IoClient', 'onMessage(%s)', msg)
 
-//     app.get('/', (_ /* req */, res) => {
-//       res.send('Wechaty IO Bot Alive!')
-//     })
-
-//     return new Promise((resolve) => {
-//       app.listen(port, () => {
-//         log.verbose('IoClient', 'initWeb() Wechaty IO Bot listening on port ' + port + '!')
-
-//         return resolve(this)
-
-//       })
-//     })
-//   }
-
-  private async onMessage (_: Message) {
     // const from = m.from()
     // const to = m.to()
     // const content = m.toString()
@@ -172,7 +150,6 @@ export class IoClient {
 
     // XXX 20161026
     // this.io = null
-    return
   }
 
   public async restart (): Promise<void> {
@@ -185,7 +162,6 @@ export class IoClient {
       log.error('IoClient', 'restart() exception %s', e.message)
       throw e
     }
-    return
   }
 
   public async quit (): Promise<void> {
@@ -215,8 +191,6 @@ export class IoClient {
     } finally {
       this.state.off(true)
     }
-
-    return
-
   }
+
 }

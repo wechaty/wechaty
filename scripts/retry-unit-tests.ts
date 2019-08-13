@@ -11,15 +11,15 @@ import { spawn } from 'child_process'
 const MAX_RETRY_NUM = 3
 
 async function main (): Promise<number> {
-  console.log('Safe Test: starting...')
+  console.info('Safe Test: starting...')
 
   let round = 0
   let succ = false
   do {
-    console.log(`Safe Test: running for round #${round}`)
+    console.info(`Safe Test: running for round #${round}`)
     succ = await unitTest()
     if (succ) { // success!
-      console.log(`Safe Test: successed at round #${round}!`)
+      console.info(`Safe Test: successed at round #${round}!`)
       return 0
     }
   } while (round++ < MAX_RETRY_NUM)
@@ -47,8 +47,8 @@ async function unitTest () {
 }
 
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })

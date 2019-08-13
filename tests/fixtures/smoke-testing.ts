@@ -3,13 +3,16 @@
 // tslint:disable:no-var-requires
 const isPR = require('is-pr')
 
-import { Wechaty }    from 'wechaty'
+import {
+  Wechaty,
+  VERSION,
+}           from 'wechaty'
 
 function getBotList (): Wechaty[] {
   const botList = [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
     new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
-    new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
+    // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
   if (!isPR) {
@@ -25,6 +28,10 @@ function getBotList (): Wechaty[] {
 }
 
 async function main () {
+  if (VERSION === '0.0.0') {
+    throw new Error('VERSION not set!')
+  }
+
   const botList = getBotList()
   try {
     await Promise.all(
@@ -46,8 +53,8 @@ async function main () {
 }
 
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })

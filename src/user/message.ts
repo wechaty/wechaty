@@ -33,7 +33,7 @@ import {
   Accessory,
 }                       from '../accessory'
 import {
-  FOUR_PER_EM_SPACE,
+  AT_SEPRATOR_REGEX,
   log,
   Raven,
 }                       from '../config'
@@ -50,6 +50,9 @@ import {
 import {
   UrlLink,
 }                       from './url-link'
+import {
+  MiniProgram,
+}                       from './mini-program'
 
 export interface MessageUserQueryFilter {
   from? : Contact,
@@ -132,10 +135,10 @@ export class Message extends Accessory implements Sayable {
       await Promise.all(
         messageList.map(
           message => message.ready()
-                            .catch(e => {
-                              log.warn('Room', 'findAll() message.ready() rejection: %s', e)
-                              invalidDict[message.id] = true
-                            })
+            .catch(e => {
+              log.warn('Room', 'findAll() message.ready() rejection: %s', e)
+              invalidDict[message.id] = true
+            })
         ),
       )
 
@@ -149,13 +152,13 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
- /**
-  * Create a Mobile Terminated Message
-  * @ignore
-  * @private
-  * "mobile originated" or "mobile terminated"
-  * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
-  */
+  /**
+   * Create a Mobile Terminated Message
+   * @ignore
+   * @private
+   * "mobile originated" or "mobile terminated"
+   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
+   */
   public static load (id: string): Message {
     log.verbose('Message', 'static load(%s)', id)
 
@@ -197,9 +200,9 @@ export class Message extends Accessory implements Sayable {
   ) {
     super()
     log.verbose('Message', 'constructor(%s) for class %s',
-                          id || '',
-                          this.constructor.name,
-              )
+      id || '',
+      this.constructor.name,
+    )
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Message)
@@ -224,22 +227,19 @@ export class Message extends Accessory implements Sayable {
     const msgStrList = [
       'Message',
       `#${MessageType[this.type()]}`,
-      '(',
-        this.room()
-          ? '👥' + this.room()
-          : '',
-        this.from()
-          ? '🗣' + this.from()
-          : '',
-        this.to()
-          ? '👤' + this.to()
-          : '',
-      ')',
+      '[',
+      this.from()
+        ? '🗣' + this.from()
+        : '',
+      this.room()
+        ? '@👥' + this.room()
+        : '',
+      ']',
     ]
-    if (   this.type() === Message.Type.Text
-        || this.type() === Message.Type.Unknown
+    if (this.type() === Message.Type.Text
+     || this.type() === Message.Type.Unknown
     ) {
-      msgStrList.push(`<${this.text().substr(0, 70)}>`)
+      msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
 
@@ -390,10 +390,43 @@ export class Message extends Accessory implements Sayable {
     return this.payload.text || ''
   }
 
+  /**
+   * Get the recalled message
+   *
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   if (m.type() === MessageType.Recalled) {
+   *     const recalledMessage = await m.toRecalled()
+   *     console.log(`Message: ${recalledMessage} has been recalled.`)
+   *   }
+   * })
+   * .start()
+   */
+  public async toRecalled (): Promise<Message | null> {
+    if (this.type() !== MessageType.Recalled) {
+      throw new Error('Can not call toRecalled() on message which is not recalled type.')
+    }
+    const originalMessageId = this.text()
+    if (!originalMessageId) {
+      throw new Error('Can not find recalled message')
+    }
+    try {
+      const message = this.wechaty.Message.load(originalMessageId)
+      await message.ready()
+      return message
+    } catch (e) {
+      log.verbose(`Can not retrieve the recalled message with id ${originalMessageId}.`)
+      return null
+    }
+  }
+
   public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
   public async say (contact: Contact)                               : Promise<void>
   public async say (file:    FileBox)                               : Promise<void>
   public async say (url:     UrlLink)                               : Promise<void>
+  public async say (mini:    MiniProgram)                           : Promise<void>
 
   public async say (...args: never[]): Promise<never>
   /**
@@ -402,7 +435,7 @@ export class Message extends Accessory implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | Contact | FileBox)} textOrContactOrFile
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
@@ -439,91 +472,87 @@ export class Message extends Accessory implements Sayable {
    *     await msg.say(contactCard)
    *   }
    *
+   * // 4. send Link
+   *
+   *   if (/^link$/i.test(m.text())) {
+   *     const linkPayload = new UrlLink ({
+   *       description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
+   *       thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
+   *       title       : 'Welcome to Wechaty',
+   *       url         : 'https://github.com/chatie/wechaty',
+   *     })
+   *     await msg.say(linkPayload)
+   *   }
+   *
+   * // 5. send MiniProgram
+   *
+   *   if (/^link$/i.test(m.text())) {
+   *     const miniProgramPayload = new MiniProgram ({
+   *       username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
+   *       appid              : '',               //optional, get from mp.weixin.qq.com
+   *       title              : '',               //optional
+   *       pagepath           : '',               //optional
+   *       description        : '',               //optional
+   *       thumbnailurl       : '',               //optional
+   *     })
+   *     await msg.say(miniProgramPayload)
+   *   }
+   *
    * })
    * .start()
    */
   public async say (
-    textOrContactOrFileOrUrl : string | Contact | FileBox | UrlLink,
-    mention?   : Contact | Contact[],
+    textOrContactOrFileOrUrlOrMini : string | Contact | FileBox | UrlLink | MiniProgram,
   ): Promise<void> {
-    log.verbose('Message', 'say(%s%s)',
-                            textOrContactOrFileOrUrl,
-                            mention
-                              ? ', ' + mention
-                              : '',
-                )
+    log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
 
-    const mentionList = mention
-                          ? Array.isArray(mention)
-                            ? mention
-                            : [mention]
-                          : []
-
-    if (typeof textOrContactOrFileOrUrl === 'string') {
-      await this.sayText(
-        textOrContactOrFileOrUrl,
-        from || undefined,
-        room || undefined,
-        mentionList,
-      )
-    } else if (textOrContactOrFileOrUrl instanceof Contact) {
+    if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
+      /**
+       * Text Message
+       */
+      await this.puppet.messageSendText({
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
+      }, textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
       /**
        * Contact Card
        */
       await this.puppet.messageSendContact({
-        contactId : from && from.id || undefined,
-        roomId    : room && room.id || undefined,
-      }, textOrContactOrFileOrUrl.id)
-    } else if (textOrContactOrFileOrUrl instanceof FileBox) {
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
+      }, textOrContactOrFileOrUrlOrMini.id)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
       /**
        * File Message
        */
       await this.puppet.messageSendFile({
-        contactId : from && from.id || undefined,
-        roomId    : room && room.id || undefined,
-      }, textOrContactOrFileOrUrl)
-    } else if (textOrContactOrFileOrUrl instanceof UrlLink) {
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
+      }, textOrContactOrFileOrUrlOrMini)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
       /**
        * Link Message
        */
       await this.puppet.messageSendUrl({
-        contactId : from && from.id || undefined,
-        roomId    : room && room.id || undefined,
-      }, textOrContactOrFileOrUrl.payload)
-    } else {
-      throw new Error('unknown msg: ' + textOrContactOrFileOrUrl)
-    }
-  }
-
-  private async sayText (
-    text         : string,
-    to?          : Contact,
-    room?        : Room,
-    mentionList? : Contact[],
-  ): Promise<void> {
-    if (room && mentionList && mentionList.length > 0) {
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
+      }, textOrContactOrFileOrUrlOrMini.payload)
+    } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
       /**
-       * 1 had mentioned someone
+       * MiniProgram
        */
-      const mentionContact = mentionList[0]
-      const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
-      await this.puppet.messageSendText({
-        contactId: mentionContact.id,
-        roomId: room.id,
-      }, textMentionList + ' ' + text)
+      await this.puppet.messageSendMiniProgram({
+        contactId : (from && from.id) || undefined,
+        roomId    : (room && room.id) || undefined,
+      }, textOrContactOrFileOrUrlOrMini.payload)
     } else {
-      /**
-       * 2 did not mention anyone
-       */
-      await this.puppet.messageSendText({
-        contactId : to && to.id,
-        roomId    : room && room.id,
-      }, text)
+      throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
     }
   }
 
@@ -593,13 +622,23 @@ export class Message extends Accessory implements Sayable {
     log.verbose('Message', 'mention()')
 
     const room = this.room()
-    if (this.type() !== MessageType.Text || !room ) {
+    if (this.type() !== MessageType.Text || !room) {
       return []
+    }
+
+    // Use mention list if mention list is available
+    // otherwise, process the message and get the mention list
+    if (this.payload && this.payload.mentionIdList) {
+      return Promise.all(this.payload.mentionIdList.map(async id => {
+        const contact = this.wechaty.Contact.load(id)
+        await contact.ready()
+        return contact
+      }))
     }
 
     // define magic code `8197` to identify @xxx
     // const AT_SEPRATOR = String.fromCharCode(8197)
-    const AT_SEPRATOR = FOUR_PER_EM_SPACE
+    const AT_SEPRATOR = AT_SEPRATOR_REGEX
 
     const atList = this.text().split(AT_SEPRATOR)
     // console.log('atList: ', atList)
@@ -634,9 +673,9 @@ export class Message extends Accessory implements Sayable {
     mentionNameList = mentionNameList.filter(s => !!s)
 
     log.verbose('Message', 'mention() text = "%s", mentionNameList = "%s"',
-                            this.text(),
-                            JSON.stringify(mentionNameList),
-                )
+      this.text(),
+      JSON.stringify(mentionNameList),
+    )
 
     const contactListNested = await Promise.all(
       mentionNameList.map(
@@ -706,11 +745,11 @@ export class Message extends Accessory implements Sayable {
     const roomId = this.payload.roomId
     const toId   = this.payload.toId
 
-    if (fromId) {
-      await this.wechaty.Contact.load(fromId).ready()
-    }
     if (roomId) {
       await this.wechaty.Room.load(roomId).ready()
+    }
+    if (fromId) {
+      await this.wechaty.Contact.load(fromId).ready()
     }
     if (toId) {
       await this.wechaty.Contact.load(toId).ready()
@@ -839,6 +878,11 @@ export class Message extends Accessory implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {Promise<FileBox>}
+   *
+   * @example <caption>Save media file from a message</caption>
+   * const fileBox = await message.toFileBox()
+   * const fileName = fileBox.name
+   * fileBox.toFile(fileName)
    */
   public async toFileBox (): Promise<FileBox> {
     if (this.type() === Message.Type.Text) {
@@ -885,6 +929,26 @@ export class Message extends Accessory implements Sayable {
     }
 
     return new UrlLink(urlPayload)
+  }
+
+  public async toMiniProgram (): Promise<MiniProgram> {
+    log.verbose('Message', 'toMiniProgram()')
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (this.type() !== Message.Type.MiniProgram) {
+      throw new Error('message not a MiniProgram')
+    }
+
+    const miniProgramPayload = await this.puppet.messageMiniProgram(this.id)
+
+    if (!miniProgramPayload) {
+      throw new Error(`no miniProgram payload for message ${this.id}`)
+    }
+
+    return new MiniProgram(miniProgramPayload)
   }
 
 }

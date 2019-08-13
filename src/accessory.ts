@@ -16,6 +16,7 @@ export const SYMBOL_COUNTER = Symbol('counter')
 let COUNTER = 0
 
 export abstract class Accessory extends EventEmitter {
+
   // Not work???
   // private static readonly PUPPET_ACCESSORY_NAME = Symbol('name')
 
@@ -35,9 +36,9 @@ export abstract class Accessory extends EventEmitter {
    */
   public static set puppet (puppet: Puppet) {
     log.silly('Accessory', '<%s> static set puppet = "%s"',
-                                  this.name,
-                                  puppet,
-              )
+      this.name,
+      puppet,
+    )
 
     if (this._puppet) {
       throw new Error('puppet can not be set twice')
@@ -70,9 +71,9 @@ export abstract class Accessory extends EventEmitter {
    */
   public static set wechaty (wechaty: Wechaty) {
     log.silly('Accessory', '<%s> static set wechaty = "%s"',
-                                  this.name,
-                                  wechaty,
-              )
+      this.name,
+      wechaty,
+    )
     if (this._wechaty) {
       throw new Error('wechaty can not be set twice')
     }
@@ -91,9 +92,7 @@ export abstract class Accessory extends EventEmitter {
       return this._wechaty
     }
 
-    throw new Error('static wechaty not found for '
-                      + this.name,
-                    )
+    throw new Error('static wechaty not found for ' + this.name)
   }
 
   /**
@@ -110,9 +109,9 @@ export abstract class Accessory extends EventEmitter {
    */
   public set puppet (puppet: Puppet) {
     log.silly('Accessory', '<%s> set puppet = "%s"',
-                                  this[SYMBOL_NAME] || this,
-                                  puppet,
-              )
+      this[SYMBOL_NAME] || this,
+      puppet,
+    )
     if (this._puppet) {
       throw new Error('puppet can not be set twice')
     }
@@ -183,10 +182,10 @@ export abstract class Accessory extends EventEmitter {
     this[SYMBOL_COUNTER] = COUNTER++
 
     log.silly('Accessory', '#%d<%s> constructor(%s)',
-                                    this[SYMBOL_COUNTER],
-                                    this[SYMBOL_NAME],
-                                    name || '',
-                )
+      this[SYMBOL_COUNTER],
+      this[SYMBOL_NAME],
+      name || '',
+    )
   }
 
 }
