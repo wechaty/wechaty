@@ -40,7 +40,7 @@ See more at [Wiki:Voice Of Developer](https://github.com/Chatie/wechaty/wiki/Voi
 
 ### Join Us
 
-Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
+Wechaty is used in many ChatBot projects by thousands of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
 
 ![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
 
