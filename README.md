@@ -132,7 +132,7 @@ Currently we support the following puppet providers:
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
 | Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| iPad | PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| iPad | PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
 
