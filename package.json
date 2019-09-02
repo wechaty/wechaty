@@ -145,7 +145,7 @@
     "sloc": "^0.2.0",
     "tstest": "^0.4.1",
     "typedoc": "^0.15.0",
-    "wechaty-puppet-mock": "^0.15.5"
+    "wechaty-puppet-mock": "^0.16.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
