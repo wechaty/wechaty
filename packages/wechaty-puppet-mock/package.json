@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.15.12",
+  "version": "0.16.0",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
@@ -54,13 +54,13 @@
     "memory-card": "^0.6.13",
     "pkg-jq": "^0.2.2",
     "shx": "^0.3.1",
-    "tstest": "^0.4.1",
-    "wechaty-puppet": "^0.15.3"
+    "tstest": "^0.4.5",
+    "wechaty-puppet": "^0.16.1"
   },
   "peerDependencies": {
     "file-box": "^0.8.22",
     "memory-card": "^0.6.13",
-    "wechaty-puppet": "^0.15.3"
+    "wechaty-puppet": "^0.16.1"
   },
   "dependencies": {
     "brolog": "^1.6.5",

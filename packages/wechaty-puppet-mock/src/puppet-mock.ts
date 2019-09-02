@@ -42,6 +42,7 @@ import {
   RoomPayload,
 
   UrlLinkPayload,
+  MiniProgramPayload,
 }                           from 'wechaty-puppet'
 
 import {
@@ -254,6 +255,14 @@ export class PuppetMock extends Puppet {
     }
   }
 
+  public async messageMiniProgram (messageId: string): Promise<MiniProgramPayload> {
+    log.verbose('PuppetMock', 'messageMiniProgram(%s)', messageId)
+
+    return {
+      title : 'mock title for ' + messageId,
+    }
+  }
+
   public async messageRawPayload (id: string): Promise<MockMessageRawPayload> {
     log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
     const rawPayload: MockMessageRawPayload = {
@@ -303,6 +312,12 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'messageSendUrl("%s", %s)',
       JSON.stringify(to),
       JSON.stringify(urlLinkPayload),
+    )
+  }
+  public async messageSendMiniProgram (receiver: Receiver, miniProgramPayload: MiniProgramPayload): Promise<void> {
+    log.verbose('PuppetMock', 'messageSendMiniProgram("%s", %s)',
+      JSON.stringify(receiver),
+      JSON.stringify(miniProgramPayload),
     )
   }
 
