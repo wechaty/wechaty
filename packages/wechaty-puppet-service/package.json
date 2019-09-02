@@ -50,7 +50,7 @@
     "memory-card": "^0.6.2",
     "pkg-jq": "^0.2.4",
     "tstest": "^0.4.2",
-    "wechaty-puppet": "^0.15.18"
+    "wechaty-puppet": "^0.16.1"
   },
   "peerDependencies": {
     "file-box": "^0.8.22",
