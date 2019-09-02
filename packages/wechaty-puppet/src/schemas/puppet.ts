@@ -26,21 +26,21 @@ export interface PuppetRoomJoinEvent {
   inviteeNameList : Array<(string | YOU)>,
   inviterName     : string | YOU,
   roomId          : string,
-  timestamp       : number,
+  timestamp       : number, // Unix Timestamp, in seconds
 }
 
 export interface PuppetRoomLeaveEvent {
   leaverNameList : Array<(string | YOU)>,
   removerName    : string | YOU,
   roomId         : string,
-  timestamp      : number,
+  timestamp      : number,  // Unix Timestamp, in seconds
 }
 
 export interface PuppetRoomTopicEvent {
   changerName : string | YOU,
   roomId      : string,
   topic       : string,
-  timestamp   : number,
+  timestamp   : number, // Unix Timestamp, in seconds
 }
 
 /** @hidden */
