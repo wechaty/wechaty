@@ -10,7 +10,7 @@
 
 > Picture Credit: <https://softwareautotools.com/2017/03/01/mocking-explained-in-python/>
 
-Puppet Mocker & Starter for Wechaty, it is very useful when you:
+Puppet Mocker & Starter Template for Wechaty, it is very useful when you:
 
 1. Want to test the Wechaty framework with a mock puppet, or
 1. You want to write your own Puppet implenmentation.
