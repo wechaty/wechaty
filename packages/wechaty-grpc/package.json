@@ -57,7 +57,7 @@
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "ts-protoc-gen": "^0.7.3",
-    "tstest": "^0.4.2"
+    "tstest": "^0.4.9"
   },
   "engines": {
     "node": ">= 10"
