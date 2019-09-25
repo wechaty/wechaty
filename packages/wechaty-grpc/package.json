@@ -48,7 +48,7 @@
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.6.1",
-    "@types/google-protobuf": "^3.2.7",
+    "@types/google-protobuf": "^3.7.2",
     "@types/protobufjs": "^5.0.31",
     "@types/read-pkg-up": "^3.0.1",
     "grpc-tools": "^1.6.6",
