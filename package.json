@@ -94,7 +94,7 @@
     "promise-retry": "^1.1.1",
     "qr-image": "^3.2.0",
     "raven": "^2.6.2",
-    "read-pkg-up": "^6.0.0",
+    "read-pkg-up": "^7.0.0",
     "semver": "^6.0.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
