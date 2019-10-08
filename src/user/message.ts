@@ -900,14 +900,19 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<Contact>}
    */
   public async toContact (): Promise<Contact> {
-    log.warn('Message', 'toContact() to be implemented')
+    log.warn('Message', 'toContact()')
 
-    if (this.type() === Message.Type.Contact) {
+    if (this.type() !== Message.Type.Contact) {
       throw new Error('message not a ShareCard')
     }
 
-    // TODO: return the ShareCard Contact
-    const contact = this.wechaty.userSelf()
+    const contactId = await this.puppet.messageContact(this.id)
+
+    if (!contactId) {
+      throw new Error(`can not get Contact id by message: ${contactId}`)
+    }
+
+    const contact = this.wechaty.Contact.load(contactId)
     return contact
   }
 
