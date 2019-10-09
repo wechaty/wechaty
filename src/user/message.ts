@@ -913,6 +913,7 @@ export class Message extends Accessory implements Sayable {
     }
 
     const contact = this.wechaty.Contact.load(contactId)
+    await contact.ready()
     return contact
   }
 
