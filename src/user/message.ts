@@ -900,7 +900,7 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<Contact>}
    */
   public async toContact (): Promise<Contact> {
-    log.warn('Message', 'toContact()')
+    log.verbose('Message', 'toContact()')
 
     if (this.type() !== Message.Type.Contact) {
       throw new Error('message not a ShareCard')
