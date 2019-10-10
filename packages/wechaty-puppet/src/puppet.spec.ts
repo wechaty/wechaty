@@ -105,6 +105,7 @@ class PuppetTest extends Puppet {
    *
    */
   public async messageFile (messageId: string) : Promise<FileBox> { return { messageId } as any }
+  public async messageContact (messageId: string)  : Promise<string> { return { messageId } as any }
   public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
   public async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
 

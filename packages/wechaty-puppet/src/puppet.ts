@@ -750,6 +750,7 @@ export abstract class Puppet extends EventEmitter {
    *
    */
   public abstract async messageFile (messageId: string) : Promise<FileBox>
+  public abstract async messageContact (messageId: string)  : Promise<string>
   public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
   public abstract async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload>
 
