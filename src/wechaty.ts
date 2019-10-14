@@ -515,41 +515,41 @@ export class Wechaty extends Accessory implements Sayable {
 
   private addListenerModuleFile (event: WechatyEventName, modulePath: string): void {
     const absoluteFilename = callerResolve(modulePath, __filename)
-    log.verbose('Wechaty', 'onModulePath() hotImport(%s)', absoluteFilename)
+    log.verbose('Wechaty', 'addListenerModuleFile() hotImport(%s)', absoluteFilename)
 
     hotImport(absoluteFilename)
       .then((func: AnyFunction) => super.on(event, (...args: any[]) => {
         try {
           func.apply(this, args)
         } catch (e) {
-          log.error('Wechaty', 'onModulePath(%s, %s) listener exception: %s',
+          log.error('Wechaty', 'addListenerModuleFile(%s, %s) listener exception: %s',
             event, modulePath, e,
           )
           this.emit('error', e)
         }
       }))
       .catch(e => {
-        log.error('Wechaty', 'onModulePath(%s, %s) hotImport() exception: %s',
+        log.error('Wechaty', 'addListenerModuleFile(%s, %s) hotImport() exception: %s',
           event, modulePath, e,
         )
         this.emit('error', e)
       })
 
     if (isProduction()) {
-      log.silly('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
+      log.verbose('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
       hotImport(absoluteFilename, false)
         .catch(e => log.error('Wechaty', 'addListenerModuleFile() hotImport() rejection: %s', e))
     }
   }
 
   private addListenerFunction (event: WechatyEventName, listener: AnyFunction): void {
-    log.verbose('Wechaty', 'onFunction(%s)', event)
+    log.verbose('Wechaty', 'addListenerFunction(%s)', event)
 
     super.on(event, (...args: any[]) => {
       try {
         listener.apply(this, args)
       } catch (e) {
-        log.error('Wechaty', 'onFunction(%s) listener exception: %s', event, e)
+        log.error('Wechaty', 'addListenerFunction(%s) listener exception: %s', event, e)
         this.emit('error', e)
       }
     })
