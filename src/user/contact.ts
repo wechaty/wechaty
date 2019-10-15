@@ -41,6 +41,7 @@ import {
 
 import { UrlLink }  from './url-link'
 import { MiniProgram }  from './mini-program'
+import { Message } from './message'
 
 export const POOL = Symbol('pool')
 
@@ -298,11 +299,11 @@ export class Contact extends Accessory implements Sayable {
     return `Contact<${identity}>`
   }
 
-  public async say (text:     string)      : Promise<void>
-  public async say (contact:  Contact)     : Promise<void>
-  public async say (file:     FileBox)     : Promise<void>
-  public async say (mini:     MiniProgram) : Promise<void>
-  public async say (url:      UrlLink)     : Promise<void>
+  public async say (text:     string)      : Promise<void | Message>
+  public async say (contact:  Contact)     : Promise<void | Message>
+  public async say (file:     FileBox)     : Promise<void | Message>
+  public async say (mini:     MiniProgram) : Promise<void | Message>
+  public async say (url:      UrlLink)     : Promise<void | Message>
 
   /**
    * > Tips:
@@ -362,46 +363,51 @@ export class Contact extends Accessory implements Sayable {
               | FileBox
               | MiniProgram
               | UrlLink
-  ): Promise<void> {
+  ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', something)
-
+    let msgId: string | void
     if (typeof something === 'string') {
       /**
        * 1. Text
        */
-      await this.puppet.messageSendText({
+      msgId = await this.puppet.messageSendText({
         contactId: this.id,
       }, something)
     } else if (something instanceof Contact) {
       /**
        * 2. Contact
        */
-      await this.puppet.messageSendContact({
+      msgId = await this.puppet.messageSendContact({
         contactId: this.id,
       }, something.id)
     } else if (something instanceof FileBox) {
       /**
        * 3. File
        */
-      await this.puppet.messageSendFile({
+      msgId = await this.puppet.messageSendFile({
         contactId: this.id,
       }, something)
     } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
-      await this.puppet.messageSendUrl({
+      msgId = await this.puppet.messageSendUrl({
         contactId : this.id,
       }, something.payload)
     } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
-      await this.puppet.messageSendMiniProgram({
+      msgId = await this.puppet.messageSendMiniProgram({
         contactId : this.id,
       }, something.payload)
     } else {
       throw new Error('unsupported arg: ' + something)
+    }
+    if (msgId) {
+      const msg = this.wechaty.Message.load(msgId)
+      await msg.ready()
+      return msg
     }
   }
 

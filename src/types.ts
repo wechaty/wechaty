@@ -1,5 +1,5 @@
 import {
-  Contact,
+  Contact, Message,
 }           from './user'
 
 export type AnyFunction = (...args: any[]) => any
@@ -8,7 +8,7 @@ export interface Sayable {
   say (
     text     : string,
     replyTo? : Contact | Contact[]
-  ): Promise<void>
+  ): Promise<Message | void>
 }
 
 export interface Acceptable {

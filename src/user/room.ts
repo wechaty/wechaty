@@ -47,6 +47,7 @@ import {
   RoomPayload,
   RoomQueryFilter,
 }                         from 'wechaty-puppet'
+import { Message } from './message'
 
 export const ROOM_EVENT_DICT = {
   invite: 'tbw',
@@ -374,12 +375,12 @@ export class Room extends Accessory implements Sayable {
     return !!(this.payload)
   }
 
-  public say (text:     string)                                          : Promise<void>
-  public say (text:     string, ...mentionList: Contact[])               : Promise<void>
-  public say (textList: TemplateStringsArray, ...mentionList: Contact[]) : Promise<void>
-  public say (file:     FileBox)                                         : Promise<void>
-  public say (url:      UrlLink)                                         : Promise<void>
-  public say (mini:     MiniProgram)                                     : Promise<void>
+  public say (text:     string)                                          : Promise<void | Message>
+  public say (text:     string, ...mentionList: Contact[])               : Promise<void | Message>
+  public say (textList: TemplateStringsArray, ...mentionList: Contact[]) : Promise<void | Message>
+  public say (file:     FileBox)                                         : Promise<void | Message>
+  public say (url:      UrlLink)                                         : Promise<void | Message>
+  public say (mini:     MiniProgram)                                     : Promise<void | Message>
 
   public say (...args: never[]): never
 
@@ -452,7 +453,7 @@ export class Room extends Accessory implements Sayable {
               | TemplateStringsArray
               | UrlLink,
     ...mentionList : Contact[]
-  ): Promise<void> {
+  ): Promise<void | Message> {
 
     log.verbose('Room', 'say(%s, %s)',
       something,
@@ -460,7 +461,7 @@ export class Room extends Accessory implements Sayable {
     )
 
     let text: string
-
+    let msgId: string | void
     if (typeof something === 'string') {
 
       if (mentionList.length > 0) {
@@ -478,7 +479,7 @@ export class Room extends Accessory implements Sayable {
         contactId : (mentionList.length && mentionList[0].id) || undefined,
         roomId    : this.id,
       }
-      await this.puppet.messageSendText(
+      msgId = await this.puppet.messageSendText(
         receiver,
         text,
         mentionList.map(c => c.id),
@@ -487,37 +488,42 @@ export class Room extends Accessory implements Sayable {
       /**
        * 2. File Message
        */
-      await this.puppet.messageSendFile({
+      msgId = await this.puppet.messageSendFile({
         roomId: this.id,
       }, something)
     } else if (something instanceof Contact) {
       /**
        * 3. Contact Card
        */
-      await this.puppet.messageSendContact({
+      msgId = await this.puppet.messageSendContact({
         roomId: this.id,
       }, something.id)
     } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
-      await this.puppet.messageSendUrl({
+      msgId = await this.puppet.messageSendUrl({
         contactId : this.id,
       }, something.payload)
     } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
-      await this.puppet.messageSendMiniProgram({
+      msgId = await this.puppet.messageSendMiniProgram({
         contactId : this.id,
       }, something.payload)
     } else if (something instanceof Array) {
-      await this.sayTemplateStringsArray(
+      msgId = await this.sayTemplateStringsArray(
         something,
         ...mentionList,
       )
     } else {
       throw new Error('arg unsupported: ' + something)
+    }
+    if (msgId) {
+      const msg = this.wechaty.Message.load(msgId)
+      await msg.ready()
+      return msg
     }
   }
 
@@ -533,7 +539,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * No mention in the string
        */
-      await this.puppet.messageSendText(
+      return await this.puppet.messageSendText(
         receiver,
         textList[0],
       )
@@ -541,7 +547,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * Constructed mention string, skip inserting @ signs
        */
-      await this.puppet.messageSendText(
+      return await this.puppet.messageSendText(
         receiver,
         textList[0],
         mentionList.map(c => c.id),
@@ -561,7 +567,7 @@ export class Room extends Accessory implements Sayable {
         constructedString += textList[i] + '@' + (await this.alias(mentionList[i]) || mentionList[i].name())
       }
       constructedString += textList[i]
-      await this.puppet.messageSendText(
+      return await this.puppet.messageSendText(
         receiver,
         constructedString,
         mentionList.map(c => c.id),

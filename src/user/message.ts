@@ -422,11 +422,11 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
-  public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
-  public async say (contact: Contact)                               : Promise<void>
-  public async say (file:    FileBox)                               : Promise<void>
-  public async say (url:     UrlLink)                               : Promise<void>
-  public async say (mini:    MiniProgram)                           : Promise<void>
+  public async say (text:    string, mention?: Contact | Contact[]) : Promise<void | Message>
+  public async say (contact: Contact)                               : Promise<void | Message>
+  public async say (file:    FileBox)                               : Promise<void | Message>
+  public async say (url:     UrlLink)                               : Promise<void | Message>
+  public async say (mini:    MiniProgram)                           : Promise<void | Message>
 
   public async say (...args: never[]): Promise<never>
   /**
@@ -503,19 +503,19 @@ export class Message extends Accessory implements Sayable {
    */
   public async say (
     textOrContactOrFileOrUrlOrMini : string | Contact | FileBox | UrlLink | MiniProgram,
-  ): Promise<void> {
+  ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
-
+    let msgId: void | string
     if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
       /**
        * Text Message
        */
-      await this.puppet.messageSendText({
+      msgId = await this.puppet.messageSendText({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini)
@@ -523,7 +523,7 @@ export class Message extends Accessory implements Sayable {
       /**
        * Contact Card
        */
-      await this.puppet.messageSendContact({
+      msgId = await this.puppet.messageSendContact({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini.id)
@@ -531,7 +531,7 @@ export class Message extends Accessory implements Sayable {
       /**
        * File Message
        */
-      await this.puppet.messageSendFile({
+      msgId = await this.puppet.messageSendFile({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini)
@@ -539,7 +539,7 @@ export class Message extends Accessory implements Sayable {
       /**
        * Link Message
        */
-      await this.puppet.messageSendUrl({
+      msgId = await this.puppet.messageSendUrl({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini.payload)
@@ -547,12 +547,17 @@ export class Message extends Accessory implements Sayable {
       /**
        * MiniProgram
        */
-      await this.puppet.messageSendMiniProgram({
+      msgId = await this.puppet.messageSendMiniProgram({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini.payload)
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
+    }
+    if (msgId) {
+      const msg = this.wechaty.Message.load(msgId)
+      await msg.ready()
+      return msg
     }
   }
 
