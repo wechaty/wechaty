@@ -56,7 +56,7 @@
     "nodemon": "^1.17.4",
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
-    "ts-protoc-gen": "^0.7.3",
+    "ts-protoc-gen": "^0.12.0",
     "tstest": "^0.4.2"
   },
   "engines": {
