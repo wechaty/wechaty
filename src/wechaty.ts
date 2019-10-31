@@ -77,6 +77,7 @@ import {
 
 import {
   Contact,
+  Tag,
   ContactSelf,
   Friendship,
   Message,
@@ -160,6 +161,7 @@ export class Wechaty extends Accessory implements Sayable {
   public readonly id : string
 
   public readonly Contact       : typeof Contact
+  public readonly Tag           : typeof Tag
   public readonly ContactSelf   : typeof ContactSelf
   public readonly Friendship    : typeof Friendship
   public readonly Message       : typeof Message
@@ -263,6 +265,7 @@ export class Wechaty extends Accessory implements Sayable {
      */
     // TODO: make Message & Room constructor private???
     this.Contact        = cloneClass(Contact)
+    this.Tag            = cloneClass(Tag)
     this.ContactSelf    = cloneClass(ContactSelf)
     this.Friendship     = cloneClass(Friendship)
     this.Message        = cloneClass(Message)

@@ -25,6 +25,7 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
+  TagPayload,
 }                         from 'wechaty-puppet'
 
 import {
@@ -644,6 +645,20 @@ export class Contact extends Accessory implements Sayable {
     } catch (e) {
       log.error('Contact', 'avatar() exception: %s', e.message)
       return qrCodeForChatie()
+    }
+  }
+
+  /**
+   * show all tags of contact
+   */
+  public async tags (): Promise<TagPayload []> {
+    log.verbose('Contact', 'tags()')
+
+    try {
+      return this.puppet.contactTags(this.id)
+    } catch (e) {
+      log.error('Contact', 'tags() exception: %s', e.message)
+      return []
     }
   }
 
