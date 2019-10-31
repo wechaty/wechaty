@@ -404,7 +404,7 @@ export class Contact extends Accessory implements Sayable {
     } else {
       throw new Error('unsupported arg: ' + something)
     }
-    if (msgId) {
+    if (typeof msgId === 'string') {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
       return msg
