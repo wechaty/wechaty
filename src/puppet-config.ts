@@ -16,7 +16,8 @@ export const PUPPET_DEPENDENCIES = {
   'wechaty-puppet-ioscat'    : '^0.5.22',   // https://www.npmjs.com/package/wechaty-puppet-ioscat
   'wechaty-puppet-mock'      : '^0.16.1',   // https://www.npmjs.com/package/wechaty-puppet-mock
   'wechaty-puppet-padchat'   : '^0.19.3',   // https://www.npmjs.com/package/wechaty-puppet-padchat
-  'wechaty-puppet-padpro'    : '^0.3.21',    // https://www.npmjs.com/package/wechaty-puppet-padpro
+  'wechaty-puppet-padplus'   : '^0.0.136',  // https://www.npmjs.com/package/wechaty-puppet-padplus
+  'wechaty-puppet-padpro'    : '^0.3.21',   // https://www.npmjs.com/package/wechaty-puppet-padpro
   'wechaty-puppet-puppeteer' : '^0.18.2',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
   'wechaty-puppet-wechat4u'  : '^0.16.3',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
 }
