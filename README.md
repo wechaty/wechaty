@@ -191,7 +191,7 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 | static | [`load(query: string): Contact`](https://chatie.io/wechaty/#Contact.load) | get contact by id |
 | property | `id: readonly string` | get contact id |
 | method | [`sync(): Promise<void>`](https://chatie.io/wechaty/#Contact+sync) | force reload data for contact , sync data from lowlevel API again|
-| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Contact+say) | send text, Contact, or file to contact, return the message which the bot send (only `puppet-padplus` supported). |
+| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Contact+say) | send text, Contact, or file to contact, return the message which the bot sent (only `puppet-padplus` supported). |
 | method | [`self(): boolean`](https://chatie.io/wechaty/#Contact+self) | check if contact is self |
 | method | [`name(): string`](https://chatie.io/wechaty/#Contact+name) | get the name from a contact |
 | method | [`alias(): Promise<string>`](https://chatie.io/wechaty/#Contact+alias) | get the alias for a contact |
@@ -237,7 +237,7 @@ All wechat messages will be encapsulated as a Message.
 | method | [`to(): Contact`](https://chatie.io/wechaty/#Message+to) | get the destination of the message |
 | method | [`room(): null \| Room`](https://chatie.io/wechaty/#Message+room) | get the room from the message.(If the message is not in a room, then will return `null`) |
 | method | [`text(): string`](https://chatie.io/wechaty/#Message+text) | get the text content of the message |
-| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Message+say) | reply a Text, Media File , or contact message to the sender, return the message which the bot send (only `puppet-padplus` supported). |
+| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Message+say) | reply a Text, Media File , or contact message to the sender, return the message which the bot sent (only `puppet-padplus` supported). |
 | method | [`type(): MessageType`](https://chatie.io/wechaty/#Message+type) | get the type from the message |
 | method | [`self(): boolean`](https://chatie.io/wechaty/#Message+self) | check if a message is sent by self |
 | method | [`mention(): Contact[]`](https://chatie.io/wechaty/#Message+mention) | get message mentioned contactList. |
@@ -264,7 +264,7 @@ All wechat rooms(groups) will be encapsulated as a Room.
 | event | [`leave`](https://chatie.io/wechaty/#Room+on) | emit when anyone leave the room |
 | event | [`invite`](https://chatie.io/wechaty/#Room+on) | emit when receive a room invitation |
 | method | [`sync(): <Promise<void>`](https://chatie.io/wechaty/#Room+sync) | force reload data for room, sync data from lowlevel API again.
-| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room, return the message which the bot send (only `puppet-padplus` supported). |
+| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room, return the message which the bot sent (only `puppet-padplus` supported). |
 | method | [`add(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+add) | Add contact in a room |
 | method | [`del(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+del) | Delete a contact from the room |
 | method | [`quit(): Promise<void>`](https://chatie.io/wechaty/#Room+quit) | Bot quit the room itself |
