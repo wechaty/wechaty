@@ -16,3 +16,13 @@ Tips:
   , "editor.fontFamily": "'Fira Code iScript', 'Fira Code', 'Courier New', Consolas, monospace"
   , "editor.fontLigatures": true
 ```
+
+## Generate Changelog
+
+```shell
+npm run changelog
+```
+
+1. `403 - You have triggered an abuse detection mechanism. Please wait a few minutes before you try again. // See: https://developer.github.com/v3/#abuse-rate-limits'`
+
+See: <https://github.com/github-changelog-generator/github-changelog-generator/issues/722#issuecomment-526980247>

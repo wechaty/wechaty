@@ -301,9 +301,9 @@ export class Wechaty extends Accessory implements Sayable {
   public emit (event: 'message',    message: Message)                                                   : boolean
   public emit (event: 'ready')                                                                          : boolean
   public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                   : boolean
-  public emit (event: 'room-join',    room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
-  public emit (event: 'room-leave',   room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
-  public emit (event: 'room-topic',   room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
+  public emit (event: 'room-join',    room: Room, inviteeList : Contact[], inviter : Contact, date: Date)           : boolean
+  public emit (event: 'room-leave',   room: Room, leaverList  : Contact[], remover : Contact, date: Date)           : boolean
+  public emit (event: 'room-topic',   room: Room, newTopic: string, oldTopic: string, changer: Contact, date: Date) : boolean
   public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                : boolean
   public emit (event: 'start' | 'stop')                                                                 : boolean
 
@@ -325,9 +325,9 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
   public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                   : this
   public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
-  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
-  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
-  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
+  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void))            : this
+  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, leaverList: Contact[],  remover?: Contact, date?: Date) => void))            : this
+  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact, date?: Date) => void)) : this
   public on (event: 'scan',         listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                : this
   public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                 : this
 
@@ -518,41 +518,41 @@ export class Wechaty extends Accessory implements Sayable {
 
   private addListenerModuleFile (event: WechatyEventName, modulePath: string): void {
     const absoluteFilename = callerResolve(modulePath, __filename)
-    log.verbose('Wechaty', 'onModulePath() hotImport(%s)', absoluteFilename)
+    log.verbose('Wechaty', 'addListenerModuleFile() hotImport(%s)', absoluteFilename)
 
     hotImport(absoluteFilename)
       .then((func: AnyFunction) => super.on(event, (...args: any[]) => {
         try {
           func.apply(this, args)
         } catch (e) {
-          log.error('Wechaty', 'onModulePath(%s, %s) listener exception: %s',
+          log.error('Wechaty', 'addListenerModuleFile(%s, %s) listener exception: %s',
             event, modulePath, e,
           )
           this.emit('error', e)
         }
       }))
       .catch(e => {
-        log.error('Wechaty', 'onModulePath(%s, %s) hotImport() exception: %s',
+        log.error('Wechaty', 'addListenerModuleFile(%s, %s) hotImport() exception: %s',
           event, modulePath, e,
         )
         this.emit('error', e)
       })
 
     if (isProduction()) {
-      log.silly('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
+      log.verbose('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
       hotImport(absoluteFilename, false)
         .catch(e => log.error('Wechaty', 'addListenerModuleFile() hotImport() rejection: %s', e))
     }
   }
 
   private addListenerFunction (event: WechatyEventName, listener: AnyFunction): void {
-    log.verbose('Wechaty', 'onFunction(%s)', event)
+    log.verbose('Wechaty', 'addListenerFunction(%s)', event)
 
     super.on(event, (...args: any[]) => {
       try {
         listener.apply(this, args)
       } catch (e) {
-        log.error('Wechaty', 'onFunction(%s) listener exception: %s', event, e)
+        log.error('Wechaty', 'addListenerFunction(%s) listener exception: %s', event, e)
         this.emit('error', e)
       }
     })
@@ -679,7 +679,7 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'room-join':
-          puppet.on('room-join', async (roomId, inviteeIdList, inviterId) => {
+          puppet.on('room-join', async (roomId, inviteeIdList, inviterId, timestamp) => {
             const room = this.Room.load(roomId)
             await room.sync()
 
@@ -688,28 +688,27 @@ export class Wechaty extends Accessory implements Sayable {
 
             const inviter = this.Contact.load(inviterId)
             await inviter.ready()
+            const date = new Date(timestamp)
 
-            this.emit('room-join', room, inviteeList, inviter)
-            room.emit('join', inviteeList, inviter)
+            this.emit('room-join', room, inviteeList, inviter, date)
+            room.emit('join', inviteeList, inviter, date)
           })
           break
 
         case 'room-leave':
-          puppet.on('room-leave', async (roomId, leaverIdList, removerId) => {
+          puppet.on('room-leave', async (roomId, leaverIdList, removerId, timestamp) => {
             const room = this.Room.load(roomId)
             await room.sync()
 
             const leaverList = leaverIdList.map(id => this.Contact.load(id))
             await Promise.all(leaverList.map(c => c.ready()))
 
-            let remover: undefined | Contact
-            if (removerId) {
-              remover = this.Contact.load(removerId)
-              await remover.ready()
-            }
+            const remover = this.Contact.load(removerId)
+            await remover.ready()
+            const date = new Date(timestamp)
 
-            this.emit('room-leave', room, leaverList, remover)
-            room.emit('leave', leaverList, remover)
+            this.emit('room-leave', room, leaverList, remover, date)
+            room.emit('leave', leaverList, remover, date)
 
             // issue #254
             if (leaverIdList.includes(this.puppet.selfId())) {
@@ -721,15 +720,16 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'room-topic':
-          puppet.on('room-topic', async (roomId, newTopic, oldTopic, changerId) => {
+          puppet.on('room-topic', async (roomId, newTopic, oldTopic, changerId, timestamp) => {
             const room = this.Room.load(roomId)
             await room.sync()
 
             const changer = this.Contact.load(changerId)
             await changer.ready()
+            const date = new Date(timestamp)
 
-            this.emit('room-topic', room, newTopic, oldTopic, changer)
-            room.emit('topic', newTopic, oldTopic, changer)
+            this.emit('room-topic', room, newTopic, oldTopic, changer, date)
+            room.emit('topic', newTopic, oldTopic, changer, date)
           })
           break
 

@@ -474,6 +474,7 @@ export class Contact extends Accessory implements Sayable {
       if (newAlias && newAlias !== this.payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
           newAlias,
+          newAlias,
           this.payload.alias,
         )
       }

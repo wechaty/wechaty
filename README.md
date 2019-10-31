@@ -40,7 +40,7 @@ See more at [Wiki:Voice Of Developer](https://github.com/Chatie/wechaty/wiki/Voi
 
 ### Join Us
 
-Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
+Wechaty is used in many ChatBot projects by thousands of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
 
 ![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
 
@@ -132,7 +132,7 @@ Currently we support the following puppet providers:
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
 | Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| iPad | PuppetPadchat | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| iPad | PuppetPadpro | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
 
@@ -157,7 +157,7 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://g
     2. `optoins.puppet?: string` select which puppet provider we want to use. must be one of the:
         1. [wechaty-puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
         2. [wechaty-puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
-        3. [wechaty-puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat) - iPad App Protocol
+        3. [wechaty-puppet-padpro](https://github.com/botorange/wechaty-puppet-padpro) - iPad App Protocol
         4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
         5. [wechaty-puppet-mock](https://github.com/chatie/wechaty-puppet-mock) - Mock for Testing
     3. `optoins.puppetOptions?: PuppetOptions` options for the puppet provider.
@@ -337,7 +337,7 @@ Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.co
 
 ### Projects Using Wechaty
 
-1. [一个用CNN深度神剧网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
+1. [一个用CNN深度神经网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
 2. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
 3. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
 4. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
@@ -413,16 +413,7 @@ Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
 
-<a href="https://opencollective.com/wechaty/sponsor/0/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/1/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/2/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/3/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/4/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/5/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/6/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/7/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/8/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/wechaty/sponsor/9/website" target="_blank"><img src="https://opencollective.com/wechaty/sponsor/9/avatar.svg"></a>
+<a href="https://opencollective.com/wechaty/#sponsor" target="_blank"><img src="https://opencollective.com/wechaty/sponsor.svg?width=890"></a>
 
 ## COPYRIGHT & LICENSE
 
