@@ -520,7 +520,7 @@ export class Room extends Accessory implements Sayable {
     } else {
       throw new Error('arg unsupported: ' + something)
     }
-    if (msgId) {
+    if (typeof msgId === 'string') {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
       return msg
@@ -539,7 +539,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * No mention in the string
        */
-      return await this.puppet.messageSendText(
+      return this.puppet.messageSendText(
         receiver,
         textList[0],
       )
@@ -547,7 +547,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * Constructed mention string, skip inserting @ signs
        */
-      return await this.puppet.messageSendText(
+      return this.puppet.messageSendText(
         receiver,
         textList[0],
         mentionList.map(c => c.id),
@@ -567,7 +567,7 @@ export class Room extends Accessory implements Sayable {
         constructedString += textList[i] + '@' + (await this.alias(mentionList[i]) || mentionList[i].name())
       }
       constructedString += textList[i]
-      return await this.puppet.messageSendText(
+      return this.puppet.messageSendText(
         receiver,
         constructedString,
         mentionList.map(c => c.id),
