@@ -1,8 +1,8 @@
 import { log } from "../config"
 import { Accessory } from "../accessory"
 import { instanceToClass } from "clone-class"
-import { Favorite } from "./favorite"
 import { Contact } from "./contact"
+import { TagPayload } from "wechaty-puppet"
 
 export class Tag  extends Accessory {
 
@@ -29,7 +29,7 @@ export class Tag  extends Accessory {
   /**
    * create a new tag
    */
-  public async create (tag: string): Promise<Tag> {
+  public async create (tag: string): Promise<TagPayload> {
     log.verbose('Tag', 'newTag()')
 
     try {
@@ -43,11 +43,11 @@ export class Tag  extends Accessory {
   /**
    * add a new tag
    */
-  public async add (to: Contact | Favorite): Promise<Tag> {
+  public async add (to: Contact): Promise<void> {
     log.verbose('Tag', 'newTag()')
 
     try {
-      return this.puppet.addTag(to)
+      await this.puppet.addTag(to.id)
     } catch (e) {
       log.error('Tag', 'add() exception: %s', e.message)
       throw new Error(`error : ${e}`)
@@ -57,11 +57,11 @@ export class Tag  extends Accessory {
   /**
    * delete a new tag
    */
-  public async del (from: Contact | Favorite): Promise<string> {
+  public async del (from: Contact): Promise<void> {
     log.verbose('Tag', 'newTag()')
 
     try {
-      return this.puppet.deleteTag(from)
+      await this.puppet.deleteTag(from.id)
     } catch (e) {
       log.error('Tag', 'del() exception: %s', e.message)
       throw new Error(`error : ${e}`)
