@@ -520,7 +520,7 @@ export class Room extends Accessory implements Sayable {
     } else {
       throw new Error('arg unsupported: ' + something)
     }
-    if (typeof msgId === 'string') {
+    if (typeof msgId === 'string' && msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
       return msg

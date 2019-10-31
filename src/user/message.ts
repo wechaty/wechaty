@@ -554,7 +554,7 @@ export class Message extends Accessory implements Sayable {
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
     }
-    if (typeof msgId === 'string') {
+    if (typeof msgId === 'string' && msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
       return msg
