@@ -312,7 +312,7 @@ export class Contact extends Accessory implements Sayable {
    * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
-   * @returns {Promise<void>}
+   * @returns {Promise<void | Message>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -321,6 +321,7 @@ export class Contact extends Accessory implements Sayable {
    * // 1. send text to contact
    *
    * await contact.say('welcome to wechaty!')
+   * const msg = await contact.say('welcome to wechaty!') // only supported by puppet-padplus
    *
    * // 2. send media file to contact
    *
@@ -328,12 +329,14 @@ export class Contact extends Accessory implements Sayable {
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromFile('/tmp/text.txt')
    * await contact.say(fileBox1)
+   * const msg1 = await contact.say(fileBox1) // only supported by puppet-padplus
    * await contact.say(fileBox2)
+   * const msg2 = await contact.say(fileBox2) // only supported by puppet-padplus
    *
    * // 3. send contact card to contact
    *
    * const contactCard = bot.Contact.load('contactId')
-   * await contact.say(contactCard)
+   * const msg = await contact.say(contactCard) // only supported by puppet-padplus
    *
    * // 4. send url link to contact
    *
@@ -344,6 +347,7 @@ export class Contact extends Accessory implements Sayable {
    *   url         : 'https://github.com/chatie/wechaty',
    * })
    * await contact.say(urlLink)
+   * const msg = await contact.say(urlLink) // only supported by puppet-padplus
    *
    * // 5. send mini program to contact
    *
@@ -356,6 +360,7 @@ export class Contact extends Accessory implements Sayable {
    *   thumbnailurl       : '',               //optional
    * })
    * await contact.say(miniProgram)
+   * const msg = await contact.say(miniProgram) // only supported by puppet-padplus
    */
   public async say (
     something:  string
@@ -404,7 +409,7 @@ export class Contact extends Accessory implements Sayable {
     } else {
       throw new Error('unsupported arg: ' + something)
     }
-    if (typeof msgId === 'string' && msgId) {
+    if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
       return msg

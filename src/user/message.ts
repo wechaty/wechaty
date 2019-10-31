@@ -440,7 +440,7 @@ export class Message extends Accessory implements Sayable {
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
    * If this is a room message, when you set mention param, you can `@` Contact in the room.
-   * @returns {Promise<void>}
+   * @returns {Promise<void | Message>}
    *
    * @example
    * import { FileBox }  from 'file-box'
@@ -453,12 +453,14 @@ export class Message extends Accessory implements Sayable {
    *   if (/^ding$/i.test(m.text())) {
    *     const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    *     await msg.say(fileBox)
+   *     const message = await msg.say(fileBox) // only supported by puppet-padplus
    *   }
    *
    * // 2. send Text
    *
    *   if (/^dong$/i.test(m.text())) {
    *     await msg.say('dingdingding')
+   *     const message = await msg.say('dingdingding') // only supported by puppet-padplus
    *   }
    *
    * // 3. send Contact
@@ -470,6 +472,7 @@ export class Message extends Accessory implements Sayable {
    *       return
    *     }
    *     await msg.say(contactCard)
+   *     const message = await msg.say(contactCard) // only supported by puppet-padplus
    *   }
    *
    * // 4. send Link
@@ -482,6 +485,7 @@ export class Message extends Accessory implements Sayable {
    *       url         : 'https://github.com/chatie/wechaty',
    *     })
    *     await msg.say(linkPayload)
+   *     const message = await msg.say(linkPayload) // only supported by puppet-padplus
    *   }
    *
    * // 5. send MiniProgram
@@ -496,6 +500,7 @@ export class Message extends Accessory implements Sayable {
    *       thumbnailurl       : '',               //optional
    *     })
    *     await msg.say(miniProgramPayload)
+   *     const message = await msg.say(miniProgramPayload) // only supported by puppet-padplus
    *   }
    *
    * })
@@ -554,7 +559,7 @@ export class Message extends Accessory implements Sayable {
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
     }
-    if (typeof msgId === 'string' && msgId) {
+    if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
       return msg

@@ -392,7 +392,7 @@ export class Room extends Accessory implements Sayable {
    * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrlOrMini - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact | Contact[])} [mention] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
-   * @returns {Promise<void>}
+   * @returns {Promise<void | Message>}
    *
    * @example
    * const bot = new Wechaty()
@@ -403,25 +403,31 @@ export class Room extends Accessory implements Sayable {
    * // 1. Send text inside Room
    *
    * await room.say('Hello world!')
+   * const msg = await room.say('Hello world!') // only supported by puppet-padplus
    *
    * // 2. Send media file inside Room
    * import { FileBox }  from 'file-box'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
    * await room.say(fileBox1)
+   * const msg1 = await room.say(fileBox1) // only supported by puppet-padplus
    * await room.say(fileBox2)
+   * const msg2 = await room.say(fileBox2) // only supported by puppet-padplus
    *
    * // 3. Send Contact Card in a room
    * const contactCard = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
    * await room.say(contactCard)
+   * const msg = await room.say(contactCard) // only supported by puppet-padplus
    *
    * // 4. Send text inside room and mention @mention contact
    * const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
    * await room.say('Hello world!', contact)
+   * const msg = await room.say('Hello world!', contact) // only supported by puppet-padplus
    *
    * // 5. Send text inside room and mention someone with Tagged Template
    * const contact2 = await bot.Contact.find({name: 'zixia'}) // change 'zixia' to any of the room member
    * await room.say`Hello ${contact}, here is the world ${contact2}`
+   * const msg = await room.say`Hello ${contact}, here is the world ${contact2}` // only supported by puppet-padplus
    *
    * // 6. send url link in a room
    *
@@ -432,6 +438,7 @@ export class Room extends Accessory implements Sayable {
    *   url         : 'https://github.com/chatie/wechaty',
    * })
    * await room.say(urlLink)
+   * const msg = await room.say(urlLink) // only supported by puppet-padplus
    *
    * // 7. send mini program in a room
    *
@@ -444,6 +451,7 @@ export class Room extends Accessory implements Sayable {
    *   thumbnailurl       : '',               //optional
    * })
    * await room.say(miniProgram)
+   * const msg = await room.say(miniProgram) // only supported by puppet-padplus
    */
   public async say (
     something : string
@@ -520,7 +528,7 @@ export class Room extends Accessory implements Sayable {
     } else {
       throw new Error('arg unsupported: ' + something)
     }
-    if (typeof msgId === 'string' && msgId) {
+    if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
       return msg
