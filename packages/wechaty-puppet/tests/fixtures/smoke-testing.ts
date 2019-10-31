@@ -94,11 +94,11 @@ class PuppetTest extends Puppet {
   public async messageContact (messageId: string)  : Promise<string> { return { messageId } as any }
   public async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
 
-  public async messageForward (to: Receiver, messageId: string)              : Promise<void> { return { to, messageId } as any }
-  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void> { return { receiver, contactId } as any }
-  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void> { return { to, file } as any }
-  public async messageSendText (to: Receiver, text: string)                  : Promise<void> { return { to, text } as any }
-  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void> { return { to, urlLinkPayload } as any }
+  public async messageForward (to: Receiver, messageId: string)              : Promise<void | string> { return { to, messageId } as any }
+  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void | string> { return { receiver, contactId } as any }
+  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void | string> { return { to, file } as any }
+  public async messageSendText (to: Receiver, text: string)                  : Promise<void | string> { return { to, text } as any }
+  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { to, urlLinkPayload } as any }
   public async messageSendMiniProgram (to: Receiver, miniProgramPayload: MiniProgramPayload) : Promise<void> { return { miniProgramPayload, to } as any }
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }

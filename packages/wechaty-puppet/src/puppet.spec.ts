@@ -109,12 +109,12 @@ class PuppetTest extends Puppet {
   public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
   public async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
 
-  public async messageForward (to: Receiver, messageId: string)              : Promise<void> { return { messageId, to } as any }
-  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void> { return { contactId, receiver } as any }
-  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void> { return { file, to } as any }
-  public async messageSendText (to: Receiver, text: string)                  : Promise<void> { return { text, to } as any }
-  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void> { return { to, urlLinkPayload } as any }
-  public async messageSendMiniProgram (to: Receiver, miniProgramPayload: MiniProgramPayload) : Promise<void> { return { miniProgramPayload, to } as any }
+  public async messageForward (to: Receiver, messageId: string)              : Promise<void | string> { return { messageId, to } as any }
+  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void | string> { return { contactId, receiver } as any }
+  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void | string> { return { file, to } as any }
+  public async messageSendText (to: Receiver, text: string)                  : Promise<void | string> { return { text, to } as any }
+  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { to, urlLinkPayload } as any }
+  public async messageSendMiniProgram (to: Receiver, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { miniProgramPayload, to } as any }
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
