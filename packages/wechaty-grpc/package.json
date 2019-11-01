@@ -40,7 +40,7 @@
   },
   "homepage": "https://github.com/Chatie/grpc#readme",
   "dependencies": {
-    "grpc": "^1.13.0",
+    "grpc": "^1.24.2",
     "read-pkg-up": "^4.0.0"
   },
   "devDependencies": {
