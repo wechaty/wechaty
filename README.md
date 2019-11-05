@@ -264,7 +264,7 @@ All wechat rooms(groups) will be encapsulated as a Room.
 | event | [`leave`](https://chatie.io/wechaty/#Room+on) | emit when anyone leave the room |
 | event | [`invite`](https://chatie.io/wechaty/#Room+on) | emit when receive a room invitation |
 | method | [`sync(): <Promise<void>`](https://chatie.io/wechaty/#Room+sync) | force reload data for room, sync data from lowlevel API again.
-| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room, return the message which the bot sent (only `puppet-padplus` supported). |
+| method | [`say(text: string): Promise<void \| Message>`](https://chatie.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room, return the message which the bot sent (only `puppet-padplus` supported). |
 | method | [`add(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+add) | Add contact in a room |
 | method | [`del(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+del) | Delete a contact from the room |
 | method | [`quit(): Promise<void>`](https://chatie.io/wechaty/#Room+quit) | Bot quit the room itself |
