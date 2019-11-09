@@ -344,7 +344,7 @@ Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.co
 5. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
 7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
-
+8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
 
 Pull Request is welcome to add yours!
 
