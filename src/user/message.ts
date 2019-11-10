@@ -193,7 +193,7 @@ export class Message extends Accessory implements Sayable {
   protected payload?: MessagePayload
 
   /**
-   * @private
+   * @hideconstructor
    */
   constructor (
     public readonly id: string,
@@ -422,11 +422,11 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
-  public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
-  public async say (contact: Contact)                               : Promise<void>
-  public async say (file:    FileBox)                               : Promise<void>
-  public async say (url:     UrlLink)                               : Promise<void>
-  public async say (mini:    MiniProgram)                           : Promise<void>
+  public async say (text:    string, mention?: Contact | Contact[]) : Promise<void | Message>
+  public async say (contact: Contact)                               : Promise<void | Message>
+  public async say (file:    FileBox)                               : Promise<void | Message>
+  public async say (url:     UrlLink)                               : Promise<void | Message>
+  public async say (mini:    MiniProgram)                           : Promise<void | Message>
 
   public async say (...args: never[]): Promise<never>
   /**
@@ -440,7 +440,7 @@ export class Message extends Accessory implements Sayable {
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
    * If this is a room message, when you set mention param, you can `@` Contact in the room.
-   * @returns {Promise<void>}
+   * @returns {Promise<void | Message>}
    *
    * @example
    * import { FileBox }  from 'file-box'
@@ -453,12 +453,14 @@ export class Message extends Accessory implements Sayable {
    *   if (/^ding$/i.test(m.text())) {
    *     const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    *     await msg.say(fileBox)
+   *     const message = await msg.say(fileBox) // only supported by puppet-padplus
    *   }
    *
    * // 2. send Text
    *
    *   if (/^dong$/i.test(m.text())) {
    *     await msg.say('dingdingding')
+   *     const message = await msg.say('dingdingding') // only supported by puppet-padplus
    *   }
    *
    * // 3. send Contact
@@ -470,6 +472,7 @@ export class Message extends Accessory implements Sayable {
    *       return
    *     }
    *     await msg.say(contactCard)
+   *     const message = await msg.say(contactCard) // only supported by puppet-padplus
    *   }
    *
    * // 4. send Link
@@ -482,6 +485,7 @@ export class Message extends Accessory implements Sayable {
    *       url         : 'https://github.com/chatie/wechaty',
    *     })
    *     await msg.say(linkPayload)
+   *     const message = await msg.say(linkPayload) // only supported by puppet-padplus
    *   }
    *
    * // 5. send MiniProgram
@@ -496,6 +500,7 @@ export class Message extends Accessory implements Sayable {
    *       thumbnailurl       : '',               //optional
    *     })
    *     await msg.say(miniProgramPayload)
+   *     const message = await msg.say(miniProgramPayload) // only supported by puppet-padplus
    *   }
    *
    * })
@@ -503,19 +508,19 @@ export class Message extends Accessory implements Sayable {
    */
   public async say (
     textOrContactOrFileOrUrlOrMini : string | Contact | FileBox | UrlLink | MiniProgram,
-  ): Promise<void> {
+  ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
-
+    let msgId: void | string
     if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
       /**
        * Text Message
        */
-      await this.puppet.messageSendText({
+      msgId = await this.puppet.messageSendText({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini)
@@ -523,7 +528,7 @@ export class Message extends Accessory implements Sayable {
       /**
        * Contact Card
        */
-      await this.puppet.messageSendContact({
+      msgId = await this.puppet.messageSendContact({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini.id)
@@ -531,7 +536,7 @@ export class Message extends Accessory implements Sayable {
       /**
        * File Message
        */
-      await this.puppet.messageSendFile({
+      msgId = await this.puppet.messageSendFile({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini)
@@ -539,7 +544,7 @@ export class Message extends Accessory implements Sayable {
       /**
        * Link Message
        */
-      await this.puppet.messageSendUrl({
+      msgId = await this.puppet.messageSendUrl({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini.payload)
@@ -547,12 +552,17 @@ export class Message extends Accessory implements Sayable {
       /**
        * MiniProgram
        */
-      await this.puppet.messageSendMiniProgram({
+      msgId = await this.puppet.messageSendMiniProgram({
         contactId : (from && from.id) || undefined,
         roomId    : (room && room.id) || undefined,
       }, textOrContactOrFileOrUrlOrMini.payload)
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
+    }
+    if (msgId) {
+      const msg = this.wechaty.Message.load(msgId)
+      await msg.ready()
+      return msg
     }
   }
 
@@ -900,14 +910,20 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<Contact>}
    */
   public async toContact (): Promise<Contact> {
-    log.warn('Message', 'toContact() to be implemented')
+    log.verbose('Message', 'toContact()')
 
-    if (this.type() === Message.Type.Contact) {
+    if (this.type() !== Message.Type.Contact) {
       throw new Error('message not a ShareCard')
     }
 
-    // TODO: return the ShareCard Contact
-    const contact = this.wechaty.userSelf()
+    const contactId = await this.puppet.messageContact(this.id)
+
+    if (!contactId) {
+      throw new Error(`can not get Contact id by message: ${contactId}`)
+    }
+
+    const contact = this.wechaty.Contact.load(contactId)
+    await contact.ready()
     return contact
   }
 
