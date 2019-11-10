@@ -21,7 +21,7 @@
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "check-node-version": "check-node-version --node \">= 10\"",
-    "lint": "npm run check-node-version && npm run lint:es && npm run lint:ts && npm run lint:sh",
+    "lint": "npm run check-node-version && npm run lint:es && npm run lint:ts && npm run lint:sh && npm run lint:md",
     "lint:es": "eslint --ignore-pattern node_modules/ --ignore-pattern fixtures/ '{bin,examples,src,scripts,tests}/**/*.ts'",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",

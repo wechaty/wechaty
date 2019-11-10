@@ -1,4 +1,4 @@
-# WECHATY
+# Wechaty
 
 [![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
@@ -10,7 +10,7 @@
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
 [![Gitter](https://badges.gitter.im/Chatie/wechaty.svg)](https://gitter.im/Chatie/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-## CONNECTING CHATBOTS
+## Connecting Chatbots
 
 Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
@@ -19,7 +19,7 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 :book: <https://github.com/chatie/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
-## VOICE OF DEVELOPERS
+## Voice of Developers
 
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
 > &mdash; <cite>@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)</cite>
@@ -65,12 +65,12 @@ This bot can log all messages to the console after login by scan.
 
 You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Examples) and [Example Directory](https://github.com/chatie/wechaty/blob/master/examples/).
 
-## REQUIREMENTS
+## Requirements
 
 1. Node.js 10 or above
 1. Global Network Connection
 
-## GETTING STARTED
+## Getting Started
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
@@ -82,7 +82,7 @@ If you are new to Wechaty and want to try it the first time, we'd like to strong
 
 Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `mybot.js` before you can use either NPM or Docker to run it.
 
-### 1. NPM
+### 1. Npm
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty/next.svg)](https://www.npmjs.com/package/wechaty?activeTab=versions)
@@ -100,7 +100,7 @@ node mybot.js
 
 ### 2. Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 * Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
@@ -140,7 +140,6 @@ Learn more about Wechaty Puppet from the Puppet Wiki:
 
 1. Puppet Directory: <https://github.com/Chatie/wechaty-puppet/wiki/Directory>
 1. Puppet Compatibility: <https://github.com/Chatie/wechaty-puppet/wiki/Compatibility>
-
 
 ## API
 
@@ -345,12 +344,11 @@ Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.co
 6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
 7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
 
-
 Pull Request is welcome to add yours!
 
 Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
-## FIND A GOOD SERVER
+## Find a Good Server
 
 The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem.
 
@@ -363,16 +361,9 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
 | Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
 
-## SEE ALSO
+## See Also
 
 * [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
-
-## AUTHOR
-
-1. [Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
-1. [Grace LI (李佳芮)](https://angel.co/lijiarui)
-
-[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
 ## The Story
 
@@ -397,7 +388,7 @@ At last, It's built for huan's personal study purpose of Automatically Testing.
 [![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
 
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/Chatie/wechaty/graphs/contributors"><img src="https://opencollective.com/wechaty/contributors.svg?width=890&button=false" /></a>
+[![Contribute](https://opencollective.com/wechaty/contributors.svg?width=890&button=false)](https://github.com/Chatie/wechaty/graphs/contributors)
 
 ## Backers
 
@@ -405,18 +396,25 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
 
-<a href="https://opencollective.com/wechaty#backers" target="_blank"><img src="https://opencollective.com/wechaty/backers.svg?width=890"></a>
+[![Open Collective Wechaty](https://opencollective.com/wechaty/backers.svg?width=890)](https://opencollective.com/wechaty#backers)
 
 ## Sponsors
 
-[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors) 
+[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors)
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
 
-<a href="https://opencollective.com/wechaty/#sponsor" target="_blank"><img src="https://opencollective.com/wechaty/sponsor.svg?width=890"></a>
+[![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
 
-## COPYRIGHT & LICENSE
+## Author
 
-* Code & Docs © 2016-2019 Huan LI \<zixia@zixia.net\>
+1. [Huan (李卓桓)](https://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/)
+
+[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
+
+## Copyright & License
+
+* Code & Docs © 2016-now Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
