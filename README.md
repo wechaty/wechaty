@@ -409,7 +409,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Author
 
-1. [Huan (李卓桓)](https://linkedin.com/in/zixia) \<zixia@zixia.net\>
+1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia) \<huan@chatie.io\>
 1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/)
 
 [![Profile of Huan LI (李卓桓) on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
