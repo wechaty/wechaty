@@ -144,7 +144,6 @@ Learn more about Wechaty Puppet from the Puppet Wiki:
 1. Puppet Directory: <https://github.com/Wechaty/wechaty-puppet/wiki/Directory>
 1. Puppet Compatibility: <https://github.com/Wechaty/wechaty-puppet/wiki/Compatibility>
 
-
 ## API
 
 Read the Full Documentation at [Wechaty Official API Reference](https://wechaty.github.io/wechaty/)
