@@ -7,7 +7,7 @@
 [![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet)
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty-puppet.svg)](https://greenkeeper.io/)
 
-![chatie puppet](https://chatie.io/wechaty-puppet/images/puppet-logo.jpg)
+![chatie puppet](https://wechaty.github.io/wechaty-puppet/images/puppet-logo.jpg)
 
 > Picture Credit: [https://www.shareicon.net](https://www.shareicon.net/puppet-marionette-puppeteer-puppet-variant-marionette-variant-665400)
 
