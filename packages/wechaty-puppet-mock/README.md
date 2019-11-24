@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet-mock.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet-mock) [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty-puppet-mock.svg)](https://greenkeeper.io/)
 
-![chatie puppet](https://chatie.io/wechaty-puppet-mock/images/mock.png)
+![chatie puppet](https://wechaty.github.io/wechaty-puppet-mock/images/mock.png)
 
 > Picture Credit: <https://softwareautotools.com/2017/03/01/mocking-explained-in-python/>
 
