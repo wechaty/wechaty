@@ -138,6 +138,8 @@ Currently we support the following puppet providers:
 | Mac | PuppetMacpro | `export WECHATY_PUPPET=wechaty-puppet-macpro` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+| iPad | PuppetPadpro **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
+| iPad | PuppetPadchat **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
 
 Learn more about Wechaty Puppet from the Puppet Wiki:
 
