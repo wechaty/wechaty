@@ -125,6 +125,9 @@ export class Friendship extends Accessory implements Acceptable {
    */
   protected payload?: FriendshipPayload
 
+  /*
+   * @hideconstructor
+   */
   constructor (
     public readonly id: string,
   ) {
