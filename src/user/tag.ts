@@ -1,10 +1,13 @@
-import { log } from "../config"
-import { Accessory } from "../accessory"
-import { instanceToClass } from "clone-class"
-import { Contact } from "./contact"
-import { TagPayload } from "wechaty-puppet"
+import { log } from '../config'
+import { Accessory } from '../accessory'
+import { instanceToClass } from 'clone-class'
+import { Contact } from './contact'
+import { TagPayload } from 'wechaty-puppet'
 
 export class Tag  extends Accessory {
+
+  protected payload?: TagPayload
+  protected static pool: Map<string, Tag>
 
   constructor (
     public readonly id: string,
@@ -27,30 +30,97 @@ export class Tag  extends Accessory {
   }
 
   /**
-   * create a new tag
+   * @private
+   * About the Generic: https://stackoverflow.com/q/43003970/1123955
+   *
+   * Get Tag by id
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @static
+   * @param {string} id
+   * @returns {Tag}
+   * @example
+   * const bot = new Wechaty()
+   * await bot.start()
+   * const tag = bot.Tag.load('tagId')
    */
-  public async create (tag: string): Promise<TagPayload> {
-    log.verbose('Tag', 'newTag()')
+  public static load<T extends typeof Tag> (
+    this : T,
+    id   : string,
+  ): T['prototype'] {
+    if (!this.pool) {
+      log.verbose('Tag', 'load(%s) init pool', id)
+      this.pool = new Map<string, Tag>()
+    }
+    if (this === Tag) {
+      throw new Error(
+        'The global Tag class can not be used directly!'
+        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+      )
+    }
+    if (this.pool === Tag.pool) {
+      throw new Error('the current pool is equal to the global pool error!')
+    }
+    const existingTag = this.pool.get(id)
+    if (existingTag) {
+      return existingTag
+    }
+
+    const newTag = new (this as any)(id) as Tag
+
+    this.pool.set(id, newTag)
+
+    return newTag
+  }
+
+  public static async findAll<T extends typeof Tag> (this: T): Promise<Array<T['prototype']>> {
+    log.verbose('Tag', 'findAll()')
 
     try {
-      return this.puppet.createTag(tag)
+      const tags = await this.puppet.allTags()
+      const invalidDict: { [id: string]: true } = {}
+
+      const tagList = tags.map(tag => {
+        const newTag = this.load(tag.id)
+        newTag.payload = tag
+        return newTag
+      })
+      return tagList.filter(tag => !invalidDict[tag.id])
     } catch (e) {
-      log.error('Tag', 'create() exception: %s', e.message)
-      throw new Error(`error : ${e}`)
+      log.error('Tag', 'findAll() exception: %s', e.message)
+      throw new Error(`findAll error : ${e}`)
     }
   }
 
   /**
-   * add a new tag
+   * create a new tag
    */
-  public async add (to: Contact): Promise<void> {
-    log.verbose('Tag', 'newTag()')
+  public static async get<T extends typeof Tag> (this: T, tag: string): Promise<T['prototype']> {
+    log.verbose('Tag', 'get()')
 
     try {
-      await this.puppet.addTag(to.id)
+      const tagPayload: TagPayload = await this.puppet.createTag(tag)
+      const newTag = this.load(tagPayload.id)
+      newTag.payload = tagPayload
+      return newTag
+    } catch (e) {
+      log.error('Tag', 'get() exception: %s', e.message)
+      throw new Error(`get error : ${e}`)
+    }
+  }
+
+  /**
+   * add tag to contact
+   */
+  public async add (to: Contact): Promise<void> {
+    log.verbose('Tag', 'add()')
+
+    try {
+      await this.puppet.addTag(this.id, to.id)
     } catch (e) {
       log.error('Tag', 'add() exception: %s', e.message)
-      throw new Error(`error : ${e}`)
+      throw new Error(`add error : ${e}`)
     }
   }
 
@@ -58,15 +128,14 @@ export class Tag  extends Accessory {
    * delete a new tag
    */
   public async del (from: Contact): Promise<void> {
-    log.verbose('Tag', 'newTag()')
+    log.verbose('Tag', 'del()')
 
     try {
       await this.puppet.deleteTag(from.id)
     } catch (e) {
       log.error('Tag', 'del() exception: %s', e.message)
-      throw new Error(`error : ${e}`)
+      throw new Error(`del error : ${e}`)
     }
   }
-
 
 }

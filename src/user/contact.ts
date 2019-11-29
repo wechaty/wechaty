@@ -25,7 +25,6 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
-  TagPayload,
 }                         from 'wechaty-puppet'
 
 import {
@@ -652,11 +651,11 @@ export class Contact extends Accessory implements Sayable {
   /**
    * show all tags of contact
    */
-  public async tags (): Promise<TagPayload []> {
+  public async tags (): Promise<string []> {
     log.verbose('Contact', 'tags()')
 
     try {
-      return this.puppet.contactTags(this.id)
+      return this.puppet.contactTagIdList(this.id)
     } catch (e) {
       log.error('Contact', 'tags() exception: %s', e.message)
       return []

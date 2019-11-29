@@ -761,6 +761,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.Message.wechaty        = this
     this.Room.wechaty           = this
     this.RoomInvitation.wechaty = this
+    this.Tag.wechaty            = this
 
     /**
      * 2. Set Puppet
@@ -771,6 +772,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.Message.puppet        = puppet
     this.Room.puppet           = puppet
     this.RoomInvitation.puppet = puppet
+    this.Tag.puppet            = puppet
 
     this.puppet = puppet
   }
