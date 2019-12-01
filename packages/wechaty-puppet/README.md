@@ -1,11 +1,11 @@
 # WECHATY PUPPET
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/wechaty/wechaty)
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet.svg)](https://www.npmjs.com/package/wechaty-puppet)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty-puppet/next.svg)](https://www.npmjs.com/package/wechaty-puppet?activeTab=versions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet)
-[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty-puppet.svg)](https://greenkeeper.io/)
+[![Linux/Mac Build Status](https://travis-ci.com/wechaty/wechaty-puppet.svg?branch=master)](https://travis-ci.com/wechaty/wechaty-puppet)
+[![Greenkeeper badge](https://badges.greenkeeper.io/wechaty/wechaty-puppet.svg)](https://greenkeeper.io/)
 
 ![chatie puppet](https://wechaty.github.io/wechaty-puppet/images/puppet-logo.jpg)
 
@@ -13,12 +13,12 @@
 
 Abstract(Base) Class of Puppet Providers for Wechaty Framework.
 
-This module is part of the [Wechaty](https://github.com/chatie/wechaty) SDK.
+This module is part of the [Wechaty](https://github.com/wechaty/wechaty) SDK.
 
 Learn more at:
 
-1. Wiki: <https://github.com/Chatie/wechaty/wiki/Puppet>
-1. Issue: <https://github.com/Chatie/wechaty/issues/1167>
+1. Wiki: <https://github.com/wechaty/wechaty/wiki/Puppet>
+1. Issue: <https://github.com/wechaty/wechaty/issues/1167>
 
 ## DOCUMENTATION
 
@@ -28,7 +28,7 @@ Wechaty Puppet Provider Interface Documentation can be found at <https://chatie.
 
 ## EXAMPLE
 
-PuppetMock: <https://github.com/chatie/wechaty-puppet-mock>
+PuppetMock: <https://github.com/wechaty/wechaty-puppet-mock>
 
 The above puppet provider is just for mocking and easy to understand. It will be a good starter when you want to develope a new puppet by yourself for fullfil your need, for example, connect Wechaty with Wechat Official Account.
 
@@ -36,9 +36,9 @@ The above puppet provider is just for mocking and easy to understand. It will be
 
 * [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat) iPad API via Protocol Server, created by [@lijiarui](https://github.com/lijiarui)
 * [PuppetIoscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) iPhone App Hook API, created by [@linyimin-bupt](https://github.com/linyimin-bupt)
-* [PuppetWechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) Web API via HTTP, created by [@zixia](https://github.com/zixia)
-* [PuppetPuppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) Web API via Browser, created by [@zixia](https://github.com/zixia)
-* [PuppetHostie](https://github.com/chatie/wechaty-puppet-hostie) gRPC Proxy via Chatie.io(PaaS - Puppets as a Service), created by [@zixia](https://github.com/zixia)
+* [PuppetWechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u) Web API via HTTP, created by [@zixia](https://github.com/zixia)
+* [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer) Web API via Browser, created by [@zixia](https://github.com/zixia)
+* [PuppetHostie](https://github.com/wechaty/wechaty-puppet-hostie) gRPC Proxy via Chatie.io(PaaS - Puppets as a Service), created by [@zixia](https://github.com/zixia)
 
 ## DEPENDENCIES
 
