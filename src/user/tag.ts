@@ -124,7 +124,7 @@ export class Tag  extends Accessory {
     log.verbose('Tag', 'get()')
 
     try {
-      const tagPayload: TagPayload = await this.puppet.createTag(tag)
+      const tagPayload: TagPayload = await this.puppet.getOrCreateTag(tag)
       const newTag = this.load(tagPayload.id)
       newTag.payload = tagPayload
       return newTag
