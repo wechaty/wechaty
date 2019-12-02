@@ -193,7 +193,7 @@ export class Message extends Accessory implements Sayable {
   protected payload?: MessagePayload
 
   /**
-   * @private
+   * @hideconstructor
    */
   constructor (
     public readonly id: string,

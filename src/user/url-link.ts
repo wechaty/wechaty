@@ -27,6 +27,9 @@ export class UrlLink {
     return new UrlLink(payload)
   }
 
+  /*
+   * @hideconstructor
+   */
   constructor (
     public readonly payload: UrlLinkPayload,
   ) {

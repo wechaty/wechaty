@@ -261,7 +261,7 @@ export class Contact extends Accessory implements Sayable {
   protected payload?: ContactPayload
 
   /**
-   * @private
+   * @hideconstructor
    */
   constructor (
     public readonly id: string,
