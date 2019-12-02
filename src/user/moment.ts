@@ -14,6 +14,9 @@ export class Moment {
     return []
   }
 
+  /*
+   * @hideconstructor
+   */
   constructor () {
     //
   }

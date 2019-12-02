@@ -29,6 +29,9 @@ export class MiniProgram {
     return new MiniProgram(payload)
   }
 
+  /*
+   * @hideconstructor
+   */
   constructor (
     public readonly payload: MiniProgramPayload,
   ) {

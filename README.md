@@ -1,27 +1,27 @@
-# WECHATY
+# Wechaty
 
-[![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
+[![Wechaty](https://wechaty.github.io/wechaty/images/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
-[![GitHub stars](https://img.shields.io/github/stars/Chatie/wechaty.svg?label=github%20stars)](https://github.com/chatie/wechaty)
+[![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
+[![Greenkeeper badge](https://badges.greenkeeper.io/wechaty/wechaty.svg)](https://greenkeeper.io/)
 [![Gitter](https://badges.gitter.im/Chatie/wechaty.svg)](https://gitter.im/Chatie/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-## CONNECTING CHATBOTS
+## Connecting Chatbots
 
-Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
+Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/wechaty/wechaty), [Windows](https://ci.appveyor.com/project/wechaty/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/Wechaty/wechaty) and [Docker](https://app.shippable.com/github/Wechaty/wechaty).
 
-:octocat: <https://github.com/chatie/wechaty>  
-:beetle: <https://github.com/chatie/wechaty/issues>  
-:book: <https://github.com/chatie/wechaty/wiki>  
+:octocat: <https://github.com/Wechaty/wechaty>  
+:beetle: <https://github.com/Wechaty/wechaty/issues>  
+:book: <https://github.com/Wechaty/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
-## VOICE OF DEVELOPERS
+## Voice of Developers
 
-> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
+> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472)  
 > &mdash; <cite>@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)</cite>
 >
 > "太好用，好用的想哭"  
@@ -36,13 +36,13 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 > "If you know js ... try Wechaty, it's easy to use."  
 > &mdash; <cite>@Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)</cite>
 
-See more at [Wiki:Voice Of Developer](https://github.com/Chatie/wechaty/wiki/Voice%20Of%20Developer)
+See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
 
 ### Join Us
 
 Wechaty is used in many ChatBot projects by thousands of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
 
-![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
+![Wechaty Developers' Home](https://wechaty.github.io/wechaty/images/bot-qr-code.png)
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
@@ -63,14 +63,14 @@ Wechaty.instance() // Global Instance
 
 This bot can log all messages to the console after login by scan.
 
-You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Examples) and [Example Directory](https://github.com/chatie/wechaty/blob/master/examples/).
+You can find more examples from [Wiki](https://github.com/Wechaty/wechaty/wiki/Examples) and [Example Directory](https://github.com/Wechaty/wechaty/blob/master/examples/).
 
-## REQUIREMENTS
+## Requirements
 
 1. Node.js 10 or above
 1. Global Network Connection
 
-## GETTING STARTED
+## Getting Started
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
@@ -82,7 +82,7 @@ If you are new to Wechaty and want to try it the first time, we'd like to strong
 
 Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `mybot.js` before you can use either NPM or Docker to run it.
 
-### 1. NPM
+### 1. Npm
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty/next.svg)](https://www.npmjs.com/package/wechaty?activeTab=versions)
@@ -100,7 +100,7 @@ node mybot.js
 
 ### 2. Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 * Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
@@ -121,64 +121,68 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 ```
 
-> Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+> Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/Wechaty/wechaty/wiki/Docker).
 
 ### 3. Switch Protocol(Puppet)
 
 Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
+
+If you cannot use Web protocol, you can apply other protocal following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
 
 Currently we support the following puppet providers:
 
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
 | Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| iPad | PuppetPadpro | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
+| iPad | PuppetPadplus | `export WECHATY_PUPPET=wechaty-puppet-padplus` |
+| Mac | PuppetMacpro | `export WECHATY_PUPPET=wechaty-puppet-macpro` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+| iPad | PuppetPadpro **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
+| iPad | PuppetPadchat **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
 
 Learn more about Wechaty Puppet from the Puppet Wiki:
 
-1. Puppet Directory: <https://github.com/Chatie/wechaty-puppet/wiki/Directory>
-1. Puppet Compatibility: <https://github.com/Chatie/wechaty-puppet/wiki/Compatibility>
-
+1. Puppet Directory: <https://github.com/Wechaty/wechaty-puppet/wiki/Directory>
+1. Puppet Compatibility: <https://github.com/Wechaty/wechaty-puppet/wiki/Compatibility>
 
 ## API
 
-Read the Full Documentation at [Wechaty Official API Reference](https://chatie.github.io/wechaty/)
+Read the Full Documentation at [Wechaty Official API Reference](https://wechaty.github.io/wechaty/)
 
 ### 1 Class `Wechaty`
 
 Main bot class.
 
-A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://github.com/Chatie/wechaty/wiki/Puppet).
+A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://github.com/Wechaty/wechaty/wiki/Puppet).
 
 * `new Wechaty(options?: WechatyOptions)`
     1. `options.name?: string` the name of this bot(optional)
     2. `optoins.puppet?: string` select which puppet provider we want to use. must be one of the:
-        1. [wechaty-puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
-        2. [wechaty-puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
+        1. [wechaty-puppet-puppeteer](https://github.com/Wechaty/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
+        2. [wechaty-puppet-wechat4u](https://github.com/Wechaty/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
         3. [wechaty-puppet-padpro](https://github.com/botorange/wechaty-puppet-padpro) - iPad App Protocol
         4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
-        5. [wechaty-puppet-mock](https://github.com/chatie/wechaty-puppet-mock) - Mock for Testing
+        5. [wechaty-puppet-mock](https://github.com/Wechaty/wechaty-puppet-mock) - Mock for Testing
     3. `optoins.puppetOptions?: PuppetOptions` options for the puppet provider.
 
 | Wechaty | API | Description |
 | :--- | :--- | :---        |
-| event | [`login`](https://chatie.io/wechaty/#Wechaty+on) | emit after bot login full successful |
-| event | [`logout`](https://chatie.io/wechaty/#Wechaty+on) | emit after the bot log out |
-| event | [`friendship`](https://chatie.io/wechaty/#Wechaty+on) | emit when someone sends bot a friend request|
-| event | [`message`](https://chatie.io/wechaty/#Wechaty+on) | emit when there's a new message |
-| event | [`room-join`](https://chatie.io/wechaty/#Wechaty+on) | emit when anyone join any room |
-| event | [`room-topic`](https://chatie.io/wechaty/#Wechaty+on) | emit when someone change room topic |
-| event | [`room-leave`](https://chatie.io/wechaty/#Wechaty+on) | emit when anyone leave the room |
-| event | [`room-invite`](https://chatie.io/wechaty/#Wechaty+on) | emit when there is a room invitation |
-| event | [`scan`](https://chatie.io/wechaty/#Wechaty+on) | emit when the bot needs to show you a QR Code for scanning |
-| method | [`start(): Promise<void>`](https://chatie.io/wechaty/#Wechaty+start) | start the bot |
-| method | [`stop(): Promise<void>`](https://chatie.io/wechaty/#Wechaty+stop) | stop the bot |
-| method | [`logonoff(): boolean`](https://chatie.io/wechaty/#Wechaty+logonoff) | bot login status |
-| method | [`logout(): Promise<void>`](https://chatie.io/wechaty/#Wechaty+logout) | logout the bot |
-| method | [`userSelf(): ContactSelf`](https://chatie.io/wechaty/#Wechaty+userSelf) | get the login-ed bot contact |
-| method | [`say(text: string): Promise<void>`](https://chatie.io/wechaty/#Wechaty+say) | let bot say `text` to itself |
+| event | [`login`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit after bot login full successful |
+| event | [`logout`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit after the bot log out |
+| event | [`friendship`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when someone sends bot a friend request|
+| event | [`message`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when there's a new message |
+| event | [`room-join`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when anyone join any room |
+| event | [`room-topic`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when someone change room topic |
+| event | [`room-leave`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when anyone leave the room |
+| event | [`room-invite`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when there is a room invitation |
+| event | [`scan`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when the bot needs to show you a QR Code for scanning |
+| method | [`start(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+start) | start the bot |
+| method | [`stop(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+stop) | stop the bot |
+| method | [`logonoff(): boolean`](https://wechaty.github.io/wechaty/#Wechaty+logonoff) | bot login status |
+| method | [`logout(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+logout) | logout the bot |
+| method | [`userSelf(): ContactSelf`](https://wechaty.github.io/wechaty/#Wechaty+userSelf) | get the login-ed bot contact |
+| method | [`say(text: string): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+say) | let bot say `text` to itself |
 
 ### 2 Class `Contact`
 
@@ -186,22 +190,22 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 
 | Contact | API | Description |
 | :--- | :--- | :---        |
-| static | [`find(query: string): Promise<null \| Contact>`](https://chatie.io/wechaty/#Contact.find) | find contact by name or alias, if the result more than one, return the first one. |
-| static | [`findAll(query: string): Promise<Contact[]>`](https://chatie.io/wechaty/#Contact.findAll) | find contact by `name` or `alias` |
-| static | [`load(query: string): Contact`](https://chatie.io/wechaty/#Contact.load) | get contact by id |
+| static | [`find(query: string): Promise<null \| Contact>`](https://wechaty.github.io/wechaty/#Contact.find) | find contact by name or alias, if the result more than one, return the first one. |
+| static | [`findAll(query: string): Promise<Contact[]>`](https://wechaty.github.io/wechaty/#Contact.findAll) | find contact by `name` or `alias` |
+| static | [`load(query: string): Contact`](https://wechaty.github.io/wechaty/#Contact.load) | get contact by id |
 | property | `id: readonly string` | get contact id |
-| method | [`sync(): Promise<void>`](https://chatie.io/wechaty/#Contact+sync) | force reload data for contact , sync data from lowlevel API again|
-| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Contact+say) | send text, Contact, or file to contact, return the message which the bot sent (only `puppet-padplus` supported). |
-| method | [`self(): boolean`](https://chatie.io/wechaty/#Contact+self) | check if contact is self |
-| method | [`name(): string`](https://chatie.io/wechaty/#Contact+name) | get the name from a contact |
-| method | [`alias(): Promise<string>`](https://chatie.io/wechaty/#Contact+alias) | get the alias for a contact |
-| method | [`alias(newAlias: string): Promise<void>`](https://chatie.io/wechaty/#Contact+alias) | set or delete the alias for a contact |
-| method | [`friend(): boolean`](https://chatie.io/wechaty/#Contact+friend) | check if contact is friend |
-| method | [`type(): ContactType`](https://chatie.io/wechaty/#Contact+type) | return the type of the Contact |
-| method | [`province(): string`](https://chatie.io/wechaty/#Contact+province) | get the region 'province' from a contact |
-| method | [`city(): string`](https://chatie.io/wechaty/#Contact+city) | get the region 'city' from a contact |
-| method | [`avatar(): Promise<FileBox>`](https://chatie.io/wechaty/#Contact+avatar) | get avatar picture file stream |
-| method | [`gender(): ContactGender`](https://chatie.io/wechaty/#Contact+gender) | get gender from a contact |
+| method | [`sync(): Promise<void>`](https://wechaty.github.io/wechaty/#Contact+sync) | force reload data for contact , sync data from lowlevel API again|
+| method | [`say(text: string): Promise<void | Message>`](https://wechaty.github.io/wechaty/#Contact+say) | send text, Contact, or file to contact, return the message which the bot sent (only `puppet-padplus` supported). |
+| method | [`self(): boolean`](https://wechaty.github.io/wechaty/#Contact+self) | check if contact is self |
+| method | [`name(): string`](https://wechaty.github.io/wechaty/#Contact+name) | get the name from a contact |
+| method | [`alias(): Promise<string>`](https://wechaty.github.io/wechaty/#Contact+alias) | get the alias for a contact |
+| method | [`alias(newAlias: string): Promise<void>`](https://wechaty.github.io/wechaty/#Contact+alias) | set or delete the alias for a contact |
+| method | [`friend(): boolean`](https://wechaty.github.io/wechaty/#Contact+friend) | check if contact is friend |
+| method | [`type(): ContactType`](https://wechaty.github.io/wechaty/#Contact+type) | return the type of the Contact |
+| method | [`province(): string`](https://wechaty.github.io/wechaty/#Contact+province) | get the region 'province' from a contact |
+| method | [`city(): string`](https://wechaty.github.io/wechaty/#Contact+city) | get the region 'city' from a contact |
+| method | [`avatar(): Promise<FileBox>`](https://wechaty.github.io/wechaty/#Contact+avatar) | get avatar picture file stream |
+| method | [`gender(): ContactGender`](https://wechaty.github.io/wechaty/#Contact+gender) | get gender from a contact |
 
 #### 2.1 Class `ContactSelf`
 
@@ -209,9 +213,9 @@ Class `ContactSelf` is extended from `Contact`.
 
 | ContactSelf | API | Description |
 | :--- | :--- | :---        |
-| method | [`avatar(file: FileBox): Promise<void>`](https://chatie.io/wechaty/#ContactSelf+avatar) | set avatar for bot |
-| method | [`qrcode(): Promise<string>`](https://chatie.io/wechaty/#ContactSelf+qrcode) | get qrcode for bot |
-| method | [`signature(text: string): Promise<void>`](https://chatie.io/wechaty/#ContactSelf+signature) | set signature for bot |
+| method | [`avatar(file: FileBox): Promise<void>`](https://wechaty.github.io/wechaty/#ContactSelf+avatar) | set avatar for bot |
+| method | [`qrcode(): Promise<string>`](https://wechaty.github.io/wechaty/#ContactSelf+qrcode) | get qrcode for bot |
+| method | [`signature(text: string): Promise<void>`](https://wechaty.github.io/wechaty/#ContactSelf+signature) | set signature for bot |
 
 #### 2.2 Class `Friendship`
 
@@ -219,11 +223,11 @@ Send, receive friend request, and friend confirmation events.
 
 | Friendship | API | Description |
 | :--- | :--- | :---        |
-| static | [`add(contact: Contact, hello?: string): Promise<void>`](https://chatie.io/wechaty/#Friendship.add) | send a friend invitation to contact |
-| method | [`accept(): Promise<void>`](https://chatie.io/wechaty/#Friendship+accept) | accept Friend Request |
-| method | [`hello(): string`](https://chatie.io/wechaty/#Friendship+hello) | get the hello string from a friendship invitation |
-| method | [`contact(): Contact`](https://chatie.io/wechaty/#Friendship+contact) | get the contact from friendship |
-| method | [`type(): FriendshipType`](https://chatie.io/wechaty/#Friendship+type) | return the Friendship Type(unknown, confirm, receive, verify) |
+| static | [`add(contact: Contact, hello?: string): Promise<void>`](https://wechaty.github.io/wechaty/#Friendship.add) | send a friend invitation to contact |
+| method | [`accept(): Promise<void>`](https://wechaty.github.io/wechaty/#Friendship+accept) | accept Friend Request |
+| method | [`hello(): string`](https://wechaty.github.io/wechaty/#Friendship+hello) | get the hello string from a friendship invitation |
+| method | [`contact(): Contact`](https://wechaty.github.io/wechaty/#Friendship+contact) | get the contact from friendship |
+| method | [`type(): FriendshipType`](https://wechaty.github.io/wechaty/#Friendship+type) | return the Friendship Type(unknown, confirm, receive, verify) |
 
 ### 3 Class `Message`
 
@@ -231,22 +235,22 @@ All wechat messages will be encapsulated as a Message.
 
 | Message | API | Description |
 | :--- | :--- | :---        |
-| static | [`find(query: string): Promise<null \| Message>`](https://chatie.io/wechaty/#Message.find) | find message in cache and return the first one |
-| static | [`findAll(query: string): Promise<Message[]>`](https://chatie.io/wechaty/#Message.findAll) | find messages in cache, return a message list |
-| method | [`from(): Contact`](https://chatie.io/wechaty/#Message+from) | get the sender from a message |
-| method | [`to(): Contact`](https://chatie.io/wechaty/#Message+to) | get the destination of the message |
-| method | [`room(): null \| Room`](https://chatie.io/wechaty/#Message+room) | get the room from the message.(If the message is not in a room, then will return `null`) |
-| method | [`text(): string`](https://chatie.io/wechaty/#Message+text) | get the text content of the message |
-| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Message+say) | reply a Text, Media File , or contact message to the sender, return the message which the bot sent (only `puppet-padplus` supported). |
-| method | [`type(): MessageType`](https://chatie.io/wechaty/#Message+type) | get the type from the message |
-| method | [`self(): boolean`](https://chatie.io/wechaty/#Message+self) | check if a message is sent by self |
-| method | [`mention(): Contact[]`](https://chatie.io/wechaty/#Message+mention) | get message mentioned contactList. |
-| method | [`mentionSelf(): boolean`](https://chatie.io/wechaty/#Message+mentionSelf) | check if a message is mention self |
-| method | [`forward(to: Contact): Promise<void>`](https://chatie.io/wechaty/#Message+forward) | Forward the received message |
-| method | [`age(): number`](https://chatie.io/wechaty/#Message+age) | the number of seconds since it has been created |
+| static | [`find(query: string): Promise<null \| Message>`](https://wechaty.github.io/wechaty/#Message.find) | find message in cache and return the first one |
+| static | [`findAll(query: string): Promise<Message[]>`](https://wechaty.github.io/wechaty/#Message.findAll) | find messages in cache, return a message list |
+| method | [`from(): Contact`](https://wechaty.github.io/wechaty/#Message+from) | get the sender from a message |
+| method | [`to(): Contact`](https://wechaty.github.io/wechaty/#Message+to) | get the destination of the message |
+| method | [`room(): null \| Room`](https://wechaty.github.io/wechaty/#Message+room) | get the room from the message.(If the message is not in a room, then will return `null`) |
+| method | [`text(): string`](https://wechaty.github.io/wechaty/#Message+text) | get the text content of the message |
+| method | [`say(text: string): Promise<void | Message>`](https://wechaty.github.io/wechaty/#Message+say) | reply a Text, Media File , or contact message to the sender, return the message which the bot sent (only `puppet-padplus` supported). |
+| method | [`type(): MessageType`](https://wechaty.github.io/wechaty/#Message+type) | get the type from the message |
+| method | [`self(): boolean`](https://wechaty.github.io/wechaty/#Message+self) | check if a message is sent by self |
+| method | [`mention(): Contact[]`](https://wechaty.github.io/wechaty/#Message+mention) | get message mentioned contactList. |
+| method | [`mentionSelf(): boolean`](https://wechaty.github.io/wechaty/#Message+mentionSelf) | check if a message is mention self |
+| method | [`forward(to: Contact): Promise<void>`](https://wechaty.github.io/wechaty/#Message+forward) | Forward the received message |
+| method | [`age(): number`](https://wechaty.github.io/wechaty/#Message+age) | the number of seconds since it has been created |
 | method | `date(): Date` | the time it was created |
-| method | [`toFileBox(): Promise<FileBox>`](https://chatie.io/wechaty/#Message+toFileBox) | extract the Media File from the Message, and put it into the FileBox. |
-| method | [`toContact(): Promise<Contact>`](https://chatie.io/wechaty/#Message+toContact) | get Share Card of the Message |
+| method | [`toFileBox(): Promise<FileBox>`](https://wechaty.github.io/wechaty/#Message+toFileBox) | extract the Media File from the Message, and put it into the FileBox. |
+| method | [`toContact(): Promise<Contact>`](https://wechaty.github.io/wechaty/#Message+toContact) | get Share Card of the Message |
 
 ### 4 Class `Room`
 
@@ -254,31 +258,31 @@ All wechat rooms(groups) will be encapsulated as a Room.
 
 | Room | API | Description |
 | :--- | :--- | :---        |
-| static | [`create(contactList: Contact[], topic?: string): Promise<Room>`](https://chatie.io/wechaty/#Room.create) | create a new room |
-| static | [`find(query: string): Promise<null \| Room>`](https://chatie.io/wechaty/#Room.find) | Try to find a room by filter. If get many, return the first one. |
-| static | [`findAll(query: string): Promise<Room[]>`](https://chatie.io/wechaty/#Room.findAll) | Find all contacts in a room |
-| static | [`load(query: string): Room`](https://chatie.io/wechaty/#Room.load) | load room by room id |
+| static | [`create(contactList: Contact[], topic?: string): Promise<Room>`](https://wechaty.github.io/wechaty/#Room.create) | create a new room |
+| static | [`find(query: string): Promise<null \| Room>`](https://wechaty.github.io/wechaty/#Room.find) | Try to find a room by filter. If get many, return the first one. |
+| static | [`findAll(query: string): Promise<Room[]>`](https://wechaty.github.io/wechaty/#Room.findAll) | Find all contacts in a room |
+| static | [`load(query: string): Room`](https://wechaty.github.io/wechaty/#Room.load) | load room by room id |
 | property | `id: readonly string` |  |
-| event | [`join`](https://chatie.io/wechaty/#Room+on) | emit when anyone join any room |
-| event | [`topic`](https://chatie.io/wechaty/#Room+on) | emit when someone change room topic |
-| event | [`leave`](https://chatie.io/wechaty/#Room+on) | emit when anyone leave the room |
-| event | [`invite`](https://chatie.io/wechaty/#Room+on) | emit when receive a room invitation |
-| method | [`sync(): <Promise<void>`](https://chatie.io/wechaty/#Room+sync) | force reload data for room, sync data from lowlevel API again.
-| method | [`say(text: string): Promise<void | Message>`](https://chatie.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room, return the message which the bot sent (only `puppet-padplus` supported). |
-| method | [`add(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+add) | Add contact in a room |
-| method | [`del(contact: Contact): Promise<void>`](https://chatie.io/wechaty/#Room+del) | Delete a contact from the room |
-| method | [`quit(): Promise<void>`](https://chatie.io/wechaty/#Room+quit) | Bot quit the room itself |
-| method | [`topic(): Promise<string>`](https://chatie.io/wechaty/#Room+topic) | GET topic from the room |
-| method | [`topic(newTopic: string): Promise<void>`](https://chatie.io/wechaty/#Room+topic) | SET topic from the room |
-| method | [`announce(text: string): Promise<void>`](https://chatie.io/wechaty/#Room+announce) | SET/GET announce from the room |
-| method | [`qrcode(): Promise<string>`](https://chatie.io/wechaty/#Room+qrcode) | Get QR Code of the Room from the room, which can be used as scan and join the room. |
-| method | [`alias(contact: Contact): Promise<string>`](https://chatie.io/wechaty/#Room+alias) | Return contact's roomAlias in the room |
-| method | [`roomAlias(contact: Contact): Promise<string \| null>`](https://chatie.io/wechaty/#Room+roomAlias) | Same as function alias |
-| method | [`has(contact: Contact): Promise<boolean>`](https://chatie.io/wechaty/#Room+has) | Check if the room has member `contact` |
-| method | [`memberAll(query?: string): Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberAll) | Find all contacts or with specific name in a room |
-| method | [`member(query: string): Promise<null \| Contact>`](https://chatie.io/wechaty/#Room+member) | Find all contacts in a room, if get many, return the first one. |
-| method | [`memberList():Promise<Contact[]>`](https://chatie.io/wechaty/#Room+memberList) | get all room member from the room |
-| method | [`owner(): null \| Contact`](https://chatie.io/wechaty/#Room+owner) | Get room's owner from the room. |
+| event | [`join`](https://wechaty.github.io/wechaty/#Room+on) | emit when anyone join any room |
+| event | [`topic`](https://wechaty.github.io/wechaty/#Room+on) | emit when someone change room topic |
+| event | [`leave`](https://wechaty.github.io/wechaty/#Room+on) | emit when anyone leave the room |
+| event | [`invite`](https://wechaty.github.io/wechaty/#Room+on) | emit when receive a room invitation |
+| method | [`sync(): <Promise<void>`](https://wechaty.github.io/wechaty/#Room+sync) | force reload data for room, sync data from lowlevel API again.
+| method | [`say(text: string): Promise<void \| Message>`](https://wechaty.github.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room, return the message which the bot sent (only `puppet-padplus` supported). |
+| method | [`add(contact: Contact): Promise<void>`](https://wechaty.github.io/wechaty/#Room+add) | Add contact in a room |
+| method | [`del(contact: Contact): Promise<void>`](https://wechaty.github.io/wechaty/#Room+del) | Delete a contact from the room |
+| method | [`quit(): Promise<void>`](https://wechaty.github.io/wechaty/#Room+quit) | Bot quit the room itself |
+| method | [`topic(): Promise<string>`](https://wechaty.github.io/wechaty/#Room+topic) | GET topic from the room |
+| method | [`topic(newTopic: string): Promise<void>`](https://wechaty.github.io/wechaty/#Room+topic) | SET topic from the room |
+| method | [`announce(text: string): Promise<void>`](https://wechaty.github.io/wechaty/#Room+announce) | SET/GET announce from the room |
+| method | [`qrcode(): Promise<string>`](https://wechaty.github.io/wechaty/#Room+qrcode) | Get QR Code of the Room from the room, which can be used as scan and join the room. |
+| method | [`alias(contact: Contact): Promise<string>`](https://wechaty.github.io/wechaty/#Room+alias) | Return contact's roomAlias in the room |
+| method | [`roomAlias(contact: Contact): Promise<string \| null>`](https://wechaty.github.io/wechaty/#Room+roomAlias) | Same as function alias |
+| method | [`has(contact: Contact): Promise<boolean>`](https://wechaty.github.io/wechaty/#Room+has) | Check if the room has member `contact` |
+| method | [`memberAll(query?: string): Promise<Contact[]>`](https://wechaty.github.io/wechaty/#Room+memberAll) | Find all contacts or with specific name in a room |
+| method | [`member(query: string): Promise<null \| Contact>`](https://wechaty.github.io/wechaty/#Room+member) | Find all contacts in a room, if get many, return the first one. |
+| method | [`memberList():Promise<Contact[]>`](https://wechaty.github.io/wechaty/#Room+memberList) | get all room member from the room |
+| method | [`owner(): null \| Contact`](https://wechaty.github.io/wechaty/#Room+owner) | Get room's owner from the room. |
 
 #### 4.1 Class `RoomInvitation`
 
@@ -286,23 +290,23 @@ Accept room invitation
 
 | RoomInvitation | API | Description |
 | :--- | :--- | :---        |
-| method | [`accept(): Promise<void>`](https://chatie.io/wechaty/#RoomInvitation+accept) | accept Room Invitation |
-| method | [`inviter(): Contact`](https://chatie.io/wechaty/#RoomInvitation+inviter) | get the inviter from room invitation |
-| method | [`roomTopic(): Promise<string>`](https://chatie.io/wechaty/#RoomInvitation+inviter) | get the room topic from room invitation |
-| method | [`date(): Promise<Date>`](https://chatie.io/wechaty/#RoomInvitation+date) | the time it was created |
+| method | [`accept(): Promise<void>`](https://wechaty.github.io/wechaty/#RoomInvitation+accept) | accept Room Invitation |
+| method | [`inviter(): Contact`](https://wechaty.github.io/wechaty/#RoomInvitation+inviter) | get the inviter from room invitation |
+| method | [`roomTopic(): Promise<string>`](https://wechaty.github.io/wechaty/#RoomInvitation+inviter) | get the room topic from room invitation |
+| method | [`date(): Promise<Date>`](https://wechaty.github.io/wechaty/#RoomInvitation+date) | the time it was created |
 | method | `age(): Promise<number>` | the number of seconds since it has been created |
 
 ## TEST
 
-[![Ubuntu Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty.svg?branch=master)](https://travis-ci.com/Chatie/wechaty)
-[![Travis](https://img.shields.io/travis/Chatie/wechaty.svg?label=Ubuntu/OSX)](https://travis-ci.com/Chatie/wechaty)
-[![CentOS Linux Build Status](https://circleci.com/gh/Chatie/wechaty.svg?style=svg)](https://circleci.com/gh/Chatie/wechaty)
-[![CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty.svg?label=CentOS)](https://circleci.com/gh/Chatie/wechaty)
-[![Windows Build Status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
-[![Docker Build Status](https://img.shields.io/shippable/5aaf8667ec373f17004dcb66.svg?label=Docker&color=brightgreen)](https://app.shippable.com/github/Chatie/wechaty)
+[![Ubuntu Linux/Mac Build Status](https://travis-ci.com/Wechaty/wechaty.svg?branch=master)](https://travis-ci.com/Wechaty/wechaty)
+[![Travis](https://img.shields.io/travis/Wechaty/wechaty.svg?label=Ubuntu/OSX)](https://travis-ci.com/Wechaty/wechaty)
+[![CentOS Linux Build Status](https://circleci.com/gh/Wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/Wechaty/wechaty)
+[![CircleCI](https://img.shields.io/circleci/project/github/Wechaty/wechaty.svg?label=CentOS)](https://circleci.com/gh/Wechaty/wechaty)
+[![Windows Build Status](https://img.shields.io/appveyor/ci/Wechaty/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/Wechaty/wechaty)
+[![Docker Build Status](https://img.shields.io/shippable/5aaf8667ec373f17004dcb66.svg?label=Docker&color=brightgreen)](https://app.shippable.com/github/Wechaty/wechaty)
 
-[![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master)
-[![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
+[![Coverage Status](https://coveralls.io/repos/github/Wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Wechaty/wechaty?branch=master)
+[![Known Vulnerabilities](https://snyk.io/test/github/Wechaty/wechaty/badge.svg)](https://snyk.io/test/github/Wechaty/wechaty)
 
 Wechaty is fully automatically tested by unit and integration tests, with Continious Integration & Continious Deliver(CI/CD) support powered by CI like Travis, Shippable and Appveyor.
 
@@ -312,28 +316,28 @@ To test Wechaty, run:
 npm test
 ```
 
-Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wechaty/wiki/Tests)
+Get to know more about the tests from [Wiki:Tests](https://github.com/Wechaty/wechaty/wiki/Tests)
 
 ## RELEASE NOTES
 
-* [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
-* [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
+* [Latest Release](https://github.com/Wechaty/wechaty/releases/latest)(All releases [here](https://github.com/Wechaty/wechaty/releases))
+* [Changelog](https://github.com/Wechaty/wechaty/blob/master/CHANGELOG.md)
 
 ### Views Since Feb 15, 2019
 
-[![HitCount](http://hits.dwyl.io/chatie/wechaty.svg)](http://hits.dwyl.io/chatie/wechaty)
+[![HitCount](http://hits.dwyl.io/wechaty/wechaty.svg)](http://hits.dwyl.io/wechaty/wechaty)
 
 ## POWERED BY WECHATY
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/Wechaty/wechaty)
 
 ### Wechaty Badge
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/Wechaty/wechaty)
 ```
 
-Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
+Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/Wechaty/wechaty/wiki/PoweredByWechaty)
 
 ### Projects Using Wechaty
 
@@ -344,13 +348,13 @@ Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.co
 5. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
 7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
-
+8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
 
 Pull Request is welcome to add yours!
 
-Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
+Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/Wechaty/wechaty/wiki/PoweredByWechaty)
 
-## FIND A GOOD SERVER
+## Find a Good Server
 
 The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem.
 
@@ -363,16 +367,9 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
 | Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
 
-## SEE ALSO
+## See Also
 
-* [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
-
-## AUTHOR
-
-1. [Huan LI (李卓桓)](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
-1. [Grace LI (李佳芮)](https://angel.co/lijiarui)
-
-[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
+* [RelatedProject](https://github.com/Wechaty/wechaty/wiki/RelatedProject)
 
 ## The Story
 
@@ -391,13 +388,13 @@ At last, It's built for huan's personal study purpose of Automatically Testing.
 
 ## Contributors
 
-[![GitHub issues](https://img.shields.io/github/issues/chatie/wechaty.svg)](https://github.com/chatie/wechaty/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/chatie/wechaty.svg)](https://github.com/Chatie/wechaty/pulls)
+[![GitHub issues](https://img.shields.io/github/issues/wechaty/wechaty.svg)](https://github.com/Wechaty/wechaty/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/wechaty/wechaty.svg)](https://github.com/Wechaty/wechaty/pulls)
 [![Open Collective Backers](https://opencollective.com/wechaty/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
 [![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
 
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/Chatie/wechaty/graphs/contributors"><img src="https://opencollective.com/wechaty/contributors.svg?width=890&button=false" /></a>
+[![Contribute](https://opencollective.com/wechaty/contributors.svg?width=890&button=false)](https://github.com/Wechaty/wechaty/graphs/contributors)
 
 ## Backers
 
@@ -405,18 +402,25 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
 
-<a href="https://opencollective.com/wechaty#backers" target="_blank"><img src="https://opencollective.com/wechaty/backers.svg?width=890"></a>
+[![Open Collective Wechaty](https://opencollective.com/wechaty/backers.svg?width=890)](https://opencollective.com/wechaty#backers)
 
 ## Sponsors
 
-[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors) 
+[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors)
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
 
-<a href="https://opencollective.com/wechaty/#sponsor" target="_blank"><img src="https://opencollective.com/wechaty/sponsor.svg?width=890"></a>
+[![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
 
-## COPYRIGHT & LICENSE
+## Author
 
-* Code & Docs © 2016-2019 Huan LI \<zixia@zixia.net\>
+1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia) \<huan@chatie.io\>
+1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/)
+
+[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
+
+## Copyright & License
+
+* Code & Docs © 2016-now Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons

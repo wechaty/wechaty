@@ -50,7 +50,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   }
 
   /**
-   * @ignore
+   * @hideconstructor
    * Instance Properties
    *
    */
