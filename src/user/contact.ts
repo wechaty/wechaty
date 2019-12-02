@@ -41,6 +41,7 @@ import {
 
 import { UrlLink }  from './url-link'
 import { MiniProgram }  from './mini-program'
+import { Tag } from './tag'
 
 export const POOL = Symbol('pool')
 
@@ -649,13 +650,19 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * show all tags of contact
+   * Get all tags of contact
+   *
+   * @returns {Promise<Tag[]>}
+   * @example
+   * const tags = await contact.tags()
    */
-  public async tags (): Promise<string []> {
+  public async tags (): Promise<Tag []> {
     log.verbose('Contact', 'tags()')
 
     try {
-      return this.puppet.contactTagIdList(this.id)
+      const tagIdList = await this.puppet.contactTagIdList(this.id)
+      await this.wechaty.Tag.findAll()
+      return tagIdList.map(id => this.wechaty.Tag.load(id))
     } catch (e) {
       log.error('Contact', 'tags() exception: %s', e.message)
       return []

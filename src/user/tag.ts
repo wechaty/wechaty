@@ -74,6 +74,19 @@ export class Tag  extends Accessory {
     return newTag
   }
 
+  /**
+   * Get all tags of this account
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @static
+   * @returns {Promise<Tag[]>}
+   * @example
+   * const bot = new Wechaty()
+   * await bot.start()
+   * await bot.Tag.findAll()
+   */
   public static async findAll<T extends typeof Tag> (this: T): Promise<Array<T['prototype']>> {
     log.verbose('Tag', 'findAll()')
 
@@ -94,7 +107,18 @@ export class Tag  extends Accessory {
   }
 
   /**
-   * create a new tag
+   * Get a new tag
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @static
+   * @param {string} [tag] the tag name which want to create
+   * @returns {Promise<Tag>}
+   * @example
+   * const bot = new Wechaty()
+   * await bot.start()
+   * await bot.Tag.get(tag)
    */
   public static async get<T extends typeof Tag> (this: T, tag: string): Promise<T['prototype']> {
     log.verbose('Tag', 'get()')
@@ -111,7 +135,15 @@ export class Tag  extends Accessory {
   }
 
   /**
-   * add tag to contact
+   * Add tag for contact
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @param {Contact} [to] the contact which need to add tag
+   * @returns {Promise<void>}
+   * @example
+   * await tag.add(contact)
    */
   public async add (to: Contact): Promise<void> {
     log.verbose('Tag', 'add()')
@@ -125,16 +157,45 @@ export class Tag  extends Accessory {
   }
 
   /**
-   * delete a new tag
+   * Delete this tag
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await tag.del()
    */
-  public async del (from: Contact): Promise<void> {
+  public async del (): Promise<void> {
     log.verbose('Tag', 'del()')
 
     try {
-      await this.puppet.deleteTag(from.id)
+      await this.puppet.deleteTag(this.id)
     } catch (e) {
       log.error('Tag', 'del() exception: %s', e.message)
       throw new Error(`del error : ${e}`)
+    }
+  }
+
+  /**
+   * Modify name for this tag
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @param {string} [name] the new name for this tag
+   * @returns {Promise<void>}
+   * @example
+   * await tag.modify(name)
+   */
+  public async modify (name: string): Promise<void> {
+    log.verbose('Tag', 'modify()')
+
+    try {
+      await this.puppet.modifyTag(this.id, name)
+    } catch (e) {
+      log.error('Tag', 'modify() exception: %s', e.message)
+      throw new Error(`modify error : ${e}`)
     }
   }
 
