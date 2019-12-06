@@ -27,6 +27,7 @@ import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
+  Receiver,
 }                       from 'wechaty-puppet'
 
 import {
@@ -564,6 +565,19 @@ export class Message extends Accessory implements Sayable {
       await msg.ready()
       return msg
     }
+  }
+
+  public async recall (svrMsgId: string): Promise<boolean> {
+    const to = this.to()
+    const room = this.room()
+    const receiver: Receiver = {
+      contactId : (to && to.id) || undefined,
+      roomId    : (room && room.id) || undefined,
+    }
+    log.verbose('Message', 'recall(%s %s %s)', svrMsgId, (receiver.roomId ? receiver.roomId : 0), (receiver.contactId ? receiver.contactId : 0))
+
+    const isSuccess = await this.puppet.messageRecall(receiver, svrMsgId)
+    return isSuccess
   }
 
   /**

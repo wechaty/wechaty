@@ -46,6 +46,7 @@ import {
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
+  Receiver,
 }                         from 'wechaty-puppet'
 import { Message } from './message'
 
@@ -533,6 +534,13 @@ export class Room extends Accessory implements Sayable {
       await msg.ready()
       return msg
     }
+  }
+
+  public async recall (svrMsgId: string): Promise<boolean> {
+    log.verbose('Room', 'recall(%s)', svrMsgId)
+    const receiver: Receiver = { roomId: this.id }
+    const isSuccess = await this.puppet.messageRecall(receiver, svrMsgId)
+    return isSuccess
   }
 
   private async sayTemplateStringsArray (

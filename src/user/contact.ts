@@ -25,6 +25,7 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
+  Receiver,
 }                         from 'wechaty-puppet'
 
 import {
@@ -414,6 +415,13 @@ export class Contact extends Accessory implements Sayable {
       await msg.ready()
       return msg
     }
+  }
+
+  public async recall (svrMsgId: string): Promise<boolean> {
+    log.verbose('Contact', 'recall(%s)', svrMsgId)
+    const receiver: Receiver = { contactId: this.id }
+    const isSuccess = await this.puppet.messageRecall(receiver, svrMsgId)
+    return isSuccess
   }
 
   /**
