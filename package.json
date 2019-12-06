@@ -97,7 +97,7 @@
     "read-pkg-up": "^6.0.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
-    "wechaty-puppet": "^0.17.2",
+    "wechaty-puppet": "^0.17.3",
     "ws": "^7.0.0"
   },
   "devDependencies": {
