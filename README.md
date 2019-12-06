@@ -127,14 +127,19 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 
 Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
 
+If you cannot use Web protocol, you can apply other protocal following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
+
 Currently we support the following puppet providers:
 
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
 | Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| iPad | PuppetPadpro | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
+| iPad | PuppetPadplus | `export WECHATY_PUPPET=wechaty-puppet-padplus` |
+| Mac | PuppetMacpro | `export WECHATY_PUPPET=wechaty-puppet-macpro` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+| iPad | PuppetPadpro **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
+| iPad | PuppetPadchat **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
 
 Learn more about Wechaty Puppet from the Puppet Wiki:
 
