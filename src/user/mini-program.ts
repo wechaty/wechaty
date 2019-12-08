@@ -20,8 +20,9 @@ export class MiniProgram {
     const payload: MiniProgramPayload = {
       appid              : 'todo',
       description        : 'todo',
-      pagepath           : 'todo',
-      thumbnailurl       : 'todo',
+      pagePath           : 'todo',
+      thumbKey           : 'todo',
+      thumbUrl           : 'todo',
       title              : 'todo',
       username           : 'todo',
     }
@@ -46,8 +47,8 @@ export class MiniProgram {
     return this.payload.title
   }
 
-  public pagepath (): undefined | string {
-    return this.payload.pagepath
+  public pagePath (): undefined | string {
+    return this.payload.pagePath
   }
 
   public username (): undefined | string {
@@ -58,8 +59,12 @@ export class MiniProgram {
     return this.payload.description
   }
 
-  public thumbnailurl (): undefined | string {
-    return this.payload.thumbnailurl
+  public thumbUrl (): undefined | string {
+    return this.payload.thumbUrl
+  }
+
+  public thumbKey (): undefined | string {
+    return this.payload.thumbKey
   }
 
 }
