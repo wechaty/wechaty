@@ -30,6 +30,10 @@ import {
 }                       from 'wechaty-puppet'
 
 import {
+  escapeRegExp,
+}                       from '../helper-functions/pure/escape-regexp'
+
+import {
   Accessory,
 }                       from '../accessory'
 import {
@@ -726,7 +730,8 @@ export class Message extends Accessory implements Sayable {
     const mentionNameList = await Promise.all(mentionList.map(toAliasName))
 
     const textWithoutMention = mentionNameList.reduce((prev, cur) => {
-      const regex = new RegExp(`@${cur}[\u2005\u0020]`)
+      const escapedCur = escapeRegExp(cur)
+      const regex = new RegExp(`@${escapedCur}[\u2005\u0020]`)
       return prev.replace(regex, '')
     }, text)
 
