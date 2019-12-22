@@ -629,10 +629,10 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<Contact[]>} - Return message mentioned contactList
    *
    * @example
-   * const contactList = await message.mention()
+   * const contactList = await message.mentionList()
    * console.log(contactList)
    */
-  public async mention (): Promise<Contact[]> {
+  public async mentionList (): Promise<Contact[]> {
     log.verbose('Message', 'mention()')
 
     const room = this.room()
@@ -709,6 +709,11 @@ export class Message extends Accessory implements Sayable {
       log.silly('Message', `message.mention() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
     }
     return contactList
+  }
+
+  public async mention (): Promise<Contact[]> {
+    log.warn('Message', 'mention() DEPRECATED. use mentionList() instead.')
+    return this.mentionList()
   }
 
   public async mentionText (): Promise<string> {
