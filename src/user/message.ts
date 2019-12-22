@@ -731,7 +731,7 @@ export class Message extends Accessory implements Sayable {
 
     const textWithoutMention = mentionNameList.reduce((prev, cur) => {
       const escapedCur = escapeRegExp(cur)
-      const regex = new RegExp(`@${escapedCur}[\u2005\u0020]`)
+      const regex = new RegExp(`@${escapedCur}(\u2005|\u0020|$)`)
       return prev.replace(regex, '')
     }, text)
 
