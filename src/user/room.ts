@@ -551,30 +551,35 @@ export class Room extends Accessory implements Sayable {
         receiver,
         textList[0],
       )
-    } else if (textList.length === 1) {
-      /**
-       * Constructed mention string, skip inserting @ signs
-       */
-      return this.puppet.messageSendText(
-        receiver,
-        textList[0],
-        mentionList.map(c => c.id),
-      )
+    // TODO(huan) 20191222 it seems the following code will not happen,
+    // becasue it's equal the mentionList.length === 0 situation?
+    //
+    // } else if (textList.length === 1) {
+    //   /**
+    //    * Constructed mention string, skip inserting @ signs
+    //    */
+    //   return this.puppet.messageSendText(
+    //     receiver,
+    //     textList[0],
+    //     mentionList.map(c => c.id),
+    //   )
     } else {
       /**
        * Mention in the string
        */
-      const strLength = textList.length
+      const textListLength = textList.length
       const mentionLength = mentionList.length
-      if (strLength - mentionLength !== 1) {
+      if (textListLength - mentionLength !== 1) {
         throw new Error(`Can not say message, invalid Tagged Template.`)
       }
       let constructedString = ''
+
       let i = 0
       for (; i < mentionLength; i++) {
         constructedString += textList[i] + '@' + (await this.alias(mentionList[i]) || mentionList[i].name())
       }
       constructedString += textList[i]
+
       return this.puppet.messageSendText(
         receiver,
         constructedString,
@@ -583,7 +588,7 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  public emit (event: 'invite', inviter: Contact,         invitation: RoomInvitation)           : boolean
+  public emit (event: 'invite', inviter: Contact,         invitation: RoomInvitation)                       : boolean
   public emit (event: 'leave',  leaverList:   Contact[],  remover:  Contact, date: Date)                    : boolean
   public emit (event: 'join',   inviteeList:  Contact[],  inviter:  Contact, date: Date)                    : boolean
   public emit (event: 'topic',  topic:        string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
