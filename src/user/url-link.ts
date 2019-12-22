@@ -28,12 +28,6 @@ export class UrlLink {
     let imageUrl: string | undefined
     let title: string
 
-    if (Array.isArray(meta.description)) {
-      description = meta.description[0]
-    } else if (meta.description) {
-      description = meta.description
-    }
-
     if (meta.image) {
       if (typeof meta.image === 'string') {
         imageUrl = meta.image
@@ -54,8 +48,16 @@ export class UrlLink {
       title = meta.title
     }
 
+    if (Array.isArray(meta.description)) {
+      description = meta.description[0]
+    } else if (meta.description) {
+      description = meta.description
+    } else {
+      description = title
+    }
+
     if (!imageUrl || !description) {
-      throw new Error('imageUrl or description not found!')
+      throw new Error(`imageUrl(${imageUrl}) or description(${description}) not found!`)
     }
 
     if (!imageUrl.startsWith('http')) {
