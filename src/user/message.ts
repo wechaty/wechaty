@@ -636,18 +636,23 @@ export class Message extends Accessory implements Sayable {
       return []
     }
 
-    // Use mention list if mention list is available
-    // otherwise, process the message and get the mention list
+    /**
+     * Use mention list if mention list is available
+     * otherwise, process the message and get the mention list
+     */
     if (this.payload && this.payload.mentionIdList) {
-      return Promise.all(this.payload.mentionIdList.map(async id => {
+      const idToContact = async (id: string) => {
         const contact = this.wechaty.Contact.load(id)
         await contact.ready()
         return contact
-      }))
+      }
+      return Promise.all(this.payload.mentionIdList.map(idToContact))
     }
 
-    // define magic code `8197` to identify @xxx
-    // const AT_SEPRATOR = String.fromCharCode(8197)
+    /**
+     * define magic code `8197` to identify @xxx
+     * const AT_SEPRATOR = String.fromCharCode(8197)
+     */
     const AT_SEPRATOR = AT_SEPRATOR_REGEX
 
     const atList = this.text().split(AT_SEPRATOR)
@@ -700,6 +705,32 @@ export class Message extends Accessory implements Sayable {
       log.silly('Message', `message.mention() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
     }
     return contactList
+  }
+
+  public async mentionText (): Promise<string> {
+    const text = this.text()
+    const room = this.room()
+
+    const mentionList = await this.mention()
+
+    if (!room || !mentionList || mentionList.length === 0) {
+      return text
+    }
+
+    const toAliasName = async (member: Contact) => {
+      const alias = await room.alias(member)
+      const name = member.name()
+      return alias || name
+    }
+
+    const mentionNameList = await Promise.all(mentionList.map(toAliasName))
+
+    const textWithoutMention = mentionNameList.reduce((prev, cur) => {
+      const regex = new RegExp(`@${cur}[\u2005\u0020]`)
+      return prev.replace(regex, '')
+    }, text)
+
+    return textWithoutMention.trim()
   }
 
   /**

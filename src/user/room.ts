@@ -563,7 +563,7 @@ export class Room extends Accessory implements Sayable {
     //     textList[0],
     //     mentionList.map(c => c.id),
     //   )
-    } else {
+    } else {  // mentionList.length > 0
       /**
        * Mention in the string
        */
