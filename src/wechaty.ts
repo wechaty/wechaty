@@ -20,6 +20,9 @@
 import cuid    from 'cuid'
 import os      from 'os'
 
+import { PassThrough } from 'stream'
+import { toFileStream } from 'qrcode'
+
 import {
   // Constructor,
   cloneClass,
@@ -1092,6 +1095,16 @@ export class Wechaty extends Accessory implements Sayable {
     await new Promise(resolve => {
       setTimeout(resolve, millisecond)
     })
+  }
+
+  /**
+   * @private
+   */
+  public async qrcodePng (value: string): Promise<FileBox> {
+    const stream = new PassThrough()
+    await toFileStream(stream, value) // only support .png for now
+    const fileBox = FileBox.fromStream(stream, 'qrcode.png')
+    return fileBox
   }
 
   /**
