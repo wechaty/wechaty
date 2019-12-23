@@ -24,6 +24,10 @@ import {
 }           from '../config'
 
 import {
+  guardQrCodeValue,
+}                       from '../helper-functions/pure/guard-qrcode-value'
+
+import {
   Contact,
 }           from './contact'
 
@@ -118,16 +122,7 @@ export class ContactSelf extends Contact {
     }
 
     const qrcodeValue = await this.puppet.contactSelfQrcode()
-
-    /**
-      * QR CODE max char length: 7,089
-      *   https://stackoverflow.com/a/12764370/1123955
-      */
-    if (qrcodeValue.length > 7089) {
-      throw new Error('Room.qrcode() should return QR Code Value instead of QR Code Image. See: https://github.com/wechaty/wechaty/issues/1889')
-    }
-
-    return qrcodeValue
+    return guardQrCodeValue(qrcodeValue)
   }
 
   /**
