@@ -633,7 +633,7 @@ export class Message extends Accessory implements Sayable {
    * console.log(contactList)
    */
   public async mentionList (): Promise<Contact[]> {
-    log.verbose('Message', 'mention()')
+    log.verbose('Message', 'mentionList()')
 
     const room = this.room()
     if (this.type() !== MessageType.Text || !room) {
@@ -691,7 +691,7 @@ export class Message extends Accessory implements Sayable {
     // filter blank string
     mentionNameList = mentionNameList.filter(s => !!s)
 
-    log.verbose('Message', 'mention() text = "%s", mentionNameList = "%s"',
+    log.verbose('Message', 'mentionList() text = "%s", mentionNameList = "%s"',
       this.text(),
       JSON.stringify(mentionNameList),
     )
@@ -706,7 +706,7 @@ export class Message extends Accessory implements Sayable {
     contactList = contactList.concat.apply([], contactListNested)
 
     if (contactList.length === 0) {
-      log.silly('Message', `message.mention() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
+      log.silly('Message', `message.mentionList() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
     }
     return contactList
   }
@@ -751,7 +751,7 @@ export class Message extends Accessory implements Sayable {
    */
   public async mentioned (): Promise<Contact[]> {
     log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')
-    return this.mention()
+    return this.mentionList()
   }
 
   /**
@@ -765,7 +765,7 @@ export class Message extends Accessory implements Sayable {
    */
   public async mentionSelf (): Promise<boolean> {
     const selfId = this.puppet.selfId()
-    const mentionList = await this.mention()
+    const mentionList = await this.mentionList()
     return mentionList.some(contact => contact.id === selfId)
   }
 
