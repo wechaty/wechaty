@@ -882,15 +882,25 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * Get QR Code of the Room from the room, which can be used as scan and join the room.
+   * Get QR Code Value of the Room from the room, which can be used as scan and join the room.
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * 1. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * 2. The return should be the QR Code Data, instead of the QR Code Image. (the data should be less than 8KB. See: https://stackoverflow.com/a/12764370/1123955 )
    * @returns {Promise<string>}
    */
   public async qrcode (): Promise<string> {
     log.verbose('Room', 'qrcode()')
-    const qrcode = await this.puppet.roomQrcode(this.id)
-    return qrcode
+    const qrcodeValue = await this.puppet.roomQrcode(this.id)
+
+    /**
+      * QR CODE max char length: 7,089
+      *   https://stackoverflow.com/a/12764370/1123955
+      */
+    if (qrcodeValue.length > 7089) {
+      throw new Error('Room.qrcode() should return QR Code Value instead of QR Code Image. See: https://github.com/wechaty/wechaty/issues/1889')
+    }
+
+    return qrcodeValue
   }
 
   /**
