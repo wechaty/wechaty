@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -164,7 +164,7 @@ const welcome = `
 |                                     |___/
 
 =============== Powered by Wechaty ===============
--------- https://github.com/chatie/wechaty --------
+-------- https://github.com/wechaty/wechaty --------
           Version: ${bot.version(true)}
 
 I'm a bot, my superpower is talk in Wechat.

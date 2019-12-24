@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -69,7 +69,7 @@ export interface MessageUserQueryFilter {
 /**
  * All wechat messages will be encapsulated as a Message.
  *
- * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
+ * [Examples/Ding-Dong-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
 export class Message extends Accessory implements Sayable {
 
@@ -212,7 +212,7 @@ export class Message extends Accessory implements Sayable {
     const MyClass = instanceToClass(this, Message)
 
     if (MyClass === Message) {
-      throw new Error('Message class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+      throw new Error('Message class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
     if (!this.puppet) {
@@ -436,9 +436,9 @@ export class Message extends Accessory implements Sayable {
   /**
    * Reply a Text or Media File message to the sender.
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @see {@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
+   * @see {@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
    * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -486,7 +486,7 @@ export class Message extends Accessory implements Sayable {
    *       description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
    *       thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
    *       title       : 'Welcome to Wechaty',
-   *       url         : 'https://github.com/chatie/wechaty',
+   *       url         : 'https://github.com/wechaty/wechaty',
    *     })
    *     await msg.say(linkPayload)
    *     const message = await msg.say(linkPayload) // only supported by puppet-padplus
@@ -926,7 +926,7 @@ export class Message extends Accessory implements Sayable {
   /**
    * Extract the Media File from the Message, and put it into the FileBox.
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {Promise<FileBox>}
    *
@@ -947,7 +947,7 @@ export class Message extends Accessory implements Sayable {
    * Get Share Card of the Message
    * Extract the Contact Card from the Message, and encapsulate it into Contact class
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {Promise<Contact>}
    */
   public async toContact (): Promise<Contact> {

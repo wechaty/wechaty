@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -64,7 +64,7 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
 /**
  * All wechat rooms(groups) will be encapsulated as a Room.
  *
- * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
+ * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
 export class Room extends Accessory implements Sayable {
@@ -202,8 +202,8 @@ export class Room extends Accessory implements Sayable {
     for (n = 0; n < roomList.length; n++) {
       const room = roomList[n]
       // use puppet.roomValidate() to confirm double confirm that this roomId is valid.
-      // https://github.com/lijiarui/wechaty-puppet-padchat/issues/64
-      // https://github.com/Chatie/wechaty/issues/1345
+      // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
+      // https://github.com/wechaty/wechaty/issues/1345
       const valid = await this.puppet.roomValidate(room.id)
       if (valid) {
         log.verbose('Room', 'find() confirm room[#%d] with id=%d is valid result, return it.',
@@ -231,7 +231,7 @@ export class Room extends Accessory implements Sayable {
    * but for other solutions besides web,
    * we can get unique and permanent topic id.
    *
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @static
    * @param {string} id
    * @returns {Room}
@@ -272,7 +272,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * @hideconstructor
    * @property {string}  id - Room id.
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    */
   constructor (
     public readonly id: string,
@@ -284,7 +284,7 @@ export class Room extends Accessory implements Sayable {
     const MyClass = instanceToClass(this, Room)
 
     if (MyClass === Room) {
-      throw new Error('Room class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+      throw new Error('Room class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
     if (!this.puppet) {
@@ -391,7 +391,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrlOrMini - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -439,7 +439,7 @@ export class Room extends Accessory implements Sayable {
    *   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
    *   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
    *   title       : 'Welcome to Wechaty',
-   *   url         : 'https://github.com/chatie/wechaty',
+   *   url         : 'https://github.com/wechaty/wechaty',
    * })
    * await room.say(urlLink)
    * const msg = await room.say(urlLink) // only supported by puppet-padplus
@@ -690,9 +690,9 @@ export class Room extends Accessory implements Sayable {
    * Add contact in a room
    *
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * >
-   * > see {@link https://github.com/Chatie/wechaty/issues/1441|Web version of WeChat closed group interface}
+   * > see {@link https://github.com/wechaty/wechaty/issues/1441|Web version of WeChat closed group interface}
    *
    * @param {Contact} contact
    * @returns {Promise<void>}
@@ -720,9 +720,9 @@ export class Room extends Accessory implements Sayable {
    * It works only when the bot is the owner of the room
    *
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * >
-   * > see {@link https://github.com/Chatie/wechaty/issues/1441|Web version of WeChat closed group interface}
+   * > see {@link https://github.com/wechaty/wechaty/issues/1441|Web version of WeChat closed group interface}
    *
    * @param {Contact} contact
    * @returns {Promise<void>}
@@ -764,7 +764,7 @@ export class Room extends Accessory implements Sayable {
    * Bot quit the room itself
    *
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {Promise<void>}
    * @example
@@ -852,7 +852,7 @@ export class Room extends Accessory implements Sayable {
    * SET/GET announce from the room
    * > Tips: It only works when bot is the owner of the room.
    * >
-   * > This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * > This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {string} [text] If set this para, it will change room announce.
    * @returns {(Promise<void | string>)}
@@ -888,7 +888,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * Get QR Code Value of the Room from the room, which can be used as scan and join the room.
    * > Tips:
-   * 1. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * 1. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * 2. The return should be the QR Code Data, instead of the QR Code Image. (the data should be less than 8KB. See: https://stackoverflow.com/a/12764370/1123955 )
    * @returns {Promise<string>}
    */
@@ -979,7 +979,7 @@ export class Room extends Accessory implements Sayable {
    * @property   {string} name            -Find the contact by wechat name in a room, equal to `Contact.name()`.
    * @property   {string} roomAlias       -Find the contact by alias set by the bot for others in a room.
    * @property   {string} contactAlias    -Find the contact by alias set by the contact out of a room, equal to `Contact.alias()`.
-   * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
+   * [More Detail]{@link https://github.com/wechaty/wechaty/issues/365}
    */
 
   /**
@@ -1105,7 +1105,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * Get room's owner from the room.
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {(Contact | null)}
    * @example
    * const owner = room.owner()
