@@ -1097,6 +1097,13 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * @ignore
    */
+  public async sleep (millisecond: number): Promise<void> {
+    return Wechaty.sleep(millisecond)
+  }
+
+  /**
+   * @ignore
+   */
   public ding (data?: string): void {
     log.silly('Wechaty', 'ding(%s)', data || '')
 
