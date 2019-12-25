@@ -144,7 +144,7 @@ export class Wechaty extends Accessory implements Sayable {
 
   /**
    * singleton globalInstance
-   * @private
+   * @ignore
    */
   private static globalInstance: Wechaty
 
@@ -155,7 +155,7 @@ export class Wechaty extends Accessory implements Sayable {
 
   /**
    * the cuid
-   * @private
+   * @ignore
    */
   public readonly id : string
 
@@ -254,7 +254,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.readyState = new StateSwitch('WechatyReady', log)
 
     /**
-     * @ignore
+      * @ignore
      * Clone Classes for this bot and attach the `puppet` to the Class
      *
      *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
@@ -275,7 +275,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public toString () {
     if (!this.options) {
@@ -776,7 +776,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @desc
    * use {@link Wechaty#start} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public async init (): Promise<void> {
     log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
@@ -962,7 +962,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @description
    * Should use {@link Wechaty#userSelf} instead
    * @deprecated Use `userSelf()` instead
-   * @private
+   * @ignore
    */
   public self (): Contact {
     log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
@@ -1058,7 +1058,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public static version (forceNpm = false): string {
     if (!forceNpm) {
@@ -1071,7 +1071,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    * Return version of Wechaty
    *
    * @param {boolean} [forceNpm=false]  - If set to true, will only return the version in package.json. </br>
@@ -1086,7 +1086,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public static async sleep (millisecond: number): Promise<void> {
     await new Promise(resolve => {
@@ -1095,7 +1095,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public ding (data?: string): void {
     log.silly('Wechaty', 'ding(%s)', data || '')
@@ -1110,7 +1110,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   private memoryCheck (minMegabyte = 4): void {
     const freeMegabyte = Math.floor(os.freemem() / 1024 / 1024)
@@ -1126,7 +1126,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public async reset (reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason || 'no reason')

@@ -80,7 +80,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   }
 
   /**
-   * @ignore
+    * @ignore
    */
   public async toStringAsync (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
@@ -190,7 +190,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
 
   /**
    * List of Room Members that you known(is friend)
-   * @ignore
+    * @ignore
    */
   public async roomMemberList (): Promise<Contact[]> {
     log.verbose('RoomInvitation', 'roomMemberList()')
