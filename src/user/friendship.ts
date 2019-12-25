@@ -35,6 +35,7 @@ import {
 import {
   FriendshipPayload,
   FriendshipType,
+  ContactPayload,
 }                         from 'wechaty-puppet'
 
 import {
@@ -68,6 +69,16 @@ export class Friendship extends Accessory implements Acceptable {
   ): T['prototype'] {
     const newFriendship = new (this as any)(id)
     return newFriendship
+  }
+
+  public static async search (
+    contact : Contact,
+  ): Promise<Contact> {
+    log.verbose('Friendship', 'static add(%s, %s)',
+      contact.id,
+    )
+    await this.puppet.friendshipSearch(contact.id)
+    return this.wechaty.Contact.load(contact.id)
   }
 
   /**
