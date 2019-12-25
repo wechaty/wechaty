@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -64,7 +64,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
     const MyClass = instanceToClass(this, RoomInvitation)
 
     if (MyClass === RoomInvitation) {
-      throw new Error('RoomInvitation class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+      throw new Error('RoomInvitation class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
     if (!this.puppet) {

@@ -2,14 +2,14 @@
 
 Thank you for your time on Wechaty.
 
-## How to [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
+## How to [contribute](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
 
 * Write a blog about Wechaty
 * Create a tutorial for Wechaty
-* Help expand the [wiki](https://github.com/Chatie/wechaty/wiki)
-* Answer questions on the [issue](https://github.com/Chatie/wechaty/issues)
-* Review [pull requests](https://github.com/Chatie/wechaty/pulls)
-* Start [hacking on Wechaty](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
+* Help expand the [wiki](https://github.com/wechaty/wechaty/wiki)
+* Answer questions on the [issue](https://github.com/wechaty/wechaty/issues)
+* Review [pull requests](https://github.com/wechaty/wechaty/pulls)
+* Start [hacking on Wechaty](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
 
 ### Why contribute
 
@@ -46,18 +46,18 @@ Contact rui@chatie.io to learn more
 
 Contribute by marketing: Add **Powered by Wechaty** Badge to your Project Homepage:
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/Chatie/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 
 ### Markdown
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/Chatie/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 ```
 
 ### Html
 
 ```html
-<a href="https://github.com/Chatie/wechaty" target="_blank">
+<a href="https://github.com/wechaty/wechaty" target="_blank">
   <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
 </a>
 ```

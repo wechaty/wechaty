@@ -12,13 +12,13 @@
 <p>A <code>Bot</code> is a wechat client depends on which puppet you use.
 It may equals</p>
 <ul>
-<li>web-wechat, when you use: <a href="https://github.com/chatie/wechaty-puppet-puppeteer">puppet-puppeteer</a>/<a href="https://github.com/chatie/wechaty-puppet-wechat4u">puppet-wechat4u</a></li>
-<li>ipad-wechat, when you use: <a href="https://github.com/lijiarui/wechaty-puppet-padchat">puppet-padchat</a></li>
+<li>web-wechat, when you use: <a href="https://github.com/wechaty/wechaty-puppet-puppeteer">puppet-puppeteer</a>/<a href="https://github.com/wechaty/wechaty-puppet-wechat4u">puppet-wechat4u</a></li>
+<li>ipad-wechat, when you use: <a href="https://github.com/wechaty/wechaty-puppet-padchat">puppet-padchat</a></li>
 <li>ios-wechat, when you use: puppet-ioscat</li>
 </ul>
 <p>See more:</p>
 <ul>
-<li><a href="https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty">What is a Puppet in Wechaty</a></li>
+<li><a href="https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty">What is a Puppet in Wechaty</a></li>
 </ul>
 <blockquote>
 <p>If you want to know how to send message, see <a href="#Message">Message</a> <br>
@@ -27,11 +27,11 @@ If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
 </dd>
 <dt><a href="#Room">Room</a></dt>
 <dd><p>All wechat rooms(groups) will be encapsulated as a Room.</p>
-<p><a href="https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts">Examples/Room-Bot</a></p>
+<p><a href="https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts">Examples/Room-Bot</a></p>
 </dd>
 <dt><a href="#Contact">Contact</a></dt>
 <dd><p>All wechat contacts(friend) will be encapsulated as a Contact.
-<a href="https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts">Examples/Contact-Bot</a></p>
+<a href="https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts">Examples/Contact-Bot</a></p>
 </dd>
 <dt><a href="#ContactSelf">ContactSelf</a></dt>
 <dd><p>Bot itself will be encapsulated as a ContactSelf.</p>
@@ -46,11 +46,11 @@ If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
 <li>receive request(in friend event)</li>
 <li>confirmation friendship(friend event)</li>
 </ol>
-<p><a href="https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts">Examples/Friend-Bot</a></p>
+<p><a href="https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts">Examples/Friend-Bot</a></p>
 </dd>
 <dt><a href="#Message">Message</a></dt>
 <dd><p>All wechat messages will be encapsulated as a Message.</p>
-<p><a href="https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts">Examples/Ding-Dong-Bot</a></p>
+<p><a href="https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts">Examples/Ding-Dong-Bot</a></p>
 </dd>
 <dt><a href="#RoomInvitation">RoomInvitation</a></dt>
 <dd><p>accept room invitation</p>
@@ -61,12 +61,12 @@ If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
 
 <dl>
 <dt><a href="#PuppetModuleName">PuppetModuleName</a></dt>
-<dd><p>The term <a href="https://github.com/Chatie/wechaty/wiki/Puppet">Puppet</a> in Wechaty is an Abstract Class for implementing protocol plugins.
+<dd><p>The term <a href="https://github.com/wechaty/wechaty/wiki/Puppet">Puppet</a> in Wechaty is an Abstract Class for implementing protocol plugins.
 The plugins are the component that helps Wechaty to control the Wechat(that&#39;s the reason we call it puppet).
 The plugins are named XXXPuppet, for example:</p>
 <ul>
-<li><a href="https://github.com/Chatie/wechaty-puppet-puppeteer">PuppetPuppeteer</a>:</li>
-<li><a href="https://github.com/lijiarui/wechaty-puppet-padchat">PuppetPadchat</a></li>
+<li><a href="https://github.com/wechaty/wechaty-puppet-puppeteer">PuppetPuppeteer</a>:</li>
+<li><a href="https://github.com/wechaty/wechaty-puppet-padchat">PuppetPadchat</a></li>
 </ul>
 </dd>
 <dt><a href="#WechatyOptions">WechatyOptions</a></dt>
@@ -102,12 +102,12 @@ Main bot class.
 
 A `Bot` is a wechat client depends on which puppet you use.
 It may equals
-- web-wechat, when you use: [puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u)
-- ipad-wechat, when you use: [puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+- web-wechat, when you use: [puppet-puppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u)
+- ipad-wechat, when you use: [puppet-padchat](https://github.com/wechaty/wechaty-puppet-padchat)
 - ios-wechat, when you use: puppet-ioscat
 
 See more:
-- [What is a Puppet in Wechaty](https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
+- [What is a Puppet in Wechaty](https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
 
 > If you want to know how to send message, see [Message](#Message) <br>
 > If you want to know how to get contact, see [Contact](#Contact)
@@ -162,7 +162,7 @@ see more in [WechatyEventName](#WechatyEventName)
 
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chaining,
-see advanced [chaining usage](https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty)  
+see advanced [chaining usage](https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -328,7 +328,7 @@ console.log(`Bot is ${contact.name()}`)
 ### wechaty.say(something) ⇒ <code>Promise.&lt;void&gt;</code>
 Send message to userSelf, in other words, bot send message to itself.
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 
@@ -364,7 +364,7 @@ const linkPayload = new UrlLink ({
   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
   title       : 'Welcome to Wechaty',
-  url         : 'https://github.com/chatie/wechaty',
+  url         : 'https://github.com/wechaty/wechaty',
 })
 await bot.say(linkPayload)
 
@@ -405,14 +405,14 @@ Wechaty.instance() // Global instance
 ## Room
 All wechat rooms(groups) will be encapsulated as a Room.
 
-[Examples/Room-Bot](https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts)
+[Examples/Room-Bot](https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts)
 
 **Kind**: global class  
 **Properties**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| id | <code>string</code> | Room id. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table) |
+| id | <code>string</code> | Room id. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table) |
 
 
 * [Room](#Room)
@@ -451,7 +451,7 @@ await room.sync()
 ### room.say(textOrContactOrFileOrUrlOrMini, [mention]) ⇒ <code>Promise.&lt;(void\|Message)&gt;</code>
 Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 
@@ -502,7 +502,7 @@ const urlLink = new UrlLink ({
   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
   title       : 'Welcome to Wechaty',
-  url         : 'https://github.com/chatie/wechaty',
+  url         : 'https://github.com/wechaty/wechaty',
 })
 await room.say(urlLink)
 const msg = await room.say(urlLink) // only supported by puppet-padplus
@@ -585,9 +585,9 @@ if (room) {
 Add contact in a room
 
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 >
-> see [Web version of WeChat closed group interface](https://github.com/Chatie/wechaty/issues/1441)
+> see [Web version of WeChat closed group interface](https://github.com/wechaty/wechaty/issues/1441)
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 
@@ -617,9 +617,9 @@ Delete a contact from the room
 It works only when the bot is the owner of the room
 
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 >
-> see [Web version of WeChat closed group interface](https://github.com/Chatie/wechaty/issues/1441)
+> see [Web version of WeChat closed group interface](https://github.com/wechaty/wechaty/issues/1441)
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 
@@ -648,7 +648,7 @@ if (room) {
 Bot quit the room itself
 
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 **Example**  
@@ -699,7 +699,7 @@ bot
 SET/GET announce from the room
 > Tips: It only works when bot is the owner of the room.
 >
-> This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+> This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 
@@ -731,7 +731,7 @@ console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
 ### room.qrcode() ⇒ <code>Promise.&lt;string&gt;</code>
 Get QR Code of the Room from the room, which can be used as scan and join the room.
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+alias"></a>
@@ -857,7 +857,7 @@ if (room) {
 ### room.owner() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
 Get room's owner from the room.
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 **Example**  
@@ -930,14 +930,14 @@ const roomList = await bot.Room.find({topic: 'wechaty'})
 
 ## Contact
 All wechat contacts(friend) will be encapsulated as a Contact.
-[Examples/Contact-Bot](https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts)
+[Examples/Contact-Bot](https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts)
 
 **Kind**: global class  
 **Properties**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| id | <code>string</code> | Get Contact id. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table) |
+| id | <code>string</code> | Get Contact id. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table) |
 
 
 * [Contact](#Contact)
@@ -961,7 +961,7 @@ All wechat contacts(friend) will be encapsulated as a Contact.
 
 ### contact.say(something) ⇒ <code>Promise.&lt;(void\|Message)&gt;</code>
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
 
@@ -1001,7 +1001,7 @@ const urlLink = new UrlLink ({
   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
   title       : 'Welcome to Wechaty',
-  url         : 'https://github.com/chatie/wechaty',
+  url         : 'https://github.com/wechaty/wechaty',
 })
 await contact.say(urlLink)
 const msg = await contact.say(urlLink) // only supported by puppet-padplus
@@ -1076,7 +1076,7 @@ try {
 Check if contact is friend
 
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
 **Returns**: <code>boolean</code> \| <code>null</code> - <br>True for friend of the bot <br>
@@ -1305,7 +1305,7 @@ Send, receive friend request, and friend confirmation events.
 2. receive request(in friend event)
 3. confirmation friendship(friend event)
 
-[Examples/Friend-Bot](https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts)
+[Examples/Friend-Bot](https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts)
 
 **Kind**: global class  
 
@@ -1448,7 +1448,7 @@ for (let i = 0; i < memberList.length; i++) {
 ## Message
 All wechat messages will be encapsulated as a Message.
 
-[Examples/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts)
+[Examples/Ding-Dong-Bot](https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts)
 
 **Kind**: global class  
 
@@ -1583,10 +1583,10 @@ bot
 ### message.say(textOrContactOrFile, [mention]) ⇒ <code>Promise.&lt;(void\|Message)&gt;</code>
 Reply a Text or Media File message to the sender.
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [Examples/ding-dong-bot](https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts)  
+**See**: [Examples/ding-dong-bot](https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1634,7 +1634,7 @@ bot
       description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
       thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
       title       : 'Welcome to Wechaty',
-      url         : 'https://github.com/chatie/wechaty',
+      url         : 'https://github.com/wechaty/wechaty',
     })
     await msg.say(linkPayload)
     const message = await msg.say(linkPayload) // only supported by puppet-padplus
@@ -1781,7 +1781,7 @@ use [toFileBox](#Message+toFileBox) instead
 ### message.toFileBox() ⇒ <code>Promise.&lt;FileBox&gt;</code>
 Extract the Media File from the Message, and put it into the FileBox.
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 **Example** *(Save media file from a message)*  
@@ -1796,7 +1796,7 @@ fileBox.toFile(fileName)
 Get Share Card of the Message
 Extract the Contact Card from the Message, and encapsulate it into Contact class
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message.find"></a>
@@ -1900,11 +1900,11 @@ then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
 <a name="PuppetModuleName"></a>
 
 ## PuppetModuleName
-The term [Puppet](https://github.com/Chatie/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
+The term [Puppet](https://github.com/wechaty/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
 The plugins are the component that helps Wechaty to control the Wechat(that's the reason we call it puppet).
 The plugins are named XXXPuppet, for example:
-- [PuppetPuppeteer](https://github.com/Chatie/wechaty-puppet-puppeteer):
-- [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+- [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer):
+- [PuppetPadchat](https://github.com/wechaty/wechaty-puppet-padchat)
 
 **Kind**: global typedef  
 **Properties**
@@ -2030,7 +2030,7 @@ The way to search member by Room.member()
 | --- | --- | --- |
 | name | <code>string</code> | Find the contact by wechat name in a room, equal to `Contact.name()`. |
 | roomAlias | <code>string</code> | Find the contact by alias set by the bot for others in a room. |
-| contactAlias | <code>string</code> | Find the contact by alias set by the contact out of a room, equal to `Contact.alias()`. [More Detail](https://github.com/Chatie/wechaty/issues/365) |
+| contactAlias | <code>string</code> | Find the contact by alias set by the contact out of a room, equal to `Contact.alias()`. [More Detail](https://github.com/wechaty/wechaty/issues/365) |
 
 <a name="ContactQueryFilter"></a>
 
@@ -2043,5 +2043,5 @@ The way to search Contact
 | Name | Type | Description |
 | --- | --- | --- |
 | name | <code>string</code> | The name-string set by user-self, should be called name |
-| alias | <code>string</code> | The name-string set by bot for others, should be called alias [More Detail](https://github.com/Chatie/wechaty/issues/365) |
+| alias | <code>string</code> | The name-string set by bot for others, should be called alias [More Detail](https://github.com/wechaty/wechaty/issues/365) |
 

@@ -62,7 +62,7 @@ export abstract class Accessory extends EventEmitter {
       'static puppet not found for ',
       this.name,
       ', ',
-      'please see issue #1217: https://github.com/Chatie/wechaty/issues/1217',
+      'please see issue #1217: https://github.com/wechaty/wechaty/issues/1217',
     ].join(''))
   }
 
