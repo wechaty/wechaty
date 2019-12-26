@@ -223,7 +223,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    *
    * Load room by topic. <br>
@@ -261,7 +261,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    *
    * Instance Properties
    *
@@ -294,7 +294,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public toString () {
     if (!this.payload) {
@@ -312,8 +312,8 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
+    * @ignore
    * @ignore
-   * @private
    * @deprecated: Use `sync()` instead
    */
   public async refresh (): Promise<void> {
@@ -337,7 +337,7 @@ export class Room extends Accessory implements Sayable {
    * Please not to use `ready()` at the user land.
    * If you want to sync data, use `sync()` instead.
    *
-   * @private
+   * @ignore
    */
   public async ready (
     forceSync = false,
@@ -373,7 +373,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public isReady (): boolean {
     return !!(this.payload)
@@ -930,7 +930,7 @@ export class Room extends Accessory implements Sayable {
    * @param {Contact} contact
    * @returns {Promise<string | null>}
    * @deprecated: use room.alias() instead
-   * @private
+   * @ignore
    */
   public async roomAlias (contact: Contact): Promise<null | string> {
     log.warn('Room', 'roomAlias() DEPRECATED. use room.alias() instead')
@@ -1077,8 +1077,8 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
+    * @ignore
    * @ignore
-   * @private
    *
    * Get all room member from the room
    *

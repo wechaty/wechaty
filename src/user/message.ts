@@ -80,7 +80,7 @@ export class Message extends Accessory implements Sayable {
    */
 
   /**
-   * @private
+   * @ignore
    */
   // tslint:disable-next-line:variable-name
   public static readonly Type = MessageType
@@ -158,8 +158,8 @@ export class Message extends Accessory implements Sayable {
 
   /**
    * Create a Mobile Terminated Message
+    * @ignore
    * @ignore
-   * @private
    * "mobile originated" or "mobile terminated"
    * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
    */
@@ -180,7 +180,7 @@ export class Message extends Accessory implements Sayable {
   /**
    * TODO: rename create to load ??? Huan 201806
    * @deprecated: use load() instead
-   * @private
+   * @ignore
    */
 
   public static create (id: string): Message {
@@ -221,7 +221,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public toString () {
     if (!this.payload) {
@@ -747,7 +747,7 @@ export class Message extends Accessory implements Sayable {
    * @description
    * should use {@link Message#mention} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public async mentioned (): Promise<Contact[]> {
     log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')
@@ -770,14 +770,14 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public isReady (): boolean {
     return !!this.payload
   }
 
   /**
-   * @private
+   * @ignore
    */
   public async ready (): Promise<void> {
     log.verbose('Message', 'ready()')

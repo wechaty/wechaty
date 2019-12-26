@@ -74,7 +74,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    *
    * Get Contact by id
@@ -254,7 +254,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    *
    * Instance properties
-   * @private
+   * @ignore
    *
    */
   protected payload?: ContactPayload
@@ -284,7 +284,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public toString (): string {
     if (!this.payload) {
@@ -500,7 +500,7 @@ export class Contact extends Accessory implements Sayable {
    * Should use {@link Contact#friend} instead
    *
    * @deprecated
-   * @private
+   * @ignore
    */
   public stranger (): null | boolean {
     log.warn('Contact', 'stranger() DEPRECATED. use friend() instead.')
@@ -530,7 +530,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @ignore
+    * @ignore
    * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243|webwxApp.js#L324}
    * @see {@link https://github.com/Urinx/WeixinBot/blob/master/README.md|Urinx/WeixinBot/README}
    */
@@ -538,7 +538,7 @@ export class Contact extends Accessory implements Sayable {
    * @description
    * Check if it's a offical account, should use {@link Contact#type} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public official (): boolean {
     log.warn('Contact', 'official() DEPRECATED. use type() instead')
@@ -549,7 +549,7 @@ export class Contact extends Accessory implements Sayable {
    * @description
    * Check if it's a personal account, should use {@link Contact#type} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public personal (): boolean {
     log.warn('Contact', 'personal() DEPRECATED. use type() instead')
@@ -582,7 +582,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    * TODO
    * Check if the contact is star contact.
    *
@@ -664,7 +664,7 @@ export class Contact extends Accessory implements Sayable {
    * Force reload(re-ready()) data for Contact, use {@link Contact#sync} instead
    *
    * @deprecated
-   * @private
+   * @ignore
    */
   public refresh (): Promise<void> {
     log.warn('Contact', 'refresh() DEPRECATED. use sync() instead.')
@@ -688,7 +688,7 @@ export class Contact extends Accessory implements Sayable {
    * Please not to use `ready()` at the user land.
    * If you want to sync data, uyse `sync()` instead.
    *
-   * @private
+   * @ignore
    */
   public async ready (
     forceSync = false,
@@ -718,7 +718,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public isReady (): boolean {
     return !!(this.payload && this.payload.name)
@@ -746,7 +746,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
    *
-   * @private
+   * @ignore
    * @returns {string | null}
    * @example
    * const weixin = contact.weixin()
