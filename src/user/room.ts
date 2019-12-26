@@ -555,19 +555,16 @@ export class Room extends Accessory implements Sayable {
         receiver,
         textList[0],
       )
-    // TODO(huan) 20191222 it seems the following code will not happen,
-    // becasue it's equal the mentionList.length === 0 situation?
-    //
-    // } else if (textList.length === 1) {
-    //   /**
-    //    * Constructed mention string, skip inserting @ signs
-    //    */
-    //   return this.puppet.messageSendText(
-    //     receiver,
-    //     textList[0],
-    //     mentionList.map(c => c.id),
-    //   )
-    } else {  // mentionList.length > 0
+    } else if (textList.length === 1) {
+      /**
+       * Constructed mention string, skip inserting @ signs
+       */
+      return this.puppet.messageSendText(
+        receiver,
+        textList[0],
+        mentionList.map(c => c.id),
+      )
+    } else {
       /**
        * Mention in the string
        */
