@@ -35,7 +35,6 @@ import {
 import {
   FriendshipPayload,
   FriendshipType,
-  ContactPayload,
 }                         from 'wechaty-puppet'
 
 import {
@@ -78,7 +77,9 @@ export class Friendship extends Accessory implements Acceptable {
       contact.id,
     )
     await this.puppet.friendshipSearch(contact.id)
-    return this.wechaty.Contact.load(contact.id)
+    const friend = this.wechaty.Contact.load(contact.id)
+    await friend.sync()
+    return friend
   }
 
   /**
