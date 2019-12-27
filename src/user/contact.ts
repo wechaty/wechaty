@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -47,10 +47,10 @@ export const POOL = Symbol('pool')
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
- * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts}
+ * [Examples/Contact-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts}
  *
  * @property {string}  id               - Get Contact id.
- * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+ * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
 export class Contact extends Accessory implements Sayable {
 
@@ -67,19 +67,19 @@ export class Contact extends Accessory implements Sayable {
     if (this === Contact) {
       throw new Error(
         'The global Contact class can not be used directly!'
-        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+        + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
     this[POOL] = newPool
   }
 
   /**
-   * @private
+   * @ignore
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    *
    * Get Contact by id
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @static
    * @param {string} id
@@ -100,7 +100,7 @@ export class Contact extends Accessory implements Sayable {
     if (this === Contact) {
       throw new Error(
         'The lgobal Contact class can not be used directly!'
-        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+        + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
     if (this.pool === Contact.pool) {
@@ -126,7 +126,7 @@ export class Contact extends Accessory implements Sayable {
    * @typedef    ContactQueryFilter
    * @property   {string} name    - The name-string set by user-self, should be called name
    * @property   {string} alias   - The name-string set by bot for others, should be called alias
-   * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
+   * [More Detail]{@link https://github.com/wechaty/wechaty/issues/365}
    */
 
   /**
@@ -166,8 +166,8 @@ export class Contact extends Accessory implements Sayable {
     for (n = 0; n < contactList.length; n++) {
       const contact = contactList[n]
       // use puppet.contactValidate() to confirm double confirm that this contactId is valid.
-      // https://github.com/lijiarui/wechaty-puppet-padchat/issues/64
-      // https://github.com/Chatie/wechaty/issues/1345
+      // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
+      // https://github.com/wechaty/wechaty/issues/1345
       const valid = await this.puppet.contactValidate(contact.id)
       if (valid) {
         log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is valid result, return it.',
@@ -254,7 +254,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    *
    * Instance properties
-   * @private
+   * @ignore
    *
    */
   protected payload?: ContactPayload
@@ -274,7 +274,7 @@ export class Contact extends Accessory implements Sayable {
     if (MyClass === Contact) {
       throw new Error(
         'Contact class can not be instanciated directly!'
-        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+        + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
 
@@ -284,7 +284,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public toString (): string {
     if (!this.payload) {
@@ -307,7 +307,7 @@ export class Contact extends Accessory implements Sayable {
 
   /**
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
    * send text, Contact, or file to contact. </br>
@@ -344,7 +344,7 @@ export class Contact extends Accessory implements Sayable {
    *   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
    *   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
    *   title       : 'Welcome to Wechaty',
-   *   url         : 'https://github.com/chatie/wechaty',
+   *   url         : 'https://github.com/wechaty/wechaty',
    * })
    * await contact.say(urlLink)
    * const msg = await contact.say(urlLink) // only supported by puppet-padplus
@@ -500,7 +500,7 @@ export class Contact extends Accessory implements Sayable {
    * Should use {@link Contact#friend} instead
    *
    * @deprecated
-   * @private
+   * @ignore
    */
   public stranger (): null | boolean {
     log.warn('Contact', 'stranger() DEPRECATED. use friend() instead.')
@@ -512,7 +512,7 @@ export class Contact extends Accessory implements Sayable {
    * Check if contact is friend
    *
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {boolean | null}
    *
@@ -530,7 +530,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @ignore
+    * @ignore
    * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243|webwxApp.js#L324}
    * @see {@link https://github.com/Urinx/WeixinBot/blob/master/README.md|Urinx/WeixinBot/README}
    */
@@ -538,7 +538,7 @@ export class Contact extends Accessory implements Sayable {
    * @description
    * Check if it's a offical account, should use {@link Contact#type} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public official (): boolean {
     log.warn('Contact', 'official() DEPRECATED. use type() instead')
@@ -549,7 +549,7 @@ export class Contact extends Accessory implements Sayable {
    * @description
    * Check if it's a personal account, should use {@link Contact#type} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public personal (): boolean {
     log.warn('Contact', 'personal() DEPRECATED. use type() instead')
@@ -582,7 +582,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    * TODO
    * Check if the contact is star contact.
    *
@@ -664,7 +664,7 @@ export class Contact extends Accessory implements Sayable {
    * Force reload(re-ready()) data for Contact, use {@link Contact#sync} instead
    *
    * @deprecated
-   * @private
+   * @ignore
    */
   public refresh (): Promise<void> {
     log.warn('Contact', 'refresh() DEPRECATED. use sync() instead.')
@@ -688,7 +688,7 @@ export class Contact extends Accessory implements Sayable {
    * Please not to use `ready()` at the user land.
    * If you want to sync data, uyse `sync()` instead.
    *
-   * @private
+   * @ignore
    */
   public async ready (
     forceSync = false,
@@ -718,7 +718,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public isReady (): boolean {
     return !!(this.payload && this.payload.name)
@@ -746,7 +746,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
    *
-   * @private
+   * @ignore
    * @returns {string | null}
    * @example
    * const weixin = contact.weixin()

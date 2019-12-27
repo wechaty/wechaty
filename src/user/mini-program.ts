@@ -21,10 +21,10 @@ export class MiniProgram {
       appid              : 'todo',
       description        : 'todo',
       pagePath           : 'todo',
+      thumbKey           : 'todo',
       thumbUrl           : 'todo',
       title              : 'todo',
       username           : 'todo',
-      thumbKey           : 'todo',
     }
 
     return new MiniProgram(payload)

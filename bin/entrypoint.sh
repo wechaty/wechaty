@@ -2,7 +2,7 @@
 #
 # Wechaty - Connect ChatBots
 #
-# https://github.com/Chatie/wechaty
+# https://github.com/wechaty/wechaty
 #
 set -e
 
@@ -44,7 +44,7 @@ function wechaty::errorBotNotFound() {
       extensions hidden by default).
 
     if you still have issue, please have a look at
-      https://github.com/chatie/wechaty/issues/66
+      https://github.com/wechaty/wechaty/issues/66
       and do a search in issues, that might be help.
 
 TROUBLESHOOTING
@@ -110,7 +110,7 @@ function wechaty::diagnose() {
   echo _____________________________________________________________
   echo '####### please paste all the above diagnose messages #######'
   echo
-  echo 'Wechaty Issue https://github.com/chatie/wechaty/issues'
+  echo 'Wechaty Issue https://github.com/wechaty/wechaty/issues'
   echo
 
   wechaty::pressEnterToContinue
@@ -138,7 +138,7 @@ function wechaty::runBot() {
     # yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
 
     #
-    # Issue https://github.com/Chatie/wechaty/issues/1478
+    # Issue https://github.com/wechaty/wechaty/issues/1478
     #   As a conclusion: we should better not to link the local node_modules to the Docker global.
     #
     # wechaty::linkBotNodeModules
@@ -192,7 +192,7 @@ function wechaty::runBot() {
   return "$ret"
 }
 
-# Issue https://github.com/Chatie/wechaty/issues/1478
+# Issue https://github.com/wechaty/wechaty/issues/1478
 # To Be Tested:
 function wechaty::linkBotNodeModules() {
   for localModule in /bot/node_modules/*; do
@@ -240,7 +240,7 @@ function wechaty::help() {
     test    Run Unit Test
 
   Learn more at:
-    https://github.com/chatie/wechaty/wiki/Docker
+    https://github.com/wechaty/wechaty/wiki/Docker
 
 
 

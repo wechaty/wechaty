@@ -16,7 +16,7 @@ import { promisify }          from 'util'
 import * as globCallback      from 'glob'
 
 const LICENSE = `/**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
