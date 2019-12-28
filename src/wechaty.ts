@@ -659,6 +659,11 @@ export class Wechaty extends Accessory implements Sayable {
             const msg = this.Message.load(messageId)
             await msg.ready()
             this.emit('message', msg)
+
+            const room = msg.room()
+            if (room) {
+              room.emit('message', msg)
+            }
           })
           break
 
