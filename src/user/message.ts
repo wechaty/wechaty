@@ -576,7 +576,10 @@ export class Message extends Accessory implements Sayable {
    * bot
    * .on('message', async m => {
    *   const recallMessage = await msg.say('123')
-   *   const isSuccess = await recallMessage.recall()
+   *   if (recallMessage) {
+   *     const isSuccess = await recallMessage.recall()
+   *   }
+   * })
    */
 
   public async recall (): Promise<boolean> {
