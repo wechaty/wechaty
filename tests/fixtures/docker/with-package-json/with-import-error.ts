@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -19,4 +19,4 @@
 import { NotExist } from 'not-exist-at-all-fdsafasdfafsad'
 
 const ne = new NotExist()
-console.log(ne) // should not run to here
+console.info(ne) // should not run to here

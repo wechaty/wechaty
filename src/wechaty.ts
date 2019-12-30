@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -19,6 +19,9 @@
  */
 import cuid    from 'cuid'
 import os      from 'os'
+
+import { PassThrough } from 'stream'
+import { toFileStream } from 'qrcode'
 
 import {
   // Constructor,
@@ -118,12 +121,12 @@ const PUPPET_MEMORY_NAME = 'puppet'
  *
  * A `Bot` is a wechat client depends on which puppet you use.
  * It may equals
- * - web-wechat, when you use: [puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u)
- * - ipad-wechat, when you use: [puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+ * - web-wechat, when you use: [puppet-puppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u)
+ * - ipad-wechat, when you use: [puppet-padchat](https://github.com/wechaty/wechaty-puppet-padchat)
  * - ios-wechat, when you use: puppet-ioscat
  *
  * See more:
- * - [What is a Puppet in Wechaty](https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
+ * - [What is a Puppet in Wechaty](https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
  *
  * > If you want to know how to send message, see [Message](#Message) <br>
  * > If you want to know how to get contact, see [Contact](#Contact)
@@ -145,7 +148,7 @@ export class Wechaty extends Accessory implements Sayable {
 
   /**
    * singleton globalInstance
-   * @private
+   * @ignore
    */
   private static globalInstance: Wechaty
 
@@ -156,7 +159,7 @@ export class Wechaty extends Accessory implements Sayable {
 
   /**
    * the cuid
-   * @private
+   * @ignore
    */
   public readonly id : string
 
@@ -197,11 +200,11 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * The term [Puppet](https://github.com/Chatie/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
+   * The term [Puppet](https://github.com/wechaty/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
    * The plugins are the component that helps Wechaty to control the Wechat(that's the reason we call it puppet).
    * The plugins are named XXXPuppet, for example:
-   * - [PuppetPuppeteer](https://github.com/Chatie/wechaty-puppet-puppeteer):
-   * - [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+   * - [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer):
+   * - [PuppetPadchat](https://github.com/wechaty/wechaty-puppet-padchat)
    *
    * @typedef    PuppetModuleName
    * @property   {string}  PUPPET_DEFAULT
@@ -256,7 +259,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.readyState = new StateSwitch('WechatyReady', log)
 
     /**
-     * @ignore
+      * @ignore
      * Clone Classes for this bot and attach the `puppet` to the Class
      *
      *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
@@ -278,7 +281,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public toString () {
     if (!this.options) {
@@ -387,7 +390,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    *
    * @return  {Wechaty}                          - this for chaining,
-   * see advanced {@link https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
+   * see advanced {@link https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
    *
    * @desc
    * When the bot get message, it will emit the following Event.
@@ -659,6 +662,11 @@ export class Wechaty extends Accessory implements Sayable {
             const msg = this.Message.load(messageId)
             await msg.ready()
             this.emit('message', msg)
+
+            const room = msg.room()
+            if (room) {
+              room.emit('message', msg)
+            }
           })
           break
 
@@ -781,7 +789,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @desc
    * use {@link Wechaty#start} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public async init (): Promise<void> {
     log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
@@ -967,7 +975,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @description
    * Should use {@link Wechaty#userSelf} instead
    * @deprecated Use `userSelf()` instead
-   * @private
+   * @ignore
    */
   public self (): Contact {
     log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
@@ -999,7 +1007,7 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * Send message to userSelf, in other words, bot send message to itself.
    * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
    * send text, Contact, or file to bot. </br>
@@ -1034,7 +1042,7 @@ export class Wechaty extends Accessory implements Sayable {
    *   description : 'WeChat Bot SDK for Individual Account, Powered by TypeScript, Docker, and Love',
    *   thumbnailUrl: 'https://avatars0.githubusercontent.com/u/25162437?s=200&v=4',
    *   title       : 'Welcome to Wechaty',
-   *   url         : 'https://github.com/chatie/wechaty',
+   *   url         : 'https://github.com/wechaty/wechaty',
    * })
    * await bot.say(linkPayload)
    *
@@ -1063,7 +1071,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public static version (forceNpm = false): string {
     if (!forceNpm) {
@@ -1076,7 +1084,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    * Return version of Wechaty
    *
    * @param {boolean} [forceNpm=false]  - If set to true, will only return the version in package.json. </br>
@@ -1091,12 +1099,29 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public static async sleep (millisecond: number): Promise<void> {
     await new Promise(resolve => {
       setTimeout(resolve, millisecond)
     })
+  }
+
+  /**
+   * @ignore
+   */
+  public async sleep (millisecond: number): Promise<void> {
+    return Wechaty.sleep(millisecond)
+  }
+
+  /**
+   * @ignore
+   */
+  public async qrcodePng (value: string): Promise<FileBox> {
+    const stream = new PassThrough()
+    await toFileStream(stream, value) // only support .png for now
+    const fileBox = FileBox.fromStream(stream, 'qrcode.png')
+    return fileBox
   }
 
   /**
@@ -1115,7 +1140,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   private memoryCheck (minMegabyte = 4): void {
     const freeMegabyte = Math.floor(os.freemem() / 1024 / 1024)
@@ -1131,7 +1156,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public async reset (reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason || 'no reason')
