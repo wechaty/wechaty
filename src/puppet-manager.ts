@@ -50,7 +50,7 @@ export class PuppetManager {
        * For example: PuppetA allow `constructor()` but PuppetB requires `constructor(options)`
        *
        * SOLUTION: we enforce all the PuppetImplenmentation to have `options` and should not allow default parameter.
-       * Issue: https://github.com/Chatie/wechaty-puppet/issues/2
+       * Issue: https://github.com/wechaty/wechaty-puppet/issues/2
        */
       puppetInstance = new MyPuppet(options.puppetOptions)
     }
@@ -68,7 +68,7 @@ export class PuppetManager {
     // TODO(huan): remove the unnecessary switch
     switch (puppetName) {
       // case 'padchat':
-      //   // issue #1496 https://github.com/Chatie/wechaty/issues/1496
+      //   // issue #1496 https://github.com/wechaty/wechaty/issues/1496
       //   // compatible old settings for padchat
       //   puppetName = 'wechaty-puppet-padchat'
       //   break
@@ -88,7 +88,7 @@ export class PuppetManager {
               '',
               'puppet npm module not supported: "' + puppetName + '"',
               'learn more about supported Wechaty Puppet from our directory at',
-              '<https://github.com/Chatie/wechaty-puppet/wiki/Directory>',
+              '<https://github.com/wechaty/wechaty-puppet/wiki/Directory>',
               '',
             ].join('\n')
           )
@@ -155,7 +155,7 @@ export class PuppetManager {
         moduleName,
       ),
     )
-    const pkg     = readPkgUp.sync({ cwd: modulePath })!.package
+    const pkg     = readPkgUp.sync({ cwd: modulePath })!.packageJson
     const version = pkg.version
 
     return version

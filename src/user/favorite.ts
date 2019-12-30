@@ -4,6 +4,9 @@ export class Favorite {
     return []
   }
 
+  /*
+   * @hideconstructor
+   */
   constructor () {
     //
   }
