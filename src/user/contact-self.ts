@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -22,6 +22,10 @@ import { FileBox } from 'file-box'
 import {
   log,
 }           from '../config'
+
+import {
+  guardQrCodeValue,
+}                       from '../helper-functions/pure/guard-qrcode-value'
 
 import {
   Contact,
@@ -118,7 +122,7 @@ export class ContactSelf extends Contact {
     }
 
     const qrcodeValue = await this.puppet.contactSelfQrcode()
-    return qrcodeValue
+    return guardQrCodeValue(qrcodeValue)
   }
 
   /**

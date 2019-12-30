@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -36,7 +36,7 @@ import {
 }                      from './puppet-config'
 import { VERSION }      from './version'
 
-const pkg = readPkgUp.sync({ cwd: __dirname })!.package
+const pkg = readPkgUp.sync({ cwd: __dirname })!.packageJson
 
 /**
  * Raven.io
