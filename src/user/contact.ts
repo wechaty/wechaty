@@ -668,12 +668,12 @@ export class Contact extends Accessory implements Sayable {
    * const tags = await contact.tags()
    */
   public async tags (): Promise<Tag []> {
-    log.verbose('Contact', 'tags()')
+    log.verbose('Contact', 'tags() for %s', this)
 
     try {
-      const tagIdList = await this.puppet.contactTagIdList(this.id)
-      await this.wechaty.Tag.findAll()
-      return tagIdList.map(id => this.wechaty.Tag.load(id))
+      const tagIdList = await this.puppet.tagListContact(this.id)
+      const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
+      return tagList
     } catch (e) {
       log.error('Contact', 'tags() exception: %s', e.message)
       return []

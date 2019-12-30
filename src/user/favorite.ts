@@ -1,3 +1,5 @@
+import { Tag } from "./tag";
+
 export class Favorite {
 
   public static list (): Favorite[] {
@@ -11,8 +13,11 @@ export class Favorite {
     //
   }
 
-  public tag () {
-    //
+  public async tags (): Promise<Tag []> {
+    return []
   }
 
+  public async findAll() {
+    //
+  }
 }
