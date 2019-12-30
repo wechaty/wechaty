@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -18,4 +18,4 @@
  */
 let i = 3
 i = "should set to string because it's type is number"
-console.log(i)
+console.info(i)
