@@ -57,6 +57,7 @@ export const ROOM_EVENT_DICT = {
   invite: 'tbw',
   join: 'tbw',
   leave: 'tbw',
+  message: 'message that received in this room',
   topic: 'tbw',
 }
 export type RoomEventName = keyof typeof ROOM_EVENT_DICT
@@ -592,10 +593,11 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  public emit (event: 'invite', inviter: Contact,         invitation: RoomInvitation)                       : boolean
-  public emit (event: 'leave',  leaverList:   Contact[],  remover:  Contact, date: Date)                    : boolean
-  public emit (event: 'join',   inviteeList:  Contact[],  inviter:  Contact, date: Date)                    : boolean
-  public emit (event: 'topic',  topic:        string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
+  public emit (event: 'invite',  inviter:       Contact,         invitation: RoomInvitation)                  : boolean
+  public emit (event: 'leave',   leaverList:    Contact[],  remover:  Contact, date: Date)                    : boolean
+  public emit (event: 'message', message:       Message)                                                      : boolean
+  public emit (event: 'join',    inviteeList:   Contact[],  inviter:  Contact, date: Date)                    : boolean
+  public emit (event: 'topic',   topic:         string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
   public emit (event: never, ...args: never[]): never
 
   public emit (
@@ -605,10 +607,11 @@ export class Room extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
-  public on (event: 'leave',  listener: (this: Room, leaverList:  Contact[], remover?:  Contact, date?: Date) => void)                   : this
-  public on (event: 'join',   listener: (this: Room, inviteeList: Contact[], inviter:  Contact,  date?: Date) => void)                   : this
-  public on (event: 'topic',  listener: (this: Room, topic:       string,    oldTopic: string,   changer: Contact, date?: Date) => void) : this
+  public on (event: 'invite',  listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
+  public on (event: 'leave',   listener: (this: Room, leaverList:  Contact[], remover?:  Contact, date?: Date) => void)                   : this
+  public on (event: 'message', listener: (this: Room, message:  Message, date?: Date) => void)                             : this
+  public on (event: 'join',    listener: (this: Room, inviteeList: Contact[], inviter:  Contact,  date?: Date) => void)                   : this
+  public on (event: 'topic',   listener: (this: Room, topic:       string,    oldTopic: string,   changer: Contact, date?: Date) => void) : this
   public on (event: never,   ...args: never[])                                                                            : never
 
   /**
@@ -655,6 +658,17 @@ export class Room extends Accessory implements Sayable {
    *   room.on('leave', (room, leaverList) => {
    *     const nameList = leaverList.map(c => c.name()).join(',')
    *     console.log(`Room lost member ${nameList}`)
+   *   })
+   * }
+   *
+   * @example <caption>Event:message </caption>
+   * const bot = new Wechaty()
+   * await bot.start()
+   * // after logged in...
+   * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
+   * if (room) {
+   *   room.on('message', (message) => {
+   *     console.log(`Room received new message: ${message}`)
    *   })
    * }
    *

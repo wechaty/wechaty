@@ -36,7 +36,7 @@ import {
 }                      from './puppet-config'
 import { VERSION }      from './version'
 
-const pkg = readPkgUp.sync({ cwd: __dirname })!.package
+const pkg = readPkgUp.sync({ cwd: __dirname })!.packageJson
 
 /**
  * Raven.io

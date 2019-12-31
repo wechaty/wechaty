@@ -659,6 +659,11 @@ export class Wechaty extends Accessory implements Sayable {
             const msg = this.Message.load(messageId)
             await msg.ready()
             this.emit('message', msg)
+
+            const room = msg.room()
+            if (room) {
+              room.emit('message', msg)
+            }
           })
           break
 
@@ -958,7 +963,12 @@ export class Wechaty extends Accessory implements Sayable {
    * }
    */
   public logonoff (): boolean {
-    return this.puppet.logonoff()
+    try {
+      return this.puppet.logonoff()
+    } catch (e) {
+      // https://github.com/wechaty/wechaty/issues/1878
+      return false
+    }
   }
 
   /**
