@@ -741,7 +741,7 @@ export class Message extends Accessory implements Sayable {
     const text = this.text()
     const room = this.room()
 
-    const mentionList = await this.mention()
+    const mentionList = await this.mentionList()
 
     if (!room || !mentionList || mentionList.length === 0) {
       return text
