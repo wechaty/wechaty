@@ -1,11 +1,10 @@
 import { EventEmitter }     from 'events'
 
 import { instanceToClass }  from 'clone-class'
+import { Puppet }           from 'wechaty-puppet'
 
-import { log }  from './config'
-
-import { Puppet } from 'wechaty-puppet'
-import { Wechaty } from './wechaty'
+import { log }      from './config'
+import { Wechaty }  from './wechaty'
 
 // use Symbol to prevent conflicting with the child class properties
 // This symbol must be exported (for now).
@@ -32,7 +31,7 @@ export abstract class Accessory extends EventEmitter {
   private static _wechaty? : Wechaty
 
   /**
-   * @private
+   * @ignore
    */
   public static set puppet (puppet: Puppet) {
     log.silly('Accessory', '<%s> static set puppet = "%s"',
@@ -47,7 +46,7 @@ export abstract class Accessory extends EventEmitter {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public static get puppet (): Puppet {
     // log.silly('Accessory', '<%s> static get puppet()',
@@ -67,7 +66,7 @@ export abstract class Accessory extends EventEmitter {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public static set wechaty (wechaty: Wechaty) {
     log.silly('Accessory', '<%s> static set wechaty = "%s"',
@@ -81,7 +80,7 @@ export abstract class Accessory extends EventEmitter {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public static get wechaty (): Wechaty {
     // log.silly('Accessory', '<%s> static get wechaty()',
@@ -105,7 +104,7 @@ export abstract class Accessory extends EventEmitter {
   private _puppet?  : Puppet
 
   /**
-   * @private
+   * @ignore
    */
   public set puppet (puppet: Puppet) {
     log.silly('Accessory', '<%s> set puppet = "%s"',
@@ -119,7 +118,7 @@ export abstract class Accessory extends EventEmitter {
   }
 
   /**
-   * @private
+   * @ignore
    *
    * instance.puppet
    *
@@ -149,7 +148,7 @@ export abstract class Accessory extends EventEmitter {
   }
 
   /**
-   * @private
+   * @ignore
    *
    * instance.wechaty is for:
    *  Contact.wechaty

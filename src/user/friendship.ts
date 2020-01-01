@@ -60,7 +60,7 @@ export class Friendship extends Accessory implements Acceptable {
   public static Type = FriendshipType
 
   /**
-   * @private
+   * @ignore
    */
   public static load<T extends typeof Friendship> (
     this : T,
@@ -121,7 +121,7 @@ export class Friendship extends Accessory implements Acceptable {
    */
 
   /**
-   * @ignore
+    * @ignore
    */
   protected payload?: FriendshipPayload
 
@@ -166,7 +166,7 @@ export class Friendship extends Accessory implements Acceptable {
 
   /**
    * no `dirty` support because Friendship has no rawPayload(yet)
-   * @ignore
+    * @ignore
    */
   public async ready (): Promise<void> {
     if (this.isReady()) {
