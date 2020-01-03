@@ -380,12 +380,12 @@ export class Room extends Accessory implements Sayable {
     return !!(this.payload)
   }
 
-  public say (text:     string)                                          : Promise<void | Message>
-  public say (text:     string, ...mentionList: Contact[])               : Promise<void | Message>
-  public say (textList: TemplateStringsArray, ...mentionList: Contact[]) : Promise<void | Message>
-  public say (file:     FileBox)                                         : Promise<void | Message>
-  public say (url:      UrlLink)                                         : Promise<void | Message>
-  public say (mini:     MiniProgram)                                     : Promise<void | Message>
+  public say (text:     string)                                  : Promise<void | Message>
+  public say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
+  public say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
+  public say (file:     FileBox)                                 : Promise<void | Message>
+  public say (url:      UrlLink)                                 : Promise<void | Message>
+  public say (mini:     MiniProgram)                             : Promise<void | Message>
 
   public say (...args: never[]): never
 
@@ -465,19 +465,57 @@ export class Room extends Accessory implements Sayable {
               | MiniProgram
               | TemplateStringsArray
               | UrlLink,
-    ...mentionList : Contact[]
+    ...varList : unknown[]
   ): Promise<void | Message> {
 
     log.verbose('Room', 'say(%s, %s)',
       something,
-      mentionList.join(', '),
+      varList.join(', '),
     )
 
     let text: string
     let msgId: string | void
-    if (typeof something === 'string') {
 
-      if (mentionList.length > 0) {
+    /**
+     *
+     * 0. TemplateStringArray
+     *
+     */
+    if (something instanceof Array) {
+      const msgId = await this.sayTemplateStringsArray(
+        something as TemplateStringsArray,
+        ...varList,
+      )
+
+      if (!msgId) {
+        return
+      }
+
+      const msg = this.wechaty.Message.load(msgId)
+      await msg.ready()
+      return msg
+    }
+
+    /**
+     *
+     * Other conditions
+     *
+     */
+    if (typeof something === 'string') {
+      /**
+       * 1. string
+       */
+      let mentionList: Contact[] = []
+
+      if (varList.length > 0) {
+
+        const allIsContact = varList.every(c => c instanceof Contact)
+        if (!allIsContact) {
+          throw new Error('mentionList must be contact when not using TemplateStringArray function call.')
+        }
+
+        mentionList = [...varList as any]
+
         const AT_SEPARATOR = FOUR_PER_EM_SPACE
         const mentionAlias = await Promise.all(mentionList.map(async contact =>
           '@' + (await this.alias(contact) || contact.name())
@@ -525,14 +563,10 @@ export class Room extends Accessory implements Sayable {
       msgId = await this.puppet.messageSendMiniProgram({
         contactId : this.id,
       }, something.payload)
-    } else if (something instanceof Array) {
-      msgId = await this.sayTemplateStringsArray(
-        something,
-        ...mentionList,
-      )
     } else {
       throw new Error('arg unsupported: ' + something)
     }
+
     if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()
@@ -542,13 +576,14 @@ export class Room extends Accessory implements Sayable {
 
   private async sayTemplateStringsArray (
     textList: TemplateStringsArray,
-    ...mentionList: Contact[]
+    ...varList: unknown[]
   ) {
+    const mentionList: Contact[] = varList.filter(v => v instanceof Contact) as any
     const receiver = {
       contactId : (mentionList.length && mentionList[0].id) || undefined,
       roomId    : this.id,
     }
-    if (mentionList.length === 0) {
+    if (varList.length === 0) {
       /**
        * No mention in the string
        */
@@ -557,7 +592,10 @@ export class Room extends Accessory implements Sayable {
         textList[0],
       )
     // TODO(huan) 20191222 it seems the following code will not happen,
-    // becasue it's equal the mentionList.length === 0 situation?
+    //            becasue it's equal the mentionList.length === 0 situation?
+    //
+    // XXX(huan) 20200101: See issue https://github.com/wechaty/wechaty/issues/1893
+    //           This is an anti-pattern usage.
     //
     // } else if (textList.length === 1) {
     //   /**
@@ -573,21 +611,27 @@ export class Room extends Accessory implements Sayable {
        * Mention in the string
        */
       const textListLength = textList.length
-      const mentionLength = mentionList.length
-      if (textListLength - mentionLength !== 1) {
-        throw new Error(`Can not say message, invalid Tagged Template.`)
+      const varListLength  = varList.length
+      if (textListLength - varListLength !== 1) {
+        throw new Error(`Can not say message, invalid Templated String Array.`)
       }
-      let constructedString = ''
+      let finalText = ''
 
       let i = 0
-      for (; i < mentionLength; i++) {
-        constructedString += textList[i] + '@' + (await this.alias(mentionList[i]) || mentionList[i].name())
+      for (; i < varListLength; i++) {
+        if (varList[i] instanceof Contact) {
+          const mentionContact: Contact = varList[i] as any
+          const mentionName = await this.alias(mentionContact) || mentionContact.name()
+          finalText += textList[i] + '@' + mentionName
+        } else {
+          finalText += textList[i] + varList[i]
+        }
       }
-      constructedString += textList[i]
+      finalText += textList[i]
 
       return this.puppet.messageSendText(
         receiver,
-        constructedString,
+        finalText,
         mentionList.map(c => c.id),
       )
     }
