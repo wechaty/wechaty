@@ -12,7 +12,7 @@
 
 ## Connecting Chatbots
 
-Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/wechaty/wechaty), [Windows](https://ci.appveyor.com/project/wechaty/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/Wechaty/wechaty) and [Docker](https://app.shippable.com/github/Wechaty/wechaty).
+Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/wechaty/wechaty), [Windows](https://ci.appveyor.com/project/zixia/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/Wechaty/wechaty) and [Docker](https://app.shippable.com/github/Wechaty/wechaty).
 
 :octocat: <https://github.com/Wechaty/wechaty>  
 :beetle: <https://github.com/Wechaty/wechaty/issues>  
@@ -301,8 +301,7 @@ Accept room invitation
 [![Ubuntu Linux/Mac Build Status](https://travis-ci.com/Wechaty/wechaty.svg?branch=master)](https://travis-ci.com/Wechaty/wechaty)
 [![Travis](https://img.shields.io/travis/Wechaty/wechaty.svg?label=Ubuntu/OSX)](https://travis-ci.com/Wechaty/wechaty)
 [![CentOS Linux Build Status](https://circleci.com/gh/Wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/Wechaty/wechaty)
-[![CircleCI](https://img.shields.io/circleci/project/github/Wechaty/wechaty.svg?label=CentOS)](https://circleci.com/gh/Wechaty/wechaty)
-[![Windows Build Status](https://img.shields.io/appveyor/ci/Wechaty/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/Wechaty/wechaty)
+[![Windows Build Status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty)
 [![Docker Build Status](https://img.shields.io/shippable/5aaf8667ec373f17004dcb66.svg?label=Docker&color=brightgreen)](https://app.shippable.com/github/Wechaty/wechaty)
 
 [![Coverage Status](https://coveralls.io/repos/github/Wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Wechaty/wechaty?branch=master)
