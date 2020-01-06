@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -53,7 +53,7 @@ import {
  * 2. receive request(in friend event)
  * 3. confirmation friendship(friend event)
  *
- * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
+ * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
 export class Friendship extends Accessory implements Acceptable {
 
@@ -61,7 +61,7 @@ export class Friendship extends Accessory implements Acceptable {
   public static Type = FriendshipType
 
   /**
-   * @private
+   * @ignore
    */
   public static load<T extends typeof Friendship> (
     this : T,
@@ -156,7 +156,7 @@ export class Friendship extends Accessory implements Acceptable {
    */
 
   /**
-   * @ignore
+    * @ignore
    */
   protected payload?: FriendshipPayload
 
@@ -173,7 +173,7 @@ export class Friendship extends Accessory implements Acceptable {
     const MyClass = instanceToClass(this, Friendship)
 
     if (MyClass === Friendship) {
-      throw new Error('Friendship class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+      throw new Error('Friendship class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
     if (!this.puppet) {
@@ -201,7 +201,7 @@ export class Friendship extends Accessory implements Acceptable {
 
   /**
    * no `dirty` support because Friendship has no rawPayload(yet)
-   * @ignore
+    * @ignore
    */
   public async ready (): Promise<void> {
     if (this.isReady()) {
