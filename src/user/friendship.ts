@@ -34,6 +34,7 @@ import {
 
 import {
   FriendshipPayload,
+  FriendshipSearchCondition,
   FriendshipType,
 }                         from 'wechaty-puppet'
 
@@ -70,16 +71,38 @@ export class Friendship extends Accessory implements Acceptable {
     return newFriendship
   }
 
+  /**
+   * Search a Friend by phone or weixin.
+   *
+   * The best practice is to search friend request once per minute.
+   * Remeber not to do this too frequently, or your account may be blocked.
+   *
+   * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
+   * @returns {Promise<Contact>}
+   *
+   * @example
+   * const friend_phone = await bot.Friendship.search({phone: '13112341234'})
+   * const friend_weixin = await bot.Friendship.search({weixin: 'weixin_account'})
+   *
+   * console.log(`This is the new friend info searched by phone : ${friend_phone}`)
+   * await bot.Friendship.add(friend_phone, 'hello')
+   *
+   */
   public static async search (
-    contact : Contact,
+    condition: FriendshipSearchCondition
   ): Promise<Contact> {
-    log.verbose('Friendship', 'static add(%s, %s)',
-      contact.id,
+    log.verbose('Friendship', 'static search(%s)',
+      condition.phone || condition.weixin
     )
-    await this.puppet.friendshipSearch(contact.id)
-    const friend = this.wechaty.Contact.load(contact.id)
-    await friend.sync()
-    return friend
+    if (condition.phone || condition.weixin) {
+      const id = condition.phone || condition.weixin || ''
+      await this.puppet.friendshipSearch(id)
+      const friend = this.wechaty.Contact.load(id)
+      await friend.sync()
+      return friend
+    } else {
+      throw new Error(`Please make sure the parameter contains attribute phone or weixin.`)
+    }
   }
 
   /**
