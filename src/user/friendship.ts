@@ -95,7 +95,7 @@ export class Friendship extends Accessory implements Acceptable {
       condition.phone || condition.weixin
     )
     if (condition.phone || condition.weixin) {
-      const id = condition.phone || condition.weixin || ''
+      const id = condition.phone || condition.weixin as string
       await this.puppet.friendshipSearch(id)
       const friend = this.wechaty.Contact.load(id)
       await friend.sync()
