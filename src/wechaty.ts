@@ -322,8 +322,8 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'error',        listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
   public on (event: 'friendship',   listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
   public on (event: 'heartbeat',    listener: string | ((this: Wechaty, data: any) => void))                                                        : this
-  public on (event: 'login',        listener: string | ((this: Wechaty, user: ContactSelf) => void))                           : this
-  public on (event: 'logout',       listener: string | ((this: Wechaty, user: ContactSelf, reason?: string) => void))                           : this
+  public on (event: 'login',        listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
+  public on (event: 'logout',       listener: string | ((this: Wechaty, user: ContactSelf, reason?: string) => void))                               : this
   public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
   public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                   : this
   public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
