@@ -297,7 +297,8 @@ export class Wechaty extends Accessory implements Sayable {
   public emit (event: 'error',      error: Error)                                                       : boolean
   public emit (event: 'friendship', friendship: Friendship)                                             : boolean
   public emit (event: 'heartbeat',  data: any)                                                          : boolean
-  public emit (event: 'login' | 'logout', user: ContactSelf)                                            : boolean
+  public emit (event: 'login',      user: ContactSelf)                                                  : boolean
+  public emit (event: 'logout',     user: ContactSelf, reason?: string)                                 : boolean
   public emit (event: 'message',    message: Message)                                                   : boolean
   public emit (event: 'ready')                                                                          : boolean
   public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                   : boolean
@@ -321,7 +322,8 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'error',        listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
   public on (event: 'friendship',   listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
   public on (event: 'heartbeat',    listener: string | ((this: Wechaty, data: any) => void))                                                        : this
-  public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                            : this
+  public on (event: 'login',        listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
+  public on (event: 'logout',       listener: string | ((this: Wechaty, user: ContactSelf, reason?: string) => void))                               : this
   public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
   public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                   : this
   public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
@@ -647,10 +649,10 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'logout':
-          puppet.on('logout', async contactId => {
+          puppet.on('logout', async (contactId, reason) => {
             const contact = this.ContactSelf.load(contactId)
             await contact.ready()
-            this.emit('logout', contact)
+            this.emit('logout', contact, reason)
           })
           break
 
