@@ -905,6 +905,7 @@ export class Room extends Accessory implements Sayable {
 
   public async announce ()             : Promise<string>
   public async announce (text: string) : Promise<void>
+  public async announce (empty: null)  : Promise<void>
 
   /**
    * SET/GET announce from the room
@@ -932,10 +933,10 @@ export class Room extends Accessory implements Sayable {
    * await room.announce('change announce to wechaty!')
    * console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
    */
-  public async announce (text?: string): Promise<void | string> {
+  public async announce (text?: string | null): Promise<void | string> {
     log.verbose('Room', 'announce(%s)', text || '')
 
-    if (text) {
+    if (typeof text !== 'undefined') {
       await this.puppet.roomAnnounce(this.id, text)
     } else {
       const announcement = await this.puppet.roomAnnounce(this.id)
