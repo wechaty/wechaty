@@ -26,7 +26,7 @@ import QuickLru, {
 import {
   Watchdog,
   WatchdogFood,
-}                        from 'watchdog'
+}                         from 'watchdog'
 import { Constructor }    from 'clone-class'
 import { FileBox }        from 'file-box'
 import { MemoryCard }     from 'memory-card'
@@ -459,6 +459,22 @@ export abstract class Puppet extends EventEmitter {
   public abstract async contactSelfQrcode ()                     : Promise<string /* QR Code Value */>
   public abstract async contactSelfName (name: string)           : Promise<void>
   public abstract async contactSelfSignature (signature: string) : Promise<void>
+
+  /**
+   *
+   * Tag
+   *
+   */
+  // add a tag for a Contact. Create it first if it not exist.
+  public abstract async tagAddContact (id: string, contactId: string) : Promise<void>
+  // remove a tag from the Contact
+  public abstract async tagRemoveContact (id: string, contactId: string) : Promise<void>
+  // delete a tag from Wechat
+  public abstract async tagDeleteContact (id: string) : Promise<void>
+  // get tags from a specific Contact
+  public abstract async tagListContact (contactId: string) : Promise<string[]>
+  // get all tags form the Contact
+  public abstract async tagListContact (): Promise<string[]>
 
   /**
    *

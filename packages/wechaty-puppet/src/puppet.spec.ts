@@ -67,8 +67,18 @@ class PuppetTest extends Puppet {
    *
    */
   public async contactSelfQrcode ()                     : Promise<string> { return '' }
-  public async contactSelfName (_: string)           : Promise<void> { }
-  public async contactSelfSignature (_: string) : Promise<void> { }
+  public async contactSelfName (name: string)           : Promise<void> { return void name }
+  public async contactSelfSignature (signature: string) : Promise<void> { return void signature }
+
+  /**
+   *
+   * Tag
+   *
+   */
+  public async tagAddContact (id: string, contactId: string) : Promise<void> { return void { contactId, id } }
+  public async tagRemoveContact (id: string, contactId: string) : Promise<void> { return void { contactId, id } }
+  public async tagDeleteContact (id: string) : Promise<void> { return void { id } }
+  public async tagListContact (contactId?: string) : Promise<string[]> { return [contactId || ''] }
 
   /**
    *
