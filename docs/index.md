@@ -1,7 +1,7 @@
-# Wechaty v0.29.5 Documentation
+# Wechaty v0.29.21 Documentation
 
 - Blog - <https://blog.chatie.io>
-- Docs - <https://docs.chatie.io>
+- Docs - <https://github.com/wechaty/wechaty/blob/master/docs/index.md>
 
 
 ## Classes
@@ -729,9 +729,10 @@ console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
 <a name="Room+qrcode"></a>
 
 ### room.qrcode() ⇒ <code>Promise.&lt;string&gt;</code>
-Get QR Code of the Room from the room, which can be used as scan and join the room.
+Get QR Code Value of the Room from the room, which can be used as scan and join the room.
 > Tips:
-This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
+1. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
+2. The return should be the QR Code Data, instead of the QR Code Image. (the data should be less than 8KB. See: https://stackoverflow.com/a/12764370/1123955 )
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+alias"></a>
@@ -1463,7 +1464,7 @@ All wechat messages will be encapsulated as a Message.
         * [.say(textOrContactOrFile, [mention])](#Message+say) ⇒ <code>Promise.&lt;(void\|Message)&gt;</code>
         * [.type()](#Message+type) ⇒ <code>MessageType</code>
         * [.self()](#Message+self) ⇒ <code>boolean</code>
-        * [.mention()](#Message+mention) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+        * [.mentionList()](#Message+mentionList) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.mentionSelf()](#Message+mentionSelf) ⇒ <code>Promise.&lt;boolean&gt;</code>
         * [.forward(to)](#Message+forward) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.date()](#Message+date)
@@ -1694,9 +1695,9 @@ if (message.self()) {
  console.log('this message is sent by myself!')
 }
 ```
-<a name="Message+mention"></a>
+<a name="Message+mentionList"></a>
 
-### message.mention() ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+### message.mentionList() ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 Get message mentioned contactList.
 
 Message event table as follows
@@ -1712,7 +1713,7 @@ Message event table as follows
 **Returns**: <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code> - - Return message mentioned contactList  
 **Example**  
 ```js
-const contactList = await message.mention()
+const contactList = await message.mentionList()
 console.log(contactList)
 ```
 <a name="Message+mentionSelf"></a>
