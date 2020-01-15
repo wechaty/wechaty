@@ -35,7 +35,8 @@ import {
 import {
   FriendshipPayload,
   FriendshipType,
-}                         from 'wechaty-puppet'
+  FriendshipSearchQueryFilter,
+}                                 from 'wechaty-puppet'
 
 import {
   Acceptable,
@@ -71,15 +72,20 @@ export class Friendship extends Accessory implements Acceptable {
   }
 
   public static async search (
-    contact : Contact,
-  ): Promise<Contact> {
-    log.verbose('Friendship', 'static add(%s, %s)',
-      contact.id,
+    queryFiter : FriendshipSearchQueryFilter,
+  ): Promise<null | Contact> {
+    log.verbose('Friendship', 'static search("%s")',
+      JSON.stringify(queryFiter),
     )
-    await this.puppet.friendshipSearch(contact.id)
-    const friend = this.wechaty.Contact.load(contact.id)
-    await friend.sync()
-    return friend
+    const contactId = await this.puppet.friendshipSearch(queryFiter)
+
+    if (!contactId) {
+      return null
+    }
+
+    const contact = this.wechaty.Contact.load(contactId)
+    await contact.ready()
+    return contact
   }
 
   /**
