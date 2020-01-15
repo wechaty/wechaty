@@ -51,6 +51,7 @@ import {
 }                                 from './schemas/event'
 import {
   FriendshipPayload,
+  FriendshipSearchQueryFilter,
 }                                 from './schemas/friendship'
 import {
   MessagePayload,
@@ -705,6 +706,27 @@ export abstract class Puppet extends EventEmitter {
    * Friendship
    *
    */
+  // return contact id by phone number
+  public abstract async friendshipSearchPhone (phone: string) : Promise<string | null>
+  // return contact id by weixin id
+  public abstract async friendshipSearchWeixin (weixin: string) : Promise<string | null>
+
+  public async friendshipSearch (searchQueryFilter: FriendshipSearchQueryFilter): Promise<string | null> {
+    log.verbose('Puppet', 'friendshipSearch("%s")', JSON.stringify(searchQueryFilter))
+
+    if (Object.keys(searchQueryFilter).length !== 1) {
+      throw new Error('searchQueryFilter should only include one key for query!')
+    }
+
+    if (searchQueryFilter.phone) {
+      return this.friendshipSearchPhone(searchQueryFilter.phone)
+    } else if (searchQueryFilter.weixin) {
+      return this.friendshipSearchWeixin(searchQueryFilter.weixin)
+    }
+
+    throw new Error(`unknown key from searchQueryFilter: ${Object.keys(searchQueryFilter).join('')}`)
+  }
+
   public abstract async friendshipAdd (contactId: string, hello?: string) : Promise<void>
   public abstract async friendshipAccept (friendshipId: string)           : Promise<void>
 

@@ -12,6 +12,7 @@ export {
   FriendshipPayloadConfirm,
   FriendshipPayloadReceive,
   FriendshipPayloadVerify,
+  FriendshipSearchQueryFilter,
   FriendshipType,
 }                             from './schemas/friendship'
 export {
