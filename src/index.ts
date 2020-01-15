@@ -4,7 +4,8 @@ export {
 
 export {
   ScanStatus,
-}               from 'wechaty-puppet'
+  UrlLinkPayload,
+}                 from 'wechaty-puppet'
 
 export {
   config,

@@ -571,6 +571,27 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
+   * Recall a message.
+   * > Tips:
+   * @returns {Promise<boolean>}
+   *
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   const recallMessage = await msg.say('123')
+   *   if (recallMessage) {
+   *     const isSuccess = await recallMessage.recall()
+   *   }
+   * })
+   */
+
+  public async recall (): Promise<boolean> {
+    const isSuccess = await this.puppet.messageRecall(this.id)
+    return isSuccess
+  }
+
+  /**
    * Get the type from the message.
    * > Tips: MessageType is Enum here. </br>
    * - MessageType.Unknown     </br>
@@ -720,7 +741,7 @@ export class Message extends Accessory implements Sayable {
     const text = this.text()
     const room = this.room()
 
-    const mentionList = await this.mention()
+    const mentionList = await this.mentionList()
 
     if (!room || !mentionList || mentionList.length === 0) {
       return text
