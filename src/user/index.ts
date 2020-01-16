@@ -1,4 +1,5 @@
 export * from './contact'
+export * from './tag'
 export * from './contact-self'
 export * from './favorite'
 export * from './friendship'
