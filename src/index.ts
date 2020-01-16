@@ -29,6 +29,7 @@ export {
 
 export {
   Contact,
+  Tag,
   Friendship,
   Favorite,
   Message,
