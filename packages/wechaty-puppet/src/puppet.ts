@@ -467,15 +467,15 @@ export abstract class Puppet extends EventEmitter {
    *
    */
   // add a tag for a Contact. Create it first if it not exist.
-  public abstract async tagAddContact (id: string, contactId: string) : Promise<void>
+  public abstract async tagContactAdd (id: string, contactId: string) : Promise<void>
   // remove a tag from the Contact
-  public abstract async tagRemoveContact (id: string, contactId: string) : Promise<void>
+  public abstract async tagContactRemove (id: string, contactId: string) : Promise<void>
   // delete a tag from Wechat
-  public abstract async tagDeleteContact (id: string) : Promise<void>
+  public abstract async tagContactDelete (id: string) : Promise<void>
   // get tags from a specific Contact
-  public abstract async tagListContact (contactId: string) : Promise<string[]>
-  // get all tags form the Contact
-  public abstract async tagListContact (): Promise<string[]>
+  public abstract async tagContactList (contactId: string) : Promise<string[]>
+  // get tags from all Contacts
+  public abstract async tagContactList (): Promise<string[]>
 
   /**
    *
