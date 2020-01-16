@@ -253,6 +253,27 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
+   * Get tags for all contact
+   *
+   * @static
+   * @returns {Promise<Tag[]>}
+   * @example
+   * const tags = await wechaty.Contact.tags()
+   */
+  public static async tags (): Promise<Tag []> {
+    log.verbose('Contact', 'static tags() for %s', this)
+
+    try {
+      const tagIdList = await this.puppet.tagContactList()
+      const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
+      return tagList
+    } catch (e) {
+      log.error('Contact', 'static tags() exception: %s', e.message)
+      return []
+    }
+  }
+
+  /**
    *
    * Instance properties
    * @ignore
@@ -671,7 +692,7 @@ export class Contact extends Accessory implements Sayable {
     log.verbose('Contact', 'tags() for %s', this)
 
     try {
-      const tagIdList = await this.puppet.tagListContact(this.id)
+      const tagIdList = await this.puppet.tagContactList(this.id)
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {

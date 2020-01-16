@@ -6,15 +6,18 @@ import { Accessory }  from '../accessory'
 import { Contact }  from './contact'
 import { Favorite } from './favorite'
 
-export class Tag  extends Accessory {
+export class Tag extends Accessory {
 
   protected static pool: Map<string, Tag>
 
-  private constructor (
-    public readonly tag: string,
+  /**
+   * @hideconstructor
+   */
+  constructor (
+    public readonly id: string,
   ) {
     super()
-    log.silly('Tag', `constructor(${tag})`)
+    log.silly('Tag', `constructor(${id})`)
 
     const MyClass = instanceToClass(this, Tag)
 
@@ -101,9 +104,9 @@ export class Tag  extends Accessory {
         const contactTagList = await contact.tags()
         contactTagList.forEach(tag => {
           if (!tagList.includes(tag)) {
-              tagList.push(tag)
-            }
-          })
+            tagList.push(tag)
+          }
+        })
       }
     // } else if (target === Favorite || target === this.wechaty.Favorite)
     } else {
@@ -114,7 +117,7 @@ export class Tag  extends Accessory {
   }
 
   /**
-   * Get a new tag
+   * Get a Tag instance for "tag"
    *
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
@@ -124,7 +127,7 @@ export class Tag  extends Accessory {
    * @returns {Promise<Tag>}
    * @example
    * const bot = new Wechaty()
-   * await bot.Tag.get(tag)
+   * await bot.Tag.get('TagName')
    */
   public static async get<T extends typeof Tag> (
     this: T,
@@ -132,6 +135,37 @@ export class Tag  extends Accessory {
   ): Promise<T['prototype']> {
     log.verbose('Tag', 'get(%s)', tag)
     return this.load(tag)
+  }
+
+  /**
+   * Delete a tag from Wechat
+   *
+   * If you want to delete a tag, please make sure there's no more Contact/Favorite(s) are using this tag.
+   * If this tag is be used by any Contact/Favorite, then it can not be deleted.
+   * (This is for protecting the tag being deleted by mistake)
+   *
+   * @static
+   * @returns {Promise<Tag[]>}
+   * @example
+   * const tag = wechaty.Tag.get('tag')
+   * await wechaty.Tag.delete(tag)
+   */
+  public static async delete (
+    tag: Tag,
+    target?: typeof Contact | typeof Favorite,
+  ): Promise<void> {
+    log.verbose('Tag', 'static delete(%s)', tag)
+
+    try {
+      if (!target || target === Contact || target === this.wechaty.Contact) {
+        await this.puppet.tagContactDelete(tag.id)
+      // TODO:
+      // } else if (!target || target === Favorite || target === this.wechaty.Favorite) {
+      //   await this.puppet.tagFavoriteDelete(tag.id)
+      }
+    } catch (e) {
+      log.error('Tag', 'static delete() exception: %s', e.message)
+    }
   }
 
   /**
@@ -146,12 +180,16 @@ export class Tag  extends Accessory {
    * await tag.add(contact)
    */
   public async add (
-    to: Contact
+    to: Contact | Favorite,
   ): Promise<void> {
-    log.verbose('Tag', 'add(%s) for %s', to, this.tag)
+    log.verbose('Tag', 'add(%s) for %s', to, this.id)
 
     try {
-      await this.puppet.tagAddContact(this.tag, to.id)
+      if (to instanceof Contact) {
+        await this.puppet.tagContactAdd(this.id, to.id)
+      } else if (to instanceof Favorite) {
+        // TODO: await this.puppet.tagAddFavorite(this.tag, to.id)
+      }
     } catch (e) {
       log.error('Tag', 'add() exception: %s', e.message)
       throw new Error(`add error : ${e}`)
@@ -159,23 +197,27 @@ export class Tag  extends Accessory {
   }
 
   /**
-   * Delete this tag
+   * Remove this tag from Contact/Favorite
    *
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {Promise<void>}
    * @example
-   * await tag.del()
+   * await tag.remove(contact)
    */
-  public async del (from: Contact): Promise<void> {
-    log.verbose('Tag', 'del(%s) for %s', from, this.tag)
+  public async remove (from: Contact | Favorite): Promise<void> {
+    log.verbose('Tag', 'remove(%s) for %s', from, this.id)
 
     try {
-      await this.puppet.tagDelContact(this.tag, from)
+      if (from instanceof Contact) {
+        await this.puppet.tagContactRemove(this.id, from.id)
+      } else if (from instanceof Favorite) {
+        // TODO await this.puppet.tagRemoveFavorite(this.tag, from.id)
+      }
     } catch (e) {
-      log.error('Tag', 'del() exception: %s', e.message)
-      throw new Error(`del error : ${e}`)
+      log.error('Tag', 'remove() exception: %s', e.message)
+      throw new Error(`remove error : ${e}`)
     }
   }
 
