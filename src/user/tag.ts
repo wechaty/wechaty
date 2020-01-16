@@ -78,45 +78,6 @@ export class Tag extends Accessory {
   }
 
   /**
-   * Get all tags of this account
-   *
-   * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   *
-   * @static
-   * @returns {Promise<Tag[]>}
-   * @example
-   * const bot = new Wechaty()
-   * await bot.start()
-   * await bot.Tag.findAll()
-   */
-  public static async findAll<T extends typeof Tag> (
-    this: T,
-    target: typeof Contact | typeof Favorite,
-  ): Promise<Array<T['prototype']>> {
-    log.verbose('Tag', 'findAll(%s)', target)
-
-    const tagList: Tag[] = []
-
-    if (target === Contact || target === this.wechaty.Contact) {
-      const contactList = await this.wechaty.Contact.findAll()
-      for (const contact of contactList) {
-        const contactTagList = await contact.tags()
-        contactTagList.forEach(tag => {
-          if (!tagList.includes(tag)) {
-            tagList.push(tag)
-          }
-        })
-      }
-    // } else if (target === Favorite || target === this.wechaty.Favorite)
-    } else {
-      log.error('Tag', 'findAll() target is neither Contact nor Favorite')
-    }
-
-    return tagList
-  }
-
-  /**
    * Get a Tag instance for "tag"
    *
    * > Tips:
