@@ -118,6 +118,11 @@ export class Tag extends Accessory {
     log.verbose('Tag', 'static delete(%s)', tag)
 
     try {
+
+      /**
+       * TODO(huan): add tag check code here for checking if this tag is still being used.
+       */
+
       if (!target || target === Contact || target === this.wechaty.Contact) {
         await this.puppet.tagContactDelete(tag.id)
       // TODO:
