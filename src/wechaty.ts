@@ -1123,6 +1123,9 @@ export class Wechaty extends Accessory implements Sayable {
 
   /**
    * @ignore
+   * Huan(202001):
+   *  Given a QR Code Value, like "https://chatie.io"
+   *  convert it to a PNG image FileBox.
    */
   public async qrcodePng (value: string): Promise<FileBox> {
     const stream = new PassThrough()
