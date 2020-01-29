@@ -10,10 +10,16 @@ export enum MessageType {
   Text,           // Text(1)
   Location,       // Location(48)
   MiniProgram,    // MiniProgram(33)
-  Money,          // Transfers(2000), RedEnvelopes(2001),
+  Transfer,       // Transfers(2000)
+  RedEnvelope,    // RedEnvelopes(2001)
   Recalled,       // Recalled(10002)
   Url,            // Url(5)
   Video,          // Video(4), Video(43)
+
+  /**
+   * @deprecated: use .Transfer & .RedEnvelopes instead.
+   */
+  Money,          // Huan(202001): DEPRECATED
 }
 
 /**
@@ -68,7 +74,7 @@ export enum WechatMessageType {
   GroupInvite       = 2003, // 群邀请
   File              = 2004, // 文件消息
   Sys               = 10000,
-  Recalled          = 10002,  // 10002 MSG_TYPE_NOTIFY 服务通知
+  Recalled          = 10002,  // NOTIFY 服务通知
 }
 
 /** @hidden */

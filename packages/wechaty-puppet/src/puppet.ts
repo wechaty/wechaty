@@ -82,6 +82,7 @@ import {
 
   YOU,
 }                                 from './schemas/puppet'
+import { throwUnsupportedError }   from './throw-unsupported-error'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -787,17 +788,17 @@ export abstract class Puppet extends EventEmitter {
    * Message
    *
    */
-  public abstract async messageFile (messageId: string) : Promise<FileBox>
   public abstract async messageContact (messageId: string)  : Promise<string>
-  public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
+  public abstract async messageFile (messageId: string) : Promise<FileBox>
   public abstract async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload>
+  public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
 
-  public abstract async messageForward (receiver: Receiver, messageId: string)                       : Promise<void | string>
-  public abstract async messageSendText (receiver: Receiver, text: string, mentionIdList?: string[]) : Promise<void | string>
   public abstract async messageSendContact (receiver: Receiver, contactId: string)                   : Promise<void | string>
   public abstract async messageSendFile (receiver: Receiver, file: FileBox)                          : Promise<void | string>
-  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload)          : Promise<void | string>
+  public abstract async messageSendText (receiver: Receiver, text: string, mentionIdList?: string[]) : Promise<void | string>
   public abstract async messageSendMiniProgram (receiver: Receiver, miniProgramPayload: MiniProgramPayload)          : Promise<void | string>
+  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload)          : Promise<void | string>
+
   public abstract async messageRecall (messageId: string) : Promise<boolean>
 
   protected abstract async messageRawPayload (messageId: string)     : Promise<any>
@@ -922,6 +923,79 @@ export abstract class Puppet extends EventEmitter {
     const allFilterFunction: MessagePayloadFilterFunction = payload => filterFunctionList.every(func => func(payload))
 
     return allFilterFunction
+  }
+
+  public async messageForward (receiver: Receiver, messageId: string): Promise<void | string> {
+    log.verbose('Puppet', 'messageForward(%s, %s)', JSON.stringify(receiver), messageId)
+
+    const payload = await this.messagePayload(messageId)
+
+    let newMsgId: void | string
+
+    switch (payload.type) {
+
+      case MessageType.Attachment:     // Attach(6),
+      case MessageType.Audio:          // Audio(1), Voice(34)
+      case MessageType.Image:          // Img(2), Image(3)
+      case MessageType.Video:          // Video(4), Video(43)
+        newMsgId = await this.messageSendFile(
+          receiver,
+          await this.messageFile(messageId),
+        )
+        break
+
+      case MessageType.Text:           // Text(1)
+        if (payload.text) {
+          newMsgId = await this.messageSendText(
+            receiver,
+            payload.text,
+          )
+        } else {
+          log.warn('Puppet', 'messageForward() payload.text is undefined.')
+        }
+        break
+
+      case MessageType.MiniProgram:    // MiniProgram(33)
+        newMsgId = await this.messageSendMiniProgram(
+          receiver,
+          await this.messageMiniProgram(messageId)
+        )
+        break
+
+      case MessageType.Url:            // Url(5)
+        await this.messageSendUrl(
+          receiver,
+          await this.messageUrl(messageId)
+        )
+        break
+
+      case MessageType.Contact:        // ShareCard(42)
+        newMsgId = await this.messageSendContact(
+          receiver,
+          await this.messageContact(messageId)
+        )
+        break
+
+      case MessageType.ChatHistory:    // ChatHistory(19)
+      case MessageType.Location:       // Location(48)
+      case MessageType.Emoticon:       // Sticker: Emoticon(15), Emoticon(47)
+      case MessageType.Transfer:
+      case MessageType.RedEnvelope:
+      case MessageType.Recalled:       // Recalled(10002)
+        throwUnsupportedError()
+        break
+
+      case MessageType.Money:          // Transfers(2000), RedEnvelopes(2001),
+        throw new Error('MessageType.Money has been deprecated. use .Transfer or .RedEnvelop instead.')
+
+      case MessageType.Unknown:
+      default:
+        throw new Error('Unsupported forward message type:' + MessageType[payload.type])
+    }
+
+    if (newMsgId) {
+      return newMsgId
+    }
   }
 
   /**
