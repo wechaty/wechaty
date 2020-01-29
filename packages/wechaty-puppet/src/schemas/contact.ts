@@ -23,7 +23,7 @@ export interface ContactPayload {
   name   : string,
   avatar : string,
 
-  address?   : string,
+  address?   : string,  // Huan(202001): what's this for?
   alias?     : string,
   city?      : string,
   friend?    : boolean,

@@ -43,6 +43,7 @@ export enum WechatAppMessageType {
 
 /**
  * @private
+ * Huan(202001): The Windows(PC) DLL match the following numbers.
  */
 export enum WechatMessageType {
   Text              = 1,
@@ -61,8 +62,13 @@ export enum WechatMessageType {
   VoipInvite        = 53,
   MicroVideo        = 62,
   SysNotice         = 9999,
+  Transfer          = 2000, // 转账
+  RedEnvelope       = 2001, // 红包
+  MiniProgram       = 2002, // 小程序
+  GroupInvite       = 2003, // 群邀请
+  File              = 2004, // 文件消息
   Sys               = 10000,
-  Recalled          = 10002,
+  Recalled          = 10002,  // 10002 MSG_TYPE_NOTIFY 服务通知
 }
 
 /** @hidden */
