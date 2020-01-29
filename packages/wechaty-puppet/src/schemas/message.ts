@@ -77,11 +77,11 @@ export interface MessagePayloadBase {
 
   // use message id to get rawPayload to get those informations when needed
   // contactId?    : string,        // Contact ShareCard
-  mentionIdList?: string[],   // Mentioned Contacts' Ids
+  mentionIdList?: string[],     // Mentioned Contacts' Ids
 
   filename?     : string,
   text?         : string,
-  timestamp     : number,        // Unix Timestamp(in seconds)
+  timestamp     : number,       // Huan(202001): we support both seconds & milliseconds in Wechaty now.
   type          : MessageType,
 }
 
