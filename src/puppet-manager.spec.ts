@@ -26,12 +26,12 @@ import {
 }                 from './puppet-manager'
 
 test('resolve an unsupported puppet name', async t => {
-  try {
-    await PuppetManager.resolve('fasdfsfasfsfdfs' as any)
-    t.fail('should reject')
-  } catch (e) {
-    t.pass('reject when options is a string: ' + e)
-  }
+  // try {
+  //   await PuppetManager.resolve('fasdfsfasfsfdfs')
+  //   t.fail('should reject')
+  // } catch (e) {
+  //   t.pass('reject when options is a string: ' + e)
+  // }
 
   try {
     await PuppetManager.resolve({ puppet: 'fadfdsafa' as any })
