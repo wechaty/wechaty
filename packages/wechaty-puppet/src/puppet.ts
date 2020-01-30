@@ -755,13 +755,25 @@ export abstract class Puppet extends EventEmitter {
     this.cacheFriendshipPayload.delete(friendshipId)
   }
 
+  // get
+  public async friendshipPayload (friendshipId: string): Promise<FriendshipPayload>
+  // set
+  public async friendshipPayload (friendshipId: string, friendshipPayload: FriendshipPayload): Promise<void>
+
   public async friendshipPayload (
     friendshipId: string,
-  ): Promise<FriendshipPayload> {
-    log.verbose('Puppet', 'friendshipPayload(%s)', friendshipId)
+    friendshipPayload?: FriendshipPayload,
+  ): Promise<void | FriendshipPayload> {
+    log.verbose('Puppet', 'friendshipPayload(%s)',
+      friendshipId,
+      friendshipPayload
+        ? ',' + JSON.stringify(friendshipPayload)
+        : '',
+    )
 
-    if (!friendshipId) {
-      throw new Error('no id')
+    if (typeof friendshipPayload === 'object') {
+      await this.cacheFriendshipPayload.set(friendshipId, friendshipPayload)
+      return
     }
 
     /**
