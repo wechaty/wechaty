@@ -35,7 +35,8 @@ import {
 import {
   FriendshipPayload,
   FriendshipType,
-}                         from 'wechaty-puppet'
+  FriendshipSearchQueryFilter,
+}                                 from 'wechaty-puppet'
 
 import {
   Acceptable,
@@ -60,7 +61,7 @@ export class Friendship extends Accessory implements Acceptable {
   public static Type = FriendshipType
 
   /**
-   * @private
+   * @ignore
    */
   public static load<T extends typeof Friendship> (
     this : T,
@@ -68,6 +69,40 @@ export class Friendship extends Accessory implements Acceptable {
   ): T['prototype'] {
     const newFriendship = new (this as any)(id)
     return newFriendship
+  }
+
+  /**
+   * Search a Friend by phone or weixin.
+   *
+   * The best practice is to search friend request once per minute.
+   * Remeber not to do this too frequently, or your account may be blocked.
+   *
+   * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
+   * @returns {Promise<Contact>}
+   *
+   * @example
+   * const friend_phone = await bot.Friendship.search({phone: '13112341234'})
+   * const friend_weixin = await bot.Friendship.search({weixin: 'weixin_account'})
+   *
+   * console.log(`This is the new friend info searched by phone : ${friend_phone}`)
+   * await bot.Friendship.add(friend_phone, 'hello')
+   *
+   */
+  public static async search (
+    queryFiter : FriendshipSearchQueryFilter,
+  ): Promise<null | Contact> {
+    log.verbose('Friendship', 'static search("%s")',
+      JSON.stringify(queryFiter),
+    )
+    const contactId = await this.puppet.friendshipSearch(queryFiter)
+
+    if (!contactId) {
+      return null
+    }
+
+    const contact = this.wechaty.Contact.load(contactId)
+    await contact.ready()
+    return contact
   }
 
   /**
@@ -121,7 +156,7 @@ export class Friendship extends Accessory implements Acceptable {
    */
 
   /**
-   * @ignore
+    * @ignore
    */
   protected payload?: FriendshipPayload
 
@@ -166,7 +201,7 @@ export class Friendship extends Accessory implements Acceptable {
 
   /**
    * no `dirty` support because Friendship has no rawPayload(yet)
-   * @ignore
+    * @ignore
    */
   public async ready (): Promise<void> {
     if (this.isReady()) {

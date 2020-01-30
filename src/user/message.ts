@@ -80,7 +80,7 @@ export class Message extends Accessory implements Sayable {
    */
 
   /**
-   * @private
+   * @ignore
    */
   // tslint:disable-next-line:variable-name
   public static readonly Type = MessageType
@@ -158,8 +158,8 @@ export class Message extends Accessory implements Sayable {
 
   /**
    * Create a Mobile Terminated Message
+    * @ignore
    * @ignore
-   * @private
    * "mobile originated" or "mobile terminated"
    * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
    */
@@ -180,7 +180,7 @@ export class Message extends Accessory implements Sayable {
   /**
    * TODO: rename create to load ??? Huan 201806
    * @deprecated: use load() instead
-   * @private
+   * @ignore
    */
 
   public static create (id: string): Message {
@@ -221,7 +221,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public toString () {
     if (!this.payload) {
@@ -571,6 +571,28 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
+   * Recall a message.
+   * > Tips:
+   * @returns {Promise<boolean>}
+   *
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   const recallMessage = await msg.say('123')
+   *   if (recallMessage) {
+   *     const isSuccess = await recallMessage.recall()
+   *   }
+   * })
+   */
+
+  public async recall (): Promise<boolean> {
+    log.verbose('Message', 'recall()')
+    const isSuccess = await this.puppet.messageRecall(this.id)
+    return isSuccess
+  }
+
+  /**
    * Get the type from the message.
    * > Tips: MessageType is Enum here. </br>
    * - MessageType.Unknown     </br>
@@ -720,7 +742,7 @@ export class Message extends Accessory implements Sayable {
     const text = this.text()
     const room = this.room()
 
-    const mentionList = await this.mention()
+    const mentionList = await this.mentionList()
 
     if (!room || !mentionList || mentionList.length === 0) {
       return text
@@ -747,7 +769,7 @@ export class Message extends Accessory implements Sayable {
    * @description
    * should use {@link Message#mention} instead
    * @deprecated
-   * @private
+   * @ignore
    */
   public async mentioned (): Promise<Contact[]> {
     log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')
@@ -770,14 +792,14 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @ignore
    */
   public isReady (): boolean {
     return !!this.payload
   }
 
   /**
-   * @private
+   * @ignore
    */
   public async ready (): Promise<void> {
     log.verbose('Message', 'ready()')
@@ -894,9 +916,24 @@ export class Message extends Accessory implements Sayable {
       throw new Error('no payload')
     }
 
-    // convert the unit timestamp to milliseconds
-    // (from seconds to milliseconds)
-    return new Date(1000 * this.payload.timestamp)
+    /**
+      * Huan(202001): support both seconds & milliseconds
+      *
+      * How to test if a given time-stamp is in seconds or milliseconds?
+      * https://stackoverflow.com/a/23982005/1123955
+      */
+    let timestamp = this.payload.timestamp
+
+    /**
+      * 1e11:
+      *   in milliseconds:  Sat Mar 03 1973 09:46:39 UTC
+      *   in seconds:       Wed Nov 16 5138 9:46:40 UTC
+      */
+    if (timestamp < 1e11) {
+      timestamp *= 1000 // turn seconds to milliseconds
+    }
+
+    return new Date(timestamp)
   }
 
   /**
