@@ -139,7 +139,7 @@ async function onMessage (msg: Message) {
   /**
    * 2. reply image(qrcode image)
    */
-  const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+  const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
 
   await msg.say(fileBox)
   console.info('REPLY: %s', fileBox.toString())
