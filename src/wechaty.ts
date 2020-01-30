@@ -80,8 +80,8 @@ import {
 
 import {
   Contact,
-  ContactSelf,
   Tag,
+  ContactSelf,
   Friendship,
   Message,
   Room,
@@ -164,8 +164,8 @@ export class Wechaty extends Accessory implements Sayable {
   public readonly id : string
 
   public readonly Contact       : typeof Contact
-  public readonly ContactSelf   : typeof ContactSelf
   public readonly Tag           : typeof Tag
+  public readonly ContactSelf   : typeof ContactSelf
   public readonly Friendship    : typeof Friendship
   public readonly Message       : typeof Message
   public readonly RoomInvitation: typeof RoomInvitation
@@ -268,6 +268,7 @@ export class Wechaty extends Accessory implements Sayable {
      */
     // TODO: make Message & Room constructor private???
     this.Contact        = cloneClass(Contact)
+    this.Tag            = cloneClass(Tag)
     this.ContactSelf    = cloneClass(ContactSelf)
     this.Friendship     = cloneClass(Friendship)
     this.Message        = cloneClass(Message)
@@ -1125,10 +1126,10 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   *  Huan(202001):
+   * @ignore
+   * Huan(202001):
    *    Given a QR Code Value, like "https://chatie.io"
    *    convert it to a PNG image FileBox.
-   * @ignore
    */
   public async qrcodePng (value: string): Promise<FileBox> {
     const stream = new PassThrough()
