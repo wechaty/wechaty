@@ -4,7 +4,8 @@ export {
 
 export {
   ScanStatus,
-}               from 'wechaty-puppet'
+  UrlLinkPayload,
+}                 from 'wechaty-puppet'
 
 export {
   config,
@@ -28,6 +29,7 @@ export {
 
 export {
   Contact,
+  Tag,
   Friendship,
   Favorite,
   Message,

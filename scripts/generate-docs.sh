@@ -17,5 +17,5 @@ fi
 
 echo "Generating docs ..."
 npm run dist
-echo -e '# Wechaty v'$(jq -r .version package.json)' Documentation\n\n- Blog - <https://blog.chatie.io>\n- Docs - <https://docs.chatie.io>\n\n' > docs/index.md
+echo -e '# Wechaty v'$(jq -r .version package.json)' Documentation\n\n- Blog - <https://blog.chatie.io>\n- Docs - <https://github.com/wechaty/wechaty/blob/master/docs/index.md>\n\n' > docs/index.md
 jsdoc2md dist/src/wechaty.js dist/src/user/{room,contact,contact-self,friendship,message,room-invitation}.js >> docs/index.md

@@ -1,11 +1,10 @@
 import { EventEmitter }     from 'events'
 
 import { instanceToClass }  from 'clone-class'
+import { Puppet }           from 'wechaty-puppet'
 
-import { log }  from './config'
-
-import { Puppet } from 'wechaty-puppet'
-import { Wechaty } from './wechaty'
+import { log }      from './config'
+import { Wechaty }  from './wechaty'
 
 // use Symbol to prevent conflicting with the child class properties
 // This symbol must be exported (for now).

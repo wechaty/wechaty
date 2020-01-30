@@ -41,6 +41,7 @@ import {
 
 import { UrlLink }  from './url-link'
 import { MiniProgram }  from './mini-program'
+import { Tag } from './tag'
 import { Message } from './message'
 
 export const POOL = Symbol('pool')
@@ -249,6 +250,27 @@ export class Contact extends Accessory implements Sayable {
   // TODO
   public static async delete (contact: Contact): Promise<void> {
     log.verbose('Contact', 'static delete(%s)', contact.id)
+  }
+
+  /**
+   * Get tags for all contact
+   *
+   * @static
+   * @returns {Promise<Tag[]>}
+   * @example
+   * const tags = await wechaty.Contact.tags()
+   */
+  public static async tags (): Promise<Tag []> {
+    log.verbose('Contact', 'static tags() for %s', this)
+
+    try {
+      const tagIdList = await this.puppet.tagContactList()
+      const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
+      return tagList
+    } catch (e) {
+      log.error('Contact', 'static tags() exception: %s', e.message)
+      return []
+    }
   }
 
   /**
@@ -656,6 +678,26 @@ export class Contact extends Accessory implements Sayable {
     } catch (e) {
       log.error('Contact', 'avatar() exception: %s', e.message)
       return qrCodeForChatie()
+    }
+  }
+
+  /**
+   * Get all tags of contact
+   *
+   * @returns {Promise<Tag[]>}
+   * @example
+   * const tags = await contact.tags()
+   */
+  public async tags (): Promise<Tag []> {
+    log.verbose('Contact', 'tags() for %s', this)
+
+    try {
+      const tagIdList = await this.puppet.tagContactList(this.id)
+      const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
+      return tagList
+    } catch (e) {
+      log.error('Contact', 'tags() exception: %s', e.message)
+      return []
     }
   }
 
