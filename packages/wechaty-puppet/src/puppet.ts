@@ -712,7 +712,9 @@ export abstract class Puppet extends EventEmitter {
   // return contact id by weixin id
   public abstract async friendshipSearchWeixin (weixin: string) : Promise<string | null>
 
-  public async friendshipSearch (searchQueryFilter: FriendshipSearchQueryFilter): Promise<string | null> {
+  public async friendshipSearch (
+    searchQueryFilter: FriendshipSearchQueryFilter,
+  ): Promise<string | null> {
     log.verbose('Puppet', 'friendshipSearch("%s")', JSON.stringify(searchQueryFilter))
 
     if (Object.keys(searchQueryFilter).length !== 1) {
