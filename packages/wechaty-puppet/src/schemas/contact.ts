@@ -12,8 +12,9 @@ export enum ContactType {
 
 export interface ContactQueryFilter {
   alias?:  string | RegExp,
-  id?:     string
+  id?:     string,
   name?:   string | RegExp,
+  weixin?:  string,
 }
 
 export interface ContactPayload {

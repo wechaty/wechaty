@@ -605,6 +605,9 @@ export abstract class Puppet extends EventEmitter {
       JSON.stringify(query),
     )
 
+    /**
+     * Clean the query for keys with empty value
+     */
     Object.keys(query).forEach(key => {
       if (query[key as keyof ContactQueryFilter] === undefined) {
         delete query[key as keyof ContactQueryFilter]
@@ -623,6 +626,7 @@ export abstract class Puppet extends EventEmitter {
       'alias',
       'id',
       'name',
+      'weixin',
     ].includes(filterKey)
 
     if (!isValid) {
