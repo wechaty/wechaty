@@ -708,6 +708,10 @@ export class Wechaty extends Accessory implements Sayable {
         case 'room-leave':
           puppet.on('room-leave', async (roomId, leaverIdList, removerId, timestamp) => {
             const room = this.Room.load(roomId)
+
+            /**
+             * See: https://github.com/wechaty/wechaty/pull/1833
+             */
             await room.sync()
 
             const leaverList = leaverIdList.map(id => this.Contact.load(id))
@@ -1123,6 +1127,9 @@ export class Wechaty extends Accessory implements Sayable {
 
   /**
    * @ignore
+   * Huan(202001):
+   *  Given a QR Code Value, like "https://chatie.io"
+   *  convert it to a PNG image FileBox.
    */
   public async qrcodePng (value: string): Promise<FileBox> {
     const stream = new PassThrough()

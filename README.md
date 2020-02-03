@@ -67,8 +67,8 @@ You can find more examples from [Wiki](https://github.com/Wechaty/wechaty/wiki/E
 
 ## Requirements
 
-1. Node.js 10 or above
-1. Global Network Connection
+1. Node.js v10
+1. `sudo apt-get install build-essential && sudo snap install shellcheck`
 
 ## Getting Started
 

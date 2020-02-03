@@ -735,7 +735,7 @@ export class Contact extends Accessory implements Sayable {
   public async ready (
     forceSync = false,
   ): Promise<void> {
-    log.silly('Contact', 'ready() @ %s', this.puppet)
+    log.silly('Contact', 'ready() @ %s with id="%s"', this.puppet, this.id)
 
     if (!forceSync && this.isReady()) { // already ready
       log.silly('Contact', 'ready() isReady() true')
@@ -751,7 +751,7 @@ export class Contact extends Accessory implements Sayable {
 
     } catch (e) {
       log.verbose('Contact', `ready() this.puppet.contactPayload(%s) exception: %s`,
-        this,
+        this.id,
         e.message,
       )
       Raven.captureException(e)
