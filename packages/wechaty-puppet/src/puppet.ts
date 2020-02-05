@@ -1145,7 +1145,7 @@ export abstract class Puppet extends EventEmitter {
   public async roomSearch (
     query?: RoomQueryFilter,
   ): Promise<string[] /* Room Id List */> {
-    log.verbose('Puppet', 'roomSearch(%s)', JSON.stringify(query))
+    log.verbose('Puppet', 'roomSearch(%s)', query ? JSON.stringify(query) : '')
 
     const allRoomIdList: string[] = await this.roomList()
     log.silly('Puppet', 'roomSearch() allRoomIdList.length=%d', allRoomIdList.length)
