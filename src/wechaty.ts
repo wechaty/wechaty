@@ -20,9 +20,6 @@
 import cuid    from 'cuid'
 import os      from 'os'
 
-import { PassThrough } from 'stream'
-import { toFileStream } from 'qrcode'
-
 import {
   // Constructor,
   cloneClass,
@@ -1123,19 +1120,6 @@ export class Wechaty extends Accessory implements Sayable {
    */
   public async sleep (millisecond: number): Promise<void> {
     return Wechaty.sleep(millisecond)
-  }
-
-  /**
-   * @ignore
-   * Huan(202001):
-   *  Given a QR Code Value, like "https://chatie.io"
-   *  convert it to a PNG image FileBox.
-   */
-  public async qrcodePng (value: string): Promise<FileBox> {
-    const stream = new PassThrough()
-    await toFileStream(stream, value) // only support .png for now
-    const fileBox = FileBox.fromStream(stream, 'qrcode.png')
-    return fileBox
   }
 
   /**
