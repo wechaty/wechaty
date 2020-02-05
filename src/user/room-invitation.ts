@@ -30,6 +30,9 @@ import {
 import {
   Acceptable,
 }               from '../types'
+import {
+  timestampToDate,
+}                   from '../helper-functions/pure/timestamp-to-date'
 
 import {
   Contact,
@@ -176,23 +179,33 @@ export class RoomInvitation extends Accessory implements Acceptable {
 
   /**
    * @deprecated: use topic() instead
+   * @ignore
    */
   public async roomTopic (): Promise<string> {
     return this.topic()
   }
 
-  public async roomMemberCount (): Promise<number> {
-    log.verbose('RoomInvitation', 'roomMemberCount()')
+  public async memberCount (): Promise<number> {
+    log.verbose('RoomInvitation', 'memberCount()')
 
     const payload = await this.puppet.roomInvitationPayload(this.id)
     return payload.roomMemberCount
   }
 
   /**
+   * @deprecated: use memberCount() instead
+   * @ignore
+   */
+  public async roomMemberCount (): Promise<number> {
+    log.warn('RoomInvitation', 'roomMemberCount() DEPRECATED. use memberCount() instead.')
+    return this.memberCount()
+  }
+
+  /**
    * List of Room Members that you known(is friend)
     * @ignore
    */
-  public async roomMemberList (): Promise<Contact[]> {
+  public async memberList (): Promise<Contact[]> {
     log.verbose('RoomInvitation', 'roomMemberList()')
 
     const payload = await this.puppet.roomInvitationPayload(this.id)
@@ -211,6 +224,15 @@ export class RoomInvitation extends Accessory implements Acceptable {
   }
 
   /**
+   * @deprecated: use memberList() instead.
+   * @ignore
+   */
+  public async roomMemberList (): Promise<Contact[]> {
+    log.warn('RoomInvitation', 'roomMemberList() DEPRECATED. use memberList() instead.')
+    return this.roomMemberList()
+  }
+
+  /**
    * Get the invitation time
    *
    * @returns {Promise<Date>}
@@ -219,9 +241,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
     log.verbose('RoomInvitation', 'date()')
 
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    // convert the unit timestamp to milliseconds
-    // (from seconds to milliseconds)
-    return new Date(1000 * payload.timestamp)
+    return timestampToDate(payload.timestamp)
   }
 
   /**
