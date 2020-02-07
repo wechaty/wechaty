@@ -174,7 +174,9 @@ export class RoomInvitation extends Accessory implements Acceptable {
    */
   public async topic (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    return payload.topic || ''
+
+    // roomTopic deprecated. use topic instead:
+    return payload.topic || payload.roomTopic || ''
   }
 
   /**
@@ -189,7 +191,9 @@ export class RoomInvitation extends Accessory implements Acceptable {
     log.verbose('RoomInvitation', 'memberCount()')
 
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    return payload.memberCount || 0
+
+    // roomMemberCount deprecated. use memberCount instead:
+    return payload.memberCount || payload.roomMemberCount || 0
   }
 
   /**
@@ -209,7 +213,9 @@ export class RoomInvitation extends Accessory implements Acceptable {
     log.verbose('RoomInvitation', 'roomMemberList()')
 
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    const contactIdList = payload.memberIdList || []
+
+    // roomMemberIdList deprecated. use memberIdList isntead.
+    const contactIdList = payload.memberIdList || payload.roomMemberIdList || []
 
     const contactList = contactIdList.map(
       id => this.wechaty.Contact.load(id),
