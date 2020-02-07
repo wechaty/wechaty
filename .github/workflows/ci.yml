@@ -1,4 +1,4 @@
-name: ci
+name: DevOps
 
 on: [push]
 
@@ -8,8 +8,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest, centos-latest]
-        node: [10, 12, 13]
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node: [12, 13]
 
     steps:
     - uses: actions/checkout@v2
