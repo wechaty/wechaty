@@ -1,10 +1,11 @@
 language: node_js
 node_js:
-  - "10"
+  - "13"
 
 os:
   - linux
   - osx
+  - windows
 
 addons:
   apt:
