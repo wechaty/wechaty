@@ -298,6 +298,7 @@ Accept room invitation
 
 ## TEST
 
+[![Build Status](https://github.com/wechaty/wechaty/workflows/ci/badge.svg?branch=master)](https://github.com/wechaty/wechaty/actions?query=workflow%3Aci)
 [![Ubuntu Linux/Mac Build Status](https://travis-ci.com/Wechaty/wechaty.svg?branch=master)](https://travis-ci.com/Wechaty/wechaty)
 [![Travis](https://img.shields.io/travis/Wechaty/wechaty.svg?label=Ubuntu/OSX)](https://travis-ci.com/Wechaty/wechaty)
 [![CentOS Linux Build Status](https://circleci.com/gh/Wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/Wechaty/wechaty)
