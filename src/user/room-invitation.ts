@@ -174,7 +174,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
    */
   public async topic (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    return payload.roomTopic
+    return payload.topic || ''
   }
 
   /**
@@ -189,7 +189,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
     log.verbose('RoomInvitation', 'memberCount()')
 
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    return payload.roomMemberCount
+    return payload.memberCount || 0
   }
 
   /**
@@ -209,7 +209,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
     log.verbose('RoomInvitation', 'roomMemberList()')
 
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    const contactIdList = payload.roomMemberIdList
+    const contactIdList = payload.memberIdList || []
 
     const contactList = contactIdList.map(
       id => this.wechaty.Contact.load(id),
