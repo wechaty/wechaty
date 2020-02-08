@@ -25,9 +25,9 @@ jobs:
         run: npm test
 
   pack:
+    name: Pack
     needs: build
     runs-on: ubuntu-latest
-    name: Pack
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -40,6 +40,7 @@ jobs:
           WECHATY_PUPPET_PADPLUS_TOKEN: ${{ secrets.WECHATY_PUPPET_PADPLUS_TOKEN }}
 
   publish-npm:
+    name: Publish to NPM
     needs: [build, pack]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, '/refs/heads/v[0-9]+'))
     runs-on: ubuntu-latest
