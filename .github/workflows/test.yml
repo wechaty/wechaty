@@ -7,16 +7,21 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Check Branch
-        id: check-branch
+      - name: Check Version Branch
+        id: version-branch
         run: |
+          # https://stackoverflow.com/a/58869470/1123955
           if [[ ${{ github.ref }} =~ ^refs/heads/v[0-9]+\.[0-9]+.*$ ]]; then
-              echo ::set-output name=match::true
+            echo "Version Branch Found for ${{ github.ref }}"
+            exit 0
+          else
+            echo "Version Branch not Found for ${{ github.ref }}"
+            exit 1
           fi
       - name: Build
-        if: steps.check-branch.outputs.match == 'true'
+        if: success()
         run: |
-          echo "Tag is a match"
+          echo "Version found"
       - name: Skip
-        if: steps.check-branch.outputs.match != 'true'
+        if: failure()
         run: echo 'Not Version Branch'
