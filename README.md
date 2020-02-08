@@ -298,7 +298,8 @@ Accept room invitation
 
 ## TEST
 
-[![GitHub Actions](https://github.com/wechaty/wechaty/workflows/DevOps/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADevOps)
+[![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM)
+[![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
 [![Ubuntu Linux/Mac Build Status](https://travis-ci.com/Wechaty/wechaty.svg?branch=master)](https://travis-ci.com/Wechaty/wechaty)
 [![Travis](https://img.shields.io/travis/Wechaty/wechaty.svg?label=Ubuntu/OSX)](https://travis-ci.com/Wechaty/wechaty)
 [![CentOS Linux Build Status](https://circleci.com/gh/Wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/Wechaty/wechaty)
