@@ -40,7 +40,7 @@ jobs:
     
   publish-npm:
     needs: [build, pack]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref.startsWith('/refs/heads/v'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
