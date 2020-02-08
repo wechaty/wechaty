@@ -13,9 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: zbeekman/ShellCheck-Linter-Action@v1.0.1
+      - name: Install Bats
+        run: |
+          curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
+          tar -xf /tmp/bats_v0.4.0.tar.gz
+          sudo bats-0.4.0/install.sh /usr/local
       - run: ./scripts/docker.sh build
       - run: ./scripts/docker.sh test
-    
+
   publish-docker:
     needs: [build]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v[0-9]+'))
