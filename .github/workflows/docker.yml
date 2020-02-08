@@ -21,8 +21,8 @@ jobs:
       - run: ./scripts/docker.sh build
       - run: ./scripts/docker.sh test
 
-  publish-docker:
-    name: Publish to Docker Hub
+  publish:
+    name: Publish
     needs: [build]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v[0-9]+'))
     runs-on: ubuntu-latest
