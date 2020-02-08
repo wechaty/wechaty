@@ -1,0 +1,53 @@
+name: NPM
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build & Unit Testing
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node: [12, 13]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Test
+      run: npm test
+
+  pack:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Packing & Smoke Testing
+    steps:
+      - run: |
+          npm install
+          ./scripts/generate-version.sh
+          ./scripts/npm-pack-testing.sh
+    
+  publish-npm:
+    needs: [build, pack]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+      - run: |
+          ./scripts/generate-version.sh
+          ./scripts/package-publish-config-tag.sh
+          npm run dist
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
