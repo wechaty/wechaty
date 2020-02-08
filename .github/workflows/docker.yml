@@ -18,7 +18,7 @@ jobs:
     
   publish-docker:
     needs: [build]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref.match(/refs\/heads\/v[0-9]+))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v[0-9]+'))
     runs-on: ubuntu-latest
     steps:
       - run: curl -X POST -d '{"from":"GitHub Action"}' "$DOCKER_REBUILD_URL"
