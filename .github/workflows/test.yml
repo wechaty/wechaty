@@ -15,3 +15,4 @@ jobs:
           echo "startsWith(github.ref, 'refs/heads/v')" ${{ startsWith(github.ref, 'refs/heads/v') }}
           echo "startsWith(github.ref, 'refs/heads/v\d+')" ${{ startsWith(github.ref, 'refs/heads/v\d+') }}
           echo "startsWith(github.ref, 'refs/heads/v*.*')" ${{ startsWith(github.ref, 'refs/heads/v*.*') }}
+          echo "github.ref.match(/^refs\/heads\/v\d+.\d+/i)" ${{ github.ref.match(/^refs\/heads\/v\d+.\d+/i) }}
