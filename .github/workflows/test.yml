@@ -1,0 +1,17 @@
+name: Test
+
+on: [push]
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo ${{ github.event_name }}
+          echo ${{ github.ref }}
+          echo ${{ github.ref == 'refs/heads/master' }}
+          echo "startsWith(github.ref, '/refs/heads/v[0-9]+')" ${{ startsWith(github.ref, '/refs/heads/v[0-9]+') }}
+          echo "startsWith(github.ref, '/refs/heads/v')" ${{ startsWith(github.ref, '/refs/heads/v') }}
+          echo "startsWith(github.ref, '/refs/heads/v\d+')" ${{ startsWith(github.ref, '/refs/heads/v\d+') }}
+          echo "startsWith(github.ref, '/refs/heads/v*.*')" ${{ startsWith(github.ref, '/refs/heads/v*.*') }}
