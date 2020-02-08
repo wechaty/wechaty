@@ -39,8 +39,8 @@ jobs:
         env:
           WECHATY_PUPPET_PADPLUS_TOKEN: ${{ secrets.WECHATY_PUPPET_PADPLUS_TOKEN }}
 
-  publish-npm:
-    name: Publish to NPM
+  publish:
+    name: Publish
     needs: [build, pack]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, '/refs/heads/v[0-9]+'))
     runs-on: ubuntu-latest
