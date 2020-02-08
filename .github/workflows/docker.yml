@@ -1,2 +1,26 @@
-on: push
+name: Docker
 
+on: [push, pull_request]
+#   push:
+#     branches:
+#       - master
+#       - 'v[0-9]+*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: zbeekman/ShellCheck-Linter-Action@v1.0.1
+      - run: ./scripts/docker.sh build
+      - run: ./scripts/docker.sh test
+    
+  publish-docker:
+    needs: [build]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref.match(/refs\/heads\/v[0-9]+))
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -X POST -d '{"from":"GitHub Action"}' "$DOCKER_REBUILD_URL"
+        env:
+          DOCKER_REBUILD_URL: ${{ secrets.DOCKER_REBUILD_URL }}
