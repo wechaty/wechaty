@@ -33,11 +33,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 13
-      - run: |
-          npm install
-          ./scripts/generate-version.sh
-          ./scripts/npm-pack-testing.sh
-    
+      - run: npm install
+      - run: ./scripts/generate-version.sh
+      - run: ./scripts/npm-pack-testing.sh
+
   publish-npm:
     needs: [build, pack]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, '/refs/heads/v[0-9]+'))
@@ -48,10 +47,9 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - run: |
-          ./scripts/generate-version.sh
-          ./scripts/package-publish-config-tag.sh
-          npm run dist
+      - run: ./scripts/generate-version.sh
+      - run: ./scripts/package-publish-config-tag.sh
+      - run: npm run dist
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
