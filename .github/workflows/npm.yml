@@ -50,6 +50,7 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
+      - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/package-publish-config-tag.sh
       - run: npm run dist
