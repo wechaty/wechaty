@@ -11,7 +11,7 @@ jobs:
         id: version-branch
         run: |
           # https://stackoverflow.com/a/58869470/1123955
-          if [[ ${{ github.ref }} =~ ^refs/heads/v[0-9]+\.[0-9]+.*$ ]]; then
+          if [[ ${{ github.ref }} =~ ^refs/headsXX/v[0-9]+\.[0-9]+.*$ ]]; then
             echo "Version Branch Found for ${{ github.ref }}"
             exit 0
           else
