@@ -42,7 +42,7 @@ jobs:
   publish-npm:
     name: Publish to NPM
     needs: [build, pack]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, '/refs/heads/v[0-9]+'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -54,6 +54,19 @@ jobs:
       - run: ./scripts/generate-version.sh
       - run: ./scripts/package-publish-config-tag.sh
       - run: npm run dist
-      - run: npm publish
+
+      - name: Check Branch
+        id: check-branch
+        run: |
+          # https://stackoverflow.com/a/58869470/1123955
+          if [[ ${{ github.ref }} =~ ^refs/heads/(master|v[0-9]+\.[0-9]+.*)$ ]]; then
+              echo ::set-output name=match::true
+          fi
+      - name: Publish Branch
+        if: steps.check-branch.outputs.match == 'true'
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Not A Publish Branch
+        if: steps.check-branch.outputs.match != 'true'
+        run: echo 'Not A Publish Branch'
