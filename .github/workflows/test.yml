@@ -7,12 +7,16 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo ${{ github.event_name }}
-          echo ${{ github.ref }}
-          echo ${{ github.ref == 'refs/heads/master' }}
-          echo "startsWith(github.ref, 'refs/heads/v[0-9]+')" ${{ startsWith(github.ref, 'refs/heads/v[0-9]+') }}
-          echo "startsWith(github.ref, 'refs/heads/v')" ${{ startsWith(github.ref, 'refs/heads/v') }}
-          echo "startsWith(github.ref, 'refs/heads/v\d+')" ${{ startsWith(github.ref, 'refs/heads/v\d+') }}
-          echo "startsWith(github.ref, 'refs/heads/v*.*')" ${{ startsWith(github.ref, 'refs/heads/v*.*') }}
-          echo "github.ref.match(/^refs\/heads\/v\d+.\d+/i)" ${{ github.ref.match(/^refs\/heads\/v\d+.\d+/i) }}
+      - name: Check Branch
+        id: check-branch
+        run: |
+          if [[ ${{ github.ref }} =~ ^refs/heads/v[0-9]+\.[0-9]+.*$ ]]; then
+              echo ::set-output name=match::true
+          fi
+      - name: Build
+        if: steps.check-branch.outputs.match == 'true'
+        run: |
+          echo "Tag is a match"
+      - name: Skip
+        if: steps.check-branch.outputs.match != 'true'
+        run: echo 'Not Version Branch'
