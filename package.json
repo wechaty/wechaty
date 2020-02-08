@@ -31,7 +31,7 @@
     "ts-node": "ts-node",
     "test": "npm run lint && npm run test:unit && npm run sloc",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:shell": "shellcheck bin/*.sh",
+    "test:shell": "shellcheck bin/*.sh scripts/*.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test:debug": "blue-tape -r ts-node/register src/puppet-web/bridge.spec.ts",
     "typedoc": "bash scripts/typedoc.sh",
