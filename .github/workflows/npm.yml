@@ -36,6 +36,8 @@ jobs:
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/npm-pack-testing.sh
+        env:
+          WECHATY_PUPPET_PADPLUS_TOKEN: ${{ secrets.WECHATY_PUPPET_PADPLUS_TOKEN }}
 
   publish-npm:
     needs: [build, pack]
