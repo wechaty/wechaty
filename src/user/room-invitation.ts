@@ -37,6 +37,7 @@ import {
 import {
   Contact,
 }               from './contact'
+import { RoomInvitationPayload } from 'wechaty-puppet'
 
 /**
  *
@@ -265,6 +266,30 @@ export class RoomInvitation extends Accessory implements Acceptable {
     const ageSeconds = Math.floor(ageMilliseconds / 1000)
 
     return ageSeconds
+  }
+
+  public static async fromJsonData (
+    payload: string | RoomInvitationPayload,
+  ): Promise<RoomInvitation> {
+    log.verbose('RoomInvitation', 'fromJsonData(%s)',
+      typeof payload === 'string'
+        ? payload
+        : JSON.stringify(payload),
+    )
+
+    if (typeof payload === 'string') {
+      payload = JSON.parse(payload) as RoomInvitationPayload
+    }
+
+    await this.puppet.setRoomInvitaionPayload(payload.id, payload)
+
+    return this.wechaty.RoomInvitation.load(payload.id)
+  }
+
+  public async toJsonData (id: string): Promise<string> {
+    log.verbose('RoomInvitation', `toJsonData(${id})`)
+    const payload = await this.puppet.roomInvitationPayload(id)
+    return JSON.stringify(payload)
   }
 
 }
