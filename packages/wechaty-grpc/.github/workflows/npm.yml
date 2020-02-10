@@ -46,9 +46,9 @@ jobs:
 
       - name: Packing Package
       - run: |
-        npm run dist
-        npm run pack
-        mv ./*-*.*.*.tgz ./package.tgz
+          npm run dist
+          npm run pack
+          mv ./*-*.*.*.tgz ./package.tgz
 
       - name: Upload NPM Package
         uses: actions/upload-artifact@v1
