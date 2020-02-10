@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/* generated/*",
-    "dist": "npm run clean && npm run generate && tsc && shx cp -R generated/ dist/",
+    "dist": "npm run clean && npm run generate && tsc && shx mv generated/ dist/",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
     "generate": "bash -O globstar -x scripts/generate-stub.sh",
