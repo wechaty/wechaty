@@ -86,6 +86,7 @@ grpcc --proto ./service/myservice.proto --address 127.0.0.1:3466
 - [gRPC in 3 minutes (Node.js)](https://github.com/grpc/grpc/tree/master/examples/node)
 - [Listen gRPC and HTTP requests on the same port](https://medium.com/@drgarcia1986/listen-grpc-and-http-requests-on-the-same-port-263c40cb45ff)
 - [gRPC to JSON proxy generator following the gRPC HTTP spec](https://github.com/grpc-ecosystem/grpc-gateway)
+- [如何在 Node.js 中更优雅地使用 gRPC：grpc-helper](https://github.com/xizhibei/blog/issues/86)
 
 ### Protocol Buffer
 
