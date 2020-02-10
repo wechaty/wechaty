@@ -45,7 +45,7 @@ jobs:
       - run: ./scripts/generate-version.sh
 
       - name: Packing Package
-      - run: |
+        run: |
           npm run dist
           npm run pack
           mv ./*-*.*.*.tgz ./package.tgz
