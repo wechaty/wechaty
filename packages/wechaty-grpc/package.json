@@ -15,7 +15,7 @@
     "example:client": "ts-node examples/client.ts",
     "generate": "bash -O globstar -x scripts/generate-stub.sh",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:proto",
-    "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
+    "lint:ts": "tsc --noEmit",
     "lint:proto": "protoc -I protobuf  --lint_out=. protobuf/*.proto protobuf/wechaty-puppet/*.proto",
     "pack": "npm pack",
     "test": "npm run lint",
