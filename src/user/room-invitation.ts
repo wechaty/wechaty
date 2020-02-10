@@ -268,6 +268,16 @@ export class RoomInvitation extends Accessory implements Acceptable {
     return ageSeconds
   }
 
+  /**
+   * Load the room invitation info from disk
+   *
+   * @returns {RoomInvitation}
+   * @example
+   * const bot = new Wechaty()
+   * const dataFromDisk // get the room invitation info data from disk
+   * const roomInvitation = await bot.RoomInvitation.fromJsonData(dataFromDisk)
+   * await roomInvitation.accept()
+   */
   public static async fromJsonData (
     payload: string | RoomInvitationPayload,
   ): Promise<RoomInvitation> {
@@ -286,6 +296,19 @@ export class RoomInvitation extends Accessory implements Acceptable {
     return this.wechaty.RoomInvitation.load(payload.id)
   }
 
+  /**
+   * Get the room invitation info when listened on room-invite event
+   *
+   * @returns {string}
+   * @example
+   * const bot = new Wechaty()
+   * bot.on('room-invite', async roomInvitation => {
+   *  const roomInvitation = bot.RoomInvitation.load(roomInvitation.id)
+   *  const jsonData = await roomInvitation.toJsonData(roomInvitation.id)
+   *  // save the json data to disk, and we can use it by RoomInvitation.fromJsonData()
+   * }
+   * .start()
+   */
   public async toJsonData (id: string): Promise<string> {
     log.verbose('RoomInvitation', `toJsonData(${id})`)
     const payload = await this.puppet.roomInvitationPayload(id)
