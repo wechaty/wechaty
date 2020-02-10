@@ -6,7 +6,7 @@ typedoc \
   --excludeExternals \
   --excludePrivate \
   --excludeProtected \
-  --externalPattern **/lib/** \
+  --externalPattern ./**/lib/** \
   --mode modules \
   --module commonjs \
   --target ES6 \

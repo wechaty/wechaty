@@ -1,10 +1,13 @@
 language: node_js
 node_js:
   - "10"
+  - "12"
+  - "13"
 
 os:
   - linux
   - osx
+  - windows
 
 addons:
   apt:
@@ -30,7 +33,7 @@ script:
   - node --version
   - npm --version
   - echo "Testing Started ..."
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run test:mac; else npm run test; fi
+  - if [ "$TRAVIS_OS_NAME" != 'linux' ]; then npm run test:unit; else npm run test; fi
   - echo "Testing Finished"
 
 jobs:

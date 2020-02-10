@@ -4,45 +4,112 @@
 ## WECHATY CONTRIBUTORS
 ### Active Contributors
 
-1. @[lijiarui](https://github.com/lijiarui): [\#1702](https://github.com/wechaty/wechaty/pull/1702) [\#1700](https://github.com/wechaty/wechaty/pull/1700) [\#1692](https://github.com/wechaty/wechaty/pull/1692) [\#1633](https://github.com/wechaty/wechaty/pull/1633) [\#1631](https://github.com/wechaty/wechaty/pull/1631) [\#1615](https://github.com/wechaty/wechaty/pull/1615) [\#1614](https://github.com/wechaty/wechaty/pull/1614) [\#1533](https://github.com/wechaty/wechaty/pull/1533) [\#1514](https://github.com/wechaty/wechaty/pull/1514) [\#1510](https://github.com/wechaty/wechaty/pull/1510) [\#1502](https://github.com/wechaty/wechaty/pull/1502) [\#1498](https://github.com/wechaty/wechaty/pull/1498) [\#1497](https://github.com/wechaty/wechaty/pull/1497) [\#1486](https://github.com/wechaty/wechaty/pull/1486) [\#1482](https://github.com/wechaty/wechaty/pull/1482) [\#1481](https://github.com/wechaty/wechaty/pull/1481) [\#1477](https://github.com/wechaty/wechaty/pull/1477) [\#1474](https://github.com/wechaty/wechaty/pull/1474) [\#1458](https://github.com/wechaty/wechaty/pull/1458) [\#1408](https://github.com/wechaty/wechaty/pull/1408) [\#1407](https://github.com/wechaty/wechaty/pull/1407) [\#1405](https://github.com/wechaty/wechaty/pull/1405) [\#1402](https://github.com/wechaty/wechaty/pull/1402) [\#1401](https://github.com/wechaty/wechaty/pull/1401) [\#1389](https://github.com/wechaty/wechaty/pull/1389) [\#1375](https://github.com/wechaty/wechaty/pull/1375) [\#1374](https://github.com/wechaty/wechaty/pull/1374) [\#1373](https://github.com/wechaty/wechaty/pull/1373) [\#1352](https://github.com/wechaty/wechaty/pull/1352) [\#1351](https://github.com/wechaty/wechaty/pull/1351) [\#1348](https://github.com/wechaty/wechaty/pull/1348) [\#1347](https://github.com/wechaty/wechaty/pull/1347) [\#1344](https://github.com/wechaty/wechaty/pull/1344) [\#1341](https://github.com/wechaty/wechaty/pull/1341) [\#1338](https://github.com/wechaty/wechaty/pull/1338) [\#1333](https://github.com/wechaty/wechaty/pull/1333) [\#1331](https://github.com/wechaty/wechaty/pull/1331) [\#1325](https://github.com/wechaty/wechaty/pull/1325) [\#1318](https://github.com/wechaty/wechaty/pull/1318) [\#1313](https://github.com/wechaty/wechaty/pull/1313) [\#1308](https://github.com/wechaty/wechaty/pull/1308) [\#1283](https://github.com/wechaty/wechaty/pull/1283) [\#1282](https://github.com/wechaty/wechaty/pull/1282) [\#1271](https://github.com/wechaty/wechaty/pull/1271) [\#1256](https://github.com/wechaty/wechaty/pull/1256) [\#1246](https://github.com/wechaty/wechaty/pull/1246) [\#1245](https://github.com/wechaty/wechaty/pull/1245) [\#1116](https://github.com/wechaty/wechaty/pull/1116) [\#1086](https://github.com/wechaty/wechaty/pull/1086) [\#816](https://github.com/wechaty/wechaty/pull/816) [\#812](https://github.com/wechaty/wechaty/pull/812) [\#805](https://github.com/wechaty/wechaty/pull/805) [\#798](https://github.com/wechaty/wechaty/pull/798) [\#757](https://github.com/wechaty/wechaty/pull/757) [\#729](https://github.com/wechaty/wechaty/pull/729) [\#725](https://github.com/wechaty/wechaty/pull/725) [\#651](https://github.com/wechaty/wechaty/pull/651) [\#627](https://github.com/wechaty/wechaty/pull/627) [\#619](https://github.com/wechaty/wechaty/pull/619) [\#604](https://github.com/wechaty/wechaty/pull/604) [\#515](https://github.com/wechaty/wechaty/pull/515) [\#490](https://github.com/wechaty/wechaty/pull/490) [\#440](https://github.com/wechaty/wechaty/pull/440) [\#370](https://github.com/wechaty/wechaty/pull/370) [\#364](https://github.com/wechaty/wechaty/pull/364) [\#362](https://github.com/wechaty/wechaty/pull/362) [\#328](https://github.com/wechaty/wechaty/pull/328) [\#324](https://github.com/wechaty/wechaty/pull/324) [\#323](https://github.com/wechaty/wechaty/pull/323) [\#321](https://github.com/wechaty/wechaty/pull/321) [\#318](https://github.com/wechaty/wechaty/pull/318) [\#303](https://github.com/wechaty/wechaty/pull/303) [\#292](https://github.com/wechaty/wechaty/pull/292) [\#275](https://github.com/wechaty/wechaty/pull/275) [\#266](https://github.com/wechaty/wechaty/pull/266) [\#264](https://github.com/wechaty/wechaty/pull/264) [\#249](https://github.com/wechaty/wechaty/pull/249) [\#239](https://github.com/wechaty/wechaty/pull/239) [\#234](https://github.com/wechaty/wechaty/pull/234) [\#211](https://github.com/wechaty/wechaty/pull/211) [\#199](https://github.com/wechaty/wechaty/pull/199) [\#182](https://github.com/wechaty/wechaty/pull/182) [\#162](https://github.com/wechaty/wechaty/pull/162) [\#139](https://github.com/wechaty/wechaty/pull/139) [\#112](https://github.com/wechaty/wechaty/pull/112) [\#110](https://github.com/wechaty/wechaty/pull/110) [\#93](https://github.com/wechaty/wechaty/pull/93) [\#92](https://github.com/wechaty/wechaty/pull/92) [\#91](https://github.com/wechaty/wechaty/pull/91) [\#87](https://github.com/wechaty/wechaty/pull/87) [\#38](https://github.com/wechaty/wechaty/pull/38)
-1. @[huan](https://github.com/huan): [\#1782](https://github.com/wechaty/wechaty/pull/1782) [\#1597](https://github.com/wechaty/wechaty/pull/1597) [\#1160](https://github.com/wechaty/wechaty/pull/1160) [\#1274](https://github.com/wechaty/wechaty/pull/1274) [\#1273](https://github.com/wechaty/wechaty/pull/1273) [\#1260](https://github.com/wechaty/wechaty/pull/1260) [\#1232](https://github.com/wechaty/wechaty/pull/1232) [\#1231](https://github.com/wechaty/wechaty/pull/1231) [\#1190](https://github.com/wechaty/wechaty/pull/1190) [\#1159](https://github.com/wechaty/wechaty/pull/1159) [\#1143](https://github.com/wechaty/wechaty/pull/1143) [\#1131](https://github.com/wechaty/wechaty/pull/1131) [\#1083](https://github.com/wechaty/wechaty/pull/1083) [\#1075](https://github.com/wechaty/wechaty/pull/1075) [\#1074](https://github.com/wechaty/wechaty/pull/1074) [\#1073](https://github.com/wechaty/wechaty/pull/1073) [\#1072](https://github.com/wechaty/wechaty/pull/1072) [\#1071](https://github.com/wechaty/wechaty/pull/1071) [\#860](https://github.com/wechaty/wechaty/pull/860) [\#854](https://github.com/wechaty/wechaty/pull/854) [\#841](https://github.com/wechaty/wechaty/pull/841) [\#831](https://github.com/wechaty/wechaty/pull/831) [\#810](https://github.com/wechaty/wechaty/pull/810) [\#644](https://github.com/wechaty/wechaty/pull/644) [\#643](https://github.com/wechaty/wechaty/pull/643) [\#608](https://github.com/wechaty/wechaty/pull/608) [\#569](https://github.com/wechaty/wechaty/pull/569) [\#560](https://github.com/wechaty/wechaty/pull/560) [\#542](https://github.com/wechaty/wechaty/pull/542) [\#496](https://github.com/wechaty/wechaty/pull/496) [\#495](https://github.com/wechaty/wechaty/pull/495) [\#469](https://github.com/wechaty/wechaty/pull/469) [\#462](https://github.com/wechaty/wechaty/pull/462) [\#455](https://github.com/wechaty/wechaty/pull/455) [\#449](https://github.com/wechaty/wechaty/pull/449) [\#396](https://github.com/wechaty/wechaty/pull/396) [\#351](https://github.com/wechaty/wechaty/pull/351) [\#317](https://github.com/wechaty/wechaty/pull/317) [\#316](https://github.com/wechaty/wechaty/pull/316) [\#315](https://github.com/wechaty/wechaty/pull/315) [\#314](https://github.com/wechaty/wechaty/pull/314) [\#313](https://github.com/wechaty/wechaty/pull/313) [\#312](https://github.com/wechaty/wechaty/pull/312) [\#311](https://github.com/wechaty/wechaty/pull/311) [\#168](https://github.com/wechaty/wechaty/pull/168) [\#158](https://github.com/wechaty/wechaty/pull/158) [\#149](https://github.com/wechaty/wechaty/pull/149) [\#146](https://github.com/wechaty/wechaty/pull/146) [\#143](https://github.com/wechaty/wechaty/pull/143) [\#142](https://github.com/wechaty/wechaty/pull/142) [\#141](https://github.com/wechaty/wechaty/pull/141) [\#25](https://github.com/wechaty/wechaty/pull/25)
-1. @[windmemory](https://github.com/windmemory): [\#1832](https://github.com/wechaty/wechaty/pull/1832) [\#1770](https://github.com/wechaty/wechaty/pull/1770) [\#1735](https://github.com/wechaty/wechaty/pull/1735) [\#1729](https://github.com/wechaty/wechaty/pull/1729) [\#1662](https://github.com/wechaty/wechaty/pull/1662) [\#1660](https://github.com/wechaty/wechaty/pull/1660) [\#1643](https://github.com/wechaty/wechaty/pull/1643) [\#1630](https://github.com/wechaty/wechaty/pull/1630) [\#1577](https://github.com/wechaty/wechaty/pull/1577) [\#1571](https://github.com/wechaty/wechaty/pull/1571) [\#1557](https://github.com/wechaty/wechaty/pull/1557) [\#1550](https://github.com/wechaty/wechaty/pull/1550) [\#1538](https://github.com/wechaty/wechaty/pull/1538) [\#1526](https://github.com/wechaty/wechaty/pull/1526) [\#1503](https://github.com/wechaty/wechaty/pull/1503) [\#1457](https://github.com/wechaty/wechaty/pull/1457) [\#1384](https://github.com/wechaty/wechaty/pull/1384)
-1. @[mukaiu](https://github.com/mukaiu): [\#1089](https://github.com/wechaty/wechaty/pull/1089) [\#962](https://github.com/wechaty/wechaty/pull/962) [\#337](https://github.com/wechaty/wechaty/pull/337) [\#470](https://github.com/wechaty/wechaty/pull/470) [\#438](https://github.com/wechaty/wechaty/pull/438) [\#421](https://github.com/wechaty/wechaty/pull/421) [\#420](https://github.com/wechaty/wechaty/pull/420) [\#415](https://github.com/wechaty/wechaty/pull/415) [\#376](https://github.com/wechaty/wechaty/pull/376)
-1. @[xinbenlv](https://github.com/xinbenlv): [\#1814](https://github.com/wechaty/wechaty/pull/1814) [\#1017](https://github.com/wechaty/wechaty/pull/1017) [\#935](https://github.com/wechaty/wechaty/pull/935) [\#388](https://github.com/wechaty/wechaty/pull/388) [\#361](https://github.com/wechaty/wechaty/pull/361) [\#280](https://github.com/wechaty/wechaty/pull/280)
+1. @[lijiarui](https://github.com/lijiarui): [\#1876](https://github.com/wechaty/wechaty/pull/1876) [\#1875](https://github.com/wechaty/wechaty/pull/1875) [\#1859](https://github.com/wechaty/wechaty/pull/1859) [\#1702](https://github.com/wechaty/wechaty/pull/1702) [\#1700](https://github.com/wechaty/wechaty/pull/1700) [\#1692](https://github.com/wechaty/wechaty/pull/1692) [\#1633](https://github.com/wechaty/wechaty/pull/1633) [\#1631](https://github.com/wechaty/wechaty/pull/1631) [\#1615](https://github.com/wechaty/wechaty/pull/1615) [\#1614](https://github.com/wechaty/wechaty/pull/1614) [\#1533](https://github.com/wechaty/wechaty/pull/1533) [\#1514](https://github.com/wechaty/wechaty/pull/1514) [\#1510](https://github.com/wechaty/wechaty/pull/1510) [\#1502](https://github.com/wechaty/wechaty/pull/1502) [\#1498](https://github.com/wechaty/wechaty/pull/1498) [\#1497](https://github.com/wechaty/wechaty/pull/1497) [\#1486](https://github.com/wechaty/wechaty/pull/1486) [\#1482](https://github.com/wechaty/wechaty/pull/1482) [\#1481](https://github.com/wechaty/wechaty/pull/1481) [\#1477](https://github.com/wechaty/wechaty/pull/1477) [\#1408](https://github.com/wechaty/wechaty/pull/1408) [\#1407](https://github.com/wechaty/wechaty/pull/1407) [\#1405](https://github.com/wechaty/wechaty/pull/1405) [\#1402](https://github.com/wechaty/wechaty/pull/1402) [\#1375](https://github.com/wechaty/wechaty/pull/1375) [\#1374](https://github.com/wechaty/wechaty/pull/1374) [\#1373](https://github.com/wechaty/wechaty/pull/1373) [\#1352](https://github.com/wechaty/wechaty/pull/1352) [\#1351](https://github.com/wechaty/wechaty/pull/1351) [\#1348](https://github.com/wechaty/wechaty/pull/1348) [\#1347](https://github.com/wechaty/wechaty/pull/1347) [\#1344](https://github.com/wechaty/wechaty/pull/1344) [\#1341](https://github.com/wechaty/wechaty/pull/1341) [\#1338](https://github.com/wechaty/wechaty/pull/1338) [\#1333](https://github.com/wechaty/wechaty/pull/1333) [\#1331](https://github.com/wechaty/wechaty/pull/1331) [\#1325](https://github.com/wechaty/wechaty/pull/1325) [\#1116](https://github.com/wechaty/wechaty/pull/1116) [\#1086](https://github.com/wechaty/wechaty/pull/1086) [\#816](https://github.com/wechaty/wechaty/pull/816) [\#812](https://github.com/wechaty/wechaty/pull/812) [\#805](https://github.com/wechaty/wechaty/pull/805) [\#798](https://github.com/wechaty/wechaty/pull/798) [\#757](https://github.com/wechaty/wechaty/pull/757) [\#725](https://github.com/wechaty/wechaty/pull/725) [\#440](https://github.com/wechaty/wechaty/pull/440) [\#370](https://github.com/wechaty/wechaty/pull/370) [\#364](https://github.com/wechaty/wechaty/pull/364) [\#362](https://github.com/wechaty/wechaty/pull/362) [\#328](https://github.com/wechaty/wechaty/pull/328) [\#324](https://github.com/wechaty/wechaty/pull/324) [\#323](https://github.com/wechaty/wechaty/pull/323) [\#321](https://github.com/wechaty/wechaty/pull/321) [\#318](https://github.com/wechaty/wechaty/pull/318) [\#303](https://github.com/wechaty/wechaty/pull/303) [\#292](https://github.com/wechaty/wechaty/pull/292) [\#139](https://github.com/wechaty/wechaty/pull/139) [\#112](https://github.com/wechaty/wechaty/pull/112) [\#110](https://github.com/wechaty/wechaty/pull/110) [\#38](https://github.com/wechaty/wechaty/pull/38)
+1. @[huan](https://github.com/huan): [\#1888](https://github.com/wechaty/wechaty/pull/1888) [\#1870](https://github.com/wechaty/wechaty/pull/1870) [\#1782](https://github.com/wechaty/wechaty/pull/1782) [\#1597](https://github.com/wechaty/wechaty/pull/1597) [\#1143](https://github.com/wechaty/wechaty/pull/1143) [\#1131](https://github.com/wechaty/wechaty/pull/1131) [\#1083](https://github.com/wechaty/wechaty/pull/1083) [\#1075](https://github.com/wechaty/wechaty/pull/1075) [\#1074](https://github.com/wechaty/wechaty/pull/1074) [\#1073](https://github.com/wechaty/wechaty/pull/1073) [\#1072](https://github.com/wechaty/wechaty/pull/1072) [\#1071](https://github.com/wechaty/wechaty/pull/1071) [\#860](https://github.com/wechaty/wechaty/pull/860) [\#854](https://github.com/wechaty/wechaty/pull/854) [\#841](https://github.com/wechaty/wechaty/pull/841) [\#831](https://github.com/wechaty/wechaty/pull/831) [\#810](https://github.com/wechaty/wechaty/pull/810) [\#469](https://github.com/wechaty/wechaty/pull/469) [\#462](https://github.com/wechaty/wechaty/pull/462) [\#455](https://github.com/wechaty/wechaty/pull/455) [\#449](https://github.com/wechaty/wechaty/pull/449) [\#396](https://github.com/wechaty/wechaty/pull/396) [\#351](https://github.com/wechaty/wechaty/pull/351) [\#317](https://github.com/wechaty/wechaty/pull/317) [\#316](https://github.com/wechaty/wechaty/pull/316) [\#315](https://github.com/wechaty/wechaty/pull/315) [\#314](https://github.com/wechaty/wechaty/pull/314) [\#313](https://github.com/wechaty/wechaty/pull/313) [\#312](https://github.com/wechaty/wechaty/pull/312) [\#311](https://github.com/wechaty/wechaty/pull/311) [\#168](https://github.com/wechaty/wechaty/pull/168) [\#158](https://github.com/wechaty/wechaty/pull/158) [\#149](https://github.com/wechaty/wechaty/pull/149) [\#146](https://github.com/wechaty/wechaty/pull/146) [\#143](https://github.com/wechaty/wechaty/pull/143) [\#142](https://github.com/wechaty/wechaty/pull/142) [\#141](https://github.com/wechaty/wechaty/pull/141) [\#25](https://github.com/wechaty/wechaty/pull/25)
+1. @[windmemory](https://github.com/windmemory): [\#1832](https://github.com/wechaty/wechaty/pull/1832) [\#1770](https://github.com/wechaty/wechaty/pull/1770) [\#1735](https://github.com/wechaty/wechaty/pull/1735) [\#1729](https://github.com/wechaty/wechaty/pull/1729) [\#1662](https://github.com/wechaty/wechaty/pull/1662) [\#1660](https://github.com/wechaty/wechaty/pull/1660) [\#1643](https://github.com/wechaty/wechaty/pull/1643) [\#1630](https://github.com/wechaty/wechaty/pull/1630) [\#1577](https://github.com/wechaty/wechaty/pull/1577) [\#1571](https://github.com/wechaty/wechaty/pull/1571) [\#1557](https://github.com/wechaty/wechaty/pull/1557) [\#1550](https://github.com/wechaty/wechaty/pull/1550) [\#1538](https://github.com/wechaty/wechaty/pull/1538) [\#1526](https://github.com/wechaty/wechaty/pull/1526) [\#1503](https://github.com/wechaty/wechaty/pull/1503) [\#1457](https://github.com/wechaty/wechaty/pull/1457)
+1. @[mukaiu](https://github.com/mukaiu): [\#1089](https://github.com/wechaty/wechaty/pull/1089) [\#337](https://github.com/wechaty/wechaty/pull/337) [\#470](https://github.com/wechaty/wechaty/pull/470) [\#438](https://github.com/wechaty/wechaty/pull/438) [\#421](https://github.com/wechaty/wechaty/pull/421) [\#420](https://github.com/wechaty/wechaty/pull/420) [\#415](https://github.com/wechaty/wechaty/pull/415) [\#376](https://github.com/wechaty/wechaty/pull/376)
+1. @[su-chang](https://github.com/su-chang): [\#1900](https://github.com/wechaty/wechaty/pull/1900) [\#1895](https://github.com/wechaty/wechaty/pull/1895) [\#1883](https://github.com/wechaty/wechaty/pull/1883) [\#1868](https://github.com/wechaty/wechaty/pull/1868) [\#1866](https://github.com/wechaty/wechaty/pull/1866) [\#1864](https://github.com/wechaty/wechaty/pull/1864) [\#1861](https://github.com/wechaty/wechaty/pull/1861) [\#1833](https://github.com/wechaty/wechaty/pull/1833)
 1. @[JasLin](https://github.com/JasLin): [\#404](https://github.com/wechaty/wechaty/pull/404) [\#358](https://github.com/wechaty/wechaty/pull/358) [\#105](https://github.com/wechaty/wechaty/pull/105) [\#100](https://github.com/wechaty/wechaty/pull/100) [\#78](https://github.com/wechaty/wechaty/pull/78) [\#76](https://github.com/wechaty/wechaty/pull/76)
-1. @[binsee](https://github.com/binsee): [\#844](https://github.com/wechaty/wechaty/pull/844) [\#811](https://github.com/wechaty/wechaty/pull/811) [\#771](https://github.com/wechaty/wechaty/pull/771) [\#744](https://github.com/wechaty/wechaty/pull/744) [\#727](https://github.com/wechaty/wechaty/pull/727) [\#714](https://github.com/wechaty/wechaty/pull/714)
+1. @[xinbenlv](https://github.com/xinbenlv): [\#1814](https://github.com/wechaty/wechaty/pull/1814) [\#1017](https://github.com/wechaty/wechaty/pull/1017) [\#935](https://github.com/wechaty/wechaty/pull/935) [\#388](https://github.com/wechaty/wechaty/pull/388) [\#361](https://github.com/wechaty/wechaty/pull/361)
+1. @[binsee](https://github.com/binsee): [\#844](https://github.com/wechaty/wechaty/pull/844) [\#811](https://github.com/wechaty/wechaty/pull/811) [\#771](https://github.com/wechaty/wechaty/pull/771) [\#744](https://github.com/wechaty/wechaty/pull/744) [\#727](https://github.com/wechaty/wechaty/pull/727)
 1. @[linyimin-bupt](https://github.com/linyimin-bupt): [\#1757](https://github.com/wechaty/wechaty/pull/1757) [\#1752](https://github.com/wechaty/wechaty/pull/1752) [\#1750](https://github.com/wechaty/wechaty/pull/1750) [\#1749](https://github.com/wechaty/wechaty/pull/1749)
-1. @[Gcaufy](https://github.com/Gcaufy): [\#1625](https://github.com/wechaty/wechaty/pull/1625) [\#1620](https://github.com/wechaty/wechaty/pull/1620) [\#310](https://github.com/wechaty/wechaty/pull/310)
-1. @[kis87988](https://github.com/kis87988): [\#1623](https://github.com/wechaty/wechaty/pull/1623) [\#1607](https://github.com/wechaty/wechaty/pull/1607) [\#1570](https://github.com/wechaty/wechaty/pull/1570)
+1. @[kis87988](https://github.com/kis87988): [\#1908](https://github.com/wechaty/wechaty/pull/1908) [\#1623](https://github.com/wechaty/wechaty/pull/1623) [\#1607](https://github.com/wechaty/wechaty/pull/1607) [\#1570](https://github.com/wechaty/wechaty/pull/1570)
 1. @[TbhT](https://github.com/TbhT): [\#1713](https://github.com/wechaty/wechaty/pull/1713) [\#1583](https://github.com/wechaty/wechaty/pull/1583) [\#1582](https://github.com/wechaty/wechaty/pull/1582)
 1. @[suntong](https://github.com/suntong): [\#1677](https://github.com/wechaty/wechaty/pull/1677) [\#1129](https://github.com/wechaty/wechaty/pull/1129) [\#1123](https://github.com/wechaty/wechaty/pull/1123)
+1. @[Gcaufy](https://github.com/Gcaufy): [\#1625](https://github.com/wechaty/wechaty/pull/1625) [\#1620](https://github.com/wechaty/wechaty/pull/1620) [\#310](https://github.com/wechaty/wechaty/pull/310)
 1. @[LinuxSuRen](https://github.com/LinuxSuRen): [\#1838](https://github.com/wechaty/wechaty/pull/1838) [\#1836](https://github.com/wechaty/wechaty/pull/1836)
-1. @[hczhcz](https://github.com/hczhcz): [\#684](https://github.com/wechaty/wechaty/pull/684) [\#640](https://github.com/wechaty/wechaty/pull/640)
+1. @[SilentQianyi](https://github.com/SilentQianyi): [\#1891](https://github.com/wechaty/wechaty/pull/1891) [\#1886](https://github.com/wechaty/wechaty/pull/1886)
 
 ### Contributors
 
-1. @[htoooth](https://github.com/htoooth): [\#1014](https://github.com/wechaty/wechaty/pull/1014)
-1. @[monkeywithacupcake](https://github.com/monkeywithacupcake): [\#1759](https://github.com/wechaty/wechaty/pull/1759)
-1. @[bitwater](https://github.com/bitwater): [\#1532](https://github.com/wechaty/wechaty/pull/1532)
-1. @[lhr0909](https://github.com/lhr0909): [\#1666](https://github.com/wechaty/wechaty/pull/1666)
 1. @[IdiosApps](https://github.com/IdiosApps): [\#1087](https://github.com/wechaty/wechaty/pull/1087)
-1. @[hiwanz](https://github.com/hiwanz): [\#1036](https://github.com/wechaty/wechaty/pull/1036)
+1. @[rikakomoe](https://github.com/rikakomoe): [\#1904](https://github.com/wechaty/wechaty/pull/1904)
+1. @[lhr0909](https://github.com/lhr0909): [\#1666](https://github.com/wechaty/wechaty/pull/1666)
 1. @[jzj1993](https://github.com/jzj1993): [\#1661](https://github.com/wechaty/wechaty/pull/1661)
-1. @[zhenyong](https://github.com/zhenyong): [\#770](https://github.com/wechaty/wechaty/pull/770)
-1. @[coderwhocode](https://github.com/coderwhocode): [\#1819](https://github.com/wechaty/wechaty/pull/1819)
-1. @[gengchen528](https://github.com/gengchen528): [\#1818](https://github.com/wechaty/wechaty/pull/1818)
-1. @[lpmi-13](https://github.com/lpmi-13): [\#681](https://github.com/wechaty/wechaty/pull/681)
-1. @[TingYinHelen](https://github.com/TingYinHelen): [\#605](https://github.com/wechaty/wechaty/pull/605)
-1. @[imerse](https://github.com/imerse): [\#578](https://github.com/wechaty/wechaty/pull/578)
-1. @[FlyingBlazer](https://github.com/FlyingBlazer): [\#531](https://github.com/wechaty/wechaty/pull/531)
-1. @[xjchengo](https://github.com/xjchengo): [\#416](https://github.com/wechaty/wechaty/pull/416)
 1. @[zhaoic](https://github.com/zhaoic): [\#1822](https://github.com/wechaty/wechaty/pull/1822)
+1. @[bitwater](https://github.com/bitwater): [\#1532](https://github.com/wechaty/wechaty/pull/1532)
+1. @[monkeywithacupcake](https://github.com/monkeywithacupcake): [\#1759](https://github.com/wechaty/wechaty/pull/1759)
+1. @[gengchen528](https://github.com/gengchen528): [\#1818](https://github.com/wechaty/wechaty/pull/1818)
+1. @[hiwanz](https://github.com/hiwanz): [\#1036](https://github.com/wechaty/wechaty/pull/1036)
+1. @[htoooth](https://github.com/htoooth): [\#1014](https://github.com/wechaty/wechaty/pull/1014)
+1. @[zhenyong](https://github.com/zhenyong): [\#770](https://github.com/wechaty/wechaty/pull/770)
+1. @[LanceZhu](https://github.com/LanceZhu): [\#1854](https://github.com/wechaty/wechaty/pull/1854)
+1. @[xjchengo](https://github.com/xjchengo): [\#416](https://github.com/wechaty/wechaty/pull/416)
+1. @[coderwhocode](https://github.com/coderwhocode): [\#1819](https://github.com/wechaty/wechaty/pull/1819)
 1. @[ax4](https://github.com/ax4): [\#380](https://github.com/wechaty/wechaty/pull/380)
 1. @[cherry-geqi](https://github.com/cherry-geqi): [\#97](https://github.com/wechaty/wechaty/pull/97)
 
-# Change Log
+# Changelog
+
+## [v0.30](https://github.com/wechaty/wechaty/tree/v0.30) (2020-02-08)
+
+[Full Changelog](https://github.com/wechaty/wechaty/compare/v0.28...v0.30)
+
+**Implemented enhancements:**
+
+- Support room.say`hi ${contact} ${num++}` [\#1899](https://github.com/wechaty/wechaty/issues/1899)
+- Support new event named "message" on Room [\#1897](https://github.com/wechaty/wechaty/issues/1897)
+- Support search new friends by phone number or user name. [\#1892](https://github.com/wechaty/wechaty/issues/1892)
+- {Room,Contact}.qrcode\(\) should return QR Code Value instead of Image [\#1889](https://github.com/wechaty/wechaty/issues/1889)
+- Implmented UrlLink.create\(url\) with Open Graph support [\#1887](https://github.com/wechaty/wechaty/issues/1887)
+- 主动撤回消息 [\#1885](https://github.com/wechaty/wechaty/issues/1885)
+- Implement Label in Wechaty [\#1856](https://github.com/wechaty/wechaty/issues/1856)
+- Would like to have the timestamp on the room/friendship events [\#1829](https://github.com/wechaty/wechaty/issues/1829)
+- Would like to have receiver, serialize and deserialize functions on RoomInvitation [\#1823](https://github.com/wechaty/wechaty/issues/1823)
+- Wechaty v0.26 iosBird Testing, an iOS hook puppet implementation! [\#1775](https://github.com/wechaty/wechaty/issues/1775)
+- Missing example code [\#1756](https://github.com/wechaty/wechaty/issues/1756)
+- BREAKING CHANGE v0.25 Room.say\(text: string, mention: Contact\[\]\) deprecated [\#1730](https://github.com/wechaty/wechaty/issues/1730)
+- New Puppet: Ioscat \(iPhone Wechat App Hook\) [\#1528](https://github.com/wechaty/wechaty/issues/1528)
+
+**Fixed bugs:**
+
+- bot.logonoff\(\)报错【static puppet not found for Wechaty】 [\#1878](https://github.com/wechaty/wechaty/issues/1878)
+- JSDoc publishing problem: missed the Room class [\#1872](https://github.com/wechaty/wechaty/issues/1872)
+- Wechaty can not get room info when the bot has been removed from one room. [\#1834](https://github.com/wechaty/wechaty/issues/1834)
+- bot.Contact.find\(\) error message misleading [\#1812](https://github.com/wechaty/wechaty/issues/1812)
+- 机器人会隔一段时间自动退出 [\#1810](https://github.com/wechaty/wechaty/issues/1810)
+
+**Closed issues:**
+
+- Use docker to run, QR code address prompt "unrecognized QR code" [\#1905](https://github.com/wechaty/wechaty/issues/1905)
+- room.announce\(\)中当参数为空字符串时, 调用获取群公告而不是设置群公告为空 [\#1902](https://github.com/wechaty/wechaty/issues/1902)
+- 启动官方学习项目报错 [\#1898](https://github.com/wechaty/wechaty/issues/1898)
+- 延期通过好友 [\#1890](https://github.com/wechaty/wechaty/issues/1890)
+- I want wechaty puppet padpro token to create a wechat bot [\#1882](https://github.com/wechaty/wechaty/issues/1882)
+- msg.mentionSelf\(\)方法不对，始终返回false [\#1877](https://github.com/wechaty/wechaty/issues/1877)
+- 需要取到Contactid或者微信号 [\#1873](https://github.com/wechaty/wechaty/issues/1873)
+- Function message `toContact\(\)` should to be implemented. [\#1855](https://github.com/wechaty/wechaty/issues/1855)
+- install error [\#1853](https://github.com/wechaty/wechaty/issues/1853)
+- wechaty-puppet can not install in electron [\#1851](https://github.com/wechaty/wechaty/issues/1851)
+- wechaty-puppet-macpro alpha test [\#1846](https://github.com/wechaty/wechaty/issues/1846)
+- Action required: Greenkeeper could not be activated 🚨 [\#1781](https://github.com/wechaty/wechaty/issues/1781)
+- 登陆二维码无法识别 [\#1753](https://github.com/wechaty/wechaty/issues/1753)
+- 经常报以下warning [\#1634](https://github.com/wechaty/wechaty/issues/1634)
+- Doesn't work with UK Android account/device [\#1556](https://github.com/wechaty/wechaty/issues/1556)
+
+**Merged pull requests:**
+
+- fix: wechaty-puppet-dll temporary unavailable [\#1908](https://github.com/wechaty/wechaty/pull/1908) ([kis87988](https://github.com/kis87988))
+- docs: improve ding-dong-bot example [\#1904](https://github.com/wechaty/wechaty/pull/1904) ([rikakomoe](https://github.com/rikakomoe))
+- Add reason for logout event [\#1900](https://github.com/wechaty/wechaty/pull/1900) ([su-chang](https://github.com/su-chang))
+- Friend search [\#1895](https://github.com/wechaty/wechaty/pull/1895) ([su-chang](https://github.com/su-chang))
+- Delay friendship [\#1891](https://github.com/wechaty/wechaty/pull/1891) ([SilentQianyi](https://github.com/SilentQianyi))
+- Create url link [\#1888](https://github.com/wechaty/wechaty/pull/1888) ([huan](https://github.com/huan))
+- Recall msg [\#1886](https://github.com/wechaty/wechaty/pull/1886) ([SilentQianyi](https://github.com/SilentQianyi))
+- Change Mini Program payload in wechaty [\#1883](https://github.com/wechaty/wechaty/pull/1883) ([su-chang](https://github.com/su-chang))
+- Update README.md [\#1876](https://github.com/wechaty/wechaty/pull/1876) ([lijiarui](https://github.com/lijiarui))
+- add kaiyuanshe bot [\#1875](https://github.com/wechaty/wechaty/pull/1875) ([lijiarui](https://github.com/lijiarui))
+- chore\(package\): update @types/node to version 12.12.3 [\#1870](https://github.com/wechaty/wechaty/pull/1870) ([huan](https://github.com/huan))
+- Implement toContact\(\) method [\#1868](https://github.com/wechaty/wechaty/pull/1868) ([su-chang](https://github.com/su-chang))
+- feat: change say\(\) method response type from void to Message [\#1866](https://github.com/wechaty/wechaty/pull/1866) ([su-chang](https://github.com/su-chang))
+- Implement Label related methods [\#1864](https://github.com/wechaty/wechaty/pull/1864) ([su-chang](https://github.com/su-chang))
+- Update contact.ts [\#1861](https://github.com/wechaty/wechaty/pull/1861) ([su-chang](https://github.com/su-chang))
+- fix opencollective Sponsors style [\#1859](https://github.com/wechaty/wechaty/pull/1859) ([lijiarui](https://github.com/lijiarui))
+- fix typo [\#1854](https://github.com/wechaty/wechaty/pull/1854) ([LanceZhu](https://github.com/LanceZhu))
+- Update wechaty.ts [\#1833](https://github.com/wechaty/wechaty/pull/1833) ([su-chang](https://github.com/su-chang))
 
 ## [v0.28](https://github.com/wechaty/wechaty/tree/v0.28) (2019-09-02)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.26.0...v0.28)
 
 **Implemented enhancements:**
@@ -87,6 +154,7 @@
 - chore\(package\): update dependencies [\#1782](https://github.com/wechaty/wechaty/pull/1782) ([huan](https://github.com/huan))
 
 ## [v0.26.0](https://github.com/wechaty/wechaty/tree/v0.26.0) (2019-05-11)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.22.4...v0.26.0)
 
 **Implemented enhancements:**
@@ -128,7 +196,6 @@
 - npm start 到 puppeteer@1.12.2  报错。。。 [\#1708](https://github.com/wechaty/wechaty/issues/1708)
 - 这是什么 [\#1703](https://github.com/wechaty/wechaty/issues/1703)
 - 使用自动拉人入群功能 [\#1697](https://github.com/wechaty/wechaty/issues/1697)
-- electron中调试模式下可以正常启动，打包后无法使用 [\#1694](https://github.com/wechaty/wechaty/issues/1694)
 - docker compose [\#1688](https://github.com/wechaty/wechaty/issues/1688)
 - Errors occur sometimes when bot running [\#1675](https://github.com/wechaty/wechaty/issues/1675)
 - msg.say 重复执行 [\#1674](https://github.com/wechaty/wechaty/issues/1674)
@@ -187,13 +254,14 @@
 - docs: Fixed FriendshipType enum typo [\#1620](https://github.com/wechaty/wechaty/pull/1620) ([Gcaufy](https://github.com/Gcaufy))
 - README typo [\#1615](https://github.com/wechaty/wechaty/pull/1615) ([lijiarui](https://github.com/lijiarui))
 - Contribute [\#1614](https://github.com/wechaty/wechaty/pull/1614) ([lijiarui](https://github.com/lijiarui))
-- fix: room mention contact should using roomAlias https://github.com/wechaty/wechaty/issues/1604 [\#1607](https://github.com/wechaty/wechaty/pull/1607) ([kis87988](https://github.com/kis87988))
+- fix: room mention contact should using roomAlias https://github.com/Chatie/wechaty/issues/1604 [\#1607](https://github.com/wechaty/wechaty/pull/1607) ([kis87988](https://github.com/kis87988))
 - Greenkeeper/monorepo.babel7 7.0.1 [\#1597](https://github.com/wechaty/wechaty/pull/1597) ([huan](https://github.com/huan))
 - add the methods' doc link [\#1583](https://github.com/wechaty/wechaty/pull/1583) ([TbhT](https://github.com/TbhT))
 - update readme doc [\#1582](https://github.com/wechaty/wechaty/pull/1582) ([TbhT](https://github.com/TbhT))
 - sync contactSelf after updating bot info [\#1577](https://github.com/wechaty/wechaty/pull/1577) ([windmemory](https://github.com/windmemory))
 
 ## [v0.22.4](https://github.com/wechaty/wechaty/tree/v0.22.4) (2018-08-29)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.20.0...v0.22.4)
 
 **Implemented enhancements:**
@@ -210,7 +278,6 @@
 - The latest docker get `ContactGetter` error when get wechat OA message [\#974](https://github.com/wechaty/wechaty/issues/974)
 - "Chromium revision is not downloaded." [\#954](https://github.com/wechaty/wechaty/issues/954)
 - Room.memberAll\(FilterString\) if FilterString are all with emojis [\#704](https://github.com/wechaty/wechaty/issues/704)
-- contact.stranger\\(\\) still returns true after adding friends between bot and user [\#293](https://github.com/wechaty/wechaty/issues/293)
 - `Room.find\(\)` can find the room when the bot is removed from the room [\#254](https://github.com/wechaty/wechaty/issues/254)
 
 **Closed issues:**
@@ -225,6 +292,7 @@
 - Edit room doc [\#1570](https://github.com/wechaty/wechaty/pull/1570) ([kis87988](https://github.com/kis87988))
 
 ## [v0.20.0](https://github.com/wechaty/wechaty/tree/v0.20.0) (2018-08-18)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.18.0...v0.20.0)
 
 **Implemented enhancements:**
@@ -308,10 +376,9 @@
 - move wechaty-getting-started from lijiarui to chatie [\#1482](https://github.com/wechaty/wechaty/pull/1482) ([lijiarui](https://github.com/lijiarui))
 - file\(\) desperate, use toFileBox instead [\#1481](https://github.com/wechaty/wechaty/pull/1481) ([lijiarui](https://github.com/lijiarui))
 - fix \#1475 bug [\#1477](https://github.com/wechaty/wechaty/pull/1477) ([lijiarui](https://github.com/lijiarui))
-- change contact type to contactSelf type for bot [\#1474](https://github.com/wechaty/wechaty/pull/1474) ([lijiarui](https://github.com/lijiarui))
-- Add doc [\#1458](https://github.com/wechaty/wechaty/pull/1458) ([lijiarui](https://github.com/lijiarui))
 
 ## [v0.18.0](https://github.com/wechaty/wechaty/tree/v0.18.0) (2018-07-11)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.16.0...v0.18.0)
 
 **Implemented enhancements:**
@@ -359,11 +426,9 @@
 - add a more suitable time to sync Contact and Room [\#1407](https://github.com/wechaty/wechaty/pull/1407) ([lijiarui](https://github.com/lijiarui))
 - mock self bot when WXGetContact\(\) return null user\_name [\#1405](https://github.com/wechaty/wechaty/pull/1405) ([lijiarui](https://github.com/lijiarui))
 - sync contact and room per hour [\#1402](https://github.com/wechaty/wechaty/pull/1402) ([lijiarui](https://github.com/lijiarui))
-- add `friend` in ContactPayload [\#1401](https://github.com/wechaty/wechaty/pull/1401) ([lijiarui](https://github.com/lijiarui))
-- fix Contact.findaAll\(\) cannot get contact when user\_name return undifined [\#1389](https://github.com/wechaty/wechaty/pull/1389) ([lijiarui](https://github.com/lijiarui))
-- fix bug that after a room add, the room id get removed from cache [\#1384](https://github.com/wechaty/wechaty/pull/1384) ([windmemory](https://github.com/windmemory))
 
 ## [v0.16.0](https://github.com/wechaty/wechaty/tree/v0.16.0) (2018-06-21)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.14.0...v0.16.0)
 
 **Implemented enhancements:**
@@ -402,7 +467,6 @@
 - Should throw Exception when there have API Error. [\#683](https://github.com/wechaty/wechaty/issues/683)
 - delay time for all function\(method\) that calls Tencent API [\#596](https://github.com/wechaty/wechaty/issues/596)
 - \[todo\] allow Wechaty to be multi-instance [\#518](https://github.com/wechaty/wechaty/issues/518)
-- Decouple: Make `Contact`, `Room`, `Message`, and `FriendRequest` class Abstract. [\#1160](https://github.com/wechaty/wechaty/pull/1160) ([huan](https://github.com/huan))
 
 **Fixed bugs:**
 
@@ -431,8 +495,6 @@
 - Puppeteer Navigation Timeout Exceeded: 30000ms exceeded [\#870](https://github.com/wechaty/wechaty/issues/870)
 - SyntaxError: Unexpected end of JSON input [\#846](https://github.com/wechaty/wechaty/issues/846)
 - function `Message.mention\(\)` should recognize both magic code and blank [\#813](https://github.com/wechaty/wechaty/issues/813)
-- BREAKING CHANGE: first arg of `room-leave` event licener changed from `Contact` to `Contact\\[\\]` [\#723](https://github.com/wechaty/wechaty/issues/723)
-- Should throw Exception when there have API Error. [\#683](https://github.com/wechaty/wechaty/issues/683)
 
 **Closed issues:**
 
@@ -481,24 +543,9 @@
 - save room join sys message to cache [\#1333](https://github.com/wechaty/wechaty/pull/1333) ([lijiarui](https://github.com/lijiarui))
 - add function in self-testing-bot.ts [\#1331](https://github.com/wechaty/wechaty/pull/1331) ([lijiarui](https://github.com/lijiarui))
 - Room bot example [\#1325](https://github.com/wechaty/wechaty/pull/1325) ([lijiarui](https://github.com/lijiarui))
-- add room join event unit test [\#1318](https://github.com/wechaty/wechaty/pull/1318) ([lijiarui](https://github.com/lijiarui))
-- add function friendRequestSend  [\#1313](https://github.com/wechaty/wechaty/pull/1313) ([lijiarui](https://github.com/lijiarui))
-- add room event [\#1308](https://github.com/wechaty/wechaty/pull/1308) ([lijiarui](https://github.com/lijiarui))
-- add raw dirty rpc function [\#1283](https://github.com/wechaty/wechaty/pull/1283) ([lijiarui](https://github.com/lijiarui))
-- Puppet 0602 [\#1282](https://github.com/wechaty/wechaty/pull/1282) ([lijiarui](https://github.com/lijiarui))
-- chore\(package\): update @types/node to version 10.3.0 [\#1274](https://github.com/wechaty/wechaty/pull/1274) ([huan](https://github.com/huan))
-- fix\(package\): update memory-card to version 0.2.0 [\#1273](https://github.com/wechaty/wechaty/pull/1273) ([huan](https://github.com/huan))
-- Puppet 0602 [\#1271](https://github.com/wechaty/wechaty/pull/1271) ([lijiarui](https://github.com/lijiarui))
-- chore\(package\): update rx-queue to version 0.4.19 [\#1260](https://github.com/wechaty/wechaty/pull/1260) ([huan](https://github.com/huan))
-- New puppet padchat [\#1256](https://github.com/wechaty/wechaty/pull/1256) ([lijiarui](https://github.com/lijiarui))
-- add more functions [\#1246](https://github.com/wechaty/wechaty/pull/1246) ([lijiarui](https://github.com/lijiarui))
-- Puppet padchat [\#1245](https://github.com/wechaty/wechaty/pull/1245) ([lijiarui](https://github.com/lijiarui))
-- chore\(package\): update ts-node to version 6.0.5 [\#1232](https://github.com/wechaty/wechaty/pull/1232) ([huan](https://github.com/huan))
-- Update to node 10 in .travis.yml [\#1231](https://github.com/wechaty/wechaty/pull/1231) ([huan](https://github.com/huan))
-- fix\(package\): update rx-queue to version 0.4.4 [\#1190](https://github.com/wechaty/wechaty/pull/1190) ([huan](https://github.com/huan))
-- Multi-Instance Support [\#1159](https://github.com/wechaty/wechaty/pull/1159) ([huan](https://github.com/huan))
 
 ## [v0.14.0](https://github.com/wechaty/wechaty/tree/v0.14.0) (2018-04-15)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.12.0...v0.14.0)
 
 **Implemented enhancements:**
@@ -570,10 +617,10 @@
 - fail to install node dependencies [\#1036](https://github.com/wechaty/wechaty/pull/1036) ([hiwanz](https://github.com/hiwanz))
 - Change `init` to `start` in demo [\#1017](https://github.com/wechaty/wechaty/pull/1017) ([xinbenlv](https://github.com/xinbenlv))
 - Update tuling123-bot.ts [\#1014](https://github.com/wechaty/wechaty/pull/1014) ([htoooth](https://github.com/htoooth))
-- fix \#961 onbuild operation not permitted [\#962](https://github.com/wechaty/wechaty/pull/962) ([mukaiu](https://github.com/mukaiu))
 - Fix \#923 [\#935](https://github.com/wechaty/wechaty/pull/935) ([xinbenlv](https://github.com/xinbenlv))
 
 ## [v0.12.0](https://github.com/wechaty/wechaty/tree/v0.12.0) (2017-10-30)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.9.0...v0.12.0)
 
 **Implemented enhancements:**
@@ -596,7 +643,6 @@
 - ERR PuppetWebBridge init\(\) initPage\(\) onLoad\(\) exception: undefined [\#917](https://github.com/wechaty/wechaty/issues/917)
 - Sometimes Wechaty can't login \(with puppeteer\) [\#899](https://github.com/wechaty/wechaty/issues/899)
 - \[ci\] WebDriver Error: "no such session" [\#756](https://github.com/wechaty/wechaty/issues/756)
-- Click Web Wechat `Switch Account` Automatically to get qrcode immediately when bot logout [\#636](https://github.com/wechaty/wechaty/issues/636)
 - \[ci\] execute proxyWechaty\(init\) error: 503, init\(\) without a ready angular env [\#329](https://github.com/wechaty/wechaty/issues/329)
 - \[ci log\] watchdog reset after 120 seconds [\#195](https://github.com/wechaty/wechaty/issues/195)
 - Selenium WebDriver driver.getSession\(\) wait a long time [\#86](https://github.com/wechaty/wechaty/issues/86)
@@ -614,6 +660,7 @@
 - chore\(package\): update coveralls to version 3.0.0 [\#854](https://github.com/wechaty/wechaty/pull/854) ([huan](https://github.com/huan))
 
 ## [v0.9.0](https://github.com/wechaty/wechaty/tree/v0.9.0) (2017-10-04)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.8.2...v0.9.0)
 
 **Implemented enhancements:**
@@ -645,7 +692,6 @@
 - Cannot send image after restart [\#777](https://github.com/wechaty/wechaty/issues/777)
 - \[bug\]Cannot read property 'getUserName' of undefined [\#772](https://github.com/wechaty/wechaty/issues/772)
 - \[tslint\] stuck on v5.3 and can not upgrade [\#762](https://github.com/wechaty/wechaty/issues/762)
-- Cannot send pdf file using MediaMessage [\#710](https://github.com/wechaty/wechaty/issues/710)
 - CI, green keeper and package-lock under npm 5 [\#656](https://github.com/wechaty/wechaty/issues/656)
 - watchDogReset\(\) watchdog reset after 60 seconds \(phantomjs head\) [\#633](https://github.com/wechaty/wechaty/issues/633)
 - \[test\] Unit Test for `mentioned` feature does not run at all [\#623](https://github.com/wechaty/wechaty/issues/623)
@@ -662,8 +708,6 @@
 - MediaMessage\#filename\(\) should not use timestamp as part of the filename [\#465](https://github.com/wechaty/wechaty/issues/465)
 - \[ci\]   × src » message » ready\(\) contact ready for ToNickName [\#445](https://github.com/wechaty/wechaty/issues/445)
 - Build Docker image from zixia/wechaty:onbuild,/bot/node\_modules does not exist. [\#436](https://github.com/wechaty/wechaty/issues/436)
-- requesting a new QR code cost more than 2 minutes [\#434](https://github.com/wechaty/wechaty/issues/434)
-- Send\\(upload\\) an image twice will cause error. [\#422](https://github.com/wechaty/wechaty/issues/422)
 - Concat.avatar\(\)  faild ,when hostname changed from https://wx.qq.com to https://wx2.qq.com [\#418](https://github.com/wechaty/wechaty/issues/418)
 - \[test\] Unit Tests under Linux by TravisCI keep failing [\#384](https://github.com/wechaty/wechaty/issues/384)
 - `checkRoomJoin\(\)` cannot get inviteeList sometimes [\#248](https://github.com/wechaty/wechaty/issues/248)
@@ -674,7 +718,6 @@
 - WebDriverError: unknown error: r.isBrandContact is not a function [\#81](https://github.com/wechaty/wechaty/issues/81)
 - Can't get wechaty up and running using phantomjs [\#60](https://github.com/wechaty/wechaty/issues/60)
 - `accountFactory` of angularjs in wxapp work not right under Phantomjs, but it work without problem with chrome [\#28](https://github.com/wechaty/wechaty/issues/28)
-- it seems RECALLED: 10002 message dose't trigger on\\('message'\\) event [\#8](https://github.com/wechaty/wechaty/issues/8)
 - Fixed: replace `document.domain`  with `location.hostname` since front one sometimes lose subdomain name [\#770](https://github.com/wechaty/wechaty/pull/770) ([zhenyong](https://github.com/zhenyong))
 
 **Closed issues:**
@@ -727,32 +770,11 @@
 - fix\(\*\): Support for send 25Mb+ files [\#771](https://github.com/wechaty/wechaty/pull/771) ([binsee](https://github.com/binsee))
 - Readme [\#757](https://github.com/wechaty/wechaty/pull/757) ([lijiarui](https://github.com/lijiarui))
 - fix\(wechaty-bro\): resolved emit RECALLED type msg \(fix \#8\) [\#744](https://github.com/wechaty/wechaty/pull/744) ([binsee](https://github.com/binsee))
-- change juxiaomi qrcode [\#729](https://github.com/wechaty/wechaty/pull/729) ([lijiarui](https://github.com/lijiarui))
 - add: Message.forward\(\) forward message [\#727](https://github.com/wechaty/wechaty/pull/727) ([binsee](https://github.com/binsee))
 - add wechaty document [\#725](https://github.com/wechaty/wechaty/pull/725) ([lijiarui](https://github.com/lijiarui))
-- fix\(puppet-web\): send any type file. [\#714](https://github.com/wechaty/wechaty/pull/714) ([binsee](https://github.com/binsee))
-- add\(example\): add a roger bot runs on wechaty telegram bot adaptor [\#684](https://github.com/wechaty/wechaty/pull/684) ([hczhcz](https://github.com/hczhcz))
-- some typo fixes and suggested revisions [\#681](https://github.com/wechaty/wechaty/pull/681) ([lpmi-13](https://github.com/lpmi-13))
-- room-join cannot detect inviteeList when people join in the room with qrcode [\#651](https://github.com/wechaty/wechaty/pull/651) ([lijiarui](https://github.com/lijiarui))
-- Create CODE\_OF\_CONDUCT.md [\#644](https://github.com/wechaty/wechaty/pull/644) ([huan](https://github.com/huan))
-- fix\(package\): update brolog to version 1.1.23 [\#643](https://github.com/wechaty/wechaty/pull/643) ([huan](https://github.com/huan))
-- add documentation TODO entries [\#640](https://github.com/wechaty/wechaty/pull/640) ([hczhcz](https://github.com/hczhcz))
-- fix \#623 [\#627](https://github.com/wechaty/wechaty/pull/627) ([lijiarui](https://github.com/lijiarui))
-- add log detail tag [\#619](https://github.com/wechaty/wechaty/pull/619) ([lijiarui](https://github.com/lijiarui))
-- Create CODE\_OF\_CONDUCT.md [\#608](https://github.com/wechaty/wechaty/pull/608) ([huan](https://github.com/huan))
-- add the link to media message in the wiki [\#605](https://github.com/wechaty/wechaty/pull/605) ([TingYinHelen](https://github.com/TingYinHelen))
-- change outdated qrcode [\#604](https://github.com/wechaty/wechaty/pull/604) ([lijiarui](https://github.com/lijiarui))
-- add notice to readme [\#578](https://github.com/wechaty/wechaty/pull/578) ([imerse](https://github.com/imerse))
-- chore\(package\): update @types/node to version 7.0.28 [\#569](https://github.com/wechaty/wechaty/pull/569) ([huan](https://github.com/huan))
-- chore\(package\): update @types/node to version 7.0.26 [\#560](https://github.com/wechaty/wechaty/pull/560) ([huan](https://github.com/huan))
-- chore\(package\): update tslint to version 5.3.2 [\#542](https://github.com/wechaty/wechaty/pull/542) ([huan](https://github.com/huan))
-- fix \#512 [\#531](https://github.com/wechaty/wechaty/pull/531) ([FlyingBlazer](https://github.com/FlyingBlazer))
-- make dingdong reply more beautiful [\#515](https://github.com/wechaty/wechaty/pull/515) ([lijiarui](https://github.com/lijiarui))
-- chore\(package\): update @types/node to version 7.0.18 [\#496](https://github.com/wechaty/wechaty/pull/496) ([huan](https://github.com/huan))
-- fix\(package\): update brolog to version 1.1.15 [\#495](https://github.com/wechaty/wechaty/pull/495) ([huan](https://github.com/huan))
-- add contributor lockon [\#490](https://github.com/wechaty/wechaty/pull/490) ([lijiarui](https://github.com/lijiarui))
 
 ## [v0.8.2](https://github.com/wechaty/wechaty/tree/v0.8.2) (2017-05-03)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.7.0...v0.8.2)
 
 **Implemented enhancements:**
@@ -850,20 +872,9 @@
 - added hot load bots [\#310](https://github.com/wechaty/wechaty/pull/310) ([Gcaufy](https://github.com/Gcaufy))
 - \#283 [\#303](https://github.com/wechaty/wechaty/pull/303) ([lijiarui](https://github.com/lijiarui))
 - \#291 change `throw error` to `return null` [\#292](https://github.com/wechaty/wechaty/pull/292) ([lijiarui](https://github.com/lijiarui))
-- Add print nodejs version [\#280](https://github.com/wechaty/wechaty/pull/280) ([xinbenlv](https://github.com/xinbenlv))
-- load all memberList [\#275](https://github.com/wechaty/wechaty/pull/275) ([lijiarui](https://github.com/lijiarui))
-- add-sys-message-in-friendrequest [\#266](https://github.com/wechaty/wechaty/pull/266) ([lijiarui](https://github.com/lijiarui))
-- fix for new tslint rules [\#264](https://github.com/wechaty/wechaty/pull/264) ([lijiarui](https://github.com/lijiarui))
-- roomJoinFailed [\#249](https://github.com/wechaty/wechaty/pull/249) ([lijiarui](https://github.com/lijiarui))
-- add warn log when function Room&Contact.find\(\) return more than one value [\#239](https://github.com/wechaty/wechaty/pull/239) ([lijiarui](https://github.com/lijiarui))
-- rename the nick/remark/display for contact/room \#217 [\#234](https://github.com/wechaty/wechaty/pull/234) ([lijiarui](https://github.com/lijiarui))
-- fix\_function\_room.member\_\#173 [\#211](https://github.com/wechaty/wechaty/pull/211) ([lijiarui](https://github.com/lijiarui))
-- friendrequest [\#199](https://github.com/wechaty/wechaty/pull/199) ([lijiarui](https://github.com/lijiarui))
-- \#181 fix [\#182](https://github.com/wechaty/wechaty/pull/182) ([lijiarui](https://github.com/lijiarui))
-- \[Snyk\] Fix for 4 vulnerable dependency paths [\#169](https://github.com/wechaty/wechaty/pull/169) ([snyk-bot](https://github.com/snyk-bot))
-- enhance \#155 fire `room-join` when someone joins from a QR Code [\#162](https://github.com/wechaty/wechaty/pull/162) ([lijiarui](https://github.com/lijiarui))
 
 ## [v0.7.0](https://github.com/wechaty/wechaty/tree/v0.7.0) (2016-12-29)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.6.0...v0.7.0)
 
 **Implemented enhancements:**
@@ -918,12 +929,9 @@
 - Update README.md [\#110](https://github.com/wechaty/wechaty/pull/110) ([lijiarui](https://github.com/lijiarui))
 - fixed javascript error: attempt is not defined [\#100](https://github.com/wechaty/wechaty/pull/100) ([JasLin](https://github.com/JasLin))
 - convert wechaty-bro.js to plain old javascript syntax \#60 [\#97](https://github.com/wechaty/wechaty/pull/97) ([cherry-geqi](https://github.com/cherry-geqi))
-- Update README.md [\#93](https://github.com/wechaty/wechaty/pull/93) ([lijiarui](https://github.com/lijiarui))
-- Update README.md [\#92](https://github.com/wechaty/wechaty/pull/92) ([lijiarui](https://github.com/lijiarui))
-- fix anchor link error [\#91](https://github.com/wechaty/wechaty/pull/91) ([lijiarui](https://github.com/lijiarui))
-- fill in the TBW block [\#87](https://github.com/wechaty/wechaty/pull/87) ([lijiarui](https://github.com/lijiarui))
 
 ## [v0.6.0](https://github.com/wechaty/wechaty/tree/v0.6.0) (2016-11-11)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.5.22...v0.6.0)
 
 **Fixed bugs:**
@@ -931,6 +939,7 @@
 - \[Docker\] Config.isDocker is not right in some Docker version / Linux distribution [\#84](https://github.com/wechaty/wechaty/issues/84)
 
 ## [v0.5.22](https://github.com/wechaty/wechaty/tree/v0.5.22) (2016-11-10)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.5.9...v0.5.22)
 
 **Implemented enhancements:**
@@ -944,6 +953,7 @@
 - 在windows下运行例子,npm 环境中,报错关于getChromeDriver\(\) [\#77](https://github.com/wechaty/wechaty/issues/77)
 
 ## [v0.5.9](https://github.com/wechaty/wechaty/tree/v0.5.9) (2016-11-07)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.5.1...v0.5.9)
 
 **Closed issues:**
@@ -956,6 +966,7 @@
 - fix issue \#70  [\#76](https://github.com/wechaty/wechaty/pull/76) ([JasLin](https://github.com/JasLin))
 
 ## [v0.5.1](https://github.com/wechaty/wechaty/tree/v0.5.1) (2016-11-03)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.4.0...v0.5.1)
 
 **Implemented enhancements:**
@@ -976,7 +987,6 @@
 - 当用户昵称中含有表情时，无法触发room-join 事件 [\#64](https://github.com/wechaty/wechaty/issues/64)
 - room-join 事件下，无法通过contact.id 方法获取contact\_id [\#54](https://github.com/wechaty/wechaty/issues/54)
 - FriendRequest is not export to npm module  [\#50](https://github.com/wechaty/wechaty/issues/50)
-- test/fix Watchdog with browser dead & timeout conditions [\#47](https://github.com/wechaty/wechaty/issues/47)
 
 **Closed issues:**
 
@@ -992,6 +1002,7 @@
 - webdrive login always occur error, for one success login always cost 4-5 log trys [\#42](https://github.com/wechaty/wechaty/issues/42)
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/tree/v0.4.0) (2016-10-08)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.2.0...v0.4.0)
 
 **Implemented enhancements:**
@@ -1018,9 +1029,11 @@
 - Ava [\#25](https://github.com/wechaty/wechaty/pull/25) ([huan](https://github.com/huan))
 
 ## [v0.2.0](https://github.com/wechaty/wechaty/tree/v0.2.0) (2016-06-28)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.1.1...v0.2.0)
 
 ## [v0.1.1](https://github.com/wechaty/wechaty/tree/v0.1.1) (2016-06-09)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.0.6...v0.1.1)
 
 **Fixed bugs:**
@@ -1028,17 +1041,21 @@
 - ding-dong bot broken due to typo [\#5](https://github.com/wechaty/wechaty/issues/5)
 
 ## [v0.0.6](https://github.com/wechaty/wechaty/tree/v0.0.6) (2016-05-15)
+
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.0.5...v0.0.6)
 
 **Closed issues:**
 
 - selenium-webdriver & phantomjs-prebuilt not work together under win32 [\#1](https://github.com/wechaty/wechaty/issues/1)
 
-## [v0.0.5](https://github.com/wechaty/wechaty/tree/v0.0.5) (2016-05-11)
 **Merged pull requests:**
 
 - Add a Gitter chat badge to README.md [\#3](https://github.com/wechaty/wechaty/pull/3) ([gitter-badger](https://github.com/gitter-badger))
 
+## [v0.0.5](https://github.com/wechaty/wechaty/tree/v0.0.5) (2016-05-11)
+
+[Full Changelog](https://github.com/wechaty/wechaty/compare/292f50456e3bd6cb9849218348ee053c76b1d6b3...v0.0.5)
 
 
-\* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*
+
+\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*

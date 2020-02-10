@@ -9,10 +9,12 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Greenkeeper badge](https://badges.greenkeeper.io/wechaty/wechaty.svg)](https://greenkeeper.io/)
 [![Gitter](https://badges.gitter.im/Chatie/wechaty.svg)](https://gitter.im/Chatie/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM)
+[![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
 
 ## Connecting Chatbots
 
-Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux](https://travis-ci.com/wechaty/wechaty), [Windows](https://ci.appveyor.com/project/zixia/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/Wechaty/wechaty) and [Docker](https://app.shippable.com/github/Wechaty/wechaty).
+Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of javascript, with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
 
 :octocat: <https://github.com/Wechaty/wechaty>  
 :beetle: <https://github.com/Wechaty/wechaty/issues>  
@@ -298,12 +300,8 @@ Accept room invitation
 
 ## TEST
 
-[![Ubuntu Linux/Mac Build Status](https://travis-ci.com/Wechaty/wechaty.svg?branch=master)](https://travis-ci.com/Wechaty/wechaty)
-[![Travis](https://img.shields.io/travis/Wechaty/wechaty.svg?label=Ubuntu/OSX)](https://travis-ci.com/Wechaty/wechaty)
-[![CentOS Linux Build Status](https://circleci.com/gh/Wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/Wechaty/wechaty)
-[![Windows Build Status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty)
-[![Docker Build Status](https://img.shields.io/shippable/5aaf8667ec373f17004dcb66.svg?label=Docker&color=brightgreen)](https://app.shippable.com/github/Wechaty/wechaty)
-
+[![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM)
+[![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
 [![Coverage Status](https://coveralls.io/repos/github/Wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Wechaty/wechaty?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/Wechaty/wechaty/badge.svg)](https://snyk.io/test/github/Wechaty/wechaty)
 
