@@ -45,13 +45,16 @@ jobs:
       - run: ./scripts/generate-version.sh
 
       - name: Packing Package
-      - run: npm run dist && npm run pack
+      - run: |
+        npm run dist
+        npm run pack
+        mv ./*-*.*.*.tgz ./package.tgz
 
       - name: Upload NPM Package
         uses: actions/upload-artifact@v1
         with:
           name: package.tgz
-          path: *-*.*.*.tgz
+          path: package.tgz
 
       - run: ./scripts/npm-pack-testing.sh
         env:
