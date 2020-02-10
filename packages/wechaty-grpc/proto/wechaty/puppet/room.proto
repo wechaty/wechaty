@@ -1,5 +1,5 @@
 syntax = "proto3";
-package wechaty.puppet;
+package wechaty.puppet.room;
 
 message RoomListRequest {
   string id = 1;
@@ -12,9 +12,9 @@ message RoomPayloadRequest {
   string id = 1;
 }
 message RoomPayloadResponse {
-  string   id              = 1;
-  string   topic           = 2;
-  string   avatar          = 3;
-  repeated string memberId = 4;
-  string   ownerId         = 5;
+  string   id               = 1;
+  string   topic            = 2;
+  string   avatar           = 3;
+  repeated string member_id = 4;
+  string   owner_id         = 5;
 }

@@ -1,16 +1,16 @@
 syntax = "proto3";
-package wechaty.puppet;
+package wechaty.puppet.contact;
 
 enum ContactGender {
-  ContactGenderUnknown = 0;
-  Male                 = 1;
-  Female               = 2;
+  CONTACT_GENDER_UNKNOWN = 0;
+  MALE                   = 1;
+  FEMALE                 = 2;
 }
 
 enum ContactType {
-  ContactTypeUnknown = 0;
-  Personal           = 1;
-  Official           = 2;
+  CONTACT_TYPE_UNKNOWN = 0;
+  PERSONAL             = 1;
+  OFFICIAL             = 2;
 }
 
 message ContactListRequest {

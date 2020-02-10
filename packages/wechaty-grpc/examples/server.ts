@@ -14,6 +14,8 @@ import {
  */
 const puppetServerImpl: IPuppetServer = {
   contactList: (call, callback) => {
+    void call
+
     const contactListResponse = new ContactListResponse()
 
     const idList = ['a', 'b', 'c']
@@ -23,6 +25,8 @@ const puppetServerImpl: IPuppetServer = {
   },
 
   selfId: (call, callback) => {
+    void call
+
     const selfIdResponse = new SelfIdResponse()
     selfIdResponse.setId('lizhuohuan')
     callback(null, selfIdResponse)
@@ -31,48 +35,76 @@ const puppetServerImpl: IPuppetServer = {
 
   start: (call, callback) => {
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
+    void call
+    void callback
   },
 
   stop: (call, callback) => {
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
+    void call
+    void callback
   },
 
   logout: (call, callback) => {
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
+    void call
+    void callback
   },
 
   logonoff: (call, callback) => {
+    void call
+    void callback
+
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
   },
 
   ding: (call, callback) => {
+    void call
+    void callback
+
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
   },
 
   version: (call, callback) => {
+    void call
+    void callback
+
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
 
   contactPayload: (call, callback) => {
+    void call
+    void callback
+
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
 
   friendshipPayload: (call, callback) => {
+    void call
+    void callback
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
 
   roomList: (call, callback) => {
+    void call
+    void callback
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
   roomPayload: (call, callback) => {
+    void call
+    void callback
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
 
   roomInvitationPayload: (call, callback) => {
+    void call
+    void callback
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
 
   messagePayload: (call, callback) => {
+    void call
+    void callback
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
 
@@ -94,8 +126,8 @@ async function main () {
 }
 
 main()
-// .then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  // .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })

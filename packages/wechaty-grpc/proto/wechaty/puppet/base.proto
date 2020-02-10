@@ -1,5 +1,9 @@
+/**
+ * Google Protocol Buffers
+ *  Style Guide - https://developers.google.com/protocol-buffers/docs/style
+ */
 syntax = "proto3";
-package wechaty.puppet;
+package wechaty.puppet.base;
 
 message StartRequest {}
 message StartResponse {}
