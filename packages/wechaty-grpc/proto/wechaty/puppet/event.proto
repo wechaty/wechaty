@@ -1,0 +1,31 @@
+syntax = "proto3";
+package wechaty.puppet.event;
+
+enum EventType {
+  EVENT_TYPE_UNKNOWN = 0;
+
+  WATCHDOG           = 1;
+  MESSAGE            = 2;
+
+  reserved 3 to 16;
+
+  FRIENDSHIP  = 17;
+  ROOM_INVITE = 18;
+  ROOM_JOIN   = 19;
+  ROOM_LEAVE  = 20;
+  ROOM_TOPIC  = 21;
+  SCAN        = 22;
+  DONG        = 23;
+  ERROR       = 24;
+  READY       = 25;
+  RESET       = 26;
+  LOGIN       = 27;
+  LOGOUT      = 28;
+}
+
+message EventRequest {}
+
+message EventResponse {
+  EventType type = 1;
+  string payload = 2; // JSON.stringify({ ... })
+}

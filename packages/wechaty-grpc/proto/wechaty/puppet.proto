@@ -17,6 +17,7 @@ import public "wechaty/puppet/friendship.proto";
 import public "wechaty/puppet/message.proto";
 import public "wechaty/puppet/room.proto";
 import public "wechaty/puppet/room_invitation.proto";
+import public "wechaty/puppet/event.proto";
 
 service Puppet {
   /**
@@ -32,6 +33,8 @@ service Puppet {
   rpc Logonoff (base.LogonoffRequest)  returns (base.LogonoffResponse) {}
   rpc Ding (base.DingRequest)          returns (base.DingResponse) {}
   rpc Version (base.VersionRequest)    returns (base.VersionResponse) {}
+
+  rpc Event (event.EventRequest)  returns (stream event.EventResponse) {}
 
   /**
    *

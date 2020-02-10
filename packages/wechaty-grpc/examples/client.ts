@@ -11,6 +11,9 @@ import {
   ContactListRequest,
   PuppetClient,
   SelfIdRequest,
+  EventRequest,
+  EventResponse,
+  // EventType,
 }                     from '../src/'
 
 /**
@@ -102,14 +105,28 @@ async function main () {
   //   console.info('contactList:', response.getIdList())
   // })
 
-  const selfIdRequest = new SelfIdRequest()
-  client.selfId(selfIdRequest, (err, response) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-    console.info('selfId:', response.getId())
-  })
+  // event(request: wechaty_puppet_event_pb.EventRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<wechaty_puppet_event_pb.EventRequest>;
+  const eventStream = client.event(new EventRequest())
+  eventStream
+    .on('data', (chunk: EventResponse) => {
+      // console.info('EventType:', EventType)
+      // console.info('type:', chunk.getType(), EventType[chunk.getType()], EventType[23])
+      console.info('payload:', chunk.getPayload())
+      // console.info('eventStream.on(data):', chunk)
+
+      const selfIdRequest = new SelfIdRequest()
+      client.selfId(selfIdRequest, (err, response) => {
+        if (err) {
+          console.error(err)
+          return
+        }
+        console.info('selfId:', response.getId())
+      })
+
+    })
+    .on('end', () => {
+      console.info('eventStream.on(end)')
+    })
 
   return 0
 }

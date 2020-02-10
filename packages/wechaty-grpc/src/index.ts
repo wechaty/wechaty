@@ -1,5 +1,5 @@
+export * from './generated'
+
 export {
   VERSION,
 }           from './config'
-
-export * from './generated'

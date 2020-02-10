@@ -7,12 +7,37 @@ import {
   IPuppetServer,
   PuppetService,
   SelfIdResponse,
-}                       from '../src/'
+  EventResponse,
+  EventType,
+}                       from '../src/index'
 
 /**
  * Implements the SayHello RPC method.
  */
 const puppetServerImpl: IPuppetServer = {
+
+  event: (streamnigCall) => {
+    const eventResponse = new EventResponse()
+
+    eventResponse.setType(EventType.DONG)
+
+    let n = 42
+
+    const timer = setInterval(() => {
+      eventResponse.setPayload(JSON.stringify({ n: n++ }))
+      streamnigCall.write(eventResponse)
+    }, 1000)
+
+    setTimeout(() => {
+      clearInterval(timer)
+
+      eventResponse.setPayload(JSON.stringify({ n: n++ }))
+      streamnigCall.write(eventResponse)
+
+      setImmediate(() => streamnigCall.end())
+    }, 3 * 1000 + 500)
+  },
+
   contactList: (call, callback) => {
     void call
 
