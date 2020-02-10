@@ -43,6 +43,16 @@ jobs:
       - run: bash -x ./scripts/install-protoc.sh
       - run: npm install
       - run: ./scripts/generate-version.sh
+
+      - name: Packing Package
+      - run: npm run dist && npm run pack
+
+      - name: Upload NPM Package
+        uses: actions/upload-artifact@v1
+        with:
+          name: package.tgz
+          path: *-*.*.*.tgz
+
       - run: ./scripts/npm-pack-testing.sh
         env:
           WECHATY_PUPPET_PADPLUS_TOKEN: ${{ secrets.WECHATY_PUPPET_PADPLUS_TOKEN }}
