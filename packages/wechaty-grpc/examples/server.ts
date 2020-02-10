@@ -120,7 +120,7 @@ async function main () {
     PuppetService,
     puppetServerImpl,
   )
-  server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure())
+  server.bind('0.0.0.0:8788', grpc.ServerCredentials.createInsecure())
   server.start()
   return 0
 }

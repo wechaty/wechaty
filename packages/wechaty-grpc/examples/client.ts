@@ -3,7 +3,7 @@
 // tslint:disable:no-shadowed-variable
 // tslint:disable:callable-types
 
-// import util from 'util'
+import util from 'util'
 
 import grpc from 'grpc'
 
@@ -13,6 +13,9 @@ import {
   SelfIdRequest,
 }                     from '../src/'
 
+/**
+ * Issue #7: https://github.com/Chatie/grpc/issues/7
+ */
 export type Callback<T> = (err: Error | null, reply: T) => void
 
 export type PromisifyOne<T extends any[]> =
@@ -81,22 +84,23 @@ declare module 'util' {
 
 async function main () {
   const client = new PuppetClient(
-    'localhost:50051',
+    'localhost:8788',
     grpc.credentials.createInsecure()
   )
 
   const contactListRequest = new ContactListRequest()
 
-  // const contactList = util.promisify(client.contactList)
-  // const t = await contactList(contactListRequest)
+  const contactList = util.promisify(client.contactList.bind(client))
+  const t = await contactList(contactListRequest)
+  console.info('contactList:', t.getIdList())
 
-  client.contactList(contactListRequest, (err, response) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-    console.info('contactList:', response.getIdList())
-  })
+  // client.contactList(contactListRequest, (err, response) => {
+  //   if (err) {
+  //     console.error(err)
+  //     return
+  //   }
+  //   console.info('contactList:', response.getIdList())
+  // })
 
   const selfIdRequest = new SelfIdRequest()
   client.selfId(selfIdRequest, (err, response) => {
