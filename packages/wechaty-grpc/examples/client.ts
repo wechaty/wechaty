@@ -3,7 +3,7 @@
 // tslint:disable:no-shadowed-variable
 // tslint:disable:callable-types
 
-import util from 'util'
+// import util from 'util'
 
 import grpc from 'grpc'
 
@@ -87,15 +87,15 @@ async function main () {
 
   const contactListRequest = new ContactListRequest()
 
-  const contactList = util.promisify(client.contactList)
-  const t = await contactList(contactListRequest)
+  // const contactList = util.promisify(client.contactList)
+  // const t = await contactList(contactListRequest)
 
   client.contactList(contactListRequest, (err, response) => {
     if (err) {
       console.error(err)
       return
     }
-    console.log('contactList:', response.getIdList())
+    console.info('contactList:', response.getIdList())
   })
 
   const selfIdRequest = new SelfIdRequest()
@@ -104,15 +104,15 @@ async function main () {
       console.error(err)
       return
     }
-    console.log('selfId:', response.getId())
+    console.info('selfId:', response.getId())
   })
 
   return 0
 }
 
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  // .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })
