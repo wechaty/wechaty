@@ -1,0 +1,73 @@
+/**
+ *
+ * Wechaty Puppet gRPC Protocol Buffers
+ *  https://github.com/chatie/grpc/
+ *  Huan LI <zixia@zixia.net>
+ *  Apr 2018
+ *  License: Apache-2.0
+ *
+ */
+syntax = "proto3";
+
+package wechaty.puppet;
+
+import public "wechaty/puppet/base.proto";
+import public "wechaty/puppet/contact.proto";
+import public "wechaty/puppet/friendship.proto";
+import public "wechaty/puppet/message.proto";
+import public "wechaty/puppet/room.proto";
+import public "wechaty/puppet/room_invitation.proto";
+
+service Puppet {
+  /**
+   *
+   * Base
+   *
+   */
+  rpc Start (base.StartRequest)  returns (base.StartResponse) {}
+  rpc Stop (base.StopRequest)    returns (base.StopResponse) {}
+
+  rpc SelfId (base.SelfIdRequest)      returns (base.SelfIdResponse) {}
+  rpc Logout (base.LogoutRequest)      returns (base.LogoutResponse) {}
+  rpc Logonoff (base.LogonoffRequest)  returns (base.LogonoffResponse) {}
+  rpc Ding (base.DingRequest)          returns (base.DingResponse) {}
+  rpc Version (base.VersionRequest)    returns (base.VersionResponse) {}
+
+  /**
+   *
+   * Contact
+   *
+   */
+  rpc ContactPayload (contact.ContactPayloadRequest)  returns (contact.ContactPayloadResponse) {}
+  rpc ContactList (contact.ContactListRequest)        returns (contact.ContactListResponse) {}
+
+  /**
+   *
+   * Room
+   *
+   */
+  rpc RoomPayload (room.RoomPayloadRequest)  returns (room.RoomPayloadResponse) {}
+  rpc RoomList (room.RoomListRequest)        returns (room.RoomListResponse) {}
+
+  /**
+   *
+   * Room Invitation
+   *
+   */
+  rpc RoomInvitationPayload (room_invitation.RoomInvitationPayloadRequest)  returns (room_invitation.RoomInvitationPayloadResponse) {}
+
+  /**
+   *
+   * Message
+   *
+   */
+   rpc MessagePayload (message.MessagePayloadRequest)  returns (message.MessagePayloadResponse) {}
+
+  /**
+   *
+   * Friendship
+   *
+   */
+   rpc FriendshipPayload (friendship.FriendshipPayloadRequest)  returns (friendship.FriendshipPayloadResponse) {}
+
+}

@@ -1,11 +1,11 @@
 syntax = "proto3";
-package wechaty.puppet;
+package wechaty.puppet.friendship;
 
 enum FriendshipType {
-  Unknown = 0;
-  Confirm = 1;
-  Receive = 2;
-  Verify  = 3;
+  FRIENDSHIP_TYPE_UNKNOWN = 0;
+  CONFIRM = 1;
+  RECEIVE = 2;
+  VERIFY  = 3;
 }
 
 message FriendshipPayloadRequest {
@@ -13,7 +13,7 @@ message FriendshipPayloadRequest {
 }
 message FriendshipPayloadResponse {
   string         id        = 1;
-  string         contactId = 2;
+  string         contact_id = 2;
   string         hello     = 3;
   FriendshipType type      = 4;
   string         stranger  = 5;

@@ -61,4 +61,3 @@ package-lock.json
 t/
 t.*
 /dist/
-/generated/
