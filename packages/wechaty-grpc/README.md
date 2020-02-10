@@ -1,14 +1,14 @@
 # GRPC
 
 [![NPM Version](https://badge.fury.io/js/%40chatie%2Fgrpc.svg)](https://www.npmjs.com/package/@chatie/grpc)
-[![Build Status](https://travis-ci.com/Chatie/grpc.svg?branch=master)](https://travis-ci.com/Chatie/grpc)
+![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/grpc.svg)](https://greenkeeper.io/)
 
 ![chatie grpc](https://chatie.io/grpc/images/grpc.png)
 
 gRPC for Chatie
 
-## INSTALL
+## Install
 
 ```shell
 ./scripts/install-protoc.sh
@@ -17,7 +17,7 @@ npm install
 
 > <https://github.com/google/protobuf/releases/latest>
 
-## GENERATE STUBS
+## Generate Stubs
 
 ```shell
 npm run generate
@@ -72,13 +72,13 @@ protoc \
 grpcc --proto ./service/myservice.proto --address 127.0.0.1:3466
 ```
 
-## DOCUMENTATION
+## Documentatoin
 
 - [Protocol Buffers Language Guide (proto3)](https://developers.google.com/protocol-buffers/docs/proto3)
 - [Google Protocol Buffers Style Guide](https://developers.google.com/protocol-buffers/docs/style)
 - [Protocol Buffers for TypeScript with Decorators](https://github.com/protobufjs/protobuf.js#using-decorators)
 
-## RESOURCES
+## Resources
 
 - [探讨gRPC的Node技术生态及实现工具](https://xenojoshua.com/2018/02/grpc-node-ecosystem/)
 - [gRPC Basics - Node.js](https://grpc.io/docs/tutorials/basic/node.html)
@@ -121,15 +121,13 @@ TCP hole punching
 
 - [A toolset for reverse engineering and fuzzing Protobuf-based apps](https://github.com/marin-m/pbtk)
 
-## AUTHOR
+## Author
 
-[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)) zixia@zixia.net
 
-<a href="https://stackexchange.com/users/265499">
-  <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
-</a>
+[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
-## COPYRIGHT & LICENSE
+## Copyright & License
 
 - Code & Docs © 2018-now Huan LI \<zixia@zixia.net\>
 - Code released under the Apache-2.0 License

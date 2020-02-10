@@ -40,9 +40,14 @@ jobs:
         with:
           node-version: 13
 
-      - run: bash -x ./scripts/install-protoc.sh
-      - run: npm install
-      - run: ./scripts/generate-version.sh
+      - name: Install Protoc
+        run: bash -x ./scripts/install-protoc.sh
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Version
+        run: ./scripts/generate-version.sh
 
       - name: Packing Package
         run: |
@@ -69,10 +74,15 @@ jobs:
         with:
           node-version: 13
           registry-url: https://registry.npmjs.org/
-      - run: bash -x ./scripts/install-protoc.sh
-      - run: npm install
-      - run: ./scripts/generate-version.sh
-      - run: ./scripts/package-publish-config-tag.sh
+
+      - name: Install Protoc
+        run: bash -x ./scripts/install-protoc.sh
+      - name: Install Dependencies
+        run: npm install
+      - name: Generate Version
+        run: ./scripts/generate-version.sh
+      - name: Set Publish Config
+        run: ./scripts/package-publish-config-tag.sh
       - run: npm run dist
 
       - name: Check Branch
