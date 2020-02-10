@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+shopt -s globstar
 
 PROTO_DIR="./protobuf"
 
@@ -25,7 +26,7 @@ $PROTOC_CMD \
 #
 # Generate: wechaty-puppet_grpc_pb.js
 $PROTOC_CMD \
-  --plugin="protoc-gen-grpc=`which grpc_tools_node_protoc_plugin`" \
+  --plugin="protoc-gen-grpc=`command -v grpc_tools_node_protoc_plugin`" \
   --grpc_out="${OUT_DIR}"
 
 #
