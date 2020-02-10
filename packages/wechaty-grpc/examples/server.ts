@@ -1,3 +1,5 @@
+/* eslint-disable sort-keys */
+
 import grpc from 'grpc'
 
 import {
@@ -6,8 +8,6 @@ import {
   PuppetService,
   SelfIdResponse,
 }                       from '../src/'
-
-// tslint:disable:no-console
 
 /**
  * Implements the SayHello RPC method.

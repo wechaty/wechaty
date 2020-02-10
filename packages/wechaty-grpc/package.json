@@ -9,7 +9,7 @@
     "test": "tests"
   },
   "scripts": {
-    "clean": "shx rm -fr dist/* generated/*",
+    "clean": "shx rm -fr dist/* generated/wechaty/",
     "dist": "npm run clean && npm run generate && tsc && shx mv generated dist/",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
