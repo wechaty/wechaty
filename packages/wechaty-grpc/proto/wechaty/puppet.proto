@@ -11,12 +11,12 @@ syntax = "proto3";
 
 package wechaty.puppet;
 
-import public "wechaty-puppet/base.proto";
-import public "wechaty-puppet/contact.proto";
-import public "wechaty-puppet/friendship.proto";
-import public "wechaty-puppet/message.proto";
-import public "wechaty-puppet/room.proto";
-import public "wechaty-puppet/room_invitation.proto";
+import public "wechaty/puppet/base.proto";
+import public "wechaty/puppet/contact.proto";
+import public "wechaty/puppet/friendship.proto";
+import public "wechaty/puppet/message.proto";
+import public "wechaty/puppet/room.proto";
+import public "wechaty/puppet/room_invitation.proto";
 
 service Puppet {
   /**

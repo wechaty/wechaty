@@ -2,7 +2,7 @@
 set -e
 shopt -s globstar
 
-PROTO_DIR="./protobuf"
+PROTO_DIR="./proto"
 
 # Directory to write generated code to (.js and .d.ts files)
 OUT_DIR="./generated"

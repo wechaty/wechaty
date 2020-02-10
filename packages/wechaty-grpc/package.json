@@ -16,7 +16,7 @@
     "generate": "bash -O globstar -x scripts/generate-stub.sh",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:proto",
     "lint:ts": "tsc --noEmit",
-    "lint:proto": "protoc -I protobuf  --lint_out=. protobuf/*.proto protobuf/wechaty-puppet/*.proto",
+    "lint:proto": "bash -O globstar -c 'protoc -I proto --lint_out=. proto/**/*.proto'",
     "pack": "npm pack",
     "test": "npm run lint",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
