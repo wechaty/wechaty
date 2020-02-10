@@ -10,10 +10,10 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/* generated/wechaty/",
-    "dist": "npm run clean && npm run generate && tsc && shx mv generated dist/",
+    "dist": "npm run clean && npm run generate && tsc",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
-    "generate": "bash -O globstar -x scripts/generate-stub.sh",
+    "generate": "bash -O globstar -x scripts/generate-stub.sh && shx cp -R generated dist/",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:proto",
     "lint:ts": "tsc --noEmit",
     "lint:proto": "bash -O globstar -c 'protoc -I proto --lint_out=. proto/**/*.proto'",
