@@ -44,7 +44,7 @@
     "grpc": "^1.13.0"
   },
   "devDependencies": {
-    "@chatie/eslint-config": "^0.6.17",
+    "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.8.0",
