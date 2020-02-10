@@ -21,7 +21,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      -name: Generate gRPC Stubs
+      - name: Generate gRPC Stubs
         run: npm run generate
 
       - name: Test
