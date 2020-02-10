@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Install Protoc
+        run: bash -x ./scripts/install-protoc.sh
+
       - name: Install Dependencies
         run: npm install
 
@@ -36,6 +39,8 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 13
+
+      - run: bash -x ./scripts/install-protoc.sh
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/npm-pack-testing.sh
@@ -53,6 +58,7 @@ jobs:
         with:
           node-version: 13
           registry-url: https://registry.npmjs.org/
+      - run: bash -x ./scripts/install-protoc.sh
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/package-publish-config-tag.sh
