@@ -19,6 +19,7 @@ addons:
 
 before_install:
   - bash -x scripts/install-protoc.sh
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install bash; chsh -s /usr/local/bin/bash; fi
 
 script:
   - node --version

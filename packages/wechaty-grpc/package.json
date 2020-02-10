@@ -41,8 +41,7 @@
   },
   "homepage": "https://github.com/Chatie/grpc#readme",
   "dependencies": {
-    "grpc": "^1.13.0",
-    "read-pkg-up": "^4.0.0"
+    "grpc": "^1.13.0"
   },
   "devDependencies": {
     "@chatie/eslint-config": "^0.6.17",
@@ -51,7 +50,6 @@
     "@chatie/tsconfig": "^0.6.1",
     "@types/google-protobuf": "^3.2.7",
     "@types/protobufjs": "^5.0.31",
-    "@types/read-pkg-up": "^3.0.1",
     "grpc-tools": "^1.6.6",
     "grpc_tools_node_protoc_ts": "^2.3.0",
     "grpcc": "^1.1.3",
