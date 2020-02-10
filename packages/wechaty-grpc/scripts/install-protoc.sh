@@ -5,8 +5,10 @@ set -e
 
 if [ $(uname) = 'Linux' ]; then
   PROTOC_PLATFORM=linux
+  PROTOC_GEN_LINT_PLATFORM=linux
 else
   PROTOC_PLATFORM=osx
+  PROTOC_GEN_LINT_PLATFORM=darwin
 fi
 
 PROTOC_VERSION='3.11.3'
@@ -16,5 +18,12 @@ curl -OL "https://github.com/google/protobuf/releases/download/v$PROTOC_VERSION/
 sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
 rm -f $PROTOC_ZIP
 
+#
 # https://github.com/ckaznocha/protoc-gen-lint
-go get github.com/ckaznocha/protoc-gen-lint
+#
+PROTOC_GEN_LINT_VERSION='0.2.1'
+PROTOC_GEN_LINT_ZIP="protoc-gen-lint_${PROTOC_GEN_LINT_PLATFORM}_amd64.zip"
+
+curl -OL "https://github.com/ckaznocha/protoc-gen-lint/releases/download/v$PROTOC_GEN_LINT_VERSION/$PROTOC_GEN_LINT_ZIP"
+sudo unzip -o "$PROTOC_GEN_LINT_ZIP" protoc-gen-lint -d /usr/local/bin protoc-gen-lint
+rm -f "PROTOC_GEN_LINT_ZIP"
