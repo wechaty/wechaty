@@ -12,7 +12,7 @@ message RoomInvitationPayloadResponse {
   repeated string member_ids = 5;
   uint64   timestamp         = 6;
   string   avatar            = 7;
-  strng    inivitation       = 8;
+  string    inivitation       = 8;
 }
 
 message RoomInvitationAcceptRequest {
