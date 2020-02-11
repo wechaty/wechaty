@@ -44,9 +44,9 @@ import {
   MiniProgramPayload,
 }                                 from './schemas/mini-program'
 
-import {
-  Receiver,
-}                                 from './schemas/puppet'
+// import {
+//   Receiver,
+// }                                 from './schemas/puppet'
 
 import {
   Puppet,
@@ -66,7 +66,7 @@ class PuppetTest extends Puppet {
    *
    *
    */
-  public async contactSelfQrcode ()                     : Promise<string> { return '' }
+  public async contactSelfQRCode ()                     : Promise<string> { return '' }
   public async contactSelfName (name: string)           : Promise<void> { return void name }
   public async contactSelfSignature (signature: string) : Promise<void> { return void signature }
 
@@ -121,12 +121,12 @@ class PuppetTest extends Puppet {
   public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
   public async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
 
-  public async messageForward (to: Receiver, messageId: string)              : Promise<void | string> { return { messageId, to } as any }
-  public async messageSendContact (receiver: Receiver, contactId: string)    : Promise<void | string> { return { contactId, receiver } as any }
-  public async messageSendFile (to: Receiver, file: FileBox)                 : Promise<void | string> { return { file, to } as any }
-  public async messageSendText (to: Receiver, text: string)                  : Promise<void | string> { return { text, to } as any }
-  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { to, urlLinkPayload } as any }
-  public async messageSendMiniProgram (to: Receiver, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { miniProgramPayload, to } as any }
+  public async messageForward (conversationId: string, messageId: string)              : Promise<void | string> { return { messageId, conversationId } as any }
+  public async messageSendContact (conversationId: string, contactId: string)    : Promise<void | string> { return { contactId, conversationId } as any }
+  public async messageSendFile (conversationId: string, file: FileBox)                 : Promise<void | string> { return { file, conversationId } as any }
+  public async messageSendText (conversationId: string, text: string)                  : Promise<void | string> { return { text, conversationId } as any }
+  public async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
+  public async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { miniProgramPayload, conversationId } as any }
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
@@ -163,7 +163,7 @@ class PuppetTest extends Puppet {
   public async roomCreate (contactIdList: string[], topic?: string) : Promise<string> { return { contactIdList, topic } as any }
   public async roomDel (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
   public async roomQuit (roomId: string)                            : Promise<void> { return { roomId } as any }
-  public async roomQrcode (roomId: string)                          : Promise<string> { return { roomId } as any }
+  public async roomQRCode (roomId: string)                          : Promise<string> { return { roomId } as any }
 
   public async roomTopic (roomId: string)                 : Promise<string>
   public async roomTopic (roomId: string, topic: string)  : Promise<void>
@@ -320,21 +320,25 @@ test('roomQueryFilterFunction()', async t => {
       id           : 'id1',
       memberIdList : [],
       topic        : TEXT_TEXT,
+      adminIdList : [],
     },
     {
       id           : 'id2',
       memberIdList : [],
       topic        : TEXT_REGEX,
+      adminIdList : [],
     },
     {
       id           : 'id3',
       memberIdList : [],
       topic        : TEXT_TEXT,
+      adminIdList : [],
     },
     {
       id           : 'id4',
       memberIdList : [],
       topic        : TEXT_REGEX,
+      adminIdList : [],
     },
   ]
 
@@ -411,6 +415,7 @@ test('contactRoomList()', async t => {
         CONTACT_ID_2,
       ],
       topic: 'room-topic-1',
+      adminIdList : [],
     },
     {
       id: ROOM_ID_2,
@@ -419,6 +424,7 @@ test('contactRoomList()', async t => {
         CONTACT_ID_3,
       ],
       topic: 'room-topic-2',
+      adminIdList : [],
     },
   ]
   sandbox.stub(puppet, 'roomList').resolves(ROOM_PAYLOAD_LIST.map(payload => payload.id))

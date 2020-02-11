@@ -78,8 +78,6 @@ import {
 import {
   PuppetEventName,
   PuppetOptions,
-  Receiver,
-
   YOU,
 }                                 from './schemas/puppet'
 import { throwUnsupportedError }   from './throw-unsupported-error'
@@ -458,7 +456,7 @@ export abstract class Puppet extends EventEmitter {
    * ContactSelf
    *
    */
-  public abstract async contactSelfQrcode ()                     : Promise<string /* QR Code Value */>
+  public abstract async contactSelfQRCode ()                     : Promise<string /* QR Code Value */>
   public abstract async contactSelfName (name: string)           : Promise<void>
   public abstract async contactSelfSignature (signature: string) : Promise<void>
 
@@ -811,11 +809,11 @@ export abstract class Puppet extends EventEmitter {
   public abstract async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload>
   public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
 
-  public abstract async messageSendContact (receiver: Receiver, contactId: string)                   : Promise<void | string>
-  public abstract async messageSendFile (receiver: Receiver, file: FileBox)                          : Promise<void | string>
-  public abstract async messageSendText (receiver: Receiver, text: string, mentionIdList?: string[]) : Promise<void | string>
-  public abstract async messageSendMiniProgram (receiver: Receiver, miniProgramPayload: MiniProgramPayload)          : Promise<void | string>
-  public abstract async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload)          : Promise<void | string>
+  public abstract async messageSendContact (conversationId: string, contactId: string)                   : Promise<void | string>
+  public abstract async messageSendFile (conversationId: string, file: FileBox)                          : Promise<void | string>
+  public abstract async messageSendText (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
+  public abstract async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload)          : Promise<void | string>
+  public abstract async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload)          : Promise<void | string>
 
   public abstract async messageRecall (messageId: string) : Promise<boolean>
 
@@ -943,8 +941,8 @@ export abstract class Puppet extends EventEmitter {
     return allFilterFunction
   }
 
-  public async messageForward (receiver: Receiver, messageId: string): Promise<void | string> {
-    log.verbose('Puppet', 'messageForward(%s, %s)', JSON.stringify(receiver), messageId)
+  public async messageForward (conversationId: string, messageId: string): Promise<void | string> {
+    log.verbose('Puppet', 'messageForward(%s, %s)', JSON.stringify(conversationId), messageId)
 
     const payload = await this.messagePayload(messageId)
 
@@ -957,7 +955,7 @@ export abstract class Puppet extends EventEmitter {
       case MessageType.Image:          // Img(2), Image(3)
       case MessageType.Video:          // Video(4), Video(43)
         newMsgId = await this.messageSendFile(
-          receiver,
+          conversationId,
           await this.messageFile(messageId),
         )
         break
@@ -965,7 +963,7 @@ export abstract class Puppet extends EventEmitter {
       case MessageType.Text:           // Text(1)
         if (payload.text) {
           newMsgId = await this.messageSendText(
-            receiver,
+            conversationId,
             payload.text,
           )
         } else {
@@ -975,21 +973,21 @@ export abstract class Puppet extends EventEmitter {
 
       case MessageType.MiniProgram:    // MiniProgram(33)
         newMsgId = await this.messageSendMiniProgram(
-          receiver,
+          conversationId,
           await this.messageMiniProgram(messageId)
         )
         break
 
       case MessageType.Url:            // Url(5)
         await this.messageSendUrl(
-          receiver,
+          conversationId,
           await this.messageUrl(messageId)
         )
         break
 
       case MessageType.Contact:        // ShareCard(42)
         newMsgId = await this.messageSendContact(
-          receiver,
+          conversationId,
           await this.messageContact(messageId)
         )
         break
@@ -1002,9 +1000,6 @@ export abstract class Puppet extends EventEmitter {
       case MessageType.Recalled:       // Recalled(10002)
         throwUnsupportedError()
         break
-
-      case MessageType.Money:          // Transfers(2000), RedEnvelopes(2001),
-        throw new Error('MessageType.Money has been deprecated. use .Transfer or .RedEnvelop instead.')
 
       case MessageType.Unknown:
       default:
@@ -1046,9 +1041,9 @@ export abstract class Puppet extends EventEmitter {
 
   public abstract async roomTopic (roomId: string)                 : Promise<string>
   public abstract async roomTopic (roomId: string, topic: string)  : Promise<void>
-  public abstract async roomTopic (roomId: string, topic?: string) : Promise<string | void>
+  // public abstract async roomTopic (roomId: string, topic?: string) : Promise<string | void>
 
-  public abstract async roomQrcode (roomId: string) : Promise<string>
+  public abstract async roomQRCode (roomId: string) : Promise<string>
 
   public abstract async roomList ()                     : Promise<string[]>
   public abstract async roomMemberList (roomId: string) : Promise<string[]>
@@ -1305,21 +1300,21 @@ export abstract class Puppet extends EventEmitter {
 
   public async roomMemberPayload (
     roomId    : string,
-    contactId : string,
+    memberId : string,
   ): Promise<RoomMemberPayload> {
-    log.verbose('Puppet', 'roomMemberPayload(roomId=%s, contactId=%s)',
+    log.verbose('Puppet', 'roomMemberPayload(roomId=%s, memberId=%s)',
       roomId,
-      contactId,
+      memberId,
     )
 
-    if (!roomId || !contactId) {
+    if (!roomId || !memberId) {
       throw new Error('no id')
     }
 
     /**
      * 1. Try to get from cache
      */
-    const CACHE_KEY     = this.cacheKeyRoomMember(roomId, contactId)
+    const CACHE_KEY     = this.cacheKeyRoomMember(roomId, memberId)
     const cachedPayload = this.cacheRoomMemberPayload.get(CACHE_KEY)
 
     if (cachedPayload) {
@@ -1329,9 +1324,9 @@ export abstract class Puppet extends EventEmitter {
     /**
      * 2. Cache not found
      */
-    const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
+    const rawPayload = await this.roomMemberRawPayload(roomId, memberId)
     if (!rawPayload) {
-      throw new Error('contact(' + contactId + ') is not in the Room(' + roomId + ')')
+      throw new Error('contact(' + memberId + ') is not in the Room(' + roomId + ')')
     }
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 

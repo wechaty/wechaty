@@ -16,6 +16,7 @@ export interface RoomPayload {
   avatar?      : string,
   memberIdList : string[],
   ownerId?     : string,
+  adminIdList  : string[],
 }
 
 export interface RoomMemberPayload {

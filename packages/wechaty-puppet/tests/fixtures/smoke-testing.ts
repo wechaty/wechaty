@@ -8,10 +8,10 @@
 // tslint:disable:no-console
 
 import {
-  ContactGender,
+  // ContactGender,
   ContactPayload,
   ContactQueryFilter,
-  ContactType,
+  // ContactType,
 
   FriendshipPayload,
   MessagePayload,
@@ -35,11 +35,12 @@ import {
 import {
   FileBox,
 }                 from 'file-box'
-import {
-  MemoryCard,
-}                       from 'memory-card'
+// import {
+//   MemoryCard,
+// }                       from 'memory-card'
 
 class PuppetTest extends Puppet {
+
   public async start () : Promise<void> { return {} as any }
   public async stop ()  : Promise<void> { return {} as any }
 
@@ -52,8 +53,8 @@ class PuppetTest extends Puppet {
    *
    */
   public async contactSelfQrcode ()                         : Promise<string> { return '' }
-  public async contactSelfName (name: string)           : Promise<void> { return }
-  public async contactSelfSignature (signature: string) : Promise<void> { return }
+  public async contactSelfName (name: string)           : Promise<void> { void name }
+  public async contactSelfSignature (signature: string) : Promise<void> { void signature }
 
   /**
    *
@@ -113,7 +114,7 @@ class PuppetTest extends Puppet {
   public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { to, urlLinkPayload } as any }
   public async messageSendMiniProgram (to: Receiver, miniProgramPayload: MiniProgramPayload) : Promise<void> { return { miniProgramPayload, to } as any }
 
-  public async messageRecall (messageId: string) : Promise<boolean> { return {messageId} as any }
+  public async messageRecall (messageId: string) : Promise<boolean> { void messageId; return true }
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
 
@@ -122,7 +123,7 @@ class PuppetTest extends Puppet {
    * Room Invitation
    *
    */
-  public async roomInvitationAccept (roomInvitationId: string): Promise<void> { return }
+  public async roomInvitationAccept (roomInvitationId: string): Promise<void> { void roomInvitationId }
 
   public async roomInvitationRawPayload (roomInvitationId: string) : Promise<any> { return { roomInvitationId } as any }
   public async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload> { return rawPayload }
@@ -179,13 +180,13 @@ async function main () {
   }
 
   const puppet = new PuppetTest()
-  console.log(`Puppet v${puppet.version()} smoking test passed.`)
+  console.info(`Puppet v${puppet.version()} smoking test passed.`)
   return 0
 }
 
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })

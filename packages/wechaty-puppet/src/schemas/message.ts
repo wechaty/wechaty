@@ -15,11 +15,6 @@ export enum MessageType {
   Recalled,       // Recalled(10002)
   Url,            // Url(5)
   Video,          // Video(4), Video(43)
-
-  /**
-   * @deprecated: use .Transfer & .RedEnvelopes instead.
-   */
-  Money,          // Huan(202001): DEPRECATED
 }
 
 /**

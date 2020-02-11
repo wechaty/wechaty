@@ -82,7 +82,10 @@ export interface PuppetOptions {
 
 }
 
-export interface Receiver {
-  contactId? : string,
-  roomId?    : string,
-}
+/**
+ * @deprecated Huan(202002) use (conversationalId: string) instead.
+ */
+// export interface Receiver {
+//   contactId? : string,
+//   roomId?    : string,
+// }
