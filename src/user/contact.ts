@@ -397,37 +397,42 @@ export class Contact extends Accessory implements Sayable {
       /**
        * 1. Text
        */
-      msgId = await this.puppet.messageSendText({
-        contactId: this.id,
-      }, something)
+      msgId = await this.puppet.messageSendText(
+        this.id,
+        something,
+      )
     } else if (something instanceof Contact) {
       /**
        * 2. Contact
        */
-      msgId = await this.puppet.messageSendContact({
-        contactId: this.id,
-      }, something.id)
+      msgId = await this.puppet.messageSendContact(
+        this.id,
+        something.id,
+      )
     } else if (something instanceof FileBox) {
       /**
        * 3. File
        */
-      msgId = await this.puppet.messageSendFile({
-        contactId: this.id,
-      }, something)
+      msgId = await this.puppet.messageSendFile(
+        this.id,
+        something,
+      )
     } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
-      msgId = await this.puppet.messageSendUrl({
-        contactId : this.id,
-      }, something.payload)
+      msgId = await this.puppet.messageSendUrl(
+        this.id,
+        something.payload,
+      )
     } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
-      msgId = await this.puppet.messageSendMiniProgram({
-        contactId : this.id,
-      }, something.payload)
+      msgId = await this.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
     } else {
       throw new Error('unsupported arg: ' + something)
     }

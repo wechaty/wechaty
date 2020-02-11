@@ -518,47 +518,61 @@ export class Message extends Accessory implements Sayable {
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
+
+    let conversationId: string
+    if (room) {
+      conversationId = room.id
+    } else if (from) {
+      conversationId = from.id
+    } else {
+      throw new Error('neither room nor from?')
+    }
+
     let msgId: void | string
     if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
       /**
        * Text Message
        */
-      msgId = await this.puppet.messageSendText({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini)
+      // msgId = await this.puppet.messageSendText({
+      //   contactId : (from && from.id) || undefined,
+      //   roomId    : (room && room.id) || undefined,
+      // }, textOrContactOrFileOrUrlOrMini)
+      msgId = await this.puppet.messageSendText(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
       /**
        * Contact Card
        */
-      msgId = await this.puppet.messageSendContact({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini.id)
+      msgId = await this.puppet.messageSendContact(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini.id,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
       /**
        * File Message
        */
-      msgId = await this.puppet.messageSendFile({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini)
+      msgId = await this.puppet.messageSendFile(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
       /**
        * Link Message
        */
-      msgId = await this.puppet.messageSendUrl({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini.payload)
+      msgId = await this.puppet.messageSendUrl(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini.payload,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
       /**
        * MiniProgram
        */
-      msgId = await this.puppet.messageSendMiniProgram({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini.payload)
+      msgId = await this.puppet.messageSendMiniProgram(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini.payload,
+      )
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
     }
@@ -884,21 +898,12 @@ export class Message extends Accessory implements Sayable {
   public async forward (to: Room | Contact): Promise<void> {
     log.verbose('Message', 'forward(%s)', to)
 
-    let roomId
-    let contactId
-
-    if (to instanceof Room) {
-      roomId = to.id
-    } else if (to instanceof Contact) {
-      contactId = to.id
-    }
+    // let roomId
+    // let contactId
 
     try {
       await this.puppet.messageForward(
-        {
-          contactId,
-          roomId,
-        },
+        to.id,
         this.id,
       )
     } catch (e) {
