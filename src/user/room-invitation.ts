@@ -37,6 +37,7 @@ import {
 import {
   Contact,
 }               from './contact'
+import { RoomInvitationPayload } from 'wechaty-puppet'
 
 /**
  *
@@ -265,6 +266,53 @@ export class RoomInvitation extends Accessory implements Acceptable {
     const ageSeconds = Math.floor(ageMilliseconds / 1000)
 
     return ageSeconds
+  }
+
+  /**
+   * Load the room invitation info from disk
+   *
+   * @returns {RoomInvitation}
+   * @example
+   * const bot = new Wechaty()
+   * const dataFromDisk // get the room invitation info data from disk
+   * const roomInvitation = await bot.RoomInvitation.fromJSON(dataFromDisk)
+   * await roomInvitation.accept()
+   */
+  public static async fromJSON (
+    payload: string | RoomInvitationPayload,
+  ): Promise<RoomInvitation> {
+    log.verbose('RoomInvitation', 'fromJSON(%s)',
+      typeof payload === 'string'
+        ? payload
+        : JSON.stringify(payload),
+    )
+
+    if (typeof payload === 'string') {
+      payload = JSON.parse(payload) as RoomInvitationPayload
+    }
+
+    await this.puppet.roomInvitationPayload(payload.id, payload)
+
+    return this.wechaty.RoomInvitation.load(payload.id)
+  }
+
+  /**
+   * Get the room invitation info when listened on room-invite event
+   *
+   * @returns {string}
+   * @example
+   * const bot = new Wechaty()
+   * bot.on('room-invite', async roomInvitation => {
+   *  const roomInvitation = bot.RoomInvitation.load(roomInvitation.id)
+   *  const jsonData = await roomInvitation.toJSON(roomInvitation.id)
+   *  // save the json data to disk, and we can use it by RoomInvitation.fromJSON()
+   * }
+   * .start()
+   */
+  public async toJSON (): Promise<string> {
+    log.verbose('RoomInvitation', `toJSON()`)
+    const payload = await this.puppet.roomInvitationPayload(this.id)
+    return JSON.stringify(payload)
   }
 
 }
