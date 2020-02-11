@@ -76,7 +76,7 @@ message MessageSendContactResponse {
 }
 
 message MessageSendFileRequest {
-  string conversatioanl_id = 1;
+  string conversation_id = 1;
   string filebox = 2;
 }
 message MessageSendFileResponse {
