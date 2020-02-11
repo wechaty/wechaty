@@ -10,16 +10,33 @@ enum FriendshipType {
   FRIENDSHIP_TYPE_VERIFY      = 3;
 }
 
+enum FriendshipSceneType {
+  FRIENDSHIP_SCENE_TYPE_UNSPECIFIED = 0;
+
+  FRIENDSHIP_SCENE_TYPE_QQ       = 1;
+  FRIENDSHIP_SCENE_TYPE_Email    = 2;
+  FRIENDSHIP_SCENE_TYPE_Weixin   = 3;
+  FRIENDSHIP_SCENE_TYPE_QQtbd    = 12;
+  FRIENDSHIP_SCENE_TYPE_Room     = 14;
+  FRIENDSHIP_SCENE_TYPE_Phone    = 15;
+  FRIENDSHIP_SCENE_TYPE_Card     = 17;
+  FRIENDSHIP_SCENE_TYPE_Location = 18;
+  FRIENDSHIP_SCENE_TYPE_Bottle   = 25;
+  FRIENDSHIP_SCENE_TYPE_Shaking  = 29;
+  FRIENDSHIP_SCENE_TYPE_QRCode   = 30;
+}
+
 message FriendshipPayloadRequest {
   string id = 1;
 }
 message FriendshipPayloadResponse {
-  string         id         = 1;
-  string         contact_id = 2;
-  string         hello      = 3;
-  FriendshipType type       = 4;
-  string         stranger   = 5;
-  string         ticket     = 6;
+  string              id         = 1;
+  string              contact_id = 2;
+  string              hello      = 3;
+  FriendshipType      type       = 4;
+  string              stranger   = 5;
+  string              ticket     = 6;
+  FriendshipSceneType scene      = 7;
 }
 
 message FriendshipSearchPhoneRequest {
