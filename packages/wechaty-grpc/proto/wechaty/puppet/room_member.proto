@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+package wechaty.puppet.room_member;
+
+message RoomMemberPayloadRequest {
+  string room_id = 1;
+  string member_id = 2;
+}
+message RoomMemberPayloadResponse {
+  string payload = 1;
+}
+
+message RoomMemberListRequest {
+  string room_id = 1;
+}
+message RoomMemberListResponse {
+  repeated string member_id_list = 1;
+}

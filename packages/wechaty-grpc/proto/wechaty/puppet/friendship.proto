@@ -1,4 +1,7 @@
 syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
 package wechaty.puppet.friendship;
 
 enum FriendshipType {
@@ -12,10 +15,37 @@ message FriendshipPayloadRequest {
   string id = 1;
 }
 message FriendshipPayloadResponse {
-  string         id        = 1;
+  string         id         = 1;
   string         contact_id = 2;
-  string         hello     = 3;
-  FriendshipType type      = 4;
-  string         stranger  = 5;
-  string         ticket    = 6;
+  string         hello      = 3;
+  FriendshipType type       = 4;
+  string         stranger   = 5;
+  string         ticket     = 6;
 }
+
+message FriendshipSearchPhoneRequest {
+  string phone = 1;
+}
+message FriendshipSearchPhoneResponse {
+  // nullable
+  google.protobuf.StringValue contact_id = 1;
+}
+
+message FriendshipSearchWeixinRequest {
+  string weixin = 1;
+}
+message FriendshipSearchWeixinResponse {
+  // nullable
+  google.protobuf.StringValue contact_id = 1;
+}
+
+message FriendshipAddRequest {
+  string contact_id = 1;
+  string hello = 2;
+}
+message FriendshipAddResponse {}
+
+message FriendshipAcceptRequest {
+  string id = 1;
+}
+message FriendshipAcceptResponse {}

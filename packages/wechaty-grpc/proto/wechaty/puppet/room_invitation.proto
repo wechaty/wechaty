@@ -12,3 +12,8 @@ message RoomInvitationPayloadResponse {
   repeated string member_id_list  = 5;
   uint64   timestamp             = 6;
 }
+
+message RoomInvitationAcceptRequest {
+  string invitation_id = 1;
+}
+message RoomInvitationAcceptResponse {}

@@ -1,4 +1,7 @@
 syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
 package wechaty.puppet.message;
 
 enum MessageType {
@@ -25,4 +28,81 @@ message MessagePayloadResponse {
   string      from_id    = 7;
   string      room_id    = 8;
   string      to_id      = 9;
+}
+
+message MessageContactRequest {
+  string id = 1;
+}
+message MessageContactResponse {
+  string id = 1;
+}
+
+message MessageFileRequest {
+  string id = 1;
+}
+message MessageFileResponse {
+  string filebox = 1;
+}
+
+message MessageMiniProgramRequest {
+  string id = 1;
+}
+message MessageMiniProgramResponse {
+  string payload = 1;
+}
+
+message MessageUrlRequest {
+  string id = 1;
+}
+message MessageUrlResponse {
+  string url_link_payload = 1;
+}
+
+message MessageSendContactRequest {
+  string conversational_id = 1;
+  string contact_id = 2;
+}
+message MessageSendContactResponse {
+  // nullable
+  google.protobuf.StringValue message_id = 1;
+}
+
+message MessageSendFileRequest {
+  string conversatioanl_id = 1;
+  string contact_id = 2;
+}
+message MessageSendFileResponse {
+  google.protobuf.StringValue message_id = 1;
+}
+
+message MessageSendTextRequest {
+  string conversational_id = 1;
+  string text = 2;
+  repeated string mentonal_id_list = 3;
+}
+message MessageSendTextResponse {
+  google.protobuf.StringValue message_id = 1;
+}
+
+message MessageSendMiniProgramRequest {
+  string conversational_id = 1;
+  string mini_program_payload = 2;
+}
+message MessageSendMiniProgramResponse {
+  google.protobuf.StringValue message_id = 1;
+}
+
+message MessageSendUrlRequest {
+  string conversational_id = 1;
+  string url_link_payload = 2;
+}
+message MessageSendUrlResponse {
+  google.protobuf.StringValue message_id = 1;
+}
+
+message MessageRecallRequest {
+  string message_id = 1;
+}
+message MessageRecallResponse {
+  bool success = 1;
 }

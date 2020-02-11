@@ -91,6 +91,8 @@ grpcc --proto ./service/myservice.proto --address 127.0.0.1:3466
 ### Protocol Buffer
 
 - [Protocol Buffers for JavaScript (& TypeScript)](https://github.com/dcodeIO/protobuf.js)
+- [Missing value/null support for scalar value types in proto 3](https://github.com/protocolbuffers/protobuf/issues/1606)
+- [How to Make a Nullable Field in Proto3 for a HTTP Response?](https://stackoverflow.com/questions/57908389/how-to-make-a-nullable-field-in-proto3-for-a-http-response)
 
 ### gRPC Web
 

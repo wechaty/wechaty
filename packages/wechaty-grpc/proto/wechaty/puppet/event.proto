@@ -7,8 +7,9 @@ enum EventType {
   WATCHDOG           = 1;
   MESSAGE            = 2;
 
-  reserved 3 to 16;
+  reserved 3 to 15;
 
+  ERROR       = 16;
   FRIENDSHIP  = 17;
   ROOM_INVITE = 18;
   ROOM_JOIN   = 19;
@@ -16,11 +17,10 @@ enum EventType {
   ROOM_TOPIC  = 21;
   SCAN        = 22;
   DONG        = 23;
-  ERROR       = 24;
-  READY       = 25;
-  RESET       = 26;
-  LOGIN       = 27;
-  LOGOUT      = 28;
+  READY       = 24;
+  RESET       = 25;
+  LOGIN       = 26;
+  LOGOUT      = 27;
 }
 
 message EventRequest {}

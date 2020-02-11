@@ -1,4 +1,7 @@
 syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
 package wechaty.puppet.contact;
 
 enum ContactGender {
@@ -13,12 +16,10 @@ enum ContactType {
   OFFICIAL             = 2;
 }
 
-message ContactListRequest {
-}
+message ContactListRequest {}
 message ContactListResponse {
   repeated string id = 1;
 }
-
 
 message ContactPayloadRequest {
   string id = 1;
@@ -38,3 +39,37 @@ message ContactPayloadResponse {
   bool          star      = 12;
   string        weixin    = 13;
 }
+
+message ContactSelfQRCodeRequest {}
+message ContactSelfQRCodeResponse {
+  string qrcode = 1;
+}
+
+message ContactSelfNameRequest {
+  string name = 1;
+}
+message ContactSelfNameResponse {}
+
+message ContactSelfSignatureRequest {
+  string signature = 1;
+}
+message ContactSelfSignatureResponse {}
+
+message ContactAliasRequest {
+  string id = 1;
+  // nullable
+  google.protobuf.StringValue alias = 2;
+}
+message ContactAliasResponse {
+  string alias = 1;
+}
+
+message ContactAvatarRequest {
+  string id = 1;
+  // nullable
+  google.protobuf.StringValue filebox = 2;
+}
+message ContactAvatarResponse {
+  string filebox = 1;
+}
+
