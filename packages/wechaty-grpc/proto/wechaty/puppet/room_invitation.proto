@@ -5,15 +5,15 @@ message RoomInvitationPayloadRequest {
   string id = 1;
 }
 message RoomInvitationPayloadResponse {
-  string   id                    = 1;
-  string   inviter_id            = 2;
-  string   topic                 = 3;
-  uint32   member_count          = 4;
-  repeated string member_id_list  = 5;
-  uint64   timestamp             = 6;
+  string   id                = 1;
+  string   inviter_id        = 2;
+  string   topic             = 3;
+  uint32   member_count      = 4;
+  repeated string member_ids = 5;
+  uint64   timestamp         = 6;
 }
 
 message RoomInvitationAcceptRequest {
-  string invitation_id = 1;
+  string id = 1;
 }
 message RoomInvitationAcceptResponse {}

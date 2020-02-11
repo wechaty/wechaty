@@ -20,7 +20,7 @@
     "pack": "npm pack",
     "test": "npm run lint",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "lint:es": "eslint --ignore-pattern fixtures/ 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'"
+    "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\""
   },
   "repository": {
     "type": "git",

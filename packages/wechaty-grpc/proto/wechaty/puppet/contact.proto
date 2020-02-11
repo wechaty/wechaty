@@ -1,24 +1,23 @@
 syntax = "proto3";
+package wechaty.puppet.contact;
 
 import "google/protobuf/wrappers.proto";
 
-package wechaty.puppet.contact;
-
 enum ContactGender {
-  CONTACT_GENDER_UNKNOWN = 0;
-  MALE                   = 1;
-  FEMALE                 = 2;
+  CONTACT_GENDER_UNSPECIFIED = 0;
+  CONTACT_GENDER_MALE        = 1;
+  CONTACT_GENDER_FEMALE      = 2;
 }
 
 enum ContactType {
-  CONTACT_TYPE_UNKNOWN = 0;
-  PERSONAL             = 1;
-  OFFICIAL             = 2;
+  CONTACT_TYPE_UNSPECIFIED = 0;
+  CONTACT_TYPE_PERSONAL    = 1;
+  CONTACT_TYPE_OFFICIAL    = 2;
 }
 
 message ContactListRequest {}
 message ContactListResponse {
-  repeated string id = 1;
+  repeated string ids = 1;
 }
 
 message ContactPayloadRequest {
@@ -61,7 +60,7 @@ message ContactAliasRequest {
   google.protobuf.StringValue alias = 2;
 }
 message ContactAliasResponse {
-  string alias = 1;
+  google.protobuf.StringValue alias = 1;
 }
 
 message ContactAvatarRequest {
@@ -70,6 +69,6 @@ message ContactAvatarRequest {
   google.protobuf.StringValue filebox = 2;
 }
 message ContactAvatarResponse {
-  string filebox = 1;
+  google.protobuf.StringValue filebox = 1;
 }
 

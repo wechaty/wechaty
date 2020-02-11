@@ -95,7 +95,7 @@ async function main () {
 
   const contactList = util.promisify(client.contactList.bind(client))
   const t = await contactList(contactListRequest)
-  console.info('contactList:', t.getIdList())
+  console.info('contactList:', t.getIdsList())
 
   // client.contactList(contactListRequest, (err, response) => {
   //   if (err) {

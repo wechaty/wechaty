@@ -1,8 +1,7 @@
 syntax = "proto3";
+package wechaty.puppet.room_member;
 
 import "google/protobuf/wrappers.proto";
-
-package wechaty.puppet.room_member;
 
 message RoomMemberPayloadRequest {
   string room_id = 1;
@@ -16,5 +15,5 @@ message RoomMemberListRequest {
   string room_id = 1;
 }
 message RoomMemberListResponse {
-  repeated string member_id_list = 1;
+  repeated string member_ids = 1;
 }

@@ -1,14 +1,13 @@
 syntax = "proto3";
+package wechaty.puppet.friendship;
 
 import "google/protobuf/wrappers.proto";
 
-package wechaty.puppet.friendship;
-
 enum FriendshipType {
-  FRIENDSHIP_TYPE_UNKNOWN = 0;
-  CONFIRM = 1;
-  RECEIVE = 2;
-  VERIFY  = 3;
+  FRIENDSHIP_TYPE_UNSPECIFIED = 0;
+  FRIENDSHIP_TYPE_CONFIRM     = 1;
+  FRIENDSHIP_TYPE_RECEIVE     = 2;
+  FRIENDSHIP_TYPE_VERIFY      = 3;
 }
 
 message FriendshipPayloadRequest {

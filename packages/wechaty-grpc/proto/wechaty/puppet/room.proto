@@ -1,14 +1,11 @@
 syntax = "proto3";
+package wechaty.puppet.room;
 
 import "google/protobuf/wrappers.proto";
 
-package wechaty.puppet.room;
-
-message RoomListRequest {
-  string id = 1;
-}
+message RoomListRequest {}
 message RoomListResponse {
-  repeated string id = 1;
+  repeated string ids = 1;
 }
 
 message RoomPayloadRequest {
@@ -18,44 +15,45 @@ message RoomPayloadResponse {
   string   id               = 1;
   string   topic            = 2;
   string   avatar           = 3;
-  repeated string member_id = 4;
-  string   owner_id         = 5;
+  string   owner_id         = 4;
+  repeated string admin_ids  = 5;
+  repeated string member_ids = 6;
 }
 
 message RoomAddRequest {
-  string room_id = 1;
+  string id = 1;
   string contact_id = 2;
 }
 message RoomAddResponse {}
 
 message RoomAvatarRequest {
-  string room_id = 1;
+  string id = 1;
 }
 message RoomAvatarResponse {
   string filebox = 1;
 }
 
 message RoomCreateRequest {
-  repeated string contact_id_list = 1;
+  repeated string contact_ids = 1;
   string topic = 2;
 }
 message RoomCreateResponse {
-  string room_id = 1;
+  string id = 1;
 }
 
 message RoomDelRequest {
-  string room_id = 1;
+  string id = 1;
   string contact_id = 2;
 }
 message RoomDelResponse {}
 
 message RoomQuitRequest {
-  string room_id = 1;
+  string id = 1;
 }
 message RoomQuitResponse {}
 
 message RoomTopicRequest {
-  string room_id = 1;
+  string id = 1;
   google.protobuf.StringValue topic = 2;
 }
 message RoomTopicResponse {
@@ -63,14 +61,14 @@ message RoomTopicResponse {
 }
 
 message RoomQRCodeRequest {
-  string room_id = 1;
+  string id = 1;
 }
 message RoomQRCodeResponse {
   string qrcode = 1;
 }
 
 message RoomAnnounceRequest {
-  string room_id = 1;
+  string id = 1;
   google.protobuf.StringValue text = 2;
 }
 message RoomAnnounceResponse {
