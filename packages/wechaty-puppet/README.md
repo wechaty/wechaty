@@ -1,4 +1,4 @@
-# WECHATY PUPPET
+# wechaty-puppet
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/wechaty/wechaty)
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet.svg)](https://www.npmjs.com/package/wechaty-puppet)
@@ -36,9 +36,9 @@ The above puppet provider is just for mocking and easy to understand. It will be
 
 * [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat) iPad API via Protocol Server, created by [@lijiarui](https://github.com/lijiarui)
 * [PuppetIoscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) iPhone App Hook API, created by [@linyimin-bupt](https://github.com/linyimin-bupt)
-* [PuppetWechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u) Web API via HTTP, created by [@zixia](https://github.com/zixia)
-* [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer) Web API via Browser, created by [@zixia](https://github.com/zixia)
-* [PuppetHostie](https://github.com/wechaty/wechaty-puppet-hostie) gRPC Proxy via Chatie.io(PaaS - Puppets as a Service), created by [@zixia](https://github.com/zixia)
+* [PuppetWechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u) Web API via HTTP, created by [@huan](https://github.com/huan)
+* [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer) Web API via Browser, created by [@huan](https://github.com/huan)
+* [PuppetHostie](https://github.com/wechaty/wechaty-puppet-hostie) gRPC Proxy via Chatie.io(PaaS - Puppets as a Service), created by [@huan](https://github.com/huan)
 
 ## Dependencies
 
@@ -59,7 +59,7 @@ You can get to know the puppet start/stop state from the `state` property:
 3. `puppet.state.off() === 'pending'` will be true when the puppet is stoping
 4. `puppet.state.off() === true' will be true when the puppet is stopped
 
-Learn more about the puppet.state at <https://github.com/zixia/state-switch>
+Learn more about the puppet.state at <https://github.com/huan/state-switch>
 
 ### 2. Using Brolog
 
