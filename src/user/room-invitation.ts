@@ -275,13 +275,13 @@ export class RoomInvitation extends Accessory implements Acceptable {
    * @example
    * const bot = new Wechaty()
    * const dataFromDisk // get the room invitation info data from disk
-   * const roomInvitation = await bot.RoomInvitation.fromJsonData(dataFromDisk)
+   * const roomInvitation = await bot.RoomInvitation.fromJSON(dataFromDisk)
    * await roomInvitation.accept()
    */
-  public static async fromJsonData (
+  public static async fromJSON (
     payload: string | RoomInvitationPayload,
   ): Promise<RoomInvitation> {
-    log.verbose('RoomInvitation', 'fromJsonData(%s)',
+    log.verbose('RoomInvitation', 'fromJSON(%s)',
       typeof payload === 'string'
         ? payload
         : JSON.stringify(payload),
@@ -291,7 +291,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
       payload = JSON.parse(payload) as RoomInvitationPayload
     }
 
-    await this.puppet.setRoomInvitaionPayload(payload.id, payload)
+    await this.puppet.roomInvitationPayload(payload.id, payload)
 
     return this.wechaty.RoomInvitation.load(payload.id)
   }
@@ -304,14 +304,14 @@ export class RoomInvitation extends Accessory implements Acceptable {
    * const bot = new Wechaty()
    * bot.on('room-invite', async roomInvitation => {
    *  const roomInvitation = bot.RoomInvitation.load(roomInvitation.id)
-   *  const jsonData = await roomInvitation.toJsonData(roomInvitation.id)
-   *  // save the json data to disk, and we can use it by RoomInvitation.fromJsonData()
+   *  const jsonData = await roomInvitation.toJSON(roomInvitation.id)
+   *  // save the json data to disk, and we can use it by RoomInvitation.fromJSON()
    * }
    * .start()
    */
-  public async toJsonData (id: string): Promise<string> {
-    log.verbose('RoomInvitation', `toJsonData(${id})`)
-    const payload = await this.puppet.roomInvitationPayload(id)
+  public async toJSON (): Promise<string> {
+    log.verbose('RoomInvitation', `toJSON()`)
+    const payload = await this.puppet.roomInvitationPayload(this.id)
     return JSON.stringify(payload)
   }
 
