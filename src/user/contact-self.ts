@@ -121,7 +121,7 @@ export class ContactSelf extends Contact {
       throw new Error('only can get qrcode for the login userself')
     }
 
-    const qrcodeValue = await this.puppet.contactSelfQrcode()
+    const qrcodeValue = await this.puppet.contactSelfQRCode()
     return guardQrCodeValue(qrcodeValue)
   }
 
