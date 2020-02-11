@@ -10,7 +10,7 @@ OUT_DIR="./generated"
   mkdir ${OUT_DIR}
 }
 
-PROTOC_CMD="protoc --proto_path=${PROTO_DIR} ${PROTO_DIR}/**/*.proto"
+PROTOC_CMD="protoc --proto_path=${PROTO_DIR} --proto_path=/usr/local/include/ ${PROTO_DIR}/**/*.proto"
 
 #
 # 1. JS for Protocol Buffer
