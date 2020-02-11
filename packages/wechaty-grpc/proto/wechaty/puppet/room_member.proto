@@ -1,8 +1,6 @@
 syntax = "proto3";
 package wechaty.puppet.room_member;
 
-import "google/protobuf/wrappers.proto";
-
 message RoomMemberPayloadRequest {
   string room_id = 1;
   string member_id = 2;
