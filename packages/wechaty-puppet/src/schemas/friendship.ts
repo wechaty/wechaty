@@ -9,10 +9,10 @@ export enum FriendshipType {
  * Huan(202002): Does those numbers are the underlying Wechat Protocol Data Values?
  */
 export enum FriendshipSceneType {
-  QQTbd1   = 1,    // FIXME: Huan(202002) in Wechat PC, QQ = 12.
+  QQ       = 1,    // FIXME: Huan(202002) in Wechat PC, QQ = 12.
   Email    = 2,
   Weixin   = 3,
-  QQTbd2   = 12,   // FIXME: confirm the two QQ number QQ号搜索
+  QQtbd    = 12,   // FIXME: confirm the two QQ number QQ号搜索
   Room     = 14,
   Phone    = 15,
   Card     = 17,   // 名片分享
