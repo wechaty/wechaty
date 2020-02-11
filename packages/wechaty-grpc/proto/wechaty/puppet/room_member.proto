@@ -2,15 +2,19 @@ syntax = "proto3";
 package wechaty.puppet.room_member;
 
 message RoomMemberPayloadRequest {
-  string room_id = 1;
+  string id = 1;
   string member_id = 2;
 }
 message RoomMemberPayloadResponse {
-  string payload = 1;
+  string id        = 1;
+  string roomAlias = 2;
+  string inviterId = 3;
+  string avatar    = 4;
+  string name      = 5;
 }
 
 message RoomMemberListRequest {
-  string room_id = 1;
+  string id = 1;
 }
 message RoomMemberListResponse {
   repeated string member_ids = 1;
