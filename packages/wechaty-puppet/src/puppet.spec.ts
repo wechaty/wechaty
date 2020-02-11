@@ -121,12 +121,12 @@ class PuppetTest extends Puppet {
   public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
   public async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
 
-  public async messageForward (conversationId: string, messageId: string)              : Promise<void | string> { return { messageId, conversationId } as any }
+  public async messageForward (conversationId: string, messageId: string)              : Promise<void | string> { return { conversationId, messageId } as any }
   public async messageSendContact (conversationId: string, contactId: string)    : Promise<void | string> { return { contactId, conversationId } as any }
-  public async messageSendFile (conversationId: string, file: FileBox)                 : Promise<void | string> { return { file, conversationId } as any }
-  public async messageSendText (conversationId: string, text: string)                  : Promise<void | string> { return { text, conversationId } as any }
+  public async messageSendFile (conversationId: string, file: FileBox)                 : Promise<void | string> { return { conversationId, file } as any }
+  public async messageSendText (conversationId: string, text: string)                  : Promise<void | string> { return { conversationId, text } as any }
   public async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
-  public async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { miniProgramPayload, conversationId } as any }
+  public async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { conversationId, miniProgramPayload } as any }
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
@@ -317,28 +317,28 @@ test('roomQueryFilterFunction()', async t => {
 
   const PAYLOAD_LIST: RoomPayload[] = [
     {
+      adminIdList : [],
       id           : 'id1',
       memberIdList : [],
       topic        : TEXT_TEXT,
-      adminIdList : [],
     },
     {
+      adminIdList : [],
       id           : 'id2',
       memberIdList : [],
       topic        : TEXT_REGEX,
-      adminIdList : [],
     },
     {
+      adminIdList : [],
       id           : 'id3',
       memberIdList : [],
       topic        : TEXT_TEXT,
-      adminIdList : [],
     },
     {
+      adminIdList : [],
       id           : 'id4',
       memberIdList : [],
       topic        : TEXT_REGEX,
-      adminIdList : [],
     },
   ]
 
@@ -409,22 +409,22 @@ test('contactRoomList()', async t => {
 
   const ROOM_PAYLOAD_LIST: RoomPayload[] = [
     {
+      adminIdList : [],
       id: ROOM_ID_1,
       memberIdList: [
         CONTACT_ID_1,
         CONTACT_ID_2,
       ],
       topic: 'room-topic-1',
-      adminIdList : [],
     },
     {
+      adminIdList : [],
       id: ROOM_ID_2,
       memberIdList: [
         CONTACT_ID_2,
         CONTACT_ID_3,
       ],
       topic: 'room-topic-2',
-      adminIdList : [],
     },
   ]
   sandbox.stub(puppet, 'roomList').resolves(ROOM_PAYLOAD_LIST.map(payload => payload.id))
