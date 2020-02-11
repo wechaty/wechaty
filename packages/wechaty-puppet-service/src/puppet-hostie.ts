@@ -18,12 +18,8 @@ import {
   RoomInvitationPayload,
   RoomMemberPayload,
   RoomPayload,
-
   UrlLinkPayload,
-
-  throwUnsupportedError,
   MiniProgramPayload,
-  ContactGender,
 }                         from 'wechaty-puppet'
 
 import {
@@ -73,8 +69,14 @@ import {
   FriendshipPayloadRequest,
   FriendshipAddRequest,
   FriendshipAcceptRequest,
+  RoomMemberListRequest,
+  RoomMemberPayloadRequest,
+  TagContactAddRequest,
+  TagContactRemoveRequest,
+  TagContactDeleteRequest,
+  TagContactListRequest,
   // EventType,
-}                     from '@chatie/grpc'
+}                                   from '@chatie/grpc'
 
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
@@ -82,14 +84,13 @@ import {
   log,
   VERSION,
 }                   from './config'
-import { RoomMemberListRequest, RoomMemberPayloadRequest } from '@chatie/grpc/dist/generated/wechaty/puppet/room_member_pb'
-import { TagContactAddRequest, TagContactRemoveRequest, TagContactDeleteRequest, TagContactListRequest } from '@chatie/grpc/dist/generated/wechaty/puppet/tag_pb'
 
 export class PuppetHostie extends Puppet {
 
   public static readonly VERSION = VERSION
 
   private grpcClient?: PuppetClient
+  private eventStream?: grpc.ClientReadableStream<EventResponse>
 
   constructor (
     public options: PuppetOptions = {},
@@ -97,8 +98,8 @@ export class PuppetHostie extends Puppet {
     super(options)
   }
 
-  protected initGrpcClient (): void {
-    log.verbose('PuppetHostie', `initGrpcClient()`)
+  protected async startGrpcClient (): Promise<void> {
+    log.verbose('PuppetHostie', `startGrpcClient()`)
 
     if (this.grpcClient) {
       throw new Error('puppetClient had already inited')
@@ -113,6 +114,27 @@ export class PuppetHostie extends Puppet {
       endpoint, // 'localhost:50051',
       grpc.credentials.createInsecure()
     )
+
+    await util.promisify(
+      this.grpcClient.start
+        .bind(this.grpcClient)
+    )(new StartRequest())
+  }
+
+  protected async stopGrpcClient (): Promise<void> {
+    log.verbose('PuppetHostie', `stopGrpcClient()`)
+
+    if (!this.grpcClient) {
+      throw new Error('puppetClient had not inited')
+    }
+
+    await util.promisify(
+      this.grpcClient.stop
+        .bind(this.grpcClient)
+    )(new StopRequest())
+
+    this.grpcClient.close()
+    this.grpcClient = undefined
   }
 
   public async start (): Promise<void> {
@@ -126,26 +148,27 @@ export class PuppetHostie extends Puppet {
 
     this.state.on('pending')
 
-    this.initGrpcClient()
+    try {
+      await this.startGrpcClient()
+      if (!this.grpcClient) {
+        throw new Error('no grpc client')
+      }
 
-    if (!this.grpcClient) {
-      throw new Error('no grpc client')
+      this.startEvent()
+
+      this.state.on(true)
+
+    } catch (e) {
+      log.error('PuppetHostie', 'start() rejection: %s', e && e.message)
+
+      this.state.off(true)
+      throw e
+
     }
-
-    await util.promisify(
-      this.grpcClient.start
-        .bind(this.grpcClient)
-    )(new StartRequest())
-
-    this.state.on(true)
   }
 
   public async stop (): Promise<void> {
     log.verbose('PuppetHostie', 'stop()')
-
-    if (!this.grpcClient) {
-      throw new Error('no puppetClient')
-    }
 
     if (this.state.off()) {
       log.warn('PuppetHostie', 'stop() is called on a OFF puppet. await ready(off) and return.')
@@ -155,15 +178,48 @@ export class PuppetHostie extends Puppet {
 
     this.state.off('pending')
 
-    await util.promisify(
-      this.grpcClient.stop
-        .bind(this.grpcClient)
-    )(new StopRequest())
+    try {
+      await this.stopGrpcClient()
 
-    this.grpcClient.close()
-    this.grpcClient = undefined
+      this.stopEvent()
 
-    this.state.off(true)
+    } catch (e) {
+      log.warn('PuppetHostie', 'stop() rejection: %s', e && e.message)
+      throw e
+    } finally {
+      this.state.off(true)
+    }
+
+  }
+
+  private startEvent (): void {
+    log.verbose('PuppetHostie', 'startEvent()')
+
+    if (this.eventStream) {
+      throw new Error('event stream exists')
+    }
+
+    this.eventStream = this.grpcClient!.event(new EventRequest())
+
+    this.eventStream
+      .on('data', (chunk: EventResponse) => {
+        console.info('payload:', chunk.getPayload())
+      })
+      .on('end', () => {
+        console.info('eventStream.on(end)')
+      })
+  }
+
+  private stopEvent (): void {
+    log.verbose('PuppetHostie', 'stopEvent()')
+
+    if (!this.eventStream) {
+      throw new Error('no event stream')
+    }
+
+    this.eventStream.cancel()
+    this.eventStream.destroy()
+    this.eventStream = undefined
   }
 
   public async logout (): Promise<void> {
@@ -342,7 +398,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async contactRawPayloadParser (payload: ContactPayload): Promise<ContactPayload> {
-    log.verbose('PuppetHostie', 'contactRawPayloadParser(%s)', payload)
+    log.silly('PuppetHostie', 'contactRawPayloadParser(%s)', payload)
     // passthrough
     return payload
   }
@@ -425,7 +481,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'messageSendMiniProgram(%s)', conversationId, JSON.stringify(miniProgramPayload))
 
     const request = new MessageSendMiniProgramRequest()
-    request.setConversationalId(conversationId)
+    request.setConversationId(conversationId)
     request.setMiniProgram(JSON.stringify(miniProgramPayload))
 
     const response = await util.promisify(
@@ -494,7 +550,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async messageRawPayloadParser (payload: MessagePayload): Promise<MessagePayload> {
-    log.verbose('PuppetHostie', 'messagePayload(%s)', payload)
+    log.silly('PuppetHostie', 'messagePayload(%s)', payload)
     // passthrough
     return payload
   }
@@ -506,7 +562,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'messageSend(%s, %s)', conversationId, text)
 
     const request = new MessageSendTextRequest()
-    request.setConversationalId(conversationId)
+    request.setConversationId(conversationId)
     request.setText(text)
 
     const response = await util.promisify(
@@ -628,10 +684,8 @@ export class PuppetHostie extends Puppet {
     return payload
   }
 
-  public async roomRawPayloadParser (
-    payload: RoomPayload,
-  ): Promise<RoomPayload> {
-    log.verbose('PuppetHostie', 'roomRawPayloadParser(%s)', payload)
+  public async roomRawPayloadParser (payload: RoomPayload): Promise<RoomPayload> {
+    log.silly('PuppetHostie', 'roomRawPayloadParser(%s)', payload)
     // passthrough
     return payload
   }
@@ -790,23 +844,25 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
 
     const request = new RoomMemberPayloadRequest()
-    request.setRoomId(roomId)
+    request.setId(roomId)
 
     const response = await util.promisify(
       this.grpcClient!.roomMemberPayload
     )(request)
 
     const payload: RoomMemberPayload = {
-      id         : response.get
-      roomAlias? : response.get
-      inviterId? : response.get
-      avatar     : response.get
-      name       : response.get
+      avatar    : response.getAvatar(),
+      id        : response.getId(),
+      inviterId : response.getInviterId(),
+      name      : response.getName(),
+      roomAlias : response.getRoomAlias(),
     }
+
+    return payload
   }
 
   public async roomMemberRawPayloadParser (payload: any): Promise<RoomMemberPayload>  {
-    log.verbose('PuppetHostie', 'roomMemberRawPayloadParser(%s)', payload)
+    log.silly('PuppetHostie', 'roomMemberRawPayloadParser(%s)', payload)
     // passthrough
     return payload
   }
@@ -885,8 +941,8 @@ export class PuppetHostie extends Puppet {
     const payload: RoomInvitationPayload = {
       avatar       : response.getAvatar(),
       id           : response.getId(),
-      inviterId    : response.getInviterId(),
       invitation   : response.getInvitation(),
+      inviterId    : response.getInviterId(),
       memberCount  : response.getMemberCount(),
       memberIdList : response.getMemberIdsList(),
       timestamp    : response.getTimestamp(),
@@ -896,10 +952,8 @@ export class PuppetHostie extends Puppet {
     return payload
   }
 
-  public roomInvitationRawPayloadParser (
-    payload: any,
-  ): Promise<RoomInvitationPayload> {
-    log.verbose('PuppetHostie', 'roomInvitationRawPayloadParser(%s)', JSON.stringify(payload))
+  public async roomInvitationRawPayloadParser (payload: RoomInvitationPayload): Promise<RoomInvitationPayload> {
+    log.silly('PuppetHostie', 'roomInvitationRawPayloadParser(%s)', JSON.stringify(payload))
     // passthrough
     return payload
   }
@@ -962,13 +1016,13 @@ export class PuppetHostie extends Puppet {
       stranger : response.getStranger(),
       ticket    : response.getTicket(),
       type      : response.getType() as number,
-    }
+    } as any  // FIXME: Huan(202002)
 
     return payload
   }
 
   public async friendshipRawPayloadParser (payload: FriendshipPayload) : Promise<FriendshipPayload> {
-    log.verbose('PuppetHostie', 'friendshipRawPayloadParser(%s)', id)
+    log.silly('PuppetHostie', 'friendshipRawPayloadParser(%s)', JSON.stringify(payload))
     return payload
   }
 

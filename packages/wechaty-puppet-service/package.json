@@ -59,7 +59,7 @@
     "wechaty-puppet": "^0.19.3"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.5.17"
+    "@chatie/grpc": "^0.5.19"
   },
   "git": {
     "scripts": {
