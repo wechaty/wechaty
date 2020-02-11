@@ -9,12 +9,19 @@ import {
   SelfIdResponse,
   EventResponse,
   EventType,
+  ContactAliasResponse,
 }                       from '../src/index'
 
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
+
+import {
+  puppetServerImpl,
+}                     from '../tests/puppet-server-impl'
 /**
  * Implements the SayHello RPC method.
  */
-const puppetServerImpl: IPuppetServer = {
+const puppetServerExample: IPuppetServer = {
+  ...puppetServerImpl,
 
   event: (streamnigCall) => {
     const eventResponse = new EventResponse()
@@ -35,7 +42,7 @@ const puppetServerImpl: IPuppetServer = {
       streamnigCall.write(eventResponse)
 
       setImmediate(() => streamnigCall.end())
-    }, 3 * 1000 + 500)
+    }, 2 * 1000 + 500)
   },
 
   contactList: (call, callback) => {
@@ -58,250 +65,24 @@ const puppetServerImpl: IPuppetServer = {
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Id>;
   },
 
-  start: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-    void call
-    void callback
-  },
-
-  stop: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-    void call
-    void callback
-  },
-
-  logout: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-    void call
-    void callback
-  },
-
-  logonoff: (call, callback) => {
-    void call
-    void callback
-
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-  },
-
-  ding: (call, callback) => {
-    void call
-    void callback
-
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-  },
-
-  version: (call, callback) => {
-    void call
-    void callback
-
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  contactPayload: (call, callback) => {
-    void call
-    void callback
-
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  friendshipPayload: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  roomList: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomPayload: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  roomInvitationPayload: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  messagePayload: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  contactSelfQRCode: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  contactSelfName: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  contactSelfSignature: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
   contactAlias: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  contactAvatar: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  friendshipSearchPhone: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  friendshipSearchWeixin: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  friendshipAdd: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  frendshipAccept: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageContact: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageFile: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageMiniProgram: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageUrl: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageSendContact: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageSendFile: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageSendText: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageSendMiniProgram: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageSendUrl: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  messageRecall: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomAdd: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomAvatar: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomCreate: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomDel: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomQuit: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomTopic: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomQRCode: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomAnnounce: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomMemberPayload: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomMemberList: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomInvitationAccept: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  tagContactAdd: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  tagContactRemove: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  tagContactDelete: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  tagContactList: (call, callback) => {
-    void call
-    void callback
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
+    const id = call.request.getId()
+    const alias = call.request.getAlias()
+
+    console.info('id:', id)
+    console.info('alias:', alias)
+
+    const response = new ContactAliasResponse()
+
+    if (alias) {
+      callback(null, response)
+      return
+    }
+
+    const aliasWrapper = new StringValue()
+    aliasWrapper.setValue('my alias')
+    response.setAlias(aliasWrapper)
+    callback(null, response)
   },
 }
 
@@ -313,9 +94,9 @@ async function main () {
   const server = new grpc.Server()
   server.addService(
     PuppetService,
-    puppetServerImpl,
+    puppetServerExample,
   )
-  server.bind('0.0.0.0:8788', grpc.ServerCredentials.createInsecure())
+  server.bind('127.0.0.1:8788', grpc.ServerCredentials.createInsecure())
   server.start()
   return 0
 }

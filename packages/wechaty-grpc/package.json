@@ -1,6 +1,6 @@
 {
   "name": "@chatie/grpc",
-  "version": "0.2.25",
+  "version": "0.4.0",
   "description": "gRPC for Chatie",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.js",
@@ -15,12 +15,13 @@
     "example:client": "ts-node examples/client.ts",
     "generate": "bash -O globstar -x scripts/generate-stub.sh",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:proto",
+    "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
     "lint:ts": "tsc --noEmit",
     "lint:proto": "bash -O globstar -c 'protoc -I proto --lint_out=. proto/**/*.proto'",
-    "pack": "npm pack",
-    "test": "npm run lint",
+    "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\""
+    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "pack": "npm pack"
   },
   "repository": {
     "type": "git",
