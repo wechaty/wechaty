@@ -15,7 +15,8 @@ PROTOC_VERSION='3.11.3'
 PROTOC_ZIP="protoc-$PROTOC_VERSION-$PROTOC_PLATFORM-x86_64.zip"
 
 curl -OL "https://github.com/google/protobuf/releases/download/v$PROTOC_VERSION/$PROTOC_ZIP"
-sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
+# See: https://github.com/grpc-ecosystem/grpc-gateway/issues/194
+sudo unzip -o $PROTOC_ZIP -d /usr/local bin/* include/*
 sudo chmod +x /usr/local/bin/protoc
 rm -f $PROTOC_ZIP
 

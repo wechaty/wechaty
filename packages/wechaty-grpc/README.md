@@ -123,6 +123,22 @@ TCP hole punching
 
 - [A toolset for reverse engineering and fuzzing Protobuf-based apps](https://github.com/marin-m/pbtk)
 
+## History
+
+### v0.5 (Feb 2020)
+
+- Align gRPC Services with Wechaty Puppet Abstraction
+- Add Unit Tests
+
+### v0.2 (Jul 2018)
+
+- Automatic Generating gRPC Stubs
+- Publish to NPM
+
+### v0.0.1 (May 2018)
+
+Initial commiit
+
 ## Author
 
 [Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)) zixia@zixia.net
