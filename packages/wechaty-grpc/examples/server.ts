@@ -6,7 +6,6 @@ import {
   ContactListResponse,
   IPuppetServer,
   PuppetService,
-  SelfIdResponse,
   EventResponse,
   EventType,
   ContactAliasResponse,
@@ -54,15 +53,6 @@ const puppetServerExample: IPuppetServer = {
     contactListResponse.setIdsList(idList)
 
     callback(null, contactListResponse)
-  },
-
-  selfId: (call, callback) => {
-    void call
-
-    const selfIdResponse = new SelfIdResponse()
-    selfIdResponse.setId('lizhuohuan')
-    callback(null, selfIdResponse)
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Id>;
   },
 
   contactAlias: (call, callback) => {

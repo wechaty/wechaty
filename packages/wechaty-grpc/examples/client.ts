@@ -9,7 +9,6 @@ import grpc from 'grpc'
 
 import {
   PuppetClient,
-  SelfIdRequest,
   EventRequest,
   EventResponse,
   ContactAliasRequest,
@@ -138,16 +137,6 @@ export function testStream (client: PuppetClient) {
       // console.info('type:', chunk.getType(), EventType[chunk.getType()], EventType[23])
       console.info('payload:', chunk.getPayload())
       // console.info('eventStream.on(data):', chunk)
-
-      const selfIdRequest = new SelfIdRequest()
-      client.selfId(selfIdRequest, (err, response) => {
-        if (err) {
-          console.error(err)
-          return
-        }
-        console.info('selfId:', response.getId())
-      })
-
     })
     .on('end', () => {
       console.info('eventStream.on(end)')

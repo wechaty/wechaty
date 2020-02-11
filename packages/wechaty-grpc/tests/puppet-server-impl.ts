@@ -20,12 +20,6 @@ export const puppetServerImpl: IPuppetServer = {
     throw new Error('not implmented.')
   },
 
-  selfId: (call, callback) => {
-    void call
-    void callback
-    throw new Error('not implmented.')
-  },
-
   start: (call, callback) => {
     void call
     void callback
@@ -39,12 +33,6 @@ export const puppetServerImpl: IPuppetServer = {
   },
 
   logout: (call, callback) => {
-    void call
-    void callback
-    throw new Error('not implmented.')
-  },
-
-  logonoff: (call, callback) => {
     void call
     void callback
     throw new Error('not implmented.')
