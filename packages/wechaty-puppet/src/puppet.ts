@@ -104,6 +104,7 @@ export abstract class Puppet extends EventEmitter {
   protected readonly cacheMessagePayload    : QuickLru<string, MessagePayload>
   protected readonly cacheRoomPayload       : QuickLru<string, RoomPayload>
   protected readonly cacheRoomMemberPayload : QuickLru<string, RoomMemberPayload>
+  protected readonly cacheRoomInvitationPayload : QuickLru<string, RoomInvitationPayload>
 
   protected readonly state   : StateSwitch
   protected readonly counter : number
@@ -191,7 +192,7 @@ export abstract class Puppet extends EventEmitter {
     this.cacheMessagePayload    = new QuickLru<string, MessagePayload>(lruOptions)
     this.cacheRoomPayload       = new QuickLru<string, RoomPayload>(lruOptions)
     this.cacheRoomMemberPayload = new QuickLru<string, RoomMemberPayload>(lruOptions)
-
+    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions)
     /**
      * 4. Load the package.json for Puppet Plugin version range matching
      *
@@ -1016,15 +1017,55 @@ export abstract class Puppet extends EventEmitter {
    * Room Invitation
    *
    */
+  protected roomInvitationPayloadCache (roomInvitationId: string): undefined | RoomInvitationPayload {
+    // log.silly('Puppet', 'roomInvitationPayloadCache(id=%s) @ %s', friendshipId, this)
+    if (!roomInvitationId) {
+      throw new Error('no id')
+    }
+    const cachedPayload = this.cacheRoomInvitationPayload.get(roomInvitationId)
+
+    if (cachedPayload) {
+      // log.silly('Puppet', 'roomInvitationPayloadCache(%s) cache HIT', roomInvitationId)
+    } else {
+      log.silly('Puppet', 'roomInvitationPayloadCache(%s) cache MISS', roomInvitationId)
+    }
+
+    return cachedPayload
+  }
+
   public abstract async roomInvitationAccept (roomInvitationId: string): Promise<void>
 
   protected abstract async roomInvitationRawPayload (roomInvitationId: string) : Promise<any>
   protected abstract async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload>
 
-  public async roomInvitationPayload (roomInvitationId: string): Promise<RoomInvitationPayload> {
+  // get
+  public async roomInvitationPayload (roomInvitationId: string): Promise<RoomInvitationPayload>
+  // set
+  public async roomInvitationPayload (roomInvitationId: string, roomInvitationPayload: RoomInvitationPayload): Promise<void>
+
+  public async roomInvitationPayload (roomInvitationId: string, roomInvitationPayload?: RoomInvitationPayload): Promise<void | RoomInvitationPayload> {
     log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
+
+    if (typeof roomInvitationPayload === 'object') {
+      this.cacheRoomInvitationPayload.set(roomInvitationId, roomInvitationPayload)
+      return
+    }
+
+    /**
+     * 1. Try to get from cache first
+     */
+    const cachedPayload = this.roomInvitationPayloadCache(roomInvitationId)
+    if (cachedPayload) {
+      return cachedPayload
+    }
+
+    /**
+     * 2. Cache not found
+     */
+
     const rawPayload = await this.roomInvitationRawPayload(roomInvitationId)
     const payload = await this.roomInvitationRawPayloadParser(rawPayload)
+
     return payload
   }
 
