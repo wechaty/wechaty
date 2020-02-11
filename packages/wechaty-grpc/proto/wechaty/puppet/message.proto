@@ -67,7 +67,7 @@ message MessageUrlResponse {
 }
 
 message MessageSendContactRequest {
-  string conversational_id = 1;
+  string conversation_id = 1;
   string contact_id = 2;
 }
 message MessageSendContactResponse {
@@ -84,7 +84,7 @@ message MessageSendFileResponse {
 }
 
 message MessageSendTextRequest {
-  string conversational_id = 1;
+  string conversation_id = 1;
   string text = 2;
   repeated string mentonal_ids = 3;
 }
@@ -93,7 +93,7 @@ message MessageSendTextResponse {
 }
 
 message MessageSendMiniProgramRequest {
-  string conversational_id = 1;
+  string conversation_id = 1;
   string mini_program = 2;
 }
 message MessageSendMiniProgramResponse {
@@ -101,7 +101,7 @@ message MessageSendMiniProgramResponse {
 }
 
 message MessageSendUrlRequest {
-  string conversational_id = 1;
+  string conversation_id = 1;
   string url_link = 2;
 }
 message MessageSendUrlResponse {
