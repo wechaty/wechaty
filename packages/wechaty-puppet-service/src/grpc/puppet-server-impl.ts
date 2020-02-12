@@ -306,7 +306,22 @@ export function getServerImpl (
 
       eventStream = call
 
-      const emit = (type: EventType, obj: Object) => {
+      call.on('cancelled', function () {
+        log.verbose('GrpcServerImpl', 'event() call.on(cancelled) fired with arguments: %s', JSON.stringify(arguments))
+        eventStream = undefined
+      })
+
+      call.on('error', err => {
+        log.verbose('GrpcServerImpl', 'event() call.on(error) fired: %s', err)
+        eventStream = undefined
+      })
+
+      call.on('finish', () => {
+        log.verbose('GrpcServerImpl', 'event() call.on(finish) fired')
+        eventStream = undefined
+      })
+
+      const grpcEmit = (type: EventType, obj: Object) => {
         const response = new EventResponse()
 
         response.setType(type)
@@ -325,44 +340,44 @@ export function getServerImpl (
 
         switch (eventName) {
           case 'dong':
-            puppet.on('dong', data => emit(EventType.EVENT_TYPE_DONG, { data }))
+            puppet.on('dong', data => grpcEmit(EventType.EVENT_TYPE_DONG, { data }))
             break
 
           case 'error':
-            puppet.on('error', error => emit(EventType.EVENT_TYPE_ERROR, { error }))
+            puppet.on('error', error => grpcEmit(EventType.EVENT_TYPE_ERROR, { error }))
             break
 
           case 'watchdog':
-            puppet.on('watchdog', data => emit(EventType.EVENT_TYPE_WATCHDOG, { data }))
+            puppet.on('watchdog', data => grpcEmit(EventType.EVENT_TYPE_WATCHDOG, { data }))
             break
 
           case 'friendship':
-            puppet.on('friendship', async friendshipId => emit(EventType.EVENT_TYPE_FRIENDSHIP, { friendshipId }))
+            puppet.on('friendship', async friendshipId => grpcEmit(EventType.EVENT_TYPE_FRIENDSHIP, { friendshipId }))
             break
 
           case 'login':
-            puppet.on('login', async contactId => emit(EventType.EVENT_TYPE_LOGIN, { contactId }))
+            puppet.on('login', async contactId => grpcEmit(EventType.EVENT_TYPE_LOGIN, { contactId }))
             break
 
           case 'logout':
-            puppet.on('logout', async (contactId, reason) => emit(EventType.EVENT_TYPE_LOGOUT, { contactId, reason }))
+            puppet.on('logout', async (contactId, reason) => grpcEmit(EventType.EVENT_TYPE_LOGOUT, { contactId, reason }))
             break
 
           case 'message':
-            puppet.on('message', async messageId => emit(EventType.EVENT_TYPE_MESSAGE, { messageId }))
+            puppet.on('message', async messageId => grpcEmit(EventType.EVENT_TYPE_MESSAGE, { messageId }))
             break
 
           case 'ready':
-            puppet.on('ready', () => emit(EventType.EVENT_TYPE_READY, {}))
+            puppet.on('ready', () => grpcEmit(EventType.EVENT_TYPE_READY, {}))
             break
 
           case 'room-invite':
-            puppet.on('room-invite', async roomInvitationId => emit(EventType.EVENT_TYPE_ROOM_INVITE, { roomInvitationId }))
+            puppet.on('room-invite', async roomInvitationId => grpcEmit(EventType.EVENT_TYPE_ROOM_INVITE, { roomInvitationId }))
             break
 
           case 'room-join':
             puppet.on('room-join', (roomId, inviteeIdList, inviterId, timestamp) => {
-              emit(EventType.EVENT_TYPE_ROOM_JOIN, {
+              grpcEmit(EventType.EVENT_TYPE_ROOM_JOIN, {
                 inviteeIdList,
                 inviterId,
                 roomId,
@@ -373,7 +388,7 @@ export function getServerImpl (
 
           case 'room-leave':
             puppet.on('room-leave', (roomId, leaverIdList, removerId, timestamp) => {
-              emit(EventType.EVENT_TYPE_ROOM_LEAVE, {
+              grpcEmit(EventType.EVENT_TYPE_ROOM_LEAVE, {
                 leaverIdList,
                 removerId,
                 roomId,
@@ -384,7 +399,7 @@ export function getServerImpl (
 
           case 'room-topic':
             puppet.on('room-topic', (roomId, newTopic, oldTopic, changerId, timestamp) => {
-              emit(EventType.EVENT_TYPE_ROOM_TOPIC, {
+              grpcEmit(EventType.EVENT_TYPE_ROOM_TOPIC, {
                 changerId,
                 newTopic,
                 oldTopic,
@@ -396,7 +411,7 @@ export function getServerImpl (
 
           case 'scan':
             puppet.on('scan', (qrcode, status, data) => {
-              emit(EventType.EVENT_TYPE_SCAN, {
+              grpcEmit(EventType.EVENT_TYPE_SCAN, {
                 data,
                 qrcode,
                 status,
