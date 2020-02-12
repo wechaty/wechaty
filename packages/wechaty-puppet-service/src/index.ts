@@ -8,5 +8,5 @@ export {
 } from './grpc/puppet-client'
 
 export {
-  PuppetHostieGrpcServer as PuppetHosteServer,
+  PuppetHostieGrpcServer as PuppetHostieServer,
 } from './grpc/puppet-server'
