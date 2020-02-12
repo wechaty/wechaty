@@ -1,8 +1,11 @@
 syntax = "proto3";
 package wechaty.puppet.room_invitation;
 
+import "google/protobuf/wrappers.proto";
+
 message RoomInvitationPayloadRequest {
-  string id = 1;
+  string                      id      = 1;
+  google.protobuf.StringValue payload = 2;
 }
 message RoomInvitationPayloadResponse {
   string   id                = 1;

@@ -27,7 +27,8 @@ enum FriendshipSceneType {
 }
 
 message FriendshipPayloadRequest {
-  string id = 1;
+  string                      id      = 1;
+  google.protobuf.StringValue payload = 2;
 }
 message FriendshipPayloadResponse {
   string              id         = 1;
