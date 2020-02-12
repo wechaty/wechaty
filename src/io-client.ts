@@ -52,7 +52,9 @@ export class IoClient {
   constructor (
     public options: IoClientOptions,
   ) {
-    log.verbose('IoClient', 'constructor(%s)', JSON.stringify(options))
+    log.verbose('IoClient', 'constructor({token: %s})',
+      options.token
+    )
 
     this.state = new StateSwitch('IoClient', log)
   }
@@ -85,7 +87,7 @@ export class IoClient {
   }
 
   public async start (): Promise<void> {
-    log.verbose('IoClient', 'init()')
+    log.verbose('IoClient', 'start()')
 
     if (this.state.pending()) {
       log.warn('IoClient', 'start() with a pending state, not the time')
@@ -99,12 +101,14 @@ export class IoClient {
       await this.hookWechaty(this.options.wechaty)
 
       await this.startIo()
+
+      await this.options.wechaty.start()
       await this.startHostie()
 
       this.state.on(true)
 
     } catch (e) {
-      log.error('IoClient', 'init() exception: %s', e.message)
+      log.error('IoClient', 'start() exception: %s', e.message)
       this.state.off(true)
       throw e
     }
@@ -191,6 +195,7 @@ export class IoClient {
 
     await this.stopIo()
     await this.stopHostie()
+    await this.options.wechaty.stop()
 
     this.state.off(true)
 

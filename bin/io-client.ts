@@ -43,22 +43,26 @@ __________________________________________________
 
 `
 
-let token = config.token
+async function main () {
+  let token = config.token
 
-if (!token) {
-  throw new Error('token not found: please set WECHATY_TOKEN in environment before run io-client')
+  if (!token) {
+    throw new Error('token not found: please set WECHATY_TOKEN in environment before run io-client')
+  }
+
+  console.info(welcome)
+  log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
+
+  const wechaty = new Wechaty({ name: token })
+
+  const client = new IoClient({
+    token,
+    wechaty,
+  })
+
+  client.start()
+    .catch(onError.bind(client))
 }
-
-console.info(welcome)
-log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
-
-const client = new IoClient({
-  token,
-  wechaty: new Wechaty({ name: token }),
-})
-
-client.start()
-  .catch(onError.bind(client))
 
 async function onError (
   this : IoClient,
@@ -68,3 +72,6 @@ async function onError (
   await this.quit()
   process.exit(-1)
 }
+
+main()
+  .catch(console.error)

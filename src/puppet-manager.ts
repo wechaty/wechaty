@@ -65,7 +65,9 @@ export class PuppetManager {
     return puppetInstance
   }
 
-  protected static async resolveName (puppetName: PuppetModuleName): Promise<PuppetImplementation> {
+  protected static async resolveName (
+    puppetName: PuppetModuleName,
+  ): Promise<PuppetImplementation> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
     if (!puppetName) {
