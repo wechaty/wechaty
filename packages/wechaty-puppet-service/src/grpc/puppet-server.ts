@@ -1,8 +1,11 @@
-import * as grpc from 'grpc'
+/// <reference path="./typings.d.ts" />
+
+import util from 'util'
+import grpc from 'grpc'
 
 import {
   Puppet,
-}             from 'wechaty-puppet'
+}                 from 'wechaty-puppet'
 
 import {
   ContactList,
@@ -21,28 +24,20 @@ import {
   VERSION,
 }             from './config'
 
-export enum PuppetHostieServerType {
-  Unknown = 0,
-  Grpc,
-  JsonRpc,
-  OpenApi,
-}
-
-export interface PuppetHostieServerOptions {
+export interface PuppetHostieGrpcServerOptions {
   endpoint : string,
-  puppet   : Puppet,
   token    : string,
-  type     : PuppetHostieServerType,
+  puppet   : Puppet,
 }
 
-export class PuppetHostieServer {
-  private puppetServer: GrpcPuppetServer
+export class PuppetHostieGrpcServer {
+
+  private grpcServer?: grpc.Server
 
   constructor (
-    public readonly options: PuppetHostieServerOptions,
+    public readonly options: PuppetHostieGrpcServerOptions,
   ) {
-    log.verbose('PuppetHostieServer', 'constructor(%s)', JSON.stringify(options))
-    this.puppetServer = new GrpcPuppetServer()
+    log.verbose('PuppetHostieGrpcServer', 'constructor(%s)', JSON.stringify(options))
   }
 
   public version (): string {
@@ -50,23 +45,41 @@ export class PuppetHostieServer {
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetHostieServer', `start()`)
+    log.verbose('PuppetHostieGrpcServer', `start()`)
 
-    const server = new grpc.Server()
-    server.addService(
+    this.grpcServer = new grpc.Server()
+    this.grpcServer.addService(
       PuppetService,
-      puppetServerExample,
+      puppetServerImpl,
     )
-    server.bind('127.0.0.1:8788', grpc.ServerCredentials.createInsecure())
-    server.start()
+    // 127.0.0.1:8788
+    const port = this.grpcServer.bind(
+      this.options.endpoint,
+      grpc.ServerCredentials.createInsecure()
+    )
+    if (port === 0) {
+      throw new Error('grpc server bind fail!')
+    }
 
-
-    this.puppetServer.start()
-    log("Server started, listening: 127.0.0.1:50051")
+    this.grpcServer.start()
   }
 
   public async stop (): Promise<void> {
-    log.verbose('PuppetHostieServer', `stop()`)
-    this.puppetServer.stop()
+    log.verbose('PuppetHostieGrpcServer', `stop()`)
+
+    if (!this.grpcServer) {
+      throw new Error('no grpc server')
+    }
+
+    await util.promisify(
+      this.grpcServer.tryShutdown
+        .bind(this.grpcServer)
+    )()
+
+    const grpcServer = this.grpcServer
+    setImmediate(() => grpcServer.forceShutdown())
+
+    this.grpcServer = undefined
   }
+
 }

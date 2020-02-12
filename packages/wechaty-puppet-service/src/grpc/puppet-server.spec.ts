@@ -2,7 +2,7 @@
 
 import { test }  from 'tstest'
 
-import { PuppetHostieServer } from './puppet-hostie-server'
+import { PuppetHostieServer } from './puppet-server'
 
 test('version()', async (t) => {
   const puppet = new PuppetHostieServer()
