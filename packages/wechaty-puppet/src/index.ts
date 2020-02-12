@@ -44,7 +44,7 @@ export {
 export {
   PuppetOptions,
   PuppetEventName,
-  PuppetQrcodeScanEvent,
+  PuppetQRCodeScanEvent,
   PuppetRoomInviteEvent,
   PuppetRoomJoinEvent,
   PuppetRoomLeaveEvent,

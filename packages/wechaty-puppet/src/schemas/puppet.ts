@@ -11,7 +11,7 @@
 export const YOU = Symbol('You')
 export type YOU  = typeof YOU
 
-export interface PuppetQrcodeScanEvent {
+export interface PuppetQRCodeScanEvent {
   data?  : string,   // Other Data
   qrcode : string,   // QR Code Data
   status : number,   // Status Code
