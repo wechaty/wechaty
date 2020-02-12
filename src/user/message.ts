@@ -692,9 +692,7 @@ export class Message extends Accessory implements Sayable {
      * define magic code `8197` to identify @xxx
      * const AT_SEPRATOR = String.fromCharCode(8197)
      */
-    const AT_SEPRATOR = AT_SEPRATOR_REGEX
-
-    const atList = this.text().split(AT_SEPRATOR)
+    const atList = this.text().split(AT_SEPRATOR_REGEX)
     // console.log('atList: ', atList)
     if (atList.length === 0) return []
 

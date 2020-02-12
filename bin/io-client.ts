@@ -46,10 +46,7 @@ __________________________________________________
 let token = config.token
 
 if (!token) {
-  log.error('Client', 'token not found: please set WECHATY_TOKEN in environment before run io-client')
-  // process.exit(-1)
-  token = config.default.DEFAULT_TOKEN
-  log.warn('Client', `set token to "${token}" for demo purpose`)
+  throw new Error('token not found: please set WECHATY_TOKEN in environment before run io-client')
 }
 
 console.info(welcome)
@@ -63,14 +60,11 @@ const client = new IoClient({
 client.start()
   .catch(onError.bind(client))
 
-// client.initWeb()
-//     .catch(onError.bind(client))
-
 async function onError (
   this : IoClient,
   e    : Error,
 ) {
-  log.error('Client', 'initWeb() fail: %s', e)
+  log.error('Client', 'start() fail: %s', e)
   await this.quit()
   process.exit(-1)
 }

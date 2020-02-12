@@ -57,8 +57,12 @@ import {
   isProduction,
   log,
   Raven,
-  VERSION,
 }                       from './config'
+
+import {
+  VERSION,
+  GIT_COMMIT_HASH,
+}                       from './version'
 
 import {
   AnyFunction,
@@ -1067,12 +1071,9 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * @ignore
    */
-  public static version (forceNpm = false): string {
-    if (!forceNpm) {
-      const revision = config.gitRevision()
-      if (revision) {
-        return `#git[${revision}]`
-      }
+  public static version (gitHash = false): string {
+    if (gitHash && GIT_COMMIT_HASH) {
+      return `#git[${GIT_COMMIT_HASH}]`
     }
     return VERSION
   }
