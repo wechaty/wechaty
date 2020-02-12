@@ -633,10 +633,6 @@ export class Wechaty extends Accessory implements Sayable {
             await friendship.ready()
             this.emit('friendship', friendship)
             friendship.contact().emit('friendship', friendship)
-
-            // support deprecated event name: friend.
-            // Huan LI 201806
-            this.emit('friend' as any, friendship as any)
           })
           break
 
