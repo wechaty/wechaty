@@ -280,7 +280,7 @@ export function getServerImpl (
      * Bridge Event Emitter Events
      *
      */
-    event: (call) => {
+    event: (streamCall) => {
       log.verbose('GrpcServerImpl', 'event()')
 
       if (eventStream) {
@@ -300,38 +300,38 @@ export function getServerImpl (
           *  - https://grpc.io/docs/tutorials/basic/node/
           *    Only one of 'error' or 'end' will be emitted. Finally, the 'status' event fires when the server sends the status.
           */
-        call.emit('error', error)
+        streamCall.emit('error', error)
         return
       }
 
-      eventStream = call
+      eventStream = streamCall
 
       /**
        * Detect if Inexor Core is gone (GRPC disconnects)
        *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
        */
-      call.on('cancelled', function () {
-        log.verbose('GrpcServerImpl', 'event() call.on(cancelled) fired with arguments: %s', JSON.stringify(arguments))
+      eventStream.on('cancelled', function () {
+        log.verbose('GrpcServerImpl', 'event() eventStream.on(cancelled) fired with arguments: %s', JSON.stringify(arguments))
         eventStream = undefined
       })
 
-      call.on('error', err => {
-        log.verbose('GrpcServerImpl', 'event() call.on(error) fired: %s', err)
+      eventStream.on('error', err => {
+        log.verbose('GrpcServerImpl', 'event() eventStream.on(error) fired: %s', err)
         eventStream = undefined
       })
 
-      call.on('finish', () => {
-        log.verbose('GrpcServerImpl', 'event() call.on(finish) fired')
+      eventStream.on('finish', () => {
+        log.verbose('GrpcServerImpl', 'event() eventStream.on(finish) fired')
         eventStream = undefined
       })
 
-      call.on('end', () => {
-        log.verbose('GrpcServerImpl', 'event() call.on(end) fired')
+      eventStream.on('end', () => {
+        log.verbose('GrpcServerImpl', 'event() eventStream.on(end) fired')
         eventStream = undefined
       })
 
-      call.on('close', () => {
-        log.verbose('GrpcServerImpl', 'event() call.on(close) fired')
+      eventStream.on('close', () => {
+        log.verbose('GrpcServerImpl', 'event() eventStream.on(close) fired')
         eventStream = undefined
       })
 
@@ -345,7 +345,11 @@ export function getServerImpl (
           )
         )
 
-        call.write(response)
+        if (eventStream) {
+          eventStream.write(response)
+        } else {
+          log.warn('GrpcServerImpl', 'event() grpcEmit() eventStream undefined')
+        }
       }
 
       const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
