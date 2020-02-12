@@ -31,7 +31,12 @@ export class PuppetHostieGrpcServer {
   constructor (
     public readonly options: PuppetHostieGrpcServerOptions,
   ) {
-    log.verbose('PuppetHostieGrpcServer', 'constructor(%s)', JSON.stringify(options))
+    log.verbose('PuppetHostieGrpcServer',
+      'constructor({endpoint: "%s", puppet: "%s", token: "%s"})',
+      options.endpoint,
+      options.puppet,
+      options.token
+    )
   }
 
   public version (): string {
