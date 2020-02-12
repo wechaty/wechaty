@@ -27,15 +27,14 @@ message MessagePayloadRequest {
 }
 message MessagePayloadResponse {
   string      id                 = 1;
-  string      contact_id         = 2;
-  string      filename           = 3;
-  string      text               = 4;
-  uint64      timestamp          = 5;
-  MessageType type               = 6;
-  string      from_id            = 7;
-  string      room_id            = 8;
-  string      to_id              = 9;
-  repeated    string mention_ids = 10;
+  string      filename           = 2;
+  string      text               = 3;
+  uint64      timestamp          = 4;
+  MessageType type               = 5;
+  string      from_id            = 6;
+  string      room_id            = 7;
+  string      to_id              = 8;
+  repeated    string mention_ids = 9;
 }
 
 message MessageContactRequest {
