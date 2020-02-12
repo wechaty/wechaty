@@ -47,7 +47,7 @@
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.8.0",
     "@types/google-protobuf": "^3.7.2",
-    "file-box": "^0.10.6",
+    "file-box": "^0.12.1",
     "memory-card": "^0.6.2",
     "pkg-jq": "^0.2.4",
     "tstest": "^0.4.2",
@@ -55,11 +55,11 @@
     "wechaty-puppet": "^0.19.3"
   },
   "peerDependencies": {
-    "file-box": "^0.10.6",
+    "file-box": "^0.12.1",
     "wechaty-puppet": "^0.19.3"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.5.19"
+    "@chatie/grpc": "^0.5.21"
   },
   "git": {
     "scripts": {

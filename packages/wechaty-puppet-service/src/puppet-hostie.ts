@@ -28,7 +28,6 @@ import {
 
 import {
   PuppetClient,
-  SelfIdRequest,
   EventRequest,
   EventResponse,
   ContactAliasRequest,
@@ -333,15 +332,15 @@ export class PuppetHostie extends Puppet {
   public async contactAvatar (contactId: string)                : Promise<FileBox>
   public async contactAvatar (contactId: string, file: FileBox) : Promise<void>
 
-  public async contactAvatar (contactId: string, file?: FileBox): Promise<void | FileBox> {
+  public async contactAvatar (contactId: string, fileBox?: FileBox): Promise<void | FileBox> {
     log.verbose('PuppetHostie', 'contactAvatar(%s)', contactId)
 
     /**
      * 1. set
      */
-    if (file) {
+    if (fileBox) {
       const fileboxWrapper = new StringValue()
-      fileboxWrapper.setValue(file.toJSON())
+      fileboxWrapper.setValue(JSON.stringify(fileBox))
 
       const request = new ContactAvatarRequest()
       request.setId(contactId)
@@ -831,7 +830,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'roommemberList(%s)', roomId)
 
     const request = new RoomMemberListRequest()
-    request.setRoomId(roomId)
+    request.setId(roomId)
 
     const response = await util.promisify(
       this.grpcClient!.roomMemberList
