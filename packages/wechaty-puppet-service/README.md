@@ -2,7 +2,7 @@
 
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet-hostie.svg)](https://www.npmjs.com/package/wechaty-puppet-hostie)
 ![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)
-[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty-puppet-hostie.svg)](https://greenkeeper.io/)
+[![Greenkeeper badge](https://badges.greenkeeper.io/wechaty/wechaty-puppet-hostie.svg)](https://greenkeeper.io/)
 
 ![Hostie](https://wechaty.github.io/wechaty-puppet-hostie/images/hostie.png)
 
