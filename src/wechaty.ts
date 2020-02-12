@@ -265,16 +265,16 @@ export class Wechaty extends Accessory implements Sayable {
      */
     // TODO: make Message & Room constructor private???
     this.Contact        = cloneClass(Contact)
-    this.Tag            = cloneClass(Tag)
     this.ContactSelf    = cloneClass(ContactSelf)
     this.Friendship     = cloneClass(Friendship)
     this.Message        = cloneClass(Message)
     this.Room           = cloneClass(Room)
     this.RoomInvitation = cloneClass(RoomInvitation)
+    this.Tag            = cloneClass(Tag)
 
-    // No need to set puppet/wechaty, so no need to clone
-    this.UrlLink = UrlLink
-    this.MiniProgram = MiniProgram
+    // No need to set puppet/wechaty, so do not clone
+    this.UrlLink        = UrlLink
+    this.MiniProgram    = MiniProgram
   }
 
   /**
@@ -788,16 +788,6 @@ export class Wechaty extends Accessory implements Sayable {
     this.puppet = puppet
   }
 
-  /**
-   * @desc
-   * use {@link Wechaty#start} instead
-   * @deprecated
-   * @ignore
-   */
-  public async init (): Promise<void> {
-    log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
-    return this.start()
-  }
   /**
    * Start the bot, return Promise.
    *
