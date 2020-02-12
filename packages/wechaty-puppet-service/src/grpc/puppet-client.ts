@@ -84,7 +84,9 @@ import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 import {
   log,
   VERSION,
-}                   from '../config'
+  WECHATY_PUPPET_HOSTIE_TOKEN,
+  WECHATY_PUPPET_HOSTIE_ENDPOINT,
+}                                   from '../config'
 
 export class PuppetHostieGrpc extends Puppet {
 
@@ -97,6 +99,12 @@ export class PuppetHostieGrpc extends Puppet {
     public options: PuppetOptions = {},
   ) {
     super(options)
+    options.endpoint = options.endpoint || WECHATY_PUPPET_HOSTIE_ENDPOINT || '0.0.0.0:8788'
+    options.token = options.token || WECHATY_PUPPET_HOSTIE_TOKEN
+
+    if (!options.token) {
+      throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
+    }
   }
 
   protected async startGrpcClient (): Promise<void> {
