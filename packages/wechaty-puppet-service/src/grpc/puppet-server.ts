@@ -1,5 +1,3 @@
-/// <reference path="./typings.d.ts" />
-
 import util from 'util'
 import grpc from 'grpc'
 
@@ -8,21 +6,17 @@ import {
 }                 from 'wechaty-puppet'
 
 import {
-  ContactList,
-  ContactPayload,
-  Empty,
-  Id,
-
-  IPuppetServer,
   PuppetService,
 }                     from '@chatie/grpc'
-
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
 import {
   log,
   VERSION,
-}             from './config'
+}                     from '../config'
+
+import {
+  getServerImpl,
+}                     from './puppet-server-impl'
 
 export interface PuppetHostieGrpcServerOptions {
   endpoint : string,
@@ -47,16 +41,24 @@ export class PuppetHostieGrpcServer {
   public async start (): Promise<void> {
     log.verbose('PuppetHostieGrpcServer', `start()`)
 
+    if (this.grpcServer) {
+      throw new Error('grpc server existed!')
+    }
+
+    const puppetServerImpl = getServerImpl(this.options.puppet)
+
     this.grpcServer = new grpc.Server()
     this.grpcServer.addService(
       PuppetService,
       puppetServerImpl,
     )
+
     // 127.0.0.1:8788
     const port = this.grpcServer.bind(
       this.options.endpoint,
       grpc.ServerCredentials.createInsecure()
     )
+
     if (port === 0) {
       throw new Error('grpc server bind fail!')
     }

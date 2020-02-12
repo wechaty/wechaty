@@ -2,9 +2,16 @@
 
 import { test }  from 'tstest'
 
-import { PuppetHostieServer } from './puppet-server'
+import { PuppetHostieGrpcServer, PuppetHostieGrpcServerOptions } from './puppet-server'
+import { Puppet } from 'wechaty-puppet'
 
 test('version()', async (t) => {
-  const puppet = new PuppetHostieServer()
+  const options: PuppetHostieGrpcServerOptions = {
+    endpoint : '127.0.0.1:8788',
+    puppet   : {} as Puppet,
+    token    : 'secret',
+  }
+
+  const puppet = new PuppetHostieGrpcServer(options)
   t.ok(puppet.version())
 })
