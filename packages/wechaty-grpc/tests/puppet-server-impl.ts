@@ -1,5 +1,3 @@
-/* eslint-disable sort-keys */
-
 import {
   IPuppetServer,
 }                       from '../src/'
