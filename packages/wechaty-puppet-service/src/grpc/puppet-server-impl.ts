@@ -1,4 +1,6 @@
-import grpc, { ServiceError, status } from 'grpc'
+import grpc             from 'grpc'
+import { FileBox }      from 'file-box'
+import { StringValue }  from 'google-protobuf/google/protobuf/wrappers_pb'
 
 import {
   IPuppetServer,
@@ -24,15 +26,47 @@ import {
   MessageMiniProgramResponse,
   MessagePayloadResponse,
   MessageRecallResponse,
+  MessageSendContactResponse,
+  MessageSendFileResponse,
+  MessageSendTextResponse,
+  MessageUrlResponse,
+  RoomAddResponse,
+  RoomAnnounceResponse,
+  RoomAvatarResponse,
+  RoomCreateResponse,
+  RoomDelResponse,
+  RoomInvitationAcceptResponse,
+  RoomInvitationPayloadResponse,
+  RoomListResponse,
+  RoomMemberListResponse,
+  RoomMemberPayloadResponse,
+  RoomPayloadResponse,
+  RoomQRCodeResponse,
+  RoomQuitResponse,
+  RoomTopicResponse,
+  StartResponse,
+  StopResponse,
+  TagContactAddResponse,
+  TagContactDeleteResponse,
+  TagContactListResponse,
+  TagContactRemoveResponse,
+  VersionResponse,
+  MessageSendMiniProgramResponse,
 }                                   from '@chatie/grpc'
 
-import { Puppet, PuppetEventName, PUPPET_EVENT_DICT, FriendshipPayloadReceive } from 'wechaty-puppet'
+import {
+  Puppet,
+  PuppetEventName,
+  PUPPET_EVENT_DICT,
+  FriendshipPayloadReceive,
+  MiniProgramPayload,
+  UrlLinkPayload,
+  RoomInvitationPayload,
+}                                   from 'wechaty-puppet'
 
 import { log } from '../config'
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
-import FileBox from 'file-box'
 
-const error = (method: string, e: Error, callback: Function) => {
+const grpcError = (method: string, e: Error, callback: Function) => {
   log.error('GrpcServerImpl', `${method}() rejection: %s`, e && e.message)
 
   const error: grpc.ServiceError = {
@@ -69,7 +103,7 @@ export function getServerImpl (
             await puppet.contactAlias(id, aliasWrapper.getValue())
             return callback(null, new ContactAliasResponse())
           } catch (e) {
-            return error('contactAlias', e, callback)
+            return grpcError('contactAlias', e, callback)
           }
         }
       }
@@ -88,7 +122,7 @@ export function getServerImpl (
 
         return callback(null, response)
       } catch (e) {
-        return error('contactAlias', e, callback)
+        return grpcError('contactAlias', e, callback)
       }
 
     },
@@ -113,7 +147,7 @@ export function getServerImpl (
           return callback(null, new ContactAvatarResponse())
         }
       } catch (e) {
-        return error('contactAvatar', e, callback)
+        return grpcError('contactAvatar', e, callback)
       }
 
       /**
@@ -132,7 +166,7 @@ export function getServerImpl (
 
         return callback(null, response)
       } catch (e) {
-        return error('contactAvatar', e, callback)
+        return grpcError('contactAvatar', e, callback)
       }
     },
 
@@ -148,7 +182,7 @@ export function getServerImpl (
 
         return callback(null, response)
       } catch (e) {
-        return error('contactList', e, callback)
+        return grpcError('contactList', e, callback)
       }
     },
 
@@ -177,7 +211,7 @@ export function getServerImpl (
 
         return callback(null, response)
       } catch (e) {
-        return error('contactPayload', e, callback)
+        return grpcError('contactPayload', e, callback)
       }
     },
 
@@ -188,10 +222,10 @@ export function getServerImpl (
         const name = call.request.getName()
         await puppet.contactSelfName(name)
 
-        callback(null, new ContactSelfNameResponse())
+        return callback(null, new ContactSelfNameResponse())
 
       } catch (e) {
-        return error('contactSelfName', e, callback)
+        return grpcError('contactSelfName', e, callback)
       }
     },
 
@@ -205,10 +239,10 @@ export function getServerImpl (
         const response = new ContactSelfQRCodeResponse()
         response.setQrcode(qrcode)
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('contactSelfQRCode', e, callback)
+        return grpcError('contactSelfQRCode', e, callback)
       }
 
     },
@@ -220,10 +254,10 @@ export function getServerImpl (
         const signature = call.request.getSignature()
         await puppet.contactSelfSignature(signature)
 
-        callback(null, new ContactSelfSignatureResponse())
+        return callback(null, new ContactSelfSignatureResponse())
 
       } catch (e) {
-        return error('contactSelfSignature', e, callback)
+        return grpcError('contactSelfSignature', e, callback)
       }
 
     },
@@ -234,10 +268,10 @@ export function getServerImpl (
       try {
         const data = call.request.getData()
         await puppet.ding(data)
-        callback(null, new DingResponse())
+        return callback(null, new DingResponse())
 
       } catch (e) {
-        return error('ding', e, callback)
+        return grpcError('ding', e, callback)
       }
     },
 
@@ -252,9 +286,9 @@ export function getServerImpl (
       if (eventStream) {
         log.error('GrpcServerImpl', 'event() called twice, which should not: return with error')
 
-        const error: ServiceError = {
+        const error: grpc.ServiceError = {
           ...new Error('GrpcServerImpl.event() can not call twice.'),
-          code: status.ALREADY_EXISTS,
+          code: grpc.status.ALREADY_EXISTS,
           details: 'GrpcServerImpl.event() can not call twice.',
         }
 
@@ -386,10 +420,10 @@ export function getServerImpl (
       try {
         const id = call.request.getId()
         await puppet.friendshipAccept(id)
-        callback(null, new FriendshipAcceptResponse())
+        return callback(null, new FriendshipAcceptResponse())
 
       } catch (e) {
-        return error('friendshipAccept', e, callback)
+        return grpcError('friendshipAccept', e, callback)
       }
     },
 
@@ -401,10 +435,10 @@ export function getServerImpl (
         const hello = call.request.getHello()
 
         await puppet.friendshipAdd(contactId, hello)
-        callback(null, new FriendshipAddResponse())
+        return callback(null, new FriendshipAddResponse())
 
       } catch (e) {
-        return error('friendshipAdd', e, callback)
+        return grpcError('friendshipAdd', e, callback)
       }
     },
 
@@ -426,10 +460,10 @@ export function getServerImpl (
         response.setTicket(payloadReceive.ticket)
         response.setType(payload.type as number)
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('friendshipPayload', e, callback)
+        return grpcError('friendshipPayload', e, callback)
       }
     },
 
@@ -448,10 +482,10 @@ export function getServerImpl (
           response.setContactId(contactIdWrapper)
         }
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('friendshipSearchPhone', e, callback)
+        return grpcError('friendshipSearchPhone', e, callback)
       }
     },
 
@@ -470,10 +504,10 @@ export function getServerImpl (
           response.setContactId(contactIdWrapper)
         }
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('friendshipSearchWeixin', e, callback)
+        return grpcError('friendshipSearchWeixin', e, callback)
       }
     },
 
@@ -483,10 +517,11 @@ export function getServerImpl (
 
       try {
         await puppet.logout()
-        callback(null, new LogoutResponse())
+
+        return callback(null, new LogoutResponse())
 
       } catch (e) {
-        return error('logout', e, callback)
+        return grpcError('logout', e, callback)
       }
     },
 
@@ -501,10 +536,10 @@ export function getServerImpl (
         const response = new MessageContactResponse()
         response.setId(contactId)
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('messageContact', e, callback)
+        return grpcError('messageContact', e, callback)
       }
     },
 
@@ -519,10 +554,10 @@ export function getServerImpl (
         const response = new MessageFileResponse()
         response.setFilebox(JSON.stringify(fileBox))
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('messageFile', e, callback)
+        return grpcError('messageFile', e, callback)
       }
     },
 
@@ -537,10 +572,10 @@ export function getServerImpl (
         const response = new MessageMiniProgramResponse()
         response.setMiniProgram(JSON.stringify(payload))
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('messageMiniProgram', e, callback)
+        return grpcError('messageMiniProgram', e, callback)
       }
     },
 
@@ -563,10 +598,10 @@ export function getServerImpl (
         response.setToId(payload.toId || '')
         response.setType(payload.type as number)
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        return error('messagePayload', e, callback)
+        return grpcError('messagePayload', e, callback)
       }
     },
 
@@ -581,184 +616,608 @@ export function getServerImpl (
         const response = new MessageRecallResponse()
         response.setSuccess(success)
 
-        callback(null, response)
+        return callback(null, response)
 
       } catch (e) {
-        error('messageRecall', e, callback)
+        grpcError('messageRecall', e, callback)
       }
     },
 
     messageSendContact: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'messageSendContact()')
+
+      try {
+        const conversationId = call.request.getConversationId()
+        const contactId = call.request.getContactId()
+
+        const messageId = await puppet.messageSendContact(conversationId, contactId)
+
+        const response = new MessageSendContactResponse()
+
+        if (messageId) {
+          const idWrapper = new StringValue()
+          idWrapper.setValue(messageId)
+          response.setId(idWrapper)
+        }
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageSendContact', e, callback)
+      }
     },
 
     messageSendFile: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'messageSendFile()')
+
+      try {
+        const conversationId = call.request.getConversationId()
+        const jsonText = call.request.getFilebox()
+
+        const fileBox = FileBox.fromJSON(jsonText)
+
+        const messageId = await puppet.messageSendFile(conversationId, fileBox)
+
+        const response = new MessageSendFileResponse()
+
+        if (messageId) {
+          const idWrapper = new StringValue()
+          idWrapper.setValue(messageId)
+          response.setId(idWrapper)
+        }
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageSendFile', e, callback)
+      }
     },
 
     messageSendMiniProgram: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'messageSendMiniProgram()')
+
+      try {
+        const conversationId = call.request.getConversationId()
+        const jsonText = call.request.getMiniProgram()
+
+        const payload = JSON.parse(jsonText) as MiniProgramPayload
+
+        const messageId = await puppet.messageSendMiniProgram(conversationId, payload)
+
+        const response = new MessageSendMiniProgramResponse()
+
+        if (messageId) {
+          const idWrapper = new StringValue()
+          idWrapper.setValue(messageId)
+          response.setId(idWrapper)
+        }
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageSendMiniProgram', e, callback)
+      }
     },
 
     messageSendText: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'messageSendText()')
+
+      try {
+        const conversationId = call.request.getConversationId()
+        const text = call.request.getText()
+        const mentionIdList = call.request.getMentonalIdsList()
+
+        const messageId = await puppet.messageSendText(conversationId, text, mentionIdList)
+
+        const response = new MessageSendTextResponse()
+
+        if (messageId) {
+          const idWrapper = new StringValue()
+          idWrapper.setValue(messageId)
+          response.setId(idWrapper)
+        }
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageSendText', e, callback)
+      }
     },
 
     messageSendUrl: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'messageSendUrl()')
+
+      try {
+        const conversationId = call.request.getConversationId()
+        const jsonText = call.request.getUrlLink()
+
+        const payload = JSON.parse(jsonText) as UrlLinkPayload
+
+        const messageId = await puppet.messageSendUrl(conversationId, payload)
+
+        const response = new MessageSendTextResponse()
+
+        if (messageId) {
+          const idWrapper = new StringValue()
+          idWrapper.setValue(messageId)
+          response.setId(idWrapper)
+        }
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageSendUrl', e, callback)
+      }
     },
 
     messageUrl: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'messageUrl()')
+
+      try {
+        const id = call.request.getId()
+        const payload = await puppet.messageUrl(id)
+
+        const response = new MessageUrlResponse()
+        response.setUrlLink(JSON.stringify(payload))
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageUrl', e, callback)
+      }
     },
 
     roomAdd: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomAdd()')
+
+      try {
+        const roomId = call.request.getId()
+        const contactId = call.request.getContactId()
+
+        await puppet.roomAdd(roomId, contactId)
+
+        return callback(null, new RoomAddResponse())
+
+      } catch (e) {
+        return grpcError('roomAdd', e, callback)
+      }
     },
 
     roomAnnounce: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomAnnounce()')
+
+      try {
+        const roomId = call.request.getId()
+
+        /**
+         * Set
+         */
+        {
+          const textWrapper = call.request.getText()
+
+          if (textWrapper) {
+            const text = textWrapper.getValue()
+            await puppet.roomAnnounce(roomId, text)
+
+            return callback(null, new RoomAnnounceResponse())
+          }
+        }
+
+        /**
+         * Get
+         */
+        const text = await puppet.roomAnnounce(roomId)
+
+        const textWrapper = new StringValue()
+        textWrapper.setValue(text)
+
+        const response = new RoomAnnounceResponse()
+        response.setText(textWrapper)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomAnnounce', e, callback)
+      }
     },
 
     roomAvatar: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomAvatar()')
+
+      try {
+        const roomId = call.request.getId()
+
+        const fileBox = await puppet.roomAvatar(roomId)
+
+        const response = new RoomAvatarResponse()
+        response.setFilebox(JSON.stringify(fileBox))
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomAvatar', e, callback)
+      }
     },
 
     roomCreate: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomCreate()')
+
+      try {
+        const contactIdList = call.request.getContactIdsList()
+        const topic = call.request.getTopic()
+
+        const roomId = await puppet.roomCreate(contactIdList, topic)
+
+        const response = new RoomCreateResponse()
+        response.setId(roomId)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomCreate', e, callback)
+      }
     },
 
     roomDel: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomDel()')
+
+      try {
+        const roomId = call.request.getId()
+        const contactId = call.request.getContactId()
+
+        await puppet.roomDel(roomId, contactId)
+
+        return callback(null, new RoomDelResponse())
+
+      } catch (e) {
+        return grpcError('roomDel', e, callback)
+      }
     },
 
     roomInvitationAccept: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomInvitationAccept()')
+
+      try {
+        const id = call.request.getId()
+
+        await puppet.roomInvitationAccept(id)
+
+        return callback(null, new RoomInvitationAcceptResponse())
+
+      } catch (e) {
+        return grpcError('roomInvitationAccept', e, callback)
+      }
     },
 
     roomInvitationPayload: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomInvitationPayload()')
+
+      try {
+        const roomInvitationId = call.request.getId()
+        /**
+          * Set
+          */
+        {
+          const payloadWrapper = call.request.getPayload()
+
+          if (payloadWrapper) {
+            const jsonText = payloadWrapper.getValue()
+            const payload = JSON.parse(jsonText) as RoomInvitationPayload
+            await puppet.roomInvitationPayload(roomInvitationId, payload)
+
+            return callback(null, new RoomInvitationPayloadResponse())
+          }
+        }
+
+        /**
+         * Get
+         */
+        const payload = await puppet.roomInvitationPayload(roomInvitationId)
+
+        const response = new RoomInvitationPayloadResponse()
+        response.setAvatar(payload.avatar)
+        response.setId(payload.id)
+        response.setInvitation(payload.invitation)
+        response.setInviterId(payload.inviterId)
+        response.setMemberCount(payload.memberCount)
+        response.setMemberIdsList(payload.memberIdList)
+        response.setTimestamp(payload.timestamp)
+        response.setTopic(payload.topic)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomInvitationPayload', e, callback)
+      }
     },
 
     roomList: async (call, callback) => {
+      log.verbose('GrpcServerImpl', 'roomList()')
       void call
-      void callback
-      throw new Error('not implmented.')
+
+      try {
+        const roomIdList = await puppet.roomList()
+
+        const response = new RoomListResponse()
+        response.setIdsList(roomIdList)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomList', e, callback)
+      }
     },
 
     roomMemberList: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomMemberList()')
+
+      try {
+        const roomId = call.request.getId()
+
+        const roomMemberIdList = await puppet.roomMemberList(roomId)
+
+        const response = new RoomMemberListResponse()
+        response.setMemberIdsList(roomMemberIdList)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomMemberList', e, callback)
+      }
     },
 
     roomMemberPayload: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomMemberPayload()')
+
+      try {
+        const roomId = call.request.getId()
+        const memberId = call.request.getMemberId()
+
+        const payload = await puppet.roomMemberPayload(roomId, memberId)
+
+        const response = new RoomMemberPayloadResponse()
+
+        response.setAvatar(payload.avatar)
+        response.setId(payload.id)
+        response.setInviterId(payload.inviterId || '')
+        response.setName(payload.name)
+        response.setRoomAlias(payload.roomAlias || '')
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomMemberPayload', e, callback)
+      }
     },
 
     roomPayload: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomPayload()')
+
+      try {
+        const roomId = call.request.getId()
+
+        const payload = await puppet.roomPayload(roomId)
+
+        const response = new RoomPayloadResponse()
+        response.setAdminIdsList(payload.adminIdList)
+        response.setAvatar(payload.avatar || '')
+        response.setId(payload.id)
+        response.setMemberIdsList(payload.memberIdList)
+        response.setOwnerId(payload.ownerId || '')
+        response.setTopic(payload.topic)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomPayload', e, callback)
+      }
     },
 
     roomQRCode: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomQRCode()')
+
+      try {
+        const roomId = call.request.getId()
+
+        const qrcode = await puppet.roomQRCode(roomId)
+
+        const response = new RoomQRCodeResponse()
+        response.setQrcode(qrcode)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomQRCode', e, callback)
+      }
     },
 
     roomQuit: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomQuit()')
+
+      try {
+        const roomId = call.request.getId()
+
+        await puppet.roomQuit(roomId)
+
+        return callback(null, new RoomQuitResponse())
+
+      } catch (e) {
+        return grpcError('roomQuit', e, callback)
+      }
     },
 
     roomTopic: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'roomTopic()')
+
+      try {
+        const roomId = call.request.getId()
+
+        /**
+         * Set
+         */
+        {
+          const topicWrapper = call.request.getTopic()
+          if (topicWrapper) {
+            const topic = topicWrapper.getValue()
+
+            await puppet.roomTopic(roomId, topic)
+
+            return callback(null, new RoomTopicResponse())
+          }
+        }
+
+        /**
+         * Get
+         */
+
+        const topic = await puppet.roomTopic(roomId)
+
+        const topicWrapper = new StringValue()
+        topicWrapper.setValue(topic)
+
+        const response = new RoomTopicResponse()
+        response.setTopic(topicWrapper)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('roomTopic', e, callback)
+      }
     },
 
     start: async (call, callback) => {
+      log.verbose('GrpcServerImpl', 'start()')
       void call
-      void callback
-      throw new Error('not implmented.')
+
+      try {
+        await puppet.start()
+
+        return callback(null, new StartResponse())
+
+      } catch (e) {
+        return grpcError('start', e, callback)
+      }
     },
 
     stop: async (call, callback) => {
       log.verbose('GrpcServerImpl', 'stop()')
-
-      if (eventStream) {
-        eventStream.end()
-        eventStream = undefined
-      } else {
-        log.error('GrpcServerImpl', 'stop() eventStream is undefined?')
-      }
-
-
       void call
-      void callback
-      throw new Error('not implmented.')
 
+      try {
+
+        if (eventStream) {
+          eventStream.end()
+          eventStream = undefined
+        } else {
+          log.error('GrpcServerImpl', 'stop() eventStream is undefined?')
+        }
+
+        await puppet.stop()
+
+        return callback(null, new StopResponse())
+
+      } catch (e) {
+        return grpcError('stop', e, callback)
+      }
     },
 
     tagContactAdd: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'tagContactAdd()')
+
+      try {
+        const tagId = call.request.getId()
+        const contactId = call.request.getContactId()
+
+        await puppet.tagContactAdd(tagId, contactId)
+
+        return callback(null, new TagContactAddResponse())
+
+      } catch (e) {
+        return grpcError('tagContactAdd', e, callback)
+      }
     },
 
     tagContactDelete: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'tagContactDelete()')
+
+      try {
+        const tagId = call.request.getId()
+
+        await puppet.tagContactDelete(tagId)
+
+        return callback(null, new TagContactDeleteResponse())
+
+      } catch (e) {
+        return grpcError('tagContactDelete', e, callback)
+      }
     },
 
     tagContactList: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'tagContactList()')
+
+      try {
+        const contactIdWrapper = call.request.getContactId()
+
+        /**
+         * for a specific contact
+         */
+        if (contactIdWrapper) {
+          const contactId = contactIdWrapper.getValue()
+
+          const tagIdList = await puppet.tagContactList(contactId)
+
+          const response = new TagContactListResponse()
+          response.setIdsList(tagIdList)
+
+          return callback(null, new TagContactListResponse())
+        }
+
+        /**
+         * get all tags for all contact
+         */
+        const tagIdList = await puppet.tagContactList()
+
+        const response = new TagContactListResponse()
+        response.setIdsList(tagIdList)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('tagContactList', e, callback)
+      }
     },
 
     tagContactRemove: async (call, callback) => {
-      void call
-      void callback
-      throw new Error('not implmented.')
+      log.verbose('GrpcServerImpl', 'tagContactRemove()')
+
+      try {
+        const tagId = call.request.getId()
+        const contactId = call.request.getContactId()
+
+        await puppet.tagContactRemove(tagId, contactId)
+
+        return callback(null, new TagContactRemoveResponse())
+
+      } catch (e) {
+        return grpcError('tagContactRemove', e, callback)
+      }
     },
 
     version: async (call, callback) => {
+      log.verbose('GrpcServerImpl', 'version() v%s', puppet.version())
       void call
-      void callback
-      throw new Error('not implmented.')
+
+      try {
+        const version = puppet.version()
+
+        const response = new VersionResponse()
+        response.setVersion(version)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('version', e, callback)
+      }
     },
 
   }

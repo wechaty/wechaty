@@ -56,10 +56,10 @@
   },
   "peerDependencies": {
     "file-box": "^0.12.1",
-    "wechaty-puppet": "^0.19.9"
+    "wechaty-puppet": "^0.19.10"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.5.23"
+    "@chatie/grpc": "^0.5.25"
   },
   "git": {
     "scripts": {
