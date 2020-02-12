@@ -52,14 +52,14 @@
     "pkg-jq": "^0.2.4",
     "tstest": "^0.4.2",
     "google-protobuf": "^3.11.3",
-    "wechaty-puppet": "^0.19.3"
+    "wechaty-puppet": "^0.19.9"
   },
   "peerDependencies": {
     "file-box": "^0.12.1",
-    "wechaty-puppet": "^0.19.3"
+    "wechaty-puppet": "^0.19.9"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.5.21"
+    "@chatie/grpc": "^0.5.23"
   },
   "git": {
     "scripts": {
