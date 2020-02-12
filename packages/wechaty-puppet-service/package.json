@@ -61,6 +61,10 @@
   "dependencies": {
     "@chatie/grpc": "^0.6.1"
   },
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
   "git": {
     "scripts": {
       "pre-push": "npx git-scripts-pre-push"
