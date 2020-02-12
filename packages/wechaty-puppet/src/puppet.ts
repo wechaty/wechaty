@@ -99,16 +99,16 @@ export abstract class Puppet extends EventEmitter {
    */
   public static readonly VERSION: string = '0.0.0'
 
-  protected readonly cacheContactPayload    : QuickLru<string, ContactPayload>
-  protected readonly cacheFriendshipPayload : QuickLru<string, FriendshipPayload>
-  protected readonly cacheMessagePayload    : QuickLru<string, MessagePayload>
-  protected readonly cacheRoomPayload       : QuickLru<string, RoomPayload>
-  protected readonly cacheRoomMemberPayload : QuickLru<string, RoomMemberPayload>
+  protected readonly cacheContactPayload        : QuickLru<string, ContactPayload>
+  protected readonly cacheFriendshipPayload     : QuickLru<string, FriendshipPayload>
+  protected readonly cacheMessagePayload        : QuickLru<string, MessagePayload>
+  protected readonly cacheRoomPayload           : QuickLru<string, RoomPayload>
+  protected readonly cacheRoomMemberPayload     : QuickLru<string, RoomMemberPayload>
   protected readonly cacheRoomInvitationPayload : QuickLru<string, RoomInvitationPayload>
 
   protected readonly state   : StateSwitch
   protected readonly counter : number
-  protected memory           : MemoryCard
+  protected memory          : MemoryCard
 
   /**
    * Login-ed User ID
@@ -187,12 +187,13 @@ export abstract class Puppet extends EventEmitter {
       maxSize: 10 * 1000,
     }
 
-    this.cacheContactPayload    = new QuickLru<string, ContactPayload>(lruOptions)
-    this.cacheFriendshipPayload = new QuickLru<string, FriendshipPayload>(lruOptions)
-    this.cacheMessagePayload    = new QuickLru<string, MessagePayload>(lruOptions)
-    this.cacheRoomPayload       = new QuickLru<string, RoomPayload>(lruOptions)
-    this.cacheRoomMemberPayload = new QuickLru<string, RoomMemberPayload>(lruOptions)
+    this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions)
+    this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions)
+    this.cacheMessagePayload        = new QuickLru<string, MessagePayload>(lruOptions)
+    this.cacheRoomPayload           = new QuickLru<string, RoomPayload>(lruOptions)
+    this.cacheRoomMemberPayload     = new QuickLru<string, RoomMemberPayload>(lruOptions)
     this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions)
+
     /**
      * 4. Load the package.json for Puppet Plugin version range matching
      *
@@ -457,25 +458,25 @@ export abstract class Puppet extends EventEmitter {
    * ContactSelf
    *
    */
-  public abstract async contactSelfQRCode ()                     : Promise<string /* QR Code Value */>
   public abstract async contactSelfName (name: string)           : Promise<void>
+  public abstract async contactSelfQRCode ()                     : Promise<string /* QR Code Value */>
   public abstract async contactSelfSignature (signature: string) : Promise<void>
 
   /**
    *
    * Tag
+   *  tagContactAdd - add a tag for a Contact. Create it first if it not exist.
+   *  tagContactRemove - remove a tag from the Contact
+   *  tagContactDelete - delete a tag from Wechat
+   *  tagContactList(id) - get tags from a specific Contact
+   *  tagContactList() - get tags from all Contacts
    *
    */
-  // add a tag for a Contact. Create it first if it not exist.
-  public abstract async tagContactAdd (id: string, contactId: string) : Promise<void>
-  // remove a tag from the Contact
-  public abstract async tagContactRemove (id: string, contactId: string) : Promise<void>
-  // delete a tag from Wechat
-  public abstract async tagContactDelete (id: string) : Promise<void>
-  // get tags from a specific Contact
-  public abstract async tagContactList (contactId: string) : Promise<string[]>
-  // get tags from all Contacts
-  public abstract async tagContactList (): Promise<string[]>
+  public abstract async tagContactAdd (tagId: string, contactId: string)    : Promise<void>
+  public abstract async tagContactDelete (tagId: string)                    : Promise<void>
+  public abstract async tagContactList (contactId: string)                  : Promise<string[]>
+  public abstract async tagContactList ()                                   : Promise<string[]>
+  public abstract async tagContactRemove (tagId: string, contactId: string) : Promise<void>
 
   /**
    *
@@ -710,10 +711,14 @@ export abstract class Puppet extends EventEmitter {
    * Friendship
    *
    */
-  // return contact id by phone number
-  public abstract async friendshipSearchPhone (phone: string) : Promise<string | null>
-  // return contact id by weixin id
-  public abstract async friendshipSearchWeixin (weixin: string) : Promise<string | null>
+  public abstract async friendshipAccept (friendshipId: string)           : Promise<void>
+  public abstract async friendshipAdd (contactId: string, hello?: string) : Promise<void>
+
+  public abstract async friendshipSearchPhone (phone: string)   : Promise<null | string>
+  public abstract async friendshipSearchWeixin (weixin: string) : Promise<null | string>
+
+  protected abstract async friendshipRawPayload (friendshipId: string)  : Promise<any>
+  protected abstract async friendshipRawPayloadParser (rawPayload: any) : Promise<FriendshipPayload>
 
   public async friendshipSearch (
     searchQueryFilter: FriendshipSearchQueryFilter,
@@ -733,14 +738,9 @@ export abstract class Puppet extends EventEmitter {
     throw new Error(`unknown key from searchQueryFilter: ${Object.keys(searchQueryFilter).join('')}`)
   }
 
-  public abstract async friendshipAdd (contactId: string, hello?: string) : Promise<void>
-  public abstract async friendshipAccept (friendshipId: string)           : Promise<void>
-
-  protected abstract async friendshipRawPayload (friendshipId: string)   : Promise<any>
-  protected abstract async friendshipRawPayloadParser (rawPayload: any)  : Promise<FriendshipPayload>
-
   protected friendshipPayloadCache (friendshipId: string): undefined | FriendshipPayload {
-    // log.silly('Puppet', 'friendshipPayloadCache(id=%s) @ %s', friendshipId, this)
+    log.silly('Puppet', 'friendshipPayloadCache(id=%s) @ %s', friendshipId, this)
+
     if (!friendshipId) {
       throw new Error('no id')
     }
@@ -760,24 +760,25 @@ export abstract class Puppet extends EventEmitter {
     this.cacheFriendshipPayload.delete(friendshipId)
   }
 
-  // get
-  public async friendshipPayload (friendshipId: string): Promise<FriendshipPayload>
-  // set
-  public async friendshipPayload (friendshipId: string, friendshipPayload: FriendshipPayload): Promise<void>
+  /**
+   * Get & Set
+   */
+  public async friendshipPayload (friendshipId: string)                                : Promise<FriendshipPayload>
+  public async friendshipPayload (friendshipId: string, newPayload: FriendshipPayload) : Promise<void>
 
   public async friendshipPayload (
-    friendshipId: string,
-    friendshipPayload?: FriendshipPayload,
+    friendshipId : string,
+    newPayload?  : FriendshipPayload,
   ): Promise<void | FriendshipPayload> {
     log.verbose('Puppet', 'friendshipPayload(%s)',
       friendshipId,
-      friendshipPayload
-        ? ',' + JSON.stringify(friendshipPayload)
+      newPayload
+        ? ',' + JSON.stringify(newPayload)
         : '',
     )
 
-    if (typeof friendshipPayload === 'object') {
-      await this.cacheFriendshipPayload.set(friendshipId, friendshipPayload)
+    if (typeof newPayload === 'object') {
+      await this.cacheFriendshipPayload.set(friendshipId, newPayload)
       return
     }
 
@@ -805,16 +806,16 @@ export abstract class Puppet extends EventEmitter {
    * Message
    *
    */
-  public abstract async messageContact (messageId: string)  : Promise<string>
-  public abstract async messageFile (messageId: string) : Promise<FileBox>
-  public abstract async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload>
-  public abstract async messageUrl (messageId: string)  : Promise<UrlLinkPayload>
+  public abstract async messageContact (messageId: string)     : Promise<string>
+  public abstract async messageFile (messageId: string)        : Promise<FileBox>
+  public abstract async messageMiniProgram (messageId: string) : Promise<MiniProgramPayload>
+  public abstract async messageUrl (messageId: string)         : Promise<UrlLinkPayload>
 
-  public abstract async messageSendContact (conversationId: string, contactId: string)                   : Promise<void | string>
-  public abstract async messageSendFile (conversationId: string, file: FileBox)                          : Promise<void | string>
-  public abstract async messageSendText (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
-  public abstract async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload)          : Promise<void | string>
-  public abstract async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload)          : Promise<void | string>
+  public abstract async messageSendContact (conversationId: string, contactId: string)                          : Promise<void | string>
+  public abstract async messageSendFile (conversationId: string, file: FileBox)                                 : Promise<void | string>
+  public abstract async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
+  public abstract async messageSendText (conversationId: string, text: string, mentionIdList?: string[])        : Promise<void | string>
+  public abstract async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload)                 : Promise<void | string>
 
   public abstract async messageRecall (messageId: string) : Promise<boolean>
 
@@ -1017,7 +1018,9 @@ export abstract class Puppet extends EventEmitter {
    * Room Invitation
    *
    */
-  protected roomInvitationPayloadCache (roomInvitationId: string): undefined | RoomInvitationPayload {
+  protected roomInvitationPayloadCache (
+    roomInvitationId: string,
+  ): undefined | RoomInvitationPayload {
     // log.silly('Puppet', 'roomInvitationPayloadCache(id=%s) @ %s', friendshipId, this)
     if (!roomInvitationId) {
       throw new Error('no id')
@@ -1038,16 +1041,17 @@ export abstract class Puppet extends EventEmitter {
   protected abstract async roomInvitationRawPayload (roomInvitationId: string) : Promise<any>
   protected abstract async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload>
 
-  // get
-  public async roomInvitationPayload (roomInvitationId: string): Promise<RoomInvitationPayload>
-  // set
-  public async roomInvitationPayload (roomInvitationId: string, roomInvitationPayload: RoomInvitationPayload): Promise<void>
+  /**
+   * Get & Set
+   */
+  public async roomInvitationPayload (roomInvitationId: string)                                    : Promise<RoomInvitationPayload>
+  public async roomInvitationPayload (roomInvitationId: string, newPayload: RoomInvitationPayload) : Promise<void>
 
-  public async roomInvitationPayload (roomInvitationId: string, roomInvitationPayload?: RoomInvitationPayload): Promise<void | RoomInvitationPayload> {
+  public async roomInvitationPayload (roomInvitationId: string, newPayload?: RoomInvitationPayload): Promise<void | RoomInvitationPayload> {
     log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
 
-    if (typeof roomInvitationPayload === 'object') {
-      this.cacheRoomInvitationPayload.set(roomInvitationId, roomInvitationPayload)
+    if (typeof newPayload === 'object') {
+      this.cacheRoomInvitationPayload.set(roomInvitationId, newPayload)
       return
     }
 
@@ -1078,25 +1082,26 @@ export abstract class Puppet extends EventEmitter {
   public abstract async roomAvatar (roomId: string)                          : Promise<FileBox>
   public abstract async roomCreate (contactIdList: string[], topic?: string) : Promise<string>
   public abstract async roomDel (roomId: string, contactId: string)          : Promise<void>
+  public abstract async roomList ()                                          : Promise<string[]>
+  public abstract async roomQRCode (roomId: string)                          : Promise<string>
   public abstract async roomQuit (roomId: string)                            : Promise<void>
-
-  public abstract async roomTopic (roomId: string)                 : Promise<string>
-  public abstract async roomTopic (roomId: string, topic: string)  : Promise<void>
-  // public abstract async roomTopic (roomId: string, topic?: string) : Promise<string | void>
-
-  public abstract async roomQRCode (roomId: string) : Promise<string>
-
-  public abstract async roomList ()                     : Promise<string[]>
-  public abstract async roomMemberList (roomId: string) : Promise<string[]>
+  public abstract async roomTopic (roomId: string)                           : Promise<string>
+  public abstract async roomTopic (roomId: string, topic: string)            : Promise<void>
 
   protected abstract async roomRawPayload (roomId: string)        : Promise<any>
   protected abstract async roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload>
 
-  protected abstract async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any>
-  protected abstract async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload>
-
+  /**
+   *
+   * RoomMember
+   *
+   */
   public abstract async roomAnnounce (roomId: string)               : Promise<string>
   public abstract async roomAnnounce (roomId: string, text: string) : Promise<void>
+  public abstract async roomMemberList (roomId: string)             : Promise<string[]>
+
+  protected abstract async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any>
+  protected abstract async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload>
 
   public async roomMemberSearch (
     roomId : string,
