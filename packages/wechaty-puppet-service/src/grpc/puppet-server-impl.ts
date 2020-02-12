@@ -306,6 +306,10 @@ export function getServerImpl (
 
       eventStream = call
 
+      /**
+       * Detect if Inexor Core is gone (GRPC disconnects)
+       *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
+       */
       call.on('cancelled', function () {
         log.verbose('GrpcServerImpl', 'event() call.on(cancelled) fired with arguments: %s', JSON.stringify(arguments))
         eventStream = undefined
@@ -318,6 +322,16 @@ export function getServerImpl (
 
       call.on('finish', () => {
         log.verbose('GrpcServerImpl', 'event() call.on(finish) fired')
+        eventStream = undefined
+      })
+
+      call.on('end', () => {
+        log.verbose('GrpcServerImpl', 'event() call.on(end) fired')
+        eventStream = undefined
+      })
+
+      call.on('close', () => {
+        log.verbose('GrpcServerImpl', 'event() call.on(close) fired')
         eventStream = undefined
       })
 
