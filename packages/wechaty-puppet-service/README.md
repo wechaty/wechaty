@@ -30,7 +30,7 @@ wechaty.start()
 
 ## Environment Variables
 
-### 1 `WECHATY_PUPPET_HOSTIE_TOKEN'
+### 1 `WECHATY_PUPPET_HOSTIE_TOKEN`
 
 The token set to this environment variable will become the default value of `puppetOptions.token`
 
