@@ -89,7 +89,12 @@ export class PuppetManager {
     await this.checkModule(puppetName)
 
     const puppetModule = await import(puppetName)
-    const MyPuppet     = puppetModule.default as PuppetImplementation
+
+    if (!puppetModule.default) {
+      throw new Error(`Puppet(${puppetName}) has not provided the default export`)
+    }
+
+    const MyPuppet = puppetModule.default as PuppetImplementation
 
     return MyPuppet
   }
