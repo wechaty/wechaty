@@ -65,49 +65,36 @@ export class PuppetManager {
     return puppetInstance
   }
 
-  protected static async resolveName (puppetName: PuppetModuleName): Promise<PuppetImplementation> {
+  protected static async resolveName (
+    puppetName: PuppetModuleName,
+  ): Promise<PuppetImplementation> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
     if (!puppetName) {
       throw new Error('must provide a puppet name')
     }
 
-    // TODO(huan): remove the unnecessary switch
-    switch (puppetName) {
-      // case 'padchat':
-      //   // issue #1496 https://github.com/wechaty/wechaty/issues/1496
-      //   // compatible old settings for padchat
-      //   puppetName = 'wechaty-puppet-padchat'
-      //   break
-
-      // case 'mock':
-      //   puppetName = 'wechaty-puppet-mock'
-      //   break
-
-      // case 'default':
-      //   puppetName = PUPPET_NAME_DEFAULT
-      //   break
-
-      default:
-        if (!(puppetName in PUPPET_DEPENDENCIES)) {
-          throw new Error(
-            [
-              '',
-              'puppet npm module not supported: "' + puppetName + '"',
-              'learn more about supported Wechaty Puppet from our directory at',
-              '<https://github.com/wechaty/wechaty-puppet/wiki/Directory>',
-              '',
-            ].join('\n')
-          )
-        }
-        // PuppetName is valid
-        break
+    if (!(puppetName in PUPPET_DEPENDENCIES)) {
+      throw new Error(
+        [
+          '',
+          'puppet npm module not supported: "' + puppetName + '"',
+          'learn more about supported Wechaty Puppet from our directory at',
+          '<https://github.com/wechaty/wechaty-puppet/wiki/Directory>',
+          '',
+        ].join('\n')
+      )
     }
 
     await this.checkModule(puppetName)
 
     const puppetModule = await import(puppetName)
-    const MyPuppet     = puppetModule.default as PuppetImplementation
+
+    if (!puppetModule.default) {
+      throw new Error(`Puppet(${puppetName}) has not provided the default export`)
+    }
+
+    const MyPuppet = puppetModule.default as PuppetImplementation
 
     return MyPuppet
   }

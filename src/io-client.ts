@@ -22,6 +22,9 @@
  */
 import { StateSwitch }  from 'state-switch'
 
+import { PuppetHostieServer } from 'wechaty-puppet-hostie'
+import { PuppetHostieGrpcServerOptions } from 'wechaty-puppet-hostie/dist/src/grpc/puppet-server'
+
 import { Message }      from './user'
 
 import {
@@ -37,26 +40,54 @@ export interface IoClientOptions {
 
 export class IoClient {
 
-  private io: Io // XXX keep io `null-able` or not? 20161026
+  /**
+   * Huan(20161026): keep io `null-able` or not?
+   * Huan(202002): make it optional.
+   */
+  private io?: Io
+  private hostieServer?: PuppetHostieServer
 
   private state: StateSwitch
 
   constructor (
     public options: IoClientOptions,
   ) {
-    log.verbose('IoClient', 'constructor(%s)', JSON.stringify(options))
+    log.verbose('IoClient', 'constructor({token: %s})',
+      options.token
+    )
 
     this.state = new StateSwitch('IoClient', log)
+  }
 
-    this.io = new Io({
-      token   : this.options.token,
-      wechaty : this.options.wechaty,
-    })
+  private async startHostie () {
+    log.verbose('IoClient', 'startHostie()')
 
+    if (this.hostieServer) {
+      throw new Error('hostie server exists')
+    }
+
+    const options: PuppetHostieGrpcServerOptions = {
+      endpoint : '0.0.0.0:8788',
+      puppet   : this.options.wechaty.puppet,
+      token    : this.options.token,
+    }
+    this.hostieServer = new PuppetHostieServer(options)
+    await this.hostieServer.start()
+  }
+
+  private async stopHostie () {
+    log.verbose('IoClient', 'stopHostie()')
+
+    if (!this.hostieServer) {
+      throw new Error('hostie server does not exist')
+    }
+
+    await this.hostieServer.stop()
+    this.hostieServer = undefined
   }
 
   public async start (): Promise<void> {
-    log.verbose('IoClient', 'init()')
+    log.verbose('IoClient', 'start()')
 
     if (this.state.pending()) {
       log.warn('IoClient', 'start() with a pending state, not the time')
@@ -67,14 +98,17 @@ export class IoClient {
     this.state.on('pending')
 
     try {
+      await this.hookWechaty(this.options.wechaty)
 
       await this.startIo()
-      await this.hookWechaty(this.options.wechaty)
+
+      await this.options.wechaty.start()
+      await this.startHostie()
 
       this.state.on(true)
 
     } catch (e) {
-      log.error('IoClient', 'init() exception: %s', e.message)
+      log.error('IoClient', 'start() exception: %s', e.message)
       this.state.off(true)
       throw e
     }
@@ -105,12 +139,33 @@ export class IoClient {
       throw e
     }
 
+    if (this.io) {
+      throw new Error('io exists')
+    }
+
+    this.io = new Io({
+      token   : this.options.token,
+      wechaty : this.options.wechaty,
+    })
+
     try {
       await this.io.start()
     } catch (e) {
       log.verbose('IoClient', 'startIo() init fail: %s', e.message)
       throw e
     }
+  }
+
+  private async stopIo () {
+    log.verbose('IoClient', 'stopIo()')
+
+    if (!this.io) {
+      log.warn('IoClient', 'stopIo() io does not exist')
+      return
+    }
+
+    await this.io.stop()
+    this.io = undefined
   }
 
   private async onMessage (msg: Message) {
@@ -138,14 +193,10 @@ export class IoClient {
 
     this.state.off('pending')
 
-    // XXX
-    if (!this.io) {
-      log.warn('IoClient', 'stop() without this.io')
-      this.state.off(true)
-      return
-    }
+    await this.stopIo()
+    await this.stopHostie()
+    await this.options.wechaty.stop()
 
-    await this.io.stop()
     this.state.off(true)
 
     // XXX 20161026
