@@ -56,6 +56,7 @@ import {
 import {
   MiniProgram,
 }                       from './mini-program'
+import { Image } from './image'
 
 export interface MessageUserQueryFilter {
   from? : Contact,
@@ -966,6 +967,14 @@ export class Message extends Accessory implements Sayable {
     }
     const fileBox = await this.puppet.messageFile(this.id)
     return fileBox
+  }
+
+  public async toImage (): Promise<Image> {
+    if (this.type() === Message.Type.Image) {
+      return this.wechaty.Image.load(this.id)
+    } else {
+      throw new Error('only image message no file')
+    }
   }
 
   /**
