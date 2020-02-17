@@ -24,8 +24,8 @@ import {
 }                 from './user'
 
 import {
-  PuppetQrcodeScanEvent,
-}                 from 'wechaty-puppet'
+  PuppetQRCodeScanEvent,
+}                         from 'wechaty-puppet'
 
 import {
   config,
@@ -64,7 +64,7 @@ type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
   name    : 'scan',
-  payload : PuppetQrcodeScanEvent,
+  payload : PuppetQRCodeScanEvent,
 }
 
 interface IoEventAny {
@@ -90,7 +90,7 @@ export class Io {
 
   private onMessage: undefined | AnyFunction
 
-  private scanPayload?: PuppetQrcodeScanEvent
+  private scanPayload?: PuppetQRCodeScanEvent
 
   constructor (
     private options: IoOptions,
@@ -150,6 +150,7 @@ export class Io {
       this.state.on(true)
 
       return
+
     } catch (e) {
       log.warn('Io', 'start() exception: %s', e.message)
       this.state.off(true)
