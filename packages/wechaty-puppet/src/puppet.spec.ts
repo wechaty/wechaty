@@ -23,6 +23,9 @@ import {
   FriendshipPayload,
 }                                 from './schemas/friendship'
 import {
+  ImageType,
+}                                 from './schemas/image'
+import {
   MessagePayload,
   MessagePayloadFilterFunction,
   MessageQueryFilter,
@@ -43,10 +46,6 @@ import {
 import {
   MiniProgramPayload,
 }                                 from './schemas/mini-program'
-
-// import {
-//   Receiver,
-// }                                 from './schemas/puppet'
 
 import {
   Puppet,
@@ -116,16 +115,17 @@ class PuppetTest extends Puppet {
    * Message
    *
    */
-  public async messageFile (messageId: string) : Promise<FileBox> { return { messageId } as any }
-  public async messageContact (messageId: string)  : Promise<string> { return { messageId } as any }
-  public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
-  public async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
+  public async messageContact     (messageId: string)                       : Promise<string> { return { messageId } as any }
+  public async messageFile        (messageId: string)                       : Promise<FileBox> { return { messageId } as any }
+  public async messageImage       (messageId: string, imageType: ImageType) : Promise<FileBox> { return { imageType, messageId } as any }
+  public async messageMiniProgram (messageId: string)                       : Promise<MiniProgramPayload> { return { messageId } as any }
+  public async messageUrl         (messageId: string)                       : Promise<UrlLinkPayload> { return { messageId } as any }
 
-  public async messageForward (conversationId: string, messageId: string)              : Promise<void | string> { return { conversationId, messageId } as any }
-  public async messageSendContact (conversationId: string, contactId: string)    : Promise<void | string> { return { contactId, conversationId } as any }
-  public async messageSendFile (conversationId: string, file: FileBox)                 : Promise<void | string> { return { conversationId, file } as any }
-  public async messageSendText (conversationId: string, text: string)                  : Promise<void | string> { return { conversationId, text } as any }
-  public async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
+  public async messageForward         (conversationId: string, messageId: string)                      : Promise<void | string> { return { conversationId, messageId } as any }
+  public async messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string> { return { contactId, conversationId } as any }
+  public async messageSendFile        (conversationId: string, file: FileBox)                          : Promise<void | string> { return { conversationId, file } as any }
+  public async messageSendText        (conversationId: string, text: string)                           : Promise<void | string> { return { conversationId, text } as any }
+  public async messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
   public async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { conversationId, miniProgramPayload } as any }
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
