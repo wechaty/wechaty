@@ -16,7 +16,6 @@
  *   limitations under the License.
  *
  */
-// tslint:disable-next-line:no-reference
 /// <reference path="./typings.d.ts" />
 
 import os    from 'os'

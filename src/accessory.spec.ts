@@ -17,9 +17,6 @@
  *   limitations under the License.
  *
  */
-// tslint:disable:no-shadowed-variable
-// tslint:disable:max-classes-per-file
-
 import test  from 'blue-tape'
 // import sinon from 'sinon'
 
@@ -58,9 +55,7 @@ test('Two clone-ed classes have different static puppet value', async t => {
 
   class FixtureClass extends Accessory {}
 
-  // tslint:disable-next-line:variable-name
   const ClonedClass1 = cloneClass(FixtureClass)
-  // tslint:disable-next-line:variable-name
   const ClonedClass2 = cloneClass(FixtureClass)
 
   ClonedClass1.puppet = EXPECTED_PUPPET1

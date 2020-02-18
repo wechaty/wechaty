@@ -55,9 +55,7 @@ export const POOL = Symbol('pool')
  */
 export class Contact extends Accessory implements Sayable {
 
-  // tslint:disable-next-line:variable-name
   public static Type   = ContactType
-  // tslint:disable-next-line:variable-name
   public static Gender = ContactGender
 
   protected static [POOL]: Map<string, Contact>
@@ -290,7 +288,6 @@ export class Contact extends Accessory implements Sayable {
     super()
     log.silly('Contact', `constructor(${id})`)
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Contact)
 
     if (MyClass === Contact) {

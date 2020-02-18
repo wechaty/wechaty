@@ -57,7 +57,6 @@ import {
  */
 export class Friendship extends Accessory implements Acceptable {
 
-  // tslint:disable-next-line:variable-name
   public static Type = FriendshipType
 
   /**
@@ -169,7 +168,6 @@ export class Friendship extends Accessory implements Acceptable {
     super()
     log.verbose('Friendship', 'constructor(id=%s)', id)
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Friendship)
 
     if (MyClass === Friendship) {

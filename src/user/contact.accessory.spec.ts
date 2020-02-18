@@ -13,11 +13,9 @@ import {
   Contact as GlobalContact,
 }                           from './contact'
 
-// tslint:disable-next-line:variable-name
 const Contact = cloneClass(GlobalContact)
 
 test('Should not be able to instanciate directly', async t => {
-  // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(Contact)
   t.throws(() => {
     const c = MyContact.load('xxx')
@@ -31,7 +29,6 @@ test('Should not be able to instanciate directly', async t => {
 })
 
 test('Should not be able to instanciate through cloneClass without puppet', async t => {
-  // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(Contact)
 
   t.throws(() => {
@@ -47,7 +44,6 @@ test('Should not be able to instanciate through cloneClass without puppet', asyn
 })
 
 test('should be able to instanciate through cloneClass with puppet', async t => {
-  // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(Contact)
 
   MyContact.puppet = new PuppetMock()

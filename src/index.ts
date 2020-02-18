@@ -33,6 +33,7 @@ export {
   Friendship,
   Favorite,
   Message,
+  Image,
   Moment,
   Money,
   Room,

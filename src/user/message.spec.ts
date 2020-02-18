@@ -18,9 +18,6 @@
  *
  */
 
-// tslint:disable:no-shadowed-variable
-// tslint:disable:max-classes-per-file
-
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
