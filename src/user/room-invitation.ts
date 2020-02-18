@@ -64,7 +64,6 @@ export class RoomInvitation extends Accessory implements Acceptable {
     super()
     log.verbose('RoomInvitation', 'constructor(id=%s)', id)
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, RoomInvitation)
 
     if (MyClass === RoomInvitation) {

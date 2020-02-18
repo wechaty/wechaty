@@ -18,7 +18,6 @@
  *   limitations under the License.
  *
  */
-// tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
 import sinon from 'sinon'
 

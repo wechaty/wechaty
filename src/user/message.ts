@@ -81,7 +81,6 @@ export class Message extends Accessory implements Sayable {
   /**
    * @ignore
    */
-  // tslint:disable-next-line:variable-name
   public static readonly Type = MessageType
 
   /**
@@ -207,7 +206,6 @@ export class Message extends Accessory implements Sayable {
       this.constructor.name,
     )
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Message)
 
     if (MyClass === Message) {

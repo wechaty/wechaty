@@ -281,7 +281,6 @@ export class Room extends Accessory implements Sayable {
     super()
     log.silly('Room', `constructor(${id})`)
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Room)
 
     if (MyClass === Room) {
