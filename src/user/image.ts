@@ -1,36 +1,22 @@
-import { instanceToClass } from "clone-class"
-import { Accessory } from "../accessory"
+import { instanceToClass } from 'clone-class'
+import { FileBox } from 'file-box'
+
+import { ImageType } from 'wechaty-puppet'
+
+import { Accessory } from '../accessory'
 import { log }        from '../config'
-import FileBox from "file-box"
-import { MessageImageType } from "wechaty-puppet/dist/src/schemas/message"
 
 export class Image extends Accessory {
 
-  public static load (id: string): Image {
-    log.verbose('Message', 'static load(%s)', id)
-
-    /**
-     * Must NOT use `Message` at here
-     * MUST use `this` at here
-     *
-     * because the class will be `cloneClass`-ed
-     */
-    const image = new this(id)
-
-    return image
-  }
-
-  /*
-   * @hideconstructor
-   */
-  constructor (public id: string) {
+  constructor (
+    public id: string,
+  ) {
     super()
-    log.verbose('Image', 'constructor(%s) for class %s',
-      id || '',
+    log.verbose('Image', 'constructor(%s)',
+      id,
       this.constructor.name,
     )
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Image)
 
     if (MyClass === Image) {
@@ -42,23 +28,29 @@ export class Image extends Accessory {
     }
   }
 
-  public async url (): Promise<string> {
-    return this.puppet.messageImage(this.id, MessageImageType.URL)
+  public static create (id: string): Image {
+    log.verbose('Image', 'static create(%s)', id)
+
+    const image = new Image(id)
+    return image
   }
 
   public async thumbnail (): Promise<FileBox> {
-    const url = await this.puppet.messageImage(this.id, MessageImageType.THUMBNAIL)
-    return FileBox.fromUrl(url)
+    log.verbose('Image', 'thumbnail() for id: "%s"', this.id)
+    const fileBox = await this.puppet.messageImage(this.id, ImageType.Thumbnail)
+    return fileBox
   }
 
   public async hd (): Promise<FileBox> {
-    const url = await this.puppet.messageImage(this.id, MessageImageType.HD)
-    return FileBox.fromUrl(url)
+    log.verbose('Image', 'hd() for id: "%s"', this.id)
+    const fileBox = await this.puppet.messageImage(this.id, ImageType.HD)
+    return fileBox
   }
 
   public async artwork (): Promise<FileBox> {
-    const url = await this.puppet.messageImage(this.id, MessageImageType.ARTWORK)
-    return FileBox.fromUrl(url)
+    log.verbose('Image', 'artwork() for id: "%s"', this.id)
+    const fileBox = await this.puppet.messageImage(this.id, ImageType.Artwork)
+    return fileBox
   }
 
 }

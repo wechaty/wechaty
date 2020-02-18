@@ -273,8 +273,8 @@ export class Wechaty extends Accessory implements Sayable {
     this.Contact        = cloneClass(Contact)
     this.ContactSelf    = cloneClass(ContactSelf)
     this.Friendship     = cloneClass(Friendship)
-    this.Message        = cloneClass(Message)
     this.Image          = cloneClass(Image)
+    this.Message        = cloneClass(Message)
     this.Room           = cloneClass(Room)
     this.RoomInvitation = cloneClass(RoomInvitation)
     this.Tag            = cloneClass(Tag)
@@ -772,8 +772,8 @@ export class Wechaty extends Accessory implements Sayable {
     this.Contact.wechaty        = this
     this.ContactSelf.wechaty    = this
     this.Friendship.wechaty     = this
-    this.Message.wechaty        = this
     this.Image.wechaty          = this
+    this.Message.wechaty        = this
     this.Room.wechaty           = this
     this.RoomInvitation.wechaty = this
     this.Tag.wechaty            = this
@@ -784,8 +784,8 @@ export class Wechaty extends Accessory implements Sayable {
     this.Contact.puppet        = puppet
     this.ContactSelf.puppet    = puppet
     this.Friendship.puppet     = puppet
-    this.Message.puppet        = puppet
     this.Image.puppet          = puppet
+    this.Message.puppet        = puppet
     this.Room.puppet           = puppet
     this.RoomInvitation.puppet = puppet
     this.Tag.puppet            = puppet
