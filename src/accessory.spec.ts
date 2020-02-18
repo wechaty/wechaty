@@ -17,8 +17,7 @@
  *   limitations under the License.
  *
  */
-
- import test  from 'blue-tape'
+import test  from 'blue-tape'
 // import sinon from 'sinon'
 
 import {
