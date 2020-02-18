@@ -56,6 +56,7 @@ import {
 import {
   MiniProgram,
 }                       from './mini-program'
+import { Image } from './image'
 
 export interface MessageUserQueryFilter {
   from? : Contact,
@@ -957,11 +958,33 @@ export class Message extends Accessory implements Sayable {
    * fileBox.toFile(fileName)
    */
   public async toFileBox (): Promise<FileBox> {
+    log.verbose('Message', 'toFileBox()')
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
     }
     const fileBox = await this.puppet.messageFile(this.id)
     return fileBox
+  }
+
+  /**
+   * Extract the Image File from the Message, so that we can use different image sizes.
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @returns {Image}
+   *
+   * @example <caption>Save image file from a message</caption>
+   * const image = message.toImage()
+   * const fileBox = await image.artwork()
+   * const fileName = fileBox.name
+   * fileBox.toFile(fileName)
+   */
+  public toImage (): Image {
+    log.verbose('Message', 'toImage() for message id: %s', this.id)
+    if (this.type() !== Message.Type.Image) {
+      throw new Error(`not a image type message. type: ${this.type()}`)
+    }
+    return this.wechaty.Image.create(this.id)
   }
 
   /**
