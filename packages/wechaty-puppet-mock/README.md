@@ -20,7 +20,7 @@ Then `PuppetMock` will helps you a lot.
 ## USAGE
 
 ```ts
-import { MemoryCard } from 'memory-card'
+import { MemoryCard } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 const puppet  = new PuppetMock({ memory: new MemoryCard() })

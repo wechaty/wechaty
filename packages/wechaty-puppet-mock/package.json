@@ -51,15 +51,13 @@
     "@types/normalize-package-data": "^2.4.0",
     "@types/qr-image": "^3.2.1",
     "@types/quick-lru": "^2.0.0",
-    "memory-card": "^0.6.13",
     "pkg-jq": "^0.2.2",
     "shx": "^0.3.1",
     "tstest": "^0.4.5",
-    "wechaty-puppet": "^0.19.15"
+    "wechaty-puppet": "^0.19.17"
   },
   "peerDependencies": {
-    "memory-card": "^0.6.13",
-    "wechaty-puppet": "^0.19.15"
+    "wechaty-puppet": "^0.19.17"
   },
   "dependencies": {
     "brolog": "^1.6.5",
