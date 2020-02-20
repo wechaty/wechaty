@@ -76,7 +76,7 @@ function onScan (qrcode: string, status: number) {
 
 function onLogin (contactId: string) {
   console.info(`${contactId} login`)
-  puppet.messageSendText({ contactId }, 'Wechaty login').catch(console.error)
+  puppet.messageSendText(contactId, 'Wechaty login').catch(console.error)
 }
 
 function onLogout (contactId: string) {

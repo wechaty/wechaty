@@ -24,8 +24,6 @@ npm install ./*-*.*.*.tgz \
   @types/quick-lru \
   @types/normalize-package-data \
   \
-  file-box \
-  memory-card \
   "wechaty-puppet@$NPM_TAG" \
 
 ./node_modules/.bin/tsc \

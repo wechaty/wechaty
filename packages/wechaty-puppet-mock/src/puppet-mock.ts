@@ -19,23 +19,21 @@
 import path  from 'path'
 
 import {
-  FileBox,
-}             from 'file-box'
-
-import {
   ContactGender,
   ContactPayload,
   ContactType,
 
+  FileBox,
+
   FriendshipPayload,
+
+  ImageType,
 
   MessagePayload,
   MessageType,
 
   Puppet,
   PuppetOptions,
-
-  Receiver,
 
   RoomInvitationPayload,
   RoomMemberPayload,
@@ -96,12 +94,13 @@ export class PuppetMock extends Puppet {
 
     const MOCK_MSG_ID = 'mockid'
     this.cacheMessagePayload.set(MOCK_MSG_ID, {
-      fromId    : 'xxx',
-      id        : MOCK_MSG_ID,
-      text      : 'mock text',
-      timestamp : Date.now(),
-      toId      : 'xxx',
-      type      : MessageType.Text,
+      fromId        : 'xxx',
+      id            : MOCK_MSG_ID,
+      mentionIdList : [],
+      text          : 'mock text',
+      timestamp     : Date.now(),
+      toId          : 'xxx',
+      type          : MessageType.Text,
     })
 
     this.loopTimer = setInterval(() => {
@@ -143,14 +142,27 @@ export class PuppetMock extends Puppet {
     // TODO: do the logout job
   }
 
+  public ding (data?: string): void {
+    log.silly('PuppetMock', 'ding(%s)', data || '')
+    this.emit('dong', data)
+  }
+
+  public unref (): void {
+    log.verbose('PuppetMock', 'unref()')
+    super.unref()
+    if (this.loopTimer) {
+      this.loopTimer.unref()
+    }
+  }
+
   /**
    *
    * ContactSelf
    *
    *
    */
-  public async contactSelfQrcode (): Promise<string> {
-    log.verbose('PuppetMock', 'contactSelfQrcode()')
+  public async contactSelfQRCode (): Promise<string> {
+    log.verbose('PuppetMock', 'contactSelfQRCode()')
     return CHATIE_OFFICIAL_ACCOUNT_QRCODE
   }
 
@@ -184,7 +196,8 @@ export class PuppetMock extends Puppet {
     return []
   }
 
-  public async contactQrcode (contactId: string): Promise<string> {
+  public async contactQRCode (contactId: string): Promise<string> {
+    log.verbose('PuppetMock', 'contactQRCode(%s)', contactId)
     if (contactId !== this.selfId()) {
       throw new Error('can not set avatar for others')
     }
@@ -239,6 +252,32 @@ export class PuppetMock extends Puppet {
    * Message
    *
    */
+  public async messageContact (
+    messageId: string,
+  ): Promise<string> {
+    log.verbose('PuppetMock', 'messageContact(%s)', messageId)
+    return 'fake-id'
+  }
+
+  public async messageImage (
+    messageId: string,
+    imageType: ImageType,
+  ) : Promise<FileBox> {
+    log.verbose('PuppetMock', 'messageImage(%s, %s[%s])',
+      messageId,
+      imageType,
+      ImageType[imageType],
+    )
+    return FileBox.fromQRCode('fake-qrcode')
+  }
+
+  public async messageRecall (
+    messageId: string,
+  ): Promise<boolean> {
+    log.verbose('PuppetMock', 'messageRecall(%s)', messageId)
+    return false
+  }
+
   public async messageFile (id: string): Promise<FileBox> {
     return FileBox.fromBase64(
       'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
@@ -277,56 +316,57 @@ export class PuppetMock extends Puppet {
   public async messageRawPayloadParser (rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
     log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
-      fromId    : 'xxx',
-      id        : rawPayload.id,
-      text      : 'mock message text',
-      timestamp : Date.now(),
-      toId      : this.selfId(),
-      type      : MessageType.Text,
+      fromId        : 'xxx',
+      id            : rawPayload.id,
+      mentionIdList : [],
+      text          : 'mock message text',
+      timestamp     : Date.now(),
+      toId          : this.selfId(),
+      type          : MessageType.Text,
     }
     return payload
   }
 
   public async messageSendText (
-    receiver : Receiver,
+    conversationId: string,
     text     : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'messageSend(%s, %s)', receiver, text)
+    log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, text)
   }
 
   public async messageSendFile (
-    receiver : Receiver,
+    conversationId: string,
     file     : FileBox,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'messageSend(%s, %s)', receiver, file)
+    log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, file)
   }
 
   public async messageSendContact (
-    receiver  : Receiver,
+    conversationId: string,
     contactId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
+    log.verbose('PuppetMock', 'messageSend("%s", %s)', conversationId, contactId)
   }
 
-  public async messageSendUrl (to: Receiver, urlLinkPayload: UrlLinkPayload) : Promise<void> {
+  public async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload) : Promise<void> {
     log.verbose('PuppetMock', 'messageSendUrl("%s", %s)',
-      JSON.stringify(to),
+      conversationId,
       JSON.stringify(urlLinkPayload),
     )
   }
-  public async messageSendMiniProgram (receiver: Receiver, miniProgramPayload: MiniProgramPayload): Promise<void> {
+  public async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload): Promise<void> {
     log.verbose('PuppetMock', 'messageSendMiniProgram("%s", %s)',
-      JSON.stringify(receiver),
+      conversationId,
       JSON.stringify(miniProgramPayload),
     )
   }
 
   public async messageForward (
-    receiver  : Receiver,
+    conversationId: string,
     messageId : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageForward(%s, %s)',
-      receiver,
+      conversationId,
       messageId,
     )
   }
@@ -355,6 +395,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'roomRawPayloadParser(%s)', rawPayload)
 
     const payload: RoomPayload = {
+      adminIdList  : [],
       id           : 'id',
       memberIdList : [],
       topic        : 'mock topic',
@@ -422,7 +463,8 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'roomQuit(%s)', roomId)
   }
 
-  public async roomQrcode (roomId: string): Promise<string> {
+  public async roomQRCode (roomId: string): Promise<string> {
+    log.verbose('PuppetMock', 'roomQRCode(%s)', roomId)
     return roomId + ' mock qrcode'
   }
 
@@ -479,11 +521,25 @@ export class PuppetMock extends Puppet {
    * Friendship
    *
    */
-  public async friendshipRawPayload (id: string)            : Promise<any> {
+  public async friendshipRawPayload (id: string): Promise<any> {
     return { id } as any
   }
-  public async friendshipRawPayloadParser (rawPayload: any) : Promise<FriendshipPayload> {
+  public async friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload> {
     return rawPayload
+  }
+
+  public async friendshipSearchPhone (
+    phone: string,
+  ): Promise<null | string> {
+    log.verbose('PuppetMock', 'friendshipSearchPhone(%s)', phone)
+    return null
+  }
+
+  public async friendshipSearchWeixin (
+    weixin: string,
+  ): Promise<null | string> {
+    log.verbose('PuppetMock', 'friendshipSearchWeixin(%s)', weixin)
+    return null
   }
 
   public async friendshipAdd (
@@ -499,17 +555,36 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'friendshipAccept(%s)', friendshipId)
   }
 
-  public ding (data?: string): void {
-    log.silly('PuppetMock', 'ding(%s)', data || '')
-    this.emit('dong', data)
+  /**
+   *
+   * Tag
+   *
+   */
+  public async tagContactAdd (
+    tagId: string,
+    contactId: string,
+  ): Promise<void> {
+    log.verbose('PuppetMock', 'tagContactAdd(%s)', tagId, contactId)
   }
 
-  public unref (): void {
-    log.verbose('PuppetMock', 'unref()')
-    super.unref()
-    if (this.loopTimer) {
-      this.loopTimer.unref()
-    }
+  public async tagContactRemove (
+    tagId: string,
+    contactId: string,
+  ): Promise<void> {
+    log.verbose('PuppetMock', 'tagContactRemove(%s)', tagId, contactId)
+  }
+
+  public async tagContactDelete (
+    tagId: string,
+  ): Promise<void> {
+    log.verbose('PuppetMock', 'tagContactDelete(%s)', tagId)
+  }
+
+  public async tagContactList (
+    contactId?: string,
+  ): Promise<string[]> {
+    log.verbose('PuppetMock', 'tagContactList(%s)', contactId)
+    return []
   }
 
 }
