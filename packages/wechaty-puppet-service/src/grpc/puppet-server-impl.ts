@@ -1,5 +1,4 @@
 import grpc             from 'grpc'
-import { FileBox }      from 'file-box'
 import { StringValue }  from 'google-protobuf/google/protobuf/wrappers_pb'
 
 import {
@@ -55,6 +54,7 @@ import {
 }                                   from '@chatie/grpc'
 
 import {
+  FileBox,
   Puppet,
   PuppetEventName,
   PUPPET_EVENT_DICT,

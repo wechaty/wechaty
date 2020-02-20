@@ -22,8 +22,6 @@ npm init -y
 npm install *-*.*.*.tgz \
   @chatie/tsconfig \
   brolog \
-  file-box \
-  memory-card \
   "wechaty-puppet@$NPM_TAG" \
 
 ./node_modules/.bin/tsc \

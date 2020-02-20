@@ -9,6 +9,8 @@ import {
   ContactPayload,
   // ContactType,
 
+  FileBox,
+
   FriendshipPayload,
 
   MessagePayload,
@@ -22,11 +24,8 @@ import {
   RoomPayload,
   UrlLinkPayload,
   MiniProgramPayload,
+  ImageType,
 }                         from 'wechaty-puppet'
-
-import {
-  FileBox,
-}             from 'file-box'
 
 import {
   PuppetClient,
@@ -76,6 +75,7 @@ import {
   TagContactRemoveRequest,
   TagContactDeleteRequest,
   TagContactListRequest,
+  MessageImageRequest,
   // EventType,
 }                                   from '@chatie/grpc'
 
@@ -465,6 +465,28 @@ export class PuppetHostieGrpc extends Puppet {
     const payload = JSON.parse(jsonText) as MiniProgramPayload
 
     return payload
+  }
+
+  public async messageImage (
+    messageId: string,
+    imageType: ImageType,
+  ): Promise<FileBox> {
+    log.verbose('PuppetHostieGrpc', 'messageImage(%s, %s[%s])',
+      messageId,
+      imageType,
+      ImageType[imageType],
+    )
+
+    const request = new MessageImageRequest()
+    request.setId(messageId)
+    request.setType(imageType as number)
+
+    const response = await util.promisify(
+      this.grpcClient!.messageImage
+    )(request)
+
+    const jsonText = response.getFilebox()
+    return FileBox.fromJSON(jsonText)
   }
 
   public async messageContact (
