@@ -63,7 +63,6 @@ import {
   MiniProgramPayload,
   UrlLinkPayload,
   RoomInvitationPayload,
-  ImageType,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
