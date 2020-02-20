@@ -23,7 +23,7 @@ import {
   Wechaty,
 }               from '../src/' // from 'wechaty'
 
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 import { generate } from 'qrcode-terminal'
 
 /**

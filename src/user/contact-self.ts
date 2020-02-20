@@ -17,7 +17,7 @@
  *
  *   @ignore
  */
-import { FileBox } from 'file-box'
+import { FileBox } from 'wechaty-puppet'
 
 import {
   log,
@@ -71,7 +71,7 @@ export class ContactSelf extends Contact {
    * })
    *
    * @example <caption>SET the avatar for a bot</caption>
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty-puppet'
    * bot.on('login', (user: ContactSelf) => {
    *   console.log(`user ${user} login`)
    *   const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')

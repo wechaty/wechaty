@@ -18,13 +18,13 @@
  *   @ignore
  */
 import { instanceToClass }  from 'clone-class'
-import { FileBox }          from 'file-box'
 
 import {
   ContactGender,
   ContactPayload,
   ContactQueryFilter,
   ContactType,
+  FileBox,
 }                         from 'wechaty-puppet'
 
 import {
@@ -344,7 +344,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * // 2. send media file to contact
    *
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty-puppet'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromFile('/tmp/text.txt')
    * await contact.say(fileBox1)

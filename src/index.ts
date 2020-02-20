@@ -1,8 +1,5 @@
 export {
   FileBox,
-}           from 'file-box'
-
-export {
   ScanStatus,
   UrlLinkPayload,
 }                 from 'wechaty-puppet'
