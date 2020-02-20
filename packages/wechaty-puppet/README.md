@@ -42,11 +42,12 @@ The above puppet provider is just for mocking and easy to understand. It will be
 
 ## Dependencies
 
-### Peer Dependence
+1. `FileBox` (npm module `file-box`) MUST be imported from `wechaty-puppet` because all the Wechaty Framework needs to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
+2. `MemoryCard` (npm module `memory-card`) MUST be imported from `wechaty-puppet` because all the Wechaty Framework needs to check `instanceof MemoryCard`, we must be sure all `MemoryCard` is the same version.
 
-1. `FileBox` (npm module `file-box`) must be a _peerDependencies_ because all the Wechaty Framework needs to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
-2. `MemoryCard` (npm module `memory-card`) must be a _peerDependencies_ because all the Wechaty Framework needs to check `instanceof MemoryCard`, we must be sure all `MemoryCard` is the same version.
-3. `Puppet`(npm module `wechaty-puppet`) itself must be a _peer Dependencies_ for all the Puppet Providers, and should only be installed via Wechaty because all Puppet Providers should share the same Puppet Base Class with Wechaty, we must be sure all `Puppet` is the same version.
+## Peer Dependence
+
+`Puppet`(npm module `wechaty-puppet`) itself must be a _peer Dependencies_ for all the Puppet Providers, and should only be installed via Wechaty because all Puppet Providers should share the same Puppet Base Class with Wechaty, we must be sure all `Puppet` is the same version.
 
 ## Wechaty Puppet Toolsets
 

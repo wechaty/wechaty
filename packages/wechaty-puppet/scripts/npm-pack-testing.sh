@@ -15,8 +15,6 @@ npm install *-*.*.*.tgz \
   @types/quick-lru \
   @types/node \
   @types/normalize-package-data \
-  file-box \
-  memory-card \
   typescript \
 
 ./node_modules/.bin/tsc \

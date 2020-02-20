@@ -61,15 +61,13 @@ export {
 }                         from './schemas/puppet'
 
 export {
+  FileBox,
+  MemoryCard,
   VERSION,
   log,
-}           from './config'
+}                         from './config'
 
 export {
   Puppet,
   PuppetImplementation,
 }                         from './puppet'
-
-export {
-  FileBox,
-} from 'file-box'

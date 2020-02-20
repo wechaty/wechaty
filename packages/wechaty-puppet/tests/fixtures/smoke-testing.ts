@@ -13,6 +13,8 @@ import {
   ContactQueryFilter,
   // ContactType,
 
+  FileBox,
+
   FriendshipPayload,
   MessagePayload,
   ImageType,
@@ -30,13 +32,6 @@ import {
 
   VERSION,
 }                             from 'wechaty-puppet'
-
-import {
-  FileBox,
-}                 from 'file-box'
-// import {
-//   MemoryCard,
-// }                       from 'memory-card'
 
 class PuppetTest extends Puppet {
 
@@ -60,8 +55,8 @@ class PuppetTest extends Puppet {
    * Tag
    *
    */
-  public async tagContactAdd (id: string, contactId: string) : Promise<void> { return void { id, contactId } }
-  public async tagContactRemove (id: string, contactId: string) : Promise<void> { return void { id, contactId } }
+  public async tagContactAdd (id: string, contactId: string) : Promise<void> { return void { contactId, id } }
+  public async tagContactRemove (id: string, contactId: string) : Promise<void> { return void { contactId, id } }
   public async tagContactDelete (id: string) : Promise<void> { return void { id } }
   public async tagContactList (contactId?: string) : Promise<string[]> { return [contactId || ''] }
 
@@ -72,7 +67,7 @@ class PuppetTest extends Puppet {
    */
   public async contactAlias (contactId: string)                        : Promise<string>
   public async contactAlias (contactId: string, alias: string | null)  : Promise<void>
-  public async contactAlias (contactId: string, alias?: string | null) : Promise<string | void> { return { contactId, alias } as any }
+  public async contactAlias (contactId: string, alias?: string | null) : Promise<string | void> { return { alias, contactId } as any }
 
   public async contactAvatar (contactId: string)                 : Promise<FileBox>
   public async contactAvatar (contactId: string, file: FileBox)  : Promise<void>
@@ -107,10 +102,10 @@ class PuppetTest extends Puppet {
   public async messageContact (messageId: string)  : Promise<string> { return { messageId } as any }
   public async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
 
-  public async messageForward (to: string, messageId: string)              : Promise<void | string> { return { to, messageId } as any }
-  public async messageSendContact (receiver: string, contactId: string)    : Promise<void | string> { return { receiver, contactId } as any }
-  public async messageSendFile (to: string, file: FileBox)                 : Promise<void | string> { return { to, file } as any }
-  public async messageSendText (to: string, text: string)                  : Promise<void | string> { return { to, text } as any }
+  public async messageForward (to: string, messageId: string)              : Promise<void | string> { return { messageId, to } as any }
+  public async messageSendContact (receiver: string, contactId: string)    : Promise<void | string> { return { contactId, receiver } as any }
+  public async messageSendFile (to: string, file: FileBox)                 : Promise<void | string> { return { file, to } as any }
+  public async messageSendText (to: string, text: string)                  : Promise<void | string> { return { text, to } as any }
   public async messageSendUrl (to: string, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { to, urlLinkPayload } as any }
   public async messageSendMiniProgram (to: string, miniProgramPayload: MiniProgramPayload) : Promise<void> { return { miniProgramPayload, to } as any }
 
@@ -137,10 +132,10 @@ class PuppetTest extends Puppet {
   public async roomAnnounce (roomId: string, text: string)  : Promise<void>
   public async roomAnnounce (roomId: string, text?: string) : Promise<void | string> { return { roomId, text } as any }
 
-  public async roomAdd (roomId: string, contactId: string)          : Promise<void> { return { roomId, contactId } as any }
+  public async roomAdd (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
   public async roomAvatar (roomId: string)                          : Promise<FileBox> { return { roomId } as any }
   public async roomCreate (contactIdList: string[], topic?: string) : Promise<string> { return { contactIdList, topic } as any }
-  public async roomDel (roomId: string, contactId: string)          : Promise<void> { return { roomId, contactId } as any }
+  public async roomDel (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
   public async roomQuit (roomId: string)                            : Promise<void> { return { roomId } as any }
   public async roomQRCode (roomId: string)                          : Promise<string> { return { roomId } as any }
 
@@ -154,7 +149,7 @@ class PuppetTest extends Puppet {
   public async roomRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload> { return { rawPayload } as any }
 
-  public async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any> { return { roomId, contactId } as any }
+  public async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any> { return { contactId, roomId } as any }
   public async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload> { return rawPayload }
 
   /**

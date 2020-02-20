@@ -28,8 +28,6 @@ import {
   WatchdogFood,
 }                         from 'watchdog'
 import { Constructor }    from 'clone-class'
-import { FileBox }        from 'file-box'
-import { MemoryCard }     from 'memory-card'
 import { StateSwitch }    from 'state-switch'
 import { ThrottleQueue }  from 'rx-queue'
 import { callerResolve }  from 'hot-import'
@@ -38,6 +36,8 @@ import normalize               from 'normalize-package-data'
 import readPkgUp               from 'read-pkg-up'
 
 import {
+  FileBox,
+  MemoryCard,
   log,
 }                       from './config'
 

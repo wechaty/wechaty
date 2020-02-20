@@ -7,10 +7,8 @@ import sinon from 'sinon'
 
 import {
   FileBox,
-}                 from 'file-box'
-import {
   MemoryCard,
-}                 from 'memory-card'
+}                 from './config'
 
 import {
   ContactGender,
