@@ -51,6 +51,7 @@ import {
   TagContactRemoveResponse,
   VersionResponse,
   MessageSendMiniProgramResponse,
+  MessageImageResponse,
 }                                   from '@chatie/grpc'
 
 import {
@@ -62,6 +63,7 @@ import {
   MiniProgramPayload,
   UrlLinkPayload,
   RoomInvitationPayload,
+  ImageType,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
@@ -591,6 +593,25 @@ export function getServerImpl (
 
       } catch (e) {
         return grpcError('messageFile', e, callback)
+      }
+    },
+
+    messageImage: async (call, callback) => {
+      log.verbose('GrpcServerImpl', 'messageImage()')
+
+      try {
+        const id = call.request.getId()
+        const type = call.request.getType()
+
+        const fileBox = await puppet.messageImage(id, type as number)
+
+        const response = new MessageImageResponse()
+        response.setFilebox(JSON.stringify(fileBox))
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageImage', e, callback)
       }
     },
 
