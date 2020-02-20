@@ -26,15 +26,9 @@ import {
   // instanceToClass,
 }                   from 'clone-class'
 import {
-  FileBox,
-}                   from 'file-box'
-import {
   callerResolve,
   hotImport,
 }                   from 'hot-import'
-import {
-  MemoryCard,
-}                   from 'memory-card'
 import {
   StateSwitch,
 }                   from 'state-switch'
@@ -42,6 +36,9 @@ import {
 import {
   CHAT_EVENT_DICT,
   Puppet,
+
+  FileBox,
+  MemoryCard,
 
   PUPPET_EVENT_DICT,
   PuppetEventName,
@@ -1031,12 +1028,12 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.say(contact)
    *
    * // 3. send Image to bot itself from remote url
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * await bot.say(fileBox)
    *
    * // 4. send Image to bot itself from local file
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const fileBox = FileBox.fromFile('/tmp/text.jpg')
    * await bot.say(fileBox)
    *

@@ -20,16 +20,14 @@
 import {
   instanceToClass,
 }                   from 'clone-class'
-import {
-  FileBox,
-}                   from 'file-box'
 
 import {
   Accessory,
 }                       from '../accessory'
 import {
-  // config,
   FOUR_PER_EM_SPACE,
+  FileBox,
+
   log,
   Raven,
 }                       from '../config'
@@ -410,7 +408,7 @@ export class Room extends Accessory implements Sayable {
    * const msg = await room.say('Hello world!') // only supported by puppet-padplus
    *
    * // 2. Send media file inside Room
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
    * await room.say(fileBox1)
