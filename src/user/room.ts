@@ -40,16 +40,16 @@ import {
 }                       from '../helper-functions/pure/guard-qrcode-value'
 
 import { Contact }        from './contact'
+import { MiniProgram }    from './mini-program'
+import { Message }        from './message'
 import { RoomInvitation } from './room-invitation'
 import { UrlLink }        from './url-link'
-import { MiniProgram }    from './mini-program'
 
 import {
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
 }                         from 'wechaty-puppet'
-import { Message } from './message'
 
 export const ROOM_EVENT_DICT = {
   invite: 'tbw',

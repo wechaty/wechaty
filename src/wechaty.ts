@@ -37,7 +37,6 @@ import {
   CHAT_EVENT_DICT,
   Puppet,
 
-  FileBox,
   MemoryCard,
 
   PUPPET_EVENT_DICT,
@@ -50,10 +49,12 @@ import {
   Accessory,
 }                       from './accessory'
 import {
+  FileBox,
+  Raven,
+
   config,
   isProduction,
   log,
-  Raven,
 }                       from './config'
 
 import {

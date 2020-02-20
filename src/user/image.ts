@@ -1,6 +1,8 @@
 import { instanceToClass } from 'clone-class'
 
-import { ImageType } from 'wechaty-puppet'
+import {
+  ImageType,
+}                   from 'wechaty-puppet'
 
 import { Accessory } from '../accessory'
 import {

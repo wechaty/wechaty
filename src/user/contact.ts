@@ -30,11 +30,11 @@ import {
   Accessory,
 }                   from '../accessory'
 import {
-  log,
-  qrCodeForChatie,
-
   FileBox,
   Raven,
+
+  log,
+  qrCodeForChatie,
 }                   from '../config'
 import {
   Sayable,
