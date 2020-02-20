@@ -19,11 +19,9 @@
 import {
   instanceToClass,
 }                       from 'clone-class'
-import {
-  FileBox,
-}                       from 'wechaty-puppet'
 
 import {
+  FileBox,
   MessagePayload,
   MessageQueryFilter,
   MessageType,
