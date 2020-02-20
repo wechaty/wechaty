@@ -63,6 +63,7 @@ import {
   MiniProgramPayload,
   UrlLinkPayload,
   RoomInvitationPayload,
+  ImageType,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
@@ -602,7 +603,7 @@ export function getServerImpl (
         const id = call.request.getId()
         const type = call.request.getType()
 
-        const fileBox = await puppet.messageImage(id, type as number)
+        const fileBox = await puppet.messageImage(id, type as number as ImageType)
 
         const response = new MessageImageResponse()
         response.setFilebox(JSON.stringify(fileBox))
