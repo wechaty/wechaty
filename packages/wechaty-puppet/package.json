@@ -46,7 +46,6 @@
     "@types/normalize-package-data": "^2.4.0",
     "@types/quick-lru": "^2.0.0",
     "@types/read-pkg-up": "^3.0.1",
-    "file-box": "^0.12.1",
     "memory-card": "^0.6.7",
     "pkg-jq": "^0.2.2",
     "shx": "^0.3.1",
@@ -55,12 +54,12 @@
     "typedoc-plugin-markdown": "^2.0.0"
   },
   "peerDependencies": {
-    "memory-card": "^0.6.7",
-    "file-box": "^0.12.1"
+    "memory-card": "^0.6.7"
   },
   "dependencies": {
     "brolog": "^1.6.5",
     "clone-class": "^0.6.19",
+    "file-box": "^0.12.1",
     "hot-import": "^0.2.1",
     "normalize-package-data": "^2.4.0",
     "quick-lru": "^3.0.0",
