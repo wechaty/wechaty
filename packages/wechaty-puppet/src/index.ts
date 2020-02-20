@@ -69,3 +69,7 @@ export {
   Puppet,
   PuppetImplementation,
 }                         from './puppet'
+
+export {
+  FileBox,
+} from 'file-box'
