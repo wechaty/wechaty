@@ -21,7 +21,7 @@ import {
 }                       from 'clone-class'
 import {
   FileBox,
-}                       from 'file-box'
+}                       from 'wechaty-puppet'
 
 import {
   MessagePayload,
@@ -445,7 +445,7 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<void | Message>}
    *
    * @example
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty-puppet'
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {

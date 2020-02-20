@@ -350,12 +350,12 @@ const contact = await bot.Contact.find()
 await bot.say(contact)
 
 // 3. send Image to bot itself from remote url
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
 await bot.say(fileBox)
 
 // 4. send Image to bot itself from local file
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 const fileBox = FileBox.fromFile('/tmp/text.jpg')
 await bot.say(fileBox)
 
@@ -473,7 +473,7 @@ await room.say('Hello world!')
 const msg = await room.say('Hello world!') // only supported by puppet-padplus
 
 // 2. Send media file inside Room
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
 const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
 await room.say(fileBox1)
@@ -983,7 +983,7 @@ const msg = await contact.say('welcome to wechaty!') // only supported by puppet
 
 // 2. send media file to contact
 
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
 const fileBox2 = FileBox.fromFile('/tmp/text.txt')
 await contact.say(fileBox1)
@@ -1251,7 +1251,7 @@ bot.on('login', (user: ContactSelf) => {
 ```
 **Example** *(SET the avatar for a bot)*  
 ```js
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 bot.on('login', (user: ContactSelf) => {
   console.log(`user ${user} login`)
   const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
@@ -1596,7 +1596,7 @@ This function is depending on the Puppet Implementation, see [puppet-compatible-
 
 **Example**  
 ```js
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 const bot = new Wechaty()
 bot
 .on('message', async m => {

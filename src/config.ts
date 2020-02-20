@@ -24,7 +24,7 @@ import Raven      from 'raven'
 import readPkgUp  from 'read-pkg-up'
 
 import { log }      from 'brolog'
-import { FileBox }  from 'file-box'
+import { FileBox }  from 'wechaty-puppet'
 
 import {
   PuppetModuleName,

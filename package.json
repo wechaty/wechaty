@@ -82,7 +82,6 @@
     "brolog": "^1.8.1",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
-    "file-box": "^0.10.6",
     "hot-import": "^0.2.1",
     "in-gfw": "^1.2.0",
     "memory-card": "^0.6.9",
