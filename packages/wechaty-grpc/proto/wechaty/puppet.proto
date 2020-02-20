@@ -86,6 +86,7 @@ service Puppet {
 
   rpc MessageContact (message.MessageContactRequest) returns (message.MessageContactResponse) {}
   rpc MessageFile (message.MessageFileRequest) returns (message.MessageFileResponse) {}
+  rpc MessageImage (message.MessageImageRequest) returns (message.MessageImageResponse) {}
   rpc MessageMiniProgram (message.MessageMiniProgramRequest) returns (message.MessageMiniProgramResponse) {}
   rpc MessageUrl (message.MessageUrlRequest) returns (message.MessageUrlResponse) {}
 

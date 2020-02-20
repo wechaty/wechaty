@@ -127,6 +127,10 @@ TCP hole punching
 
 - [A toolset for reverse engineering and fuzzing Protobuf-based apps](https://github.com/marin-m/pbtk)
 
+### Python
+
+- [gRPC typing stubs for Python](https://github.com/shabbyrobe/grpc-stubs)
+
 ## History
 
 ### v0.5 (Feb 2020)

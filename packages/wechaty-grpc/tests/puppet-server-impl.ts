@@ -109,6 +109,12 @@ export const puppetServerImpl: IPuppetServer = {
     throw new Error('not implmented.')
   },
 
+  messageImage: (call, callback) => {
+    void call
+    void callback
+    throw new Error('not implmented.')
+  },
+
   messageMiniProgram: (call, callback) => {
     void call
     void callback

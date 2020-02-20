@@ -22,6 +22,13 @@ enum MessageType {
   MESSAGE_TYPE_URL          = 14;
 }
 
+enum ImageType {
+  IMAGE_TYPE_UNSPECIFIED = 0;
+  IMAGE_TYPE_THUMBNAIL   = 1;
+  IMAGE_TYPE_HD          = 2;
+  IMAGE_TYPE_ARTWORK     = 3;
+}
+
 message MessagePayloadRequest {
   string id = 1;
 }
@@ -35,6 +42,14 @@ message MessagePayloadResponse {
   string      room_id            = 7;
   string      to_id              = 8;
   repeated    string mention_ids = 9;
+}
+
+message MessageImageRequest {
+  string    id   = 1;
+  ImageType type = 2;
+}
+message MessageImageResponse {
+  string filebox = 1;
 }
 
 message MessageContactRequest {
