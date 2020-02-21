@@ -19,9 +19,6 @@
 import {
   instanceToClass,
 }                       from 'clone-class'
-import {
-  FileBox,
-}                       from 'file-box'
 
 import {
   MessagePayload,
@@ -37,6 +34,8 @@ import {
 }                       from '../accessory'
 import {
   AT_SEPRATOR_REGEX,
+  FileBox,
+
   log,
   Raven,
 }                       from '../config'
@@ -445,7 +444,7 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<void | Message>}
    *
    * @example
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {

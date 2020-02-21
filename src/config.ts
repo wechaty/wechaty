@@ -24,7 +24,11 @@ import Raven      from 'raven'
 import readPkgUp  from 'read-pkg-up'
 
 import { log }      from 'brolog'
-import { FileBox }  from 'file-box'
+
+import {
+  FileBox,
+  MemoryCard,
+}                   from 'wechaty-puppet'
 
 import {
   PuppetModuleName,
@@ -173,7 +177,10 @@ export function isProduction (): boolean {
 
 export {
   log,
+  FileBox,
+  MemoryCard,
   Raven,
+
   VERSION,
 }
 
