@@ -20,7 +20,7 @@ export const PUPPET_DEPENDENCIES = {
   // 'wechaty-puppet-padchat'   : '^0.19.3',   // https://www.npmjs.com/package/wechaty-puppet-padchat
   'wechaty-puppet-padplus'   : '^0.5.0',    // https://www.npmjs.com/package/wechaty-puppet-padplus
   // 'wechaty-puppet-padpro'    : '^0.3.21',   // https://www.npmjs.com/package/wechaty-puppet-padpro
-  'wechaty-puppet-puppeteer' : '^0.18.2',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
+  'wechaty-puppet-puppeteer' : '^0.18.5',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
   'wechaty-puppet-wechat4u'  : '^0.16.3',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
 }
 
