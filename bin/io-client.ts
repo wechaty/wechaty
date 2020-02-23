@@ -44,7 +44,7 @@ __________________________________________________
 `
 
 async function main () {
-  let token = config.token
+  const token = config.token
 
   if (!token) {
     throw new Error('token not found: please set WECHATY_TOKEN in environment before run io-client')

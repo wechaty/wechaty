@@ -309,7 +309,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
    * .start()
    */
   public async toJSON (): Promise<string> {
-    log.verbose('RoomInvitation', `toJSON()`)
+    log.verbose('RoomInvitation', 'toJSON()')
     const payload = await this.puppet.roomInvitationPayload(this.id)
     return JSON.stringify(payload)
   }

@@ -614,7 +614,7 @@ export class Room extends Accessory implements Sayable {
       const textListLength = textList.length
       const varListLength  = varList.length
       if (textListLength - varListLength !== 1) {
-        throw new Error(`Can not say message, invalid Templated String Array.`)
+        throw new Error('Can not say message, invalid Templated String Array.')
       }
       let finalText = ''
 
