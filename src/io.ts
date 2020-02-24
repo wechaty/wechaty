@@ -24,8 +24,8 @@ import {
 }                 from './user'
 
 import {
-  PuppetQrcodeScanEvent,
-}                 from 'wechaty-puppet'
+  PuppetQRCodeScanEvent,
+}                         from 'wechaty-puppet'
 
 import {
   config,
@@ -64,7 +64,7 @@ type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
   name    : 'scan',
-  payload : PuppetQrcodeScanEvent,
+  payload : PuppetQRCodeScanEvent,
 }
 
 interface IoEventAny {
@@ -90,7 +90,7 @@ export class Io {
 
   private onMessage: undefined | AnyFunction
 
-  private scanPayload?: PuppetQrcodeScanEvent
+  private scanPayload?: PuppetQRCodeScanEvent
 
   constructor (
     private options: IoOptions,
@@ -150,6 +150,7 @@ export class Io {
       this.state.on(true)
 
       return
+
     } catch (e) {
       log.warn('Io', 'start() exception: %s', e.message)
       this.state.off(true)
@@ -255,20 +256,28 @@ export class Io {
 
     switch (ioEvent.name) {
       case 'botie':
-        const payload = ioEvent.payload
-        if (payload.onMessage) {
-          const script = payload.script
-          try {
-            /* eslint-disable-next-line */
-            const fn = eval(script)
-            if (typeof fn === 'function') {
-              this.onMessage = fn
-            } else {
-              log.warn('Io', 'server pushed function is invalid')
+        {
+          const payload = ioEvent.payload
+          if (payload.onMessage) {
+            const script = payload.script
+            try {
+              /**
+                 * https://github.com/Chatie/botie/issues/2
+                 *  const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
+                 *  const fn = new AsyncFunction('require', 'github', 'context', script)
+                 */
+              // eslint-disable-next-line
+              const fn = eval(script)
+
+              if (typeof fn === 'function') {
+                this.onMessage = fn
+              } else {
+                log.warn('Io', 'server pushed function is invalid')
+              }
+            } catch (e) {
+              log.warn('Io', 'server pushed function exception: %s', e)
+              this.options.wechaty.emit('error', e)
             }
-          } catch (e) {
-            log.warn('Io', 'server pushed function exception: %s', e)
-            this.options.wechaty.emit('error', e)
           }
         }
         break
@@ -286,25 +295,26 @@ export class Io {
 
       case 'update':
         log.verbose('Io', 'on(update): %s', ioEvent.payload)
-
-        const wechaty = this.options.wechaty
-        if (wechaty.logonoff()) {
-          const loginEvent: IoEvent = {
-            name    : 'login',
-            payload : {
-              id   : wechaty.userSelf().id,
-              name : wechaty.userSelf().name(),
-            },
+        {
+          const wechaty = this.options.wechaty
+          if (wechaty.logonoff()) {
+            const loginEvent: IoEvent = {
+              name    : 'login',
+              payload : {
+                id   : wechaty.userSelf().id,
+                name : wechaty.userSelf().name(),
+              },
+            }
+            await this.send(loginEvent)
           }
-          await this.send(loginEvent)
-        }
 
-        if (this.scanPayload) {
-          const scanEvent: IoEventScan = {
-            name:     'scan',
-            payload:  this.scanPayload,
+          if (this.scanPayload) {
+            const scanEvent: IoEventScan = {
+              name:     'scan',
+              payload:  this.scanPayload,
+            }
+            await this.send(scanEvent)
           }
-          await this.send(scanEvent)
         }
 
         break

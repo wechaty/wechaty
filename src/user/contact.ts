@@ -18,7 +18,6 @@
  *   @ignore
  */
 import { instanceToClass }  from 'clone-class'
-import { FileBox }          from 'file-box'
 
 import {
   ContactGender,
@@ -31,9 +30,11 @@ import {
   Accessory,
 }                   from '../accessory'
 import {
+  FileBox,
+  Raven,
+
   log,
   qrCodeForChatie,
-  Raven,
 }                   from '../config'
 import {
   Sayable,
@@ -55,15 +56,14 @@ export const POOL = Symbol('pool')
  */
 export class Contact extends Accessory implements Sayable {
 
-  // tslint:disable-next-line:variable-name
   public static Type   = ContactType
-  // tslint:disable-next-line:variable-name
   public static Gender = ContactGender
 
   protected static [POOL]: Map<string, Contact>
   protected static get pool () {
     return this[POOL]
   }
+
   protected static set pool (newPool: Map<string, Contact>) {
     if (this === Contact) {
       throw new Error(
@@ -290,7 +290,6 @@ export class Contact extends Accessory implements Sayable {
     super()
     log.silly('Contact', `constructor(${id})`)
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Contact)
 
     if (MyClass === Contact) {
@@ -347,7 +346,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * // 2. send media file to contact
    *
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromFile('/tmp/text.txt')
    * await contact.say(fileBox1)
@@ -397,37 +396,42 @@ export class Contact extends Accessory implements Sayable {
       /**
        * 1. Text
        */
-      msgId = await this.puppet.messageSendText({
-        contactId: this.id,
-      }, something)
+      msgId = await this.puppet.messageSendText(
+        this.id,
+        something,
+      )
     } else if (something instanceof Contact) {
       /**
        * 2. Contact
        */
-      msgId = await this.puppet.messageSendContact({
-        contactId: this.id,
-      }, something.id)
+      msgId = await this.puppet.messageSendContact(
+        this.id,
+        something.id,
+      )
     } else if (something instanceof FileBox) {
       /**
        * 3. File
        */
-      msgId = await this.puppet.messageSendFile({
-        contactId: this.id,
-      }, something)
+      msgId = await this.puppet.messageSendFile(
+        this.id,
+        something,
+      )
     } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
-      msgId = await this.puppet.messageSendUrl({
-        contactId : this.id,
-      }, something.payload)
+      msgId = await this.puppet.messageSendUrl(
+        this.id,
+        something.payload,
+      )
     } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
-      msgId = await this.puppet.messageSendMiniProgram({
-        contactId : this.id,
-      }, something.payload)
+      msgId = await this.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
     } else {
       throw new Error('unsupported arg: ' + something)
     }
@@ -768,7 +772,7 @@ export class Contact extends Accessory implements Sayable {
       // log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
-      log.verbose('Contact', `ready() this.puppet.contactPayload(%s) exception: %s`,
+      log.verbose('Contact', 'ready() this.puppet.contactPayload(%s) exception: %s',
         this.id,
         e.message,
       )

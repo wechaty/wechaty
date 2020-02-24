@@ -26,15 +26,9 @@ import {
   // instanceToClass,
 }                   from 'clone-class'
 import {
-  FileBox,
-}                   from 'file-box'
-import {
   callerResolve,
   hotImport,
 }                   from 'hot-import'
-import {
-  MemoryCard,
-}                   from 'memory-card'
 import {
   StateSwitch,
 }                   from 'state-switch'
@@ -42,6 +36,8 @@ import {
 import {
   CHAT_EVENT_DICT,
   Puppet,
+
+  MemoryCard,
 
   PUPPET_EVENT_DICT,
   PuppetEventName,
@@ -53,12 +49,18 @@ import {
   Accessory,
 }                       from './accessory'
 import {
+  FileBox,
+  Raven,
+
   config,
   isProduction,
   log,
-  Raven,
-  VERSION,
 }                       from './config'
+
+import {
+  VERSION,
+  GIT_COMMIT_HASH,
+}                       from './version'
 
 import {
   AnyFunction,
@@ -81,6 +83,7 @@ import {
   ContactSelf,
   Friendship,
   Message,
+  Image,
   Room,
   RoomInvitation,
   UrlLink,
@@ -90,7 +93,7 @@ import {
 export const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'Should be emitted after we call `Wechaty.ding()`',
-  error     : `Will be emit when there's an Error occurred.`,
+  error     : "Will be emit when there's an Error occurred.",
   heartbeat : 'Will be emited periodly after the Wechaty started. If not, means that the Wechaty had died.',
   ready     : 'All underlined data source are ready for use.',
   start     : 'Will be emitted after the Wechaty had been started.',
@@ -165,6 +168,7 @@ export class Wechaty extends Accessory implements Sayable {
   public readonly ContactSelf   : typeof ContactSelf
   public readonly Friendship    : typeof Friendship
   public readonly Message       : typeof Message
+  public readonly Image         : typeof Image
   public readonly RoomInvitation: typeof RoomInvitation
   public readonly Room          : typeof Room
   public readonly UrlLink       : typeof UrlLink
@@ -265,16 +269,17 @@ export class Wechaty extends Accessory implements Sayable {
      */
     // TODO: make Message & Room constructor private???
     this.Contact        = cloneClass(Contact)
-    this.Tag            = cloneClass(Tag)
     this.ContactSelf    = cloneClass(ContactSelf)
     this.Friendship     = cloneClass(Friendship)
+    this.Image          = cloneClass(Image)
     this.Message        = cloneClass(Message)
     this.Room           = cloneClass(Room)
     this.RoomInvitation = cloneClass(RoomInvitation)
+    this.Tag            = cloneClass(Tag)
 
-    // No need to set puppet/wechaty, so no need to clone
-    this.UrlLink = UrlLink
-    this.MiniProgram = MiniProgram
+    // No need to set puppet/wechaty, so do not clone
+    this.UrlLink        = UrlLink
+    this.MiniProgram    = MiniProgram
   }
 
   /**
@@ -500,11 +505,11 @@ export class Wechaty extends Accessory implements Sayable {
 
     // DEPRECATED for 'friend' event
     if (event as any === 'friend') {
-      log.warn('Wechaty', `on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead`)
+      log.warn('Wechaty', "on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead")
       if (typeof listener === 'function') {
         const oldListener = listener
         listener = (...args: any[]) => {
-          log.warn('Wechaty', `on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead`)
+          log.warn('Wechaty', "on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead")
           oldListener.apply(this, args)
         }
       }
@@ -633,10 +638,6 @@ export class Wechaty extends Accessory implements Sayable {
             await friendship.ready()
             this.emit('friendship', friendship)
             friendship.contact().emit('friendship', friendship)
-
-            // support deprecated event name: friend.
-            // Huan LI 201806
-            this.emit('friend' as any, friendship as any)
           })
           break
 
@@ -769,6 +770,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.Contact.wechaty        = this
     this.ContactSelf.wechaty    = this
     this.Friendship.wechaty     = this
+    this.Image.wechaty          = this
     this.Message.wechaty        = this
     this.Room.wechaty           = this
     this.RoomInvitation.wechaty = this
@@ -780,6 +782,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.Contact.puppet        = puppet
     this.ContactSelf.puppet    = puppet
     this.Friendship.puppet     = puppet
+    this.Image.puppet          = puppet
     this.Message.puppet        = puppet
     this.Room.puppet           = puppet
     this.RoomInvitation.puppet = puppet
@@ -788,16 +791,6 @@ export class Wechaty extends Accessory implements Sayable {
     this.puppet = puppet
   }
 
-  /**
-   * @desc
-   * use {@link Wechaty#start} instead
-   * @deprecated
-   * @ignore
-   */
-  public async init (): Promise<void> {
-    log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
-    return this.start()
-  }
   /**
    * Start the bot, return Promise.
    *
@@ -1036,12 +1029,12 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.say(contact)
    *
    * // 3. send Image to bot itself from remote url
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * await bot.say(fileBox)
    *
    * // 4. send Image to bot itself from local file
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const fileBox = FileBox.fromFile('/tmp/text.jpg')
    * await bot.say(fileBox)
    *
@@ -1081,12 +1074,9 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * @ignore
    */
-  public static version (forceNpm = false): string {
-    if (!forceNpm) {
-      const revision = config.gitRevision()
-      if (revision) {
-        return `#git[${revision}]`
-      }
+  public static version (gitHash = false): string {
+    if (gitHash && GIT_COMMIT_HASH) {
+      return `#git[${GIT_COMMIT_HASH}]`
     }
     return VERSION
   }

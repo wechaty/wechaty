@@ -38,13 +38,15 @@ export class PuppetManager {
     let puppetInstance: Puppet
 
     /**
-     * When we are developing, we might experiencing we have two version of wechaty-puppet installed,
-     * if `optoins.puppet` is Puppet v1, but the `Puppet` in Wechaty is v2,
-     * then options.puppet will not instanceof Puppet.
-     * So I changed here to match not a string as a workaround.
-     *  - Huan(202001)
+     * Huan(202001): (DEPRECATED) When we are developing, we might experiencing we have two version of wechaty-puppet installed,
+     *  if `optoins.puppet` is Puppet v1, but the `Puppet` in Wechaty is v2,
+     *  then options.puppet will not instanceof Puppet.
+     *  So I changed here to match not a string as a workaround.
+     *
+     * Huan(202020): The wechaty-puppet-xxx must NOT dependencies `wechaty-puppet` so that it can be `instanceof`-ed
+     *  wechaty-puppet-xxx should put `wechaty-puppet` in `devDependencies` and `peerDependencies`.
      */
-    if (typeof options.puppet !== 'string' /* instanceof Puppet */) {
+    if (options.puppet instanceof Puppet) {
       puppetInstance = await this.resolveInstance(options.puppet)
     } else {
       const MyPuppet = await this.resolveName(options.puppet)
@@ -65,49 +67,36 @@ export class PuppetManager {
     return puppetInstance
   }
 
-  protected static async resolveName (puppetName: PuppetModuleName): Promise<PuppetImplementation> {
+  protected static async resolveName (
+    puppetName: PuppetModuleName,
+  ): Promise<PuppetImplementation> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
     if (!puppetName) {
       throw new Error('must provide a puppet name')
     }
 
-    // TODO(huan): remove the unnecessary switch
-    switch (puppetName) {
-      // case 'padchat':
-      //   // issue #1496 https://github.com/wechaty/wechaty/issues/1496
-      //   // compatible old settings for padchat
-      //   puppetName = 'wechaty-puppet-padchat'
-      //   break
-
-      // case 'mock':
-      //   puppetName = 'wechaty-puppet-mock'
-      //   break
-
-      // case 'default':
-      //   puppetName = PUPPET_NAME_DEFAULT
-      //   break
-
-      default:
-        if (!(puppetName in PUPPET_DEPENDENCIES)) {
-          throw new Error(
-            [
-              '',
-              'puppet npm module not supported: "' + puppetName + '"',
-              'learn more about supported Wechaty Puppet from our directory at',
-              '<https://github.com/wechaty/wechaty-puppet/wiki/Directory>',
-              '',
-            ].join('\n')
-          )
-        }
-        // PuppetName is valid
-        break
+    if (!(puppetName in PUPPET_DEPENDENCIES)) {
+      throw new Error(
+        [
+          '',
+          'puppet npm module not supported: "' + puppetName + '"',
+          'learn more about supported Wechaty Puppet from our directory at',
+          '<https://github.com/wechaty/wechaty-puppet/wiki/Directory>',
+          '',
+        ].join('\n')
+      )
     }
 
     await this.checkModule(puppetName)
 
     const puppetModule = await import(puppetName)
-    const MyPuppet     = puppetModule.default as PuppetImplementation
+
+    if (!puppetModule.default) {
+      throw new Error(`Puppet(${puppetName}) has not provided the default export`)
+    }
+
+    const MyPuppet = puppetModule.default as PuppetImplementation
 
     return MyPuppet
   }
@@ -203,9 +192,9 @@ export class PuppetManager {
     }
 
     // https://github.com/GoogleChrome/puppeteer/issues/1597#issuecomment-351945645
-    if (gfw && !process.env['PUPPETEER_DOWNLOAD_HOST']) {
+    if (gfw && !process.env.PUPPETEER_DOWNLOAD_HOST) {
       log.info('PuppetManager', 'preInstallPuppeteer() set PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors/')
-      process.env['PUPPETEER_DOWNLOAD_HOST'] = 'https://npm.taobao.org/mirrors/'
+      process.env.PUPPETEER_DOWNLOAD_HOST = 'https://npm.taobao.org/mirrors/'
     }
   }
 

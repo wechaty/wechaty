@@ -17,9 +17,8 @@
  *
  *   @ignore
  */
-import { FileBox } from 'file-box'
-
 import {
+  FileBox,
   log,
 }           from '../config'
 
@@ -71,7 +70,7 @@ export class ContactSelf extends Contact {
    * })
    *
    * @example <caption>SET the avatar for a bot</caption>
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * bot.on('login', (user: ContactSelf) => {
    *   console.log(`user ${user} login`)
    *   const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
@@ -121,7 +120,7 @@ export class ContactSelf extends Contact {
       throw new Error('only can get qrcode for the login userself')
     }
 
-    const qrcodeValue = await this.puppet.contactSelfQrcode()
+    const qrcodeValue = await this.puppet.contactSelfQRCode()
     return guardQrCodeValue(qrcodeValue)
   }
 

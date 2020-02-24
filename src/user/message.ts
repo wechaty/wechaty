@@ -19,9 +19,6 @@
 import {
   instanceToClass,
 }                       from 'clone-class'
-import {
-  FileBox,
-}                       from 'file-box'
 
 import {
   MessagePayload,
@@ -37,6 +34,8 @@ import {
 }                       from '../accessory'
 import {
   AT_SEPRATOR_REGEX,
+  FileBox,
+
   log,
   Raven,
 }                       from '../config'
@@ -56,6 +55,7 @@ import {
 import {
   MiniProgram,
 }                       from './mini-program'
+import { Image } from './image'
 
 export interface MessageUserQueryFilter {
   from? : Contact,
@@ -81,7 +81,6 @@ export class Message extends Accessory implements Sayable {
   /**
    * @ignore
    */
-  // tslint:disable-next-line:variable-name
   public static readonly Type = MessageType
 
   /**
@@ -207,7 +206,6 @@ export class Message extends Accessory implements Sayable {
       this.constructor.name,
     )
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Message)
 
     if (MyClass === Message) {
@@ -446,7 +444,7 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<void | Message>}
    *
    * @example
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
@@ -518,47 +516,61 @@ export class Message extends Accessory implements Sayable {
     const from = this.from()
     // const to   = this.to()
     const room = this.room()
+
+    let conversationId: string
+    if (room) {
+      conversationId = room.id
+    } else if (from) {
+      conversationId = from.id
+    } else {
+      throw new Error('neither room nor from?')
+    }
+
     let msgId: void | string
     if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
       /**
        * Text Message
        */
-      msgId = await this.puppet.messageSendText({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini)
+      // msgId = await this.puppet.messageSendText({
+      //   contactId : (from && from.id) || undefined,
+      //   roomId    : (room && room.id) || undefined,
+      // }, textOrContactOrFileOrUrlOrMini)
+      msgId = await this.puppet.messageSendText(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
       /**
        * Contact Card
        */
-      msgId = await this.puppet.messageSendContact({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini.id)
+      msgId = await this.puppet.messageSendContact(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini.id,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
       /**
        * File Message
        */
-      msgId = await this.puppet.messageSendFile({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini)
+      msgId = await this.puppet.messageSendFile(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
       /**
        * Link Message
        */
-      msgId = await this.puppet.messageSendUrl({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini.payload)
+      msgId = await this.puppet.messageSendUrl(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini.payload,
+      )
     } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
       /**
        * MiniProgram
        */
-      msgId = await this.puppet.messageSendMiniProgram({
-        contactId : (from && from.id) || undefined,
-        roomId    : (room && room.id) || undefined,
-      }, textOrContactOrFileOrUrlOrMini.payload)
+      msgId = await this.puppet.messageSendMiniProgram(
+        conversationId,
+        textOrContactOrFileOrUrlOrMini.payload,
+      )
     } else {
       throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
     }
@@ -678,9 +690,7 @@ export class Message extends Accessory implements Sayable {
      * define magic code `8197` to identify @xxx
      * const AT_SEPRATOR = String.fromCharCode(8197)
      */
-    const AT_SEPRATOR = AT_SEPRATOR_REGEX
-
-    const atList = this.text().split(AT_SEPRATOR)
+    const atList = this.text().split(AT_SEPRATOR_REGEX)
     // console.log('atList: ', atList)
     if (atList.length === 0) return []
 
@@ -884,21 +894,12 @@ export class Message extends Accessory implements Sayable {
   public async forward (to: Room | Contact): Promise<void> {
     log.verbose('Message', 'forward(%s)', to)
 
-    let roomId
-    let contactId
-
-    if (to instanceof Room) {
-      roomId = to.id
-    } else if (to instanceof Contact) {
-      contactId = to.id
-    }
+    // let roomId
+    // let contactId
 
     try {
       await this.puppet.messageForward(
-        {
-          contactId,
-          roomId,
-        },
+        to.id,
         this.id,
       )
     } catch (e) {
@@ -956,11 +957,33 @@ export class Message extends Accessory implements Sayable {
    * fileBox.toFile(fileName)
    */
   public async toFileBox (): Promise<FileBox> {
+    log.verbose('Message', 'toFileBox()')
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
     }
     const fileBox = await this.puppet.messageFile(this.id)
     return fileBox
+  }
+
+  /**
+   * Extract the Image File from the Message, so that we can use different image sizes.
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @returns {Image}
+   *
+   * @example <caption>Save image file from a message</caption>
+   * const image = message.toImage()
+   * const fileBox = await image.artwork()
+   * const fileName = fileBox.name
+   * fileBox.toFile(fileName)
+   */
+  public toImage (): Image {
+    log.verbose('Message', 'toImage() for message id: %s', this.id)
+    if (this.type() !== Message.Type.Image) {
+      throw new Error(`not a image type message. type: ${this.type()}`)
+    }
+    return this.wechaty.Image.create(this.id)
   }
 
   /**

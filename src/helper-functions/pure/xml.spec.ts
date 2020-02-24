@@ -17,8 +17,7 @@
  *   limitations under the License.
  *
  */
-// tslint:disable:no-shadowed-variable
-import test  from 'blue-tape'
+import { test } from 'tstest'
 
 import {
   digestEmoji,
@@ -39,6 +38,7 @@ test('stripHtml()', async t => {
 
 test('unescapeHtml()', async t => {
   const HTML_BEFORE_UNESCAPE  = '&apos;|&quot;|&gt;|&lt;|&amp;'
+  // eslint-disable-next-line
   const HTML_AFTER_UNESCAPE   = `'|"|>|<|&`
 
   const unescapedHtml = unescapeHtml(HTML_BEFORE_UNESCAPE)

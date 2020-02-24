@@ -18,9 +18,6 @@
  *
  */
 
-// tslint:disable:no-shadowed-variable
-// tslint:disable:max-classes-per-file
-
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
@@ -81,7 +78,7 @@ test('recalled()', async t => {
 
   sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
     await new Promise((resolve) => setImmediate(resolve))
-    return [ EXPECTED_FROM_CONTACT_ID, EXPECTED_TO_CONTACT_ID ]
+    return [EXPECTED_FROM_CONTACT_ID, EXPECTED_TO_CONTACT_ID]
   })
 
   sandbox.stub(puppet, 'contactPayload').callsFake(async (id: string) => {

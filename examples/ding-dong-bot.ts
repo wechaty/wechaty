@@ -18,12 +18,12 @@
  */
 import {
   Contact,
+  FileBox,
   Message,
   ScanStatus,
   Wechaty,
 }               from '../src/' // from 'wechaty'
 
-import { FileBox }  from 'file-box'
 import { generate } from 'qrcode-terminal'
 
 /**

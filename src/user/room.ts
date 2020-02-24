@@ -20,16 +20,14 @@
 import {
   instanceToClass,
 }                   from 'clone-class'
-import {
-  FileBox,
-}                   from 'file-box'
 
 import {
   Accessory,
 }                       from '../accessory'
 import {
-  // config,
   FOUR_PER_EM_SPACE,
+  FileBox,
+
   log,
   Raven,
 }                       from '../config'
@@ -42,16 +40,16 @@ import {
 }                       from '../helper-functions/pure/guard-qrcode-value'
 
 import { Contact }        from './contact'
+import { MiniProgram }    from './mini-program'
+import { Message }        from './message'
 import { RoomInvitation } from './room-invitation'
 import { UrlLink }        from './url-link'
-import { MiniProgram }    from './mini-program'
 
 import {
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
 }                         from 'wechaty-puppet'
-import { Message } from './message'
 
 export const ROOM_EVENT_DICT = {
   invite: 'tbw',
@@ -281,7 +279,6 @@ export class Room extends Accessory implements Sayable {
     super()
     log.silly('Room', `constructor(${id})`)
 
-    // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Room)
 
     if (MyClass === Room) {
@@ -411,7 +408,7 @@ export class Room extends Accessory implements Sayable {
    * const msg = await room.say('Hello world!') // only supported by puppet-padplus
    *
    * // 2. Send media file inside Room
-   * import { FileBox }  from 'file-box'
+   * import { FileBox }  from 'wechaty'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
    * await room.say(fileBox1)
@@ -526,12 +523,12 @@ export class Room extends Accessory implements Sayable {
       } else {
         text = something
       }
-      const receiver = {
-        contactId : (mentionList.length && mentionList[0].id) || undefined,
-        roomId    : this.id,
-      }
+      // const receiver = {
+      //   contactId : (mentionList.length && mentionList[0].id) || undefined,
+      //   roomId    : this.id,
+      // }
       msgId = await this.puppet.messageSendText(
-        receiver,
+        this.id,
         text,
         mentionList.map(c => c.id),
       )
@@ -539,30 +536,34 @@ export class Room extends Accessory implements Sayable {
       /**
        * 2. File Message
        */
-      msgId = await this.puppet.messageSendFile({
-        roomId: this.id,
-      }, something)
+      msgId = await this.puppet.messageSendFile(
+        this.id,
+        something,
+      )
     } else if (something instanceof Contact) {
       /**
        * 3. Contact Card
        */
-      msgId = await this.puppet.messageSendContact({
-        roomId: this.id,
-      }, something.id)
+      msgId = await this.puppet.messageSendContact(
+        this.id,
+        something.id,
+      )
     } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
-      msgId = await this.puppet.messageSendUrl({
-        contactId : this.id,
-      }, something.payload)
+      msgId = await this.puppet.messageSendUrl(
+        this.id,
+        something.payload,
+      )
     } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
-      msgId = await this.puppet.messageSendMiniProgram({
-        contactId : this.id,
-      }, something.payload)
+      msgId = await this.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
     } else {
       throw new Error('arg unsupported: ' + something)
     }
@@ -579,16 +580,16 @@ export class Room extends Accessory implements Sayable {
     ...varList: unknown[]
   ) {
     const mentionList: Contact[] = varList.filter(v => v instanceof Contact) as any
-    const receiver = {
-      contactId : (mentionList.length && mentionList[0].id) || undefined,
-      roomId    : this.id,
-    }
+    // const receiver = {
+    //   contactId : (mentionList.length && mentionList[0].id) || undefined,
+    //   roomId    : this.id,
+    // }
     if (varList.length === 0) {
       /**
        * No mention in the string
        */
       return this.puppet.messageSendText(
-        receiver,
+        this.id,
         textList[0],
       )
     // TODO(huan) 20191222 it seems the following code will not happen,
@@ -613,7 +614,7 @@ export class Room extends Accessory implements Sayable {
       const textListLength = textList.length
       const varListLength  = varList.length
       if (textListLength - varListLength !== 1) {
-        throw new Error(`Can not say message, invalid Templated String Array.`)
+        throw new Error('Can not say message, invalid Templated String Array.')
       }
       let finalText = ''
 
@@ -630,7 +631,7 @@ export class Room extends Accessory implements Sayable {
       finalText += textList[i]
 
       return this.puppet.messageSendText(
-        receiver,
+        this.id,
         finalText,
         mentionList.map(c => c.id),
       )
@@ -956,7 +957,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async qrcode (): Promise<string> {
     log.verbose('Room', 'qrcode()')
-    const qrcodeValue = await this.puppet.roomQrcode(this.id)
+    const qrcodeValue = await this.puppet.roomQRCode(this.id)
     return guardQrCodeValue(qrcodeValue)
   }
 
