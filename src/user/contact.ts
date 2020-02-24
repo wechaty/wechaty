@@ -682,6 +682,24 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
+   * Get the avatarUrl from a contact
+   * // Like `http://wx.qlogo.cn/mmhead/ver_1/ib8fq9LMlcm17X8IILM3hNgGtcKENm7fYibPozFSDfp7x7oLBEiaia6TdAdNIEEkSORbW8umkU31MGy9EgAd8QesJA/132`
+   * // you can change suffix to get different size image
+   * // valid size 
+   * 0    1024px*1024px
+   * 46   46px*46px
+   * 64   64px*64px
+   * 96   96px*96px
+   * 132  132px*132px
+   * @returns {string | null}
+   * @example
+   * const avatarUrl = contact.avatarUrl()
+  */
+  public avatarUrl(): null | string {
+    return (this.payload && this.payload.avatar) || null
+  }
+
+  /**
    * Get all tags of contact
    *
    * @returns {Promise<Tag[]>}
