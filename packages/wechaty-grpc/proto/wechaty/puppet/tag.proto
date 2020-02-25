@@ -1,0 +1,28 @@
+syntax = "proto3";
+package wechaty.puppet.tag;
+
+import "google/protobuf/wrappers.proto";
+
+message TagContactAddRequest {
+  string id = 1;
+  string contact_id = 2;
+}
+message TagContactAddResponse {}
+
+message TagContactRemoveRequest {
+  string id = 1;
+  string contact_id = 2;
+}
+message TagContactRemoveResponse {}
+
+message TagContactDeleteRequest {
+  string id = 1;
+}
+message TagContactDeleteResponse {}
+
+message TagContactListRequest {
+  google.protobuf.StringValue contact_id = 1;
+}
+message TagContactListResponse {
+  repeated string ids = 1;
+}
