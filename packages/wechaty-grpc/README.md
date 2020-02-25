@@ -133,7 +133,7 @@ TCP hole punching
 
 ## History
 
-### v0.5 (Feb 2020)
+### v0.6 (Feb 2020)
 
 - Align gRPC Services with Wechaty Puppet Abstraction
 - Add Unit Tests
