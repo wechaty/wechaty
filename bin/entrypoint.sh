@@ -217,7 +217,9 @@ function wechaty::io-client() {
   echo "WECHATY_TOKEN=$WECHATY_TOKEN "
   echo
 
+  pushd /wechaty
   npm run io-client
+  popd
 }
 
 function wechaty::help() {
@@ -306,7 +308,9 @@ function main() {
 
     test)
       # WECHATY_LOG=silent npm run test:unit
+      pushd /wechaty
       WECHATY_LOG=silent npm run test
+      popd
       ;;
 
     #

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 function dockerRun() {
-  docker run -v "$(pwd)":/bot ${IMAGE_NAME:-'wechaty:test'} $@
+  docker run --rm -v "$(pwd)":/bot ${IMAGE_NAME:-'wechaty:test'} $@
 }
 
 fixtures=tests/fixtures/docker
