@@ -52,7 +52,7 @@
     "@types/google-protobuf": "^3.7.2",
     "@chatie/tsconfig": "^0.8.0",
     "@types/protobufjs": "^5.0.31",
-    "grpc_tools_node_protoc_ts": "^2.5.8",
+    "grpc_tools_node_protoc_ts": "^2.5.9",
     "grpc-tools": "^1.8.0",
     "grpcc": "^1.1.3",
     "nodemon": "^2.0.0",
