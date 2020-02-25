@@ -42,24 +42,24 @@
   },
   "homepage": "https://github.com/Chatie/grpc#readme",
   "dependencies": {
+    "grpc": "^1.24.2",
     "google-protobuf": "^3.11.3",
-    "grpc": "1.24.1"
   },
   "devDependencies": {
     "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
+    "@types/google-protobuf": "^3.7.2",
     "@chatie/tsconfig": "^0.8.0",
-    "@types/google-protobuf": "^3.2.7",
     "@types/protobufjs": "^5.0.31",
+    "grpc_tools_node_protoc_ts": "^2.5.8",
     "grpc-tools": "^1.8.0",
-    "grpc_tools_node_protoc_ts": "^2.3.0",
     "grpcc": "^1.1.3",
     "nodemon": "^2.0.0",
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
-    "ts-protoc-gen": "^0.8.0",
-    "tstest": "^0.4.2"
+    "ts-protoc-gen": "^0.12.0",
+    "tstest": "^0.4.9"
   },
   "engines": {
     "node": ">= 10"
