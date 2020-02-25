@@ -43,7 +43,7 @@
   "homepage": "https://github.com/Chatie/grpc#readme",
   "dependencies": {
     "grpc": "^1.24.2",
-    "google-protobuf": "^3.11.3",
+    "google-protobuf": "^3.11.3"
   },
   "devDependencies": {
     "@chatie/eslint-config": "^0.8.1",
