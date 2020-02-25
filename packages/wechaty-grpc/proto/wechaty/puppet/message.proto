@@ -1,0 +1,130 @@
+syntax = "proto3";
+package wechaty.puppet.message;
+
+import "google/protobuf/wrappers.proto";
+
+enum MessageType {
+  MESSAGE_TYPE_UNSPECIFIED  = 0;
+
+  MESSAGE_TYPE_ATTACHMENT   = 1;
+  MESSAGE_TYPE_AUDIO        = 2;
+  MESSAGE_TYPE_CONTACT      = 3;
+  MESSAGE_TYPE_EMOTICON     = 4;
+  MESSAGE_TYPE_IMAGE        = 5;
+  MESSAGE_TYPE_TEXT         = 6;
+  MESSAGE_TYPE_VIDEO        = 7;
+  MESSAGE_TYPE_CHAT_HISTORY = 8;
+  MESSAGE_TYPE_LOCATION     = 9;
+  MESSAGE_TYPE_MINI_PROGRAM = 10;
+  MESSAGE_TYPE_TRANSFER     = 11;
+  MESSAGE_TYPE_RED_ENVELOPE = 12;
+  MESSAGE_TYPE_RECALLED     = 13;
+  MESSAGE_TYPE_URL          = 14;
+}
+
+enum ImageType {
+  IMAGE_TYPE_UNSPECIFIED = 0;
+  IMAGE_TYPE_THUMBNAIL   = 1;
+  IMAGE_TYPE_HD          = 2;
+  IMAGE_TYPE_ARTWORK     = 3;
+}
+
+message MessagePayloadRequest {
+  string id = 1;
+}
+message MessagePayloadResponse {
+  string      id                 = 1;
+  string      filename           = 2;
+  string      text               = 3;
+  uint64      timestamp          = 4;
+  MessageType type               = 5;
+  string      from_id            = 6;
+  string      room_id            = 7;
+  string      to_id              = 8;
+  repeated    string mention_ids = 9;
+}
+
+message MessageImageRequest {
+  string    id   = 1;
+  ImageType type = 2;
+}
+message MessageImageResponse {
+  string filebox = 1;
+}
+
+message MessageContactRequest {
+  string id = 1;
+}
+message MessageContactResponse {
+  string id = 1;
+}
+
+message MessageFileRequest {
+  string id = 1;
+}
+message MessageFileResponse {
+  string filebox = 1;
+}
+
+message MessageMiniProgramRequest {
+  string id = 1;
+}
+message MessageMiniProgramResponse {
+  string mini_program = 1;
+}
+
+message MessageUrlRequest {
+  string id = 1;
+}
+message MessageUrlResponse {
+  string url_link = 1;
+}
+
+message MessageSendContactRequest {
+  string conversation_id = 1;
+  string contact_id = 2;
+}
+message MessageSendContactResponse {
+  // nullable
+  google.protobuf.StringValue id = 1;
+}
+
+message MessageSendFileRequest {
+  string conversation_id = 1;
+  string filebox = 2;
+}
+message MessageSendFileResponse {
+  google.protobuf.StringValue id = 1;
+}
+
+message MessageSendTextRequest {
+  string conversation_id = 1;
+  string text = 2;
+  repeated string mentonal_ids = 3;
+}
+message MessageSendTextResponse {
+  google.protobuf.StringValue id = 1;
+}
+
+message MessageSendMiniProgramRequest {
+  string conversation_id = 1;
+  string mini_program = 2;
+}
+message MessageSendMiniProgramResponse {
+  google.protobuf.StringValue id = 1;
+}
+
+message MessageSendUrlRequest {
+  string conversation_id = 1;
+  string url_link = 2;
+}
+message MessageSendUrlResponse {
+  google.protobuf.StringValue id = 1;
+}
+
+message MessageRecallRequest {
+  string id = 1;
+}
+message MessageRecallResponse {
+  bool success = 1;
+}

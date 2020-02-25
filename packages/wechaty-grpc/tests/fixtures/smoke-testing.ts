@@ -1,17 +1,17 @@
 #!/usr/bin/env ts-node
 
 import {
-  SelfIdResponse,
+  MessagePayloadResponse,
   VERSION,
-}           from '@chatie/grpc'
+}                           from '@chatie/grpc'
 
 async function main () {
   if (VERSION === '0.0.0') {
     throw new Error('version should be set before publishing')
   }
 
-  const selfIdResponse = new SelfIdResponse()
-  selfIdResponse.setId('id')
+  const messagePayloadResponse = new MessagePayloadResponse()
+  messagePayloadResponse.setId('id')
   console.info(`@chatie/grpc v${VERSION} smoking test passed.`)
   return 0
 }

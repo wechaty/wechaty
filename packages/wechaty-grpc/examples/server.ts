@@ -1,81 +1,79 @@
+/* eslint-disable sort-keys */
+
 import grpc from 'grpc'
 
 import {
   ContactListResponse,
   IPuppetServer,
   PuppetService,
-  SelfIdResponse,
-}                       from '../src/'
+  EventResponse,
+  EventType,
+  ContactAliasResponse,
+}                       from '../src/index'
 
-// tslint:disable:no-console
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
+import {
+  puppetServerImpl,
+}                     from '../tests/puppet-server-impl'
 /**
  * Implements the SayHello RPC method.
  */
-const puppetServerImpl: IPuppetServer = {
+const puppetServerExample: IPuppetServer = {
+  ...puppetServerImpl,
+
+  event: (streamnigCall) => {
+    const eventResponse = new EventResponse()
+
+    eventResponse.setType(EventType.EVENT_TYPE_DONG)
+
+    let n = 42
+
+    const timer = setInterval(() => {
+      eventResponse.setPayload(JSON.stringify({ n: n++ }))
+      streamnigCall.write(eventResponse)
+    }, 1000)
+
+    setTimeout(() => {
+      clearInterval(timer)
+
+      eventResponse.setPayload(JSON.stringify({ n: n++ }))
+      streamnigCall.write(eventResponse)
+
+      setImmediate(() => streamnigCall.end())
+    }, 2 * 1000 + 500)
+  },
+
   contactList: (call, callback) => {
+    void call
+
     const contactListResponse = new ContactListResponse()
 
     const idList = ['a', 'b', 'c']
-    contactListResponse.setIdList(idList)
+    contactListResponse.setIdsList(idList)
 
     callback(null, contactListResponse)
   },
 
-  selfId: (call, callback) => {
-    const selfIdResponse = new SelfIdResponse()
-    selfIdResponse.setId('lizhuohuan')
-    callback(null, selfIdResponse)
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Id>;
-  },
+  contactAlias: (call, callback) => {
+    const id = call.request.getId()
+    const alias = call.request.getAlias()
 
-  start: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-  },
+    console.info('id:', id)
+    console.info('alias:', alias)
 
-  stop: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-  },
+    const response = new ContactAliasResponse()
 
-  logout: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-  },
+    if (alias) {
+      callback(null, response)
+      return
+    }
 
-  logonoff: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
+    const aliasWrapper = new StringValue()
+    aliasWrapper.setValue('my alias')
+    response.setAlias(aliasWrapper)
+    callback(null, response)
   },
-
-  ding: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
-  },
-
-  version: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  contactPayload: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  friendshipPayload: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  roomList: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-  roomPayload: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  roomInvitationPayload: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
-  messagePayload: (call, callback) => {
-    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
-  },
-
 }
 
 /**
@@ -86,16 +84,16 @@ async function main () {
   const server = new grpc.Server()
   server.addService(
     PuppetService,
-    puppetServerImpl,
+    puppetServerExample,
   )
-  server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure())
+  server.bind('127.0.0.1:8788', grpc.ServerCredentials.createInsecure())
   server.start()
   return 0
 }
 
 main()
-// .then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  // .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })

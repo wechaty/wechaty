@@ -1,0 +1,74 @@
+syntax = "proto3";
+package wechaty.puppet.contact;
+
+import "google/protobuf/wrappers.proto";
+
+enum ContactGender {
+  CONTACT_GENDER_UNSPECIFIED = 0;
+  CONTACT_GENDER_MALE        = 1;
+  CONTACT_GENDER_FEMALE      = 2;
+}
+
+enum ContactType {
+  CONTACT_TYPE_UNSPECIFIED = 0;
+  CONTACT_TYPE_PERSONAL    = 1;
+  CONTACT_TYPE_OFFICIAL    = 2;
+}
+
+message ContactListRequest {}
+message ContactListResponse {
+  repeated string ids = 1;
+}
+
+message ContactPayloadRequest {
+  string id = 1;
+}
+message ContactPayloadResponse {
+  string        id        = 1;
+  ContactGender gender    = 2;
+  ContactType   type      = 3;
+  string        name      = 4;
+  string        avatar    = 5;
+  string        address   = 6;
+  string        alias     = 7;
+  string        city      = 8;
+  bool          friend    = 9;
+  string        province  = 10;
+  string        signature = 11;
+  bool          star      = 12;
+  string        weixin    = 13;
+}
+
+message ContactSelfQRCodeRequest {}
+message ContactSelfQRCodeResponse {
+  string qrcode = 1;
+}
+
+message ContactSelfNameRequest {
+  string name = 1;
+}
+message ContactSelfNameResponse {}
+
+message ContactSelfSignatureRequest {
+  string signature = 1;
+}
+message ContactSelfSignatureResponse {}
+
+message ContactAliasRequest {
+  string id = 1;
+  // nullable
+  google.protobuf.StringValue alias = 2;
+}
+message ContactAliasResponse {
+  google.protobuf.StringValue alias = 1;
+}
+
+message ContactAvatarRequest {
+  string id = 1;
+  // nullable
+  google.protobuf.StringValue filebox = 2;
+}
+message ContactAvatarResponse {
+  google.protobuf.StringValue filebox = 1;
+}
+
