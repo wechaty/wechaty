@@ -8,11 +8,17 @@ import util from 'util'
 import grpc from 'grpc'
 
 import {
-  ContactListRequest,
   PuppetClient,
-  SelfIdRequest,
+  EventRequest,
+  EventResponse,
+  ContactAliasRequest,
+  // EventType,
 }                     from '../src/'
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
+/**
+ * Issue #7: https://github.com/Chatie/grpc/issues/7
+ */
 export type Callback<T> = (err: Error | null, reply: T) => void
 
 export type PromisifyOne<T extends any[]> =
@@ -81,38 +87,65 @@ declare module 'util' {
 
 async function main () {
   const client = new PuppetClient(
-    'localhost:50051',
+    'localhost:8788',
     grpc.credentials.createInsecure()
   )
 
-  const contactListRequest = new ContactListRequest()
+  const request = new ContactAliasRequest()
 
-  const contactList = util.promisify(client.contactList)
-  const t = await contactList(contactListRequest)
+  const contactAlias = util.promisify(client.contactAlias.bind(client))
 
-  client.contactList(contactListRequest, (err, response) => {
-    if (err) {
-      console.error(err)
-      return
+  {
+    const response = await contactAlias(request)
+    const aliasWrapper = response.getAlias()
+    let alias
+    if (aliasWrapper) {
+      alias = aliasWrapper.getValue()
     }
-    console.log('contactList:', response.getIdList())
-  })
+    console.info('returned alias:', alias)
+  }
 
-  const selfIdRequest = new SelfIdRequest()
-  client.selfId(selfIdRequest, (err, response) => {
-    if (err) {
-      console.error(err)
-      return
+  console.info('##############')
+
+  {
+    const aliasWrapper = new StringValue()
+    aliasWrapper.setValue('test alias')
+
+    request.setAlias(aliasWrapper)
+    const response = await contactAlias(request)
+
+    const returnAliasWrapper = response.getAlias()
+    if (returnAliasWrapper) {
+      console.info('returned alias:', returnAliasWrapper)
+      throw new Error('should not has alas return')
     }
-    console.log('selfId:', response.getId())
-  })
+
+    console.info('ok')
+  }
+
+  // testStream(client)
 
   return 0
 }
 
+export function testStream (client: PuppetClient) {
+  // event(request: wechaty_puppet_event_pb.EventRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<wechaty_puppet_event_pb.EventRequest>;
+  const eventStream = client.event(new EventRequest())
+  eventStream
+    .on('data', (chunk: EventResponse) => {
+      // console.info('EventType:', EventType)
+      // console.info('type:', chunk.getType(), EventType[chunk.getType()], EventType[23])
+      console.info('payload:', chunk.getPayload())
+      // console.info('eventStream.on(data):', chunk)
+    })
+    .on('end', () => {
+      console.info('eventStream.on(end)')
+    })
+}
+
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  // .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })
