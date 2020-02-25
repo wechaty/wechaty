@@ -1,0 +1,147 @@
+/**
+ *
+ * Wechaty Puppet gRPC Protocol Buffers
+ *  https://github.com/chatie/grpc/
+ *  Huan LI <zixia@zixia.net>
+ *  Apr 2018
+ *  License: Apache-2.0
+ *
+ * Google Protocol Buffers
+ *  Style Guide - https://developers.google.com/protocol-buffers/docs/style
+ *
+ */
+syntax = "proto3";
+package wechaty.puppet;
+
+import public "wechaty/puppet/base.proto";
+import public "wechaty/puppet/contact.proto";
+import public "wechaty/puppet/event.proto";
+import public "wechaty/puppet/friendship.proto";
+import public "wechaty/puppet/message.proto";
+import public "wechaty/puppet/room.proto";
+import public "wechaty/puppet/room_invitation.proto";
+import public "wechaty/puppet/room_member.proto";
+import public "wechaty/puppet/tag.proto";
+
+service Puppet {
+  /**
+   *
+   * Base
+   *
+   */
+  rpc Start (base.StartRequest)  returns (base.StartResponse) {}
+  rpc Stop (base.StopRequest)    returns (base.StopResponse) {}
+
+  rpc Logout (base.LogoutRequest)      returns (base.LogoutResponse) {}
+  rpc Ding (base.DingRequest)          returns (base.DingResponse) {}
+  rpc Version (base.VersionRequest)    returns (base.VersionResponse) {}
+
+  /**
+   *
+   * Event - Server Stream
+   *
+   */
+  rpc Event (event.EventRequest)  returns (stream event.EventResponse) {}
+
+  /**
+   *
+   * Contact Self
+   *
+   */
+  rpc ContactSelfQRCode (contact.ContactSelfQRCodeRequest) returns (contact.ContactSelfQRCodeResponse) {}
+  rpc ContactSelfName (contact.ContactSelfNameRequest) returns (contact.ContactSelfNameResponse) {}
+  rpc ContactSelfSignature (contact.ContactSelfSignatureRequest) returns (contact.ContactSelfSignatureResponse) {}
+
+  /**
+   *
+   * Contact
+   *
+   */
+  rpc ContactPayload (contact.ContactPayloadRequest)  returns (contact.ContactPayloadResponse) {}
+
+  rpc ContactAlias (contact.ContactAliasRequest) returns (contact.ContactAliasResponse) {}
+  rpc ContactAvatar (contact.ContactAvatarRequest) returns (contact.ContactAvatarResponse) {}
+
+  rpc ContactList (contact.ContactListRequest)        returns (contact.ContactListResponse) {}
+
+  /**
+   *
+   * Friendship
+   *
+   */
+  rpc FriendshipPayload (friendship.FriendshipPayloadRequest)  returns (friendship.FriendshipPayloadResponse) {}
+
+  rpc FriendshipSearchPhone (friendship.FriendshipSearchPhoneRequest) returns (friendship.FriendshipSearchPhoneResponse) {}
+  rpc FriendshipSearchWeixin (friendship.FriendshipSearchWeixinRequest) returns (friendship.FriendshipSearchWeixinResponse) {}
+
+  rpc FriendshipAdd (friendship.FriendshipAddRequest) returns (friendship.FriendshipAddResponse) {}
+  rpc FrendshipAccept (friendship.FriendshipAcceptRequest) returns (friendship.FriendshipAcceptResponse) {}
+
+  /**
+   *
+   * Message
+   *
+   */
+  rpc MessagePayload (message.MessagePayloadRequest)  returns (message.MessagePayloadResponse) {}
+
+  rpc MessageContact (message.MessageContactRequest) returns (message.MessageContactResponse) {}
+  rpc MessageFile (message.MessageFileRequest) returns (message.MessageFileResponse) {}
+  rpc MessageImage (message.MessageImageRequest) returns (message.MessageImageResponse) {}
+  rpc MessageMiniProgram (message.MessageMiniProgramRequest) returns (message.MessageMiniProgramResponse) {}
+  rpc MessageUrl (message.MessageUrlRequest) returns (message.MessageUrlResponse) {}
+
+  rpc MessageSendContact (message.MessageSendContactRequest) returns (message.MessageSendContactResponse) {}
+  rpc MessageSendFile (message.MessageSendFileRequest) returns (message.MessageSendFileResponse) {}
+  rpc MessageSendText (message.MessageSendTextRequest) returns (message.MessageSendTextResponse) {}
+  rpc MessageSendMiniProgram (message.MessageSendMiniProgramRequest) returns (message.MessageSendMiniProgramResponse) {}
+  rpc MessageSendUrl (message.MessageSendUrlRequest) returns (message.MessageSendUrlResponse) {}
+
+  rpc MessageRecall (message.MessageRecallRequest) returns (message.MessageRecallResponse) {}
+
+  /**
+   *
+   * Room
+   *
+   */
+  rpc RoomPayload (room.RoomPayloadRequest)  returns (room.RoomPayloadResponse) {}
+
+  rpc RoomList (room.RoomListRequest)        returns (room.RoomListResponse) {}
+
+  rpc RoomAdd (room.RoomAddRequest) returns (room.RoomAddResponse) {}
+  rpc RoomAvatar (room.RoomAvatarRequest) returns (room.RoomAvatarResponse) {}
+  rpc RoomCreate (room.RoomCreateRequest) returns (room.RoomCreateResponse) {}
+  rpc RoomDel (room.RoomDelRequest) returns (room.RoomDelResponse) {}
+  rpc RoomQuit (room.RoomQuitRequest) returns (room.RoomQuitResponse) {}
+
+  rpc RoomTopic (room.RoomTopicRequest) returns (room.RoomTopicResponse) {}
+  rpc RoomQRCode (room.RoomQRCodeRequest) returns (room.RoomQRCodeResponse) {}
+  rpc RoomAnnounce (room.RoomAnnounceRequest) returns (room.RoomAnnounceResponse) {}
+
+  /**
+   *
+   * Room Member
+   *
+   */
+  rpc RoomMemberPayload (room_member.RoomMemberPayloadRequest) returns (room_member.RoomMemberPayloadResponse) {}
+
+  rpc RoomMemberList (room_member.RoomMemberListRequest) returns (room_member.RoomMemberListResponse) {}
+
+  /**
+   *
+   * Room Invitation
+   *
+   */
+  rpc RoomInvitationPayload (room_invitation.RoomInvitationPayloadRequest)  returns (room_invitation.RoomInvitationPayloadResponse) {}
+  rpc RoomInvitationAccept (room_invitation.RoomInvitationAcceptRequest) returns (room_invitation.RoomInvitationAcceptResponse) {}
+
+  /**
+   *
+   * Tag
+   *
+   */
+  rpc TagContactAdd (tag.TagContactAddRequest) returns (tag.TagContactAddResponse) {}
+  rpc TagContactRemove (tag.TagContactRemoveRequest) returns (tag.TagContactRemoveResponse) {}
+  rpc TagContactDelete (tag.TagContactDeleteRequest) returns (tag.TagContactDeleteResponse) {}
+  rpc TagContactList (tag.TagContactListRequest) returns (tag.TagContactListResponse) {}
+
+}
