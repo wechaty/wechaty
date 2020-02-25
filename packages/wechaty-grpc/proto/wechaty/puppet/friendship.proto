@@ -1,0 +1,68 @@
+syntax = "proto3";
+package wechaty.puppet.friendship;
+
+import "google/protobuf/wrappers.proto";
+
+enum FriendshipType {
+  FRIENDSHIP_TYPE_UNSPECIFIED = 0;
+  FRIENDSHIP_TYPE_CONFIRM     = 1;
+  FRIENDSHIP_TYPE_RECEIVE     = 2;
+  FRIENDSHIP_TYPE_VERIFY      = 3;
+}
+
+enum FriendshipSceneType {
+  FRIENDSHIP_SCENE_TYPE_UNSPECIFIED = 0;
+
+  FRIENDSHIP_SCENE_TYPE_QQ       = 1;
+  FRIENDSHIP_SCENE_TYPE_EMAIL    = 2;
+  FRIENDSHIP_SCENE_TYPE_WEIXIN   = 3;
+  FRIENDSHIP_SCENE_TYPE_QQTBD    = 12;
+  FRIENDSHIP_SCENE_TYPE_ROOM     = 14;
+  FRIENDSHIP_SCENE_TYPE_PHONE    = 15;
+  FRIENDSHIP_SCENE_TYPE_CARD     = 17;
+  FRIENDSHIP_SCENE_TYPE_LOCATION = 18;
+  FRIENDSHIP_SCENE_TYPE_BOTTLE   = 25;
+  FRIENDSHIP_SCENE_TYPE_SHAKING  = 29;
+  FRIENDSHIP_SCENE_TYPE_QRCODE   = 30;
+}
+
+message FriendshipPayloadRequest {
+  string                      id      = 1;
+  google.protobuf.StringValue payload = 2;
+}
+message FriendshipPayloadResponse {
+  string              id         = 1;
+  string              contact_id = 2;
+  string              hello      = 3;
+  FriendshipType      type       = 4;
+  string              stranger   = 5;
+  string              ticket     = 6;
+  FriendshipSceneType scene      = 7;
+}
+
+message FriendshipSearchPhoneRequest {
+  string phone = 1;
+}
+message FriendshipSearchPhoneResponse {
+  // nullable
+  google.protobuf.StringValue contact_id = 1;
+}
+
+message FriendshipSearchWeixinRequest {
+  string weixin = 1;
+}
+message FriendshipSearchWeixinResponse {
+  // nullable
+  google.protobuf.StringValue contact_id = 1;
+}
+
+message FriendshipAddRequest {
+  string contact_id = 1;
+  string hello = 2;
+}
+message FriendshipAddResponse {}
+
+message FriendshipAcceptRequest {
+  string id = 1;
+}
+message FriendshipAcceptResponse {}
