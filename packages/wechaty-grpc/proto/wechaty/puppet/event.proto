@@ -1,0 +1,32 @@
+syntax = "proto3";
+package wechaty.puppet.event;
+
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+
+  EVENT_TYPE_WATCHDOG = 1;
+  EVENT_TYPE_MESSAGE  = 2;
+
+  reserved 3 to 15;
+
+  EVENT_TYPE_ERROR       = 16;
+  EVENT_TYPE_FRIENDSHIP  = 17;
+  EVENT_TYPE_ROOM_INVITE = 18;
+  EVENT_TYPE_ROOM_JOIN   = 19;
+  EVENT_TYPE_ROOM_LEAVE  = 20;
+  EVENT_TYPE_ROOM_TOPIC  = 21;
+  EVENT_TYPE_SCAN        = 22;
+  EVENT_TYPE_DONG        = 23;
+  EVENT_TYPE_READY       = 24;
+  EVENT_TYPE_RESET       = 25;
+  EVENT_TYPE_LOGIN       = 26;
+  EVENT_TYPE_LOGOUT      = 27;
+}
+
+message EventRequest {}
+
+message EventResponse {
+  EventType type = 1;
+  // TODO: Huan(202002) consider to use a PB Map?
+  string payload = 2; // JSON.stringify({ ... })
+}

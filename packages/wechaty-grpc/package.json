@@ -1,6 +1,6 @@
 {
   "name": "@chatie/grpc",
-  "version": "0.2.4",
+  "version": "0.6.6",
   "description": "gRPC for Chatie",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.js",
@@ -10,16 +10,18 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/* generated/*",
-    "dist": "npm run clean && npm run generate && tsc && shx mv generated dist/",
+    "dist": "npm run clean && npm run generate && tsc && shx mv generated/ dist/",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
-    "generate": "bash -x scripts/generate-stub.sh",
-    "lint": "npm run lint:es && npm run lint:ts",
-    "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
-    "pack": "npm pack",
-    "test": "npm run lint",
+    "generate": "bash -O globstar -x scripts/generate-stub.sh",
+    "lint": "npm run lint:es && npm run lint:ts && npm run lint:proto",
+    "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
+    "lint:ts": "tsc --noEmit",
+    "lint:proto": "bash -O globstar -c 'protoc -I proto --lint_out=. proto/**/*.proto'",
+    "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "lint:es": "eslint --ignore-pattern fixtures/ 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'"
+    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "pack": "npm pack"
   },
   "repository": {
     "type": "git",
@@ -40,24 +42,24 @@
   },
   "homepage": "https://github.com/Chatie/grpc#readme",
   "dependencies": {
-    "grpc": "^1.13.0",
-    "read-pkg-up": "^4.0.0"
+    "grpc": "^1.24.2",
+    "google-protobuf": "^3.11.3",
   },
   "devDependencies": {
-    "@chatie/eslint-config": "^0.6.17",
+    "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.6.1",
-    "@types/google-protobuf": "^3.2.7",
+    "@types/google-protobuf": "^3.7.2",
+    "@chatie/tsconfig": "^0.8.0",
     "@types/protobufjs": "^5.0.31",
-    "@types/read-pkg-up": "^3.0.1",
-    "grpc-tools": "^1.6.6",
     "grpc_tools_node_protoc_ts": "^2.5.9",
-    "nodemon": "^1.17.4",
+    "grpc-tools": "^1.8.0",
+    "grpcc": "^1.1.3",
+    "nodemon": "^2.0.0",
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
-    "ts-protoc-gen": "^0.7.3",
-    "tstest": "^0.4.2"
+    "tstest": "^0.4.10",
+    "ts-protoc-gen": "^0.12.0"
   },
   "engines": {
     "node": ">= 10"

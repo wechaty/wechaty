@@ -53,6 +53,11 @@
     "node_modules/": true,
     "package/": true,
   },
+  "protoc": {
+    "options": [
+        "--proto_path=protobuf"
+    ],
+  },
   "alignment": {
     "operatorPadding": "right",
     "indentBase":      "firstline",
