@@ -192,9 +192,9 @@ export class PuppetManager {
     }
 
     // https://github.com/GoogleChrome/puppeteer/issues/1597#issuecomment-351945645
-    if (gfw && !process.env['PUPPETEER_DOWNLOAD_HOST']) {
+    if (gfw && !process.env.PUPPETEER_DOWNLOAD_HOST) {
       log.info('PuppetManager', 'preInstallPuppeteer() set PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors/')
-      process.env['PUPPETEER_DOWNLOAD_HOST'] = 'https://npm.taobao.org/mirrors/'
+      process.env.PUPPETEER_DOWNLOAD_HOST = 'https://npm.taobao.org/mirrors/'
     }
   }
 

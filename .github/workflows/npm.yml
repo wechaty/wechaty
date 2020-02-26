@@ -65,7 +65,7 @@ jobs:
         if: steps.check-branch.outputs.match == 'true'
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
       - name: Is Not A Publish Branch
         if: steps.check-branch.outputs.match != 'true'
         run: echo 'Not A Publish Branch'

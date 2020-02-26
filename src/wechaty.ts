@@ -93,7 +93,7 @@ import {
 export const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'Should be emitted after we call `Wechaty.ding()`',
-  error     : `Will be emit when there's an Error occurred.`,
+  error     : "Will be emit when there's an Error occurred.",
   heartbeat : 'Will be emited periodly after the Wechaty started. If not, means that the Wechaty had died.',
   ready     : 'All underlined data source are ready for use.',
   start     : 'Will be emitted after the Wechaty had been started.',
@@ -505,11 +505,11 @@ export class Wechaty extends Accessory implements Sayable {
 
     // DEPRECATED for 'friend' event
     if (event as any === 'friend') {
-      log.warn('Wechaty', `on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead`)
+      log.warn('Wechaty', "on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead")
       if (typeof listener === 'function') {
         const oldListener = listener
         listener = (...args: any[]) => {
-          log.warn('Wechaty', `on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead`)
+          log.warn('Wechaty', "on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead")
           oldListener.apply(this, args)
         }
       }

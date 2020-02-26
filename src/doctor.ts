@@ -35,7 +35,7 @@ export class Doctor {
     const spawn = require('child_process').spawnSync
     let version: string
     try {
-      const cmd = spawn('chromedriver', [ '--version' ])
+      const cmd = spawn('chromedriver', ['--version'])
       version = cmd.error || cmd.stdout.toString() || cmd.stderr.toString()
     } catch (e) {
       version = e.message
@@ -49,7 +49,7 @@ export class Doctor {
   public testTcp (): Promise<boolean> {
     log.verbose('Doctor', 'testTcp()')
 
-    return new Promise<boolean>(async (resolve, reject) => {
+    return new Promise<boolean>((resolve, reject) => {
       /**
        * Server
        */

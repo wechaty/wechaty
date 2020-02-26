@@ -323,12 +323,12 @@ Get to know more about the tests from [Wiki:Tests](https://github.com/Wechaty/we
 
 ## POWERED BY WECHATY
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/Wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
 
 ### Wechaty Badge
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/Wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
 ```
 
 Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/Wechaty/wechaty/wiki/PoweredByWechaty)

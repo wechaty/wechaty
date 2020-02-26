@@ -63,6 +63,7 @@ export class Contact extends Accessory implements Sayable {
   protected static get pool () {
     return this[POOL]
   }
+
   protected static set pool (newPool: Map<string, Contact>) {
     if (this === Contact) {
       throw new Error(
@@ -753,7 +754,7 @@ export class Contact extends Accessory implements Sayable {
       // log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
-      log.verbose('Contact', `ready() this.puppet.contactPayload(%s) exception: %s`,
+      log.verbose('Contact', 'ready() this.puppet.contactPayload(%s) exception: %s',
         this.id,
         e.message,
       )
