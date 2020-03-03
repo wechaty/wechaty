@@ -35,7 +35,7 @@ export class Image extends Accessory {
   public static create (id: string): Image {
     log.verbose('Image', 'static create(%s)', id)
 
-    const image = new Image(id)
+    const image = new this(id)
     return image
   }
 
