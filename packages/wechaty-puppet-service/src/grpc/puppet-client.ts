@@ -479,7 +479,7 @@ export class PuppetHostieGrpc extends Puppet {
 
     const request = new MessageImageRequest()
     request.setId(messageId)
-    request.setType(imageType as number)
+    request.setType(imageType)
 
     const response = await util.promisify(
       this.grpcClient!.messageImage
@@ -976,6 +976,7 @@ export class PuppetHostieGrpc extends Puppet {
       inviterId    : response.getInviterId(),
       memberCount  : response.getMemberCount(),
       memberIdList : response.getMemberIdsList(),
+      receiverId   : response.getReceiverId(),
       timestamp    : response.getTimestamp(),
       topic        : response.getTopic(),
     }

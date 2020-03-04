@@ -53,6 +53,7 @@ import {
   MessageImageResponse,
 
   StringValue,
+  EventTypeMap,
 }                                   from '@chatie/grpc'
 
 import {
@@ -65,6 +66,7 @@ import {
   UrlLinkPayload,
   RoomInvitationPayload,
   ImageType,
+  FriendshipSceneType,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
@@ -203,13 +205,13 @@ export function getServerImpl (
         response.setAvatar(payload.avatar)
         response.setCity(payload.city || '')
         response.setFriend(payload.friend || false)
-        response.setGender(payload.gender as number)
+        response.setGender(payload.gender)
         response.setId(payload.id)
         response.setName(payload.name)
         response.setProvince(payload.province || '')
         response.setSignature(payload.signature || '')
         response.setStar(payload.star || false)
-        response.setType(payload.type as number)
+        response.setType(payload.type)
         response.setWeixin(payload.weixin || '')
 
         return callback(null, response)
@@ -338,7 +340,8 @@ export function getServerImpl (
         eventStream = undefined
       })
 
-      const grpcEmit = (type: EventType, obj: Object) => {
+      // https://stackoverflow.com/a/49286056/1123955
+      const grpcEmit = (type: EventTypeMap[keyof EventTypeMap], obj: Object) => {
         const response = new EventResponse()
 
         response.setType(type)
@@ -491,10 +494,10 @@ export function getServerImpl (
         response.setContactId(payload.id)
         response.setHello(payload.hello || '')
         response.setId(payload.id)
-        response.setScene(payloadReceive.scene as number)
+        response.setScene(payloadReceive.scene || FriendshipSceneType.Unknown)
         response.setStranger(payloadReceive.stranger || '')
         response.setTicket(payloadReceive.ticket)
-        response.setType(payload.type as number)
+        response.setType(payload.type)
 
         return callback(null, response)
 
@@ -651,7 +654,7 @@ export function getServerImpl (
         response.setText(payload.text || '')
         response.setTimestamp(payload.timestamp)
         response.setToId(payload.toId || '')
-        response.setType(payload.type as number)
+        response.setType(payload.type)
 
         return callback(null, response)
 
