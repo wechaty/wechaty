@@ -1,5 +1,4 @@
 import grpc             from 'grpc'
-import { StringValue }  from 'google-protobuf/google/protobuf/wrappers_pb'
 
 import {
   IPuppetServer,
@@ -52,6 +51,8 @@ import {
   VersionResponse,
   MessageSendMiniProgramResponse,
   MessageImageResponse,
+
+  StringValue,
 }                                   from '@chatie/grpc'
 
 import {

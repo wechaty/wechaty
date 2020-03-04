@@ -77,9 +77,9 @@ import {
   TagContactListRequest,
   MessageImageRequest,
   // EventType,
-}                                   from '@chatie/grpc'
 
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
+  StringValue,
+}                                   from '@chatie/grpc'
 
 import {
   log,
