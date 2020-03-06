@@ -9,8 +9,8 @@ import { Wechaty }  from './wechaty'
 // use Symbol to prevent conflicting with the child class properties
 // This symbol must be exported (for now).
 // See: https://github.com/Microsoft/TypeScript/issues/20080
-export const SYMBOL_NAME    = Symbol('name')
-export const SYMBOL_COUNTER = Symbol('counter')
+const SYMBOL_NAME    = Symbol('name')
+const SYMBOL_COUNTER = Symbol('counter')
 
 let COUNTER = 0
 
@@ -155,6 +155,7 @@ export abstract class Accessory extends EventEmitter {
    *  FriendRequest.wechaty
    *  Message.wechaty
    *  Room.wechaty
+   *  ... etc
    *
    * So it only need one `wechaty` for all the instances
    */

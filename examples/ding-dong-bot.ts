@@ -72,16 +72,20 @@ bot.start()
  *
  */
 function onScan (qrcode: string, status: ScanStatus) {
-  generate(qrcode)
+  if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
+    generate(qrcode)
 
-  // Generate a QR Code online via
-  // http://goqr.me/api/doc/create-qr-code/
-  const qrcodeImageUrl = [
-    'https://api.qrserver.com/v1/create-qr-code/?data=',
-    encodeURIComponent(qrcode),
-  ].join('')
+    // Generate a QR Code online via
+    // http://goqr.me/api/doc/create-qr-code/
+    const qrcodeImageUrl = [
+      'https://api.qrserver.com/v1/create-qr-code/?data=',
+      encodeURIComponent(qrcode),
+    ].join('')
 
-  console.info('%s(%s) - %s', ScanStatus[status], status, qrcodeImageUrl)
+    console.info('onScan: %s(%s) - %s', ScanStatus[status], status, qrcodeImageUrl)
+  } else {
+    console.info('onScan: %s(%s)', ScanStatus[status], status)
+  }
 
   // console.info(`[${ScanStatus[status]}(${status})] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
 }

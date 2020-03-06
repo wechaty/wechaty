@@ -80,7 +80,7 @@
   },
   "dependencies": {
     "brolog": "^1.8.1",
-    "clone-class": "^0.6.11",
+    "clone-class": "^0.7.3",
     "cuid": "^2.1.1",
     "hot-import": "^0.2.1",
     "in-gfw": "^1.2.0",
