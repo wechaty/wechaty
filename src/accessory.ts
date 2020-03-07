@@ -98,35 +98,22 @@ export abstract class Accessory extends EventEmitter {
    *
    * 2. Instance Properties & Methods
    *
-   * The ability of set different `puppet` to the instance is required.
-   * For example: the Wechaty instances have to have different `puppet`.
+   *    DEPRECATED: The ability of set different `puppet` to the instance is required.
+   *      For example: the Wechaty instances have to have different `puppet`.
+   *
+   *    Huan(202003): simplify the logic: do not use Accessory to
+   *      set different puppet for different instances
    */
-  private _puppet?  : Puppet
-
-  /**
-   * @ignore
-   */
-  public set puppet (puppet: Puppet) {
-    log.silly('Accessory', '<%s> set puppet = "%s"',
-      this[SYMBOL_NAME] || this,
-      puppet,
-    )
-    if (this._puppet) {
-      throw new Error('puppet can not be set twice')
-    }
-    this._puppet = puppet
-  }
 
   /**
    * @ignore
    *
    * instance.puppet
    *
-   * Needs to support different `puppet` between instances.
-   *
-   * For example: every Wechaty instance needs its own `puppet`
-   *
-   * So: that's the reason that there's no `private _wechaty: Wechaty` for the instance.
+   *  Huan(202003)
+   *    DEPRECATED: Needs to support different `puppet` between instances.
+   *      For example: every Wechaty instance needs its own `puppet`
+   *      So: that's the reason that there's no `private _wechaty: Wechaty` for the instance.
    *
    */
   public get puppet (): Puppet {
@@ -135,9 +122,10 @@ export abstract class Accessory extends EventEmitter {
     //                               this[SYMBOL_NAME] || this,
     //           )
 
-    if (this._puppet) {
-      return this._puppet
-    }
+    // Huan(202003): DEPRECATED
+    // if (this._puppet) {
+    //   return this._puppet
+    // }
 
     /**
      * Get `puppet` from Class Static puppet property

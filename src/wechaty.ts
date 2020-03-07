@@ -17,8 +17,9 @@
  *
  *  @ignore
  */
-import cuid    from 'cuid'
-import os      from 'os'
+import cuid             from 'cuid'
+import { EventEmitter } from 'events'
+import os               from 'os'
 
 import {
   // Constructor,
@@ -45,9 +46,6 @@ import {
   ScanStatus,
 }                       from 'wechaty-puppet'
 
-import {
-  Accessory,
-}                       from './accessory'
 import {
   FileBox,
   Raven,
@@ -139,7 +137,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
-export class Wechaty extends Accessory implements Sayable {
+export class Wechaty extends EventEmitter implements Sayable {
 
   public static readonly VERSION = VERSION
 
@@ -156,6 +154,8 @@ export class Wechaty extends Accessory implements Sayable {
 
   private lifeTimer? : NodeJS.Timer
   private io?        : Io
+
+  public puppet!: Puppet
 
   /**
    * the cuid
@@ -568,12 +568,7 @@ export class Wechaty extends Accessory implements Sayable {
   private async initPuppet (): Promise<void> {
     log.verbose('Wechaty', 'initPuppet() %s', this.options.puppet || '')
 
-    let inited = false
-    try {
-      inited = !!this.puppet
-    } catch (e) {
-      inited = false
-    }
+    const inited = !!this.puppet
 
     if (inited) {
       log.verbose('Wechaty', 'initPuppet(%s) had already been inited, no need to init twice', this.options.puppet)
