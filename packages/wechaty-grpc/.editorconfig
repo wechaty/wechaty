@@ -11,7 +11,13 @@ trim_trailing_whitespace = true
 
 [*.md]
 max_line_length = 0
+indent_style = space
 trim_trailing_whitespace = false
+
+# 4 tab indentation
+[Makefile]
+indent_style = tab
+indent_size = 4
 
 [*.py]
 indent_size = 4

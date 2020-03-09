@@ -89,6 +89,10 @@ dist:
 publish:
 	PATH=~/.local/bin:${PATH} twine upload dist/*
 
+.PHONY: generate
+generate:
+	./scripts/generate-stub-py.sh
+
 .PHONY: demo
 demo:
 	python3 examples/demo.py

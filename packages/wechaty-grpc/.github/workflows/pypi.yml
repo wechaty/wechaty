@@ -24,7 +24,7 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Test
       run: |
-        make dist
+        make generate
         make test
 
   pack:
@@ -43,6 +43,7 @@ jobs:
           make install
       - name: Pack Testing
         run: |
+          make generate
           make dist
           echo "To be add: pack testing"
 
@@ -76,6 +77,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           make install
+          make generate
           make dist
           python setup.py sdist bdist_wheel
           twine upload --skip-existing dist/*
