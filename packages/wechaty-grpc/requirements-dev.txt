@@ -1,3 +1,5 @@
 betterproto[compiler]
 pyee
 semver
+pylint_quotes
+pytype
