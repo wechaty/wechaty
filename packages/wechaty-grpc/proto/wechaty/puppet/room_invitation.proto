@@ -16,6 +16,7 @@ message RoomInvitationPayloadResponse {
   uint64   timestamp         = 6;
   string   avatar            = 7;
   string   invitation        = 8;
+  string   receiver_id       = 9;
 }
 
 message RoomInvitationAcceptRequest {
