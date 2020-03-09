@@ -97,7 +97,7 @@ test('integration testing', async (t) => {
 function getTestServer () {
 
   let eventStream: undefined | grpc.ServerWritableStream<EventRequest>
-  const dataList = [] as string[]
+  const dataQueue = [] as string[]
 
   /**
    * Implements the SayHello RPC method.
@@ -109,7 +109,7 @@ function getTestServer () {
       const data = call.request.getData()
 
       if (!eventStream) {
-        dataList.push(data)
+        dataQueue.push(data)
       } else {
         const eventResponse = new EventResponse()
         eventResponse.setType(EventType.EVENT_TYPE_DONG)
@@ -126,8 +126,8 @@ function getTestServer () {
       }
 
       eventStream = streamnigCall
-      while (dataList.length > 0) {
-        const data = dataList.shift()
+      while (dataQueue.length > 0) {
+        const data = dataQueue.shift()
         const eventResponse = new EventResponse()
         eventResponse.setType(EventType.EVENT_TYPE_DONG)
         eventResponse.setPayload(data!)
