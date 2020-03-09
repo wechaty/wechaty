@@ -24,7 +24,6 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Test
       run: |
-        ./scripts/install-protoc.sh
         make generate
         make test
 
@@ -44,7 +43,6 @@ jobs:
           make install
       - name: Pack Testing
         run: |
-          ./scripts/install-protoc.sh
           make generate
           make dist
           echo "To be add: pack testing"
@@ -78,7 +76,6 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          ./scripts/install-protoc.sh
           make install
           make generate
           make dist
