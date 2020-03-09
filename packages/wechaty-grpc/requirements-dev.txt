@@ -1,6 +1,7 @@
 betterproto[compiler]
+grpcio-tools
 pyee
-semver
 pylint_quotes
 pytest
 pytype
+semver
