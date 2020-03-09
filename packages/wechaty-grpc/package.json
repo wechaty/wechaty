@@ -1,6 +1,6 @@
 {
   "name": "@chatie/grpc",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "gRPC for Chatie",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.js",
