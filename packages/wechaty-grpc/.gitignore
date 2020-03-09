@@ -64,3 +64,4 @@ dist/
 generated/
 chatie_grpc/
 .ropeproject/
+build/
