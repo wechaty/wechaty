@@ -63,3 +63,4 @@ t.*
 dist/
 generated/
 chatie_grpc/
+.ropeproject/
