@@ -18,4 +18,7 @@ message LogoutResponse {}
 message DingRequest {
   string data = 1;
 }
-message DingResponse {}
+message DingResponse {
+  // Ding has no return value
+  // Puppet should emit a `ding` event when it receives a `ding()` call
+}
