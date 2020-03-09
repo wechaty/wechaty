@@ -23,7 +23,9 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
     - name: Test
-      run: make test
+      run: |
+        make dist
+        make test
 
   pack:
     name: Pack
@@ -73,6 +75,8 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
+          make install
+          make dist
           python setup.py sdist bdist_wheel
           twine upload --skip-existing dist/*
 
