@@ -298,6 +298,14 @@ export class Wechaty extends EventEmitter implements Sayable {
     ].join('')
   }
 
+  /**
+   * Wechaty bot name set by `optoins.name`
+   * default: `wechaty`
+   */
+  public name () {
+    return this.options.name || 'wechaty'
+  }
+
   public emit (event: 'dong',       data?: string)                                                      : boolean
   public emit (event: 'error',      error: Error)                                                       : boolean
   public emit (event: 'friendship', friendship: Friendship)                                             : boolean
