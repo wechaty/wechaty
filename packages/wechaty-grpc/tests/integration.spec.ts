@@ -120,12 +120,12 @@ function getTestServer () {
       callback(null, new DingResponse())
     },
 
-    event: (streamnigCall) => {
+    event: (streamingCall) => {
       if (eventStream) {
         throw new Error('eventStream can not be created again')
       }
 
-      eventStream = streamnigCall
+      eventStream = streamingCall
       while (dataQueue.length > 0) {
         const data = dataQueue.shift()
         const eventResponse = new EventResponse()

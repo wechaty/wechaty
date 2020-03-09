@@ -2,7 +2,7 @@
 """doc"""
 import asyncio
 
-from gen_py.puppet_grpc import PuppetStub
+from chatie_grpc.wechaty.puppet import PuppetStub
 from grpclib.client import Channel
 
 
@@ -10,10 +10,14 @@ async def main():
   """doc"""
   channel = Channel(host="127.0.0.1", port=8788)
   puppet = PuppetStub(channel)
-  await puppet.ding()
 
-# async for response in service.echo_stream(value="hello", extra_times=1)
-#         print(response)
+  await puppet.ding(data='haha')
+
+  async for response in puppet.event():
+    print(response)
+
+  channel.close()
+
 
 if __name__ == "__main__":
   asyncio.run(main())

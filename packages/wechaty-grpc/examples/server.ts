@@ -3,76 +3,71 @@
 import grpc from 'grpc'
 
 import {
-  ContactListResponse,
   IPuppetServer,
   PuppetService,
   EventResponse,
   EventType,
-  ContactAliasResponse,
+  DingResponse,
+  EventRequest,
 }                       from '../src/index'
 
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
+// import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
 import {
   puppetServerImpl,
 }                     from '../tests/puppet-server-impl'
+
+let eventStream: undefined | grpc.ServerWritableStream<EventRequest>
+let dingQueue = [] as string[]
+
 /**
  * Implements the SayHello RPC method.
  */
 const puppetServerExample: IPuppetServer = {
   ...puppetServerImpl,
 
-  event: (streamnigCall) => {
-    const eventResponse = new EventResponse()
+  event: (streammingCall) => {
+    console.info('event(streamingCall)')
 
-    eventResponse.setType(EventType.EVENT_TYPE_DONG)
-
-    let n = 42
-
-    const timer = setInterval(() => {
-      eventResponse.setPayload(JSON.stringify({ n: n++ }))
-      streamnigCall.write(eventResponse)
-    }, 1000)
-
-    setTimeout(() => {
-      clearInterval(timer)
-
-      eventResponse.setPayload(JSON.stringify({ n: n++ }))
-      streamnigCall.write(eventResponse)
-
-      setImmediate(() => streamnigCall.end())
-    }, 2 * 1000 + 500)
-  },
-
-  contactList: (call, callback) => {
-    void call
-
-    const contactListResponse = new ContactListResponse()
-
-    const idList = ['a', 'b', 'c']
-    contactListResponse.setIdsList(idList)
-
-    callback(null, contactListResponse)
-  },
-
-  contactAlias: (call, callback) => {
-    const id = call.request.getId()
-    const alias = call.request.getAlias()
-
-    console.info('id:', id)
-    console.info('alias:', alias)
-
-    const response = new ContactAliasResponse()
-
-    if (alias) {
-      callback(null, response)
-      return
+    if (eventStream) {
+      console.info('event() end old eventStream to accept the new one.')
+      eventStream.end()
+      eventStream = streammingCall
     }
 
-    const aliasWrapper = new StringValue()
-    aliasWrapper.setValue('my alias')
-    response.setAlias(aliasWrapper)
-    callback(null, response)
+    eventStream = streammingCall
+    while (dingQueue.length > 0) {
+      const data = dingQueue.shift()
+      const eventResponse = new EventResponse()
+      eventResponse.setType(EventType.EVENT_TYPE_DONG)
+      eventResponse.setPayload(data!)
+      eventStream.write(eventResponse)
+    }
+    /**
+      * Detect if Inexor Core is gone (GRPC disconnects)
+      *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
+      */
+    eventStream.on('cancelled', () => {
+      console.info('eventStream.on(calcelled)')
+      eventStream?.end()
+      eventStream = undefined
+    })
+  },
+
+  ding: (call, callback) => {
+    const data = call.request.getData()
+    console.info(`ding(${data})`)
+
+    if (!eventStream) {
+      dingQueue.push(data)
+    } else {
+      const eventResponse = new EventResponse()
+      eventResponse.setType(EventType.EVENT_TYPE_DONG)
+      eventResponse.setPayload(data)
+      eventStream.write(eventResponse)
+    }
+
+    callback(null, new DingResponse())
   },
 }
 
