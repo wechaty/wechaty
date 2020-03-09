@@ -24,8 +24,8 @@ import {
 test('integration testing', async (t) => {
   const ENDPOINT = 'localhost:18788'
 
-  const EXPECTED_DATA_LIST = ['data1', 'data2']
-  const ACTUAL_DATA_LIST   = [] as string[]
+  const DING_DATA_LIST  = ['data1', 'data2']
+  const EVENT_DATA_LIST = [] as string[]
 
   /**
    * Create Server
@@ -57,11 +57,11 @@ test('integration testing', async (t) => {
     eventStream
       .on('data', (chunk: EventResponse) => {
         const payload = chunk.getPayload()
-        ACTUAL_DATA_LIST.push(payload)
+        EVENT_DATA_LIST.push(payload)
 
         console.info('on(data)', payload)
 
-        if (ACTUAL_DATA_LIST.length === EXPECTED_DATA_LIST.length) {
+        if (EVENT_DATA_LIST.length === DING_DATA_LIST.length) {
           resolve()
         }
       })
@@ -71,9 +71,7 @@ test('integration testing', async (t) => {
   /**
    * gRPC: Ding
    */
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  for (const data of EXPECTED_DATA_LIST) {
+  for (const data of DING_DATA_LIST) {
     const request = new DingRequest()
     request.setData(data)
 
@@ -85,7 +83,7 @@ test('integration testing', async (t) => {
    * Check Result
    */
   await future
-  t.deepEqual(ACTUAL_DATA_LIST, EXPECTED_DATA_LIST, 'should get ding data back through event stream')
+  t.deepEqual(EVENT_DATA_LIST, DING_DATA_LIST, 'should get ding data back through event stream')
 
   /**
    * Close Client & Server
@@ -99,6 +97,7 @@ test('integration testing', async (t) => {
 function getTestServer () {
 
   let eventStream: undefined | grpc.ServerWritableStream<EventRequest>
+  const dataList = [] as string[]
 
   /**
    * Implements the SayHello RPC method.
@@ -110,13 +109,13 @@ function getTestServer () {
       const data = call.request.getData()
 
       if (!eventStream) {
-        throw new Error('eventStream is not created')
+        dataList.push(data)
+      } else {
+        const eventResponse = new EventResponse()
+        eventResponse.setType(EventType.EVENT_TYPE_DONG)
+        eventResponse.setPayload(data)
+        eventStream.write(eventResponse)
       }
-
-      const eventResponse = new EventResponse()
-      eventResponse.setType(EventType.EVENT_TYPE_DONG)
-      eventResponse.setPayload(data)
-      eventStream.write(eventResponse)
 
       callback(null, new DingResponse())
     },
@@ -127,7 +126,13 @@ function getTestServer () {
       }
 
       eventStream = streamnigCall
-
+      while (dataList.length > 0) {
+        const data = dataList.shift()
+        const eventResponse = new EventResponse()
+        eventResponse.setType(EventType.EVENT_TYPE_DONG)
+        eventResponse.setPayload(data!)
+        eventStream.write(eventResponse)
+      }
       /**
         * Detect if Inexor Core is gone (GRPC disconnects)
         *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
