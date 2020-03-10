@@ -3,7 +3,7 @@
 ![chatie grpc](https://chatie.io/grpc/images/grpc.png)
 
 [![NPM Version](https://badge.fury.io/js/%40chatie%2Fgrpc.svg)](https://www.npmjs.com/package/@chatie/grpc)
-[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/grpc.svg)](https://greenkeeper.io/)
+
 
 ![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue)
 [![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
