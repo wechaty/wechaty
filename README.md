@@ -73,7 +73,7 @@ You can find more examples from [Wiki](https://github.com/Wechaty/wechaty/wiki/E
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-* Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
+- Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
 
 We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
@@ -102,7 +102,7 @@ node mybot.js
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-* Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
+- Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
@@ -155,7 +155,7 @@ Main bot class.
 
 A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://github.com/Wechaty/wechaty/wiki/Puppet).
 
-* `new Wechaty(options?: WechatyOptions)`
+- `new Wechaty(options?: WechatyOptions)`
     1. `options.name?: string` the name of this bot(optional)
     2. `optoins.puppet?: string` select which puppet provider we want to use. must be one of the:
         1. [wechaty-puppet-puppeteer](https://github.com/Wechaty/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
@@ -314,8 +314,8 @@ Get to know more about the tests from [Wiki:Tests](https://github.com/Wechaty/we
 
 ## RELEASE NOTES
 
-* [Latest Release](https://github.com/Wechaty/wechaty/releases/latest)(All releases [here](https://github.com/Wechaty/wechaty/releases))
-* [Changelog](https://github.com/Wechaty/wechaty/blob/master/CHANGELOG.md)
+- [Latest Release](https://github.com/Wechaty/wechaty/releases/latest)(All releases [here](https://github.com/Wechaty/wechaty/releases))
+- [Changelog](https://github.com/Wechaty/wechaty/blob/master/CHANGELOG.md)
 
 ### Views Since Feb 15, 2019
 
@@ -363,7 +363,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 
 ## See Also
 
-* [RelatedProject](https://github.com/Wechaty/wechaty/wiki/RelatedProject)
+- [RelatedProject](https://github.com/Wechaty/wechaty/wiki/RelatedProject)
 
 ## The Story
 
@@ -371,8 +371,8 @@ In 2017 ...
 
 Huan's daily life/work depends on too much chat on wechat.
 
-* Almost 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
-* Almost 400 wechat rooms, and most of them have more than 400 members.
+- Almost 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
+- Almost 400 wechat rooms, and most of them have more than 400 members.
 
 Can you imagine that? He was dying...
 
@@ -415,6 +415,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Copyright & License
 
-* Code & Docs © 2016-now Huan LI \<zixia@zixia.net\>
-* Code released under the Apache-2.0 License
-* Docs released under Creative Commons
+- Code & Docs © 2016-now Huan LI \<zixia@zixia.net\>
+- Code released under the Apache-2.0 License
+- Docs released under Creative Commons
