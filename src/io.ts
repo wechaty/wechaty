@@ -149,8 +149,6 @@ export class Io {
 
       this.state.on(true)
 
-      return
-
     } catch (e) {
       log.warn('Io', 'start() exception: %s', e.message)
       this.state.off(true)

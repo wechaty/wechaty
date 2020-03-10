@@ -103,6 +103,7 @@ export class IoClient {
       await this.startIo()
 
       await this.options.wechaty.start()
+
       await this.startHostie()
 
       this.state.on(true)
