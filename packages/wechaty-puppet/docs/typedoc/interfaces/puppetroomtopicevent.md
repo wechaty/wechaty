@@ -25,7 +25,7 @@
 **● changerName**: * `string` &#124; `unique symbol`
 *
 
-*Defined in [src/schemas/puppet.ts:38](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L38)*
+*Defined in [src/schemas/puppet.ts:38](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L38)*
 
 ___
 <a id="roomid"></a>
@@ -34,7 +34,7 @@ ___
 
 **● roomId**: *`string`*
 
-*Defined in [src/schemas/puppet.ts:39](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L39)*
+*Defined in [src/schemas/puppet.ts:39](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L39)*
 
 ___
 <a id="topic"></a>
@@ -43,7 +43,7 @@ ___
 
 **● topic**: *`string`*
 
-*Defined in [src/schemas/puppet.ts:40](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L40)*
+*Defined in [src/schemas/puppet.ts:40](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L40)*
 
 ___
 

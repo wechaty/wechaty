@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Chatie/wechaty-puppet.git"
+    "url": "git+https://github.com/wechaty/wechaty-puppet.git"
   },
   "keywords": [
     "chatie",
@@ -35,9 +35,9 @@
   "author": "Huan LI <zixia@zixia.net>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Chatie/wechaty-puppet/issues"
+    "url": "https://github.com/wechaty/wechaty-puppet/issues"
   },
-  "homepage": "https://github.com/Chatie/wechaty-puppet#readme",
+  "homepage": "https://github.com/wechaty/wechaty-puppet#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.5",

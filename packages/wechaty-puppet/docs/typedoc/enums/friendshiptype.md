@@ -21,7 +21,7 @@
 
 **Confirm**: 
 
-*Defined in [src/schemas/friendship.ts:3](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L3)*
+*Defined in [src/schemas/friendship.ts:3](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L3)*
 
 ___
 <a id="receive"></a>
@@ -30,7 +30,7 @@ ___
 
 **Receive**: 
 
-*Defined in [src/schemas/friendship.ts:4](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L4)*
+*Defined in [src/schemas/friendship.ts:4](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L4)*
 
 ___
 <a id="unknown"></a>
@@ -39,7 +39,7 @@ ___
 
 **Unknown**:  = 0
 
-*Defined in [src/schemas/friendship.ts:2](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L2)*
+*Defined in [src/schemas/friendship.ts:2](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L2)*
 
 ___
 <a id="verify"></a>
@@ -48,7 +48,7 @@ ___
 
 **Verify**: 
 
-*Defined in [src/schemas/friendship.ts:5](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L5)*
+*Defined in [src/schemas/friendship.ts:5](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L5)*
 
 ___
 

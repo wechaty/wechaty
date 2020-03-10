@@ -24,7 +24,7 @@
 
 **● inviteeNameList**: *`Array`< `string` &#124; `unique symbol`>*
 
-*Defined in [src/schemas/puppet.ts:26](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L26)*
+*Defined in [src/schemas/puppet.ts:26](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L26)*
 
 ___
 <a id="invitername"></a>
@@ -34,7 +34,7 @@ ___
 **● inviterName**: * `string` &#124; `unique symbol`
 *
 
-*Defined in [src/schemas/puppet.ts:27](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L27)*
+*Defined in [src/schemas/puppet.ts:27](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L27)*
 
 ___
 <a id="roomid"></a>
@@ -43,7 +43,7 @@ ___
 
 **● roomId**: *`string`*
 
-*Defined in [src/schemas/puppet.ts:28](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L28)*
+*Defined in [src/schemas/puppet.ts:28](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L28)*
 
 ___
 

@@ -53,7 +53,7 @@
 
 **ΤChatEventName**: *`keyof object`*
 
-*Defined in [src/schemas/puppet.ts:55](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L55)*
+*Defined in [src/schemas/puppet.ts:55](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L55)*
 
 ___
 <a id="friendshippayload"></a>
@@ -63,7 +63,7 @@ ___
 **ΤFriendshipPayload**: * `FriendshipPayloadConfirm` &#124; `FriendshipPayloadReceive` &#124; `FriendshipPayloadVerify`
 *
 
-*Defined in [src/schemas/friendship.ts:33](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L33)*
+*Defined in [src/schemas/friendship.ts:33](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/friendship.ts#L33)*
 
 ___
 <a id="messagepayload"></a>
@@ -74,7 +74,7 @@ ___
 
 *
 
-*Defined in [src/schemas/message.ts:37](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L37)*
+*Defined in [src/schemas/message.ts:37](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L37)*
 
 ___
 <a id="puppeteventname"></a>
@@ -83,7 +83,7 @@ ___
 
 **ΤPuppetEventName**: *`keyof object`*
 
-*Defined in [src/schemas/puppet.ts:66](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L66)*
+*Defined in [src/schemas/puppet.ts:66](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L66)*
 
 ___
 
@@ -95,7 +95,7 @@ ___
 
 **● VERSION**: *`string`* =  pkg.version
 
-*Defined in [src/config.ts:11](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/config.ts#L11)*
+*Defined in [src/config.ts:11](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/config.ts#L11)*
 
 ___
 <a id="you"></a>
@@ -104,8 +104,8 @@ ___
 
 **● YOU**: *`unique symbol`* =  Symbol('You')
 
-*Defined in [src/schemas/puppet.ts:11](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L11)*
-*Defined in [src/schemas/puppet.ts:12](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L12)*
+*Defined in [src/schemas/puppet.ts:11](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L11)*
+*Defined in [src/schemas/puppet.ts:12](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L12)*
 
 This is used internally to as a placeholder for the bot name.
 

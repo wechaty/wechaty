@@ -35,7 +35,7 @@
 **● address**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/contact.ts:25](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L25)*
+*Defined in [src/schemas/contact.ts:25](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L25)*
 
 ___
 <a id="alias"></a>
@@ -45,7 +45,7 @@ ___
 **● alias**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/contact.ts:26](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L26)*
+*Defined in [src/schemas/contact.ts:26](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L26)*
 
 ___
 <a id="avatar"></a>
@@ -54,7 +54,7 @@ ___
 
 **● avatar**: *`string`*
 
-*Defined in [src/schemas/contact.ts:23](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L23)*
+*Defined in [src/schemas/contact.ts:23](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L23)*
 
 ___
 <a id="city"></a>
@@ -64,7 +64,7 @@ ___
 **● city**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/contact.ts:27](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L27)*
+*Defined in [src/schemas/contact.ts:27](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L27)*
 
 ___
 <a id="friend"></a>
@@ -74,7 +74,7 @@ ___
 **● friend**: * `undefined` &#124; `true` &#124; `false`
 *
 
-*Defined in [src/schemas/contact.ts:28](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L28)*
+*Defined in [src/schemas/contact.ts:28](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L28)*
 
 ___
 <a id="gender"></a>
@@ -83,7 +83,7 @@ ___
 
 **● gender**: *[ContactGender](../enums/contactgender.md)*
 
-*Defined in [src/schemas/contact.ts:20](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L20)*
+*Defined in [src/schemas/contact.ts:20](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L20)*
 
 ___
 <a id="id"></a>
@@ -92,7 +92,7 @@ ___
 
 **● id**: *`string`*
 
-*Defined in [src/schemas/contact.ts:19](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L19)*
+*Defined in [src/schemas/contact.ts:19](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L19)*
 
 ___
 <a id="name"></a>
@@ -101,7 +101,7 @@ ___
 
 **● name**: *`string`*
 
-*Defined in [src/schemas/contact.ts:22](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L22)*
+*Defined in [src/schemas/contact.ts:22](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L22)*
 
 ___
 <a id="province"></a>
@@ -111,7 +111,7 @@ ___
 **● province**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/contact.ts:29](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L29)*
+*Defined in [src/schemas/contact.ts:29](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L29)*
 
 ___
 <a id="signature"></a>
@@ -121,7 +121,7 @@ ___
 **● signature**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/contact.ts:30](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L30)*
+*Defined in [src/schemas/contact.ts:30](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L30)*
 
 ___
 <a id="star"></a>
@@ -131,7 +131,7 @@ ___
 **● star**: * `undefined` &#124; `true` &#124; `false`
 *
 
-*Defined in [src/schemas/contact.ts:31](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L31)*
+*Defined in [src/schemas/contact.ts:31](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L31)*
 
 ___
 <a id="type"></a>
@@ -140,7 +140,7 @@ ___
 
 **● type**: *[ContactType](../enums/contacttype.md)*
 
-*Defined in [src/schemas/contact.ts:21](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L21)*
+*Defined in [src/schemas/contact.ts:21](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L21)*
 
 ___
 <a id="weixin"></a>
@@ -150,7 +150,7 @@ ___
 **● weixin**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/contact.ts:32](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L32)*
+*Defined in [src/schemas/contact.ts:32](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L32)*
 
 ___
 
