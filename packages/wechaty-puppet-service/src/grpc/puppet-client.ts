@@ -3,6 +3,7 @@
 import util from 'util'
 
 import grpc from 'grpc'
+import WebSocket from 'ws'
 
 import {
   // ContactGender,
@@ -84,8 +85,8 @@ import {
 import {
   log,
   VERSION,
-  WECHATY_PUPPET_HOSTIE_TOKEN,
-  WECHATY_PUPPET_HOSTIE_ENDPOINT,
+  ENV_WECHATY_PUPPET_HOSTIE_TOKEN,
+  ENV_WECHATY_PUPPET_HOSTIE_ENDPOINT,
 }                                   from '../config'
 
 export class PuppetHostieGrpc extends Puppet {
@@ -99,11 +100,55 @@ export class PuppetHostieGrpc extends Puppet {
     public options: PuppetOptions = {},
   ) {
     super(options)
-    options.endpoint = options.endpoint || WECHATY_PUPPET_HOSTIE_ENDPOINT || '0.0.0.0:8788'
-    options.token = options.token || WECHATY_PUPPET_HOSTIE_TOKEN
+    options.endpoint = options.endpoint || ENV_WECHATY_PUPPET_HOSTIE_ENDPOINT
+    options.token = options.token || ENV_WECHATY_PUPPET_HOSTIE_TOKEN
 
     if (!options.token) {
       throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
+    }
+  }
+
+  private async discoverHostieIp (
+    token: string,
+  ): Promise<string> {
+    log.verbose('PuppetHostieGrpc', `discoverHostieIp(%s)`, token)
+
+    const CHATIE_ENDPOINT = 'wss://api.chatie.io/v0/websocket/token/'
+    const PROTOCOL = 'puppet-hostie|0.0.1'
+
+    const ws = new WebSocket(
+      CHATIE_ENDPOINT + token,
+      PROTOCOL,
+    )
+
+    try {
+      return await new Promise<string>((resolve, reject) => {
+
+        ws.once('open', function open () {
+          ws.send(
+            JSON.stringify(
+              {
+                name: 'hostie',
+              },
+            ),
+          )
+        })
+
+        ws.on('message', function incoming (data: string) {
+          const event = JSON.parse(data)
+          if (event.name === 'hostie') {
+            log.verbose('PuppetHostieGrpc', `discoverHostieIp() %s`, event.payload)
+            return resolve(event.payload)
+          } else {
+            // console.info('other:', event)
+          }
+        })
+
+        ws.once('error', reject)
+        ws.once('close', reject)
+      })
+    } finally {
+      ws.close()
     }
   }
 
@@ -114,9 +159,12 @@ export class PuppetHostieGrpc extends Puppet {
       throw new Error('puppetClient had already inited')
     }
 
-    const endpoint = this.options.endpoint
+    let endpoint = this.options.endpoint
     if (!endpoint) {
-      throw new Error('no endpoint')
+      endpoint = await this.discoverHostieIp(this.options.token!)
+      if (endpoint === '0.0.0.0') {
+        throw new Error('no endpoint')
+      }
     }
 
     this.grpcClient = new PuppetClient(

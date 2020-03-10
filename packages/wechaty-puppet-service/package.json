@@ -47,6 +47,7 @@
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.8.0",
     "@types/google-protobuf": "^3.7.2",
+    "@types/ws": "^7.2.2",
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "tstest": "^0.4.2",
@@ -56,7 +57,8 @@
     "wechaty-puppet": "^0.20.0"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.6.12"
+    "@chatie/grpc": "^0.6.12",
+    "ws": "^7.2.3"
   },
   "publishConfig": {
     "access": "public",
