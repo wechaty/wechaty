@@ -161,10 +161,11 @@ export class PuppetHostieGrpc extends Puppet {
 
     let endpoint = this.options.endpoint
     if (!endpoint) {
-      endpoint = await this.discoverHostieIp(this.options.token!)
-      if (endpoint === '0.0.0.0') {
+      const ip = await this.discoverHostieIp(this.options.token!)
+      if (ip === '0.0.0.0') {
         throw new Error('no endpoint')
       }
+      endpoint = ip + ':8788'
     }
 
     this.grpcClient = new PuppetClient(
