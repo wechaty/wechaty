@@ -7,7 +7,8 @@ import { Wechaty }  from './wechaty'
 
 test('Io restart without problem', async t => {
   const io = new Io({
-    token   : 'mock token in wechaty/wechaty/src/io.spec.ts',
+    // token must not contain any white spaces
+    token   : 'mock_token_in_wechaty/wechaty/src/io.spec.ts',
     wechaty : new Wechaty(),
   })
 
