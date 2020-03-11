@@ -7,7 +7,7 @@ import { Wechaty }  from './wechaty'
 
 test('Io restart without problem', async t => {
   const io = new Io({
-    token   : 'mock_token',
+    token   : 'mock token in wechaty/wechaty/src/io.spec.ts',
     wechaty : new Wechaty(),
   })
 
