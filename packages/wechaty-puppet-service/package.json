@@ -57,7 +57,7 @@
     "wechaty-puppet": "^0.20.0"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.6.12",
+    "@chatie/grpc": "^0.7.7",
     "ws": "^7.2.3"
   },
   "publishConfig": {
