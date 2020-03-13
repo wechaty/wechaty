@@ -7,41 +7,47 @@
  *  we should replace '你' and 'You' to YOU.
  *
  * See: https://github.com/Microsoft/TypeScript/issues/20898#issuecomment-354073352
+ *
+ * Huan(202003): `YOU` must NOT be passed to the `Wechaty`
+ *  `YOU` is only for the wechaty-puppet-XXX internal usage only.
+ *  becasue it might be transported via the GRPC interface,
+ *  which can not serilize the `YOU` Symbol correctly.
+ *
  */
 export const YOU = Symbol('You')
 export type YOU  = typeof YOU
 
-export interface PuppetQRCodeScanEvent {
-  data?  : string,   // Other Data
-  qrcode : string,   // QR Code Data
-  status : number,   // Status Code
-}
+// export interface PuppetQRCodeScanEvent {
+//   data?  : string,   // Other Data
+//   qrcode : string,   // QR Code Data
+//   status : number,   // Status Code
+// }
 
-export interface PuppetRoomInviteEvent {
-  inviterId : string,
-  roomId    : string,
-}
+// export interface PuppetRoomInviteEvent {
+//   inviterId : string,
+//   roomId    : string,
+// }
 
-export interface PuppetRoomJoinEvent {
-  inviteeNameList : Array<(string | YOU)>,
-  inviterName     : string | YOU,
-  roomId          : string,
-  timestamp       : number, // Unix Timestamp, in seconds
-}
+// export interface PuppetRoomJoinEvent {
+//   inviteeNameList : Array<(string | YOU)>,
+//   inviterName     : string | YOU,
+//   roomId          : string,
+//   timestamp       : number, // Unix Timestamp, in seconds
+// }
 
-export interface PuppetRoomLeaveEvent {
-  leaverNameList : Array<(string | YOU)>,
-  removerName    : string | YOU,
-  roomId         : string,
-  timestamp      : number,  // Unix Timestamp, in seconds
-}
+// export interface PuppetRoomLeaveEvent {
+//   leaverNameList : Array<(string | YOU)>,
+//   removerName    : string | YOU,
+//   roomId         : string,
+//   timestamp      : number,  // Unix Timestamp, in seconds
+// }
 
-export interface PuppetRoomTopicEvent {
-  changerName : string | YOU,
-  roomId      : string,
-  topic       : string,
-  timestamp   : number, // Unix Timestamp, in seconds
-}
+// export interface PuppetRoomTopicEvent {
+//   changerName : string | YOU,
+//   roomId      : string,
+//   topic       : string,
+//   timestamp   : number, // Unix Timestamp, in seconds
+// }
 
 /** @hidden */
 export const CHAT_EVENT_DICT = {
