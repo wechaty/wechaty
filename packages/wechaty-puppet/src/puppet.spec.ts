@@ -452,15 +452,15 @@ test('reset event throttle for reset()', async t => {
   const timer = sandbox.useFakeTimers()
   const reset = sandbox.stub(puppet, 'reset')
 
-  puppet.emit('reset', 'testing')
+  puppet.emit('reset', { data: 'testing' })
   t.equal(reset.callCount, 1, 'should call reset() immediately')
 
   timer.tick(1000 - 1)
-  puppet.emit('reset', 'testing 2')
+  puppet.emit('reset', { data: 'testing 2' })
   t.equal(reset.callCount, 1, 'should not call reset() again in the following 1 second')
 
   timer.tick(1000 + 1)
-  puppet.emit('reset', 'testing 2')
+  puppet.emit('reset', { data: 'testing 2' })
   t.equal(reset.callCount, 2, 'should call reset() again after 1 second')
 
   sandbox.restore()

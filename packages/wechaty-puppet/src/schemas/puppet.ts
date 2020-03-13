@@ -1,5 +1,3 @@
-// tslint:disable:object-literal-key-quotes
-
 /**
  * This is used internally to as a placeholder for the bot name.
  *
@@ -17,40 +15,8 @@
 export const YOU = Symbol('You')
 export type YOU  = typeof YOU
 
-export interface PuppetQRCodeScanEvent {
-  data?  : string,   // Other Data
-  qrcode : string,   // QR Code Data
-  status : number,   // Status Code
-}
-
-export interface PuppetRoomInviteEvent {
-  inviterId : string,
-  roomId    : string,
-}
-
-export interface PuppetRoomJoinEvent {
-  inviteeNameList : Array<(string | YOU)>,
-  inviterName     : string | YOU,
-  roomId          : string,
-  timestamp       : number, // Unix Timestamp, in seconds
-}
-
-export interface PuppetRoomLeaveEvent {
-  leaverNameList : Array<(string | YOU)>,
-  removerName    : string | YOU,
-  roomId         : string,
-  timestamp      : number,  // Unix Timestamp, in seconds
-}
-
-export interface PuppetRoomTopicEvent {
-  changerName : string | YOU,
-  roomId      : string,
-  topic       : string,
-  timestamp   : number, // Unix Timestamp, in seconds
-}
-
 /** @hidden */
-export const CHAT_EVENT_DICT = {
+const CHAT_EVENT_DICT = {
   friendship    : 'receive a friend request',
   login         : 'puppet had logined',
   logout        : 'puppet had logouted',
@@ -64,7 +30,7 @@ export const CHAT_EVENT_DICT = {
 export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
 /** @hidden */
-export const PUPPET_EVENT_DICT = {
+const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'emit this event if you received a ding() call',
   error     : `emit an Error instance when there's any Error need to report to Wechaty`,
@@ -85,13 +51,4 @@ export interface PuppetOptions {
   token?    : string,
 
   [ puppetOptionKey: string ]: unknown,
-
 }
-
-/**
- * @deprecated Huan(202002) use (conversationalId: string) instead.
- */
-// export interface Receiver {
-//   contactId? : string,
-//   roomId?    : string,
-// }

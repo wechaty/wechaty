@@ -47,7 +47,20 @@ import {
   ContactQueryFilter,
 }                                 from './schemas/contact'
 import {
-  ScanStatus,
+  EventDongPayload,
+  EventErrorPayload,
+  EventFriendshipPayload,
+  EventLoginPayload,
+  EventLogoutPayload,
+  EventMessagePayload,
+  EventResetPayload,
+  EventRoomJoinPayload,
+  EventRoomLeavePayload,
+  EventRoomTopicPayload,
+  EventRoomInvitePayload,
+  EventScanPayload,
+  EventReadyPayload,
+  EventWatchdogPayload,
 }                                 from './schemas/event'
 import {
   FriendshipPayload,
@@ -161,11 +174,14 @@ export abstract class Puppet extends EventEmitter {
     log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
     this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
 
-    this.on('watchdog', food => this.watchdog.feed(food))
+    this.on('watchdog', payload => {
+      const food: WatchdogFood = { data: payload.data }
+      this.watchdog.feed(food)
+    })
     this.watchdog.on('reset', lastFood => {
       const reason = JSON.stringify(lastFood)
       log.silly('Puppet', 'constructor() watchdog.on(reset) reason: %s', reason)
-      this.emit('reset', reason)
+      this.emit('reset', { data: reason })
     })
 
     /**
@@ -173,13 +189,13 @@ export abstract class Puppet extends EventEmitter {
      */
     this.resetThrottleQueue = new ThrottleQueue<string>(1000)
     // 2.2. handle all `reset` events via the resetThrottleQueue
-    this.on('reset', reason => {
-      log.silly('Puppet', 'constructor() this.on(reset) reason: %s', reason)
-      this.resetThrottleQueue.next(reason)
+    this.on('reset', payload => {
+      log.silly('Puppet', 'constructor() this.on(reset) payload: "%s"', JSON.stringify(payload))
+      this.resetThrottleQueue.next(payload.data)
     })
     // 2.3. call reset() and then ignore the following `reset` event for 1 second
     this.resetThrottleQueue.subscribe(reason => {
-      log.silly('Puppet', 'constructor() resetThrottleQueue.subscribe() reason: %s', reason)
+      log.silly('Puppet', 'constructor() resetThrottleQueue.subscribe() reason: "%s"', reason)
       this.reset(reason)
     })
 
@@ -262,29 +278,52 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public emit (event: 'dong',         data?: string)                                                                 : boolean
-  public emit (event: 'error',        error: Error)                                                                  : boolean
-  public emit (event: 'friendship',   friendshipId: string)                                                          : boolean
-  public emit (event: 'login',        contactId: string)                                                             : boolean
-  public emit (event: 'logout',       contactId: string, reason?: string)                                            : boolean
-  public emit (event: 'message',      messageId: string)                                                             : boolean
-  public emit (event: 'reset',        reason: string)                                                                : boolean
-  public emit (event: 'room-join',    roomId: string, inviteeIdList:  string[], inviterId: string, timestamp: number)                    : boolean
-  public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover: string,   timestamp: number)                    : boolean
-  public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string,  changerId: string, timestamp: number) : boolean
-  public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
-  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                             : boolean
-  public emit (event: 'ready')                                                                                       : boolean
+
+  /**
+   * API Before v0.21.6
+   */
+  // public emit (event: 'dong',         data?: string)                                                                 : boolean
+  // public emit (event: 'error',        error: Error)                                                                  : boolean
+  // public emit (event: 'friendship',   friendshipId: string)                                                          : boolean
+  // public emit (event: 'login',        contactId: string)                                                             : boolean
+  // public emit (event: 'logout',       contactId: string, reason?: string)                                            : boolean
+  // public emit (event: 'message',      messageId: string)                                                             : boolean
+  // public emit (event: 'reset',        reason: string)                                                                : boolean
+  // public emit (event: 'room-join',    roomId: string, inviteeIdList:  string[], inviterId: string, timestamp: number)                    : boolean
+  // public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover: string,   timestamp: number)                    : boolean
+  // public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string,  changerId: string, timestamp: number) : boolean
+  // public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
+  // public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                             : boolean
+  // public emit (event: 'ready')                                                                                       : boolean
+  // // Internal Usage: watchdog
+  // public emit (event: 'watchdog',     food: WatchdogFood) : boolean
+
+  /**
+   * API After v0.21.6
+   */
+  public emit (event: 'dong',         payload: EventDongPayload)       : boolean
+  public emit (event: 'error',        payload: EventErrorPayload)      : boolean
+  public emit (event: 'friendship',   payload: EventFriendshipPayload) : boolean
+  public emit (event: 'login',        payload: EventLoginPayload)      : boolean
+  public emit (event: 'logout',       payload: EventLogoutPayload)     : boolean
+  public emit (event: 'message',      payload: EventMessagePayload)    : boolean
+  public emit (event: 'reset',        payload: EventResetPayload)      : boolean
+  public emit (event: 'room-invite',  payload: EventRoomInvitePayload) : boolean
+  public emit (event: 'room-join',    payload: EventRoomJoinPayload)   : boolean
+  public emit (event: 'room-leave',   payload: EventRoomLeavePayload)  : boolean
+  public emit (event: 'room-topic',   payload: EventRoomTopicPayload)  : boolean
+  public emit (event: 'ready',        payload: EventReadyPayload)      : boolean
+  public emit (event: 'scan',         payload: EventScanPayload)       : boolean
   // Internal Usage: watchdog
-  public emit (event: 'watchdog',     food: WatchdogFood) : boolean
+  public emit (event: 'watchdog',     payload: EventWatchdogPayload)   : boolean
 
   public emit (event: never, ...args: never[]): never
 
   public emit (
     event:   PuppetEventName,
-    ...args: any[]
+    payload: object,
   ): boolean {
-    return super.emit(event, ...args)
+    return super.emit(event, payload)
   }
 
   /**
@@ -294,27 +333,50 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public on (event: 'dong',         listener: (data?: string) => void)                                                                  : this
-  public on (event: 'error',        listener: (error: string) => void)                                                                  : this
-  public on (event: 'friendship',   listener: (friendshipId: string) => void)                                                           : this
-  public on (event: 'login',        listener: (contactId: string) => void)                                                              : this
-  public on (event: 'logout',       listener: (contactId: string, reason?: string) => void)                                             : this
-  public on (event: 'message',      listener: (messageId: string) => void)                                                              : this
-  public on (event: 'reset',        listener: (reason: string) => void)                                                                 : this
-  public on (event: 'room-join',    listener: (roomId: string, inviteeIdList: string[], inviterId:  string, timestamp: number) => void)                    : this
-  public on (event: 'room-leave',   listener: (roomId: string, leaverIdList:  string[], removerId: string,  timestamp: number) => void)                    : this
-  public on (event: 'room-topic',   listener: (roomId: string, newTopic:      string,   oldTopic:   string, changerId: string, timestamp: number) => void) : this
-  public on (event: 'room-invite',  listener: (roomInvitationId: string) => void)                                                       : this
-  public on (event: 'scan',         listener: (qrcode: string, status: ScanStatus, data?: string) => void)                              : this
-  public on (event: 'ready',        listener: () => void)                                                                               : this
+
+  /**
+   * API Before v0.21.6
+   */
+  // public on (event: 'dong',         listener: (data?: string) => void)                                                                  : this
+  // public on (event: 'error',        listener: (error: string) => void)                                                                  : this
+  // public on (event: 'friendship',   listener: (friendshipId: string) => void)                                                           : this
+  // public on (event: 'login',        listener: (contactId: string) => void)                                                              : this
+  // public on (event: 'logout',       listener: (contactId: string, reason?: string) => void)                                             : this
+  // public on (event: 'message',      listener: (messageId: string) => void)                                                              : this
+  // public on (event: 'reset',        listener: (reason: string) => void)                                                                 : this
+  // public on (event: 'room-join',    listener: (roomId: string, inviteeIdList: string[], inviterId:  string, timestamp: number) => void)                    : this
+  // public on (event: 'room-leave',   listener: (roomId: string, leaverIdList:  string[], removerId: string,  timestamp: number) => void)                    : this
+  // public on (event: 'room-topic',   listener: (roomId: string, newTopic:      string,   oldTopic:   string, changerId: string, timestamp: number) => void) : this
+  // public on (event: 'room-invite',  listener: (roomInvitationId: string) => void)                                                       : this
+  // public on (event: 'scan',         listener: (qrcode: string, status: ScanStatus, data?: string) => void)                              : this
+  // public on (event: 'ready',        listener: () => void)                                                                               : this
+  // // Internal Usage: watchdog
+  // public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
+
+  /**
+   * API After v0.21.6
+   */
+  public on (event: 'dong',         listener: (payload: EventDongPayload) => void)       : this
+  public on (event: 'error',        listener: (payload: EventErrorPayload) => void)      : this
+  public on (event: 'friendship',   listener: (payload: EventFriendshipPayload) => void) : this
+  public on (event: 'login',        listener: (payload: EventLoginPayload) => void)      : this
+  public on (event: 'logout',       listener: (payload: EventLogoutPayload) => void)     : this
+  public on (event: 'message',      listener: (payload: EventMessagePayload) => void)    : this
+  public on (event: 'reset',        listener: (payload: EventResetPayload) => void)      : this
+  public on (event: 'room-join',    listener: (payload: EventRoomJoinPayload) => void)   : this
+  public on (event: 'room-leave',   listener: (payload: EventRoomLeavePayload) => void)  : this
+  public on (event: 'room-topic',   listener: (payload: EventRoomTopicPayload) => void)  : this
+  public on (event: 'room-invite',  listener: (payload: EventRoomInvitePayload) => void) : this
+  public on (event: 'scan',         listener: (payload: EventScanPayload) => void)       : this
+  public on (event: 'ready',        listener: () => void)                                : this
   // Internal Usage: watchdog
-  public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
+  public on (event: 'watchdog',     listener: (payload: EventWatchdogPayload) => void): this
 
   public on (event: never, listener: never): never
 
   public on (
     event    : PuppetEventName,
-    listener : (...args: any[]) => void,
+    listener : (payload: any) => void,
   ): this {
     super.on(event, listener)
     return this
@@ -375,7 +437,12 @@ export abstract class Puppet extends EventEmitter {
 
     this.id = userId
     // console.log('this.id=', this.id)
-    this.emit('login', userId)
+
+    const payload: EventLoginPayload = {
+      contactId: userId,
+    }
+
+    this.emit('login', payload)
   }
 
   /**
