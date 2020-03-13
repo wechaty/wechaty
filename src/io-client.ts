@@ -22,8 +22,10 @@
  */
 import { StateSwitch }  from 'state-switch'
 
-import { PuppetHostieServer } from 'wechaty-puppet-hostie'
-import { PuppetHostieGrpcServerOptions } from 'wechaty-puppet-hostie/dist/src/grpc/puppet-server'
+import {
+  PuppetHostieServer,
+  PuppetHostieGrpcServerOptions,
+}                                   from 'wechaty-puppet-hostie'
 
 import { Message }      from './user'
 
