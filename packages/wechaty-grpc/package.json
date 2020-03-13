@@ -51,16 +51,16 @@
     "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.5",
     "@chatie/semver": "^0.4.7",
-    "@types/google-protobuf": "^3.7.2",
     "@chatie/tsconfig": "^0.8.0",
+    "@types/google-protobuf": "^3.7.2",
     "@types/protobufjs": "^6.0.0",
-    "grpc_tools_node_protoc_ts": "^2.5.9",
     "grpc-tools": "^1.8.0",
+    "grpc_tools_node_protoc_ts": "^2.5.9",
     "grpcc": "^1.1.3",
     "nodemon": "^2.0.0",
     "shx": "^0.3.2",
-    "tstest": "^0.4.10",
-    "ts-protoc-gen": "^0.12.0"
+    "ts-protoc-gen": "^0.12.0",
+    "tstest": "^0.4.10"
   },
   "engines": {
     "node": ">= 10"
