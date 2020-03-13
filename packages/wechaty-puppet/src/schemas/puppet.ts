@@ -16,7 +16,7 @@ export const YOU = Symbol('You')
 export type YOU  = typeof YOU
 
 /** @hidden */
-const CHAT_EVENT_DICT = {
+export const CHAT_EVENT_DICT = {
   friendship    : 'receive a friend request',
   login         : 'puppet had logined',
   logout        : 'puppet had logouted',
@@ -30,7 +30,7 @@ const CHAT_EVENT_DICT = {
 export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
 /** @hidden */
-const PUPPET_EVENT_DICT = {
+export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'emit this event if you received a ding() call',
   error     : `emit an Error instance when there's any Error need to report to Wechaty`,

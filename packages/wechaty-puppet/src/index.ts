@@ -69,8 +69,13 @@ export {
   // PuppetRoomTopicEvent,
   // Receiver,
 
-  // CHAT_EVENT_DICT,
-  // PUPPET_EVENT_DICT,
+  /**
+   * Huan(202003): XXX_DICT
+   *  The following two data structure is for the downstream
+   *  to get a array of event string list.
+   */
+  CHAT_EVENT_DICT,
+  PUPPET_EVENT_DICT,
 
   YOU,
 }                         from './schemas/puppet'
