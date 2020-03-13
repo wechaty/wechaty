@@ -9,6 +9,7 @@ export {
 
 export {
   PuppetHostieGrpcServer as PuppetHostieServer,
+  PuppetHostieGrpcServerOptions as PuppetHostieServerOptions,
 } from './grpc/puppet-server'
 
 export {

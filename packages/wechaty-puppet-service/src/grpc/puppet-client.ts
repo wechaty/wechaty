@@ -26,6 +26,8 @@ import {
   UrlLinkPayload,
   MiniProgramPayload,
   ImageType,
+  EventDongPayload,
+  EventLogoutPayload,
 }                         from 'wechaty-puppet'
 
 import {
@@ -80,6 +82,9 @@ import {
   // EventType,
 
   StringValue,
+  DingRequest,
+
+  EventType,
 }                                   from '@chatie/grpc'
 
 import {
@@ -212,7 +217,7 @@ export class PuppetHostieGrpc extends Puppet {
         throw new Error('no grpc client')
       }
 
-      this.startEvent()
+      this.startGrpcStream()
 
       this.state.on(true)
 
@@ -239,7 +244,7 @@ export class PuppetHostieGrpc extends Puppet {
     try {
       await this.stopGrpcClient()
 
-      this.stopEvent()
+      this.stopGrpcStream()
 
     } catch (e) {
       log.warn('PuppetHostieGrpc', 'stop() rejection: %s', e && e.message)
@@ -250,8 +255,8 @@ export class PuppetHostieGrpc extends Puppet {
 
   }
 
-  private startEvent (): void {
-    log.verbose('PuppetHostieGrpc', 'startEvent()')
+  private startGrpcStream (): void {
+    log.verbose('PuppetHostieGrpc', 'startGrpcStream()')
 
     if (this.eventStream) {
       throw new Error('event stream exists')
@@ -260,16 +265,42 @@ export class PuppetHostieGrpc extends Puppet {
     this.eventStream = this.grpcClient!.event(new EventRequest())
 
     this.eventStream
-      .on('data', (chunk: EventResponse) => {
-        console.info('payload:', chunk.getPayload())
-      })
+      .on('data', this.onGrpcStreamEvent.bind(this))
       .on('end', () => {
         console.info('eventStream.on(end)')
       })
+      .on('error', e => {
+        console.info('eventStream.on(error)', e)
+      })
+      .on('cancel', (...args: any[]) => {
+        console.info('eventStream on(cancel)', args)
+      })
+
   }
 
-  private stopEvent (): void {
-    log.verbose('PuppetHostieGrpc', 'stopEvent()')
+  private onGrpcStreamEvent (event: EventResponse): void {
+    const type    = event.getType()
+    const payload = event.getPayload()
+    log.verbose('PuppetHostieGrpc',
+      'onGrpcStreamEvent({type: "%s", payload:"%s"})',
+      type,
+      payload,
+    )
+
+    switch (type) {
+      case EventType.EVENT_TYPE_DONG:
+        const obj = JSON.parse(payload) as EventDongPayload
+        this.emit('dong', obj)
+        break
+
+      default:
+        // To be impl
+        break
+    }
+  }
+
+  private stopGrpcStream (): void {
+    log.verbose('PuppetHostieGrpc', 'stopGrpcStream()')
 
     if (!this.eventStream) {
       throw new Error('no event stream')
@@ -297,7 +328,8 @@ export class PuppetHostieGrpc extends Puppet {
       log.error('PuppetHostieGrpc', 'logout() rejection: %s', e && e.message)
       throw e
     } finally {
-      this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
+      const payload = { contactId: this.id } as EventLogoutPayload
+      this.emit('logout', payload) // becore we will throw above by logonoff() when this.user===undefined
       this.id = undefined
     }
   }
@@ -305,8 +337,11 @@ export class PuppetHostieGrpc extends Puppet {
   public ding (data?: string): void {
     log.silly('PuppetHostieGrpc', 'ding(%s)', data || '')
 
-    this.grpcClient!.logout(
-      new LogoutRequest(),
+    const request = new DingRequest()
+    request.setData(data || '')
+
+    this.grpcClient!.ding(
+      request,
       (error, _response) => {
         if (error) {
           log.error('PuppetHostieGrpc', 'ding() rejection: %s', error)

@@ -57,10 +57,10 @@ import {
 }                                   from '@chatie/grpc'
 
 import {
+  PUPPET_EVENT_DICT,
   FileBox,
   Puppet,
   PuppetEventName,
-  PUPPET_EVENT_DICT,
   FriendshipPayloadReceive,
   MiniProgramPayload,
   UrlLinkPayload,
@@ -341,14 +341,15 @@ export function getServerImpl (
       })
 
       // https://stackoverflow.com/a/49286056/1123955
-      const grpcEmit = (type: EventTypeMap[keyof EventTypeMap], obj: Object) => {
+      const grpcEmit = (
+        type: EventTypeMap[keyof EventTypeMap],
+        obj: object,
+      ) => {
         const response = new EventResponse()
 
         response.setType(type)
         response.setPayload(
-          JSON.stringify(
-            obj
-          )
+          JSON.stringify(obj)
         )
 
         if (eventStream) {
@@ -364,90 +365,50 @@ export function getServerImpl (
 
         switch (eventName) {
           case 'dong':
-            puppet.on('dong', data => grpcEmit(EventType.EVENT_TYPE_DONG, { data }))
+            puppet.on('dong', payload => grpcEmit(EventType.EVENT_TYPE_DONG, payload))
             break
-
           case 'error':
-            puppet.on('error', error => grpcEmit(EventType.EVENT_TYPE_ERROR, { error }))
+            puppet.on('error', payload => grpcEmit(EventType.EVENT_TYPE_ERROR, payload))
             break
-
           case 'watchdog':
-            puppet.on('watchdog', data => grpcEmit(EventType.EVENT_TYPE_WATCHDOG, { data }))
+            puppet.on('watchdog', payload => grpcEmit(EventType.EVENT_TYPE_WATCHDOG, payload))
             break
-
           case 'friendship':
-            puppet.on('friendship', async friendshipId => grpcEmit(EventType.EVENT_TYPE_FRIENDSHIP, { friendshipId }))
+            puppet.on('friendship', payload => grpcEmit(EventType.EVENT_TYPE_FRIENDSHIP, payload))
             break
-
           case 'login':
-            puppet.on('login', async contactId => grpcEmit(EventType.EVENT_TYPE_LOGIN, { contactId }))
+            puppet.on('login', payload => grpcEmit(EventType.EVENT_TYPE_LOGIN, payload))
             break
-
           case 'logout':
-            puppet.on('logout', async (contactId, reason) => grpcEmit(EventType.EVENT_TYPE_LOGOUT, { contactId, reason }))
+            puppet.on('logout', payload => grpcEmit(EventType.EVENT_TYPE_LOGOUT, payload))
             break
-
           case 'message':
-            puppet.on('message', async messageId => grpcEmit(EventType.EVENT_TYPE_MESSAGE, { messageId }))
+            puppet.on('message', payload => grpcEmit(EventType.EVENT_TYPE_MESSAGE, payload))
             break
-
           case 'ready':
-            puppet.on('ready', () => grpcEmit(EventType.EVENT_TYPE_READY, {}))
+            puppet.on('ready', payload => grpcEmit(EventType.EVENT_TYPE_READY, payload))
             break
-
           case 'room-invite':
-            puppet.on('room-invite', async roomInvitationId => grpcEmit(EventType.EVENT_TYPE_ROOM_INVITE, { roomInvitationId }))
+            puppet.on('room-invite', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_INVITE, payload))
             break
-
           case 'room-join':
-            puppet.on('room-join', (roomId, inviteeIdList, inviterId, timestamp) => {
-              grpcEmit(EventType.EVENT_TYPE_ROOM_JOIN, {
-                inviteeIdList,
-                inviterId,
-                roomId,
-                timestamp,
-              })
-            })
+            puppet.on('room-join', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_JOIN, payload))
             break
-
           case 'room-leave':
-            puppet.on('room-leave', (roomId, leaverIdList, removerId, timestamp) => {
-              grpcEmit(EventType.EVENT_TYPE_ROOM_LEAVE, {
-                leaverIdList,
-                removerId,
-                roomId,
-                timestamp,
-              })
-            })
+            puppet.on('room-leave', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_LEAVE, payload))
             break
-
           case 'room-topic':
-            puppet.on('room-topic', (roomId, newTopic, oldTopic, changerId, timestamp) => {
-              grpcEmit(EventType.EVENT_TYPE_ROOM_TOPIC, {
-                changerId,
-                newTopic,
-                oldTopic,
-                roomId,
-                timestamp,
-              })
-            })
+            puppet.on('room-topic', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_TOPIC, payload))
             break
-
           case 'scan':
-            puppet.on('scan', (qrcode, status, data) => {
-              grpcEmit(EventType.EVENT_TYPE_SCAN, {
-                data,
-                qrcode,
-                status,
-              })
-            })
+            puppet.on('scan', payload => grpcEmit(EventType.EVENT_TYPE_SCAN, payload))
             break
-
           case 'reset':
             // the `reset` event should be dealed internally, should not send out
             break
 
           default:
+            // Huan(202003): in default, the `eventName` type should be `never`, please check.
             throw new Error('eventName ' + eventName + ' unsupported!')
         }
       }
