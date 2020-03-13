@@ -13,7 +13,7 @@
 
 Abstract(Base) Class of Puppet Providers for Wechaty Framework.
 
-This module is part of the [Wechaty](https://github.com/wechaty/wechaty) SDK.
+This module is part of the [Wechaty](https://github.com/wechaty/wechaty) Framework SDK.
 
 Learn more at:
 
