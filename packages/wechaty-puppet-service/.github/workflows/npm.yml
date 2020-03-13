@@ -78,7 +78,7 @@ jobs:
       - name: Is A Publish Branch
         if: steps.check-branch.outputs.match == 'true'
         run: |
-          VERSION=$(npx pkg-jq -r .version package.json)
+          VERSION=$(npx pkg-jq -r .version)
           if npx version-exists @chatie/grpc "$VERSION"
           then "Version $VERSION exists on NPM, skipped."
           else npm publish
