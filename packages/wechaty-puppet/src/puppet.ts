@@ -368,7 +368,7 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-topic',   listener: (payload: EventRoomTopicPayload) => void)  : this
   public on (event: 'room-invite',  listener: (payload: EventRoomInvitePayload) => void) : this
   public on (event: 'scan',         listener: (payload: EventScanPayload) => void)       : this
-  public on (event: 'ready',        listener: () => void)                                : this
+  public on (event: 'ready',        listener: (payload: EventReadyPayload) => void)      : this
   // Internal Usage: watchdog
   public on (event: 'watchdog',     listener: (payload: EventWatchdogPayload) => void): this
 
