@@ -88,6 +88,8 @@ import {
   MiniProgram,
 }                       from './user/'
 
+import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
+
 export const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'Should be emitted after we call `Wechaty.ding()`',
@@ -614,14 +616,14 @@ export class Wechaty extends EventEmitter implements Sayable {
 
       switch (eventName) {
         case 'dong':
-          puppet.on('dong', data => {
-            this.emit('dong', data)
+          puppet.on('dong', payload => {
+            this.emit('dong', payload.data)
           })
           break
 
         case 'error':
-          puppet.on('error', error => {
-            this.emit('error', new Error(error))
+          puppet.on('error', payload => {
+            this.emit('error', new Error(payload.data))
           })
           break
 
@@ -636,8 +638,8 @@ export class Wechaty extends EventEmitter implements Sayable {
           break
 
         case 'friendship':
-          puppet.on('friendship', async friendshipId => {
-            const friendship = this.Friendship.load(friendshipId)
+          puppet.on('friendship', async payload => {
+            const friendship = this.Friendship.load(payload.friendshipId)
             await friendship.ready()
             this.emit('friendship', friendship)
             friendship.contact().emit('friendship', friendship)
@@ -645,24 +647,24 @@ export class Wechaty extends EventEmitter implements Sayable {
           break
 
         case 'login':
-          puppet.on('login', async contactId => {
-            const contact = this.ContactSelf.load(contactId)
+          puppet.on('login', async payload => {
+            const contact = this.ContactSelf.load(payload.contactId)
             await contact.ready()
             this.emit('login', contact)
           })
           break
 
         case 'logout':
-          puppet.on('logout', async (contactId, reason) => {
-            const contact = this.ContactSelf.load(contactId)
+          puppet.on('logout', async payload => {
+            const contact = this.ContactSelf.load(payload.contactId)
             await contact.ready()
-            this.emit('logout', contact, reason)
+            this.emit('logout', contact, payload.data)
           })
           break
 
         case 'message':
-          puppet.on('message', async messageId => {
-            const msg = this.Message.load(messageId)
+          puppet.on('message', async payload => {
+            const msg = this.Message.load(payload.messageId)
             await msg.ready()
             this.emit('message', msg)
 
@@ -683,23 +685,23 @@ export class Wechaty extends EventEmitter implements Sayable {
           break
 
         case 'room-invite':
-          puppet.on('room-invite', async roomInvitationId => {
-            const roomInvitation = this.RoomInvitation.load(roomInvitationId)
+          puppet.on('room-invite', async payload => {
+            const roomInvitation = this.RoomInvitation.load(payload.roomInvitationId)
             this.emit('room-invite', roomInvitation)
           })
           break
 
         case 'room-join':
-          puppet.on('room-join', async (roomId, inviteeIdList, inviterId, timestamp) => {
-            const room = this.Room.load(roomId)
+          puppet.on('room-join', async payload => {
+            const room = this.Room.load(payload.roomId)
             await room.sync()
 
-            const inviteeList = inviteeIdList.map(id => this.Contact.load(id))
+            const inviteeList = payload.inviteeIdList.map(id => this.Contact.load(id))
             await Promise.all(inviteeList.map(c => c.ready()))
 
-            const inviter = this.Contact.load(inviterId)
+            const inviter = this.Contact.load(payload.inviterId)
             await inviter.ready()
-            const date = new Date(timestamp)
+            const date = timestampToDate(payload.timestamp)
 
             this.emit('room-join', room, inviteeList, inviter, date)
             room.emit('join', inviteeList, inviter, date)
@@ -707,50 +709,51 @@ export class Wechaty extends EventEmitter implements Sayable {
           break
 
         case 'room-leave':
-          puppet.on('room-leave', async (roomId, leaverIdList, removerId, timestamp) => {
-            const room = this.Room.load(roomId)
+          puppet.on('room-leave', async payload => {
+            const room = this.Room.load(payload.roomId)
 
             /**
              * See: https://github.com/wechaty/wechaty/pull/1833
              */
             await room.sync()
 
-            const leaverList = leaverIdList.map(id => this.Contact.load(id))
+            const leaverList = payload.removeeIdList.map(id => this.Contact.load(id))
             await Promise.all(leaverList.map(c => c.ready()))
 
-            const remover = this.Contact.load(removerId)
+            const remover = this.Contact.load(payload.removerId)
             await remover.ready()
-            const date = new Date(timestamp)
+            const date = timestampToDate(payload.timestamp)
 
             this.emit('room-leave', room, leaverList, remover, date)
             room.emit('leave', leaverList, remover, date)
 
             // issue #254
-            if (leaverIdList.includes(this.puppet.selfId())) {
-              await this.puppet.roomPayloadDirty(roomId)
-              await this.puppet.roomMemberPayloadDirty(roomId)
+            const selfId = this.puppet.selfId()
+            if (selfId && payload.removeeIdList.includes(selfId)) {
+              await this.puppet.roomPayloadDirty(payload.roomId)
+              await this.puppet.roomMemberPayloadDirty(payload.roomId)
             }
 
           })
           break
 
         case 'room-topic':
-          puppet.on('room-topic', async (roomId, newTopic, oldTopic, changerId, timestamp) => {
-            const room = this.Room.load(roomId)
+          puppet.on('room-topic', async payload => {
+            const room = this.Room.load(payload.roomId)
             await room.sync()
 
-            const changer = this.Contact.load(changerId)
+            const changer = this.Contact.load(payload.changerId)
             await changer.ready()
-            const date = new Date(timestamp)
+            const date = timestampToDate(payload.timestamp)
 
-            this.emit('room-topic', room, newTopic, oldTopic, changer, date)
-            room.emit('topic', newTopic, oldTopic, changer, date)
+            this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
+            room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
           })
           break
 
         case 'scan':
-          puppet.on('scan', async (qrcode, status, data) => {
-            this.emit('scan', qrcode, status, data)
+          puppet.on('scan', async payload => {
+            this.emit('scan', payload.qrcode || '', payload.status, payload.data)
           })
           break
 

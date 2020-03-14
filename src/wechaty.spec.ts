@@ -190,12 +190,12 @@ test('@event ready', async t => {
   await wechaty.start()
   t.true(spy.notCalled, 'should no ready event right start wechaty started')
 
-  puppet.emit('ready')
+  puppet.emit('ready', { data: 'test' })
   t.true(spy.calledOnce, 'should fire ready event after puppet ready')
 
   await wechaty.stop()
   await wechaty.start()
-  puppet.emit('ready')
+  puppet.emit('ready', { data: 'test' })
 
   t.true(spy.calledTwice, 'should fire ready event second time after stop/start wechaty')
 
@@ -220,7 +220,7 @@ test('ready()', async t => {
 
   t.true(spy.notCalled, 'should not ready after right start wechaty')
 
-  puppet.emit('ready')
+  puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
   t.true(spy.calledOnce, 'should ready after puppet ready')
 
@@ -230,7 +230,7 @@ test('ready()', async t => {
     .then(spy)
     .catch(e => t.fail('rejection: ' + e))
 
-  puppet.emit('ready')
+  puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
   t.true(spy.calledTwice, 'should ready again after stop/start wechaty')
 
