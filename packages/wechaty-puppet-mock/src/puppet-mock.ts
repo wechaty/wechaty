@@ -86,11 +86,11 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    this.emit('scan', 'https://not-exist.com', 0)
+    this.emit('scan', { qrcode: 'https://not-exist.com', status: 0 })
 
     this.id = 'logined_user_id'
     // const user = this.Contact.load(this.id)
-    this.emit('login', this.id)
+    this.emit('login', { contactId: this.id })
 
     const MOCK_MSG_ID = 'mockid'
     this.cacheMessagePayload.set(MOCK_MSG_ID, {
@@ -105,7 +105,7 @@ export class PuppetMock extends Puppet {
 
     this.loopTimer = setInterval(() => {
       log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
-      this.emit('message', MOCK_MSG_ID)
+      this.emit('message', { messageId: MOCK_MSG_ID })
     }, 3000)
 
   }
@@ -136,7 +136,7 @@ export class PuppetMock extends Puppet {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
+    this.emit('logout', { contactId: this.id, data: 'test' }) // becore we will throw above by logonoff() when this.user===undefined
     this.id = undefined
 
     // TODO: do the logout job
@@ -144,7 +144,7 @@ export class PuppetMock extends Puppet {
 
   public ding (data?: string): void {
     log.silly('PuppetMock', 'ding(%s)', data || '')
-    this.emit('dong', data)
+    this.emit('dong', { data: data || '' })
   }
 
   public unref (): void {

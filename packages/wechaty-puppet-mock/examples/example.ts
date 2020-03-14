@@ -20,6 +20,7 @@
 // tslint:disable:no-console
 
 import { PuppetMock } from '../src/'
+import { EventLogoutPayload, EventLoginPayload, EventScanPayload, EventErrorPayload, EventMessagePayload } from 'wechaty-puppet'
 /**
  *
  * 1. Declare your Bot!
@@ -63,28 +64,31 @@ puppet.start()
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
-function onScan (qrcode: string, status: number) {
-  // Generate a QR Code online via
-  // http://goqr.me/api/doc/create-qr-code/
-  const qrcodeImageUrl = [
-    'https://api.qrserver.com/v1/create-qr-code/?data=',
-    encodeURIComponent(qrcode),
-  ].join('')
-
-  console.info(`[${status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
+function onScan (payload: EventScanPayload) {
+  if (payload.qrcode) {
+    // Generate a QR Code online via
+    // http://goqr.me/api/doc/create-qr-code/
+    const qrcodeImageUrl = [
+      'https://api.qrserver.com/v1/create-qr-code/?data=',
+      encodeURIComponent(payload.qrcode),
+    ].join('')
+    console.info(`[${payload.status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
+  } else {
+    console.info(`[${payload.status}]`)
+  }
 }
 
-function onLogin (contactId: string) {
-  console.info(`${contactId} login`)
-  puppet.messageSendText(contactId, 'Wechaty login').catch(console.error)
+function onLogin (payload: EventLoginPayload) {
+  console.info(`${payload.contactId} login`)
+  puppet.messageSendText(payload.contactId, 'Wechaty login').catch(console.error)
 }
 
-function onLogout (contactId: string) {
-  console.info(`${contactId} logouted`)
+function onLogout (payload: EventLogoutPayload) {
+  console.info(`${payload.contactId} logouted`)
 }
 
-function onError (e: string) {
-  console.error('Bot error:', e)
+function onError (payload: EventErrorPayload) {
+  console.error('Bot error:', payload.data)
   /*
   if (bot.logonoff()) {
     bot.say('Wechaty error: ' + e.message).catch(console.error)
@@ -98,9 +102,9 @@ function onError (e: string) {
  *    dealing with Messages.
  *
  */
-async function onMessage (messageId: string) {
-  const payload = await puppet.messagePayload(messageId)
-  console.info(JSON.stringify(payload))
+async function onMessage (payload: EventMessagePayload) {
+  const msgPayload = await puppet.messagePayload(payload.messageId)
+  console.info(JSON.stringify(msgPayload))
 }
 
 /**
