@@ -81,7 +81,7 @@ jobs:
           NAME=$(npx pkg-jq -r .name)
           VERSION=$(npx pkg-jq -r .version)
           if npx version-exists "$NAME" "$VERSION"
-          then echo "$NAME@$VERSION) exists on NPM, skipped."
+          then echo "$NAME@$VERSION exists on NPM, skipped."
           else npm publish
           fi
         env:

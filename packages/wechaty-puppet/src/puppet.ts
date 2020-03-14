@@ -453,15 +453,12 @@ export abstract class Puppet extends EventEmitter {
    */
   public abstract async logout (): Promise<void>
 
-  public selfId (): undefined | string {
+  public selfId (): string {
     log.verbose('Puppet', 'selfId()')
 
-    /**
-     * Huan (202003): do not throw exception. deal `undefined` outside.
-     */
-    // if (!this.id) {
-    //   throw new Error('not logged in, no this.id yet.')
-    // }
+    if (!this.id) {
+      throw new Error('not logged in, no this.id yet.')
+    }
 
     return this.id
   }
