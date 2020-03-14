@@ -23,9 +23,9 @@
 import { StateSwitch }  from 'state-switch'
 
 import {
-  PuppetHostieServer,
-  PuppetHostieGrpcServerOptions,
-}                                   from 'wechaty-puppet-hostie'
+  PuppetServer,
+  PuppetServerOptions,
+}                       from 'wechaty-puppet-hostie'
 
 import { Message }      from './user'
 
@@ -47,7 +47,7 @@ export class IoClient {
    * Huan(202002): make it optional.
    */
   private io?: Io
-  private hostieServer?: PuppetHostieServer
+  private puppetServer?: PuppetServer
 
   private state: StateSwitch
 
@@ -64,28 +64,28 @@ export class IoClient {
   private async startHostie () {
     log.verbose('IoClient', 'startHostie()')
 
-    if (this.hostieServer) {
+    if (this.puppetServer) {
       throw new Error('hostie server exists')
     }
 
-    const options: PuppetHostieGrpcServerOptions = {
+    const options: PuppetServerOptions = {
       endpoint : '0.0.0.0:8788',
       puppet   : this.options.wechaty.puppet,
       token    : this.options.token,
     }
-    this.hostieServer = new PuppetHostieServer(options)
-    await this.hostieServer.start()
+    this.puppetServer = new PuppetServer(options)
+    await this.puppetServer.start()
   }
 
   private async stopHostie () {
     log.verbose('IoClient', 'stopHostie()')
 
-    if (!this.hostieServer) {
+    if (!this.puppetServer) {
       throw new Error('hostie server does not exist')
     }
 
-    await this.hostieServer.stop()
-    this.hostieServer = undefined
+    await this.puppetServer.stop()
+    this.puppetServer = undefined
   }
 
   public async start (): Promise<void> {
