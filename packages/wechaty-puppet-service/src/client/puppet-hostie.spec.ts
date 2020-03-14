@@ -2,10 +2,10 @@
 
 import { test }  from 'tstest'
 
-import { PuppetHostieGrpc } from './puppet-client'
+import { PuppetHostie } from './puppet-hostie'
 
 test('version()', async (t) => {
-  const puppet = new PuppetHostieGrpc({
+  const puppet = new PuppetHostie({
     token: 'test',
   })
   t.ok(puppet.version())

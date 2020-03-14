@@ -15,23 +15,23 @@ import {
 }                     from '../config'
 
 import {
-  getServerImpl,
-}                     from './puppet-server-impl'
+  serviceImpl,
+}                     from './puppet-service-impl'
 
-export interface PuppetHostieGrpcServerOptions {
+export interface PuppetServerOptions {
   endpoint : string,
   token    : string,
   puppet   : Puppet,
 }
 
-export class PuppetHostieGrpcServer {
+export class PuppetServer {
 
   private grpcServer?: grpc.Server
 
   constructor (
-    public readonly options: PuppetHostieGrpcServerOptions,
+    public readonly options: PuppetServerOptions,
   ) {
-    log.verbose('PuppetHostieGrpcServer',
+    log.verbose('PuppetServer',
       'constructor({endpoint: "%s", puppet: "%s", token: "%s"})',
       options.endpoint,
       options.puppet,
@@ -44,18 +44,20 @@ export class PuppetHostieGrpcServer {
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetHostieGrpcServer', `start()`)
+    log.verbose('PuppetServer', `start()`)
 
     if (this.grpcServer) {
       throw new Error('grpc server existed!')
     }
 
-    const puppetServerImpl = getServerImpl(this.options.puppet)
+    const puppetServiceImpl = serviceImpl(
+      this.options.puppet,
+    )
 
     this.grpcServer = new grpc.Server()
     this.grpcServer.addService(
       PuppetService,
-      puppetServerImpl,
+      puppetServiceImpl,
     )
 
     // 127.0.0.1:8788
@@ -72,7 +74,7 @@ export class PuppetHostieGrpcServer {
   }
 
   public async stop (): Promise<void> {
-    log.verbose('PuppetHostieGrpcServer', `stop()`)
+    log.verbose('PuppetServer', `stop()`)
 
     if (!this.grpcServer) {
       throw new Error('no grpc server')

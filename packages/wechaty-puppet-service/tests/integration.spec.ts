@@ -7,8 +7,8 @@ import {
 
 import {
   PuppetHostie,
-  PuppetHostieServer,
-  PuppetHostieServerOptions,
+  PuppetServer,
+  PuppetServerOptions,
 }                               from '../src/'
 import {
   PuppetOptions,
@@ -38,9 +38,9 @@ test('integration testing', async (t) => {
     endpoint : ENDPOINT,
     puppet   : PUPPET,
     token    : TOKEN,
-  } as PuppetHostieServerOptions
+  } as PuppetServerOptions
 
-  const hostieServer = new PuppetHostieServer(serverOptions)
+  const hostieServer = new PuppetServer(serverOptions)
   await hostieServer.start()
 
   /**

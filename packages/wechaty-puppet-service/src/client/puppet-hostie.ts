@@ -1,5 +1,3 @@
-/// <reference path="./typings.d.ts" />
-
 import util from 'util'
 
 import grpc from 'grpc'
@@ -90,11 +88,11 @@ import {
 import {
   log,
   VERSION,
-  ENV_WECHATY_PUPPET_HOSTIE_TOKEN,
-  ENV_WECHATY_PUPPET_HOSTIE_ENDPOINT,
+  WECHATY_PUPPET_HOSTIE_TOKEN,
+  WECHATY_PUPPET_HOSTIE_ENDPOINT,
 }                                   from '../config'
 
-export class PuppetHostieGrpc extends Puppet {
+export class PuppetHostie extends Puppet {
 
   public static readonly VERSION = VERSION
 
@@ -105,8 +103,8 @@ export class PuppetHostieGrpc extends Puppet {
     public options: PuppetOptions = {},
   ) {
     super(options)
-    options.endpoint = options.endpoint || ENV_WECHATY_PUPPET_HOSTIE_ENDPOINT
-    options.token = options.token || ENV_WECHATY_PUPPET_HOSTIE_TOKEN
+    options.endpoint = options.endpoint || WECHATY_PUPPET_HOSTIE_ENDPOINT
+    options.token    = options.token    || WECHATY_PUPPET_HOSTIE_TOKEN
 
     if (!options.token) {
       throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
@@ -116,7 +114,7 @@ export class PuppetHostieGrpc extends Puppet {
   private async discoverHostieIp (
     token: string,
   ): Promise<string> {
-    log.verbose('PuppetHostieGrpc', `discoverHostieIp(%s)`, token)
+    log.verbose('PuppetHostie', `discoverHostieIp(%s)`, token)
 
     const CHATIE_ENDPOINT = 'wss://api.chatie.io/v0/websocket/token/'
     const PROTOCOL = 'puppet-hostie|0.0.1'
@@ -142,7 +140,7 @@ export class PuppetHostieGrpc extends Puppet {
         ws.on('message', function incoming (data: string) {
           const event = JSON.parse(data)
           if (event.name === 'hostie') {
-            log.verbose('PuppetHostieGrpc', `discoverHostieIp() %s`, event.payload)
+            log.verbose('PuppetHostie', `discoverHostieIp() %s`, event.payload)
             return resolve(event.payload)
           } else {
             // console.info('other:', event)
@@ -158,7 +156,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   protected async startGrpcClient (): Promise<void> {
-    log.verbose('PuppetHostieGrpc', `startGrpcClient()`)
+    log.verbose('PuppetHostie', `startGrpcClient()`)
 
     if (this.grpcClient) {
       throw new Error('puppetClient had already inited')
@@ -185,7 +183,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   protected async stopGrpcClient (): Promise<void> {
-    log.verbose('PuppetHostieGrpc', `stopGrpcClient()`)
+    log.verbose('PuppetHostie', `stopGrpcClient()`)
 
     if (!this.grpcClient) {
       throw new Error('puppetClient had not inited')
@@ -201,10 +199,10 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetHostieGrpc', `start()`)
+    log.verbose('PuppetHostie', `start()`)
 
     if (this.state.on()) {
-      log.warn('PuppetHostieGrpc', 'start() is called on a ON puppet. await ready(on) and return.')
+      log.warn('PuppetHostie', 'start() is called on a ON puppet. await ready(on) and return.')
       await this.state.ready('on')
       return
     }
@@ -222,7 +220,7 @@ export class PuppetHostieGrpc extends Puppet {
       this.state.on(true)
 
     } catch (e) {
-      log.error('PuppetHostieGrpc', 'start() rejection: %s', e && e.message)
+      log.error('PuppetHostie', 'start() rejection: %s', e && e.message)
 
       this.state.off(true)
       throw e
@@ -231,10 +229,10 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async stop (): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'stop()')
+    log.verbose('PuppetHostie', 'stop()')
 
     if (this.state.off()) {
-      log.warn('PuppetHostieGrpc', 'stop() is called on a OFF puppet. await ready(off) and return.')
+      log.warn('PuppetHostie', 'stop() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
@@ -247,7 +245,7 @@ export class PuppetHostieGrpc extends Puppet {
       this.stopGrpcStream()
 
     } catch (e) {
-      log.warn('PuppetHostieGrpc', 'stop() rejection: %s', e && e.message)
+      log.warn('PuppetHostie', 'stop() rejection: %s', e && e.message)
       throw e
     } finally {
       this.state.off(true)
@@ -256,7 +254,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   private startGrpcStream (): void {
-    log.verbose('PuppetHostieGrpc', 'startGrpcStream()')
+    log.verbose('PuppetHostie', 'startGrpcStream()')
 
     if (this.eventStream) {
       throw new Error('event stream exists')
@@ -281,7 +279,7 @@ export class PuppetHostieGrpc extends Puppet {
   private onGrpcStreamEvent (event: EventResponse): void {
     const type    = event.getType()
     const payload = event.getPayload()
-    log.verbose('PuppetHostieGrpc',
+    log.verbose('PuppetHostie',
       'onGrpcStreamEvent({type: "%s", payload:"%s"})',
       type,
       payload,
@@ -300,7 +298,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   private stopGrpcStream (): void {
-    log.verbose('PuppetHostieGrpc', 'stopGrpcStream()')
+    log.verbose('PuppetHostie', 'stopGrpcStream()')
 
     if (!this.eventStream) {
       throw new Error('no event stream')
@@ -312,7 +310,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async logout (): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'logout()')
+    log.verbose('PuppetHostie', 'logout()')
 
     if (!this.id) {
       throw new Error('logout before login?')
@@ -325,7 +323,7 @@ export class PuppetHostieGrpc extends Puppet {
       )(new LogoutRequest())
 
     } catch (e) {
-      log.error('PuppetHostieGrpc', 'logout() rejection: %s', e && e.message)
+      log.error('PuppetHostie', 'logout() rejection: %s', e && e.message)
       throw e
     } finally {
       const payload = { contactId: this.id } as EventLogoutPayload
@@ -335,7 +333,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public ding (data?: string): void {
-    log.silly('PuppetHostieGrpc', 'ding(%s)', data || '')
+    log.silly('PuppetHostie', 'ding(%s)', data || '')
 
     const request = new DingRequest()
     request.setData(data || '')
@@ -344,14 +342,14 @@ export class PuppetHostieGrpc extends Puppet {
       request,
       (error, _response) => {
         if (error) {
-          log.error('PuppetHostieGrpc', 'ding() rejection: %s', error)
+          log.error('PuppetHostie', 'ding() rejection: %s', error)
         }
       }
     )
   }
 
   public unref (): void {
-    log.verbose('PuppetHostieGrpc', 'unref()')
+    log.verbose('PuppetHostie', 'unref()')
     super.unref()
   }
 
@@ -364,7 +362,7 @@ export class PuppetHostieGrpc extends Puppet {
   public contactAlias (contactId: string, alias: string | null): Promise<void>
 
   public async contactAlias (contactId: string, alias?: string | null): Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'contactAlias(%s, %s)', contactId, alias)
+    log.verbose('PuppetHostie', 'contactAlias(%s, %s)', contactId, alias)
 
     /**
      * Get alias
@@ -402,7 +400,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async contactList (): Promise<string[]> {
-    log.verbose('PuppetHostieGrpc', 'contactList()')
+    log.verbose('PuppetHostie', 'contactList()')
 
     const response = await util.promisify(
       this.grpcClient!.contactList
@@ -427,7 +425,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async contactAvatar (contactId: string, file: FileBox) : Promise<void>
 
   public async contactAvatar (contactId: string, fileBox?: FileBox): Promise<void | FileBox> {
-    log.verbose('PuppetHostieGrpc', 'contactAvatar(%s)', contactId)
+    log.verbose('PuppetHostie', 'contactAvatar(%s)', contactId)
 
     /**
      * 1. set
@@ -462,7 +460,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async contactRawPayload (id: string): Promise<ContactPayload> {
-    log.verbose('PuppetHostieGrpc', 'contactRawPayload(%s)', id)
+    log.verbose('PuppetHostie', 'contactRawPayload(%s)', id)
 
     const request = new ContactPayloadRequest()
     request.setId(id)
@@ -491,13 +489,13 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async contactRawPayloadParser (payload: ContactPayload): Promise<ContactPayload> {
-    log.silly('PuppetHostieGrpc', 'contactRawPayloadParser(%s)', payload)
+    log.silly('PuppetHostie', 'contactRawPayloadParser(%s)', payload)
     // passthrough
     return payload
   }
 
   public async contactSelfName (name: string): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'contactSelfName(%s)', name)
+    log.verbose('PuppetHostie', 'contactSelfName(%s)', name)
 
     const request = new ContactSelfNameRequest()
     request.setName(name)
@@ -508,7 +506,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async contactSelfQRCode (): Promise<string> {
-    log.verbose('PuppetHostieGrpc', 'contactSelfQRCode()')
+    log.verbose('PuppetHostie', 'contactSelfQRCode()')
 
     const response = await util.promisify(
       this.grpcClient!.contactSelfQRCode
@@ -518,7 +516,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async contactSelfSignature (signature: string): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'contactSelfSignature(%s)', signature)
+    log.verbose('PuppetHostie', 'contactSelfSignature(%s)', signature)
 
     const request = new ContactSelfSignatureRequest()
     request.setSignature(signature)
@@ -536,7 +534,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async messageMiniProgram (
     messageId: string,
   ): Promise<MiniProgramPayload> {
-    log.verbose('PuppetHostieGrpc', 'messageMiniProgram(%s)', messageId)
+    log.verbose('PuppetHostie', 'messageMiniProgram(%s)', messageId)
 
     const request = new MessageMiniProgramRequest()
     request.setId(messageId)
@@ -555,7 +553,7 @@ export class PuppetHostieGrpc extends Puppet {
     messageId: string,
     imageType: ImageType,
   ): Promise<FileBox> {
-    log.verbose('PuppetHostieGrpc', 'messageImage(%s, %s[%s])',
+    log.verbose('PuppetHostie', 'messageImage(%s, %s[%s])',
       messageId,
       imageType,
       ImageType[imageType],
@@ -576,7 +574,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async messageContact (
     messageId: string,
   ): Promise<string> {
-    log.verbose('PuppetHostieGrpc', 'messageContact(%s)', messageId)
+    log.verbose('PuppetHostie', 'messageContact(%s)', messageId)
 
     const request = new MessageContactRequest()
     request.setId(messageId)
@@ -593,7 +591,7 @@ export class PuppetHostieGrpc extends Puppet {
     conversationId: string,
     miniProgramPayload: MiniProgramPayload,
   ): Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'messageSendMiniProgram(%s)', conversationId, JSON.stringify(miniProgramPayload))
+    log.verbose('PuppetHostie', 'messageSendMiniProgram(%s)', conversationId, JSON.stringify(miniProgramPayload))
 
     const request = new MessageSendMiniProgramRequest()
     request.setConversationId(conversationId)
@@ -613,7 +611,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async messageRecall (
     messageId: string,
   ): Promise<boolean> {
-    log.verbose('PuppetHostieGrpc', 'messageRecall(%s)', messageId)
+    log.verbose('PuppetHostie', 'messageRecall(%s)', messageId)
 
     const request = new MessageRecallRequest()
     request.setId(messageId)
@@ -626,7 +624,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async messageFile (id: string): Promise<FileBox> {
-    log.verbose('PuppetHostieGrpc', 'messageFile(%s)', id)
+    log.verbose('PuppetHostie', 'messageFile(%s)', id)
 
     const request = new MessageFileRequest()
     request.setId(id)
@@ -640,7 +638,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async messageRawPayload (id: string): Promise<MessagePayload> {
-    log.verbose('PuppetHostieGrpc', 'messageRawPayload(%s)', id)
+    log.verbose('PuppetHostie', 'messageRawPayload(%s)', id)
 
     const request = new MessagePayloadRequest()
     request.setId(id)
@@ -665,7 +663,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async messageRawPayloadParser (payload: MessagePayload): Promise<MessagePayload> {
-    log.silly('PuppetHostieGrpc', 'messagePayload(%s)', payload)
+    log.silly('PuppetHostie', 'messagePayload(%s)', payload)
     // passthrough
     return payload
   }
@@ -674,7 +672,7 @@ export class PuppetHostieGrpc extends Puppet {
     conversationId : string,
     text           : string,
   ): Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'messageSend(%s, %s)', conversationId, text)
+    log.verbose('PuppetHostie', 'messageSend(%s, %s)', conversationId, text)
 
     const request = new MessageSendTextRequest()
     request.setConversationId(conversationId)
@@ -695,7 +693,7 @@ export class PuppetHostieGrpc extends Puppet {
     conversationId : string,
     file           : FileBox,
   ): Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'messageSend(%s, %s)', conversationId, file)
+    log.verbose('PuppetHostie', 'messageSend(%s, %s)', conversationId, file)
 
     const request = new MessageSendFileRequest()
     request.setConversationId(conversationId)
@@ -716,7 +714,7 @@ export class PuppetHostieGrpc extends Puppet {
     conversationId  : string,
     contactId       : string,
   ): Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'messageSend("%s", %s)', conversationId, contactId)
+    log.verbose('PuppetHostie', 'messageSend("%s", %s)', conversationId, contactId)
 
     const request = new MessageSendContactRequest()
     request.setConversationId(conversationId)
@@ -737,7 +735,7 @@ export class PuppetHostieGrpc extends Puppet {
     conversationId: string,
     urlLinkPayload: UrlLinkPayload,
   ): Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'messageSendUrl("%s", %s)', conversationId, JSON.stringify(urlLinkPayload))
+    log.verbose('PuppetHostie', 'messageSendUrl("%s", %s)', conversationId, JSON.stringify(urlLinkPayload))
 
     const request = new MessageSendUrlRequest()
     request.setConversationId(conversationId)
@@ -755,7 +753,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async messageUrl (messageId: string): Promise<UrlLinkPayload> {
-    log.verbose('PuppetHostieGrpc', 'messageUrl(%s)', messageId)
+    log.verbose('PuppetHostie', 'messageUrl(%s)', messageId)
 
     const request = new MessageUrlRequest()
     request.setId(messageId)
@@ -778,7 +776,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async roomRawPayload (
     id: string,
   ): Promise<RoomPayload> {
-    log.verbose('PuppetHostieGrpc', 'roomRawPayload(%s)', id)
+    log.verbose('PuppetHostie', 'roomRawPayload(%s)', id)
 
     const request = new RoomPayloadRequest()
     request.setId(id)
@@ -800,13 +798,13 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomRawPayloadParser (payload: RoomPayload): Promise<RoomPayload> {
-    log.silly('PuppetHostieGrpc', 'roomRawPayloadParser(%s)', payload)
+    log.silly('PuppetHostie', 'roomRawPayloadParser(%s)', payload)
     // passthrough
     return payload
   }
 
   public async roomList (): Promise<string[]> {
-    log.verbose('PuppetHostieGrpc', 'roomList()')
+    log.verbose('PuppetHostie', 'roomList()')
 
     const response = await util.promisify(
       this.grpcClient!.roomList
@@ -819,7 +817,7 @@ export class PuppetHostieGrpc extends Puppet {
     roomId    : string,
     contactId : string,
   ): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'roomDel(%s, %s)', roomId, contactId)
+    log.verbose('PuppetHostie', 'roomDel(%s, %s)', roomId, contactId)
 
     const request = new RoomDelRequest()
     request.setId(roomId)
@@ -831,7 +829,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomAvatar (roomId: string): Promise<FileBox> {
-    log.verbose('PuppetHostieGrpc', 'roomAvatar(%s)', roomId)
+    log.verbose('PuppetHostie', 'roomAvatar(%s)', roomId)
 
     const request = new RoomAvatarRequest()
     request.setId(roomId)
@@ -848,7 +846,7 @@ export class PuppetHostieGrpc extends Puppet {
     roomId    : string,
     contactId : string,
   ): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'roomAdd(%s, %s)', roomId, contactId)
+    log.verbose('PuppetHostie', 'roomAdd(%s, %s)', roomId, contactId)
 
     const request = new RoomAddRequest()
     request.setId(roomId)
@@ -866,7 +864,7 @@ export class PuppetHostieGrpc extends Puppet {
     roomId: string,
     topic?: string,
   ): Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'roomTopic(%s, %s)', roomId, topic)
+    log.verbose('PuppetHostie', 'roomTopic(%s, %s)', roomId, topic)
 
     /**
      * Get
@@ -905,7 +903,7 @@ export class PuppetHostieGrpc extends Puppet {
     contactIdList : string[],
     topic         : string,
   ): Promise<string> {
-    log.verbose('PuppetHostieGrpc', 'roomCreate(%s, %s)', contactIdList, topic)
+    log.verbose('PuppetHostie', 'roomCreate(%s, %s)', contactIdList, topic)
 
     const request = new RoomCreateRequest()
     request.setContactIdsList(contactIdList)
@@ -919,7 +917,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomQuit (roomId: string): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'roomQuit(%s)', roomId)
+    log.verbose('PuppetHostie', 'roomQuit(%s)', roomId)
 
     const request = new RoomQuitRequest()
     request.setId(roomId)
@@ -930,7 +928,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomQRCode (roomId: string): Promise<string> {
-    log.verbose('PuppetHostieGrpc', 'roomQRCode(%s)', roomId)
+    log.verbose('PuppetHostie', 'roomQRCode(%s)', roomId)
 
     const request = new RoomQRCodeRequest()
     request.setId(roomId)
@@ -943,7 +941,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomMemberList (roomId: string) : Promise<string[]> {
-    log.verbose('PuppetHostieGrpc', 'roommemberList(%s)', roomId)
+    log.verbose('PuppetHostie', 'roommemberList(%s)', roomId)
 
     const request = new RoomMemberListRequest()
     request.setId(roomId)
@@ -956,7 +954,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomMemberRawPayload (roomId: string, contactId: string): Promise<any>  {
-    log.verbose('PuppetHostieGrpc', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
+    log.verbose('PuppetHostie', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
 
     const request = new RoomMemberPayloadRequest()
     request.setId(roomId)
@@ -977,7 +975,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomMemberRawPayloadParser (payload: any): Promise<RoomMemberPayload>  {
-    log.silly('PuppetHostieGrpc', 'roomMemberRawPayloadParser(%s)', payload)
+    log.silly('PuppetHostie', 'roomMemberRawPayloadParser(%s)', payload)
     // passthrough
     return payload
   }
@@ -986,7 +984,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async roomAnnounce (roomId: string, text: string)  : Promise<void>
 
   public async roomAnnounce (roomId: string, text?: string) : Promise<void | string> {
-    log.verbose('PuppetHostieGrpc', 'roomAnnounce(%s%s)',
+    log.verbose('PuppetHostie', 'roomAnnounce(%s%s)',
       roomId,
       typeof text === 'undefined'
         ? ''
@@ -1031,7 +1029,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async roomInvitationAccept (
     roomInvitationId: string,
   ): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'roomInvitationAccept(%s)', roomInvitationId)
+    log.verbose('PuppetHostie', 'roomInvitationAccept(%s)', roomInvitationId)
 
     const request = new RoomInvitationAcceptRequest()
     request.setId(roomInvitationId)
@@ -1044,7 +1042,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async roomInvitationRawPayload (
     roomInvitationId: string,
   ): Promise<RoomInvitationPayload> {
-    log.verbose('PuppetHostieGrpc', 'roomInvitationRawPayload(%s)', roomInvitationId)
+    log.verbose('PuppetHostie', 'roomInvitationRawPayload(%s)', roomInvitationId)
 
     const request = new RoomInvitationPayloadRequest()
     request.setId(roomInvitationId)
@@ -1069,7 +1067,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async roomInvitationRawPayloadParser (payload: RoomInvitationPayload): Promise<RoomInvitationPayload> {
-    log.silly('PuppetHostieGrpc', 'roomInvitationRawPayloadParser(%s)', JSON.stringify(payload))
+    log.silly('PuppetHostie', 'roomInvitationRawPayloadParser(%s)', JSON.stringify(payload))
     // passthrough
     return payload
   }
@@ -1082,7 +1080,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async friendshipSearchPhone (
     phone: string,
   ): Promise<string | null> {
-    log.verbose('PuppetHostieGrpc', 'friendshipSearchPhone(%s)', phone)
+    log.verbose('PuppetHostie', 'friendshipSearchPhone(%s)', phone)
 
     const request = new FriendshipSearchPhoneRequest()
     request.setPhone(phone)
@@ -1101,7 +1099,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async friendshipSearchWeixin (
     weixin: string,
   ): Promise<string | null> {
-    log.verbose('PuppetHostieGrpc', 'friendshipSearchWeixin(%s)', weixin)
+    log.verbose('PuppetHostie', 'friendshipSearchWeixin(%s)', weixin)
 
     const request = new FriendshipSearchWeixinRequest()
     request.setWeixin(weixin)
@@ -1118,7 +1116,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async friendshipRawPayload (id: string): Promise<FriendshipPayload> {
-    log.verbose('PuppetHostieGrpc', 'friendshipRawPayload(%s)', id)
+    log.verbose('PuppetHostie', 'friendshipRawPayload(%s)', id)
 
     const request = new FriendshipPayloadRequest()
     request.setId(id)
@@ -1138,7 +1136,7 @@ export class PuppetHostieGrpc extends Puppet {
   }
 
   public async friendshipRawPayloadParser (payload: FriendshipPayload) : Promise<FriendshipPayload> {
-    log.silly('PuppetHostieGrpc', 'friendshipRawPayloadParser(%s)', JSON.stringify(payload))
+    log.silly('PuppetHostie', 'friendshipRawPayloadParser(%s)', JSON.stringify(payload))
     return payload
   }
 
@@ -1146,7 +1144,7 @@ export class PuppetHostieGrpc extends Puppet {
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'friendshipAdd(%s, %s)', contactId, hello)
+    log.verbose('PuppetHostie', 'friendshipAdd(%s, %s)', contactId, hello)
 
     const request = new FriendshipAddRequest()
     request.setContactId(contactId)
@@ -1160,7 +1158,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async friendshipAccept (
     friendshipId : string,
   ): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'friendshipAccept(%s)', friendshipId)
+    log.verbose('PuppetHostie', 'friendshipAccept(%s)', friendshipId)
 
     const request = new FriendshipAcceptRequest()
     request.setId(friendshipId)
@@ -1180,7 +1178,7 @@ export class PuppetHostieGrpc extends Puppet {
     id: string,
     contactId: string,
   ): Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'tagContactAdd(%s, %s)', id, contactId)
+    log.verbose('PuppetHostie', 'tagContactAdd(%s, %s)', id, contactId)
 
     const request = new TagContactAddRequest()
     request.setId(id)
@@ -1196,7 +1194,7 @@ export class PuppetHostieGrpc extends Puppet {
     id: string,
     contactId: string,
   ) : Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'tagContactRemove(%s, %s)', id, contactId)
+    log.verbose('PuppetHostie', 'tagContactRemove(%s, %s)', id, contactId)
 
     const request = new TagContactRemoveRequest()
     request.setId(id)
@@ -1211,7 +1209,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async tagContactDelete (
     id: string,
   ) : Promise<void> {
-    log.verbose('PuppetHostieGrpc', 'tagContactDelete(%s)', id)
+    log.verbose('PuppetHostie', 'tagContactDelete(%s)', id)
 
     const request = new TagContactDeleteRequest()
     request.setId(id)
@@ -1225,7 +1223,7 @@ export class PuppetHostieGrpc extends Puppet {
   public async tagContactList (
     contactId?: string,
   ) : Promise<string[]> {
-    log.verbose('PuppetHostieGrpc', 'tagContactList(%s)', contactId)
+    log.verbose('PuppetHostie', 'tagContactList(%s)', contactId)
 
     const request = new TagContactListRequest()
 
@@ -1244,4 +1242,4 @@ export class PuppetHostieGrpc extends Puppet {
 
 }
 
-export default PuppetHostieGrpc
+export default PuppetHostie

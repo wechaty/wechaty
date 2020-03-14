@@ -1,16 +1,16 @@
 import {
-  PuppetHostieGrpc as PuppetHostie,
-} from './grpc/puppet-client'
+  PuppetHostie,
+}                 from './client/puppet-hostie'
 
 export {
   log,
   VERSION,
-} from './config'
+}               from './config'
 
 export {
-  PuppetHostieGrpcServer as PuppetHostieServer,
-  PuppetHostieGrpcServerOptions as PuppetHostieServerOptions,
-} from './grpc/puppet-server'
+  PuppetServer,
+  PuppetServerOptions,
+}                         from './server/puppet-server'
 
 export {
   PuppetHostie,

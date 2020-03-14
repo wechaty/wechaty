@@ -72,7 +72,7 @@ import {
 import { log } from '../config'
 
 const grpcError = (method: string, e: Error, callback: Function) => {
-  log.error('GrpcServerImpl', `${method}() rejection: %s`, e && e.message)
+  log.error('PuppetServiceImpl', `${method}() rejection: %s`, e && e.message)
 
   const error: grpc.ServiceError = {
     ...e,
@@ -85,7 +85,7 @@ const grpcError = (method: string, e: Error, callback: Function) => {
 /**
  * Implements the SayHello RPC method.
  */
-export function getServerImpl (
+export function serviceImpl (
   puppet: Puppet,
 ): IPuppetServer {
 
@@ -94,7 +94,7 @@ export function getServerImpl (
   const puppetServerImpl: IPuppetServer = {
 
     contactAlias: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'contactAlias()')
+      log.verbose('PuppetServiceImpl', 'contactAlias()')
 
       const id = call.request.getId()
 
@@ -133,7 +133,7 @@ export function getServerImpl (
     },
 
     contactAvatar: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'contactAvatar()')
+      log.verbose('PuppetServiceImpl', 'contactAvatar()')
 
       const id = call.request.getId()
 
@@ -176,7 +176,7 @@ export function getServerImpl (
     },
 
     contactList: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'contactList()')
+      log.verbose('PuppetServiceImpl', 'contactList()')
 
       void call // empty request
 
@@ -192,7 +192,7 @@ export function getServerImpl (
     },
 
     contactPayload: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'contactPayload()')
+      log.verbose('PuppetServiceImpl', 'contactPayload()')
 
       const id = call.request.getId()
 
@@ -221,7 +221,7 @@ export function getServerImpl (
     },
 
     contactSelfName: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'contactSelfName()')
+      log.verbose('PuppetServiceImpl', 'contactSelfName()')
 
       try {
         const name = call.request.getName()
@@ -235,7 +235,7 @@ export function getServerImpl (
     },
 
     contactSelfQRCode: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'contactSelfName()')
+      log.verbose('PuppetServiceImpl', 'contactSelfName()')
       void call
 
       try {
@@ -253,7 +253,7 @@ export function getServerImpl (
     },
 
     contactSelfSignature: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'contactSelfSignature()')
+      log.verbose('PuppetServiceImpl', 'contactSelfSignature()')
 
       try {
         const signature = call.request.getSignature()
@@ -268,7 +268,7 @@ export function getServerImpl (
     },
 
     ding: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'ding()')
+      log.verbose('PuppetServiceImpl', 'ding()')
 
       try {
         const data = call.request.getData()
@@ -286,10 +286,10 @@ export function getServerImpl (
      *
      */
     event: (streamCall) => {
-      log.verbose('GrpcServerImpl', 'event()')
+      log.verbose('PuppetServiceImpl', 'event()')
 
       if (eventStream) {
-        log.error('GrpcServerImpl', 'event() called twice, which should not: return with error')
+        log.error('PuppetServiceImpl', 'event() called twice, which should not: return with error')
 
         const error: grpc.ServiceError = {
           ...new Error('GrpcServerImpl.event() can not call twice.'),
@@ -316,27 +316,27 @@ export function getServerImpl (
        *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
        */
       eventStream.on('cancelled', function () {
-        log.verbose('GrpcServerImpl', 'event() eventStream.on(cancelled) fired with arguments: %s', JSON.stringify(arguments))
+        log.verbose('PuppetServiceImpl', 'event() eventStream.on(cancelled) fired with arguments: %s', JSON.stringify(arguments))
         eventStream = undefined
       })
 
       eventStream.on('error', err => {
-        log.verbose('GrpcServerImpl', 'event() eventStream.on(error) fired: %s', err)
+        log.verbose('PuppetServiceImpl', 'event() eventStream.on(error) fired: %s', err)
         eventStream = undefined
       })
 
       eventStream.on('finish', () => {
-        log.verbose('GrpcServerImpl', 'event() eventStream.on(finish) fired')
+        log.verbose('PuppetServiceImpl', 'event() eventStream.on(finish) fired')
         eventStream = undefined
       })
 
       eventStream.on('end', () => {
-        log.verbose('GrpcServerImpl', 'event() eventStream.on(end) fired')
+        log.verbose('PuppetServiceImpl', 'event() eventStream.on(end) fired')
         eventStream = undefined
       })
 
       eventStream.on('close', () => {
-        log.verbose('GrpcServerImpl', 'event() eventStream.on(close) fired')
+        log.verbose('PuppetServiceImpl', 'event() eventStream.on(close) fired')
         eventStream = undefined
       })
 
@@ -355,13 +355,13 @@ export function getServerImpl (
         if (eventStream) {
           eventStream.write(response)
         } else {
-          log.warn('GrpcServerImpl', 'event() grpcEmit() eventStream undefined')
+          log.warn('PuppetServiceImpl', 'event() grpcEmit() eventStream undefined')
         }
       }
 
       const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
       for (const eventName of eventNameList) {
-        log.verbose('GrpcServerImpl', 'event() puppet.on(%s) registering...', eventName)
+        log.verbose('PuppetServiceImpl', 'event() puppet.on(%s) registering...', eventName)
 
         switch (eventName) {
           case 'dong':
@@ -415,7 +415,7 @@ export function getServerImpl (
     },
 
     frendshipAccept: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'friendshipAccept()')
+      log.verbose('PuppetServiceImpl', 'friendshipAccept()')
 
       try {
         const id = call.request.getId()
@@ -428,7 +428,7 @@ export function getServerImpl (
     },
 
     friendshipAdd: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'friendshipAccept()')
+      log.verbose('PuppetServiceImpl', 'friendshipAccept()')
 
       try {
         const contactId = call.request.getContactId()
@@ -443,7 +443,7 @@ export function getServerImpl (
     },
 
     friendshipPayload: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'friendshipAccept()')
+      log.verbose('PuppetServiceImpl', 'friendshipAccept()')
 
       try {
         const id = call.request.getId()
@@ -468,7 +468,7 @@ export function getServerImpl (
     },
 
     friendshipSearchPhone: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'friendshipSearchPhone()')
+      log.verbose('PuppetServiceImpl', 'friendshipSearchPhone()')
 
       try {
         const phone = call.request.getPhone()
@@ -490,7 +490,7 @@ export function getServerImpl (
     },
 
     friendshipSearchWeixin: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'friendshipSearchWeixin()')
+      log.verbose('PuppetServiceImpl', 'friendshipSearchWeixin()')
 
       try {
         const weixin = call.request.getWeixin()
@@ -512,7 +512,7 @@ export function getServerImpl (
     },
 
     logout: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'logout()')
+      log.verbose('PuppetServiceImpl', 'logout()')
       void call // empty arguments
 
       try {
@@ -526,7 +526,7 @@ export function getServerImpl (
     },
 
     messageContact: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageContact()')
+      log.verbose('PuppetServiceImpl', 'messageContact()')
 
       try {
         const id = call.request.getId()
@@ -544,7 +544,7 @@ export function getServerImpl (
     },
 
     messageFile: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageFile()')
+      log.verbose('PuppetServiceImpl', 'messageFile()')
 
       try {
         const id = call.request.getId()
@@ -562,7 +562,7 @@ export function getServerImpl (
     },
 
     messageImage: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageImage()')
+      log.verbose('PuppetServiceImpl', 'messageImage()')
 
       try {
         const id = call.request.getId()
@@ -581,7 +581,7 @@ export function getServerImpl (
     },
 
     messageMiniProgram: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageMiniProgram()')
+      log.verbose('PuppetServiceImpl', 'messageMiniProgram()')
 
       try {
         const id = call.request.getId()
@@ -599,7 +599,7 @@ export function getServerImpl (
     },
 
     messagePayload: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messagePayload()')
+      log.verbose('PuppetServiceImpl', 'messagePayload()')
 
       try {
         const id = call.request.getId()
@@ -625,7 +625,7 @@ export function getServerImpl (
     },
 
     messageRecall: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageRecall()')
+      log.verbose('PuppetServiceImpl', 'messageRecall()')
 
       try {
         const id = call.request.getId()
@@ -643,7 +643,7 @@ export function getServerImpl (
     },
 
     messageSendContact: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageSendContact()')
+      log.verbose('PuppetServiceImpl', 'messageSendContact()')
 
       try {
         const conversationId = call.request.getConversationId()
@@ -667,7 +667,7 @@ export function getServerImpl (
     },
 
     messageSendFile: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageSendFile()')
+      log.verbose('PuppetServiceImpl', 'messageSendFile()')
 
       try {
         const conversationId = call.request.getConversationId()
@@ -693,7 +693,7 @@ export function getServerImpl (
     },
 
     messageSendMiniProgram: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageSendMiniProgram()')
+      log.verbose('PuppetServiceImpl', 'messageSendMiniProgram()')
 
       try {
         const conversationId = call.request.getConversationId()
@@ -719,7 +719,7 @@ export function getServerImpl (
     },
 
     messageSendText: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageSendText()')
+      log.verbose('PuppetServiceImpl', 'messageSendText()')
 
       try {
         const conversationId = call.request.getConversationId()
@@ -744,7 +744,7 @@ export function getServerImpl (
     },
 
     messageSendUrl: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageSendUrl()')
+      log.verbose('PuppetServiceImpl', 'messageSendUrl()')
 
       try {
         const conversationId = call.request.getConversationId()
@@ -770,7 +770,7 @@ export function getServerImpl (
     },
 
     messageUrl: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'messageUrl()')
+      log.verbose('PuppetServiceImpl', 'messageUrl()')
 
       try {
         const id = call.request.getId()
@@ -787,7 +787,7 @@ export function getServerImpl (
     },
 
     roomAdd: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomAdd()')
+      log.verbose('PuppetServiceImpl', 'roomAdd()')
 
       try {
         const roomId = call.request.getId()
@@ -803,7 +803,7 @@ export function getServerImpl (
     },
 
     roomAnnounce: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomAnnounce()')
+      log.verbose('PuppetServiceImpl', 'roomAnnounce()')
 
       try {
         const roomId = call.request.getId()
@@ -841,7 +841,7 @@ export function getServerImpl (
     },
 
     roomAvatar: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomAvatar()')
+      log.verbose('PuppetServiceImpl', 'roomAvatar()')
 
       try {
         const roomId = call.request.getId()
@@ -859,7 +859,7 @@ export function getServerImpl (
     },
 
     roomCreate: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomCreate()')
+      log.verbose('PuppetServiceImpl', 'roomCreate()')
 
       try {
         const contactIdList = call.request.getContactIdsList()
@@ -878,7 +878,7 @@ export function getServerImpl (
     },
 
     roomDel: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomDel()')
+      log.verbose('PuppetServiceImpl', 'roomDel()')
 
       try {
         const roomId = call.request.getId()
@@ -894,7 +894,7 @@ export function getServerImpl (
     },
 
     roomInvitationAccept: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomInvitationAccept()')
+      log.verbose('PuppetServiceImpl', 'roomInvitationAccept()')
 
       try {
         const id = call.request.getId()
@@ -909,7 +909,7 @@ export function getServerImpl (
     },
 
     roomInvitationPayload: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomInvitationPayload()')
+      log.verbose('PuppetServiceImpl', 'roomInvitationPayload()')
 
       try {
         const roomInvitationId = call.request.getId()
@@ -951,7 +951,7 @@ export function getServerImpl (
     },
 
     roomList: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomList()')
+      log.verbose('PuppetServiceImpl', 'roomList()')
       void call
 
       try {
@@ -968,7 +968,7 @@ export function getServerImpl (
     },
 
     roomMemberList: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomMemberList()')
+      log.verbose('PuppetServiceImpl', 'roomMemberList()')
 
       try {
         const roomId = call.request.getId()
@@ -986,7 +986,7 @@ export function getServerImpl (
     },
 
     roomMemberPayload: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomMemberPayload()')
+      log.verbose('PuppetServiceImpl', 'roomMemberPayload()')
 
       try {
         const roomId = call.request.getId()
@@ -1010,7 +1010,7 @@ export function getServerImpl (
     },
 
     roomPayload: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomPayload()')
+      log.verbose('PuppetServiceImpl', 'roomPayload()')
 
       try {
         const roomId = call.request.getId()
@@ -1033,7 +1033,7 @@ export function getServerImpl (
     },
 
     roomQRCode: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomQRCode()')
+      log.verbose('PuppetServiceImpl', 'roomQRCode()')
 
       try {
         const roomId = call.request.getId()
@@ -1051,7 +1051,7 @@ export function getServerImpl (
     },
 
     roomQuit: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomQuit()')
+      log.verbose('PuppetServiceImpl', 'roomQuit()')
 
       try {
         const roomId = call.request.getId()
@@ -1066,7 +1066,7 @@ export function getServerImpl (
     },
 
     roomTopic: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'roomTopic()')
+      log.verbose('PuppetServiceImpl', 'roomTopic()')
 
       try {
         const roomId = call.request.getId()
@@ -1105,7 +1105,7 @@ export function getServerImpl (
     },
 
     start: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'start()')
+      log.verbose('PuppetServiceImpl', 'start()')
       void call
 
       try {
@@ -1119,7 +1119,7 @@ export function getServerImpl (
     },
 
     stop: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'stop()')
+      log.verbose('PuppetServiceImpl', 'stop()')
       void call
 
       try {
@@ -1128,7 +1128,7 @@ export function getServerImpl (
           eventStream.end()
           eventStream = undefined
         } else {
-          log.error('GrpcServerImpl', 'stop() eventStream is undefined?')
+          log.error('PuppetServiceImpl', 'stop() eventStream is undefined?')
         }
 
         await puppet.stop()
@@ -1141,7 +1141,7 @@ export function getServerImpl (
     },
 
     tagContactAdd: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'tagContactAdd()')
+      log.verbose('PuppetServiceImpl', 'tagContactAdd()')
 
       try {
         const tagId = call.request.getId()
@@ -1157,7 +1157,7 @@ export function getServerImpl (
     },
 
     tagContactDelete: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'tagContactDelete()')
+      log.verbose('PuppetServiceImpl', 'tagContactDelete()')
 
       try {
         const tagId = call.request.getId()
@@ -1172,7 +1172,7 @@ export function getServerImpl (
     },
 
     tagContactList: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'tagContactList()')
+      log.verbose('PuppetServiceImpl', 'tagContactList()')
 
       try {
         const contactIdWrapper = call.request.getContactId()
@@ -1207,7 +1207,7 @@ export function getServerImpl (
     },
 
     tagContactRemove: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'tagContactRemove()')
+      log.verbose('PuppetServiceImpl', 'tagContactRemove()')
 
       try {
         const tagId = call.request.getId()
@@ -1223,7 +1223,7 @@ export function getServerImpl (
     },
 
     version: async (call, callback) => {
-      log.verbose('GrpcServerImpl', 'version() v%s', puppet.version())
+      log.verbose('PuppetServiceImpl', 'version() v%s', puppet.version())
       void call
 
       try {
