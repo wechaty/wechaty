@@ -1,6 +1,7 @@
-import {
+export {
   PuppetHostie,
-}                 from './client/puppet-hostie'
+  PuppetHostie as default,
+}                           from './client/puppet-hostie'
 
 export {
   log,
@@ -11,8 +12,3 @@ export {
   PuppetServer,
   PuppetServerOptions,
 }                         from './server/puppet-server'
-
-export {
-  PuppetHostie,
-}
-export default PuppetHostie

@@ -4,16 +4,13 @@ import grpc from 'grpc'
 import WebSocket from 'ws'
 
 import {
-  // ContactGender,
   ContactPayload,
-  // ContactType,
 
   FileBox,
 
   FriendshipPayload,
 
   MessagePayload,
-  // MessageType,
 
   Puppet,
   PuppetOptions,
@@ -26,6 +23,17 @@ import {
   ImageType,
   EventDongPayload,
   EventLogoutPayload,
+  EventWatchdogPayload,
+  EventFriendshipPayload,
+  EventLoginPayload,
+  EventMessagePayload,
+  EventReadyPayload,
+  EventRoomInvitePayload,
+  EventRoomJoinPayload,
+  EventRoomLeavePayload,
+  EventRoomTopicPayload,
+  EventScanPayload,
+  EventErrorPayload,
 }                         from 'wechaty-puppet'
 
 import {
@@ -77,7 +85,6 @@ import {
   TagContactDeleteRequest,
   TagContactListRequest,
   MessageImageRequest,
-  // EventType,
 
   StringValue,
   DingRequest,
@@ -96,8 +103,8 @@ export class PuppetHostie extends Puppet {
 
   public static readonly VERSION = VERSION
 
-  private grpcClient?: PuppetClient
-  private eventStream?: grpc.ClientReadableStream<EventResponse>
+  private grpcClient?  : PuppetClient
+  private eventStream? : grpc.ClientReadableStream<EventResponse>
 
   constructor (
     public options: PuppetOptions = {},
@@ -165,7 +172,7 @@ export class PuppetHostie extends Puppet {
     let endpoint = this.options.endpoint
     if (!endpoint) {
       const ip = await this.discoverHostieIp(this.options.token!)
-      if (ip === '0.0.0.0') {
+      if (!ip || ip === '0.0.0.0') {
         throw new Error('no endpoint')
       }
       endpoint = ip + ':8788'
@@ -265,13 +272,13 @@ export class PuppetHostie extends Puppet {
     this.eventStream
       .on('data', this.onGrpcStreamEvent.bind(this))
       .on('end', () => {
-        console.info('eventStream.on(end)')
+        log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(end)')
       })
       .on('error', e => {
-        console.info('eventStream.on(error)', e)
+        log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(error) %s', e)
       })
       .on('cancel', (...args: any[]) => {
-        console.info('eventStream on(cancel)', args)
+        log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(cancel), %s', JSON.stringify(args))
       })
 
   }
@@ -279,6 +286,7 @@ export class PuppetHostie extends Puppet {
   private onGrpcStreamEvent (event: EventResponse): void {
     const type    = event.getType()
     const payload = event.getPayload()
+
     log.verbose('PuppetHostie',
       'onGrpcStreamEvent({type: "%s", payload:"%s"})',
       type,
@@ -287,13 +295,56 @@ export class PuppetHostie extends Puppet {
 
     switch (type) {
       case EventType.EVENT_TYPE_DONG:
-        const obj = JSON.parse(payload) as EventDongPayload
-        this.emit('dong', obj)
+        this.emit('dong', JSON.parse(payload) as EventDongPayload)
+        break
+      case EventType.EVENT_TYPE_ERROR:
+        this.emit('error', JSON.parse(payload) as EventErrorPayload)
+        break
+      case EventType.EVENT_TYPE_WATCHDOG:
+        this.emit('watchdog', JSON.parse(payload) as EventWatchdogPayload)
+        break
+      case EventType.EVENT_TYPE_FRIENDSHIP:
+        this.emit('friendship', JSON.parse(payload) as EventFriendshipPayload)
+        break
+      case EventType.EVENT_TYPE_LOGIN:
+        this.emit('login', JSON.parse(payload) as EventLoginPayload)
+        break
+      case EventType.EVENT_TYPE_LOGOUT:
+        this.emit('logout', JSON.parse(payload) as EventLogoutPayload)
+        break
+      case EventType.EVENT_TYPE_MESSAGE:
+        this.emit('message', JSON.parse(payload) as EventMessagePayload)
+        break
+      case EventType.EVENT_TYPE_READY:
+        this.emit('ready', JSON.parse(payload) as EventReadyPayload)
+        break
+      case EventType.EVENT_TYPE_ROOM_INVITE:
+        this.emit('room-invite', JSON.parse(payload) as EventRoomInvitePayload)
+        break
+      case EventType.EVENT_TYPE_ROOM_JOIN:
+        this.emit('room-join', JSON.parse(payload) as EventRoomJoinPayload)
+        break
+      case EventType.EVENT_TYPE_ROOM_LEAVE:
+        this.emit('room-leave', JSON.parse(payload) as EventRoomLeavePayload)
+        break
+      case EventType.EVENT_TYPE_ROOM_TOPIC:
+        this.emit('room-topic', JSON.parse(payload) as EventRoomTopicPayload)
+        break
+      case EventType.EVENT_TYPE_SCAN:
+        this.emit('scan', JSON.parse(payload) as EventScanPayload)
+        break
+      case EventType.EVENT_TYPE_RESET:
+        log.warn('PuppetHostie', 'onGrpcStreamEvent() got an EventType.EVENT_TYPE_RESET ?')
+        // the `reset` event should be dealed not send out
+        break
+
+      case EventType.EVENT_TYPE_UNSPECIFIED:
+        log.error('PuppetHostie', 'onGrpcStreamEvent() got an EventType.EVENT_TYPE_UNSPECIFIED ?')
         break
 
       default:
-        // To be impl
-        break
+        // Huan(202003): in default, the `type` type should be `never`, please check.
+        throw new Error('eventType ' + type + ' unsupported! (code should not reach here)')
     }
   }
 
