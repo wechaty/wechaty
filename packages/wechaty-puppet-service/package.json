@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-hostie",
-  "version": "0.3.27",
+  "version": "0.3.28",
   "description": "Puppet Hostie for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
