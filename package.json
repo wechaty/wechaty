@@ -129,7 +129,7 @@
     "sloc": "^0.2.1",
     "tstest": "^0.4.10",
     "typedoc": "^0.16.11",
-    "wechaty-puppet-mock": "^0.17.4"
+    "wechaty-puppet-mock": "^0.19.0"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
