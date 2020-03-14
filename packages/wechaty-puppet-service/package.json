@@ -50,7 +50,7 @@
     "@types/ws": "^7.2.2",
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
-    "tstest": "^0.4.2",
+    "tstest": "^0.4.10",
     "wechaty-puppet": "^0.21.12",
     "wechaty-puppet-mock": "^0.16.1"
   },
@@ -58,7 +58,7 @@
     "wechaty-puppet": "^0.21.12"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.7.7",
+    "@chatie/grpc": "^0.7.9",
     "ws": "^7.2.3"
   },
   "publishConfig": {
