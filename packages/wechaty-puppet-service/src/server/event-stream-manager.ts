@@ -82,9 +82,8 @@ export class EventStreamManager {
     this.eventStream = undefined
   }
 
-  // https://stackoverflow.com/a/49286056/1123955
-  private grpcEmit (
-    type : EventTypeMap[keyof EventTypeMap],
+  public grpcEmit (
+    type : EventTypeMap[keyof EventTypeMap],  // https://stackoverflow.com/a/49286056/1123955
     obj  : object,
   ): void {
     log.verbose('EventStreamManager', 'grpcEmit(%s, %s)',

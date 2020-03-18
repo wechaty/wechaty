@@ -50,6 +50,7 @@ import {
   MessageImageResponse,
 
   StringValue,
+  EventType,
 }                                   from '@chatie/grpc'
 
 import {
@@ -61,6 +62,7 @@ import {
   RoomInvitationPayload,
   ImageType,
   FriendshipSceneType,
+  EventScanPayload,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
@@ -74,6 +76,15 @@ import { EventStreamManager }   from './event-stream-manager'
 export function serviceImpl (
   puppet: Puppet,
 ): IPuppetServer {
+
+  /**
+   * Save scan payload to send it to the puppet-hostie right after connected (if needed)
+   *
+   * TODO: clean the listeners if necessary
+   */
+  let scanPayload: undefined | EventScanPayload
+  puppet.on('scan', payload => { scanPayload = payload   })
+  puppet.on('login', _      => { scanPayload = undefined })
 
   const eventStreamManager = new EventStreamManager(puppet)
 
@@ -296,6 +307,13 @@ export function serviceImpl (
       }
 
       eventStreamManager.start(streamingCall)
+
+      /**
+       * If `scanPayload` is not undefined, then we emit it to downstream immediatelly
+       */
+      if (scanPayload) {
+        eventStreamManager.grpcEmit(EventType.EVENT_TYPE_SCAN, scanPayload)
+      }
     },
 
     frendshipAccept: async (call, callback) => {
