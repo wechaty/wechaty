@@ -98,8 +98,8 @@ export class PuppetMock extends Puppet {
     // const user = this.Contact.load(this.id)
     this.emit('login', { contactId: this.id })
 
+    let counter = 0
     const sendMockMessage = () => {
-      let counter = 0
       const MOCK_MSG_ID = 'mockid' + counter++
 
       this.cacheMessagePayload.set(MOCK_MSG_ID, {
