@@ -96,7 +96,7 @@
     "state-switch": "^0.6.18",
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.21.12",
-    "wechaty-puppet-hostie": "^0.3.28",
+    "wechaty-puppet-hostie": "^0.3.29",
     "ws": "^7.2.3"
   },
   "devDependencies": {

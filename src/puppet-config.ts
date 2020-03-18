@@ -11,7 +11,7 @@ export const PUPPET_DEPENDENCIES = {
    * DEPRECATED by Huan(202002): The Above is Alias for the following full NPM module names *
    *******************************************************************************************/
 
-  'wechaty-puppet-hostie'    : '^0.3.28',   // https://www.npmjs.com/package/wechaty-puppet-hostie
+  'wechaty-puppet-hostie'    : '^0.3.29',   // https://www.npmjs.com/package/wechaty-puppet-hostie
   'wechaty-puppet-mock'      : '^0.19.0',   // https://www.npmjs.com/package/wechaty-puppet-mock
 
   // 'wechaty-puppet-dll'       : '^0.3.1',    // https://www.npmjs.com/package/wechaty-puppet-dll
