@@ -140,7 +140,10 @@ export class PuppetHostie extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetHostie', `discoverHostieIp(%s)`, token)
 
-    // return '127.0.0.1'
+    // let DEBUG = true as boolean
+    // if (DEBUG) {
+    //   return '127.0.0.1'
+    // }
 
     const CHATIE_ENDPOINT = 'wss://api.chatie.io/v0/websocket/token/'
     const PROTOCOL = 'puppet-hostie|0.0.1'

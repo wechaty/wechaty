@@ -73,7 +73,7 @@ import { EventStreamManager }   from './event-stream-manager'
 /**
  * Implements the SayHello RPC method.
  */
-export function serviceImpl (
+export function puppetImplementation (
   puppet: Puppet,
 ): IPuppetServer {
 

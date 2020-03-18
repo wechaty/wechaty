@@ -15,8 +15,8 @@ import {
 }                     from '../config'
 
 import {
-  serviceImpl,
-}                     from './puppet-service-impl'
+  puppetImplementation,
+}                         from './puppet-implementation'
 
 export interface PuppetServerOptions {
   endpoint : string,
@@ -50,14 +50,14 @@ export class PuppetServer {
       throw new Error('grpc server existed!')
     }
 
-    const puppetServiceImpl = serviceImpl(
+    const puppetImpl = puppetImplementation(
       this.options.puppet,
     )
 
     this.grpcServer = new grpc.Server()
     this.grpcServer.addService(
       PuppetService,
-      puppetServiceImpl,
+      puppetImpl,
     )
 
     // 127.0.0.1:8788

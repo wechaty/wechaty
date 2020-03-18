@@ -149,7 +149,7 @@ async function onMessage (payload: EventMessagePayload) {
  *
  */
 const welcome = `
-Puppet Version: ${puppet.version()}
+Puppet Version: ${puppet}@${puppet.version()}
 
 Please wait... I'm trying to login in...
 
