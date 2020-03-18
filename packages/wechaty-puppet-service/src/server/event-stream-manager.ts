@@ -87,6 +87,11 @@ export class EventStreamManager {
     type : EventTypeMap[keyof EventTypeMap],
     obj  : object,
   ): void {
+    log.verbose('EventStreamManager', 'grpcEmit(%s, %s)',
+      type,
+      JSON.stringify(obj),
+    )
+
     const response = new EventResponse()
 
     response.setType(type)
@@ -118,7 +123,11 @@ export class EventStreamManager {
 
     const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
     for (const eventName of eventNameList) {
-      log.verbose('EventStreamManager', 'connectPuppetEventToStreamingCall() this.puppet.on(%s) registering...', eventName)
+      log.verbose('EventStreamManager',
+        'connectPuppetEventToStreamingCall() this.puppet.on(%s) (listenerCount:%s) registering...',
+        eventName,
+        this.puppet.listenerCount(eventName)
+      )
 
       switch (eventName) {
         case 'dong': {
