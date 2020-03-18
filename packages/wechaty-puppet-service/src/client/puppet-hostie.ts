@@ -90,6 +90,7 @@ import {
   DingRequest,
 
   EventType,
+  EventTypeMap,
 }                                   from '@chatie/grpc'
 
 import {
@@ -98,6 +99,22 @@ import {
   WECHATY_PUPPET_HOSTIE_TOKEN,
   WECHATY_PUPPET_HOSTIE_ENDPOINT,
 }                                   from '../config'
+
+/**
+ * Huan(202003):
+ *  @chatie/GRPC proto gen TS does not generate the ENUM type with reverse mapping.
+ *  So we need to do it by ourselves:
+ *    1. define the EventTypeRev, and
+ *    2. loop EventType to fill it.
+ */
+const EventTypeRev = {} as {
+  [key: number]: string,
+}
+
+for (const key in EventType) {
+  const val = EventType[key as keyof EventTypeMap]
+  EventTypeRev[val] = key
+}
 
 export class PuppetHostie extends Puppet {
 
@@ -122,6 +139,8 @@ export class PuppetHostie extends Puppet {
     token: string,
   ): Promise<string> {
     log.verbose('PuppetHostie', `discoverHostieIp(%s)`, token)
+
+    // return '127.0.0.1'
 
     const CHATIE_ENDPOINT = 'wss://api.chatie.io/v0/websocket/token/'
     const PROTOCOL = 'puppet-hostie|0.0.1'
@@ -288,7 +307,8 @@ export class PuppetHostie extends Puppet {
     const payload = event.getPayload()
 
     log.verbose('PuppetHostie',
-      'onGrpcStreamEvent({type: "%s", payload:"%s"})',
+      'onGrpcStreamEvent({type: %s(%s), payload:"%s"})',
+      EventTypeRev[type],
       type,
       payload,
     )
@@ -307,9 +327,12 @@ export class PuppetHostie extends Puppet {
         this.emit('friendship', JSON.parse(payload) as EventFriendshipPayload)
         break
       case EventType.EVENT_TYPE_LOGIN:
-        this.emit('login', JSON.parse(payload) as EventLoginPayload)
+        const loginPayload = JSON.parse(payload) as EventLoginPayload
+        this.id = loginPayload.contactId
+        this.emit('login', loginPayload)
         break
       case EventType.EVENT_TYPE_LOGOUT:
+        this.id = undefined
         this.emit('logout', JSON.parse(payload) as EventLogoutPayload)
         break
       case EventType.EVENT_TYPE_MESSAGE:
@@ -369,7 +392,7 @@ export class PuppetHostie extends Puppet {
 
     try {
       await util.promisify(
-        this.grpcClient!.logout
+        this.grpcClient!.logout.bind(this.grpcClient)
           .bind(this.grpcClient)
       )(new LogoutRequest())
 
@@ -423,7 +446,7 @@ export class PuppetHostie extends Puppet {
       request.setId(contactId)
 
       const response = await util.promisify(
-        this.grpcClient!.contactAlias
+        this.grpcClient!.contactAlias.bind(this.grpcClient)
       )(request)
 
       const aliasWrapper = response.getAlias()
@@ -446,7 +469,7 @@ export class PuppetHostie extends Puppet {
     request.setAlias(aliasWrapper)
 
     await util.promisify(
-      this.grpcClient!.contactAlias
+      this.grpcClient!.contactAlias.bind(this.grpcClient)
     )(request)
   }
 
@@ -454,7 +477,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'contactList()')
 
     const response = await util.promisify(
-      this.grpcClient!.contactList
+      this.grpcClient!.contactList.bind(this.grpcClient)
     )(new ContactListRequest())
 
     return response.getIdsList()
@@ -466,7 +489,7 @@ export class PuppetHostie extends Puppet {
     }
 
     const response = await util.promisify(
-      this.grpcClient!.contactSelfQRCode
+      this.grpcClient!.contactSelfQRCode.bind(this.grpcClient)
     )(new ContactSelfQRCodeRequest())
 
     return response.getQrcode()
@@ -490,7 +513,7 @@ export class PuppetHostie extends Puppet {
       request.setFilebox(fileboxWrapper)
 
       await util.promisify(
-        this.grpcClient!.contactSelfQRCode
+        this.grpcClient!.contactSelfQRCode.bind(this.grpcClient)
       )(request)
 
       return
@@ -503,7 +526,7 @@ export class PuppetHostie extends Puppet {
     request.setId(contactId)
 
     const response = await util.promisify(
-      this.grpcClient!.contactSelfQRCode
+      this.grpcClient!.contactSelfQRCode.bind(this.grpcClient)
     )(request)
 
     const qrcode = response.getQrcode()
@@ -517,7 +540,7 @@ export class PuppetHostie extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpcClient!.contactPayload
+      this.grpcClient!.contactPayload.bind(this.grpcClient)
     )(request)
 
     const payload: ContactPayload = {
@@ -552,7 +575,7 @@ export class PuppetHostie extends Puppet {
     request.setName(name)
 
     await util.promisify(
-      this.grpcClient!.contactSelfName
+      this.grpcClient!.contactSelfName.bind(this.grpcClient)
     )(request)
   }
 
@@ -560,7 +583,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'contactSelfQRCode()')
 
     const response = await util.promisify(
-      this.grpcClient!.contactSelfQRCode
+      this.grpcClient!.contactSelfQRCode.bind(this.grpcClient)
     )(new ContactSelfQRCodeRequest())
 
     return response.getQrcode()
@@ -573,7 +596,7 @@ export class PuppetHostie extends Puppet {
     request.setSignature(signature)
 
     await util.promisify(
-      this.grpcClient!.contactSelfSignature
+      this.grpcClient!.contactSelfSignature.bind(this.grpcClient)
     )(request)
   }
 
@@ -591,7 +614,7 @@ export class PuppetHostie extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpcClient!.messageMiniProgram
+      this.grpcClient!.messageMiniProgram.bind(this.grpcClient)
     )(request)
 
     const jsonText = response.getMiniProgram()
@@ -615,7 +638,7 @@ export class PuppetHostie extends Puppet {
     request.setType(imageType)
 
     const response = await util.promisify(
-      this.grpcClient!.messageImage
+      this.grpcClient!.messageImage.bind(this.grpcClient)
     )(request)
 
     const jsonText = response.getFilebox()
@@ -631,7 +654,7 @@ export class PuppetHostie extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpcClient!.messageContact
+      this.grpcClient!.messageContact.bind(this.grpcClient)
     )(request)
 
     const contactId = response.getId()
@@ -649,7 +672,7 @@ export class PuppetHostie extends Puppet {
     request.setMiniProgram(JSON.stringify(miniProgramPayload))
 
     const response = await util.promisify(
-      this.grpcClient!.messageSendMiniProgram
+      this.grpcClient!.messageSendMiniProgram.bind(this.grpcClient)
     )(request)
 
     const messageIdWrapper = response.getId()
@@ -668,7 +691,7 @@ export class PuppetHostie extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpcClient!.messageRecall
+      this.grpcClient!.messageRecall.bind(this.grpcClient)
     )(request)
 
     return response.getSuccess()
@@ -681,7 +704,7 @@ export class PuppetHostie extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpcClient!.messageFile
+      this.grpcClient!.messageFile.bind(this.grpcClient)
     )(request)
 
     const jsonText = response.getFilebox()
@@ -695,7 +718,7 @@ export class PuppetHostie extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpcClient!.messagePayload
+      this.grpcClient!.messagePayload.bind(this.grpcClient)
     )(request)
 
     const payload: MessagePayload = {
@@ -730,7 +753,7 @@ export class PuppetHostie extends Puppet {
     request.setText(text)
 
     const response = await util.promisify(
-      this.grpcClient!.messageSendText
+      this.grpcClient!.messageSendText.bind(this.grpcClient)
     )(request)
 
     const messageIdWrapper = response.getId()
@@ -751,7 +774,7 @@ export class PuppetHostie extends Puppet {
     request.setFilebox(JSON.stringify(file))
 
     const response = await util.promisify(
-      this.grpcClient!.messageSendFile
+      this.grpcClient!.messageSendFile.bind(this.grpcClient)
     )(request)
 
     const messageIdWrapper = response.getId()
@@ -772,7 +795,7 @@ export class PuppetHostie extends Puppet {
     request.setContactId(contactId)
 
     const response = await util.promisify(
-      this.grpcClient!.messageSendContact
+      this.grpcClient!.messageSendContact.bind(this.grpcClient)
     )(request)
 
     const messageIdWrapper = response.getId()
@@ -793,7 +816,7 @@ export class PuppetHostie extends Puppet {
     request.setUrlLink(JSON.stringify(urlLinkPayload))
 
     const response = await util.promisify(
-      this.grpcClient!.messageSendUrl
+      this.grpcClient!.messageSendUrl.bind(this.grpcClient)
     )(request)
 
     const messageIdWrapper = response.getId()
@@ -810,7 +833,7 @@ export class PuppetHostie extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpcClient!.messageUrl
+      this.grpcClient!.messageUrl.bind(this.grpcClient)
     )(request)
 
     const jsonText = response.getUrlLink()
@@ -833,7 +856,7 @@ export class PuppetHostie extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpcClient!.roomPayload
+      this.grpcClient!.roomPayload.bind(this.grpcClient)
     )(request)
 
     const payload: RoomPayload = {
@@ -858,7 +881,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'roomList()')
 
     const response = await util.promisify(
-      this.grpcClient!.roomList
+      this.grpcClient!.roomList.bind(this.grpcClient)
     )(new RoomListRequest())
 
     return response.getIdsList()
@@ -875,7 +898,7 @@ export class PuppetHostie extends Puppet {
     request.setContactId(contactId)
 
     await util.promisify(
-      this.grpcClient!.roomDel
+      this.grpcClient!.roomDel.bind(this.grpcClient)
     )(request)
   }
 
@@ -886,7 +909,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpcClient!.roomAvatar
+      this.grpcClient!.roomAvatar.bind(this.grpcClient)
     )(request)
 
     const jsonText = response.getFilebox()
@@ -904,7 +927,7 @@ export class PuppetHostie extends Puppet {
     request.setContactId(contactId)
 
     await util.promisify(
-      this.grpcClient!.roomAdd
+      this.grpcClient!.roomAdd.bind(this.grpcClient)
     )(request)
   }
 
@@ -925,7 +948,7 @@ export class PuppetHostie extends Puppet {
       request.setId(roomId)
 
       const response = await util.promisify(
-        this.grpcClient!.roomTopic
+        this.grpcClient!.roomTopic.bind(this.grpcClient)
       )(request)
 
       const topicWrapper = response.getTopic()
@@ -946,7 +969,7 @@ export class PuppetHostie extends Puppet {
     request.setTopic(topicWrapper)
 
     await util.promisify(
-      this.grpcClient!.roomTopic
+      this.grpcClient!.roomTopic.bind(this.grpcClient)
     )(request)
   }
 
@@ -961,7 +984,7 @@ export class PuppetHostie extends Puppet {
     request.setTopic(topic)
 
     const response = await util.promisify(
-      this.grpcClient!.roomCreate
+      this.grpcClient!.roomCreate.bind(this.grpcClient)
     )(request)
 
     return response.getId()
@@ -974,7 +997,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomId)
 
     await util.promisify(
-      this.grpcClient!.roomQuit
+      this.grpcClient!.roomQuit.bind(this.grpcClient)
     )(request)
   }
 
@@ -985,7 +1008,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpcClient!.roomQRCode
+      this.grpcClient!.roomQRCode.bind(this.grpcClient)
     )(request)
 
     return response.getQrcode()
@@ -998,7 +1021,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpcClient!.roomMemberList
+      this.grpcClient!.roomMemberList.bind(this.grpcClient)
     )(request)
 
     return response.getMemberIdsList()
@@ -1011,7 +1034,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpcClient!.roomMemberPayload
+      this.grpcClient!.roomMemberPayload.bind(this.grpcClient)
     )(request)
 
     const payload: RoomMemberPayload = {
@@ -1054,7 +1077,7 @@ export class PuppetHostie extends Puppet {
       request.setText(textWrapper)
 
       await util.promisify(
-        this.grpcClient!.roomAnnounce
+        this.grpcClient!.roomAnnounce.bind(this.grpcClient)
       )(request)
 
       return
@@ -1067,7 +1090,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpcClient!.roomAnnounce
+      this.grpcClient!.roomAnnounce.bind(this.grpcClient)
     )(request)
 
     const textWrapper = response.getText()
@@ -1086,7 +1109,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomInvitationId)
 
     await util.promisify(
-      this.grpcClient!.roomInvitationAccept
+      this.grpcClient!.roomInvitationAccept.bind(this.grpcClient)
     )(request)
   }
 
@@ -1099,7 +1122,7 @@ export class PuppetHostie extends Puppet {
     request.setId(roomInvitationId)
 
     const response = await util.promisify(
-      this.grpcClient!.roomInvitationPayload
+      this.grpcClient!.roomInvitationPayload.bind(this.grpcClient)
     )(request)
 
     const payload: RoomInvitationPayload = {
@@ -1137,7 +1160,7 @@ export class PuppetHostie extends Puppet {
     request.setPhone(phone)
 
     const response = await util.promisify(
-      this.grpcClient!.friendshipSearchPhone
+      this.grpcClient!.friendshipSearchPhone.bind(this.grpcClient)
     )(request)
 
     const contactIdWrapper = response.getContactId()
@@ -1156,7 +1179,7 @@ export class PuppetHostie extends Puppet {
     request.setWeixin(weixin)
 
     const response = await util.promisify(
-      this.grpcClient!.friendshipSearchWeixin
+      this.grpcClient!.friendshipSearchWeixin.bind(this.grpcClient)
     )(request)
 
     const contactIdWrapper = response.getContactId()
@@ -1173,7 +1196,7 @@ export class PuppetHostie extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpcClient!.friendshipPayload
+      this.grpcClient!.friendshipPayload.bind(this.grpcClient)
     )(request)
 
     const payload: FriendshipPayload = {
@@ -1202,7 +1225,7 @@ export class PuppetHostie extends Puppet {
     request.setHello(hello)
 
     await util.promisify(
-      this.grpcClient!.friendshipAdd
+      this.grpcClient!.friendshipAdd.bind(this.grpcClient)
     )(request)
   }
 
@@ -1215,7 +1238,7 @@ export class PuppetHostie extends Puppet {
     request.setId(friendshipId)
 
     await util.promisify(
-      this.grpcClient!.frendshipAccept
+      this.grpcClient!.frendshipAccept.bind(this.grpcClient)
     )(request)
   }
 
@@ -1236,7 +1259,7 @@ export class PuppetHostie extends Puppet {
     request.setContactId(contactId)
 
     await util.promisify(
-      this.grpcClient!.tagContactAdd
+      this.grpcClient!.tagContactAdd.bind(this.grpcClient)
     )(request)
   }
 
@@ -1252,7 +1275,7 @@ export class PuppetHostie extends Puppet {
     request.setContactId(contactId)
 
     await util.promisify(
-      this.grpcClient!.tagContactRemove
+      this.grpcClient!.tagContactRemove.bind(this.grpcClient)
     )(request)
   }
 
@@ -1266,7 +1289,7 @@ export class PuppetHostie extends Puppet {
     request.setId(id)
 
     await util.promisify(
-      this.grpcClient!.tagContactDelete
+      this.grpcClient!.tagContactDelete.bind(this.grpcClient)
     )(request)
   }
 
@@ -1285,7 +1308,7 @@ export class PuppetHostie extends Puppet {
     }
 
     const response = await util.promisify(
-      this.grpcClient!.tagContactList
+      this.grpcClient!.tagContactList.bind(this.grpcClient)
     )(request)
 
     return response.getIdsList()
