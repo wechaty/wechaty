@@ -6,6 +6,7 @@ import {
   EventScanPayload,
   MessageType,
   ScanStatus,
+  FileBox,
 }                     from 'wechaty-puppet'
 
 import { PuppetHostie } from '../src/'
@@ -96,10 +97,10 @@ function onError (payload: EventErrorPayload) {
  *    dealing with Messages.
  *
  */
-// const DEBUG = true
 async function onMessage (payload: EventMessagePayload) {
   console.info(`onMessage(${payload.messageId})`)
 
+  // const DEBUG: boolean = true
   // if (DEBUG) {
   //   return
   // }
@@ -136,6 +137,9 @@ async function onMessage (payload: EventMessagePayload) {
       throw new Error('no conversation id')
     }
     await puppet.messageSendText(conversationId, 'dong')
+
+    const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
+    await puppet.messageSendFile(conversationId, fileBox)
   }
 }
 
