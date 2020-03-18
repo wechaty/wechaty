@@ -78,6 +78,7 @@ grpcc --proto ./service/myservice.proto --address 127.0.0.1:3466
 - [Protocol Buffers Language Guide (proto3)](https://developers.google.com/protocol-buffers/docs/proto3)
 - [Google Protocol Buffers Style Guide](https://developers.google.com/protocol-buffers/docs/style)
 - [Protocol Buffers for TypeScript with Decorators](https://github.com/protobufjs/protobuf.js#using-decorators)
+- [Troubleshooting gRPC](https://github.com/grpc/grpc/blob/master/TROUBLESHOOTING.md)
 - [gRPC environment variables](https://github.com/grpc/grpc/blob/master/doc/environment_variables.md)
 - [How to Interact With and Debug a gRPC Server](https://medium.com/@EdgePress/how-to-interact-with-and-debug-a-grpc-server-c4bc30ddeb0b)
 
