@@ -67,20 +67,12 @@ import {
   RoomInvitationPayload,
   ImageType,
   FriendshipSceneType,
+  EventLoginPayload,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
 
-const grpcError = (method: string, e: Error, callback: Function) => {
-  log.error('PuppetServiceImpl', `${method}() rejection: %s`, e && e.message)
-
-  const error: grpc.ServiceError = {
-    ...e,
-    code: grpc.status.INTERNAL,
-    details: e.message,
-  }
-  return callback(error, null)
-}
+import { grpcError } from './grpc-error'
 
 /**
  * Implements the SayHello RPC method.
@@ -357,6 +349,20 @@ export function serviceImpl (
         } else {
           log.warn('PuppetServiceImpl', 'event() grpcEmit() eventStream undefined')
         }
+      }
+
+      /**
+       * We emit the login event if current the puppet is logged in.
+       */
+      if (puppet.logonoff()) {
+        log.verbose('PuppetServiceImpl', 'event() puppet is logged in, emit a login event for downstream')
+
+        const payload = {
+          contactId: puppet.selfId(),
+        } as EventLoginPayload
+
+        grpcEmit(EventType.EVENT_TYPE_LOGIN, payload)
+
       }
 
       const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
