@@ -96,25 +96,30 @@ function onError (payload: EventErrorPayload) {
  *    dealing with Messages.
  *
  */
+// const DEBUG = true
 async function onMessage (payload: EventMessagePayload) {
   console.info(`onMessage(${payload.messageId})`)
 
+  // if (DEBUG) {
+  //   return
+  // }
+
   const messagePayload = await puppet.messagePayload(payload.messageId)
-  console.info('messagePayload:', messagePayload)
+  console.info('messagePayload:', JSON.stringify(messagePayload))
 
   if (messagePayload.fromId) {
     const contactPayload = await puppet.contactPayload(messagePayload.fromId)
-    console.info('contactPayload:', contactPayload)
+    console.info(`contactPayload(fromId:${messagePayload.fromId}):`, JSON.stringify(contactPayload))
   }
 
   if (messagePayload.roomId) {
     const roomPayload = await puppet.roomPayload(messagePayload.roomId)
-    console.info('roomPayload:', roomPayload)
+    console.info('roomPayload:', JSON.stringify(roomPayload))
   }
 
   if (messagePayload.toId) {
     const contactPayload = await puppet.contactPayload(messagePayload.toId)
-    console.info('contactPayload:', contactPayload)
+    console.info(`contactPayload(toId:${messagePayload.toId}):`, JSON.stringify(contactPayload))
   }
 
   if (messagePayload.fromId === puppet.selfId()) {
