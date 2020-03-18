@@ -612,7 +612,11 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
     for (const eventName of eventNameList) {
-      log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', eventName)
+      log.verbose('Wechaty',
+        'initPuppetEventBridge() puppet.on(%s) (listenerCount:%s) registering...',
+        eventName,
+        puppet.listenerCount(eventName),
+      )
 
       switch (eventName) {
         case 'dong':
@@ -814,9 +818,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.options.name   || '',
       this.version(),
     )
-    log.verbose('Wechaty', 'puppet: %s',  this.options.puppet)
-    log.verbose('Wechaty', 'name: %s',    this.options.name)
-    log.verbose('Wechaty', 'id: %s',      this.id)
+    log.verbose('Wechaty', 'id: %s', this.id)
 
     if (this.state.on()) {
       log.silly('Wechaty', 'start() on a starting/started instance')
