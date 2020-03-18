@@ -82,6 +82,12 @@ export class PuppetMock extends Puppet {
   public async start (): Promise<void> {
     log.verbose('PuppetMock', `start()`)
 
+    if (this.state.on()) {
+      log.warn('PuppetMock', 'start() is called on a ON puppet. await ready(on) and return.')
+      await this.state.ready('on')
+      return
+    }
+
     this.state.on('pending')
     // await some tasks...
     this.state.on(true)
@@ -92,22 +98,25 @@ export class PuppetMock extends Puppet {
     // const user = this.Contact.load(this.id)
     this.emit('login', { contactId: this.id })
 
-    const MOCK_MSG_ID = 'mockid'
-    this.cacheMessagePayload.set(MOCK_MSG_ID, {
-      fromId        : 'xxx',
-      id            : MOCK_MSG_ID,
-      mentionIdList : [],
-      text          : 'mock text',
-      timestamp     : Date.now(),
-      toId          : 'xxx',
-      type          : MessageType.Text,
-    })
+    const sendMockMessage = () => {
+      let counter = 0
+      const MOCK_MSG_ID = 'mockid' + counter++
 
-    this.loopTimer = setInterval(() => {
+      this.cacheMessagePayload.set(MOCK_MSG_ID, {
+        fromId        : 'xxx',
+        id            : MOCK_MSG_ID,
+        mentionIdList : [],
+        text          : 'mock text',
+        timestamp     : Date.now(),
+        toId          : 'xxx',
+        type          : MessageType.Text,
+      })
+
       log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
       this.emit('message', { messageId: MOCK_MSG_ID })
-    }, 3000)
+    }
 
+    this.loopTimer = setInterval(sendMockMessage, 5000)
   }
 
   public async stop (): Promise<void> {
