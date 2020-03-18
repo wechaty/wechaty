@@ -10,9 +10,6 @@ import {
   ContactSelfQRCodeResponse,
   ContactSelfSignatureResponse,
   DingResponse,
-  EventResponse,
-  EventType,
-  EventRequest,
   FriendshipAcceptResponse,
   FriendshipAddResponse,
   FriendshipPayloadResponse,
@@ -53,26 +50,23 @@ import {
   MessageImageResponse,
 
   StringValue,
-  EventTypeMap,
 }                                   from '@chatie/grpc'
 
 import {
-  PUPPET_EVENT_DICT,
   FileBox,
   Puppet,
-  PuppetEventName,
   FriendshipPayloadReceive,
   MiniProgramPayload,
   UrlLinkPayload,
   RoomInvitationPayload,
   ImageType,
   FriendshipSceneType,
-  EventLoginPayload,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
 
-import { grpcError } from './grpc-error'
+import { grpcError }            from './grpc-error'
+import { EventStreamManager }   from './event-stream-manager'
 
 /**
  * Implements the SayHello RPC method.
@@ -81,7 +75,7 @@ export function serviceImpl (
   puppet: Puppet,
 ): IPuppetServer {
 
-  let eventStream: undefined | grpc.ServerWritableStream<EventRequest>
+  const eventStreamManager = new EventStreamManager(puppet)
 
   const puppetServerImpl: IPuppetServer = {
 
@@ -277,11 +271,11 @@ export function serviceImpl (
      * Bridge Event Emitter Events
      *
      */
-    event: (streamCall) => {
+    event: (streamingCall) => {
       log.verbose('PuppetServiceImpl', 'event()')
 
-      if (eventStream) {
-        log.error('PuppetServiceImpl', 'event() called twice, which should not: return with error')
+      if (eventStreamManager.busy()) {
+        log.error('PuppetServiceImpl', 'event() there is another event() call not end when receiving a new one.')
 
         const error: grpc.ServiceError = {
           ...new Error('GrpcServerImpl.event() can not call twice.'),
@@ -297,127 +291,11 @@ export function serviceImpl (
           *  - https://grpc.io/docs/tutorials/basic/node/
           *    Only one of 'error' or 'end' will be emitted. Finally, the 'status' event fires when the server sends the status.
           */
-        streamCall.emit('error', error)
+        streamingCall.emit('error', error)
         return
       }
 
-      eventStream = streamCall
-
-      /**
-       * Detect if Inexor Core is gone (GRPC disconnects)
-       *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
-       */
-      eventStream.on('cancelled', function () {
-        log.verbose('PuppetServiceImpl', 'event() eventStream.on(cancelled) fired with arguments: %s', JSON.stringify(arguments))
-        eventStream = undefined
-      })
-
-      eventStream.on('error', err => {
-        log.verbose('PuppetServiceImpl', 'event() eventStream.on(error) fired: %s', err)
-        eventStream = undefined
-      })
-
-      eventStream.on('finish', () => {
-        log.verbose('PuppetServiceImpl', 'event() eventStream.on(finish) fired')
-        eventStream = undefined
-      })
-
-      eventStream.on('end', () => {
-        log.verbose('PuppetServiceImpl', 'event() eventStream.on(end) fired')
-        eventStream = undefined
-      })
-
-      eventStream.on('close', () => {
-        log.verbose('PuppetServiceImpl', 'event() eventStream.on(close) fired')
-        eventStream = undefined
-      })
-
-      // https://stackoverflow.com/a/49286056/1123955
-      const grpcEmit = (
-        type: EventTypeMap[keyof EventTypeMap],
-        obj: object,
-      ) => {
-        const response = new EventResponse()
-
-        response.setType(type)
-        response.setPayload(
-          JSON.stringify(obj)
-        )
-
-        if (eventStream) {
-          eventStream.write(response)
-        } else {
-          log.warn('PuppetServiceImpl', 'event() grpcEmit() eventStream undefined')
-        }
-      }
-
-      /**
-       * We emit the login event if current the puppet is logged in.
-       */
-      if (puppet.logonoff()) {
-        log.verbose('PuppetServiceImpl', 'event() puppet is logged in, emit a login event for downstream')
-
-        const payload = {
-          contactId: puppet.selfId(),
-        } as EventLoginPayload
-
-        grpcEmit(EventType.EVENT_TYPE_LOGIN, payload)
-
-      }
-
-      const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
-      for (const eventName of eventNameList) {
-        log.verbose('PuppetServiceImpl', 'event() puppet.on(%s) registering...', eventName)
-
-        switch (eventName) {
-          case 'dong':
-            puppet.on('dong', payload => grpcEmit(EventType.EVENT_TYPE_DONG, payload))
-            break
-          case 'error':
-            puppet.on('error', payload => grpcEmit(EventType.EVENT_TYPE_ERROR, payload))
-            break
-          case 'watchdog':
-            puppet.on('watchdog', payload => grpcEmit(EventType.EVENT_TYPE_WATCHDOG, payload))
-            break
-          case 'friendship':
-            puppet.on('friendship', payload => grpcEmit(EventType.EVENT_TYPE_FRIENDSHIP, payload))
-            break
-          case 'login':
-            puppet.on('login', payload => grpcEmit(EventType.EVENT_TYPE_LOGIN, payload))
-            break
-          case 'logout':
-            puppet.on('logout', payload => grpcEmit(EventType.EVENT_TYPE_LOGOUT, payload))
-            break
-          case 'message':
-            puppet.on('message', payload => grpcEmit(EventType.EVENT_TYPE_MESSAGE, payload))
-            break
-          case 'ready':
-            puppet.on('ready', payload => grpcEmit(EventType.EVENT_TYPE_READY, payload))
-            break
-          case 'room-invite':
-            puppet.on('room-invite', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_INVITE, payload))
-            break
-          case 'room-join':
-            puppet.on('room-join', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_JOIN, payload))
-            break
-          case 'room-leave':
-            puppet.on('room-leave', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_LEAVE, payload))
-            break
-          case 'room-topic':
-            puppet.on('room-topic', payload => grpcEmit(EventType.EVENT_TYPE_ROOM_TOPIC, payload))
-            break
-          case 'scan':
-            puppet.on('scan', payload => grpcEmit(EventType.EVENT_TYPE_SCAN, payload))
-            break
-          case 'reset':
-            // the `reset` event should be dealed internally, should not send out
-            break
-
-          default:
-            // Huan(202003): in default, the `eventName` type should be `never`, please check.
-            throw new Error('eventName ' + eventName + ' unsupported!')
-        }
-      }
+      eventStreamManager.start(streamingCall)
     },
 
     frendshipAccept: async (call, callback) => {
@@ -1130,9 +1008,8 @@ export function serviceImpl (
 
       try {
 
-        if (eventStream) {
-          eventStream.end()
-          eventStream = undefined
+        if (eventStreamManager.busy()) {
+          eventStreamManager.stop()
         } else {
           log.error('PuppetServiceImpl', 'stop() eventStream is undefined?')
         }
