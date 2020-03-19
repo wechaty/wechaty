@@ -48,6 +48,14 @@ export class PuppetManager {
      */
     if (options.puppet instanceof Puppet) {
       puppetInstance = await this.resolveInstance(options.puppet)
+    } else if (typeof options.puppet !== 'string') {
+      log.error('PuppetManager', 'resolve() %s',
+        `
+        Wechaty Framework must keep only one Puppet instance #1930
+        See: https://github.com/wechaty/wechaty/issues/1930
+        `,
+      )
+      throw new Error('Wechaty Framework must keep only one Puppet instance #1930')
     } else {
       const MyPuppet = await this.resolveName(options.puppet)
       /**
