@@ -90,7 +90,6 @@ import {
   DingRequest,
 
   EventType,
-  EventTypeMap,
 }                                   from '@chatie/grpc'
 
 import {
@@ -100,21 +99,9 @@ import {
   WECHATY_PUPPET_HOSTIE_ENDPOINT,
 }                                   from '../config'
 
-/**
- * Huan(202003):
- *  @chatie/GRPC proto gen TS does not generate the ENUM type with reverse mapping.
- *  So we need to do it by ourselves:
- *    1. define the EventTypeRev, and
- *    2. loop EventType to fill it.
- */
-const EventTypeRev = {} as {
-  [key: number]: string,
-}
-
-for (const key in EventType) {
-  const val = EventType[key as keyof EventTypeMap]
-  EventTypeRev[val] = key
-}
+import {
+  EventTypeRev,
+}                 from '../event-type-rev'
 
 export class PuppetHostie extends Puppet {
 

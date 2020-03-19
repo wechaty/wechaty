@@ -30,6 +30,10 @@ import {
   log,
 }                 from '../config'
 
+import {
+  EventTypeRev,
+}                 from '../event-type-rev'
+
 export class EventStreamManager {
 
   protected eventStream: undefined | grpc.ServerWritableStream<EventRequest>
@@ -86,7 +90,8 @@ export class EventStreamManager {
     type : EventTypeMap[keyof EventTypeMap],  // https://stackoverflow.com/a/49286056/1123955
     obj  : object,
   ): void {
-    log.verbose('EventStreamManager', 'grpcEmit(%s, %s)',
+    log.verbose('EventStreamManager', 'grpcEmit(%s[%s], %s)',
+      EventTypeRev[type],
       type,
       JSON.stringify(obj),
     )
