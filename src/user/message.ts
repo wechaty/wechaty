@@ -57,14 +57,6 @@ import {
 }                       from './mini-program'
 import { Image } from './image'
 
-export interface MessageUserQueryFilter {
-  from? : Contact,
-  text? : string | RegExp
-  room? : Room
-  type? : MessageType
-  to?   : Contact
-}
-
 /**
  * All wechat messages will be encapsulated as a Message.
  *
@@ -87,16 +79,16 @@ export class Message extends Accessory implements Sayable {
    * Find message in cache
    */
   public static async find<T extends typeof Message> (
-    this      : T,
-    userQuery : string | MessageUserQueryFilter,
+    this  : T,
+    query : string | MessageQueryFilter,
   ): Promise<T['prototype'] | null> {
-    log.verbose('Message', 'find(%s)', JSON.stringify(userQuery))
+    log.verbose('Message', 'find(%s)', JSON.stringify(query))
 
-    if (typeof userQuery === 'string') {
-      userQuery = { text: userQuery }
+    if (typeof query === 'string') {
+      query = { text: query }
     }
 
-    const messageList = await this.findAll(userQuery)
+    const messageList = await this.findAll(query)
     if (messageList.length < 1) {
       return null
     }
@@ -112,27 +104,15 @@ export class Message extends Accessory implements Sayable {
    * Find messages in cache
    */
   public static async findAll<T extends typeof Message> (
-    this       : T,
-    userQuery? : MessageUserQueryFilter,
+    this   : T,
+    query? : MessageQueryFilter,
   ): Promise<Array<T['prototype']>> {
-    log.verbose('Message', 'findAll(%s)', JSON.stringify(userQuery) || '')
-
-    let puppetQuery: undefined | MessageQueryFilter
-
-    if (userQuery) {
-      puppetQuery = {
-        fromId : userQuery.from && userQuery.from.id,
-        roomId : userQuery.room && userQuery.room.id,
-        text   : userQuery.text,
-        toId   : userQuery.to && userQuery.to.id,
-        type   : userQuery.type,
-      }
-    }
+    log.verbose('Message', 'findAll(%s)', JSON.stringify(query) || '')
 
     const invalidDict: { [id: string]: true } = {}
 
     try {
-      const MessageIdList = await this.puppet.messageSearch(puppetQuery)
+      const MessageIdList = await this.puppet.messageSearch(query)
       const messageList = MessageIdList.map(id => this.load(id))
       await Promise.all(
         messageList.map(
