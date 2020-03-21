@@ -51,6 +51,7 @@ import {
 
   StringValue,
   EventType,
+  MessageSendUrlResponse,
 }                                   from '@chatie/grpc'
 
 import {
@@ -650,13 +651,13 @@ export function puppetImplementation (
 
       try {
         const conversationId = call.request.getConversationId()
-        const jsonText = call.request.getUrlLink()
+        const jsonText       = call.request.getUrlLink()
 
         const payload = JSON.parse(jsonText) as UrlLinkPayload
 
         const messageId = await puppet.messageSendUrl(conversationId, payload)
 
-        const response = new MessageSendTextResponse()
+        const response = new MessageSendUrlResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
@@ -675,7 +676,7 @@ export function puppetImplementation (
       log.verbose('PuppetServiceImpl', 'messageUrl()')
 
       try {
-        const id = call.request.getId()
+        const id      = call.request.getId()
         const payload = await puppet.messageUrl(id)
 
         const response = new MessageUrlResponse()
