@@ -1022,6 +1022,7 @@ export class PuppetHostie extends Puppet {
 
     const request = new RoomMemberPayloadRequest()
     request.setId(roomId)
+    request.setMemberId(contactId)
 
     const response = await util.promisify(
       this.grpcClient!.roomMemberPayload.bind(this.grpcClient)
