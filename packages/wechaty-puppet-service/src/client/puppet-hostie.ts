@@ -269,6 +269,13 @@ export class PuppetHostie extends Puppet {
 
   }
 
+  public async reset (reason?: string): Promise<void> {
+    log.verbose('PuppetHostie', `reset(%s)`, reason || '')
+
+    await this.stop()
+    await this.start()
+  }
+
   private startGrpcStream (): void {
     log.verbose('PuppetHostie', 'startGrpcStream()')
 
@@ -284,7 +291,10 @@ export class PuppetHostie extends Puppet {
         log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(end)')
       })
       .on('error', e => {
+        // https://github.com/wechaty/wechaty-puppet-hostie/issues/16
         log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(error) %s', e)
+        const reason = 'startGrpcStream() eventStream.on(error) ' + e
+        setImmediate(() => this.reset(reason))
       })
       .on('cancel', (...args: any[]) => {
         log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(cancel), %s', JSON.stringify(args))
