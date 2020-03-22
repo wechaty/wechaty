@@ -253,12 +253,20 @@ export class PuppetHostie extends Puppet {
       return
     }
 
-    this.state.off('pending')
-
     try {
-      await this.stopGrpcClient()
+      this.state.off('pending')
+
+      if (this.logonoff()) {
+        this.emit('logout', {
+          contactId : this.selfId(),
+          data      : 'PuppetHostie stop()',
+        })
+        this.id = undefined
+      }
 
       this.stopGrpcStream()
+
+      await this.stopGrpcClient()
 
     } catch (e) {
       log.warn('PuppetHostie', 'stop() rejection: %s', e && e.message)
