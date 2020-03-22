@@ -2,23 +2,23 @@
  * Wechaty Official Puppet Implementations List
  */
 export const PUPPET_DEPENDENCIES = {
-  // 'default'                  : '0.0.0',    // will be replaced with PUPPET_DEFAULT
-  // 'mock'                     : '0.0.0',    // compatible with v0.18, will be replaced with wechaty-puppet-padchat
-  // 'padchat'                  : '0.0.0',    // compatible with v0.18, will be replaced with wechaty-puppet-padchat
-  // 'padpro'                   : '0.0.0',
-
-  /******************************************************************************************
-   * DEPRECATED by Huan(202002): The Above is Alias for the following full NPM module names *
-   *******************************************************************************************/
-
-  'wechaty-puppet-hostie'    : '^0.3.32',   // https://www.npmjs.com/package/wechaty-puppet-hostie
-  'wechaty-puppet-mock'      : '^0.19.0',   // https://www.npmjs.com/package/wechaty-puppet-mock
-
-  // 'wechaty-puppet-dll'       : '^0.3.1',    // https://www.npmjs.com/package/wechaty-puppet-dll
+  /**
+   * The following puppets were DEPRECATED
+   */
   // 'wechaty-puppet-ioscat'    : '^0.5.22',   // https://www.npmjs.com/package/wechaty-puppet-ioscat
   // 'wechaty-puppet-padchat'   : '^0.19.3',   // https://www.npmjs.com/package/wechaty-puppet-padchat
-  'wechaty-puppet-padplus'   : '^0.5.24',    // https://www.npmjs.com/package/wechaty-puppet-padplus
   // 'wechaty-puppet-padpro'    : '^0.3.21',   // https://www.npmjs.com/package/wechaty-puppet-padpro
+
+  /**
+   * Wechaty Internal Puppets
+   */
+  'wechaty-puppet-hostie'    : '^0.3.35',   // https://www.npmjs.com/package/wechaty-puppet-hostie
+  'wechaty-puppet-mock'      : '^0.19.0',   // https://www.npmjs.com/package/wechaty-puppet-mock
+
+  /**
+   * Wechaty External Puppets
+   */
+  'wechaty-puppet-padplus'   : '^0.5.24',    // https://www.npmjs.com/package/wechaty-puppet-padplus
   'wechaty-puppet-puppeteer' : '^0.21.2',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
   'wechaty-puppet-wechat4u'  : '^0.17.2',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
 }
