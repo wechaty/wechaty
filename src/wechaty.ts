@@ -553,6 +553,9 @@ export class Wechaty extends EventEmitter implements Sayable {
   private addListenerFunction (event: WechatyEventName, listener: AnyFunction): void {
     log.verbose('Wechaty', 'addListenerFunction(%s)', event)
 
+    /**
+     * We use `super.on()` at here to prevent loop
+     */
     super.on(event, (...args: any[]) => {
       try {
         listener.apply(this, args)
