@@ -315,9 +315,12 @@ export class PuppetHostie extends Puppet {
     const sub = this.heartbeatDebounceQueue.subscribe(() => this.ding(`no heartbeat for ${HEARTBEAT_DEBOUNCE_TIME} seconds?`))
     this.cleanCallbackList.push(() => sub.unsubscribe())
 
-    const onDong = (payload: EventDongPayload) => this.emit('heartbeat', payload)
-    this.on('dong', onDong)
-    this.cleanCallbackList.push(() => this.off('dong', onDong))
+    /**
+     * Every GRPC Stream Call event will trigger a puppet `heartbeat` event.
+     */
+    // const onDong = (payload: EventDongPayload) => this.emit('heartbeat', payload)
+    // this.on('dong', onDong)
+    // this.cleanCallbackList.push(() => this.off('dong', onDong))
   }
 
   private startGrpcStream (): void {
