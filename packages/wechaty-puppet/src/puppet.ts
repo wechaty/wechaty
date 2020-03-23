@@ -367,7 +367,7 @@ export abstract class Puppet extends EventEmitter {
     log.verbose('Puppet', 'reset(%s)', reason)
 
     if (this.state.off()) {
-      log.verbose('Puppet', 'reset(%s) state is off(), do nothing.', reason)
+      log.verbose('Puppet', 'reset(%s) state is off(), make the watchdog to sleep', reason)
       this.watchdog.sleep()
       return
     }
