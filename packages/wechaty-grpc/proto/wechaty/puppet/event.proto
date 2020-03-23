@@ -4,8 +4,8 @@ package wechaty.puppet.event;
 enum EventType {
   EVENT_TYPE_UNSPECIFIED = 0;
 
-  EVENT_TYPE_WATCHDOG = 1;
-  EVENT_TYPE_MESSAGE  = 2;
+  EVENT_TYPE_HEARTBEAT = 1;
+  EVENT_TYPE_MESSAGE   = 2;
 
   reserved 3 to 15;
 
