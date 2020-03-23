@@ -211,11 +211,6 @@ export class PuppetHostie extends Puppet {
       endpoint, // 'localhost:50051',
       grpc.credentials.createInsecure()
     )
-
-    await util.promisify(
-      this.grpcClient.start
-        .bind(this.grpcClient)
-    )(new StartRequest())
   }
 
   protected async stopGrpcClient (): Promise<void> {
@@ -224,11 +219,6 @@ export class PuppetHostie extends Puppet {
     if (!this.grpcClient) {
       throw new Error('puppetClient had not inited')
     }
-
-    await util.promisify(
-      this.grpcClient.stop
-        .bind(this.grpcClient)
-    )(new StopRequest())
 
     this.grpcClient.close()
     this.grpcClient = undefined
@@ -253,6 +243,11 @@ export class PuppetHostie extends Puppet {
 
       this.startGrpcStream()
       this.startDing()
+
+      await util.promisify(
+        this.grpcClient.start
+          .bind(this.grpcClient)
+      )(new StartRequest())
 
       this.state.on(true)
 
@@ -290,11 +285,24 @@ export class PuppetHostie extends Puppet {
 
       this.stopGrpcStream()
 
+      if (this.grpcClient) {
+        try {
+          await util.promisify(
+            this.grpcClient.stop
+              .bind(this.grpcClient)
+          )(new StopRequest())
+        } catch (e) {
+          log.error('PuppetHostie', 'stop() this.grpcClient.stop() rejection: %s', e.message)
+        }
+      } else {
+        log.warn('PuppetHostie', 'stop() this.grpcClient not exist')
+      }
+
       await this.stopGrpcClient()
 
     } catch (e) {
       log.warn('PuppetHostie', 'stop() rejection: %s', e && e.message)
-      throw e
+      // throw e
     } finally {
       this.state.off(true)
     }
