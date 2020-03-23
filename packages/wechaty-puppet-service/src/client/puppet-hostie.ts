@@ -323,6 +323,9 @@ export class PuppetHostie extends Puppet {
     const sub = this.heartbeatDebounceQueue.subscribe(() => this.ding(`no heartbeat for ${HEARTBEAT_DEBOUNCE_TIME} seconds?`))
     this.cleanCallbackList.push(() => sub.unsubscribe())
 
+    // Trigger the heartbeat / wake up watchdog
+    this.emit('heartbeat', { data: 'startDing()' })
+
     /**
      * Every GRPC Stream Call event will trigger a puppet `heartbeat` event.
      */
