@@ -4,7 +4,7 @@
 
 [![NPM Version](https://badge.fury.io/js/%40chatie%2Fgrpc.svg)](https://www.npmjs.com/package/@chatie/grpc)
 
-![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue)
+[![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue)](https://pypi.org/project/chatie-grpc/)
 [![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
 
 gRPC for Chatie
