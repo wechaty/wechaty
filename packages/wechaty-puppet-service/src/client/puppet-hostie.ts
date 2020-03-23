@@ -361,6 +361,12 @@ export class PuppetHostie extends Puppet {
       payload,
     )
 
+    if (type !== EventType.EVENT_TYPE_HEARTBEAT) {
+      this.emit('heartbeat', {
+        data: `onGrpcStreamEvent(${EventTypeRev[type]})`,
+      })
+    }
+
     switch (type) {
       case EventType.EVENT_TYPE_DONG:
         this.emit('dong', JSON.parse(payload) as EventDongPayload)
@@ -460,8 +466,8 @@ export class PuppetHostie extends Puppet {
     }
   }
 
-  public ding (data?: string): void {
-    log.silly('PuppetHostie', 'ding(%s)', data || '')
+  public ding (data: string): void {
+    log.silly('PuppetHostie', 'ding(%s)', data)
 
     const request = new DingRequest()
     request.setData(data || '')
