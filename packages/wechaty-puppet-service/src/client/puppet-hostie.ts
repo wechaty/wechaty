@@ -1189,12 +1189,12 @@ export class PuppetHostie extends Puppet {
   }
 
   public async roomInvitationRawPayload (
-    roomInvitationId: string,
+    id: string,
   ): Promise<RoomInvitationPayload> {
-    log.verbose('PuppetHostie', 'roomInvitationRawPayload(%s)', roomInvitationId)
+    log.verbose('PuppetHostie', 'roomInvitationRawPayload(%s)', id)
 
     const request = new RoomInvitationPayloadRequest()
-    request.setId(roomInvitationId)
+    request.setId(id)
 
     const response = await util.promisify(
       this.grpcClient!.roomInvitationPayload.bind(this.grpcClient)
