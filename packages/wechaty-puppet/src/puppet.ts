@@ -358,19 +358,24 @@ export abstract class Puppet extends EventEmitter {
   public abstract async stop ()  : Promise<void>
 
   /**
-   * reset() Should not be called directly.
-   * `protected` is for testing, not for the child class.
-   * should use `emit('reset', 'reason')` instead.
-   *  Huan, July 2018
+   * Huan(201808):
+   *  reset() Should not be called directly.
+   *  `protected` is for testing, not for the child class.
+   *  should use `emit('reset', 'reason')` instead.
    */
   protected reset (reason: string): void {
     log.verbose('Puppet', 'reset(%s)', reason)
 
-    if (this.state.off()) {
-      log.verbose('Puppet', 'reset(%s) state is off(), make the watchdog to sleep', reason)
-      this.watchdog.sleep()
-      return
-    }
+    /**
+     * Huan(202003):
+     *  do not care state.off()
+     *  reset will cause the puppet to start (?)
+     */
+    // if (this.state.off()) {
+    //   log.verbose('Puppet', 'reset(%s) state is off(), make the watchdog to sleep', reason)
+    //   this.watchdog.sleep()
+    //   return
+    // }
 
     Promise.resolve()
       .then(() => this.stop())
