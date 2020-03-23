@@ -6,8 +6,9 @@ enum EventType {
 
   EVENT_TYPE_HEARTBEAT = 1;
   EVENT_TYPE_MESSAGE   = 2;
+  EVENT_TYPE_DONG      = 3;
 
-  reserved 3 to 15;
+  reserved 4 to 15;
 
   EVENT_TYPE_ERROR       = 16;
   EVENT_TYPE_FRIENDSHIP  = 17;
@@ -16,11 +17,10 @@ enum EventType {
   EVENT_TYPE_ROOM_LEAVE  = 20;
   EVENT_TYPE_ROOM_TOPIC  = 21;
   EVENT_TYPE_SCAN        = 22;
-  EVENT_TYPE_DONG        = 23;
-  EVENT_TYPE_READY       = 24;
-  EVENT_TYPE_RESET       = 25;
-  EVENT_TYPE_LOGIN       = 26;
-  EVENT_TYPE_LOGOUT      = 27;
+  EVENT_TYPE_READY       = 23;
+  EVENT_TYPE_RESET       = 24;
+  EVENT_TYPE_LOGIN       = 25;
+  EVENT_TYPE_LOGOUT      = 26;
 }
 
 message EventRequest {}
