@@ -622,13 +622,13 @@ export class Wechaty extends EventEmitter implements Sayable {
           })
           break
 
-        case 'watchdog':
-          puppet.on('watchdog', data => {
+        case 'heartbeat':
+          puppet.on('heartbeat', payload => {
             /**
              * Use `watchdog` event from Puppet to `heartbeat` Wechaty.
              */
             // TODO: use a throttle queue to prevent beat too fast.
-            this.emit('heartbeat', data)
+            this.emit('heartbeat', payload.data)
           })
           break
 
@@ -756,6 +756,9 @@ export class Wechaty extends EventEmitter implements Sayable {
           break
 
         default:
+          /**
+           * Check: The eventName here should have the type `never`
+           */
           throw new Error('eventName ' + eventName + ' unsupported!')
 
       }
