@@ -1030,7 +1030,7 @@ export function puppetImplementation (
         if (eventStreamManager.busy()) {
           eventStreamManager.stop()
         } else {
-          log.error('PuppetServiceImpl', 'stop() eventStream is undefined?')
+          log.error('PuppetServiceImpl', 'stop() eventStreamManager is not busy?')
         }
 
         await puppet.stop()

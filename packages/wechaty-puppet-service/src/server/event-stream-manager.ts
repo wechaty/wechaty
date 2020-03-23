@@ -14,7 +14,7 @@ import {
   EventLoginPayload,
   EventDongPayload,
   EventErrorPayload,
-  EventWatchdogPayload,
+  EventHeartbeatPayload,
   EventFriendshipPayload,
   EventLogoutPayload,
   EventMessagePayload,
@@ -148,10 +148,10 @@ export class EventStreamManager {
           offCallbackList.push(off)
           break
         }
-        case 'watchdog': {
-          const listener = (payload: EventWatchdogPayload) => this.grpcEmit(EventType.EVENT_TYPE_WATCHDOG, payload)
-          this.puppet.on('watchdog', listener)
-          const off = () => this.puppet.off('watchdog', listener)
+        case 'heartbeat': {
+          const listener = (payload: EventHeartbeatPayload) => this.grpcEmit(EventType.EVENT_TYPE_HEARTBEAT, payload)
+          this.puppet.on('heartbeat', listener)
+          const off = () => this.puppet.off('heartbeat', listener)
           offCallbackList.push(off)
           break
         }

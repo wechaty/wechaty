@@ -3,6 +3,8 @@ import util from 'util'
 import grpc from 'grpc'
 import WebSocket from 'ws'
 
+import { DebounceQueue } from 'rx-queue'
+
 import {
   ContactPayload,
 
@@ -23,7 +25,7 @@ import {
   ImageType,
   EventDongPayload,
   EventLogoutPayload,
-  EventWatchdogPayload,
+  EventHeartbeatPayload,
   EventFriendshipPayload,
   EventLoginPayload,
   EventMessagePayload,
@@ -103,12 +105,26 @@ import {
   EventTypeRev,
 }                 from '../event-type-rev'
 
+// in seconds
+const HEARTBEAT_DEBOUNCE_TIME = 15
+
 export class PuppetHostie extends Puppet {
 
   public static readonly VERSION = VERSION
 
   private grpcClient?  : PuppetClient
   private eventStream? : grpc.ClientReadableStream<EventResponse>
+
+  // Emit the last heartbeat if there's no more coming after HEATRTBEAT_DEBOUNCE_TIME seconds
+  private heartbeatDebounceQueue: DebounceQueue
+
+  /**
+   * Store the clean callback when we starting, e.g.:
+   *  this.off('event', cb)
+   *  sub.unsubscribe()
+   *  etc...
+   */
+  private cleanCallbackList: (() => void)[]
 
   constructor (
     public options: PuppetOptions = {},
@@ -120,6 +136,10 @@ export class PuppetHostie extends Puppet {
     if (!options.token) {
       throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
     }
+
+    this.heartbeatDebounceQueue = new DebounceQueue(HEARTBEAT_DEBOUNCE_TIME * 1000)
+
+    this.cleanCallbackList = []
   }
 
   private async discoverHostieIp (
@@ -232,6 +252,7 @@ export class PuppetHostie extends Puppet {
       }
 
       this.startGrpcStream()
+      this.startDing()
 
       this.state.on(true)
 
@@ -256,6 +277,9 @@ export class PuppetHostie extends Puppet {
     try {
       this.state.off('pending')
 
+      this.cleanCallbackList.forEach(cb => cb())
+      this.cleanCallbackList = []
+
       if (this.logonoff()) {
         this.emit('logout', {
           contactId : this.selfId(),
@@ -277,11 +301,23 @@ export class PuppetHostie extends Puppet {
 
   }
 
-  public async reset (reason?: string): Promise<void> {
-    log.verbose('PuppetHostie', `reset(%s)`, reason || '')
+  /**
+   * If there's more than HEARTBEAT_DEBOUNCE_TIME seconds no heartbeat,
+   * we will try to call `ding()` and expect a `dong` event back.
+   */
+  private startDing (): void {
+    log.verbose('PuppetHostie', 'startDing()')
 
-    await this.stop()
-    await this.start()
+    const onHeartbeat = (payload: EventHeartbeatPayload) => this.heartbeatDebounceQueue.next(payload.data)
+    this.on('heartbeat', onHeartbeat)
+    this.cleanCallbackList.push(() => this.off('heartbeat', onHeartbeat))
+
+    const sub = this.heartbeatDebounceQueue.subscribe(() => this.ding(`no heartbeat for ${HEARTBEAT_DEBOUNCE_TIME} seconds?`))
+    this.cleanCallbackList.push(() => sub.unsubscribe())
+
+    const onDong = (payload: EventDongPayload) => this.emit('heartbeat', payload)
+    this.on('dong', onDong)
+    this.cleanCallbackList.push(() => this.off('dong', onDong))
   }
 
   private startGrpcStream (): void {
@@ -296,16 +332,20 @@ export class PuppetHostie extends Puppet {
     this.eventStream
       .on('data', this.onGrpcStreamEvent.bind(this))
       .on('end', () => {
-        log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(end)')
+        log.verbose('PuppetHostie', 'startGrpcStream() eventStream.on(end)')
       })
       .on('error', e => {
         // https://github.com/wechaty/wechaty-puppet-hostie/issues/16
-        log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(error) %s', e)
+        log.verbose('PuppetHostie', 'startGrpcStream() eventStream.on(error) %s', e)
         const reason = 'startGrpcStream() eventStream.on(error) ' + e
-        setImmediate(() => this.reset(reason))
+        /**
+         * The `Puppet` class have a throttleQueue for receiving the `reset` events
+         *  and it's the `Puppet` class's duty for call the `puppet.reset()` to reset the puppet.
+         */
+        this.emit('reset', { data: reason })
       })
       .on('cancel', (...args: any[]) => {
-        log.verbose('PppetHostie', 'startGrpcStream() eventStream.on(cancel), %s', JSON.stringify(args))
+        log.verbose('PuppetHostie', 'startGrpcStream() eventStream.on(cancel), %s', JSON.stringify(args))
       })
 
   }
@@ -328,8 +368,8 @@ export class PuppetHostie extends Puppet {
       case EventType.EVENT_TYPE_ERROR:
         this.emit('error', JSON.parse(payload) as EventErrorPayload)
         break
-      case EventType.EVENT_TYPE_WATCHDOG:
-        this.emit('watchdog', JSON.parse(payload) as EventWatchdogPayload)
+      case EventType.EVENT_TYPE_HEARTBEAT:
+        this.emit('heartbeat', JSON.parse(payload) as EventHeartbeatPayload)
         break
       case EventType.EVENT_TYPE_FRIENDSHIP:
         this.emit('friendship', JSON.parse(payload) as EventFriendshipPayload)
@@ -386,7 +426,13 @@ export class PuppetHostie extends Puppet {
       throw new Error('no event stream')
     }
 
-    this.eventStream.cancel()
+    /**
+     * Huan(202003):
+     *  destroy() will be enough to terminate a stream call.
+     *  cancel() is not needed.
+     */
+    // this.eventStream.cancel()
+
     this.eventStream.destroy()
     this.eventStream = undefined
   }

@@ -28,16 +28,3 @@ test.skip('PuppetHostie restart without problem', async (t) => {
     t.fail(e)
   }
 })
-
-test.skip('PuppetHostie reset without problem', async (t) => {
-  const puppet = new PuppetHostie()
-  try {
-    for (let i = 0; i < 3; i++) {
-      await puppet.reset()
-      t.pass('reset() at #' + i)
-    }
-    t.pass('PuppetHostie() reset() successed.')
-  } catch (e) {
-    t.fail(e)
-  }
-})
