@@ -34,9 +34,11 @@ export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'emit this event if you received a ding() call',
   error     : `emit an Error instance when there's any Error need to report to Wechaty`,
+  // Huan(202003): rename `watchdog` to `heartbeat`
+  // watchdog  : 'feed the watchdog by emit this event',
+  heartbeat : 'feed the watchdog by emit this event',
   ready     : 'emit this event after the puppet is ready(you define it)',
   reset     : 'reset the puppet by emit this event',
-  watchdog  : 'feed the watchdog by emit this event',
 }
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT

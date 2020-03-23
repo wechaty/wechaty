@@ -20,7 +20,7 @@ export {
   EventErrorPayload,
   EventReadyPayload,
   EventResetPayload,
-  EventWatchdogPayload,
+  EventHeartbeatPayload,
 }                             from './schemas/event'
 export {
   FriendshipPayload,

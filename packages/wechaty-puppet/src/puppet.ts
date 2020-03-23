@@ -23,10 +23,7 @@ import QuickLru, {
   Options as QuickLruOptions,
 }                             from 'quick-lru'
 
-import {
-  Watchdog,
-  WatchdogFood,
-}                         from 'watchdog'
+import { Watchdog }       from 'watchdog'
 import { Constructor }    from 'clone-class'
 import { StateSwitch }    from 'state-switch'
 import { ThrottleQueue }  from 'rx-queue'
@@ -60,7 +57,7 @@ import {
   EventRoomInvitePayload,
   EventScanPayload,
   EventReadyPayload,
-  EventWatchdogPayload,
+  EventHeartbeatPayload,
 }                                 from './schemas/event'
 import {
   FriendshipPayload,
@@ -168,20 +165,17 @@ export abstract class Puppet extends EventEmitter {
     /**
      * 1. Setup Watchdog
      *  puppet implementation class only need to do one thing:
-     *  feed the watchdog by `this.emit('watchdog', ...)`
+     *  feed the watchdog by `this.emit('heartbeat', ...)`
      */
     const timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
     log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
     this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
 
-    this.on('watchdog', payload => {
-      const food: WatchdogFood = { data: payload.data }
-      this.watchdog.feed(food)
-    })
+    this.on('heartbeat', payload => this.watchdog.feed(payload))
+
     this.watchdog.on('reset', lastFood => {
-      const reason = JSON.stringify(lastFood)
-      log.silly('Puppet', 'constructor() watchdog.on(reset) reason: %s', reason)
-      this.emit('reset', { data: reason })
+      log.warn('Puppet', 'constructor() watchdog.on(reset) reason: %s', JSON.stringify(lastFood))
+      this.emit('reset', lastFood)
     })
 
     /**
@@ -280,25 +274,6 @@ export abstract class Puppet extends EventEmitter {
    */
 
   /**
-   * API Before v0.21.6
-   */
-  // public emit (event: 'dong',         data?: string)                                                                 : boolean
-  // public emit (event: 'error',        error: Error)                                                                  : boolean
-  // public emit (event: 'friendship',   friendshipId: string)                                                          : boolean
-  // public emit (event: 'login',        contactId: string)                                                             : boolean
-  // public emit (event: 'logout',       contactId: string, reason?: string)                                            : boolean
-  // public emit (event: 'message',      messageId: string)                                                             : boolean
-  // public emit (event: 'reset',        reason: string)                                                                : boolean
-  // public emit (event: 'room-join',    roomId: string, inviteeIdList:  string[], inviterId: string, timestamp: number)                    : boolean
-  // public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover: string,   timestamp: number)                    : boolean
-  // public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string,  changerId: string, timestamp: number) : boolean
-  // public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
-  // public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                             : boolean
-  // public emit (event: 'ready')                                                                                       : boolean
-  // // Internal Usage: watchdog
-  // public emit (event: 'watchdog',     food: WatchdogFood) : boolean
-
-  /**
    * API After v0.21.6
    */
   public emit (event: 'dong',         payload: EventDongPayload)       : boolean
@@ -314,8 +289,13 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'room-topic',   payload: EventRoomTopicPayload)  : boolean
   public emit (event: 'ready',        payload: EventReadyPayload)      : boolean
   public emit (event: 'scan',         payload: EventScanPayload)       : boolean
-  // Internal Usage: watchdog
-  public emit (event: 'watchdog',     payload: EventWatchdogPayload)   : boolean
+
+  // Rename `watchdog` to `heartbeat`
+  //  Internal Usage: watchdog
+  //  public emit (event: 'watchdog',    payload: EventWatchdogPayload)  : boolean
+
+  // Internal Usage: heartbeat
+  public emit (event: 'heartbeat',    payload: EventHeartbeatPayload)  : boolean
 
   public emit (event: never, ...args: never[]): never
 
@@ -335,25 +315,6 @@ export abstract class Puppet extends EventEmitter {
    */
 
   /**
-   * API Before v0.21.6
-   */
-  // public on (event: 'dong',         listener: (data?: string) => void)                                                                  : this
-  // public on (event: 'error',        listener: (error: string) => void)                                                                  : this
-  // public on (event: 'friendship',   listener: (friendshipId: string) => void)                                                           : this
-  // public on (event: 'login',        listener: (contactId: string) => void)                                                              : this
-  // public on (event: 'logout',       listener: (contactId: string, reason?: string) => void)                                             : this
-  // public on (event: 'message',      listener: (messageId: string) => void)                                                              : this
-  // public on (event: 'reset',        listener: (reason: string) => void)                                                                 : this
-  // public on (event: 'room-join',    listener: (roomId: string, inviteeIdList: string[], inviterId:  string, timestamp: number) => void)                    : this
-  // public on (event: 'room-leave',   listener: (roomId: string, leaverIdList:  string[], removerId: string,  timestamp: number) => void)                    : this
-  // public on (event: 'room-topic',   listener: (roomId: string, newTopic:      string,   oldTopic:   string, changerId: string, timestamp: number) => void) : this
-  // public on (event: 'room-invite',  listener: (roomInvitationId: string) => void)                                                       : this
-  // public on (event: 'scan',         listener: (qrcode: string, status: ScanStatus, data?: string) => void)                              : this
-  // public on (event: 'ready',        listener: () => void)                                                                               : this
-  // // Internal Usage: watchdog
-  // public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
-
-  /**
    * API After v0.21.6
    */
   public on (event: 'dong',         listener: (payload: EventDongPayload) => void)       : this
@@ -369,8 +330,12 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-invite',  listener: (payload: EventRoomInvitePayload) => void) : this
   public on (event: 'scan',         listener: (payload: EventScanPayload) => void)       : this
   public on (event: 'ready',        listener: (payload: EventReadyPayload) => void)      : this
-  // Internal Usage: watchdog
-  public on (event: 'watchdog',     listener: (payload: EventWatchdogPayload) => void): this
+
+  // rename `watchdog` to `heartbeat`
+  // public on (event: 'watchdog',     listener: (payload: EventWatchdogPayload) => void): this
+
+  // Internal Usage: heartbeat
+  public on (event: 'heartbeat',    listener: (payload: EventHeartbeatPayload) => void)  : this
 
   public on (event: never, listener: never): never
 

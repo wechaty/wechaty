@@ -77,6 +77,6 @@ export interface EventResetPayload {
   data: string,
 }
 
-export interface EventWatchdogPayload {
+export interface EventHeartbeatPayload {
   data: string,
 }
