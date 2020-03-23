@@ -617,7 +617,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async contactRawPayloadParser (payload: ContactPayload): Promise<ContactPayload> {
-    log.silly('PuppetHostie', 'contactRawPayloadParser(%s)', payload)
+    // log.silly('PuppetHostie', 'contactRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
   }
@@ -791,7 +791,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async messageRawPayloadParser (payload: MessagePayload): Promise<MessagePayload> {
-    log.silly('PuppetHostie', 'messagePayload(%s)', payload)
+    // log.silly('PuppetHostie', 'messagePayload({id:%s})', payload.id)
     // passthrough
     return payload
   }
@@ -926,7 +926,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async roomRawPayloadParser (payload: RoomPayload): Promise<RoomPayload> {
-    log.silly('PuppetHostie', 'roomRawPayloadParser(%s)', payload)
+    // log.silly('PuppetHostie', 'roomRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
   }
@@ -1104,7 +1104,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async roomMemberRawPayloadParser (payload: any): Promise<RoomMemberPayload>  {
-    log.silly('PuppetHostie', 'roomMemberRawPayloadParser(%s)', payload)
+    // log.silly('PuppetHostie', 'roomMemberRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
   }
@@ -1196,7 +1196,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async roomInvitationRawPayloadParser (payload: RoomInvitationPayload): Promise<RoomInvitationPayload> {
-    log.silly('PuppetHostie', 'roomInvitationRawPayloadParser(%s)', JSON.stringify(payload))
+    // log.silly('PuppetHostie', 'roomInvitationRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
   }
@@ -1265,7 +1265,8 @@ export class PuppetHostie extends Puppet {
   }
 
   public async friendshipRawPayloadParser (payload: FriendshipPayload) : Promise<FriendshipPayload> {
-    log.silly('PuppetHostie', 'friendshipRawPayloadParser(%s)', JSON.stringify(payload))
+    // log.silly('PuppetHostie', 'friendshipRawPayloadParser({id:%s})', payload.id)
+    // passthrough
     return payload
   }
 
