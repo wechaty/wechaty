@@ -1185,6 +1185,14 @@ export class Room extends Accessory implements Sayable {
     return owner
   }
 
+  /**
+   * Get avatar from the room.
+   * @returns {FileBox}
+   * @example
+   * const fileBox = await room.avatar()
+   * const name = fileBox.name
+   * fileBox.toFile(name)
+   */
   public async avatar (): Promise<FileBox> {
     log.verbose('Room', 'avatar()')
 
