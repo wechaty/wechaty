@@ -1,4 +1,4 @@
-# Wechaty v0.29.21 Documentation
+# Wechaty v0.37.4 Documentation
 
 - Blog - <https://blog.chatie.io>
 - Docs - <https://github.com/wechaty/wechaty/blob/master/docs/index.md>
@@ -117,6 +117,7 @@ See more:
 * [Wechaty](#Wechaty)
     * [new Wechaty([options])](#new_Wechaty_new)
     * _instance_
+        * [.name()](#Wechaty+name)
         * [.on(event, listener)](#Wechaty+on) ⇒ [<code>Wechaty</code>](#Wechaty)
         * [.start()](#Wechaty+start) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.stop()](#Wechaty+stop) ⇒ <code>Promise.&lt;void&gt;</code>
@@ -146,6 +147,13 @@ bot.on('login',   user => console.log(`User ${user} logined`))
 bot.on('message', message => console.log(`Message: ${message}`))
 bot.start()
 ```
+<a name="Wechaty+name"></a>
+
+### wechaty.name()
+Wechaty bot name set by `optoins.name`
+default: `wechaty`
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 <a name="Wechaty+on"></a>
 
 ### wechaty.on(event, listener) ⇒ [<code>Wechaty</code>](#Wechaty)
@@ -431,6 +439,7 @@ All wechat rooms(groups) will be encapsulated as a Room.
         * [.memberAll([query])](#Room+memberAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.member(queryArg)](#Room+member) ⇒ <code>Promise.&lt;(null\|Contact)&gt;</code>
         * [.owner()](#Room+owner) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
+        * [.avatar()](#Room+avatar) ⇒ <code>FileBox</code>
     * _static_
         * [.create(contactList, [topic])](#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
         * [.findAll([query])](#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
@@ -554,6 +563,18 @@ if (room) {
   room.on('leave', (room, leaverList) => {
     const nameList = leaverList.map(c => c.name()).join(',')
     console.log(`Room lost member ${nameList}`)
+  })
+}
+```
+**Example** *(Event:message )*  
+```js
+const bot = new Wechaty()
+await bot.start()
+// after logged in...
+const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
+if (room) {
+  room.on('message', (message) => {
+    console.log(`Room received new message: ${message}`)
   })
 }
 ```
@@ -865,6 +886,18 @@ This function is depending on the Puppet Implementation, see [puppet-compatible-
 ```js
 const owner = room.owner()
 ```
+<a name="Room+avatar"></a>
+
+### room.avatar() ⇒ <code>FileBox</code>
+Get avatar from the room.
+
+**Kind**: instance method of [<code>Room</code>](#Room)  
+**Example**  
+```js
+const fileBox = await room.avatar()
+const name = fileBox.name
+fileBox.toFile(name)
+```
 <a name="Room.create"></a>
 
 ### Room.create(contactList, [topic]) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
@@ -952,11 +985,13 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.province()](#Contact+province) ⇒ <code>string</code> \| <code>null</code>
         * [.city()](#Contact+city) ⇒ <code>string</code> \| <code>null</code>
         * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;FileBox&gt;</code>
+        * [.tags()](#Contact+tags) ⇒ <code>Promise.&lt;Array.&lt;Tag&gt;&gt;</code>
         * [.sync()](#Contact+sync) ⇒ <code>Promise.&lt;this&gt;</code>
         * [.self()](#Contact+self) ⇒ <code>boolean</code>
     * _static_
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
         * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+        * [.tags()](#Contact.tags) ⇒ <code>Promise.&lt;Array.&lt;Tag&gt;&gt;</code>
 
 <a name="Contact+say"></a>
 
@@ -1145,6 +1180,16 @@ const name = file.name
 await file.toFile(name, true)
 console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
 ```
+<a name="Contact+tags"></a>
+
+### contact.tags() ⇒ <code>Promise.&lt;Array.&lt;Tag&gt;&gt;</code>
+Get all tags of contact
+
+**Kind**: instance method of [<code>Contact</code>](#Contact)  
+**Example**  
+```js
+const tags = await contact.tags()
+```
 <a name="Contact+sync"></a>
 
 ### contact.sync() ⇒ <code>Promise.&lt;this&gt;</code>
@@ -1211,6 +1256,16 @@ await bot.start()
 const contactList = await bot.Contact.findAll()                      // get the contact list of the bot
 const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find allof the contacts whose name is 'ruirui'
 const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
+```
+<a name="Contact.tags"></a>
+
+### Contact.tags() ⇒ <code>Promise.&lt;Array.&lt;Tag&gt;&gt;</code>
+Get tags for all contact
+
+**Kind**: static method of [<code>Contact</code>](#Contact)  
+**Example**  
+```js
+const tags = await wechaty.Contact.tags()
 ```
 <a name="ContactSelf"></a>
 
@@ -1316,9 +1371,12 @@ Send, receive friend request, and friend confirmation events.
         * [.hello()](#Friendship+hello) ⇒ <code>string</code>
         * [.contact()](#Friendship+contact) ⇒ [<code>Contact</code>](#Contact)
         * [.type()](#Friendship+type) ⇒ <code>FriendshipType</code>
+        * [.toJSON()](#Friendship+toJSON) ⇒ <code>FriendshipPayload</code>
     * _static_
+        * [.search(condition)](#Friendship.search) ⇒ [<code>Promise.&lt;Contact&gt;</code>](#Contact)
         * ~~[.send()](#Friendship.send)~~
         * [.add(contact, hello)](#Friendship.add) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.fromJSON()](#Friendship.fromJSON)
 
 <a name="Friendship+accept"></a>
 
@@ -1414,6 +1472,47 @@ bot.on('friendship', async friendship => {
 }
 .start()
 ```
+<a name="Friendship+toJSON"></a>
+
+### friendship.toJSON() ⇒ <code>FriendshipPayload</code>
+get friendShipPayload Json
+
+**Kind**: instance method of [<code>Friendship</code>](#Friendship)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot.on('friendship', async friendship => {
+  try {
+    // JSON.stringify(friendship) as well.
+    const payload = await friendship.toJSON()
+  } catch (e) {
+    console.error(e)
+  }
+}
+.start()
+```
+<a name="Friendship.search"></a>
+
+### Friendship.search(condition) ⇒ [<code>Promise.&lt;Contact&gt;</code>](#Contact)
+Search a Friend by phone or weixin.
+
+The best practice is to search friend request once per minute.
+Remeber not to do this too frequently, or your account may be blocked.
+
+**Kind**: static method of [<code>Friendship</code>](#Friendship)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| condition | <code>FriendshipSearchCondition</code> | Search friend by phone or weixin. |
+
+**Example**  
+```js
+const friend_phone = await bot.Friendship.search({phone: '13112341234'})
+const friend_weixin = await bot.Friendship.search({weixin: 'weixin_account'})
+
+console.log(`This is the new friend info searched by phone : ${friend_phone}`)
+await bot.Friendship.add(friend_phone, 'hello')
+```
 <a name="Friendship.send"></a>
 
 ### ~~Friendship.send()~~
@@ -1444,6 +1543,21 @@ for (let i = 0; i < memberList.length; i++) {
   await bot.Friendship.add(member, 'Nice to meet you! I am wechaty bot!')
 }
 ```
+<a name="Friendship.fromJSON"></a>
+
+### Friendship.fromJSON()
+create friendShip by friendshipJson
+
+**Kind**: static method of [<code>Friendship</code>](#Friendship)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot.start()
+
+const payload = '{...}'  // your saved JSON payload
+const friendship = bot.FriendShip.fromJSON(friendshipFromDisk)
+await friendship.accept()
+```
 <a name="Message"></a>
 
 ## Message
@@ -1462,6 +1576,7 @@ All wechat messages will be encapsulated as a Message.
         * [.text()](#Message+text) ⇒ <code>string</code>
         * [.toRecalled()](#Message+toRecalled)
         * [.say(textOrContactOrFile, [mention])](#Message+say) ⇒ <code>Promise.&lt;(void\|Message)&gt;</code>
+        * [.recall()](#Message+recall) ⇒ <code>Promise.&lt;boolean&gt;</code>
         * [.type()](#Message+type) ⇒ <code>MessageType</code>
         * [.self()](#Message+self) ⇒ <code>boolean</code>
         * [.mentionList()](#Message+mentionList) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
@@ -1471,6 +1586,7 @@ All wechat messages will be encapsulated as a Message.
         * [.age()](#Message+age) ⇒ <code>number</code>
         * ~~[.file()](#Message+file)~~
         * [.toFileBox()](#Message+toFileBox) ⇒ <code>Promise.&lt;FileBox&gt;</code>
+        * [.toImage()](#Message+toImage) ⇒ <code>Image</code>
         * [.toContact()](#Message+toContact) ⇒ [<code>Promise.&lt;Contact&gt;</code>](#Contact)
     * _static_
         * [.find()](#Message.find)
@@ -1659,6 +1775,24 @@ bot
 })
 .start()
 ```
+<a name="Message+recall"></a>
+
+### message.recall() ⇒ <code>Promise.&lt;boolean&gt;</code>
+Recall a message.
+> Tips:
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  const recallMessage = await msg.say('123')
+  if (recallMessage) {
+    const isSuccess = await recallMessage.recall()
+  }
+})
+```
 <a name="Message+type"></a>
 
 ### message.type() ⇒ <code>MessageType</code>
@@ -1791,6 +1925,21 @@ const fileBox = await message.toFileBox()
 const fileName = fileBox.name
 fileBox.toFile(fileName)
 ```
+<a name="Message+toImage"></a>
+
+### message.toImage() ⇒ <code>Image</code>
+Extract the Image File from the Message, so that we can use different image sizes.
+> Tips:
+This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
+**Example** *(Save image file from a message)*  
+```js
+const image = message.toImage()
+const fileBox = await image.artwork()
+const fileName = fileBox.name
+fileBox.toFile(fileName)
+```
 <a name="Message+toContact"></a>
 
 ### message.toContact() ⇒ [<code>Promise.&lt;Contact&gt;</code>](#Contact)
@@ -1820,12 +1969,15 @@ accept room invitation
 **Kind**: global class  
 
 * [RoomInvitation](#RoomInvitation)
-    * [.accept()](#RoomInvitation+accept) ⇒ <code>Promise.&lt;void&gt;</code>
-    * [.inviter()](#RoomInvitation+inviter) ⇒ [<code>Contact</code>](#Contact)
-    * [.topic()](#RoomInvitation+topic) ⇒ [<code>Contact</code>](#Contact)
-    * [.roomTopic()](#RoomInvitation+roomTopic)
-    * [.date()](#RoomInvitation+date) ⇒ <code>Promise.&lt;Date&gt;</code>
-    * [.age()](#RoomInvitation+age) ⇒ <code>number</code>
+    * _instance_
+        * [.accept()](#RoomInvitation+accept) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.inviter()](#RoomInvitation+inviter) ⇒ [<code>Contact</code>](#Contact)
+        * [.topic()](#RoomInvitation+topic) ⇒ [<code>Contact</code>](#Contact)
+        * [.date()](#RoomInvitation+date) ⇒ <code>Promise.&lt;Date&gt;</code>
+        * [.age()](#RoomInvitation+age) ⇒ <code>number</code>
+        * [.toJSON()](#RoomInvitation+toJSON) ⇒ <code>string</code>
+    * _static_
+        * [.fromJSON()](#RoomInvitation.fromJSON) ⇒ [<code>RoomInvitation</code>](#RoomInvitation)
 
 <a name="RoomInvitation+accept"></a>
 
@@ -1877,11 +2029,6 @@ bot.on('room-invite', async roomInvitation => {
 }
 .start()
 ```
-<a name="RoomInvitation+roomTopic"></a>
-
-### roomInvitation.roomTopic()
-**Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
-**Deprecated:**: use topic() instead  
 <a name="RoomInvitation+date"></a>
 
 ### roomInvitation.date() ⇒ <code>Promise.&lt;Date&gt;</code>
@@ -1898,6 +2045,35 @@ and when we received it in Wechaty, the time is `8:43:15`,
 then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
 
 **Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
+<a name="RoomInvitation+toJSON"></a>
+
+### roomInvitation.toJSON() ⇒ <code>string</code>
+Get the room invitation info when listened on room-invite event
+
+**Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot.on('room-invite', async roomInvitation => {
+ const roomInvitation = bot.RoomInvitation.load(roomInvitation.id)
+ const jsonData = await roomInvitation.toJSON(roomInvitation.id)
+ // save the json data to disk, and we can use it by RoomInvitation.fromJSON()
+}
+.start()
+```
+<a name="RoomInvitation.fromJSON"></a>
+
+### RoomInvitation.fromJSON() ⇒ [<code>RoomInvitation</code>](#RoomInvitation)
+Load the room invitation info from disk
+
+**Kind**: static method of [<code>RoomInvitation</code>](#RoomInvitation)  
+**Example**  
+```js
+const bot = new Wechaty()
+const dataFromDisk // get the room invitation info data from disk
+const roomInvitation = await bot.RoomInvitation.fromJSON(dataFromDisk)
+await roomInvitation.accept()
+```
 <a name="PuppetModuleName"></a>
 
 ## PuppetModuleName
