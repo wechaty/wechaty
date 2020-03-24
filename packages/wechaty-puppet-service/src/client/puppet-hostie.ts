@@ -369,7 +369,7 @@ export class PuppetHostie extends Puppet {
     const payload = event.getPayload()
 
     log.verbose('PuppetHostie',
-      'onGrpcStreamEvent({type: %s(%s), payload:"%s"})',
+      'onGrpcStreamEvent({type:%s(%s), payload:"%s"})',
       EventTypeRev[type],
       type,
       payload,
