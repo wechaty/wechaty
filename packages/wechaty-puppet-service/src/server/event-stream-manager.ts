@@ -51,7 +51,7 @@ export class EventStreamManager {
   public start (
     stream: grpc.ServerWritableStream<EventRequest>,
   ): void {
-    log.verbose('EventStreamManager', 'start(%s)', stream)
+    log.verbose('EventStreamManager', 'start(stream)')
 
     if (this.eventStream) {
       throw new Error('can not set twice')
@@ -239,13 +239,13 @@ export class EventStreamManager {
   }
 
   /**
-   * Detect if Inexor Core is gone (GRPC disconnects)
+   * Detect if the streaming call was gone (GRPC disconnects)
    *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
    */
   private onStreamingCallEnd (
     callback: () => void,
   ): void {
-    log.verbose('EventStreamManager', 'onStreamingCallEnd()')
+    log.verbose('EventStreamManager', 'onStreamingCallEnd(callback)')
 
     if (!this.eventStream) {
       throw new Error('no this.eventStream found')
