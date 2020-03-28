@@ -1,8 +1,7 @@
-# Wechaty v0.37.4 Documentation
+# Wechaty v0.37.7 Documentation
 
 - Blog - <https://blog.chatie.io>
-- Docs - <https://github.com/wechaty/wechaty/blob/master/docs/index.md>
-
+- Docs - <https://wechaty.github.io/wechaty/>
 
 ## Classes
 
