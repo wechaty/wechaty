@@ -2222,3 +2222,9 @@ The way to search Contact
 | name | <code>string</code> | The name-string set by user-self, should be called name |
 | alias | <code>string</code> | The name-string set by bot for others, should be called alias [More Detail](https://github.com/wechaty/wechaty/issues/365) |
 
+<script>
+  ((window.gitter = {}).chat = {}).options = {
+    room: 'chatie/wechaty'
+  };
+</script>
+<script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
