@@ -133,7 +133,7 @@ export abstract class Puppet extends EventEmitter {
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
-  private readonly childPkg: undefined | normalize.Package
+  private readonly childPkg: normalize.Package
 
   /**
    * Throttle Reset Events
@@ -456,13 +456,17 @@ export abstract class Puppet extends EventEmitter {
   public abstract ding (data?: string) : void
 
   /**
+   * Get the NPM name of the Puppet
+   */
+  public name () {
+    return this.childPkg.name
+  }
+
+  /**
    * Get version from the Puppet Implementation
    */
   public version (): string {
-    if (this.childPkg) {
-      return this.childPkg.version
-    }
-    return '0.0.0'
+    return this.childPkg.version
   }
 
   /**
