@@ -74,6 +74,10 @@
   "bugs": {
     "url": "https://github.com/wechaty/wechaty/issues"
   },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/wechaty"
+  },
   "homepage": "https://github.com/wechaty/",
   "engines": {
     "node": ">= 10"
