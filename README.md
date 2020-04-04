@@ -29,7 +29,7 @@ Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create
 > &mdash; <cite>@Jarvis, Baidu Engineer</cite>
 >
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
-> &mdash; <cite>@lijiarui, CEO of BotOrange.</cite>
+> &mdash; <cite>@lijiarui, Founder & CEO of Juzi.BOT.</cite>
 >
 > "If you know js ... try Wechaty, it's easy to use."  
 > &mdash; <cite>@Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)</cite>
@@ -407,7 +407,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Author
 
-1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia) \<huan@chatie.io\>
+1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia), [Tencent TVP of Chatbot](https://cloud.tencent.com/tvp/138), \<huan@chatie.io\>
 1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/)
 
 [![Profile of Huan LI (李卓桓) on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
