@@ -241,6 +241,18 @@ export class Message extends Accessory implements Sayable {
     return msgStrList.join('')
   }
 
+  public talker (): Contact {
+    return this.from()!
+  }
+
+  public conversation (): Contact | Room {
+    if (this.room()) {
+      return this.room()!
+    } else {
+      return this.from()!
+    }
+  }
+
   /**
    * Get the sender from a message.
    * @returns {Contact}
