@@ -7,13 +7,13 @@ import {
   interval,
   merge,
   // Subscription,
-  pipe,
-  of,
+  // pipe,
+  // of,
   // forkJoin,
 }                 from 'rxjs'
 import {
   filter,
-  mergeMap,
+  switchMap,
   startWith,
   takeUntil,
   tap,
@@ -23,13 +23,6 @@ import {
 import {
   log,
 }           from '../config'
-
-/**
- * Observables
- */
-export const heartbeat$ = (puppet: Puppet) => fromEvent<{}>(puppet, 'heartbeat')
-export const switchOn$  = (puppet: Puppet) => fromEvent(puppet.state, 'on')
-export const switchOff$ = (puppet: Puppet) => fromEvent(puppet.state, 'off')
 
 /**
  * Filters
@@ -43,41 +36,47 @@ export const resetPuppet   = (puppet: Puppet) => () => puppet.emit('reset', { da
 export const dingHeartbeat = (puppet: Puppet) => () => puppet.ding(`recover$() AED`)  // AED: Automated External Defibrillator
 
 /**
- * Pipes
+ * Observables
  */
-export const heartbeatDing = (puppet: Puppet) => pipe(
-  tap(_ => log.verbose('Puppet', 'recover$() heartbeatDing()')),
+export const switchOn$  = (puppet: Puppet) => fromEvent(puppet.state, 'on')
+export const switchOff$ = (puppet: Puppet) => fromEvent(puppet.state, 'off')
+export const heartbeat$ = (puppet: Puppet) => fromEvent<{}>(puppet, 'heartbeat')
+
+/**
+ * Streams
+ */
+
+// Heartbeat stream is like ECG (ElectroCardioGraphy)
+export const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
+  filter(switchSuccess),
+  tap(_ => log.verbose('Puppet', 'recover$() switchOn$ fired')),
+  switchMap(_ => heartbeat$(puppet).pipe(
+    startWith(undefined), // initial beat
+    tap(payload => log.verbose('Puppet', 'recover$() heartbeat: %s', JSON.stringify(payload))),
+  ))
+)
+
+// Ding is like CPR (Cardio Pulmonary Resuscitation)
+export const heartbeatDing = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(() => interval(15 * 1000)),
+  tap(_ => log.verbose('Puppet', 'recover$() heartbeatDing()')),
   tap(dingHeartbeat(puppet)),
 )
 
-export const heartbeatReset = (puppet: Puppet) => pipe(
-  tap(_ => log.verbose('Puppet', 'recover$() heartbeatReset()')),
+// Reset is like AED (Automated External Defibrillator)
+export const heartbeatReset = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(_ => interval(60 * 1000)),
-  mergeMap(_ => interval(60 * 1000).pipe(
+  tap(_ => log.verbose('Puppet', 'recover$() heartbeatReset()')),
+  switchMap(_ => interval(60 * 1000).pipe(
     tap(resetPuppet(puppet)),
     takeUntil(heartbeat$(puppet)),
   )),
 )
 
-// ECG: Electro Cardio Graph}
-export const heartbeatECG = (puppet: Puppet) => mergeMap(_ => merge(
-  of(_).pipe(heartbeatDing(puppet)),
-  of(_).pipe(heartbeatReset(puppet)),
-))
-
 /**
  * Main stream
  */
-export function recover$ (puppet: Puppet) {
-  return switchOn$(puppet).pipe(
-    filter(switchSuccess),
-    tap(_ => log.verbose('Puppet', 'recover$() switchOn$ fired')),
-    mergeMap(_ => heartbeat$(puppet).pipe(
-      startWith(undefined), // trigger the throttle stream at start
-      tap(payload => log.verbose('Puppet', 'recover$() heartbeat: %s', JSON.stringify(payload))),
-      heartbeatECG(puppet),
-      takeUntil(switchOff$(puppet)),
-    )),
-  )
-}
+export const recover$ = (puppet: Puppet) => merge(
+  heartbeatDing(puppet),
+  heartbeatReset(puppet),
+)

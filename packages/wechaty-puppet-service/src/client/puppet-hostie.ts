@@ -146,7 +146,7 @@ export class PuppetHostie extends Puppet {
 
     // this.recoverSubscription =
     recover$(this).subscribe(
-      x => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() next(%s)', x),
+      x => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
       e => log.error('PuppetHostie', 'constructor() recover$().subscribe() error(%s)', e),
       () => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() complete()'),
     )
