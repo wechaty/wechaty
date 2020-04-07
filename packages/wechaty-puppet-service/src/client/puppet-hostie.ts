@@ -319,36 +319,6 @@ export class PuppetHostie extends Puppet {
 
   }
 
-  /**
-   * If there's more than HEARTBEAT_DEBOUNCE_TIME seconds no heartbeat,
-   * we will try to call `ding()` and expect a `dong` event back.
-   */
-  // private startDing (): void {
-  //   log.verbose('PuppetHostie', 'startDing()')
-
-  //   heartbeat$.pipe(
-  //     startWith(undefined),
-  //     debounce(() => interval(HEARTBEAT_DEBOUNCE_TIME)),
-  //     tap(() => this.ding(`no heartbeat for ${HEARTBEAT_DEBOUNCE_TIME} seconds?`)),
-  //   )
-  //   const onHeartbeat = (payload: EventHeartbeatPayload) => this.heartbeatDebounceQueue.next(payload.data)
-  //   this.on('heartbeat', onHeartbeat)
-  //   this.cleanCallbackList.push(() => this.off('heartbeat', onHeartbeat))
-
-  //   const sub = this.heartbeatDebounceQueue.subscribe(() => this.ding(`no heartbeat for ${HEARTBEAT_DEBOUNCE_TIME} seconds?`))
-  //   this.cleanCallbackList.push(() => sub.unsubscribe())
-
-  //   Trigger the heartbeat / wake up watchdog
-  //   this.emit('heartbeat', { data: 'startDing()' })
-
-  //   /**
-  //    * Every GRPC Stream Call event will trigger a puppet `heartbeat` event.
-  //    */
-  //   const onDong = (payload: EventDongPayload) => this.emit('heartbeat', payload)
-  //   this.on('dong', onDong)
-  //   this.cleanCallbackList.push(() => this.off('dong', onDong))
-  // }
-
   private startGrpcStream (): void {
     log.verbose('PuppetHostie', 'startGrpcStream()')
 
