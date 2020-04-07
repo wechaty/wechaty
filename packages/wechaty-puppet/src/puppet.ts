@@ -110,7 +110,9 @@ export abstract class Puppet extends EventEmitter {
   /**
    * Must overwrite by child class to identify their version
    */
-  public static readonly VERSION: string = '0.0.0'
+  public static readonly VERSION : string = '0.0.0'
+
+  public readonly state: StateSwitch
 
   protected readonly cacheContactPayload        : QuickLru<string, ContactPayload>
   protected readonly cacheFriendshipPayload     : QuickLru<string, FriendshipPayload>
@@ -119,7 +121,6 @@ export abstract class Puppet extends EventEmitter {
   protected readonly cacheRoomMemberPayload     : QuickLru<string, RoomMemberPayload>
   protected readonly cacheRoomInvitationPayload : QuickLru<string, RoomInvitationPayload>
 
-  protected readonly state   : StateSwitch
   protected readonly counter : number
   protected memory          : MemoryCard
 
