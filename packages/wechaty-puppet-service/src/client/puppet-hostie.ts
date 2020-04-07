@@ -6,24 +6,6 @@ import WebSocket from 'ws'
 // import { DebounceQueue } from 'rx-queue'
 
 import {
-  fromEvent,
-  interval,
-  merge,
-  // Subscription,
-  pipe,
-  // forkJoin,
-}                 from 'rxjs'
-import {
-  filter,
-  mergeMap,
-  switchMap,
-  startWith,
-  takeUntil,
-  tap,
-  debounce,
-}             from 'rxjs/operators'
-
-import {
   ContactPayload,
 
   FileBox,
@@ -123,6 +105,10 @@ import {
   EventTypeRev,
 }                 from '../event-type-rev'
 
+import {
+  recover$,
+}             from './recover$'
+
 export class PuppetHostie extends Puppet {
 
   public static readonly VERSION = VERSION
@@ -159,66 +145,10 @@ export class PuppetHostie extends Puppet {
     this.cleanCallbackList = []
 
     // this.recoverSubscription =
-    this.recover$().subscribe(
+    recover$(this).subscribe(
       x => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() next(%s)', x),
       e => log.error('PuppetHostie', 'constructor() recover$().subscribe() error(%s)', e),
       () => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() complete()'),
-    )
-  }
-
-  protected recover$ () {
-    /**
-     * Observables
-     */
-    const heartbeat$ = fromEvent<{}>(this, 'heartbeat')
-    const switchOn$  = fromEvent(this.state, 'on')
-    const switchOff$ = fromEvent(this.state, 'off')
-
-    /**
-     * Filters
-     */
-    const switchSuccess = (status: true | 'pending') => status === true
-
-    /**
-     * Actions
-     */
-    const resetPuppet = () => this.emit('reset', { data: 'RxJS recover$' })
-    const dingHeartbeat = () => this.ding(`AED`)  // AED: Automated External Defibrillator
-
-    /**
-     * Pipes
-     */
-    const heartbeatDing = () => pipe(
-      tap(_ => log.verbose('PuppetHostie', 'recover$() heartbeatDing()')),
-      debounce(() => interval(15 * 1000)),
-      tap(dingHeartbeat),
-    )
-
-    const heartbeatReset = () => pipe(
-      tap(_ => log.verbose('PuppetHostie', 'recover$() heartbeatReset()')),
-      debounce(_ => interval(60 * 1000)),
-      mergeMap(_ => interval(60 * 1000).pipe(
-        tap(resetPuppet),
-        takeUntil(heartbeat$),
-      )),
-    )
-
-    /**
-     * Main stream
-     */
-    return switchOn$.pipe(
-      filter(switchSuccess),
-      tap(_ => log.verbose('PuppetHostie', 'recover$() switchOn$ fired')),
-      mergeMap(_ => heartbeat$.pipe(
-        startWith(undefined), // trigger the throttle stream at start
-        tap(payload => log.verbose('PuppetHostie', 'recover$() heartbeat: %s', JSON.stringify(payload))),
-
-        switchMap(_ => merge(
-          heartbeatDing,
-          heartbeatReset,
-        )),
-        takeUntil(switchOff$),
-      )),
     )
   }
 
