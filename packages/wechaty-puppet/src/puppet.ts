@@ -155,7 +155,7 @@ export abstract class Puppet extends EventEmitter {
     this.counter = PUPPET_COUNTER++
     log.verbose('Puppet', 'constructor(%s) #%d', JSON.stringify(options), this.counter)
 
-    this.state  = new StateSwitch(this.constructor.name, log)
+    this.state  = new StateSwitch(this.constructor.name, { log })
 
     this.memory = new MemoryCard() // dummy memory
     this.memory.load()  // load here is for testing only
