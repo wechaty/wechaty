@@ -12,12 +12,13 @@ import {
   // forkJoin,
 }                 from 'rxjs'
 import {
+  debounce,
   filter,
-  switchMap,
+  map,
   startWith,
+  switchMap,
   takeUntil,
   tap,
-  debounce,
 }             from 'rxjs/operators'
 
 import {
@@ -32,8 +33,8 @@ export const switchSuccess = (status: true | 'pending') => status === true
 /**
  * Actions
  */
-export const resetPuppet   = (puppet: Puppet) => () => puppet.emit('reset', { data: 'RxJS recover$' })
-export const dingHeartbeat = (puppet: Puppet) => () => puppet.ding(`recover$() AED`)  // AED: Automated External Defibrillator
+export const resetPuppet   = (puppet: Puppet) => () => puppet.emit('reset', { data: 'recover$() AED' })
+export const dingHeartbeat = (puppet: Puppet) => () => puppet.ding(`recover$() CPR`)
 
 /**
  * Observables
@@ -68,6 +69,7 @@ export const heartbeatReset = (puppet: Puppet) => switchOnHeartbeat$(puppet).pip
   debounce(_ => interval(60 * 1000)),
   tap(_ => log.verbose('Puppet', 'recover$() heartbeatReset()')),
   switchMap(_ => interval(60 * 1000).pipe(
+    map(n => `AED#${n}`),
     tap(resetPuppet(puppet)),
     takeUntil(heartbeat$(puppet)),
   )),
