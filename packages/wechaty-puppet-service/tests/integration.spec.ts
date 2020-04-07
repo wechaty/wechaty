@@ -26,17 +26,17 @@ test('integration testing', async (t) => {
   /**
    * Puppet in Hostie
    */
-  const PUPPET = new PuppetMock()
-  const spyStart = sinon.spy(PUPPET, 'start')
-  const spyOn    = sinon.spy(PUPPET, 'on')
-  const spyDing  = sinon.spy(PUPPET, 'ding')
+  const puppet = new PuppetMock()
+  const spyStart = sinon.spy(puppet, 'start')
+  const spyOn    = sinon.spy(puppet, 'on')
+  const spyDing  = sinon.spy(puppet, 'ding')
 
   /**
    * Hostie Server
    */
   const serverOptions = {
     endpoint : ENDPOINT,
-    puppet   : PUPPET,
+    puppet   : puppet,
     token    : TOKEN,
   } as PuppetServerOptions
 
