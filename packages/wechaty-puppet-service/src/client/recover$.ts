@@ -58,14 +58,14 @@ export const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
 )
 
 // Ding is like CPR (Cardio Pulmonary Resuscitation)
-export const heartbeatDing = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
+export const heartbeatDing$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(() => interval(15 * 1000)),
   tap(_ => log.verbose('Puppet', 'recover$() heartbeatDing()')),
   tap(dingHeartbeat(puppet)),
 )
 
 // Reset is like AED (Automated External Defibrillator)
-export const heartbeatReset = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
+export const heartbeatReset$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(_ => interval(60 * 1000)),
   tap(_ => log.verbose('Puppet', 'recover$() heartbeatReset()')),
   switchMap(_ => interval(60 * 1000).pipe(
@@ -79,6 +79,6 @@ export const heartbeatReset = (puppet: Puppet) => switchOnHeartbeat$(puppet).pip
  * Main stream
  */
 export const recover$ = (puppet: Puppet) => merge(
-  heartbeatDing(puppet),
-  heartbeatReset(puppet),
+  heartbeatDing$(puppet),
+  heartbeatReset$(puppet),
 )
