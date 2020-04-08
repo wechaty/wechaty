@@ -5,9 +5,9 @@
 
 ![Hostie](https://wechaty.github.io/wechaty-puppet-hostie/images/hostie.png)
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
-
 Hostie Puppet for Wechaty
+
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
 
 ## Features
 
@@ -22,7 +22,7 @@ import { Wechaty } from 'wechaty'
 const wechaty = new Wechaty({
   puppet: 'wechaty-puppet-hostie',
   puppetOptions: {
-    token: 'secret'
+    token: 'hostie_token'
   }
 })
 
@@ -36,12 +36,18 @@ wechaty.start()
 The token set to this environment variable will become the default value of `puppetOptions.token`
 
 ```sh
-WECHATY_PUPPET_HOSTIE_TOKEN=secret node bot.js
+WECHATY_PUPPET_HOSTIE_TOKEN=hostie_token node bot.js
 ```
 
 ## History
 
 ### master
+
+### v0.6 (Apr 2020)
+
+Beta Version
+
+1. Reconnect to Hostie Server with RxSJ Observables
 
 ### v0.3 (Feb 2020)
 
@@ -58,7 +64,7 @@ Designing the puppet hostie with the following protocols:
 
 ## Author
 
-[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)) zixia@zixia.net
+[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)), Tencent TVP of Chatbot, \<zixia@zixia.net\>
 
 [![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
