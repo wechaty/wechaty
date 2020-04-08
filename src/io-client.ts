@@ -58,7 +58,7 @@ export class IoClient {
       options.token
     )
 
-    this.state = new StateSwitch('IoClient', log)
+    this.state = new StateSwitch('IoClient', { log })
   }
 
   private async startHostie () {
@@ -91,10 +91,10 @@ export class IoClient {
   public async start (): Promise<void> {
     log.verbose('IoClient', 'start()')
 
-    if (this.state.pending()) {
-      log.warn('IoClient', 'start() with a pending state, not the time')
-      const e = new Error('state.pending() when start()')
-      throw e
+    if (this.state.on()) {
+      log.warn('IoClient', 'start() with a on state, wait and return')
+      await this.state.ready('on')
+      return
     }
 
     this.state.on('pending')

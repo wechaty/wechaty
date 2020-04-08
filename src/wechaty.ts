@@ -258,8 +258,8 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     this.id = cuid()
 
-    this.state      = new StateSwitch('Wechaty', log)
-    this.readyState = new StateSwitch('WechatyReady', log)
+    this.state      = new StateSwitch('Wechaty', { log })
+    this.readyState = new StateSwitch('WechatyReady', { log })
 
     /**
       * @ignore

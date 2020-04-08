@@ -81,7 +81,7 @@ export class Io {
   private eventBuffer       : IoEvent[] = []
   private ws                : undefined | WebSocket
 
-  private readonly state = new StateSwitch('Io', log)
+  private readonly state = new StateSwitch('Io', { log })
 
   private reconnectTimer?   : NodeJS.Timer
   private reconnectTimeout? : number
