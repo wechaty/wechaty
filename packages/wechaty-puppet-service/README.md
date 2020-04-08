@@ -64,7 +64,8 @@ Designing the puppet hostie with the following protocols:
 
 ## Author
 
-[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)), Tencent TVP of Chatbot, \<zixia@zixia.net\>
+[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)),
+Tencent TVP of Chatbot, \<zixia@zixia.net\>
 
 [![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
