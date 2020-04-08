@@ -97,7 +97,7 @@
     "promise-retry": "^1.1.1",
     "raven": "^2.6.4",
     "read-pkg-up": "^7.0.1",
-    "state-switch": "^0.7.2",
+    "state-switch": "^0.9.9",
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.24.0",
     "wechaty-puppet-hostie": "^0.5.10",
