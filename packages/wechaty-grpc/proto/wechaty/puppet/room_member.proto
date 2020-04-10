@@ -1,5 +1,7 @@
 syntax = "proto3";
-package wechaty.puppet.room_member;
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-wechaty/wechaty-puppet-hostie/generate/wechaty/puppet";
 
 message RoomMemberPayloadRequest {
   string id = 1;

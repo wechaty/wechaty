@@ -5,12 +5,12 @@ shopt -s globstar
 PROTO_DIR="./proto"
 
 # Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./generated"
+OUT_DIR="./generated/wechaty"
 [ -d ${OUT_DIR} ] || {
-  mkdir ${OUT_DIR}
+  mkdir -p ${OUT_DIR}
 }
 
-PROTOC_CMD="protoc --proto_path=${PROTO_DIR} --proto_path=/usr/local/include/ ${PROTO_DIR}/**/*.proto"
+PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty --proto_path=/usr/local/include/ ${PROTO_DIR}/**/*.proto"
 
 #
 # 1. JS for Protocol Buffer

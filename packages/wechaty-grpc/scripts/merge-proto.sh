@@ -11,7 +11,7 @@ _EOF_
 }
 
 function strip_header () {
-  sed -r '/^(syntax|package|import)/s/.*//'
+  sed -r '/^(syntax|package|import|option)/s/.*//'
 }
 
 function strip_package () {
