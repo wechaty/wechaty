@@ -197,16 +197,14 @@ export abstract class Puppet extends EventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions: QuickLruOptions = {
-      maxSize: 10 * 1000,
-    }
+    const lruOptions = (maxSize = 100): QuickLruOptions => ({ maxSize })
 
-    this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions)
-    this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions)
-    this.cacheMessagePayload        = new QuickLru<string, MessagePayload>(lruOptions)
-    this.cacheRoomPayload           = new QuickLru<string, RoomPayload>(lruOptions)
-    this.cacheRoomMemberPayload     = new QuickLru<string, RoomMemberPayload>(lruOptions)
-    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions)
+    this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions(3000))
+    this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions(100))
+    this.cacheMessagePayload        = new QuickLru<string, MessagePayload>(lruOptions(500))
+    this.cacheRoomPayload           = new QuickLru<string, RoomPayload>(lruOptions(500))
+    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions(100))
+    this.cacheRoomMemberPayload     = new QuickLru<string, RoomMemberPayload>(lruOptions(60 * 500))
 
     /**
      * 4. Load the package.json for Puppet Plugin version range matching
