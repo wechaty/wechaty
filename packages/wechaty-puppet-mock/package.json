@@ -53,7 +53,7 @@
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "tstest": "^0.4.10",
-    "wechaty-puppet": "^0.24.0"
+    "wechaty-puppet": "^0.25.1"
   },
   "peerDependencies": {
     "wechaty-puppet": "^0.24.0"
