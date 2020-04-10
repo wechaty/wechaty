@@ -10,7 +10,7 @@ OUT_DIR="./generated/wechaty"
   mkdir -p ${OUT_DIR}
 }
 
-PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty --proto_path=/usr/local/include/ --proto_path=${PROTO_DIR}/wechaty ${PROTO_DIR}/**/*.proto"
+PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty --proto_path=/usr/local/include/ ${PROTO_DIR}/**/*.proto"
 
 #
 # 1. JS for Protocol Buffer
