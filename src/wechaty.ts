@@ -753,6 +753,7 @@ export class Wechaty extends EventEmitter implements Sayable {
           break
 
         case 'reset':
+          // Do not propagation `reset` event from puppet
           break
 
         default:
