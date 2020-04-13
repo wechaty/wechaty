@@ -16,7 +16,7 @@ jobs:
       id: go
 
     - name: Set Go Dir Permissions
-      run: sudo chown -r "$USER" ~/go/
+      run: sudo chown -R "$USER" ~/go/
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
