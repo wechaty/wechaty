@@ -82,7 +82,7 @@ test-py: pytest
 
 .PHONY: test-go
 test-go:
-	cd ./go && go test ./...
+	cd tests && go test ./...
 
 .PHONY: check-version
 check-version:
