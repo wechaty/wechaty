@@ -20,9 +20,8 @@ jobs:
 
     - name: Get dependencies
       run: |
-        sudo apt install protobuf-compiler
         cd go
-        go get -v -t -d ./...
+        make install
 
     - name: Build
       run: |
@@ -33,5 +32,13 @@ jobs:
     - name: Deploy
       run: |
         cd go
-        bash -x scripts/deploy.sh
+        # https://stackoverflow.com/a/4565746/1123955
+        # https://stackoverflow.com/a/46253163/1123955
+        ssh-agent bash -c "\
+          echo '${SSH_PRIVATE_KEY}' | ssh-add - ;\
+          make publish ;\
+        "
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
 

@@ -13,6 +13,8 @@ if [ ! -d "$PUPPET_GEN_DIR" ]; then
   mkdir -p $OUT_PUPPET_DIR
 fi
 
+protoc --version
+
 protoc \
   -I $PROTO_PUPPET_DIR \
   --go_out=plugins=grpc:$OUT_PUPPET_DIR \

@@ -68,3 +68,7 @@ __pycache__/
 
 # Generated temp dirs
 generated/
+
+id_rsa*
+t/
+t.*
