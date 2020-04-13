@@ -34,14 +34,3 @@ curl -OL "https://github.com/ckaznocha/protoc-gen-lint/releases/download/v$PROTO
 sudo unzip -o "$PROTOC_GEN_LINT_ZIP" protoc-gen-lint -d /usr/local/bin protoc-gen-lint
 sudo chmod +x /usr/local/bin/protoc-gen-lint
 rm -f "$PROTOC_GEN_LINT_ZIP"
-
-#
-# Protoc Gen for Go
-#
-ls -l ~/
-ls -l ~/go || true
-ls -l ~/go/src || true
-go get -u github.com/golang/protobuf/protoc-gen-go
-ls -l ~/go || true
-ls -l ~/go/src || true
-sudo ln -s ~/go/bin/protoc-gen-go /usr/local/bin
