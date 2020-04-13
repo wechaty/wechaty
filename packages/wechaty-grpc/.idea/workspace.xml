@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="c5aad0b6-aec0-42c2-b19e-bde4da441051" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/go/go.mod" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/go/proto_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/generate-stub-go.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/base.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/base.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/contact.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/contact.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/event.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/event.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/friendship.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/friendship.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/message.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/message.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/room.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/room.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/room_invitation.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/room_invitation.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/room_member.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/room_member.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proto/wechaty/puppet/tag.proto" beforeDir="false" afterPath="$PROJECT_DIR$/proto/wechaty/puppet/tag.proto" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution>
+      <executable />
+    </execution>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" path="/usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="false" />
+  </component>
+  <component name="ProjectId" id="1aKrXtKP2uHdf0aiT6TSrejb4u1" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultGoTemplateProperty" value="Go File" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="go.import.settings.migrated" value="true" />
+    <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="terminal" />
+    <property name="ts.external.directory.path" value="$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external" />
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c5aad0b6-aec0-42c2-b19e-bde4da441051" name="Default Changelist" comment="" />
+      <created>1586509839787</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1586509839787</updated>
+      <workItem from="1586509841144" duration="690000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>true</integration-enabled>
+    <proxy>https://goproxy.cn,direct</proxy>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="320" y="115" key="#Go_Modules_(vgo)" timestamp="1586765583671">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="320" y="115" key="#Go_Modules_(vgo)/0.0.1440.900@0.0.1440.900" timestamp="1586765583671" />
+    <state x="421" y="260" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1586764820859">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="421" y="260" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1440.900@0.0.1440.900" timestamp="1586764820859" />
+    <state x="229" y="89" key="SettingsEditor" timestamp="1586501131265">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="229" y="89" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1586501131265" />
+    <state x="312" y="180" width="816" height="540" key="find.popup" timestamp="1586764645222">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="312" y="180" width="816" height="540" key="find.popup/0.0.1440.900@0.0.1440.900" timestamp="1586764645222" />
+  </component>
+</project>
