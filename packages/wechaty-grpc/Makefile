@@ -96,3 +96,12 @@ generate:
 .PHONY: demo
 demo:
 	python3 examples/demo.py
+
+.PHONY: gogenerate
+gogenerate:
+	./scripts/generate-stub-go.sh
+
+.PHONY: gotest
+gotest:
+	cd ./go && go test ./...
+
