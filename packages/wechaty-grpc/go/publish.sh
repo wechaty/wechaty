@@ -23,6 +23,9 @@ if [ -z "$(git status --porcelain)" ]; then
   exit 0
 fi
 
+git config --global user.email "mike@zixia.net"
+git config --global user.name "Mike BO"
+
 git commit -am "Deploy Go Grpc Module v${VERSION}"
 git push
 echo
