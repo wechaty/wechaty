@@ -2,10 +2,11 @@
 
 set -eo pipefail
 
-PROTO_BASE_DIR=./proto
+PROTO_BASE_DIR=../proto
 PROTO_PUPPET_DIR=$PROTO_BASE_DIR/wechaty/puppet
 PROTO_WECHATY_DIR=$PROTO_BASE_DIR/wechaty
-OUT_WECHATY_DIR=./go/wechaty
+
+OUT_WECHATY_DIR=./generated/wechaty
 OUT_PUPPET_DIR=$OUT_WECHATY_DIR/puppet
 
 if [ ! -d "$PUPPET_GEN_DIR" ]; then
