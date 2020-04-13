@@ -61,9 +61,13 @@ package-lock.json
 t/
 t.*
 dist/
-generated/
-chatie_grpc/
 .ropeproject/
 build/
 __pycache__/
 .idea
+
+# Generated temp dirs
+generated/
+chatie-grpc/
+go-grpc/
+

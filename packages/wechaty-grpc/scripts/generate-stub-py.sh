@@ -8,12 +8,12 @@ shopt -s globstar
 #
 
 # Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./chatie_grpc"
+OUT_DIR="./chatie-grpc"
 [ -d ${OUT_DIR} ] || {
   mkdir ${OUT_DIR}
 }
 
-./scripts/merge-proto.sh > "$OUT_DIR/chatie_grpc.proto"
+./scripts/merge-proto.sh > "$OUT_DIR/chatie-grpc.proto"
 PROTO_DIR="$OUT_DIR"
 
 PROTOC_CMD="python3 -m grpc_tools.protoc --proto_path=${PROTO_DIR} --proto_path=/usr/local/include/ ${PROTO_DIR}/**/*.proto"

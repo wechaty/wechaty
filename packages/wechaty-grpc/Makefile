@@ -4,7 +4,7 @@
 # 	Author: Huan LI <zixia@zixia.net> git.io/zixia
 #
 
-SOURCE_GLOB=$(wildcard chatie_grpc/**/*.py bin/*.py src/**/*.py tests/**/*.py examples/*.py)
+SOURCE_GLOB=$(wildcard chatie-grpc/**/*.py bin/*.py src/**/*.py tests/**/*.py examples/*.py)
 
 #
 # Huan(202003)
