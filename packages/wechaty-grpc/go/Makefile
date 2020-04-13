@@ -13,7 +13,7 @@ clean:
 
 .PHONY: install
 install:
-	sudo apt install protobuf-compiler
+	../scripts/install-protoc.sh
 	go get -u github.com/golang/protobuf/protoc-gen-go
 	go get -v -t -d ./...
 
@@ -23,7 +23,7 @@ test:
 
 .PHONY: generate
 generate:
-	./generate.sh
+	bash -x ./generate.sh
 
 .PHONY: publish
 publish:
