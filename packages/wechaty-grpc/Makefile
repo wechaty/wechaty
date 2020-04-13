@@ -56,9 +56,16 @@ pytype:
 	pytype examples/
 
 .PHONY: install
-install:
-	pip3 install -r requirements.txt
-	pip3 install -r requirements-dev.txt
+install: install-py install-go
+
+.PHONY: install-py
+install-py:
+	pip install -r requirements.txt
+	pip install -r requirements-dev.txt
+
+.PHONY: install-go
+install-go:
+	go get -u github.com/golang/protobuf/protoc-gen-go
 
 .PHONY: pytest
 pytest:
@@ -68,7 +75,14 @@ pytest:
 test-unit: pytest
 
 .PHONY: test
-test: lint pytest
+test: lint test-py test-go
+
+.PHONY: test-py
+test-py: pytest
+
+.PHONY: test-go
+test-go:
+	cd ./go && go test ./...
 
 .PHONY: check-version
 check-version:
@@ -90,18 +104,17 @@ publish:
 	PATH=~/.local/bin:${PATH} twine upload dist/*
 
 .PHONY: generate
-generate:
+generate: generate-py generate-go
+
+.PHONY: generate-py
+generate-py:
 	./scripts/generate-stub-py.sh
+
+.PHONY: generate-go
+generate-go:
+	./scripts/generate-stub-go.sh
 
 .PHONY: demo
 demo:
 	python3 examples/demo.py
-
-.PHONY: gogenerate
-gogenerate:
-	./scripts/generate-stub-go.sh
-
-.PHONY: gotest
-gotest:
-	cd ./go && go test ./...
 
