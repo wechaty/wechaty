@@ -7,7 +7,24 @@
 [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue)](https://pypi.org/project/chatie-grpc/)
 [![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
 
+![Go Version](https://img.shields.io/github/go-mod/go-version/wechaty/go-wechaty)
+[![Go](https://github.com/chatie/grpc/workflows/Go/badge.svg)](https://github.com/chatie/grpc/actions?query=workflow%3AGo)
+
 gRPC for Chatie
+
+## Usage
+
+### Node.js
+
+[@chatie/grpc@NPM](https://www.npmjs.com/package/@chatie/grpc)
+
+### Python
+
+[chatie-grpc@PyPI](https://pypi.org/project/chatie-grpc)
+
+### Go
+
+[github.com/wechaty/go-grpc](https://github.com/wechaty/go-grpc)
 
 ## Install
 
