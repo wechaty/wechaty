@@ -20,6 +20,7 @@ test:
 	go test ./...
 
 .PHONY: generate
+generate:
 	./generate.sh
 
 .PHONY: publish

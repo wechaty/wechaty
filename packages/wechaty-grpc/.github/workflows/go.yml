@@ -28,7 +28,7 @@ jobs:
       run: |
         cd go
         make generate
-        go build -v go/wechaty/puppet.pb.go
+        go build -v generated/wechaty/puppet.pb.go
 
     - name: Deploy
       run: |
