@@ -16,15 +16,9 @@ install:
 	pip install -r requirements.txt
 	pip install -r requirements-dev.txt
 
-.PHONY: pytest
+.PHONY: test
 pytest:
 	pytest src/ tests/
-
-.PHONY: test-unit
-test-unit: pytest
-
-.PHONY: test
-test: lint pytest
 
 code:
 	code .
