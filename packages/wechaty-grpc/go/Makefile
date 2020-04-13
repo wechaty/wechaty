@@ -14,7 +14,6 @@ clean:
 .PHONY: install
 install:
 	../scripts/install-protoc.sh
-	go get -u github.com/golang/protobuf/protoc-gen-go
 	go get -v -t -d ./...
 
 .PHONY: test
