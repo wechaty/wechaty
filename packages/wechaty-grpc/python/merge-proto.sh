@@ -28,12 +28,12 @@ import "google/protobuf/wrappers.proto";
 package wechaty.puppet;
 _EOF_
 
-  for file in proto/wechaty/puppet/*.proto; do
+  for file in ../proto/wechaty/puppet/*.proto; do
     echo_name "$file"
     cat "$file" | strip_header
   done
 
-  file='proto/wechaty/puppet.proto'
+  file='../proto/wechaty/puppet.proto'
   echo_name "$file"
   cat "$file" \
     | strip_header \

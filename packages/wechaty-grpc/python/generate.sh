@@ -13,7 +13,7 @@ OUT_DIR="./chatie-grpc"
   mkdir ${OUT_DIR}
 }
 
-./scripts/merge-proto.sh > "$OUT_DIR/chatie-grpc.proto"
+./merge-proto.sh > "$OUT_DIR/chatie-grpc.proto"
 PROTO_DIR="$OUT_DIR"
 
 PROTOC_CMD="python3 -m grpc_tools.protoc --proto_path=${PROTO_DIR} --proto_path=/usr/local/include/ ${PROTO_DIR}/**/*.proto"

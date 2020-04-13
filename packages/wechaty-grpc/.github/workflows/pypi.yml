@@ -19,11 +19,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        cd python
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
     - name: Test
       run: |
+        cd python
         make generate-py
         make test
 
@@ -38,11 +40,13 @@ jobs:
           python-version: 3.7
       - name: Install dependencies
         run: |
+          cd python
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
           make install
       - name: Pack Testing
         run: |
+          cd python
           make generate-py
           make dist
           echo "To be add: pack testing"
@@ -60,6 +64,7 @@ jobs:
           python-version: '3.7'
       - name: Install dependencies
         run: |
+          cd python
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
 
@@ -76,6 +81,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
+          cd python
           make install
           make generate-py
           make dist
