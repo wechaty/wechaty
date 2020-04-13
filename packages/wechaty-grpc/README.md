@@ -1,14 +1,11 @@
-# GRPC [![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3ANPM) [![PyPI](https://github.com/Chatie/grpc/workflows/PyPI/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3APyPI)
+# GRPC [![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3ANPM) [![PyPI](https://github.com/Chatie/grpc/workflows/PyPI/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3APyPI) [![Go](https://github.com/chatie/grpc/workflows/Go/badge.svg)](https://github.com/chatie/grpc/actions?query=workflow%3AGo)
 
 ![chatie grpc](https://chatie.io/grpc/images/grpc.png)
 
 [![NPM Version](https://badge.fury.io/js/%40chatie%2Fgrpc.svg)](https://www.npmjs.com/package/@chatie/grpc)
-
 [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue)](https://pypi.org/project/chatie-grpc/)
 [![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
-
 ![Go Version](https://img.shields.io/github/go-mod/go-version/wechaty/go-wechaty)
-[![Go](https://github.com/chatie/grpc/workflows/Go/badge.svg)](https://github.com/chatie/grpc/actions?query=workflow%3AGo)
 
 gRPC for Chatie
 
@@ -26,7 +23,7 @@ gRPC for Chatie
 
 [github.com/wechaty/go-grpc](https://github.com/wechaty/go-grpc)
 
-## Install
+## Build
 
 ```shell
 ./scripts/install-protoc.sh
@@ -148,11 +145,16 @@ TCP hole punching
 
 - [A toolset for reverse engineering and fuzzing Protobuf-based apps](https://github.com/marin-m/pbtk)
 
-### Python
+### Python Stub
 
 - [gRPC typing stubs for Python](https://github.com/shabbyrobe/grpc-stubs)
 
 ## History
+
+### v0.11 (Apr 2020)
+
+- Add Go Support ([#50](https://github.com/Chatie/grpc/issues/50) by [@dchaofei](https://github.com/dchaofei))
+- Publish Go Module at <github.com/wechaty/go-grpc>
 
 ### v0.6 (Feb 2020)
 

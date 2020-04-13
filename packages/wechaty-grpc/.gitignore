@@ -68,6 +68,3 @@ __pycache__/
 
 # Generated temp dirs
 generated/
-chatie-grpc/
-go-grpc/
-

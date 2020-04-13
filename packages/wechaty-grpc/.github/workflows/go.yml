@@ -21,13 +21,17 @@ jobs:
     - name: Get dependencies
       run: |
         sudo apt install protobuf-compiler
+        cd go
         go get -v -t -d ./...
 
     - name: Build
       run: |
-        make generate-go
+        cd go
+        make generate
         go build -v go/wechaty/puppet.pb.go
 
     - name: Deploy
-      run: bash -x scripts/deploy-go.sh
+      run: |
+        cd go
+        bash -x scripts/deploy.sh
 
