@@ -16,7 +16,7 @@ jobs:
       id: go
 
     - name: Init Go
-      run: if [ ! -d ~/go ]; then mkdir ~/go; fi
+      run: if [ ! -d ~/go ]; then mkdir -p ~/go/{bin,pkg,src}; fi
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
