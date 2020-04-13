@@ -20,6 +20,7 @@ jobs:
 
     - name: Get dependencies
       run: |
+        sudo apt install protobuf-compiler
         go get -v -t -d ./...
 
     - name: Build
