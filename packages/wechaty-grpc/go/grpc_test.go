@@ -3,7 +3,7 @@ package _go
 import (
 	"testing"
 
-	"github.com/chatie/grpc/go/wechaty"
+	"github.com/wechaty/go-grpc/wechaty"
 )
 
 func TestProto(t *testing.T) {
