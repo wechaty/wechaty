@@ -39,7 +39,9 @@ rm -f "$PROTOC_GEN_LINT_ZIP"
 # Protoc Gen for Go
 #
 ls -l ~/
-ls -l ~/go
-ls -l ~/go/src
+ls -l ~/go || true
+ls -l ~/go/src || true
 go get -u github.com/golang/protobuf/protoc-gen-go
+ls -l ~/go || true
+ls -l ~/go/src || true
 sudo ln -s ~/go/bin/protoc-gen-go /usr/local/bin
