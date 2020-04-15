@@ -233,13 +233,20 @@ export class PuppetManager {
   public static async installAll (): Promise<void> {
     log.info('PuppetManager', 'installAll() please wait ...')
 
+    const skipList = [
+      '@juzibot/wechaty-puppet-donut',  // windows puppet
+    ]
+
     const moduleList: string[] = []
 
     for (const puppetModuleName of Object.keys(PUPPET_DEPENDENCIES)) {
       const version = PUPPET_DEPENDENCIES[puppetModuleName as PuppetModuleName]
-      if (version !== '0.0.0') {
-        moduleList.push(`${puppetModuleName}@${version}`)
+
+      if (version === '0.0.0' || skipList.includes(puppetModuleName)) {
+        continue
       }
+
+      moduleList.push(`${puppetModuleName}@${version}`)
     }
 
     await npm.install(
