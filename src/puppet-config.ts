@@ -12,7 +12,7 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Scoped puppets
    */
-  '@juzibot/wechaty-puppet-donut': '^0.0.23', // https://www.npmjs.com/package/wechaty-puppet-donut (to be published)
+  '@juzibot/wechaty-puppet-donut': '^0.0.21', // https://www.npmjs.com/package/wechaty-puppet-donut (to be published)
 
   /**
    * Wechaty Internal Puppets: dependenced by package.json
