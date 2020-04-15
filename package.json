@@ -100,7 +100,7 @@
     "state-switch": "^0.9.9",
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.25.1",
-    "wechaty-puppet-hostie": "^0.6.1",
+    "wechaty-puppet-hostie": "^0.7.1",
     "ws": "^7.2.3"
   },
   "devDependencies": {
@@ -133,7 +133,7 @@
     "sloc": "^0.2.1",
     "tstest": "^0.4.10",
     "typedoc": "^0.16.11",
-    "wechaty-puppet-mock": "^0.20.4"
+    "wechaty-puppet-mock": "^0.21.2"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
