@@ -13,6 +13,25 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
+  <description>
+    Wechaty is a Wechat Bot SDK for Personal Account that lets you create software to extend the functionality of the Wechat,
+    writen in Node.js with TypeScript, Support all platforms including Linux, Windows, Darwin(OSX/Mac) and Docker.
+  </description>
+  <url>https://github.com/Chatie/grpc</url>
+
+  <contributors>
+    <contributor>
+      <name>Zhengxin Diao</name>
+      <email>diaozxin@gmail.com</email>
+    </contributor>
+  </contributors>
+
+  <scm>
+    <url>https://github.com/Chatie/grpc</url>
+    <connection>scm:git:ssh://github.com/Chatie/grpc.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/Chatie/grpc.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
 
   <dependencies>
     <dependency>
