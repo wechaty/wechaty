@@ -114,6 +114,15 @@ export interface WechatyOptions {
   ioToken?       : string,                    // Io TOKEN
 }
 
+// A plugin is a Class with a install function.
+export abstract class WechatyPlugin {
+
+  abstract install (instance: Wechaty): void
+
+  abstract installed?: boolean
+
+}
+
 const PUPPET_MEMORY_NAME = 'puppet'
 
 /**
@@ -151,6 +160,10 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @ignore
    */
   private static globalInstance: Wechaty
+
+  private static globalPlugins: WechatyPlugin[] = []
+
+  private plugins: WechatyPlugin[] = []
 
   private memory?: MemoryCard
 
@@ -200,6 +213,38 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.globalInstance = new Wechaty(options)
     }
     return this.globalInstance
+  }
+
+  /**
+   * @param   {WechatyPlugin | WechatyPlugin[]} plugins      - The plugins you want to use
+   *
+   * @return  {Wechaty}                                      - this for chaining,
+   *
+   * @desc
+   * For wechaty ecosystem, allow user to define a 3rd party plugin for the all wechaty instances
+   *
+   * @example
+   * // Report all chat message to my server.
+   *
+   * Class WechatyReportPlugin {
+   *   constructor(options) {
+   *     this.options = options;
+   *   }
+   *   install(bot) {
+   *     bot.on('message', message => http.post(this.options.url, { data: message }))
+   *   }
+   * }
+   *
+   * bot.use(new WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' });
+   */
+  public static use (
+    plugins: WechatyPlugin | WechatyPlugin[],
+  ) {
+    ([] as WechatyPlugin[]).concat(plugins).forEach(plugin => {
+      if (!this.globalPlugins.includes(plugin)) {
+        this.globalPlugins.push(plugin)
+      }
+    })
   }
 
   /**
@@ -282,6 +327,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     // No need to set puppet/wechaty, so do not clone
     this.UrlLink        = UrlLink
     this.MiniProgram    = MiniProgram
+
+    this.installGloablPlugin()
   }
 
   /**
@@ -519,6 +566,51 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.addListenerModuleFile(event, listener)
     }
     return this
+  }
+
+  /**
+   * @param   {WechatyPlugin | WechatyPlugin[]} plugins      - The plugins you want to use
+   *
+   * @return  {Wechaty}                                      - this for chaining,
+   *
+   * @desc
+   * For wechaty ecosystem, allow user to define a 3rd party plugin for the current wechaty instance.
+   *
+   * @example
+   * // Report all chat message to my server.
+   *
+   * Class WechatyReportPlugin {
+   *   constructor(options) {
+   *     this.options = options;
+   *   }
+   *   install(bot) {
+   *     bot.on('message', message => http.post(this.options.url, { data: message }))
+   *   }
+   * }
+   *
+   * bot.use(new WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' });
+   */
+  public use (plugins: WechatyPlugin | WechatyPlugin[]) {
+    ([] as WechatyPlugin[]).concat(plugins).forEach(plugin => {
+      if (!this.plugins.includes(plugin)) {
+        this.plugins.push(plugin)
+        this.installPlugin(plugin)
+      }
+    })
+    return this
+  }
+
+  private installGloablPlugin () {
+    Wechaty.globalPlugins.forEach(plugin => this.installPlugin(plugin))
+  }
+
+  private installPlugin (plugin: WechatyPlugin) {
+    if (plugin.installed) {
+      return
+    }
+    log.verbose('Wechaty', 'install plugin: ' + plugin.constructor.name)
+    plugin.install(this)
+    plugin.installed = true
   }
 
   private addListenerModuleFile (event: WechatyEventName, modulePath: string): void {
