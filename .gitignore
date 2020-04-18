@@ -57,7 +57,7 @@ yarn.lock
 .yarn-cache/
 .v8flags.*
 
-# why? forgot... 2017-05-18 by zixia
+# why? forgot... 2017-05-18 by huan
 /tests/fixtures/docker/package.json
 
 tags
