@@ -12,7 +12,7 @@ if [ $(uname) = 'Linux' ]; then
 elif [ $(uname) = 'Darwin' ]; then
   PROTOC_PLATFORM=osx
   PROTOC_GEN_LINT_PLATFORM=darwin
-elif [[ $(uname) =~ /^MINGW64/i ]]; then
+elif [[ $(uname) =~ ^MINGW64 ]]; then   # GitHub Actions in Windows
   PROTOC_PLATFORM=win64
   PROTOC_GEN_LINT_PLATFORM=windows
   # no sudo in win32 bash
