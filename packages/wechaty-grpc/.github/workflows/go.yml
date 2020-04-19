@@ -33,6 +33,14 @@ jobs:
         make generate
         go build -v generated/wechaty/puppet.pb.go
 
+  publish:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
+    name: Publish
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
     - name: Deploy
       run: |
         cd go
@@ -44,5 +52,3 @@ jobs:
         "
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
-
