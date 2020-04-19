@@ -7,6 +7,10 @@ GENERATED_DIR="$(pwd)/generated"
 VERSION=$(jq -r .version ../package.json)
 DEPLOY_DIR="wechaty-go-grpc.$$"
 
+# Clean & Re-generate
+rm -fr "$GENERATED_DIR"/*
+make generate
+
 mkdir "$DEPLOY_DIR"
 pushd "$DEPLOY_DIR"
 trap "rm -rfv $(pwd)/$DEPLOY_DIR" EXIT
