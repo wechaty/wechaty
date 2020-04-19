@@ -12,12 +12,19 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
-
+      - name: Set up Go 1.14
+        uses: actions/setup-go@master
+        with:
+          stable: false
+          go-version: 1.14
+        id: go
       - name: Install Protoc
-        run: bash -x ./scripts/install-protoc.sh
+        uses: arduino/setup-protoc@master
 
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm install
+          npm run install:protoc
 
       - name: Generate gRPC Stubs
         run: npm run generate
@@ -36,7 +43,7 @@ jobs:
           node-version: 12
 
       - name: Install Protoc
-        run: bash -x ./scripts/install-protoc.sh
+        uses: arduino/setup-protoc@master
 
       - name: Install Dependencies
         run: npm install
@@ -58,9 +65,9 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-
       - name: Install Protoc
-        run: bash -x ./scripts/install-protoc.sh
+        uses: arduino/setup-protoc@master
+
       - name: Install Dependencies
         run: npm install
       - name: Generate Version

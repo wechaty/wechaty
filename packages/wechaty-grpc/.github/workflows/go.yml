@@ -45,6 +45,8 @@ jobs:
         stable: false
         go-version: 1.14
       id: go
+    - name: Install Protoc
+      uses: arduino/setup-protoc@master
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
     - name: Deploy

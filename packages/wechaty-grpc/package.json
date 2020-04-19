@@ -20,6 +20,7 @@
     "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
     "lint:ts": "tsc --noEmit",
     "lint:proto": "bash -O globstar -c 'protoc -I proto/wechaty --lint_out=. proto/**/*.proto'",
+    "install:protoc": "bash -x scripts/install-protoc-gen-lint.sh",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
