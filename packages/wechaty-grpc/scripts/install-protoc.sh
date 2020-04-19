@@ -15,6 +15,8 @@ elif [ $(uname) = 'Darwin' ]; then
 elif [[ $(uname) =~ /^MINGW64/i ]]; then
   PROTOC_PLATFORM=win64
   PROTOC_GEN_LINT_PLATFORM=windows
+  # no sudo in win32 bash
+  alias sudo=
 else
   echo UNKNOWN PLATFORM
 fi
