@@ -9,10 +9,10 @@ umask 644
 if [ $(uname) = 'Linux' ]; then
   PROTOC_PLATFORM=linux
   PROTOC_GEN_LINT_PLATFORM=linux
-else if [ $(uname) = 'Darwin' ]; then
+elif [ $(uname) = 'Darwin' ]; then
   PROTOC_PLATFORM=osx
   PROTOC_GEN_LINT_PLATFORM=darwin
-else if [ $(uname) =~ /^MINGW64/i ]; then
+elif [[ $(uname) =~ /^MINGW64/i ]]; then
   PROTOC_PLATFORM=win64
   PROTOC_GEN_LINT_PLATFORM=windows
 else
