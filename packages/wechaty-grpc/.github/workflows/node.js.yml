@@ -35,6 +35,6 @@ jobs:
       run: npm run generate
 
     - name: Test
-    - run: npm test
+      run: npm test
       env:
         CI: true
