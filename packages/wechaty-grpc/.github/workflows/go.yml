@@ -44,6 +44,7 @@ jobs:
     - name: Deploy
       run: |
         cd go
+        make install
         # https://stackoverflow.com/a/4565746/1123955
         # https://stackoverflow.com/a/46253163/1123955
         ssh-agent bash -c "\

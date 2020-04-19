@@ -26,6 +26,6 @@ generate:
 	bash -x ./generate.sh
 
 .PHONY: publish
-publish:
+publish: clean generate
 	./publish.sh
 
