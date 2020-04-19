@@ -39,8 +39,8 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
     - name: Deploy
       run: |
         cd go
