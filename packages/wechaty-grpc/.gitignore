@@ -72,3 +72,6 @@ generated/
 id_rsa*
 t/
 t.*
+
+.idea
+target/

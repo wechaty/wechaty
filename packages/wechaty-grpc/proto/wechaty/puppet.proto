@@ -13,6 +13,8 @@
 syntax = "proto3";
 package wechaty;
 
+option java_package="io.github.wechaty.grpc";
+
 import public "puppet/base.proto";
 import public "puppet/contact.proto";
 import public "puppet/event.proto";
