@@ -32,4 +32,4 @@ npm install *-*.*.*.tgz \
   --noImplicitAny \
   smoke-testing.ts
 
-node smoke-testing.js
+WECHATY_TOKEN=github-ci-pack node smoke-testing.js
