@@ -157,7 +157,7 @@ TCP hole punching
 - Add Java Support ([#52](https://github.com/Chatie/grpc/issues/52) [#53](https://github.com/Chatie/grpc/issues/53) by [@diaozxin007](https://github.com/diaozxin007))
 - Publish Java Module at [Open Source Project Repository HostingOSSRH-56843 - Release the Chatie/grpc Java Client](https://issues.sonatype.org/browse/OSSRH-56843)
 
-### v0.11 (Apr 2020)
+### v0.11 (Apr 10, 2020)
 
 - Add Go Support ([#50](https://github.com/Chatie/grpc/issues/50) by [@dchaofei](https://github.com/dchaofei))
 - Publish Go Module at <github.com/wechaty/go-grpc>
