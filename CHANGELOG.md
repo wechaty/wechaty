@@ -79,8 +79,6 @@
 
 - 0.38.0 [\#1936](https://github.com/wechaty/wechaty/pull/1936) ([su-chang](https://github.com/su-chang))
 - Remove MessageUserQueryFilter [\#1931](https://github.com/wechaty/wechaty/pull/1931) ([huan](https://github.com/huan))
-- \[Snyk\] Upgrade state-switch from 0.6.18 to 0.7.2 [\#1928](https://github.com/wechaty/wechaty/pull/1928) ([snyk-bot](https://github.com/snyk-bot))
-- \[Snyk\] Upgrade brolog from 0.3.11 to 0.4.3 [\#1925](https://github.com/wechaty/wechaty/pull/1925) ([snyk-bot](https://github.com/snyk-bot))
 - Image bug [\#1921](https://github.com/wechaty/wechaty/pull/1921) ([su-chang](https://github.com/su-chang))
 - File box [\#1915](https://github.com/wechaty/wechaty/pull/1915) ([su-chang](https://github.com/su-chang))
 - Support message.toImage\(\) method. [\#1913](https://github.com/wechaty/wechaty/pull/1913) ([su-chang](https://github.com/su-chang))
