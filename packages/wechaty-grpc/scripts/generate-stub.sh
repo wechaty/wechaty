@@ -11,7 +11,8 @@ OUT_DIR="./generated/wechaty"
 
 PROTO_FILE_LIST=$(find $PROTO_DIR -type f -name *.proto)
 
-PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty --proto_path=/usr/local/include/ $PROTO_FILE_LIST"
+# --proto_path=/usr/local/include/
+PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty $PROTO_FILE_LIST"
 
 #
 # 1. JS for Protocol Buffer
