@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-shopt -s globstar
 
 PROTO_DIR="./proto"
 
@@ -10,7 +9,9 @@ OUT_DIR="./generated/wechaty"
   mkdir -p ${OUT_DIR}
 }
 
-PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty --proto_path=/usr/local/include/ ${PROTO_DIR}/**/*.proto"
+PROTO_FILE_LIST=$(find $PROTO_DIR -type f -name *.proto)
+
+PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty --proto_path=/usr/local/include/ $PROTO_FILE_LIST"
 
 #
 # 1. JS for Protocol Buffer

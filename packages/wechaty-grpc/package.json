@@ -15,7 +15,7 @@
     "publish:py": "twine upload dist/*",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
-    "generate": "bash -O globstar -x scripts/generate-stub.sh",
+    "generate": "bash -x scripts/generate-stub.sh",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:proto",
     "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
     "lint:ts": "tsc --noEmit",
