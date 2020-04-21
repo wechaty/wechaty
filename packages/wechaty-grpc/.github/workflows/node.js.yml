@@ -32,11 +32,11 @@ jobs:
 
     - name: Install Protoc
       uses: arduino/setup-protoc@master
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install Dependencies
-      run: |
-        npm install
-        npm run install:protoc
+      run: npm install
 
     - name: Generate gRPC Stubs
       run: npm run generate
