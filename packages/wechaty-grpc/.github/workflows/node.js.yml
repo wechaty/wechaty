@@ -36,7 +36,9 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install Dependencies
-      run: npm install
+      run: |
+        npm install
+        npm run install:lint:protoc
 
     - name: Generate gRPC Stubs
       run: npm run generate
