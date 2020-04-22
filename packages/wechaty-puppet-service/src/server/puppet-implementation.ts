@@ -317,7 +317,7 @@ export function puppetImplementation (
       }
     },
 
-    frendshipAccept: async (call, callback) => {
+    friendshipAccept: async (call, callback) => {
       log.verbose('PuppetServiceImpl', 'friendshipAccept()')
 
       try {
