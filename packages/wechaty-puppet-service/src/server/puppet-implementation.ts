@@ -317,7 +317,7 @@ export function puppetImplementation (
       }
     },
 
-    frendshipAccept: async (call, callback) => {
+    friendshipAccept: async (call, callback) => {
       log.verbose('PuppetServiceImpl', 'friendshipAccept()')
 
       try {
@@ -331,7 +331,7 @@ export function puppetImplementation (
     },
 
     friendshipAdd: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipAccept()')
+      log.verbose('PuppetServiceImpl', 'friendshipAdd()')
 
       try {
         const contactId = call.request.getContactId()
@@ -346,7 +346,7 @@ export function puppetImplementation (
     },
 
     friendshipPayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipAccept()')
+      log.verbose('PuppetServiceImpl', 'friendshipPayload()')
 
       try {
         const id = call.request.getId()
