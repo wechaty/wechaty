@@ -82,6 +82,8 @@ export class EventStreamManager {
       throw new Error('no this.eventStream')
     }
 
+    this.puppet.removeAllListeners()
+
     this.eventStream.end()
     this.eventStream = undefined
   }

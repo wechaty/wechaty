@@ -1299,7 +1299,7 @@ export class PuppetHostie extends Puppet {
     request.setId(friendshipId)
 
     await util.promisify(
-      this.grpcClient!.frendshipAccept.bind(this.grpcClient)
+      this.grpcClient!.friendshipAccept.bind(this.grpcClient)
     )(request)
   }
 
