@@ -57,9 +57,18 @@ export const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
   ))
 )
 
+/**
+ * The GRPC keepalive timeout is 20 seconds
+ * So we use 15 seconds to save the GRPC keepalive cost
+ *
+ *  https://github.com/grpc/grpc/blob/master/doc/keepalive.md
+ *    GRPC_ARG_KEEPALIVE_TIMEOUT_MS 20000 (20 seconds)  20000 (20 seconds)
+ */
+const HOSTIE_KEEPALIVE_TIMEOUT = 15 * 1000
+
 // Ding is like CPR (Cardio Pulmonary Resuscitation)
 export const heartbeatDing$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
-  debounce(() => interval(15 * 1000)),
+  debounce(() => interval(HOSTIE_KEEPALIVE_TIMEOUT)),
   tap(_ => log.verbose('Puppet', 'recover$() heartbeatDing()')),
   tap(dingHeartbeat(puppet)),
 )
