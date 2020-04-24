@@ -14,7 +14,7 @@ import {
 import {
   debounce,
   filter,
-  map,
+  mapTo,
   startWith,
   switchMap,
   takeUntil,
@@ -33,8 +33,8 @@ export const switchSuccess = (status: true | 'pending') => status === true
 /**
  * Actions
  */
-export const resetPuppet   = (puppet: Puppet) => () => puppet.emit('reset', { data: 'recover$() AED' })
-export const dingHeartbeat = (puppet: Puppet) => () => puppet.ding(`recover$() CPR`)
+export const resetPuppet   = (puppet: Puppet) => (n: number) => puppet.emit('reset', { data: `recover$() AED #${n}` })
+export const dingHeartbeat = (puppet: Puppet) => (n: number) => puppet.ding(`recover$() CPR #${n}`)
 
 /**
  * Observables
@@ -66,19 +66,24 @@ export const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
  */
 const HOSTIE_KEEPALIVE_TIMEOUT = 15 * 1000
 
+let HEARTBEAT_COUNTER = 0
+
 // Ding is like CPR (Cardio Pulmonary Resuscitation)
 export const heartbeatDing$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(() => interval(HOSTIE_KEEPALIVE_TIMEOUT)),
   tap(_ => log.verbose('Puppet', 'recover$() heartbeatDing()')),
+  mapTo(HEARTBEAT_COUNTER++),
   tap(dingHeartbeat(puppet)),
 )
 
+const HOSTIE_RESET_TIMEOUT = 60 * 1000
+
 // Reset is like AED (Automated External Defibrillator)
 export const heartbeatReset$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
-  debounce(_ => interval(60 * 1000)),
+  debounce(_ => interval(HOSTIE_RESET_TIMEOUT)),
   tap(_ => log.verbose('Puppet', 'recover$() heartbeatReset()')),
-  switchMap(_ => interval(60 * 1000).pipe(
-    map(n => `AED#${n}`),
+  switchMap(_ => interval(HOSTIE_RESET_TIMEOUT).pipe(
+    // map(n => `AED#${n}`),
     tap(resetPuppet(puppet)),
     takeUntil(heartbeat$(puppet)),
   )),

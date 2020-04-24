@@ -44,23 +44,23 @@
   "homepage": "https://github.com/Chatie/wechaty-puppet-hostie#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^0.8.1",
-    "@chatie/git-scripts": "^0.2.5",
+    "@chatie/git-scripts": "^0.6.1",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.8.0",
     "@types/google-protobuf": "^3.7.2",
-    "@types/ws": "^7.2.2",
+    "@types/ws": "^7.2.4",
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "tstest": "^0.4.10",
-    "wechaty-puppet": "^0.25.1",
-    "wechaty-puppet-mock": "^0.16.1"
+    "wechaty-puppet": "^0.25.2",
+    "wechaty-puppet-mock": "^0.21.3"
   },
   "peerDependencies": {
     "wechaty-puppet": "^0.24.0"
   },
   "dependencies": {
     "@chatie/grpc": "^0.15.0",
-    "@reduxjs/toolkit": "^1.3.2",
+    "@reduxjs/toolkit": "^1.3.5",
     "redux": "^4.0.5",
     "redux-observable": "^1.2.0",
     "ws": "^7.2.3"
