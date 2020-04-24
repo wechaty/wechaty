@@ -51,6 +51,7 @@ import {
 }                                   from './config'
 
 export interface MockContactRawPayload {
+  id   : string,
   name : string,
 }
 
@@ -62,6 +63,7 @@ export interface MockMessageRawPayload {
 }
 
 export interface MockRoomRawPayload {
+  id         : string,
   topic      : string,
   memberList : string[],
   ownerId    : string,
@@ -238,6 +240,7 @@ export class PuppetMock extends Puppet {
   public async contactRawPayload (id: string): Promise<MockContactRawPayload> {
     log.verbose('PuppetMock', 'contactRawPayload(%s)', id)
     const rawPayload: MockContactRawPayload = {
+      id,
       name : 'mock name',
     }
     return rawPayload
@@ -249,8 +252,8 @@ export class PuppetMock extends Puppet {
     const payload: ContactPayload = {
       avatar : 'mock-avatar-data',
       gender : ContactGender.Unknown,
-      id     : 'id',
-      name   : 'mock-name',
+      id     : rawPayload.id,
+      name   : rawPayload.name,
       type   : ContactType.Unknown,
     }
     return payload
@@ -315,7 +318,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
     const rawPayload: MockMessageRawPayload = {
       from : 'from_id',
-      id   : 'id',
+      id,
       text : 'mock message text',
       to   : 'to_id',
     }
@@ -391,6 +394,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
 
     const rawPayload: MockRoomRawPayload = {
+      id,
       memberList: [],
       ownerId   : 'mock_room_owner_id',
       topic     : 'mock topic',
@@ -405,7 +409,7 @@ export class PuppetMock extends Puppet {
 
     const payload: RoomPayload = {
       adminIdList  : [],
-      id           : 'id',
+      id           : rawPayload.id,
       memberIdList : [],
       topic        : 'mock topic',
     }

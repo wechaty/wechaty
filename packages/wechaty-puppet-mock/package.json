@@ -45,7 +45,7 @@
   "homepage": "https://github.com/Chatie/wechaty-puppet-mock#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^0.8.1",
-    "@chatie/git-scripts": "^0.2.5",
+    "@chatie/git-scripts": "^0.6.1",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.8.0",
     "@types/normalize-package-data": "^2.4.0",
@@ -62,7 +62,7 @@
     "brolog": "^1.8.3",
     "hot-import": "^0.2.14",
     "normalize-package-data": "^2.5.0",
-    "quick-lru": "^5.0.0",
+    "quick-lru": "^5.1.0",
     "state-switch": "^0.6.18",
     "watchdog": "^0.8.17"
   },
