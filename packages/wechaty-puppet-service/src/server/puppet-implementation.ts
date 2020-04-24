@@ -52,6 +52,7 @@ import {
   StringValue,
   EventType,
   MessageSendUrlResponse,
+  MessageTypeMap,
 }                                   from '@chatie/grpc'
 
 import {
@@ -518,7 +519,7 @@ export function puppetImplementation (
         response.setText(payload.text || '')
         response.setTimestamp(payload.timestamp)
         response.setToId(payload.toId || '')
-        response.setType(payload.type)
+        response.setType(payload.type as MessageTypeMap[keyof MessageTypeMap])
 
         return callback(null, response)
 
