@@ -149,6 +149,38 @@ test('on(event, Function)', async t => {
 
 })
 
+test('use plugin', async (t) => {
+  let result = ''
+
+  const myGlobalPlugin = function () {
+    return function (this: Wechaty) {
+      this.on('message', () => (result += 'FROM_GLOBAL_PLUGIN:'))
+    }
+  }
+
+  const myPlugin = function () {
+    return function (this: Wechaty) {
+      this.on('message', () => (result += 'FROM_MY_PLUGIN:'))
+    }
+  }
+  Wechaty.use(myGlobalPlugin())
+
+  const bot = new Wechaty({
+    puppet: new PuppetMock(),
+  })
+
+  bot.use(myPlugin())
+
+  bot.on('message', () => (result += 'FROM_BOT'))
+
+  bot.emit('message', {} as any)
+
+  await bot.stop()
+
+  t.ok(result === 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT')
+
+})
+
 test('initPuppetAccessory()', async t => {
   const wechatyTest = new WechatyTest()
 
