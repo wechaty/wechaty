@@ -119,7 +119,6 @@
     "@types/retry": "^0.12.0",
     "@types/ws": "^7.2.2",
     "apiai": "^4.0.3",
-    "blue-tape": "^1.0.0",
     "check-node-version": "^4.0.2",
     "coveralls": "^3.0.9",
     "cross-env": "^7.0.2",
