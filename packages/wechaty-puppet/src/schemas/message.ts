@@ -10,6 +10,7 @@ export enum MessageType {
   Text,           // Text(1)
   Location,       // Location(48)
   MiniProgram,    // MiniProgram(33)
+  GroupNote,      // GroupNote(53)
   Transfer,       // Transfers(2000)
   RedEnvelope,    // RedEnvelopes(2001)
   Recalled,       // Recalled(10002)
