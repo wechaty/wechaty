@@ -258,7 +258,7 @@ export class Friendship extends Accessory implements Acceptable {
 
     await this.puppet.friendshipAccept(this.id)
 
-    const contact = this.contact()
+    const contact = await this.contact()
 
     await tryWait(async (retry, attempt) => {
       log.silly('Friendship', 'accept() retry() ready() attempt %d', attempt)
@@ -307,7 +307,7 @@ export class Friendship extends Accessory implements Acceptable {
   /**
    * Get the contact from friendship
    *
-   * @returns {Contact}
+   * @returns {Promise<Contact>}
    * @example
    * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
