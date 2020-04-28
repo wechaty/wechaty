@@ -80,3 +80,18 @@ export interface EventResetPayload {
 export interface EventHeartbeatPayload {
   data: string,
 }
+
+export type EventAllPayload =  EventDongPayload
+                            | EventErrorPayload
+                            | EventFriendshipPayload
+                            | EventHeartbeatPayload
+                            | EventLoginPayload
+                            | EventLogoutPayload
+                            | EventMessagePayload
+                            | EventReadyPayload
+                            | EventResetPayload
+                            | EventRoomInvitePayload
+                            | EventRoomJoinPayload
+                            | EventRoomLeavePayload
+                            | EventRoomTopicPayload
+                            | EventScanPayload

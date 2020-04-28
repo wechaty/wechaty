@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -58,6 +59,7 @@ import {
   EventScanPayload,
   EventReadyPayload,
   EventHeartbeatPayload,
+  EventAllPayload,
 }                                 from './schemas/event'
 import {
   FriendshipPayload,
@@ -314,7 +316,7 @@ export abstract class Puppet extends EventEmitter {
    */
 
   /**
-   * API After v0.21.6
+   * use payload after v0.21.6
    */
   public on (event: 'dong',         listener: (payload: EventDongPayload) => void)       : this
   public on (event: 'error',        listener: (payload: EventErrorPayload) => void)      : this
@@ -330,9 +332,6 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'scan',         listener: (payload: EventScanPayload) => void)       : this
   public on (event: 'ready',        listener: (payload: EventReadyPayload) => void)      : this
 
-  // rename `watchdog` to `heartbeat`
-  // public on (event: 'watchdog',     listener: (payload: EventWatchdogPayload) => void): this
-
   // Internal Usage: heartbeat
   public on (event: 'heartbeat',    listener: (payload: EventHeartbeatPayload) => void)  : this
 
@@ -346,6 +345,57 @@ export abstract class Puppet extends EventEmitter {
     return this
   }
 
+  /**
+   * Add Typing support for RxJS `fromEvent` #96
+   *  https://github.com/wechaty/wechaty-puppet/issues/96
+   *
+   * To make RxJS fromEvent happy: type inferencing
+   *  https://github.com/ReactiveX/rxjs/blob/49304ffef8d7a0663c57fe8e673359a602e9d3e1/src/internal/observable/fromEvent.ts#L27-L30
+   */
+  // public addEventListener (type: 'dong',        listener: (payload: EventDongPayload) => void)       : void
+  // public addEventListener (type: 'error',       listener: (payload: EventErrorPayload) => void)      : void
+  // public addEventListener (type: 'friendship',  listener: (payload: EventFriendshipPayload) => void) : void
+  // public addEventListener (type: 'login',       listener: (payload: EventLoginPayload) => void)      : void
+  // public addEventListener (type: 'logout',      listener: (payload: EventLogoutPayload) => void)     : void
+  // public addEventListener (type: 'message',     listener: (payload: EventMessagePayload) => void)    : void
+  // public addEventListener (type: 'reset',       listener: (payload: EventResetPayload) => void)      : void
+  // public addEventListener (type: 'room-join',   listener: (payload: EventRoomJoinPayload) => void)   : void
+  // public addEventListener (type: 'room-leave',  listener: (payload: EventRoomLeavePayload) => void)  : void
+  // public addEventListener (type: 'room-topic',  listener: (payload: EventRoomTopicPayload) => void)  : void
+  // public addEventListener (type: 'room-invite', listener: (payload: EventRoomInvitePayload) => void) : void
+  // public addEventListener (type: 'scan',        listener: (payload: EventScanPayload) => void)       : void
+  // public addEventListener (type: 'ready',       listener: (payload: EventReadyPayload) => void)      : void
+
+  // public addEventListener (type: never, listener: never): never
+
+  // public addEventListener (type: string, listener: ((evt: E) => void) | null, options?: boolean | AddEventListenerOptions): void;
+  public addEventListener (type: string, listener: ((evt: EventAllPayload) => void) | null, _options?: boolean | AddEventListenerOptions): void {
+    if (listener) {
+      this.addListener(type, listener)
+    }
+  }
+
+  // public removeEventListener (type: 'dong',        listener: (payload: EventDongPayload) => void)       : void
+  // public removeEventListener (type: 'error',       listener: (payload: EventErrorPayload) => void)      : void
+  // public removeEventListener (type: 'friendship',  listener: (payload: EventFriendshipPayload) => void) : void
+  // public removeEventListener (type: 'login',       listener: (payload: EventLoginPayload) => void)      : void
+  // public removeEventListener (type: 'logout',      listener: (payload: EventLogoutPayload) => void)     : void
+  // public removeEventListener (type: 'message',     listener: (payload: EventMessagePayload) => void)    : void
+  // public removeEventListener (type: 'reset',       listener: (payload: EventResetPayload) => void)      : void
+  // public removeEventListener (type: 'room-join',   listener: (payload: EventRoomJoinPayload) => void)   : void
+  // public removeEventListener (type: 'room-leave',  listener: (payload: EventRoomLeavePayload) => void)  : void
+  // public removeEventListener (type: 'room-topic',  listener: (payload: EventRoomTopicPayload) => void)  : void
+  // public removeEventListener (type: 'room-invite', listener: (payload: EventRoomInvitePayload) => void) : void
+  // public removeEventListener (type: 'scan',        listener: (payload: EventScanPayload) => void)       : void
+  // public removeEventListener (type: 'ready',       listener: (payload: EventReadyPayload) => void)      : void
+
+  // public removeEventListener (type: never, listener: never): never
+
+  public removeEventListener (type: string, listener?: ((evt: EventAllPayload) => void) | null, _options?: EventListenerOptions | boolean): void {
+    if (listener) {
+      this.removeListener(type, listener)
+    }
+  }
   /**
    *
    *
