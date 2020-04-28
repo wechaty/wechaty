@@ -309,7 +309,7 @@ export class Friendship extends Accessory implements Acceptable {
   /**
    * Get the contact from friendship
    *
-   * @returns {Promise<Contact>}
+   * @returns {Contact}
    * @example
    * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
