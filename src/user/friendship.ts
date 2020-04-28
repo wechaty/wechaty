@@ -211,6 +211,8 @@ export class Friendship extends Accessory implements Acceptable {
     if (!this.payload) {
       throw new Error('no payload')
     }
+
+    await this.contact().ready()
   }
 
   /**
@@ -258,7 +260,7 @@ export class Friendship extends Accessory implements Acceptable {
 
     await this.puppet.friendshipAccept(this.id)
 
-    const contact = await this.contact()
+    const contact = this.contact()
 
     await tryWait(async (retry, attempt) => {
       log.silly('Friendship', 'accept() retry() ready() attempt %d', attempt)
@@ -311,19 +313,18 @@ export class Friendship extends Accessory implements Acceptable {
    * @example
    * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
-   *   const contact = await friendship.contact()
+   *   const contact = friendship.contact()
    *   const name = contact.name()
    *   console.log(`received friend event from ${name}`)
    * }
    * .start()
    */
-  public async contact (): Promise<Contact> {
+  public contact (): Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
 
     const contact = this.wechaty.Contact.load(this.payload.contactId)
-    await contact.ready()
     return contact
   }
 

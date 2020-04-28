@@ -637,8 +637,7 @@ export class Wechaty extends EventEmitter implements Sayable {
             const friendship = this.Friendship.load(payload.friendshipId)
             await friendship.ready()
             this.emit('friendship', friendship)
-            const contact = await friendship.contact()
-            contact.emit('friendship', friendship)
+            friendship.contact().emit('friendship', friendship)
           })
           break
 
