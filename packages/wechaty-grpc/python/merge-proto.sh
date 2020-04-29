@@ -25,7 +25,7 @@ function main () {
   cat <<'_EOF_'
 syntax = "proto3";
 import "google/protobuf/wrappers.proto";
-package wechaty.puppet;
+package wechaty;
 _EOF_
 
   for file in ../proto/wechaty/puppet/*.proto; do
