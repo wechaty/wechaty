@@ -211,6 +211,8 @@ export class Friendship extends Accessory implements Acceptable {
     if (!this.payload) {
       throw new Error('no payload')
     }
+
+    await this.contact().ready()
   }
 
   /**
