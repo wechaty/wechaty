@@ -115,7 +115,7 @@ export interface WechatyOptions {
 }
 
 export interface WechatyPlugin {
-  (bot: Wechaty): void;
+  (bot: Wechaty): void
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'

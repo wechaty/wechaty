@@ -19,6 +19,7 @@ export {
 export {
   Wechaty,
   WechatyOptions,
+  WechatyPlugin,
 }                     from './wechaty'
 
 export {
