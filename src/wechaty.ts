@@ -572,7 +572,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   private installGloablPlugin () {
-    (this.constructor as typeof Wechaty).globalPluginsList.forEach(plugin => plugin(this))
+    (this.constructor as typeof Wechaty).globalPluginList.forEach(plugin => plugin(this))
   }
 
   private addListenerModuleFile (event: WechatyEventName, modulePath: string): void {
