@@ -85,7 +85,6 @@ Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of
 [![NPM Version](https://img.shields.io/npm/v/wechaty?color=brightgreen&label=wechaty%40latest)](https://www.npmjs.com/package/wechaty)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty/next?color=yellow&label=wechaty%40next)](https://www.npmjs.com/package/wechaty?activeTab=versions)
 
-
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![install size](https://packagephobia.now.sh/badge?p=wechaty)](https://packagephobia.now.sh/result?p=wechaty)
 
