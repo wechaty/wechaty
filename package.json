@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.39.8",
+  "version": "0.39.19",
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -16,7 +16,7 @@
     "pack": "npm pack",
     "docs": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "changelog": "github_changelog_generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
+    "changelog": "github_changelog_generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "check-node-version": "check-node-version --node \">= 10\"",
     "lint": "npm run check-node-version && npm run lint:es && npm run lint:ts && npm run lint:sh && npm run lint:md",
@@ -27,7 +27,7 @@
     "puppet-install": "ts-node bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "ts-node": "ts-node",
-    "test": "npm run lint && npm run test:unit && npm run sloc",
+    "test": "npm run lint && nyc npm run test:unit && npm run sloc",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
@@ -100,7 +100,7 @@
     "state-switch": "^0.9.9",
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.25.1",
-    "wechaty-puppet-hostie": "^0.7.1",
+    "wechaty-puppet-hostie": "^0.7.2",
     "ws": "^7.2.3"
   },
   "devDependencies": {
