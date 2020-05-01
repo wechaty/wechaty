@@ -115,7 +115,7 @@ export interface WechatyOptions {
 }
 
 export interface WechatyPlugin {
-  (this: Wechaty): void;
+  (bot: Wechaty): void;
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'
@@ -156,7 +156,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   private static globalInstance: Wechaty
 
-  private static globalPlugins: WechatyPlugin[] = []
+  private static globalPluginList: WechatyPlugin[] = []
 
   private memory?: MemoryCard
 
@@ -230,7 +230,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public static use (
     ...plugins:  WechatyPlugin[]
   ) {
-    this.globalPlugins = this.globalPlugins.concat(plugins)
+    this.globalPluginList = this.globalPluginList.concat(plugins)
   }
 
   /**
@@ -567,12 +567,12 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    */
   public use (...plugins: WechatyPlugin[]) {
-    plugins.forEach(plugin => plugin.call(this))
+    plugins.forEach(plugin => plugin(this))
     return this
   }
 
   private installGloablPlugin () {
-    Wechaty.globalPlugins.forEach(plugin => plugin.call(this))
+    (this.constructor as typeof Wechaty).globalPluginList.forEach(plugin => plugin(this))
   }
 
   private addListenerModuleFile (event: WechatyEventName, modulePath: string): void {

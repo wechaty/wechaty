@@ -150,22 +150,27 @@ test('on(event, Function)', async t => {
 })
 
 test('use plugin', async (t) => {
+
+  // Do not modify the gloabl Wechaty instance
+  class MyWechatyTest extends Wechaty {}
+
   let result = ''
 
   const myGlobalPlugin = function () {
-    return function (this: Wechaty) {
-      this.on('message', () => (result += 'FROM_GLOBAL_PLUGIN:'))
+    return function (bot: Wechaty) {
+      bot.on('message', () => (result += 'FROM_GLOBAL_PLUGIN:'))
     }
   }
 
   const myPlugin = function () {
-    return function (this: Wechaty) {
-      this.on('message', () => (result += 'FROM_MY_PLUGIN:'))
+    return function (bot: Wechaty) {
+      bot.on('message', () => (result += 'FROM_MY_PLUGIN:'))
     }
   }
-  Wechaty.use(myGlobalPlugin())
 
-  const bot = new Wechaty({
+  MyWechatyTest.use(myGlobalPlugin())
+
+  const bot = new MyWechatyTest({
     puppet: new PuppetMock(),
   })
 
