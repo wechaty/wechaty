@@ -114,6 +114,10 @@ export interface WechatyOptions {
   ioToken?       : string,                    // Io TOKEN
 }
 
+export interface WechatyPlugin {
+  (bot: Wechaty): void;
+}
+
 const PUPPET_MEMORY_NAME = 'puppet'
 
 /**
@@ -151,6 +155,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @ignore
    */
   private static globalInstance: Wechaty
+
+  private static globalPluginList: WechatyPlugin[] = []
 
   private memory?: MemoryCard
 
@@ -200,6 +206,31 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.globalInstance = new Wechaty(options)
     }
     return this.globalInstance
+  }
+
+  /**
+   * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
+   *
+   * @return  {Wechaty}                      - this for chaining,
+   *
+   * @desc
+   * For wechaty ecosystem, allow user to define a 3rd party plugin for the all wechaty instances
+   *
+   * @example
+   * // Report all chat message to my server.
+   *
+   * function WechatyReportPlugin(options: { url: string }) {
+   *   return function (this: Wechaty) {
+   *     this.on('message', message => http.post(options.url, { data: message }))
+   *   }
+   * }
+   *
+   * bot.use(WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' })
+   */
+  public static use (
+    ...plugins:  WechatyPlugin[]
+  ) {
+    this.globalPluginList = this.globalPluginList.concat(plugins)
   }
 
   /**
@@ -282,6 +313,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     // No need to set puppet/wechaty, so do not clone
     this.UrlLink        = UrlLink
     this.MiniProgram    = MiniProgram
+
+    this.installGloablPlugin()
   }
 
   /**
@@ -519,6 +552,27 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.addListenerModuleFile(event, listener)
     }
     return this
+  }
+
+  /**
+   * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
+   *
+   * @return  {Wechaty}                      - this for chaining,
+   *
+   * @desc
+   * For wechaty ecosystem, allow user to define a 3rd party plugin for the current wechaty instance.
+   *
+   * @example
+   * // The same usage with Wechaty.use().
+   *
+   */
+  public use (...plugins: WechatyPlugin[]) {
+    plugins.forEach(plugin => plugin(this))
+    return this
+  }
+
+  private installGloablPlugin () {
+    (this.constructor as typeof Wechaty).globalPluginList.forEach(plugin => plugin(this))
   }
 
   private addListenerModuleFile (event: WechatyEventName, modulePath: string): void {
