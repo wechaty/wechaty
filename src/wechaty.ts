@@ -862,7 +862,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * // do other stuff with bot here
    */
   public async start (): Promise<void> {
-    log.info('Wechaty', '<%s>(%s) start() v%s is starting...',
+    log.verbose('Wechaty', '<%s>(%s) start() v%s is starting...',
       this.options.puppet || config.systemPuppetName(),
       this.options.name   || '',
       this.version(),
@@ -940,7 +940,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * await bot.stop()
    */
   public async stop (): Promise<void> {
-    log.info('Wechaty', '<%s> stop() v%s is stoping ...',
+    log.verbose('Wechaty', '<%s> stop() v%s is stoping ...',
       this.options.puppet || config.systemPuppetName(),
       this.version(),
     )
