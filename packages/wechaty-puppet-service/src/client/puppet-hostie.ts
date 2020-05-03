@@ -1074,7 +1074,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async roomMemberList (roomId: string) : Promise<string[]> {
-    log.verbose('PuppetHostie', 'roommemberList(%s)', roomId)
+    log.verbose('PuppetHostie', 'roomMemberList(%s)', roomId)
 
     const request = new RoomMemberListRequest()
     request.setId(roomId)
