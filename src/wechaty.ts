@@ -149,6 +149,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public  readonly state      : StateSwitch
   private readonly readyState : StateSwitch
+  public  readonly wechaty    : Wechaty
 
   /**
    * singleton globalInstance
@@ -291,6 +292,8 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     this.state      = new StateSwitch('Wechaty', { log })
     this.readyState = new StateSwitch('WechatyReady', { log })
+
+    this.wechaty = this
 
     /**
       * @ignore
