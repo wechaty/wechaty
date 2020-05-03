@@ -1,3 +1,4 @@
+import { Wechaty } from './wechaty'
 import {
   Contact,
   Message,
@@ -10,8 +11,10 @@ export interface Sayable {
     text     : string,
     replyTo? : Contact | Contact[]
   ): Promise<void | Message>
+  wechaty: Wechaty,
 }
 
 export interface Acceptable {
   accept: () => Promise<void>
+  wechaty: Wechaty
 }

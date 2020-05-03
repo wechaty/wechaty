@@ -45,3 +45,6 @@ export {
 }                         from './deprecated'
 
 export { IoClient }   from './io-client'
+export {
+  Sayable,
+}                   from './types'
