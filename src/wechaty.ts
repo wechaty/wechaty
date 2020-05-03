@@ -570,7 +570,10 @@ export class Wechaty extends EventEmitter implements Sayable {
     for (const plugin of plugins) {
       try {
         const future = plugin(this)
-        if (future) {
+        /**
+         * We check `future.catch` at here is to prevent some plugin that return something other than `void`(undefined)
+         */
+        if (future && typeof future.catch === 'function') {
           future.catch(e => {
             log.error('Wechaty', 'use(%s) rejection: %s',
               plugin.name,
