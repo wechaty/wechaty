@@ -114,9 +114,7 @@ export interface WechatyOptions {
   ioToken?       : string,                    // Io TOKEN
 }
 
-export interface WechatyPlugin {
-  (bot: Wechaty): void
-}
+export type WechatyPlugin = (bot: Wechaty) => void | Promise<void>
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
@@ -567,7 +565,28 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    */
   public use (...plugins: WechatyPlugin[]) {
-    plugins.forEach(plugin => plugin(this))
+    log.verbose('Wechaty', 'use(%s)', plugins.map(plugin => plugin.name).join(','))
+
+    for (const plugin of plugins) {
+      try {
+        const future = plugin(this)
+        if (future) {
+          future.catch(e => {
+            log.error('Wechaty', 'use(%s) rejection: %s',
+              plugin.name,
+              (e && e.message) || e,
+            )
+            this.emit('error', e)
+          })
+        }
+      } catch (e) {
+        log.error('Wechaty', 'use(%s) exception: %s',
+          plugin.name,
+          (e && e.message) || e,
+        )
+        this.emit('error', e)
+      }
+    }
     return this
   }
 
