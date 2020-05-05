@@ -93,8 +93,8 @@ import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
 export const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'Should be emitted after we call `Wechaty.ding()`',
-  error     : "Will be emit when there's an Error occurred.",
-  heartbeat : 'Will be emited periodly after the Wechaty started. If not, means that the Wechaty had died.',
+  error     : "Will be emitted when there's an Error occurred.",
+  heartbeat : 'Will be emitted periodically after the Wechaty started. If not, means that the Wechaty had died.',
   ready     : 'All underlined data source are ready for use.',
   start     : 'Will be emitted after the Wechaty had been started.',
   stop      : 'Will be emitted after the Wechaty had been stopped.',
@@ -280,10 +280,10 @@ export class Wechaty extends EventEmitter implements Sayable {
     private options: WechatyOptions = {},
   ) {
     super()
-    log.verbose('Wechaty', 'contructor()')
+    log.verbose('Wechaty', 'constructor()')
 
     if (!options.name && options.profile) {
-      log.verbose('Wechaty', 'constuctor() WechatyOptions.profile DEPRECATED. use WechatyOptions.name instead.')
+      log.verbose('Wechaty', 'constructor() WechatyOptions.profile DEPRECATED. use WechatyOptions.name instead.')
       options.name = options.profile
     }
     this.memory = this.options.memory
@@ -317,7 +317,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.UrlLink        = UrlLink
     this.MiniProgram    = MiniProgram
 
-    this.installGloablPlugin()
+    this.installGlobalPlugin()
   }
 
   /**
@@ -337,7 +337,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * Wechaty bot name set by `optoins.name`
+   * Wechaty bot name set by `options.name`
    * default: `wechaty`
    */
   public name () {
@@ -420,7 +420,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * <ul>
    * <li>0 initial_</li>
    * <li>200 login confirmed</li>
-   * <li>201 scaned, wait for confirm</li>
+   * <li>201 scanned, wait for confirm</li>
    * <li>408 waits for scan</li>
    * </ul>
    * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
@@ -490,7 +490,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *     const contact = friendship.contact()
    *     let result = await friendship.accept()
    *       if(result){
-   *         console.log(`Request from ${contact.name()} is accept succesfully!`)
+   *         console.log(`Request from ${contact.name()} is accept successfully!`)
    *       } else{
    *         console.log(`Request from ${contact.name()} failed to accept!`)
    *       }
@@ -574,7 +574,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this
   }
 
-  private installGloablPlugin () {
+  private installGlobalPlugin () {
     (this.constructor as typeof Wechaty).globalPluginList.forEach(plugin => plugin(this))
   }
 
@@ -943,7 +943,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * await bot.stop()
    */
   public async stop (): Promise<void> {
-    log.verbose('Wechaty', '<%s> stop() v%s is stoping ...',
+    log.verbose('Wechaty', '<%s> stop() v%s is stopping ...',
       this.options.puppet || config.systemPuppetName(),
       this.version(),
     )
