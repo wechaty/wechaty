@@ -123,11 +123,11 @@ const PUPPET_MEMORY_NAME = 'puppet'
 /**
  * Main bot class.
  *
- * A `Bot` is a wechat client depends on which puppet you use.
+ * A `Bot` is a WeChat client depends on which puppet you use.
  * It may equals
- * - web-wechat, when you use: [puppet-puppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u)
- * - ipad-wechat, when you use: [puppet-padchat](https://github.com/wechaty/wechaty-puppet-padchat)
- * - ios-wechat, when you use: puppet-ioscat
+ * - web-WeChat, when you use: [puppet-puppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u)
+ * - ipad-WeChat, when you use: [puppet-padchat](https://github.com/wechaty/wechaty-puppet-padchat)
+ * - ios-WeChat, when you use: puppet-ioscat
  *
  * See more:
  * - [What is a Puppet in Wechaty](https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
@@ -138,8 +138,8 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
  * const { Wechaty } = require('wechaty')
  * const bot = new Wechaty()
- * bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
- * bot.on('login',   user => console.log(`User ${user} logined`))
+ * bot.on('scan',    (qrCode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
+ * bot.on('login',   user => console.log(`User ${user} logged in`))
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
@@ -193,7 +193,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * Wechaty.instance() // Global instance
    * .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
-   * .on('login',       user => console.log(`User ${user} logined`))
+   * .on('login',       user => console.log(`User ${user} logged in`))
    * .on('message',  message => console.log(`Message: ${message}`))
    * .start()
    */
@@ -201,7 +201,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     options?: WechatyOptions,
   ) {
     if (options && this.globalInstance) {
-      throw new Error('instance can be only inited once by options!')
+      throw new Error('instance can be only initialized once by options!')
     }
     if (!this.globalInstance) {
       this.globalInstance = new Wechaty(options)
@@ -236,7 +236,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * The term [Puppet](https://github.com/wechaty/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
-   * The plugins are the component that helps Wechaty to control the Wechat(that's the reason we call it puppet).
+   * The plugins are the component that helps Wechaty to control the WeChat(that's the reason we call it puppet).
    * The plugins are named XXXPuppet, for example:
    * - [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer):
    * - [PuppetPadchat](https://github.com/wechaty/wechaty-puppet-padchat)
@@ -247,7 +247,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @property   {string}  wechaty-puppet-wechat4u
    * The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
    * @property   {string}  wechaty-puppet-padchat
-   * - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad Wechat program.
+   * - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad WeChat program.
    * @property   {string}  wechaty-puppet-puppeteer
    * - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
    * @property   {string}  wechaty-puppet-mock
@@ -262,8 +262,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    *          When you set this: </br>
    *          `new Wechaty({name: 'wechaty-name'}) ` </br>
    *          it will generate a file called `wechaty-name.memory-card.json`. </br>
-   *          This file stores the bot's login information. </br>
-   *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
+   *          This file stores the login information for bot. </br>
+   *          If the file is valid, the bot can auto login so you don't need to scan the qrCode to login again. </br>
    *          Also, you can set the environment variable for `WECHATY_NAME` to set this value when you start. </br>
    *          eg:  `WECHATY_NAME="your-cute-bot-name" node bot.js`
    * @property   {PuppetModuleName | Puppet}    puppet             -Puppet name or instance
@@ -391,16 +391,16 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @desc       Wechaty Class Event Type
    * @typedef    WechatyEventName
    * @property   {string}  error       - When the bot get error, there will be a Wechaty error event fired.
-   * @property   {string}  login       - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
+   * @property   {string}  login       - After the bot login full successful, the event login will be emitted, with a Contact of current logged in user.
    * @property   {string}  logout      - Logout will be emitted when bot detected log out, with a Contact of the current login user.
-   * @property   {string}  heartbeat   - Get bot's heartbeat.
+   * @property   {string}  heartbeat   - Get heartbeat of the bot.
    * @property   {string}  friendship  - When someone sends you a friend request, there will be a Wechaty friendship event fired.
    * @property   {string}  message     - Emit when there's a new message.
    * @property   {string}  ready       - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
    * @property   {string}  room-join   - Emit when anyone join any room.
    * @property   {string}  room-topic  - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave  - Emit when anyone leave the room.<br>
-   *                                   - If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
+   *                                   - If someone leaves the room by themselves, WeChat will not notice other people in the room, so the bot will never get the "leave" event.
    * @property   {string}  room-invite - Emit when there is a room invitation, see more in  {@link RoomInvitation}
    * @property   {string}  scan        - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
    *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
@@ -626,10 +626,10 @@ export class Wechaty extends EventEmitter implements Sayable {
   private async initPuppet (): Promise<void> {
     log.verbose('Wechaty', 'initPuppet() %s', this.options.puppet || '')
 
-    const inited = !!this.puppet
+    const initialized = !!this.puppet
 
-    if (inited) {
-      log.verbose('Wechaty', 'initPuppet(%s) had already been inited, no need to init twice', this.options.puppet)
+    if (initialized) {
+      log.verbose('Wechaty', 'initPuppet(%s) had already been initialized, no need to init twice', this.options.puppet)
       return
     }
 
@@ -858,7 +858,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * @returns {Promise<void>}
    * @description
-   * When you start the bot, bot will begin to login, need you wechat scan qrcode to login
+   * When you start the bot, bot will begin to login, need you WeChat scan qrcode to login
    * > Tips: All the bot operation needs to be triggered after start() is done
    * @example
    * await bot.start()
@@ -1018,9 +1018,9 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @returns {boolean}
    * @example
    * if (bot.logonoff()) {
-   *   console.log('Bot logined')
+   *   console.log('Bot logged in')
    * } else {
-   *   console.log('Bot not logined')
+   *   console.log('Bot not logged in')
    * }
    */
   public logonoff (): boolean {
