@@ -44,8 +44,8 @@ def setup() -> None:
         long_description_content_type='text/markdown',
         license='Apache-2.0',
         url='https://github.com/chatie/grpc',
-        packages=setuptools.find_packages('chatie-grpc'),
-        package_dir={'': 'chatie-grpc'},
+        packages=setuptools.find_packages("src"),
+        package_dir={'': 'src'},
         classifiers=[
             'Programming Language :: Python :: 3.7',
             'License :: OSI Approved :: Apache Software License',

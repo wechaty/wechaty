@@ -8,9 +8,9 @@ shopt -s globstar
 #
 
 # Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./chatie-grpc"
+OUT_DIR="./src/chatie-grpc"
 [ -d ${OUT_DIR} ] || {
-  mkdir ${OUT_DIR}
+  mkdir -p ${OUT_DIR}
 }
 
 ./merge-proto.sh > "$OUT_DIR/chatie-grpc.proto"
