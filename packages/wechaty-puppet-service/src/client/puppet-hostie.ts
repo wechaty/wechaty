@@ -572,7 +572,7 @@ export class PuppetHostie extends Puppet {
       request.setFilebox(fileboxWrapper)
 
       await util.promisify(
-        this.grpcClient!.contactSelfQRCode.bind(this.grpcClient)
+        this.grpcClient!.contactAvatar.bind(this.grpcClient)
       )(request)
 
       return
@@ -585,11 +585,17 @@ export class PuppetHostie extends Puppet {
     request.setId(contactId)
 
     const response = await util.promisify(
-      this.grpcClient!.contactSelfQRCode.bind(this.grpcClient)
+      this.grpcClient!.contactAvatar.bind(this.grpcClient)
     )(request)
 
-    const qrcode = response.getQrcode()
-    return FileBox.fromQRCode(qrcode)
+    const textWrapper = response.getFilebox()
+
+    if (!textWrapper) {
+      throw new Error('can not get textWrapper')
+    }
+
+    const jsonText = textWrapper.getValue()
+    return FileBox.fromJSON(jsonText)
   }
 
   public async contactRawPayload (id: string): Promise<ContactPayload> {
