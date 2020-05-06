@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.25.4",
+  "version": "0.25.5",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -57,7 +57,7 @@
     "clone-class": "^0.6.19",
     "file-box": "^0.12.4",
     "hot-import": "^0.2.1",
-    "memory-card": "^0.6.7",
+    "memory-card": "^0.6.21",
     "normalize-package-data": "^2.4.0",
     "quick-lru": "^3.0.0",
     "read-pkg-up": "^5.0.0",
