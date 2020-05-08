@@ -8,7 +8,7 @@ shopt -s globstar
 #
 
 # Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./src/chatie-grpc"
+OUT_DIR="./src/chatie_grpc"
 [ -d ${OUT_DIR} ] || {
   mkdir -p ${OUT_DIR}
 }
