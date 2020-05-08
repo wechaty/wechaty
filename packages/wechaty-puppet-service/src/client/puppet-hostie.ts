@@ -1266,8 +1266,10 @@ export class PuppetHostie extends Puppet {
     )(request)
 
     const payload: FriendshipPayload = {
-      scene    : response.getScene() as number,
-      stranger : response.getStranger(),
+      id,
+      contactId : response.getContactId(),
+      scene     : response.getScene() as number,
+      stranger  : response.getStranger(),
       ticket    : response.getTicket(),
       type      : response.getType() as number,
     } as any  // FIXME: Huan(202002)
