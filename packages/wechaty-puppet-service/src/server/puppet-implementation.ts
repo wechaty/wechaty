@@ -356,7 +356,7 @@ export function puppetImplementation (
 
         const response = new FriendshipPayloadResponse()
 
-        response.setContactId(payload.id)
+        response.setContactId(payload.contactId)
         response.setHello(payload.hello || '')
         response.setId(payload.id)
         response.setScene(payloadReceive.scene || FriendshipSceneType.Unknown)
