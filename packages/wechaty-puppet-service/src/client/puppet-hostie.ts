@@ -116,7 +116,7 @@ export class PuppetHostie extends Puppet {
   private grpcClient?  : PuppetClient
   private eventStream? : grpc.ClientReadableStream<EventResponse>
 
-  // Emit the last heartbeat if there's no more coming after HEATRTBEAT_DEBOUNCE_TIME seconds
+  // Emit the last heartbeat if there's no more coming after HEARTBEAT_DEBOUNCE_TIME seconds
   // private heartbeatDebounceQueue: DebounceQueue
 
   /**
@@ -135,10 +135,6 @@ export class PuppetHostie extends Puppet {
     super(options)
     options.endpoint = options.endpoint || WECHATY_PUPPET_HOSTIE_ENDPOINT
     options.token    = options.token    || WECHATY_PUPPET_HOSTIE_TOKEN
-
-    if (!options.token) {
-      throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
-    }
 
     // this.heartbeatDebounceQueue = new DebounceQueue(HEARTBEAT_DEBOUNCE_TIME * 1000)
 
@@ -236,6 +232,10 @@ export class PuppetHostie extends Puppet {
 
   public async start (): Promise<void> {
     log.verbose('PuppetHostie', `start()`)
+
+    if (!this.options.token) {
+      throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
+    }
 
     if (this.state.on()) {
       log.warn('PuppetHostie', 'start() is called on a ON puppet. await ready(on) and return.')
