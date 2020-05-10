@@ -96,13 +96,13 @@ export class PuppetMock extends Puppet {
 
     this.emit('scan', { qrcode: 'https://not-exist.com', status: 0 })
 
-    this.id = 'logined_user_id'
+    this.id = 'login_user_id'
     // const user = this.Contact.load(this.id)
     this.emit('login', { contactId: this.id })
 
     let counter = 0
     const sendMockMessage = () => {
-      const MOCK_MSG_ID = 'mockid' + counter++
+      const MOCK_MSG_ID = 'mock_id' + counter++
 
       this.cacheMessagePayload.set(MOCK_MSG_ID, {
         fromId        : 'xxx',
