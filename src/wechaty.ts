@@ -585,7 +585,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     hotImport(absoluteFilename)
       .then((func: AnyFunction) => super.on(event, (...args: any[]) => {
         try {
-          func.apply(this, args)
+          return func.apply(this, args)
         } catch (e) {
           log.error('Wechaty', 'addListenerModuleFile(%s, %s) listener exception: %s',
             event, modulePath, e,
@@ -610,15 +610,22 @@ export class Wechaty extends EventEmitter implements Sayable {
   private addListenerFunction (event: WechatyEventName, listener: AnyFunction): void {
     log.verbose('Wechaty', 'addListenerFunction(%s)', event)
 
+    const handleError = (e: Error, type = '') => {
+      log.error('Wechaty', 'addListenerFunction(%s) listener %sexception: %s', event, type ? '' : (type + ''), e)
+      this.emit('error', e)
+    }
+
     /**
      * We use `super.on()` at here to prevent loop
      */
     super.on(event, (...args: any[]) => {
       try {
-        listener.apply(this, args)
+        const rst = listener.apply(this, args)
+        if (rst && rst.catch && typeof rst.catch === 'function') {
+          rst.catch((e: Error) => handleError(e, 'async'))
+        }
       } catch (e) {
-        log.error('Wechaty', 'addListenerFunction(%s) listener exception: %s', event, e)
-        this.emit('error', e)
+        handleError(e)
       }
     })
   }
