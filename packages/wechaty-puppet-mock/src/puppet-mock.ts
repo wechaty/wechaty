@@ -18,6 +18,8 @@
  */
 import path  from 'path'
 
+import cuid from 'cuid'
+
 import {
   ContactGender,
   ContactPayload,
@@ -100,18 +102,35 @@ export class PuppetMock extends Puppet {
     // const user = this.Contact.load(this.id)
     this.emit('login', { contactId: this.id })
 
-    let counter = 0
     const sendMockMessage = () => {
-      const MOCK_MSG_ID = 'mock_id' + counter++
+      const MOCK_MSG_ID = cuid()
+      const MOCK_FROM_ID = cuid()
+      const MOCK_TO_ID = cuid()
 
       this.cacheMessagePayload.set(MOCK_MSG_ID, {
-        fromId        : 'xxx',
+        fromId        : MOCK_FROM_ID,
         id            : MOCK_MSG_ID,
         mentionIdList : [],
         text          : 'mock text',
         timestamp     : Date.now(),
-        toId          : 'xxx',
+        toId          : MOCK_TO_ID,
         type          : MessageType.Text,
+      })
+
+      this.cacheContactPayload.set(MOCK_FROM_ID, {
+        avatar : 'avatar',
+        gender : ContactGender.Male,
+        id     : MOCK_FROM_ID,
+        name   : 'from name',
+        type   : ContactType.Individual,
+      })
+
+      this.cacheContactPayload.set(MOCK_TO_ID, {
+        avatar : 'avatar',
+        gender : ContactGender.Male,
+        id     : MOCK_TO_ID,
+        name   : 'to name',
+        type   : ContactType.Individual,
       })
 
       log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
@@ -328,12 +347,12 @@ export class PuppetMock extends Puppet {
   public async messageRawPayloadParser (rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
     log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
-      fromId        : 'xxx',
+      fromId        : rawPayload.from,
       id            : rawPayload.id,
       mentionIdList : [],
-      text          : 'mock message text',
+      text          : rawPayload.text,
       timestamp     : Date.now(),
-      toId          : this.selfId(),
+      toId          : rawPayload.to,
       type          : MessageType.Text,
     }
     return payload
@@ -482,23 +501,23 @@ export class PuppetMock extends Puppet {
   }
 
   public async roomMemberList (roomId: string) : Promise<string[]> {
-    log.verbose('PuppetMock', 'roommemberList(%s)', roomId)
+    log.verbose('PuppetMock', 'roomMemberList(%s)', roomId)
     return []
   }
 
-  public async roomMemberRawPayload (roomId: string, contactId: string): Promise<any>  {
+  public async roomMemberRawPayload (roomId: string, contactId: string): Promise<RoomMemberPayload>  {
     log.verbose('PuppetMock', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
-    return {}
-  }
-
-  public async roomMemberRawPayloadParser (rawPayload: any): Promise<RoomMemberPayload>  {
-    log.verbose('PuppetMock', 'roomMemberRawPayloadParser(%s)', rawPayload)
     return {
       avatar    : 'mock-avatar-data',
       id        : 'xx',
       name      : 'mock-name',
       roomAlias : 'yy',
     }
+  }
+
+  public async roomMemberRawPayloadParser (rawPayload: RoomMemberPayload): Promise<RoomMemberPayload>  {
+    log.verbose('PuppetMock', 'roomMemberRawPayloadParser(%s)', rawPayload)
+    return rawPayload
   }
 
   public async roomAnnounce (roomId: string)                : Promise<string>
