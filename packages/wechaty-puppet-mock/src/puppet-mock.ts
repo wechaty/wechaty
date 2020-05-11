@@ -115,8 +115,8 @@ export class PuppetMock extends Puppet {
       this.cacheContactPayload.set(fromContactPayload.id, fromContactPayload)
 
       const messagePayload = getMessagePayload({
-        fromId: userPayload.id,
-        toId: userPayload.id,
+        fromId : fromContactPayload.id,
+        toId   : userPayload.id,
       })
 
       this.cacheMessagePayload.set(messagePayload.id, messagePayload)
