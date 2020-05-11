@@ -100,7 +100,7 @@ export class PuppetMock extends Puppet {
     this.state.on(true)
 
     await new Promise(resolve => setTimeout(resolve, 100))
-    this.emit('scan', { qrcode: 'https://not-exist.com', status: 0 })
+    this.emit('scan', { qrcode: 'https://github.com/wechaty/wechaty-puppet-mock', status: 0 })
 
     const userPayload = getFakeContactPayload()
     this.cacheContactPayload.set(userPayload.id, userPayload)
@@ -154,7 +154,7 @@ export class PuppetMock extends Puppet {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', { contactId: this.id, data: 'test' }) // becore we will throw above by logonoff() when this.user===undefined
+    this.emit('logout', { contactId: this.id, data: 'test' }) // before we will throw above by logonoff() when this.user===undefined
     this.id = undefined
 
     // TODO: do the logout job
@@ -162,7 +162,7 @@ export class PuppetMock extends Puppet {
 
   public ding (data?: string): void {
     log.silly('PuppetMock', 'ding(%s)', data || '')
-    this.emit('dong', { data: data || '' })
+    setTimeout(() => this.emit('dong', { data: data || '' }), 1000)
   }
 
   public unref (): void {
