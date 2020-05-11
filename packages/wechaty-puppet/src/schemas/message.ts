@@ -80,11 +80,6 @@ export enum WechatMessageType {
 /** @hidden */
 export interface MessagePayloadBase {
   id            : string,
-
-  // use message id to get rawPayload to get those informations when needed
-  // contactId?    : string,        // Contact ShareCard
-  mentionIdList?: string[],     // Mentioned Contacts' Ids
-
   filename?     : string,
   text?         : string,
   timestamp     : number,       // Huan(202001): we support both seconds & milliseconds in Wechaty now.
@@ -94,8 +89,9 @@ export interface MessagePayloadBase {
 /** @hidden */
 export interface MessagePayloadRoom {
   fromId?       : string,
+  mentionIdList?: string[],   // Mentioned Contacts' Ids
   roomId        : string,
-  toId?         : string,   // if to is not set, then room must be set
+  toId?         : string,     // if to is not set, then room must be set
 }
 /** @hidden */
 export interface MessagePayloadTo {
