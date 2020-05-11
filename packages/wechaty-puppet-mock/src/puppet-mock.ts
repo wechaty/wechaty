@@ -18,8 +18,6 @@
  */
 import path  from 'path'
 
-import cuid from 'cuid'
-
 import {
   ContactGender,
   ContactPayload,
@@ -51,6 +49,11 @@ import {
   qrCodeForChatie,
   VERSION,
 }                                   from './config'
+
+import {
+  getFakeContactPayload,
+  getMessagePayload,
+}                             from './data'
 
 export interface MockContactRawPayload {
   id   : string,
@@ -96,45 +99,30 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
+    await new Promise(resolve => setTimeout(resolve, 100))
     this.emit('scan', { qrcode: 'https://not-exist.com', status: 0 })
 
-    this.id = 'login_user_id'
-    // const user = this.Contact.load(this.id)
+    const userPayload = getFakeContactPayload()
+    this.cacheContactPayload.set(userPayload.id, userPayload)
+
+    this.id = userPayload.id
+
+    await new Promise(resolve => setTimeout(resolve, 1000))
     this.emit('login', { contactId: this.id })
 
     const sendMockMessage = () => {
-      const MOCK_MSG_ID = cuid()
-      const MOCK_FROM_ID = cuid()
-      const MOCK_TO_ID = cuid()
+      const fromContactPayload = getFakeContactPayload()
+      this.cacheContactPayload.set(fromContactPayload.id, fromContactPayload)
 
-      this.cacheMessagePayload.set(MOCK_MSG_ID, {
-        fromId        : MOCK_FROM_ID,
-        id            : MOCK_MSG_ID,
-        mentionIdList : [],
-        text          : 'mock text',
-        timestamp     : Date.now(),
-        toId          : MOCK_TO_ID,
-        type          : MessageType.Text,
+      const messagePayload = getMessagePayload({
+        fromId: userPayload.id,
+        toId: userPayload.id,
       })
 
-      this.cacheContactPayload.set(MOCK_FROM_ID, {
-        avatar : 'avatar',
-        gender : ContactGender.Male,
-        id     : MOCK_FROM_ID,
-        name   : 'from name',
-        type   : ContactType.Individual,
-      })
+      this.cacheMessagePayload.set(messagePayload.id, messagePayload)
 
-      this.cacheContactPayload.set(MOCK_TO_ID, {
-        avatar : 'avatar',
-        gender : ContactGender.Male,
-        id     : MOCK_TO_ID,
-        name   : 'to name',
-        type   : ContactType.Individual,
-      })
-
-      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
-      this.emit('message', { messageId: MOCK_MSG_ID })
+      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${messagePayload.id}`)
+      this.emit('message', { messageId: messagePayload.id })
     }
 
     this.loopTimer = setInterval(sendMockMessage, 5000)
