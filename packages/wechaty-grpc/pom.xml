@@ -2,10 +2,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <groupId>io.github.wechaty</groupId>
-  <version>0.11.25-SANPSHOT</version>
+  <version>0.11.25</version>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>grpc</artifactId>
   <packaging>jar</packaging>
+  <name>wechaty-grpc</name>
 
   <description>
     Wechaty is a Wechat Bot SDK for Personal Account that lets you create software to extend the functionality of the
@@ -21,6 +22,32 @@
     </contributor>
   </contributors>
 
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Zhengxin Diao</name>
+      <email>diaozxin@gmail.com</email>
+    </developer>
+  </developers>
+
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
   <scm>
     <url>https://github.com/Chatie/grpc</url>
     <connection>scm:git:ssh://github.com/Chatie/grpc.git</connection>
@@ -35,6 +62,7 @@
     <grpc.version>1.25.0</grpc.version>
     <grpc.kotlin.version>0.1.1</grpc.kotlin.version>
     <protobuf.version>3.11.4</protobuf.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
@@ -114,7 +142,8 @@
             </goals>
             <configuration>
               <pluginId>grpc-java</pluginId>
-              <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+              <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
+              </pluginArtifact>
               <protoSourceRoot>${basedir}/proto/wechaty</protoSourceRoot>
             </configuration>
           </execution>
@@ -126,7 +155,8 @@
             </goals>
             <configuration>
               <pluginId>grpc-kotlin</pluginId>
-              <pluginArtifact>io.grpc:protoc-gen-grpc-kotlin:${grpc.kotlin.version}:exe:${os.detected.classifier}</pluginArtifact>
+              <pluginArtifact>io.grpc:protoc-gen-grpc-kotlin:${grpc.kotlin.version}:exe:${os.detected.classifier}
+              </pluginArtifact>
               <protoSourceRoot>${basedir}/proto/wechaty</protoSourceRoot>
             </configuration>
           </execution>
@@ -206,7 +236,56 @@
           <execution>
             <id>copy-dependencies</id>
             <phase>package</phase>
-            <goals><goal>copy-dependencies</goal></goals>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+            <configuration>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Javadoc -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

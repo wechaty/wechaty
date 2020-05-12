@@ -29,6 +29,21 @@ gRPC for Chatie
 
 [https://mvnrepository.com/artifact/io.github.wechaty/grpc](https://mvnrepository.com/artifact/io.github.wechaty/grpc)
 
+Maven:
+```xml
+<dependency>
+    <groupId>io.github.wechaty</groupId>
+    <version>0.11.25</version>
+    <artifactId>grpc</artifactId>
+</dependency>
+```
+
+Gradle:
+```groovy
+compile 'io.github.wechaty:grpc:0.11.25'
+```
+
+
 ## Debug
 
 - [GUI Client for GRPC Services](https://github.com/uw-labs/bloomrpc) - BloomRPC aim to give the simplest and efficient developer experience for exploring and querying your GRPC services.(Inspired by Postman and GraphQL Playground)
