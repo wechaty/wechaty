@@ -99,6 +99,7 @@ import {
   VERSION,
   WECHATY_PUPPET_HOSTIE_TOKEN,
   WECHATY_PUPPET_HOSTIE_ENDPOINT,
+  GRPC_LIMITATION,
 }                                   from '../config'
 
 import {
@@ -215,7 +216,8 @@ export class PuppetHostie extends Puppet {
 
     this.grpcClient = new PuppetClient(
       endpoint, // 'localhost:50051',
-      grpc.credentials.createInsecure()
+      grpc.credentials.createInsecure(),
+      GRPC_LIMITATION,
     )
   }
 
