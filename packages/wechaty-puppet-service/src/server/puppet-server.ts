@@ -12,6 +12,7 @@ import {
 import {
   log,
   VERSION,
+  GRPC_LIMITATION,
 }                     from '../config'
 
 import {
@@ -54,7 +55,7 @@ export class PuppetServer {
       this.options.puppet,
     )
 
-    this.grpcServer = new grpc.Server()
+    this.grpcServer = new grpc.Server(GRPC_LIMITATION)
     this.grpcServer.addService(
       PuppetService,
       puppetImpl,
