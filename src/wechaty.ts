@@ -611,7 +611,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     log.verbose('Wechaty', 'addListenerFunction(%s)', event)
 
     const handleError = (e: Error, type = '') => {
-      log.error('Wechaty', 'addListenerFunction(%s) listener %sexception: %s', event, type ? '' : (type + ''), e)
+      log.error('Wechaty', 'addListenerFunction(%s) listener %sexception: %s', event, type, e)
       this.emit('error', e)
     }
 
@@ -620,9 +620,9 @@ export class Wechaty extends EventEmitter implements Sayable {
      */
     super.on(event, (...args: any[]) => {
       try {
-        const rst = listener.apply(this, args)
-        if (rst && rst.catch && typeof rst.catch === 'function') {
-          rst.catch((e: Error) => handleError(e, 'async'))
+        const result = listener.apply(this, args)
+        if (result && result.catch && typeof result.catch === 'function') {
+          result.catch((e: Error) => handleError(e, 'async'))
         }
       } catch (e) {
         handleError(e)
