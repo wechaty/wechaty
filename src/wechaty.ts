@@ -858,6 +858,14 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.Tag.puppet            = puppet
 
     this.puppet = puppet
+
+    /**
+     * Private Event
+     *  emit puppet when set
+     *
+     * Huan(202005)
+     */
+    ;(this.emit as any)('puppet', puppet)
   }
 
   /**
