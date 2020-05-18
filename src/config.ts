@@ -86,9 +86,13 @@ if (logLevel) {
 if (log.level() === 'verbose' || log.level() === 'silly') {
   log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
 
-  process.on('unhandledRejection', (reason, promise) => {
+  /**
+   * Refer to https://nodejs.org/api/process.html#process_event_unhandledrejection
+   * the reason is in type: Error | any
+   */
+  process.on('unhandledRejection', (reason: Error | any, promise) => {
     log.error('Config', '###########################')
-    log.error('Config', 'unhandledRejection: %s %s', reason, promise)
+    log.error('Config', 'unhandledRejection: %s %s', reason.stack || reason, promise)
     log.error('Config', '###########################')
     promise.catch(err => {
       log.error('Config', 'process.on(unhandledRejection) promise.catch(%s)', err.message)
@@ -100,7 +104,7 @@ if (log.level() === 'verbose' || log.level() === 'silly') {
     const origin = arguments[1] // to compatible with node 12 or below version typings
 
     log.error('Config', '###########################')
-    log.error('Config', 'uncaughtException: %s %s', error, origin)
+    log.error('Config', 'uncaughtException: %s %s', error.stack, origin)
     log.error('Config', '###########################')
   })
 }
