@@ -26,11 +26,12 @@ import {
 export type AnyFunction = (...args: any[]) => any
 
 export interface Sayable {
+  id      : string,
+  wechaty : Wechaty,
   say (
     text     : string,
     replyTo? : Contact | Contact[]
   ): Promise<void | Message>
-  wechaty: Wechaty,
 }
 
 export interface Acceptable {

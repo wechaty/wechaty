@@ -150,6 +150,42 @@ test('on(event, Function)', async t => {
 
 })
 
+test('test async error', async (t) => {
+
+  // Do not modify the gloabl Wechaty instance
+  class MyWechatyTest extends Wechaty {}
+
+  const EXPECTED_ERROR = new Error('test')
+
+  const bot = new MyWechatyTest({
+    puppet: new PuppetMock(),
+  })
+
+  const asyncErrorFunction = function () {
+    return new Promise((resolve, reject) => {
+      setTimeout(function () {
+        reject(EXPECTED_ERROR)
+      }, 100)
+      // tslint ask resolve must be called,
+      // so write a fasly value, so that it never called
+      if (+new Date() < 0) {
+        resolve()
+      }
+    })
+  }
+
+  bot.on('message', async () => {
+    await asyncErrorFunction()
+  })
+  bot.on('error', (e) => {
+    t.ok(e.message === EXPECTED_ERROR.message)
+  })
+
+  bot.emit('message', {} as any)
+
+  await bot.stop()
+})
+
 test('use plugin', async (t) => {
 
   // Do not modify the gloabl Wechaty instance

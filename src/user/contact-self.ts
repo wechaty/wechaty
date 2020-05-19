@@ -24,7 +24,7 @@ import {
 
 import {
   guardQrCodeValue,
-}                       from '../helper-functions/pure/guard-qrcode-value'
+}                       from '../helper-functions/pure/guard-qr-code-value'
 
 import {
   Contact,
