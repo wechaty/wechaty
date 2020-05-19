@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- *   Wechaty - https://github.com/wechaty/wechaty
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
