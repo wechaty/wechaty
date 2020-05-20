@@ -77,7 +77,7 @@ service Puppet {
   rpc FriendshipSearchWeixin (puppet.FriendshipSearchWeixinRequest) returns (puppet.FriendshipSearchWeixinResponse) {}
 
   rpc FriendshipAdd (puppet.FriendshipAddRequest) returns (puppet.FriendshipAddResponse) {}
-  rpc FrendshipAccept (puppet.FriendshipAcceptRequest) returns (puppet.FriendshipAcceptResponse) {}
+  rpc FriendshipAccept (puppet.FriendshipAcceptRequest) returns (puppet.FriendshipAcceptResponse) {}
 
   /**
    *

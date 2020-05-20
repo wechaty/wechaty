@@ -61,7 +61,7 @@ export const puppetServerImpl: IPuppetServer = {
 
   },
 
-  frendshipAccept: (call, callback) => {
+  friendshipAccept: (call, callback) => {
     void call
     void callback
     throw new Error('not implmented.')
