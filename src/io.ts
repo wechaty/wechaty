@@ -44,7 +44,6 @@ export interface IoOptions {
   token:      string,
   apihost?:   string,
   protocol?:  string,
-  hostiePort: number,
 }
 
 export const IO_EVENT_DICT = {
@@ -348,7 +347,7 @@ export class Io {
             name    : 'port',
             payload : {
               asyncId,
-              port: this.options.hostiePort,
+              port: parseInt(process.env.WECHATY_HOSTIE_PORT || '0'),
             },
           }
           await this.send(portEvent)
