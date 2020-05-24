@@ -23,8 +23,9 @@ DOCS_INDEX_MD=docs/index.md
 cat <<_EOF_ > "$DOCS_INDEX_MD"
 # Wechaty v$(jq -r .version package.json) Documentation
 
-- Blog - <https://blog.chatie.io>
-- Docs - <https://wechaty.github.io/wechaty/>
+- Blog - <https://wechaty.github.io>
+- API References - <https://wechaty.github.io/wechaty/>
+- Docs Site - <https://wechaty.js.org>
 
 _EOF_
 

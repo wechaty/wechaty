@@ -1,7 +1,8 @@
 # Wechaty v0.37.7 Documentation
 
-- Blog - <https://blog.chatie.io>
-- Docs - <https://wechaty.github.io/wechaty/>
+- Blog - <https://wechaty.github.io>
+- API References - <https://wechaty.github.io/wechaty/>
+- Docs Site - <https://wechaty.js.org>
 
 ## Classes
 
