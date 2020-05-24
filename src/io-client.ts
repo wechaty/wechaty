@@ -63,7 +63,11 @@ export class IoClient {
     options: IoClientOptions,
   ) {
     log.verbose('IoClient', 'constructor({%s})',
-      JSON.stringify(options),
+      Object.keys(options)
+        .map(key => {
+          return `${key}:${(options as any)[key]}`
+        })
+        .reduce((acc, cur) => `${acc}, ${cur}`)
     )
 
     const normalizedOptions = {
