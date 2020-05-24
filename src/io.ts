@@ -44,6 +44,7 @@ export interface IoOptions {
   token:      string,
   apihost?:   string,
   protocol?:  string,
+  hostiePort: number,
 }
 
 export const IO_EVENT_DICT = {
@@ -53,6 +54,7 @@ export const IO_EVENT_DICT = {
   login     : 'tbw',
   logout    : 'tbw',
   message   : 'tbw',
+  port : 'tbw',
   raw       : 'tbw',
   reset     : 'tbw',
   scan      : 'tbw',
@@ -68,12 +70,20 @@ interface IoEventScan {
   payload : EventScanPayload,
 }
 
+interface IoEventPort {
+  name: 'port',
+  payload: {
+    asyncId: string,
+    port: number,
+  },
+}
+
 interface IoEventAny {
   name:     IoEventName,
   payload:  any,
 }
 
-type IoEvent = IoEventScan | IoEventAny
+type IoEvent = IoEventScan | IoEventPort | IoEventAny
 
 export class Io {
 
@@ -325,6 +335,27 @@ export class Io {
       case 'logout':
         log.info('Io', 'on(logout): %s', ioEvent.payload)
         await this.options.wechaty.logout()
+        break
+
+      case 'port':
+        log.info('Io', 'on(port): %s', ioEvent.payload)
+
+        try {
+          const payload = (ioEvent as IoEventPort).payload
+          const asyncId = payload.asyncId
+
+          const portEvent: IoEventPort = {
+            name    : 'port',
+            payload : {
+              asyncId,
+              port: this.options.hostiePort,
+            },
+          }
+          await this.send(portEvent)
+        } catch (e) {
+          log.error('Io', 'on(hostiePort): %s', e)
+        }
+
         break
 
       default:

@@ -24,7 +24,10 @@ import {
   log,
 }               from '../src/config'
 
-import { IoClient } from '../src/io-client'
+import {
+  IoClient,
+  IoClientOptions,
+}                   from '../src/io-client'
 import { Wechaty }  from '../src/wechaty'
 
 const welcome = `
@@ -56,10 +59,18 @@ async function main () {
 
   const wechaty = new Wechaty({ name: token })
 
-  const client = new IoClient({
+  const WECHATY_HOSTIE_PORT = 'WECHATY_HOSTIE_PORT'
+  const port = parseInt(process.env[WECHATY_HOSTIE_PORT] || '0')
+
+  const options: IoClientOptions = {
     token,
     wechaty,
-  })
+  }
+  if (port) {
+    options.port = port
+  }
+
+  const client = new IoClient(options)
 
   client.start()
     .catch(onError.bind(client))

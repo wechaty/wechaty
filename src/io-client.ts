@@ -39,6 +39,11 @@ import { Wechaty }      from './wechaty'
 export interface IoClientOptions {
   token   : string,
   wechaty : Wechaty,
+  port?: number
+}
+
+const DEFAULT_IO_CLIENT_OPTIONS: Partial<IoClientOptions> = {
+  port: 8788,
 }
 
 export class IoClient {
@@ -52,12 +57,21 @@ export class IoClient {
 
   private state: StateSwitch
 
+  protected options: Required<IoClientOptions>
+
   constructor (
-    public options: IoClientOptions,
+    options: IoClientOptions,
   ) {
-    log.verbose('IoClient', 'constructor({token: %s})',
-      options.token
+    log.verbose('IoClient', 'constructor({%s})',
+      JSON.stringify(options),
     )
+
+    const normalizedOptions = {
+      ...DEFAULT_IO_CLIENT_OPTIONS,
+      ...options,
+    } as Required<IoClientOptions>
+
+    this.options = normalizedOptions
 
     this.state = new StateSwitch('IoClient', { log })
   }
@@ -70,7 +84,7 @@ export class IoClient {
     }
 
     const options: PuppetServerOptions = {
-      endpoint : '0.0.0.0:8788',
+      endpoint : '0.0.0.0:' + this.options.port,
       puppet   : this.options.wechaty.puppet,
       token    : this.options.token,
     }
@@ -148,8 +162,9 @@ export class IoClient {
     }
 
     this.io = new Io({
-      token   : this.options.token,
-      wechaty : this.options.wechaty,
+      hostiePort : this.options.port,
+      token      : this.options.token,
+      wechaty    : this.options.wechaty,
     })
 
     try {
