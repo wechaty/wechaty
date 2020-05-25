@@ -14,10 +14,10 @@ import   Peer, {
 
 // type UnknownJsonRpcPayload = Partial<UnionToIntersection<JsonRpcPayload>>
 
-const isJsonRpcRequest      = (payload: JsonRpcPayload): payload is JsonRpcPayloadRequest      => payload.type === 'request'
-const isJsonRpcNotification = (payload: JsonRpcPayload): payload is JsonRpcPayloadNotification => payload.type === 'notification'
-const isJsonRpcResponse     = (payload: JsonRpcPayload): payload is JsonRpcPayloadResponse     => payload.type === 'response'
-const isJsonRpcError        = (payload: JsonRpcPayload): payload is JsonRpcPayloadError        => payload.type === 'error'
+const isJsonRpcRequest      = (payload: JsonRpcPayload): payload is JsonRpcPayloadRequest      => ('method' in payload)
+const isJsonRpcNotification = (payload: JsonRpcPayload): payload is JsonRpcPayloadNotification => isJsonRpcRequest(payload) && (!('id' in payload))
+const isJsonRpcResponse     = (payload: JsonRpcPayload): payload is JsonRpcPayloadResponse     => ('result' in payload)
+const isJsonRpcError        = (payload: JsonRpcPayload): payload is JsonRpcPayloadError        => ('error' in payload)
 
 interface IoPeerOptions {
   hostieGrpcPort: number,
