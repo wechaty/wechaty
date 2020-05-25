@@ -28,6 +28,12 @@ import {
   EventScanPayload,
 }                         from 'wechaty-puppet'
 
+import Peer, {
+  JsonRpcPayload,
+  JsonRpcPayloadResponse,
+  parse,
+}                         from 'json-rpc-peer'
+
 import {
   config,
   log,
@@ -39,21 +45,27 @@ import {
   Wechaty,
 }                 from './wechaty'
 
+import {
+  getPeer,
+  isJsonRpcRequest,
+}                   from './io-peer/io-peer'
+
 export interface IoOptions {
   wechaty:    Wechaty,
   token:      string,
   apihost?:   string,
   protocol?:  string,
+  hostiePort?:number,
 }
 
 export const IO_EVENT_DICT = {
   botie     : 'tbw',
   error     : 'tbw',
   heartbeat : 'tbw',
+  jsonrpc   : 'JSON RPC',
   login     : 'tbw',
   logout    : 'tbw',
   message   : 'tbw',
-  port : 'tbw',
   raw       : 'tbw',
   reset     : 'tbw',
   scan      : 'tbw',
@@ -69,12 +81,9 @@ interface IoEventScan {
   payload : EventScanPayload,
 }
 
-interface IoEventPort {
-  name: 'port',
-  payload: {
-    asyncId: string,
-    port: number,
-  },
+interface IoEventJsonRpc {
+  name: 'jsonrpc',
+  payload: JsonRpcPayload,
 }
 
 interface IoEventAny {
@@ -82,7 +91,7 @@ interface IoEventAny {
   payload:  any,
 }
 
-type IoEvent = IoEventScan | IoEventPort | IoEventAny
+type IoEvent = IoEventScan | IoEventJsonRpc | IoEventAny
 
 export class Io {
 
@@ -102,6 +111,8 @@ export class Io {
 
   private scanPayload?: EventScanPayload
 
+  protected jsonRpc?: Peer
+
   constructor (
     private options: IoOptions,
   ) {
@@ -117,6 +128,13 @@ export class Io {
       options.protocol,
       this.id,
     )
+
+    if (options.hostiePort) {
+      this.jsonRpc = getPeer({
+        hostieGrpcPort: this.options.hostiePort!,
+      })
+    }
+
   }
 
   public toString () {
@@ -336,23 +354,37 @@ export class Io {
         await this.options.wechaty.logout()
         break
 
-      case 'port':
-        log.info('Io', 'on(port): %s', ioEvent.payload)
+      case 'jsonrpc':
+        log.info('Io', 'on(jsonrpc): %s', ioEvent.payload)
 
         try {
-          const payload = (ioEvent as IoEventPort).payload
-          const asyncId = payload.asyncId
-
-          const portEvent: IoEventPort = {
-            name    : 'port',
-            payload : {
-              asyncId,
-              port: parseInt(process.env.WECHATY_HOSTIE_PORT || '0'),
-            },
+          const request = (ioEvent as IoEventJsonRpc).payload
+          if (!isJsonRpcRequest(request)) {
+            log.warn('Io', 'on(jsonrpc) payload is not a jsonrpc request: %s', JSON.stringify(request))
+            return
           }
-          await this.send(portEvent)
+
+          if (!this.jsonRpc) {
+            throw new Error('jsonRpc not initialized!')
+          }
+
+          const response = await this.jsonRpc.exec(request)
+          if (!response) {
+            log.warn('Io', 'on(jsonrpc) response is undefined.')
+            return
+          }
+          const payload = parse(response) as JsonRpcPayloadResponse
+
+          const jsonrpcEvent: IoEventJsonRpc = {
+            name: 'jsonrpc',
+            payload,
+          }
+
+          log.verbose('Io', 'on(jsonrpc) send(%s)', response)
+          await this.send(jsonrpcEvent)
+
         } catch (e) {
-          log.error('Io', 'on(hostiePort): %s', e)
+          log.error('Io', 'on(jsonrpc): %s', e)
         }
 
         break

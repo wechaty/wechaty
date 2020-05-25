@@ -166,6 +166,7 @@ export class IoClient {
     }
 
     this.io = new Io({
+      hostiePort : this.options.port,
       token      : this.options.token,
       wechaty    : this.options.wechaty,
     })

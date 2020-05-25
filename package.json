@@ -88,6 +88,7 @@
     "cuid": "^2.1.8",
     "hot-import": "^0.2.14",
     "in-gfw": "^1.2.0",
+    "json-rpc-peer": "^0.15.5",
     "npm-programmatic": "0.0.12",
     "open-graph": "^0.2.4",
     "opencollective": "^1.0.3",

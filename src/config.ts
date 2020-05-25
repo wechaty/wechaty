@@ -18,6 +18,7 @@
  *
  */
 /// <reference path="./typings.d.ts" />
+/// <reference path="./io-peer/json-rpc-peer.d.ts" />
 
 import os    from 'os'
 
