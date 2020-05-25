@@ -1,7 +1,7 @@
 import util from 'util'
 
 import grpc from 'grpc'
-import WebSocket from 'ws'
+import https from 'https'
 
 // import { DebounceQueue } from 'rx-queue'
 
@@ -154,51 +154,29 @@ export class PuppetHostie extends Puppet {
 
   private async discoverHostieIp (
     token: string,
-  ): Promise<string> {
+  ): Promise<{ ip: string, port: number }> {
     log.verbose('PuppetHostie', `discoverHostieIp(%s)`, token)
 
-    // let DEBUG = true as boolean
-    // if (DEBUG) {
-    //   return '127.0.0.1'
-    // }
+    const CHATIE_ENDPOINT = 'https://api.chatie.io/v0/hosties/'
 
-    const CHATIE_ENDPOINT = 'wss://api.chatie.io/v0/websocket/token/'
-    const PROTOCOL = 'puppet-hostie|0.0.1'
+    const url = CHATIE_ENDPOINT + token
 
-    const ws = new WebSocket(
-      CHATIE_ENDPOINT + token,
-      PROTOCOL,
-    )
+    const { ip, port } = await new Promise((resolve, reject) => {
 
-    try {
-      return await new Promise<string>((resolve, reject) => {
-
-        ws.once('open', function open () {
-          ws.send(
-            JSON.stringify(
-              {
-                name: 'hostie',
-              },
-            ),
-          )
+      https.get(url, function (res) {
+        let body = ''
+        res.on('data', function (chunk) {
+          body += chunk
         })
-
-        ws.on('message', function incoming (data: string) {
-          const event = JSON.parse(data)
-          if (event.name === 'hostie') {
-            log.verbose('PuppetHostie', `discoverHostieIp() %s`, event.payload)
-            return resolve(event.payload)
-          } else {
-            // console.info('other:', event)
-          }
+        res.on('end', function () {
+          resolve(JSON.parse(body))
         })
-
-        ws.once('error', reject)
-        ws.once('close', reject)
+      }).on('error', function (e) {
+        reject(e)
       })
-    } finally {
-      ws.close()
-    }
+    })
+
+    return { ip, port }
   }
 
   protected async startGrpcClient (): Promise<void> {
@@ -210,11 +188,11 @@ export class PuppetHostie extends Puppet {
 
     let endpoint = this.options.endpoint
     if (!endpoint) {
-      const ip = await this.discoverHostieIp(this.options.token!)
+      const { ip, port } = await this.discoverHostieIp(this.options.token!)
       if (!ip || ip === '0.0.0.0') {
         throw new Error('no endpoint')
       }
-      endpoint = ip + ':8788'
+      endpoint = ip + ':' + port
     }
 
     this.grpcClient = new PuppetClient(
