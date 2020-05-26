@@ -40,7 +40,10 @@ Answer:
 Give a clear and concise description of what the bug is.
 
 ## 3. To Reproduce
+
 This part is very important: if you can not provide any reproduce steps, then the problem will be very hard to be recognized.
+
+**[How to create a Minimal, Reproducible Example](https://stackoverflow.com/help/minimal-reproducible-example)**
 
 Steps to reproduce the behavior:
 1. run '...'
