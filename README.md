@@ -10,7 +10,7 @@
 
 ## Connecting Chatbots
 
-Wechaty is a Bot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
+Wechaty is a Conversational AI RPA Chatbot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
 
 :octocat: <https://github.com/Wechaty/wechaty>  
 :beetle: <https://github.com/Wechaty/wechaty/issues>  
