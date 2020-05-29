@@ -33,6 +33,9 @@ Wechaty is a Conversational AI RPA Chatbot SDK for Wechat **Individual** Account
 >
 > "If you know js ... try Wechaty, it's easy to use."  
 > &mdash; <cite>@Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)</cite>
+>
+> "Wechaty is a good project, I hope it can continue! Therefore, I became a contributors in open collective."  
+> &mdash; <cite>[@Simple](https://github.com/mrwhh)</cite>
 
 See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
 
