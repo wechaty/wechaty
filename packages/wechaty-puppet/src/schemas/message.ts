@@ -79,7 +79,6 @@ export interface MessagePayloadBase {
 
   // use message id to get rawPayload to get those information when needed
   // contactId?    : string,        // Contact ShareCard
-  mentionIdList : string[],     // Mentioned Contacts' Ids
 
   filename?     : string,
   text?         : string,
