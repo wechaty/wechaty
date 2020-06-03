@@ -1,0 +1,91 @@
+name: NPM
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [13]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Test
+        run: npm test
+
+  pack:
+    name: Pack
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 13
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Version
+        run: ./scripts/generate-version.sh
+
+      - name: Pack Testing
+        run: ./scripts/npm-pack-testing.sh
+        env:
+          WECHATY_PUPPET_HOSTIE_TOKEN: ${{ secrets.WECHATY_PUPPET_HOSTIE_TOKEN }}
+
+  publish:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
+    name: Publish
+    needs: [build, pack]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 13
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Version
+        run: ./scripts/generate-version.sh
+
+      - name: Set Publish Config
+        run: ./scripts/package-publish-config-tag.sh
+
+      - name: Build Dist
+        run: npm run dist
+
+      - name: Check Branch
+        id: check-branch
+        run: |
+          if [[ ${{ github.ref }} =~ ^refs/heads/(master|v[0-9]+\.[0-9]+.*)$ ]]; then
+              echo ::set-output name=match::true
+          fi  # See: https://stackoverflow.com/a/58869470/1123955
+      - name: Is A Publish Branch
+        if: steps.check-branch.outputs.match == 'true'
+        run: |
+          NAME=$(npx pkg-jq -r .name)
+          VERSION=$(npx pkg-jq -r .version)
+          if npx version-exists "$NAME" "$VERSION"
+          then echo "$NAME@$VERSION exists on NPM, skipped."
+          else npm publish
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Is Not A Publish Branch
+        if: steps.check-branch.outputs.match != 'true'
+        run: echo 'Not A Publish Branch'

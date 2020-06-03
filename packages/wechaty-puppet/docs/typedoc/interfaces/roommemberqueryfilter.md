@@ -25,7 +25,7 @@
 **● contactAlias**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/room.ts:4](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L4)*
+*Defined in [src/schemas/room.ts:4](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L4)*
 
 ___
 <a id="name"></a>
@@ -35,7 +35,7 @@ ___
 **● name**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/room.ts:2](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L2)*
+*Defined in [src/schemas/room.ts:2](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L2)*
 
 ___
 <a id="roomalias"></a>
@@ -45,7 +45,7 @@ ___
 **● roomAlias**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/room.ts:3](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L3)*
+*Defined in [src/schemas/room.ts:3](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L3)*
 
 ___
 

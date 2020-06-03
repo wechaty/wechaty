@@ -24,7 +24,7 @@
 **● alias**: * `string` &#124; `RegExp`
 *
 
-*Defined in [src/schemas/contact.ts:15](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L15)*
+*Defined in [src/schemas/contact.ts:15](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L15)*
 
 ___
 <a id="name"></a>
@@ -34,7 +34,7 @@ ___
 **● name**: * `string` &#124; `RegExp`
 *
 
-*Defined in [src/schemas/contact.ts:14](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L14)*
+*Defined in [src/schemas/contact.ts:14](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L14)*
 
 ___
 

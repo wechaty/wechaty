@@ -4,10 +4,19 @@ export enum ContactGender {
   Female  = 2,
 }
 
+/**
+ * Huan(202004) TODO: Lock the ENUM number (like protobuf) ?
+ */
 export enum ContactType {
-  Unknown = 0,
-  Personal,
-  Official,
+  Unknown    = 0,
+  Individual = 1,
+  Official   = 2,
+
+  /**
+   * Huan(202004):
+   * @deprecated: use Individual instead
+   */
+  Personal = Individual,
 }
 
 export interface ContactQueryFilter {

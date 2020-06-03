@@ -23,7 +23,7 @@
 **● topic**: * `string` &#124; `RegExp`
 *
 
-*Defined in [src/schemas/room.ts:8](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L8)*
+*Defined in [src/schemas/room.ts:8](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L8)*
 
 ___
 

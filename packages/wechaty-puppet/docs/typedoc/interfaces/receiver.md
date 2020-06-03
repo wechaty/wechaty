@@ -24,7 +24,7 @@
 **● contactId**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/puppet.ts:78](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L78)*
+*Defined in [src/schemas/puppet.ts:78](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L78)*
 
 ___
 <a id="roomid"></a>
@@ -34,7 +34,7 @@ ___
 **● roomId**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/puppet.ts:79](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L79)*
+*Defined in [src/schemas/puppet.ts:79](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L79)*
 
 ___
 

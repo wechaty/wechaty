@@ -23,7 +23,7 @@
 
 **● inviterId**: *`string`*
 
-*Defined in [src/schemas/puppet.ts:21](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L21)*
+*Defined in [src/schemas/puppet.ts:21](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L21)*
 
 ___
 <a id="roomid"></a>
@@ -32,7 +32,7 @@ ___
 
 **● roomId**: *`string`*
 
-*Defined in [src/schemas/puppet.ts:22](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L22)*
+*Defined in [src/schemas/puppet.ts:22](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L22)*
 
 ___
 

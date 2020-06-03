@@ -25,7 +25,7 @@
 
 **Attachment**: 
 
-*Defined in [src/schemas/message.ts:3](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L3)*
+*Defined in [src/schemas/message.ts:3](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L3)*
 
 ___
 <a id="audio"></a>
@@ -34,7 +34,7 @@ ___
 
 **Audio**: 
 
-*Defined in [src/schemas/message.ts:4](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L4)*
+*Defined in [src/schemas/message.ts:4](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L4)*
 
 ___
 <a id="contact"></a>
@@ -43,7 +43,7 @@ ___
 
 **Contact**: 
 
-*Defined in [src/schemas/message.ts:5](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L5)*
+*Defined in [src/schemas/message.ts:5](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L5)*
 
 ___
 <a id="emoticon"></a>
@@ -52,7 +52,7 @@ ___
 
 **Emoticon**: 
 
-*Defined in [src/schemas/message.ts:6](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L6)*
+*Defined in [src/schemas/message.ts:6](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L6)*
 
 ___
 <a id="image"></a>
@@ -61,7 +61,7 @@ ___
 
 **Image**: 
 
-*Defined in [src/schemas/message.ts:7](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L7)*
+*Defined in [src/schemas/message.ts:7](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L7)*
 
 ___
 <a id="text"></a>
@@ -70,7 +70,7 @@ ___
 
 **Text**: 
 
-*Defined in [src/schemas/message.ts:8](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L8)*
+*Defined in [src/schemas/message.ts:8](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L8)*
 
 ___
 <a id="unknown"></a>
@@ -79,7 +79,7 @@ ___
 
 **Unknown**:  = 0
 
-*Defined in [src/schemas/message.ts:2](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L2)*
+*Defined in [src/schemas/message.ts:2](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L2)*
 
 ___
 <a id="video"></a>
@@ -88,7 +88,7 @@ ___
 
 **Video**: 
 
-*Defined in [src/schemas/message.ts:9](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L9)*
+*Defined in [src/schemas/message.ts:9](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/message.ts#L9)*
 
 ___
 

@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.17.21",
+  "version": "0.25.7",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -14,7 +14,7 @@
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
-    "lint:es": "eslint 'src/**/*.ts' 'tests/**/*.spec.ts' --ignore-pattern tests/fixtures/",
+    "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "blue-tape -r ts-node/register 'src/**/*.spec.ts' 'tests/**/*.spec.ts'",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Chatie/wechaty-puppet.git"
+    "url": "git+https://github.com/wechaty/wechaty-puppet.git"
   },
   "keywords": [
     "chatie",
@@ -35,9 +35,9 @@
   "author": "Huan LI <zixia@zixia.net>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Chatie/wechaty-puppet/issues"
+    "url": "https://github.com/wechaty/wechaty-puppet/issues"
   },
-  "homepage": "https://github.com/Chatie/wechaty-puppet#readme",
+  "homepage": "https://github.com/wechaty/wechaty-puppet#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^0.8.1",
     "@chatie/git-scripts": "^0.2.5",
@@ -46,29 +46,25 @@
     "@types/normalize-package-data": "^2.4.0",
     "@types/quick-lru": "^2.0.0",
     "@types/read-pkg-up": "^3.0.1",
-    "file-box": "^0.8.22",
-    "memory-card": "^0.6.7",
     "pkg-jq": "^0.2.2",
     "shx": "^0.3.1",
     "tstest": "^0.4.1",
     "typedoc": "^0.14.0",
     "typedoc-plugin-markdown": "^2.0.0"
   },
-  "peerDependencies": {
-    "memory-card": "^0.6.7",
-    "file-box": "^0.8.22"
-  },
   "dependencies": {
     "brolog": "^1.6.5",
     "clone-class": "^0.6.19",
+    "file-box": "^0.12.4",
     "hot-import": "^0.2.1",
+    "memory-card": "^0.7.0",
     "normalize-package-data": "^2.4.0",
     "quick-lru": "^3.0.0",
     "read-pkg-up": "^5.0.0",
     "rx-queue": "^0.8.1",
     "rxjs": "^6.2.1",
     "semver": "^6.0.0",
-    "state-switch": "^0.6.2",
+    "state-switch": "^0.9.7",
     "watchdog": "^0.8.12"
   },
   "git": {

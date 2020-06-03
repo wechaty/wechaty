@@ -5,13 +5,31 @@ export enum FriendshipType {
   Verify,
 }
 
+/**
+ * Huan(202002): Does those numbers are the underlying Wechat Protocol Data Values?
+ */
+export enum FriendshipSceneType {
+  Unknown  = 0,   // Huan(202003) added by myself
+  QQ       = 1,    // FIXME: Huan(202002) in Wechat PC, QQ = 12.
+  Email    = 2,
+  Weixin   = 3,
+  QQtbd    = 12,   // FIXME: confirm the two QQ number QQ号搜索
+  Room     = 14,
+  Phone    = 15,
+  Card     = 17,   // 名片分享
+  Location = 18,
+  Bottle   = 25,
+  Shaking  = 29,
+  QRCode   = 30,
+}
+
 /** @hidden */
 export interface FriendshipPayloadBase {
   id        : string,
 
   contactId : string,
   hello?    : string,
-  timestamp : number, // Unix Timestamp, in seconds
+  timestamp : number, // Unix Timestamp, in seconds or milliseconds
 }
 
 /** @hidden */
@@ -21,6 +39,7 @@ export type FriendshipPayloadConfirm = FriendshipPayloadBase & {
 
 /** @hidden */
 export type FriendshipPayloadReceive = FriendshipPayloadBase & {
+  scene?    : FriendshipSceneType,
   stranger? : string,
   ticket    : string,
   type      : FriendshipType.Receive,

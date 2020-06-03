@@ -27,7 +27,7 @@
 **● avatar**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/room.ts:15](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L15)*
+*Defined in [src/schemas/room.ts:15](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L15)*
 
 ___
 <a id="id"></a>
@@ -36,7 +36,7 @@ ___
 
 **● id**: *`string`*
 
-*Defined in [src/schemas/room.ts:12](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L12)*
+*Defined in [src/schemas/room.ts:12](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L12)*
 
 ___
 <a id="memberidlist"></a>
@@ -45,7 +45,7 @@ ___
 
 **● memberIdList**: *`string`[]*
 
-*Defined in [src/schemas/room.ts:16](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L16)*
+*Defined in [src/schemas/room.ts:16](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L16)*
 
 ___
 <a id="ownerid"></a>
@@ -55,7 +55,7 @@ ___
 **● ownerId**: * `undefined` &#124; `string`
 *
 
-*Defined in [src/schemas/room.ts:17](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L17)*
+*Defined in [src/schemas/room.ts:17](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L17)*
 
 ___
 <a id="topic"></a>
@@ -64,7 +64,7 @@ ___
 
 **● topic**: *`string`*
 
-*Defined in [src/schemas/room.ts:14](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L14)*
+*Defined in [src/schemas/room.ts:14](https://github.com/wechaty/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L14)*
 
 ___
 
