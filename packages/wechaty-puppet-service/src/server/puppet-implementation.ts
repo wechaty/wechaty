@@ -510,11 +510,16 @@ export function puppetImplementation (
 
         const payload = await puppet.messagePayload(id)
 
+        const mentionIdList = ('mentionIdList' in payload)
+          // Huan(202006) use `??` instead of `||` after eslint get fixed
+          ? payload.mentionIdList || []
+          : []
+
         const response = new MessagePayloadResponse()
         response.setFilename(payload.filename || '')
         response.setFromId(payload.fromId || '')
         response.setId(payload.id)
-        response.setMentionIdsList(payload.mentionIdList)
+        response.setMentionIdsList(mentionIdList)
         response.setRoomId(payload.roomId || '')
         response.setText(payload.text || '')
         response.setTimestamp(payload.timestamp)
