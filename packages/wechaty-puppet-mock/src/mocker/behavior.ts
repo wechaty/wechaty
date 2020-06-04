@@ -3,22 +3,23 @@ import { log } from '../config'
 import { Mocker } from './mocker'
 import { ScanStatus } from 'wechaty-puppet'
 
-export interface MockerBehavior {
-  (mocker: Mocker): () => void
-}
+type MockerBehaviorStop  = () => void
+type MockerBehaviorStart = (mocker: Mocker) => MockerBehaviorStop
+
+export type MockerBehavior = MockerBehaviorStart
 
 const SimpleBehavior: () => MockerBehavior = () => {
-  log.verbose('Mocker', 'SimpleBehavior()')
+  log.verbose('SimpleBehavior', '()')
 
-  const cleanupCallbackList = [] as (() => void)[]
-  const stopFn = () => {
-    log.verbose('Mocker', 'SimpleBehavior() SimpleBehaviorStop()')
-    cleanupCallbackList.forEach(fn => fn())
-    cleanupCallbackList.length = 0
-  }
+  return function SimpleBehaviorStart (mocker: Mocker): MockerBehaviorStop {
+    log.verbose('SimpleBehavior', 'SimpleBehaviorStart(%s)', mocker)
 
-  return function SimpleBehaviorStart (mocker: Mocker) {
-    log.verbose('Mocker', 'SimpleBehaviorStart(%s)', mocker)
+    let running = true
+
+    const SimpleBehaviorStop = () => {
+      log.verbose('SimpleBehavior', 'SimpleBehaviorStop()')
+      running = false
+    }
 
     async function main () {
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -31,20 +32,23 @@ const SimpleBehavior: () => MockerBehavior = () => {
       mocker.createContacts(4)
       mocker.createRooms(3)
 
-      const sendMockMessage = () => {
+      while (true) {
         const contact = mocker.randomContact()
         if (contact) {
           contact.say().to()
         }
-      }
 
-      const loopTimer = setInterval(sendMockMessage, 5000)
-      cleanupCallbackList.push(() => clearInterval(loopTimer))
+        await new Promise(resolve => setTimeout(resolve, 5000))
+
+        if (!running) {
+          break
+        }
+      }
     }
 
-    main().catch(e => log.error('Mocker', 'SimpleBehaviorStart() main() rejection: %s', e))
+    main().catch(e => log.error('SimpleBehavior', 'SimpleBehaviorStart() main() rejection: %s', e))
 
-    return stopFn
+    return SimpleBehaviorStop
   }
 }
 

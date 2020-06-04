@@ -83,6 +83,7 @@ class Mocker {
       log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
       fn()
     })
+    this.behaviorCleanupFnList.length = 0
   }
 
   randomContact (): undefined | MockContact {
@@ -226,7 +227,7 @@ class Mocker {
   contactPayload (id: string): ContactPayload
 
   contactPayload (id: string, payload?: ContactPayload): void | ContactPayload {
-    log.verbose('Mocker', 'contactPayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
+    log.silly('Mocker', 'contactPayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
 
     if (payload) {
       this.cacheContactPayload.set(id, payload)
@@ -244,7 +245,7 @@ class Mocker {
   roomPayload (id: string): RoomPayload
 
   roomPayload (id: string, payload?: RoomPayload): void | RoomPayload {
-    log.verbose('Mocker', 'roomPayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
+    log.silly('Mocker', 'roomPayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
 
     if (payload) {
       this.cacheRoomPayload.set(id, payload)
@@ -262,7 +263,7 @@ class Mocker {
   messagePayload (id: string): MessagePayload
 
   messagePayload (id: string, payload?: MessagePayload): void | MessagePayload {
-    log.verbose('Mocker', 'messagePayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
+    log.silly('Mocker', 'messagePayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
 
     if (payload) {
       this.cacheMessagePayload.set(id, payload)
