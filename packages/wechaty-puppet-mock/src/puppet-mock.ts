@@ -118,6 +118,11 @@ class PuppetMock extends Puppet {
     this.state.off(true)
   }
 
+  public login (contactId: string): Promise<void> {
+    log.verbose('PuppetMock', 'in()')
+    return super.login(contactId)
+  }
+
   public async logout (): Promise<void> {
     log.verbose('PuppetMock', 'logout()')
 
