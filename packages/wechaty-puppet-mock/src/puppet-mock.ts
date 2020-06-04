@@ -19,9 +19,7 @@
 import path  from 'path'
 
 import {
-  ContactGender,
   ContactPayload,
-  ContactType,
 
   FileBox,
 
@@ -30,7 +28,6 @@ import {
   ImageType,
 
   MessagePayload,
-  MessageType,
 
   Puppet,
   PuppetOptions,
@@ -41,6 +38,7 @@ import {
 
   UrlLinkPayload,
   MiniProgramPayload,
+  ScanStatus,
 }                           from 'wechaty-puppet'
 
 import {
@@ -50,29 +48,7 @@ import {
   VERSION,
 }                                   from './config'
 
-import {
-  getFakeContactPayload,
-  getMessagePayload,
-}                             from './data'
-
-export interface MockContactRawPayload {
-  id   : string,
-  name : string,
-}
-
-export interface MockMessageRawPayload {
-  id   : string,
-  from : string,
-  to   : string,
-  text : string
-}
-
-export interface MockRoomRawPayload {
-  id         : string,
-  topic      : string,
-  memberList : string[],
-  ownerId    : string,
-}
+import { Mocker } from './mocker'
 
 export class PuppetMock extends Puppet {
 
@@ -80,10 +56,13 @@ export class PuppetMock extends Puppet {
 
   private loopTimer?: NodeJS.Timer
 
+  public mocker: Mocker
+
   constructor (
     public options: PuppetOptions = {},
   ) {
     super(options)
+    this.mocker = new Mocker(this)
   }
 
   public async start (): Promise<void> {
@@ -99,30 +78,17 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    await new Promise(resolve => setTimeout(resolve, 100))
-    this.emit('scan', { qrcode: 'https://github.com/wechaty/wechaty-puppet-mock', status: 0 })
-
-    const userPayload = getFakeContactPayload()
-    this.cacheContactPayload.set(userPayload.id, userPayload)
-
-    this.id = userPayload.id
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    this.mocker.scan('https://github.com/wechaty/wechaty-puppet-mock', ScanStatus.Waiting)
 
     await new Promise(resolve => setTimeout(resolve, 1000))
-    this.emit('login', { contactId: this.id })
+
+    const user = this.mocker.createContact()
+    this.mocker.login(user)
 
     const sendMockMessage = () => {
-      const fromContactPayload = getFakeContactPayload()
-      this.cacheContactPayload.set(fromContactPayload.id, fromContactPayload)
-
-      const messagePayload = getMessagePayload({
-        fromId : fromContactPayload.id,
-        toId   : userPayload.id,
-      })
-
-      this.cacheMessagePayload.set(messagePayload.id, messagePayload)
-
-      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${messagePayload.id}`)
-      this.emit('message', { messageId: messagePayload.id })
+      const fromContact = this.mocker.createContact()
+      fromContact.say('hello user, Im mocker').to(user)
     }
 
     this.loopTimer = setInterval(sendMockMessage, 5000)
@@ -244,26 +210,10 @@ export class PuppetMock extends Puppet {
     return FileBox.fromFile(WECHATY_ICON_PNG)
   }
 
-  public async contactRawPayload (id: string): Promise<MockContactRawPayload> {
+  public async contactRawPayloadParser (payload: ContactPayload) { return payload }
+  public async contactRawPayload (id: string): Promise<ContactPayload> {
     log.verbose('PuppetMock', 'contactRawPayload(%s)', id)
-    const rawPayload: MockContactRawPayload = {
-      id,
-      name : 'mock name',
-    }
-    return rawPayload
-  }
-
-  public async contactRawPayloadParser (rawPayload: MockContactRawPayload): Promise<ContactPayload> {
-    log.verbose('PuppetMock', 'contactRawPayloadParser(%s)', rawPayload)
-
-    const payload: ContactPayload = {
-      avatar : 'mock-avatar-data',
-      gender : ContactGender.Unknown,
-      id     : rawPayload.id,
-      name   : rawPayload.name,
-      type   : ContactType.Unknown,
-    }
-    return payload
+    return this.mocker.contactPayload(id)
   }
 
   /**
@@ -321,29 +271,10 @@ export class PuppetMock extends Puppet {
     }
   }
 
-  public async messageRawPayload (id: string): Promise<MockMessageRawPayload> {
+  public async messageRawPayloadParser (payload: MessagePayload) { return payload }
+  public async messageRawPayload (id: string): Promise<MessagePayload> {
     log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
-    const rawPayload: MockMessageRawPayload = {
-      from : 'from_id',
-      id,
-      text : 'mock message text',
-      to   : 'to_id',
-    }
-    return rawPayload
-  }
-
-  public async messageRawPayloadParser (rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
-    log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
-    const payload: MessagePayload = {
-      fromId        : rawPayload.from,
-      id            : rawPayload.id,
-      mentionIdList : [],
-      text          : rawPayload.text,
-      timestamp     : Date.now(),
-      toId          : rawPayload.to,
-      type          : MessageType.Text,
-    }
-    return payload
+    return this.mocker.messagePayload(id)
   }
 
   public async messageSendText (
@@ -395,33 +326,10 @@ export class PuppetMock extends Puppet {
    * Room
    *
    */
-  public async roomRawPayload (
-    id: string,
-  ): Promise<MockRoomRawPayload> {
+  public async roomRawPayloadParser (payload: RoomPayload) { return payload }
+  public async roomRawPayload (id: string): Promise<RoomPayload> {
     log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
-
-    const rawPayload: MockRoomRawPayload = {
-      id,
-      memberList: [],
-      ownerId   : 'mock_room_owner_id',
-      topic     : 'mock topic',
-    }
-    return rawPayload
-  }
-
-  public async roomRawPayloadParser (
-    rawPayload: MockRoomRawPayload,
-  ): Promise<RoomPayload> {
-    log.verbose('PuppetMock', 'roomRawPayloadParser(%s)', rawPayload)
-
-    const payload: RoomPayload = {
-      adminIdList  : [],
-      id           : rawPayload.id,
-      memberIdList : [],
-      topic        : 'mock topic',
-    }
-
-    return payload
+    return this.mocker.roomPayload(id)
   }
 
   public async roomList (): Promise<string[]> {
