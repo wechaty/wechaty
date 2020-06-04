@@ -16,11 +16,16 @@
  *   limitations under the License.
  *
  */
-
-// tslint:disable:no-console
+import {
+  EventLogoutPayload,
+  EventLoginPayload,
+  EventScanPayload,
+  EventErrorPayload,
+  EventMessagePayload,
+}                         from 'wechaty-puppet'
 
 import { PuppetMock } from '../src/'
-import { EventLogoutPayload, EventLoginPayload, EventScanPayload, EventErrorPayload, EventMessagePayload } from 'wechaty-puppet'
+
 /**
  *
  * 1. Declare your Bot!

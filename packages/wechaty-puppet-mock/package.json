@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.21.10",
+  "version": "0.22.1",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
@@ -14,7 +14,7 @@
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc",
     "pack": "npm pack",
-    "start": "ts-node examples/example.ts",
+    "start": "ts-node examples/ding-dong-bot.ts",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
@@ -55,10 +55,10 @@
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "tstest": "^0.4.10",
-    "wechaty-puppet": "^0.25.1"
+    "wechaty-puppet": "^0.26.1"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^0.24.0"
+    "wechaty-puppet": "^0.26.1"
   },
   "dependencies": {
     "brolog": "^1.8.3",
