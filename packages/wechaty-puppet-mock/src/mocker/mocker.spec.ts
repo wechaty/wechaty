@@ -13,12 +13,11 @@ import {
   EventLoginPayload,
   EventMessagePayload,
   MessagePayload,
-  MessageType
+  MessageType,
 }                         from 'wechaty-puppet'
 
 class MockerTest extends Mocker {
 }
-
 
 function createFixture () {
   const mocker = new Mocker()
@@ -34,12 +33,12 @@ function createFixture () {
   })
 
   return {
+    mary,
+    mike,
     mocker,
     puppet,
     room,
     user,
-    mary,
-    mike,
   }
 }
 
@@ -70,8 +69,8 @@ test('Mocker.scan()', async t => {
 
   const QR_CODE = 'https://github.com/wechaty'
   const EXPECTED_PAYLOAD: EventScanPayload = {
-    status: ScanStatus.Waiting,
     qrcode: QR_CODE,
+    status: ScanStatus.Waiting,
   }
 
   const sandbox = sinon.createSandbox()
@@ -120,7 +119,7 @@ test('MockContact.say().to(contact)', async t => {
 
   const TEXT = 'Hello, contact!'
 
-  const future = new Promise<EventMessagePayload>(r => puppet.once('message', r))
+  const future = new Promise<EventMessagePayload>(resolve => puppet.once('message', resolve))
 
   await puppet.start()
   user.say(TEXT).to(mary)
@@ -154,7 +153,7 @@ test('MockContact.say().to(room)', async t => {
 
   const TEXT = 'Hello, room!'
 
-  const future = new Promise<EventMessagePayload>(r => puppet.once('message', r))
+  const future = new Promise<EventMessagePayload>(resolve => puppet.once('message', resolve))
 
   await puppet.start()
   user.say(TEXT).to(room)
@@ -164,9 +163,9 @@ test('MockContact.say().to(room)', async t => {
   const EXPECTED_PAYLOAD: MessagePayload = {
     fromId    : user.id,
     id        : messageId,
+    roomId    : room.id,
     text      : TEXT,
     timestamp : Date.now(),
-    roomId    : room.id,
     type      : MessageType.Text,
   }
 
