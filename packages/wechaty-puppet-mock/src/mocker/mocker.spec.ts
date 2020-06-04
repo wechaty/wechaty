@@ -51,6 +51,7 @@ test('Mocker restart without problem', async t => {
   try {
     for (let i = 0; i < 3; i++) {
       await mocker.start()
+      await mocker.puppet.logout()
       await mocker.stop()
       t.pass('start/stop-ed at #' + i)
     }
