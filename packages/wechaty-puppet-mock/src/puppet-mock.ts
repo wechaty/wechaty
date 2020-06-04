@@ -376,6 +376,8 @@ export class PuppetMock extends Puppet {
     if (typeof topic === 'undefined') {
       return 'mock room topic'
     }
+
+    await this.roomPayloadDirty(roomId)
   }
 
   public async roomCreate (
