@@ -106,7 +106,7 @@ class Mocker {
   }
 
   randomRoom (): undefined | MockRoom {
-    log.verbose('Mocker', 'randomRoom')
+    log.verbose('Mocker', 'randomRoom()')
 
     const roomIdList = [...this.cacheRoomPayload.keys()]
 

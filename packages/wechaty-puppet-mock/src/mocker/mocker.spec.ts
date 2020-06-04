@@ -45,9 +45,8 @@ function createFixture () {
 test('Mocker restart without problem', async t => {
   const mocker = new MockerTest()
   mocker.use(SimpleBehavior())
-  mocker.puppet = {
-    emit: (..._: any[]) => {},
-  } as any
+  const puppet = new PuppetMock({ mocker })
+  void puppet
 
   try {
     for (let i = 0; i < 3; i++) {
