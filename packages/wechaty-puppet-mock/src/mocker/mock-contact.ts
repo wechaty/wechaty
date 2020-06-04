@@ -1,13 +1,22 @@
 import cuid from 'cuid'
 
-import { log } from '../config'
+import {
+  MessagePayloadTo,
+  MessagePayloadBase,
+  MessageType,
+  MessagePayloadRoom,
+  MessagePayload,
+}                        from 'wechaty-puppet/dist/src/schemas/message'
 import { ContactPayload } from 'wechaty-puppet'
-import { Mocker } from './mocker'
-import { MockRoom } from './mock-room'
-import { MessagePayloadTo, MessagePayloadBase, MessageType, MessagePayloadRoom, MessagePayload } from 'wechaty-puppet/dist/src/schemas/message'
+
+import { log } from '../config'
+
+import { Mocker }           from './mocker'
+import { MockRoom }         from './mock-room'
+import { generateSentence } from './generator'
 
 interface To {
-  to: (conversation: MockContact | MockRoom) => void
+  to: (conversation?: MockContact | MockRoom) => void
 }
 
 class MockContact {
@@ -18,19 +27,26 @@ class MockContact {
     public mocker: Mocker,
     public payload: ContactPayload,
   ) {
-    log.verbose('MockContact', 'constructor(%s, %s)', mocker, JSON.stringify(payload))
+    log.silly('MockContact', 'constructor(%s, %s)', mocker, JSON.stringify(payload))
     this.mocker.contactPayload(payload.id, payload)
-
   }
 
-  say (text: string): To {
-    log.verbose('MockContact', 'say(%s)', text)
+  say (text?: string): To {
+    log.verbose('MockContact', 'say(%s)', text || '')
+
+    if (!text) {
+      text = generateSentence()
+    }
 
     const that = this
     return { to }
 
-    function to (conversation: MockContact | MockRoom) {
-      log.verbose('MockContact', 'say(%s).to(%s)', text, conversation.id)
+    function to (conversation?: MockContact | MockRoom) {
+      log.verbose('MockContact', 'say(%s).to(%s)', text || '', conversation?.id || '')
+
+      if (!conversation) {
+        conversation = that.mocker.randomConversation()
+      }
 
       const basePayload: MessagePayloadBase = {
         id        : cuid(),

@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.21.10",
+  "version": "0.22.0",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
@@ -55,10 +55,10 @@
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "tstest": "^0.4.10",
-    "wechaty-puppet": "^0.25.1"
+    "wechaty-puppet": "^0.26.1"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^0.24.0"
+    "wechaty-puppet": "^0.26.1"
   },
   "dependencies": {
     "brolog": "^1.8.3",

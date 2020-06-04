@@ -55,7 +55,6 @@ const generateRoomPayload = (...contactIdList: string[]): RoomPayload => {
 const generateMessagePayloadTo = (): MessagePayloadBase & MessagePayloadTo => ({
   fromId        : cuid(),
   id            : cuid(),
-  mentionIdList : [],
   text          : faker.lorem.sentence(),
   timestamp     : Date.now(),
   toId          : cuid(),
@@ -72,10 +71,13 @@ const generateMessagePayloadRoom = (): MessagePayloadBase & MessagePayloadRoom =
   type          : MessageType.Text,
 })
 
+const generateSentence = (): string => faker.lorem.sentence()
+
 export {
   generateContactPayload,
   generateImageFileBox,
-  generateMessagePayloadTo,
   generateMessagePayloadRoom,
+  generateMessagePayloadTo,
   generateRoomPayload,
+  generateSentence,
 }

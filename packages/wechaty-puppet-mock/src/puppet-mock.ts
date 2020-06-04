@@ -38,7 +38,6 @@ import {
 
   UrlLinkPayload,
   MiniProgramPayload,
-  ScanStatus,
 }                           from 'wechaty-puppet'
 
 import {
@@ -48,9 +47,16 @@ import {
   VERSION,
 }                                   from './config'
 
-import { Mocker } from './mocker'
+import {
+  Mocker,
+  SimpleBehavior,
+}                     from './mocker/'
 
-export class PuppetMock extends Puppet {
+export type PuppetMockOptions = PuppetOptions & {
+  mocker?: Mocker,
+}
+
+class PuppetMock extends Puppet {
 
   public static readonly VERSION = VERSION
 
@@ -59,10 +65,17 @@ export class PuppetMock extends Puppet {
   public mocker: Mocker
 
   constructor (
-    public options: PuppetOptions = {},
+    public options: PuppetMockOptions = {},
   ) {
     super(options)
-    this.mocker = new Mocker(this)
+
+    if (options.mocker) {
+      this.mocker = options.mocker
+    } else {
+      this.mocker = new Mocker()
+      this.mocker.use(SimpleBehavior())
+    }
+    this.mocker.puppet = this
   }
 
   public async start (): Promise<void> {
@@ -75,23 +88,10 @@ export class PuppetMock extends Puppet {
     }
 
     this.state.on('pending')
-    // await some tasks...
+
+    this.mocker.start()
+
     this.state.on(true)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    this.mocker.scan('https://github.com/wechaty/wechaty-puppet-mock', ScanStatus.Waiting)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    const user = this.mocker.createContact()
-    this.mocker.login(user)
-
-    const sendMockMessage = () => {
-      const fromContact = this.mocker.createContact()
-      fromContact.say('hello user, Im mocker').to(user)
-    }
-
-    this.loopTimer = setInterval(sendMockMessage, 5000)
   }
 
   public async stop (): Promise<void> {
@@ -108,6 +108,8 @@ export class PuppetMock extends Puppet {
     if (this.loopTimer) {
       clearInterval(this.loopTimer)
     }
+
+    this.mocker.stop()
 
     // await some tasks...
     this.state.off(true)
@@ -519,4 +521,5 @@ export class PuppetMock extends Puppet {
 
 }
 
+export { PuppetMock }
 export default PuppetMock

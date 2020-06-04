@@ -28,6 +28,32 @@ const puppet  = new PuppetMock({ memory: new MemoryCard() })
 const wechaty = new Wechaty({ puppet })
 ```
 
+## API Reference
+
+### Mocker
+
+```ts
+import { Wechaty }  from 'wechaty'
+import { Mocker, PuppetMock }   from 'wechaty-puppet-mock'
+
+const mocker = new Mocker()
+const puppet = new PuppetMock({ mocker })
+const bot = new Wechaty({ puppet })
+
+await bot.start()
+
+mocker.scan('https://github.com/wechaty', 1)
+
+const user = mocker.createContact()
+mocker.login(user)
+
+const contact = mocker.createContact()
+const room = mocker.createRoom()
+
+user.say('Hello').to(contact)
+contact.say('World').to(user)
+```
+
 ## HELPER UTILITIES
 
 ### StateSwitch
@@ -56,6 +82,20 @@ const config = await memory.get('config')
 console.log(config)
 // Output: { id: 1, key: 'xxx' }
 ```
+
+## HISTORY
+
+### master
+
+### v0.22 (Jun 4, 2020)
+
+`Mocker` Realeased. `Mocker` is a manager for controlling the behavior of the Puppet activities.
+
+### v0.0.1 (Jun 27, 2018)
+
+Initial version.
+
+`PuppetMock` is a skelton Puppet without do anything, it will make testing easy when developing Wechaty
 
 ## AUTHOR
 

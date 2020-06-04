@@ -11,7 +11,7 @@ import { Mocker } from './mocker'
 import { MockContact } from './mock-contact'
 
 interface By {
-  by: (contact: MockContact) => void
+  by: (contact?: MockContact) => void
 }
 
 class MockRoom {
@@ -22,7 +22,7 @@ class MockRoom {
     public mocker: Mocker,
     public payload: RoomPayload,
   ) {
-    log.verbose('MockRoom', 'constructor(%s, %s)', mocker, JSON.stringify(payload))
+    log.silly('MockRoom', 'constructor(%s, %s)', mocker, JSON.stringify(payload))
     this.mocker.roomPayload(payload.id, payload)
   }
 
@@ -32,8 +32,16 @@ class MockRoom {
     const that = this
     return { by }
 
-    function by (contact: MockContact) {
-      log.verbose('MockRoom', 'topic(%s).by(%s)', text, contact.id)
+    function by (contact?: MockContact) {
+      log.verbose('MockRoom', 'topic(%s).by(%s)', text, contact?.id || '')
+
+      if (!contact) {
+        contact = that.mocker.randomContact()
+        if (!contact) {
+          throw new Error('no contact found by mocker')
+        }
+      }
+
       const payload: EventRoomTopicPayload = {
         changerId : contact.id,
         newTopic  : text,
@@ -52,8 +60,16 @@ class MockRoom {
     const that = this
     return { by }
 
-    function by (inviter: MockContact) {
-      log.verbose('MockRoom', 'add(%s).by(%s)', inviteeList.map(i => i.id).join(','), inviter.id)
+    function by (inviter?: MockContact) {
+      log.verbose('MockRoom', 'add(%s).by(%s)', inviteeList.map(i => i.id).join(','), inviter?.id || '')
+
+      if (!inviter) {
+        inviter = that.mocker.randomContact()
+        if (!inviter) {
+          throw new Error('no contact found by mocker')
+        }
+      }
+
       that.payload.memberIdList.push(...inviteeList.map(i => i.id))
       const payload: EventRoomJoinPayload = {
         inviteeIdList : inviteeList.map(i => i.id),
@@ -72,8 +88,15 @@ class MockRoom {
     const that = this
     return { by }
 
-    function by (remover: MockContact) {
-      log.verbose('MockRoom', 'remove(%s).by(%s)', removeeList.map(i => i.id).join(','), remover.id)
+    function by (remover?: MockContact) {
+      log.verbose('MockRoom', 'remove(%s).by(%s)', removeeList.map(i => i.id).join(','), remover?.id || '')
+
+      if (!remover) {
+        remover = that.mocker.randomContact()
+        if (!remover) {
+          throw new Error('no contact found by mocker')
+        }
+      }
 
       for (const removee of removeeList) {
         const index = that.payload.memberIdList.indexOf(removee.id)

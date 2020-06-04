@@ -1,3 +1,4 @@
+import cuid from 'cuid'
 import {
   Puppet,
   ContactPayload,
@@ -14,21 +15,139 @@ import {
   generateContactPayload,
   generateRoomPayload,
 }                           from './generator'
+import { MockerBehavior } from './behavior'
 
 class Mocker {
 
-  protected cacheContactPayload : Map<string, ContactPayload>
-  protected cacheRoomPayload    : Map<string, RoomPayload>
-  protected cacheMessagePayload : Map<string, MessagePayload>
+  id: string
 
-  constructor (
-    public puppet: Puppet,
-  ) {
-    log.verbose('Mocker', 'constructor(%s)', puppet)
+  cacheContactPayload : Map<string, ContactPayload>
+  cacheRoomPayload    : Map<string, RoomPayload>
+  cacheMessagePayload : Map<string, MessagePayload>
+
+  protected behaviorList: MockerBehavior[]
+  protected behaviorCleanupFnList: (() => void)[]
+
+  protected _puppet?: Puppet
+  set puppet (puppet: Puppet) {
+    if (this._puppet) {
+      throw new Error('puppet has already been set before. can not be set twice.')
+    }
+    this._puppet = puppet
+  }
+  get puppet () {
+    if (!this._puppet) {
+      throw new Error('puppet has not been set yet, cannot be used.')
+    }
+    return this._puppet
+  }
+
+  constructor () {
+    log.verbose('Mocker', 'constructor()')
+
+    this.id = cuid()
+
+    this.behaviorList          = []
+    this.behaviorCleanupFnList = []
 
     this.cacheContactPayload = new Map()
     this.cacheRoomPayload    = new Map()
     this.cacheMessagePayload = new Map()
+  }
+
+  toString () {
+    return `Mocker<${this.id}>`
+  }
+
+  use (...behaviorList: MockerBehavior[]): void {
+    log.verbose('Mocker', 'use(%s)', behaviorList.length)
+
+    this.behaviorList.push(
+      ...behaviorList,
+    )
+  }
+
+  start () {
+    log.verbose('Mocker', 'start()')
+    this.behaviorList.forEach(behavior => {
+      log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
+      const stop = behavior(this)
+      this.behaviorCleanupFnList.push(stop)
+    })
+  }
+
+  stop () {
+    log.verbose('Mocker', 'stop()')
+    let n = 0
+    this.behaviorCleanupFnList.forEach(fn => {
+      log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
+      fn()
+    })
+  }
+
+  randomContact (): undefined | MockContact {
+    log.verbose('Mocker', 'randomContact()')
+
+    const contactIdList = [...this.cacheContactPayload.keys()]
+
+    if (contactIdList.length <= 0) {
+      return
+    }
+
+    const index = Math.floor(contactIdList.length * Math.random())
+    const id = contactIdList[index]
+
+    const payload = this.cacheContactPayload.get(id)
+    if (!payload) {
+      throw new Error('no payload')
+    }
+    return new MockContact(this, payload)
+  }
+
+  randomRoom (): undefined | MockRoom {
+    log.verbose('Mocker', 'randomRoom')
+
+    const roomIdList = [...this.cacheRoomPayload.keys()]
+
+    if (roomIdList.length <= 0) {
+      return
+    }
+
+    const index = Math.floor(roomIdList.length * Math.random())
+    const id = roomIdList[index]
+
+    const payload = this.cacheRoomPayload.get(id)
+    if (!payload) {
+      throw new Error('no payload')
+    }
+    return new MockRoom(this, payload)
+  }
+
+  public randomConversation (): MockContact | MockRoom {
+    log.verbose('Mocker', 'randomConversation()')
+
+    const contactIdList = [...this.cacheContactPayload.keys()]
+    const roomIdList    = [...this.cacheRoomPayload.keys()]
+
+    const total = contactIdList.length + roomIdList.length
+    if (total <= 0) {
+      throw new Error('no conversation found: 0 contact & 0 room!')
+    }
+
+    const pickContact = contactIdList.length / total
+
+    let conversation: undefined | MockContact | MockRoom
+
+    if (Math.random() < pickContact) {
+      conversation = this.randomContact()
+    } else {  // const pickRoom = roomIdList.length / total
+      conversation = this.randomRoom()
+    }
+
+    if (!conversation) {
+      throw new Error('no conversation')
+    }
+    return conversation
   }
 
   /**
@@ -50,7 +169,7 @@ class Mocker {
    *
    */
   createContact (payload?: Partial<ContactPayload>): MockContact {
-    log.verbose('Mocker', 'createContact(%s)', JSON.stringify(payload))
+    log.verbose('Mocker', 'createContact(%s)', payload ? JSON.stringify(payload) : '')
 
     const defaultPayload = generateContactPayload()
     const normalizedPayload: ContactPayload = {
@@ -74,7 +193,7 @@ class Mocker {
   }
 
   createRoom (payload?: Partial<RoomPayload>): MockRoom {
-    log.verbose('Mocker', 'createRoom(%s)', JSON.stringify(payload))
+    log.verbose('Mocker', 'createRoom(%s)', payload ? JSON.stringify(payload) : '')
 
     const defaultPayload = generateRoomPayload(...this.cacheContactPayload.keys())
 
