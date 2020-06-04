@@ -14,7 +14,7 @@
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc",
     "pack": "npm pack",
-    "start": "ts-node examples/example.ts",
+    "start": "ts-node examples/ding-dong-bot.ts",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
