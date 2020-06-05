@@ -49,7 +49,6 @@ import {
 
 import {
   Mocker,
-  SimpleBehavior,
 }                     from './mocker/'
 
 export type PuppetMockOptions = PuppetOptions & {
