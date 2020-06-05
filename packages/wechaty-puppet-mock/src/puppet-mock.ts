@@ -76,7 +76,7 @@ class PuppetMock extends Puppet {
     } else {
       log.verbose('PuppetMock', `constructor() creating the default mocker`)
       this.mocker = new Mocker()
-      this.mocker.use(SimpleBehavior())
+      // this.mocker.use(SimpleBehavior())
     }
     this.mocker.puppet = this
   }
