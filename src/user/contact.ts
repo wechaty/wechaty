@@ -100,7 +100,7 @@ export class Contact extends Accessory implements Sayable {
     }
     if (this === Contact) {
       throw new Error(
-        'The lgobal Contact class can not be used directly!'
+        'The global Contact class can not be used directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
@@ -203,7 +203,7 @@ export class Contact extends Accessory implements Sayable {
    * const bot = new Wechaty()
    * await bot.start()
    * const contactList = await bot.Contact.findAll()                      // get the contact list of the bot
-   * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find allof the contacts whose name is 'ruirui'
+   * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
   public static async findAll<T extends typeof Contact> (
@@ -294,13 +294,13 @@ export class Contact extends Accessory implements Sayable {
 
     if (MyClass === Contact) {
       throw new Error(
-        'Contact class can not be instanciated directly!'
+        'Contact class can not be instantiated directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
 
     if (!this.puppet) {
-      throw new Error('Contact class can not be instanciated without a puppet!')
+      throw new Error('Contact class can not be instantiated without a puppet!')
     }
   }
 
@@ -562,7 +562,7 @@ export class Contact extends Accessory implements Sayable {
    */
   /**
    * @description
-   * Check if it's a offical account, should use {@link Contact#type} instead
+   * Check if it's a official account, should use {@link Contact#type} instead
    * @deprecated
    * @ignore
    */
@@ -718,7 +718,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * Force reload data for Contact, Sync data from lowlevel API again.
+   * Force reload data for Contact, Sync data from low-level API again.
    *
    * @returns {Promise<this>}
    * @example
@@ -732,7 +732,7 @@ export class Contact extends Accessory implements Sayable {
    * `ready()` is For FrameWork ONLY!
    *
    * Please not to use `ready()` at the user land.
-   * If you want to sync data, uyse `sync()` instead.
+   * If you want to sync data, use `sync()` instead.
    *
    * @ignore
    */
