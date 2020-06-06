@@ -89,7 +89,10 @@ console.log(config)
 
 ### v0.22 (Jun 4, 2020)
 
-`Mocker` Realeased. `Mocker` is a manager for controlling the behavior of the Puppet activities.
+`Mocker` Released. `Mocker` is a manager for controlling the behavior of the Puppet activities.
+
+1. Support `Wechaty#Contact.find()` from the `mocker.createContacts()`
+1. Support `Wechaty#Room.find()` from the `mocker.createRooms()`
 
 ### v0.0.1 (Jun 27, 2018)
 

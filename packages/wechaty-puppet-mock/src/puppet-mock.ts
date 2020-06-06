@@ -185,8 +185,7 @@ class PuppetMock extends Puppet {
 
   public async contactList (): Promise<string[]> {
     log.verbose('PuppetMock', 'contactList()')
-
-    return []
+    return [...this.mocker.cacheContactPayload.keys()]
   }
 
   public async contactQRCode (contactId: string): Promise<string> {
@@ -343,8 +342,7 @@ class PuppetMock extends Puppet {
 
   public async roomList (): Promise<string[]> {
     log.verbose('PuppetMock', 'roomList()')
-
-    return []
+    return [...this.mocker.cacheRoomPayload.keys()]
   }
 
   public async roomDel (
