@@ -118,7 +118,7 @@ class PuppetMock extends Puppet {
   }
 
   public login (contactId: string): Promise<void> {
-    log.verbose('PuppetMock', 'in()')
+    log.verbose('PuppetMock', 'login()')
     return super.login(contactId)
   }
 
