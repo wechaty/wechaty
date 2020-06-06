@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.22.9",
+  "version": "0.23.0",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
