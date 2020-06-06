@@ -25,11 +25,10 @@ import os    from 'os'
 import Raven      from 'raven'
 import readPkgUp  from 'read-pkg-up'
 
-import { log }      from 'brolog'
-
 import {
   FileBox,
   MemoryCard,
+  log,
 }                   from 'wechaty-puppet'
 
 import {
@@ -75,12 +74,6 @@ Raven.context(function () {
   doSomething(a[0])
 })
  */
-
-const logLevel = process.env.WECHATY_LOG
-if (logLevel) {
-  log.level(logLevel.toLowerCase() as any)
-  log.silly('Config', 'WECHATY_LOG set level to %s', logLevel)
-}
 
 /**
  * to handle unhandled exceptions
