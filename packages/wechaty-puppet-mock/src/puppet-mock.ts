@@ -290,8 +290,20 @@ class PuppetMock extends Puppet {
     text     : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, text)
-    // TODO: emit events for MockContact
-    // this.mocker.
+    if (!this.id) {
+      throw new Error('no this.id')
+    }
+
+    const user = this.mocker.MockContact.load(this.id)
+    let conversation
+
+    if (/@/.test(conversationId)) {
+      // FIXME: extend a new puppet method messageRoomSendText, etc, for Room message?
+      conversation = this.mocker.MockRoom.load(conversationId)
+    } else {
+      conversation = this.mocker.MockContact.load(conversationId)
+    }
+    user.say(text).to(conversation)
   }
 
   public async messageSendFile (
