@@ -55,7 +55,7 @@ test('Mocker restart without problem', async t => {
       await mocker.stop()
       t.pass('start/stop-ed at #' + i)
     }
-    t.pass('Mocker() start/restart successed.')
+    t.pass('Mocker() start/restart succeed.')
   } catch (e) {
     t.fail(e)
   }

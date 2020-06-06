@@ -6,6 +6,8 @@ import {
   ScanStatus,
 }                     from 'wechaty-puppet'
 
+import { cloneClass } from 'clone-class'
+
 import { log } from '../config'
 import { PuppetMock } from '../puppet-mock'
 
@@ -24,6 +26,9 @@ class Mocker {
   cacheContactPayload : Map<string, ContactPayload>
   cacheRoomPayload    : Map<string, RoomPayload>
   cacheMessagePayload : Map<string, MessagePayload>
+
+  public readonly MockContact : typeof MockContact
+  public readonly MockRoom    : typeof MockRoom
 
   protected behaviorList: MockerBehavior[]
   protected behaviorCleanupFnList: (() => void)[]
@@ -53,6 +58,13 @@ class Mocker {
     this.cacheContactPayload = new Map()
     this.cacheRoomPayload    = new Map()
     this.cacheMessagePayload = new Map()
+
+    this.MockContact = cloneClass(MockContact)
+    this.MockRoom    = cloneClass(MockRoom)
+
+    this.MockContact.mocker = this
+    this.MockRoom.mocker    = this
+
   }
 
   toString () {
@@ -102,7 +114,7 @@ class Mocker {
     if (!payload) {
       throw new Error('no payload')
     }
-    return new MockContact(this, payload)
+    return this.MockContact.create(payload)
   }
 
   randomRoom (): undefined | MockRoom {
@@ -121,7 +133,7 @@ class Mocker {
     if (!payload) {
       throw new Error('no payload')
     }
-    return new MockRoom(this, payload)
+    return this.MockRoom.create(payload)
   }
 
   public randomConversation (): MockContact | MockRoom {
@@ -178,7 +190,7 @@ class Mocker {
       ...defaultPayload,
       ...payload,
     }
-    return new MockContact(this, normalizedPayload)
+    return this.MockContact.create(normalizedPayload)
   }
 
   createContacts (num: number): MockContact[] {
@@ -204,7 +216,7 @@ class Mocker {
       ...payload,
     }
 
-    return new MockRoom(this, normalizedPayload)
+    return this.MockRoom.create(normalizedPayload)
   }
 
   createRooms (num: number): MockRoom[] {

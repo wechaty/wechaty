@@ -7,22 +7,77 @@ import {
 
 import { log } from '../config'
 
-import { Mocker } from './mocker'
 import { MockContact } from './mock-contact'
+import { Accessory } from './accessory'
 
 interface By {
   by: (contact?: MockContact) => void
 }
 
-class MockRoom {
+export const POOL = Symbol('pool')
+
+class MockRoom extends Accessory {
+
+  protected static [POOL]: Map<string, MockRoom>
+
+  protected static get pool () {
+    if (!this[POOL]) {
+      log.verbose('MockRoom', 'get pool() init pool')
+      this[POOL] = new Map<string, MockRoom>()
+    }
+
+    if (this === MockRoom) {
+      throw new Error(
+        'The global Room class can not be used directly!'
+        + 'See: https://github.com/wechaty/wechaty/issues/1217',
+      )
+    }
+
+    return this[POOL]
+  }
+
+  /**
+   * @ignore
+   * About the Generic: https://stackoverflow.com/q/43003970/1123955
+   * @static
+   * @param {string} id
+   * @returns {Room}
+   */
+  public static load<T extends typeof MockRoom> (
+    this : T,
+    id   : string,
+  ): T['prototype'] {
+    const existingRoom = this.pool.get(id)
+    if (!existingRoom) {
+      throw new Error(`load(): ${id} not exist.`)
+    }
+    return existingRoom
+  }
+
+  public static create<T extends typeof MockRoom> (
+    payload: RoomPayload,
+  ): T['prototype'] {
+    log.verbose('Room', 'static create(%s)', JSON.stringify(payload))
+
+    if (this.pool.get(payload.id)) {
+      throw new Error('MockRoom id ' + payload.id + ' has already created before. Use `load(' + payload.id + ')` to get it back.')
+    }
+
+    // when we call `load()`, `this` should already be extend-ed a child class.
+    // so we force `this as any` at here to make the call.
+    const newRoom = new (this as any)(payload) as MockRoom
+    this.pool.set(newRoom.id, newRoom)
+
+    return newRoom
+  }
 
   get id () { return this.payload.id }
 
   constructor (
-    public mocker: Mocker,
     public payload: RoomPayload,
   ) {
-    log.silly('MockRoom', 'constructor(%s, %s)', mocker, JSON.stringify(payload))
+    super('MockRoom')
+    log.silly('MockRoom', 'constructor(%s)', JSON.stringify(payload))
     this.mocker.roomPayload(payload.id, payload)
   }
 

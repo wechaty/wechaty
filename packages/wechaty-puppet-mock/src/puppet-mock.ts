@@ -290,6 +290,8 @@ class PuppetMock extends Puppet {
     text     : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, text)
+    // TODO: emit events for MockContact
+    // this.mocker.
   }
 
   public async messageSendFile (
