@@ -214,3 +214,16 @@ test('event(message) for MockContact & MockRoom', async t => {
     await puppet.stop()
   }
 })
+
+test('Multiple Mockers with their MockContact(s)', async t => {
+  const mocker1 = new Mocker()
+  const mocker2 = new Mocker()
+
+  const ID = 'id'
+
+  const contact1 = mocker1.createContact({ id: ID })
+  const contact2 = mocker2.createContact({ id: ID })
+
+  t.notEqual(contact1, contact2, 'should have seperate MockContact classes')
+  t.equal(contact1.id, contact2.id, 'should have the same id from different mocker instances')
+})

@@ -12,9 +12,9 @@ import { ContactPayload } from 'wechaty-puppet'
 import { log } from '../../config'
 
 import { generateSentence } from '../generator'
-import { MockAccessory }        from '../accessory'
+import { MockAccessory }    from '../accessory'
 
-import { MockRoom }         from './mock-room'
+import { MockRoom }    from './mock-room'
 import { MockMessage } from './mock-message'
 
 interface To {

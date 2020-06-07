@@ -100,6 +100,10 @@ class Mocker {
       fn()
     })
     this.behaviorCleanupFnList.length = 0
+
+    this.cacheContactPayload.clear()
+    this.cacheMessagePayload.clear()
+    this.cacheRoomPayload.clear()
   }
 
   randomContact (): undefined | MockContact {
