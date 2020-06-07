@@ -118,6 +118,10 @@ class PuppetMock extends Puppet {
 
     this.mocker.stop()
 
+    if (this.logonoff()) {
+      await this.logout()
+    }
+
     // await some tasks...
     this.state.off(true)
   }

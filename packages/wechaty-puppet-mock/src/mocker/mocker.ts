@@ -29,9 +29,9 @@ class Mocker {
   cacheRoomPayload    : Map<string, RoomPayload>
   cacheMessagePayload : Map<string, MessagePayload>
 
-  public readonly MockContact : typeof MockContact
-  public readonly MockMessage : typeof MockMessage
-  public readonly MockRoom    : typeof MockRoom
+  public MockContact : typeof MockContact
+  public MockMessage : typeof MockMessage
+  public MockRoom    : typeof MockRoom
 
   protected behaviorList: MockEnvironment[]
   protected behaviorCleanupFnList: (() => void)[]
@@ -42,12 +42,6 @@ class Mocker {
       throw new Error('puppet has already been set before. can not be set twice.')
     }
     this._puppet = puppet
-
-    this.behaviorList.forEach(behavior => {
-      log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
-      const stop = behavior(this)
-      this.behaviorCleanupFnList.push(stop)
-    })
   }
   get puppet () {
     if (!this._puppet) {
@@ -91,16 +85,33 @@ class Mocker {
 
   start () {
     log.verbose('Mocker', 'start()')
+
+    /**
+     * Huan(202006): Workaround for puppet restart problem
+     */
+    this.MockContact = cloneClass(MockContact)
+    this.MockMessage = cloneClass(MockMessage)
+    this.MockRoom    = cloneClass(MockRoom)
+
+    this.MockContact.mocker = this
+    this.MockMessage.mocker = this
+    this.MockRoom.mocker    = this
+
+    this.behaviorList.forEach(behavior => {
+      log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
+      const stop = behavior(this)
+      this.behaviorCleanupFnList.push(stop)
+    })
   }
 
   stop () {
     log.verbose('Mocker', 'stop()')
-    // let n = 0
-    // this.behaviorCleanupFnList.forEach(fn => {
-    //   log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
-    //   fn()
-    // })
-    // this.behaviorCleanupFnList.length = 0
+    let n = 0
+    this.behaviorCleanupFnList.forEach(fn => {
+      log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
+      fn()
+    })
+    this.behaviorCleanupFnList.length = 0
   }
 
   randomContact (): undefined | MockContact {

@@ -118,11 +118,6 @@ class MockMessage extends MockAccessory {
     return this.payload.type
   }
 
-  self (): boolean {
-    const userId = this.mocker.puppet.selfId()
-    return this.payload.fromId === userId
-  }
-
   on (event: 'message', listener: (message: MockMessage) => void): this {
     super.on(event, listener)
     return this
