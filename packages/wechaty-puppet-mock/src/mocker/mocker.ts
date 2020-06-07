@@ -42,6 +42,12 @@ class Mocker {
       throw new Error('puppet has already been set before. can not be set twice.')
     }
     this._puppet = puppet
+
+    this.behaviorList.forEach(behavior => {
+      log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
+      const stop = behavior(this)
+      this.behaviorCleanupFnList.push(stop)
+    })
   }
   get puppet () {
     if (!this._puppet) {
@@ -85,25 +91,16 @@ class Mocker {
 
   start () {
     log.verbose('Mocker', 'start()')
-    this.behaviorList.forEach(behavior => {
-      log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
-      const stop = behavior(this)
-      this.behaviorCleanupFnList.push(stop)
-    })
   }
 
   stop () {
     log.verbose('Mocker', 'stop()')
-    let n = 0
-    this.behaviorCleanupFnList.forEach(fn => {
-      log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
-      fn()
-    })
-    this.behaviorCleanupFnList.length = 0
-
-    this.cacheContactPayload.clear()
-    this.cacheMessagePayload.clear()
-    this.cacheRoomPayload.clear()
+    // let n = 0
+    // this.behaviorCleanupFnList.forEach(fn => {
+    //   log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
+    //   fn()
+    // })
+    // this.behaviorCleanupFnList.length = 0
   }
 
   randomContact (): undefined | MockContact {
