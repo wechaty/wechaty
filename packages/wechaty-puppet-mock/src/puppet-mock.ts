@@ -91,9 +91,14 @@ class PuppetMock extends Puppet {
 
     this.state.on('pending')
 
-    this.mocker.start()
+    // Do some async initializing tasks
 
     this.state.on(true)
+
+    /**
+     * Start mocker after the puppet fully turned ON.
+     */
+    setImmediate(() => this.mocker.start())
   }
 
   public async stop (): Promise<void> {
