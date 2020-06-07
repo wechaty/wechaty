@@ -91,6 +91,8 @@ console.log(config)
 
 `Mocker` Released. `Mocker` is a manager for controlling the behavior of the Puppet activities.
 
+1. Add `MockContact`, `MockRoom`, and `MockMessage` for `Mockers`
+1. Add `MockEnvironment` for mocking the server behaviors.
 1. Support `Wechaty#Contact.find()` from the `mocker.createContacts()`
 1. Support `Wechaty#Room.find()` from the `mocker.createRooms()`
 1. Support `message` event for `talker`, `listener`, and `room` of `MockMessage`
