@@ -1,5 +1,5 @@
 import {
-  MessagePayload,
+  MessagePayload, MessageType,
 }                     from 'wechaty-puppet'
 
 import { log } from '../../config'
@@ -106,6 +106,16 @@ class MockMessage extends MockAccessory {
     }
     const contact = this.mocker.MockContact.load(this.payload.toId)
     return contact
+  }
+
+  text (): undefined | string {
+    log.verbose('MockMessage', 'text()')
+    return this.payload.text
+  }
+
+  type (): MessageType {
+    log.silly('MockMessage', 'text()')
+    return this.payload.type
   }
 
 }

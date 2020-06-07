@@ -93,6 +93,7 @@ console.log(config)
 
 1. Support `Wechaty#Contact.find()` from the `mocker.createContacts()`
 1. Support `Wechaty#Room.find()` from the `mocker.createRooms()`
+1. Support `message` event for `talker`, `listener`, and `room` of `MockMessage`
 
 ### v0.0.1 (Jun 27, 2018)
 
