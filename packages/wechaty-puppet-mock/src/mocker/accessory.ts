@@ -28,7 +28,7 @@ const MOCKER = Symbol('mocker')
 
 let COUNTER = 0
 
-export abstract class Accessory extends EventEmitter {
+abstract class MockAccessory extends EventEmitter {
 
   #name    : string
   #counter : number
@@ -44,7 +44,7 @@ export abstract class Accessory extends EventEmitter {
    * @ignore
    */
   public static set mocker (mocker: Mocker) {
-    log.silly('Accessory', '<%s> static set mocker = "%s"',
+    log.silly('MockAccessory', '<%s> static set mocker = "%s"',
       this.name,
       mocker,
     )
@@ -75,11 +75,6 @@ export abstract class Accessory extends EventEmitter {
    *
    * 2. Instance Properties & Methods
    *
-   *    DEPRECATED: The ability of set different `puppet` to the instance is required.
-   *      For example: the Wechaty instances have to have different `puppet`.
-   *
-   *    Huan(202003): simplify the logic: do not use Accessory to
-   *      set different puppet for different instances
    */
 
   /**
@@ -89,7 +84,7 @@ export abstract class Accessory extends EventEmitter {
    *
    */
   public get mocker (): Mocker {
-    return instanceToClass(this, Accessory).mocker
+    return instanceToClass(this, MockAccessory).mocker
   }
 
   constructor (
@@ -100,7 +95,7 @@ export abstract class Accessory extends EventEmitter {
     this.#name    = name || this.toString()
     this.#counter = COUNTER++
 
-    log.silly('Accessory', '#%d<%s> constructor(%s)',
+    log.silly('MockAccessory', '#%d<%s> constructor(%s)',
       this.#name,
       this.#counter,
       name || '',
@@ -108,3 +103,5 @@ export abstract class Accessory extends EventEmitter {
   }
 
 }
+
+export { MockAccessory }

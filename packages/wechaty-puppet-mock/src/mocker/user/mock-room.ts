@@ -5,10 +5,11 @@ import {
   EventRoomLeavePayload,
 }                           from 'wechaty-puppet'
 
-import { log } from '../config'
+import { log } from '../../config'
+
+import { MockAccessory } from '../accessory'
 
 import { MockContact } from './mock-contact'
-import { Accessory } from './accessory'
 
 interface By {
   by: (contact?: MockContact) => void
@@ -16,7 +17,7 @@ interface By {
 
 export const POOL = Symbol('pool')
 
-class MockRoom extends Accessory {
+class MockRoom extends MockAccessory {
 
   protected static [POOL]: Map<string, MockRoom>
 
@@ -28,7 +29,7 @@ class MockRoom extends Accessory {
 
     if (this === MockRoom) {
       throw new Error(
-        'The global Room class can not be used directly!'
+        'The global MockRoom class can not be used directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
@@ -57,7 +58,7 @@ class MockRoom extends Accessory {
   public static create<T extends typeof MockRoom> (
     payload: RoomPayload,
   ): T['prototype'] {
-    log.verbose('Room', 'static create(%s)', JSON.stringify(payload))
+    log.verbose('MockRoom', 'static create(%s)', JSON.stringify(payload))
 
     if (this.pool.get(payload.id)) {
       throw new Error('MockRoom id ' + payload.id + ' has already created before. Use `load(' + payload.id + ')` to get it back.')

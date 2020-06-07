@@ -9,11 +9,12 @@ import {
 }                        from 'wechaty-puppet/dist/src/schemas/message'
 import { ContactPayload } from 'wechaty-puppet'
 
-import { log } from '../config'
+import { log } from '../../config'
+
+import { generateSentence } from '../generator'
+import { MockAccessory }        from '../accessory'
 
 import { MockRoom }         from './mock-room'
-import { generateSentence } from './generator'
-import { Accessory }        from './accessory'
 
 interface To {
   to: (conversation?: MockContact | MockRoom) => void
@@ -21,18 +22,18 @@ interface To {
 
 export const POOL = Symbol('pool')
 
-class MockContact extends Accessory {
+class MockContact extends MockAccessory {
 
   protected static [POOL]: Map<string, MockContact>
   protected static get pool () {
     if (!this[POOL]) {
-      log.verbose('Contact', 'get pool() init pool')
+      log.verbose('MockContact', 'get pool() init pool')
       this[POOL] = new Map<string, MockContact>()
     }
 
     if (this === MockContact) {
       throw new Error(
-        'The global Contact class can not be used directly!'
+        'The global MockContact class can not be used directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
@@ -63,7 +64,7 @@ class MockContact extends Accessory {
   public static create<T extends typeof MockContact> (
     payload: ContactPayload,
   ): T['prototype'] {
-    log.verbose('Contact', 'static create(%s)', JSON.stringify(payload))
+    log.verbose('MockContact', 'static create(%s)', JSON.stringify(payload))
 
     if (this.pool.get(payload.id)) {
       throw new Error('MockContact id ' + payload.id + ' has already created before. Use `load(' + payload.id + ')` to get it back.')
@@ -129,8 +130,8 @@ class MockContact extends Accessory {
         throw new Error('unknown conversation type: ' + typeof conversation)
       }
 
-      that.mocker.messagePayload(payload.id, payload)
-      that.mocker.puppet.emit('message', { messageId: payload.id })
+      const msg = that.mocker.MockMessage.create(payload)
+      that.mocker.puppet.emit('message', { messageId: msg.id })
     }
 
   }

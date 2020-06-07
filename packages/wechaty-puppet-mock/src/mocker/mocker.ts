@@ -11,8 +11,10 @@ import { cloneClass } from 'clone-class'
 import { log } from '../config'
 import { PuppetMock } from '../puppet-mock'
 
-import { MockContact }  from './mock-contact'
-import { MockRoom }     from './mock-room'
+import { MockContact }  from './user/mock-contact'
+import { MockRoom }     from './user/mock-room'
+import { MockMessage }  from './user/mock-message'
+
 import {
   generateContactPayload,
   generateRoomPayload,
@@ -28,6 +30,7 @@ class Mocker {
   cacheMessagePayload : Map<string, MessagePayload>
 
   public readonly MockContact : typeof MockContact
+  public readonly MockMessage : typeof MockMessage
   public readonly MockRoom    : typeof MockRoom
 
   protected behaviorList: MockerBehavior[]
@@ -60,11 +63,12 @@ class Mocker {
     this.cacheMessagePayload = new Map()
 
     this.MockContact = cloneClass(MockContact)
+    this.MockMessage = cloneClass(MockMessage)
     this.MockRoom    = cloneClass(MockRoom)
 
     this.MockContact.mocker = this
+    this.MockMessage.mocker = this
     this.MockRoom.mocker    = this
-
   }
 
   toString () {
@@ -280,6 +284,15 @@ class Mocker {
 
     if (payload) {
       this.cacheMessagePayload.set(id, payload)
+
+      const msg = this.MockMessage.load(payload.id)
+
+      ;[
+        msg.talker(),
+        msg.room(),
+        msg.listener(),
+      ].forEach(e => e?.emit('message', msg))
+
       return
     }
 

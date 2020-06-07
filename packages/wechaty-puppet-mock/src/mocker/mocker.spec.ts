@@ -16,6 +16,8 @@ import {
   MessageType,
 }                         from 'wechaty-puppet'
 
+import { MockMessage } from './user/mock-message'
+
 class MockerTest extends Mocker {
 }
 
@@ -176,4 +178,39 @@ test('MockContact.say().to(room)', async t => {
   t.deepEqual(payload, EXPECTED_PAYLOAD, 'should received the expected room message payload')
 
   await puppet.stop()
+})
+
+test('event(message) for MockContact & MockRoom', async t => {
+  const {
+    user,
+    room,
+    puppet,
+  }         = createFixture()
+
+  const sandbox = sinon.createSandbox()
+  const roomSpy = sandbox.spy()
+  const userSpy = sandbox.spy()
+
+  user.on('message', userSpy)
+  room.on('message', roomSpy)
+
+  const TEXT = 'hello'
+
+  try {
+    await puppet.start()
+
+    user.say(TEXT).to(room)
+
+    t.ok(userSpy.calledOnce, 'should emit message event on user')
+    t.ok(roomSpy.calledOnce, 'should emit message event on room')
+
+    const userMsg = userSpy.args[0][0] as MockMessage
+    const roomMsg = roomSpy.args[0][0] as MockMessage
+
+    t.deepEqual(userMsg.payload, roomMsg.payload, 'should receive the same message for both user & room')
+
+    t.equal(userMsg.payload.text, TEXT, 'should receive the TEXT as the message')
+  } finally {
+    await puppet.stop()
+  }
 })
