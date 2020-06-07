@@ -417,7 +417,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 - [Java Wechaty](https://github.com/wechaty/java-wechaty) - Java WeChaty Conversational AI Chatbot SDK for Wechat Individual Accounts (Java)
 - [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - Scala WeChaty Conversational AI Chatbot SDK for WechatyIndividual Accounts (Scala)
 
-## Author
+## Authors
 
 1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia), Tencent TVP of Chatbot
 1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/)
@@ -426,6 +426,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Copyright & License
 
-- Code & Docs © 2016 Huan LI \<zixia@zixia.net\>
+- Code & Docs © 2016 Huan, Rui, and Wechaty Contributors
 - Code released under the Apache-2.0 License
 - Docs released under Creative Commons
