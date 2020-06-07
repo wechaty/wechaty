@@ -6,7 +6,7 @@ import sinon from 'sinon'
 import { PuppetMock } from '../'
 
 import { Mocker } from './mocker'
-import { SimpleBehavior } from './behavior'
+import { SimpleEnvironment } from './environment'
 import {
   EventScanPayload,
   ScanStatus,
@@ -46,7 +46,7 @@ function createFixture () {
 
 test('Mocker restart without problem', async t => {
   const mocker = new MockerTest()
-  mocker.use(SimpleBehavior())
+  mocker.use(SimpleEnvironment())
   const puppet = new PuppetMock({ mocker })
   void puppet
 

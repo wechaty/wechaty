@@ -19,7 +19,7 @@ import {
   generateContactPayload,
   generateRoomPayload,
 }                           from './generator'
-import { MockerBehavior } from './behavior'
+import { MockEnvironment } from './environment'
 
 class Mocker {
 
@@ -33,7 +33,7 @@ class Mocker {
   public readonly MockMessage : typeof MockMessage
   public readonly MockRoom    : typeof MockRoom
 
-  protected behaviorList: MockerBehavior[]
+  protected behaviorList: MockEnvironment[]
   protected behaviorCleanupFnList: (() => void)[]
 
   protected _puppet?: PuppetMock
@@ -75,7 +75,7 @@ class Mocker {
     return `Mocker<${this.id}>`
   }
 
-  use (...behaviorList: MockerBehavior[]): void {
+  use (...behaviorList: MockEnvironment[]): void {
     log.verbose('Mocker', 'use(%s)', behaviorList.length)
 
     this.behaviorList.push(

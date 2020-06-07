@@ -1,5 +1,5 @@
 export { Mocker } from './mocker'
 export {
-  MockerBehavior,
-  SimpleBehavior,
-}                 from './behavior'
+  MockEnvironment,
+  SimpleEnvironment,
+}                     from './environment'

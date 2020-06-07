@@ -7,8 +7,8 @@ import { PuppetMock } from './puppet-mock'
 
 import {
   Mocker,
-  MockerBehavior,
-  SimpleBehavior,
+  MockEnvironment,
+  SimpleEnvironment,
 }                 from './mocker'
 
 export default PuppetMock
@@ -16,7 +16,7 @@ export {
   VERSION,
   log,
   Mocker,
-  MockerBehavior,
-  SimpleBehavior,
+  MockEnvironment,
+  SimpleEnvironment,
   PuppetMock,
 }

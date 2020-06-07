@@ -1,26 +1,27 @@
+import { ScanStatus } from 'wechaty-puppet'
+
 import { log } from '../config'
 
 import { Mocker } from './mocker'
-import { ScanStatus } from 'wechaty-puppet'
 
-type MockerBehaviorStop  = () => void
-type MockerBehaviorStart = (mocker: Mocker) => MockerBehaviorStop
+type EnvironmentStop  = () => void
+type EnvironmentStart = (mocker: Mocker) => EnvironmentStop
 
-export type MockerBehavior = MockerBehaviorStart
+export type MockEnvironment = EnvironmentStart
 
-const SimpleBehavior: () => MockerBehavior = () => {
-  log.verbose('SimpleBehavior', '()')
+const SimpleEnvironment: () => MockEnvironment = () => {
+  log.verbose('SimpleEnvironment', '()')
 
-  return function SimpleBehaviorStart (mocker: Mocker): MockerBehaviorStop {
-    log.verbose('SimpleBehavior', 'SimpleBehaviorStart(%s)', mocker)
+  return function SimpleEnvironmentStart (mocker: Mocker): EnvironmentStop {
+    log.verbose('SimpleEnvironment', 'SimpleEnvironmentStart(%s)', mocker)
 
     const taskList: (() => void)[] = []
     const loop = () => taskList.forEach(task => task())
 
     let timer = setInterval(loop, 5000)
 
-    const SimpleBehaviorStop = () => {
-      log.verbose('SimpleBehavior', 'SimpleBehaviorStop()')
+    const SimpleEnvironmentStop = () => {
+      log.verbose('SimpleEnvironment', 'SimpleEnvironmentStop()')
       clearInterval(timer)
     }
 
@@ -44,10 +45,10 @@ const SimpleBehavior: () => MockerBehavior = () => {
       }
     })
 
-    return SimpleBehaviorStop
+    return SimpleEnvironmentStop
   }
 }
 
 export {
-  SimpleBehavior,
+  SimpleEnvironment,
 }
