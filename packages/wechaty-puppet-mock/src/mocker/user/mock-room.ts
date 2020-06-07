@@ -10,6 +10,7 @@ import { log } from '../../config'
 import { MockAccessory } from '../accessory'
 
 import { MockContact } from './mock-contact'
+import { MockMessage } from './mock-message'
 
 interface By {
   by: (contact?: MockContact) => void
@@ -171,6 +172,11 @@ class MockRoom extends MockAccessory {
       that.mocker.puppet.emit('room-leave', payload)
     }
 
+  }
+
+  on (event: 'message', listener: (message: MockMessage) => void): this {
+    super.on(event, listener)
+    return this
   }
 
 }

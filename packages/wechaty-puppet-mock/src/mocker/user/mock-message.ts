@@ -118,6 +118,11 @@ class MockMessage extends MockAccessory {
     return this.payload.type
   }
 
+  on (event: 'message', listener: (message: MockMessage) => void): this {
+    super.on(event, listener)
+    return this
+  }
+
 }
 
 export { MockMessage }

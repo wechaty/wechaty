@@ -15,6 +15,7 @@ import { generateSentence } from '../generator'
 import { MockAccessory }        from '../accessory'
 
 import { MockRoom }         from './mock-room'
+import { MockMessage } from './mock-message'
 
 interface To {
   to: (conversation?: MockContact | MockRoom) => void
@@ -134,6 +135,11 @@ class MockContact extends MockAccessory {
       that.mocker.puppet.emit('message', { messageId: msg.id })
     }
 
+  }
+
+  on (event: 'message', listener: (message: MockMessage) => void): this {
+    super.on(event, listener)
+    return this
   }
 
 }
