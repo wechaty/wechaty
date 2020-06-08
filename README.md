@@ -60,7 +60,7 @@ Wechaty.instance() // Global Instance
 .start()
 ```
 
-> **Notice: Wechaty requires Node.js version >= 10**
+> **Notice: Wechaty requires Node.js version >= 12**
 
 This bot can log all messages to the console after login by scan.
 
@@ -68,7 +68,7 @@ You can find more examples from [Wiki](https://github.com/Wechaty/wechaty/wiki/E
 
 ## Requirements
 
-1. Node.js v10
+1. Node.js v12
 1. `sudo apt-get install build-essential && sudo snap install shellcheck`
 
 ## Getting Started
