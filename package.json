@@ -80,7 +80,7 @@
   },
   "homepage": "https://github.com/wechaty/",
   "engines": {
-    "node": ">= 10"
+    "node": ">= 12"
   },
   "dependencies": {
     "brolog": "^1.8.3",
