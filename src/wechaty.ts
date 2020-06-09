@@ -114,8 +114,9 @@ export interface WechatyOptions {
   ioToken?       : string,                    // Io TOKEN
 }
 
+type WechatyPluginUninstaller = () => void
 export interface WechatyPlugin {
-  (bot: Wechaty): void
+  (bot: Wechaty): void | WechatyPluginUninstaller
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'
