@@ -1106,7 +1106,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * // 3. send Image to bot itself from remote url
    * import { FileBox }  from 'wechaty'
-   * const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   * const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    * await bot.say(fileBox)
    *
    * // 4. send Image to bot itself from local file

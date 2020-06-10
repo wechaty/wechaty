@@ -445,7 +445,7 @@ export class Message extends Accessory implements Sayable {
    * // 1. send Image
    *
    *   if (/^ding$/i.test(m.text())) {
-   *     const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   *     const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    *     await msg.say(fileBox)
    *     const message = await msg.say(fileBox) // only supported by puppet-padplus
    *   }
