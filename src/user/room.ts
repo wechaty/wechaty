@@ -409,7 +409,7 @@ export class Room extends Accessory implements Sayable {
    *
    * // 2. Send media file inside Room
    * import { FileBox }  from 'wechaty'
-   * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   * const fileBox1 = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
    * await room.say(fileBox1)
    * const msg1 = await room.say(fileBox1) // only supported by puppet-padplus
