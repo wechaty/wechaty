@@ -383,6 +383,7 @@ export class Room extends Accessory implements Sayable {
   public say (file:     FileBox)                                 : Promise<void | Message>
   public say (url:      UrlLink)                                 : Promise<void | Message>
   public say (mini:     MiniProgram)                             : Promise<void | Message>
+  public say (contact:  Contact)                                 : Promise<void | Message>
 
   public say (...args: never[]): never
 
