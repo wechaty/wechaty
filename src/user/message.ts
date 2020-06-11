@@ -416,13 +416,14 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
-  public async say (text:    string, mention?: Contact | Contact[]) : Promise<void | Message>
-  public async say (contact: Contact)                               : Promise<void | Message>
-  public async say (file:    FileBox)                               : Promise<void | Message>
-  public async say (url:     UrlLink)                               : Promise<void | Message>
-  public async say (mini:    MiniProgram)                           : Promise<void | Message>
+  public say (text:    string, mention?: Contact | Contact[]) : Promise<void | Message>
+  public say (message: Message)                               : Promise<void | Message>
+  public say (contact: Contact)                               : Promise<void | Message>
+  public say (file:    FileBox)                               : Promise<void | Message>
+  public say (url:     UrlLink)                               : Promise<void | Message>
+  public say (mini:    MiniProgram)                           : Promise<void | Message>
 
-  public async say (...args: never[]): Promise<never>
+  public say (...args: never[]): Promise<never>
   /**
    * Reply a Text or Media File message to the sender.
    * > Tips:
@@ -501,7 +502,12 @@ export class Message extends Accessory implements Sayable {
    * .start()
    */
   public async say (
-    textOrContactOrFileOrUrlOrMini : string | Contact | FileBox | UrlLink | MiniProgram,
+    textOrContactOrFileOrUrlOrMini :  string
+                                    | Message
+                                    | Contact
+                                    | FileBox
+                                    | UrlLink
+                                    | MiniProgram,
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
@@ -511,12 +517,22 @@ export class Message extends Accessory implements Sayable {
     const room = this.room()
 
     let conversationId: string
+    let conversation
     if (room) {
+      conversation = room
       conversationId = room.id
     } else if (from) {
+      conversation = from
       conversationId = from.id
     } else {
       throw new Error('neither room nor from?')
+    }
+
+    /**
+     * Support say a existing message: just forward it.
+     */
+    if (textOrContactOrFileOrUrlOrMini instanceof Message) {
+      return textOrContactOrFileOrUrlOrMini.forward(conversation)
     }
 
     let msgId: void | string

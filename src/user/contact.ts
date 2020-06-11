@@ -320,11 +320,12 @@ export class Contact extends Accessory implements Sayable {
     return `Contact<${identity}>`
   }
 
-  public async say (text:     string)      : Promise<void | Message>
-  public async say (contact:  Contact)     : Promise<void | Message>
-  public async say (file:     FileBox)     : Promise<void | Message>
-  public async say (mini:     MiniProgram) : Promise<void | Message>
-  public async say (url:      UrlLink)     : Promise<void | Message>
+  public say (text:     string)      : Promise<void | Message>
+  public say (message:  Message)     : Promise<void | Message>
+  public say (contact:  Contact)     : Promise<void | Message>
+  public say (file:     FileBox)     : Promise<void | Message>
+  public say (mini:     MiniProgram) : Promise<void | Message>
+  public say (url:      UrlLink)     : Promise<void | Message>
 
   /**
    * > Tips:
@@ -385,12 +386,18 @@ export class Contact extends Accessory implements Sayable {
    */
   public async say (
     something:  string
+              | Message
               | Contact
               | FileBox
               | MiniProgram
               | UrlLink
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', something)
+
+    if (something instanceof Message) {
+      return something.forward(this)
+    }
+
     let msgId: string | void
     if (typeof something === 'string') {
       /**

@@ -378,6 +378,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   public say (text:     string)                                  : Promise<void | Message>
+  public say (message:  Message)                                 : Promise<void | Message>
   public say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
   public say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
   public say (file:     FileBox)                                 : Promise<void | Message>
@@ -458,6 +459,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async say (
     something : string
+              | Message
               | Contact
               | FileBox
               | MiniProgram
@@ -474,12 +476,20 @@ export class Room extends Accessory implements Sayable {
     let text: string
     let msgId: string | void
 
+    if (something instanceof Message) {
+      return something.forward(this)
+    }
+
+    function isTemplateStringArray (tsa: any): tsa is TemplateStringsArray {
+      return tsa instanceof Array
+    }
+
     /**
      *
      * 0. TemplateStringArray
      *
      */
-    if (something instanceof Array) {
+    if (isTemplateStringArray(something)) {
       const msgId = await this.sayTemplateStringsArray(
         something as TemplateStringsArray,
         ...varList,
