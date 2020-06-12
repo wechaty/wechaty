@@ -22,14 +22,8 @@ import { EventEmitter } from 'events'
 import os               from 'os'
 
 import {
-  // Constructor,
   cloneClass,
-  // instanceToClass,
 }                   from 'clone-class'
-import {
-  callerResolve,
-  hotImport,
-}                   from 'hot-import'
 import {
   StateSwitch,
 }                   from 'state-switch'
@@ -51,7 +45,6 @@ import {
   Raven,
 
   config,
-  isProduction,
   log,
 }                       from './config'
 
@@ -61,7 +54,6 @@ import {
 }                       from './version'
 
 import {
-  AnyFunction,
   Sayable,
 }                       from './types'
 
@@ -101,6 +93,24 @@ export const WECHATY_EVENT_DICT = {
 }
 
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
+
+/**
+ * Wechaty Event Listener Interfaces
+ */
+export type WechatyDongEventListener       = (this: Wechaty, data?: string) => void
+export type WechatyErrorEventListener      = (this: Wechaty, error: Error) => void
+export type WechatyFriendshipEventListener = (this: Wechaty, friendship: Friendship) => void
+export type WechatyHeartbeatEventListener  = (this: Wechaty, data: any) => void
+export type WechatyLoginEventListener      = (this: Wechaty, user: ContactSelf) => void
+export type WechatyLogoutEventListener     = (this: Wechaty, user: ContactSelf, reason?: string) => void
+export type WechatyMessageEventListener    = (this: Wechaty, message: Message) => void
+export type WechatyReadyEventListener      = (this: Wechaty) => void
+export type WechatyRoomInviteEventListener = (this: Wechaty, roomInvitation: RoomInvitation) => void
+export type WechatyRoomJoinEventListener   = (this: Wechaty, room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void
+export type WechatyRoomLeaveEventListener  = (this: Wechaty, room: Room, leaverList: Contact[],  remover?: Contact, date?: Date) => void
+export type WechatyRoomTopicEventListener  = (this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact, date?: Date) => void
+export type WechatyScanEventListener       = (this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void
+export type WechatyStartStopEventListener  = (this: Wechaty) => void
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -345,20 +355,20 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.options.name || 'wechaty'
   }
 
-  public emit (event: 'dong',       data?: string)                                                      : boolean
-  public emit (event: 'error',      error: Error)                                                       : boolean
-  public emit (event: 'friendship', friendship: Friendship)                                             : boolean
-  public emit (event: 'heartbeat',  data: any)                                                          : boolean
-  public emit (event: 'login',      user: ContactSelf)                                                  : boolean
-  public emit (event: 'logout',     user: ContactSelf, reason?: string)                                 : boolean
-  public emit (event: 'message',    message: Message)                                                   : boolean
-  public emit (event: 'ready')                                                                          : boolean
-  public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                   : boolean
+  public emit (event: 'dong',         data?: string)                                                                : boolean
+  public emit (event: 'error',        error: Error)                                                                 : boolean
+  public emit (event: 'friendship',   friendship: Friendship)                                                       : boolean
+  public emit (event: 'heartbeat',    data: any)                                                                    : boolean
+  public emit (event: 'login',        user: ContactSelf)                                                            : boolean
+  public emit (event: 'logout',       user: ContactSelf, reason?: string)                                           : boolean
+  public emit (event: 'message',      message: Message)                                                             : boolean
+  public emit (event: 'ready')                                                                                      : boolean
+  public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                               : boolean
   public emit (event: 'room-join',    room: Room, inviteeList : Contact[], inviter : Contact, date: Date)           : boolean
   public emit (event: 'room-leave',   room: Room, leaverList  : Contact[], remover : Contact, date: Date)           : boolean
   public emit (event: 'room-topic',   room: Room, newTopic: string, oldTopic: string, changer: Contact, date: Date) : boolean
-  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                : boolean
-  public emit (event: 'start' | 'stop')                                                                 : boolean
+  public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                            : boolean
+  public emit (event: 'start' | 'stop')                                                                             : boolean
 
   // guard for the above event: make sure it includes all the possible values
   public emit (event: never, listener: never): never
@@ -370,20 +380,20 @@ export class Wechaty extends EventEmitter implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on (event: 'dong',         listener: string | ((this: Wechaty, data?: string) => void))                                                    : this
-  public on (event: 'error',        listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
-  public on (event: 'friendship',   listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
-  public on (event: 'heartbeat',    listener: string | ((this: Wechaty, data: any) => void))                                                        : this
-  public on (event: 'login',        listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
-  public on (event: 'logout',       listener: string | ((this: Wechaty, user: ContactSelf, reason?: string) => void))                               : this
-  public on (event: 'message',      listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
-  public on (event: 'ready',        listener: string | ((this: Wechaty) => void))                                                                   : this
-  public on (event: 'room-invite',  listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
-  public on (event: 'room-join',    listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void))            : this
-  public on (event: 'room-leave',   listener: string | ((this: Wechaty, room: Room, leaverList: Contact[],  remover?: Contact, date?: Date) => void))            : this
-  public on (event: 'room-topic',   listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact, date?: Date) => void)) : this
-  public on (event: 'scan',         listener: string | ((this: Wechaty, qrcode: string, status: ScanStatus, data?: string) => void))                : this
-  public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                 : this
+  public on (event: 'dong',           listener: WechatyDongEventListener)       : this
+  public on (event: 'error',          listener: WechatyErrorEventListener)      : this
+  public on (event: 'friendship',     listener: WechatyFriendshipEventListener) : this
+  public on (event: 'heartbeat',      listener: WechatyHeartbeatEventListener)  : this
+  public on (event: 'login',          listener: WechatyLoginEventListener)      : this
+  public on (event: 'logout',         listener: WechatyLogoutEventListener)     : this
+  public on (event: 'message',        listener: WechatyMessageEventListener)    : this
+  public on (event: 'ready',          listener: WechatyReadyEventListener)      : this
+  public on (event: 'room-invite',    listener: WechatyRoomInviteEventListener) : this
+  public on (event: 'room-join',      listener: WechatyRoomJoinEventListener)   : this
+  public on (event: 'room-leave',     listener: WechatyRoomLeaveEventListener)  : this
+  public on (event: 'room-topic',     listener: WechatyRoomTopicEventListener)  : this
+  public on (event: 'scan',           listener: WechatyScanEventListener)       : this
+  public on (event: 'start' | 'stop', listener: WechatyStartStopEventListener)  : this
 
   // guard for the above event: make sure it includes all the possible values
   public on (event: never, listener: never): never
@@ -542,19 +552,28 @@ export class Wechaty extends EventEmitter implements Sayable {
    *   console.error(error)
    * })
    */
-  public on (event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
-    log.verbose('Wechaty', 'on(%s, %s) registered',
-      event,
-      typeof listener === 'string'
-        ? listener
-        : typeof listener,
-    )
+  public on (event: WechatyEventName, listener: (...args: any[]) => any): this {
+    log.verbose('Wechaty', 'on(%s, listener) registered', event)
 
-    if (typeof listener === 'function') {
-      this.addListenerFunction(event, listener)
-    } else {
-      this.addListenerModuleFile(event, listener)
+    const handleError = (e: Error, type = '') => {
+      log.error('Wechaty', 'addListenerFunction(%s) listener %s exception: %s', event, type, e)
+      this.emit('error', e)
     }
+
+    /**
+     * We use `super.on()` at here to prevent loop
+     */
+    super.on(event, (...args: any[]) => {
+      try {
+        const result = listener.apply(this, args)
+        if (result && result.catch && typeof result.catch === 'function') {
+          result.catch((e: Error) => handleError(e, 'async'))
+        }
+      } catch (e) {
+        handleError(e)
+      }
+    })
+
     return this
   }
 
@@ -577,58 +596,6 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   private installGlobalPlugin () {
     (this.constructor as typeof Wechaty).globalPluginList.forEach(plugin => plugin(this))
-  }
-
-  private addListenerModuleFile (event: WechatyEventName, modulePath: string): void {
-    const absoluteFilename = callerResolve(modulePath, __filename)
-    log.verbose('Wechaty', 'addListenerModuleFile() hotImport(%s)', absoluteFilename)
-
-    hotImport(absoluteFilename)
-      .then((func: AnyFunction) => super.on(event, (...args: any[]) => {
-        try {
-          return func.apply(this, args)
-        } catch (e) {
-          log.error('Wechaty', 'addListenerModuleFile(%s, %s) listener exception: %s',
-            event, modulePath, e,
-          )
-          this.emit('error', e)
-        }
-      }))
-      .catch(e => {
-        log.error('Wechaty', 'addListenerModuleFile(%s, %s) hotImport() exception: %s',
-          event, modulePath, e,
-        )
-        this.emit('error', e)
-      })
-
-    if (isProduction()) {
-      log.verbose('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
-      hotImport(absoluteFilename, false)
-        .catch(e => log.error('Wechaty', 'addListenerModuleFile() hotImport() rejection: %s', e))
-    }
-  }
-
-  private addListenerFunction (event: WechatyEventName, listener: AnyFunction): void {
-    log.verbose('Wechaty', 'addListenerFunction(%s)', event)
-
-    const handleError = (e: Error, type = '') => {
-      log.error('Wechaty', 'addListenerFunction(%s) listener %sexception: %s', event, type, e)
-      this.emit('error', e)
-    }
-
-    /**
-     * We use `super.on()` at here to prevent loop
-     */
-    super.on(event, (...args: any[]) => {
-      try {
-        const result = listener.apply(this, args)
-        if (result && result.catch && typeof result.catch === 'function') {
-          result.catch((e: Error) => handleError(e, 'async'))
-        }
-      } catch (e) {
-        handleError(e)
-      }
-    })
   }
 
   private async initPuppet (): Promise<void> {

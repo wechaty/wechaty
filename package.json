@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.40.10",
+  "version": "0.41.0",
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -86,7 +86,6 @@
     "brolog": "^1.8.3",
     "clone-class": "^0.7.3",
     "cuid": "^2.1.8",
-    "hot-import": "^0.2.14",
     "in-gfw": "^1.2.0",
     "json-rpc-peer": "^0.15.5",
     "npm-programmatic": "0.0.12",
