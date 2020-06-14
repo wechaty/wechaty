@@ -47,6 +47,12 @@ Wechaty is used in many ChatBot projects by thousands of developers. If you want
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
+### Video playlist
+
+Wechaty already held lots of talk in the past 4 yeare, you can click [Youtube Playlist](https://www.youtube.com/playlist?list=PL8hd9KDTdarDXf_Rxtr8meKhxtgcXMInh)  to find all wechaty wonderful talk on youtube! 
+
+You can also click [blog](https://wechaty.github.io/) to find all of the blog written by wechaty contributors.
+
 ## The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
