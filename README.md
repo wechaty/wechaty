@@ -256,7 +256,7 @@ All wechat messages will be encapsulated as a Message.
 | method | [`mentionSelf(): boolean`](https://wechaty.github.io/wechaty/#Message+mentionSelf) | check if a message is mention self |
 | method | [`forward(to: Contact): Promise<void>`](https://wechaty.github.io/wechaty/#Message+forward) | Forward the received message |
 | method | [`age(): number`](https://wechaty.github.io/wechaty/#Message+age) | the number of seconds since it has been created |
-| method | `date(): Date` | the time it was created |
+| method | [`date(): Date`](https://wechaty.github.io/wechaty/#Message+date) | the time it was created |
 | method | [`toFileBox(): Promise<FileBox>`](https://wechaty.github.io/wechaty/#Message+toFileBox) | extract the Media File from the Message, and put it into the FileBox. |
 | method | [`toContact(): Promise<Contact>`](https://wechaty.github.io/wechaty/#Message+toContact) | get Share Card of the Message |
 
