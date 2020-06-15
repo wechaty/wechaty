@@ -203,7 +203,7 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 | static | [`load(query: string): Contact`](https://wechaty.github.io/wechaty/#Contact.load) | get contact by id |
 | property | `id: readonly string` | get contact id |
 | method | [`sync(): Promise<void>`](https://wechaty.github.io/wechaty/#Contact+sync) | force reload data for contact , sync data from lowlevel API again|
-| method | [`say(text: string): Promise<void | Message>`](https://wechaty.github.io/wechaty/#Contact+say) | send text, Contact, or file to contact, return the message which the bot sent (only `puppet-padplus` supported). |
+| method | [`say(text: string): Promise<void \| Message>`](https://wechaty.github.io/wechaty/#Contact+say) | send text, Contact, or file to contact, return the message which the bot sent (only `puppet-padplus` supported). |
 | method | [`self(): boolean`](https://wechaty.github.io/wechaty/#Contact+self) | check if contact is self |
 | method | [`name(): string`](https://wechaty.github.io/wechaty/#Contact+name) | get the name from a contact |
 | method | [`alias(): Promise<string>`](https://wechaty.github.io/wechaty/#Contact+alias) | get the alias for a contact |
