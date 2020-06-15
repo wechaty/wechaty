@@ -254,14 +254,14 @@ All wechat messages will be encapsulated as a Message.
 | method | [`to(): Contact`](https://wechaty.github.io/wechaty/#Message+to) | get the destination of the message |
 | method | [`room(): null \| Room`](https://wechaty.github.io/wechaty/#Message+room) | get the room from the message.(If the message is not in a room, then will return `null`) |
 | method | [`text(): string`](https://wechaty.github.io/wechaty/#Message+text) | get the text content of the message |
-| method | [`say(text: string): Promise<void | Message>`](https://wechaty.github.io/wechaty/#Message+say) | reply a Text, Media File , or contact message to the sender, return the message which the bot sent (only `puppet-padplus` supported). |
+| method | [`say(text: string): Promise<void \| Message>`](https://wechaty.github.io/wechaty/#Message+say) | reply a Text, Media File , or contact message to the sender, return the message which the bot sent (only `puppet-padplus` supported). |
 | method | [`type(): MessageType`](https://wechaty.github.io/wechaty/#Message+type) | get the type from the message |
 | method | [`self(): boolean`](https://wechaty.github.io/wechaty/#Message+self) | check if a message is sent by self |
 | method | [`mention(): Contact[]`](https://wechaty.github.io/wechaty/#Message+mention) | get message mentioned contactList. |
 | method | [`mentionSelf(): boolean`](https://wechaty.github.io/wechaty/#Message+mentionSelf) | check if a message is mention self |
 | method | [`forward(to: Contact): Promise<void>`](https://wechaty.github.io/wechaty/#Message+forward) | Forward the received message |
 | method | [`age(): number`](https://wechaty.github.io/wechaty/#Message+age) | the number of seconds since it has been created |
-| method | `date(): Date` | the time it was created |
+| method | [`date(): Date`](https://wechaty.github.io/wechaty/#Message+date) | the time it was created |
 | method | [`toFileBox(): Promise<FileBox>`](https://wechaty.github.io/wechaty/#Message+toFileBox) | extract the Media File from the Message, and put it into the FileBox. |
 | method | [`toContact(): Promise<Contact>`](https://wechaty.github.io/wechaty/#Message+toContact) | get Share Card of the Message |
 
@@ -307,7 +307,7 @@ Accept room invitation
 | method | [`inviter(): Contact`](https://wechaty.github.io/wechaty/#RoomInvitation+inviter) | get the inviter from room invitation |
 | method | [`roomTopic(): Promise<string>`](https://wechaty.github.io/wechaty/#RoomInvitation+inviter) | get the room topic from room invitation |
 | method | [`date(): Promise<Date>`](https://wechaty.github.io/wechaty/#RoomInvitation+date) | the time it was created |
-| method | `age(): Promise<number>` | the number of seconds since it has been created |
+| method | [`age(): Promise<number>`](https://wechaty.github.io/wechaty/#RoomInvitation+age) | the number of seconds since it has been created |
 
 ## :eyeglasses: TEST
 
