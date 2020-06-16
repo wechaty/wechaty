@@ -326,6 +326,25 @@ npm test
 
 Get to know more about the tests from [Wiki:Tests](https://github.com/Wechaty/wechaty/wiki/Tests)
 
+## CREATING WECHATY PLUGIN
+
+Creating and publishing a Wechaty Plugin is simple. Simply expose your module as a function that takes 1 parameter: wechaty. When your plugin is imported by Wechaty, it will pass itself in as the argument, and so you are free to add any configuration that Wechaty supports.
+
+```ts
+import { WechatyPlugin } from 'wechaty'
+
+export default const MyPlugin: WechatyPlugin = (wechaty: Wechaty) => {
+  // ...
+}
+```
+
+The `config` exist so the user can pass in customizations to your Plugin. In documenting your Wechaty Plugin, you would lay out your supported config for the user.
+
+See:
+
+1. [Wechaty Plugin Support with KickOut Example #1939](https://github.com/wechaty/wechaty/issues/1939)
+1. [Wechaty Plugins Contrib](https://github.com/wechaty/wechaty-plugin-contrib)
+
 ## :pencil: RELEASE NOTES
 
 - [Latest Release](https://github.com/Wechaty/wechaty/releases/latest)(All releases [here](https://github.com/Wechaty/wechaty/releases))
