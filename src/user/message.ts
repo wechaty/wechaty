@@ -935,7 +935,8 @@ export class Message extends Accessory implements Sayable {
    * For example, the message is sent at time `8:43:01`,
    * and when we received it in Wechaty, the time is `8:43:15`,
    * then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
-   * @returns {number}
+   *
+   * @returns {number} message age in seconds.
    */
   public age (): number {
     const ageMilliseconds = Date.now() - this.date().getTime()
