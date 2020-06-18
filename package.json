@@ -4,6 +4,9 @@
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
+  "engines": {
+    "node": ">= 12"
+  },
   "wechaty": {
     "DEFAULT_PORT": 8080,
     "DEFAULT_PROTOCOL": "io|0.0.1",
@@ -79,9 +82,6 @@
     "url": "https://opencollective.com/wechaty"
   },
   "homepage": "https://github.com/wechaty/",
-  "engines": {
-    "node": ">= 12"
-  },
   "dependencies": {
     "brolog": "^1.8.3",
     "clone-class": "^0.7.3",
