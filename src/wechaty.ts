@@ -240,9 +240,10 @@ export class Wechaty extends EventEmitter implements Sayable {
    * bot.use(WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' })
    */
   public static use (
-    ...plugins:  WechatyPlugin[]
+    ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
   ) {
-    this.globalPluginList = this.globalPluginList.concat(plugins)
+    const pluginList = plugins.flat()
+    this.globalPluginList = this.globalPluginList.concat(pluginList)
   }
 
   /**
@@ -589,8 +590,9 @@ export class Wechaty extends EventEmitter implements Sayable {
    * // The same usage with Wechaty.use().
    *
    */
-  public use (...plugins: WechatyPlugin[]) {
-    plugins.forEach(plugin => plugin(this))
+  public use (...plugins: (WechatyPlugin | WechatyPlugin[])[]) {
+    const pluginList = plugins.flat()
+    pluginList.forEach(plugin => plugin(this))
     return this
   }
 
