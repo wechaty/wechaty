@@ -423,7 +423,9 @@ export class Message extends Accessory implements Sayable {
   public say (url:     UrlLink)                               : Promise<void | Message>
   public say (mini:    MiniProgram)                           : Promise<void | Message>
 
-  public say (...args: never[]): Promise<never>
+  // Huan(202006): allow fall down to the defination to get more flexibility.
+  // public say (...args: never[]): Promise<never>
+
   /**
    * Reply a Text or Media File message to the sender.
    * > Tips:

@@ -386,7 +386,8 @@ export class Room extends Accessory implements Sayable {
   public say (mini:     MiniProgram)                             : Promise<void | Message>
   public say (contact:  Contact)                                 : Promise<void | Message>
 
-  public say (...args: never[]): never
+  // Huan(202006): allow fall down to the defination to get more flexibility.
+  // public say (...args: never[]): never
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
