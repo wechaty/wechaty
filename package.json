@@ -2,8 +2,8 @@
   "name": "wechaty",
   "version": "0.41.9",
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "dist/src/mod.js",
+  "typings": "dist/src/mod.d.ts",
   "wechaty": {
     "DEFAULT_PORT": 8080,
     "DEFAULT_PROTOCOL": "io|0.0.1",
