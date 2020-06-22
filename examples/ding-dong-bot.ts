@@ -23,7 +23,7 @@ import {
   Message,
   ScanStatus,
   Wechaty,
-}               from '../src/' // from 'wechaty'
+}               from '../src/mod' // from 'wechaty'
 
 import { generate } from 'qrcode-terminal'
 

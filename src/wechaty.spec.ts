@@ -37,7 +37,7 @@ import {
   Message,
 
   Room,
-}                 from './'
+}                 from './mod'
 
 import {
   Puppet,
