@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.41.16",
+  "version": "0.41.17",
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
