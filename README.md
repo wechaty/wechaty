@@ -420,8 +420,6 @@ At last, It's built for huan's personal study purpose of Automatically Testing.
 [![Open Collective Backers](https://opencollective.com/wechaty/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
 [![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/0)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/0)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/1)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/1)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/2)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/2)
@@ -430,6 +428,8 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/5)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/5)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/6)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/6)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/7)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/7)
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
 
 -----
 
