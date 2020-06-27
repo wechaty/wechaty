@@ -420,8 +420,6 @@ At last, It's built for huan's personal study purpose of Automatically Testing.
 [![Open Collective Backers](https://opencollective.com/wechaty/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
 [![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/0)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/0)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/1)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/1)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/2)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/2)
@@ -430,6 +428,8 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/5)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/5)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/6)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/6)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/7)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/7)
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
 
 -----
 
@@ -467,7 +467,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 ## :raised_hands: Authors
 
 1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia), Tencent TVP of Chatbot
-1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/)
+1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP
 
 [![Profile of Huan LI (李卓桓) on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
 
