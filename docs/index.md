@@ -142,7 +142,7 @@ Creates an instance of Wechaty.
 ```js
 const { Wechaty } = require('wechaty')
 const bot = new Wechaty()
-bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
+bot.on('scan',    (qrcode, status) => console.log('https://wechaty.github.io/qrcode/' + encodeURIComponent(qrcode)))
 bot.on('login',   user => console.log(`User ${user} logined`))
 bot.on('message', message => console.log(`Message: ${message}`))
 bot.start()

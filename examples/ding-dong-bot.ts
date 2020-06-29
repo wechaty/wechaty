@@ -76,10 +76,8 @@ function onScan (qrcode: string, status: ScanStatus) {
   if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
     generate(qrcode)
 
-    // Generate a QR Code online via
-    // http://goqr.me/api/doc/create-qr-code/
     const qrcodeImageUrl = [
-      'https://api.qrserver.com/v1/create-qr-code/?data=',
+      'https://wechaty.github.io/qrcode/',
       encodeURIComponent(qrcode),
     ].join('')
 
