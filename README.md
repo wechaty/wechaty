@@ -65,7 +65,7 @@ Wechaty already held lots of talk and got a lot of blogs in the past 4 years, he
 const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
 
 Wechaty.instance() // Global Instance
-.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrcode)}`))
+.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.github.io/qrcode/${encodeURIComponent(qrcode)}`))
 .on('login',            user => console.log(`User ${user} logined`))
 .on('message',       message => console.log(`Message: ${message}`))
 .start()
