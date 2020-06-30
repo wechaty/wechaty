@@ -438,10 +438,6 @@ export class PuppetHostie extends Puppet {
     } catch (e) {
       log.error('PuppetHostie', 'logout() rejection: %s', e && e.message)
       throw e
-    } finally {
-      const payload = { contactId: this.id } as EventLogoutPayload
-      this.emit('logout', payload) // becore we will throw above by logonoff() when this.user===undefined
-      this.id = undefined
     }
   }
 
