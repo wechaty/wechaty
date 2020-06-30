@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.41.23",
+  "version": "0.41.24",
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -100,7 +100,7 @@
     "state-switch": "^0.9.9",
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.27.1",
-    "wechaty-puppet-hostie": "^0.8.4",
+    "wechaty-puppet-hostie": "^0.8.5",
     "ws": "^7.2.3"
   },
   "devDependencies": {
