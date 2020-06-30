@@ -1,9 +1,12 @@
 {
   "name": "wechaty",
-  "version": "0.40.1",
+  "version": "0.41.22",
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "dist/src/mod.js",
+  "typings": "dist/src/mod.d.ts",
+  "engines": {
+    "node": ">= 12"
+  },
   "wechaty": {
     "DEFAULT_PORT": 8080,
     "DEFAULT_PROTOCOL": "io|0.0.1",
@@ -18,7 +21,7 @@
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
-    "check-node-version": "check-node-version --node \">= 10\"",
+    "check-node-version": "check-node-version --node \">= 12\"",
     "lint": "npm run check-node-version && npm run lint:es && npm run lint:ts && npm run lint:sh && npm run lint:md",
     "lint:es": "eslint --ignore-pattern node_modules/ --ignore-pattern fixtures/ \"{bin,examples,src,scripts,tests}/**/*.ts\"",
     "lint:md": "markdownlint README.md",
@@ -79,14 +82,10 @@
     "url": "https://opencollective.com/wechaty"
   },
   "homepage": "https://github.com/wechaty/",
-  "engines": {
-    "node": ">= 10"
-  },
   "dependencies": {
     "brolog": "^1.8.3",
     "clone-class": "^0.7.3",
     "cuid": "^2.1.8",
-    "hot-import": "^0.2.14",
     "in-gfw": "^1.2.0",
     "json-rpc-peer": "^0.15.5",
     "npm-programmatic": "0.0.12",
@@ -100,15 +99,15 @@
     "read-pkg-up": "^7.0.1",
     "state-switch": "^0.9.9",
     "watchdog": "^0.8.17",
-    "wechaty-puppet": "^0.25.7",
-    "wechaty-puppet-hostie": "^0.7.12",
+    "wechaty-puppet": "^0.27.1",
+    "wechaty-puppet-hostie": "^0.8.3",
     "ws": "^7.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.8.7",
     "@babel/node": "^7.8.7",
     "@babel/preset-env": "^7.8.7",
-    "@chatie/eslint-config": "^0.9.1",
+    "@chatie/eslint-config": "^0.11.5",
     "@chatie/git-scripts": "^0.5.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.8.0",
@@ -134,7 +133,7 @@
     "sloc": "^0.2.1",
     "tstest": "^0.4.10",
     "typedoc": "^0.16.11",
-    "wechaty-puppet-mock": "^0.21.2"
+    "wechaty-puppet-mock": "^0.22.2"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

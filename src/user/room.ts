@@ -378,13 +378,16 @@ export class Room extends Accessory implements Sayable {
   }
 
   public say (text:     string)                                  : Promise<void | Message>
+  public say (message:  Message)                                 : Promise<void | Message>
   public say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
   public say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
   public say (file:     FileBox)                                 : Promise<void | Message>
   public say (url:      UrlLink)                                 : Promise<void | Message>
   public say (mini:     MiniProgram)                             : Promise<void | Message>
+  public say (contact:  Contact)                                 : Promise<void | Message>
 
-  public say (...args: never[]): never
+  // Huan(202006): allow fall down to the defination to get more flexibility.
+  // public say (...args: never[]): never
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
@@ -409,7 +412,7 @@ export class Room extends Accessory implements Sayable {
    *
    * // 2. Send media file inside Room
    * import { FileBox }  from 'wechaty'
-   * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   * const fileBox1 = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
    * await room.say(fileBox1)
    * const msg1 = await room.say(fileBox1) // only supported by puppet-padplus
@@ -457,6 +460,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async say (
     something : string
+              | Message
               | Contact
               | FileBox
               | MiniProgram
@@ -473,12 +477,20 @@ export class Room extends Accessory implements Sayable {
     let text: string
     let msgId: string | void
 
+    if (something instanceof Message) {
+      return something.forward(this)
+    }
+
+    function isTemplateStringArray (tsa: any): tsa is TemplateStringsArray {
+      return tsa instanceof Array
+    }
+
     /**
      *
      * 0. TemplateStringArray
      *
      */
-    if (something instanceof Array) {
+    if (isTemplateStringArray(something)) {
       const msgId = await this.sayTemplateStringsArray(
         something as TemplateStringsArray,
         ...varList,

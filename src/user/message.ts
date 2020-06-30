@@ -34,7 +34,7 @@ import {
   Accessory,
 }                       from '../accessory'
 import {
-  AT_SEPRATOR_REGEX,
+  AT_SEPARATOR_REGEX,
   FileBox,
 
   log,
@@ -416,13 +416,16 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
-  public async say (text:    string, mention?: Contact | Contact[]) : Promise<void | Message>
-  public async say (contact: Contact)                               : Promise<void | Message>
-  public async say (file:    FileBox)                               : Promise<void | Message>
-  public async say (url:     UrlLink)                               : Promise<void | Message>
-  public async say (mini:    MiniProgram)                           : Promise<void | Message>
+  public say (text:    string)      : Promise<void | Message>
+  public say (message: Message)     : Promise<void | Message>
+  public say (contact: Contact)     : Promise<void | Message>
+  public say (file:    FileBox)     : Promise<void | Message>
+  public say (url:     UrlLink)     : Promise<void | Message>
+  public say (mini:    MiniProgram) : Promise<void | Message>
 
-  public async say (...args: never[]): Promise<never>
+  // Huan(202006): allow fall down to the defination to get more flexibility.
+  // public say (...args: never[]): Promise<never>
+
   /**
    * Reply a Text or Media File message to the sender.
    * > Tips:
@@ -445,7 +448,7 @@ export class Message extends Accessory implements Sayable {
    * // 1. send Image
    *
    *   if (/^ding$/i.test(m.text())) {
-   *     const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   *     const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    *     await msg.say(fileBox)
    *     const message = await msg.say(fileBox) // only supported by puppet-padplus
    *   }
@@ -501,7 +504,12 @@ export class Message extends Accessory implements Sayable {
    * .start()
    */
   public async say (
-    textOrContactOrFileOrUrlOrMini : string | Contact | FileBox | UrlLink | MiniProgram,
+    textOrContactOrFileOrUrlOrMini :  string
+                                    | Message
+                                    | Contact
+                                    | FileBox
+                                    | UrlLink
+                                    | MiniProgram,
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrlOrMini)
 
@@ -511,12 +519,22 @@ export class Message extends Accessory implements Sayable {
     const room = this.room()
 
     let conversationId: string
+    let conversation
     if (room) {
+      conversation = room
       conversationId = room.id
     } else if (from) {
+      conversation = from
       conversationId = from.id
     } else {
       throw new Error('neither room nor from?')
+    }
+
+    /**
+     * Support say a existing message: just forward it.
+     */
+    if (textOrContactOrFileOrUrlOrMini instanceof Message) {
+      return textOrContactOrFileOrUrlOrMini.forward(conversation)
     }
 
     let msgId: void | string
@@ -670,20 +688,20 @@ export class Message extends Accessory implements Sayable {
      * Use mention list if mention list is available
      * otherwise, process the message and get the mention list
      */
-    if (this.payload && this.payload.mentionIdList) {
+    if (this.payload && 'mentionIdList' in this.payload) {
       const idToContact = async (id: string) => {
         const contact = this.wechaty.Contact.load(id)
         await contact.ready()
         return contact
       }
-      return Promise.all(this.payload.mentionIdList.map(idToContact))
+      return Promise.all(this.payload.mentionIdList?.map(idToContact) ?? [])
     }
 
     /**
      * define magic code `8197` to identify @xxx
-     * const AT_SEPRATOR = String.fromCharCode(8197)
+     * const AT_SEPARATOR = String.fromCharCode(8197)
      */
-    const atList = this.text().split(AT_SEPRATOR_REGEX)
+    const atList = this.text().split(AT_SEPARATOR_REGEX)
     // console.log('atList: ', atList)
     if (atList.length === 0) return []
 
@@ -919,7 +937,8 @@ export class Message extends Accessory implements Sayable {
    * For example, the message is sent at time `8:43:01`,
    * and when we received it in Wechaty, the time is `8:43:15`,
    * then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
-   * @returns {number}
+   *
+   * @returns {number} message age in seconds.
    */
   public age (): number {
     const ageMilliseconds = Date.now() - this.date().getTime()

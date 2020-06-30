@@ -142,7 +142,7 @@ Creates an instance of Wechaty.
 ```js
 const { Wechaty } = require('wechaty')
 const bot = new Wechaty()
-bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
+bot.on('scan',    (qrcode, status) => console.log('https://wechaty.github.io/qrcode/' + encodeURIComponent(qrcode)))
 bot.on('login',   user => console.log(`User ${user} logined`))
 bot.on('message', message => console.log(`Message: ${message}`))
 bot.start()
@@ -359,7 +359,7 @@ await bot.say(contact)
 
 // 3. send Image to bot itself from remote url
 import { FileBox }  from 'wechaty'
-const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
 await bot.say(fileBox)
 
 // 4. send Image to bot itself from local file
@@ -483,7 +483,7 @@ const msg = await room.say('Hello world!') // only supported by puppet-padplus
 
 // 2. Send media file inside Room
 import { FileBox }  from 'wechaty'
-const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+const fileBox1 = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
 const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
 await room.say(fileBox1)
 const msg1 = await room.say(fileBox1) // only supported by puppet-padplus
@@ -1019,7 +1019,7 @@ const msg = await contact.say('welcome to wechaty!') // only supported by puppet
 // 2. send media file to contact
 
 import { FileBox }  from 'wechaty'
-const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+const fileBox1 = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
 const fileBox2 = FileBox.fromFile('/tmp/text.txt')
 await contact.say(fileBox1)
 const msg1 = await contact.say(fileBox1) // only supported by puppet-padplus
@@ -1309,7 +1309,7 @@ bot.on('login', (user: ContactSelf) => {
 import { FileBox }  from 'wechaty'
 bot.on('login', (user: ContactSelf) => {
   console.log(`user ${user} login`)
-  const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+  const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
   await user.avatar(fileBox)
   console.log(`Change bot avatar successfully!`)
 })
@@ -1720,7 +1720,7 @@ bot
 // 1. send Image
 
   if (/^ding$/i.test(m.text())) {
-    const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+    const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
     await msg.say(fileBox)
     const message = await msg.say(fileBox) // only supported by puppet-padplus
   }

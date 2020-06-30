@@ -25,11 +25,10 @@ import os    from 'os'
 import Raven      from 'raven'
 import readPkgUp  from 'read-pkg-up'
 
-import { log }      from 'brolog'
-
 import {
   FileBox,
   MemoryCard,
+  log,
 }                   from 'wechaty-puppet'
 
 import {
@@ -75,12 +74,6 @@ Raven.context(function () {
   doSomething(a[0])
 })
  */
-
-const logLevel = process.env.WECHATY_LOG
-if (logLevel) {
-  log.level(logLevel.toLowerCase() as any)
-  log.silly('Config', 'WECHATY_LOG set level to %s', logLevel)
-}
 
 /**
  * to handle unhandled exceptions
@@ -166,13 +159,12 @@ export function qrCodeForChatie (): FileBox {
 // String.fromCharCode(8197)
 export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
 // mobile: \u2005, PC、mac: \u0020
-export const AT_SEPRATOR_REGEX = /[\u2005\u0020]/
+export const AT_SEPARATOR_REGEX = /[\u2005\u0020]/
 
 export function qrcodeValueToImageUrl (qrcodeValue: string): string {
   return [
-    'https://api.qrserver.com/v1/create-qr-code/?data=',
+    'https://wechaty.github.io/qrcode/',
     encodeURIComponent(qrcodeValue),
-    '&size=220x220&margin=20',
   ].join('')
 }
 

@@ -100,7 +100,7 @@ export class Contact extends Accessory implements Sayable {
     }
     if (this === Contact) {
       throw new Error(
-        'The lgobal Contact class can not be used directly!'
+        'The global Contact class can not be used directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
@@ -203,7 +203,7 @@ export class Contact extends Accessory implements Sayable {
    * const bot = new Wechaty()
    * await bot.start()
    * const contactList = await bot.Contact.findAll()                      // get the contact list of the bot
-   * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find allof the contacts whose name is 'ruirui'
+   * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
   public static async findAll<T extends typeof Contact> (
@@ -294,13 +294,13 @@ export class Contact extends Accessory implements Sayable {
 
     if (MyClass === Contact) {
       throw new Error(
-        'Contact class can not be instanciated directly!'
+        'Contact class can not be instantiated directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
       )
     }
 
     if (!this.puppet) {
-      throw new Error('Contact class can not be instanciated without a puppet!')
+      throw new Error('Contact class can not be instantiated without a puppet!')
     }
   }
 
@@ -320,11 +320,12 @@ export class Contact extends Accessory implements Sayable {
     return `Contact<${identity}>`
   }
 
-  public async say (text:     string)      : Promise<void | Message>
-  public async say (contact:  Contact)     : Promise<void | Message>
-  public async say (file:     FileBox)     : Promise<void | Message>
-  public async say (mini:     MiniProgram) : Promise<void | Message>
-  public async say (url:      UrlLink)     : Promise<void | Message>
+  public say (text:     string)      : Promise<void | Message>
+  public say (message:  Message)     : Promise<void | Message>
+  public say (contact:  Contact)     : Promise<void | Message>
+  public say (file:     FileBox)     : Promise<void | Message>
+  public say (mini:     MiniProgram) : Promise<void | Message>
+  public say (url:      UrlLink)     : Promise<void | Message>
 
   /**
    * > Tips:
@@ -347,7 +348,7 @@ export class Contact extends Accessory implements Sayable {
    * // 2. send media file to contact
    *
    * import { FileBox }  from 'wechaty'
-   * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   * const fileBox1 = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromFile('/tmp/text.txt')
    * await contact.say(fileBox1)
    * const msg1 = await contact.say(fileBox1) // only supported by puppet-padplus
@@ -385,12 +386,18 @@ export class Contact extends Accessory implements Sayable {
    */
   public async say (
     something:  string
+              | Message
               | Contact
               | FileBox
               | MiniProgram
               | UrlLink
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', something)
+
+    if (something instanceof Message) {
+      return something.forward(this)
+    }
+
     let msgId: string | void
     if (typeof something === 'string') {
       /**
@@ -562,7 +569,7 @@ export class Contact extends Accessory implements Sayable {
    */
   /**
    * @description
-   * Check if it's a offical account, should use {@link Contact#type} instead
+   * Check if it's a official account, should use {@link Contact#type} instead
    * @deprecated
    * @ignore
    */
@@ -718,7 +725,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * Force reload data for Contact, Sync data from lowlevel API again.
+   * Force reload data for Contact, Sync data from low-level API again.
    *
    * @returns {Promise<this>}
    * @example
@@ -732,7 +739,7 @@ export class Contact extends Accessory implements Sayable {
    * `ready()` is For FrameWork ONLY!
    *
    * Please not to use `ready()` at the user land.
-   * If you want to sync data, uyse `sync()` instead.
+   * If you want to sync data, use `sync()` instead.
    *
    * @ignore
    */
