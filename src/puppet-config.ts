@@ -33,7 +33,7 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Wechaty Internal Puppets: dependence by package.json
    */
-  'wechaty-puppet-hostie'    : '^0.8.3',   // https://www.npmjs.com/package/wechaty-puppet-hostie
+  'wechaty-puppet-hostie'    : '^0.8.5',   // https://www.npmjs.com/package/wechaty-puppet-hostie
   'wechaty-puppet-mock'      : '^0.22.3',   // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
