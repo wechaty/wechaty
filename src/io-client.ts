@@ -19,7 +19,7 @@
  */
 /**
  * DO NOT use `require('../')` here!
- * because it will casue a LOOP require ERROR
+ * because it will cause a LOOP require ERROR
  */
 import { StateSwitch }  from 'state-switch'
 
@@ -146,10 +146,15 @@ export class IoClient {
     }
 
     wechaty
-      .on('login',    user => log.info('IoClient', `${user.name()} logined`))
-      .on('logout',   user => log.info('IoClient', `${user.name()} logouted`))
-      .on('scan',     (url, code) => log.info('IoClient', `[${code}] ${url}`))
+      .on('login',    user => log.info('IoClient', `${user.name()} logged in`))
+      .on('logout',   user => log.info('IoClient', `${user.name()} logged out`))
       .on('message',  msg => this.onMessage(msg))
+      .on('scan',     (url, code) => {
+        log.info('IoClient', [
+          `[${code}] ${url}]`,
+          `Online QR Code Image: https://wechaty.github.io/qrcode/${url}`,
+        ].join('\n'))
+      })
   }
 
   private async startIo (): Promise<void> {
