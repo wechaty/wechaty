@@ -517,7 +517,7 @@ export function puppetImplementation (
         response.setMentionIdsList(payload.mentionIdList)
         response.setRoomId(payload.roomId || '')
         response.setText(payload.text || '')
-        response.setTimestamp(payload.timestamp)
+        response.setTimestamp(Math.floor(payload.timestamp))
         response.setToId(payload.toId || '')
         response.setType(payload.type as MessageTypeMap[keyof MessageTypeMap])
 
@@ -844,7 +844,7 @@ export function puppetImplementation (
         response.setInviterId(payload.inviterId)
         response.setMemberCount(payload.memberCount)
         response.setMemberIdsList(payload.memberIdList)
-        response.setTimestamp(payload.timestamp)
+        response.setTimestamp(Math.floor(payload.timestamp))
         response.setTopic(payload.topic)
 
         return callback(null, response)
