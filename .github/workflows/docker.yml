@@ -30,10 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install Dependencies
-        run: make install
+        run: npm install
+      - name: Build the Docker image
+        run: ./scripts/docker.sh build
       - name: Login to DockerHub Registry
         run: echo ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }} | docker login -u zixia --password-stdin
-      - name: Build the Docker image
-        run: docker build -t artifact_image .
       - name: Deploy to Docker Hub
-        run: bash -x ./scripts/deploy-docker.sh artifact_image
+        run: ./scripts/docker.sh deploy
