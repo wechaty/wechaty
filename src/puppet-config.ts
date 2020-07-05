@@ -39,7 +39,7 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Wechaty External Puppets
    */
-  'wechaty-puppet-padplus'   : '^0.7.29',    // https://www.npmjs.com/package/wechaty-puppet-padplus
+  'wechaty-puppet-padplus'   : '^0.7.30',    // https://www.npmjs.com/package/wechaty-puppet-padplus
   'wechaty-puppet-puppeteer' : '^0.23.1',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
   'wechaty-puppet-wechat4u'  : '^0.17.4',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
 }
