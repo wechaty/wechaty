@@ -20,13 +20,39 @@ Then `PuppetMock` will helps you a lot.
 
 ## USAGE
 
+### Puppet Mock
+
 ```ts
-import { MemoryCard } from 'wechaty-puppet'
+import { Wechaty }   from 'wechaty'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-const puppet  = new PuppetMock({ memory: new MemoryCard() })
+const puppet  = new PuppetMock()
 const wechaty = new Wechaty({ puppet })
+
+wechaty.start()
 ```
+
+### Mocker & Environment
+
+```ts
+import {
+  PuppetMock,
+  Mocker,
+  SimpleEnvironment,
+}                     from 'wechaty-puppet-mock'
+
+const mocker = new Mocker()
+mocker.use(SimpleEnvironment())
+
+const puppet = new PuppetMock({ mocker })
+const wechaty = new Wechaty({ puppet })
+
+wechaty.start()
+
+// The Mocker will start perform the SimpleEnvironment...
+```
+
+See: [SimpleEnvironment](src/mocker/environment.ts)
 
 ## API Reference
 
