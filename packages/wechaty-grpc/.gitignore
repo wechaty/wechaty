@@ -75,3 +75,6 @@ t.*
 
 .idea
 target/
+
+# Python
+python/src/

@@ -13,12 +13,12 @@ clean:
 
 .PHONY: install
 install:
-	pip install -r requirements.txt
-	pip install -r requirements-dev.txt
+	pip3 install -r requirements.txt
+	pip3 install -r requirements-dev.txt
 
 .PHONY: test
 pytest:
-	pytest src/ tests/
+	python3 -m pytest src/ tests/
 
 code:
 	code .
