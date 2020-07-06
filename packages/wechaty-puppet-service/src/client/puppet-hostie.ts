@@ -3,6 +3,8 @@ import util from 'util'
 import grpc from 'grpc'
 import https from 'https'
 
+import path from 'path'
+
 // import { DebounceQueue } from 'rx-queue'
 
 import {
@@ -154,26 +156,46 @@ export class PuppetHostie extends Puppet {
   ): Promise<{ ip: string, port: number }> {
     log.verbose('PuppetHostie', `discoverHostieIp(%s)`, token)
 
-    const CHATIE_ENDPOINT = 'https://api.chatie.io/v0/hosties/'
+    const CHATIE_ENDPOINT_LIST = [
+      'https://api.chatie.io',
+      'https://chatieio.herokuapp.com',
+      'http://68.79.16.140',  // from @windmemory,
+    ]
 
-    const url = CHATIE_ENDPOINT + token
+    for (const endpoint of CHATIE_ENDPOINT_LIST) {
 
-    const { ip, port } = await new Promise((resolve, reject) => {
+      const url = path.join(
+        endpoint,
+        '/v0/hosties/',
+        token,
+      )
 
-      https.get(url, function (res) {
-        let body = ''
-        res.on('data', function (chunk) {
-          body += chunk
+      try {
+        const { ip, port } = await new Promise((resolve, reject) => {
+
+          https.get(url, function (res) {
+            let body = ''
+            res.on('data', function (chunk) {
+              body += chunk
+            })
+            res.on('end', function () {
+              resolve(JSON.parse(body))
+            })
+          }).on('error', function (e) {
+            reject(e)
+          })
         })
-        res.on('end', function () {
-          resolve(JSON.parse(body))
-        })
-      }).on('error', function (e) {
-        reject(e)
-      })
-    })
 
-    return { ip, port }
+        return { ip, port }
+
+      } catch (e) {
+        log.error('PuppetHostie', 'discoverHostieIp() endpoint<%s> rejection: %s', url, e)
+        console.warn(e)
+      }
+    }
+
+    throw new Error('discoverHostieIp() failed after tried all the endpoints.')
+
   }
 
   protected async startGrpcClient (): Promise<void> {

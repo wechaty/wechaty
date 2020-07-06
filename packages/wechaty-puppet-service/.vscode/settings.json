@@ -70,6 +70,10 @@
     "javascript",
     "typescript",
   ],
+  "cSpell.words": [
+    "hosties",
+    "windmemory"
+  ],
 
 }
 
