@@ -2,8 +2,7 @@ import util from 'util'
 
 import grpc from 'grpc'
 import https from 'https'
-
-import path from 'path'
+import http from 'http'
 
 // import { DebounceQueue } from 'rx-queue'
 
@@ -162,40 +161,37 @@ export class PuppetHostie extends Puppet {
       'http://68.79.16.140',  // from @windmemory,
     ]
 
-    for (const endpoint of CHATIE_ENDPOINT_LIST) {
+    try {
+      const result = await Promise.race<Promise<{ ip: string, port: number }>>([
+        ...CHATIE_ENDPOINT_LIST.map(endpoint => this.getHostieIp(endpoint, token)),
+        // eslint-disable-next-line promise/param-names
+        new Promise((_, reject) => setTimeout(reject, 30 * 1000)),
+      ])
+      return result
+    } catch (e) {
+      console.error(e)
+      throw new Error('discoverHostieIp() timeout to get any ip info from all hostie endpoints.')
+    }
+  }
 
-      const url = path.join(
-        endpoint,
-        '/v0/hosties/',
-        token,
-      )
+  private async getHostieIp (endpoint: string, token: string) {
+    const url = `${endpoint}/v0/hosties/${token}`
 
-      try {
-        const { ip, port } = await new Promise((resolve, reject) => {
-
-          https.get(url, function (res) {
-            let body = ''
-            res.on('data', function (chunk) {
-              body += chunk
-            })
-            res.on('end', function () {
-              resolve(JSON.parse(body))
-            })
-          }).on('error', function (e) {
-            reject(e)
-          })
+    return new Promise<{ port: number, ip: string }>((resolve) => {
+      const httpClient = /^https:\/\//.test(url) ? https : http
+      httpClient.get(url, function (res) {
+        let body = ''
+        res.on('data', function (chunk) {
+          body += chunk
         })
-
-        return { ip, port }
-
-      } catch (e) {
+        res.on('end', function () {
+          resolve(JSON.parse(body))
+        })
+      }).on('error', function (e) {
         log.error('PuppetHostie', 'discoverHostieIp() endpoint<%s> rejection: %s', url, e)
         console.warn(e)
-      }
-    }
-
-    throw new Error('discoverHostieIp() failed after tried all the endpoints.')
-
+      })
+    })
   }
 
   protected async startGrpcClient (): Promise<void> {
