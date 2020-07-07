@@ -465,7 +465,12 @@ export class PuppetHostie extends Puppet {
     const request = new DingRequest()
     request.setData(data || '')
 
-    this.grpcClient!.ding(
+    if (!this.grpcClient) {
+      log.info('PuppetHostie', `ding() Skip ding since grpcClient is not connected.`)
+      return
+    }
+
+    this.grpcClient.ding(
       request,
       (error, _response) => {
         if (error) {
