@@ -423,7 +423,7 @@ export class Message extends Accessory implements Sayable {
   public say (url:     UrlLink)     : Promise<void | Message>
   public say (mini:    MiniProgram) : Promise<void | Message>
 
-  // Huan(202006): allow fall down to the defination to get more flexibility.
+  // Huan(202006): allow fall down to the definition to get more flexibility.
   // public say (...args: never[]): Promise<never>
 
   /**
@@ -520,6 +520,7 @@ export class Message extends Accessory implements Sayable {
 
     let conversationId: string
     let conversation
+
     if (room) {
       conversation = room
       conversationId = room.id
@@ -542,13 +543,15 @@ export class Message extends Accessory implements Sayable {
       /**
        * Text Message
        */
-      // msgId = await this.puppet.messageSendText({
-      //   contactId : (from && from.id) || undefined,
-      //   roomId    : (room && room.id) || undefined,
-      // }, textOrContactOrFileOrUrlOrMini)
+      let mentionIdList
+      if (from && await this.mentionSelf()) {
+        mentionIdList = [from.id]
+      }
+
       msgId = await this.puppet.messageSendText(
         conversationId,
         textOrContactOrFileOrUrlOrMini,
+        mentionIdList,
       )
     } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
       /**
