@@ -33,13 +33,13 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Wechaty Internal Puppets: dependence by package.json
    */
-  'wechaty-puppet-hostie'    : '^0.8.5',   // https://www.npmjs.com/package/wechaty-puppet-hostie
+  'wechaty-puppet-hostie'    : '^0.8.6',   // https://www.npmjs.com/package/wechaty-puppet-hostie
   'wechaty-puppet-mock'      : '^0.22.3',   // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
    * Wechaty External Puppets
    */
-  'wechaty-puppet-padplus'   : '^0.7.18',    // https://www.npmjs.com/package/wechaty-puppet-padplus
+  'wechaty-puppet-padplus'   : '^0.7.30',    // https://www.npmjs.com/package/wechaty-puppet-padplus
   'wechaty-puppet-puppeteer' : '^0.23.1',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
   'wechaty-puppet-wechat4u'  : '^0.17.4',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
 }
