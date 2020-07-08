@@ -7,8 +7,8 @@ function deployVersion () {
   IMAGE=$2
   VERSION=$3
 
-  SEMVER_MAJOR=$(node -e "console.log(require('semver').major('$VERSION'))")
-  SEMVER_MINOR=$(node -e "console.log(require('semver').minor('$VERSION'))")
+  SEMVER_MAJOR=$(echo "$VERSION" | cut -d. -f1)
+  SEMVER_MINOR=$(echo "$VERSION" | cut -d. -f2)
 
   TAG="$SEMVER_MAJOR.$SEMVER_MINOR"
 
