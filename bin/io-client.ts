@@ -19,6 +19,9 @@
  *
  */
 
+/* eslint-disable import/first */
+require('dotenv').config()
+
 import {
   config,
   log,
