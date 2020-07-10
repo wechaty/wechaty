@@ -78,7 +78,7 @@ import {
   RoomInvitation,
   UrlLink,
   MiniProgram,
-}                       from './user/'
+}                       from './user/mod'
 
 import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
 

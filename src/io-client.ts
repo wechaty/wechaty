@@ -28,7 +28,7 @@ import {
   PuppetServerOptions,
 }                       from 'wechaty-puppet-hostie'
 
-import { Message }      from './user'
+import { Message }      from './user/mod'
 
 import {
   log,

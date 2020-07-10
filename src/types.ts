@@ -21,7 +21,7 @@ import { Wechaty } from './wechaty'
 import {
   Contact,
   Message,
-}           from './user'
+}           from './user/mod'
 
 export type AnyFunction = (...args: any[]) => any
 
