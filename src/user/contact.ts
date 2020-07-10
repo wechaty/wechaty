@@ -321,6 +321,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   public say (text:     string)      : Promise<void | Message>
+  public say (num:      number)      : Promise<void | Message>
   public say (message:  Message)     : Promise<void | Message>
   public say (contact:  Contact)     : Promise<void | Message>
   public say (file:     FileBox)     : Promise<void | Message>
@@ -386,6 +387,7 @@ export class Contact extends Accessory implements Sayable {
    */
   public async say (
     something:  string
+              | number
               | Message
               | Contact
               | FileBox
@@ -396,6 +398,10 @@ export class Contact extends Accessory implements Sayable {
 
     if (something instanceof Message) {
       return something.forward(this)
+    }
+
+    if (typeof something === 'number') {
+      something = String(something)
     }
 
     let msgId: string | void

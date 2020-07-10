@@ -378,6 +378,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   public say (text:     string)                                  : Promise<void | Message>
+  public say (num:      number)                                  : Promise<void | Message>
   public say (message:  Message)                                 : Promise<void | Message>
   public say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
   public say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
@@ -460,6 +461,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async say (
     something : string
+              | number
               | Message
               | Contact
               | FileBox
@@ -510,6 +512,10 @@ export class Room extends Accessory implements Sayable {
      * Other conditions
      *
      */
+    if (typeof something === 'number') {
+      something = String(something)
+    }
+
     if (typeof something === 'string') {
       /**
        * 1. string

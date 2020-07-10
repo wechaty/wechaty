@@ -417,6 +417,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   public say (text:    string)      : Promise<void | Message>
+  public say (num:     number)      : Promise<void | Message>
   public say (message: Message)     : Promise<void | Message>
   public say (contact: Contact)     : Promise<void | Message>
   public say (file:    FileBox)     : Promise<void | Message>
@@ -504,14 +505,15 @@ export class Message extends Accessory implements Sayable {
    * .start()
    */
   public async say (
-    textOrContactOrFileOrUrlOrMini :  string
+    something :  string
+                                    | number
                                     | Message
                                     | Contact
                                     | FileBox
                                     | UrlLink
                                     | MiniProgram,
   ): Promise<void | Message> {
-    log.verbose('Message', 'say(%s)', textOrContactOrFileOrUrlOrMini)
+    log.verbose('Message', 'say(%s)', something)
 
     // const user = this.puppet.userSelf()
     const from = this.from()
@@ -534,12 +536,17 @@ export class Message extends Accessory implements Sayable {
     /**
      * Support say a existing message: just forward it.
      */
-    if (textOrContactOrFileOrUrlOrMini instanceof Message) {
-      return textOrContactOrFileOrUrlOrMini.forward(conversation)
+    if (something instanceof Message) {
+      return something.forward(conversation)
+    }
+
+    // Convert number to string
+    if (typeof something === 'number') {
+      something = String(something)
     }
 
     let msgId: void | string
-    if (typeof textOrContactOrFileOrUrlOrMini === 'string') {
+    if (typeof something === 'string') {
       /**
        * Text Message
        */
@@ -550,43 +557,43 @@ export class Message extends Accessory implements Sayable {
 
       msgId = await this.puppet.messageSendText(
         conversationId,
-        textOrContactOrFileOrUrlOrMini,
+        something,
         mentionIdList,
       )
-    } else if (textOrContactOrFileOrUrlOrMini instanceof Contact) {
+    } else if (something instanceof Contact) {
       /**
        * Contact Card
        */
       msgId = await this.puppet.messageSendContact(
         conversationId,
-        textOrContactOrFileOrUrlOrMini.id,
+        something.id,
       )
-    } else if (textOrContactOrFileOrUrlOrMini instanceof FileBox) {
+    } else if (something instanceof FileBox) {
       /**
        * File Message
        */
       msgId = await this.puppet.messageSendFile(
         conversationId,
-        textOrContactOrFileOrUrlOrMini,
+        something,
       )
-    } else if (textOrContactOrFileOrUrlOrMini instanceof UrlLink) {
+    } else if (something instanceof UrlLink) {
       /**
        * Link Message
        */
       msgId = await this.puppet.messageSendUrl(
         conversationId,
-        textOrContactOrFileOrUrlOrMini.payload,
+        something.payload,
       )
-    } else if (textOrContactOrFileOrUrlOrMini instanceof MiniProgram) {
+    } else if (something instanceof MiniProgram) {
       /**
        * MiniProgram
        */
       msgId = await this.puppet.messageSendMiniProgram(
         conversationId,
-        textOrContactOrFileOrUrlOrMini.payload,
+        something.payload,
       )
     } else {
-      throw new Error('unknown msg: ' + textOrContactOrFileOrUrlOrMini)
+      throw new Error('unknown msg: ' + something)
     }
     if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
