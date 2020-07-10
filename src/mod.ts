@@ -67,7 +67,3 @@ export { IoClient }   from './io-client'
 export {
   Sayable,
 }                   from './types'
-export {
-  SayableMessage,
-  toSayableMessage,
-}                     from './sayable-message'
