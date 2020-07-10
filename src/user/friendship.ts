@@ -30,7 +30,7 @@ import {
 }                   from '../config'
 import {
   tryWait,
-}                   from '../helper-functions'
+}                   from '../helper-functions/mod'
 
 import {
   FriendshipPayload,
