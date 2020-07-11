@@ -593,7 +593,7 @@ export class Message extends Accessory implements Sayable {
         something.payload,
       )
     } else {
-      throw new Error('unknown msg: ' + something)
+      throw new Error('Message.say() received unknown msg: ' + something)
     }
     if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
