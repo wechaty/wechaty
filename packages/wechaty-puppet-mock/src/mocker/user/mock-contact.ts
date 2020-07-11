@@ -89,8 +89,14 @@ class MockContact extends MockAccessory {
     this.mocker.contactPayload(payload.id, payload)
   }
 
-  say (text?: string): To {
-    log.verbose('MockContact', 'say(%s)', text || '')
+  say (
+    text?: string,
+    mentionList: MockContact[] = [],
+  ): To {
+    log.verbose('MockContact', 'say(%s, [%s])',
+      text || '',
+      mentionList.map(c => c.id).join(','),
+    )
 
     if (!text) {
       text = generateSentence()
@@ -124,7 +130,8 @@ class MockContact extends MockAccessory {
       } else if (conversation instanceof MockRoom) {
         payload = {
           ...basePayload,
-          fromId       : that.id,
+          fromId        : that.id,
+          mentionIdList : mentionList.map(c => c.id),
           roomId        : conversation.id,
         } as MessagePayloadBase & MessagePayloadRoom
       } else {
