@@ -25,6 +25,7 @@ npm install ./*-*.*.*.tgz \
   @types/normalize-package-data \
   \
   "wechaty-puppet@$NPM_TAG" \
+  "wechaty@$NPM_TAG" \
 
 ./node_modules/.bin/tsc \
   --esModuleInterop \
