@@ -59,9 +59,10 @@ async function main () {
     await Promise.all(
       botList.map(bot => bot.start()),
     )
-    botList.forEach(
-      bot => console.info(`Wechaty v${bot.version()} smoking test passed.`),
-    )
+    for (const bot of botList) {
+      console.info(`Wechaty v${bot.version()} smoking test passed.`)
+      console.info('listenerCount(message) is', bot.listenerCount('message'))
+    }
   } catch (e) {
     console.error(e)
     // Error!
