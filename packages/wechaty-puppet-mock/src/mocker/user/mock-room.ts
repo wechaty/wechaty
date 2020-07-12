@@ -16,7 +16,7 @@ interface By {
   by: (contact?: MockContact) => void
 }
 
-export const POOL = Symbol('pool')
+const POOL = Symbol('pool')
 
 class MockRoom extends MockAccessory {
 

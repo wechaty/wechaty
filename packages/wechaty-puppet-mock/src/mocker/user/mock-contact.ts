@@ -21,7 +21,7 @@ interface To {
   to: (conversation?: MockContact | MockRoom) => void
 }
 
-export const POOL = Symbol('pool')
+const POOL = Symbol('pool')
 
 class MockContact extends MockAccessory {
 
@@ -93,9 +93,11 @@ class MockContact extends MockAccessory {
     text?: string,
     mentionList: MockContact[] = [],
   ): To {
-    log.verbose('MockContact', 'say(%s, [%s])',
+    log.verbose('MockContact', 'say(%s%s)',
       text || '',
-      mentionList.map(c => c.id).join(','),
+      mentionList.length > 0
+        ? `,[${mentionList.map(c => c.id).join(',')}]`
+        : '',
     )
 
     if (!text) {

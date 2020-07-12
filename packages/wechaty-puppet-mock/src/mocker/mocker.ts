@@ -86,16 +86,16 @@ class Mocker {
   start () {
     log.verbose('Mocker', 'start()')
 
-    /**
-     * Huan(202006): Workaround for puppet restart problem
-     */
-    this.MockContact = cloneClass(MockContact)
-    this.MockMessage = cloneClass(MockMessage)
-    this.MockRoom    = cloneClass(MockRoom)
+    // /**
+    //  * Huan(202006): Workaround for puppet restart problem
+    //  */
+    // this.MockContact = cloneClass(MockContact)
+    // this.MockMessage = cloneClass(MockMessage)
+    // this.MockRoom    = cloneClass(MockRoom)
 
-    this.MockContact.mocker = this
-    this.MockMessage.mocker = this
-    this.MockRoom.mocker    = this
+    // this.MockContact.mocker = this
+    // this.MockMessage.mocker = this
+    // this.MockRoom.mocker    = this
 
     this.behaviorList.forEach(behavior => {
       log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)

@@ -9,7 +9,7 @@ import { MockAccessory }        from '../accessory'
 import { MockRoom }         from './mock-room'
 import { MockContact } from './mock-contact'
 
-export const POOL = Symbol('pool')
+const POOL = Symbol('pool')
 
 class MockMessage extends MockAccessory {
 
