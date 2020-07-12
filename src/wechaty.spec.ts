@@ -310,3 +310,18 @@ test('ready()', async t => {
 
   await wechaty.stop()
 })
+
+test.only('on/off event listener management', async t => {
+  const puppet = new PuppetMock()
+  const wechaty = new Wechaty({ puppet })
+
+  const onMessage = (_: any) => {}
+  t.equal(wechaty.listenerCount('message'), 0, 'should no listener after initializing')
+
+  wechaty.on('message', onMessage)
+  t.equal(wechaty.listenerCount('message'), 1, 'should +1 listener after on(message)')
+
+  wechaty.off('message', onMessage)
+  t.equal(wechaty.listenerCount('message'), 0, 'should -1 listener after off(message)')
+
+})
