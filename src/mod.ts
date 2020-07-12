@@ -60,6 +60,8 @@ export {
   MiniProgram,
 }                         from './user/mod'
 
+export { createFixture }  from './create-fixture'
+
 export {
 }                         from './deprecated'
 
