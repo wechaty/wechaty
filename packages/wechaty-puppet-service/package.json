@@ -63,6 +63,7 @@
     "@reduxjs/toolkit": "^1.3.5",
     "redux": "^4.0.5",
     "redux-observable": "^1.2.0",
+    "rxjs": "^6.6.0",
     "ws": "^7.2.3"
   },
   "publishConfig": {
