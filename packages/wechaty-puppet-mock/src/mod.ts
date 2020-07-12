@@ -10,16 +10,11 @@ import {
   SimpleEnvironment,
 }                     from './mocker/mod'
 
-import {
-  createFixture,
-}                     from './create-fixture'
-
 export {
   VERSION,
   Mocker,
   MockEnvironment,
   SimpleEnvironment,
   PuppetMock,
-  createFixture,
 }
 export default PuppetMock
