@@ -63,7 +63,7 @@ test('createFixture() Mobile Terminated', async (t) => {
   }
 })
 
-test('user.say() multiple times', async t => {
+test('user.say() multiple times with moList', async t => {
   for await (const fixture of createFixture()) {
     const TEXT_LIST = [
       'one',
@@ -71,7 +71,7 @@ test('user.say() multiple times', async t => {
       'three',
     ]
     for (const text of TEXT_LIST) {
-      await fixture.user.say(text).to(fixture.room)
+      await fixture.user.say(text).to(fixture.mary)
     }
     await new Promise(setImmediate)
 
