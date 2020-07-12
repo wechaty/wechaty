@@ -15,7 +15,8 @@ npm install --production \
   ./*-*.*.*.tgz \
   @types/node \
   is-pr \
-  typescript
+  typescript \
+  "wechaty-puppet-mock@$NPM_TAG" \
 
 ./node_modules/.bin/tsc \
   --lib esnext \
