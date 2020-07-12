@@ -5,8 +5,8 @@
   "directories": {
     "test": "tests"
   },
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "dist/src/mod.js",
+  "typings": "dist/src/mod.d.ts",
   "engines": {
     "wechaty": ">=0.17.46"
   },

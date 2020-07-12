@@ -51,7 +51,7 @@ class MockRoom extends MockAccessory {
   ): T['prototype'] {
     const existingRoom = this.pool.get(id)
     if (!existingRoom) {
-      throw new Error(`load(): ${id} not exist.`)
+      throw new Error(`MockRoom.load(): ${id} not exist.`)
     }
     return existingRoom
   }

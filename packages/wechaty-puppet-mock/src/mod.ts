@@ -1,6 +1,5 @@
 import {
   VERSION,
-  log,
 }             from './config'
 
 import { PuppetMock } from './puppet-mock'
@@ -9,14 +8,18 @@ import {
   Mocker,
   MockEnvironment,
   SimpleEnvironment,
-}                 from './mocker'
+}                     from './mocker/mod'
 
-export default PuppetMock
+import {
+  createFixture,
+}                     from './create-fixture'
+
 export {
   VERSION,
-  log,
   Mocker,
   MockEnvironment,
   SimpleEnvironment,
   PuppetMock,
+  createFixture,
 }
+export default PuppetMock

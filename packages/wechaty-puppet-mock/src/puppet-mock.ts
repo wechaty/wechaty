@@ -49,7 +49,7 @@ import {
 
 import {
   Mocker,
-}                     from './mocker/'
+}                     from './mocker/mod'
 
 export type PuppetMockOptions = PuppetOptions & {
   mocker?: Mocker,

@@ -47,7 +47,7 @@ class MockMessage extends MockAccessory {
       return existingMessage
     }
 
-    throw new Error(`load(): ${id} not exist.`)
+    throw new Error(`MockMessage.load(): ${id} not exist.`)
   }
 
   public static create<T extends typeof MockMessage> (

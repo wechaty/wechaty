@@ -59,7 +59,7 @@ class MockContact extends MockAccessory {
       return existingContact
     }
 
-    throw new Error(`load(): ${id} not exist.`)
+    throw new Error(`MockContact.load(): ${id} not exist.`)
   }
 
   public static create<T extends typeof MockContact> (
