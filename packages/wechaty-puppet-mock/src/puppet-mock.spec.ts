@@ -8,7 +8,7 @@ import { PuppetMock } from './puppet-mock'
 class PuppetMockTest extends PuppetMock {
 }
 
-test('PuppetMock restart without problem', async (t) => {
+test('PuppetMock perfect restart testing', async (t) => {
   const puppet = new PuppetMockTest()
   try {
     for (let i = 0; i < 3; i++) {
@@ -16,7 +16,7 @@ test('PuppetMock restart without problem', async (t) => {
       await puppet.stop()
       t.pass('start/stop-ed at #' + i)
     }
-    t.pass('PuppetMock() start/restart successed.')
+    t.pass('PuppetMock() perfect restart pass.')
   } catch (e) {
     t.fail(e)
   }
