@@ -276,8 +276,8 @@ export class EventStreamManager {
 
     this.eventStream.on('finish', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(finish) fired')
+      callback()
       if (this.eventStream) {
-        callback()
         this.eventStream = undefined
       } else {
         log.warn('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(finish) eventStream is undefined')
@@ -286,8 +286,8 @@ export class EventStreamManager {
 
     this.eventStream.on('end', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(end) fired')
+      callback()
       if (this.eventStream) {
-        callback()
         this.eventStream = undefined
       } else {
         log.warn('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(end) eventStream is undefined')
@@ -296,8 +296,8 @@ export class EventStreamManager {
 
     this.eventStream.on('close', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(close) fired')
+      callback()
       if (this.eventStream) {
-        callback()
         this.eventStream = undefined
       } else {
         log.warn('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(close) eventStream is undefined')
