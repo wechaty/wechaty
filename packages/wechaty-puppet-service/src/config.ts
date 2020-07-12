@@ -1,6 +1,6 @@
 /// <reference path="./typings.d.ts" />
 
-export { log } from 'brolog'
+export { log } from 'wechaty-puppet'
 
 export { VERSION } from './version'
 
