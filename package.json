@@ -99,6 +99,7 @@
     "raven": "^2.6.4",
     "read-pkg-up": "^7.0.1",
     "state-switch": "^0.9.9",
+    "typed-emitter": "^1.2.0",
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.27.1",
     "wechaty-puppet-hostie": "^0.9.1",
@@ -133,7 +134,6 @@
     "qrcode-terminal": "^0.12.0",
     "shx": "^0.3.2",
     "sloc": "^0.2.1",
-    "typed-emitter": "^1.2.0",
     "tstest": "^0.4.10",
     "typedoc": "^0.16.11",
     "wechaty-puppet-mock": "^0.22.39"
