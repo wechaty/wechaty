@@ -157,17 +157,6 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * TODO: rename create to load ??? Huan 201806
-   * @deprecated: use load() instead
-   * @ignore
-   */
-
-  public static create (id: string): Message {
-    log.warn('Message', 'static create(%s) DEPRECATED. Use load() instead', id)
-    return this.load(id)
-  }
-
-  /**
    *
    * Instance Properties
    * @hidden
@@ -190,11 +179,11 @@ export class Message extends Accessory implements Sayable {
     const MyClass = instanceToClass(this, Message)
 
     if (MyClass === Message) {
-      throw new Error('Message class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
+      throw new Error('Message class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
     if (!this.puppet) {
-      throw new Error('Message class can not be instanciated without a puppet!')
+      throw new Error('Message class can not be instantiated without a puppet!')
     }
   }
 
@@ -228,15 +217,6 @@ export class Message extends Accessory implements Sayable {
       if (!this.payload) {
         throw new Error('no payload')
       }
-      // const filename = this.puppet.messagefile payload.filename
-      // if (!filename) {
-      //   throw new Error(
-      //     'no file for message id: ' + this.id
-      //     + ' with type: ' + Message.Type[this.payload.type]
-      //     + '(' + this.payload.type + ')',
-      //   )
-      // }
-      // msgStrList.push(`<${filename || 'unknown file name'}>`)
     }
 
     return msgStrList.join('')
@@ -457,8 +437,8 @@ export class Message extends Accessory implements Sayable {
    * // 2. send Text
    *
    *   if (/^dong$/i.test(m.text())) {
-   *     await msg.say('dingdingding')
-   *     const message = await msg.say('dingdingding') // only supported by puppet-padplus
+   *     await msg.say('ding')
+   *     const message = await msg.say('ding') // only supported by puppet-padplus
    *   }
    *
    * // 3. send Contact
@@ -758,7 +738,7 @@ export class Message extends Accessory implements Sayable {
     contactList = contactList.concat.apply([], contactListNested)
 
     if (contactList.length === 0) {
-      log.silly('Message', `message.mentionList() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
+      log.silly('Message', `message.mentionList() can not found member using room.member() from mentionList, mention string: ${JSON.stringify(mentionNameList)}`)
     }
     return contactList
   }
