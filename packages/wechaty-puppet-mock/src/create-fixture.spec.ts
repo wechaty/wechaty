@@ -63,7 +63,7 @@ test('createFixture() Mobile Terminated', async (t) => {
   }
 })
 
-test.only('user.say() multiple times', async t => {
+test('user.say() multiple times', async t => {
   for await (const fixture of createFixture()) {
     const TEXT_LIST = [
       'one',

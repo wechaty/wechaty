@@ -3,7 +3,7 @@
 import test  from 'tstest'
 import sinon from 'sinon'
 
-import { PuppetMock } from '../'
+import { PuppetMock } from '../puppet-mock'
 
 import { Mocker } from './mocker'
 import { SimpleEnvironment } from './environment'
@@ -163,12 +163,13 @@ test('MockContact.say().to(room)', async t => {
   const { messageId } = await future
 
   const EXPECTED_PAYLOAD: MessagePayload = {
-    fromId    : user.id,
-    id        : messageId,
-    roomId    : room.id,
-    text      : TEXT,
-    timestamp : Date.now(),
-    type      : MessageType.Text,
+    fromId        : user.id,
+    id            : messageId,
+    mentionIdList : [],
+    roomId        : room.id,
+    text          : TEXT,
+    timestamp     : Date.now(),
+    type          : MessageType.Text,
   }
 
   const payload = await puppet.messagePayload(messageId)

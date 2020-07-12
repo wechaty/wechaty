@@ -24,7 +24,7 @@ import {
   EventMessagePayload,
 }                         from 'wechaty-puppet'
 
-import { PuppetMock } from '../src/'
+import { PuppetMock } from '../src/mod'
 
 /**
  *

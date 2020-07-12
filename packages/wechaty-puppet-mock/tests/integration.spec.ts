@@ -7,7 +7,7 @@ import { Wechaty } from 'wechaty'
 import {
   PuppetMock,
   Mocker,
-}                         from '../src/'
+}                         from '../src/mod'
 
 async function * wechatyFixture () {
   const mocker  = new Mocker()
