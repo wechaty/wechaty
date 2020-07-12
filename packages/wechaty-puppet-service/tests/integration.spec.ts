@@ -57,8 +57,16 @@ test('integration testing', async (t) => {
   t.ok(spyStart.called, 'should called the hostie server start() function')
 
   const future = new Promise<string>((resolve, reject) => {
-    puppetHostie.on('dong', payload => resolve(payload.data))
-    puppetHostie.on('error', reject)
+    const offError = () => puppetHostie.off('error', reject)
+
+    puppetHostie.once('dong', payload => {
+      resolve(payload.data)
+      offError()
+    })
+    puppetHostie.once('error', e => {
+      reject(e)
+      offError()
+    })
   })
 
   puppetHostie.ding(DING)

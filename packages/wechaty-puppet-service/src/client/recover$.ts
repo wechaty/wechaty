@@ -50,10 +50,10 @@ export const heartbeat$ = (puppet: Puppet) => fromEvent<{}>(puppet, 'heartbeat')
 // Heartbeat stream is like ECG (ElectroCardioGraphy)
 export const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
   filter(switchSuccess),
-  tap(_ => log.verbose('Puppet', 'recover$() switchOn$ fired')),
+  tap(_ => log.verbose('PuppetHostie', 'recover$() switchOn$ fired')),
   switchMap(_ => heartbeat$(puppet).pipe(
     startWith(undefined), // initial beat
-    tap(payload => log.verbose('Puppet', 'recover$() heartbeat: %s', JSON.stringify(payload))),
+    tap(payload => log.verbose('PuppetHostie', 'recover$() heartbeat: %s', JSON.stringify(payload))),
   ))
 )
 
@@ -71,7 +71,7 @@ let HEARTBEAT_COUNTER = 0
 // Ding is like CPR (Cardio Pulmonary Resuscitation)
 export const heartbeatDing$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(() => interval(HOSTIE_KEEPALIVE_TIMEOUT)),
-  tap(_ => log.verbose('Puppet', 'recover$() heartbeatDing()')),
+  tap(_ => log.verbose('PuppetHostie', 'recover$() heartbeatDing()')),
   mapTo(HEARTBEAT_COUNTER++),
   tap(dingHeartbeat(puppet)),
 )
@@ -81,7 +81,7 @@ const HOSTIE_RESET_TIMEOUT = 60 * 1000
 // Reset is like AED (Automated External Defibrillator)
 export const heartbeatReset$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(_ => interval(HOSTIE_RESET_TIMEOUT)),
-  tap(_ => log.verbose('Puppet', 'recover$() heartbeatReset()')),
+  tap(_ => log.verbose('PuppetHostie', 'recover$() heartbeatReset()')),
   switchMap(_ => interval(HOSTIE_RESET_TIMEOUT).pipe(
     // map(n => `AED#${n}`),
     tap(resetPuppet(puppet)),

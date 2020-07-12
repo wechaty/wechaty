@@ -58,8 +58,8 @@ export class EventStreamManager {
     }
     this.eventStream = stream
 
-    const unconnect = this.connectPuppetEventToStreamingCall()
-    this.onStreamingCallEnd(unconnect)
+    const disconnect = this.connectPuppetEventToStreamingCall()
+    this.onStreamingCallEnd(disconnect)
 
     /**
       * We emit the login event if current the puppet is logged in.
@@ -117,9 +117,9 @@ export class EventStreamManager {
     log.verbose('EventStreamManager', 'connectPuppetEventToStreamingCall() for %s', this.puppet)
 
     const offCallbackList = [] as (() => void)[]
-    const unconnect = () => {
+    const disconnect = () => {
       log.verbose('EventStreamManager',
-        'connectPuppetEventToStreamingCall() unconnect() %s callbacks',
+        'connectPuppetEventToStreamingCall() disconnect() %s callbacks',
         offCallbackList.length,
       )
       offCallbackList.forEach(cb => cb())
@@ -235,7 +235,7 @@ export class EventStreamManager {
       }
     }
 
-    return unconnect
+    return disconnect
   }
 
   /**

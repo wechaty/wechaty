@@ -45,7 +45,7 @@ export class PuppetServer {
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetServer', `start()`)
+    log.verbose('PuppetServer', 'start()')
 
     if (this.grpcServer) {
       throw new Error('grpc server existed!')
@@ -75,7 +75,7 @@ export class PuppetServer {
   }
 
   public async stop (): Promise<void> {
-    log.verbose('PuppetServer', `stop()`)
+    log.verbose('PuppetServer', 'stop()')
 
     if (!this.grpcServer) {
       throw new Error('no grpc server')

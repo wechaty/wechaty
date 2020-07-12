@@ -20,12 +20,14 @@ import {
 }                               from '../src'
 import {
   PuppetOptions,
+  ContactPayload,
   log,
+  ContactGender,
+  ContactType,
 }                               from 'wechaty-puppet'
 
 import {
   PuppetMock,
-  MockContactRawPayload,
 }                         from 'wechaty-puppet-mock'
 
 const idToName = (id: string) => {
@@ -38,12 +40,16 @@ class PuppetTest extends PuppetMock {
     super(...args)
   }
 
-  public async contactRawPayload (id: string): Promise<MockContactRawPayload> {
+  public async contactRawPayload (id: string): Promise<ContactPayload> {
     log.verbose('PuppetTest', 'contactRawPayload(%s)', id)
-    const rawPayload: MockContactRawPayload = {
+    const rawPayload: ContactPayload = {
+      avatar : '',
+      gender : ContactGender.Male,
       id,
       name : idToName(id),
+      type   : ContactType.Individual,
     }
+
     await new Promise(resolve => {
       process.stdout.write(',')
       setTimeout(() => {

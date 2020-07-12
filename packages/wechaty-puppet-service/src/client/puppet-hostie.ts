@@ -4,8 +4,6 @@ import grpc from 'grpc'
 import https from 'https'
 import http from 'http'
 
-// import { DebounceQueue } from 'rx-queue'
-
 import {
   ContactPayload,
 
@@ -95,6 +93,8 @@ import {
   EventType,
 }                                   from '@chatie/grpc'
 
+import { Subscription } from 'rxjs'
+
 import {
   log,
   VERSION,
@@ -129,7 +129,7 @@ export class PuppetHostie extends Puppet {
    */
   private cleanCallbackList: (() => void)[]
 
-  // protected recoverSubscription: Subscription
+  protected recoverSubscription?: Subscription
 
   constructor (
     public options: PuppetOptions = {},
@@ -141,19 +141,12 @@ export class PuppetHostie extends Puppet {
     // this.heartbeatDebounceQueue = new DebounceQueue(HEARTBEAT_DEBOUNCE_TIME * 1000)
 
     this.cleanCallbackList = []
-
-    // this.recoverSubscription =
-    recover$(this).subscribe(
-      x => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
-      e => log.error('PuppetHostie', 'constructor() recover$().subscribe() error(%s)', e),
-      () => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() complete()'),
-    )
   }
 
   private async discoverHostieIp (
     token: string,
   ): Promise<{ ip: string, port: number }> {
-    log.verbose('PuppetHostie', `discoverHostieIp(%s)`, token)
+    log.verbose('PuppetHostie', 'discoverHostieIp(%s)', token)
 
     const CHATIE_ENDPOINT_LIST = [
       'https://api.chatie.io',
@@ -195,10 +188,10 @@ export class PuppetHostie extends Puppet {
   }
 
   protected async startGrpcClient (): Promise<void> {
-    log.verbose('PuppetHostie', `startGrpcClient()`)
+    log.verbose('PuppetHostie', 'startGrpcClient()')
 
     if (this.grpcClient) {
-      throw new Error('puppetClient had already inited')
+      throw new Error('puppetClient had already initialized')
     }
 
     let endpoint = this.options.endpoint
@@ -218,10 +211,10 @@ export class PuppetHostie extends Puppet {
   }
 
   protected async stopGrpcClient (): Promise<void> {
-    log.verbose('PuppetHostie', `stopGrpcClient()`)
+    log.verbose('PuppetHostie', 'stopGrpcClient()')
 
     if (!this.grpcClient) {
-      throw new Error('puppetClient had not inited')
+      throw new Error('puppetClient had not initialized')
     }
 
     this.grpcClient.close()
@@ -229,7 +222,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetHostie', `start()`)
+    log.verbose('PuppetHostie', 'start()')
 
     if (!this.options.token) {
       throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
@@ -258,6 +251,12 @@ export class PuppetHostie extends Puppet {
       )(new StartRequest())
 
       this.state.on(true)
+
+      this.recoverSubscription = recover$(this).subscribe(
+        x => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
+        e => log.error('PuppetHostie', 'constructor() recover$().subscribe() error(%s)', e),
+        () => log.verbose('PuppetHostie', 'constructor() recover$().subscribe() complete()'),
+      )
 
     } catch (e) {
       log.error('PuppetHostie', 'start() rejection: %s', e && e.message)
@@ -307,6 +306,11 @@ export class PuppetHostie extends Puppet {
       }
 
       await this.stopGrpcClient()
+
+      if (this.recoverSubscription) {
+        this.recoverSubscription.unsubscribe()
+        this.recoverSubscription = undefined
+      }
 
     } catch (e) {
       log.warn('PuppetHostie', 'stop() rejection: %s', e && e.message)
@@ -378,9 +382,11 @@ export class PuppetHostie extends Puppet {
         this.emit('friendship', JSON.parse(payload) as EventFriendshipPayload)
         break
       case EventType.EVENT_TYPE_LOGIN:
-        const loginPayload = JSON.parse(payload) as EventLoginPayload
-        this.id = loginPayload.contactId
-        this.emit('login', loginPayload)
+        {
+          const loginPayload = JSON.parse(payload) as EventLoginPayload
+          this.id = loginPayload.contactId
+          this.emit('login', loginPayload)
+        }
         break
       case EventType.EVENT_TYPE_LOGOUT:
         this.id = undefined
@@ -466,7 +472,7 @@ export class PuppetHostie extends Puppet {
     request.setData(data || '')
 
     if (!this.grpcClient) {
-      log.info('PuppetHostie', `ding() Skip ding since grpcClient is not connected.`)
+      log.info('PuppetHostie', 'ding() Skip ding since grpcClient is not connected.')
       return
     }
 
