@@ -8,16 +8,15 @@ import { Wechaty } from './wechaty'
 import { Message } from './user/message'
 
 interface Fixture {
-  wechaty: Wechaty,
-  mocker: mock.Mocker,
+  wechaty : Wechaty,
+  mocker  : mock.Mocker,
 
-  message: Message,
   moList: Message[],
   mtList: Message[],
 
-  user: mock.ContactMock,
-  mary: mock.ContactMock,
-  mike: mock.ContactMock,
+  bot     : mock.ContactMock,
+  player  : mock.ContactMock,
+  message : Message,
 
   room: mock.RoomMock,
 }
@@ -29,19 +28,18 @@ async function * createFixture (): AsyncGenerator<Fixture> {
 
   await wechaty.start()
 
-  const [user, mike, mary] = mocker.createContacts(3)
-  mocker.login(user)
+  const [bot, player] = mocker.createContacts(3)
+  mocker.login(bot)
 
   const room = mocker.createRoom({
     memberIdList: [
-      user.id,
-      mike.id,
-      mary.id,
+      bot.id,
+      player.id,
     ],
   })
 
   const messageFuture = new Promise<Message>(resolve => wechaty.once('message', resolve))
-  mike.say().to(room)
+  player.say().to(bot)
   const message = await messageFuture
 
   // Mobile Terminated
@@ -65,13 +63,14 @@ async function * createFixture (): AsyncGenerator<Fixture> {
   yield {
     wechaty,
     mocker,
+
+    bot,
+    player,
     message,
+    room,
+
     moList,
     mtList,
-    user,
-    mary,
-    mike,
-    room,
   }
 
   await wechaty.stop()

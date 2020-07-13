@@ -17,11 +17,15 @@ test('createFixture() initial state', async (t) => {
     t.equal(fixture.message.type(), Message.Type.Text, 'should have message with text type')
     t.equal(typeof fixture.message.text(), 'string', 'should have message with text content')
 
+    t.equal(fixture.message.talker().id, fixture.player.id, 'should get a message send from player')
+    t.equal(fixture.message.to()!.id, fixture.bot.id, 'should get a message send to bot')
+    t.false(fixture.message.room(), 'should get a message as direct message')
+
     t.equal(fixture.moList.length, 0, 'should be empty mo list')
     t.equal(fixture.mtList.length, 0, 'should be empty mt list')
 
-    t.true(fixture.mary instanceof mock.ContactMock, 'should get mock contact mary')
-    t.true(fixture.mike instanceof mock.ContactMock, 'should get mock contact mike')
+    t.true(fixture.bot instanceof mock.ContactMock, 'should get mock contact mary')
+    t.true(fixture.player instanceof mock.ContactMock, 'should get mock contact mike')
   }
 })
 
@@ -30,12 +34,12 @@ test('createFixture() Mobile Originated', async (t) => {
     const spy = sinon.spy()
     fixture.wechaty.on('message', spy)
 
-    fixture.user.say().to(fixture.mary)
+    fixture.bot.say().to(fixture.player)
     await new Promise(setImmediate)
 
     t.true(spy.called, 'should received message event')
-    t.equal(spy.args[0][0].from().id, fixture.user.id, 'should get user as from')
-    t.equal(spy.args[0][0].to().id, fixture.mary.id, 'should get mary as to')
+    t.equal(spy.args[0][0].from().id, fixture.bot.id, 'should get bot as from')
+    t.equal(spy.args[0][0].to().id, fixture.player.id, 'should get player as to')
 
     t.equal(fixture.moList.length, 1, 'should be 1 mo')
     t.equal(fixture.mtList.length, 0, 'should be empty mt list')
@@ -48,12 +52,12 @@ test('createFixture() Mobile Terminated', async (t) => {
     const spy = sinon.spy()
     fixture.wechaty.on('message', spy)
 
-    fixture.mary.say().to(fixture.user)
+    fixture.player.say().to(fixture.bot)
     await new Promise(setImmediate)
 
     t.true(spy.called, 'should received message event')
-    t.equal(spy.args[0][0].to().id, fixture.user.id, 'should get user as to')
-    t.equal(spy.args[0][0].from().id, fixture.mary.id, 'should get mary as from')
+    t.equal(spy.args[0][0].to().id, fixture.bot.id, 'should get bot as to')
+    t.equal(spy.args[0][0].from().id, fixture.player.id, 'should get player as from')
 
     t.equal(fixture.moList.length, 0, 'should be 0 mo')
     t.equal(fixture.mtList.length, 1, 'should be 1 mt')
@@ -69,7 +73,7 @@ test('user.say() multiple times with moList', async t => {
       'three',
     ]
     for (const text of TEXT_LIST) {
-      await fixture.user.say(text).to(fixture.mary)
+      await fixture.bot.say(text).to(fixture.player)
     }
     await new Promise(setImmediate)
 
