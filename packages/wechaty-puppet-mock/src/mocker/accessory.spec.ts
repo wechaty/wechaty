@@ -22,7 +22,7 @@ import { test } from 'tstest'
 
 import { cloneClass } from 'clone-class'
 
-import { MockAccessory } from './accessory'
+import { AccessoryMock } from './accessory'
 import { Mocker } from './mocker'
 
 const EXPECTED_MOCKER1 = { m: 1 } as any as Mocker
@@ -30,7 +30,7 @@ const EXPECTED_MOCKER2 = { m: 2 } as any as Mocker
 
 test('Accessory smoke testing', async t => {
 
-  class FixtureClass extends MockAccessory {}
+  class FixtureClass extends AccessoryMock {}
 
   t.throws(() => FixtureClass.mocker, 'should throw if read static puppet before initialize')
 
@@ -48,7 +48,7 @@ test('Accessory smoke testing', async t => {
 
 test('Two clone-ed classes have different static puppet value', async t => {
 
-  class FixtureClass extends MockAccessory {}
+  class FixtureClass extends AccessoryMock {}
 
   const ClonedClass1 = cloneClass(FixtureClass)
   const ClonedClass2 = cloneClass(FixtureClass)
@@ -64,7 +64,7 @@ test('Two clone-ed classes have different static puppet value', async t => {
 })
 
 test('Throw error when set the value again', async t => {
-  class FixtureClass extends MockAccessory {}
+  class FixtureClass extends AccessoryMock {}
 
   t.doesNotThrow(() => { FixtureClass.mocker = {} as any },  'static: should not throw when set puppet at 1st time')
   t.throws(() => { FixtureClass.mocker = {} as any },        'static: should throw when set puppet at 2nd time')
