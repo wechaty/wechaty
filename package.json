@@ -103,6 +103,7 @@
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.27.1",
     "wechaty-puppet-hostie": "^0.9.1",
+    "wechaty-puppet-mock": "^0.25.1",
     "ws": "^7.2.3"
   },
   "devDependencies": {
@@ -135,8 +136,7 @@
     "shx": "^0.3.2",
     "sloc": "^0.2.1",
     "tstest": "^0.4.10",
-    "typedoc": "^0.16.11",
-    "wechaty-puppet-mock": "^0.25.1"
+    "typedoc": "^0.16.11"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
