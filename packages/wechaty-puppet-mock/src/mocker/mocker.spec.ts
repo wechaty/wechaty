@@ -16,7 +16,7 @@ import {
   MessageType,
 }                         from 'wechaty-puppet'
 
-import { MockMessage } from './user/mock-message'
+import { MessageMock } from './user/message-mock'
 
 class MockerTest extends Mocker {
 }
@@ -205,8 +205,8 @@ test('event(message) for MockContact & MockRoom', async t => {
     t.ok(userSpy.calledOnce, 'should emit message event on user')
     t.ok(roomSpy.calledOnce, 'should emit message event on room')
 
-    const userMsg = userSpy.args[0][0] as MockMessage
-    const roomMsg = roomSpy.args[0][0] as MockMessage
+    const userMsg = userSpy.args[0][0] as MessageMock
+    const roomMsg = roomSpy.args[0][0] as MessageMock
 
     t.deepEqual(userMsg.payload, roomMsg.payload, 'should receive the same message for both user & room')
 

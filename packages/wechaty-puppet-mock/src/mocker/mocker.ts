@@ -4,16 +4,18 @@ import {
   RoomPayload,
   MessagePayload,
   ScanStatus,
+  log,
 }                     from 'wechaty-puppet'
 
 import { cloneClass } from 'clone-class'
 
-import { log } from '../config'
 import { PuppetMock } from '../puppet-mock'
 
-import { MockContact }  from './user/mock-contact'
-import { MockRoom }     from './user/mock-room'
-import { MockMessage }  from './user/mock-message'
+import {
+  ContactMock,
+  RoomMock,
+  MessageMock,
+}                   from './user/mod'
 
 import {
   generateContactPayload,
@@ -29,9 +31,9 @@ class Mocker {
   cacheRoomPayload    : Map<string, RoomPayload>
   cacheMessagePayload : Map<string, MessagePayload>
 
-  public MockContact : typeof MockContact
-  public MockMessage : typeof MockMessage
-  public MockRoom    : typeof MockRoom
+  public MockContact : typeof ContactMock
+  public MockMessage : typeof MessageMock
+  public MockRoom    : typeof RoomMock
 
   protected behaviorList: MockEnvironment[]
   protected behaviorCleanupFnList: (() => void)[]
@@ -62,9 +64,9 @@ class Mocker {
     this.cacheRoomPayload    = new Map()
     this.cacheMessagePayload = new Map()
 
-    this.MockContact = cloneClass(MockContact)
-    this.MockMessage = cloneClass(MockMessage)
-    this.MockRoom    = cloneClass(MockRoom)
+    this.MockContact = cloneClass(ContactMock)
+    this.MockMessage = cloneClass(MessageMock)
+    this.MockRoom    = cloneClass(RoomMock)
 
     this.MockContact.mocker = this
     this.MockMessage.mocker = this
@@ -114,7 +116,7 @@ class Mocker {
     this.behaviorCleanupFnList.length = 0
   }
 
-  randomContact (): undefined | MockContact {
+  randomContact (): undefined | ContactMock {
     log.verbose('Mocker', 'randomContact()')
 
     const contactIdList = [...this.cacheContactPayload.keys()]
@@ -133,7 +135,7 @@ class Mocker {
     return this.MockContact.create(payload)
   }
 
-  randomRoom (): undefined | MockRoom {
+  randomRoom (): undefined | RoomMock {
     log.verbose('Mocker', 'randomRoom()')
 
     const roomIdList = [...this.cacheRoomPayload.keys()]
@@ -152,7 +154,7 @@ class Mocker {
     return this.MockRoom.create(payload)
   }
 
-  public randomConversation (): MockContact | MockRoom {
+  public randomConversation (): ContactMock | RoomMock {
     log.verbose('Mocker', 'randomConversation()')
 
     const contactIdList = [...this.cacheContactPayload.keys()]
@@ -165,7 +167,7 @@ class Mocker {
 
     const pickContact = contactIdList.length / total
 
-    let conversation: undefined | MockContact | MockRoom
+    let conversation: undefined | ContactMock | RoomMock
 
     if (Math.random() < pickContact) {
       conversation = this.randomContact()
@@ -188,7 +190,7 @@ class Mocker {
     this.puppet.emit('scan', { qrcode, status })
   }
 
-  login (user: MockContact) {
+  login (user: ContactMock) {
     this.puppet.login(user.id)
       .catch(e => log.error('Mocker', 'login(%s) rejection: %s', user.id, e))
   }
@@ -198,7 +200,7 @@ class Mocker {
    * Creators for MockContacts / MockRooms
    *
    */
-  createContact (payload?: Partial<ContactPayload>): MockContact {
+  createContact (payload?: Partial<ContactPayload>): ContactMock {
     log.verbose('Mocker', 'createContact(%s)', payload ? JSON.stringify(payload) : '')
 
     const defaultPayload = generateContactPayload()
@@ -209,10 +211,10 @@ class Mocker {
     return this.MockContact.create(normalizedPayload)
   }
 
-  createContacts (num: number): MockContact[] {
+  createContacts (num: number): ContactMock[] {
     log.verbose('Mocker', 'createContacts(%s)', num)
 
-    const contactList = [] as MockContact[]
+    const contactList = [] as ContactMock[]
 
     while (num--) {
       const contact = this.createContact()
@@ -222,7 +224,7 @@ class Mocker {
     return contactList
   }
 
-  createRoom (payload?: Partial<RoomPayload>): MockRoom {
+  createRoom (payload?: Partial<RoomPayload>): RoomMock {
     log.verbose('Mocker', 'createRoom(%s)', payload ? JSON.stringify(payload) : '')
 
     const defaultPayload = generateRoomPayload(...this.cacheContactPayload.keys())
@@ -235,9 +237,9 @@ class Mocker {
     return this.MockRoom.create(normalizedPayload)
   }
 
-  createRooms (num: number): MockRoom[] {
+  createRooms (num: number): RoomMock[] {
     log.verbose('Mocker', 'createRooms(%s)', num)
-    const roomList = [] as MockRoom[]
+    const roomList = [] as RoomMock[]
 
     while (num--) {
       const room = this.createRoom()

@@ -4,17 +4,11 @@ import {
 
 import { PuppetMock } from './puppet-mock'
 
-import {
-  Mocker,
-  MockEnvironment,
-  SimpleEnvironment,
-}                     from './mocker/mod'
+import * as mocker  from './mocker/mod'
 
 export {
   VERSION,
-  Mocker,
-  MockEnvironment,
-  SimpleEnvironment,
   PuppetMock,
+  mocker,
 }
 export default PuppetMock

@@ -7,28 +7,28 @@ import {
 
 import { log } from '../../config'
 
-import { MockAccessory } from '../accessory'
+import { AccessoryMock } from '../accessory'
 
-import { MockContact } from './mock-contact'
-import { MockMessage } from './mock-message'
+import { ContactMock } from './contact-mock'
+import { MessageMock } from './message-mock'
 
 interface By {
-  by: (contact?: MockContact) => void
+  by: (contact?: ContactMock) => void
 }
 
 const POOL = Symbol('pool')
 
-class MockRoom extends MockAccessory {
+class RoomMock extends AccessoryMock {
 
-  protected static [POOL]: Map<string, MockRoom>
+  protected static [POOL]: Map<string, RoomMock>
 
   protected static get pool () {
     if (!this[POOL]) {
       log.verbose('MockRoom', 'get pool() init pool')
-      this[POOL] = new Map<string, MockRoom>()
+      this[POOL] = new Map<string, RoomMock>()
     }
 
-    if (this === MockRoom) {
+    if (this === RoomMock) {
       throw new Error(
         'The global MockRoom class can not be used directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
@@ -45,7 +45,7 @@ class MockRoom extends MockAccessory {
    * @param {string} id
    * @returns {Room}
    */
-  public static load<T extends typeof MockRoom> (
+  public static load<T extends typeof RoomMock> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -56,7 +56,7 @@ class MockRoom extends MockAccessory {
     return existingRoom
   }
 
-  public static create<T extends typeof MockRoom> (
+  public static create<T extends typeof RoomMock> (
     payload: RoomPayload,
   ): T['prototype'] {
     log.verbose('MockRoom', 'static create(%s)', JSON.stringify(payload))
@@ -67,7 +67,7 @@ class MockRoom extends MockAccessory {
 
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
-    const newRoom = new (this as any)(payload) as MockRoom
+    const newRoom = new (this as any)(payload) as RoomMock
     this.pool.set(newRoom.id, newRoom)
 
     return newRoom
@@ -89,7 +89,7 @@ class MockRoom extends MockAccessory {
     const that = this
     return { by }
 
-    function by (contact?: MockContact) {
+    function by (contact?: ContactMock) {
       log.verbose('MockRoom', 'topic(%s).by(%s)', text, contact?.id || '')
 
       if (!contact) {
@@ -111,13 +111,13 @@ class MockRoom extends MockAccessory {
     }
   }
 
-  add (...inviteeList: MockContact[]): By {
+  add (...inviteeList: ContactMock[]): By {
     log.verbose('MockRoom', 'add(%s)', inviteeList.map(i => i.id).join(','))
 
     const that = this
     return { by }
 
-    function by (inviter?: MockContact) {
+    function by (inviter?: ContactMock) {
       log.verbose('MockRoom', 'add(%s).by(%s)', inviteeList.map(i => i.id).join(','), inviter?.id || '')
 
       if (!inviter) {
@@ -139,13 +139,13 @@ class MockRoom extends MockAccessory {
     }
   }
 
-  remove (...removeeList: MockContact[]): By {
+  remove (...removeeList: ContactMock[]): By {
     log.verbose('MockRoom', 'remove(%s)', removeeList.map(i => i.id).join(','))
 
     const that = this
     return { by }
 
-    function by (remover?: MockContact) {
+    function by (remover?: ContactMock) {
       log.verbose('MockRoom', 'remove(%s).by(%s)', removeeList.map(i => i.id).join(','), remover?.id || '')
 
       if (!remover) {
@@ -174,11 +174,11 @@ class MockRoom extends MockAccessory {
 
   }
 
-  on (event: 'message', listener: (message: MockMessage) => void): this {
+  on (event: 'message', listener: (message: MessageMock) => void): this {
     super.on(event, listener)
     return this
   }
 
 }
 
-export { MockRoom }
+export { RoomMock }

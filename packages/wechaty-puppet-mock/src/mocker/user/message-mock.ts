@@ -4,23 +4,23 @@ import {
 
 import { log } from '../../config'
 
-import { MockAccessory }        from '../accessory'
+import { AccessoryMock }        from '../accessory'
 
-import { MockRoom }         from './mock-room'
-import { MockContact } from './mock-contact'
+import { RoomMock }         from './room-mock'
+import { ContactMock } from './contact-mock'
 
 const POOL = Symbol('pool')
 
-class MockMessage extends MockAccessory {
+class MessageMock extends AccessoryMock {
 
-  protected static [POOL]: Map<string, MockMessage>
+  protected static [POOL]: Map<string, MessageMock>
   protected static get pool () {
     if (!this[POOL]) {
       log.verbose('MockMessage', 'get pool() init pool')
-      this[POOL] = new Map<string, MockMessage>()
+      this[POOL] = new Map<string, MessageMock>()
     }
 
-    if (this === MockMessage) {
+    if (this === MessageMock) {
       throw new Error(
         'The global MockMessage class can not be used directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
@@ -36,9 +36,9 @@ class MockMessage extends MockAccessory {
    *
    * @static
    * @param {string} id
-   * @returns {MockMessage}
+   * @returns {MessageMock}
    */
-  public static load<T extends typeof MockMessage> (
+  public static load<T extends typeof MessageMock> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -50,7 +50,7 @@ class MockMessage extends MockAccessory {
     throw new Error(`MockMessage.load(): ${id} not exist.`)
   }
 
-  public static create<T extends typeof MockMessage> (
+  public static create<T extends typeof MessageMock> (
     payload: MessagePayload,
   ): T['prototype'] {
     log.verbose('MockMessage', 'static create(%s)', JSON.stringify(payload))
@@ -61,7 +61,7 @@ class MockMessage extends MockAccessory {
 
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
-    const newMessage = new (this as any)(payload) as MockMessage
+    const newMessage = new (this as any)(payload) as MessageMock
     this.pool.set(newMessage.id, newMessage)
 
     this.mocker.messagePayload(payload.id, payload)
@@ -78,7 +78,7 @@ class MockMessage extends MockAccessory {
     log.silly('MockMessage', 'constructor(%s)', JSON.stringify(payload))
   }
 
-  talker (): MockContact {
+  talker (): ContactMock {
     log.verbose('MockMessage', 'talker()')
 
     if (!this.payload.fromId) {
@@ -88,7 +88,7 @@ class MockMessage extends MockAccessory {
     return contact
   }
 
-  room (): undefined | MockRoom {
+  room (): undefined | RoomMock {
     log.verbose('MockMessage', 'room()')
 
     if (!this.payload.roomId) {
@@ -98,7 +98,7 @@ class MockMessage extends MockAccessory {
     return room
   }
 
-  listener (): undefined | MockContact {
+  listener (): undefined | ContactMock {
     log.verbose('MockMessage', 'listener()')
 
     if (!this.payload.toId) {
@@ -118,11 +118,11 @@ class MockMessage extends MockAccessory {
     return this.payload.type
   }
 
-  on (event: 'message', listener: (message: MockMessage) => void): this {
+  on (event: 'message', listener: (message: MessageMock) => void): this {
     super.on(event, listener)
     return this
   }
 
 }
 
-export { MockMessage }
+export { MessageMock }

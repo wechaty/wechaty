@@ -28,7 +28,7 @@ const MOCKER = Symbol('mocker')
 
 let COUNTER = 0
 
-abstract class MockAccessory extends EventEmitter {
+abstract class AccessoryMock extends EventEmitter {
 
   #name    : string
   #counter : number
@@ -84,7 +84,7 @@ abstract class MockAccessory extends EventEmitter {
    *
    */
   public get mocker (): Mocker {
-    return instanceToClass(this, MockAccessory).mocker
+    return instanceToClass(this, AccessoryMock).mocker
   }
 
   constructor (
@@ -104,4 +104,4 @@ abstract class MockAccessory extends EventEmitter {
 
 }
 
-export { MockAccessory }
+export { AccessoryMock }

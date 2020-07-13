@@ -3,3 +3,8 @@ export {
   MockEnvironment,
   SimpleEnvironment,
 }                     from './environment'
+export {
+  ContactMock,
+  RoomMock,
+  MessageMock,
+}                     from './user/mod'

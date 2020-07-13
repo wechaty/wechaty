@@ -12,27 +12,27 @@ import { ContactPayload } from 'wechaty-puppet'
 import { log } from '../../config'
 
 import { generateSentence } from '../generator'
-import { MockAccessory }    from '../accessory'
+import { AccessoryMock }    from '../accessory'
 
-import { MockRoom }    from './mock-room'
-import { MockMessage } from './mock-message'
+import { RoomMock }    from './room-mock'
+import { MessageMock } from './message-mock'
 
 interface To {
-  to: (conversation?: MockContact | MockRoom) => void
+  to: (conversation?: ContactMock | RoomMock) => void
 }
 
 const POOL = Symbol('pool')
 
-class MockContact extends MockAccessory {
+class ContactMock extends AccessoryMock {
 
-  protected static [POOL]: Map<string, MockContact>
+  protected static [POOL]: Map<string, ContactMock>
   protected static get pool () {
     if (!this[POOL]) {
       log.verbose('MockContact', 'get pool() init pool')
-      this[POOL] = new Map<string, MockContact>()
+      this[POOL] = new Map<string, ContactMock>()
     }
 
-    if (this === MockContact) {
+    if (this === ContactMock) {
       throw new Error(
         'The global MockContact class can not be used directly!'
         + 'See: https://github.com/wechaty/wechaty/issues/1217',
@@ -48,9 +48,9 @@ class MockContact extends MockAccessory {
    *
    * @static
    * @param {string} id
-   * @returns {MockContact}
+   * @returns {ContactMock}
    */
-  public static load<T extends typeof MockContact> (
+  public static load<T extends typeof ContactMock> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -62,7 +62,7 @@ class MockContact extends MockAccessory {
     throw new Error(`MockContact.load(): ${id} not exist.`)
   }
 
-  public static create<T extends typeof MockContact> (
+  public static create<T extends typeof ContactMock> (
     payload: ContactPayload,
   ): T['prototype'] {
     log.verbose('MockContact', 'static create(%s)', JSON.stringify(payload))
@@ -73,7 +73,7 @@ class MockContact extends MockAccessory {
 
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
-    const newContact = new (this as any)(payload) as MockContact
+    const newContact = new (this as any)(payload) as ContactMock
     this.pool.set(newContact.id, newContact)
 
     return newContact
@@ -91,7 +91,7 @@ class MockContact extends MockAccessory {
 
   say (
     text?: string,
-    mentionList: MockContact[] = [],
+    mentionList: ContactMock[] = [],
   ): To {
     log.verbose('MockContact', 'say(%s%s)',
       text || '',
@@ -107,7 +107,7 @@ class MockContact extends MockAccessory {
     const that = this
     return { to }
 
-    function to (conversation?: MockContact | MockRoom) {
+    function to (conversation?: ContactMock | RoomMock) {
       log.verbose('MockContact', 'say(%s).to(%s)', text || '', conversation?.id || '')
 
       if (!conversation) {
@@ -123,13 +123,13 @@ class MockContact extends MockAccessory {
 
       let payload: MessagePayload
 
-      if (conversation instanceof MockContact) {
+      if (conversation instanceof ContactMock) {
         payload = {
           ...basePayload,
           fromId        : that.id,
           toId          : conversation.id,
         } as MessagePayloadBase & MessagePayloadTo
-      } else if (conversation instanceof MockRoom) {
+      } else if (conversation instanceof RoomMock) {
         payload = {
           ...basePayload,
           fromId        : that.id,
@@ -146,11 +146,11 @@ class MockContact extends MockAccessory {
 
   }
 
-  on (event: 'message', listener: (message: MockMessage) => void): this {
+  on (event: 'message', listener: (message: MessageMock) => void): this {
     super.on(event, listener)
     return this
   }
 
 }
 
-export { MockContact }
+export { ContactMock }
