@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.41.45",
+  "version": "0.43.0",
   "description": "Wechaty is a Bot SDK for Individual Account, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -136,7 +136,7 @@
     "sloc": "^0.2.1",
     "tstest": "^0.4.10",
     "typedoc": "^0.16.11",
-    "wechaty-puppet-mock": "^0.22.39"
+    "wechaty-puppet-mock": "^0.25.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

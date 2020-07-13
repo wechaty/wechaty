@@ -1,31 +1,29 @@
 /* eslint-disable sort-keys */
 import {
   PuppetMock,
-  Mocker,
+  mock,
 }                       from 'wechaty-puppet-mock'
-import { MockContact }  from 'wechaty-puppet-mock/dist/src/mocker/user/mock-contact'
-import { MockRoom }     from 'wechaty-puppet-mock/dist/src/mocker/user/mock-room'
 
 import { Wechaty } from './wechaty'
 import { Message } from './user/message'
 
 interface Fixture {
   wechaty: Wechaty,
-  mocker: Mocker,
+  mocker: mock.Mocker,
 
   message: Message,
   moList: Message[],
   mtList: Message[],
 
-  user: MockContact,
-  mary: MockContact,
-  mike: MockContact,
+  user: mock.ContactMock,
+  mary: mock.ContactMock,
+  mike: mock.ContactMock,
 
-  room: MockRoom,
+  room: mock.RoomMock,
 }
 
 async function * createFixture (): AsyncGenerator<Fixture> {
-  const mocker = new Mocker()
+  const mocker = new mock.Mocker()
   const puppet = new PuppetMock({ mocker })
   const wechaty = new Wechaty({ puppet })
 

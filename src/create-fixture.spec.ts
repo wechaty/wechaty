@@ -4,8 +4,9 @@ import {
   test,
   sinon,
 }             from 'tstest'
-
-import { MockContact } from 'wechaty-puppet-mock/dist/src/mocker/user/mock-contact'
+import {
+  mock,
+}             from 'wechaty-puppet-mock'
 
 import { Message }        from './user/message'
 import { createFixture }  from './create-fixture'
@@ -19,8 +20,8 @@ test('createFixture() initial state', async (t) => {
     t.equal(fixture.moList.length, 0, 'should be empty mo list')
     t.equal(fixture.mtList.length, 0, 'should be empty mt list')
 
-    t.true(fixture.mary instanceof MockContact, 'should get mock contact mary')
-    t.true(fixture.mike instanceof MockContact, 'should get mock contact mike')
+    t.true(fixture.mary instanceof mock.ContactMock, 'should get mock contact mary')
+    t.true(fixture.mike instanceof mock.ContactMock, 'should get mock contact mike')
   }
 })
 
