@@ -28,7 +28,8 @@ async function * createFixture (): AsyncGenerator<Fixture> {
 
   await wechaty.start()
 
-  const [bot, player] = mocker.createContacts(3)
+  const bot    = mocker.createContact({ name: 'Bot' })
+  const player = mocker.createContact({ name: 'Player' })
   mocker.login(bot)
 
   const room = mocker.createRoom({
