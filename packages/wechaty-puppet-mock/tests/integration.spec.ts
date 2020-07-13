@@ -6,11 +6,11 @@ import { Wechaty } from 'wechaty'
 
 import {
   PuppetMock,
-  Mocker,
+  mock,
 }                         from '../src/mod'
 
 async function * wechatyFixture () {
-  const mocker  = new Mocker()
+  const mocker  = new mock.Mocker()
   const puppet  = new PuppetMock({ mocker })
   const wechaty = new Wechaty({ puppet })
 
@@ -27,7 +27,7 @@ async function * wechatyFixture () {
   }
 }
 test('integration testing', async t => {
-  const mocker = new Mocker()
+  const mocker = new mock.Mocker()
   const puppet = new PuppetMock({ mocker })
   const wechaty = new Wechaty({ puppet })
 

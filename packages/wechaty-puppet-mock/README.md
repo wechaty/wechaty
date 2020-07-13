@@ -60,9 +60,9 @@ See: [SimpleEnvironment](src/mocker/environment.ts)
 
 ```ts
 import { Wechaty }  from 'wechaty'
-import { Mocker, PuppetMock }   from 'wechaty-puppet-mock'
+import { PuppetMock, mock }   from 'wechaty-puppet-mock'
 
-const mocker = new Mocker()
+const mocker = new mock.Mocker()
 const puppet = new PuppetMock({ mocker })
 const bot = new Wechaty({ puppet })
 
@@ -113,7 +113,12 @@ console.log(config)
 
 ### master
 
-### v0.22 (Jun 4, 2020)
+### v0.25 (July 13, 2020)
+
+1. Rename `MockXXX` to `XXXMock` for keep the consistent naming style with `PuppetMock`.
+1. Export `mock` namespace and move all related modules under it.
+
+### v0.22 (June 4, 2020)
 
 `Mocker` Released. `Mocker` is a manager for controlling the behavior of the Puppet activities.
 
