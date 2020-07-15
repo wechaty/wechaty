@@ -364,7 +364,7 @@ See:
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
 ```
 
-Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/Wechaty/wechaty/wiki/PoweredByWechaty)
+Get more embed html/markdown code from [Wiki:Powered By Wechaty](https://github.com/wechaty/wechaty/wiki/Powered-By-Wechaty)
 
 ### :star2: Projects Using Wechaty
 
