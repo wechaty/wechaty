@@ -364,7 +364,7 @@ See:
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
 ```
 
-Get more embed html/markdown code from [Wiki:Projects Using Wechaty](https://github.com/wechaty/wechaty/wiki/Projects-Using-Wechaty)
+Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/Wechaty/wechaty/wiki/PoweredByWechaty)
 
 ### :star2: Projects Using Wechaty
 
@@ -379,7 +379,7 @@ Get more embed html/markdown code from [Wiki:Projects Using Wechaty](https://git
 
 Pull Request is welcome to add yours!
 
-Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/Wechaty/wechaty/wiki/PoweredByWechaty)
+Learn more about Projects Using Wechaty at [Wiki:Projects Using Wechaty](https://github.com/wechaty/wechaty/wiki/Projects-Using-Wechaty)
 
 ## :innocent: Find a Good Server
 
