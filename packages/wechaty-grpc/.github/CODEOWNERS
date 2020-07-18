@@ -1,0 +1,8 @@
+#
+# https://help.github.com/articles/about-codeowners/
+#
+
+/php/       @zhangchunsheng
+/python/    @wj-Mcat
+/java/      @diaozxin007
+/go/        @dchaofei

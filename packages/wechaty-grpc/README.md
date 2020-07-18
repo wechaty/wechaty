@@ -19,8 +19,6 @@ gRPC for Chatie
 
 Maintainer:
 
-Maintainer:
-
 - [@huan](https://github.com/huan) - Huan LI (李卓桓)
 
 ### Python
@@ -37,7 +35,7 @@ Maintainer:
 
 Maintainer:
 
-- [@dingdayu](https://github.com/dingdayu) - Xiaoyu DING (丁小雨)
+- [@dchaofei](https://github.com/dchaofei) - Chaofei DING (丁超飞)
 
 ### Java
 
@@ -68,7 +66,6 @@ Maintainer:
 Maintainer:
 
 - [@zhangchunsheng](https://github.com/zhangchunsheng) - Chunsheng ZHANG (张春生)
-
 
 ## Debug
 
