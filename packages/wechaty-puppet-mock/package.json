@@ -18,7 +18,7 @@
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
-    "lint:es": "eslint 'src/**/*.ts' 'tests/**/*.spec.ts' --ignore-pattern tests/fixtures/",
+    "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "blue-tape -r ts-node/register 'src/**/*.spec.ts' 'tests/**/*.spec.ts'"
