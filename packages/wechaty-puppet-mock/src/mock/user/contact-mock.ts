@@ -1,4 +1,4 @@
-import { Attachment } from './interface'
+import { Attachment } from './types'
 import cuid from 'cuid'
 import * as path from 'path'
 
@@ -93,14 +93,9 @@ class ContactMock extends AccessoryMock {
   }
 
   say (
-    text?: string,
-    mentionList?: ContactMock[],
-  ): To
-  say (contact: ContactMock): To
-  say (file: FileBox): To
-  say (min: MiniProgram): To
-  say (url: UrlLink): To
-  say (something?: string | Attachment, mentions: ContactMock[] = []): To {
+    something?: string | Attachment,
+    mentions: ContactMock[] = []
+  ): To {
     log.verbose('MockContact', 'say(%s%s)',
       something,
       mentions.length > 0

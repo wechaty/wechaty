@@ -1,3 +1,4 @@
+import { Attachment } from './mock/user/types'
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -313,7 +314,10 @@ class PuppetMock extends Puppet {
     return this.mocker.messagePayload(id)
   }
 
-  private async messageSend (conversationId: string, something: any): Promise<void> {
+  private async messageSend (
+    conversationId: string,
+    something: string | Attachment
+  ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, something)
     if (!this.id) {
       throw new Error('no this.id')

@@ -20,7 +20,7 @@ import {
 import { MessageMock } from './user/message-mock'
 import { UrlLink, Wechaty, MiniProgram } from 'wechaty'
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = () => new Promise(resolve => setImmediate(resolve))
 
 class MockerTest extends Mocker {
 }
@@ -254,7 +254,7 @@ test('MockContact.say(url).to(contact)', async t => {
 
   user.say(url).to(mary)
 
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, url, 'should received the expected contact message payload')
   await puppet.stop()
 })
@@ -291,7 +291,7 @@ test('wechaty.reply(url)', async t => {
 
   mary.say('test').to(user)
 
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, url, 'should received the expected contact message payload')
   await puppet.stop()
   await wechaty.stop()
@@ -314,7 +314,7 @@ test('MockContact.say(contact).to(contact)', async t => {
 
   user.say(mike).to(mary)
 
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, mike, 'should received the expected contact message payload')
   await puppet.stop()
 })
@@ -351,7 +351,7 @@ test('wechaty.reply(contact)', async t => {
   })
 
   mary.say('test').to(user)
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, mike, 'should received the expected contact message payload')
   await puppet.stop()
   await wechaty.stop()
@@ -377,7 +377,7 @@ test('MockContact.say(filebox).to(contact)', async t => {
   )
   user.say(fileBox).to(mary)
 
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, fileBox, 'should received the expected contact message payload')
   await puppet.stop()
 })
@@ -414,7 +414,7 @@ test('wechaty.reply(filebox)', async t => {
   })
 
   mary.say('test').to(user)
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, fileBox, 'should received the expected contact message payload')
   await puppet.stop()
   await wechaty.stop()
@@ -440,7 +440,7 @@ test('MockContact.say(miniprogram).to(contact)', async t => {
 
   user.say(mp).to(mary)
 
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, mp, 'should received the expected contact message payload')
   await puppet.stop()
 })
@@ -475,8 +475,7 @@ test('wechaty.reply(miniprogram)', async t => {
   })
 
   mary.say('test').to(user)
-
-  await sleep(1000)
+  await sleep()
   t.deepEqual(receive, mp, 'should received the expected contact message payload')
   await puppet.stop()
   await wechaty.stop()

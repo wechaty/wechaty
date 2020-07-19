@@ -1,4 +1,4 @@
-import { Attachment } from './interface'
+import { Attachment } from './types'
 import {
   MessageType, MessagePayload, FileBox,
 }                     from 'wechaty-puppet'
