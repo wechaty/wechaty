@@ -14,9 +14,13 @@ import {
   EventMessagePayload,
   MessagePayload,
   MessageType,
+  FileBox,
 }                         from 'wechaty-puppet'
 
 import { MessageMock } from './user/message-mock'
+import { UrlLink, Wechaty, MiniProgram } from 'wechaty'
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 class MockerTest extends Mocker {
 }
@@ -227,4 +231,253 @@ test('Multiple Mockers with their MockContact(s)', async t => {
 
   t.notEqual(contact1, contact2, 'should have seperate MockContact classes')
   t.equal(contact1.id, contact2.id, 'should have the same id from different mocker instances')
+})
+
+test('MockContact.say(url).to(contact)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+  }         = createFixture()
+
+  const url = new UrlLink({
+    title: 'mock',
+    url: 'http://www.mock.com',
+  })
+
+  await puppet.start()
+
+  let receive
+  mary.on('message', async message => {
+    receive = await message.toUrlLink()
+  })
+
+  user.say(url).to(mary)
+
+  await sleep(1000)
+  t.deepEqual(receive, url, 'should received the expected contact message payload')
+  await puppet.stop()
+})
+
+test('wechaty.reply(url)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+    mocker,
+  }         = createFixture()
+  await puppet.start()
+  await mocker.login(user)
+  const wechaty = new Wechaty({ puppet })
+  await wechaty.start()
+  const url = new UrlLink({
+    title: 'mock',
+    url: 'http://www.mock.com',
+  })
+  wechaty.on('message', async message => {
+    if (message.self()) {
+      return
+    }
+    await message.say(url)
+  })
+
+  let receive
+  mary.on('message', async message => {
+    if (message.type() === MessageType.Text) {
+      return
+    }
+    receive = await message.toUrlLink()
+  })
+
+  mary.say('test').to(user)
+
+  await sleep(1000)
+  t.deepEqual(receive, url, 'should received the expected contact message payload')
+  await puppet.stop()
+  await wechaty.stop()
+})
+
+test('MockContact.say(contact).to(contact)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+    mike,
+  }         = createFixture()
+
+  await puppet.start()
+
+  let receive
+  mary.on('message', async message => {
+    receive = await message.toContact()
+  })
+
+  user.say(mike).to(mary)
+
+  await sleep(1000)
+  t.deepEqual(receive, mike, 'should received the expected contact message payload')
+  await puppet.stop()
+})
+
+test('wechaty.reply(contact)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+    mocker,
+    mike,
+  }         = createFixture()
+  await puppet.start()
+  await mocker.login(user)
+  const wechaty = new Wechaty({ puppet })
+  await wechaty.start()
+  wechaty.on('message', async message => {
+    if (message.self()) {
+      return
+    }
+    const mikeContact = await wechaty.Contact.find({ name: mike.payload.name })
+    if (!mikeContact) {
+      return
+    }
+    await message.say(mikeContact)
+  })
+
+  let receive
+  mary.on('message', async message => {
+    if (message.type() === MessageType.Text) {
+      return
+    }
+    receive = await message.toContact()
+  })
+
+  mary.say('test').to(user)
+  await sleep(1000)
+  t.deepEqual(receive, mike, 'should received the expected contact message payload')
+  await puppet.stop()
+  await wechaty.stop()
+})
+
+test('MockContact.say(filebox).to(contact)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+  }         = createFixture()
+
+  await puppet.start()
+
+  let receive
+  mary.on('message', async message => {
+    receive = await message.toFileBox()
+  })
+
+  const fileBox = FileBox.fromBase64(
+    'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
+    'mock-file.txt',
+  )
+  user.say(fileBox).to(mary)
+
+  await sleep(1000)
+  t.deepEqual(receive, fileBox, 'should received the expected contact message payload')
+  await puppet.stop()
+})
+
+test('wechaty.reply(filebox)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+    mocker,
+  }         = createFixture()
+  await puppet.start()
+  await mocker.login(user)
+  const wechaty = new Wechaty({ puppet })
+  await wechaty.start()
+
+  const fileBox = FileBox.fromBase64(
+    'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
+    'mock-file.txt',
+  )
+  wechaty.on('message', async message => {
+    if (message.self()) {
+      return
+    }
+    await message.say(fileBox)
+  })
+
+  let receive
+  mary.on('message', async message => {
+    if (message.type() === MessageType.Text) {
+      return
+    }
+    receive = await message.toFileBox()
+  })
+
+  mary.say('test').to(user)
+  await sleep(1000)
+  t.deepEqual(receive, fileBox, 'should received the expected contact message payload')
+  await puppet.stop()
+  await wechaty.stop()
+})
+
+test('MockContact.say(miniprogram).to(contact)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+  }         = createFixture()
+
+  const mp = new MiniProgram({
+    title: 'mock',
+  })
+
+  await puppet.start()
+
+  let receive
+  mary.on('message', async message => {
+    receive = await message.toMiniprogram()
+  })
+
+  user.say(mp).to(mary)
+
+  await sleep(1000)
+  t.deepEqual(receive, mp, 'should received the expected contact message payload')
+  await puppet.stop()
+})
+
+test('wechaty.reply(miniprogram)', async t => {
+  const {
+    user,
+    mary,
+    puppet,
+    mocker,
+  }         = createFixture()
+  await puppet.start()
+  await mocker.login(user)
+  const wechaty = new Wechaty({ puppet })
+  await wechaty.start()
+  const mp = new MiniProgram({
+    title: 'mock',
+  })
+  wechaty.on('message', async message => {
+    if (message.self()) {
+      return
+    }
+    await message.say(mp)
+  })
+
+  let receive
+  mary.on('message', async message => {
+    if (message.type() === MessageType.Text) {
+      return
+    }
+    receive = await message.toMiniprogram()
+  })
+
+  mary.say('test').to(user)
+
+  await sleep(1000)
+  t.deepEqual(receive, mp, 'should received the expected contact message payload')
+  await puppet.stop()
+  await wechaty.stop()
 })
