@@ -1,4 +1,6 @@
+import { Attachment } from './types'
 import cuid from 'cuid'
+import * as path from 'path'
 
 import {
   MessagePayloadTo,
@@ -7,15 +9,16 @@ import {
   MessagePayloadRoom,
   MessagePayload,
 }                        from 'wechaty-puppet/dist/src/schemas/message'
-import { ContactPayload } from 'wechaty-puppet'
+import { ContactPayload, FileBox } from 'wechaty-puppet'
 
 import { log } from '../../config'
 
-import { generateSentence } from '../generator'
 import { AccessoryMock }    from '../accessory'
 
 import { RoomMock }    from './room-mock'
 import { MessageMock } from './message-mock'
+import { MiniProgram, UrlLink } from 'wechaty'
+import { generateSentence } from '../generator'
 
 interface To {
   to: (conversation?: ContactMock | RoomMock) => void
@@ -90,25 +93,21 @@ class ContactMock extends AccessoryMock {
   }
 
   say (
-    text?: string,
-    mentionList: ContactMock[] = [],
+    something?: string | Attachment,
+    mentions: ContactMock[] = []
   ): To {
     log.verbose('MockContact', 'say(%s%s)',
-      text || '',
-      mentionList.length > 0
-        ? `,[${mentionList.map(c => c.id).join(',')}]`
+      something,
+      mentions.length > 0
+        ? `,[${mentions.map(c => c.id).join(',')}]`
         : '',
     )
-
-    if (!text) {
-      text = generateSentence()
-    }
 
     const that = this
     return { to }
 
     function to (conversation?: ContactMock | RoomMock) {
-      log.verbose('MockContact', 'say(%s).to(%s)', text || '', conversation?.id || '')
+      log.verbose('MockContact', 'say(%s).to(%s)', something, conversation?.id || '')
 
       if (!conversation) {
         conversation = that.mocker.randomConversation()
@@ -116,12 +115,41 @@ class ContactMock extends AccessoryMock {
 
       const basePayload: MessagePayloadBase = {
         id        : cuid(),
-        text,
         timestamp : Date.now(),
         type      : MessageType.Text,
       }
 
       let payload: MessagePayload
+
+      if (something instanceof ContactMock) {
+        basePayload.type = MessageType.Contact
+      } else if (something instanceof FileBox) {
+        const type = (something.mimeType && something.mimeType !== 'application/octet-stream')
+          ? something.mimeType
+          : path.extname(something.name)
+        switch (type) {
+          case 'image/jpeg':
+          case 'image/png':
+          case '.jpg':
+          case '.jpeg':
+          case '.png':
+            basePayload.type = MessageType.Image
+            break
+          case 'video/mp4':
+          case '.mp4':
+            basePayload.type = MessageType.Audio
+            break
+          default:
+            basePayload.type = MessageType.Unknown
+            break
+        }
+      } else if (something instanceof MiniProgram) {
+        basePayload.type = MessageType.MiniProgram
+      } else if (something instanceof UrlLink) {
+        basePayload.type = MessageType.Url
+      } else {
+        basePayload.text = something || generateSentence()
+      }
 
       if (conversation instanceof ContactMock) {
         payload = {
@@ -133,13 +161,15 @@ class ContactMock extends AccessoryMock {
         payload = {
           ...basePayload,
           fromId        : that.id,
-          mentionIdList : mentionList.map(c => c.id),
+          mentionIdList : mentions.map(c => c.id),
           roomId        : conversation.id,
         } as MessagePayloadBase & MessagePayloadRoom
       } else {
         throw new Error('unknown conversation type: ' + typeof conversation)
       }
-
+      if (payload.type !== MessageType.Text && typeof something !== 'string' && something) {
+        that.mocker.MockMessage.setAttachment(payload.id, something)
+      }
       const msg = that.mocker.MockMessage.create(payload)
       that.mocker.puppet.emit('message', { messageId: msg.id })
     }
