@@ -18,7 +18,7 @@ import {
 }                     from '../tests/puppet-server-impl'
 
 let eventStream: undefined | grpc.ServerWritableStream<EventRequest>
-let dingQueue = [] as string[]
+const dingQueue = [] as string[]
 
 /**
  * Implements the SayHello RPC method.
