@@ -27,14 +27,14 @@ import {
 function getBotList (): Wechaty[] {
   const botList = [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
-    new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
+    // new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
     // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
   if (process.env.WECHATY_PUPPET_HOSTIE_TOKEN) {
     botList.push(
       new Wechaty({
-        puppet: 'wechaty-puppet-padplus',
+        puppet: 'wechaty-puppet-hostie',
       })
     )
   }
