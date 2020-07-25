@@ -1,4 +1,3 @@
-import { Attachment } from './mock/user/types'
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -48,8 +47,11 @@ import {
   VERSION,
 }                                   from './config'
 
+// import { Attachment } from './mock/user/types'
+
 import {
-  Mocker, ContactMock,
+  Mocker,
+  // ContactMock,
 }                     from './mock/mod'
 // import { UrlLink, MiniProgram } from 'wechaty'
 
@@ -244,10 +246,10 @@ class PuppetMock extends Puppet {
     messageId: string,
   ): Promise<string> {
     log.verbose('PuppetMock', 'messageContact(%s)', messageId)
-    const attachment = this.mocker.MockMessage.loadAttachment(messageId)
-    if (attachment instanceof ContactMock) {
-      return attachment.id
-    }
+    // const attachment = this.mocker.MockMessage.loadAttachment(messageId)
+    // if (attachment instanceof ContactMock) {
+    //   return attachment.id
+    // }
     return ''
   }
 
@@ -260,10 +262,10 @@ class PuppetMock extends Puppet {
       imageType,
       ImageType[imageType],
     )
-    const attachment = this.mocker.MockMessage.loadAttachment(messageId)
-    if (attachment instanceof FileBox) {
-      return attachment
-    }
+    // const attachment = this.mocker.MockMessage.loadAttachment(messageId)
+    // if (attachment instanceof FileBox) {
+    //   return attachment
+    // }
     return FileBox.fromQRCode('fake-qrcode')
   }
 
@@ -275,10 +277,10 @@ class PuppetMock extends Puppet {
   }
 
   public async messageFile (id: string): Promise<FileBox> {
-    const attachment = this.mocker.MockMessage.loadAttachment(id)
-    if (attachment instanceof FileBox) {
-      return attachment
-    }
+    // const attachment = this.mocker.MockMessage.loadAttachment(id)
+    // if (attachment instanceof FileBox) {
+    //   return attachment
+    // }
     return FileBox.fromBase64(
       'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
       'mock-file' + id + '.txt',
@@ -316,7 +318,7 @@ class PuppetMock extends Puppet {
 
   private async messageSend (
     conversationId: string,
-    something: string | Attachment
+    something: string | FileBox, // | Attachment
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, something)
     if (!this.id) {
@@ -353,8 +355,10 @@ class PuppetMock extends Puppet {
     conversationId: string,
     contactId : string,
   ): Promise<void> {
-    const contact = this.mocker.MockContact.load(contactId)
-    return this.messageSend(conversationId, contact)
+    log.verbose('PuppetMock', 'messageSendUrl(%s, %s)', conversationId, contactId)
+
+    // const contact = this.mocker.MockContact.load(contactId)
+    // return this.messageSend(conversationId, contact)
   }
 
   public async messageSendUrl (

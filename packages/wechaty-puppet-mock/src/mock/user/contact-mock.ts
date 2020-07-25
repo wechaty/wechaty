@@ -1,4 +1,4 @@
-import { Attachment } from './types'
+// import { Attachment } from './types'
 import cuid from 'cuid'
 import * as path from 'path'
 
@@ -17,7 +17,7 @@ import { AccessoryMock }    from '../accessory'
 
 import { RoomMock }    from './room-mock'
 import { MessageMock } from './message-mock'
-import { MiniProgram, UrlLink } from 'wechaty'
+// import { MiniProgram, UrlLink } from 'wechaty'
 import { generateSentence } from '../generator'
 
 interface To {
@@ -93,7 +93,7 @@ class ContactMock extends AccessoryMock {
   }
 
   say (
-    something?: string | Attachment,
+    something?: string | FileBox, // | ContactMock, // | Attachment,
     mentions: ContactMock[] = []
   ): To {
     log.verbose('MockContact', 'say(%s%s)',
@@ -121,9 +121,9 @@ class ContactMock extends AccessoryMock {
 
       let payload: MessagePayload
 
-      if (something instanceof ContactMock) {
-        basePayload.type = MessageType.Contact
-      } else if (something instanceof FileBox) {
+      if (something instanceof FileBox) {
+      //   basePayload.type = MessageType.Contact
+      // } else if (something instanceof FileBox) {
         const type = (something.mimeType && something.mimeType !== 'application/octet-stream')
           ? something.mimeType
           : path.extname(something.name)
@@ -143,10 +143,10 @@ class ContactMock extends AccessoryMock {
             basePayload.type = MessageType.Unknown
             break
         }
-      } else if (something instanceof MiniProgram) {
-        basePayload.type = MessageType.MiniProgram
-      } else if (something instanceof UrlLink) {
-        basePayload.type = MessageType.Url
+      // } else if (something instanceof MiniProgram) {
+      //   basePayload.type = MessageType.MiniProgram
+      // } else if (something instanceof UrlLink) {
+      //   basePayload.type = MessageType.Url
       } else {
         basePayload.text = something || generateSentence()
       }
@@ -167,9 +167,9 @@ class ContactMock extends AccessoryMock {
       } else {
         throw new Error('unknown conversation type: ' + typeof conversation)
       }
-      if (payload.type !== MessageType.Text && typeof something !== 'string' && something) {
-        that.mocker.MockMessage.setAttachment(payload.id, something)
-      }
+      // if (payload.type !== MessageType.Text && typeof something !== 'string' && something) {
+      //   that.mocker.MockMessage.setAttachment(payload.id, something)
+      // }
       const msg = that.mocker.MockMessage.create(payload)
       that.mocker.puppet.emit('message', { messageId: msg.id })
     }

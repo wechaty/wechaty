@@ -1,6 +1,8 @@
-import { Attachment } from './types'
+// import { Attachment } from './types'
 import {
-  MessageType, MessagePayload, FileBox,
+  MessageType,
+  MessagePayload,
+  FileBox,
 }                     from 'wechaty-puppet'
 
 import { log } from '../../config'
@@ -9,15 +11,15 @@ import { AccessoryMock }        from '../accessory'
 
 import { RoomMock }         from './room-mock'
 import { ContactMock } from './contact-mock'
-import { UrlLink, MiniProgram } from 'wechaty'
+// import { UrlLink, MiniProgram } from 'wechaty'
 
 const POOL = Symbol('pool')
-const ATTACHMENT = Symbol('attachment')
+// const ATTACHMENT = Symbol('attachment')
 
 class MessageMock extends AccessoryMock {
 
   protected static [POOL]: Map<string, MessageMock>
-  protected static [ATTACHMENT]: Map<string, Attachment>
+  // protected static [ATTACHMENT]: Map<string, Attachment>
   protected static get pool () {
     if (!this[POOL]) {
       log.verbose('MockMessage', 'get pool() init pool')
@@ -34,21 +36,21 @@ class MessageMock extends AccessoryMock {
     return this[POOL]
   }
 
-  protected static get attachmentPool () {
-    if (!this[ATTACHMENT]) {
-      log.verbose('Mock Message', 'get attachment pool () init pool')
-      this[ATTACHMENT] = new Map()
-    }
+  // protected static get attachmentPool () {
+  //   if (!this[ATTACHMENT]) {
+  //     log.verbose('Mock Message', 'get attachment pool () init pool')
+  //     this[ATTACHMENT] = new Map()
+  //   }
 
-    if (this === MessageMock) {
-      throw new Error(
-        'The global MockMessage class can not be used directly!'
-        + 'See: https://github.com/wechaty/wechaty/issues/1217',
-      )
-    }
+  //   if (this === MessageMock) {
+  //     throw new Error(
+  //       'The global MockMessage class can not be used directly!'
+  //       + 'See: https://github.com/wechaty/wechaty/issues/1217',
+  //     )
+  //   }
 
-    return this[ATTACHMENT]
-  }
+  //   return this[ATTACHMENT]
+  // }
 
   /**
    * @ignore
@@ -70,21 +72,21 @@ class MessageMock extends AccessoryMock {
     throw new Error(`MockMessage.load(): ${id} not exist.`)
   }
 
-  public static setAttachment<T extends typeof MessageMock> (
-    this: T,
-    id: string,
-    attachment: Attachment
-  ): void {
-    log.verbose('MockMessage', 'static set attachment(%s) to (%s)', JSON.stringify(attachment), id)
-    this.attachmentPool.set(id, attachment)
-  }
+  // public static setAttachment<T extends typeof MessageMock> (
+  //   this: T,
+  //   id: string,
+  //   attachment: Attachment
+  // ): void {
+  //   log.verbose('MockMessage', 'static set attachment(%s) to (%s)', JSON.stringify(attachment), id)
+  //   this.attachmentPool.set(id, attachment)
+  // }
 
-  public static loadAttachment<T extends typeof MessageMock> (
-    this : T,
-    id   : string,
-  ): Attachment | undefined {
-    return this.attachmentPool.get(id)
-  }
+  // public static loadAttachment<T extends typeof MessageMock> (
+  //   this : T,
+  //   id   : string,
+  // ): Attachment | undefined {
+  //   return this.attachmentPool.get(id)
+  // }
 
   public static create<T extends typeof MessageMock> (
     payload: MessagePayload,
@@ -175,25 +177,25 @@ class MessageMock extends AccessoryMock {
     return contact
   }
 
-  async toUrlLink (): Promise<UrlLink> {
-    log.verbose('MockMessage', 'toUrlLink()')
+  // async toUrlLink (): Promise<UrlLink> {
+  //   log.verbose('MockMessage', 'toUrlLink()')
 
-    if (this.type() !== MessageType.Url) {
-      throw new Error('message not a Url Link')
-    }
-    const urlLink = await this.mocker.puppet.messageUrl(this.id)
-    return new UrlLink(urlLink)
-  }
+  //   if (this.type() !== MessageType.Url) {
+  //     throw new Error('message not a Url Link')
+  //   }
+  //   const urlLink = await this.mocker.puppet.messageUrl(this.id)
+  //   return new UrlLink(urlLink)
+  // }
 
-  async toMiniprogram (): Promise<MiniProgram> {
-    log.verbose('MockMessage', 'toMiniProgram()')
-    if (this.type() !== MessageType.MiniProgram) {
-      throw new Error('message not a MiniProgram')
-    }
+  // async toMiniprogram (): Promise<MiniProgram> {
+  //   log.verbose('MockMessage', 'toMiniProgram()')
+  //   if (this.type() !== MessageType.MiniProgram) {
+  //     throw new Error('message not a MiniProgram')
+  //   }
 
-    const miniprogram = await this.mocker.puppet.messageMiniProgram(this.id)
-    return new MiniProgram(miniprogram)
-  }
+  //   const miniprogram = await this.mocker.puppet.messageMiniProgram(this.id)
+  //   return new MiniProgram(miniprogram)
+  // }
 
   async toFileBox (): Promise<FileBox> {
     log.verbose('MockMessage', 'toFileBox()')
