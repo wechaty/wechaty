@@ -529,49 +529,6 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     return this.options.name || 'wechaty'
   }
 
-  // public emit (event: 'dong',         data?: string)                                                                : boolean
-  // public emit (event: 'error',        error: Error)                                                                 : boolean
-  // public emit (event: 'friendship',   friendship: Friendship)                                                       : boolean
-  // public emit (event: 'heartbeat',    data: any)                                                                    : boolean
-  // public emit (event: 'login',        user: ContactSelf)                                                            : boolean
-  // public emit (event: 'logout',       user: ContactSelf, reason?: string)                                           : boolean
-  // public emit (event: 'message',      message: Message)                                                             : boolean
-  // public emit (event: 'ready')                                                                                      : boolean
-  // public emit (event: 'room-invite',  roomInvitation: RoomInvitation)                                               : boolean
-  // public emit (event: 'room-join',    room: Room, inviteeList : Contact[], inviter : Contact, date: Date)           : boolean
-  // public emit (event: 'room-leave',   room: Room, leaverList  : Contact[], remover : Contact, date: Date)           : boolean
-  // public emit (event: 'room-topic',   room: Room, newTopic: string, oldTopic: string, changer: Contact, date: Date) : boolean
-  // public emit (event: 'scan',         qrcode: string, status: ScanStatus, data?: string)                            : boolean
-  // public emit (event: 'start' | 'stop')                                                                             : boolean
-
-  // // guard for the above event: make sure it includes all the possible values
-  // public emit (event: never, listener: never): never
-
-  // public emit (
-  //   event:   WechatyEventName,
-  //   ...args: any[]
-  // ): boolean {
-  //   return super.emit(event, ...args)
-  // }
-
-  // public on (event: 'dong',           listener: WechatyDongEventListener)       : this
-  // public on (event: 'error',          listener: WechatyErrorEventListener)      : this
-  // public on (event: 'friendship',     listener: WechatyFriendshipEventListener) : this
-  // public on (event: 'heartbeat',      listener: WechatyHeartbeatEventListener)  : this
-  // public on (event: 'login',          listener: WechatyLoginEventListener)      : this
-  // public on (event: 'logout',         listener: WechatyLogoutEventListener)     : this
-  // public on (event: 'message',        listener: WechatyMessageEventListener)    : this
-  // public on (event: 'ready',          listener: WechatyReadyEventListener)      : this
-  // public on (event: 'room-invite',    listener: WechatyRoomInviteEventListener) : this
-  // public on (event: 'room-join',      listener: WechatyRoomJoinEventListener)   : this
-  // public on (event: 'room-leave',     listener: WechatyRoomLeaveEventListener)  : this
-  // public on (event: 'room-topic',     listener: WechatyRoomTopicEventListener)  : this
-  // public on (event: 'scan',           listener: WechatyScanEventListener)       : this
-  // public on (event: 'start' | 'stop', listener: WechatyStartStopEventListener)  : this
-
-  // // guard for the above event: make sure it includes all the possible values
-  // public on (event: never, listener: never): never
-
   public on (event: WechatyEventName, listener: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'on(%s, listener) registering... listenerCount: %s',
       event,
@@ -579,26 +536,6 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     )
 
     return super.on(event, listener)
-
-    // const handleError = (e: Error, type = '') => {
-    //   log.error('Wechaty', 'addListenerFunction(%s) listener %s exception: %s', event, type, e)
-    //   this.emit('error', e)
-    // }
-
-    // /**
-    //  * We use `super.on()` at here to prevent loop
-    //  */
-    // super.on(event, (...args: any[]) => {
-    //   try {
-    //     const result = listener.apply(this, args)
-    //     if (result && result.catch && typeof result.catch === 'function') {
-    //       result.catch((e: Error) => handleError(e, 'async'))
-    //     }
-    //   } catch (e) {
-    //     handleError(e)
-    //   }
-    // })
-    // return this
   }
 
   /**
@@ -723,6 +660,8 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
             const room = msg.room()
             if (room) {
               room.emit('message', msg)
+            } else {
+              this.userSelf().emit('message', msg)
             }
           })
           break
