@@ -51,7 +51,7 @@ import {
 import {
   Mocker, ContactMock,
 }                     from './mock/mod'
-import { UrlLink, MiniProgram } from 'wechaty'
+// import { UrlLink, MiniProgram } from 'wechaty'
 
 export type PuppetMockOptions = PuppetOptions & {
   mocker?: Mocker,
@@ -287,10 +287,10 @@ class PuppetMock extends Puppet {
 
   public async messageUrl (messageId: string)  : Promise<UrlLinkPayload> {
     log.verbose('PuppetMock', 'messageUrl(%s)', messageId)
-    const attachment = this.mocker.MockMessage.loadAttachment(messageId)
-    if (attachment instanceof UrlLink) {
-      return attachment.payload
-    }
+    // const attachment = this.mocker.MockMessage.loadAttachment(messageId)
+    // if (attachment instanceof UrlLink) {
+    //   return attachment.payload
+    // }
     return {
       title : 'mock title for ' + messageId,
       url   : 'https://mock.url',
@@ -299,10 +299,10 @@ class PuppetMock extends Puppet {
 
   public async messageMiniProgram (messageId: string): Promise<MiniProgramPayload> {
     log.verbose('PuppetMock', 'messageMiniProgram(%s)', messageId)
-    const attachment = this.mocker.MockMessage.loadAttachment(messageId)
-    if (attachment instanceof MiniProgram) {
-      return attachment.payload
-    }
+    // const attachment = this.mocker.MockMessage.loadAttachment(messageId)
+    // if (attachment instanceof MiniProgram) {
+    //   return attachment.payload
+    // }
     return {
       title : 'mock title for ' + messageId,
     }
@@ -357,13 +357,23 @@ class PuppetMock extends Puppet {
     return this.messageSend(conversationId, contact)
   }
 
-  public async messageSendUrl (conversationId: string, urlLinkPayload: UrlLinkPayload) : Promise<void> {
-    const url = new UrlLink(urlLinkPayload)
-    return this.messageSend(conversationId, url)
+  public async messageSendUrl (
+    conversationId: string,
+    urlLinkPayload: UrlLinkPayload,
+  ) : Promise<void> {
+    log.verbose('PuppetMock', 'messageSendUrl(%s, %s)', conversationId, JSON.stringify(urlLinkPayload))
+
+    // const url = new UrlLink(urlLinkPayload)
+    // return this.messageSend(conversationId, url)
   }
-  public async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload): Promise<void> {
-    const miniProgram = new MiniProgram(miniProgramPayload)
-    return this.messageSend(conversationId, miniProgram)
+
+  public async messageSendMiniProgram (
+    conversationId: string,
+    miniProgramPayload: MiniProgramPayload,
+  ): Promise<void> {
+    log.verbose('PuppetMock', 'messageSendMiniProgram(%s, %s)', conversationId, JSON.stringify(miniProgramPayload))
+    // const miniProgram = new MiniProgram(miniProgramPayload)
+    // return this.messageSend(conversationId, miniProgram)
   }
 
   public async messageForward (

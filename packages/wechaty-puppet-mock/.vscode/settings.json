@@ -70,4 +70,7 @@
     "javascript",
     "typescript",
   ],
+  "cSpell.words": [
+    "Miniprogram"
+  ],
 }
