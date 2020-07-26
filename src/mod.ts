@@ -60,11 +60,6 @@ export {
   MiniProgram,
 }                         from './user/mod'
 
-export { createFixture }  from './create-fixture'
-
-export {
-}                         from './deprecated'
-
 export { IoClient }   from './io-client'
 export {
   Sayable,
