@@ -17,9 +17,14 @@
  *   limitations under the License.
  *
  */
+import { Wechaty } from '../wechaty'
+
 import { Contact } from './contact'
 
-export class Moment {
+class Moment {
+
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   public static post () {
     // post new moment
@@ -40,4 +45,22 @@ export class Moment {
     //
   }
 
+}
+
+function wechatifyMoment (wechaty: Wechaty): typeof Moment {
+
+  class WechatifiedMoment extends Moment {
+
+    static get wechaty  () { return wechaty }
+    get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedMoment
+
+}
+
+export {
+  Moment,
+  wechatifyMoment,
 }

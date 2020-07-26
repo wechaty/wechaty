@@ -17,6 +17,8 @@
  *   limitations under the License.
  *
  */
+import { EventEmitter } from 'events'
+
 import { instanceToClass }  from 'clone-class'
 
 import {
@@ -24,13 +26,12 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
+  FileBox,
 }                         from 'wechaty-puppet'
 
+import { Wechaty } from '../wechaty'
+
 import {
-  Accessory,
-}                   from '../accessory'
-import {
-  FileBox,
   Raven,
 
   log,
@@ -54,7 +55,10 @@ export const POOL = Symbol('pool')
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-export class Contact extends Accessory implements Sayable {
+class Contact extends EventEmitter implements Sayable {
+
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   public static Type   = ContactType
   public static Gender = ContactGender
@@ -169,7 +173,7 @@ export class Contact extends Accessory implements Sayable {
       // use puppet.contactValidate() to confirm double confirm that this contactId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
-      const valid = await this.puppet.contactValidate(contact.id)
+      const valid = await this.wechaty.puppet.contactValidate(contact.id)
       if (valid) {
         log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is valid result, return it.',
           n,
@@ -213,7 +217,7 @@ export class Contact extends Accessory implements Sayable {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
     try {
-      const contactIdList: string[] = await this.puppet.contactSearch(query)
+      const contactIdList: string[] = await this.wechaty.puppet.contactSearch(query)
       const contactList = contactIdList.map(id => this.load(id))
 
       const BATCH_SIZE = 16
@@ -242,7 +246,7 @@ export class Contact extends Accessory implements Sayable {
       return contactList.filter(contact => !invalidDict[contact.id])
 
     } catch (e) {
-      log.error('Contact', 'this.puppet.contactFindAll() rejected: %s', e.message)
+      log.error('Contact', 'this.wechaty.puppet.contactFindAll() rejected: %s', e.message)
       return [] // fail safe
     }
   }
@@ -264,7 +268,7 @@ export class Contact extends Accessory implements Sayable {
     log.verbose('Contact', 'static tags() for %s', this)
 
     try {
-      const tagIdList = await this.puppet.tagContactList()
+      const tagIdList = await this.wechaty.puppet.tagContactList()
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
@@ -299,8 +303,8 @@ export class Contact extends Accessory implements Sayable {
       )
     }
 
-    if (!this.puppet) {
-      throw new Error('Contact class can not be instantiated without a puppet!')
+    if (!this.wechaty) {
+      throw new Error('Contact class can not be instantiated without a wechaty instance!')
     }
   }
 
@@ -409,7 +413,7 @@ export class Contact extends Accessory implements Sayable {
       /**
        * 1. Text
        */
-      msgId = await this.puppet.messageSendText(
+      msgId = await this.wechaty.puppet.messageSendText(
         this.id,
         something,
       )
@@ -417,7 +421,7 @@ export class Contact extends Accessory implements Sayable {
       /**
        * 2. Contact
        */
-      msgId = await this.puppet.messageSendContact(
+      msgId = await this.wechaty.puppet.messageSendContact(
         this.id,
         something.id,
       )
@@ -425,7 +429,7 @@ export class Contact extends Accessory implements Sayable {
       /**
        * 3. File
        */
-      msgId = await this.puppet.messageSendFile(
+      msgId = await this.wechaty.puppet.messageSendFile(
         this.id,
         something,
       )
@@ -433,7 +437,7 @@ export class Contact extends Accessory implements Sayable {
       /**
        * 4. Link Message
        */
-      msgId = await this.puppet.messageSendUrl(
+      msgId = await this.wechaty.puppet.messageSendUrl(
         this.id,
         something.payload,
       )
@@ -441,7 +445,7 @@ export class Contact extends Accessory implements Sayable {
       /**
        * 5. Mini Program
        */
-      msgId = await this.puppet.messageSendMiniProgram(
+      msgId = await this.wechaty.puppet.messageSendMiniProgram(
         this.id,
         something.payload,
       )
@@ -517,9 +521,9 @@ export class Contact extends Accessory implements Sayable {
     }
 
     try {
-      await this.puppet.contactAlias(this.id, newAlias)
-      await this.puppet.contactPayloadDirty(this.id)
-      this.payload = await this.puppet.contactPayload(this.id)
+      await this.wechaty.puppet.contactAlias(this.id, newAlias)
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
       if (newAlias && newAlias !== this.payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
           newAlias,
@@ -690,7 +694,7 @@ export class Contact extends Accessory implements Sayable {
     log.verbose('Contact', 'avatar()')
 
     try {
-      const fileBox = await this.puppet.contactAvatar(this.id)
+      const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
       return fileBox
     } catch (e) {
       log.error('Contact', 'avatar() exception: %s', e.message)
@@ -709,7 +713,7 @@ export class Contact extends Accessory implements Sayable {
     log.verbose('Contact', 'tags() for %s', this)
 
     try {
-      const tagIdList = await this.puppet.tagContactList(this.id)
+      const tagIdList = await this.wechaty.puppet.tagContactList(this.id)
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
@@ -752,7 +756,7 @@ export class Contact extends Accessory implements Sayable {
   public async ready (
     forceSync = false,
   ): Promise<void> {
-    log.silly('Contact', 'ready() @ %s with id="%s"', this.puppet, this.id)
+    log.silly('Contact', 'ready() @ %s with id="%s"', this.wechaty.puppet, this.id)
 
     if (!forceSync && this.isReady()) { // already ready
       log.silly('Contact', 'ready() isReady() true')
@@ -761,13 +765,13 @@ export class Contact extends Accessory implements Sayable {
 
     try {
       if (forceSync) {
-        await this.puppet.contactPayloadDirty(this.id)
+        await this.wechaty.puppet.contactPayloadDirty(this.id)
       }
-      this.payload = await this.puppet.contactPayload(this.id)
-      // log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+      // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
-      log.verbose('Contact', 'ready() this.puppet.contactPayload(%s) exception: %s',
+      log.verbose('Contact', 'ready() this.wechaty.puppet.contactPayload(%s) exception: %s',
         this.id,
         e.message,
       )
@@ -791,7 +795,7 @@ export class Contact extends Accessory implements Sayable {
    * const isSelf = contact.self()
    */
   public self (): boolean {
-    const userId = this.puppet.selfId()
+    const userId = this.wechaty.puppet.selfId()
 
     if (!userId) {
       return false
@@ -814,4 +818,22 @@ export class Contact extends Accessory implements Sayable {
     return (this.payload && this.payload.weixin) || null
   }
 
+}
+
+function wechatifyContact (wechaty: Wechaty): typeof Contact {
+
+  class WechatifiedContact extends Contact {
+
+    static get wechaty  () { return wechaty }
+    get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedContact
+
+}
+
+export {
+  Contact,
+  wechatifyContact,
 }

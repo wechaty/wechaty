@@ -31,7 +31,7 @@ import {
   openGraph,
 }               from '../helper-functions/impure/open-graph'
 
-export class UrlLink {
+class UrlLink {
 
   /**
    *
@@ -123,4 +123,15 @@ export class UrlLink {
     return this.payload.description
   }
 
+}
+
+function wechatifyUrlLink (_: any): typeof UrlLink {
+
+  return UrlLink
+
+}
+
+export {
+  UrlLink,
+  wechatifyUrlLink,
 }

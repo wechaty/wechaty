@@ -26,9 +26,6 @@ import {
 }                           from 'clone-class'
 
 import {
-  PuppetMock,
-}                           from 'wechaty-puppet-mock'
-import {
   Contact as GlobalContact,
 }                           from './contact'
 
@@ -59,23 +56,6 @@ test('Should not be able to instanciate through cloneClass without puppet', asyn
     const c = MyContact.load('xxx')
     t.fail(c.name())
   }, 'should throw when `MyContact.load()` without puppet')
-
-})
-
-test('should be able to instanciate through cloneClass with puppet', async t => {
-  const MyContact = cloneClass(Contact)
-
-  MyContact.puppet = new PuppetMock()
-
-  t.doesNotThrow(() => {
-    const c = MyContact.load('xxx')
-    t.ok(c, 'should get contact instance from `MyContact.load()')
-  }, 'should not throw when `MyContact().load`')
-
-  t.doesNotThrow(() => {
-    const c = MyContact.load('xxx')
-    t.ok(c, 'should get contact instance from `MyContact.load()`')
-  }, 'should not throw when `MyContact.load()`')
 
 })
 

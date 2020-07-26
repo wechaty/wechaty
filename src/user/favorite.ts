@@ -19,10 +19,13 @@
  */
 import { Tag } from './tag'
 
-import { Accessory }  from '../accessory'
+import { Wechaty }  from '../wechaty'
 import { log }        from '../config'
 
-export class Favorite extends Accessory {
+class Favorite {
+
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   public static list (): Favorite[] {
     return []
@@ -55,8 +58,6 @@ export class Favorite extends Accessory {
    * @hideconstructor
    */
   constructor () {
-    super()
-    //
   }
 
   public async tags (): Promise<Tag []> {
@@ -68,4 +69,22 @@ export class Favorite extends Accessory {
     //
   }
 
+}
+
+function wechatifyFavorite (wechaty: Wechaty): typeof Favorite {
+
+  class WechatifiedFavorite extends Favorite {
+
+    static get wechaty  () { return wechaty }
+    get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedFavorite
+
+}
+
+export {
+  Favorite,
+  wechatifyFavorite,
 }
