@@ -17,13 +17,12 @@
  *   limitations under the License.
  *
  */
-import {
-  instanceToClass,
-}                   from 'clone-class'
+import { EventEmitter } from 'events'
 
-import {
-  Accessory,
-}                       from '../accessory'
+import { instanceToClass } from 'clone-class'
+
+import { Wechaty } from '../wechaty'
+
 import {
   FOUR_PER_EM_SPACE,
   FileBox,
@@ -66,7 +65,10 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-export class Room extends Accessory implements Sayable {
+class Room extends EventEmitter implements Sayable {
+
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   protected static pool: Map<string, Room>
 
@@ -102,7 +104,7 @@ export class Room extends Accessory implements Sayable {
 
     try {
       const contactIdList = contactList.map(contact => contact.id)
-      const roomId = await this.puppet.roomCreate(contactIdList, topic)
+      const roomId = await this.wechaty.puppet.roomCreate(contactIdList, topic)
       const room = this.load(roomId)
       return room
     } catch (e) {
@@ -140,7 +142,7 @@ export class Room extends Accessory implements Sayable {
     const invalidDict: { [id: string]: true } = {}
 
     try {
-      const roomIdList = await this.puppet.roomSearch(query)
+      const roomIdList = await this.wechaty.puppet.roomSearch(query)
       const roomList = roomIdList.map(id => this.load(id))
       await Promise.all(
         roomList.map(
@@ -203,7 +205,7 @@ export class Room extends Accessory implements Sayable {
       // use puppet.roomValidate() to confirm double confirm that this roomId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
-      const valid = await this.puppet.roomValidate(room.id)
+      const valid = await this.wechaty.puppet.roomValidate(room.id)
       if (valid) {
         log.verbose('Room', 'find() confirm room[#%d] with id=%d is valid result, return it.',
           n,
@@ -285,7 +287,7 @@ export class Room extends Accessory implements Sayable {
       throw new Error('Room class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
-    if (!this.puppet) {
+    if (!this.wechaty.puppet) {
       throw new Error('Room class can not be instantiated without a puppet!')
     }
 
@@ -347,16 +349,16 @@ export class Room extends Accessory implements Sayable {
     }
 
     if (forceSync) {
-      await this.puppet.roomPayloadDirty(this.id)
-      await this.puppet.roomMemberPayloadDirty(this.id)
+      await this.wechaty.puppet.roomPayloadDirty(this.id)
+      await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
     }
-    this.payload = await this.puppet.roomPayload(this.id)
+    this.payload = await this.wechaty.puppet.roomPayload(this.id)
 
     if (!this.payload) {
       throw new Error('ready() no payload')
     }
 
-    const memberIdList = await this.puppet.roomMemberList(this.id)
+    const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
     await Promise.all(
       memberIdList
@@ -545,7 +547,7 @@ export class Room extends Accessory implements Sayable {
       //   contactId : (mentionList.length && mentionList[0].id) || undefined,
       //   roomId    : this.id,
       // }
-      msgId = await this.puppet.messageSendText(
+      msgId = await this.wechaty.puppet.messageSendText(
         this.id,
         text,
         mentionList.map(c => c.id),
@@ -554,7 +556,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * 2. File Message
        */
-      msgId = await this.puppet.messageSendFile(
+      msgId = await this.wechaty.puppet.messageSendFile(
         this.id,
         something,
       )
@@ -562,7 +564,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * 3. Contact Card
        */
-      msgId = await this.puppet.messageSendContact(
+      msgId = await this.wechaty.puppet.messageSendContact(
         this.id,
         something.id,
       )
@@ -570,7 +572,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * 4. Link Message
        */
-      msgId = await this.puppet.messageSendUrl(
+      msgId = await this.wechaty.puppet.messageSendUrl(
         this.id,
         something.payload,
       )
@@ -578,7 +580,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * 5. Mini Program
        */
-      msgId = await this.puppet.messageSendMiniProgram(
+      msgId = await this.wechaty.puppet.messageSendMiniProgram(
         this.id,
         something.payload,
       )
@@ -606,7 +608,7 @@ export class Room extends Accessory implements Sayable {
       /**
        * No mention in the string
        */
-      return this.puppet.messageSendText(
+      return this.wechaty.puppet.messageSendText(
         this.id,
         textList[0],
       )
@@ -620,7 +622,7 @@ export class Room extends Accessory implements Sayable {
     //   /**
     //    * Constructed mention string, skip inserting @ signs
     //    */
-    //   return this.puppet.messageSendText(
+    //   return this.wechaty.puppet.messageSendText(
     //     receiver,
     //     textList[0],
     //     mentionList.map(c => c.id),
@@ -648,7 +650,7 @@ export class Room extends Accessory implements Sayable {
       }
       finalText += textList[i]
 
-      return this.puppet.messageSendText(
+      return this.wechaty.puppet.messageSendText(
         this.id,
         finalText,
         mentionList.map(c => c.id),
@@ -656,7 +658,7 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  public emit (event: 'invite',  inviter:       Contact,         invitation: RoomInvitation)                  : boolean
+  public emit (event: 'invite',  inviter:       Contact,    invitation: RoomInvitation)                  : boolean
   public emit (event: 'leave',   leaverList:    Contact[],  remover:  Contact, date: Date)                    : boolean
   public emit (event: 'message', message:       Message)                                                      : boolean
   public emit (event: 'join',    inviteeList:   Contact[],  inviter:  Contact, date: Date)                    : boolean
@@ -789,7 +791,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async add (contact: Contact): Promise<void> {
     log.verbose('Room', 'add(%s)', contact)
-    await this.puppet.roomAdd(this.id, contact.id)
+    await this.wechaty.puppet.roomAdd(this.id, contact.id)
   }
 
   /**
@@ -819,7 +821,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async del (contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
-    await this.puppet.roomDel(this.id, contact.id)
+    await this.wechaty.puppet.roomDel(this.id, contact.id)
     // this.delLocal(contact)
   }
 
@@ -849,7 +851,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async quit (): Promise<void> {
     log.verbose('Room', 'quit() %s', this)
-    await this.puppet.roomQuit(this.id)
+    await this.wechaty.puppet.roomQuit(this.id)
   }
 
   public async topic ()                : Promise<string>
@@ -897,9 +899,9 @@ export class Room extends Accessory implements Sayable {
       if (this.payload && this.payload.topic) {
         return this.payload.topic
       } else {
-        const memberIdList = await this.puppet.roomMemberList(this.id)
+        const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
         const memberList = memberIdList
-          .filter(id => id !== this.puppet.selfId())
+          .filter(id => id !== this.wechaty.puppet.selfId())
           .map(id => this.wechaty.Contact.load(id))
 
         let defaultTopic = (memberList[0] && memberList[0].name()) || ''
@@ -910,7 +912,7 @@ export class Room extends Accessory implements Sayable {
       }
     }
 
-    const future = this.puppet
+    const future = this.wechaty.puppet
       .roomTopic(this.id, newTopic)
       .catch(e => {
         log.warn('Room', 'topic(newTopic=%s) exception: %s',
@@ -959,10 +961,10 @@ export class Room extends Accessory implements Sayable {
     )
 
     if (typeof text === 'undefined') {
-      const announcement = await this.puppet.roomAnnounce(this.id)
+      const announcement = await this.wechaty.puppet.roomAnnounce(this.id)
       return announcement
     } else {
-      await this.puppet.roomAnnounce(this.id, text)
+      await this.wechaty.puppet.roomAnnounce(this.id, text)
     }
   }
 
@@ -983,7 +985,7 @@ export class Room extends Accessory implements Sayable {
    */
   public async qrCode (): Promise<string> {
     log.verbose('Room', 'qrCode()')
-    const qrcodeValue = await this.puppet.roomQRCode(this.id)
+    const qrcodeValue = await this.wechaty.puppet.roomQRCode(this.id)
     return guardQrCodeValue(qrcodeValue)
   }
 
@@ -1005,7 +1007,7 @@ export class Room extends Accessory implements Sayable {
    * .start()
    */
   public async alias (contact: Contact): Promise<null | string> {
-    const memberPayload = await this.puppet.roomMemberPayload(this.id, contact.id)
+    const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
 
     if (memberPayload && memberPayload.roomAlias) {
       return memberPayload.roomAlias
@@ -1046,7 +1048,7 @@ export class Room extends Accessory implements Sayable {
    * }
    */
   public async has (contact: Contact): Promise<boolean> {
-    const memberIdList = await this.puppet.roomMemberList(this.id)
+    const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
     if (!memberIdList) {
       return false
@@ -1098,7 +1100,7 @@ export class Room extends Accessory implements Sayable {
       return this.memberList()
     }
 
-    const contactIdList = await this.puppet.roomMemberSearch(this.id, query)
+    const contactIdList = await this.wechaty.puppet.roomMemberSearch(this.id, query)
     const contactList   = contactIdList.map(id => this.wechaty.Contact.load(id))
 
     return contactList
@@ -1178,7 +1180,7 @@ export class Room extends Accessory implements Sayable {
   private async memberList (): Promise<Contact[]> {
     log.verbose('Room', 'memberList()')
 
-    const memberIdList = await this.puppet.roomMemberList(this.id)
+    const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
     if (!memberIdList) {
       log.warn('Room', 'memberList() not ready')
@@ -1222,7 +1224,25 @@ export class Room extends Accessory implements Sayable {
   public async avatar (): Promise<FileBox> {
     log.verbose('Room', 'avatar()')
 
-    return this.puppet.roomAvatar(this.id)
+    return this.wechaty.puppet.roomAvatar(this.id)
   }
 
+}
+
+function wechatifyRoom (wechaty: Wechaty): typeof Room {
+
+  class WechatifiedRoom extends Room {
+
+    static get wechaty  () { return wechaty }
+    get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedRoom
+
+}
+
+export {
+  Room,
+  wechatifyRoom,
 }

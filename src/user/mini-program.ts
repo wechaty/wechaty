@@ -21,11 +21,15 @@ import {
   MiniProgramPayload,
 }                   from 'wechaty-puppet'
 
+import { Wechaty } from '../wechaty'
 import {
   log,
 }               from '../config'
 
-export class MiniProgram {
+class MiniProgram {
+
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   /**
    *
@@ -86,4 +90,22 @@ export class MiniProgram {
     return this.payload.thumbKey
   }
 
+}
+
+function wechatifyMiniProgram (wechaty: Wechaty): typeof MiniProgram {
+
+  class WechatifiedMiniProgram extends MiniProgram {
+
+    static get wechaty  () { return wechaty }
+    get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedMiniProgram
+
+}
+
+export {
+  MiniProgram,
+  wechatifyMiniProgram,
 }

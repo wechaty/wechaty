@@ -20,12 +20,15 @@
 import { instanceToClass } from 'clone-class'
 
 import { log }        from '../config'
-import { Accessory }  from '../accessory'
+import { Wechaty }  from '../wechaty'
 
 import { Contact }  from './contact'
 import { Favorite } from './favorite'
 
-export class Tag extends Accessory {
+class Tag {
+
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   protected static pool: Map<string, Tag>
 
@@ -35,7 +38,6 @@ export class Tag extends Accessory {
   constructor (
     public readonly id: string,
   ) {
-    super()
     log.silly('Tag', `constructor(${id})`)
 
     const MyClass = instanceToClass(this, Tag)
@@ -47,7 +49,7 @@ export class Tag extends Accessory {
       )
     }
 
-    if (!this.puppet) {
+    if (!this.wechaty.puppet) {
       throw new Error('Tag class can not be instanciated without a puppet!')
     }
   }
@@ -143,10 +145,10 @@ export class Tag extends Accessory {
        */
 
       if (!target || target === Contact || target === this.wechaty.Contact) {
-        await this.puppet.tagContactDelete(tag.id)
+        await this.wechaty.puppet.tagContactDelete(tag.id)
       // TODO:
       // } else if (!target || target === Favorite || target === this.wechaty.Favorite) {
-      //   await this.puppet.tagFavoriteDelete(tag.id)
+      //   await this.wechaty.puppet.tagFavoriteDelete(tag.id)
       }
     } catch (e) {
       log.error('Tag', 'static delete() exception: %s', e.message)
@@ -171,9 +173,9 @@ export class Tag extends Accessory {
 
     try {
       if (to instanceof Contact) {
-        await this.puppet.tagContactAdd(this.id, to.id)
+        await this.wechaty.puppet.tagContactAdd(this.id, to.id)
       } else if (to instanceof Favorite) {
-        // TODO: await this.puppet.tagAddFavorite(this.tag, to.id)
+        // TODO: await this.wechaty.puppet.tagAddFavorite(this.tag, to.id)
       }
     } catch (e) {
       log.error('Tag', 'add() exception: %s', e.message)
@@ -196,9 +198,9 @@ export class Tag extends Accessory {
 
     try {
       if (from instanceof Contact) {
-        await this.puppet.tagContactRemove(this.id, from.id)
+        await this.wechaty.puppet.tagContactRemove(this.id, from.id)
       } else if (from instanceof Favorite) {
-        // TODO await this.puppet.tagRemoveFavorite(this.tag, from.id)
+        // TODO await this.wechaty.puppet.tagRemoveFavorite(this.tag, from.id)
       }
     } catch (e) {
       log.error('Tag', 'remove() exception: %s', e.message)
@@ -206,4 +208,22 @@ export class Tag extends Accessory {
     }
   }
 
+}
+
+function wechatifyTag (wechaty: Wechaty): typeof Tag {
+
+  class WechatifiedTag extends Tag {
+
+    static get wechaty  () { return wechaty }
+    get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedTag
+
+}
+
+export {
+  Tag,
+  wechatifyTag,
 }
