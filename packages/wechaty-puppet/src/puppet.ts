@@ -1,4 +1,3 @@
-/// <reference lib="dom" />
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -17,9 +16,6 @@
  *   limitations under the License.
  *
  */
-
-import { EventEmitter }   from 'events'
-
 import QuickLru, {
   Options as QuickLruOptions,
 }                             from 'quick-lru'
@@ -45,21 +41,7 @@ import {
   ContactQueryFilter,
 }                                 from './schemas/contact'
 import {
-  EventDongPayload,
-  EventErrorPayload,
-  EventFriendshipPayload,
   EventLoginPayload,
-  EventLogoutPayload,
-  EventMessagePayload,
-  EventResetPayload,
-  EventRoomJoinPayload,
-  EventRoomLeavePayload,
-  EventRoomTopicPayload,
-  EventRoomInvitePayload,
-  EventScanPayload,
-  EventReadyPayload,
-  EventHeartbeatPayload,
-  EventAllPayload,
 }                                 from './schemas/event'
 import {
   FriendshipPayload,
@@ -91,11 +73,12 @@ import {
   MiniProgramPayload,
 }                                 from './schemas/mini-program'
 import {
-  PuppetEventName,
   PuppetOptions,
   YOU,
 }                                 from './schemas/puppet'
 import { throwUnsupportedError }   from './throw-unsupported-error'
+
+import { PuppetEventEmitter }   from './events'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -107,7 +90,7 @@ let   PUPPET_COUNTER           = 0
  * See: https://github.com/Chatie/wechaty/wiki/Puppet
  *
  */
-export abstract class Puppet extends EventEmitter {
+export abstract class Puppet extends PuppetEventEmitter {
 
   /**
    * Must overwrite by child class to identify their version
@@ -277,35 +260,29 @@ export abstract class Puppet extends EventEmitter {
   /**
    * API After v0.21.6
    */
-  public emit (event: 'dong',         payload: EventDongPayload)       : boolean
-  public emit (event: 'error',        payload: EventErrorPayload)      : boolean
-  public emit (event: 'friendship',   payload: EventFriendshipPayload) : boolean
-  public emit (event: 'login',        payload: EventLoginPayload)      : boolean
-  public emit (event: 'logout',       payload: EventLogoutPayload)     : boolean
-  public emit (event: 'message',      payload: EventMessagePayload)    : boolean
-  public emit (event: 'reset',        payload: EventResetPayload)      : boolean
-  public emit (event: 'room-invite',  payload: EventRoomInvitePayload) : boolean
-  public emit (event: 'room-join',    payload: EventRoomJoinPayload)   : boolean
-  public emit (event: 'room-leave',   payload: EventRoomLeavePayload)  : boolean
-  public emit (event: 'room-topic',   payload: EventRoomTopicPayload)  : boolean
-  public emit (event: 'ready',        payload: EventReadyPayload)      : boolean
-  public emit (event: 'scan',         payload: EventScanPayload)       : boolean
+  // public emit (event: 'dong',         payload: EventDongPayload)       : boolean
+  // public emit (event: 'error',        payload: EventErrorPayload)      : boolean
+  // public emit (event: 'friendship',   payload: EventFriendshipPayload) : boolean
+  // public emit (event: 'heartbeat',    payload: EventHeartbeatPayload)  : boolean
+  // public emit (event: 'login',        payload: EventLoginPayload)      : boolean
+  // public emit (event: 'logout',       payload: EventLogoutPayload)     : boolean
+  // public emit (event: 'message',      payload: EventMessagePayload)    : boolean
+  // public emit (event: 'ready',        payload: EventReadyPayload)      : boolean
+  // public emit (event: 'reset',        payload: EventResetPayload)      : boolean
+  // public emit (event: 'room-invite',  payload: EventRoomInvitePayload) : boolean
+  // public emit (event: 'room-join',    payload: EventRoomJoinPayload)   : boolean
+  // public emit (event: 'room-leave',   payload: EventRoomLeavePayload)  : boolean
+  // public emit (event: 'room-topic',   payload: EventRoomTopicPayload)  : boolean
+  // public emit (event: 'scan',         payload: EventScanPayload)       : boolean
 
-  // Rename `watchdog` to `heartbeat`
-  //  Internal Usage: watchdog
-  //  public emit (event: 'watchdog',    payload: EventWatchdogPayload)  : boolean
+  // public emit (event: never, ...args: never[]): never
 
-  // Internal Usage: heartbeat
-  public emit (event: 'heartbeat',    payload: EventHeartbeatPayload)  : boolean
-
-  public emit (event: never, ...args: never[]): never
-
-  public emit (
-    event:   PuppetEventName,
-    payload: object,
-  ): boolean {
-    return super.emit(event, payload)
-  }
+  // public emit (
+  //   event:   PuppetEventName,
+  //   payload: object,
+  // ): boolean {
+  //   return super.emit(event, payload)
+  // }
 
   /**
    *
@@ -318,32 +295,30 @@ export abstract class Puppet extends EventEmitter {
   /**
    * use payload after v0.21.6
    */
-  public on (event: 'dong',         listener: (payload: EventDongPayload) => void)       : this
-  public on (event: 'error',        listener: (payload: EventErrorPayload) => void)      : this
-  public on (event: 'friendship',   listener: (payload: EventFriendshipPayload) => void) : this
-  public on (event: 'login',        listener: (payload: EventLoginPayload) => void)      : this
-  public on (event: 'logout',       listener: (payload: EventLogoutPayload) => void)     : this
-  public on (event: 'message',      listener: (payload: EventMessagePayload) => void)    : this
-  public on (event: 'reset',        listener: (payload: EventResetPayload) => void)      : this
-  public on (event: 'room-join',    listener: (payload: EventRoomJoinPayload) => void)   : this
-  public on (event: 'room-leave',   listener: (payload: EventRoomLeavePayload) => void)  : this
-  public on (event: 'room-topic',   listener: (payload: EventRoomTopicPayload) => void)  : this
-  public on (event: 'room-invite',  listener: (payload: EventRoomInvitePayload) => void) : this
-  public on (event: 'scan',         listener: (payload: EventScanPayload) => void)       : this
-  public on (event: 'ready',        listener: (payload: EventReadyPayload) => void)      : this
+  // public on (event: 'dong',         listener: (payload: EventDongPayload) => void)       : this
+  // public on (event: 'error',        listener: (payload: EventErrorPayload) => void)      : this
+  // public on (event: 'friendship',   listener: (payload: EventFriendshipPayload) => void) : this
+  // public on (event: 'heartbeat',    listener: (payload: EventHeartbeatPayload) => void)  : this
+  // public on (event: 'login',        listener: (payload: EventLoginPayload) => void)      : this
+  // public on (event: 'logout',       listener: (payload: EventLogoutPayload) => void)     : this
+  // public on (event: 'message',      listener: (payload: EventMessagePayload) => void)    : this
+  // public on (event: 'ready',        listener: (payload: EventReadyPayload) => void)      : this
+  // public on (event: 'reset',        listener: (payload: EventResetPayload) => void)      : this
+  // public on (event: 'room-invite',  listener: (payload: EventRoomInvitePayload) => void) : this
+  // public on (event: 'room-join',    listener: (payload: EventRoomJoinPayload) => void)   : this
+  // public on (event: 'room-leave',   listener: (payload: EventRoomLeavePayload) => void)  : this
+  // public on (event: 'room-topic',   listener: (payload: EventRoomTopicPayload) => void)  : this
+  // public on (event: 'scan',         listener: (payload: EventScanPayload) => void)       : this
 
-  // Internal Usage: heartbeat
-  public on (event: 'heartbeat',    listener: (payload: EventHeartbeatPayload) => void)  : this
+  // public on (event: never, listener: never): never
 
-  public on (event: never, listener: never): never
-
-  public on (
-    event    : PuppetEventName,
-    listener : (payload: any) => void,
-  ): this {
-    super.on(event, listener)
-    return this
-  }
+  // public on (
+  //   event    : PuppetEventName,
+  //   listener : (payload: any) => void,
+  // ): this {
+  //   super.on(event, listener)
+  //   return this
+  // }
 
   /**
    * Add Typing support for RxJS `fromEvent` #96
@@ -369,11 +344,11 @@ export abstract class Puppet extends EventEmitter {
   // public addEventListener (type: never, listener: never): never
 
   // public addEventListener (type: string, listener: ((evt: E) => void) | null, options?: boolean | AddEventListenerOptions): void;
-  public addEventListener (type: string, listener: ((evt: EventAllPayload) => void) | null, _options?: boolean | AddEventListenerOptions): void {
-    if (listener) {
-      this.addListener(type, listener)
-    }
-  }
+  // public addEventListener (type: string, listener: ((evt: EventAllPayload) => void) | null, _options?: boolean | AddEventListenerOptions): void {
+  //   if (listener) {
+  //     this.addListener(type, listener)
+  //   }
+  // }
 
   // public removeEventListener (type: 'dong',        listener: (payload: EventDongPayload) => void)       : void
   // public removeEventListener (type: 'error',       listener: (payload: EventErrorPayload) => void)      : void
@@ -391,11 +366,11 @@ export abstract class Puppet extends EventEmitter {
 
   // public removeEventListener (type: never, listener: never): never
 
-  public removeEventListener (type: string, listener?: ((evt: EventAllPayload) => void) | null, _options?: EventListenerOptions | boolean): void {
-    if (listener) {
-      this.removeListener(type, listener)
-    }
-  }
+  // public removeEventListener (type: string, listener?: ((evt: EventAllPayload) => void) | null, _options?: EventListenerOptions | boolean): void {
+  //   if (listener) {
+  //     this.removeListener(type, listener)
+  //   }
+  // }
   /**
    *
    *

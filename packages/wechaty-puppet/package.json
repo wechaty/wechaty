@@ -65,6 +65,7 @@
     "rxjs": "^6.2.1",
     "semver": "^6.0.0",
     "state-switch": "^0.9.7",
+    "typed-emitter": "^1.2.0",
     "watchdog": "^0.8.12"
   },
   "git": {
