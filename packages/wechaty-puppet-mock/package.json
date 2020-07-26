@@ -55,11 +55,11 @@
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "tstest": "^0.4.10",
-    "wechaty": "^0.40.4",
-    "wechaty-puppet": "^0.26.1"
+    "wechaty": "^0.45.2",
+    "wechaty-puppet": "^0.29.2"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^0.26.1"
+    "wechaty-puppet": "*"
   },
   "dependencies": {
     "brolog": "^1.8.3",
@@ -69,6 +69,7 @@
     "normalize-package-data": "^2.5.0",
     "quick-lru": "^5.1.0",
     "state-switch": "^0.6.18",
+    "typed-emitter": "^1.2.0",
     "watchdog": "^0.8.17"
   },
   "publishConfig": {

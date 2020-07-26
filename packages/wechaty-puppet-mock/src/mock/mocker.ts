@@ -7,15 +7,17 @@ import {
   log,
 }                     from 'wechaty-puppet'
 
-import { cloneClass } from 'clone-class'
-
 import { PuppetMock } from '../puppet-mock'
 
 import {
   ContactMock,
   RoomMock,
   MessageMock,
-}                   from './user/mod'
+
+  mockerifyContactMock,
+  mockerifyMessageMock,
+  mockerifyRoomMock,
+}                         from './user/mod'
 
 import {
   generateContactPayload,
@@ -31,9 +33,13 @@ class Mocker {
   cacheRoomPayload    : Map<string, RoomPayload>
   cacheMessagePayload : Map<string, MessagePayload>
 
-  public MockContact : typeof ContactMock
-  public MockMessage : typeof MessageMock
-  public MockRoom    : typeof RoomMock
+  protected mockerifiedContactMock? : typeof ContactMock
+  protected mockerifiedMessageMock? : typeof MessageMock
+  protected mockerifiedRoomMock?    : typeof RoomMock
+
+  get ContactMock () : typeof ContactMock { return this.mockerifiedContactMock! }
+  get MessageMock () : typeof MessageMock { return this.mockerifiedMessageMock! }
+  get RoomMock    () : typeof RoomMock    { return this.mockerifiedRoomMock!    }
 
   protected behaviorList: MockEnvironment[]
   protected behaviorCleanupFnList: (() => void)[]
@@ -61,16 +67,12 @@ class Mocker {
     this.behaviorCleanupFnList = []
 
     this.cacheContactPayload = new Map()
-    this.cacheRoomPayload    = new Map()
     this.cacheMessagePayload = new Map()
+    this.cacheRoomPayload    = new Map()
 
-    this.MockContact = cloneClass(ContactMock)
-    this.MockMessage = cloneClass(MessageMock)
-    this.MockRoom    = cloneClass(RoomMock)
-
-    this.MockContact.mocker = this
-    this.MockMessage.mocker = this
-    this.MockRoom.mocker    = this
+    this.mockerifiedContactMock = mockerifyContactMock(this)
+    this.mockerifiedMessageMock = mockerifyMessageMock(this)
+    this.mockerifiedRoomMock    = mockerifyRoomMock(this)
   }
 
   toString () {
@@ -132,7 +134,7 @@ class Mocker {
     if (!payload) {
       throw new Error('no payload')
     }
-    return this.MockContact.create(payload)
+    return this.ContactMock.create(payload)
   }
 
   randomRoom (): undefined | RoomMock {
@@ -151,7 +153,7 @@ class Mocker {
     if (!payload) {
       throw new Error('no payload')
     }
-    return this.MockRoom.create(payload)
+    return this.RoomMock.create(payload)
   }
 
   public randomConversation (): ContactMock | RoomMock {
@@ -208,7 +210,7 @@ class Mocker {
       ...defaultPayload,
       ...payload,
     }
-    return this.MockContact.create(normalizedPayload)
+    return this.ContactMock.create(normalizedPayload)
   }
 
   createContacts (num: number): ContactMock[] {
@@ -234,7 +236,7 @@ class Mocker {
       ...payload,
     }
 
-    return this.MockRoom.create(normalizedPayload)
+    return this.RoomMock.create(normalizedPayload)
   }
 
   createRooms (num: number): RoomMock[] {
@@ -299,13 +301,11 @@ class Mocker {
     if (payload) {
       this.cacheMessagePayload.set(id, payload)
 
-      const msg = this.MockMessage.load(payload.id)
+      const msg = this.MessageMock.load(payload.id)
 
-      ;[
-        msg.talker(),
-        msg.room(),
-        msg.listener(),
-      ].forEach(e => e?.emit('message', msg))
+      msg.room()?.emit('message', msg)
+      msg.talker().emit('message', msg)
+      msg.listener()?.emit('message', msg)
 
       return
     }

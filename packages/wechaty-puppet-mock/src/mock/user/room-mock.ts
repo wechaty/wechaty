@@ -6,10 +6,11 @@ import {
   log,
 }                           from 'wechaty-puppet'
 
-import { AccessoryMock } from '../accessory'
+import { Mocker } from '../mocker'
 
 import { ContactMock } from './contact-mock'
-import { MessageMock } from './message-mock'
+
+import { RoomEventEmitter } from '../events/room-events'
 
 interface By {
   by: (contact?: ContactMock) => void
@@ -17,7 +18,10 @@ interface By {
 
 const POOL = Symbol('pool')
 
-class RoomMock extends AccessoryMock {
+class RoomMock extends RoomEventEmitter {
+
+  static get mocker (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get mocker       (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   protected static [POOL]: Map<string, RoomMock>
 
@@ -77,7 +81,7 @@ class RoomMock extends AccessoryMock {
   constructor (
     public payload: RoomPayload,
   ) {
-    super('MockRoom')
+    super()
     log.silly('MockRoom', 'constructor(%s)', JSON.stringify(payload))
     this.mocker.roomPayload(payload.id, payload)
   }
@@ -173,11 +177,22 @@ class RoomMock extends AccessoryMock {
 
   }
 
-  on (event: 'message', listener: (message: MessageMock) => void): this {
-    super.on(event, listener)
-    return this
+}
+
+function mockerifyRoomMock (mocker: Mocker): typeof RoomMock {
+
+  class MockerifiedRoomMock extends RoomMock {
+
+    static get mocker  () { return mocker }
+    get mocker        () { return mocker }
+
   }
+
+  return MockerifiedRoomMock
 
 }
 
-export { RoomMock }
+export {
+  RoomMock,
+  mockerifyRoomMock,
+}

@@ -6,7 +6,7 @@ import {
   log,
 }                     from 'wechaty-puppet'
 
-import { AccessoryMock }        from '../accessory'
+import { Mocker }        from '../mocker'
 
 import { RoomMock }         from './room-mock'
 import { ContactMock } from './contact-mock'
@@ -15,7 +15,10 @@ import { ContactMock } from './contact-mock'
 const POOL = Symbol('pool')
 // const ATTACHMENT = Symbol('attachment')
 
-class MessageMock extends AccessoryMock {
+class MessageMock {
+
+  static get mocker (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get mocker       (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   protected static [POOL]: Map<string, MessageMock>
   // protected static [ATTACHMENT]: Map<string, Attachment>
@@ -111,7 +114,6 @@ class MessageMock extends AccessoryMock {
   constructor (
     public payload: MessagePayload,
   ) {
-    super('MockMessage')
     log.silly('MockMessage', 'constructor(%s)', JSON.stringify(payload))
   }
 
@@ -121,7 +123,7 @@ class MessageMock extends AccessoryMock {
     if (!this.payload.fromId) {
       throw new Error('no fromId')
     }
-    const contact = this.mocker.MockContact.load(this.payload.fromId)
+    const contact = this.mocker.ContactMock.load(this.payload.fromId)
     return contact
   }
 
@@ -131,7 +133,7 @@ class MessageMock extends AccessoryMock {
     if (!this.payload.roomId) {
       return
     }
-    const room = this.mocker.MockRoom.load(this.payload.roomId)
+    const room = this.mocker.RoomMock.load(this.payload.roomId)
     return room
   }
 
@@ -141,7 +143,7 @@ class MessageMock extends AccessoryMock {
     if (!this.payload.toId) {
       return undefined
     }
-    const contact = this.mocker.MockContact.load(this.payload.toId)
+    const contact = this.mocker.ContactMock.load(this.payload.toId)
     return contact
   }
 
@@ -153,11 +155,6 @@ class MessageMock extends AccessoryMock {
   type (): MessageType {
     log.silly('MockMessage', 'text()')
     return this.payload.type
-  }
-
-  on (event: 'message', listener: (message: MessageMock) => void): this {
-    super.on(event, listener)
-    return this
   }
 
   async toContact (): Promise<ContactMock> {
@@ -172,7 +169,7 @@ class MessageMock extends AccessoryMock {
       throw new Error(`can not get Contact id by message: ${contactId}`)
     }
 
-    const contact = await this.mocker.MockContact.load(contactId)
+    const contact = await this.mocker.ContactMock.load(contactId)
     return contact
   }
 
@@ -206,4 +203,20 @@ class MessageMock extends AccessoryMock {
 
 }
 
-export { MessageMock }
+function mockerifyMessageMock (mocker: Mocker): typeof MessageMock {
+
+  class MockerifiedMessageMock extends MessageMock {
+
+    static get mocker  () { return mocker }
+    get mocker        () { return mocker }
+
+  }
+
+  return MockerifiedMessageMock
+
+}
+
+export {
+  MessageMock,
+  mockerifyMessageMock,
+}

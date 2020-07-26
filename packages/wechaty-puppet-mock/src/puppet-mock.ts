@@ -326,14 +326,14 @@ class PuppetMock extends Puppet {
       throw new Error('no this.id')
     }
 
-    const user = this.mocker.MockContact.load(this.id)
+    const user = this.mocker.ContactMock.load(this.id)
     let conversation
 
     if (/@/.test(conversationId)) {
       // FIXME: extend a new puppet method messageRoomSendText, etc, for Room message?
-      conversation = this.mocker.MockRoom.load(conversationId)
+      conversation = this.mocker.RoomMock.load(conversationId)
     } else {
-      conversation = this.mocker.MockContact.load(conversationId)
+      conversation = this.mocker.ContactMock.load(conversationId)
     }
     user.say(something).to(conversation)
   }

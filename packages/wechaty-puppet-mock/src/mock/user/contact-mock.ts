@@ -15,12 +15,13 @@ import {
   log,
 }                         from 'wechaty-puppet'
 
-import { AccessoryMock }    from '../accessory'
+import { Mocker }    from '../mocker'
 
 import { RoomMock }    from './room-mock'
-import { MessageMock } from './message-mock'
 // import { MiniProgram, UrlLink } from 'wechaty'
 import { generateSentence } from '../generator'
+
+import { ContactEventEmitter } from '../events/contact-events'
 
 interface To {
   to: (conversation?: ContactMock | RoomMock) => void
@@ -28,7 +29,10 @@ interface To {
 
 const POOL = Symbol('pool')
 
-class ContactMock extends AccessoryMock {
+class ContactMock extends ContactEventEmitter {
+
+  static get mocker (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get mocker       (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   protected static [POOL]: Map<string, ContactMock>
   protected static get pool () {
@@ -89,7 +93,7 @@ class ContactMock extends AccessoryMock {
   constructor (
     public payload: ContactPayload,
   ) {
-    super('MockContact')
+    super()
     log.silly('MockContact', 'constructor(%s)', JSON.stringify(payload))
     this.mocker.contactPayload(payload.id, payload)
   }
@@ -172,17 +176,28 @@ class ContactMock extends AccessoryMock {
       // if (payload.type !== MessageType.Text && typeof something !== 'string' && something) {
       //   that.mocker.MockMessage.setAttachment(payload.id, something)
       // }
-      const msg = that.mocker.MockMessage.create(payload)
+      const msg = that.mocker.MessageMock.create(payload)
       that.mocker.puppet.emit('message', { messageId: msg.id })
     }
 
   }
 
-  on (event: 'message', listener: (message: MessageMock) => void): this {
-    super.on(event, listener)
-    return this
+}
+
+function mockerifyContactMock (mocker: Mocker): typeof ContactMock {
+
+  class MockerifiedContactMock extends ContactMock {
+
+    static get mocker  () { return mocker }
+    get mocker        () { return mocker }
+
   }
+
+  return MockerifiedContactMock
 
 }
 
-export { ContactMock }
+export {
+  ContactMock,
+  mockerifyContactMock,
+}
