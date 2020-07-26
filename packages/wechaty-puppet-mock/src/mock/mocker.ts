@@ -23,7 +23,7 @@ import {
   generateContactPayload,
   generateRoomPayload,
 }                           from './generator'
-import { MockEnvironment } from './environment'
+import { EnvironmentMock } from './environment'
 
 class Mocker {
 
@@ -41,8 +41,8 @@ class Mocker {
   get MessageMock () : typeof MessageMock { return this.mockerifiedMessageMock! }
   get RoomMock    () : typeof RoomMock    { return this.mockerifiedRoomMock!    }
 
-  protected behaviorList: MockEnvironment[]
-  protected behaviorCleanupFnList: (() => void)[]
+  protected environmentList          : EnvironmentMock[]
+  protected environmentCleanupFnList : (() => void)[]
 
   protected _puppet?: PuppetMock
   set puppet (puppet: PuppetMock) {
@@ -63,8 +63,8 @@ class Mocker {
 
     this.id = cuid()
 
-    this.behaviorList          = []
-    this.behaviorCleanupFnList = []
+    this.environmentList          = []
+    this.environmentCleanupFnList = []
 
     this.cacheContactPayload = new Map()
     this.cacheMessagePayload = new Map()
@@ -79,10 +79,10 @@ class Mocker {
     return `Mocker<${this.id}>`
   }
 
-  use (...behaviorList: MockEnvironment[]): void {
+  use (...behaviorList: EnvironmentMock[]): void {
     log.verbose('Mocker', 'use(%s)', behaviorList.length)
 
-    this.behaviorList.push(
+    this.environmentList.push(
       ...behaviorList,
     )
   }
@@ -90,32 +90,21 @@ class Mocker {
   start () {
     log.verbose('Mocker', 'start()')
 
-    // /**
-    //  * Huan(202006): Workaround for puppet restart problem
-    //  */
-    // this.MockContact = cloneClass(MockContact)
-    // this.MockMessage = cloneClass(MockMessage)
-    // this.MockRoom    = cloneClass(MockRoom)
-
-    // this.MockContact.mocker = this
-    // this.MockMessage.mocker = this
-    // this.MockRoom.mocker    = this
-
-    this.behaviorList.forEach(behavior => {
+    this.environmentList.forEach(behavior => {
       log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
       const stop = behavior(this)
-      this.behaviorCleanupFnList.push(stop)
+      this.environmentCleanupFnList.push(stop)
     })
   }
 
   stop () {
     log.verbose('Mocker', 'stop()')
     let n = 0
-    this.behaviorCleanupFnList.forEach(fn => {
+    this.environmentCleanupFnList.forEach(fn => {
       log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
       fn()
     })
-    this.behaviorCleanupFnList.length = 0
+    this.environmentCleanupFnList.length = 0
   }
 
   randomContact (): undefined | ContactMock {

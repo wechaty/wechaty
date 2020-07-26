@@ -1,7 +1,6 @@
 export { Mocker } from './mocker'
 export {
-  MockEnvironment,
-  SimpleEnvironment,
+  EnvironmentMock,
 }                     from './environment'
 export {
   ContactMock,
