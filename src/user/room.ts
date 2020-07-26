@@ -17,8 +17,6 @@
  *   limitations under the License.
  *
  */
-import { EventEmitter } from 'events'
-
 import { instanceToClass } from 'clone-class'
 
 import { Wechaty } from '../wechaty'
@@ -41,7 +39,6 @@ import {
 import { Contact }        from './contact'
 import { MiniProgram }    from './mini-program'
 import { Message }        from './message'
-import { RoomInvitation } from './room-invitation'
 import { UrlLink }        from './url-link'
 
 import {
@@ -50,14 +47,7 @@ import {
   RoomQueryFilter,
 }                         from 'wechaty-puppet'
 
-export const ROOM_EVENT_DICT = {
-  invite: 'tbw',
-  join: 'tbw',
-  leave: 'tbw',
-  message: 'message that received in this room',
-  topic: 'tbw',
-}
-export type RoomEventName = keyof typeof ROOM_EVENT_DICT
+import { RoomEventEmitter } from '../events/room-events'
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -65,7 +55,7 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-class Room extends EventEmitter implements Sayable {
+class Room extends RoomEventEmitter implements Sayable {
 
   static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
   get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
@@ -658,26 +648,26 @@ class Room extends EventEmitter implements Sayable {
     }
   }
 
-  public emit (event: 'invite',  inviter:       Contact,    invitation: RoomInvitation)                  : boolean
-  public emit (event: 'leave',   leaverList:    Contact[],  remover:  Contact, date: Date)                    : boolean
-  public emit (event: 'message', message:       Message)                                                      : boolean
-  public emit (event: 'join',    inviteeList:   Contact[],  inviter:  Contact, date: Date)                    : boolean
-  public emit (event: 'topic',   topic:         string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
-  public emit (event: never, ...args: never[]): never
+  // public emit (event: 'invite',  inviter:       Contact,    invitation: RoomInvitation)                  : boolean
+  // public emit (event: 'leave',   leaverList:    Contact[],  remover:  Contact, date: Date)                    : boolean
+  // public emit (event: 'message', message:       Message)                                                      : boolean
+  // public emit (event: 'join',    inviteeList:   Contact[],  inviter:  Contact, date: Date)                    : boolean
+  // public emit (event: 'topic',   topic:         string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
+  // public emit (event: never, ...args: never[]): never
 
-  public emit (
-    event:   RoomEventName,
-    ...args: any[]
-  ): boolean {
-    return super.emit(event, ...args)
-  }
+  // public emit (
+  //   event:   RoomEventName,
+  //   ...args: any[]
+  // ): boolean {
+  //   return super.emit(event, ...args)
+  // }
 
-  public on (event: 'invite',  listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
-  public on (event: 'leave',   listener: (this: Room, leaverList:  Contact[], remover?:  Contact, date?: Date) => void)                   : this
-  public on (event: 'message', listener: (this: Room, message:  Message, date?: Date) => void)                             : this
-  public on (event: 'join',    listener: (this: Room, inviteeList: Contact[], inviter:  Contact,  date?: Date) => void)                   : this
-  public on (event: 'topic',   listener: (this: Room, topic:       string,    oldTopic: string,   changer: Contact, date?: Date) => void) : this
-  public on (event: never,   ...args: never[])                                                                            : never
+  // public on (event: 'invite',  listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
+  // public on (event: 'leave',   listener: (this: Room, leaverList:  Contact[], remover?:  Contact, date?: Date) => void)                   : this
+  // public on (event: 'message', listener: (this: Room, message:  Message, date?: Date) => void)                             : this
+  // public on (event: 'join',    listener: (this: Room, inviteeList: Contact[], inviter:  Contact,  date?: Date) => void)                   : this
+  // public on (event: 'topic',   listener: (this: Room, topic:       string,    oldTopic: string,   changer: Contact, date?: Date) => void) : this
+  // public on (event: never,   ...args: never[])                                                                            : never
 
   /**
    * @desc       Room Class Event Type
@@ -758,12 +748,12 @@ class Room extends EventEmitter implements Sayable {
    * }
    *
    */
-  public on (event: RoomEventName, listener: (...args: any[]) => any): this {
-    log.verbose('Room', 'on(%s, %s)', event, typeof listener)
+  // public on (event: RoomEventName, listener: (...args: any[]) => any): this {
+  //   log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
-    super.on(event, listener) // Room is `Sayable`
-    return this
-  }
+  //   super.on(event, listener) // Room is `Sayable`
+  //   return this
+  // }
 
   /**
    * Add contact in a room

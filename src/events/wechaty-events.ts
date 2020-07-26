@@ -14,9 +14,9 @@ import {
   RoomInvitation,
   Contact,
   Message,
-}                       from './user/mod'
+}                       from '../user/mod'
 
-export const WECHATY_EVENT_DICT = {
+const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'Should be emitted after we call `Wechaty.ding()`',
   error     : "Will be emitted when there's an Error occurred.",
@@ -200,7 +200,7 @@ export type WechatyStartStopEventListener  = () => void
  *   console.error(error)
  * })
  */
-interface Events {
+interface WechatyEvents {
   dong          : WechatyDongEventListener
   error         : WechatyErrorEventListener
   friendship    : WechatyFriendshipEventListener
@@ -219,5 +219,5 @@ interface Events {
 }
 
 export const WechatyEventEmitter = EventEmitter as new () => TypedEventEmitter<
-  Events
+  WechatyEvents
 >

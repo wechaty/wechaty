@@ -17,8 +17,6 @@
  *   limitations under the License.
  *
  */
-import { EventEmitter } from 'events'
-
 import { instanceToClass }  from 'clone-class'
 
 import {
@@ -41,10 +39,12 @@ import {
   Sayable,
 }                   from '../types'
 
-import { UrlLink }  from './url-link'
+import { Message }      from './message'
 import { MiniProgram }  from './mini-program'
-import { Tag } from './tag'
-import { Message } from './message'
+import { Tag }          from './tag'
+import { UrlLink }      from './url-link'
+
+import { ContactEventEmitter } from '../events/contact-events'
 
 export const POOL = Symbol('pool')
 
@@ -55,7 +55,7 @@ export const POOL = Symbol('pool')
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-class Contact extends EventEmitter implements Sayable {
+class Contact extends ContactEventEmitter implements Sayable {
 
   static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
   get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }

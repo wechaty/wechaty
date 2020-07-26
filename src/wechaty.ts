@@ -88,7 +88,7 @@ import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
 import {
   WechatyEventEmitter,
   WechatyEventName,
-}                         from './wechaty-events'
+}                         from './events/wechaty-events'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
