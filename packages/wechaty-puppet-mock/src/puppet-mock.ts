@@ -38,11 +38,12 @@ import {
 
   UrlLinkPayload,
   MiniProgramPayload,
+
+  log,
 }                           from 'wechaty-puppet'
 
 import {
   CHATIE_OFFICIAL_ACCOUNT_QRCODE,
-  log,
   qrCodeForChatie,
   VERSION,
 }                                   from './config'

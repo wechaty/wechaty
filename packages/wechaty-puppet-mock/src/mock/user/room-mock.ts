@@ -3,9 +3,8 @@ import {
   RoomPayload,
   EventRoomJoinPayload,
   EventRoomLeavePayload,
+  log,
 }                           from 'wechaty-puppet'
-
-import { log } from '../../config'
 
 import { AccessoryMock } from '../accessory'
 

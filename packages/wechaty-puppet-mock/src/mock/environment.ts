@@ -1,6 +1,7 @@
-import { ScanStatus } from 'wechaty-puppet'
-
-import { log } from '../config'
+import {
+  ScanStatus,
+  log,
+}                 from 'wechaty-puppet'
 
 import { Mocker } from './mocker'
 

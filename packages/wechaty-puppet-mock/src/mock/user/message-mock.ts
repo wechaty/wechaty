@@ -3,9 +3,8 @@ import {
   MessageType,
   MessagePayload,
   FileBox,
+  log,
 }                     from 'wechaty-puppet'
-
-import { log } from '../../config'
 
 import { AccessoryMock }        from '../accessory'
 

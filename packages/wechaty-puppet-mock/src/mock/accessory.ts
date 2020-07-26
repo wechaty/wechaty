@@ -20,8 +20,8 @@
 import { EventEmitter }     from 'events'
 
 import { instanceToClass }  from 'clone-class'
+import { log }              from 'wechaty-puppet'
 
-import { log }    from '../config'
 import { Mocker } from './mocker'
 
 const MOCKER = Symbol('mocker')

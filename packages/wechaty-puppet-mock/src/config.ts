@@ -1,5 +1,4 @@
 import {
-  log,
   FileBox,
 }             from 'wechaty-puppet'
 
@@ -10,7 +9,3 @@ export function qrCodeForChatie (): FileBox {
 }
 
 export { VERSION } from './version'
-
-export {
-  log,
-}

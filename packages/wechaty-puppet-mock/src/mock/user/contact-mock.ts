@@ -9,9 +9,11 @@ import {
   MessagePayloadRoom,
   MessagePayload,
 }                        from 'wechaty-puppet/dist/src/schemas/message'
-import { ContactPayload, FileBox } from 'wechaty-puppet'
-
-import { log } from '../../config'
+import {
+  ContactPayload,
+  FileBox,
+  log,
+}                         from 'wechaty-puppet'
 
 import { AccessoryMock }    from '../accessory'
 
