@@ -44,13 +44,13 @@ class Tag {
 
     if (MyClass === Tag) {
       throw new Error(
-        'Tag class can not be instanciated directly!'
+        'Tag class can not be instantiated directly!'
         + 'See: https://github.com/Chatie/wechaty/issues/1217',
       )
     }
 
     if (!this.wechaty.puppet) {
-      throw new Error('Tag class can not be instanciated without a puppet!')
+      throw new Error('Tag class can not be instantiated without a puppet!')
     }
   }
 

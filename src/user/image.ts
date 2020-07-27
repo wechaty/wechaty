@@ -45,11 +45,11 @@ class Image {
     const MyClass = instanceToClass(this, Image)
 
     if (MyClass === Image) {
-      throw new Error('Image class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
+      throw new Error('Image class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
     if (!this.wechaty.puppet) {
-      throw new Error('Image class can not be instanciated without a puppet!')
+      throw new Error('Image class can not be instantiated without a puppet!')
     }
   }
 

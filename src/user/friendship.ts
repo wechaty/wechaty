@@ -172,11 +172,11 @@ class Friendship extends EventEmitter implements Acceptable {
     const MyClass = instanceToClass(this, Friendship)
 
     if (MyClass === Friendship) {
-      throw new Error('Friendship class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
+      throw new Error('Friendship class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
     if (!this.wechaty.puppet) {
-      throw new Error('Friendship class can not be instanciated without a puppet!')
+      throw new Error('Friendship class can not be instantiated without a puppet!')
     }
   }
 
