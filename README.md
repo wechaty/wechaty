@@ -4,7 +4,7 @@
 
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Gitter](https://badges.gitter.im/Chatie/wechaty.svg)](https://gitter.im/Chatie/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -15,7 +15,7 @@ Wechaty is a Conversational AI RPA Chatbot SDK for Wechat **Individual** Account
 :octocat: <https://github.com/Wechaty/wechaty>  
 :beetle: <https://github.com/Wechaty/wechaty/issues>  
 :book: <https://github.com/Wechaty/wechaty/wiki>  
-:whale: <https://hub.docker.com/r/zixia/wechaty>  
+:whale: <https://hub.docker.com/r/wechaty/wechaty>  
 
 ## :yum: Voice of Developers
 
@@ -113,8 +113,8 @@ node mybot.js
 
 ### 2. Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+[![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
+[![Docker Layers](https://images.microbadger.com/badges/image/wechaty/wechaty.svg)](https://microbadger.com/#/images/wechaty/wechaty)
 
 - Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
@@ -124,14 +124,14 @@ node mybot.js
 
 ```shell
 # for JavaScript
-docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
+docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty mybot.js
 ```
 
 2.2. Run TypeScript
 
 ```shell
 # for TypeScript
-docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
+docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty mybot.ts
 ```
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/Wechaty/wechaty/wiki/Docker).

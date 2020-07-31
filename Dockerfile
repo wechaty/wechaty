@@ -103,8 +103,8 @@ LABEL \
   org.label-schema.vendor="Chatie" \
   org.label-schema.vcs-ref="$SOURCE_COMMIT" \
   org.label-schema.vcs-url="https://github.com/wechaty/wechaty" \
-  org.label-schema.docker.cmd="docker run -ti --rm zixia/wechaty <code.js>" \
-  org.label-schema.docker.cmd.test="docker run -ti --rm zixia/wechaty test" \
-  org.label-schema.docker.cmd.help="docker run -ti --rm zixia/wechaty help" \
+  org.label-schema.docker.cmd="docker run -ti --rm wechaty/wechaty <code.js>" \
+  org.label-schema.docker.cmd.test="docker run -ti --rm wechaty/wechaty test" \
+  org.label-schema.docker.cmd.help="docker run -ti --rm wechaty/wechaty help" \
   org.label-schema.docker.params="WECHATY_TOKEN=token token from https://www.chatie.io, WECHATY_LOG=verbose Set Verbose Log, TZ='Asia/Shanghai' TimeZone"
 
