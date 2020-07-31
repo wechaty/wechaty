@@ -33,6 +33,12 @@ function deployNext () {
   echo "Deploying IMAGE=$IMAGE next"
   docker tag "${ARTIFACT_IMAGE}" "${IMAGE}:next"
   docker push "${IMAGE}:next"
+
+  # onbuild for next
+  docker build -t "${IMAGE}:onbuild" - <  Dockerfile.onbuild
+
+  echo "Deploying IMAGE=$IMAGE onbuild"
+  docker push "${IMAGE}:onbuild"
 }
 
 function main () {
@@ -75,6 +81,7 @@ function main () {
 
       if npx --package @chatie/semver semver-is-prod "$VERSION"; then
         deployLatest "$artifactImage" "$dockerImage"
+        deployOnBuild "$artifactImage" "$dockerImage"
       else
         deployNext "$artifactImage" "$dockerImage"
       fi
