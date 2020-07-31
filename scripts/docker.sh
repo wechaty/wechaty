@@ -53,7 +53,7 @@ ONBUILD RUN jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
     && sudo rm -fr /tmp/* ~/.npm
 ONBUILD COPY . .
 
-ONBUILD npm run build --if-present
+ONBUILD RUN npm run build --if-present
 CMD [ "npm", "start" ]
 __DOCKERFILE_ONBUILD__
 
