@@ -308,7 +308,7 @@ function main() {
 
     test)
       # WECHATY_LOG=silent npm run test:unit
-      pushd /wechaty
+      pushd "$HOME"
       WECHATY_LOG=silent npm run test
       popd
       ;;
