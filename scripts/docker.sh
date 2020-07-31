@@ -33,12 +33,31 @@ function deployNext () {
   echo "Deploying IMAGE=$IMAGE next"
   docker tag "${ARTIFACT_IMAGE}" "${IMAGE}:next"
   docker push "${IMAGE}:next"
+}
 
-  # onbuild for next
-  docker build -t "${IMAGE}:onbuild" - <  Dockerfile.onbuild
+function deployOnbuild () {
+  ARTIFACT_IMAGE=$1
+  TAG=$2
 
-  echo "Deploying IMAGE=$IMAGE onbuild"
-  docker push "${IMAGE}:onbuild"
+  docker build -t "wechaty/onbuild:$TAG" - <<__DOCKERFILE_ONBUILD__
+FROM $ARTIFACT_IMAGE
+
+ONBUILD ARG NODE_ENV
+ONBUILD ENV NODE_ENV $NODE_ENV
+
+ONBUILD WORKDIR /bot
+
+ONBUILD COPY package.json .
+ONBUILD RUN jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
+    && npm install \
+    && sudo rm -fr /tmp/* ~/.npm
+ONBUILD COPY . .
+
+CMD [ "npm", "start" ]
+__DOCKERFILE_ONBUILD__
+
+  echo "Deploying wechaty/onbuild:$TAG"
+  docker push "wechaty/onbuild:$TAG"
 }
 
 function main () {
@@ -81,9 +100,10 @@ function main () {
 
       if npx --package @chatie/semver semver-is-prod "$VERSION"; then
         deployLatest "$artifactImage" "$dockerImage"
-        deployOnBuild "$artifactImage" "$dockerImage"
+        deployOnbuild "$artifactImage" latest
       else
         deployNext "$artifactImage" "$dockerImage"
+        deployOnbuild "$artifactImage" next
       fi
       ;;
 
