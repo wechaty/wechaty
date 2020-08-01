@@ -712,6 +712,15 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
       this.version(),
     )
 
+    /**
+     * Uninstall Plugins
+     *  no matter the state is `ON` or `OFF`.
+     */
+    while (this.pluginUninstallerList.length > 0) {
+      const uninstaller = this.pluginUninstallerList.pop()
+      if (uninstaller) uninstaller()
+    }
+
     if (this.state.off()) {
       log.silly('Wechaty', 'stop() on an stopping/stopped instance')
       await this.state.ready('off')
@@ -726,11 +735,6 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     if (this.lifeTimer) {
       clearInterval(this.lifeTimer)
       this.lifeTimer = undefined
-    }
-
-    while (this.pluginUninstallerList.length > 0) {
-      const uninstaller = this.pluginUninstallerList.pop()
-      if (uninstaller) uninstaller()
     }
 
     try {
