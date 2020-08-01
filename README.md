@@ -75,7 +75,7 @@ Wechaty.instance() // Global Instance
 
 This bot can log all messages to the console after login by scan.
 
-You can find more examples from [Wiki](https://github.com/Wechaty/wechaty/wiki/Examples) and [Example Directory](https://github.com/Wechaty/wechaty/blob/master/examples/).
+You can find Official Example at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts), and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/master/examples/).
 
 ## :checkered_flag: Requirements
 
