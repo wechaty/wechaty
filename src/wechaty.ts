@@ -20,8 +20,8 @@
 import cuid             from 'cuid'
 import os               from 'os'
 
-import { StateSwitch }    from 'state-switch'
-
+import { StateSwitch }      from 'state-switch'
+import { instanceToClass }  from 'clone-class'
 import {
   Puppet,
 
@@ -88,7 +88,13 @@ import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
 import {
   WechatyEventEmitter,
   WechatyEventName,
-}                         from './events/wechaty-events'
+}                             from './events/wechaty-events'
+
+import {
+  WechatyPlugin,
+  WechatyPluginUninstaller,
+  isWechatyPluginUninstaller,
+}                             from './plugin'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -100,11 +106,6 @@ export interface WechatyOptions {
   puppet?        : PuppetModuleName | Puppet, // Puppet name or instance
   puppetOptions? : PuppetOptions,             // Puppet TOKEN
   ioToken?       : string,                    // Io TOKEN
-}
-
-type WechatyPluginUninstaller = () => void
-export interface WechatyPlugin {
-  (bot: Wechaty): void | WechatyPluginUninstaller
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'
@@ -147,6 +148,8 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
   private static globalInstance: Wechaty
 
   private static globalPluginList: WechatyPlugin[] = []
+
+  private pluginUninstallerList: WechatyPluginUninstaller[]
 
   private memory?: MemoryCard
 
@@ -307,6 +310,7 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
      */
     super.setMaxListeners(1024)
 
+    this.pluginUninstallerList = []
     this.installGlobalPlugin()
   }
 
@@ -356,13 +360,27 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
    *
    */
   public use (...plugins: (WechatyPlugin | WechatyPlugin[])[]) {
-    const pluginList = plugins.flat()
-    pluginList.forEach(plugin => plugin(this))
+    const pluginList = plugins.flat() as WechatyPlugin[]
+    const uninstallerList = pluginList
+      .map(plugin => plugin(this))
+      .filter(isWechatyPluginUninstaller)
+
+    this.pluginUninstallerList.push(
+      ...uninstallerList,
+    )
     return this
   }
 
   private installGlobalPlugin () {
-    (this.constructor as typeof Wechaty).globalPluginList.forEach(plugin => plugin(this))
+
+    const uninstallerList = instanceToClass(this, Wechaty)
+      .globalPluginList
+      .map(plugin => plugin(this))
+      .filter(isWechatyPluginUninstaller)
+
+    this.pluginUninstallerList.push(
+      ...uninstallerList,
+    )
   }
 
   private async initPuppet (): Promise<void> {
@@ -708,6 +726,11 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     if (this.lifeTimer) {
       clearInterval(this.lifeTimer)
       this.lifeTimer = undefined
+    }
+
+    while (this.pluginUninstallerList.length > 0) {
+      const uninstaller = this.pluginUninstallerList.pop()
+      if (uninstaller) uninstaller()
     }
 
     try {
