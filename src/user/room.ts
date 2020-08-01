@@ -265,7 +265,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * @property {string}  id - Room id.
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    */
-  constructor (
+  protected constructor (
     public readonly id: string,
   ) {
     super()

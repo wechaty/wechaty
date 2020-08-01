@@ -288,7 +288,7 @@ class Contact extends ContactEventEmitter implements Sayable {
   /**
    * @hideconstructor
    */
-  constructor (
+  protected constructor (
     public readonly id: string,
   ) {
     super()

@@ -169,7 +169,7 @@ class Message extends EventEmitter implements Sayable {
   /**
    * @hideconstructor
    */
-  constructor (
+  protected constructor (
     public readonly id: string,
   ) {
     super()
