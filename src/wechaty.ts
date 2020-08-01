@@ -297,26 +297,15 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     this.wechaty = this
 
     /**
-      * @ignore
-     * Clone Classes for this bot and attach the `puppet` to the Class
+     * Huan(202008):
      *
-     *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
-     *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
-     *   https://github.com/Microsoft/TypeScript/issues/19197
+     * Set max listeners to 1K, so that we can add lots of listeners without the warning message.
+     * The listeners might be one of the following functionilities:
+     *  1. Plugins
+     *  2. Redux Observables
+     *  3. etc...
      */
-    // TODO: make Message & Room constructor private???
-    // this.Contact        = cloneClass(Contact)
-    // this.ContactSelf    = cloneClass(ContactSelf)
-    // this.Friendship     = cloneClass(Friendship)
-    // this.Image          = cloneClass(Image)
-    // this.Message        = cloneClass(Message)
-    // this.Room           = cloneClass(Room)
-    // this.RoomInvitation = cloneClass(RoomInvitation)
-    // this.Tag            = cloneClass(Tag)
-
-    // No need to set puppet/wechaty, so do not clone
-    // this.UrlLink        = UrlLink
-    // this.MiniProgram    = MiniProgram
+    super.setMaxListeners(1024)
 
     this.installGlobalPlugin()
   }
