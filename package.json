@@ -5,7 +5,8 @@
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
   "engines": {
-    "node": ">= 12"
+    "node": ">= 12",
+    "wechaty-puppet": ">=0.30.3"
   },
   "wechaty": {
     "DEFAULT_PORT": 8080,
@@ -101,7 +102,7 @@
     "state-switch": "^0.9.9",
     "typed-emitter": "^1.2.0",
     "watchdog": "^0.8.17",
-    "wechaty-puppet": "^0.29.4",
+    "wechaty-puppet": "^0.30.3",
     "wechaty-puppet-hostie": "^0.9.1",
     "ws": "^7.2.3"
   },
