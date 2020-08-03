@@ -34,7 +34,7 @@ function createFixture () {
   const mocker = new Mocker()
   const puppet = new PuppetMock({ mocker })
 
-  const [ user, mike, mary ] = mocker.createContacts(3)
+  const [user, mike, mary] = mocker.createContacts(3)
   const room = mocker.createRoom({
     memberIdList: [
       mike.id,

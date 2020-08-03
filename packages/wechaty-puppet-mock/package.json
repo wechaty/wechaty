@@ -44,7 +44,7 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet-mock#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.11.5",
+    "@chatie/eslint-config": "^0.12.1",
     "@chatie/git-scripts": "^0.6.1",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.11.4",

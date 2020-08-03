@@ -72,13 +72,13 @@ class PuppetMock extends Puppet {
     public options: PuppetMockOptions = {},
   ) {
     super(options)
-    log.verbose('PuppetMock', `constructor()`)
+    log.verbose('PuppetMock', 'constructor()')
 
     if (options.mocker) {
-      log.verbose('PuppetMock', `constructor() use options.mocker`)
+      log.verbose('PuppetMock', 'constructor() use options.mocker')
       this.mocker = options.mocker
     } else {
-      log.verbose('PuppetMock', `constructor() creating the default mocker`)
+      log.verbose('PuppetMock', 'constructor() creating the default mocker')
       this.mocker = new Mocker()
       // this.mocker.use(SimpleBehavior())
     }
@@ -86,7 +86,7 @@ class PuppetMock extends Puppet {
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetMock', `start()`)
+    log.verbose('PuppetMock', 'start()')
 
     if (this.state.on()) {
       log.warn('PuppetMock', 'start() is called on a ON puppet. await ready(on) and return.')
@@ -523,6 +523,7 @@ class PuppetMock extends Puppet {
   public async friendshipRawPayload (id: string): Promise<any> {
     return { id } as any
   }
+
   public async friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload> {
     return rawPayload
   }

@@ -19,7 +19,7 @@ const SimpleEnvironment: () => EnvironmentMock = () => {
     const taskList: (() => void)[] = []
     const loop = () => taskList.forEach(task => task())
 
-    let timer = setInterval(loop, 5000)
+    const timer = setInterval(loop, 5000)
 
     const SimpleEnvironmentStop = () => {
       log.verbose('SimpleEnvironment', 'SimpleEnvironmentStop()')
