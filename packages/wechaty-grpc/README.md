@@ -207,6 +207,11 @@ TCP hole punching
 
 ## History
 
+### v0.15 (Aug 5, 2020)
+
+- Add PHPH Support ([#76](https://github.com/Chatie/grpc/pull/76) [#78](https://github.com/Chatie/grpc/pull/78)) by [@zhangchunsheng](https://github.com/zhangchunsheng)
+- Publish PHP Module at <https://github.com/wechaty/php-grpc>
+
 ### v0.13 (Apr 19, 2020)
 
 - Add Java Support ([#52](https://github.com/Chatie/grpc/issues/52) [#53](https://github.com/Chatie/grpc/issues/53) by [@diaozxin007](https://github.com/diaozxin007))
