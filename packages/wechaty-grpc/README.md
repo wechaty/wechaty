@@ -237,7 +237,7 @@ Initial commiit
 
 ## MAINTAINER
 
-[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)) zixia@zixia.net
+[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)), Google Developer Expert in Machine Learning (ML GDE), <zixia@zixia.net>
 
 [![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
