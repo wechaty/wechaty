@@ -7,12 +7,12 @@
 [![Go](https://github.com/chatie/grpc/workflows/Go/badge.svg)](https://github.com/chatie/grpc/actions?query=workflow%3AGo)
 [![Node.js](https://github.com/Chatie/grpc/workflows/Node.js/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3ANode.js)
 
+![chatie grpc](https://chatie.io/grpc/images/grpc.png)
+
 [![NPM Version](https://img.shields.io/npm/v/@chatie/grpc?color=brightgreen&label=NPM)](https://www.npmjs.com/package/@chatie/grpc)
 [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue&label=PyPI)](https://pypi.org/project/chatie-grpc/)
 [![Java Version](https://img.shields.io/maven-central/v/io.github.wechaty/grpc?label=Java)](https://mvnrepository.com/artifact/io.github.wechaty/grpc)
 [![PHP Version](https://img.shields.io/packagist/v/wechaty/php-grpc)](https://packagist.org/packages/wechaty/php-grpc)
-
-![chatie grpc](https://chatie.io/grpc/images/grpc.png)
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800&label=Node.js)](https://nodejs.org/)
 [![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg?label=Python)](https://www.python.org/downloads/release/python-370/)
