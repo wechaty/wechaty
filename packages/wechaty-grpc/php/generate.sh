@@ -6,6 +6,8 @@ PROTO_BASE_DIR=../proto
 PROTO_PUPPET_DIR=$PROTO_BASE_DIR/wechaty/puppet
 PROTO_WECHATY_DIR=$PROTO_BASE_DIR/wechaty
 
+# /usr/local/include
+
 OUT_WECHATY_DIR=./generated/wechaty
 OUT_PUPPET_DIR=$OUT_WECHATY_DIR
 
@@ -19,7 +21,7 @@ protoc \
   -I $PROTO_PUPPET_DIR \
   --php_out=$OUT_PUPPET_DIR \
   --grpc_out=$OUT_PUPPET_DIR \
-  --plugin=protoc-gen-grpc=../../grpc-demo/grpc/bins/opt/grpc_php_plugin \
+  --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin \
   $PROTO_PUPPET_DIR/*.proto
 
 protoc \
@@ -27,5 +29,5 @@ protoc \
   -I $PROTO_PUPPET_DIR \
   --php_out=$OUT_WECHATY_DIR \
   --grpc_out=$OUT_WECHATY_DIR \
-  --plugin=protoc-gen-grpc=../../grpc-demo/grpc/bins/opt/grpc_php_plugin \
+  --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin \
   $PROTO_WECHATY_DIR/*.proto
