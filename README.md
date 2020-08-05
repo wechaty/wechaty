@@ -453,16 +453,20 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## :point_down: Multi-language Wechaty
 
-[![Wechaty in Python](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
-[![Wechaty in Kotlin](https://img.shields.io/badge/Wechaty-Kotlin-orange)](https://github.com/wechaty/java-wechaty)
-[![Wechaty in Go](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
-[![Wechaty in Scala](https://img.shields.io/badge/Wechaty-Scala-890)](https://github.com/wechaty/scala-wechaty)
+[![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
+[![Go Wechaty](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
+[![Java(Kotlin) Wechaty](https://img.shields.io/badge/Wechaty-Java-f80)](https://github.com/wechaty/java-wechaty)
+[![Scala Wechaty](https://img.shields.io/badge/Wechaty-Scala-890)](https://github.com/wechaty/scala-wechaty)
+[![PHP Wechaty](https://img.shields.io/badge/Wechaty-PHP-99c)](https://github.com/wechaty/php-wechaty)
+[![.NET(C#) Wechatyin](https://img.shields.io/badge/Wechaty-.NET-629)](https://github.com/wechaty/dotnet-wechaty)
 
-- [Wechaty](https://github.com/wechaty/wechaty) - Conversatioanl AI Chatot SDK for Wechaty Individual Accounts (TypeScript)
-- [Python Wechaty](https://github.com/wechaty/python-wechaty) - Python WeChaty Conversational AI Chatbot SDK for Wechat Individual Accounts (Python)
-- [Go Wechaty](https://github.com/wechaty/go-wechaty) - Go WeChaty Conversational AI Chatbot SDK for Wechat Individual Accounts (Go)
-- [Java Wechaty](https://github.com/wechaty/java-wechaty) - Java WeChaty Conversational AI Chatbot SDK for Wechat Individual Accounts (Java)
-- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - Scala WeChaty Conversational AI Chatbot SDK for WechatyIndividual Accounts (Scala)
+- [Wechaty](https://github.com/wechaty/wechaty) - Conversatioanl SDK for Chatot Makers (TypeScript)
+- [Python Wechaty](https://github.com/wechaty/python-wechaty) - Conversational SDK for Chatbot Makers written in Python
+- [Go Wechaty](https://github.com/wechaty/go-wechaty) - Conversational SDK for Chatbot Makers written in Go
+- [Java Wechaty](https://github.com/wechaty/java-wechaty) - Conversational SDK for Chatbot Makers written in Java(Kotlin)
+- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - Conversational SDK for Chatbot Makers written in Scala
+- [PHP Wechaty](https://github.com/wechaty/php-wechaty) - Conversational SDK for Chatbot Makers written in PHP
+- [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - Conversational SDK for Chatbot Makers written in .NET(C#)
 
 ## :raised_hands: Creators
 
