@@ -815,12 +815,16 @@ export class PuppetHostie extends Puppet {
   public async messageSendText (
     conversationId : string,
     text           : string,
+    mentionIdList? : string[],
   ): Promise<void | string> {
     log.verbose('PuppetHostie', 'messageSend(%s, %s)', conversationId, text)
 
     const request = new MessageSendTextRequest()
     request.setConversationId(conversationId)
     request.setText(text)
+    if (typeof mentionIdList !== 'undefined') {
+      request.setMentonalIdsList(mentionIdList)
+    }
 
     const response = await util.promisify(
       this.grpcClient!.messageSendText.bind(this.grpcClient)
