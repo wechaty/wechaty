@@ -88,8 +88,11 @@ export function puppetImplementation (
   let scanPayload: undefined | EventScanPayload
   let readyPayload: undefined | EventReadyPayload
   puppet.on('scan', payload  => { scanPayload = payload   })
-  puppet.on('login', _       => { scanPayload = undefined })
   puppet.on('ready', payload => { readyPayload = payload  })
+  puppet.on('login', _       => {
+    scanPayload = undefined
+    setTimeout(() => readyPayload && eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload))
+  })
 
   const eventStreamManager = new EventStreamManager(puppet)
 
@@ -318,8 +321,6 @@ export function puppetImplementation (
        */
       if (scanPayload) {
         eventStreamManager.grpcEmit(EventType.EVENT_TYPE_SCAN, scanPayload)
-      } else if (readyPayload) {
-        eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload)
       }
     },
 
