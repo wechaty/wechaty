@@ -93,7 +93,7 @@ export function puppetImplementation (
     scanPayload = undefined
     if (readyPayload) {
       await new Promise(resolve => setTimeout(resolve, 1000))
-      this.emit('ready', readyPayload)
+      eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload)
     }
   })
 
