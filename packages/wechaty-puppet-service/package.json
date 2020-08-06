@@ -43,28 +43,28 @@
   },
   "homepage": "https://github.com/Chatie/wechaty-puppet-hostie#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.11.5",
+    "@chatie/eslint-config": "^0.12.1",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.10.1",
+    "@chatie/tsconfig": "^0.11.4",
     "@types/google-protobuf": "^3.7.2",
     "@types/ws": "^7.2.6",
     "pkg-jq": "^0.2.4",
     "shx": "^0.3.2",
     "tstest": "^0.4.10",
-    "wechaty": "^0.41.39",
+    "wechaty": "^0.46.4",
     "wechaty-puppet": "^0.27.1",
-    "wechaty-puppet-mock": "^0.22.38"
+    "wechaty-puppet-mock": "^0.22.41"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^0.26.2"
+    "wechaty-puppet": "^0.30.3"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.16.2",
+    "@chatie/grpc": "^0.16.5",
     "@reduxjs/toolkit": "^1.4.0",
     "redux": "^4.0.5",
     "redux-observable": "^1.2.0",
-    "rxjs": "^6.6.0",
+    "rxjs": "^6.6.2",
     "ws": "^7.3.1"
   },
   "publishConfig": {
