@@ -412,7 +412,15 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     puppetInstance.setMemory(puppetMemory)
 
     this.initPuppetEventBridge(puppetInstance)
-    this.initPuppetAccessory(puppetInstance)
+    this.wechatifyUserModules(puppetInstance)
+
+    /**
+      * Private Event
+      *  emit puppet when set
+      *
+      * Huan(202005)
+      */
+    ;(this.emit as any)('puppet', puppetInstance)
   }
 
   protected initPuppetEventBridge (puppet: Puppet) {
@@ -585,8 +593,8 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     }
   }
 
-  protected initPuppetAccessory (puppet: Puppet) {
-    log.verbose('Wechaty', 'initAccessory(%s)', puppet)
+  protected wechatifyUserModules (puppet: Puppet) {
+    log.verbose('Wechaty', 'wechatifyUserModules(%s)', puppet)
 
     if (this.wechatifiedContactSelf) {
       throw new Error('can not be initialized twice!')
@@ -607,14 +615,6 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     this.wechatifiedUrlLink        = wechatifyUrlLink(this)
 
     this.puppet = puppet
-
-    /**
-     * Private Event
-     *  emit puppet when set
-     *
-     * Huan(202005)
-     */
-    ;(this.emit as any)('puppet', puppet)
   }
 
   /**
