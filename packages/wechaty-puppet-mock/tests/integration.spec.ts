@@ -26,6 +26,7 @@ async function * wechatyFixture () {
     await wechaty.stop()
   }
 }
+
 test('integration testing', async t => {
   const mocker = new mock.Mocker()
   const puppet = new PuppetMock({ mocker })
