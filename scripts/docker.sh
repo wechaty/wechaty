@@ -98,6 +98,7 @@ function main () {
       version=$(npx pkg-jq -r .version)
 
       deployVersion "$artifactImage" "$dockerImage" "$version"
+      deployOnbuild "$artifactImage" "$version"
 
       if npx --package @chatie/semver semver-is-prod "$VERSION"; then
         deployLatest "$artifactImage" "$dockerImage"
