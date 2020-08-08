@@ -62,7 +62,7 @@ __DOCKERFILE_ONBUILD__
 }
 
 function main () {
-  artifactImage='wechaty:dev'
+  artifactImage='wechaty:artifact'
   dockerImage='wechaty/wechaty'
 
   # Shellcheck - https://github.com/koalaman/shellcheck/wiki/SC2086
