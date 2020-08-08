@@ -20,8 +20,8 @@
 import cuid             from 'cuid'
 import os               from 'os'
 
-import { StateSwitch }    from 'state-switch'
-
+import { StateSwitch }      from 'state-switch'
+import { instanceToClass }  from 'clone-class'
 import {
   Puppet,
 
@@ -88,7 +88,13 @@ import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
 import {
   WechatyEventEmitter,
   WechatyEventName,
-}                         from './events/wechaty-events'
+}                             from './events/wechaty-events'
+
+import {
+  WechatyPlugin,
+  WechatyPluginUninstaller,
+  isWechatyPluginUninstaller,
+}                             from './plugin'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -100,11 +106,6 @@ export interface WechatyOptions {
   puppet?        : PuppetModuleName | Puppet, // Puppet name or instance
   puppetOptions? : PuppetOptions,             // Puppet TOKEN
   ioToken?       : string,                    // Io TOKEN
-}
-
-type WechatyPluginUninstaller = () => void
-export interface WechatyPlugin {
-  (bot: Wechaty): void | WechatyPluginUninstaller
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'
@@ -147,6 +148,8 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
   private static globalInstance: Wechaty
 
   private static globalPluginList: WechatyPlugin[] = []
+
+  private pluginUninstallerList: WechatyPluginUninstaller[]
 
   private memory?: MemoryCard
 
@@ -297,27 +300,17 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     this.wechaty = this
 
     /**
-      * @ignore
-     * Clone Classes for this bot and attach the `puppet` to the Class
+     * Huan(202008):
      *
-     *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
-     *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
-     *   https://github.com/Microsoft/TypeScript/issues/19197
+     * Set max listeners to 1K, so that we can add lots of listeners without the warning message.
+     * The listeners might be one of the following functionilities:
+     *  1. Plugins
+     *  2. Redux Observables
+     *  3. etc...
      */
-    // TODO: make Message & Room constructor private???
-    // this.Contact        = cloneClass(Contact)
-    // this.ContactSelf    = cloneClass(ContactSelf)
-    // this.Friendship     = cloneClass(Friendship)
-    // this.Image          = cloneClass(Image)
-    // this.Message        = cloneClass(Message)
-    // this.Room           = cloneClass(Room)
-    // this.RoomInvitation = cloneClass(RoomInvitation)
-    // this.Tag            = cloneClass(Tag)
+    super.setMaxListeners(1024)
 
-    // No need to set puppet/wechaty, so do not clone
-    // this.UrlLink        = UrlLink
-    // this.MiniProgram    = MiniProgram
-
+    this.pluginUninstallerList = []
     this.installGlobalPlugin()
   }
 
@@ -367,13 +360,27 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
    *
    */
   public use (...plugins: (WechatyPlugin | WechatyPlugin[])[]) {
-    const pluginList = plugins.flat()
-    pluginList.forEach(plugin => plugin(this))
+    const pluginList = plugins.flat() as WechatyPlugin[]
+    const uninstallerList = pluginList
+      .map(plugin => plugin(this))
+      .filter(isWechatyPluginUninstaller)
+
+    this.pluginUninstallerList.push(
+      ...uninstallerList,
+    )
     return this
   }
 
   private installGlobalPlugin () {
-    (this.constructor as typeof Wechaty).globalPluginList.forEach(plugin => plugin(this))
+
+    const uninstallerList = instanceToClass(this, Wechaty)
+      .globalPluginList
+      .map(plugin => plugin(this))
+      .filter(isWechatyPluginUninstaller)
+
+    this.pluginUninstallerList.push(
+      ...uninstallerList,
+    )
   }
 
   private async initPuppet (): Promise<void> {
@@ -405,7 +412,15 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     puppetInstance.setMemory(puppetMemory)
 
     this.initPuppetEventBridge(puppetInstance)
-    this.initPuppetAccessory(puppetInstance)
+    this.wechatifyUserModules(puppetInstance)
+
+    /**
+      * Private Event
+      *  emit puppet when set
+      *
+      * Huan(202005)
+      */
+    ;(this.emit as any)('puppet', puppetInstance)
   }
 
   protected initPuppetEventBridge (puppet: Puppet) {
@@ -578,8 +593,8 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     }
   }
 
-  protected initPuppetAccessory (puppet: Puppet) {
-    log.verbose('Wechaty', 'initAccessory(%s)', puppet)
+  protected wechatifyUserModules (puppet: Puppet) {
+    log.verbose('Wechaty', 'wechatifyUserModules(%s)', puppet)
 
     if (this.wechatifiedContactSelf) {
       throw new Error('can not be initialized twice!')
@@ -600,14 +615,6 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     this.wechatifiedUrlLink        = wechatifyUrlLink(this)
 
     this.puppet = puppet
-
-    /**
-     * Private Event
-     *  emit puppet when set
-     *
-     * Huan(202005)
-     */
-    ;(this.emit as any)('puppet', puppet)
   }
 
   /**
@@ -704,6 +711,15 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
       this.options.puppet || config.systemPuppetName(),
       this.version(),
     )
+
+    /**
+     * Uninstall Plugins
+     *  no matter the state is `ON` or `OFF`.
+     */
+    while (this.pluginUninstallerList.length > 0) {
+      const uninstaller = this.pluginUninstallerList.pop()
+      if (uninstaller) uninstaller()
+    }
 
     if (this.state.off()) {
       log.silly('Wechaty', 'stop() on an stopping/stopped instance')

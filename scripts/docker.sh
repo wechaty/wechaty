@@ -35,9 +35,35 @@ function deployNext () {
   docker push "${IMAGE}:next"
 }
 
+function deployOnbuild () {
+  ARTIFACT_IMAGE=$1
+  TAG=$2
+
+  docker build -t "wechaty/onbuild:$TAG" - <<__DOCKERFILE_ONBUILD__
+FROM $ARTIFACT_IMAGE
+
+ONBUILD ARG NODE_ENV
+ONBUILD ENV NODE_ENV \$NODE_ENV
+
+ONBUILD WORKDIR /bot
+
+ONBUILD COPY package.json .
+ONBUILD RUN jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
+    && npm install \
+    && sudo rm -fr /tmp/* ~/.npm
+ONBUILD COPY . .
+
+ONBUILD RUN npm run build --if-present
+CMD [ "npm", "start" ]
+__DOCKERFILE_ONBUILD__
+
+  echo "Deploying wechaty/onbuild:$TAG"
+  docker push "wechaty/onbuild:$TAG"
+}
+
 function main () {
-  artifactImage='wechaty:test'
-  dockerImage='zixia/wechaty'
+  artifactImage='wechaty:dev'
+  dockerImage='wechaty/wechaty'
 
   # Shellcheck - https://github.com/koalaman/shellcheck/wiki/SC2086
   options=('--rm')
@@ -75,8 +101,10 @@ function main () {
 
       if npx --package @chatie/semver semver-is-prod "$VERSION"; then
         deployLatest "$artifactImage" "$dockerImage"
+        deployOnbuild "$artifactImage" latest
       else
         deployNext "$artifactImage" "$dockerImage"
+        deployOnbuild "$artifactImage" next
       fi
       ;;
 

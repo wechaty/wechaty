@@ -4,18 +4,18 @@
 
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Gitter](https://badges.gitter.im/Chatie/wechaty.svg)](https://gitter.im/Chatie/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## :hearts: Connecting Chatbots
 
-Wechaty is a Conversational AI RPA Chatbot SDK for Wechat **Individual** Account which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
+Wechaty is a Conversational SDK for Chatbot Makers which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
 
 :octocat: <https://github.com/Wechaty/wechaty>  
 :beetle: <https://github.com/Wechaty/wechaty/issues>  
 :book: <https://github.com/Wechaty/wechaty/wiki>  
-:whale: <https://hub.docker.com/r/zixia/wechaty>  
+:whale: <https://hub.docker.com/r/wechaty/wechaty>  
 
 ## :yum: Voice of Developers
 
@@ -75,7 +75,7 @@ Wechaty.instance() // Global Instance
 
 This bot can log all messages to the console after login by scan.
 
-You can find more examples from [Wiki](https://github.com/Wechaty/wechaty/wiki/Examples) and [Example Directory](https://github.com/Wechaty/wechaty/blob/master/examples/).
+You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts), and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/master/examples/).
 
 ## :checkered_flag: Requirements
 
@@ -113,8 +113,8 @@ node mybot.js
 
 ### 2. Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+[![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
+[![Docker Layers](https://images.microbadger.com/badges/image/wechaty/wechaty.svg)](https://microbadger.com/#/images/wechaty/wechaty)
 
 - Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
@@ -124,14 +124,14 @@ node mybot.js
 
 ```shell
 # for JavaScript
-docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
+docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty mybot.js
 ```
 
 2.2. Run TypeScript
 
 ```shell
 # for TypeScript
-docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
+docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty mybot.ts
 ```
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/Wechaty/wechaty/wiki/Docker).
@@ -453,16 +453,20 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## :point_down: Multi-language Wechaty
 
-[![Wechaty in Python](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
-[![Wechaty in Kotlin](https://img.shields.io/badge/Wechaty-Kotlin-orange)](https://github.com/wechaty/java-wechaty)
-[![Wechaty in Go](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
-[![Wechaty in Scala](https://img.shields.io/badge/Wechaty-Scala-890)](https://github.com/wechaty/scala-wechaty)
+[![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
+[![Go Wechaty](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
+[![Java(Kotlin) Wechaty](https://img.shields.io/badge/Wechaty-Java-f80)](https://github.com/wechaty/java-wechaty)
+[![Scala Wechaty](https://img.shields.io/badge/Wechaty-Scala-890)](https://github.com/wechaty/scala-wechaty)
+[![PHP Wechaty](https://img.shields.io/badge/Wechaty-PHP-99c)](https://github.com/wechaty/php-wechaty)
+[![.NET(C#) Wechatyin](https://img.shields.io/badge/Wechaty-.NET-629)](https://github.com/wechaty/dotnet-wechaty)
 
-- [Wechaty](https://github.com/wechaty/wechaty) - Conversatioanl AI Chatot SDK for Wechaty Individual Accounts (TypeScript)
-- [Python Wechaty](https://github.com/wechaty/python-wechaty) - Python WeChaty Conversational AI Chatbot SDK for Wechat Individual Accounts (Python)
-- [Go Wechaty](https://github.com/wechaty/go-wechaty) - Go WeChaty Conversational AI Chatbot SDK for Wechat Individual Accounts (Go)
-- [Java Wechaty](https://github.com/wechaty/java-wechaty) - Java WeChaty Conversational AI Chatbot SDK for Wechat Individual Accounts (Java)
-- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - Scala WeChaty Conversational AI Chatbot SDK for WechatyIndividual Accounts (Scala)
+- [Wechaty](https://github.com/wechaty/wechaty) - Conversatioanl SDK for Chatot Makers (TypeScript)
+- [Python Wechaty](https://github.com/wechaty/python-wechaty) - Conversational SDK for Chatbot Makers written in Python
+- [Go Wechaty](https://github.com/wechaty/go-wechaty) - Conversational SDK for Chatbot Makers written in Go
+- [Java Wechaty](https://github.com/wechaty/java-wechaty) - Conversational SDK for Chatbot Makers written in Java(Kotlin)
+- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - Conversational SDK for Chatbot Makers written in Scala
+- [PHP Wechaty](https://github.com/wechaty/php-wechaty) - Conversational SDK for Chatbot Makers written in PHP
+- [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - Conversational SDK for Chatbot Makers written in .NET(C#)
 
 ## :raised_hands: Creators
 

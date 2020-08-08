@@ -39,9 +39,10 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Wechaty External Puppets
    */
-  'wechaty-puppet-padplus'   : '^0.7.30',    // https://www.npmjs.com/package/wechaty-puppet-padplus
-  'wechaty-puppet-puppeteer' : '^0.23.1',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
-  'wechaty-puppet-wechat4u'  : '^0.17.4',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
+  'wechaty-puppet-official-account' : '^0.2.2',    // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-padplus'          : '^0.7.30',   // https://www.npmjs.com/package/wechaty-puppet-padplus
+  'wechaty-puppet-puppeteer'        : '^0.23.1',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
+  'wechaty-puppet-wechat4u'         : '^0.17.4',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
 }
 
 export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES

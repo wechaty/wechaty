@@ -45,8 +45,8 @@ import {
 
 class WechatyTest extends Wechaty {
 
-  public initPuppetAccessoryTest (puppet: Puppet): void {
-    return this.initPuppetAccessory(puppet)
+  public wechatifyUserModulesTest (puppet: Puppet): void {
+    return this.wechatifyUserModules(puppet)
   }
 
 }
@@ -227,8 +227,8 @@ test('initPuppetAccessory()', async t => {
   const wechatyTest = new WechatyTest()
 
   const puppet = new PuppetMock()
-  t.doesNotThrow(() => wechatyTest.initPuppetAccessoryTest(puppet), 'should not throw for the 1st time init')
-  t.throws(() => wechatyTest.initPuppetAccessoryTest(puppet),       'should throw for the 2nd time init')
+  t.doesNotThrow(() => wechatyTest.wechatifyUserModulesTest(puppet), 'should not throw for the 1st time init')
+  t.throws(() => wechatyTest.wechatifyUserModulesTest(puppet),       'should throw for the 2nd time init')
 })
 
 // TODO: add test for event args

@@ -38,12 +38,15 @@ export {
 export {
   Wechaty,
   WechatyOptions,
+}                             from './wechaty'
+export {
   WechatyPlugin,
-}                     from './wechaty'
+  WechatyPluginUninstaller,
+}                             from './plugin'
 
 export {
   PuppetModuleName,
-}                     from './puppet-config'
+}                             from './puppet-config'
 
 export {
   Contact,
