@@ -285,49 +285,49 @@ export class PuppetHostie extends Puppet {
       return
     }
 
-    try {
-      this.state.off('pending')
+    this.state.off('pending')
 
-      this.cleanCallbackList.forEach(cb => cb())
-      this.cleanCallbackList = []
-
-      if (this.logonoff()) {
-        this.emit('logout', {
-          contactId : this.selfId(),
-          data      : 'PuppetHostie stop()',
-        })
-        this.id = undefined
-      }
-
-      this.stopGrpcStream()
-
-      if (this.grpcClient) {
-        try {
-          await util.promisify(
-            this.grpcClient.stop
-              .bind(this.grpcClient)
-          )(new StopRequest())
-        } catch (e) {
-          log.error('PuppetHostie', 'stop() this.grpcClient.stop() rejection: %s', e.message)
-        }
-      } else {
-        log.warn('PuppetHostie', 'stop() this.grpcClient not exist')
-      }
-
-      await this.stopGrpcClient()
-
-      if (this.recoverSubscription) {
-        this.recoverSubscription.unsubscribe()
-        this.recoverSubscription = undefined
-      }
-
-    } catch (e) {
-      log.warn('PuppetHostie', 'stop() rejection: %s', e && e.message)
-      // throw e
-    } finally {
-      this.state.off(true)
+    if (this.recoverSubscription) {
+      this.recoverSubscription.unsubscribe()
+      this.recoverSubscription = undefined
     }
 
+    while (this.cleanCallbackList.length > 0) {
+      const cb = this.cleanCallbackList.pop()
+      try { cb && cb() } catch (e) {
+        log.error('PuppetHostie', 'stop() cleanCallbackList rejection: %s', e.message)
+      }
+    }
+
+    if (this.grpcClient) {
+      try {
+        this.stopGrpcStream()
+
+        await util.promisify(
+          this.grpcClient.stop
+            .bind(this.grpcClient)
+        )(new StopRequest())
+
+        await this.stopGrpcClient()
+      } catch (e) {
+        log.error('PuppetHostie', 'stop() stop GRPC rejection: %s', e.message)
+      } finally {
+        this.grpcClient = undefined
+      }
+
+    } else {
+      log.warn('PuppetHostie', 'stop() this.grpcClient not exist')
+    }
+
+    if (this.logonoff()) {
+      this.emit('logout', {
+        contactId : this.selfId(),
+        data      : 'PuppetHostie stop()',
+      })
+      this.id = undefined
+    }
+
+    this.state.off(true)
   }
 
   private startGrpcStream (): void {
