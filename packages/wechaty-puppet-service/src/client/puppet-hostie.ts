@@ -270,6 +270,11 @@ export class PuppetHostie extends Puppet {
     } catch (e) {
       log.error('PuppetHostie', 'start() rejection: %s', e && e.message)
 
+      if (this.grpcClient) {
+        this.grpcClient.close()
+        this.grpcClient = undefined
+      }
+
       this.state.off(true)
       throw e
 
