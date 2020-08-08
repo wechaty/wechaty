@@ -102,7 +102,7 @@
     "typed-emitter": "^1.2.0",
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.29.4",
-    "wechaty-puppet-hostie": "^0.9.1",
+    "wechaty-puppet-hostie": "^0.9.11",
     "ws": "^7.2.3"
   },
   "devDependencies": {
