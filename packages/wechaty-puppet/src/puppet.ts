@@ -114,7 +114,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    */
   protected id?: string
 
-  private readonly watchdog : Watchdog
+  protected readonly watchdog : Watchdog
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
