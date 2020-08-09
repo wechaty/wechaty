@@ -5,12 +5,7 @@ set -eo pipefail
 function deployVersion () {
   ARTIFACT_IMAGE=$1
   IMAGE=$2
-  VERSION=$3
-
-  SEMVER_MAJOR=$(echo "$VERSION" | cut -d. -f1)
-  SEMVER_MINOR=$(echo "$VERSION" | cut -d. -f2)
-
-  TAG="$SEMVER_MAJOR.$SEMVER_MINOR"
+  TAG=$3
 
   echo "Deploying TAG=$TAG"
   docker tag "${ARTIFACT_IMAGE}" "${IMAGE}:${TAG}"
@@ -62,7 +57,7 @@ __DOCKERFILE_ONBUILD__
 }
 
 function main () {
-  artifactImage='wechaty:dev'
+  artifactImage='wechaty:artifact'
   dockerImage='wechaty/wechaty'
 
   # Shellcheck - https://github.com/koalaman/shellcheck/wiki/SC2086
@@ -96,10 +91,14 @@ function main () {
 
     deploy)
       version=$(npx pkg-jq -r .version)
+      majorVer=$(echo "$version" | cut -d. -f1)
+      minorVer=$(echo "$version" | cut -d. -f2)
+      tag="${majorVer}.${minorVer}"
 
-      deployVersion "$artifactImage" "$dockerImage" "$version"
+      deployVersion "$artifactImage" "$dockerImage" "$tag"
+      deployOnbuild "$artifactImage" "$tag"
 
-      if npx --package @chatie/semver semver-is-prod "$VERSION"; then
+      if npx --package @chatie/semver semver-is-prod "$version"; then
         deployLatest "$artifactImage" "$dockerImage"
         deployOnbuild "$artifactImage" latest
       else
