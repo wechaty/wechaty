@@ -477,6 +477,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## :email: Copyright & License
 
-- Code & Docs © 2016 Huan, Rui, and Wechaty Contributors
+- Code & Docs © 2016-now Huan, Rui, and Wechaty Community Contributors
 - Code released under the Apache-2.0 License
 - Docs released under Creative Commons
