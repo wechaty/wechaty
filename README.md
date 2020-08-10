@@ -1,6 +1,6 @@
 # Wechaty [![NPM Version](https://img.shields.io/npm/v/wechaty?color=brightgreen)](https://www.npmjs.com/package/wechaty) [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM) [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
 
-[![Wechaty](https://wechaty.github.io/wechaty/images/wechaty-logo-green-en.png)](https://github.com/wechaty/wechaty)
+[![Wechaty](https://wechaty.js.org/img/wechaty-logo.svg)](https://github.com/wechaty/wechaty)
 
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
@@ -43,7 +43,7 @@ See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Vo
 
 Wechaty is used in many ChatBot projects by thousands of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
 
-![Wechaty Developers' Home](https://wechaty.github.io/wechaty/images/bot-qr-code.png)
+![Wechaty Developers' Home](https://wechaty.js.org/img/friday-qrcode.svg)
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
