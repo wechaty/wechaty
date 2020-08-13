@@ -79,7 +79,6 @@ import {
 import { throwUnsupportedError }   from './throw-unsupported-error'
 
 import { PuppetEventEmitter }   from './events'
-import { Subscription } from 'rxjs'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -125,8 +124,7 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Throttle Reset Events
    */
-  private resetThrottleQueue?: ThrottleQueue<string>
-  private resetThrottleQueueSubscription?: Subscription
+  private resetThrottleQueue: ThrottleQueue<string>
 
   /**
    *
@@ -160,7 +158,16 @@ export abstract class Puppet extends PuppetEventEmitter {
     this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
 
     /**
-     * 2. Setup LRU Caches
+     * 2. Setup `reset` Event via a 1 second Throttle Queue:
+     */
+    this.resetThrottleQueue = new ThrottleQueue<string>(1000)
+    this.resetThrottleQueue.subscribe(reason => {
+      log.silly('Puppet', 'constructor() resetThrottleQueue.subscribe() reason: "%s"', reason)
+      this.reset(reason)
+    })
+
+    /**
+     * 3. Setup LRU Caches
      */
     const lruOptions = (maxSize = 100): QuickLruOptions => ({ maxSize })
 
@@ -365,33 +372,13 @@ export abstract class Puppet extends PuppetEventEmitter {
   public async start () : Promise<void> {
     this.on('heartbeat', this.feedDog)
     this.watchdog.on('reset', this.dogReset)
-
-    /**
-     * 2. Setup `reset` Event via a 1 second Throttle Queue:
-     */
-    this.resetThrottleQueue = new ThrottleQueue<string>(1000)
-    // 2.2. handle all `reset` events via the resetThrottleQueue
     this.on('reset', this.throttleReset)
-    // 2.3. call reset() and then ignore the following `reset` event for 1 second
-    this.resetThrottleQueueSubscription = this.resetThrottleQueue.subscribe(reason => {
-      log.silly('Puppet', 'constructor() resetThrottleQueue.subscribe() reason: "%s"', reason)
-      this.reset(reason)
-    })
   }
 
   public async stop (): Promise<void> {
     this.removeListener('heartbeat', this.feedDog)
     this.watchdog.removeListener('reset', this.dogReset)
     this.removeListener('reset', this.throttleReset)
-
-    if (this.resetThrottleQueueSubscription) {
-      this.resetThrottleQueueSubscription.unsubscribe()
-      this.resetThrottleQueueSubscription = undefined
-    }
-    if (this.resetThrottleQueue) {
-      this.resetThrottleQueue.unsubscribe()
-      this.resetThrottleQueue = undefined
-    }
 
     this.watchdog.sleep()
 
