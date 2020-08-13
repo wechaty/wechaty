@@ -41,7 +41,7 @@ export const dingHeartbeat = (puppet: Puppet) => (n: number) => puppet.ding(`rec
  */
 export const switchOn$  = (puppet: Puppet) => fromEvent(puppet.state, 'on')
 export const switchOff$ = (puppet: Puppet) => fromEvent(puppet.state, 'off')
-export const heartbeat$ = (puppet: Puppet) => fromEvent<{}>(puppet, 'heartbeat')
+export const heartbeat$ = (puppet: Puppet) => fromEvent<{}>(puppet as any, 'heartbeat')
 
 /**
  * Streams

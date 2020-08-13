@@ -111,6 +111,8 @@ import {
   recover$,
 }             from './recover$'
 
+const MAX_HOSTIE_IP_DISCOVERY_RETRIES = 10
+
 export class PuppetHostie extends Puppet {
 
   public static readonly VERSION = VERSION
@@ -160,7 +162,7 @@ export class PuppetHostie extends Puppet {
       const result = await Promise.race<Promise<{ ip: string, port: number }>>([
         ...CHATIE_ENDPOINT_LIST.map(endpoint => this.getHostieIp(endpoint, token)),
         // eslint-disable-next-line promise/param-names
-        new Promise((_, reject) => setTimeout(reject, 30 * 1000)),
+        new Promise((_, reject) => setTimeout(reject, 5 * 1000)),
       ])
       return result
     } catch (e) {
@@ -172,7 +174,7 @@ export class PuppetHostie extends Puppet {
   private async getHostieIp (endpoint: string, token: string) {
     const url = `${endpoint}/v0/hosties/${token}`
 
-    return new Promise<{ port: number, ip: string }>((resolve) => {
+    return new Promise<{ port: number, ip: string }>((resolve, reject) => {
       const httpClient = /^https:\/\//.test(url) ? https : http
       httpClient.get(url, function (res) {
         let body = ''
@@ -183,8 +185,7 @@ export class PuppetHostie extends Puppet {
           resolve(JSON.parse(body))
         })
       }).on('error', function (e) {
-        log.error('PuppetHostie', 'discoverHostieIp() endpoint<%s> rejection: %s', url, e)
-        console.warn(e)
+        reject(new Error(`PuppetHostie discoverHostieIp() endpoint<${url}> rejection: ${e}`))
       })
     })
   }
@@ -198,12 +199,20 @@ export class PuppetHostie extends Puppet {
 
     let endpoint = this.options.endpoint
     if (!endpoint) {
-      const { ip, port } = await this.discoverHostieIp(this.options.token!)
-      if (!ip || ip === '0.0.0.0') {
-        log.warn('No endpoint when starting grpc client')
+      let hostieIpResult = await this.discoverHostieIp(this.options.token!)
+
+      let retries = MAX_HOSTIE_IP_DISCOVERY_RETRIES
+      while (retries > 0 && (!hostieIpResult.ip || hostieIpResult.ip === '0.0.0.0')) {
+        log.warn(`No endpoint when starting grpc client, ${retries--} retry left. Reconnecting in 10 seconds...`)
+        await new Promise(resolve => setTimeout(resolve, 10 * 1000))
+        hostieIpResult = await this.discoverHostieIp(this.options.token!)
+      }
+
+      if (!hostieIpResult.ip || hostieIpResult.ip === '0.0.0.0') {
         return
       }
-      endpoint = ip + ':' + port
+
+      endpoint = hostieIpResult.ip + ':' + hostieIpResult.port
     }
 
     this.grpcClient = new PuppetClient(
@@ -225,6 +234,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async start (): Promise<void> {
+    await super.start()
     log.verbose('PuppetHostie', 'start()')
 
     if (!this.options.token) {
@@ -246,8 +256,8 @@ export class PuppetHostie extends Puppet {
     try {
       await this.startGrpcClient()
       if (!this.grpcClient) {
-        log.warn('PuppetHostie', 'start() failed to connect to grpc server, reconnecting in 10 seconds...')
-        this.reconnectTimer = setTimeout(() => this.emit('reset', { data: 'no grpc endpoint' }), 10 * 1000)
+        log.warn('PuppetHostie', 'start() failed to start grpc client, resetting self...')
+        this.emit('reset', { data: 'failed to connect grpc client' })
         return
       }
 
@@ -282,6 +292,7 @@ export class PuppetHostie extends Puppet {
   }
 
   public async stop (): Promise<void> {
+    await super.stop()
     log.verbose('PuppetHostie', 'stop()')
 
     if (this.state.off()) {
