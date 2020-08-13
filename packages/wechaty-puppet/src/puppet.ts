@@ -399,7 +399,7 @@ export abstract class Puppet extends PuppetEventEmitter {
      * FIXME: clear cache when stop
      * keep the cache as a temp workaround since wechaty-puppet-hostie has reconnect issue
      * with un-cleared cache in wechaty-puppet will make the reconnect recoverable
-     * 
+     *
      * Related issue: https://github.com/wechaty/wechaty-puppet-hostie/issues/31
      */
     // this.cacheContactPayload.clear()
@@ -411,7 +411,7 @@ export abstract class Puppet extends PuppetEventEmitter {
   }
 
   private feedDog (payload: any) {
-     this.watchdog.feed(payload)
+    this.watchdog.feed(payload)
   }
 
   private dogReset (lastFood: any) {
