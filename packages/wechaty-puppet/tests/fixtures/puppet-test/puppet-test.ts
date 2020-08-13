@@ -24,8 +24,8 @@ import { ContactPayloadFilterFunction } from '../../../src/schemas/contact'
 
 export class PuppetTest extends Puppet {
 
-  public async start () : Promise<void> { return {} as any }
-  public async stop ()  : Promise<void> { return {} as any }
+  public async start () : Promise<void> { return super.start() }
+  public async stop ()  : Promise<void> { return super.stop() }
 
   public async ding (data?: string)   : Promise<void> { return data as any as void }
   public async logout () : Promise<void> { return {} as any }
