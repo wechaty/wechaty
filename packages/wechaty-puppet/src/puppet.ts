@@ -79,6 +79,7 @@ import {
 import { throwUnsupportedError }   from './throw-unsupported-error'
 
 import { PuppetEventEmitter }   from './events'
+import { Subscription } from 'rxjs'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -124,7 +125,8 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Throttle Reset Events
    */
-  private resetThrottleQueue : ThrottleQueue<string>
+  private resetThrottleQueue?: ThrottleQueue<string>
+  private resetThrottleQueueSubscription?: Subscription
 
   /**
    *
@@ -157,30 +159,8 @@ export abstract class Puppet extends PuppetEventEmitter {
     log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
     this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
 
-    this.on('heartbeat', payload => this.watchdog.feed(payload))
-
-    this.watchdog.on('reset', lastFood => {
-      log.warn('Puppet', 'constructor() watchdog.on(reset) reason: %s', JSON.stringify(lastFood))
-      this.emit('reset', lastFood)
-    })
-
     /**
-     * 2. Setup `reset` Event via a 1 second Throttle Queue:
-     */
-    this.resetThrottleQueue = new ThrottleQueue<string>(1000)
-    // 2.2. handle all `reset` events via the resetThrottleQueue
-    this.on('reset', payload => {
-      log.silly('Puppet', 'constructor() this.on(reset) payload: "%s"', JSON.stringify(payload))
-      this.resetThrottleQueue.next(payload.data)
-    })
-    // 2.3. call reset() and then ignore the following `reset` event for 1 second
-    this.resetThrottleQueue.subscribe(reason => {
-      log.silly('Puppet', 'constructor() resetThrottleQueue.subscribe() reason: "%s"', reason)
-      this.reset(reason)
-    })
-
-    /**
-     * 3. Setup LRU Caches
+     * 2. Setup LRU Caches
      */
     const lruOptions = (maxSize = 100): QuickLruOptions => ({ maxSize })
 
@@ -211,6 +191,10 @@ export abstract class Puppet extends PuppetEventEmitter {
     }
 
     normalize(this.childPkg)
+
+    this.feedDog = this.feedDog.bind(this)
+    this.dogReset = this.dogReset.bind(this)
+    this.throttleReset = this.throttleReset.bind(this)
   }
 
   public toString () {
@@ -378,8 +362,71 @@ export abstract class Puppet extends PuppetEventEmitter {
    *
    *
    */
-  public abstract async start () : Promise<void>
-  public abstract async stop ()  : Promise<void>
+  public async start () : Promise<void> {
+    this.on('heartbeat', this.feedDog)
+    this.watchdog.on('reset', this.dogReset)
+
+    /**
+     * 2. Setup `reset` Event via a 1 second Throttle Queue:
+     */
+    this.resetThrottleQueue = new ThrottleQueue<string>(1000)
+    // 2.2. handle all `reset` events via the resetThrottleQueue
+    this.on('reset', this.throttleReset)
+    // 2.3. call reset() and then ignore the following `reset` event for 1 second
+    this.resetThrottleQueueSubscription = this.resetThrottleQueue.subscribe(reason => {
+      log.silly('Puppet', 'constructor() resetThrottleQueue.subscribe() reason: "%s"', reason)
+      this.reset(reason)
+    })
+  }
+
+  public async stop (): Promise<void> {
+    this.removeListener('heartbeat', this.feedDog)
+    this.watchdog.removeListener('reset', this.dogReset)
+    this.removeListener('reset', this.throttleReset)
+
+    if (this.resetThrottleQueueSubscription) {
+      this.resetThrottleQueueSubscription.unsubscribe()
+      this.resetThrottleQueueSubscription = undefined
+    }
+    if (this.resetThrottleQueue) {
+      this.resetThrottleQueue.unsubscribe()
+      this.resetThrottleQueue = undefined
+    }
+
+    this.watchdog.sleep()
+
+    /**
+     * FIXME: clear cache when stop
+     * keep the cache as a temp workaround since wechaty-puppet-hostie has reconnect issue
+     * with un-cleared cache in wechaty-puppet will make the reconnect recoverable
+     * 
+     * Related issue: https://github.com/wechaty/wechaty-puppet-hostie/issues/31
+     */
+    // this.cacheContactPayload.clear()
+    // this.cacheFriendshipPayload.clear()
+    // this.cacheMessagePayload.clear()
+    // this.cacheRoomPayload.clear()
+    // this.cacheRoomInvitationPayload.clear()
+    // this.cacheRoomMemberPayload.clear()
+  }
+
+  private feedDog (payload: any) {
+     this.watchdog.feed(payload)
+  }
+
+  private dogReset (lastFood: any) {
+    log.warn('Puppet', 'dogReset() reason: %s', JSON.stringify(lastFood))
+    this.emit('reset', lastFood)
+  }
+
+  private throttleReset (payload: any) {
+    log.silly('Puppet', 'throttleReset() payload: "%s"', JSON.stringify(payload))
+    if (this.resetThrottleQueue) {
+      this.resetThrottleQueue.next(payload.data)
+    } else {
+      log.warn('Puppet', 'Drop reset since no resetThrottleQueue.')
+    }
+  }
 
   /**
    * Huan(201808):
