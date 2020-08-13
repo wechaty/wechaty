@@ -91,7 +91,7 @@ export function puppetImplementation (
   puppet.on('ready', payload => { readyPayload = payload  })
   puppet.on('login', _       => {
     scanPayload = undefined
-    setTimeout(() => readyPayload && eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload))
+    setTimeout(() => readyPayload && eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload), 5 * 1000)
   })
 
   const eventStreamManager = new EventStreamManager(puppet)
