@@ -163,7 +163,7 @@ export const AT_SEPARATOR_REGEX = /[\u2005\u0020]/
 
 export function qrcodeValueToImageUrl (qrcodeValue: string): string {
   return [
-    'https://wechaty.github.io/qrcode/',
+    'https://wechaty.js.org/qrcode/',
     encodeURIComponent(qrcodeValue),
   ].join('')
 }

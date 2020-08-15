@@ -49,7 +49,7 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 ### :book: Resource
 
-Wechaty already held lots of talk and got a lot of blogs in the past 4 years, here is all of the wechaty resouces:
+Wechaty already held lots of talk and got a lot of blogs in the past 4 years, here is all of the wechaty resources:
 
 - :video_camera: [Youtube Playlist: Watch all of talk video related with Wechaty](https://www.youtube.com/playlist?list=PL8hd9KDTdarDXf_Rxtr8meKhxtgcXMInh)
 - :page_with_curl: [Full Docs](https://wechaty.js.org/)
@@ -65,8 +65,8 @@ Wechaty already held lots of talk and got a lot of blogs in the past 4 years, he
 const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
 
 Wechaty.instance() // Global Instance
-.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.github.io/qrcode/${encodeURIComponent(qrcode)}`))
-.on('login',            user => console.log(`User ${user} logined`))
+.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
+.on('login',            user => console.log(`User ${user} logged in`))
 .on('message',       message => console.log(`Message: ${message}`))
 .start()
 ```
@@ -92,7 +92,7 @@ We have a Wechaty starter repository for beginners with the simplest setting. It
 
 If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
 
-Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `mybot.js` before you can use either NPM or Docker to run it.
+Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `bot.js` before you can use either NPM or Docker to run it.
 
 ### 1. Npm
 
@@ -106,9 +106,9 @@ Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of
 npm init
 npm install wechaty
 
-# create your first mybot.js file, you can copy/paste from the above "The World's Shortest ChatBot Code: 6 lines of JavaScript"
+# create your first bot.js file, you can copy/paste from the above "The World's Shortest ChatBot Code: 6 lines of JavaScript"
 # then:
-node mybot.js
+node bot.js
 ```
 
 ### 2. Docker
@@ -124,14 +124,14 @@ node mybot.js
 
 ```shell
 # for JavaScript
-docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty mybot.js
+docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.js
 ```
 
 2.2. Run TypeScript
 
 ```shell
 # for TypeScript
-docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty mybot.ts
+docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.ts
 ```
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/Wechaty/wechaty/wiki/Docker).

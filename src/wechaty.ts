@@ -128,7 +128,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
  * const { Wechaty } = require('wechaty')
  * const bot = new Wechaty()
- * bot.on('scan',    (qrCode, status) => console.log('https://wechaty.github.io/qrcode/' + encodeURIComponent(qrcode)))
+ * bot.on('scan',    (qrCode, status) => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(qrcode)))
  * bot.on('login',   user => console.log(`User ${user} logged in`))
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()

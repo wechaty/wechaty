@@ -77,7 +77,7 @@ function onScan (qrcode: string, status: ScanStatus) {
     generate(qrcode)
 
     const qrcodeImageUrl = [
-      'https://wechaty.github.io/qrcode/',
+      'https://wechaty.js.org/qrcode/',
       encodeURIComponent(qrcode),
     ].join('')
 

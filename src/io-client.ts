@@ -152,7 +152,7 @@ export class IoClient {
       .on('scan',     (url, code) => {
         log.info('IoClient', [
           `[${code}] ${url}]`,
-          `Online QR Code Image: https://wechaty.github.io/qrcode/${url}`,
+          `Online QR Code Image: https://wechaty.js.org/qrcode/${url}`,
         ].join('\n'))
       })
   }

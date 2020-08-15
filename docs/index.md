@@ -142,8 +142,8 @@ Creates an instance of Wechaty.
 ```js
 const { Wechaty } = require('wechaty')
 const bot = new Wechaty()
-bot.on('scan',    (qrcode, status) => console.log('https://wechaty.github.io/qrcode/' + encodeURIComponent(qrcode)))
-bot.on('login',   user => console.log(`User ${user} logined`))
+bot.on('scan',    (qrcode, status) => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(qrcode)))
+bot.on('login',   user => console.log(`User ${user} logged in`))
 bot.on('message', message => console.log(`Message: ${message}`))
 bot.start()
 ```
