@@ -818,6 +818,26 @@ class Contact extends ContactEventEmitter implements Sayable {
     return (this.payload && this.payload.weixin) || null
   }
 
+  public corp (): string | null {
+    return (this.payload && this.payload.corp) || null
+  }
+
+  public title (): string | null {
+    return (this.payload && this.payload.title) || null
+  }
+
+  public description (): string | null {
+    return (this.payload && this.payload.description) || null
+  }
+
+  public external (): boolean | null {
+    return (this.payload && this.payload.isExternal) || null
+  }
+
+  public isWeixin (): boolean | null {
+    return (this.payload && this.payload.isWeixin) || null
+  }
+
 }
 
 function wechatifyContact (wechaty: Wechaty): typeof Contact {
