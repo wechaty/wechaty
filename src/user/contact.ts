@@ -537,6 +537,29 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
+  public async phone (): Promise<string[]>
+  public async phone (phoneList: string[]): Promise<void>
+  public async phone (phoneList?: string[]): Promise<string[] | void> {
+    log.silly('Contact', 'phone(%s)', phoneList === undefined ? '' : JSON.stringify(phoneList))
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (typeof phoneList === 'undefined') {
+      return this.wechaty.puppet.contactPhone(this.id)
+    }
+
+    try {
+      await this.wechaty.puppet.contactPhone(this.id, phoneList)
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+    } catch (e) {
+      log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), e.message)
+      Raven.captureException(e)
+    }
+  }
+
   /**
    *
    * @description
