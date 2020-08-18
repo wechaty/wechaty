@@ -63,6 +63,10 @@ export class PuppetTest extends Puppet {
   public async contactAvatar (contactId: string, file: FileBox)  : Promise<void>
   public async contactAvatar (contactId: string, file?: FileBox) : Promise<void | FileBox> { return { contactId, file } as any }
 
+  public async contactPhone (contactId: string): Promise<string[]>
+  public async contactPhone (contactId: string, phoneList: string[]): Promise<void>
+  public async contactPhone (contactId: string, phoneList?: string[]): Promise<void | string[]> { return { contactId, phoneList } as any }
+
   public async contactList ()                    : Promise<string[]> { return {} as any }
 
   public async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
