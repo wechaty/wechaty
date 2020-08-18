@@ -254,6 +254,7 @@ export class PuppetManager {
 
     const skipList = [
       '@juzibot/wechaty-puppet-donut',  // windows puppet
+      '@juzibot/wechaty-puppet-wxwork', // wxwork puppet
     ]
 
     const moduleList: string[] = []
