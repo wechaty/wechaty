@@ -538,6 +538,51 @@ class Contact extends ContactEventEmitter implements Sayable {
   }
 
   /**
+   * GET / SET / DELETE the phone list for a contact
+   *
+   * @param {(none | string[])} phoneList
+   * @returns {(Promise<string[] | void>)}
+   * @example <caption> GET the phone list for a contact, return {(Promise<string[]>)}</caption>
+   * const phoneList = await contact.phone()
+   * if (phone.length === 0) {
+   *   console.log('You have not yet set any phone number for contact ' + contact.name())
+   * } else {
+   *   console.log('You have already set phone numbers for contact ' + contact.name() + ':' + phoneList.join(','))
+   * }
+   *
+   * @example <caption>SET the phoneList for a contact</caption>
+   * try {
+   *   const phoneList = ['13999999999', '13888888888']
+   *   await contact.alias(phoneList)
+   *   console.log(`change ${contact.name()}'s phone successfully!`)
+   * } catch (e) {
+   *   console.log(`failed to change ${contact.name()} phone!`)
+   * }
+   */
+  public async phone (): Promise<string[]>
+  public async phone (phoneList: string[]): Promise<void>
+  public async phone (phoneList?: string[]): Promise<string[] | void> {
+    log.silly('Contact', 'phone(%s)', phoneList === undefined ? '' : JSON.stringify(phoneList))
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (typeof phoneList === 'undefined') {
+      return this.wechaty.puppet.contactPhone(this.id)
+    }
+
+    try {
+      await this.wechaty.puppet.contactPhone(this.id, phoneList)
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+    } catch (e) {
+      log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), e.message)
+      Raven.captureException(e)
+    }
+  }
+
+  /**
    *
    * @description
    * Should use {@link Contact#friend} instead

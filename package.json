@@ -1,12 +1,12 @@
 {
   "name": "wechaty",
-  "version": "0.47.13",
+  "version": "0.47.14",
   "description": "Wechaty is Conversational SDK Chatbot Makers, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
   "engines": {
     "node": ">= 12",
-    "wechaty-puppet": ">=0.30.3"
+    "wechaty-puppet": ">=0.31.1"
   },
   "wechaty": {
     "DEFAULT_PORT": 8080,
@@ -103,7 +103,7 @@
     "typed-emitter": "^1.2.0",
     "watchdog": "^0.8.17",
     "wechaty-puppet-hostie": "^0.9.13",
-    "wechaty-puppet": "^0.30.3",
+    "wechaty-puppet": "^0.31.1",
     "ws": "^7.2.3"
   },
   "devDependencies": {
