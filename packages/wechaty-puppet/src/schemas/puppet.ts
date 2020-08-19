@@ -32,6 +32,7 @@ export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 /** @hidden */
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
+  dirty     : 'dirty the cache payload',
   dong      : 'emit this event if you received a ding() call',
   error     : `emit an Error instance when there's any Error need to report to Wechaty`,
   // Huan(202003): rename `watchdog` to `heartbeat`
