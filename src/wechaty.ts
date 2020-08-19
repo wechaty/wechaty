@@ -588,7 +588,37 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
           /**
            * TODO: Huan(202008) do we need to deal with the `dirty` event in Wechaty?
            *  clean all the pools for Contact, Room, Message, etc.
+           *
+           *  CAUTION: should update it smoothly instead of just delete the cache!
+           *  there's lots of race conditions, like:
+           *    1. ... to be collected
            */
+          puppet.on('dirty', async ({ payloadType, payloadId }) => {
+            switch (payloadType) {
+              case PayloadType.RoomMember:
+              case PayloadType.Contact:
+                await this.Contact.load(payloadId).ready(true)
+                break
+              case PayloadType.Room:
+                await this.Room.load(payloadId).ready(true)
+                break
+
+              /**
+               * Huan(202008): noop for the following
+               */
+              case PayloadType.Friendship:
+                // Friendship has no payload
+                // await this.Friendship.load(payloadId)
+                break
+              case PayloadType.Message:
+                // Message does not need to dirty (?)
+                break
+
+              case PayloadType.Unknown:
+              default:
+                throw new Error('unknown payload type: ' + payloadType)
+            }
+          })
           break
 
         default:
