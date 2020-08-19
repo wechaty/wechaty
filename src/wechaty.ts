@@ -586,12 +586,7 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
 
         case 'dirty':
           /**
-           * TODO: Huan(202008) do we need to deal with the `dirty` event in Wechaty?
-           *  clean all the pools for Contact, Room, Message, etc.
-           *
-           *  CAUTION: should update it smoothly instead of just delete the cache!
-           *  there's lots of race conditions, like:
-           *    1. ... to be collected
+           * https://github.com/wechaty/wechaty-puppet-hostie/issues/43
            */
           puppet.on('dirty', async ({ payloadType, payloadId }) => {
             switch (payloadType) {
