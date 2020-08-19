@@ -1,7 +1,7 @@
 # Makefile for Python Wechaty
 #
 # 	GitHb: https://github.com/wechaty/python-wechaty
-# 	Author: Huan LI <zixia@zixia.net> git.io/zixia
+# 	Author: Huan LI <zixia@zixia.net> https://github.com/huan
 #
 
 .PHONY: all
