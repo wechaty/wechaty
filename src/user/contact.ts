@@ -25,6 +25,7 @@ import {
   ContactQueryFilter,
   ContactType,
   FileBox,
+  PayloadType,
 }                         from 'wechaty-puppet'
 
 import { Wechaty } from '../wechaty'
@@ -522,7 +523,7 @@ class Contact extends ContactEventEmitter implements Sayable {
 
     try {
       await this.wechaty.puppet.contactAlias(this.id, newAlias)
-      await this.wechaty.puppet.contactPayloadDirty(this.id)
+      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
       if (newAlias && newAlias !== this.payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
@@ -574,7 +575,7 @@ class Contact extends ContactEventEmitter implements Sayable {
 
     try {
       await this.wechaty.puppet.contactPhone(this.id, phoneList)
-      await this.wechaty.puppet.contactPayloadDirty(this.id)
+      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), e.message)
@@ -810,7 +811,7 @@ class Contact extends ContactEventEmitter implements Sayable {
 
     try {
       if (forceSync) {
-        await this.wechaty.puppet.contactPayloadDirty(this.id)
+        await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       }
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)

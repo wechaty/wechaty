@@ -30,6 +30,7 @@ import {
   PUPPET_EVENT_DICT,
   PuppetEventName,
   PuppetOptions,
+  PayloadType,
 }                       from 'wechaty-puppet'
 
 import {
@@ -552,8 +553,8 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
             // issue #254
             const selfId = this.puppet.selfId()
             if (selfId && payload.removeeIdList.includes(selfId)) {
-              await this.puppet.roomPayloadDirty(payload.roomId)
-              await this.puppet.roomMemberPayloadDirty(payload.roomId)
+              await this.puppet.dirtyPayload(PayloadType.Room, payload.roomId)
+              await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
             }
 
           })

@@ -45,6 +45,7 @@ import {
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
+  PayloadType,
 }                         from 'wechaty-puppet'
 
 import { RoomEventEmitter } from '../events/room-events'
@@ -339,8 +340,8 @@ class Room extends RoomEventEmitter implements Sayable {
     }
 
     if (forceSync) {
-      await this.wechaty.puppet.roomPayloadDirty(this.id)
-      await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
+      await this.wechaty.puppet.dirtyPayload(PayloadType.Room, this.id)
+      await this.wechaty.puppet.dirtyPayload(PayloadType.RoomMember, this.id)
     }
     this.payload = await this.wechaty.puppet.roomPayload(this.id)
 
