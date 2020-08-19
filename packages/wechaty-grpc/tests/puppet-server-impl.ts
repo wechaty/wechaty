@@ -55,6 +55,12 @@ export const puppetServerImpl: IPuppetServer = {
     throw new Error('not implmented.')
   },
 
+  dirtyPayload: (call, callback) => {
+    void call
+    void callback
+    throw new Error('not implmented.')
+  },
+
   event: (streamnigCall) => {
     void streamnigCall
     throw new Error('not implmented.')
