@@ -584,6 +584,10 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
           // Do not propagation `reset` event from puppet
           break
 
+        case 'dirty':
+          // Huan(202008): do we need to deal with the `dirty` event in Wechaty?
+          break
+
         default:
           /**
            * Check: The eventName here should have the type `never`
