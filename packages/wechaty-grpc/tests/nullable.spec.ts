@@ -95,7 +95,7 @@ test('use StringValue to support nullable values', async (t) => {
     t.ok(aliasWrapper, 'Should return an aliasWrapper')
 
     if (aliasWrapper) {
-      let alias = aliasWrapper.getValue()
+      const alias = aliasWrapper.getValue()
       t.equal(alias, ID + ALIAS, 'should get the right alias value')
     } else {
       t.fail('can not get alias value')

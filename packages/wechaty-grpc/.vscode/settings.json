@@ -76,8 +76,13 @@
     "typescript",
   ],
   "cSpell.words": [
-    "proto"
+    "PYPI",
+    "bdist",
+    "proto",
+    "sdist",
+    "setuptools"
   ],
+  "python.linting.pylintEnabled": true,
 
 }
 

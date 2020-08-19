@@ -1,0 +1,40 @@
+# For more information see: https://docs.github.com/en/actions/getting-started-with-github-actions
+# For more setup-php see: https://github.com/shivammathur/setup-php
+# For more setup-php protoc see: https://github.com/shivammathur/setup-php/issues/262
+
+name: PHP
+
+on: [push, pull_request]
+
+jobs:
+  run:
+    name: Run
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [ubuntu-20.04]
+        php-versions: ['7.4']
+    env:
+      extensions: xml, opcache, xdebug, pcov, grpc-1.30.0, protobuf-3.12.2
+      key: cache-v3
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup PHP with extensions and custom config
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        extensions: ${{ env.extensions }}
+        ini-values: post_max_size=256M, short_open_tag=On, date.timezone=Asia/Shanghai
+        tools: protoc, grpc_php_plugin
+    - name: Testing PHP version
+      run: |
+        php -v
+        php -r "if(strpos(phpversion(), '${{ matrix.php-versions }}') === false) {throw new Exception('Wrong PHP version Installed');}"
+    - name: Test grpc_php_plugin and protoc
+      run: |
+        protoc --version
+        cd php
+        make generate
