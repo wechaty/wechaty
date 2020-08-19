@@ -585,7 +585,10 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
           break
 
         case 'dirty':
-          // Huan(202008): do we need to deal with the `dirty` event in Wechaty?
+          /**
+           * TODO: Huan(202008) do we need to deal with the `dirty` event in Wechaty?
+           *  clean all the pools for Contact, Room, Message, etc.
+           */
           break
 
         default:
