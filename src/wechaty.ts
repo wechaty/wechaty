@@ -597,10 +597,10 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
             switch (payloadType) {
               case PayloadType.RoomMember:
               case PayloadType.Contact:
-                await this.Contact.load(payloadId).ready(true)
+                await this.Contact.load(payloadId).sync()
                 break
               case PayloadType.Room:
-                await this.Room.load(payloadId).ready(true)
+                await this.Room.load(payloadId).sync()
                 break
 
               /**
