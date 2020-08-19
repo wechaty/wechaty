@@ -1,7 +1,8 @@
+import { PayloadType } from './payload'
+
 /**
  * The event `scan` status number.
  */
-
 export enum ScanStatus {
   Unknown   = 0,
   Cancel    = 1,
@@ -81,7 +82,13 @@ export interface EventHeartbeatPayload {
   data: string,
 }
 
-export type EventAllPayload =  EventDongPayload
+export interface EventDirtyPayload {
+  payloadType : PayloadType,
+  payloadId   : string,
+}
+
+export type EventAllPayload =  EventDirtyPayload
+                            | EventDongPayload
                             | EventErrorPayload
                             | EventFriendshipPayload
                             | EventHeartbeatPayload

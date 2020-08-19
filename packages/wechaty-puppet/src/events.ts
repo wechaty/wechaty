@@ -2,6 +2,7 @@ import { EventEmitter }   from 'events'
 import TypedEventEmitter  from 'typed-emitter'
 
 import {
+  EventDirtyPayload,
   EventDongPayload,
   EventErrorPayload,
   EventFriendshipPayload,
@@ -18,6 +19,7 @@ import {
   EventHeartbeatPayload,
 }                                 from './schemas/event'
 
+export type PuppetDirtyListener      = (payload: EventDirtyPayload)       => void
 export type PuppetDongListener       = (payload: EventDongPayload)        => void
 export type PuppetErrorListener      = (payload: EventErrorPayload)       => void
 export type PuppetFriendshipListener = (payload: EventFriendshipPayload)  => void
@@ -34,6 +36,7 @@ export type PuppetRoomTopicListener  = (payload: EventRoomTopicPayload)   => voi
 export type PuppetScanListener       = (payload: EventScanPayload)        => void
 
 interface PuppetEvents {
+  dirty         : PuppetDirtyListener
   dong          : PuppetDongListener
   error         : PuppetErrorListener
   friendship    : PuppetFriendshipListener

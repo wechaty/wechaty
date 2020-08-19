@@ -168,9 +168,16 @@ export class PuppetTest extends Puppet {
     return super.contactQueryFilterFactory(query)
   }
 
-  public reset (reason: string): void {
-    return super.reset(reason)
-  }
+  // private reset (reason: string): void {
+  //   // return super.reset(reason)
+  //   // FIXME: Huan(202008)
+  //   //  this method has overwrite the super.reset() without any functionality
+  //   //  need to change to super.reset()
+  //   //  however, we need to solve
+  //   //    `error TS1034: 'super' must be followed by an argument list or member access.`
+  //   //  first.
+  //   void reason
+  // }
 
 }
 

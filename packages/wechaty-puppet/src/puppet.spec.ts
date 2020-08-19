@@ -283,7 +283,7 @@ test('reset event throttle for reset()', async t => {
   const sandbox = sinon.createSandbox()
 
   const timer = sandbox.useFakeTimers()
-  const reset = sandbox.stub(puppet, 'reset')
+  const reset = sandbox.stub(puppet as any, 'reset')
   await puppet.start()
 
   puppet.emit('reset', { data: 'testing' })

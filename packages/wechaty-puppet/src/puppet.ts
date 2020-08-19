@@ -76,9 +76,10 @@ import {
   PuppetOptions,
   YOU,
 }                                 from './schemas/puppet'
-import { throwUnsupportedError }   from './throw-unsupported-error'
+import { PayloadType }             from './schemas/payload'
 
-import { PuppetEventEmitter }   from './events'
+import { throwUnsupportedError }   from './throw-unsupported-error'
+import { PuppetEventEmitter }      from './events'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -243,128 +244,6 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    *
    *
-   * Events
-   *
-   *
-   */
-
-  /**
-   * API After v0.21.6
-   */
-  // public emit (event: 'dong',         payload: EventDongPayload)       : boolean
-  // public emit (event: 'error',        payload: EventErrorPayload)      : boolean
-  // public emit (event: 'friendship',   payload: EventFriendshipPayload) : boolean
-  // public emit (event: 'heartbeat',    payload: EventHeartbeatPayload)  : boolean
-  // public emit (event: 'login',        payload: EventLoginPayload)      : boolean
-  // public emit (event: 'logout',       payload: EventLogoutPayload)     : boolean
-  // public emit (event: 'message',      payload: EventMessagePayload)    : boolean
-  // public emit (event: 'ready',        payload: EventReadyPayload)      : boolean
-  // public emit (event: 'reset',        payload: EventResetPayload)      : boolean
-  // public emit (event: 'room-invite',  payload: EventRoomInvitePayload) : boolean
-  // public emit (event: 'room-join',    payload: EventRoomJoinPayload)   : boolean
-  // public emit (event: 'room-leave',   payload: EventRoomLeavePayload)  : boolean
-  // public emit (event: 'room-topic',   payload: EventRoomTopicPayload)  : boolean
-  // public emit (event: 'scan',         payload: EventScanPayload)       : boolean
-
-  // public emit (event: never, ...args: never[]): never
-
-  // public emit (
-  //   event:   PuppetEventName,
-  //   payload: object,
-  // ): boolean {
-  //   return super.emit(event, payload)
-  // }
-
-  /**
-   *
-   *
-   * Listeners
-   *
-   *
-   */
-
-  /**
-   * use payload after v0.21.6
-   */
-  // public on (event: 'dong',         listener: (payload: EventDongPayload) => void)       : this
-  // public on (event: 'error',        listener: (payload: EventErrorPayload) => void)      : this
-  // public on (event: 'friendship',   listener: (payload: EventFriendshipPayload) => void) : this
-  // public on (event: 'heartbeat',    listener: (payload: EventHeartbeatPayload) => void)  : this
-  // public on (event: 'login',        listener: (payload: EventLoginPayload) => void)      : this
-  // public on (event: 'logout',       listener: (payload: EventLogoutPayload) => void)     : this
-  // public on (event: 'message',      listener: (payload: EventMessagePayload) => void)    : this
-  // public on (event: 'ready',        listener: (payload: EventReadyPayload) => void)      : this
-  // public on (event: 'reset',        listener: (payload: EventResetPayload) => void)      : this
-  // public on (event: 'room-invite',  listener: (payload: EventRoomInvitePayload) => void) : this
-  // public on (event: 'room-join',    listener: (payload: EventRoomJoinPayload) => void)   : this
-  // public on (event: 'room-leave',   listener: (payload: EventRoomLeavePayload) => void)  : this
-  // public on (event: 'room-topic',   listener: (payload: EventRoomTopicPayload) => void)  : this
-  // public on (event: 'scan',         listener: (payload: EventScanPayload) => void)       : this
-
-  // public on (event: never, listener: never): never
-
-  // public on (
-  //   event    : PuppetEventName,
-  //   listener : (payload: any) => void,
-  // ): this {
-  //   super.on(event, listener)
-  //   return this
-  // }
-
-  /**
-   * Add Typing support for RxJS `fromEvent` #96
-   *  https://github.com/wechaty/wechaty-puppet/issues/96
-   *
-   * To make RxJS fromEvent happy: type inferencing
-   *  https://github.com/ReactiveX/rxjs/blob/49304ffef8d7a0663c57fe8e673359a602e9d3e1/src/internal/observable/fromEvent.ts#L27-L30
-   */
-  // public addEventListener (type: 'dong',        listener: (payload: EventDongPayload) => void)       : void
-  // public addEventListener (type: 'error',       listener: (payload: EventErrorPayload) => void)      : void
-  // public addEventListener (type: 'friendship',  listener: (payload: EventFriendshipPayload) => void) : void
-  // public addEventListener (type: 'login',       listener: (payload: EventLoginPayload) => void)      : void
-  // public addEventListener (type: 'logout',      listener: (payload: EventLogoutPayload) => void)     : void
-  // public addEventListener (type: 'message',     listener: (payload: EventMessagePayload) => void)    : void
-  // public addEventListener (type: 'reset',       listener: (payload: EventResetPayload) => void)      : void
-  // public addEventListener (type: 'room-join',   listener: (payload: EventRoomJoinPayload) => void)   : void
-  // public addEventListener (type: 'room-leave',  listener: (payload: EventRoomLeavePayload) => void)  : void
-  // public addEventListener (type: 'room-topic',  listener: (payload: EventRoomTopicPayload) => void)  : void
-  // public addEventListener (type: 'room-invite', listener: (payload: EventRoomInvitePayload) => void) : void
-  // public addEventListener (type: 'scan',        listener: (payload: EventScanPayload) => void)       : void
-  // public addEventListener (type: 'ready',       listener: (payload: EventReadyPayload) => void)      : void
-
-  // public addEventListener (type: never, listener: never): never
-
-  // public addEventListener (type: string, listener: ((evt: E) => void) | null, options?: boolean | AddEventListenerOptions): void;
-  // public addEventListener (type: string, listener: ((evt: EventAllPayload) => void) | null, _options?: boolean | AddEventListenerOptions): void {
-  //   if (listener) {
-  //     this.addListener(type, listener)
-  //   }
-  // }
-
-  // public removeEventListener (type: 'dong',        listener: (payload: EventDongPayload) => void)       : void
-  // public removeEventListener (type: 'error',       listener: (payload: EventErrorPayload) => void)      : void
-  // public removeEventListener (type: 'friendship',  listener: (payload: EventFriendshipPayload) => void) : void
-  // public removeEventListener (type: 'login',       listener: (payload: EventLoginPayload) => void)      : void
-  // public removeEventListener (type: 'logout',      listener: (payload: EventLogoutPayload) => void)     : void
-  // public removeEventListener (type: 'message',     listener: (payload: EventMessagePayload) => void)    : void
-  // public removeEventListener (type: 'reset',       listener: (payload: EventResetPayload) => void)      : void
-  // public removeEventListener (type: 'room-join',   listener: (payload: EventRoomJoinPayload) => void)   : void
-  // public removeEventListener (type: 'room-leave',  listener: (payload: EventRoomLeavePayload) => void)  : void
-  // public removeEventListener (type: 'room-topic',  listener: (payload: EventRoomTopicPayload) => void)  : void
-  // public removeEventListener (type: 'room-invite', listener: (payload: EventRoomInvitePayload) => void) : void
-  // public removeEventListener (type: 'scan',        listener: (payload: EventScanPayload) => void)       : void
-  // public removeEventListener (type: 'ready',       listener: (payload: EventReadyPayload) => void)      : void
-
-  // public removeEventListener (type: never, listener: never): never
-
-  // public removeEventListener (type: string, listener?: ((evt: EventAllPayload) => void) | null, _options?: EventListenerOptions | boolean): void {
-  //   if (listener) {
-  //     this.removeListener(type, listener)
-  //   }
-  // }
-  /**
-   *
-   *
    * Start / Stop
    *
    *
@@ -383,9 +262,9 @@ export abstract class Puppet extends PuppetEventEmitter {
     this.watchdog.sleep()
 
     /**
-     * FIXME: clear cache when stop
-     * keep the cache as a temp workaround since wechaty-puppet-hostie has reconnect issue
-     * with un-cleared cache in wechaty-puppet will make the reconnect recoverable
+     * FIXME: Huan(202008) clear cache when stop
+     *  keep the cache as a temp workaround since wechaty-puppet-hostie has reconnect issue
+     *  with un-cleared cache in wechaty-puppet will make the reconnect recoverable
      *
      * Related issue: https://github.com/wechaty/wechaty-puppet-hostie/issues/31
      */
@@ -420,8 +299,10 @@ export abstract class Puppet extends PuppetEventEmitter {
    *  reset() Should not be called directly.
    *  `protected` is for testing, not for the child class.
    *  should use `emit('reset', 'reason')` instead.
+   *
+   * Huan(202008): Update from protected to private
    */
-  protected reset (reason: string): void {
+  private reset (reason: string): void {
     log.verbose('Puppet', 'reset(%s)', reason)
 
     /**
@@ -617,11 +498,6 @@ export abstract class Puppet extends PuppetEventEmitter {
     return resultRoomIdList
   }
 
-  public async contactPayloadDirty (contactId: string): Promise<void> {
-    log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
-    this.cacheContactPayload.delete(contactId)
-  }
-
   public async contactSearch (
     query?        : string | ContactQueryFilter,
     searchIdList? : string[],
@@ -677,7 +553,7 @@ export abstract class Puppet extends PuppetEventEmitter {
 
       } catch (e) {
         log.silly('Puppet', 'contactSearch() contactPayload exception: %s', e.message)
-        await this.contactPayloadDirty(id)
+        await this.dirtyPayloadContact(id)
       }
       return undefined
     }
@@ -860,11 +736,6 @@ export abstract class Puppet extends PuppetEventEmitter {
     return cachedPayload
   }
 
-  protected async friendshipPayloadDirty (friendshipId: string): Promise<void> {
-    log.verbose('Puppet', 'friendshipPayloadDirty(%s)', friendshipId)
-    this.cacheFriendshipPayload.delete(friendshipId)
-  }
-
   /**
    * Get & Set
    */
@@ -941,11 +812,6 @@ export abstract class Puppet extends PuppetEventEmitter {
     }
 
     return cachedPayload
-  }
-
-  protected async messagePayloadDirty (messageId: string): Promise<void> {
-    log.verbose('Puppet', 'messagePayloadDirty(%s)', messageId)
-    this.cacheMessagePayload.delete(messageId)
   }
 
   public async messagePayload (
@@ -1310,8 +1176,8 @@ export abstract class Puppet extends PuppetEventEmitter {
             // compatible with {} payload
             log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
             // Remove invalid room id from cache to avoid getting invalid room payload again
-            await this.roomPayloadDirty(id)
-            await this.roomMemberPayloadDirty(id)
+            await this.dirtyPayloadRoom(id)
+            await this.dirtyPayloadRoomMember(id)
             return {} as any
           }
         }
@@ -1394,11 +1260,6 @@ export abstract class Puppet extends PuppetEventEmitter {
     return cachedPayload
   }
 
-  public async roomPayloadDirty (roomId: string): Promise<void> {
-    log.verbose('Puppet', 'roomPayloadDirty(%s)', roomId)
-    this.cacheRoomPayload.delete(roomId)
-  }
-
   public async roomPayload (
     roomId: string,
   ): Promise<RoomPayload> {
@@ -1438,18 +1299,6 @@ export abstract class Puppet extends PuppetEventEmitter {
     return contactId + '@@@' + roomId
   }
 
-  public async roomMemberPayloadDirty (roomId: string): Promise<void> {
-    log.verbose('Puppet', 'roomMemberPayloadDirty(%s)', roomId)
-
-    const contactIdList = await this.roomMemberList(roomId)
-
-    let cacheKey
-    contactIdList.forEach(contactId => {
-      cacheKey = this.cacheKeyRoomMember(roomId, contactId)
-      this.cacheRoomMemberPayload.delete(cacheKey)
-    })
-  }
-
   public async roomMemberPayload (
     roomId    : string,
     memberId : string,
@@ -1486,6 +1335,65 @@ export abstract class Puppet extends PuppetEventEmitter {
     log.silly('Puppet', 'roomMemberPayload(%s) cache SET', roomId)
 
     return payload
+  }
+
+  /**
+   *
+   * dirty payload methods
+   *  See: https://github.com/Chatie/grpc/pull/79
+   *
+   */
+
+  async dirtyPayload (type: PayloadType, id: string): Promise<void> {
+    log.verbose('Puppet', 'dirtyPayload(%s<%s>, %s)', PayloadType[type], type, id)
+
+    switch (type) {
+      case PayloadType.Message:
+        return this.dirtyPayloadMessage(id)
+      case PayloadType.Contact:
+        return this.dirtyPayloadContact(id)
+      case PayloadType.Room:
+        return this.dirtyPayloadRoom(id)
+      case PayloadType.RoomMember:
+        return this.dirtyPayloadRoomMember(id)
+      case PayloadType.Friendship:
+        return this.dirtyPayloadFriendship(id)
+
+      default:
+        throw new Error('unknown payload type: ' + type)
+    }
+  }
+
+  private async dirtyPayloadRoom (roomId: string): Promise<void> {
+    log.verbose('Puppet', 'dirtyPayloadRoom(%s)', roomId)
+    this.cacheRoomPayload.delete(roomId)
+  }
+
+  private async dirtyPayloadContact (contactId: string): Promise<void> {
+    log.verbose('Puppet', 'dirtyPayloadContact(%s)', contactId)
+    this.cacheContactPayload.delete(contactId)
+  }
+
+  private async dirtyPayloadFriendship (friendshipId: string): Promise<void> {
+    log.verbose('Puppet', 'dirtyPayloadFriendship(%s)', friendshipId)
+    this.cacheFriendshipPayload.delete(friendshipId)
+  }
+
+  private async dirtyPayloadMessage (messageId: string): Promise<void> {
+    log.verbose('Puppet', 'dirtyPayloadMessage(%s)', messageId)
+    this.cacheMessagePayload.delete(messageId)
+  }
+
+  private async dirtyPayloadRoomMember (roomId: string): Promise<void> {
+    log.verbose('Puppet', 'dirtyPayloadRoomMember(%s)', roomId)
+
+    const contactIdList = await this.roomMemberList(roomId)
+
+    let cacheKey
+    contactIdList.forEach(contactId => {
+      cacheKey = this.cacheKeyRoomMember(roomId, contactId)
+      this.cacheRoomMemberPayload.delete(cacheKey)
+    })
   }
 
 }

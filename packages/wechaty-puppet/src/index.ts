@@ -59,6 +59,8 @@ export {
   throwUnsupportedError,
 }                             from './throw-unsupported-error'
 
+export { PayloadType }         from './schemas/payload'
+
 export {
   PuppetOptions,
   PuppetEventName,
