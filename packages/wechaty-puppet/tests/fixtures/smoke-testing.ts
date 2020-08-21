@@ -79,6 +79,10 @@ class PuppetTest extends Puppet {
 
   public async contactList () : Promise<string[]> { return {} as any }
 
+  public async contactCorporationRemark () : Promise<void> { return {} as any }
+
+  public async contactDescription (): Promise<void> { return {} as any }
+
   public async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload> { return { rawPayload } as any }
 
