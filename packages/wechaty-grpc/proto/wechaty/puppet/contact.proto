@@ -16,6 +16,7 @@ enum ContactType {
   CONTACT_TYPE_UNSPECIFIED = 0;
   CONTACT_TYPE_PERSONAL    = 1;
   CONTACT_TYPE_OFFICIAL    = 2;
+  CONTACT_TYPE_CORPORATION = 3;
 }
 
 message ContactListRequest {}
@@ -27,19 +28,23 @@ message ContactPayloadRequest {
   string id = 1;
 }
 message ContactPayloadResponse {
-  string        id        = 1;
-  ContactGender gender    = 2;
-  ContactType   type      = 3;
-  string        name      = 4;
-  string        avatar    = 5;
-  string        address   = 6;
-  string        alias     = 7;
-  string        city      = 8;
-  bool          friend    = 9;
-  string        province  = 10;
-  string        signature = 11;
-  bool          star      = 12;
-  string        weixin    = 13;
+  string        id          = 1;
+  ContactGender gender      = 2;
+  ContactType   type        = 3;
+  string        name        = 4;
+  string        avatar      = 5;
+  string        address     = 6;
+  string        alias       = 7;
+  string        city        = 8;
+  bool          friend      = 9;
+  string        province    = 10;
+  string        signature   = 11;
+  bool          star        = 12;
+  string        weixin      = 13;
+  string        corporation = 14;
+  string        title       = 15;
+  string        description = 16;
+  bool          coworker    = 17;
 }
 
 message ContactSelfQRCodeRequest {}
@@ -83,3 +88,17 @@ message ContactPhoneRequest {
 message ContactPhoneResponse {
   repeated string phone_list = 2;
 }
+
+message ContactCorporationRemarkRequest {
+  string contact_id = 1;
+  google.protobuf.StringValue corporation_remark = 2;
+}
+
+message ContactCorporationRemarkResponse {}
+
+message ContactDescriptionRequest {
+  string contact_id = 1;
+  google.protobuf.StringValue description = 2;
+}
+
+message ContactDescriptionResponse {}
