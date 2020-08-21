@@ -197,6 +197,16 @@ class PuppetMock extends Puppet {
     }
   }
 
+  public async contactPhone (contactId: string): Promise<string[]>
+  public async contactPhone (contactId: string, phoneList: string[]): Promise<void>
+
+  public async contactPhone (contactId: string, phoneList?: string[]): Promise<string[] | void> {
+    log.verbose('PuppetMock', 'contactPhone(%s, %s)', contactId, phoneList)
+    if (typeof phoneList === 'undefined') {
+      return []
+    }
+  }
+
   public async contactList (): Promise<string[]> {
     log.verbose('PuppetMock', 'contactList()')
     return [...this.mocker.cacheContactPayload.keys()]
