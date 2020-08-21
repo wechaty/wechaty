@@ -65,6 +65,7 @@ service Puppet {
 
   rpc ContactAlias (puppet.ContactAliasRequest) returns (puppet.ContactAliasResponse) {}
   rpc ContactAvatar (puppet.ContactAvatarRequest) returns (puppet.ContactAvatarResponse) {}
+  rpc ContactPhone (puppet.ContactPhoneRequest) returns (puppet.ContactPhoneResponse) {}
 
   rpc ContactList (puppet.ContactListRequest)        returns (puppet.ContactListResponse) {}
 

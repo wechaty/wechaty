@@ -75,3 +75,11 @@ message ContactAvatarResponse {
   google.protobuf.StringValue filebox = 1;
 }
 
+message ContactPhoneRequest {
+  string contact_id = 1;
+  repeated string phone_list = 2;
+}
+
+message ContactPhoneResponse {
+  repeated string phone_list = 2;
+}
