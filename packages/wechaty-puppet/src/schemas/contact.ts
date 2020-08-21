@@ -12,12 +12,6 @@ export enum ContactType {
   Individual  = 1,
   Official    = 2,
   Corporation = 3,
-
-  /**
-   * Huan(202004):
-   * @deprecated: use Individual instead
-   */
-  Personal = Individual,
 }
 
 export interface ContactQueryFilter {
