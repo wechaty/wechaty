@@ -475,9 +475,9 @@ export abstract class Puppet extends PuppetEventEmitter {
   public abstract async contactPhone (contactId: string)                      : Promise<string[]>
   public abstract async contactPhone (contactId: string, phoneList: string[]) : Promise<void>
 
-  public abstract async contactCorporationRemark (contactId: string, corpRemark: string): Promise<void>
+  public abstract async contactCorporationRemark (contactId: string, corporationRemark: string): Promise<void>
 
-  public abstract async contactDescription (contactId: string, desc: string): Promise<void>
+  public abstract async contactDescription (contactId: string, description: string): Promise<void>
 
   public abstract async contactList ()                   : Promise<string[]>
 
