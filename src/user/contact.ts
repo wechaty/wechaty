@@ -570,7 +570,7 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
 
     if (typeof phoneList === 'undefined') {
-      return this.wechaty.puppet.contactPhone(this.id)
+      return this.payload.phone
     }
 
     try {
@@ -581,20 +581,6 @@ class Contact extends ContactEventEmitter implements Sayable {
       log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), e.message)
       Raven.captureException(e)
     }
-  }
-
-  /**
-   *
-   * @description
-   * Should use {@link Contact#friend} instead
-   *
-   * @deprecated
-   * @ignore
-   */
-  public stranger (): null | boolean {
-    log.warn('Contact', 'stranger() DEPRECATED. use friend() instead.')
-    if (!this.payload) return null
-    return !this.friend()
   }
 
   /**
@@ -616,33 +602,6 @@ class Contact extends ContactEventEmitter implements Sayable {
       return null
     }
     return this.payload.friend || null
-  }
-
-  /**
-    * @ignore
-   * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243|webwxApp.js#L324}
-   * @see {@link https://github.com/Urinx/WeixinBot/blob/master/README.md|Urinx/WeixinBot/README}
-   */
-  /**
-   * @description
-   * Check if it's a official account, should use {@link Contact#type} instead
-   * @deprecated
-   * @ignore
-   */
-  public official (): boolean {
-    log.warn('Contact', 'official() DEPRECATED. use type() instead')
-    return !!this.payload && (this.payload.type === ContactType.Official)
-  }
-
-  /**
-   * @description
-   * Check if it's a personal account, should use {@link Contact#type} instead
-   * @deprecated
-   * @ignore
-   */
-  public personal (): boolean {
-    log.warn('Contact', 'personal() DEPRECATED. use type() instead')
-    return !!this.payload && this.payload.type === ContactType.Personal
   }
 
   /**
@@ -766,18 +725,6 @@ class Contact extends ContactEventEmitter implements Sayable {
       log.error('Contact', 'tags() exception: %s', e.message)
       return []
     }
-  }
-
-  /**
-   * @description
-   * Force reload(re-ready()) data for Contact, use {@link Contact#sync} instead
-   *
-   * @deprecated
-   * @ignore
-   */
-  public refresh (): Promise<void> {
-    log.warn('Contact', 'refresh() DEPRECATED. use sync() instead.')
-    return this.sync()
   }
 
   /**

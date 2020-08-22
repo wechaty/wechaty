@@ -101,9 +101,6 @@ export interface WechatyOptions {
   memory?        : MemoryCard,
   name?          : string,                    // Wechaty Name
 
-  // @deprecated: use `name` instead of `profile`
-  profile?       : null | string,             // DEPRECATED: use name instead
-
   puppet?        : PuppetModuleName | Puppet, // Puppet name or instance
   puppetOptions? : PuppetOptions,             // Puppet TOKEN
   ioToken?       : string,                    // Io TOKEN
@@ -287,10 +284,6 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     super()
     log.verbose('Wechaty', 'constructor()')
 
-    if (!options.name && options.profile) {
-      log.verbose('Wechaty', 'constructor() WechatyOptions.profile DEPRECATED. use WechatyOptions.name instead.')
-      options.name = options.profile
-    }
     this.memory = this.options.memory
 
     this.id = cuid()
@@ -836,17 +829,6 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
       // https://github.com/wechaty/wechaty/issues/1878
       return false
     }
-  }
-
-  /**
-   * @description
-   * Should use {@link Wechaty#userSelf} instead
-   * @deprecated Use `userSelf()` instead
-   * @ignore
-   */
-  public self (): Contact {
-    log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
-    return this.userSelf()
   }
 
   /**
