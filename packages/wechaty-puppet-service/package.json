@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-hostie",
-  "version": "0.9.13",
+  "version": "0.9.16",
   "description": "Puppet Hostie for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -53,14 +53,14 @@
     "shx": "^0.3.2",
     "tstest": "^0.4.10",
     "wechaty": "^0.46.4",
-    "wechaty-puppet": "^0.31.0",
-    "wechaty-puppet-mock": "^0.22.41"
+    "wechaty-puppet": "^0.32.2",
+    "wechaty-puppet-mock": "^0.27.11"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^0.30.3"
+    "wechaty-puppet": "^0.32.2"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.16.5",
+    "@chatie/grpc": "^0.17.4",
     "@reduxjs/toolkit": "^1.4.0",
     "redux": "^4.0.5",
     "redux-observable": "^1.2.0",

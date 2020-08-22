@@ -66,6 +66,7 @@ import {
   FriendshipSceneType,
   EventScanPayload,
   EventReadyPayload,
+  PayloadType,
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
@@ -180,6 +181,39 @@ export function puppetImplementation (
       }
     },
 
+    contactCorporationRemark: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'contactCorporationRemark()')
+
+      const contactId = call.request.getContactId()
+      let corporationRemark: string | null = null
+      try {
+        const corporationRemarkWrapper = call.request.getCorporationRemark()
+        if (corporationRemarkWrapper) {
+          corporationRemark = corporationRemarkWrapper.getValue()
+        }
+        await puppet.contactCorporationRemark(contactId, corporationRemark)
+      } catch (e) {
+        return grpcError('contactCorporationRemark', e, callback)
+      }
+    },
+
+    contactDescription: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'contactDescription()')
+
+      const contactId = call.request.getContactId()
+      let description: string | null = null
+
+      try {
+        const descriptionWrapper = call.request.getDescription()
+        if (descriptionWrapper) {
+          description = descriptionWrapper.getValue()
+        }
+        await puppet.contactDescription(contactId, description)
+      } catch (e) {
+        return grpcError('contactDescription', e, callback)
+      }
+    },
+
     contactList: async (call, callback) => {
       log.verbose('PuppetServiceImpl', 'contactList()')
 
@@ -222,6 +256,19 @@ export function puppetImplementation (
         return callback(null, response)
       } catch (e) {
         return grpcError('contactPayload', e, callback)
+      }
+    },
+
+    contactPhone: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'contactPhone()')
+
+      try {
+        const contactId = call.request.getContactId()
+        const phoneList = call.request.getPhoneListList()
+
+        await puppet.contactPhone(contactId, phoneList)
+      } catch (e) {
+        return grpcError('contactPhone', e, callback)
       }
     },
 
@@ -282,6 +329,19 @@ export function puppetImplementation (
 
       } catch (e) {
         return grpcError('ding', e, callback)
+      }
+    },
+
+    dirtyPayload: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'dirtyPayload()')
+
+      try {
+        const id = call.request.getId()
+        const type: PayloadType = call.request.getType()
+
+        await puppet.dirtyPayload(type, id)
+      } catch (e) {
+        return grpcError('dirtyPayload', e, callback)
       }
     },
 

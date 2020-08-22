@@ -47,6 +47,7 @@ class PuppetTest extends PuppetMock {
       gender : ContactGender.Male,
       id,
       name : idToName(id),
+      phone: [],
       type   : ContactType.Individual,
     }
 

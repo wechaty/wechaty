@@ -33,6 +33,7 @@ import {
 import {
   EventTypeRev,
 }                 from '../event-type-rev'
+import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
 
 export class EventStreamManager {
 
@@ -138,6 +139,13 @@ export class EventStreamManager {
           const listener = (payload: EventDongPayload) => this.grpcEmit(EventType.EVENT_TYPE_DONG, payload)
           this.puppet.on('dong', listener)
           const off = () => this.puppet.off('dong', listener)
+          offCallbackList.push(off)
+          break
+        }
+        case 'dirty': {
+          const listener = (payload: EventDirtyPayload) => this.grpcEmit(EventType.EVENT_TYPE_DIRTY, payload)
+          this.puppet.on('dirty', listener)
+          const off = () => this.puppet.off('dirty', listener)
           offCallbackList.push(off)
           break
         }

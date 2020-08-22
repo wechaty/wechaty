@@ -35,6 +35,7 @@ import {
   EventRoomTopicPayload,
   EventScanPayload,
   EventErrorPayload,
+  PayloadType,
 }                         from 'wechaty-puppet'
 
 import {
@@ -91,6 +92,10 @@ import {
   DingRequest,
 
   EventType,
+  DirtyPayloadRequest,
+  ContactCorporationRemarkRequest,
+  ContactDescriptionRequest,
+  ContactPhoneRequest,
 }                                   from '@chatie/grpc'
 
 import { Subscription } from 'rxjs'
@@ -110,6 +115,7 @@ import {
 import {
   recover$,
 }             from './recover$'
+import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
 
 const MAX_HOSTIE_IP_DISCOVERY_RETRIES = 10
 
@@ -417,6 +423,9 @@ export class PuppetHostie extends Puppet {
         this.id = undefined
         this.emit('logout', JSON.parse(payload) as EventLogoutPayload)
         break
+      case EventType.EVENT_TYPE_DIRTY:
+        this.emit('dirty', JSON.parse(payload) as EventDirtyPayload)
+        break
       case EventType.EVENT_TYPE_MESSAGE:
         this.emit('message', JSON.parse(payload) as EventMessagePayload)
         break
@@ -512,6 +521,26 @@ export class PuppetHostie extends Puppet {
     )
   }
 
+  async dirtyPayload (type: PayloadType, id: string) {
+    await super.dirtyPayload(type, id)
+    if (!this.grpcClient) {
+      throw new Error('PuppetHostie dirtyPayload() can not execute due to no grpcClient.')
+    }
+    const request = new DirtyPayloadRequest()
+    request.setId(id)
+    request.setType(type)
+    try {
+      await util.promisify(
+        this.grpcClient.dirtyPayload.bind(this.grpcClient)
+          .bind(this.grpcClient)
+      )(request)
+
+    } catch (e) {
+      log.error('PuppetHostie', 'dirtyPayload() rejection: %s', e && e.message)
+      throw e
+    }
+  }
+
   public unref (): void {
     log.verbose('PuppetHostie', 'unref()')
     super.unref()
@@ -560,6 +589,52 @@ export class PuppetHostie extends Puppet {
 
     await util.promisify(
       this.grpcClient!.contactAlias.bind(this.grpcClient)
+    )(request)
+  }
+
+  public async contactPhone (contactId: string, phoneList: string[]): Promise<void> {
+    log.verbose('PuppetHostie', 'contactPhone(%s, %s)', contactId, phoneList)
+
+    const request = new ContactPhoneRequest()
+    request.setContactId(contactId)
+    request.setPhoneListList(phoneList)
+
+    await util.promisify(
+      this.grpcClient!.contactPhone.bind(this.grpcClient)
+    )(request)
+  }
+
+  public async contactCorporationRemark (contactId: string, corporationRemark: string | null) {
+    log.verbose('PuppetHostie', 'contactCorporationRemark(%s, %s)', contactId, corporationRemark)
+
+    const corporationRemarkWrapper = new StringValue()
+    if (corporationRemark) {
+      corporationRemarkWrapper.setValue(corporationRemark)
+    }
+
+    const request = new ContactCorporationRemarkRequest()
+    request.setContactId(contactId)
+    request.setCorporationRemark(corporationRemarkWrapper)
+
+    await util.promisify(
+      this.grpcClient!.contactCorporationRemark.bind(this.grpcClient)
+    )(request)
+  }
+
+  public async contactDescription (contactId: string, description: string | null) {
+    log.verbose('PuppetHostie', 'contactDescription(%s, %s)', contactId, description)
+
+    const descriptionWrapper = new StringValue()
+    if (description) {
+      descriptionWrapper.setValue(description)
+    }
+
+    const request = new ContactDescriptionRequest()
+    request.setContactId(contactId)
+    request.setDescription(descriptionWrapper)
+
+    await util.promisify(
+      this.grpcClient!.contactDescription.bind(this.grpcClient)
     )(request)
   }
 
@@ -648,6 +723,7 @@ export class PuppetHostie extends Puppet {
       gender    : response.getGender() as number,
       id        : response.getId(),
       name      : response.getName(),
+      phone     : response.getPhoneList(),
       province  : response.getProvince(),
       signature : response.getSignature(),
       star      : response.getStar(),
