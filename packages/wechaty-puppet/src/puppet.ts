@@ -360,7 +360,20 @@ export abstract class Puppet extends PuppetEventEmitter {
    *
    * Note: must set `this.id = undefined` in this function.
    */
-  public abstract async logout (): Promise<void>
+  public async logout (reason = 'logout()'): Promise<void> {
+    log.verbose('Puppet', 'logout(%s)', this.id)
+
+    if (!this.id) {
+      throw new Error('must login first before logout!')
+    }
+
+    this.emit('logout', {
+      contactId : this.id,
+      data      : reason,
+    })
+
+    this.id = undefined
+  }
 
   public selfId (): string {
     log.verbose('Puppet', 'selfId()')
