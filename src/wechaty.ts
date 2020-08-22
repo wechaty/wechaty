@@ -131,7 +131,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
-export class Wechaty extends WechatyEventEmitter implements Sayable {
+class Wechaty extends WechatyEventEmitter implements Sayable {
 
   public static readonly VERSION = VERSION
 
@@ -173,16 +173,16 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
   protected wechatifiedTag?            : typeof Tag
   protected wechatifiedUrlLink?        : typeof UrlLink
 
-  public get Contact ()        : typeof Contact         { return this.wechatifiedContact!         }
-  public get ContactSelf ()    : typeof ContactSelf     { return this.wechatifiedContactSelf!     }
-  public get Friendship ()     : typeof Friendship      { return this.wechatifiedFriendship!      }
-  public get Image ()          : typeof Image           { return this.wechatifiedImage!           }
-  public get Message ()        : typeof Message         { return this.wechatifiedMessage!         }
-  public get MiniProgram ()    : typeof MiniProgram     { return this.wechatifiedMiniProgram!     }
-  public get Room ()           : typeof Room            { return this.wechatifiedRoom!            }
-  public get RoomInvitation () : typeof RoomInvitation  { return this.wechatifiedRoomInvitation!  }
-  public get Tag ()            : typeof Tag             { return this.wechatifiedTag!             }
-  public get UrlLink ()        : typeof UrlLink         { return this.wechatifiedUrlLink!         }
+  public get Contact ()        : typeof Contact         { return guardWechatify(this.wechatifiedContact)        }
+  public get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.wechatifiedContactSelf)    }
+  public get Friendship ()     : typeof Friendship      { return guardWechatify(this.wechatifiedFriendship)     }
+  public get Image ()          : typeof Image           { return guardWechatify(this.wechatifiedImage)          }
+  public get Message ()        : typeof Message         { return guardWechatify(this.wechatifiedMessage)        }
+  public get MiniProgram ()    : typeof MiniProgram     { return guardWechatify(this.wechatifiedMiniProgram)    }
+  public get Room ()           : typeof Room            { return guardWechatify(this.wechatifiedRoom)           }
+  public get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.wechatifiedRoomInvitation) }
+  public get Tag ()            : typeof Tag             { return guardWechatify(this.wechatifiedTag)            }
+  public get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.wechatifiedUrlLink)        }
 
   /**
    * Get the global instance of Wechaty
@@ -1010,4 +1010,18 @@ export class Wechaty extends WechatyEventEmitter implements Sayable {
     this.puppet.unref()
   }
 
+}
+
+/**
+ * Huan(202008): we will bind the wechaty puppet with user modules (Contact, Room, etc) together inside the start() method
+ */
+function guardWechatify<T extends Function> (userModule?: T): T {
+  if (!userModule) {
+    throw new Error('Wechaty user module (for example, wechaty.Room) can not be used before wechaty.start()!')
+  }
+  return userModule
+}
+
+export {
+  Wechaty,
 }
