@@ -328,17 +328,6 @@ class Message extends EventEmitter implements Sayable {
   }
 
   /**
-   * @description
-   * use {@link Message#text} instead
-   *
-   * @deprecated
-   */
-  public content (): string {
-    log.warn('Message', 'content() DEPRECATED. use text() instead.')
-    return this.text()
-  }
-
-  /**
    * Get the text content of the message
    *
    * @returns {string}
@@ -778,17 +767,6 @@ class Message extends EventEmitter implements Sayable {
   }
 
   /**
-   * @description
-   * should use {@link Message#mention} instead
-   * @deprecated
-   * @ignore
-   */
-  public async mentioned (): Promise<Contact[]> {
-    log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')
-    return this.mentionList()
-  }
-
-  /**
    * Check if a message is mention self.
    *
    * @returns {Promise<boolean>} - Return `true` for mention me.
@@ -936,16 +914,6 @@ class Message extends EventEmitter implements Sayable {
     const ageMilliseconds = Date.now() - this.date().getTime()
     const ageSeconds = Math.floor(ageMilliseconds / 1000)
     return ageSeconds
-  }
-
-  /**
-   * @description
-   * use {@link Message#toFileBox} instead
-   * @deprecated
-   */
-  public async file (): Promise<FileBox> {
-    log.warn('Message', 'file() DEPRECATED. use toFileBox() instead.')
-    return this.toFileBox()
   }
 
   /**

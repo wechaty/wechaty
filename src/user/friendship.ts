@@ -106,16 +106,6 @@ class Friendship extends EventEmitter implements Acceptable {
   }
 
   /**
-   * @description
-   * use {@link Friendship#add} instead
-   * @deprecated
-   */
-  public static async send (contact: Contact,  hello: string) {
-    log.warn('Friendship', 'static send() DEPRECATED， use add() instead.')
-    return this.add(contact, hello)
-  }
-
-  /**
    * Send a Friend Request to a `contact` with message `hello`.
    *
    * The best practice is to send friend request once per minute.
