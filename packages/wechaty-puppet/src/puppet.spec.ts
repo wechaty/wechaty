@@ -42,6 +42,7 @@ test('contactQueryFilterFunction()', async t => {
       gender : ContactGender.Unknown,
       id     : 'id1',
       name   : TEXT_REGEX,
+      phone  : [],
       type   : ContactType.Individual,
     },
     {
@@ -50,6 +51,7 @@ test('contactQueryFilterFunction()', async t => {
       gender : ContactGender.Unknown,
       id     : 'id2',
       name   : TEXT_TEXT,
+      phone  : [],
       type   : ContactType.Individual,
     },
     {
@@ -58,6 +60,7 @@ test('contactQueryFilterFunction()', async t => {
       gender : ContactGender.Unknown,
       id     : 'id3',
       name   : TEXT_REGEX,
+      phone  : [],
       type   : ContactType.Individual,
     },
     {
@@ -66,6 +69,7 @@ test('contactQueryFilterFunction()', async t => {
       gender : ContactGender.Unknown,
       id     : 'id4',
       name   : TEXT_TEXT,
+      phone  : [],
       type   : ContactType.Individual,
     },
   ]
