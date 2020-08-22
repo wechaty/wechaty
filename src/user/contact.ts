@@ -570,7 +570,7 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
 
     if (typeof phoneList === 'undefined') {
-      return this.wechaty.puppet.contactPhone(this.id)
+      return this.payload.phone
     }
 
     try {
@@ -633,7 +633,7 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
-  public title (): string {
+  public title (): string | null {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -708,7 +708,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    */
   public personal (): boolean {
     log.warn('Contact', 'personal() DEPRECATED. use type() instead')
-    return !!this.payload && this.payload.type === ContactType.Personal
+    return !!this.payload && this.payload.type === ContactType.Individual
   }
 
   /**
