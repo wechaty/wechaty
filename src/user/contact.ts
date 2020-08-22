@@ -583,6 +583,72 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
+  public async corporation (): Promise<string | null>
+  public async corporation (remark: string | null): Promise<void>
+  public async corporation (remark?: string | null): Promise<string | null | void> {
+    log.silly('Contact', 'corporation(%s)', remark)
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (typeof remark === 'undefined') {
+      return this.payload.corporation || null
+    }
+
+    if (this.payload.type !== ContactType.Individual) {
+      throw new Error('Can not set corporation remark on non individual contact.')
+    }
+
+    try {
+      await this.wechaty.puppet.contactCorporationRemark(this.id, remark)
+      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+    } catch (e) {
+      log.error('Contact', 'corporation(%s) rejected: %s', remark, e.message)
+      Raven.captureException(e)
+    }
+  }
+
+  public async description (): Promise<string | null>
+  public async description (newDescription: string | null): Promise<void>
+  public async description (newDescription?: string | null): Promise<string | null | void> {
+    log.silly('Contact', 'description(%s)', newDescription)
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (typeof newDescription === 'undefined') {
+      return this.payload.description || null
+    }
+
+    try {
+      await this.wechaty.puppet.contactDescription(this.id, newDescription)
+      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+    } catch (e) {
+      log.error('Contact', 'description(%s) rejected: %s', newDescription, e.message)
+      Raven.captureException(e)
+    }
+  }
+
+  public title (): string | null {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    return this.payload.title || null
+  }
+
+  public coworker (): boolean {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    return !!this.payload.coworker
+  }
+
   /**
    * Check if contact is friend
    *
