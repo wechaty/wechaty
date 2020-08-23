@@ -253,6 +253,11 @@ export function puppetImplementation (
         response.setStar(payload.star || false)
         response.setType(payload.type)
         response.setWeixin(payload.weixin || '')
+        response.setPhoneList(payload.phone)
+        response.setCoworker(payload.coworker || false)
+        response.setCorporation(payload.corporation || '')
+        response.setTitle(payload.title || '')
+        response.setDescription(payload.description || '')
 
         return callback(null, response)
       } catch (e) {
