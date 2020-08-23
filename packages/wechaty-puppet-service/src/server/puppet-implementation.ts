@@ -54,6 +54,9 @@ import {
   EventType,
   MessageSendUrlResponse,
   MessageTypeMap,
+  ContactPhoneResponse,
+  ContactDescriptionResponse,
+  ContactCorporationRemarkResponse,
 }                                   from '@chatie/grpc'
 
 import {
@@ -193,6 +196,7 @@ export function puppetImplementation (
           corporationRemark = corporationRemarkWrapper.getValue()
         }
         await puppet.contactCorporationRemark(contactId, corporationRemark)
+        return callback(null, new ContactCorporationRemarkResponse())
       } catch (e) {
         return grpcError('contactCorporationRemark', e, callback)
       }
@@ -210,6 +214,7 @@ export function puppetImplementation (
           description = descriptionWrapper.getValue()
         }
         await puppet.contactDescription(contactId, description)
+        return callback(null, new ContactDescriptionResponse())
       } catch (e) {
         return grpcError('contactDescription', e, callback)
       }
@@ -273,6 +278,7 @@ export function puppetImplementation (
         const phoneList = call.request.getPhoneListList()
 
         await puppet.contactPhone(contactId, phoneList)
+        return callback(null, new ContactPhoneResponse())
       } catch (e) {
         return grpcError('contactPhone', e, callback)
       }
@@ -620,7 +626,7 @@ export function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        grpcError('messageRecall', e, callback)
+        return grpcError('messageRecall', e, callback)
       }
     },
 
