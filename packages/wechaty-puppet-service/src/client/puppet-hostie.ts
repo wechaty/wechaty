@@ -715,20 +715,24 @@ export class PuppetHostie extends Puppet {
     )(request)
 
     const payload: ContactPayload = {
-      address   : response.getAddress(),
-      alias     : response.getAlias(),
-      avatar    : response.getAvatar(),
-      city      : response.getCity(),
-      friend    : response.getFriend(),
-      gender    : response.getGender() as number,
-      id        : response.getId(),
-      name      : response.getName(),
-      phone     : response.getPhoneList(),
-      province  : response.getProvince(),
-      signature : response.getSignature(),
-      star      : response.getStar(),
-      type      : response.getType() as number,
-      weixin    : response.getWeixin(),
+      address     : response.getAddress(),
+      alias       : response.getAlias(),
+      avatar      : response.getAvatar(),
+      city        : response.getCity(),
+      corporation : response.getCorporation(),
+      coworker    : response.getCoworker(),
+      description : response.getDescription(),
+      friend      : response.getFriend(),
+      gender      : response.getGender() as number,
+      id          : response.getId(),
+      name        : response.getName(),
+      phone       : response.getPhoneList(),
+      province    : response.getProvince(),
+      signature   : response.getSignature(),
+      star        : response.getStar(),
+      title       : response.getTitle(),
+      type        : response.getType() as number,
+      weixin      : response.getWeixin(),
     }
 
     return payload
