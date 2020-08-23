@@ -10,7 +10,7 @@ import {
   ContactSelfQRCodeResponse,
   ContactSelfSignatureResponse,
   DingResponse,
-  DirtyPayloadRequest,
+  DirtyPayloadResponse,
   FriendshipAcceptResponse,
   FriendshipAddResponse,
   FriendshipPayloadResponse,
@@ -341,7 +341,7 @@ export function puppetImplementation (
         const type: PayloadType = call.request.getType()
 
         await puppet.dirtyPayload(type, id)
-        return callback(null, new DirtyPayloadRequest())
+        return callback(null, new DirtyPayloadResponse())
       } catch (e) {
         return grpcError('dirtyPayload', e, callback)
       }
