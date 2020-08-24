@@ -303,15 +303,6 @@ class Room extends RoomEventEmitter implements Sayable {
   }
 
   /**
-    * @ignore
-   * @ignore
-   * @deprecated: Use `sync()` instead
-   */
-  public async refresh (): Promise<void> {
-    await this.sync()
-  }
-
-  /**
    * Force reload data for Room, Sync data from puppet API again.
    *
    * @returns {Promise<void>}
@@ -960,14 +951,6 @@ class Room extends RoomEventEmitter implements Sayable {
   }
 
   /**
-   * @deprecated: use qrCode() instead
-   */
-  public async qrcode () {
-    log.warn('Room', 'qrcode() is deprecated. use qrCode() instead.')
-    return this.qrCode()
-  }
-
-  /**
    * Get QR Code Value of the Room from the room, which can be used as scan and join the room.
    * > Tips:
    * 1. This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
@@ -1005,18 +988,6 @@ class Room extends RoomEventEmitter implements Sayable {
     }
 
     return null
-  }
-
-  /**
-   * Same as function alias
-   * @param {Contact} contact
-   * @returns {Promise<string | null>}
-   * @deprecated: use room.alias() instead
-   * @ignore
-   */
-  public async roomAlias (contact: Contact): Promise<null | string> {
-    log.warn('Room', 'roomAlias() DEPRECATED. use room.alias() instead')
-    return this.alias(contact)
   }
 
   /**

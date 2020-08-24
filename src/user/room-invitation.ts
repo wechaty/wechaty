@@ -177,16 +177,7 @@ class RoomInvitation implements Acceptable {
   public async topic (): Promise<string> {
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
-    // roomTopic deprecated. use topic instead:
     return payload.topic || payload.topic || ''
-  }
-
-  /**
-   * @deprecated: use topic() instead
-   * @ignore
-   */
-  public async roomTopic (): Promise<string> {
-    return this.topic()
   }
 
   public async memberCount (): Promise<number> {
@@ -194,17 +185,7 @@ class RoomInvitation implements Acceptable {
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
-    // roomMemberCount deprecated. use memberCount instead:
     return payload.memberCount || payload.memberCount || 0
-  }
-
-  /**
-   * @deprecated: use memberCount() instead
-   * @ignore
-   */
-  public async roomMemberCount (): Promise<number> {
-    log.warn('RoomInvitation', 'roomMemberCount() DEPRECATED. use memberCount() instead.')
-    return this.memberCount()
   }
 
   /**
@@ -216,7 +197,6 @@ class RoomInvitation implements Acceptable {
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
-    // roomMemberIdList deprecated. use memberIdList isntead.
     const contactIdList = payload.memberIdList || payload.memberIdList || []
 
     const contactList = contactIdList.map(
@@ -229,15 +209,6 @@ class RoomInvitation implements Acceptable {
     )
 
     return contactList
-  }
-
-  /**
-   * @deprecated: use memberList() instead.
-   * @ignore
-   */
-  public async roomMemberList (): Promise<Contact[]> {
-    log.warn('RoomInvitation', 'roomMemberList() DEPRECATED. use memberList() instead.')
-    return this.roomMemberList()
   }
 
   /**
