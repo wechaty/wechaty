@@ -1,3 +1,4 @@
+/* eslint-disable sort-keys */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -40,10 +41,15 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Wechaty External Puppets
    */
-  'wechaty-puppet-official-account' : '^0.2.2',    // https://www.npmjs.com/package/wechaty-puppet-official-account
   'wechaty-puppet-padplus'          : '^0.7.30',   // https://www.npmjs.com/package/wechaty-puppet-padplus
   'wechaty-puppet-puppeteer'        : '^0.23.1',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
   'wechaty-puppet-wechat4u'         : '^0.17.4',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
+
+  /**
+   * Other
+   */
+  'wechaty-puppet-gitter' : '^0.3.1',               // https://www.npmjs.com/package/wechaty-puppet-gitter
+  'wechaty-puppet-official-account' : '^0.2.2',     // https://www.npmjs.com/package/wechaty-puppet-official-account
 }
 
 export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
