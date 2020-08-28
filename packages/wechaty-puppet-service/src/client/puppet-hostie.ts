@@ -155,7 +155,7 @@ export class PuppetHostie extends Puppet {
 
   private async discoverHostieIp (
     token: string,
-  ): Promise<{ ip: string, port: number }> {
+  ): Promise<{ ip?: string, port?: number }> {
     log.verbose('PuppetHostie', 'discoverHostieIp(%s)', token)
 
     const CHATIE_ENDPOINT_LIST = [
@@ -168,12 +168,12 @@ export class PuppetHostie extends Puppet {
       const result = await Promise.race<Promise<{ ip: string, port: number }>>([
         ...CHATIE_ENDPOINT_LIST.map(endpoint => this.getHostieIp(endpoint, token)),
         // eslint-disable-next-line promise/param-names
-        new Promise((_, reject) => setTimeout(reject, 5 * 1000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 5 * 1000)),
       ])
       return result
     } catch (e) {
-      console.error(e)
-      throw new Error('discoverHostieIp() timeout to get any ip info from all hostie endpoints.')
+      log.warn(`discoverHostieIp() failed to get any ip info from all hostie endpoints.\n${e.stack}`)
+      return {}
     }
   }
 
