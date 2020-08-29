@@ -596,7 +596,6 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
                */
               case PayloadType.Friendship:
                 // Friendship has no payload
-                // await this.Friendship.load(payloadId)
                 break
               case PayloadType.Message:
                 // Message does not need to dirty (?)
