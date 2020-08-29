@@ -40,6 +40,7 @@ import {
   MiniProgramPayload,
 
   log,
+  PayloadType,
 }                           from 'wechaty-puppet'
 
 import {
@@ -197,7 +198,25 @@ class PuppetMock extends Puppet {
     }
   }
 
-  async contactList (): Promise<string[]> {
+  public async contactPhone (contactId: string): Promise<string[]>
+  public async contactPhone (contactId: string, phoneList: string[]): Promise<void>
+
+  public async contactPhone (contactId: string, phoneList?: string[]): Promise<string[] | void> {
+    log.verbose('PuppetMock', 'contactPhone(%s, %s)', contactId, phoneList)
+    if (typeof phoneList === 'undefined') {
+      return []
+    }
+  }
+
+  public async contactCorporationRemark (contactId: string, corporationRemark: string) {
+    log.verbose('PuppetMock', 'contactCorporationRemark(%s, %s)', contactId, corporationRemark)
+  }
+
+  public async contactDescription (contactId: string, description: string) {
+    log.verbose('PuppetMock', 'contactDescription(%s, %s)', contactId, description)
+  }
+
+  public async contactList (): Promise<string[]> {
     log.verbose('PuppetMock', 'contactList()')
     return [...this.mocker.cacheContactPayload.keys()]
   }
@@ -446,7 +465,7 @@ class PuppetMock extends Puppet {
       return 'mock room topic'
     }
 
-    await this.roomPayloadDirty(roomId)
+    await this.dirtyPayload(PayloadType.Room, roomId)
   }
 
   async roomCreate (

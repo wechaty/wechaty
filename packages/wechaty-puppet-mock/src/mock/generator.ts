@@ -1,5 +1,5 @@
 import faker from 'faker'
-import cuid from 'cuid'
+import cuid  from 'cuid'
 
 import {
   ContactPayload,
@@ -25,10 +25,13 @@ const generateContactPayload = (): ContactPayload => ({
   gender    : ContactGender.Male,
   id        : cuid(),
   name      : faker.name.findName(),
+  phone     : [
+    faker.phone.phoneNumber(),
+  ],
   province  : faker.address.state(),
   signature : faker.lorem.sentence(),
   star      : false,
-  type      : ContactType.Personal,
+  type      : ContactType.Individual,
   weixin    : undefined,
 })
 
