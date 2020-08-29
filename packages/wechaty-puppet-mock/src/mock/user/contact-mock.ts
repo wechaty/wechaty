@@ -59,7 +59,7 @@ class ContactMock extends ContactEventEmitter {
    * @param {string} id
    * @returns {ContactMock}
    */
-  public static load<T extends typeof ContactMock> (
+  static load<T extends typeof ContactMock> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -71,7 +71,7 @@ class ContactMock extends ContactEventEmitter {
     throw new Error(`MockContact.load(): ${id} not exist.`)
   }
 
-  public static create<T extends typeof ContactMock> (
+  static create<T extends typeof ContactMock> (
     payload: ContactPayload,
   ): T['prototype'] {
     log.verbose('MockContact', 'static create(%s)', JSON.stringify(payload))

@@ -147,7 +147,7 @@ class Mocker {
     return this.RoomMock.create(payload)
   }
 
-  public randomConversation (): ContactMock | RoomMock {
+  randomConversation (): ContactMock | RoomMock {
     log.verbose('Mocker', 'randomConversation()')
 
     const contactIdList = [...this.cacheContactPayload.keys()]

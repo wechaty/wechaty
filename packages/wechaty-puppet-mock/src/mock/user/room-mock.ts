@@ -48,7 +48,7 @@ class RoomMock extends RoomEventEmitter {
    * @param {string} id
    * @returns {Room}
    */
-  public static load<T extends typeof RoomMock> (
+  static load<T extends typeof RoomMock> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -59,7 +59,7 @@ class RoomMock extends RoomEventEmitter {
     return existingRoom
   }
 
-  public static create<T extends typeof RoomMock> (
+  static create<T extends typeof RoomMock> (
     payload: RoomPayload,
   ): T['prototype'] {
     log.verbose('MockRoom', 'static create(%s)', JSON.stringify(payload))

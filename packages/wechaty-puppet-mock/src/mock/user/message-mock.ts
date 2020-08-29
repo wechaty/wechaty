@@ -62,7 +62,7 @@ class MessageMock {
    * @param {string} id
    * @returns {MessageMock}
    */
-  public static load<T extends typeof MessageMock> (
+  static load<T extends typeof MessageMock> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -90,7 +90,7 @@ class MessageMock {
   //   return this.attachmentPool.get(id)
   // }
 
-  public static create<T extends typeof MessageMock> (
+  static create<T extends typeof MessageMock> (
     payload: MessagePayload,
   ): T['prototype'] {
     log.verbose('MockMessage', 'static create(%s)', JSON.stringify(payload))
