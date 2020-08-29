@@ -146,7 +146,7 @@ export abstract class Puppet extends PuppetEventEmitter {
 
     this.memory = new MemoryCard() // dummy memory
     this.memory.load()  // load here is for testing only
-      .then(() => log.verbose('Puppet', 'constructor() memory.load() done'))
+      .then(() => undefined)
       .catch(e => log.warn('Puppet', 'constructor() memory.load() rejection: %s', e))
 
     /**
