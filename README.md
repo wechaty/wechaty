@@ -414,6 +414,10 @@ So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most i
 
 At last, It's built for huan's personal study purpose of Automatically Testing.
 
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/wechaty/wechaty.svg)](https://starchart.cc/wechaty/wechaty)
+
 ## :two_hearts: Contributors
 
 [![GitHub issues](https://img.shields.io/github/issues/wechaty/wechaty.svg)](https://github.com/Wechaty/wechaty/issues)
