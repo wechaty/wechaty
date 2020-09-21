@@ -118,6 +118,7 @@ import {
 import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
 
 const MAX_HOSTIE_IP_DISCOVERY_RETRIES = 10
+const MAX_GRPC_CONNECTION_RETRIES = 5
 
 export class PuppetHostie extends Puppet {
 
@@ -267,7 +268,7 @@ export class PuppetHostie extends Puppet {
         return
       }
 
-      this.startGrpcStream()
+      await this.startGrpcStream()
       // this.startDing()
 
       await util.promisify(
@@ -352,14 +353,32 @@ export class PuppetHostie extends Puppet {
     this.state.off(true)
   }
 
-  private startGrpcStream (): void {
+  private async startGrpcStream (): Promise<void> {
     log.verbose('PuppetHostie', 'startGrpcStream()')
 
     if (this.eventStream) {
       throw new Error('event stream exists')
     }
 
-    this.eventStream = this.grpcClient!.event(new EventRequest())
+    let retry = MAX_GRPC_CONNECTION_RETRIES
+    while (!this.eventStream) {
+      try {
+        this.eventStream = this.grpcClient!.event(new EventRequest())
+      } catch (e) {
+        if (retry-- > 0) {
+          log.verbose('PuppetHostie', `startGrpcStream() connection failed, ${retry} retries left, reconnecting in 2 seconds...`)
+          await new Promise(resolve => setTimeout(resolve, 2 * 1000))
+        } else {
+          log.error('PuppetHostie', `startGrpcStream() connection failed and max retries has been reached. Error:\n${e.stack}`)
+          break
+        }
+      }
+    }
+
+    if (!this.eventStream) {
+      this.emit('reset', { data: 'startGrpcStream() failed to connect to grpc server' })
+      return
+    }
 
     this.eventStream
       .on('data', this.onGrpcStreamEvent.bind(this))
