@@ -43,6 +43,11 @@ WECHATY_PUPPET_HOSTIE_TOKEN=hostie_token node bot.js
 
 ### master
 
+### v0.10.4 (Oct 2020)
+
+1. Add 'grpc.default_authority' to gRPC client option.
+   gRPC server can use the authority  to identify current user.
+
 ### v0.6 (Apr 2020)
 
 Beta Version

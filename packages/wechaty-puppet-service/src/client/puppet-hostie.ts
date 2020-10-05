@@ -222,10 +222,14 @@ export class PuppetHostie extends Puppet {
       endpoint = hostieIpResult.ip + ':' + hostieIpResult.port
     }
 
+    const clientOptions = {
+      ...GRPC_LIMITATION,
+      'grpc.default_authority': this.options.token,
+    }
     this.grpcClient = new PuppetClient(
       endpoint, // 'localhost:50051',
       grpc.credentials.createInsecure(),
-      GRPC_LIMITATION,
+      clientOptions
     )
   }
 
