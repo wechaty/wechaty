@@ -872,17 +872,22 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public async forward (to: Room | Contact): Promise<void> {
+  public async forward (to: Room | Contact): Promise<void | Message> {
     log.verbose('Message', 'forward(%s)', to)
 
     // let roomId
     // let contactId
 
     try {
-      await this.wechaty.puppet.messageForward(
+      const msgId = await this.wechaty.puppet.messageForward(
         to.id,
         this.id,
       )
+      if (msgId) {
+        const msg = this.wechaty.Message.load(msgId)
+        await msg.ready()
+        return msg
+      }
     } catch (e) {
       log.error('Message', 'forward(%s) exception: %s', to, e)
       throw e
