@@ -39,6 +39,8 @@ export class EventStreamManager {
 
   protected eventStream: undefined | grpc.ServerWritableStream<EventRequest>
 
+  private puppetListened = false
+
   constructor (
     public puppet: Puppet,
   ) {
@@ -124,6 +126,7 @@ export class EventStreamManager {
         offCallbackList.length,
       )
       offCallbackList.forEach(cb => cb())
+      this.puppetListened = false
     }
 
     const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
@@ -243,6 +246,7 @@ export class EventStreamManager {
       }
     }
 
+    this.puppetListened = true
     return disconnect
   }
 
@@ -264,8 +268,10 @@ export class EventStreamManager {
         JSON.stringify(arguments)
       )
 
-      if (this.eventStream) {
+      if (this.puppetListened) {
         callback()
+      }
+      if (this.eventStream) {
         this.eventStream = undefined
       } else {
         log.warn('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(cancelled) eventStream is undefined')
@@ -274,8 +280,10 @@ export class EventStreamManager {
 
     this.eventStream.on('error', err => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(error) fired: %s', err)
-      if (this.eventStream) {
+      if (this.puppetListened) {
         callback()
+      }
+      if (this.eventStream) {
         this.eventStream = undefined
       } else {
         log.warn('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(error) eventStream is undefined')
@@ -284,7 +292,9 @@ export class EventStreamManager {
 
     this.eventStream.on('finish', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(finish) fired')
-      callback()
+      if (this.puppetListened) {
+        callback()
+      }
       if (this.eventStream) {
         this.eventStream = undefined
       } else {
@@ -294,7 +304,9 @@ export class EventStreamManager {
 
     this.eventStream.on('end', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(end) fired')
-      callback()
+      if (this.puppetListened) {
+        callback()
+      }
       if (this.eventStream) {
         this.eventStream = undefined
       } else {
@@ -304,7 +316,9 @@ export class EventStreamManager {
 
     this.eventStream.on('close', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(close) fired')
-      callback()
+      if (this.puppetListened) {
+        callback()
+      }
       if (this.eventStream) {
         this.eventStream = undefined
       } else {
