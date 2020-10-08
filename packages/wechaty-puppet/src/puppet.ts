@@ -1183,22 +1183,37 @@ export abstract class Puppet extends PuppetEventEmitter {
       return allRoomIdList
     }
 
-    const roomPayloadList: RoomPayload[] = (await Promise.all(
-      allRoomIdList.map(
-        async id => {
-          try {
-            return await this.roomPayload(id)
-          } catch (e) {
-            // compatible with {} payload
-            log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
-            // Remove invalid room id from cache to avoid getting invalid room payload again
-            await this.dirtyPayloadRoom(id)
-            await this.dirtyPayloadRoomMember(id)
-            return {} as any
+    const roomPayloadList: RoomPayload[] = []
+
+    const BATCH_SIZE = 10
+    let   batchIndex = 0
+
+    while (batchIndex * BATCH_SIZE < allRoomIdList.length) {
+      const batchRoomIds = allRoomIdList.slice(
+        BATCH_SIZE * batchIndex,
+        BATCH_SIZE * (batchIndex + 1),
+      )
+
+      const batchPayloads = (await Promise.all(
+        batchRoomIds.map(
+          async id => {
+            try {
+              return await this.roomPayload(id)
+            } catch (e) {
+              // compatible with {} payload
+              log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
+              // Remove invalid room id from cache to avoid getting invalid room payload again
+              await this.dirtyPayloadRoom(id)
+              await this.dirtyPayloadRoomMember(id)
+              return {} as any
+            }
           }
-        }
-      ),
-    )).filter(payload => Object.keys(payload).length > 0)
+        ),
+      )).filter(payload => Object.keys(payload).length > 0)
+
+      roomPayloadList.push(...batchPayloads)
+      batchIndex++
+    }
 
     const filterFunction = this.roomQueryFilterFactory(query)
 
