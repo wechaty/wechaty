@@ -78,3 +78,18 @@ target/
 
 # Python
 python/src/
+
+# csharp
+*.nupkg
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+csharp/Wechaty.Grpc/.vs/
+csharp/Wechaty.Grpc/proto
+csharp/Wechaty.Grpc/obj/
+csharp/Wechaty.Grpc/bin/
+csharp/Wechaty.Grpc/nupkg/package/
+

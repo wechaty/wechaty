@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Version>0.17.3</Version>
+    <authors>Darren</authors>
+    <owners>Darren</owners>
+    <description>wechaty grpc</description>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+	<PackageiconUrl>https://wechaty.js.org/img/wechaty-icon.svg</PackageiconUrl>
+    <PackageProjectUrl>https://github.com/Chatie/grpc</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Chatie/grpc</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
