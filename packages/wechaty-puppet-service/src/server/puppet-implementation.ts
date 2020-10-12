@@ -92,12 +92,23 @@ export function puppetImplementation (
    */
   let scanPayload: undefined | EventScanPayload
   let readyPayload: undefined | EventReadyPayload
-  puppet.on('scan', payload  => { scanPayload = payload   })
-  puppet.on('ready', payload => { readyPayload = payload  })
-  puppet.on('login', _       => {
-    scanPayload = undefined
-    setTimeout(() => readyPayload && eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload), 5 * 1000)
-  })
+  let readyTimeout: undefined | NodeJS.Timeout
+
+  puppet
+    .on('scan', payload  => { scanPayload = payload    })
+    .on('ready', payload => { readyPayload = payload   })
+    .on('logout', _      => {
+      readyPayload = undefined
+      if (readyTimeout) {
+        clearTimeout(readyTimeout)
+      }
+    })
+    .on('login', _       => {
+      scanPayload = undefined
+      readyTimeout = setTimeout(() => {
+        readyPayload && eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload)
+      }, 5 * 1000)
+    })
 
   const eventStreamManager = new EventStreamManager(puppet)
 
