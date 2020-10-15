@@ -61,7 +61,7 @@
     "nodemon": "^2.0.0",
     "request": "^2.88.2",
     "shx": "^0.3.2",
-    "ts-protoc-gen": "^0.12.0",
+    "ts-protoc-gen": "^0.13.0",
     "tstest": "^0.4.10"
   },
   "engines": {
