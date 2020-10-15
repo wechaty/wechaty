@@ -92,8 +92,12 @@ service Puppet {
   rpc MessagePayload (puppet.MessagePayloadRequest)  returns (puppet.MessagePayloadResponse) {}
 
   rpc MessageContact (puppet.MessageContactRequest) returns (puppet.MessageContactResponse) {}
+  // @deprecated: using MessageFileStream to transfer files
   rpc MessageFile (puppet.MessageFileRequest) returns (puppet.MessageFileResponse) {}
+  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {}
+  // @deprecated: using MessageImageStream to transfer images
   rpc MessageImage (puppet.MessageImageRequest) returns (puppet.MessageImageResponse) {}
+  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {}
   rpc MessageMiniProgram (puppet.MessageMiniProgramRequest) returns (puppet.MessageMiniProgramResponse) {}
   rpc MessageUrl (puppet.MessageUrlRequest) returns (puppet.MessageUrlResponse) {}
 

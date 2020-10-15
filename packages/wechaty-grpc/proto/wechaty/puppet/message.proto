@@ -56,6 +56,14 @@ message MessageImageResponse {
   string filebox = 1;
 }
 
+message MessageImageStreamRequest {
+  string id = 1;
+  ImageType type = 2;
+}
+message MessageImageStreamResponse {
+  bytes data = 1;
+}
+
 message MessageContactRequest {
   string id = 1;
 }
@@ -68,6 +76,13 @@ message MessageFileRequest {
 }
 message MessageFileResponse {
   string filebox = 1;
+}
+
+message MessageFileStreamRequest {
+  string id = 1;
+}
+message MessageFileStreamResponse {
+  bytes data = 1;
 }
 
 message MessageMiniProgramRequest {
