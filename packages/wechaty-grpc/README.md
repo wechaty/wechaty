@@ -223,6 +223,7 @@ TCP hole punching
 
 ### v0.18 (Oct 15, 2020)
 - Add new `MessageFileStream` and `MessageImageStream` to replace the `MessageFile` and `MessageImage` method to avoid blocking nodejs event loop when sending large files ([#88](https://github.com/Chatie/grpc/pull/88)) by [@windmemory](https://github.com/windmemory)
+- Add new `MessageSendFileStream` to replace the `MessageSendFile` method to avoid blocking nodejs event loop when sending large files ([#89](https://github.com/Chatie/grpc/pull/89)) by [@windmemory](https://github.com/windmemory)
 
 ### v0.17 (Aug 5, 2020)
 

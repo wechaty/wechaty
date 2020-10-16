@@ -102,7 +102,9 @@ service Puppet {
   rpc MessageUrl (puppet.MessageUrlRequest) returns (puppet.MessageUrlResponse) {}
 
   rpc MessageSendContact (puppet.MessageSendContactRequest) returns (puppet.MessageSendContactResponse) {}
+  // @deprecated: using MesageSendFileStream to transfer file message to server
   rpc MessageSendFile (puppet.MessageSendFileRequest) returns (puppet.MessageSendFileResponse) {}
+  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {}
   rpc MessageSendText (puppet.MessageSendTextRequest) returns (puppet.MessageSendTextResponse) {}
   rpc MessageSendMiniProgram (puppet.MessageSendMiniProgramRequest) returns (puppet.MessageSendMiniProgramResponse) {}
   rpc MessageSendUrl (puppet.MessageSendUrlRequest) returns (puppet.MessageSendUrlResponse) {}
