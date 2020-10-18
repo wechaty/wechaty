@@ -14,6 +14,7 @@ syntax = "proto3";
 package wechaty;
 
 option java_package="io.github.wechaty.grpc";
+option go_package="github.com/wechaty/go-grpc/wechaty";
 
 import public "puppet/base.proto";
 import public "puppet/contact.proto";

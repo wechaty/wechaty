@@ -30,6 +30,8 @@ jobs:
       run: |
         cd go
         make generate
+        rm -rf `go env GOPATH`/src/github.com/wechaty/go-grpc/wechaty
+        ln -s `pwd`/generated/wechaty/ `go env GOPATH`/src/github.com/wechaty/go-grpc/wechaty
         go build -v generated/wechaty/puppet.pb.go
 
   publish:
