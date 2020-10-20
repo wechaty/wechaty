@@ -95,17 +95,17 @@ service Puppet {
   rpc MessageContact (puppet.MessageContactRequest) returns (puppet.MessageContactResponse) {}
   // @deprecated: using MessageFileStream to transfer files
   rpc MessageFile (puppet.MessageFileRequest) returns (puppet.MessageFileResponse) {}
-  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {}
+  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.FileBoxChunk) {}
   // @deprecated: using MessageImageStream to transfer images
   rpc MessageImage (puppet.MessageImageRequest) returns (puppet.MessageImageResponse) {}
-  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {}
+  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.FileBoxChunk) {}
   rpc MessageMiniProgram (puppet.MessageMiniProgramRequest) returns (puppet.MessageMiniProgramResponse) {}
   rpc MessageUrl (puppet.MessageUrlRequest) returns (puppet.MessageUrlResponse) {}
 
   rpc MessageSendContact (puppet.MessageSendContactRequest) returns (puppet.MessageSendContactResponse) {}
   // @deprecated: using MesageSendFileStream to transfer file message to server
   rpc MessageSendFile (puppet.MessageSendFileRequest) returns (puppet.MessageSendFileResponse) {}
-  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {}
+  rpc MessageSendFileStream (stream puppet.FileBoxChunk) returns (puppet.MessageSendFileStreamResponse) {}
   rpc MessageSendText (puppet.MessageSendTextRequest) returns (puppet.MessageSendTextResponse) {}
   rpc MessageSendMiniProgram (puppet.MessageSendMiniProgramRequest) returns (puppet.MessageSendMiniProgramResponse) {}
   rpc MessageSendUrl (puppet.MessageSendUrlRequest) returns (puppet.MessageSendUrlResponse) {}

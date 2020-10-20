@@ -48,6 +48,10 @@ message MessagePayloadResponse {
   repeated    string mention_ids = 9;
 }
 
+message FileBoxChunk {
+  bytes chunk = 1;
+}
+
 message MessageImageRequest {
   string    id   = 1;
   ImageType type = 2;
@@ -59,10 +63,6 @@ message MessageImageResponse {
 message MessageImageStreamRequest {
   string id = 1;
   ImageType type = 2;
-}
-message MessageImageStreamResponse {
-  bytes data = 1;
-  string name = 2;
 }
 
 message MessageContactRequest {
@@ -81,10 +81,6 @@ message MessageFileResponse {
 
 message MessageFileStreamRequest {
   string id = 1;
-}
-message MessageFileStreamResponse {
-  bytes data = 1;
-  string name = 2;
 }
 
 message MessageMiniProgramRequest {
@@ -118,11 +114,6 @@ message MessageSendFileResponse {
   google.protobuf.StringValue id = 1;
 }
 
-message MessageSendFileStreamRequest {
-  string conversation_id = 1;
-  bytes data = 2;
-  string name = 3;
-}
 message MessageSendFileStreamResponse {
   google.protobuf.StringValue id = 1;
 }
