@@ -49,7 +49,7 @@ message MessagePayloadResponse {
 }
 
 message FileBoxChunk {
-  bytes chunk = 1;
+  bytes data = 1;
 }
 
 message MessageImageRequest {
