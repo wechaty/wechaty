@@ -7,7 +7,7 @@
 [![PHP](https://github.com/Chatie/grpc/workflows/PHP/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3APHP)
 [![Go](https://github.com/chatie/grpc/workflows/Go/badge.svg)](https://github.com/chatie/grpc/actions?query=workflow%3AGo)
 
-![chatie grpc](https://chatie.io/grpc/images/grpc.png)
+![chatie grpc](docs/images/grpc.png)
 
 [![NPM Version](https://img.shields.io/npm/v/@chatie/grpc?color=brightgreen&label=NPM)](https://www.npmjs.com/package/@chatie/grpc)
 [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue&label=PyPI)](https://pypi.org/project/chatie-grpc/)
