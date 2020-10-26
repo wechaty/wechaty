@@ -23,7 +23,7 @@ import test  from 'tstest'
 
 import { PassThrough } from 'stream'
 
-import { FileBox } from 'file-box'
+import { FileBox } from 'wechaty-puppet'
 
 import {
   FileBoxChunk,

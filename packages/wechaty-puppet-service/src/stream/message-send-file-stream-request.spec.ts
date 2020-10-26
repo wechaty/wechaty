@@ -25,7 +25,7 @@ import {
 } from '@chatie/grpc'
 import test  from 'tstest'
 import { PassThrough } from 'stream'
-import { FileBox } from 'file-box'
+import { FileBox } from 'wechaty-puppet'
 
 import { firstData } from './first-data'
 import {
