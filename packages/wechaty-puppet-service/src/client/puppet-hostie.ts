@@ -56,10 +56,8 @@ import {
   MessageContactRequest,
   MessageSendMiniProgramRequest,
   MessageRecallRequest,
-  MessageFileRequest,
   MessagePayloadRequest,
   MessageSendTextRequest,
-  MessageSendFileRequest,
   MessageSendContactRequest,
   MessageSendUrlRequest,
   MessageUrlRequest,
@@ -86,7 +84,6 @@ import {
   TagContactRemoveRequest,
   TagContactDeleteRequest,
   TagContactListRequest,
-  MessageImageRequest,
 
   StringValue,
   DingRequest,
@@ -96,6 +93,9 @@ import {
   ContactCorporationRemarkRequest,
   ContactDescriptionRequest,
   ContactPhoneRequest,
+  MessageFileStreamRequest,
+  MessageImageStreamRequest,
+  MessageSendFileStreamResponse,
 }                                   from '@chatie/grpc'
 
 import { Subscription } from 'rxjs'
@@ -116,6 +116,8 @@ import {
   recover$,
 }             from './recover$'
 import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
+import { toMessageSendFileStreamRequest } from '../stream/message-send-file-stream-request'
+import { chunkStreamToFileBox } from '../stream/file-box-helper'
 
 const MAX_HOSTIE_IP_DISCOVERY_RETRIES = 10
 const MAX_GRPC_CONNECTION_RETRIES = 5
@@ -832,16 +834,16 @@ export class PuppetHostie extends Puppet {
       ImageType[imageType],
     )
 
-    const request = new MessageImageRequest()
+    const request = new MessageImageStreamRequest()
     request.setId(messageId)
     request.setType(imageType)
 
-    const response = await util.promisify(
-      this.grpcClient!.messageImage.bind(this.grpcClient)
-    )(request)
+    if (!this.grpcClient) {
+      throw new Error('Can not get image from message since no grpc client.')
+    }
+    const stream = this.grpcClient.messageImageStream(request)
 
-    const jsonText = response.getFilebox()
-    return FileBox.fromJSON(jsonText)
+    return chunkStreamToFileBox(stream)
   }
 
   public async messageContact (
@@ -899,15 +901,14 @@ export class PuppetHostie extends Puppet {
   public async messageFile (id: string): Promise<FileBox> {
     log.verbose('PuppetHostie', 'messageFile(%s)', id)
 
-    const request = new MessageFileRequest()
+    const request = new MessageFileStreamRequest()
     request.setId(id)
 
-    const response = await util.promisify(
-      this.grpcClient!.messageFile.bind(this.grpcClient)
-    )(request)
-
-    const jsonText = response.getFilebox()
-    return FileBox.fromJSON(jsonText)
+    if (!this.grpcClient) {
+      throw new Error('Can not get file from message since no grpc client.')
+    }
+    const stream = this.grpcClient.messageFileStream(request)
+    return chunkStreamToFileBox(stream)
   }
 
   public async messageRawPayload (id: string): Promise<MessagePayload> {
@@ -972,13 +973,22 @@ export class PuppetHostie extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetHostie', 'messageSend(%s, %s)', conversationId, file)
 
-    const request = new MessageSendFileRequest()
-    request.setConversationId(conversationId)
-    request.setFilebox(JSON.stringify(file))
+    const request = await toMessageSendFileStreamRequest(conversationId, file)
 
-    const response = await util.promisify(
-      this.grpcClient!.messageSendFile.bind(this.grpcClient)
-    )(request)
+    const response = await new Promise<MessageSendFileStreamResponse>((resolve, reject) => {
+      if (!this.grpcClient) {
+        reject(new Error('Can not send message file since no grpc client.'))
+        return
+      }
+      const stream = this.grpcClient.messageSendFileStream((err, response) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(response)
+        }
+      })
+      request.pipe(stream)
+    })
 
     const messageIdWrapper = response.getId()
 

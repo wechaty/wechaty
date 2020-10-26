@@ -57,6 +57,7 @@ import {
   ContactPhoneResponse,
   ContactDescriptionResponse,
   ContactCorporationRemarkResponse,
+  MessageSendFileStreamResponse,
 }                                   from '@chatie/grpc'
 
 import {
@@ -74,9 +75,10 @@ import {
 }                                   from 'wechaty-puppet'
 
 import { log } from '../config'
-
-import { grpcError }            from './grpc-error'
+import { grpcError } from './grpc-error'
 import { EventStreamManager }   from './event-stream-manager'
+import { toMessageSendFileStreamRequestArgs } from '../stream/message-send-file-stream-request'
+import { fileBoxToChunkStream } from '../stream/file-box-helper'
 
 /**
  * Implements the SayHello RPC method.
@@ -555,6 +557,23 @@ export function puppetImplementation (
       }
     },
 
+    messageFileStream: async (call) => {
+      log.verbose('PuppetServiceImpl', 'messageFileStream()')
+
+      try {
+        const id = call.request.getId()
+
+        const fileBox = await puppet.messageFile(id)
+
+        const stream = await fileBoxToChunkStream(fileBox)
+        stream.pipe(call)
+      } catch (e) {
+        log.error('PuppetServiceImpl', 'grpcError() messageFileStream() rejection: %s', e && e.message)
+        call.emit('error', e)
+        call.end()
+      }
+    },
+
     messageImage: async (call, callback) => {
       log.verbose('PuppetServiceImpl', 'messageImage()')
 
@@ -571,6 +590,24 @@ export function puppetImplementation (
 
       } catch (e) {
         return grpcError('messageImage', e, callback)
+      }
+    },
+
+    messageImageStream: async (call) => {
+      log.verbose('PuppetServiceImpl', 'messageImageStream()')
+
+      try {
+        const id = call.request.getId()
+        const type = call.request.getType()
+
+        const fileBox = await puppet.messageImage(id, type as number as ImageType)
+
+        const stream = await fileBoxToChunkStream(fileBox)
+        stream.pipe(call)
+      } catch (e) {
+        log.error('PuppetServiceImpl', 'grpcError() messageImageStream() rejection: %s', e && e.message)
+        call.emit('error', e)
+        call.end()
       }
     },
 
@@ -677,6 +714,31 @@ export function puppetImplementation (
         const messageId = await puppet.messageSendFile(conversationId, fileBox)
 
         const response = new MessageSendFileResponse()
+
+        if (messageId) {
+          const idWrapper = new StringValue()
+          idWrapper.setValue(messageId)
+          response.setId(idWrapper)
+        }
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageSendFile', e, callback)
+      }
+    },
+
+    messageSendFileStream: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'messageSendFile()')
+
+      try {
+        const requestArgs = await toMessageSendFileStreamRequestArgs(call)
+        const conversationId = requestArgs.conversationId
+        const fileBox = requestArgs.fileBox
+
+        const messageId = await puppet.messageSendFile(conversationId, fileBox)
+
+        const response = new MessageSendFileStreamResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
