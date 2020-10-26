@@ -19,6 +19,7 @@ option go_package="github.com/wechaty/go-grpc/wechaty";
 import public "puppet/base.proto";
 import public "puppet/contact.proto";
 import public "puppet/event.proto";
+import public "puppet/filebox.proto";
 import public "puppet/friendship.proto";
 import public "puppet/message.proto";
 import public "puppet/room.proto";
@@ -90,22 +91,33 @@ service Puppet {
    * Message
    *
    */
+
+  /**
+   * @deprecated: using MessageFileStream to transfer files
+   * Huan(202010): will be removed (replaced by MessageFileStream) after Dec 31, 2021
+   */
+  rpc MessageFile (puppet.MessageFileRequest) returns (puppet.MessageFileResponse) {}
+  /**
+   * @deprecated: using MessageImageStream to transfer images
+   * Huan(202010): will be removed (replaced by MessageImageStream) after Dec 31, 2021
+   */
+  rpc MessageImage (puppet.MessageImageRequest) returns (puppet.MessageImageResponse) {}
+  /**
+   * @deprecated: using MesageSendFileStream to transfer file message to server
+   * Huan(202010): will be removed (replaced by MessageSendFileStream) after Dec 31, 2021
+   */
+  rpc MessageSendFile (puppet.MessageSendFileRequest) returns (puppet.MessageSendFileResponse) {}
+
   rpc MessagePayload (puppet.MessagePayloadRequest)  returns (puppet.MessagePayloadResponse) {}
 
   rpc MessageContact (puppet.MessageContactRequest) returns (puppet.MessageContactResponse) {}
-  // @deprecated: using MessageFileStream to transfer files
-  rpc MessageFile (puppet.MessageFileRequest) returns (puppet.MessageFileResponse) {}
-  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.FileBoxChunk) {}
-  // @deprecated: using MessageImageStream to transfer images
-  rpc MessageImage (puppet.MessageImageRequest) returns (puppet.MessageImageResponse) {}
-  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.FileBoxChunk) {}
+  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {}
+  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {}
   rpc MessageMiniProgram (puppet.MessageMiniProgramRequest) returns (puppet.MessageMiniProgramResponse) {}
   rpc MessageUrl (puppet.MessageUrlRequest) returns (puppet.MessageUrlResponse) {}
 
   rpc MessageSendContact (puppet.MessageSendContactRequest) returns (puppet.MessageSendContactResponse) {}
-  // @deprecated: using MesageSendFileStream to transfer file message to server
-  rpc MessageSendFile (puppet.MessageSendFileRequest) returns (puppet.MessageSendFileResponse) {}
-  rpc MessageSendFileStream (stream puppet.FileBoxChunk) returns (puppet.MessageSendFileStreamResponse) {}
+  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {}
   rpc MessageSendText (puppet.MessageSendTextRequest) returns (puppet.MessageSendTextResponse) {}
   rpc MessageSendMiniProgram (puppet.MessageSendMiniProgramRequest) returns (puppet.MessageSendMiniProgramResponse) {}
   rpc MessageSendUrl (puppet.MessageSendUrlRequest) returns (puppet.MessageSendUrlResponse) {}
