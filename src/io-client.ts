@@ -151,8 +151,8 @@ export class IoClient {
       .on('message',  msg => this.onMessage(msg))
       .on('scan',     (url, code) => {
         log.info('IoClient', [
-          `[${code}] ${url}]`,
-          `Online QR Code Image: https://wechaty.js.org/qrcode/${url}`,
+          `[${code}] ${url}`,
+          `Online QR Code Image: https://wechaty.js.org/qrcode/${encodeURIComponent(url)}`,
         ].join('\n'))
       })
   }
