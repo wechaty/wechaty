@@ -2,7 +2,11 @@ import {
   Readable,
 }           from './typed-stream'
 
-const TIMEOUT = 10 * 1000
+/**
+ * windmemory(20201027): generating fileBox data in server side might take longer.
+ * Set to 60 sec to avoid unexpected timeout.
+ */
+const TIMEOUT = 60 * 1000
 
 async function firstData<T> (
   stream: Readable<T>

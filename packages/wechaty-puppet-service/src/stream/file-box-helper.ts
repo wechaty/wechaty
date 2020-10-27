@@ -19,7 +19,8 @@ const decoder = () => new TypedTransform<FileBoxChunk, any>({
   objectMode: true,
   transform: (chunk: FileBoxChunk, _: any, callback: any) => {
     if (!chunk.hasData()) {
-      throw new Error('no data')
+      callback(new Error('no data'))
+      return
     }
     const data = chunk.getData()
     callback(null, data)

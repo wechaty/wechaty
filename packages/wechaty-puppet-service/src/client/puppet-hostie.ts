@@ -118,6 +118,7 @@ import {
 import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
 import { toMessageSendFileStreamRequest } from '../stream/message-send-file-stream-request'
 import { chunkStreamToFileBox } from '../stream/file-box-helper'
+import { unpackFileBoxChunk } from '../stream/file-box-packer'
 
 const MAX_HOSTIE_IP_DISCOVERY_RETRIES = 10
 const MAX_GRPC_CONNECTION_RETRIES = 5
@@ -842,8 +843,8 @@ export class PuppetHostie extends Puppet {
       throw new Error('Can not get image from message since no grpc client.')
     }
     const stream = this.grpcClient.messageImageStream(request)
-
-    return chunkStreamToFileBox(stream)
+    const fileBoxChunkStream = unpackFileBoxChunk(stream)
+    return chunkStreamToFileBox(fileBoxChunkStream)
   }
 
   public async messageContact (
@@ -908,7 +909,8 @@ export class PuppetHostie extends Puppet {
       throw new Error('Can not get file from message since no grpc client.')
     }
     const stream = this.grpcClient.messageFileStream(request)
-    return chunkStreamToFileBox(stream)
+    const fileBoxChunkStream = unpackFileBoxChunk(stream)
+    return chunkStreamToFileBox(fileBoxChunkStream)
   }
 
   public async messageRawPayload (id: string): Promise<MessagePayload> {
