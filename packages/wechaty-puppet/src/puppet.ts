@@ -170,7 +170,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions = (maxSize = 100): QuickLruOptions => ({ maxSize })
+    const lruOptions = (maxSize = 100): QuickLruOptions<any, any> => ({ maxSize })
 
     this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions(3000))
     this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions(100))
@@ -189,8 +189,9 @@ export abstract class Puppet extends PuppetEventEmitter {
       const childClassPath = callerResolve('.', __filename)
       log.verbose('Puppet', 'constructor() childClassPath=%s', childClassPath)
 
-      this.childPkg = readPkgUp.sync({ cwd: childClassPath }).pkg
+      this.childPkg = readPkgUp.sync({ cwd: childClassPath })!.packageJson
     } catch (e) {
+      log.error('Puppet', 'constructor() %s', e)
       throw e
     }
 
@@ -207,7 +208,7 @@ export abstract class Puppet extends PuppetEventEmitter {
 
   public toString () {
     return [
-      `Puppet#`,
+      'Puppet#',
       this.counter,
       '<',
       this.constructor.name,
