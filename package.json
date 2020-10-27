@@ -101,7 +101,7 @@
     "state-switch": "^0.9.9",
     "typed-emitter": "^1.3.0",
     "watchdog": "^0.8.17",
-    "wechaty-puppet-hostie": "^0.10.0",
+    "wechaty-puppet-hostie": "^0.11.0",
     "wechaty-puppet": "^0.32.3",
     "ws": "^7.3.1"
   },
