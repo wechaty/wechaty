@@ -118,6 +118,7 @@ import {
 import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
 import { toMessageSendFileStreamRequest } from '../stream/message-send-file-stream-request'
 import { chunkStreamToFileBox } from '../stream/file-box-helper'
+import { serializeFileBox } from '../server/serialize-file-box'
 import { unpackFileBoxChunk } from '../stream/file-box-packer'
 
 const MAX_HOSTIE_IP_DISCOVERY_RETRIES = 10
@@ -697,7 +698,7 @@ export class PuppetHostie extends Puppet {
      */
     if (fileBox) {
       const fileboxWrapper = new StringValue()
-      fileboxWrapper.setValue(JSON.stringify(fileBox))
+      fileboxWrapper.setValue(await serializeFileBox(fileBox))
 
       const request = new ContactAvatarRequest()
       request.setId(contactId)
