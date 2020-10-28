@@ -213,7 +213,7 @@ export class Io {
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
     // XXX quick and dirty: use no ssl for APIHOST other than official
-    // FIXME: use a configuarable VARIABLE for the domain name at here:
+    // FIXME: use a configurable VARIABLE for the domain name at here:
     if (!/api\.chatie\.io/.test(this.options.apihost)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
     }
@@ -491,7 +491,7 @@ export class Io {
     try {
       await Promise.all(list)
     } catch (e) {
-      log.error('Io', 'send() exceptio: %s', e.stack)
+      log.error('Io', 'send() exception: %s', e.stack)
       throw e
     }
   }
@@ -534,11 +534,11 @@ export class Io {
 
   /**
    *
-   * Prepare to be overwriten by server setting
+   * Prepare to be overwritten by server setting
    *
    */
   private async ioMessage (m: Message): Promise<void> {
-    log.silly('Io', 'ioMessage() is a nop function before be overwriten from cloud')
+    log.silly('Io', 'ioMessage() is a nop function before be overwritten from cloud')
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)
     }
