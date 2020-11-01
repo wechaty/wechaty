@@ -1,6 +1,6 @@
 import {
   Readable,
-}           from './typed-stream'
+}           from 'stronger-typed-streams'
 
 /**
  * windmemory(20201027): generating fileBox data in server side might take longer.

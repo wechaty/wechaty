@@ -3,10 +3,10 @@ import {
 }                                     from '@chatie/grpc'
 import { FileBox } from 'wechaty-puppet'
 import { PassThrough } from 'stream'
-
 import {
   Readable,
-}                   from './typed-stream'
+}                   from 'stronger-typed-streams'
+
 import { firstData } from './first-data'
 import {
   chunkStreamToFileBox,

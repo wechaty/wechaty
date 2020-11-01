@@ -4,12 +4,12 @@ import {
 
 import {
   Readable,
-  TypedTransform,
-}                   from './typed-stream'
+  Transform,
+}                   from 'stronger-typed-streams'
 
 const encoder = <T extends { setFileBoxChunk: (chunk: FileBoxChunk) => void }>(
   Data: { new(): T },
-) => new TypedTransform<FileBoxChunk, T>({
+) => new Transform<FileBoxChunk, T>({
   objectMode: true,
   transform: (chunk: FileBoxChunk, _: any, callback: (error: Error | null, data: T) => void) => {
     const message = new Data()
@@ -31,7 +31,7 @@ function unpackFileBoxChunk<T extends { getFileBoxChunk: () => FileBoxChunk | un
   return stream.pipe(decoder())
 }
 
-const decoder = <T extends { getFileBoxChunk: () => FileBoxChunk | undefined }>() => new TypedTransform<T, FileBoxChunk>({
+const decoder = <T extends { getFileBoxChunk: () => FileBoxChunk | undefined }>() => new Transform<T, FileBoxChunk>({
   objectMode: true,
   transform: (chunk: T, _: any, callback: (error: Error | null, data?: FileBoxChunk) => void) => {
     const fileBoxChunk = chunk.getFileBoxChunk()
