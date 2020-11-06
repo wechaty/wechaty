@@ -39,24 +39,7 @@ test('chunkStreamToFileBox()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
 
-  const fileBox = FileBox.fromBuffer(
-    Buffer.from(FILE_BOX_DATA),
-    FILE_BOX_NAME,
-  )
-
-  const stream = new PassThrough({ objectMode: true })
-
-  const chunk1 = new FileBoxChunk()
-  chunk1.setName(fileBox.name)
-  stream.write(chunk1)
-
-  const fileBoxStream = await fileBox.toStream()
-  fileBoxStream.on('data', chunk => {
-    const fileBoxChunk = new FileBoxChunk()
-    fileBoxChunk.setData(chunk)
-    stream.write(fileBoxChunk)
-  })
-  fileBoxStream.on('end', () => stream.end())
+  const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME)
 
   const decodedFileBox = await chunkStreamToFileBox(stream)
   const data = (await decodedFileBox.toBuffer()).toString()
@@ -111,3 +94,91 @@ test('fileBoxToChunkStream() <-> chunkStreamToFileBox()', async t => {
   t.equal(fileBox.name, restoredBox.name, 'should be same name')
   t.equal(await fileBox.toBase64(), await restoredBox.toBase64(), 'should be same content')
 })
+
+test('should handle no name error in catch', async t => {
+  t.plan(1)
+  const FILE_BOX_DATA = 'test'
+  const FILE_BOX_NAME = 'test.dat'
+
+  const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, true)
+
+  try {
+    await chunkStreamToFileBox(stream)
+  } catch (e) {
+    t.equal(e.message, 'no name')
+  }
+})
+
+test('should handle first error catch', async t => {
+  t.plan(1)
+  const FILE_BOX_DATA = 'test'
+  const FILE_BOX_NAME = 'test.dat'
+
+  const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, false, true)
+
+  try {
+    await chunkStreamToFileBox(stream)
+  } catch (e) {
+    t.equal(e.message, 'first exception')
+  }
+})
+
+test('should handle middle error in further ops', async t => {
+  t.plan(1)
+  const FILE_BOX_DATA = 'test'
+  const FILE_BOX_NAME = 'test.dat'
+
+  const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, false, false, true)
+
+  const fileBox = await chunkStreamToFileBox(stream)
+  try {
+    await fileBox.toBuffer()
+  } catch (e) {
+    t.equal(e.message, 'middle exception')
+  }
+})
+
+const getFileBoxStreamStub = async (
+  data: string,
+  name: string,
+  noname = false,
+  firstException = false,
+  middleException = false,
+) => {
+  const fileBox = FileBox.fromBuffer(
+    Buffer.from(data),
+    name,
+  )
+
+  const stream = new PassThrough({ objectMode: true })
+
+  if (firstException) {
+    stream.pause()
+    setImmediate(() => {
+      stream.emit('error', new Error('first exception'))
+      stream.resume()
+    })
+  } else {
+    const chunk1 = new FileBoxChunk()
+    if (!noname) {
+      chunk1.setName(fileBox.name)
+    }
+    setTimeout(() => stream.write(chunk1), 10)
+  }
+
+  if (middleException) {
+    setTimeout(async () => {
+      stream.emit('error', new Error('middle exception'))
+    }, 100)
+  }
+
+  const fileBoxStream = await fileBox.toStream()
+  fileBoxStream.on('data', chunk => {
+    const fileBoxChunk = new FileBoxChunk()
+    fileBoxChunk.setData(chunk)
+    setTimeout(() => stream.write(fileBoxChunk), 200)
+  })
+  fileBoxStream.on('end', () => setTimeout(() => stream.end(), 250))
+
+  return stream
+}

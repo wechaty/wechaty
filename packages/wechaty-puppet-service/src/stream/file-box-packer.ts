@@ -1,11 +1,6 @@
-import {
-  FileBoxChunk,
-}                 from '@chatie/grpc'
-
-import {
-  Readable,
-  Transform,
-}                   from 'stronger-typed-streams'
+import { FileBoxChunk } from '@chatie/grpc'
+import { Readable, Transform } from 'stronger-typed-streams'
+import { PassThrough } from 'stream'
 
 const encoder = <T extends { setFileBoxChunk: (chunk: FileBoxChunk) => void }>(
   Data: { new(): T },
@@ -22,13 +17,23 @@ function packFileBoxChunk<T extends { setFileBoxChunk: (chunk: FileBoxChunk) => 
   stream: Readable<FileBoxChunk>,
   DataConstructor: { new(): T },
 ): Readable<T> {
-  return stream.pipe(encoder(DataConstructor))
+  const outStream = new PassThrough({ objectMode: true })
+  stream.on('error', e => outStream.emit('error', e))
+  stream.pipe(encoder(DataConstructor)).pipe(outStream)
+
+  return outStream
 }
 
 function unpackFileBoxChunk<T extends { getFileBoxChunk: () => FileBoxChunk | undefined }> (
   stream: Readable<T>,
 ): Readable<FileBoxChunk> {
-  return stream.pipe(decoder())
+  const outStream = new PassThrough({ objectMode: true })
+  const transformedStream = stream.pipe(decoder())
+  stream.on('error', e => outStream.emit('error', e))
+  transformedStream.on('error', e => outStream.emit('error', e))
+
+  transformedStream.pipe(outStream)
+  return outStream
 }
 
 const decoder = <T extends { getFileBoxChunk: () => FileBoxChunk | undefined }>() => new Transform<T, FileBoxChunk>({

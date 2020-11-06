@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import test  from 'tstest'
 
 import { PassThrough } from 'stream'
@@ -93,5 +95,119 @@ test('packFileBoxChunk() <-> unpackFileBoxChunk()', async t => {
   const restoredBox = await chunkStreamToFileBox(unpackedStream)
 
   t.equal(fileBox.name, restoredBox.name, 'should be same name')
-  t.equal(await fileBox.toBase64(), await restoredBox.toBase64(), 'should be same content')
+
+  const EXPECTED_BASE64 = await fileBox.toBase64()
+  const actualBase64 = await restoredBox.toBase64()
+
+  t.equal(EXPECTED_BASE64, actualBase64, 'should be same content')
 })
+
+test('packFileBoxChunk(): should not throw if no read on the stream', async t => {
+
+  t.plan(1)
+  const stream = await getTestChunkStream({})
+  let outStream
+  try {
+    outStream = packFileBoxChunk(stream, MessageFileStreamResponse)
+  } catch (e) {
+    t.assert(e.message)
+    return
+  }
+  outStream.on('error', _ => { /* Do nothing */ })
+  t.pass()
+})
+
+test('packFileBoxChunk(): should emit error in the output stream', async t => {
+
+  t.plan(1)
+  const errorMessage = 'test emit error'
+  const stream = await getTestChunkStream({ errorMessage })
+  const outStream = packFileBoxChunk(stream, MessageFileStreamResponse)
+
+  outStream.on('error', e => {
+    t.equal(e.message, errorMessage)
+  })
+
+  await new Promise(resolve => outStream.on('end', resolve))
+})
+
+test('unpackFileBoxChunk(): should not throw if no read on the stream', async t => {
+
+  t.plan(1)
+  const stream = await getTestPackedStream({})
+  let outStream
+  try {
+    outStream = unpackFileBoxChunk(stream)
+  } catch (e) {
+    t.assert(e.message)
+    return
+  }
+  outStream.on('error', _ => { /* Do nothing */ })
+  t.pass()
+})
+
+test('unpackFileBoxChunk(): should emit error in the output stream', async t => {
+
+  t.plan(1)
+  const errorMessage = 'test emit error'
+  const stream = await getTestPackedStream({ errorMessage })
+
+  const outStream = packFileBoxChunk(stream, MessageFileStreamResponse)
+
+  outStream.on('error', e => {
+    t.equal(e.message, errorMessage)
+  })
+
+  await new Promise(resolve => outStream.on('end', resolve))
+})
+
+const getTestChunkStream = async (options: {
+  errorMessage?: string,
+}) => {
+  const { errorMessage } = options
+
+  const FILE_BOX_DATA = 'test'
+  const FILE_BOX_NAME = 'test.dat'
+
+  const fileBox = FileBox.fromBuffer(
+    Buffer.from(FILE_BOX_DATA),
+    FILE_BOX_NAME,
+  )
+
+  const chunkStream = await fileBoxToChunkStream(fileBox)
+  setImmediate(() => {
+    chunkStream.emit('error', new Error(errorMessage))
+  })
+
+  return chunkStream
+}
+
+const getTestPackedStream = async (options: {
+  errorMessage?: string,
+}) => {
+  const { errorMessage } = options
+
+  const FILE_BOX_DATA = 'test'
+  const FILE_BOX_NAME = 'test.dat'
+
+  const fileBox = FileBox.fromBuffer(
+    Buffer.from(FILE_BOX_DATA),
+    FILE_BOX_NAME,
+  )
+
+  const chunkStream = await fileBoxToChunkStream(fileBox)
+  const packedStream = new PassThrough({ objectMode: true })
+  chunkStream.on('data', d => {
+    const packedChunk = new MessageFileStreamResponse()
+    packedChunk.setFileBoxChunk(d)
+    packedStream.write(packedChunk)
+  }).on('error', e => {
+    packedStream.emit('error', e)
+  })
+
+  setImmediate(() => {
+    chunkStream.emit('error', new Error(errorMessage))
+  })
+
+  return packedStream
+}
