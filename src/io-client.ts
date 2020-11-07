@@ -137,7 +137,7 @@ export class IoClient {
   }
 
   private async hookWechaty (wechaty: Wechaty): Promise<void> {
-    log.verbose('IoClient', 'initWechaty()')
+    log.verbose('IoClient', 'hookWechaty()')
 
     if (this.state.off()) {
       const e = new Error('state.off() is true, skipped')
