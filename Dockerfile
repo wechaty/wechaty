@@ -34,6 +34,7 @@ RUN apt-get update \
     tzdata \
     vim \
     wget \
+    libxtst6 \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
