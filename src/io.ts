@@ -301,11 +301,11 @@ export class Io {
           const payload = ioEvent.payload
 
           const args   = payload.args
-          const script = payload.script
+          const source = payload.source
 
           try {
             if (args[0] === 'message' && args.length === 1) {
-              const fn = new AsyncFunction(...args, script)
+              const fn = new AsyncFunction(...args, source)
               this.onMessage = fn
             } else {
               log.warn('Io', 'server pushed function is invalid. args: %s', JSON.stringify(args))
