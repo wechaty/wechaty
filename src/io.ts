@@ -93,6 +93,20 @@ interface IoEventAny {
 
 type IoEvent = IoEventScan | IoEventJsonRpc | IoEventAny
 
+/**
+ * https://github.com/Chatie/botie/issues/2
+ *  https://github.com/actions/github-script/blob/f035cea4677903b153fa754aa8c2bba66f8dc3eb/src/async-function.ts#L6
+ */
+const AsyncFunction = Object.getPrototypeOf(async () => null).constructor
+
+// function callAsyncFunction<U extends {} = {}, V = unknown> (
+//   args: U,
+//   source: string
+// ): Promise<V> {
+//   const fn = new AsyncFunction(...Object.keys(args), source)
+//   return fn(...Object.values(args))
+// }
+
 export class Io {
 
   private readonly id       : string
@@ -191,8 +205,8 @@ export class Io {
 
     wechaty.on('error',     error =>        this.send({ name: 'error',      payload: error }))
     wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
-    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user }))
+    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user.payload }))
+    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user.payload }))
     wechaty.on('message',   message =>      this.ioMessage(message))
 
     // FIXME: payload schema need to be defined universal
@@ -285,26 +299,20 @@ export class Io {
       case 'botie':
         {
           const payload = ioEvent.payload
-          if (payload.onMessage) {
-            const script = payload.script
-            try {
-              /**
-                 * https://github.com/Chatie/botie/issues/2
-                 *  const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
-                 *  const fn = new AsyncFunction('require', 'github', 'context', script)
-                 */
-              // eslint-disable-next-line
-              const fn = eval(script)
 
-              if (typeof fn === 'function') {
-                this.onMessage = fn
-              } else {
-                log.warn('Io', 'server pushed function is invalid')
-              }
-            } catch (e) {
-              log.warn('Io', 'server pushed function exception: %s', e)
-              this.options.wechaty.emit('error', e)
+          const args   = payload.args
+          const script = payload.script
+
+          try {
+            if (args[0] === 'message' && args.length === 1) {
+              const fn = new AsyncFunction(...args, script)
+              this.onMessage = fn
+            } else {
+              log.warn('Io', 'server pushed function is invalid. args: %s', JSON.stringify(args))
             }
+          } catch (e) {
+            log.warn('Io', 'server pushed function exception: %s', e)
+            this.options.wechaty.emit('error', e)
           }
         }
         break
@@ -327,10 +335,7 @@ export class Io {
           if (wechaty.logonoff()) {
             const loginEvent: IoEvent = {
               name    : 'login',
-              payload : {
-                id   : wechaty.userSelf().id,
-                name : wechaty.userSelf().name(),
-              },
+              payload : (wechaty.userSelf() as any).payload,
             }
             await this.send(loginEvent)
           }
@@ -543,6 +548,16 @@ export class Io {
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)
     }
+  }
+
+  protected async syncMessage (m: Message): Promise<void> {
+    log.silly('Io', 'syncMessage(%s)', m)
+
+    const messageEvent: IoEvent = {
+      name    : 'message',
+      payload : (m as any).payload,
+    }
+    await this.send(messageEvent)
   }
 
 }
