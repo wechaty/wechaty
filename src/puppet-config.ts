@@ -48,8 +48,9 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Other
    */
-  'wechaty-puppet-gitter' : '^0.3.1',               // https://www.npmjs.com/package/wechaty-puppet-gitter
-  'wechaty-puppet-official-account' : '^0.2.2',     // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-gitter'           : '*',   // https://www.npmjs.com/package/wechaty-puppet-gitter
+  'wechaty-puppet-official-account' : '*',   // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-whatsapp'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
 }
 
 export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
