@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *

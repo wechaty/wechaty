@@ -46,6 +46,7 @@ import { Tag }          from './tag'
 import { UrlLink }      from './url-link'
 
 import { ContactEventEmitter } from '../events/contact-events'
+import { isFileBox }           from '../helper-functions/mod'
 
 export const POOL = Symbol('pool')
 
@@ -426,7 +427,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something.id,
       )
-    } else if (something instanceof FileBox) {
+    } else if (isFileBox(something)) {
       /**
        * 3. File
        */

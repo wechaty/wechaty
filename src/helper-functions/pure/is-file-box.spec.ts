@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -17,16 +18,25 @@
  *   limitations under the License.
  *
  */
-export { getPort }        from './impure/get-port'
-export { generateToken }  from './impure/generate-token'
+import { test } from 'tstest'
 
-export { tryWait }    from './pure/try-wait'
-export { isFileBox }  from './pure/is-file-box'
-export {
-  digestEmoji,
-  plainText,
-  stripEmoji,
-  stripHtml,
-  unescapeHtml,
-  unifyEmoji,
-}                   from './pure/xml'
+import { FileBox } from 'file-box'
+
+import { isFileBox } from './is-file-box'
+
+test('isFileBox: instanceof', async t => {
+  const f = FileBox.fromBuffer(Buffer.from('a'), 'a')
+  t.true(isFileBox(f), 'should be FileBox for a real FileBox')
+})
+
+test('isFileBox: constructor.name', async t => {
+  class FileBox {}
+  const f = new FileBox()
+
+  t.true(isFileBox(f), 'should be FileBox for the same name class')
+})
+
+test('isFileBox: n/a', async t => {
+  const o = {}
+  t.false(isFileBox(o), 'should not be FileBox for a {}')
+})

@@ -28,6 +28,7 @@ import {
 
 import { escapeRegExp }     from '../helper-functions/pure/escape-regexp'
 import { timestampToDate }  from '../helper-functions/pure/timestamp-to-date'
+import { isFileBox }        from '../helper-functions/pure/is-file-box'
 
 import {
   Wechaty,
@@ -539,7 +540,12 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.id,
       )
-    } else if (something instanceof FileBox) {
+    } else if (isFileBox(something)) {
+      /**
+       * Be aware of minified codes:
+       *  https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class#comment60309941_1249554
+       */
+
       /**
        * File Message
        */

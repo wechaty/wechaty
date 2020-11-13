@@ -49,6 +49,7 @@ import {
 }                         from 'wechaty-puppet'
 
 import { RoomEventEmitter } from '../events/room-events'
+import { isFileBox }        from '../helper-functions/mod'
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -554,7 +555,7 @@ class Room extends RoomEventEmitter implements Sayable {
         text,
         mentionList.map(c => c.id),
       )
-    } else if (something instanceof FileBox) {
+    } else if (isFileBox(something)) {
       /**
        * 2. File Message
        */
