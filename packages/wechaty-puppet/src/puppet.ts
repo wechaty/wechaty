@@ -932,7 +932,10 @@ export abstract class Puppet extends PuppetEventEmitter {
     return allFilterFunction
   }
 
-  public async messageForward (conversationId: string, messageId: string): Promise<void | string> {
+  public async messageForward (
+    conversationId : string,
+    messageId      : string,
+  ): Promise<void | string> {
     log.verbose('Puppet', 'messageForward(%s, %s)', JSON.stringify(conversationId), messageId)
 
     const payload = await this.messagePayload(messageId)
