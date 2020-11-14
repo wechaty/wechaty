@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.33.2",
+  "version": "0.33.3",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -55,7 +55,7 @@
   "dependencies": {
     "brolog": "^1.12.4",
     "clone-class": "^0.6.20",
-    "file-box": "^0.14.3",
+    "file-box": "^0.15.0",
     "hot-import": "^0.2.14",
     "memory-card": "^0.10.1",
     "normalize-package-data": "^3.0.0",
