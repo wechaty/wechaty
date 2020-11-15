@@ -13,13 +13,13 @@ import {
   RoomMemberPayload,
   RoomQueryFilter,
   ContactQueryFilter,
-}             from '../../../src/'
+}                           from '../../../src/mod'
 
 /**
  * expose to public for internal methods:
  */
 import { MessagePayloadFilterFunction } from '../../../src/schemas/message'
-import { RoomPayloadFilterFunction } from '../../../src/schemas/room'
+import { RoomPayloadFilterFunction }    from '../../../src/schemas/room'
 import { ContactPayloadFilterFunction } from '../../../src/schemas/contact'
 
 export class PuppetTest extends Puppet {
