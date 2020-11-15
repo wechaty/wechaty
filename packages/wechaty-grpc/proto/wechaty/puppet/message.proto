@@ -7,7 +7,7 @@ option csharp_namespace = "github.wechaty.grpc.puppet";
 
 import "google/protobuf/wrappers.proto";
 
-import "puppet/filebox.proto";
+import "puppet/file_box.proto";
 
 enum MessageType {
   MESSAGE_TYPE_UNSPECIFIED  = 0;
@@ -55,7 +55,12 @@ message MessageImageRequest {
   ImageType type = 2;
 }
 message MessageImageResponse {
-  string filebox = 1;
+  /**
+   * Huan(202011) TODO:
+   *  1. rename to file_box
+   *  2. replace it by FileBoxChunk with stream support
+   */
+   string filebox = 1;
 }
 
 message MessageImageStreamRequest {
@@ -77,7 +82,10 @@ message MessageFileRequest {
   string id = 1;
 }
 message MessageFileResponse {
-  string filebox = 1;
+  /**
+   * Huan(202011) deprecated: use MessageFileStreamResponse instead
+   */
+   string filebox = 1;
 }
 
 message MessageFileStreamRequest {

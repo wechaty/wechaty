@@ -76,10 +76,20 @@ message ContactAliasResponse {
 message ContactAvatarRequest {
   string id = 1;
   // nullable
+  /**
+   * Huan(202011) TODO:
+   *  1. rename to file_box
+   *  2. replace it by FileBoxChunk with stream support
+   */
   google.protobuf.StringValue filebox = 2;
 }
 message ContactAvatarResponse {
-  google.protobuf.StringValue filebox = 1;
+  /**
+   * Huan(202011) TODO:
+   *  1. rename to file_box
+   *  2. replace it by FileBoxChunk with stream support
+   */
+   google.protobuf.StringValue filebox = 1;
 }
 
 message ContactPhoneRequest {
