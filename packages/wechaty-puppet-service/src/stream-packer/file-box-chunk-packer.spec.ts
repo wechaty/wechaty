@@ -8,17 +8,18 @@ import { FileBox } from 'wechaty-puppet'
 
 import {
   FileBoxChunk,
-  // FileBoxChunk,
   MessageFileStreamResponse,
   MessageSendFileStreamRequest,
-}                 from '@chatie/grpc'
+}                                 from '@chatie/grpc'
 
+import {
+  unpackFileBox,
+  packFileBox,
+}                         from './file-box-packer'
 import {
   packFileBoxChunk,
   unpackFileBoxChunk,
-}                   from './file-box-packer'
-
-import { chunkStreamToFileBox, fileBoxToChunkStream } from './file-box-helper'
+}                         from './file-box-chunk-packer'
 
 test('packFileBoxChunk()', async t => {
   const FILE_BOX_DATA = 'test'
@@ -29,9 +30,9 @@ test('packFileBoxChunk()', async t => {
     FILE_BOX_NAME,
   )
 
-  const chunkStream = await fileBoxToChunkStream(fileBox)
+  const chunkStream = await packFileBox(fileBox)
 
-  const packedStream = packFileBoxChunk(chunkStream, MessageFileStreamResponse)
+  const packedStream = packFileBoxChunk(MessageFileStreamResponse)(chunkStream)
 
   let name = ''
   let buffer = ''
@@ -61,7 +62,7 @@ test('unpackFileBoxChunk()', async t => {
     FILE_BOX_NAME,
   )
 
-  const chunkStream = await fileBoxToChunkStream(fileBox)
+  const chunkStream = await packFileBox(fileBox)
   const request = new MessageSendFileStreamRequest()
 
   const packedStream = new PassThrough({ objectMode: true })
@@ -75,7 +76,7 @@ test('unpackFileBoxChunk()', async t => {
 
   const outputChunkStream = unpackFileBoxChunk(packedStream)
 
-  const outputFileBox = await chunkStreamToFileBox(outputChunkStream)
+  const outputFileBox = await unpackFileBox(outputChunkStream)
   t.equal((await outputFileBox.toBuffer()).toString(), FILE_BOX_DATA, 'should get file box data')
 })
 
@@ -88,11 +89,11 @@ test('packFileBoxChunk() <-> unpackFileBoxChunk()', async t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await fileBoxToChunkStream(fileBox)
-  const packedStream = packFileBoxChunk(stream, MessageFileStreamResponse)
+  const stream = await packFileBox(fileBox)
+  const packedStream = packFileBoxChunk(MessageFileStreamResponse)(stream)
 
   const unpackedStream = unpackFileBoxChunk(packedStream)
-  const restoredBox = await chunkStreamToFileBox(unpackedStream)
+  const restoredBox = await unpackFileBox(unpackedStream)
 
   t.equal(fileBox.name, restoredBox.name, 'should be same name')
 
@@ -108,7 +109,7 @@ test('packFileBoxChunk(): should not throw if no read on the stream', async t =>
   const stream = await getTestChunkStream({})
   let outStream
   try {
-    outStream = packFileBoxChunk(stream, MessageFileStreamResponse)
+    outStream = packFileBoxChunk(MessageFileStreamResponse)(stream)
   } catch (e) {
     t.assert(e.message)
     return
@@ -122,7 +123,7 @@ test('packFileBoxChunk(): should emit error in the output stream', async t => {
   t.plan(1)
   const errorMessage = 'test emit error'
   const stream = await getTestChunkStream({ errorMessage })
-  const outStream = packFileBoxChunk(stream, MessageFileStreamResponse)
+  const outStream = packFileBoxChunk(MessageFileStreamResponse)(stream)
 
   outStream.on('error', e => {
     t.equal(e.message, errorMessage)
@@ -152,7 +153,7 @@ test('unpackFileBoxChunk(): should emit error in the output stream', async t => 
   const errorMessage = 'test emit error'
   const stream = await getTestPackedStream({ errorMessage })
 
-  const outStream = packFileBoxChunk(stream, MessageFileStreamResponse)
+  const outStream = packFileBoxChunk(MessageFileStreamResponse)(stream)
 
   outStream.on('error', e => {
     t.equal(e.message, errorMessage)
@@ -174,7 +175,7 @@ const getTestChunkStream = async (options: {
     FILE_BOX_NAME,
   )
 
-  const chunkStream = await fileBoxToChunkStream(fileBox)
+  const chunkStream = await packFileBox(fileBox)
   setImmediate(() => {
     chunkStream.emit('error', new Error(errorMessage))
   })
@@ -195,7 +196,7 @@ const getTestPackedStream = async (options: {
     FILE_BOX_NAME,
   )
 
-  const chunkStream = await fileBoxToChunkStream(fileBox)
+  const chunkStream = await packFileBox(fileBox)
   const packedStream = new PassThrough({ objectMode: true })
   chunkStream.on('data', d => {
     const packedChunk = new MessageFileStreamResponse()

@@ -16,17 +16,13 @@ import {
   Puppet,
   PuppetOptions,
 
-  RoomInvitationPayload,
-  RoomMemberPayload,
-  RoomPayload,
-  UrlLinkPayload,
-  MiniProgramPayload,
-  ImageType,
+  EventDirtyPayload,
   EventDongPayload,
-  EventLogoutPayload,
-  EventHeartbeatPayload,
+  EventErrorPayload,
   EventFriendshipPayload,
+  EventHeartbeatPayload,
   EventLoginPayload,
+  EventLogoutPayload,
   EventMessagePayload,
   EventReadyPayload,
   EventRoomInvitePayload,
@@ -34,8 +30,13 @@ import {
   EventRoomLeavePayload,
   EventRoomTopicPayload,
   EventScanPayload,
-  EventErrorPayload,
+  ImageType,
+  MiniProgramPayload,
   PayloadType,
+  RoomInvitationPayload,
+  RoomMemberPayload,
+  RoomPayload,
+  UrlLinkPayload,
 }                         from 'wechaty-puppet'
 
 import {
@@ -115,11 +116,14 @@ import {
 import {
   recover$,
 }             from './recover$'
-import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
-import { toMessageSendFileStreamRequest } from '../stream/message-send-file-stream-request'
-import { chunkStreamToFileBox } from '../stream/file-box-helper'
-import { serializeFileBox } from '../server/serialize-file-box'
-import { unpackFileBoxChunk } from '../stream/file-box-packer'
+
+import {
+  toMessageSendFileStreamRequest,
+  unpackFileBox,
+  unpackFileBoxChunk,
+}                                   from '../stream-packer/mod'
+
+import { serializeFileBox }   from '../server/serialize-file-box'
 
 const MAX_HOSTIE_IP_DISCOVERY_RETRIES = 10
 const MAX_GRPC_CONNECTION_RETRIES = 5
@@ -845,7 +849,7 @@ export class PuppetHostie extends Puppet {
     }
     const stream = this.grpcClient.messageImageStream(request)
     const fileBoxChunkStream = unpackFileBoxChunk(stream)
-    return chunkStreamToFileBox(fileBoxChunkStream)
+    return unpackFileBox(fileBoxChunkStream)
   }
 
   public async messageContact (
@@ -911,7 +915,7 @@ export class PuppetHostie extends Puppet {
     }
     const stream = this.grpcClient.messageFileStream(request)
     const fileBoxChunkStream = unpackFileBoxChunk(stream)
-    return chunkStreamToFileBox(fileBoxChunkStream)
+    return unpackFileBox(fileBoxChunkStream)
   }
 
   public async messageRawPayload (id: string): Promise<MessagePayload> {

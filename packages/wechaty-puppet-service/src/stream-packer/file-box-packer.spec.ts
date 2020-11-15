@@ -21,27 +21,27 @@
  */
 import test  from 'tstest'
 
-import { PassThrough } from 'stream'
-
-import { FileBox } from 'wechaty-puppet'
+import { PassThrough }  from 'stream'
+import { Duplex }       from 'stronger-typed-streams'
+import { FileBox }      from 'wechaty-puppet'
 
 import {
   FileBoxChunk,
 }                 from '@chatie/grpc'
 
 import {
-  chunkStreamToFileBox,
-  fileBoxToChunkStream,
-}                   from './file-box-helper'
-import { firstData } from './first-data'
+  unpackFileBox,
+  packFileBox,
+}                   from './file-box-packer'
+import { nextData } from './next-data'
 
-test('chunkStreamToFileBox()', async t => {
+test('unpackFileBox()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
 
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME)
 
-  const decodedFileBox = await chunkStreamToFileBox(stream)
+  const decodedFileBox = await unpackFileBox(stream)
   const data = (await decodedFileBox.toBuffer()).toString()
 
   t.equal(decodedFileBox.name, FILE_BOX_NAME, 'should get file box name')
@@ -49,7 +49,7 @@ test('chunkStreamToFileBox()', async t => {
 
 })
 
-test('fileBoxToChunkStream()', async t => {
+test('packFileBox()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
 
@@ -58,9 +58,9 @@ test('fileBoxToChunkStream()', async t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await fileBoxToChunkStream(fileBox)
+  const stream = await packFileBox(fileBox)
 
-  const fileBoxChunk = await firstData(stream)
+  const fileBoxChunk = await nextData(stream)
   t.true(fileBoxChunk.hasName(), 'has name')
 
   const fileName = fileBoxChunk.getName()
@@ -79,7 +79,7 @@ test('fileBoxToChunkStream()', async t => {
   t.equal(data, FILE_BOX_DATA, 'should get file box data')
 })
 
-test('fileBoxToChunkStream() <-> chunkStreamToFileBox()', async t => {
+test('packFileBox() <-> unpackFileBox()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
 
@@ -88,8 +88,8 @@ test('fileBoxToChunkStream() <-> chunkStreamToFileBox()', async t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await fileBoxToChunkStream(fileBox)
-  const restoredBox = await chunkStreamToFileBox(stream)
+  const stream = await packFileBox(fileBox)
+  const restoredBox = await unpackFileBox(stream)
 
   t.equal(fileBox.name, restoredBox.name, 'should be same name')
   t.equal(await fileBox.toBase64(), await restoredBox.toBase64(), 'should be same content')
@@ -103,7 +103,7 @@ test('should handle no name error in catch', async t => {
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, true)
 
   try {
-    await chunkStreamToFileBox(stream)
+    await unpackFileBox(stream)
   } catch (e) {
     t.equal(e.message, 'no name')
   }
@@ -117,7 +117,7 @@ test('should handle first error catch', async t => {
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, false, true)
 
   try {
-    await chunkStreamToFileBox(stream)
+    await unpackFileBox(stream)
   } catch (e) {
     t.equal(e.message, 'first exception')
   }
@@ -130,7 +130,7 @@ test('should handle middle error in further ops', async t => {
 
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, false, false, true)
 
-  const fileBox = await chunkStreamToFileBox(stream)
+  const fileBox = await unpackFileBox(stream)
   try {
     await fileBox.toBuffer()
   } catch (e) {
@@ -150,7 +150,7 @@ const getFileBoxStreamStub = async (
     name,
   )
 
-  const stream = new PassThrough({ objectMode: true })
+  const stream: Duplex<FileBoxChunk, FileBoxChunk> = new PassThrough({ objectMode: true })
 
   if (firstException) {
     stream.pause()

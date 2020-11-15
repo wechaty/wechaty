@@ -8,7 +8,7 @@ import {
  */
 const TIMEOUT = 60 * 1000
 
-async function firstData<T> (
+async function nextData<T> (
   stream: Readable<T>
 ): Promise<T> {
   const chunk = await new Promise<T>((resolve, reject) => {
@@ -27,5 +27,5 @@ async function firstData<T> (
 }
 
 export {
-  firstData,
+  nextData,
 }

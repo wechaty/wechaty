@@ -27,7 +27,7 @@ import test  from 'tstest'
 import { PassThrough } from 'stream'
 import { FileBox } from 'wechaty-puppet'
 
-import { firstData } from './first-data'
+import { nextData } from './next-data'
 import {
   toMessageSendFileStreamRequestArgs,
   toMessageSendFileStreamRequest,
@@ -88,10 +88,10 @@ test('toMessageSendFileStreamRequest()', async t => {
     fileBox,
   )
 
-  const data1 = await firstData(stream)
+  const data1 = await nextData(stream)
   t.equal(data1.getConversationId(), CONVERSATION_ID, 'match conversation id')
 
-  const data2 = await firstData(stream)
+  const data2 = await nextData(stream)
   t.true(data2.hasFileBoxChunk(), 'has file box chunk')
   t.true(data2.getFileBoxChunk()!.hasName(), 'has file box name')
   t.equal(data2.getFileBoxChunk()!.getName(), FILE_BOX_NAME, 'match file box name')

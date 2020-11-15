@@ -6,17 +6,17 @@ import {
 }             from 'tstest'
 
 import {
+  PuppetOptions,
+}                 from 'wechaty-puppet'
+import {
+  PuppetMock,
+}                 from 'wechaty-puppet-mock'
+
+import {
   PuppetHostie,
   PuppetServer,
   PuppetServerOptions,
 }                               from '../src/'
-import {
-  PuppetOptions,
-}                               from 'wechaty-puppet'
-
-import {
-  PuppetMock,
-}                 from 'wechaty-puppet-mock'
 
 test('integration testing', async (t) => {
   const TOKEN    = 'test_token'
