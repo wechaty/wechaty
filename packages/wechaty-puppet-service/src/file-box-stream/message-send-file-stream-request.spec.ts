@@ -22,12 +22,12 @@
 import {
   FileBoxChunk,
   MessageSendFileStreamRequest,
-} from '@chatie/grpc'
-import test  from 'tstest'
-import { PassThrough } from 'stream'
-import { FileBox } from 'wechaty-puppet'
+}                                       from '@chatie/grpc'
+import test                             from 'tstest'
+import { PassThrough }                  from 'stream'
+import { FileBox }                      from 'wechaty-puppet'
 
-import { nextData } from './next-data'
+import { nextData }                     from './next-data'
 import {
   toMessageSendFileStreamRequestArgs,
   toMessageSendFileStreamRequest,

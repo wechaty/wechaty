@@ -20,7 +20,7 @@ const decoder = () => new Transform<FileBoxChunk, any>({
   },
 })
 
-async function unpackFileBox (
+async function unpackFileBoxFromChunk (
   stream: Readable<FileBoxChunk>,
 ): Promise<FileBox> {
   const chunk = await nextData(stream)
@@ -49,7 +49,7 @@ const encoder = () => new Transform<any, FileBoxChunk>({
   },
 })
 
-async function packFileBox (
+async function packFileBoxToChunk (
   fileBox: FileBox,
 ): Promise<Readable<FileBoxChunk>> {
   const stream = new PassThrough({ objectMode: true })
@@ -68,6 +68,6 @@ async function packFileBox (
 }
 
 export {
-  unpackFileBox,
-  packFileBox,
+  unpackFileBoxFromChunk,
+  packFileBoxToChunk,
 }

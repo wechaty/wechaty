@@ -77,10 +77,9 @@ import {
 }                                   from 'wechaty-puppet'
 
 import {
-  packFileBox,
-  packFileBoxChunk,
+  packFileBoxToPb,
   toMessageSendFileStreamRequestArgs,
-}                                         from '../stream-packer/mod'
+}                                         from '../file-box-stream/mod'
 
 import { log } from '../config'
 
@@ -575,9 +574,8 @@ export function puppetImplementation (
       try {
         const id = call.request.getId()
 
-        const fileBox      = await puppet.messageFile(id)
-        const fileBoxChunk = await packFileBox(fileBox)
-        const response     = packFileBoxChunk(MessageFileStreamResponse)(fileBoxChunk)
+        const fileBox  = await puppet.messageFile(id)
+        const response = await packFileBoxToPb(MessageFileStreamResponse)(fileBox)
 
         response.on('error', e => call.destroy(e))
         response.pipe(call)
@@ -618,9 +616,8 @@ export function puppetImplementation (
         const id = call.request.getId()
         const type = call.request.getType()
 
-        const fileBox      = await puppet.messageImage(id, type as number as ImageType)
-        const fileBoxChunk = await packFileBox(fileBox)
-        const response     = packFileBoxChunk(MessageImageStreamResponse)(fileBoxChunk)
+        const fileBox  = await puppet.messageImage(id, type as number as ImageType)
+        const response = await packFileBoxToPb(MessageImageStreamResponse)(fileBox)
 
         response.on('error', e => call.destroy(e))
         response.pipe(call)

@@ -5,15 +5,11 @@ import { FileBox }      from 'wechaty-puppet'
 import { PassThrough }  from 'stream'
 import { Readable }     from 'stronger-typed-streams'
 
-import { nextData }   from './next-data'
+import { nextData }           from './next-data'
 import {
-  unpackFileBox,
-  packFileBox,
-}                     from './file-box-packer'
-import {
-  packFileBoxChunk,
-  unpackFileBoxChunk,
-}                     from './file-box-chunk-packer'
+  packFileBoxToPb,
+  unpackFileBoxFromPb,
+}                             from './file-box-pb'
 
 interface MessageSendFileStreamRequestArgs {
   conversationId: string,
@@ -32,7 +28,8 @@ async function toMessageSendFileStreamRequestArgs (
   }
   const conversationId = chunk.getConversationId()
 
-  const fileBox = await unpackFileBox(unpackFileBoxChunk(stream))
+  // unpackFileBoxFromChunk(unpackFileBoxChunkFromPb(stream))
+  const fileBox = await unpackFileBoxFromPb(stream)
 
   return {
     conversationId,
@@ -55,10 +52,10 @@ async function toMessageSendFileStreamRequest (
   first.setConversationId(conversationId)
   stream.write(first)
 
-  const fileBoxChunkStream = await packFileBox(fileBox)
-
-  packFileBoxChunk(MessageSendFileStreamRequest)(fileBoxChunkStream)
-    .pipe(stream)
+  // const fileBoxChunkStream = await packFileBoxToChunk(fileBox)
+  // packFileBoxChunkToPb(MessageSendFileStreamRequest)(fileBoxChunkStream)
+  const pbStream = await packFileBoxToPb(MessageSendFileStreamRequest)(fileBox)
+  pbStream.pipe(stream)
 
   return stream
 }

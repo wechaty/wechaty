@@ -2,18 +2,12 @@ import { FileBoxChunk } from '@chatie/grpc'
 import { Readable, Transform } from 'stronger-typed-streams'
 import { PassThrough } from 'stream'
 
-/**
- * Any Protocol Buffer message that include a FileBoxChunk
- */
-type PbFileBoxChunk = {
-  getFileBoxChunk: () => FileBoxChunk | undefined
-  setFileBoxChunk: (chunk: FileBoxChunk) => void
-}
+import { FileBoxPb } from './file-box-pb.type'
 
 /**
  * Wrap FileBoxChunk
  */
-const encoder = <T extends PbFileBoxChunk>(
+const encoder = <T extends FileBoxPb>(
   PbMessage: { new(): T },
 ) => new Transform<FileBoxChunk, T>({
   objectMode: true,
@@ -24,7 +18,7 @@ const encoder = <T extends PbFileBoxChunk>(
   },
 })
 
-function packFileBoxChunk<T extends PbFileBoxChunk> (
+function packFileBoxChunkToPb<T extends FileBoxPb> (
   DataConstructor: { new(): T },
 ) {
   return (stream: Readable<FileBoxChunk>): Readable<T> => {
@@ -42,7 +36,7 @@ function packFileBoxChunk<T extends PbFileBoxChunk> (
 /**
  * Unwrap FileBoxChunk
  */
-const decoder = <T extends PbFileBoxChunk>() => new Transform<T, FileBoxChunk>({
+const decoder = <T extends FileBoxPb>() => new Transform<T, FileBoxChunk>({
   objectMode: true,
   transform: (chunk: T, _: any, callback: (error: Error | null, data?: FileBoxChunk) => void) => {
     const fileBoxChunk = chunk.getFileBoxChunk()
@@ -54,7 +48,7 @@ const decoder = <T extends PbFileBoxChunk>() => new Transform<T, FileBoxChunk>({
   },
 })
 
-function unpackFileBoxChunk<T extends PbFileBoxChunk> (
+function unpackFileBoxChunkFromPb<T extends FileBoxPb> (
   stream: Readable<T>,
 ): Readable<FileBoxChunk> {
   const outStream     = new PassThrough({ objectMode: true })
@@ -68,6 +62,6 @@ function unpackFileBoxChunk<T extends PbFileBoxChunk> (
 }
 
 export {
-  packFileBoxChunk,
-  unpackFileBoxChunk,
+  packFileBoxChunkToPb,
+  unpackFileBoxChunkFromPb,
 }

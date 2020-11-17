@@ -30,18 +30,18 @@ import {
 }                 from '@chatie/grpc'
 
 import {
-  unpackFileBox,
-  packFileBox,
-}                   from './file-box-packer'
-import { nextData } from './next-data'
+  unpackFileBoxFromChunk,
+  packFileBoxToChunk,
+}                         from './file-box-chunk'
+import { nextData }       from './next-data'
 
-test('unpackFileBox()', async t => {
+test('unpackFileBoxFromChunk()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
 
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME)
 
-  const decodedFileBox = await unpackFileBox(stream)
+  const decodedFileBox = await unpackFileBoxFromChunk(stream)
   const data = (await decodedFileBox.toBuffer()).toString()
 
   t.equal(decodedFileBox.name, FILE_BOX_NAME, 'should get file box name')
@@ -49,7 +49,7 @@ test('unpackFileBox()', async t => {
 
 })
 
-test('packFileBox()', async t => {
+test('packFileBoxToChunk()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
 
@@ -58,7 +58,7 @@ test('packFileBox()', async t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await packFileBox(fileBox)
+  const stream = await packFileBoxToChunk(fileBox)
 
   const fileBoxChunk = await nextData(stream)
   t.true(fileBoxChunk.hasName(), 'has name')
@@ -79,7 +79,7 @@ test('packFileBox()', async t => {
   t.equal(data, FILE_BOX_DATA, 'should get file box data')
 })
 
-test('packFileBox() <-> unpackFileBox()', async t => {
+test('packFileBoxToChunk() <-> unpackFileBoxFromChunk()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
 
@@ -88,8 +88,8 @@ test('packFileBox() <-> unpackFileBox()', async t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await packFileBox(fileBox)
-  const restoredBox = await unpackFileBox(stream)
+  const stream = await packFileBoxToChunk(fileBox)
+  const restoredBox = await unpackFileBoxFromChunk(stream)
 
   t.equal(fileBox.name, restoredBox.name, 'should be same name')
   t.equal(await fileBox.toBase64(), await restoredBox.toBase64(), 'should be same content')
@@ -103,7 +103,7 @@ test('should handle no name error in catch', async t => {
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, true)
 
   try {
-    await unpackFileBox(stream)
+    await unpackFileBoxFromChunk(stream)
   } catch (e) {
     t.equal(e.message, 'no name')
   }
@@ -117,7 +117,7 @@ test('should handle first error catch', async t => {
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, false, true)
 
   try {
-    await unpackFileBox(stream)
+    await unpackFileBoxFromChunk(stream)
   } catch (e) {
     t.equal(e.message, 'first exception')
   }
@@ -130,7 +130,7 @@ test('should handle middle error in further ops', async t => {
 
   const stream = await getFileBoxStreamStub(FILE_BOX_DATA, FILE_BOX_NAME, false, false, true)
 
-  const fileBox = await unpackFileBox(stream)
+  const fileBox = await unpackFileBoxFromChunk(stream)
   try {
     await fileBox.toBuffer()
   } catch (e) {
