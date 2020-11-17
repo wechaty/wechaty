@@ -139,6 +139,9 @@ message MessageSendFileStreamResponse {
 message MessageSendTextRequest {
   string conversation_id = 1;
   string text = 2;
+
+  // Huan(202011) FIXME: Issue #99
+  // https://github.com/wechaty/grpc/issues/99
   repeated string mentonal_ids = 3;
 }
 message MessageSendTextResponse {
