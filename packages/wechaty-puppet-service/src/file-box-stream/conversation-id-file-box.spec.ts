@@ -27,13 +27,13 @@ import test                             from 'tstest'
 import { PassThrough }                  from 'stream'
 import { FileBox }                      from 'wechaty-puppet'
 
-import { nextData }                     from './next-data'
+import { nextData }                       from './next-data'
 import {
-  toMessageSendFileStreamRequestArgs,
-  toMessageSendFileStreamRequest,
-}                                       from './message-send-file-stream-request'
+  packConversationIdFileBoxToPb,
+  unpackConversationIdFileBoxArgsFromPb,
+}                                         from './conversation-id-file-box'
 
-test('toMessageSendFileStreamRequestArgs()', async t => {
+test('unpackConversationIdFileBoxArgsFromPb()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
   const CONVERSATION_ID = 'conversation_id'
@@ -65,7 +65,7 @@ test('toMessageSendFileStreamRequestArgs()', async t => {
   })
   fileBoxStream.on('end', () => stream.end())
 
-  const args = await toMessageSendFileStreamRequestArgs(stream)
+  const args = await unpackConversationIdFileBoxArgsFromPb(stream)
   const data = (await args.fileBox.toBuffer()).toString()
 
   t.equal(args.conversationId, CONVERSATION_ID, 'should get conversation id')
@@ -73,7 +73,7 @@ test('toMessageSendFileStreamRequestArgs()', async t => {
   t.equal(data, FILE_BOX_DATA, 'should get file box data')
 })
 
-test('toMessageSendFileStreamRequest()', async t => {
+test('packConversationIdFileBoxToPb()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
   const CONVERSATION_ID = 'conv_id'
@@ -83,7 +83,7 @@ test('toMessageSendFileStreamRequest()', async t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await toMessageSendFileStreamRequest(
+  const stream = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(
     CONVERSATION_ID,
     fileBox,
   )
@@ -112,7 +112,7 @@ test('toMessageSendFileStreamRequest()', async t => {
   t.equal(data.toString(), FILE_BOX_DATA, 'should get file box data')
 })
 
-test('toMessageSendFileStreamRequestArgs() <-> toMessageSendFileStreamRequest()', async t => {
+test('unpackConversationIdFileBoxArgsFromPb() <-> packConversationIdFileBoxToPb()', async t => {
   const FILE_BOX_DATA = 'test'
   const FILE_BOX_NAME = 'test.dat'
   const CONVERSATION_ID = 'conv_id'
@@ -122,8 +122,8 @@ test('toMessageSendFileStreamRequestArgs() <-> toMessageSendFileStreamRequest()'
     FILE_BOX_NAME,
   )
 
-  const stream = await toMessageSendFileStreamRequest(CONVERSATION_ID, fileBox)
-  const args = await toMessageSendFileStreamRequestArgs(stream)
+  const stream = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(CONVERSATION_ID, fileBox)
+  const args = await unpackConversationIdFileBoxArgsFromPb(stream)
 
   t.equal(args.conversationId, CONVERSATION_ID, 'should match conversation id')
   t.equal(args.fileBox.name, FILE_BOX_NAME, 'should be same name')

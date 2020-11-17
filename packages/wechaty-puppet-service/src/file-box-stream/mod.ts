@@ -1,8 +1,8 @@
 export {
-  toMessageSendFileStreamRequest,
-  toMessageSendFileStreamRequestArgs,
-}                                       from './message-send-file-stream-request'
+  packConversationIdFileBoxToPb,
+  unpackConversationIdFileBoxArgsFromPb,
+}                                         from './conversation-id-file-box'
 export {
   packFileBoxToPb,
   unpackFileBoxFromPb,
-}                                       from './file-box-pb'
+}                                         from './file-box-pb'

@@ -97,6 +97,7 @@ import {
   MessageFileStreamRequest,
   MessageImageStreamRequest,
   MessageSendFileStreamResponse,
+  MessageSendFileStreamRequest,
 }                                   from '@chatie/grpc'
 
 import { Subscription } from 'rxjs'
@@ -114,7 +115,7 @@ import {
 }                 from '../event-type-rev'
 
 import {
-  toMessageSendFileStreamRequest,
+  packConversationIdFileBoxToPb,
   unpackFileBoxFromPb,
 }                                   from '../file-box-stream/mod'
 import { serializeFileBox }         from '../server/serialize-file-box'
@@ -982,7 +983,7 @@ export class PuppetHostie extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetHostie', 'messageSend(%s, %s)', conversationId, file)
 
-    const request = await toMessageSendFileStreamRequest(conversationId, file)
+    const request = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(conversationId, file)
 
     const response = await new Promise<MessageSendFileStreamResponse>((resolve, reject) => {
       if (!this.grpcClient) {

@@ -8,22 +8,22 @@ import { FileBoxPb } from './file-box-pb.type'
  * Wrap FileBoxChunk
  */
 const encoder = <T extends FileBoxPb>(
-  PbMessage: { new(): T },
+  PbConstructor: { new(): T },
 ) => new Transform<FileBoxChunk, T>({
   objectMode: true,
   transform: (chunk: FileBoxChunk, _: any, callback: (error: Error | null, data: T) => void) => {
-    const message = new PbMessage()
+    const message = new PbConstructor()
     message.setFileBoxChunk(chunk)
     callback(null, message)
   },
 })
 
 function packFileBoxChunkToPb<T extends FileBoxPb> (
-  DataConstructor: { new(): T },
+  PbConstructor: { new(): T },
 ) {
   return (stream: Readable<FileBoxChunk>): Readable<T> => {
     const outStream     = new PassThrough({ objectMode: true })
-    const encodedStream = stream.pipe(encoder(DataConstructor))
+    const encodedStream = stream.pipe(encoder(PbConstructor))
 
     stream.on('error',        e => outStream.emit('error', e))
     encodedStream.on('error', e => outStream.emit('error', e))

@@ -78,7 +78,7 @@ import {
 
 import {
   packFileBoxToPb,
-  toMessageSendFileStreamRequestArgs,
+  unpackConversationIdFileBoxArgsFromPb,
 }                                         from '../file-box-stream/mod'
 
 import { log } from '../config'
@@ -749,7 +749,7 @@ export function puppetImplementation (
       log.verbose('PuppetServiceImpl', 'messageSendFileStream()')
 
       try {
-        const requestArgs = await toMessageSendFileStreamRequestArgs(call)
+        const requestArgs = await unpackConversationIdFileBoxArgsFromPb(call)
         const conversationId = requestArgs.conversationId
         const fileBox = requestArgs.fileBox
 
