@@ -153,8 +153,8 @@ export class PuppetHostie extends Puppet {
     public options: PuppetOptions = {},
   ) {
     super(options)
-    options.endpoint = options.endpoint || WECHATY_PUPPET_HOSTIE_ENDPOINT
-    options.token    = options.token    || WECHATY_PUPPET_HOSTIE_TOKEN
+    options.endpoint = options.endpoint || WECHATY_PUPPET_HOSTIE_ENDPOINT()
+    options.token    = options.token    || WECHATY_PUPPET_HOSTIE_TOKEN()
 
     // this.heartbeatDebounceQueue = new DebounceQueue(HEARTBEAT_DEBOUNCE_TIME * 1000)
 
@@ -256,7 +256,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'start()')
 
     if (!this.options.token) {
-      throw new Error('wechaty-puppet-hostie: token not found. See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
+      throw new Error('wechaty-puppet-hostie: token not found (save token to WECHATY_PUPPET_HOSTIE_TOKEN env var or pass it to puppet options is required.). See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
     }
 
     if (this.state.on()) {

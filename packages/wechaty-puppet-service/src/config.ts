@@ -10,5 +10,6 @@ export const GRPC_LIMITATION = {
   // 'grpc.max_send_message_length': 1024 * 1024 * 150,
 }
 
-export const WECHATY_PUPPET_HOSTIE_TOKEN    = process.env.WECHATY_PUPPET_HOSTIE_TOKEN
-export const WECHATY_PUPPET_HOSTIE_ENDPOINT = process.env.WECHATY_PUPPET_HOSTIE_ENDPOINT
+// Huan(202011): use a function to return the value in time.
+export const WECHATY_PUPPET_HOSTIE_TOKEN    = () => process.env.WECHATY_PUPPET_HOSTIE_TOKEN
+export const WECHATY_PUPPET_HOSTIE_ENDPOINT = () => process.env.WECHATY_PUPPET_HOSTIE_ENDPOINT
