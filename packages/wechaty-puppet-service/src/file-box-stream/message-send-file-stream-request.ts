@@ -1,9 +1,9 @@
 import {
   MessageSendFileStreamRequest,
-}                                     from '@chatie/grpc'
-import { FileBox }      from 'wechaty-puppet'
-import { PassThrough }  from 'stream'
-import { Readable }     from 'stronger-typed-streams'
+}                               from '@chatie/grpc'
+import { FileBox }              from 'wechaty-puppet'
+import { PassThrough }          from 'stream'
+import { Readable }             from 'stronger-typed-streams'
 
 import { nextData }           from './next-data'
 import {
@@ -11,7 +11,7 @@ import {
   unpackFileBoxFromPb,
 }                             from './file-box-pb'
 
-interface MessageSendFileStreamRequestArgs {
+interface ConversationIdFileBoxArgs {
   conversationId: string,
   fileBox: FileBox,
 }
@@ -19,9 +19,9 @@ interface MessageSendFileStreamRequestArgs {
 /**
  * MessageSendFileStreamRequest to Args
  */
-async function toMessageSendFileStreamRequestArgs (
+async function unpackConversationIdFileBoxArgsFromPb (
   stream: Readable<MessageSendFileStreamRequest>
-): Promise<MessageSendFileStreamRequestArgs> {
+): Promise<ConversationIdFileBoxArgs> {
   const chunk = await nextData(stream)
   if (!chunk.hasConversationId()) {
     throw new Error('no conversation id')
@@ -39,8 +39,9 @@ async function toMessageSendFileStreamRequestArgs (
 
 /**
  * Args to MessageSendFileStreamRequest
+ * TODO: Huan(202011) to generalize this method to support all PBs like `packFileBoxToPb`
  */
-async function toMessageSendFileStreamRequest (
+async function packConversationIdFileBoxToPb (
   conversationId: string,
   fileBox:        FileBox,
 ): Promise<
@@ -61,6 +62,6 @@ async function toMessageSendFileStreamRequest (
 }
 
 export {
-  toMessageSendFileStreamRequestArgs,
-  toMessageSendFileStreamRequest,
+  unpackConversationIdFileBoxArgsFromPb,
+  packConversationIdFileBoxToPb,
 }
