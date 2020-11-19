@@ -20,8 +20,8 @@
 export { getPort }        from './impure/get-port'
 export { generateToken }  from './impure/generate-token'
 
-export { tryWait }    from './pure/try-wait'
-export { isFileBox }  from './pure/is-file-box'
+export { tryWait }                from './pure/try-wait'
+export { looseInstanceOfClass }   from './pure/loose-instance-of-class'
 export {
   digestEmoji,
   plainText,
@@ -29,4 +29,4 @@ export {
   stripHtml,
   unescapeHtml,
   unifyEmoji,
-}                   from './pure/xml'
+}                                 from './pure/xml'

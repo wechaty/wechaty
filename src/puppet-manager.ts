@@ -31,7 +31,7 @@ import {
   PuppetOptions,
 }                         from 'wechaty-puppet'
 
-import { isWechatyPuppet } from './helper-functions/pure/is-wechaty-puppet'
+import { looseInstanceOfClass } from './helper-functions/pure/loose-instance-of-class'
 
 import {
   log,
@@ -45,6 +45,13 @@ export interface ResolveOptions {
   puppet         : Puppet | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
+
+/**
+ * Huan(202011):
+ *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
+ *    https://github.com/wechaty/wechaty/issues/2090
+ */
+const looseInstanceOfPuppet = looseInstanceOfClass(Puppet as any as Puppet & { new (...args: any): Puppet })
 
 export class PuppetManager {
 
@@ -67,7 +74,7 @@ export class PuppetManager {
      * Huan(202020): The wechaty-puppet-xxx must NOT dependencies `wechaty-puppet` so that it can be `instanceof`-ed
      *  wechaty-puppet-xxx should put `wechaty-puppet` in `devDependencies` and `peerDependencies`.
      */
-    if (isWechatyPuppet(options.puppet)) {
+    if (looseInstanceOfPuppet(options.puppet)) {
       puppetInstance = await this.resolveInstance(options.puppet)
     } else if (typeof options.puppet !== 'string') {
       log.error('PuppetManager', 'resolve() %s',
