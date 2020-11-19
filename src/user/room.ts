@@ -19,7 +19,7 @@
  */
 import { instanceToClass } from 'clone-class'
 
-import { Wechaty } from '../wechaty'
+import { Wechaty }          from '../wechaty'
 
 import {
   FOUR_PER_EM_SPACE,
@@ -27,10 +27,11 @@ import {
 
   log,
   Raven,
-}                       from '../config'
+  looseInstanceOfFileBox,
+}                           from '../config'
 import {
   Sayable,
-}                       from '../types'
+}                           from '../types'
 
 import {
   guardQrCodeValue,
@@ -49,7 +50,6 @@ import {
 }                         from 'wechaty-puppet'
 
 import { RoomEventEmitter } from '../events/room-events'
-import { isFileBox }        from '../helper-functions/mod'
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -555,7 +555,7 @@ class Room extends RoomEventEmitter implements Sayable {
         text,
         mentionList.map(c => c.id),
       )
-    } else if (isFileBox(something)) {
+    } else if (looseInstanceOfFileBox(something)) {
       /**
        * 2. File Message
        */

@@ -26,20 +26,20 @@ import {
   MessageType,
 }                       from 'wechaty-puppet'
 
-import { escapeRegExp }     from '../helper-functions/pure/escape-regexp'
-import { timestampToDate }  from '../helper-functions/pure/timestamp-to-date'
-import { isFileBox }        from '../helper-functions/pure/is-file-box'
+import { escapeRegExp }           from '../helper-functions/pure/escape-regexp'
+import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date'
 
 import {
   Wechaty,
-}                       from '../wechaty'
+}                         from '../wechaty'
 import {
   AT_SEPARATOR_REGEX,
   FileBox,
 
   log,
   Raven,
-}                       from '../config'
+  looseInstanceOfFileBox,
+}                         from '../config'
 import {
   Sayable,
 }                       from '../types'
@@ -56,7 +56,7 @@ import {
 import {
   MiniProgram,
 }                       from './mini-program'
-import { Image } from './image'
+import { Image }        from './image'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -540,7 +540,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.id,
       )
-    } else if (isFileBox(something)) {
+    } else if (looseInstanceOfFileBox(something)) {
       /**
        * Be aware of minified codes:
        *  https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class#comment60309941_1249554
