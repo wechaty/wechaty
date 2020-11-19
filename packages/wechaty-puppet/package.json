@@ -55,7 +55,7 @@
   "dependencies": {
     "brolog": "^1.12.4",
     "clone-class": "^0.6.20",
-    "file-box": "^0.15.0",
+    "file-box": "^0.16.1",
     "hot-import": "^0.2.14",
     "memory-card": "^0.10.1",
     "normalize-package-data": "^3.0.0",
