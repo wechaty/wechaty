@@ -57,7 +57,7 @@ test('looseInstanceOfClass: n/a', async t => {
 
 test('looseInstanceOfClass for FileBox', async t => {
   const f = FileBox.fromQRCode('test')
-  const looseInstanceOfFileBox = looseInstanceOfClass(FileBox)
+  const looseInstanceOfFileBox = looseInstanceOfClass(FileBox as any as FileBox & { new (...args: any): FileBox })
 
   const OrigFileBox = FileBox
   {
