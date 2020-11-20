@@ -180,7 +180,12 @@ export function isProduction (): boolean {
  *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
  *    https://github.com/wechaty/wechaty/issues/2090
  */
-const looseInstanceOfFileBox = looseInstanceOfClass(FileBox)
+type FileBoxClass = FileBox & {
+  new (...args: any): FileBox
+}
+const looseInstanceOfFileBox = looseInstanceOfClass(
+  FileBox as any as FileBoxClass
+)
 
 export {
   log,
