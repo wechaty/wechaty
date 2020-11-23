@@ -225,10 +225,6 @@ class Message extends EventEmitter implements Sayable {
     return msgStrList.join('')
   }
 
-  public talker (): Contact {
-    return this.from()!
-  }
-
   public conversation (): Contact | Room {
     if (this.room()) {
       return this.room()!
@@ -238,25 +234,25 @@ class Message extends EventEmitter implements Sayable {
   }
 
   /**
-   * Get the sender from a message.
+   * Get the talker of a message.
    * @returns {Contact}
    * @example
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
-   *   const contact = msg.from()
+   *   const talker = msg.talker()
    *   const text = msg.text()
    *   const room = msg.room()
    *   if (room) {
    *     const topic = await room.topic()
-   *     console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+   *     console.log(`Room: ${topic} Contact: ${talker.name()} Text: ${text}`)
    *   } else {
-   *     console.log(`Contact: ${contact.name()} Text: ${text}`)
+   *     console.log(`Contact: ${talker.name()} Text: ${text}`)
    *   }
    * })
    * .start()
    */
-  public from (): null | Contact {
+  public talker (): Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -268,11 +264,26 @@ class Message extends EventEmitter implements Sayable {
 
     const fromId = this.payload.fromId
     if (!fromId) {
-      return null
+      // Huan(202011): It seems that the fromId will never be null?
+      // return null
+      throw new Error('payload.fromId is null?')
     }
 
     const from = this.wechaty.Contact.load(fromId)
     return from
+  }
+
+  /**
+   * Use `message.talker()` to replace `message.from()` #2094
+   *  https://github.com/wechaty/wechaty/issues/2094
+   */
+  public from (): null | Contact {
+    log.warn('Message', 'from() is deprecated, use talker() instead.')
+    try {
+      return this.talker()
+    } catch (e) {
+      return null
+    }
   }
 
   /**
