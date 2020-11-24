@@ -227,7 +227,7 @@ export class Io {
     }
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
-    // XXX quick and dirty: use no ssl for APIHOST other than official
+    // XXX quick and dirty: use no ssl for API_HOST other than official
     // FIXME: use a configurable VARIABLE for the domain name at here:
     if (!/api\.chatie\.io/.test(this.options.apihost)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
@@ -481,7 +481,7 @@ export class Io {
       const data = JSON.stringify(
         this.eventBuffer.shift(),
       )
-      const p = new Promise((resolve, reject) => ws.send(
+      const p = new Promise<void>((resolve, reject) => ws.send(
         data,
         (err: undefined | Error) => {
           if (err)  {
@@ -526,7 +526,7 @@ export class Io {
     }
 
     this.ws.close()
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       if (this.ws) {
         this.ws.once('close', resolve)
       } else {
