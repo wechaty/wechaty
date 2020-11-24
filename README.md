@@ -6,6 +6,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
+
 [![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
 
@@ -42,11 +43,15 @@ See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Vo
 
 ### :raising_hand: Join Us
 
+[![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Wechaty is used in many ChatBot projects by thousands of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
 
 ![Wechaty Friday.BOT QR Code](https://wechaty.js.org/img/friday-qrcode.svg)
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
+
+> You are also welcome to join our Gitter channel at <https://gitter.im/wechaty/wechaty> with your GitHub account!
 
 ### :book: Resource
 
@@ -148,12 +153,13 @@ Currently we support the following puppet providers:
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
 | Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| iPad | PuppetPadplus | `export WECHATY_PUPPET=wechaty-puppet-padplus` |
-| Mac | PuppetMacpro | `export WECHATY_PUPPET=wechaty-puppet-macpro` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
-| iPad | PuppetPadpro **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
-| iPad | PuppetPadchat **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| iPad | PuppetPadLoca | `export WECHATY_PUPPET=wechaty-puppet-padlocal` |
+| iPad | ~~PuppetPadpro~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
+| iPad | ~~PuppetPadchat~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
+| iPad | ~~PuppetPadplus~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padplus` |
+| Mac | ~~PuppetMacpro~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-macpro` |
 
 Learn more about Wechaty Puppet from the Puppet Wiki:
 
