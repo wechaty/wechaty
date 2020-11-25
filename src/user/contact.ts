@@ -668,7 +668,11 @@ class Contact extends ContactEventEmitter implements Sayable {
     if (!this.payload) {
       return null
     }
-    return this.payload.friend || null
+    if (typeof this.payload.friend === 'boolean') {
+      return this.payload.friend
+    } else {
+      return null
+    }
   }
 
   /**
