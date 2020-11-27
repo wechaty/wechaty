@@ -1,6 +1,8 @@
 syntax = "proto3";
 package wechaty.puppet;
 
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+
 message FileBoxChunk {
   oneof payload {
     bytes data = 1;
