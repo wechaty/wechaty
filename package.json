@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.51.4",
+  "version": "0.51.5",
   "description": "Wechaty is Conversational SDK Chatbot Makers, Powered by TypeScript, Docker, and 💖",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
