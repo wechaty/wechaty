@@ -202,9 +202,8 @@ class Message extends EventEmitter implements Sayable {
       'Message',
       `#${MessageType[this.type()]}`,
       '[',
-      this.from()
-        ? '🗣' + this.from()
-        : '',
+      '🗣',
+      this.talker(),
       this.room()
         ? '@👥' + this.room()
         : '',
@@ -229,7 +228,7 @@ class Message extends EventEmitter implements Sayable {
     if (this.room()) {
       return this.room()!
     } else {
-      return this.from()!
+      return this.talker()
     }
   }
 
@@ -499,7 +498,7 @@ class Message extends EventEmitter implements Sayable {
     log.verbose('Message', 'say(%s)', something)
 
     // const user = this.wechaty.puppet.userSelf()
-    const from = this.from()
+    const talker = this.talker()
     // const to   = this.to()
     const room = this.room()
 
@@ -509,9 +508,9 @@ class Message extends EventEmitter implements Sayable {
     if (room) {
       conversation = room
       conversationId = room.id
-    } else if (from) {
-      conversation = from
-      conversationId = from.id
+    } else if (talker) {
+      conversation = talker
+      conversationId = talker.id
     } else {
       throw new Error('neither room nor from?')
     }
@@ -534,8 +533,8 @@ class Message extends EventEmitter implements Sayable {
        * Text Message
        */
       let mentionIdList
-      if (from && await this.mentionSelf()) {
-        mentionIdList = [from.id]
+      if (talker && await this.mentionSelf()) {
+        mentionIdList = [talker.id]
       }
 
       msgId = await this.wechaty.puppet.messageSendText(
@@ -650,9 +649,9 @@ class Message extends EventEmitter implements Sayable {
    */
   public self (): boolean {
     const userId = this.wechaty.puppet.selfId()
-    const from = this.from()
+    const talker = this.talker()
 
-    return !!from && from.id === userId
+    return !!talker && talker.id === userId
   }
 
   /**
