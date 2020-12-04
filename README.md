@@ -152,13 +152,13 @@ Currently we support the following puppet providers:
 
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
-| Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| Windows | PuppetWxwork | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
-| Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
-| Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
-| iPad | PuppetRock | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
-| iPad | PuppetPadLocal | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
-| Windows | PuppetDonut | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
+| Web | [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer) | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
+| Windows | [PuppetWxwork](https://github.com/juzibot/wxwork-tester) | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
+| Mock | [PuppetMock](https://github.com/wechaty/wechaty-puppet-mock) | `export WECHATY_PUPPET=wechaty-puppet-mock` |
+| Web | [PuppetWechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u) | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+| iPad | [PuppetRock](https://github.com/wechaty/puppet-service-providers) | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
+| iPad | [PuppetPadLocal](https://github.com/wechaty/puppet-service-providers) | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
+| Windows | [PuppetDonut](https://github.com/wechaty/puppet-service-providers) | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
 | iPad | ~~PuppetPadpro~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
 | iPad | ~~PuppetPadchat~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
 | iPad | ~~PuppetPadplus~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padplus` |
