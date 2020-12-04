@@ -153,6 +153,7 @@ Currently we support the following puppet providers:
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
 | Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
+| Windows | PuppetWxwork | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
 | iPad | PuppetRock | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
