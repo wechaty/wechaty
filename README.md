@@ -155,7 +155,9 @@ Currently we support the following puppet providers:
 | Web | PuppetPuppeteer | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
 | Mock | PuppetMock | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | PuppetWechat4u | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
-| iPad | PuppetPadLoca | `export WECHATY_PUPPET=wechaty-puppet-padlocal` |
+| iPad | PuppetRock | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
+| iPad | PuppetPadLocal | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
+| Windows | PuppetDonut | `export WECHATY_PUPPET=wechaty-puppet-hostie` |
 | iPad | ~~PuppetPadpro~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padpro` |
 | iPad | ~~PuppetPadchat~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
 | iPad | ~~PuppetPadplus~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padplus` |
