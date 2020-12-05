@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <Import Project="./common.props" />
 
@@ -18,6 +18,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="nupkg\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wechaty.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,7 @@ syntax = "proto3";
 package wechaty.puppet;
 
 option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
 
 message FileBoxChunk {
   oneof payload {

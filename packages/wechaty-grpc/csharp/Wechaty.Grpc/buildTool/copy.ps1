@@ -24,6 +24,18 @@ $file = Get-Content $puppetFilePath
 # update import as csharp catalog
 $file.Replace("import public `"puppet/","import public `"proto/wechaty/puppet/")  | set-Content $puppetFilePath
 
+$puppetChildPath = Join-Path $csharpProtoFolder "wechaty/puppet" 
+Get-ChildItem $puppetChildPath| ForEach-Object -Process{
+  if($_ -is [System.IO.FileInfo])
+  {
+     Write-Host($_.fullname);
+
+     $childfile = Get-Content $_.fullname
+     $childfile.Replace("import `"puppet/","import `"proto/wechaty/puppet/")  | set-Content $_.fullname
+  }
+}
+
+
 
 # update common.props version as package.json version
 $commonPropPath = Join-Path $solutionFolder "common.props"
