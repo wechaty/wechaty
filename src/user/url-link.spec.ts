@@ -10,7 +10,7 @@ test('UrlLink', async t => {
     description: '十分钟实现一个智能问答微信聊天机器人',
     thumbnailUrl: 'https://wechaty.js.org/assets/developers/luweicn/avatar.png',
     title: '十分钟实现一个智能问答微信聊天机器人',
-    url: 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'
+    url: 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes',
   }
 
   const urlLink = await UrlLink.create(URL)
