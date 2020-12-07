@@ -5,9 +5,17 @@ import test  from 'tstest'
 import { UrlLink } from './url-link'
 
 test('UrlLink', async t => {
-  const urlLink = await UrlLink.create('https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes')
-  t.true(urlLink.title, 'should have title',)
-  t.true(urlLink.description, 'should have description',)
-  t.true(urlLink.url, 'should have url',)
-  t.true(urlLink.thumbnailUrl, 'should have thumbnailUrl',)
+  const URL = 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'
+  const EXPECTED_PAYLOAD = {
+    description: '十分钟实现一个智能问答微信聊天机器人',
+    thumbnailUrl: 'https://wechaty.js.org/assets/developers/luweicn/avatar.png',
+    title: '十分钟实现一个智能问答微信聊天机器人',
+    url: 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'
+  }
+
+  const urlLink = await UrlLink.create(URL)
+  t.equal(urlLink.title(),        EXPECTED_PAYLOAD.title, 'should have title',)
+  t.equal(urlLink.description(),  EXPECTED_PAYLOAD.description, 'should have description',)
+  t.equal(urlLink.url(),          EXPECTED_PAYLOAD.url, 'should have url',)
+  t.equal(urlLink.thumbnailUrl(), EXPECTED_PAYLOAD.thumbnailUrl, 'should have thumbnailUrl',)
 })
