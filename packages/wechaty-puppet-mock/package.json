@@ -59,7 +59,7 @@
     "wechaty-puppet": "^0.32.1"
   },
   "peerDependencies": {
-    "wechaty-puppet": "*"
+    "wechaty-puppet": ">0.32"
   },
   "dependencies": {
     "brolog": "^1.12.4",
