@@ -1,5 +1,6 @@
 import util from 'util'
 
+import { FileBoxType } from 'file-box'
 import grpc from 'grpc'
 import https from 'https'
 import http from 'http'
@@ -98,6 +99,7 @@ import {
   MessageImageStreamRequest,
   MessageSendFileStreamResponse,
   MessageSendFileStreamRequest,
+  MessageSendFileRequest,
 }                                   from '@chatie/grpc'
 
 import { Subscription } from 'rxjs'
@@ -983,27 +985,17 @@ export class PuppetHostie extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetHostie', 'messageSend(%s, %s)', conversationId, file)
 
-    const request = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(conversationId, file)
+    const fileBoxStreamTypes = [
+      FileBoxType.Base64,
+      FileBoxType.Buffer,
+      FileBoxType.File,
+      FileBoxType.Stream,
+    ]
 
-    const response = await new Promise<MessageSendFileStreamResponse>((resolve, reject) => {
-      if (!this.grpcClient) {
-        reject(new Error('Can not send message file since no grpc client.'))
-        return
-      }
-      const stream = this.grpcClient.messageSendFileStream((err, response) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(response)
-        }
-      })
-      request.pipe(stream)
-    })
-
-    const messageIdWrapper = response.getId()
-
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (fileBoxStreamTypes.includes(file.type())) {
+      return this.messageSendFileStream(conversationId, file)
+    } else {
+      return this.messageSendFileNonStream(conversationId, file)
     }
   }
 
@@ -1540,6 +1532,53 @@ export class PuppetHostie extends Puppet {
     )(request)
 
     return response.getIdsList()
+  }
+
+  private async messageSendFileStream (
+    conversationId : string,
+    file           : FileBox,
+  ): Promise<void | string> {
+    const request = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(conversationId, file)
+
+    const response = await new Promise<MessageSendFileStreamResponse>((resolve, reject) => {
+      if (!this.grpcClient) {
+        reject(new Error('Can not send message file since no grpc client.'))
+        return
+      }
+      const stream = this.grpcClient.messageSendFileStream((err, response) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(response)
+        }
+      })
+      request.pipe(stream)
+    })
+
+    const messageIdWrapper = response.getId()
+
+    if (messageIdWrapper) {
+      return messageIdWrapper.getValue()
+    }
+  }
+
+  private async messageSendFileNonStream (
+    conversationId : string,
+    file           : FileBox,
+  ): Promise<void | string> {
+    const request = new MessageSendFileRequest()
+    request.setConversationId(conversationId)
+    request.setFilebox(JSON.stringify(file))
+
+    const response = await util.promisify(
+      this.grpcClient!.messageSendFile.bind(this.grpcClient)
+    )(request)
+
+    const messageIdWrapper = response.getId()
+
+    if (messageIdWrapper) {
+      return messageIdWrapper.getValue()
+    }
   }
 
 }
