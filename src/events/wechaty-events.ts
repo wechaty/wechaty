@@ -4,6 +4,7 @@ import TypedEventEmitter  from 'typed-emitter'
 
 import {
   CHAT_EVENT_DICT,
+  Puppet,
   ScanStatus,
 }                       from 'wechaty-puppet'
 
@@ -38,6 +39,7 @@ export type WechatyHeartbeatEventListener  = (data: any) => void
 export type WechatyLoginEventListener      = (user: ContactSelf) => void
 export type WechatyLogoutEventListener     = (user: ContactSelf, reason?: string) => void
 export type WechatyMessageEventListener    = (message: Message) => void
+export type WechatyPuppetEventListener     = (puppet: Puppet) => void
 export type WechatyReadyEventListener      = () => void
 export type WechatyRoomInviteEventListener = (roomInvitation: RoomInvitation) => void
 export type WechatyRoomJoinEventListener   = (room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void
@@ -201,6 +203,10 @@ export type WechatyStartStopEventListener  = () => void
  * })
  */
 interface WechatyEvents {
+  'room-invite' : WechatyRoomInviteEventListener
+  'room-join'   : WechatyRoomJoinEventListener
+  'room-leave'  : WechatyRoomLeaveEventListener
+  'room-topic'  : WechatyRoomTopicEventListener
   dong          : WechatyDongEventListener
   error         : WechatyErrorEventListener
   friendship    : WechatyFriendshipEventListener
@@ -208,11 +214,8 @@ interface WechatyEvents {
   login         : WechatyLoginEventListener
   logout        : WechatyLogoutEventListener
   message       : WechatyMessageEventListener
+  puppet        : WechatyPuppetEventListener
   ready         : WechatyReadyEventListener
-  'room-invite' : WechatyRoomInviteEventListener
-  'room-join'   : WechatyRoomJoinEventListener
-  'room-leave'  : WechatyRoomLeaveEventListener
-  'room-topic'  : WechatyRoomTopicEventListener
   scan          : WechatyScanEventListener
   start         : WechatyStartStopEventListener
   stop          : WechatyStartStopEventListener
