@@ -1,4 +1,4 @@
-FROM ubuntu:eoan
+FROM debian:buster
 LABEL maintainer="Huan LI (李卓桓) <zixia@zixia.net>"
 
 ENV DEBIAN_FRONTEND     noninteractive
