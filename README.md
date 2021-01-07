@@ -474,13 +474,13 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 [![PHP Wechaty](https://img.shields.io/badge/Wechaty-PHP-99c)](https://github.com/wechaty/php-wechaty)
 [![.NET(C#) Wechatyin](https://img.shields.io/badge/Wechaty-.NET-629)](https://github.com/wechaty/dotnet-wechaty)
 
-- [Wechaty](https://github.com/wechaty/wechaty) - Conversatioanl SDK for Chatot Makers (TypeScript)
-- [Python Wechaty](https://github.com/wechaty/python-wechaty) - Conversational SDK for Chatbot Makers written in Python
-- [Go Wechaty](https://github.com/wechaty/go-wechaty) - Conversational SDK for Chatbot Makers written in Go
-- [Java Wechaty](https://github.com/wechaty/java-wechaty) - Conversational SDK for Chatbot Makers written in Java(Kotlin)
-- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - Conversational SDK for Chatbot Makers written in Scala
-- [PHP Wechaty](https://github.com/wechaty/php-wechaty) - Conversational SDK for Chatbot Makers written in PHP
-- [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - Conversational SDK for Chatbot Makers written in .NET(C#)
+- [Wechaty](https://github.com/wechaty/wechaty) - RPA SDK for Chatot Makers (TypeScript)
+- [Python Wechaty](https://github.com/wechaty/python-wechaty) - RPA SDK for Chatbot Makers written in Python
+- [Go Wechaty](https://github.com/wechaty/go-wechaty) - RPA SDK for Chatbot Makers written in Go
+- [Java Wechaty](https://github.com/wechaty/java-wechaty) - RPA SDK for Chatbot Makers written in Java(Kotlin)
+- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - RPA SDK for Chatbot Makers written in Scala
+- [PHP Wechaty](https://github.com/wechaty/php-wechaty) - RPA SDK for Chatbot Makers written in PHP
+- [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - RPA SDK for Chatbot Makers written in .NET(C#)
 
 ## :raised_hands: Creators
 
