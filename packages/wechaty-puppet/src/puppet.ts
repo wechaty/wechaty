@@ -170,7 +170,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions = (maxSize = 100): QuickLruOptions => ({ maxSize })
+    const lruOptions = (maxSize = 100): QuickLruOptions<any, any> => ({ maxSize })
 
     this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions(3000))
     this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions(100))
@@ -189,8 +189,9 @@ export abstract class Puppet extends PuppetEventEmitter {
       const childClassPath = callerResolve('.', __filename)
       log.verbose('Puppet', 'constructor() childClassPath=%s', childClassPath)
 
-      this.childPkg = readPkgUp.sync({ cwd: childClassPath }).pkg
+      this.childPkg = readPkgUp.sync({ cwd: childClassPath })!.packageJson
     } catch (e) {
+      log.error('Puppet', 'constructor() %s', e)
       throw e
     }
 
@@ -207,7 +208,7 @@ export abstract class Puppet extends PuppetEventEmitter {
 
   public toString () {
     return [
-      `Puppet#`,
+      'Puppet#',
       this.counter,
       '<',
       this.constructor.name,
@@ -931,7 +932,10 @@ export abstract class Puppet extends PuppetEventEmitter {
     return allFilterFunction
   }
 
-  public async messageForward (conversationId: string, messageId: string): Promise<void | string> {
+  public async messageForward (
+    conversationId : string,
+    messageId      : string,
+  ): Promise<void | string> {
     log.verbose('Puppet', 'messageForward(%s, %s)', JSON.stringify(conversationId), messageId)
 
     const payload = await this.messagePayload(messageId)
@@ -1183,22 +1187,37 @@ export abstract class Puppet extends PuppetEventEmitter {
       return allRoomIdList
     }
 
-    const roomPayloadList: RoomPayload[] = (await Promise.all(
-      allRoomIdList.map(
-        async id => {
-          try {
-            return await this.roomPayload(id)
-          } catch (e) {
-            // compatible with {} payload
-            log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
-            // Remove invalid room id from cache to avoid getting invalid room payload again
-            await this.dirtyPayloadRoom(id)
-            await this.dirtyPayloadRoomMember(id)
-            return {} as any
+    const roomPayloadList: RoomPayload[] = []
+
+    const BATCH_SIZE = 10
+    let   batchIndex = 0
+
+    while (batchIndex * BATCH_SIZE < allRoomIdList.length) {
+      const batchRoomIds = allRoomIdList.slice(
+        BATCH_SIZE * batchIndex,
+        BATCH_SIZE * (batchIndex + 1),
+      )
+
+      const batchPayloads = (await Promise.all(
+        batchRoomIds.map(
+          async id => {
+            try {
+              return await this.roomPayload(id)
+            } catch (e) {
+              // compatible with {} payload
+              log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
+              // Remove invalid room id from cache to avoid getting invalid room payload again
+              await this.dirtyPayloadRoom(id)
+              await this.dirtyPayloadRoomMember(id)
+              return {} as any
+            }
           }
-        }
-      ),
-    )).filter(payload => Object.keys(payload).length > 0)
+        ),
+      )).filter(payload => Object.keys(payload).length > 0)
+
+      roomPayloadList.push(...batchPayloads)
+      batchIndex++
+    }
 
     const filterFunction = this.roomQueryFilterFactory(query)
 

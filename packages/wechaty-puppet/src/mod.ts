@@ -7,20 +7,21 @@ export {
 export {
   ScanStatus,
 
+  EventDirtyPayload,
+  EventDongPayload,
+  EventErrorPayload,
   EventFriendshipPayload,
+  EventHeartbeatPayload,
   EventLoginPayload,
   EventLogoutPayload,
   EventMessagePayload,
+  EventReadyPayload,
+  EventResetPayload,
   EventRoomInvitePayload,
   EventRoomJoinPayload,
   EventRoomLeavePayload,
   EventRoomTopicPayload,
   EventScanPayload,
-  EventDongPayload,
-  EventErrorPayload,
-  EventReadyPayload,
-  EventResetPayload,
-  EventHeartbeatPayload,
 }                             from './schemas/event'
 export {
   FriendshipPayload,

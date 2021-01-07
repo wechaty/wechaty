@@ -8,8 +8,8 @@
  *
  * Huan(202003): `YOU` must NOT be passed to the `Wechaty`
  *  `YOU` is only for the wechaty-puppet-XXX internal usage only.
- *  becasue it might be transported via the GRPC interface,
- *  which can not serilize the `YOU` Symbol correctly.
+ *  because it might be transported via the GRPC interface,
+ *  which can not serialize the `YOU` Symbol correctly.
  *
  */
 export const YOU = Symbol('You')
@@ -18,8 +18,8 @@ export type YOU  = typeof YOU
 /** @hidden */
 export const CHAT_EVENT_DICT = {
   friendship    : 'receive a friend request',
-  login         : 'puppet had logined',
-  logout        : 'puppet had logouted',
+  login         : 'puppet had logged in',
+  logout        : 'puppet had logged out',
   message       : 'received a new message',
   'room-invite' : 'received a room invitation',
   'room-join'   : 'be added to a room',
@@ -34,7 +34,7 @@ export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dirty     : 'dirty the cache payload',
   dong      : 'emit this event if you received a ding() call',
-  error     : `emit an Error instance when there's any Error need to report to Wechaty`,
+  error     : "emit an Error instance when there's any Error need to report to Wechaty",
   // Huan(202003): rename `watchdog` to `heartbeat`
   // watchdog  : 'feed the watchdog by emit this event',
   heartbeat : 'feed the watchdog by emit this event',
