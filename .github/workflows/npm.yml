@@ -8,11 +8,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js 12
-        uses: actions/setup-node@v1
+      - name: Use Node.js 15
+        uses: actions/setup-node@v2
         with:
-          node-version: 12
-
+          node-version: 15
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-wechaty-cache
+          restore-keys: |
+            ${{ runner.os }}-wechaty-
       - name: Install Dependencies
         run: npm install
 
@@ -25,9 +30,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
-          node-version: 12
+          node-version: 15
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-wechaty-cache
+          restore-keys: |
+            ${{ runner.os }}-wechaty-
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/npm-pack-testing.sh
@@ -41,10 +52,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
-          node-version: 12
+          node-version: 15
           registry-url: https://registry.npmjs.org/
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-wechaty-cache
+          restore-keys: |
+            ${{ runner.os }}-wechaty-
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/package-publish-config-tag.sh
