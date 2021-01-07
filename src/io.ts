@@ -93,6 +93,20 @@ interface IoEventAny {
 
 type IoEvent = IoEventScan | IoEventJsonRpc | IoEventAny
 
+/**
+ * https://github.com/Chatie/botie/issues/2
+ *  https://github.com/actions/github-script/blob/f035cea4677903b153fa754aa8c2bba66f8dc3eb/src/async-function.ts#L6
+ */
+const AsyncFunction = Object.getPrototypeOf(async () => null).constructor
+
+// function callAsyncFunction<U extends {} = {}, V = unknown> (
+//   args: U,
+//   source: string
+// ): Promise<V> {
+//   const fn = new AsyncFunction(...Object.keys(args), source)
+//   return fn(...Object.values(args))
+// }
+
 export class Io {
 
   private readonly id       : string
@@ -159,6 +173,7 @@ export class Io {
 
       this.ws = await this.initWebSocket()
 
+      this.options.wechaty.on('login', () => { this.scanPayload = undefined })
       this.options.wechaty.on('scan', (qrcode, status) => {
         this.scanPayload = {
           ...this.scanPayload,
@@ -190,8 +205,8 @@ export class Io {
 
     wechaty.on('error',     error =>        this.send({ name: 'error',      payload: error }))
     wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
-    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user }))
+    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user.payload }))
+    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user.payload }))
     wechaty.on('message',   message =>      this.ioMessage(message))
 
     // FIXME: payload schema need to be defined universal
@@ -212,8 +227,8 @@ export class Io {
     }
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
-    // XXX quick and dirty: use no ssl for APIHOST other than official
-    // FIXME: use a configuarable VARIABLE for the domain name at here:
+    // XXX quick and dirty: use no ssl for API_HOST other than official
+    // FIXME: use a configurable VARIABLE for the domain name at here:
     if (!/api\.chatie\.io/.test(this.options.apihost)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
     }
@@ -284,26 +299,20 @@ export class Io {
       case 'botie':
         {
           const payload = ioEvent.payload
-          if (payload.onMessage) {
-            const script = payload.script
-            try {
-              /**
-                 * https://github.com/Chatie/botie/issues/2
-                 *  const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
-                 *  const fn = new AsyncFunction('require', 'github', 'context', script)
-                 */
-              // eslint-disable-next-line
-              const fn = eval(script)
 
-              if (typeof fn === 'function') {
-                this.onMessage = fn
-              } else {
-                log.warn('Io', 'server pushed function is invalid')
-              }
-            } catch (e) {
-              log.warn('Io', 'server pushed function exception: %s', e)
-              this.options.wechaty.emit('error', e)
+          const args   = payload.args
+          const source = payload.source
+
+          try {
+            if (args[0] === 'message' && args.length === 1) {
+              const fn = new AsyncFunction(...args, source)
+              this.onMessage = fn
+            } else {
+              log.warn('Io', 'server pushed function is invalid. args: %s', JSON.stringify(args))
             }
+          } catch (e) {
+            log.warn('Io', 'server pushed function exception: %s', e)
+            this.options.wechaty.emit('error', e)
           }
         }
         break
@@ -326,10 +335,7 @@ export class Io {
           if (wechaty.logonoff()) {
             const loginEvent: IoEvent = {
               name    : 'login',
-              payload : {
-                id   : wechaty.userSelf().id,
-                name : wechaty.userSelf().name(),
-              },
+              payload : (wechaty.userSelf() as any).payload,
             }
             await this.send(loginEvent)
           }
@@ -475,7 +481,7 @@ export class Io {
       const data = JSON.stringify(
         this.eventBuffer.shift(),
       )
-      const p = new Promise((resolve, reject) => ws.send(
+      const p = new Promise<void>((resolve, reject) => ws.send(
         data,
         (err: undefined | Error) => {
           if (err)  {
@@ -491,7 +497,7 @@ export class Io {
     try {
       await Promise.all(list)
     } catch (e) {
-      log.error('Io', 'send() exceptio: %s', e.stack)
+      log.error('Io', 'send() exception: %s', e.stack)
       throw e
     }
   }
@@ -520,7 +526,7 @@ export class Io {
     }
 
     this.ws.close()
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       if (this.ws) {
         this.ws.once('close', resolve)
       } else {
@@ -534,14 +540,24 @@ export class Io {
 
   /**
    *
-   * Prepare to be overwriten by server setting
+   * Prepare to be overwritten by server setting
    *
    */
   private async ioMessage (m: Message): Promise<void> {
-    log.silly('Io', 'ioMessage() is a nop function before be overwriten from cloud')
+    log.silly('Io', 'ioMessage() is a nop function before be overwritten from cloud')
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)
     }
+  }
+
+  protected async syncMessage (m: Message): Promise<void> {
+    log.silly('Io', 'syncMessage(%s)', m)
+
+    const messageEvent: IoEvent = {
+      name    : 'message',
+      payload : (m as any).payload,
+    }
+    await this.send(messageEvent)
   }
 
 }

@@ -137,7 +137,7 @@ export class IoClient {
   }
 
   private async hookWechaty (wechaty: Wechaty): Promise<void> {
-    log.verbose('IoClient', 'initWechaty()')
+    log.verbose('IoClient', 'hookWechaty()')
 
     if (this.state.off()) {
       const e = new Error('state.off() is true, skipped')
@@ -151,8 +151,8 @@ export class IoClient {
       .on('message',  msg => this.onMessage(msg))
       .on('scan',     (url, code) => {
         log.info('IoClient', [
-          `[${code}] ${url}]`,
-          `Online QR Code Image: https://wechaty.js.org/qrcode/${url}`,
+          `[${code}] ${url}`,
+          `Online QR Code Image: https://wechaty.js.org/qrcode/${encodeURIComponent(url)}`,
         ].join('\n'))
       })
   }

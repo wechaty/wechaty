@@ -26,19 +26,20 @@ import {
   MessageType,
 }                       from 'wechaty-puppet'
 
-import { escapeRegExp }     from '../helper-functions/pure/escape-regexp'
-import { timestampToDate }  from '../helper-functions/pure/timestamp-to-date'
+import { escapeRegExp }           from '../helper-functions/pure/escape-regexp'
+import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date'
 
 import {
   Wechaty,
-}                       from '../wechaty'
+}                         from '../wechaty'
 import {
   AT_SEPARATOR_REGEX,
   FileBox,
 
   log,
   Raven,
-}                       from '../config'
+  looseInstanceOfFileBox,
+}                         from '../config'
 import {
   Sayable,
 }                       from '../types'
@@ -55,7 +56,7 @@ import {
 import {
   MiniProgram,
 }                       from './mini-program'
-import { Image } from './image'
+import { Image }        from './image'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -201,9 +202,8 @@ class Message extends EventEmitter implements Sayable {
       'Message',
       `#${MessageType[this.type()]}`,
       '[',
-      this.from()
-        ? '🗣' + this.from()
-        : '',
+      '🗣',
+      this.talker(),
       this.room()
         ? '@👥' + this.room()
         : '',
@@ -224,38 +224,34 @@ class Message extends EventEmitter implements Sayable {
     return msgStrList.join('')
   }
 
-  public talker (): Contact {
-    return this.from()!
-  }
-
   public conversation (): Contact | Room {
     if (this.room()) {
       return this.room()!
     } else {
-      return this.from()!
+      return this.talker()
     }
   }
 
   /**
-   * Get the sender from a message.
+   * Get the talker of a message.
    * @returns {Contact}
    * @example
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
-   *   const contact = msg.from()
+   *   const talker = msg.talker()
    *   const text = msg.text()
    *   const room = msg.room()
    *   if (room) {
    *     const topic = await room.topic()
-   *     console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+   *     console.log(`Room: ${topic} Contact: ${talker.name()} Text: ${text}`)
    *   } else {
-   *     console.log(`Contact: ${contact.name()} Text: ${text}`)
+   *     console.log(`Contact: ${talker.name()} Text: ${text}`)
    *   }
    * })
    * .start()
    */
-  public from (): null | Contact {
+  public talker (): Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -267,11 +263,26 @@ class Message extends EventEmitter implements Sayable {
 
     const fromId = this.payload.fromId
     if (!fromId) {
-      return null
+      // Huan(202011): It seems that the fromId will never be null?
+      // return null
+      throw new Error('payload.fromId is null?')
     }
 
     const from = this.wechaty.Contact.load(fromId)
     return from
+  }
+
+  /**
+   * Use `message.talker()` to replace `message.from()` #2094
+   *  https://github.com/wechaty/wechaty/issues/2094
+   */
+  public from (): null | Contact {
+    log.warn('Message', 'from() is deprecated, use talker() instead.')
+    try {
+      return this.talker()
+    } catch (e) {
+      return null
+    }
   }
 
   /**
@@ -487,7 +498,7 @@ class Message extends EventEmitter implements Sayable {
     log.verbose('Message', 'say(%s)', something)
 
     // const user = this.wechaty.puppet.userSelf()
-    const from = this.from()
+    const talker = this.talker()
     // const to   = this.to()
     const room = this.room()
 
@@ -497,9 +508,9 @@ class Message extends EventEmitter implements Sayable {
     if (room) {
       conversation = room
       conversationId = room.id
-    } else if (from) {
-      conversation = from
-      conversationId = from.id
+    } else if (talker) {
+      conversation = talker
+      conversationId = talker.id
     } else {
       throw new Error('neither room nor from?')
     }
@@ -522,8 +533,8 @@ class Message extends EventEmitter implements Sayable {
        * Text Message
        */
       let mentionIdList
-      if (from && await this.mentionSelf()) {
-        mentionIdList = [from.id]
+      if (talker && await this.mentionSelf()) {
+        mentionIdList = [talker.id]
       }
 
       msgId = await this.wechaty.puppet.messageSendText(
@@ -539,7 +550,12 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.id,
       )
-    } else if (something instanceof FileBox) {
+    } else if (looseInstanceOfFileBox(something)) {
+      /**
+       * Be aware of minified codes:
+       *  https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class#comment60309941_1249554
+       */
+
       /**
        * File Message
        */
@@ -633,9 +649,9 @@ class Message extends EventEmitter implements Sayable {
    */
   public self (): boolean {
     const userId = this.wechaty.puppet.selfId()
-    const from = this.from()
+    const talker = this.talker()
 
-    return !!from && from.id === userId
+    return !!talker && talker.id === userId
   }
 
   /**
@@ -872,17 +888,22 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public async forward (to: Room | Contact): Promise<void> {
+  public async forward (to: Room | Contact): Promise<void | Message> {
     log.verbose('Message', 'forward(%s)', to)
 
     // let roomId
     // let contactId
 
     try {
-      await this.wechaty.puppet.messageForward(
+      const msgId = await this.wechaty.puppet.messageForward(
         to.id,
         this.id,
       )
+      if (msgId) {
+        const msg = this.wechaty.Message.load(msgId)
+        await msg.ready()
+        return msg
+      }
     } catch (e) {
       log.error('Message', 'forward(%s) exception: %s', to, e)
       throw e

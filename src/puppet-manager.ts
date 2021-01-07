@@ -31,6 +31,8 @@ import {
   PuppetOptions,
 }                         from 'wechaty-puppet'
 
+import { looseInstanceOfClass } from './helper-functions/pure/loose-instance-of-class'
+
 import {
   log,
 }                       from './config'
@@ -43,6 +45,13 @@ export interface ResolveOptions {
   puppet         : Puppet | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
+
+/**
+ * Huan(202011):
+ *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
+ *    https://github.com/wechaty/wechaty/issues/2090
+ */
+const looseInstanceOfPuppet = looseInstanceOfClass(Puppet as any as Puppet & { new (...args: any): Puppet })
 
 export class PuppetManager {
 
@@ -58,14 +67,14 @@ export class PuppetManager {
 
     /**
      * Huan(202001): (DEPRECATED) When we are developing, we might experiencing we have two version of wechaty-puppet installed,
-     *  if `optoins.puppet` is Puppet v1, but the `Puppet` in Wechaty is v2,
+     *  if `options.puppet` is Puppet v1, but the `Puppet` in Wechaty is v2,
      *  then options.puppet will not instanceof Puppet.
      *  So I changed here to match not a string as a workaround.
      *
      * Huan(202020): The wechaty-puppet-xxx must NOT dependencies `wechaty-puppet` so that it can be `instanceof`-ed
      *  wechaty-puppet-xxx should put `wechaty-puppet` in `devDependencies` and `peerDependencies`.
      */
-    if (options.puppet instanceof Puppet) {
+    if (looseInstanceOfPuppet(options.puppet)) {
       puppetInstance = await this.resolveInstance(options.puppet)
     } else if (typeof options.puppet !== 'string') {
       log.error('PuppetManager', 'resolve() %s',
@@ -85,7 +94,7 @@ export class PuppetManager {
        * When we have different puppet with different `constructor()` args.
        * For example: PuppetA allow `constructor()` but PuppetB requires `constructor(options)`
        *
-       * SOLUTION: we enforce all the PuppetImplenmentation to have `options` and should not allow default parameter.
+       * SOLUTION: we enforce all the PuppetImplementation to have `options` and should not allow default parameter.
        * Issue: https://github.com/wechaty/wechaty-puppet/issues/2
        */
       puppetInstance = new MyPuppet(options.puppetOptions)

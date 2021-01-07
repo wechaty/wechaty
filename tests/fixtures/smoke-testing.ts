@@ -38,10 +38,10 @@ function getBotList (): Wechaty[] {
       })
     )
   }
-  if (process.env.WECHATY_PUPPET_PADPLUS_TOKEN) {
+  if (process.env.WECHATY_PUPPET_PADLOCAL_TOKEN) {
     botList.push(
       new Wechaty({
-        puppet: 'wechaty-puppet-padplus',
+        puppet: 'wechaty-puppet-padlocal',
       })
     )
   }

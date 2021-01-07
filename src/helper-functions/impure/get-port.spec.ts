@@ -36,7 +36,7 @@ test('getPort() for an available socket port', async t => {
       const server = net.createServer(socket => {
         console.info(socket)
       })
-      await new Promise(resolve => server.listen(port, resolve))
+      await new Promise<void>(resolve => server.listen(port, resolve))
       serverList.push(server)
 
       port = await getPort()

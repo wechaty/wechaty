@@ -152,7 +152,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
 
 test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) => {
 
-  // Do not modify the gloabl Wechaty instance
+  // Do not modify the global Wechaty instance
   class MyWechatyTest extends Wechaty {}
 
   const EXPECTED_ERROR = new Error('test')
@@ -162,12 +162,12 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (
   })
 
   const asyncErrorFunction = function () {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       setTimeout(function () {
         reject(EXPECTED_ERROR)
       }, 100)
       // tslint ask resolve must be called,
-      // so write a fasly value, so that it never called
+      // so write a falsy value, so that it never called
       if (+new Date() < 0) {
         resolve()
       }

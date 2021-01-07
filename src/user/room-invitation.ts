@@ -165,7 +165,7 @@ class RoomInvitation implements Acceptable {
   /**
    * Get the room topic from room invitation
    *
-   * @returns {Contact}
+   * @returns {string}
    * @example
    * const bot = new Wechaty()
    * bot.on('room-invite', async roomInvitation => {

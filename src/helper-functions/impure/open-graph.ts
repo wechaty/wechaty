@@ -24,6 +24,8 @@ export async function openGraph (url: string): Promise<og.Data> {
     og(url, (err, meta) => {
       if (err) {
         reject(err)
+      } else if (!meta) {
+        reject(new Error('meta is undefined'))
       } else {
         resolve(meta)
       }

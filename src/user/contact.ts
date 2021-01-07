@@ -28,24 +28,25 @@ import {
   PayloadType,
 }                         from 'wechaty-puppet'
 
-import { Wechaty } from '../wechaty'
+import { Wechaty }          from '../wechaty'
 
 import {
   Raven,
 
   log,
   qrCodeForChatie,
-}                   from '../config'
+  looseInstanceOfFileBox,
+}                           from '../config'
 import {
   Sayable,
-}                   from '../types'
+}                           from '../types'
 
 import { Message }      from './message'
 import { MiniProgram }  from './mini-program'
 import { Tag }          from './tag'
 import { UrlLink }      from './url-link'
 
-import { ContactEventEmitter } from '../events/contact-events'
+import { ContactEventEmitter }  from '../events/contact-events'
 
 export const POOL = Symbol('pool')
 
@@ -426,7 +427,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something.id,
       )
-    } else if (something instanceof FileBox) {
+    } else if (looseInstanceOfFileBox(something)) {
       /**
        * 3. File
        */
@@ -667,7 +668,11 @@ class Contact extends ContactEventEmitter implements Sayable {
     if (!this.payload) {
       return null
     }
-    return this.payload.friend || null
+    if (typeof this.payload.friend === 'boolean') {
+      return this.payload.friend
+    } else {
+      return null
+    }
   }
 
   /**

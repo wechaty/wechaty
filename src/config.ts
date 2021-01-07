@@ -31,6 +31,8 @@ import {
   log,
 }                   from 'wechaty-puppet'
 
+import { looseInstanceOfClass } from './helper-functions/mod'
+
 import {
   PuppetModuleName,
   PUPPET_NAME_DEFAULT,
@@ -173,11 +175,24 @@ export function isProduction (): boolean {
       || process.env.NODE_ENV === 'prod'
 }
 
+/**
+ * Huan(202011):
+ *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
+ *    https://github.com/wechaty/wechaty/issues/2090
+ */
+type FileBoxClass = FileBox & {
+  new (...args: any): FileBox
+}
+const looseInstanceOfFileBox = looseInstanceOfClass(
+  FileBox as any as FileBoxClass
+)
+
 export {
   log,
   FileBox,
   MemoryCard,
   Raven,
+  looseInstanceOfFileBox,
 
   VERSION,
 }

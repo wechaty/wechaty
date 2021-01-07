@@ -4,6 +4,7 @@ import TypedEventEmitter  from 'typed-emitter'
 
 import {
   CHAT_EVENT_DICT,
+  Puppet,
   ScanStatus,
 }                       from 'wechaty-puppet'
 
@@ -21,6 +22,7 @@ const WECHATY_EVENT_DICT = {
   dong      : 'Should be emitted after we call `Wechaty.ding()`',
   error     : "Will be emitted when there's an Error occurred.",
   heartbeat : 'Will be emitted periodically after the Wechaty started. If not, means that the Wechaty had died.',
+  puppet    : 'Will be emitted when the puppet has been set.',
   ready     : 'All underlined data source are ready for use.',
   start     : 'Will be emitted after the Wechaty had been started.',
   stop      : 'Will be emitted after the Wechaty had been stopped.',
@@ -38,6 +40,7 @@ export type WechatyHeartbeatEventListener  = (data: any) => void
 export type WechatyLoginEventListener      = (user: ContactSelf) => void
 export type WechatyLogoutEventListener     = (user: ContactSelf, reason?: string) => void
 export type WechatyMessageEventListener    = (message: Message) => void
+export type WechatyPuppetEventListener     = (puppet: Puppet) => void
 export type WechatyReadyEventListener      = () => void
 export type WechatyRoomInviteEventListener = (roomInvitation: RoomInvitation) => void
 export type WechatyRoomJoinEventListener   = (room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void
@@ -201,6 +204,10 @@ export type WechatyStartStopEventListener  = () => void
  * })
  */
 interface WechatyEvents {
+  'room-invite' : WechatyRoomInviteEventListener
+  'room-join'   : WechatyRoomJoinEventListener
+  'room-leave'  : WechatyRoomLeaveEventListener
+  'room-topic'  : WechatyRoomTopicEventListener
   dong          : WechatyDongEventListener
   error         : WechatyErrorEventListener
   friendship    : WechatyFriendshipEventListener
@@ -208,11 +215,8 @@ interface WechatyEvents {
   login         : WechatyLoginEventListener
   logout        : WechatyLogoutEventListener
   message       : WechatyMessageEventListener
+  puppet        : WechatyPuppetEventListener
   ready         : WechatyReadyEventListener
-  'room-invite' : WechatyRoomInviteEventListener
-  'room-join'   : WechatyRoomJoinEventListener
-  'room-leave'  : WechatyRoomLeaveEventListener
-  'room-topic'  : WechatyRoomTopicEventListener
   scan          : WechatyScanEventListener
   start         : WechatyStartStopEventListener
   stop          : WechatyStartStopEventListener

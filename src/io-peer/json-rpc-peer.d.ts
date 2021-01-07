@@ -1,3 +1,7 @@
+/**
+ * Add typescript definitions #60
+ *  https://github.com/JsCommunity/json-rpc-peer/pull/60
+ */
 declare module 'json-rpc-peer' {
 
   /// <reference types='json-rpc-protocol' />
