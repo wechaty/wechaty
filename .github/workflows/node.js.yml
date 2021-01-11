@@ -19,16 +19,24 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    #
+    # Cache
+    #
+    - name: Create cache hash file (remove .version)
+      run: | # remove .version because we change it automatically in every push
+        cat /dev/null                  > hash.file
+        grep -v version package.json  >> hash.file
+    - uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-wechaty-${{ hashFiles('hash.file') }}
+        restore-keys: |
+          ${{ runner.os }}-wechaty-
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - uses: actions/cache@v2
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-wechaty-cache
-        restore-keys: |
-          ${{ runner.os }}-wechaty-
     - run: npm install
     - run: npm run build --if-present
     - run: npm test

@@ -8,16 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      #
+      # Cache
+      #
+      - name: Create cache hash file (remove .version)
+        run: | # remove .version because we change it automatically in every push
+          cat /dev/null                  > hash.file
+          grep -v version package.json  >> hash.file
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-wechaty-${{ hashFiles('hash.file') }}
+          restore-keys: |
+            ${{ runner.os }}-wechaty-
+
       - name: Use Node.js 15
         uses: actions/setup-node@v2
         with:
           node-version: 15
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-wechaty-cache
-          restore-keys: |
-            ${{ runner.os }}-wechaty-
       - name: Install Dependencies
         run: npm install
 
@@ -30,15 +38,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 15
+      #
+      # Cache
+      #
+      - name: Create cache hash file (remove .version)
+        run: | # remove .version because we change it automatically in every push
+          cat /dev/null                  > hash.file
+          grep -v version package.json  >> hash.file
       - uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-wechaty-cache
+          key: ${{ runner.os }}-wechaty-${{ hashFiles('hash.file') }}
           restore-keys: |
             ${{ runner.os }}-wechaty-
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 15
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/npm-pack-testing.sh
@@ -52,16 +68,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      #
+      # Cache
+      #
+      - name: Create cache hash file (remove .version)
+        run: | # remove .version because we change it automatically in every push
+          cat /dev/null                  > hash.file
+          grep -v version package.json  >> hash.file
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-wechaty-${{ hashFiles('hash.file') }}
+          restore-keys: |
+            ${{ runner.os }}-wechaty-
+
       - uses: actions/setup-node@v2
         with:
           node-version: 15
           registry-url: https://registry.npmjs.org/
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-wechaty-cache
-          restore-keys: |
-            ${{ runner.os }}-wechaty-
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/package-publish-config-tag.sh
