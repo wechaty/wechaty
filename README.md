@@ -148,7 +148,7 @@ Wechaty is very powerful that it can run over different protocols. You can speci
 
 If you cannot use Web protocol, you can apply other protocal following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
 
-Currently we support the following [puppet providers](https://github.com/wechaty/puppet-service-providers):
+Currently we support the following [puppet providers](https://wechaty.js.org/docs/puppet-services/) :
 
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
