@@ -8,17 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      #
-      # Cache
-      #
-      - name: Create cache hash file (remove .version)
-        run: | # remove .version because we change it automatically in every push
-          cat /dev/null                  > hash.file
-          grep -v version package.json  >> hash.file
       - uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-wechaty-${{ hashFiles('hash.file') }}
+          key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-wechaty-
 
@@ -38,17 +31,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      #
-      # Cache
-      #
-      - name: Create cache hash file (remove .version)
-        run: | # remove .version because we change it automatically in every push
-          cat /dev/null                  > hash.file
-          grep -v version package.json  >> hash.file
       - uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-wechaty-${{ hashFiles('hash.file') }}
+          key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-wechaty-
 
@@ -68,17 +54,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      #
-      # Cache
-      #
-      - name: Create cache hash file (remove .version)
-        run: | # remove .version because we change it automatically in every push
-          cat /dev/null                  > hash.file
-          grep -v version package.json  >> hash.file
       - uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-wechaty-${{ hashFiles('hash.file') }}
+          key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-wechaty-
 
