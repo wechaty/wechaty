@@ -22,7 +22,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-wechaty-${{ hashFiles('**/packages.json') }}
+        key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
         restore-keys: |
           ${{ runner.os }}-wechaty-
 
