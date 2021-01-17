@@ -349,8 +349,8 @@ class Friendship extends EventEmitter implements Acceptable {
       : FriendshipType.Unknown
   }
 
-  public source(): FriendshipSource | null {
-    return (this.payload as FriendshipPayloadReceive).source || null;
+  public source (): FriendshipSource | null {
+    return (this.payload as FriendshipPayloadReceive).source || null
   }
 
   /**
