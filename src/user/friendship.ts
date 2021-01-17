@@ -34,6 +34,7 @@ import {
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
+  FriendshipSource
 }                                 from 'wechaty-puppet'
 
 import {
@@ -346,6 +347,12 @@ class Friendship extends EventEmitter implements Acceptable {
     return this.payload
       ? this.payload.type
       : FriendshipType.Unknown
+  }
+
+  public source(): FriendshipSource | null {
+    return this.type() === FriendshipType.Receive
+        ? this.payload.source
+        : null;
   }
 
   /**
