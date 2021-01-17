@@ -34,8 +34,8 @@ import {
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
-  FriendshipSource
-}                                 from 'wechaty-puppet'
+  FriendshipSource, FriendshipPayloadReceive,
+} from 'wechaty-puppet'
 
 import {
   Acceptable,
@@ -350,9 +350,7 @@ class Friendship extends EventEmitter implements Acceptable {
   }
 
   public source(): FriendshipSource | null {
-    return this.type() === FriendshipType.Receive
-        ? this.payload.source
-        : null;
+    return (this.payload as FriendshipPayloadReceive).source || null;
   }
 
   /**
