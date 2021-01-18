@@ -349,6 +349,21 @@ class Friendship extends EventEmitter implements Acceptable {
       : FriendshipType.Unknown
   }
 
+  /**
+   * Return FriendshipSource in FriendshipPayloadReceive
+   * Issue #2120: https://github.com/wechaty/wechaty/pull/2120
+   * Ref Issue #1801: https://github.com/wechaty/wechaty/issues/1801
+   * @author https://github.com/suhli
+   * @returns {FriendshipSource}
+   * @example
+   * const bot = new Wechaty()
+   * bot.on('friendship', async friendship => {
+   * if (friendship.type() === Friendship.Type.Receive) {
+   *       console.log(JSON.stringify(friendship.source(),null,2))
+   *   }
+   * }
+   * .start()
+   **/
   public source (): FriendshipSource | null {
     return (this.payload as FriendshipPayloadReceive).source || null
   }
