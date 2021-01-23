@@ -27,9 +27,9 @@ import { Wechaty }  from './wechaty'
 test('Io restart without problem', async t => {
   const io = new Io({
     // token must not contain any white spaces
-    hostiePort: 8788,
-    token   : 'mock_token_in_wechaty/wechaty/src/io.spec.ts',
-    wechaty : new Wechaty(),
+    servicePort : 8788,
+    token       : 'mock_token_in_wechaty/wechaty/src/io.spec.ts',
+    wechaty     : new Wechaty(),
   })
 
   try {

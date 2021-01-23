@@ -51,11 +51,11 @@ import {
 }                   from './io-peer/io-peer'
 
 export interface IoOptions {
-  wechaty:    Wechaty,
-  token:      string,
-  apihost?:   string,
-  protocol?:  string,
-  hostiePort?:number,
+  wechaty      : Wechaty,
+  token        : string,
+  apihost?     : string,
+  protocol?    : string,
+  servicePort? : number,
 }
 
 export const IO_EVENT_DICT = {
@@ -143,9 +143,9 @@ export class Io {
       this.id,
     )
 
-    if (options.hostiePort) {
+    if (options.servicePort) {
       this.jsonRpc = getPeer({
-        hostieGrpcPort: this.options.hostiePort!,
+        serviceGrpcPort: this.options.servicePort!,
       })
     }
 

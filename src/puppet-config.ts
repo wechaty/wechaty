@@ -35,7 +35,7 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Wechaty Internal Puppets: dependency by package.json
    */
-  'wechaty-puppet-hostie'    : '*',   // https://www.npmjs.com/package/wechaty-puppet-hostie
+  'wechaty-puppet-service'   : '*',   // https://www.npmjs.com/package/wechaty-puppet-service
   'wechaty-puppet-mock'      : '*',   // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**

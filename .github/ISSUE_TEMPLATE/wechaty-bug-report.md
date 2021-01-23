@@ -25,7 +25,7 @@ about: Create a bug report for a bug you found in wechaty
 
 Answer:
 
-> Which puppet are you using for wechaty? (hostie/puppeteer/padchat/...)
+> Which puppet are you using for wechaty? (puppeteer/padlocal/service...)
 
 Answer:
 

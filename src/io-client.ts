@@ -26,7 +26,7 @@ import { StateSwitch }  from 'state-switch'
 import {
   PuppetServer,
   PuppetServerOptions,
-}                       from 'wechaty-puppet-hostie'
+}                       from 'wechaty-puppet-service'
 
 import { Message }      from './user/mod'
 
@@ -80,11 +80,11 @@ export class IoClient {
     this.state = new StateSwitch('IoClient', { log })
   }
 
-  private async startHostie () {
-    log.verbose('IoClient', 'startHostie()')
+  private async startPuppetServer () {
+    log.verbose('IoClient', 'startPuppetServer()')
 
     if (this.puppetServer) {
-      throw new Error('hostie server exists')
+      throw new Error('puppet server exists')
     }
 
     const options: PuppetServerOptions = {
@@ -96,11 +96,11 @@ export class IoClient {
     await this.puppetServer.start()
   }
 
-  private async stopHostie () {
-    log.verbose('IoClient', 'stopHostie()')
+  private async stopPuppetServer () {
+    log.verbose('IoClient', 'stopPuppetService()')
 
     if (!this.puppetServer) {
-      throw new Error('hostie server does not exist')
+      throw new Error('puppet server does not exist')
     }
 
     await this.puppetServer.stop()
@@ -125,7 +125,7 @@ export class IoClient {
 
       await this.options.wechaty.start()
 
-      await this.startHostie()
+      await this.startPuppetServer()
 
       this.state.on(true)
 
@@ -171,7 +171,7 @@ export class IoClient {
     }
 
     this.io = new Io({
-      hostiePort : this.options.port,
+      servicePort : this.options.port,
       token      : this.options.token,
       wechaty    : this.options.wechaty,
     })
@@ -222,7 +222,7 @@ export class IoClient {
     this.state.off('pending')
 
     await this.stopIo()
-    await this.stopHostie()
+    await this.stopPuppetServer()
     await this.options.wechaty.stop()
 
     this.state.off(true)
