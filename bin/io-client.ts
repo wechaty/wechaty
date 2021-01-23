@@ -62,7 +62,21 @@ async function main () {
 
   const wechaty = new Wechaty({ name: token })
 
-  const port = parseInt(process.env.WECHATY_PUPPET_SERVER_PORT || '0')
+  let port
+  if (process.env.WECHATY_HOSTIE_PORT) {
+    /**
+     * https://github.com/wechaty/wechaty/issues/2122
+     */
+    log.warn('Wechaty', [
+      '',
+      'WECHATY_HOSTIE_PORT is deprecated.',
+      'Use WECHATY_PUPPET_SERVER_PORT instead.',
+      'See: https://github.com/wechaty/wechaty/issues/2122',
+    ].join(' '))
+    port = parseInt(process.env.WECHATY_HOSTIE_PORT)
+  } else if (process.env.WECHATY_PUPPET_SERVER_PORT) {
+    port = parseInt(process.env.WECHATY_PUPPET_SERVER_PORT)
+  }
 
   const options: IoClientOptions = {
     token,
