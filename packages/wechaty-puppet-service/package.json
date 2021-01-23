@@ -65,7 +65,7 @@
     "@reduxjs/toolkit": "^1.4.0",
     "redux": "^4.0.5",
     "redux-observable": "^2.0.0-alpha.0",
-    "rxjs": "^7.0.0-beta.9",
+    "rxjs": "^6.6.3",
     "stronger-typed-streams": "^0.2.0",
     "ws": "^7.3.1"
   },
