@@ -52,7 +52,8 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ### v0.14 (Jan 2021)
 
-Rename from ~~wechaty-puppet-hostie~~ to [wechaty-puppet-service](https://www.npmjs.com/package/wechaty-puppet-service) (Issue [#118](https://github.com/wechaty/wechaty-puppet-service/issues/118))
+Rename from ~~wechaty-puppet-hostie~~ to [wechaty-puppet-service](https://www.npmjs.com/package/wechaty-puppet-service)
+(Issue [#118](https://github.com/wechaty/wechaty-puppet-service/issues/118))
 
 ### v0.10.4 (Oct 2020)
 
