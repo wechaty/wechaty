@@ -579,7 +579,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
         case 'dirty':
           /**
-           * https://github.com/wechaty/wechaty-puppet-hostie/issues/43
+           * https://github.com/wechaty/wechaty-puppet-service/issues/43
            */
           puppet.on('dirty', async ({ payloadType, payloadId }) => {
             switch (payloadType) {

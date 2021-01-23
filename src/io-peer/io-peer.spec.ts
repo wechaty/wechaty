@@ -34,12 +34,16 @@ import {
 test('getPeer()', async t => {
   const EXPECTED_PORT = 8788
   const server = getPeer({
-    hostieGrpcPort: EXPECTED_PORT,
+    serviceGrpcPort: EXPECTED_PORT,
   })
   const client = new Peer()
 
   server.pipe(client).pipe(server)
 
+  /**
+   * Huan(202101) Need to be fixed by new IO Bus system.
+   *  See: https://github.com/wechaty/wechaty-puppet-service/issues/118
+   */
   const port = await client.request('getHostieGrpcPort')
   t.equal(port, EXPECTED_PORT, 'should get the right port')
 })
@@ -47,9 +51,13 @@ test('getPeer()', async t => {
 test('exec()', async t => {
   const EXPECTED_PORT = 8788
   const server = getPeer({
-    hostieGrpcPort: EXPECTED_PORT,
+    serviceGrpcPort: EXPECTED_PORT,
   })
 
+  /**
+   * Huan(202101) Need to be fixed by new IO Bus system.
+   *  See: https://github.com/wechaty/wechaty-puppet-service/issues/118
+   */
   const request = format.request(42, 'getHostieGrpcPort')
   const response = await server.exec(request) as string
   // console.info('response: ', response)

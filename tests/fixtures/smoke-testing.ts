@@ -31,10 +31,10 @@ function getBotList (): Wechaty[] {
     // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
-  if (process.env.WECHATY_PUPPET_HOSTIE_TOKEN) {
+  if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
     botList.push(
       new Wechaty({
-        puppet: 'wechaty-puppet-hostie',
+        puppet: 'wechaty-puppet-service',
       })
     )
   }

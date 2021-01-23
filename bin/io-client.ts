@@ -62,7 +62,7 @@ async function main () {
 
   const wechaty = new Wechaty({ name: token })
 
-  const port = parseInt(process.env.WECHATY_HOSTIE_PORT || '0')
+  const port = parseInt(process.env.WECHATY_PUPPET_SERVER_PORT || '0')
 
   const options: IoClientOptions = {
     token,

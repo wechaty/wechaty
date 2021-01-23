@@ -20,14 +20,18 @@ const isJsonRpcResponse     = (payload: JsonRpcPayload): payload is JsonRpcPaylo
 const isJsonRpcError        = (payload: JsonRpcPayload): payload is JsonRpcPayloadError        => ('error' in payload)
 
 interface IoPeerOptions {
-  hostieGrpcPort: number,
+  serviceGrpcPort: number,
 }
 
 const getPeer = (options: IoPeerOptions) => {
-  const getHostieGrpcPort = () => options.hostieGrpcPort
+  const getServiceGrpcPort = () => options.serviceGrpcPort
 
   const serviceImpl = {
-    getHostieGrpcPort,
+    /**
+     * Huan(202101) Need to be fixed by new IO Bus system.
+     *  See: https://github.com/wechaty/wechaty-puppet-service/issues/118
+     */
+    getHostieGrpcPort: getServiceGrpcPort,
   }
 
   const onMessage = async (message: JsonRpcPayload): Promise<any> => {
@@ -45,6 +49,10 @@ const getPeer = (options: IoPeerOptions) => {
 
       const serviceMethodName = method as keyof typeof serviceImpl
       switch (serviceMethodName) {
+        /**
+         * Huan(202101) Need to be fixed by new IO Bus system.
+         *  See: https://github.com/wechaty/wechaty-puppet-service/issues/118
+         */
         case 'getHostieGrpcPort':
           return serviceImpl[serviceMethodName]()
 
