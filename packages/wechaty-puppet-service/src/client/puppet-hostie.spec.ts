@@ -13,7 +13,7 @@ test('version()', async (t) => {
 
 /**
  * Huan(202003):
- *  need to setup a test server to provide test token for puppet hostie
+ *  need to setup a test server to provide test token for Puppet Service
  */
 test.skip('PuppetHostie restart without problem', async (t) => {
   const puppet = new PuppetHostie()

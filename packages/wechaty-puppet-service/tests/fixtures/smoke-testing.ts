@@ -2,7 +2,7 @@
 import {
   VERSION,
   PuppetHostie,
-}                       from 'wechaty-puppet-hostie'
+}                       from 'wechaty-puppet-service'
 
 async function main () {
   if (VERSION === '0.0.0') {

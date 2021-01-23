@@ -258,7 +258,7 @@ export class PuppetHostie extends Puppet {
     log.verbose('PuppetHostie', 'start()')
 
     if (!this.options.token) {
-      throw new Error('wechaty-puppet-hostie: token not found (save token to WECHATY_PUPPET_HOSTIE_TOKEN env var or pass it to puppet options is required.). See: <https://github.com/wechaty/wechaty-puppet-hostie#1-wechaty_puppet_hostie_token>')
+      throw new Error('wechaty-puppet-service: token not found (save token to WECHATY_PUPPET_HOSTIE_TOKEN env var or pass it to puppet options is required.). See: <https://github.com/wechaty/wechaty-puppet-service#1-wechaty_puppet_hostie_token>')
     }
 
     if (this.state.on()) {
@@ -399,7 +399,7 @@ export class PuppetHostie extends Puppet {
         log.verbose('PuppetHostie', 'startGrpcStream() eventStream.on(end)')
       })
       .on('error', e => {
-        // https://github.com/wechaty/wechaty-puppet-hostie/issues/16
+        // https://github.com/wechaty/wechaty-puppet-service/issues/16
         log.verbose('PuppetHostie', 'startGrpcStream() eventStream.on(error) %s', e)
         const reason = 'startGrpcStream() eventStream.on(error) ' + e
         /**

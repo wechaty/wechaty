@@ -1,9 +1,9 @@
-# wechaty-puppet-hostie
+# wechaty-puppet-service
 
-[![NPM Version](https://badge.fury.io/js/wechaty-puppet-hostie.svg)](https://www.npmjs.com/package/wechaty-puppet-hostie)
-[![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty-puppet-hostie/actions?query=workflow%3ANPM)
+[![NPM Version](https://badge.fury.io/js/wechaty-puppet-service.svg)](https://www.npmjs.com/package/wechaty-puppet-service)
+[![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty-puppet-service/actions?query=workflow%3ANPM)
 
-![Hostie](https://wechaty.github.io/wechaty-puppet-hostie/images/hostie.png)
+![Hostie](https://wechaty.github.io/wechaty-puppet-service/images/hostie.png)
 
 Hostie Puppet for Wechaty
 
@@ -20,7 +20,7 @@ Hostie Puppet for Wechaty
 import { Wechaty } from 'wechaty'
 
 const wechaty = new Wechaty({
-  puppet: 'wechaty-puppet-hostie',
+  puppet: 'wechaty-puppet-service',
   puppetOptions: {
     token: 'hostie_token'
   }
@@ -42,6 +42,10 @@ WECHATY_PUPPET_HOSTIE_TOKEN=hostie_token node bot.js
 ## History
 
 ### master
+
+### v0.14 (Jan 2021)
+
+Rename from `wechaty-puppet-hostie` to `wechaty-puppet-service` (Issue [#118](https://github.com/wechaty/wechaty-puppet-service/issues/118))
 
 ### v0.10.4 (Oct 2020)
 

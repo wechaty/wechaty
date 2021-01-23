@@ -88,7 +88,7 @@ test.skip('stress testing', async (t) => {
   await hostieServer.start()
 
   /**
-   * Puppet Hostie Client
+   * Puppet Service Client
    */
   const puppetOptions = {
     endpoint : ENDPOINT,
@@ -135,7 +135,7 @@ test.skip('stress testing', async (t) => {
    * Stop
    *  1. Puppet in Hostie
    *  2. Hostie Service
-   *  3. Puppet Hostie Client
+   *  3. Puppet Service Client
    *
    */
   await puppetHostie.stop()

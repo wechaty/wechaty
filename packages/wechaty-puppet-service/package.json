@@ -1,7 +1,7 @@
 {
-  "name": "wechaty-puppet-hostie",
-  "version": "0.13.2",
-  "description": "Puppet Hostie for Wechaty",
+  "name": "wechaty-puppet-service",
+  "version": "0.14.2",
+  "description": "Puppet Service for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "directories": {
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Chatie/wechaty-puppet-hostie.git"
+    "url": "git+https://github.com/wechaty/wechaty-puppet-service.git"
   },
   "keywords": [
     "chatie",
@@ -40,9 +40,9 @@
   "author": "Huan LI <zixia@zixia.net>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Chatie/wechaty-puppet-hostie/issues"
+    "url": "https://github.com/wechaty/wechaty-puppet-service/issues"
   },
-  "homepage": "https://github.com/Chatie/wechaty-puppet-hostie#readme",
+  "homepage": "https://github.com/wechaty/wechaty-puppet-service#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^0.12.1",
     "@chatie/git-scripts": "^0.6.2",
