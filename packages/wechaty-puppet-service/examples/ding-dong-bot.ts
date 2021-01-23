@@ -9,14 +9,14 @@ import {
   FileBox,
 }                     from 'wechaty-puppet'
 
-import { PuppetHostie } from '../src/'
+import { PuppetService } from '../src/'
 
 /**
  *
  * 1. Declare your Bot!
  *
  */
-const puppet = new PuppetHostie()
+const puppet = new PuppetService()
 
 /**
  *

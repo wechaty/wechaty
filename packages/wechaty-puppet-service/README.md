@@ -3,16 +3,23 @@
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet-service.svg)](https://www.npmjs.com/package/wechaty-puppet-service)
 [![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty-puppet-service/actions?query=workflow%3ANPM)
 
-![Hostie](https://wechaty.github.io/wechaty-puppet-service/images/hostie.png)
+![Wechaty Hostie](https://wechaty.github.io/wechaty-puppet-service/images/hostie.png)
 
-Hostie Puppet for Wechaty
+Wechaty Puppet Service is gRPC for Wechaty Puppet Provider.
+
+For example, we can cloudify the Wechaty Puppet Provider wechaty-puppet-padlocal
+to a Wechaty Puppet Service by running our Wechaty Puppet Service Token Gateway.
+
+If you want to learn more about what is Wechaty Puppet and Wechaty Puppet Service,
+we have a blog post to explain them in details at
+<https://wechaty.js.org/2021/01/14/wechaty-puppet-service/>
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
 
 ## Features
 
-1. Consume hostie service
-1. Provide hostie service
+1. Consume Wechaty Puppet Service
+1. Provide Wechaty Puppet Service
 
 ## Usage
 
@@ -22,7 +29,7 @@ import { Wechaty } from 'wechaty'
 const wechaty = new Wechaty({
   puppet: 'wechaty-puppet-service',
   puppetOptions: {
-    token: 'hostie_token'
+    token: '__WECHATY_PUPPET_SERVCIE_TOKEN__'
   }
 })
 
@@ -31,12 +38,12 @@ wechaty.start()
 
 ## Environment Variables
 
-### 1 `WECHATY_PUPPET_HOSTIE_TOKEN`
+### 1 `WECHATY_PUPPET_SERVICE_TOKEN`
 
 The token set to this environment variable will become the default value of `puppetOptions.token`
 
 ```sh
-WECHATY_PUPPET_HOSTIE_TOKEN=hostie_token node bot.js
+WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 ```
 
 ## History

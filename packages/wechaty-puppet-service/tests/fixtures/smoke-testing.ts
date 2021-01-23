@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 import {
   VERSION,
-  PuppetHostie,
+  PuppetService,
 }                       from 'wechaty-puppet-service'
 
 async function main () {
@@ -9,8 +9,8 @@ async function main () {
     throw new Error('version should be set before publishing')
   }
 
-  const hostie = new PuppetHostie()
-  const version = hostie.version()
+  const puppetService = new PuppetService()
+  const version = puppetService.version()
 
   // try {
   //   await bot.start()

@@ -13,7 +13,7 @@ import {
 }                 from 'wechaty-puppet-mock'
 
 import {
-  PuppetHostie,
+  PuppetService,
   PuppetServer,
   PuppetServerOptions,
 }                               from '../src/'
@@ -24,7 +24,7 @@ test('integration testing', async (t) => {
   const DING     = 'ding_data'
 
   /**
-   * Puppet in Hostie
+   * Puppet in Service
    */
   const puppet = new PuppetMock()
   const spyStart = sinon.spy(puppet, 'start')
@@ -32,7 +32,7 @@ test('integration testing', async (t) => {
   const spyDing  = sinon.spy(puppet, 'ding')
 
   /**
-   * Hostie Server
+   * Puppet Server
    */
   const serverOptions = {
     endpoint : ENDPOINT,
@@ -40,8 +40,8 @@ test('integration testing', async (t) => {
     token    : TOKEN,
   } as PuppetServerOptions
 
-  const hostieServer = new PuppetServer(serverOptions)
-  await hostieServer.start()
+  const puppetServer = new PuppetServer(serverOptions)
+  await puppetServer.start()
 
   /**
    * Puppet Service Client
@@ -51,39 +51,39 @@ test('integration testing', async (t) => {
     token: TOKEN,
   } as PuppetOptions
 
-  const puppetHostie = new PuppetHostie(puppetOptions)
-  await puppetHostie.start()
+  const puppetService = new PuppetService(puppetOptions)
+  await puppetService.start()
 
-  t.ok(spyStart.called, 'should called the hostie server start() function')
+  t.ok(spyStart.called, 'should called the puppet server start() function')
 
   const future = new Promise<string>((resolve, reject) => {
-    const offError = () => puppetHostie.off('error', reject)
+    const offError = () => puppetService.off('error', reject)
 
-    puppetHostie.once('dong', payload => {
+    puppetService.once('dong', payload => {
       resolve(payload.data)
       offError()
     })
-    puppetHostie.once('error', e => {
+    puppetService.once('error', e => {
       reject(e)
       offError()
     })
   })
 
-  puppetHostie.ding(DING)
+  puppetService.ding(DING)
   const result = await future
 
-  t.ok(spyOn.called,    'should called the hostie server on() function')
-  t.ok(spyDing.called,  'should called the hostie server ding() function')
+  t.ok(spyOn.called,    'should called the puppet server on() function')
+  t.ok(spyDing.called,  'should called the puppet server ding() function')
 
   t.equal(result, DING, 'should get a successful roundtrip for ding')
 
   /**
    * Stop
-   *  1. Puppet in Hostie
-   *  2. Hostie Service
+   *  1. Puppet in Service
+   *  2. Puppet Service Server
    *  3. Puppet Service Client
    *
    */
-  await puppetHostie.stop()
-  await hostieServer.stop()
+  await puppetService.stop()
+  await puppetServer.stop()
 })

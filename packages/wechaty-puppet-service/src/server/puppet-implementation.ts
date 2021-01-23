@@ -95,7 +95,7 @@ export function puppetImplementation (
 ): IPuppetServer {
 
   /**
-   * Save scan payload to send it to the puppet-hostie right after connected (if needed)
+   * Save scan payload to send it to the puppet-service right after connected (if needed)
    *
    * TODO: clean the listeners if necessary
    */

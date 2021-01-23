@@ -14,7 +14,7 @@ import {
 }             from 'tstest'
 
 import {
-  PuppetHostie,
+  PuppetService,
   PuppetServer,
   PuppetServerOptions,
 }                               from '../src'
@@ -70,13 +70,13 @@ test.skip('stress testing', async (t) => {
   // const DING     = 'ding_data'
 
   /**
-   * Puppet in Hostie
+   * Puppet in Service
    */
   const puppet = new PuppetTest()
   const spy = sinon.spy(puppet, 'contactRawPayload')
 
   /**
-   * Hostie Server
+   * Puppet Server
    */
   const serverOptions = {
     endpoint : ENDPOINT,
@@ -84,8 +84,8 @@ test.skip('stress testing', async (t) => {
     token    : TOKEN,
   } as PuppetServerOptions
 
-  const hostieServer = new PuppetServer(serverOptions)
-  await hostieServer.start()
+  const puppetServer = new PuppetServer(serverOptions)
+  await puppetServer.start()
 
   /**
    * Puppet Service Client
@@ -95,17 +95,17 @@ test.skip('stress testing', async (t) => {
     token    : TOKEN,
   } as PuppetOptions
 
-  const puppetHostie = new PuppetHostie(puppetOptions)
-  await puppetHostie.start()
+  const puppetService = new PuppetService(puppetOptions)
+  await puppetService.start()
 
   let COUNTER = 0
   const dongList: string[] = []
-  puppetHostie.on('dong', payload => {
+  puppetService.on('dong', payload => {
     dongList.push(payload.data)
   })
 
   const timer = setInterval(() => {
-    puppetHostie.ding(`interval ${COUNTER++}`)
+    puppetService.ding(`interval ${COUNTER++}`)
   }, 10)
 
   const CONCURRENCY = 1000
@@ -115,7 +115,7 @@ test.skip('stress testing', async (t) => {
 
   const resultList = await Promise.all(
     concurrencyList.map(
-      id => puppetHostie.contactPayload(id)
+      id => puppetService.contactPayload(id)
     )
   )
   console.info()
@@ -133,11 +133,11 @@ test.skip('stress testing', async (t) => {
 
   /**
    * Stop
-   *  1. Puppet in Hostie
-   *  2. Hostie Service
+   *  1. Puppet in Service
+   *  2. Puppet Service Server
    *  3. Puppet Service Client
    *
    */
-  await puppetHostie.stop()
-  await hostieServer.stop()
+  await puppetService.stop()
+  await puppetServer.stop()
 })

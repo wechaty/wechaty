@@ -1,7 +1,7 @@
 export {
-  PuppetHostie,
-  PuppetHostie as default,
-}                           from './client/puppet-hostie'
+  PuppetService,
+  PuppetService as default,
+}                           from './client/puppet-service'
 
 export {
   log,
