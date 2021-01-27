@@ -33,6 +33,14 @@ export const PUPPET_DEPENDENCIES = {
   // 'wechaty-puppet-padplus'   : '^0.7.30',   // https://www.npmjs.com/package/wechaty-puppet-padplus
 
   /**
+   * Deprecated on Jan 2021: rename to wechaty-puppet-service
+   *  https://github.com/wechaty/wechaty-puppet-service/issues/118
+   *
+   * Huan(202101): will be removed after Dec 31, 2021
+   */
+  'wechaty-puppet-hostie'    : '*',   // https://www.npmjs.com/package/wechaty-puppet-hostie
+
+  /**
    * Wechaty Internal Puppets: dependency by package.json
    */
   'wechaty-puppet-service'   : '*',   // https://www.npmjs.com/package/wechaty-puppet-service
