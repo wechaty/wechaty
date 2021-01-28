@@ -65,4 +65,5 @@ export const PUPPET_DEPENDENCIES = {
 
 export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
 
-export const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-puppeteer'
+// Huan(202001): we change default puppet from puppet-puppeteer -> puppet-service
+export const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-service'
