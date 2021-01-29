@@ -87,7 +87,7 @@ test('systemPuppetName ()', async t => {
   const WECHATY_PUPPET_ORIG = process.env.WECHATY_PUPPET
 
   delete process.env.WECHATY_PUPPET
-  t.equal(config.systemPuppetName(), 'wechaty-puppet-puppeteer', 'should get wechaty-puppet-puppeteer as puppet name')
+  t.equal(config.systemPuppetName(), 'wechaty-puppet-service', 'should get wechaty-puppet-service as default puppet name')
 
   process.env.WECHATY_PUPPET = 'wechaty-puppet-mock'
   t.equal(config.systemPuppetName(), 'wechaty-puppet-mock', 'should get puppet name from process.env')
