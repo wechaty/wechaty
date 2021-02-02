@@ -258,7 +258,16 @@ export class PuppetService extends Puppet {
     log.verbose('PuppetService', 'start()')
 
     if (!this.options.token) {
-      throw new Error('wechaty-puppet-service: token not found (save token to WECHATY_PUPPET_SERVICE_TOKEN env var or pass it to puppet options is required.). See: <https://github.com/wechaty/wechaty-puppet-service#1-wechaty_puppet_service_token>')
+      throw new Error([
+        '',
+        'wechaty-puppet-service: WECHATY_PUPPET_SERVICE_TOKEN not found',
+        '(save token to WECHATY_PUPPET_SERVICE_TOKEN env var or pass it to puppet options is required.).',
+        '',
+        'To learn how to get Wechaty Puppet Service Token,',
+        'please visit <https://wechaty.js.org/docs/puppet-services/>',
+        'to see our Wechaty Puppet Service Providers.',
+        '',
+      ].join('\n'))
     }
 
     if (this.state.on()) {

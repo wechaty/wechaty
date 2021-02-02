@@ -15,6 +15,9 @@ export const WECHATY_PUPPET_SERVICE_TOKEN    = () => {
   if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
     return process.env.WECHATY_PUPPET_SERVICE_TOKEN
   }
+  /**
+   * Huan(202102): remove this deprecated warning after Dec 31, 2021
+   */
   if (process.env.WECHATY_PUPPET_HOSTIE_TOKEN) {
     log.warn('wechaty-puppet-service', [
       '',
@@ -32,6 +35,9 @@ export const WECHATY_PUPPET_SERVICE_ENDPOINT = () => {
   if (process.env.WECHATY_PUPPET_SERVICE_ENDPOINT) {
     return process.env.WECHATY_PUPPET_SERVICE_ENDPOINT
   }
+  /**
+   * Huan(202102): remove this deprecated warning after Dec 31, 2021
+   */
   if (process.env.WECHATY_PUPPET_HOSTIE_ENDPOINT) {
     log.warn('wechaty-puppet-service', [
       '',
