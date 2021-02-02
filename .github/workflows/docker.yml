@@ -25,7 +25,7 @@ jobs:
   publish:
     name: Publish
     needs: [build]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v[0-9]+'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
