@@ -135,7 +135,7 @@ export class Io {
 
     this.id = options.wechaty.id
 
-    this.protocol = options.protocol + '|' + options.wechaty.id + '|' + config.customizeServerHost + '|' + options.servicePort
+    this.protocol = options.protocol + '|' + options.wechaty.id + '|' + config.serviceIp + '|' + options.servicePort
     log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], cuid[%s]',
       options.apihost,
       options.token,
