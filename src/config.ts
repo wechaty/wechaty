@@ -119,6 +119,7 @@ export class Config {
   public default = DEFAULT_SETTING
 
   public apihost = process.env.WECHATY_APIHOST || DEFAULT_SETTING.DEFAULT_APIHOST
+  public serviceIp = process.env.WECHATY_PUPPET_SERVICE_IP || ''
 
   public systemPuppetName (): PuppetModuleName {
     return (
