@@ -36,7 +36,7 @@ export const PUPPET_DEPENDENCIES = {
    * Deprecated on Jan 2021: rename to wechaty-puppet-service
    *  https://github.com/wechaty/wechaty-puppet-service/issues/118
    *
-   * Huan(202101): will be removed after Dec 31, 2021
+   * TODO: Huan(202101): will be removed after Dec 31, 2021
    */
   'wechaty-puppet-hostie'    : '*',   // https://www.npmjs.com/package/wechaty-puppet-hostie
 
@@ -51,11 +51,12 @@ export const PUPPET_DEPENDENCIES = {
    */
   'wechaty-puppet-puppeteer'        : '*',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
   'wechaty-puppet-wechat4u'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
-  'wechaty-puppet-gitter'           : '*',   // https://www.npmjs.com/package/wechaty-puppet-gitter
-  'wechaty-puppet-official-account' : '*',   // https://www.npmjs.com/package/wechaty-puppet-official-account
   'wechaty-puppet-padlocal'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
-  'wechaty-puppet-whatsapp'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
+
+  'wechaty-puppet-gitter'           : '*',   // https://www.npmjs.com/package/wechaty-puppet-gitter
   'wechaty-puppet-lark'             : '*',   // https://www.npmjs.com/package/wechaty-puppet-lark
+  'wechaty-puppet-official-account' : '*',   // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-whatsapp'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
 
   /**
    * Scoped puppets
