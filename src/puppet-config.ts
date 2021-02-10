@@ -55,6 +55,7 @@ export const PUPPET_DEPENDENCIES = {
   'wechaty-puppet-official-account' : '*',   // https://www.npmjs.com/package/wechaty-puppet-official-account
   'wechaty-puppet-padlocal'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
   'wechaty-puppet-whatsapp'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
+  'wechaty-puppet-lark'             : '*',   // https://www.npmjs.com/package/wechaty-puppet-lark
 
   /**
    * Scoped puppets
