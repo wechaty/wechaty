@@ -47,19 +47,22 @@ export const PUPPET_DEPENDENCIES = {
   'wechaty-puppet-mock'      : '*',   // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
-   * Wechaty External Puppets
+   * WeChat External Puppets
    */
-  'wechaty-puppet-puppeteer'        : '*',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
-  'wechaty-puppet-wechat4u'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
-  'wechaty-puppet-padlocal'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
-
-  'wechaty-puppet-gitter'           : '*',   // https://www.npmjs.com/package/wechaty-puppet-gitter
-  'wechaty-puppet-lark'             : '*',   // https://www.npmjs.com/package/wechaty-puppet-lark
-  'wechaty-puppet-official-account' : '*',   // https://www.npmjs.com/package/wechaty-puppet-official-account
-  'wechaty-puppet-whatsapp'         : '*',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
+  'wechaty-puppet-puppeteer'        : '>=0.22.1',   // https://www.npmjs.com/package/wechaty-puppet-puppeteer
+  'wechaty-puppet-wechat4u'         : '>=0.17.7',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
+  'wechaty-puppet-padlocal'         : '>=0.2.31',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
+  'wechaty-puppet-official-account' : '>=0.5.43',   // https://www.npmjs.com/package/wechaty-puppet-official-account
 
   /**
-   * Scoped puppets
+   * Non-WeChat External Puppets
+   */
+  'wechaty-puppet-gitter'           : '>=0.4.7',   // https://www.npmjs.com/package/wechaty-puppet-gitter
+  'wechaty-puppet-lark'             : '>=0.4.5',   // https://www.npmjs.com/package/wechaty-puppet-lark
+  'wechaty-puppet-whatsapp'         : '>=0.2.2',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
+
+  /**
+   * Scoped puppets (private)
    */
   '@juzibot/wechaty-puppet-donut': '^0.3', // https://www.npmjs.com/package/wechaty-puppet-donut (to be published)
   '@juzibot/wechaty-puppet-wxwork': '*',   // https://www.npmjs.com/package/wechaty-puppet-wxwork (to be published)
