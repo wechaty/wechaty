@@ -17,7 +17,7 @@ import {
   PuppetService,
   PuppetServer,
   PuppetServerOptions,
-}                               from '../src'
+}                               from '../src/mod'
 import {
   PuppetOptions,
   ContactPayload,
