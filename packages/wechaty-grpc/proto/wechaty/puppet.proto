@@ -1,7 +1,7 @@
 /**
  *
  * Wechaty Puppet gRPC Protocol Buffers
- *  https://github.com/chatie/grpc/
+ *  https://github.com/wechaty/grpc/
  *  Huan LI <zixia@zixia.net>
  *  Apr 2018
  *  License: Apache-2.0
@@ -12,9 +12,6 @@
  */
 syntax = "proto3";
 package wechaty;
-
-option java_package="io.github.wechaty.grpc";
-option go_package="github.com/wechaty/go-grpc/wechaty";
 
 import public "puppet/base.proto";
 import public "puppet/contact.proto";
@@ -27,64 +24,219 @@ import public "puppet/room_invitation.proto";
 import public "puppet/room_member.proto";
 import public "puppet/tag.proto";
 
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option java_package="io.github.wechaty.grpc";
+option go_package="github.com/wechaty/go-grpc/wechaty";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+      title: "Wechaty Puppet Service OpenAPI Specification"
+      description: "Wechaty is a Conversational RPA SDK for chatbot makers. With only 6 lines of code, you can create a bot on the most popular IMs like WeChat, Whatsapp, WeCom, Gitter, etc.\n\nWechaty Puppet Service is the RESTful API for Wechaty API, which is build on top of the Wechaty Puppet Abstraction and the gRPC proto definition."
+      license: {
+        name: "Apache-2.0"
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+      }
+      contact: {
+          name: "Wechaty"
+          url: "https://github.com/wechaty/openapi"
+          email: "wechaty@chatie.io"
+      }
+      version: "0.0.0"  // MUST be 0.0.0 at here: will be synced with the Git Repo when generating.
+  };
+  schemes: [HTTP,HTTPS,WS,WSS]
+  consumes: "application/json"
+  produces: "application/json"
+  responses: {
+      key: "default"
+      value: {
+          description: ""
+          schema: {
+              json_schema: {
+                  ref: ".google.rpc.Status"
+              };
+          };
+      };
+  };
+};
+
 service Puppet {
   /**
    *
    * Base
    *
    */
-  rpc Start (puppet.StartRequest)  returns (puppet.StartResponse) {}
-  rpc Stop (puppet.StopRequest)    returns (puppet.StopResponse) {}
+  rpc Start (puppet.StartRequest)  returns (puppet.StartResponse) {
+    option (google.api.http) = {
+      put: "/start"
+    };
+  }
+  rpc Stop (puppet.StopRequest)    returns (puppet.StopResponse) {
+    option (google.api.http) = {
+      put: "/stop"
+    };
+  }
 
-  rpc Logout (puppet.LogoutRequest)      returns (puppet.LogoutResponse) {}
-  rpc Ding (puppet.DingRequest)          returns (puppet.DingResponse) {}
-  rpc Version (puppet.VersionRequest)    returns (puppet.VersionResponse) {}
+  rpc Logout (puppet.LogoutRequest)      returns (puppet.LogoutResponse) {
+    option (google.api.http) = {
+      put: "/logout"
+    };
+  }
+  rpc Ding (puppet.DingRequest)          returns (puppet.DingResponse) {
+    option (google.api.http) = {
+      post: "/ding"
+      body: "*"
+    };
+  }
+  rpc Version (puppet.VersionRequest)    returns (puppet.VersionResponse) {
+    option (google.api.http) = {
+      get: "/version"
+    };
+  }
 
   /**
    *
    * Event - Server Stream
    *
    */
-  rpc Event (puppet.EventRequest)  returns (stream puppet.EventResponse) {}
+  rpc Event (puppet.EventRequest)  returns (stream puppet.EventResponse) {
+    option (google.api.http) = {
+      get: "/events"
+    };
+  }
 
-  rpc DirtyPayload (puppet.DirtyPayloadRequest) returns (puppet.DirtyPayloadResponse) {}
+  rpc DirtyPayload (puppet.DirtyPayloadRequest) returns (puppet.DirtyPayloadResponse) {
+    option (google.api.http) = {
+      additional_bindings {
+        put: "/message/{id}/dirty/{type=PAYLOAD_TYPE_MESSAGE}"
+      }
+      additional_bindings {
+        put: "/contacts/{id}/dirty/{type=PAYLOAD_TYPE_CONTACT}"
+      }
+      additional_bindings {
+        put: "/rooms/{id}/dirty/{type=PAYLOAD_TYPE_ROOM}"
+      }
+      additional_bindings {
+        put: "/rooms/{id}/dirty/members/{type=PAYLOAD_TYPE_ROOM_MEMBER}"
+      }
+      additional_bindings {
+        put: "/friendships/{id}/dirty/{type=PAYLOAD_TYPE_FRIENDSHIP}"
+      }
+    };
+  }
 
   /**
    *
    * Contact Self
    *
    */
-  rpc ContactSelfQRCode (puppet.ContactSelfQRCodeRequest) returns (puppet.ContactSelfQRCodeResponse) {}
-  rpc ContactSelfName (puppet.ContactSelfNameRequest) returns (puppet.ContactSelfNameResponse) {}
-  rpc ContactSelfSignature (puppet.ContactSelfSignatureRequest) returns (puppet.ContactSelfSignatureResponse) {}
+  rpc ContactSelfQRCode (puppet.ContactSelfQRCodeRequest) returns (puppet.ContactSelfQRCodeResponse) {
+    option (google.api.http) = {
+      get: "/contacts/self/qrcode"
+    };
+
+  }
+  rpc ContactSelfName (puppet.ContactSelfNameRequest) returns (puppet.ContactSelfNameResponse) {
+    option (google.api.http) = {
+      put: "/contacts/self/name/{name}"
+    };
+  }
+  rpc ContactSelfSignature (puppet.ContactSelfSignatureRequest) returns (puppet.ContactSelfSignatureResponse) {
+    option (google.api.http) = {
+      put: "/contacts/self/signature"
+      body: "*"
+    };
+  }
 
   /**
    *
    * Contact
    *
    */
-  rpc ContactPayload (puppet.ContactPayloadRequest)  returns (puppet.ContactPayloadResponse) {}
+  rpc ContactPayload (puppet.ContactPayloadRequest)  returns (puppet.ContactPayloadResponse) {
+    option (google.api.http) = {
+      get: "/contacts/{id}"
+    };
+  }
 
-  rpc ContactAlias (puppet.ContactAliasRequest) returns (puppet.ContactAliasResponse) {}
-  rpc ContactAvatar (puppet.ContactAvatarRequest) returns (puppet.ContactAvatarResponse) {}
-  rpc ContactPhone (puppet.ContactPhoneRequest) returns (puppet.ContactPhoneResponse) {}
-  rpc ContactCorporationRemark (puppet.ContactCorporationRemarkRequest) returns (puppet.ContactCorporationRemarkResponse) {}
-  rpc ContactDescription (puppet.ContactDescriptionRequest) returns (puppet.ContactDescriptionResponse) {}
+  rpc ContactAlias (puppet.ContactAliasRequest) returns (puppet.ContactAliasResponse) {
+    option (google.api.http) = {
+      put: "/contacts/{id}/alias"
+      body: "*"
+    };
+  }
+  rpc ContactAvatar (puppet.ContactAvatarRequest) returns (puppet.ContactAvatarResponse) {
+    option (google.api.http) = {
+      get: "/contacts/{id}/avatar" // TODO: Huan(202002) disable the avatar query parameters
+      // additional_bindings {
+      //   put: "/contacts/{id}/avatar"
+      //   body: "*"
+      // }
+    };
+  }
+  rpc ContactPhone (puppet.ContactPhoneRequest) returns (puppet.ContactPhoneResponse) {
+    option (google.api.http) = {
+      put: "/contacts/{contact_id}/phone"
+      body: "*"
+    };
 
-  rpc ContactList (puppet.ContactListRequest)        returns (puppet.ContactListResponse) {}
+  }
+  rpc ContactCorporationRemark (puppet.ContactCorporationRemarkRequest) returns (puppet.ContactCorporationRemarkResponse) {
+    option (google.api.http) = {
+      put: "/contacts/{contact_id}/corporation-remark"
+      body: "*"
+    };
+  }
+  rpc ContactDescription (puppet.ContactDescriptionRequest) returns (puppet.ContactDescriptionResponse) {
+    option (google.api.http) = {
+      put: "/contacts/{contact_id}/description"
+      body: "*"
+    };
+  }
+
+  /**
+   * Huan(202002): consider changing response to a stream in the future for better performance
+   */
+  rpc ContactList (puppet.ContactListRequest) returns (puppet.ContactListResponse) {
+    option (google.api.http) = {
+      get: "/contacts"
+    };
+  }
 
   /**
    *
    * Friendship
    *
    */
-  rpc FriendshipPayload (puppet.FriendshipPayloadRequest)  returns (puppet.FriendshipPayloadResponse) {}
+  rpc FriendshipPayload (puppet.FriendshipPayloadRequest)  returns (puppet.FriendshipPayloadResponse) {
+    option (google.api.http) = {
+      get: "/friendship/{id}"
+    };
+  }
 
-  rpc FriendshipSearchPhone (puppet.FriendshipSearchPhoneRequest) returns (puppet.FriendshipSearchPhoneResponse) {}
-  rpc FriendshipSearchWeixin (puppet.FriendshipSearchWeixinRequest) returns (puppet.FriendshipSearchWeixinResponse) {}
+  rpc FriendshipSearchPhone (puppet.FriendshipSearchPhoneRequest) returns (puppet.FriendshipSearchPhoneResponse) {
+    option (google.api.http) = {
+      get: "/friendship/search/phone/{phone}"
+    };
+  }
+  rpc FriendshipSearchWeixin (puppet.FriendshipSearchWeixinRequest) returns (puppet.FriendshipSearchWeixinResponse) {
+    option (google.api.http) = {
+      get: "/friendship/search/weixin/{weixin}"
+    };
+  }
 
-  rpc FriendshipAdd (puppet.FriendshipAddRequest) returns (puppet.FriendshipAddResponse) {}
-  rpc FriendshipAccept (puppet.FriendshipAcceptRequest) returns (puppet.FriendshipAcceptResponse) {}
+  rpc FriendshipAdd (puppet.FriendshipAddRequest) returns (puppet.FriendshipAddResponse) {
+    option (google.api.http) = {
+      put: "/friendship/add/{contact_id}"
+      body: "*"
+    };
+  }
+  rpc FriendshipAccept (puppet.FriendshipAcceptRequest) returns (puppet.FriendshipAcceptResponse) {
+    option (google.api.http) = {
+      put: "/friendship/accept/{id}"
+    };
+  }
 
   /**
    *
@@ -96,78 +248,226 @@ service Puppet {
    * @deprecated: using MessageFileStream to transfer files
    * Huan(202010): will be removed (replaced by MessageFileStream) after Dec 31, 2021
    */
-  rpc MessageFile (puppet.MessageFileRequest) returns (puppet.MessageFileResponse) {}
+  rpc MessageFile (puppet.MessageFileRequest) returns (puppet.MessageFileResponse) {
+    option deprecated = true;
+  }
+
   /**
    * @deprecated: using MessageImageStream to transfer images
    * Huan(202010): will be removed (replaced by MessageImageStream) after Dec 31, 2021
    */
-  rpc MessageImage (puppet.MessageImageRequest) returns (puppet.MessageImageResponse) {}
+  rpc MessageImage (puppet.MessageImageRequest) returns (puppet.MessageImageResponse) {
+    option deprecated = true;
+  }
+
   /**
    * @deprecated: using MesageSendFileStream to transfer file message to server
    * Huan(202010): will be removed (replaced by MessageSendFileStream) after Dec 31, 2021
    */
-  rpc MessageSendFile (puppet.MessageSendFileRequest) returns (puppet.MessageSendFileResponse) {}
+  rpc MessageSendFile (puppet.MessageSendFileRequest) returns (puppet.MessageSendFileResponse) {
+    option deprecated = true;
+  }
 
-  rpc MessagePayload (puppet.MessagePayloadRequest)  returns (puppet.MessagePayloadResponse) {}
+  rpc MessagePayload (puppet.MessagePayloadRequest)  returns (puppet.MessagePayloadResponse) {
+    option (google.api.http) = {
+      get: "/message/{id}"
+    };
+  }
 
-  rpc MessageContact (puppet.MessageContactRequest) returns (puppet.MessageContactResponse) {}
-  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {}
-  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {}
-  rpc MessageMiniProgram (puppet.MessageMiniProgramRequest) returns (puppet.MessageMiniProgramResponse) {}
-  rpc MessageUrl (puppet.MessageUrlRequest) returns (puppet.MessageUrlResponse) {}
+  rpc MessageContact (puppet.MessageContactRequest) returns (puppet.MessageContactResponse) {
+    option (google.api.http) = {
+      get: "/message/{id}/contact"
+    };
+  }
+  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {
+    option (google.api.http) = {
+      get: "/message/{id}/filebox"
+    };
+  }
+  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {
+    option (google.api.http) = {
+      get: "/message/{id}/image/{type}"
+    };
+  }
+  rpc MessageMiniProgram (puppet.MessageMiniProgramRequest) returns (puppet.MessageMiniProgramResponse) {
+    option (google.api.http) = {
+      get: "/message/{id}/mini-program"
+    };
+  }
+  rpc MessageUrl (puppet.MessageUrlRequest) returns (puppet.MessageUrlResponse) {
+    option (google.api.http) = {
+      get: "/message/{id}/url-link"
+    };
+  }
+  rpc MessageRecall (puppet.MessageRecallRequest) returns (puppet.MessageRecallResponse) {
+    option (google.api.http) = {
+      post: "/message/{id}/recall"
+      body: "*"
+    };
+  }
 
-  rpc MessageSendContact (puppet.MessageSendContactRequest) returns (puppet.MessageSendContactResponse) {}
-  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {}
-  rpc MessageSendText (puppet.MessageSendTextRequest) returns (puppet.MessageSendTextResponse) {}
-  rpc MessageSendMiniProgram (puppet.MessageSendMiniProgramRequest) returns (puppet.MessageSendMiniProgramResponse) {}
-  rpc MessageSendUrl (puppet.MessageSendUrlRequest) returns (puppet.MessageSendUrlResponse) {}
-
-  rpc MessageRecall (puppet.MessageRecallRequest) returns (puppet.MessageRecallResponse) {}
+  rpc MessageSendContact (puppet.MessageSendContactRequest) returns (puppet.MessageSendContactResponse) {
+    option (google.api.http) = {
+      post: "/conversations/{conversation_id}/contact"
+      body: "*"
+    };
+  }
+  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {
+    /**
+      * TODO: Add support for client upload files
+      *   https://github.com/wechaty/openapi/issues/1
+      */
+    option (google.api.http) = {
+      post: "/conversations/-/filebox"
+      body: "*"
+    };
+  }
+  rpc MessageSendText (puppet.MessageSendTextRequest) returns (puppet.MessageSendTextResponse) {
+    option (google.api.http) = {
+      post: "/conversations/{conversation_id}/text"
+      body: "*"
+    };
+  }
+  rpc MessageSendMiniProgram (puppet.MessageSendMiniProgramRequest) returns (puppet.MessageSendMiniProgramResponse) {
+    option (google.api.http) = {
+      post: "/conversations/{conversation_id}/mini-program"
+      body: "*"
+    };
+  }
+  rpc MessageSendUrl (puppet.MessageSendUrlRequest) returns (puppet.MessageSendUrlResponse) {
+    option (google.api.http) = {
+      post: "/conversations/{conversation_id}/url-link"
+      body: "*"
+    };
+  }
 
   /**
    *
    * Room
    *
    */
-  rpc RoomPayload (puppet.RoomPayloadRequest)  returns (puppet.RoomPayloadResponse) {}
+  rpc RoomPayload (puppet.RoomPayloadRequest) returns (puppet.RoomPayloadResponse) {
+    option (google.api.http) = {
+      get: "/rooms/{id}"
+    };
+  }
 
-  rpc RoomList (puppet.RoomListRequest)        returns (puppet.RoomListResponse) {}
+  rpc RoomList (puppet.RoomListRequest) returns (puppet.RoomListResponse) {
+    option (google.api.http) = {
+      get: "/rooms"
+    };
+  }
 
-  rpc RoomAdd (puppet.RoomAddRequest) returns (puppet.RoomAddResponse) {}
-  rpc RoomAvatar (puppet.RoomAvatarRequest) returns (puppet.RoomAvatarResponse) {}
-  rpc RoomCreate (puppet.RoomCreateRequest) returns (puppet.RoomCreateResponse) {}
-  rpc RoomDel (puppet.RoomDelRequest) returns (puppet.RoomDelResponse) {}
-  rpc RoomQuit (puppet.RoomQuitRequest) returns (puppet.RoomQuitResponse) {}
+  rpc RoomAdd (puppet.RoomAddRequest) returns (puppet.RoomAddResponse) {
+    option (google.api.http) = {
+      put: "/rooms/{id}/add/{contact_id}"
+    };
+  }
+  rpc RoomAvatar (puppet.RoomAvatarRequest) returns (puppet.RoomAvatarResponse) {
+    option (google.api.http) = {
+      get: "/rooms/{id}/avatar"
+    };
+  }
+  rpc RoomCreate (puppet.RoomCreateRequest) returns (puppet.RoomCreateResponse) {
+    option (google.api.http) = {
+      post: "/rooms"
+      body: "*"
+    };
+  }
+  rpc RoomDel (puppet.RoomDelRequest) returns (puppet.RoomDelResponse) {
+    option (google.api.http) = {
+      delete: "/rooms/{id}/member/{contact_id}"
+    };
+  }
+  rpc RoomQuit (puppet.RoomQuitRequest) returns (puppet.RoomQuitResponse) {
+    option (google.api.http) = {
+      delete: "/rooms/{id}"
+    };
+  }
 
-  rpc RoomTopic (puppet.RoomTopicRequest) returns (puppet.RoomTopicResponse) {}
-  rpc RoomQRCode (puppet.RoomQRCodeRequest) returns (puppet.RoomQRCodeResponse) {}
-  rpc RoomAnnounce (puppet.RoomAnnounceRequest) returns (puppet.RoomAnnounceResponse) {}
+  rpc RoomTopic (puppet.RoomTopicRequest) returns (puppet.RoomTopicResponse) {
+    option (google.api.http) = {
+      put: "/rooms/{id}/topic/{topic}"
+    };
+  }
+  rpc RoomQRCode (puppet.RoomQRCodeRequest) returns (puppet.RoomQRCodeResponse) {
+    option (google.api.http) = {
+      get: "/rooms/{id}/qrcode"
+    };
+  }
+  rpc RoomAnnounce (puppet.RoomAnnounceRequest) returns (puppet.RoomAnnounceResponse) {
+    option (google.api.http) = {
+      get: "/rooms/{id}/announcement"  // TODO: disable other get parameters
+      additional_bindings {
+        put: "/rooms/{id}/announcement"
+        body: "*"
+      }
+    };
+  }
 
   /**
    *
    * Room Member
    *
    */
-  rpc RoomMemberPayload (puppet.RoomMemberPayloadRequest) returns (puppet.RoomMemberPayloadResponse) {}
+  rpc RoomMemberPayload (puppet.RoomMemberPayloadRequest) returns (puppet.RoomMemberPayloadResponse) {
+    option (google.api.http) = {
+      get: "/rooms/{id}/members/{member_id}"
+    };
+  }
 
-  rpc RoomMemberList (puppet.RoomMemberListRequest) returns (puppet.RoomMemberListResponse) {}
+  rpc RoomMemberList (puppet.RoomMemberListRequest) returns (puppet.RoomMemberListResponse) {
+    option (google.api.http) = {
+      get: "/rooms/{id}/members"
+    };
+  }
 
   /**
    *
    * Room Invitation
    *
    */
-  rpc RoomInvitationPayload (puppet.RoomInvitationPayloadRequest)  returns (puppet.RoomInvitationPayloadResponse) {}
-  rpc RoomInvitationAccept (puppet.RoomInvitationAcceptRequest) returns (puppet.RoomInvitationAcceptResponse) {}
+  rpc RoomInvitationPayload (puppet.RoomInvitationPayloadRequest)  returns (puppet.RoomInvitationPayloadResponse) {
+    option (google.api.http) = {
+      get: "/room-invitations/{id}"
+    };
+  }
+  rpc RoomInvitationAccept (puppet.RoomInvitationAcceptRequest) returns (puppet.RoomInvitationAcceptResponse) {
+    option (google.api.http) = {
+      put: "/room-invitations/{id}/accept"
+    };
+  }
 
   /**
    *
    * Tag
    *
    */
-  rpc TagContactAdd (puppet.TagContactAddRequest) returns (puppet.TagContactAddResponse) {}
-  rpc TagContactRemove (puppet.TagContactRemoveRequest) returns (puppet.TagContactRemoveResponse) {}
-  rpc TagContactDelete (puppet.TagContactDeleteRequest) returns (puppet.TagContactDeleteResponse) {}
-  rpc TagContactList (puppet.TagContactListRequest) returns (puppet.TagContactListResponse) {}
+  rpc TagContactAdd (puppet.TagContactAddRequest) returns (puppet.TagContactAddResponse) {
+    option (google.api.http) = {
+      put: "/contacts/contact_id/tags/id"
+    };
+  }
+  rpc TagContactRemove (puppet.TagContactRemoveRequest) returns (puppet.TagContactRemoveResponse) {
+    option (google.api.http) = {
+      delete: "/contacts/contact_id/tags/id"
+    };
+  }
+
+  /**
+   * Operate Sub-Collections
+   *   https://cloud.google.com/apis/design/design_patterns#list_sub-collections
+   */
+  rpc TagContactDelete (puppet.TagContactDeleteRequest) returns (puppet.TagContactDeleteResponse) {
+    option (google.api.http) = {
+      delete: "/contacts/-/tags/id"
+    };
+  }
+
+   rpc TagContactList (puppet.TagContactListRequest) returns (puppet.TagContactListResponse) {
+    option (google.api.http) = {
+      get: "/contacts/contact_id/tags"
+    };
+  }
 
 }

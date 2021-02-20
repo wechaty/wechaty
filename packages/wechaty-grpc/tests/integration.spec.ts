@@ -15,7 +15,7 @@ import {
   PuppetClient,
   DingRequest,
   EventRequest,
-}                       from '../src/index'
+}                       from '../src/mod'
 
 import {
   puppetServerImpl,
@@ -53,7 +53,7 @@ test('integration testing', async (t) => {
    */
   const eventStream = client.event(new EventRequest())
 
-  const future = new Promise((resolve, reject) => {
+  const future = new Promise<void>((resolve, reject) => {
     eventStream
       .on('data', (chunk: EventResponse) => {
         const payload = chunk.getPayload()
@@ -90,7 +90,7 @@ test('integration testing', async (t) => {
    */
   eventStream.cancel()
 
-  await new Promise(resolve => server.tryShutdown(resolve))
+  await new Promise<void>(resolve => server.tryShutdown(resolve))
   // server.forceShutdown()
 })
 

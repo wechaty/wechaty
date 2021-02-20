@@ -11,7 +11,7 @@ import {
   ContactAliasResponse,
   PuppetService,
   PuppetClient,
-}                             from '../src/'
+}                             from '../src/mod'
 
 import { puppetServerImpl } from './puppet-server-impl'
 

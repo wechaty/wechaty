@@ -149,6 +149,12 @@ protoc \
 
 > <https://github.com/improbable-eng/ts-protoc-gen>
 
+## OpenAPI
+
+![gRPC Gateway](docs/images/grpc-gateway-architecture.svg)
+
+> Image credit: [grpc-gateway](https://grpc-ecosystem.github.io/grpc-gateway/)
+
 ## RESOURCES
 
 ### Documentation

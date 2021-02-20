@@ -9,6 +9,11 @@ import "google/protobuf/wrappers.proto";
 
 message RoomInvitationPayloadRequest {
   string                      id      = 1;
+  /**
+   * Huan(202002): `payload` should be removed.
+   *  The puppet server should take the responsibilities
+   *  for storing the unaccepted friend-request payload.
+   */
   google.protobuf.StringValue payload = 2;
 }
 message RoomInvitationPayloadResponse {

@@ -1,6 +1,6 @@
 import {
   IPuppetServer,
-}                       from '../src/'
+}                       from '../src/mod'
 
 /**
  * Implements the SayHello RPC method.

@@ -9,7 +9,7 @@ import {
   EventType,
   DingResponse,
   EventRequest,
-}                       from '../src/index'
+}                       from '../src/mod'
 
 // import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 

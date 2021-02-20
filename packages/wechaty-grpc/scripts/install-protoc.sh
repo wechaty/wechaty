@@ -1,44 +1,62 @@
 #!/usr/bin/env bash
 set -e
+set -o pipefail
 
-# https://superuser.com/questions/603068/unzipping-file-whilst-getting-correct-permissions
-umask 644
-SUDO=sudo
+# https://stackoverflow.com/a/4774063/1123955
+SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 ; pwd -P )"
 
-# http://google.github.io/proto-lens/installing-protoc.html
+THIRD_PARTY_DIR="${SCRIPTPATH}/../third-party/"
 
-if [ $(uname) = 'Linux' ]; then
-  PROTOC_PLATFORM=linux
-  PROTOC_GEN_LINT_PLATFORM=linux
-elif [ $(uname) = 'Darwin' ]; then
-  PROTOC_PLATFORM=osx
-  PROTOC_GEN_LINT_PLATFORM=darwin
-elif [[ $(uname) =~ ^MINGW64 ]]; then   # GitHub Actions in Windows
-  PROTOC_PLATFORM=win64
-  PROTOC_GEN_LINT_PLATFORM=windows
-  # no sudo in win32 bash
-  SUDO=
-else
-  echo UNKNOWN PLATFORM
-fi
+function install_protoc () {
+  if command -v protoc > /dev/null; then
+    echo "install skipped: protoc exists"
+    return
+  fi
 
-PROTOC_VERSION='3.11.3'
-PROTOC_ZIP="protoc-$PROTOC_VERSION-$PROTOC_PLATFORM-x86_64.zip"
+  # https://grpc.io/docs/protoc-installation/
+  if [ $(uname) = 'Linux' ]; then
+    sudo apt install -y protobuf-compiler
+  elif [ $(uname) = 'Darwin' ]; then
+    brew install protobuf
+  else
+    echo "UNKNOWN PLATFORM: $(uname)"
+    exit 1
+  fi
 
-curl -OL "https://github.com/google/protobuf/releases/download/v$PROTOC_VERSION/$PROTOC_ZIP"
-# See: https://github.com/grpc-ecosystem/grpc-gateway/issues/194
-$SUDO unzip -o $PROTOC_ZIP -d /usr/local bin/* include/*
-$SUDO chmod -R 755 /usr/local/include/google/
-$SUDO chmod +x /usr/local/bin/protoc
-rm -f $PROTOC_ZIP
+  protoc --version
+}
 
-#
-# https://github.com/ckaznocha/protoc-gen-lint
-#
-PROTOC_GEN_LINT_VERSION='0.2.1'
-PROTOC_GEN_LINT_ZIP="protoc-gen-lint_${PROTOC_GEN_LINT_PLATFORM}_amd64.zip"
+function install_protoc_gen_lint () {
+  go get -u github.com/ckaznocha/protoc-gen-lint
+}
 
-curl -OL "https://github.com/ckaznocha/protoc-gen-lint/releases/download/v$PROTOC_GEN_LINT_VERSION/$PROTOC_GEN_LINT_ZIP"
-$SUDO unzip -o "$PROTOC_GEN_LINT_ZIP" protoc-gen-lint -d /usr/local/bin protoc-gen-lint
-$SUDO chmod +x /usr/local/bin/protoc-gen-lint
-rm -f "$PROTOC_GEN_LINT_ZIP"
+function install_google_api () {
+	if [ -d ${THIRD_PARTY_DIR}/google/api ]; then
+    echo "install skipped: ${THIRD_PARTY_DIR}/google/api exists"
+    return
+  fi
+
+  mkdir -p ${THIRD_PARTY_DIR}/google/api
+	curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > ${THIRD_PARTY_DIR}/google/api/annotations.proto
+	curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > ${THIRD_PARTY_DIR}/google/api/http.proto
+}
+
+function install_protoc_gen_openapiv2 () {
+	if [ -d ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options ]; then
+    echo "install skipped: ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options exists"
+    return
+  fi
+
+  mkdir -p ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options
+	curl https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/master/protoc-gen-openapiv2/options/annotations.proto > ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options/annotations.proto
+	curl https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/master/protoc-gen-openapiv2/options/openapiv2.proto > ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options/openapiv2.proto
+}
+
+function main () {
+  install_protoc
+  install_google_api
+  install_protoc_gen_lint
+  install_protoc_gen_openapiv2
+}
+
+main

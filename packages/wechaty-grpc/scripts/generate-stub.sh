@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-PROTO_DIR="./proto"
+PROTO_DIR="./proto/"
+THIRD_PARTY_DIR="./third-party/"
 
 # Directory to write generated code to (.js and .d.ts files)
 OUT_DIR="./generated/wechaty"
@@ -9,10 +10,13 @@ OUT_DIR="./generated/wechaty"
   mkdir -p ${OUT_DIR}
 }
 
-PROTO_FILE_LIST=$(find $PROTO_DIR -type f -name *.proto)
+PROTO_FILE_LIST=$(find $PROTO_DIR $THIRD_PARTY_DIR -type f -name *.proto)
 
 # --proto_path=/usr/local/include/
-PROTOC_CMD="protoc --proto_path=${PROTO_DIR}/wechaty $PROTO_FILE_LIST"
+PROTOC_CMD="protoc \
+  -I ${THIRD_PARTY_DIR} \
+  --proto_path=${PROTO_DIR}/wechaty \
+  $PROTO_FILE_LIST"
 
 #
 # 1. JS for Protocol Buffer
@@ -28,7 +32,7 @@ $PROTOC_CMD \
 #
 # Generate: wechaty-puppet_grpc_pb.js
 $PROTOC_CMD \
-  --plugin="protoc-gen-grpc=`command -v grpc_tools_node_protoc_plugin`" \
+  --plugin="protoc-gen-grpc=node_modules/.bin/grpc_tools_node_protoc_plugin" \
   --grpc_out="${OUT_DIR}"
 
 #
@@ -51,4 +55,4 @@ $PROTOC_CMD \
 #   wechaty-puppet_pb_service.js
 $PROTOC_CMD \
   --plugin="protoc-gen-ts=node_modules/ts-protoc-gen/bin/protoc-gen-ts" \
-  --ts_out="service=true:${OUT_DIR}"
+  --ts_out="service=grpc-web:${OUT_DIR}"

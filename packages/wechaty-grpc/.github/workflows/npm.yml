@@ -24,7 +24,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npm run install:lint:protoc
+          npm run install:protoc
 
       - name: Generate gRPC Stubs
         run: npm run generate
