@@ -1,4 +1,4 @@
-# GRPC
+# Wechaty GRPC
 
 [![Node.js](https://github.com/Chatie/grpc/workflows/Node.js/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3ANode.js)
 [![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3ANPM)
@@ -9,7 +9,7 @@
 
 ![Wechaty gRPC](docs/images/grpc.png)
 
-[![NPM Version](https://img.shields.io/npm/v/@chatie/grpc?color=brightgreen&label=NPM)](https://www.npmjs.com/package/@chatie/grpc)
+[![NPM Version](https://img.shields.io/npm/v/wechaty-grpc?color=brightgreen&label=NPM)](https://www.npmjs.com/package/wechaty-grpc)
 [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue&label=PyPI)](https://pypi.org/project/chatie-grpc/)
 [![Java Version](https://img.shields.io/maven-central/v/io.github.wechaty/grpc?label=Java)](https://mvnrepository.com/artifact/io.github.wechaty/grpc)
 [![PHP Version](https://img.shields.io/packagist/v/wechaty/php-grpc)](https://packagist.org/packages/wechaty/php-grpc)
@@ -24,7 +24,7 @@ gRPC for Wechaty Puppet Service
 
 ### Node.js
 
-[@chatie/grpc@NPM](https://www.npmjs.com/package/@chatie/grpc)
+[wechaty-grpc@NPM](https://www.npmjs.com/package/wechaty-grpc)
 
 Maintainer:
 
@@ -232,6 +232,14 @@ TCP hole punching
 - [ASP.NET Core 3.0 使用gRPC (晓晨Master) ](https://www.cnblogs.com/stulzq/p/11581967.html)
 
 ## HISTORY
+
+### master
+
+### v0.20 (Feb 21, 2021)
+
+1. Rename NPM module name from `@chatie/grpc` to `wechaty-grpc`
+1. Add OpenAPI annotations & generators for supporting <https://github.com/wechaty/openapi>
+1. Code clean.
 
 ### v0.18 (Oct 15, 2020)
 

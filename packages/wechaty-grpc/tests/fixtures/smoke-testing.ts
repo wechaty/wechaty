@@ -3,7 +3,7 @@
 import {
   MessagePayloadResponse,
   VERSION,
-}                           from '@chatie/grpc'
+}                           from 'wechaty-grpc'
 
 async function main () {
   if (VERSION === '0.0.0') {
@@ -12,7 +12,7 @@ async function main () {
 
   const messagePayloadResponse = new MessagePayloadResponse()
   messagePayloadResponse.setId('id')
-  console.info(`@chatie/grpc v${VERSION} smoking test passed.`)
+  console.info(`wechaty-grpc v${VERSION} smoking test passed.`)
   return 0
 }
 
