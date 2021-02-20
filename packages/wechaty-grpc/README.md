@@ -7,7 +7,7 @@
 [![PHP](https://github.com/Chatie/grpc/workflows/PHP/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3APHP)
 [![Go](https://github.com/chatie/grpc/workflows/Go/badge.svg)](https://github.com/chatie/grpc/actions?query=workflow%3AGo)
 
-![chatie grpc](docs/images/grpc.png)
+![Wechaty gRPC](docs/images/grpc.png)
 
 [![NPM Version](https://img.shields.io/npm/v/@chatie/grpc?color=brightgreen&label=NPM)](https://www.npmjs.com/package/@chatie/grpc)
 [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue&label=PyPI)](https://pypi.org/project/chatie-grpc/)
@@ -18,7 +18,7 @@
 [![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg?label=Python)](https://www.python.org/downloads/release/python-370/)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/wechaty/go-wechaty)
 
-gRPC for Chatie
+gRPC for Wechaty Puppet Service
 
 ## USAGE
 
@@ -51,6 +51,7 @@ Maintainer:
 [https://mvnrepository.com/artifact/io.github.wechaty/grpc](https://mvnrepository.com/artifact/io.github.wechaty/grpc)
 
 Maven:
+
 ```xml
 <dependency>
     <groupId>io.github.wechaty</groupId>
@@ -60,6 +61,7 @@ Maven:
 ```
 
 Gradle:
+
 ```groovy
 compile 'io.github.wechaty:grpc:0.11.25'
 ```
@@ -84,13 +86,13 @@ Maintainer:
 
 - [@Darren](https://github.com/jesn)  - Darren (郑波)
 
-
 ## DEVELOPMENT
 
 ### Debug
 
 - [GUI Client for GRPC Services](https://github.com/uw-labs/bloomrpc) - BloomRPC aim to give the simplest and efficient developer experience for exploring and querying your GRPC services.(Inspired by Postman and GraphQL Playground)
 - [A gRPC CLI interface for easy testing against gRPC servers with Node.js REPL](https://github.com/njpatel/grpcc)
+
     ```sh
     grpcc --proto ./service/myservice.proto --address 127.0.0.1:3466
     ```
@@ -154,6 +156,10 @@ protoc \
 ![gRPC Gateway](docs/images/grpc-gateway-architecture.svg)
 
 > Image credit: [grpc-gateway](https://grpc-ecosystem.github.io/grpc-gateway/)
+
+## gRPC Web
+
+- [gRPC-Web ReactJS client, Golang Server](https://github.com/longfellowone/grpcwebtest)
 
 ## RESOURCES
 
@@ -219,15 +225,16 @@ TCP hole punching
 
 - [gRPC typing stubs for Python](https://github.com/shabbyrobe/grpc-stubs)
 
-#### csharp grpc
+#### CSharp grpc
+
 - [An introduction to NuGet  (microsoft)](https://docs.microsoft.com/en-us/nuget/what-is-nuget)
 - [Create a gRPC client and server in ASP.NET Core (microsoft)](https://docs.microsoft.com/en-us/aspnet/core/tutorials/grpc/grpc-start?view=aspnetcore-3.1&tabs=visual-studio)
 - [ASP.NET Core 3.0 使用gRPC (晓晨Master) ](https://www.cnblogs.com/stulzq/p/11581967.html)
- 
 
 ## HISTORY
 
 ### v0.18 (Oct 15, 2020)
+
 - Add new `MessageFileStream` and `MessageImageStream` to replace the `MessageFile` and `MessageImage` method to avoid blocking nodejs event loop when sending large files ([#88](https://github.com/Chatie/grpc/pull/88)) by [@windmemory](https://github.com/windmemory)
 - Add new `MessageSendFileStream` to replace the `MessageSendFile` method to avoid blocking nodejs event loop when sending large files ([#89](https://github.com/Chatie/grpc/pull/89)) by [@windmemory](https://github.com/windmemory)
 
