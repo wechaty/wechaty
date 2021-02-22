@@ -76,9 +76,6 @@ t.*
 .idea
 target/
 
-# Python
-python/src/
-
 # csharp
 *.nupkg
 .vs/

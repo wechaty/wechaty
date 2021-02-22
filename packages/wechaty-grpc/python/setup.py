@@ -35,15 +35,15 @@ def setup() -> None:
         version = versioning(pkg['version'])
 
     setuptools.setup(
-        name='chatie-grpc',
+        name='wechaty-grpc',
         version=version,
         author='Huan LI (李卓桓)',
         author_email='zixia@zixia.net',
-        description='gRPC for Chatie',
+        description='Wechaty Puppet Service gRPC API',
         long_description=long_description,
         long_description_content_type='text/markdown',
         license='Apache-2.0',
-        url='https://github.com/chatie/grpc',
+        url='https://github.com/wechaty/grpc',
         packages=setuptools.find_packages("src"),
         package_dir={'': 'src'},
         classifiers=[

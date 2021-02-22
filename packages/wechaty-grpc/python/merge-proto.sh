@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+#
+# DEPRECATED: this script was deprecated
+#   https://github.com/wechaty/grpc/issues/46
+#
+# Huan(20200222): betterproto[compiler]>=2.0.0b2 is OK
+#
+
 set -eo pipefail
 
 function echo_name () {

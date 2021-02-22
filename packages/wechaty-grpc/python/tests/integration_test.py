@@ -15,4 +15,4 @@ import pytest   # type: ignore
 
 def test_smoke_testing() -> None:
     """ wechaty """
-    assert pytest, 'should True'
+    assert pytest, 'To-be added'

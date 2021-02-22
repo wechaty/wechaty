@@ -16,12 +16,23 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.9
+    - uses: actions/cache@master
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('python/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install Protoc
+      uses: arduino/setup-protoc@master
+    - name: Install Protoc 3rd party protos
+      run: scripts/install-protoc.sh
+
     - name: Install dependencies
       run: |
         cd python
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+        make install
     - name: Test
       run: |
         cd python
@@ -37,6 +48,18 @@ jobs:
       - uses: actions/setup-python@v1
         with:
           python-version: 3.9
+      - uses: actions/cache@master
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('python/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@master
+      - name: Install Protoc 3rd party protos
+        run: scripts/install-protoc.sh
+
       - name: Install dependencies
         run: |
           cd python
@@ -60,7 +83,19 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: '3.9'
+      - uses: actions/cache@master
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('python/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@master
+      - name: Install Protoc 3rd party protos
+        run: scripts/install-protoc.sh
+
       - name: Install dependencies
         run: |
           cd python
