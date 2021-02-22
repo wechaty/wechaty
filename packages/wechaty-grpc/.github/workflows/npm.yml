@@ -74,20 +74,23 @@ jobs:
     needs: [build, pack]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - name: Install Protoc
-        uses: arduino/setup-protoc@master
-
       - uses: actions/cache@master
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@master
+      - name: Install Protoc 3rd party protos
+        run: npm run install:protoc
+
       - name: Install Dependencies
         run: npm install
       - name: Generate Version
