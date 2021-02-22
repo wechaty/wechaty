@@ -1,7 +1,8 @@
 /**
- *   Wechaty - https://github.com/wechaty/wechaty
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,18 +18,20 @@
  *
  */
 /// <reference path="./typings.d.ts" />
+/// <reference path="./io-peer/json-rpc-peer.d.ts" />
 
 import os    from 'os'
 
 import Raven      from 'raven'
 import readPkgUp  from 'read-pkg-up'
 
-import { log }      from 'brolog'
-
 import {
   FileBox,
   MemoryCard,
+  log,
 }                   from 'wechaty-puppet'
+
+import { looseInstanceOfClass } from './helper-functions/mod'
 
 import {
   PuppetModuleName,
@@ -74,21 +77,19 @@ Raven.context(function () {
 })
  */
 
-const logLevel = process.env.WECHATY_LOG
-if (logLevel) {
-  log.level(logLevel.toLowerCase() as any)
-  log.silly('Config', 'WECHATY_LOG set level to %s', logLevel)
-}
-
 /**
  * to handle unhandled exceptions
  */
 if (log.level() === 'verbose' || log.level() === 'silly') {
   log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
 
-  process.on('unhandledRejection', (reason, promise) => {
+  /**
+   * Refer to https://nodejs.org/api/process.html#process_event_unhandledrejection
+   * the reason is in type: Error | any
+   */
+  process.on('unhandledRejection', (reason: Error | any, promise) => {
     log.error('Config', '###########################')
-    log.error('Config', 'unhandledRejection: %s %s', reason, promise)
+    log.error('Config', 'unhandledRejection: %s %s', reason.stack || reason, promise)
     log.error('Config', '###########################')
     promise.catch(err => {
       log.error('Config', 'process.on(unhandledRejection) promise.catch(%s)', err.message)
@@ -100,7 +101,7 @@ if (log.level() === 'verbose' || log.level() === 'silly') {
     const origin = arguments[1] // to compatible with node 12 or below version typings
 
     log.error('Config', '###########################')
-    log.error('Config', 'uncaughtException: %s %s', error, origin)
+    log.error('Config', 'uncaughtException: %s %s', error.stack, origin)
     log.error('Config', '###########################')
   })
 }
@@ -118,6 +119,7 @@ export class Config {
   public default = DEFAULT_SETTING
 
   public apihost = process.env.WECHATY_APIHOST || DEFAULT_SETTING.DEFAULT_APIHOST
+  public serviceIp = process.env.WECHATY_PUPPET_SERVICE_IP || ''
 
   public systemPuppetName (): PuppetModuleName {
     return (
@@ -160,13 +162,12 @@ export function qrCodeForChatie (): FileBox {
 // String.fromCharCode(8197)
 export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
 // mobile: \u2005, PC、mac: \u0020
-export const AT_SEPRATOR_REGEX = /[\u2005\u0020]/
+export const AT_SEPARATOR_REGEX = /[\u2005\u0020]/
 
 export function qrcodeValueToImageUrl (qrcodeValue: string): string {
   return [
-    'https://api.qrserver.com/v1/create-qr-code/?data=',
+    'https://wechaty.js.org/qrcode/',
     encodeURIComponent(qrcodeValue),
-    '&size=220x220&margin=20',
   ].join('')
 }
 
@@ -175,11 +176,24 @@ export function isProduction (): boolean {
       || process.env.NODE_ENV === 'prod'
 }
 
+/**
+ * Huan(202011):
+ *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
+ *    https://github.com/wechaty/wechaty/issues/2090
+ */
+type FileBoxClass = FileBox & {
+  new (...args: any): FileBox
+}
+const looseInstanceOfFileBox = looseInstanceOfClass(
+  FileBox as any as FileBoxClass
+)
+
 export {
   log,
   FileBox,
   MemoryCard,
   Raven,
+  looseInstanceOfFileBox,
 
   VERSION,
 }

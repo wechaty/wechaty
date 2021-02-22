@@ -1,7 +1,8 @@
 /**
- *   Wechaty - https://github.com/wechaty/wechaty
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,14 +19,16 @@
  */
 /**
  * DO NOT use `require('../')` here!
- * because it will casue a LOOP require ERROR
+ * because it will cause a LOOP require ERROR
  */
 import { StateSwitch }  from 'state-switch'
 
-import { PuppetHostieServer } from 'wechaty-puppet-hostie'
-import { PuppetHostieGrpcServerOptions } from 'wechaty-puppet-hostie/dist/src/grpc/puppet-server'
+import {
+  PuppetServer,
+  PuppetServerOptions,
+}                       from 'wechaty-puppet-service'
 
-import { Message }      from './user'
+import { Message }      from './user/mod'
 
 import {
   log,
@@ -36,6 +39,11 @@ import { Wechaty }      from './wechaty'
 export interface IoClientOptions {
   token   : string,
   wechaty : Wechaty,
+  port?: number
+}
+
+const DEFAULT_IO_CLIENT_OPTIONS: Partial<IoClientOptions> = {
+  port: 8788,
 }
 
 export class IoClient {
@@ -45,54 +53,67 @@ export class IoClient {
    * Huan(202002): make it optional.
    */
   private io?: Io
-  private hostieServer?: PuppetHostieServer
+  private puppetServer?: PuppetServer
 
   private state: StateSwitch
 
+  protected options: Required<IoClientOptions>
+
   constructor (
-    public options: IoClientOptions,
+    options: IoClientOptions,
   ) {
-    log.verbose('IoClient', 'constructor({token: %s})',
-      options.token
+    log.verbose('IoClient', 'constructor({%s})',
+      Object.keys(options)
+        .map(key => {
+          return `${key}:${(options as any)[key]}`
+        })
+        .reduce((acc, cur) => `${acc}, ${cur}`)
     )
 
-    this.state = new StateSwitch('IoClient', log)
+    const normalizedOptions = {
+      ...DEFAULT_IO_CLIENT_OPTIONS,
+      ...options,
+    } as Required<IoClientOptions>
+
+    this.options = normalizedOptions
+
+    this.state = new StateSwitch('IoClient', { log })
   }
 
-  private async startHostie () {
-    log.verbose('IoClient', 'startHostie()')
+  private async startPuppetServer () {
+    log.verbose('IoClient', 'startPuppetServer()')
 
-    if (this.hostieServer) {
-      throw new Error('hostie server exists')
+    if (this.puppetServer) {
+      throw new Error('puppet server exists')
     }
 
-    const options: PuppetHostieGrpcServerOptions = {
-      endpoint : '0.0.0.0:8788',
+    const options: PuppetServerOptions = {
+      endpoint : '0.0.0.0:' + this.options.port,
       puppet   : this.options.wechaty.puppet,
       token    : this.options.token,
     }
-    this.hostieServer = new PuppetHostieServer(options)
-    await this.hostieServer.start()
+    this.puppetServer = new PuppetServer(options)
+    await this.puppetServer.start()
   }
 
-  private async stopHostie () {
-    log.verbose('IoClient', 'stopHostie()')
+  private async stopPuppetServer () {
+    log.verbose('IoClient', 'stopPuppetService()')
 
-    if (!this.hostieServer) {
-      throw new Error('hostie server does not exist')
+    if (!this.puppetServer) {
+      throw new Error('puppet server does not exist')
     }
 
-    await this.hostieServer.stop()
-    this.hostieServer = undefined
+    await this.puppetServer.stop()
+    this.puppetServer = undefined
   }
 
   public async start (): Promise<void> {
     log.verbose('IoClient', 'start()')
 
-    if (this.state.pending()) {
-      log.warn('IoClient', 'start() with a pending state, not the time')
-      const e = new Error('state.pending() when start()')
-      throw e
+    if (this.state.on()) {
+      log.warn('IoClient', 'start() with a on state, wait and return')
+      await this.state.ready('on')
+      return
     }
 
     this.state.on('pending')
@@ -103,7 +124,8 @@ export class IoClient {
       await this.startIo()
 
       await this.options.wechaty.start()
-      await this.startHostie()
+
+      await this.startPuppetServer()
 
       this.state.on(true)
 
@@ -115,7 +137,7 @@ export class IoClient {
   }
 
   private async hookWechaty (wechaty: Wechaty): Promise<void> {
-    log.verbose('IoClient', 'initWechaty()')
+    log.verbose('IoClient', 'hookWechaty()')
 
     if (this.state.off()) {
       const e = new Error('state.off() is true, skipped')
@@ -124,10 +146,15 @@ export class IoClient {
     }
 
     wechaty
-      .on('login',    user => log.info('IoClient', `${user.name()} logined`))
-      .on('logout',   user => log.info('IoClient', `${user.name()} logouted`))
-      .on('scan',     (url, code) => log.info('IoClient', `[${code}] ${url}`))
+      .on('login',    user => log.info('IoClient', `${user.name()} logged in`))
+      .on('logout',   user => log.info('IoClient', `${user.name()} logged out`))
       .on('message',  msg => this.onMessage(msg))
+      .on('scan',     (url, code) => {
+        log.info('IoClient', [
+          `[${code}] ${url}`,
+          `Online QR Code Image: https://wechaty.js.org/qrcode/${encodeURIComponent(url)}`,
+        ].join('\n'))
+      })
   }
 
   private async startIo (): Promise<void> {
@@ -144,8 +171,9 @@ export class IoClient {
     }
 
     this.io = new Io({
-      token   : this.options.token,
-      wechaty : this.options.wechaty,
+      servicePort : this.options.port,
+      token      : this.options.token,
+      wechaty    : this.options.wechaty,
     })
 
     try {
@@ -194,7 +222,7 @@ export class IoClient {
     this.state.off('pending')
 
     await this.stopIo()
-    await this.stopHostie()
+    await this.stopPuppetServer()
     await this.options.wechaty.stop()
 
     this.state.off(true)

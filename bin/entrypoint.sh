@@ -308,7 +308,11 @@ function main() {
 
     test)
       # WECHATY_LOG=silent npm run test:unit
-      pushd /wechaty
+      if [ -f "$HOME"/package.json ]; then
+        pushd "$HOME"
+      else
+        pushd /wechaty
+      fi
       WECHATY_LOG=silent npm run test
       popd
       ;;

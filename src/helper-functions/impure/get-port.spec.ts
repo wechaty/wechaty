@@ -1,8 +1,9 @@
 #!/usr/bin/env ts-node
 /**
- *   Wechaty - https://github.com/wechaty/wechaty
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -35,7 +36,7 @@ test('getPort() for an available socket port', async t => {
       const server = net.createServer(socket => {
         console.info(socket)
       })
-      await new Promise(resolve => server.listen(port, resolve))
+      await new Promise<void>(resolve => server.listen(port, resolve))
       serverList.push(server)
 
       port = await getPort()

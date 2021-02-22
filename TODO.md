@@ -1,4 +1,0 @@
-# TODO
-
-- [x] Puppet
-- [ ] PuppetHostie

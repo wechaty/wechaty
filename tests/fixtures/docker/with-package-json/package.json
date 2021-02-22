@@ -4,7 +4,7 @@
   "description": "",
   "main": "with-require-error.js",
   "dependencies": {
-    "brolog": "^0.3.11"
+    "brolog": "^0.4.3"
   },
   "devDependencies": {},
   "scripts": {

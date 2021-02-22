@@ -1,7 +1,8 @@
 /**
- *   Wechaty - https://github.com/wechaty/wechaty
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,11 +22,17 @@ import WebSocket        from 'ws'
 
 import {
   Message,
-}                 from './user'
+}                 from './user/mod'
 
 import {
-  PuppetQRCodeScanEvent,
+  EventScanPayload,
 }                         from 'wechaty-puppet'
+
+import Peer, {
+  JsonRpcPayload,
+  JsonRpcPayloadResponse,
+  parse,
+}                         from 'json-rpc-peer'
 
 import {
   config,
@@ -38,17 +45,24 @@ import {
   Wechaty,
 }                 from './wechaty'
 
+import {
+  getPeer,
+  isJsonRpcRequest,
+}                   from './io-peer/io-peer'
+
 export interface IoOptions {
-  wechaty:    Wechaty,
-  token:      string,
-  apihost?:   string,
-  protocol?:  string,
+  wechaty      : Wechaty,
+  token        : string,
+  apihost?     : string,
+  protocol?    : string,
+  servicePort? : number,
 }
 
 export const IO_EVENT_DICT = {
   botie     : 'tbw',
   error     : 'tbw',
   heartbeat : 'tbw',
+  jsonrpc   : 'JSON RPC',
   login     : 'tbw',
   logout    : 'tbw',
   message   : 'tbw',
@@ -64,7 +78,12 @@ type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
   name    : 'scan',
-  payload : PuppetQRCodeScanEvent,
+  payload : EventScanPayload,
+}
+
+interface IoEventJsonRpc {
+  name: 'jsonrpc',
+  payload: JsonRpcPayload,
 }
 
 interface IoEventAny {
@@ -72,7 +91,21 @@ interface IoEventAny {
   payload:  any,
 }
 
-type IoEvent = IoEventScan | IoEventAny
+type IoEvent = IoEventScan | IoEventJsonRpc | IoEventAny
+
+/**
+ * https://github.com/Chatie/botie/issues/2
+ *  https://github.com/actions/github-script/blob/f035cea4677903b153fa754aa8c2bba66f8dc3eb/src/async-function.ts#L6
+ */
+const AsyncFunction = Object.getPrototypeOf(async () => null).constructor
+
+// function callAsyncFunction<U extends {} = {}, V = unknown> (
+//   args: U,
+//   source: string
+// ): Promise<V> {
+//   const fn = new AsyncFunction(...Object.keys(args), source)
+//   return fn(...Object.values(args))
+// }
 
 export class Io {
 
@@ -81,7 +114,7 @@ export class Io {
   private eventBuffer       : IoEvent[] = []
   private ws                : undefined | WebSocket
 
-  private readonly state = new StateSwitch('Io', log)
+  private readonly state = new StateSwitch('Io', { log })
 
   private reconnectTimer?   : NodeJS.Timer
   private reconnectTimeout? : number
@@ -90,7 +123,9 @@ export class Io {
 
   private onMessage: undefined | AnyFunction
 
-  private scanPayload?: PuppetQRCodeScanEvent
+  private scanPayload?: EventScanPayload
+
+  protected jsonRpc?: Peer
 
   constructor (
     private options: IoOptions,
@@ -100,13 +135,20 @@ export class Io {
 
     this.id = options.wechaty.id
 
-    this.protocol = options.protocol + '|' + options.wechaty.id
+    this.protocol = options.protocol + '|' + options.wechaty.id + '|' + config.serviceIp + '|' + options.servicePort
     log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], cuid[%s]',
       options.apihost,
       options.token,
       options.protocol,
       this.id,
     )
+
+    if (options.servicePort) {
+      this.jsonRpc = getPeer({
+        serviceGrpcPort: this.options.servicePort!,
+      })
+    }
+
   }
 
   public toString () {
@@ -131,6 +173,7 @@ export class Io {
 
       this.ws = await this.initWebSocket()
 
+      this.options.wechaty.on('login', () => { this.scanPayload = undefined })
       this.options.wechaty.on('scan', (qrcode, status) => {
         this.scanPayload = {
           ...this.scanPayload,
@@ -149,8 +192,6 @@ export class Io {
 
       this.state.on(true)
 
-      return
-
     } catch (e) {
       log.warn('Io', 'start() exception: %s', e.message)
       this.state.off(true)
@@ -164,8 +205,8 @@ export class Io {
 
     wechaty.on('error',     error =>        this.send({ name: 'error',      payload: error }))
     wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
-    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user }))
+    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user.payload }))
+    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user.payload }))
     wechaty.on('message',   message =>      this.ioMessage(message))
 
     // FIXME: payload schema need to be defined universal
@@ -186,8 +227,8 @@ export class Io {
     }
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
-    // XXX quick and dirty: use no ssl for APIHOST other than official
-    // FIXME: use a configuarable VARIABLE for the domain name at here:
+    // XXX quick and dirty: use no ssl for API_HOST other than official
+    // FIXME: use a configurable VARIABLE for the domain name at here:
     if (!/api\.chatie\.io/.test(this.options.apihost)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
     }
@@ -258,26 +299,20 @@ export class Io {
       case 'botie':
         {
           const payload = ioEvent.payload
-          if (payload.onMessage) {
-            const script = payload.script
-            try {
-              /**
-                 * https://github.com/Chatie/botie/issues/2
-                 *  const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
-                 *  const fn = new AsyncFunction('require', 'github', 'context', script)
-                 */
-              // eslint-disable-next-line
-              const fn = eval(script)
 
-              if (typeof fn === 'function') {
-                this.onMessage = fn
-              } else {
-                log.warn('Io', 'server pushed function is invalid')
-              }
-            } catch (e) {
-              log.warn('Io', 'server pushed function exception: %s', e)
-              this.options.wechaty.emit('error', e)
+          const args   = payload.args
+          const source = payload.source
+
+          try {
+            if (args[0] === 'message' && args.length === 1) {
+              const fn = new AsyncFunction(...args, source)
+              this.onMessage = fn
+            } else {
+              log.warn('Io', 'server pushed function is invalid. args: %s', JSON.stringify(args))
             }
+          } catch (e) {
+            log.warn('Io', 'server pushed function exception: %s', e)
+            this.options.wechaty.emit('error', e)
           }
         }
         break
@@ -300,10 +335,7 @@ export class Io {
           if (wechaty.logonoff()) {
             const loginEvent: IoEvent = {
               name    : 'login',
-              payload : {
-                id   : wechaty.userSelf().id,
-                name : wechaty.userSelf().name(),
-              },
+              payload : (wechaty.userSelf() as any).payload,
             }
             await this.send(loginEvent)
           }
@@ -326,6 +358,41 @@ export class Io {
       case 'logout':
         log.info('Io', 'on(logout): %s', ioEvent.payload)
         await this.options.wechaty.logout()
+        break
+
+      case 'jsonrpc':
+        log.info('Io', 'on(jsonrpc): %s', ioEvent.payload)
+
+        try {
+          const request = (ioEvent as IoEventJsonRpc).payload
+          if (!isJsonRpcRequest(request)) {
+            log.warn('Io', 'on(jsonrpc) payload is not a jsonrpc request: %s', JSON.stringify(request))
+            return
+          }
+
+          if (!this.jsonRpc) {
+            throw new Error('jsonRpc not initialized!')
+          }
+
+          const response = await this.jsonRpc.exec(request)
+          if (!response) {
+            log.warn('Io', 'on(jsonrpc) response is undefined.')
+            return
+          }
+          const payload = parse(response) as JsonRpcPayloadResponse
+
+          const jsonrpcEvent: IoEventJsonRpc = {
+            name: 'jsonrpc',
+            payload,
+          }
+
+          log.verbose('Io', 'on(jsonrpc) send(%s)', response)
+          await this.send(jsonrpcEvent)
+
+        } catch (e) {
+          log.error('Io', 'on(jsonrpc): %s', e)
+        }
+
         break
 
       default:
@@ -414,7 +481,7 @@ export class Io {
       const data = JSON.stringify(
         this.eventBuffer.shift(),
       )
-      const p = new Promise((resolve, reject) => ws.send(
+      const p = new Promise<void>((resolve, reject) => ws.send(
         data,
         (err: undefined | Error) => {
           if (err)  {
@@ -430,7 +497,7 @@ export class Io {
     try {
       await Promise.all(list)
     } catch (e) {
-      log.error('Io', 'send() exceptio: %s', e.stack)
+      log.error('Io', 'send() exception: %s', e.stack)
       throw e
     }
   }
@@ -459,7 +526,7 @@ export class Io {
     }
 
     this.ws.close()
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       if (this.ws) {
         this.ws.once('close', resolve)
       } else {
@@ -473,14 +540,24 @@ export class Io {
 
   /**
    *
-   * Prepare to be overwriten by server setting
+   * Prepare to be overwritten by server setting
    *
    */
   private async ioMessage (m: Message): Promise<void> {
-    log.silly('Io', 'ioMessage() is a nop function before be overwriten from cloud')
+    log.silly('Io', 'ioMessage() is a nop function before be overwritten from cloud')
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)
     }
+  }
+
+  protected async syncMessage (m: Message): Promise<void> {
+    log.silly('Io', 'syncMessage(%s)', m)
+
+    const messageEvent: IoEvent = {
+      name    : 'message',
+      payload : (m as any).payload,
+    }
+    await this.send(messageEvent)
   }
 
 }

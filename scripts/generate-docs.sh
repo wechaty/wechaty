@@ -17,5 +17,31 @@ fi
 
 echo "Generating docs ..."
 npm run dist
-echo -e '# Wechaty v'"$(jq -r .version package.json)"' Documentation\n\n- Blog - <https://blog.chatie.io>\n- Docs - <https://github.com/wechaty/wechaty/blob/master/docs/index.md>\n\n' > docs/index.md
-jsdoc2md dist/src/wechaty.js dist/src/user/{room,contact,contact-self,friendship,message,room-invitation}.js >> docs/index.md
+
+DOCS_INDEX_MD=docs/index.md
+
+cat <<_EOF_ > "$DOCS_INDEX_MD"
+# Wechaty v$(jq -r .version package.json) Documentation
+
+- Website - <https://wechaty.js.org>
+- Docs Site - <https://wechaty.js.org/docs/>
+- API References - <https://wechaty.github.io/wechaty/>
+
+_EOF_
+
+jsdoc2md \
+  dist/src/wechaty.js \
+  dist/src/user/{room,contact,contact-self,friendship,message,room-invitation}.js \
+  >> "$DOCS_INDEX_MD"
+
+#
+# https://sidecar.gitter.im/
+#
+cat <<_EOF_ >> "$DOCS_INDEX_MD"
+<script>
+  ((window.gitter = {}).chat = {}).options = {
+    room: 'chatie/wechaty'
+  };
+</script>
+<script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
+_EOF_

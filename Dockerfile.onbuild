@@ -1,4 +1,4 @@
-FROM zixia/wechaty
+FROM wechaty/wechaty:next
 
 ONBUILD ARG NODE_ENV
 ONBUILD ENV NODE_ENV $NODE_ENV

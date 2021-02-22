@@ -1,7 +1,8 @@
 /**
- *   Wechaty - https://github.com/wechaty/wechaty
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -14,7 +15,6 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *   @ignore
  *
  */
 import {
@@ -22,8 +22,8 @@ import {
 }                   from 'clone-class'
 
 import {
-  Accessory,
-}               from '../accessory'
+  Wechaty,
+}               from '../wechaty'
 import {
   log,
 }               from '../config'
@@ -43,7 +43,10 @@ import { RoomInvitationPayload } from 'wechaty-puppet'
  *
  * accept room invitation
  */
-export class RoomInvitation extends Accessory implements Acceptable {
+class RoomInvitation implements Acceptable {
+
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   public static load<T extends typeof RoomInvitation> (
     this : T,
@@ -61,17 +64,16 @@ export class RoomInvitation extends Accessory implements Acceptable {
   constructor (
     public readonly id: string,
   ) {
-    super()
     log.verbose('RoomInvitation', 'constructor(id=%s)', id)
 
     const MyClass = instanceToClass(this, RoomInvitation)
 
     if (MyClass === RoomInvitation) {
-      throw new Error('RoomInvitation class can not be instanciated directly! See: https://github.com/wechaty/wechaty/issues/1217')
+      throw new Error('RoomInvitation class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
     }
 
-    if (!this.puppet) {
-      throw new Error('RoomInvitation class can not be instanciated without a puppet!')
+    if (!this.wechaty.puppet) {
+      throw new Error('RoomInvitation class can not be instantiated without a puppet!')
     }
   }
 
@@ -86,7 +88,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
     * @ignore
    */
   public async toStringAsync (): Promise<string> {
-    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
     return [
       'RoomInvitation#',
       this.id,
@@ -118,7 +120,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   public async accept (): Promise<void> {
     log.verbose('RoomInvitation', 'accept()')
 
-    await this.puppet.roomInvitationAccept(this.id)
+    await this.wechaty.puppet.roomInvitationAccept(this.id)
 
     const inviter = await this.inviter()
     const topic   = await this.topic()
@@ -155,7 +157,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   public async inviter (): Promise<Contact> {
     log.verbose('RoomInvitation', 'inviter()')
 
-    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
     const inviter = this.wechaty.Contact.load(payload.inviterId)
     return inviter
   }
@@ -163,7 +165,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   /**
    * Get the room topic from room invitation
    *
-   * @returns {Contact}
+   * @returns {string}
    * @example
    * const bot = new Wechaty()
    * bot.on('room-invite', async roomInvitation => {
@@ -173,36 +175,17 @@ export class RoomInvitation extends Accessory implements Acceptable {
    * .start()
    */
   public async topic (): Promise<string> {
-    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
-    // roomTopic deprecated. use topic instead:
     return payload.topic || payload.topic || ''
-  }
-
-  /**
-   * @deprecated: use topic() instead
-   * @ignore
-   */
-  public async roomTopic (): Promise<string> {
-    return this.topic()
   }
 
   public async memberCount (): Promise<number> {
     log.verbose('RoomInvitation', 'memberCount()')
 
-    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
-    // roomMemberCount deprecated. use memberCount instead:
     return payload.memberCount || payload.memberCount || 0
-  }
-
-  /**
-   * @deprecated: use memberCount() instead
-   * @ignore
-   */
-  public async roomMemberCount (): Promise<number> {
-    log.warn('RoomInvitation', 'roomMemberCount() DEPRECATED. use memberCount() instead.')
-    return this.memberCount()
   }
 
   /**
@@ -212,9 +195,8 @@ export class RoomInvitation extends Accessory implements Acceptable {
   public async memberList (): Promise<Contact[]> {
     log.verbose('RoomInvitation', 'roomMemberList()')
 
-    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
-    // roomMemberIdList deprecated. use memberIdList isntead.
     const contactIdList = payload.memberIdList || payload.memberIdList || []
 
     const contactList = contactIdList.map(
@@ -230,15 +212,6 @@ export class RoomInvitation extends Accessory implements Acceptable {
   }
 
   /**
-   * @deprecated: use memberList() instead.
-   * @ignore
-   */
-  public async roomMemberList (): Promise<Contact[]> {
-    log.warn('RoomInvitation', 'roomMemberList() DEPRECATED. use memberList() instead.')
-    return this.roomMemberList()
-  }
-
-  /**
    * Get the invitation time
    *
    * @returns {Promise<Date>}
@@ -246,7 +219,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
   public async date (): Promise<Date> {
     log.verbose('RoomInvitation', 'date()')
 
-    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
     return timestampToDate(payload.timestamp)
   }
 
@@ -290,7 +263,7 @@ export class RoomInvitation extends Accessory implements Acceptable {
       payload = JSON.parse(payload) as RoomInvitationPayload
     }
 
-    await this.puppet.roomInvitationPayload(payload.id, payload)
+    await this.wechaty.puppet.roomInvitationPayload(payload.id, payload)
 
     return this.wechaty.RoomInvitation.load(payload.id)
   }
@@ -310,8 +283,26 @@ export class RoomInvitation extends Accessory implements Acceptable {
    */
   public async toJSON (): Promise<string> {
     log.verbose('RoomInvitation', 'toJSON()')
-    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
     return JSON.stringify(payload)
   }
 
+}
+
+function wechatifyRoomInvitation (wechaty: Wechaty): typeof RoomInvitation {
+
+  class WechatifiedRoomInvitation extends RoomInvitation {
+
+    static get wechaty  () { return wechaty }
+    get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedRoomInvitation
+
+}
+
+export {
+  RoomInvitation,
+  wechatifyRoomInvitation,
 }

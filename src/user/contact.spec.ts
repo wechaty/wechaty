@@ -1,8 +1,9 @@
 #!/usr/bin/env ts-node
 /**
- *   Wechaty - https://github.com/wechaty/wechaty
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,7 +24,9 @@ import sinon from 'sinon'
 import { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import { Wechaty }    from '../wechaty'
+import { Wechaty }  from '../wechaty'
+
+import { Contact }  from './contact'
 
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
@@ -50,4 +53,37 @@ test('findAll()', async t => {
   t.equal(contactList[0].name(), EXPECTED_CONTACT_NAME, 'should get name from payload')
 
   await wechaty.stop()
+})
+
+test('Should not be able to instanciate directly', async t => {
+  t.throws(() => {
+    const c = Contact.load('xxx')
+    t.fail(c.name())
+  }, 'should throw when `Contact.load()`')
+
+  t.throws(() => {
+    const c = Contact.load('xxx')
+    t.fail(c.name())
+  }, 'should throw when `Contact.load()`')
+})
+
+test('Should not be able to instanciate through cloneClass without puppet', async t => {
+  t.throws(() => {
+    const c = Contact.load('xxx')
+    t.fail(c.name())
+  }, 'should throw when `MyContact.load()` without puppet')
+
+  t.throws(() => {
+    const c = Contact.load('xxx')
+    t.fail(c.name())
+  }, 'should throw when `MyContact.load()` without puppet')
+
+})
+
+test('should throw when instanciate the global class', async t => {
+  t.throws(() => {
+    const c = Contact.load('xxx')
+    t.fail('should not run to here')
+    t.fail(c.toString())
+  }, 'should throw when we instanciate a global class')
 })

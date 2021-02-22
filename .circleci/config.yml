@@ -13,7 +13,7 @@ jobs:
       - run:
           name: Install Node.js
           command: |
-            curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
+            curl --silent --location https://rpm.nodesource.com/setup_12.x | sudo bash -
             sudo yum -y install nodejs
 
       - run:
