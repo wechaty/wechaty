@@ -1,4 +1,4 @@
-module github.com/wechaty/go-grpc/openapi
+module github.com/wechaty/grpc/openapi
 
 go 1.16
 

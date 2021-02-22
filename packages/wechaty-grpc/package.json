@@ -1,6 +1,6 @@
 {
   "name": "wechaty-grpc",
-  "version": "0.20.4",
+  "version": "0.20.5",
   "description": "gRPC for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.js",
@@ -10,7 +10,8 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/* generated/*",
-    "dist": "npm-run-all clean generate && tsc && shx mv generated/ dist/",
+    "dist": "npm-run-all clean generate tsc dist:cp ",
+    "dist:cp": "shx cp -R generated/ dist/ && shx cp -R proto/ dist/",
     "dist:py": "python3 setup.py sdist bdist_wheel",
     "publish:py": "twine upload dist/*",
     "example:server": "nodemon --exec ts-node examples/server.ts",
@@ -21,6 +22,7 @@
     "lint:ts": "tsc --noEmit",
     "lint:proto": "bash -c 'protoc -I third-party -I proto/wechaty --lint_out=. $(find proto/ -type f -name *.proto)'",
     "install:protoc": "bash -x scripts/install-protoc.sh",
+    "tsc": "tsc",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",

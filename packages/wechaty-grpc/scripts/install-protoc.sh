@@ -61,6 +61,12 @@ function install_proto_google_api () {
   curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > ${THIRD_PARTY_DIR}/google/api/http.proto
 }
 
+function install_protoc_gen_openapiv2 () {
+  pushd openapi
+  make install
+  popd
+}
+
 # function install_google_protobuf_wrappers () {
 # 	if [ -d ${THIRD_PARTY_DIR}/google/protobuf ]; then
 #     echo "install skipped: ${THIRD_PARTY_DIR}/google/protobuf exists"
@@ -73,25 +79,14 @@ function install_proto_google_api () {
 #     https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/descriptor.proto
 # }
 
-function install_proto_protoc_gen_openapiv2 () {
-	if [ -d ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options ]; then
-    echo "install skipped: ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options exists"
-    return
-  fi
-
-  mkdir -p ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options
-	curl https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/master/protoc-gen-openapiv2/options/annotations.proto > ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options/annotations.proto
-	curl https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/master/protoc-gen-openapiv2/options/openapiv2.proto > ${THIRD_PARTY_DIR}/protoc-gen-openapiv2/options/openapiv2.proto
-}
-
 function main () {
   install_protoc
   check_protoc_version
 
   install_protoc_gen_lint
+  install_protoc_gen_openapiv2
 
   install_proto_google_api
-  install_proto_protoc_gen_openapiv2
 }
 
 main
