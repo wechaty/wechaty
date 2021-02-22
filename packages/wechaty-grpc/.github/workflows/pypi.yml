@@ -100,7 +100,7 @@ jobs:
         run: |
           cd python
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine
+          pip3 install setuptools wheel twine
 
       - name: Check Branch
         id: check-branch
@@ -119,7 +119,7 @@ jobs:
           make install
           make generate
           make dist
-          python setup.py sdist bdist_wheel
+          python3 setup.py sdist bdist_wheel
           twine upload --skip-existing dist/*
 
       - name: Is Not A Publish Branch
