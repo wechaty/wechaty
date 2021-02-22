@@ -7,9 +7,9 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@master
       - name: Use Node.js 12
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@master
         with:
           node-version: 12
       - name: Set up Go 1.14
@@ -21,6 +21,12 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@master
 
+      - uses: actions/cache@master
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install Dependencies
         run: |
           npm install
@@ -45,6 +51,12 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@master
 
+      - uses: actions/cache@master
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install Dependencies
         run: npm install
 
@@ -68,6 +80,12 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@master
 
+      - uses: actions/cache@master
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install Dependencies
         run: npm install
       - name: Generate Version
