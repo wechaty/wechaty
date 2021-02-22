@@ -62,7 +62,7 @@ function install_proto_google_api () {
 }
 
 function install_protoc_gen_openapiv2 () {
-  pushd openapi
+  pushd "${SCRIPTPATH}/../openapi"
   make install
   popd
 }
