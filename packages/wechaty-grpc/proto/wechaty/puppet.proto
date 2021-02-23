@@ -13,16 +13,16 @@
 syntax = "proto3";
 package wechaty;
 
-import public "puppet/base.proto";
-import public "puppet/contact.proto";
-import public "puppet/event.proto";
-import public "puppet/file_box.proto";
-import public "puppet/friendship.proto";
-import public "puppet/message.proto";
-import public "puppet/room.proto";
-import public "puppet/room_invitation.proto";
-import public "puppet/room_member.proto";
-import public "puppet/tag.proto";
+import "puppet/base.proto";
+import "puppet/contact.proto";
+import "puppet/event.proto";
+import "puppet/file_box.proto";
+import "puppet/friendship.proto";
+import "puppet/message.proto";
+import "puppet/room.proto";
+import "puppet/room_invitation.proto";
+import "puppet/room_member.proto";
+import "puppet/tag.proto";
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
@@ -44,8 +44,8 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
           email: "wechaty@chatie.io"
       }
       version: "0.0.0"  // MUST be 0.0.0 at here: will be synced with the Git Repo when generating.
-  };
-  schemes: [HTTP,HTTPS,WS,WSS]
+  }
+  schemes: "[HTTP,HTTPS,WS,WSS]"
   consumes: "application/json"
   produces: "application/json"
   responses: {
@@ -55,10 +55,10 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
           schema: {
               json_schema: {
                   ref: ".google.rpc.Status"
-              };
-          };
-      };
-  };
+              }
+          }
+      }
+  }
 };
 
 service Puppet {
@@ -445,12 +445,12 @@ service Puppet {
    */
   rpc TagContactAdd (puppet.TagContactAddRequest) returns (puppet.TagContactAddResponse) {
     option (google.api.http) = {
-      put: "/contacts/contact_id/tags/id"
+      put: "/contacts/{contact_id}/tags/{id}"
     };
   }
   rpc TagContactRemove (puppet.TagContactRemoveRequest) returns (puppet.TagContactRemoveResponse) {
     option (google.api.http) = {
-      delete: "/contacts/contact_id/tags/id"
+      delete: "/contacts/{contact_id}/tags/{id}"
     };
   }
 
@@ -460,13 +460,13 @@ service Puppet {
    */
   rpc TagContactDelete (puppet.TagContactDeleteRequest) returns (puppet.TagContactDeleteResponse) {
     option (google.api.http) = {
-      delete: "/contacts/-/tags/id"
+      delete: "/contacts/-/tags/{id}"
     };
   }
 
    rpc TagContactList (puppet.TagContactListRequest) returns (puppet.TagContactListResponse) {
     option (google.api.http) = {
-      get: "/contacts/contact_id/tags"
+      get: "/contacts/{contact_id}/tags"
     };
   }
 
