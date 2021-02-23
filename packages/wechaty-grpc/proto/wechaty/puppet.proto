@@ -16,7 +16,6 @@ package wechaty;
 import "puppet/base.proto";
 import "puppet/contact.proto";
 import "puppet/event.proto";
-import "puppet/file_box.proto";
 import "puppet/friendship.proto";
 import "puppet/message.proto";
 import "puppet/room.proto";
@@ -45,7 +44,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
       }
       version: "0.0.0"  // MUST be 0.0.0 at here: will be synced with the Git Repo when generating.
   }
-  schemes: "[HTTP,HTTPS,WS,WSS]"
+  schemes: [HTTP,HTTPS,WS,WSS]
   consumes: "application/json"
   produces: "application/json"
   responses: {
