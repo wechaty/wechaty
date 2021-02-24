@@ -15,14 +15,14 @@ OUT_DIR="./src/wechaty_grpc"
 
 # ./merge-proto.sh > "$OUT_DIR/wechaty_grpc.proto"
 # PROTO_DIR="$OUT_DIR"
-PROTO_DIR=../proto/wechaty
+PROTO_DIR=../proto
 
 PROTOC_CMD="python3 \
   -m grpc_tools.protoc \
   --proto_path=${PROTO_DIR} \
   --proto_path=../third-party \
   --proto_path=/usr/local/include/ \
-  ${PROTO_DIR}/puppet.proto \
+  wechaty/puppet.proto \
 "
 
 $PROTOC_CMD \
