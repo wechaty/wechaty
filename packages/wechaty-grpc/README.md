@@ -153,9 +153,15 @@ protoc \
 
 ## OpenAPI
 
-![gRPC Gateway](docs/images/grpc-gateway-architecture.svg)
+Thanks for the ecosystem of gRPC, we can generate OpenAPI Specification from our gRPC proto definitions automatically.
+
+We are using [gRPC to JSON proxy generator following the gRPC HTTP spec](https://github.com/grpc-ecosystem/grpc-gateway) as the OpenAPI Specification generator ([protoc-gen-openapiv2](https://github.com/grpc-ecosystem/grpc-gateway/tree/master/protoc-gen-openapiv2)), and using [Like grpc-gateway, but written in node and dynamic](https://github.com/konsumer/grpc-dynamic-gateway) project to serve a HTTP RESTful API to gRPC proxy.
+
+[![gRPC Gateway](docs/images/grpc-gateway-architecture.svg)](https://github.com/wechaty/openapi)
 
 > Image credit: [grpc-gateway](https://grpc-ecosystem.github.io/grpc-gateway/)
+
+Learn more about the RESTful API service for Wechaty from [Wechaty OpenAPI](https://github.com/wechaty/openapi).
 
 ## gRPC Web
 
