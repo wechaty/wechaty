@@ -5,7 +5,7 @@ PROTO_DIR="./proto/"
 THIRD_PARTY_DIR="./third-party/"
 
 # Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./generated/wechaty"
+OUT_DIR="./generated"
 [ -d ${OUT_DIR} ] || {
   mkdir -p ${OUT_DIR}
 }
@@ -15,8 +15,9 @@ PROTO_FILE_LIST=$(find $PROTO_DIR $THIRD_PARTY_DIR -type f -name *.proto)
 # --proto_path=/usr/local/include/
 PROTOC_CMD="protoc \
   -I ${THIRD_PARTY_DIR} \
-  --proto_path=${PROTO_DIR}/wechaty \
-  $PROTO_FILE_LIST"
+  -I ${PROTO_DIR} \
+  $PROTO_FILE_LIST \
+"
 
 function gen_js_pb () {
   #

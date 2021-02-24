@@ -7,7 +7,7 @@ option csharp_namespace = "github.wechaty.grpc.puppet";
 
 import "google/protobuf/wrappers.proto";
 
-import "puppet/file_box.proto";
+import "wechaty/puppet/file_box.proto";
 
 enum MessageType {
   MESSAGE_TYPE_UNSPECIFIED  = 0;
