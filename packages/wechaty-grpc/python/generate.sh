@@ -27,3 +27,17 @@ PROTOC_CMD="python3 \
 
 $PROTOC_CMD \
   --python_betterproto_out=${OUT_DIR}
+
+# https://github.com/wechaty/grpc/issues/120
+function workaround_issue () {
+  sed -i \
+    's/from typing import AsyncIterable, AsyncIterator, Iterable, Optional, Union/from typing import AsyncIterable, AsyncIterator, Iterable, Optional, Union, List/' \
+    ${OUT_DIR}/wechaty/__init__.py
+}
+
+main () {
+  generate_proto_stub
+  workaround_issue_120
+}
+
+main
