@@ -13,20 +13,22 @@ OUT_DIR="./src/wechaty_grpc"
   mkdir -p ${OUT_DIR}
 }
 
-# ./merge-proto.sh > "$OUT_DIR/wechaty_grpc.proto"
-# PROTO_DIR="$OUT_DIR"
-PROTO_DIR=../proto
+function generate_proto_stub () {
+  # ./merge-proto.sh > "$OUT_DIR/wechaty_grpc.proto"
+  # PROTO_DIR="$OUT_DIR"
+  PROTO_DIR=../proto
 
-PROTOC_CMD="python3 \
-  -m grpc_tools.protoc \
-  --proto_path=${PROTO_DIR} \
-  --proto_path=../third-party \
-  --proto_path=/usr/local/include/ \
-  wechaty/puppet.proto \
-"
+  PROTOC_CMD="python3 \
+    -m grpc_tools.protoc \
+    --proto_path=${PROTO_DIR} \
+    --proto_path=../third-party \
+    --proto_path=/usr/local/include/ \
+    wechaty/puppet.proto \
+  "
 
-$PROTOC_CMD \
-  --python_betterproto_out=${OUT_DIR}
+  $PROTOC_CMD \
+    --python_betterproto_out=${OUT_DIR}
+}
 
 # https://github.com/wechaty/grpc/issues/120
 function workaround_issue () {
