@@ -31,7 +31,7 @@ function generate_proto_stub () {
 }
 
 # https://github.com/wechaty/grpc/issues/120
-function workaround_issue () {
+function workaround_issue_120 () {
   sed -i \
     's/from typing import AsyncIterable, AsyncIterator, Iterable, Optional, Union/from typing import AsyncIterable, AsyncIterator, Iterable, Optional, Union, List/' \
     ${OUT_DIR}/wechaty/__init__.py
