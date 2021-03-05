@@ -31,6 +31,7 @@ import {
 }                   from '../helper-functions/mod'
 
 import {
+  FriendshipAddOptions,
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
@@ -43,6 +44,16 @@ import {
 import {
   Contact,
 }                   from './contact'
+
+import {
+  Room,
+}                   from './room'
+
+interface FriendshipAddOptionsObj {
+  room?: Room,
+  contact?: Contact,
+  hello?: string,
+}
 
 /**
  * Send, receive friend request, and friend confirmation events.
@@ -112,24 +123,41 @@ class Friendship extends EventEmitter implements Acceptable {
    * Remeber not to do this too frequently, or your account may be blocked.
    *
    * @param {Contact} contact - Send friend request to contact
-   * @param {string} hello    - The friend request content
+   * @param {string | FriendshipAddOptionsObj} option - The friend request content
    * @returns {Promise<void>}
    *
    * @example
+   * const contact = await bot.Friendship.search({phone: '13112341234'})
+   * await bot.Friendship.add(contact, 'Nice to meet you! I am wechaty bot!')
+   *
    * const memberList = await room.memberList()
    * for (let i = 0; i < memberList.length; i++) {
-   *   await bot.Friendship.add(member, 'Nice to meet you! I am wechaty bot!')
+   *   await bot.Friendship.add(member, {
+   *     room: room,
+   *     hello: `Nice to meet you! I am wechaty bot from room: ${await room.topic()}!`,
+   *   })
    * }
+   *
    */
   public static async add (
     contact : Contact,
-    hello   : string,
+    option  : string | FriendshipAddOptionsObj,
   ): Promise<void> {
     log.verbose('Friendship', 'static add(%s, %s)',
       contact.id,
-      hello,
+      typeof option === 'string' ? option : option.hello,
     )
-    await this.wechaty.puppet.friendshipAdd(contact.id, hello)
+
+    if (typeof option === 'string') {
+      await this.wechaty.puppet.friendshipAdd(contact.id, option)
+    } else {
+      const friendOption: FriendshipAddOptions = {
+        hello: option.hello,
+        contactId: option.contact && option.contact.id,
+        roomId: option.room && option.room.id,
+      };
+      await this.wechaty.puppet.friendshipAdd(contact.id, friendOption)
+    }
   }
 
   public static async del (
