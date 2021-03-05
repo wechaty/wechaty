@@ -38,7 +38,8 @@ export const PUPPET_DEPENDENCIES = {
    *
    * TODO: Huan(202101): will be removed after Dec 31, 2021
    */
-  'wechaty-puppet-hostie'    : '*',   // https://www.npmjs.com/package/wechaty-puppet-hostie
+  'wechaty-puppet-hostie'    : '*',       // https://www.npmjs.com/package/wechaty-puppet-hostie
+  'wechaty-puppet-puppeteer' : '>=0.24',  // https://www.npmjs.com/package/wechaty-puppet-puppeteer
 
   /**
    * Wechaty Internal Puppets: dependency by package.json
@@ -49,7 +50,7 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * WeChat External Puppets
    */
-  'wechaty-puppet-puppeteer'        : '>=0.24',  // https://www.npmjs.com/package/wechaty-puppet-puppeteer
+  'wechaty-puppet-wechat'           : '>=0.26',  // https://www.npmjs.com/package/wechaty-puppet-wechat
   'wechaty-puppet-wechat4u'         : '>=0.17',  // https://www.npmjs.com/package/wechaty-puppet-wechat4u
   'wechaty-puppet-padlocal'         : '>=0.2',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
   'wechaty-puppet-official-account' : '>=0.5',   // https://www.npmjs.com/package/wechaty-puppet-official-account
