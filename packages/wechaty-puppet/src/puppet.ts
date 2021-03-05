@@ -44,6 +44,7 @@ import {
   EventLoginPayload,
 }                                 from './schemas/event'
 import {
+  FriendshipAddOptions,
   FriendshipPayload,
   FriendshipSearchQueryFilter,
 }                                 from './schemas/friendship'
@@ -710,7 +711,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    *
    */
   public abstract async friendshipAccept (friendshipId: string)           : Promise<void>
-  public abstract async friendshipAdd (contactId: string, hello?: string) : Promise<void>
+  public abstract async friendshipAdd (contactId: string, option?: FriendshipAddOptions) : Promise<void>
 
   public abstract async friendshipSearchPhone (phone: string)   : Promise<null | string>
   public abstract async friendshipSearchWeixin (weixin: string) : Promise<null | string>

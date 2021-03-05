@@ -24,6 +24,7 @@ export {
   EventScanPayload,
 }                             from './schemas/event'
 export {
+  FriendshipAddOptions,
   FriendshipPayload,
   FriendshipPayloadConfirm,
   FriendshipPayloadReceive,

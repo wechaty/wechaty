@@ -21,6 +21,7 @@ import {
 import { MessagePayloadFilterFunction } from '../../../src/schemas/message'
 import { RoomPayloadFilterFunction }    from '../../../src/schemas/room'
 import { ContactPayloadFilterFunction } from '../../../src/schemas/contact'
+import { FriendshipAddOptions } from '../../../src/schemas/friendship'
 
 export class PuppetTest extends Puppet {
 
@@ -84,7 +85,7 @@ export class PuppetTest extends Puppet {
 
   public async friendshipSearchPhone (phone: string) : Promise<null | string> { return phone }
   public async friendshipSearchWeixin (weixin: string) : Promise<null | string> { return weixin }
-  public async friendshipAdd (contactId: string, hello?: string) : Promise<void> { return { contactId, hello } as any }
+  public async friendshipAdd (contactId: string, option?: FriendshipAddOptions) : Promise<void> { return { contactId, option } as any }
   public async friendshipAccept (friendshipId: string)           : Promise<void> { return { friendshipId } as any }
 
   /**
