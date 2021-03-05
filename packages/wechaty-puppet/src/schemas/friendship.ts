@@ -59,13 +59,13 @@ export interface FriendshipSearchCondition {
   weixin: string,
 }
 
-interface FriendshipAddParams {
+interface FriendshipAddOptionsObject {
   roomId?: string,
   contactId?: string,
   hello?: string,
 }
 
-export type FriendshipAddOptions = string | FriendshipAddParams
+export type FriendshipAddOptions = string | FriendshipAddOptionsObject
 
 // https://stackoverflow.com/a/48244432/1123955
 type AtLeastOne<T, U = {[K in keyof T]: Pick<T, K> }> = Partial<T> & U[keyof U]
