@@ -31,7 +31,7 @@ import {
 }                   from '../helper-functions/mod'
 
 import {
-  FriendshipAddOptions,
+  FriendshipAddOptions as PuppetFriendshipAddOptions,
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
@@ -49,11 +49,13 @@ import {
   Room,
 }                   from './room'
 
-interface FriendshipAddOptionsObj {
+interface FriendshipAddOptionsObject {
   room?: Room,
   contact?: Contact,
   hello?: string,
 }
+
+type FriendshipAddOptions = string | FriendshipAddOptionsObject
 
 /**
  * Send, receive friend request, and friend confirmation events.
@@ -86,7 +88,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * Search a Friend by phone or weixin.
    *
    * The best practice is to search friend request once per minute.
-   * Remeber not to do this too frequently, or your account may be blocked.
+   * Remember not to do this too frequently, or your account may be blocked.
    *
    * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
    * @returns {Promise<Contact>}
@@ -100,12 +102,12 @@ class Friendship extends EventEmitter implements Acceptable {
    *
    */
   public static async search (
-    queryFiter : FriendshipSearchQueryFilter,
+    queryFilter : FriendshipSearchQueryFilter,
   ): Promise<null | Contact> {
     log.verbose('Friendship', 'static search("%s")',
-      JSON.stringify(queryFiter),
+      JSON.stringify(queryFilter),
     )
-    const contactId = await this.wechaty.puppet.friendshipSearch(queryFiter)
+    const contactId = await this.wechaty.puppet.friendshipSearch(queryFilter)
 
     if (!contactId) {
       return null
@@ -123,7 +125,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * Remeber not to do this too frequently, or your account may be blocked.
    *
    * @param {Contact} contact - Send friend request to contact
-   * @param {string | FriendshipAddOptionsObj} option - The friend request content
+   * @param {FriendshipAddOptions} options - The friend request content
    * @returns {Promise<void>}
    *
    * @example
@@ -141,21 +143,21 @@ class Friendship extends EventEmitter implements Acceptable {
    */
   public static async add (
     contact : Contact,
-    option  : string | FriendshipAddOptionsObj,
+    options  : FriendshipAddOptions,
   ): Promise<void> {
     log.verbose('Friendship', 'static add(%s, %s)',
       contact.id,
-      typeof option === 'string' ? option : option.hello,
+      typeof options === 'string' ? options : options.hello,
     )
 
-    if (typeof option === 'string') {
-      await this.wechaty.puppet.friendshipAdd(contact.id, option)
+    if (typeof options === 'string') {
+      await this.wechaty.puppet.friendshipAdd(contact.id, { hello: options })
     } else {
-      const friendOption: FriendshipAddOptions = {
-        hello: option.hello,
-        contactId: option.contact && option.contact.id,
-        roomId: option.room && option.room.id,
-      };
+      const friendOption: PuppetFriendshipAddOptions = {
+        contactId: options?.contact?.id,
+        hello: options.hello,
+        roomId: options.room && options.room.id,
+      }
       await this.wechaty.puppet.friendshipAdd(contact.id, friendOption)
     }
   }
