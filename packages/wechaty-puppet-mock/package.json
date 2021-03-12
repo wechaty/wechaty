@@ -44,32 +44,32 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet-mock#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.1",
+    "@chatie/eslint-config": "^0.12.3",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.11.4",
+    "@chatie/tsconfig": "^0.14.1",
     "@types/cuid": "^1.3.1",
-    "@types/faker": "^4.1.12",
+    "@types/faker": "^5.1.7",
     "@types/normalize-package-data": "^2.4.0",
     "@types/quick-lru": "^3.0.0",
-    "pkg-jq": "^0.2.4",
-    "shx": "^0.3.2",
+    "pkg-jq": "^0.2.11",
+    "shx": "^0.3.3",
     "tstest": "^0.4.10",
-    "wechaty": "^0.48.6",
-    "wechaty-puppet": "^0.32.1"
+    "wechaty": "^0.56.6",
+    "wechaty-puppet": "^0.34"
   },
   "peerDependencies": {
-    "wechaty-puppet": ">=0.32"
+    "wechaty-puppet": ">=0.34"
   },
   "dependencies": {
     "brolog": "^1.12.4",
     "cuid": "^2.1.8",
-    "faker": "^5.1.0",
+    "faker": "^5.4.0",
     "hot-import": "^0.2.14",
-    "normalize-package-data": "^2.5.0",
-    "quick-lru": "^5.1.1",
+    "normalize-package-data": "^3.0.1",
+    "quick-lru": "^6.0.0",
     "state-switch": "^0.6.18",
-    "typed-emitter": "^1.3.0",
+    "typed-emitter": "^1.3.1",
     "watchdog": "^0.8.17"
   },
   "publishConfig": {
