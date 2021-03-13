@@ -79,12 +79,10 @@ Designing the puppet hostie with the following protocols:
 1. [JSON RPC](https://www.jsonrpc.org/)
 1. [OpenAPI/Swagger](https://swagger.io/docs/specification/about/)
 
-## Author
+## Maintainers
 
-[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)),
-Tencent TVP of Chatbot, \<zixia@zixia.net\>
-
-[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
+- [@huan](https://github.com/huan) Huan
+- [@windmemory](https://github.com/windmemory) Yuan
 
 ## Copyright & License
 
