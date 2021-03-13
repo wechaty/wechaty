@@ -17,7 +17,7 @@ import {
   PuppetService,
   PuppetServer,
   PuppetServerOptions,
-}                               from '../src'
+}                               from '../src/mod'
 import {
   PuppetOptions,
   ContactPayload,
@@ -51,7 +51,7 @@ class PuppetTest extends PuppetMock {
       type   : ContactType.Individual,
     }
 
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       process.stdout.write(',')
       setTimeout(() => {
         process.stdout.write('.')

@@ -16,7 +16,7 @@ import {
   PuppetService,
   PuppetServer,
   PuppetServerOptions,
-}                               from '../src/'
+}                               from '../src/mod'
 
 test('integration testing', async (t) => {
   const TOKEN    = 'test_token'

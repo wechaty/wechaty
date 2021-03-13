@@ -109,7 +109,7 @@ import {
   VERSION,
   WECHATY_PUPPET_SERVICE_TOKEN,
   WECHATY_PUPPET_SERVICE_ENDPOINT,
-  GRPC_LIMITATION,
+  GRPC_OPTIONS,
 }                                   from '../config'
 
 import {
@@ -232,7 +232,7 @@ export class PuppetService extends Puppet {
     }
 
     const clientOptions = {
-      ...GRPC_LIMITATION,
+      ...GRPC_OPTIONS,
       'grpc.default_authority': this.options.token,
     }
     this.grpcClient = new PuppetClient(
@@ -258,9 +258,11 @@ export class PuppetService extends Puppet {
     log.verbose('PuppetService', 'start()')
 
     if (!this.options.token) {
-      throw new Error([
+      const tokenNotFoundError = 'wechaty-puppet-service: WECHATY_PUPPET_SERVICE_TOKEN not found'
+
+      console.error([
         '',
-        'wechaty-puppet-service: WECHATY_PUPPET_SERVICE_TOKEN not found',
+        tokenNotFoundError,
         '(save token to WECHATY_PUPPET_SERVICE_TOKEN env var or pass it to puppet options is required.).',
         '',
         'To learn how to get Wechaty Puppet Service Token,',
@@ -268,6 +270,8 @@ export class PuppetService extends Puppet {
         'to see our Wechaty Puppet Service Providers.',
         '',
       ].join('\n'))
+
+      throw new Error(tokenNotFoundError)
     }
 
     if (this.state.on()) {

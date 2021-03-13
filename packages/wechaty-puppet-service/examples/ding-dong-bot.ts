@@ -9,7 +9,7 @@ import {
   FileBox,
 }                     from 'wechaty-puppet'
 
-import { PuppetService } from '../src/'
+import { PuppetService } from '../src/mod'
 
 /**
  *

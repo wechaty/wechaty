@@ -2,8 +2,8 @@
   "name": "wechaty-puppet-service",
   "version": "0.15.1",
   "description": "Puppet Service for Wechaty",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "dist/src/mod.js",
+  "typings": "dist/src/mod.d.ts",
   "directories": {
     "test": "tests"
   },
@@ -44,30 +44,30 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet-service#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.1",
+    "@chatie/eslint-config": "^0.12.3",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.11.4",
-    "@types/google-protobuf": "^3.7.2",
-    "@types/ws": "^7.2.6",
-    "pkg-jq": "^0.2.4",
-    "shx": "^0.3.2",
+    "@chatie/tsconfig": "^0.14.1",
+    "@types/google-protobuf": "^3.7.4",
+    "@types/ws": "^7.4.0",
+    "pkg-jq": "^0.2.11",
+    "shx": "^0.3.3",
     "tstest": "^0.4.10",
-    "wechaty": "^0.50",
+    "wechaty": "^0.56",
     "wechaty-puppet": "^0.33.5",
-    "wechaty-puppet-mock": "^0.27.11"
+    "wechaty-puppet-mock": "^0.28.2"
   },
   "peerDependencies": {
     "wechaty-puppet": "*"
   },
   "dependencies": {
-    "@chatie/grpc": "^0.18.10",
-    "@reduxjs/toolkit": "^1.4.0",
+    "@chatie/grpc": "^0.18.12",
+    "@reduxjs/toolkit": "^1.5.0",
     "redux": "^4.0.5",
     "redux-observable": "^2.0.0-alpha.0",
     "rxjs": "^6.6.3",
     "stronger-typed-streams": "^0.2.0",
-    "ws": "^7.3.1"
+    "ws": "^7.4.3"
   },
   "publishConfig": {
     "access": "public",
