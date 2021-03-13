@@ -48,7 +48,7 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ## History
 
-### master
+### v0.15 master
 
 ### v0.14 (Jan 2021)
 
