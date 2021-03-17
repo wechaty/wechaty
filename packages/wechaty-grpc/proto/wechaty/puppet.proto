@@ -304,6 +304,14 @@ service Puppet {
       body: "*"
     };
   }
+  rpc MessageForward (puppet.MessageForwardRequest) returns (puppet.MessageForwardResponse) {
+    option (google.api.http) = {
+      post: "/messages/{message_id}/forward/{conversation_id}"
+      additional_bindings {
+        post: "/conversations/{conversation_id}/forward/{message_id}"
+      }
+    };
+  }
 
   rpc MessageSendContact (puppet.MessageSendContactRequest) returns (puppet.MessageSendContactResponse) {
     option (google.api.http) = {
