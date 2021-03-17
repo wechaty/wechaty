@@ -28,7 +28,7 @@ import {
  */
 import {
   PuppetTest,
-}                                 from '../tests/fixtures/puppet-test/puppet-test'
+}               from '../tests/fixtures/puppet-test/puppet-test'
 
 test('contactQueryFilterFunction()', async t => {
 
