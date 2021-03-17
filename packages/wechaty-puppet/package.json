@@ -5,7 +5,8 @@
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
   "engines": {
-    "wechaty": ">=0.17.46"
+    "node": ">=12",
+    "wechaty": ">=0.56"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -58,7 +59,7 @@
     "hot-import": "^0.2.14",
     "memory-card": "^0.12.2",
     "normalize-package-data": "^3.0.1",
-    "quick-lru": "^6.0.0",
+    "quick-lru": "^5",
     "read-pkg-up": "^7.0.1",
     "rx-queue": "^0.8.5",
     "rxjs": "^6.6.6",
