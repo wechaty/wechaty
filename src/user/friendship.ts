@@ -151,6 +151,7 @@ class Friendship extends EventEmitter implements Acceptable {
     )
 
     if (typeof options === 'string') {
+      log.warn('Friendship', 'the params hello is deprecated in the next version, please put the attr hello into options object, e.g. { hello: "xxxx" }')
       await this.wechaty.puppet.friendshipAdd(contact.id, { hello: options })
     } else {
       const friendOption: PuppetFriendshipAddOptions = {
