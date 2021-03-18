@@ -1,5 +1,3 @@
-import grpc             from 'grpc'
-
 import {
   IPuppetServer,
   ContactAliasResponse,
@@ -82,7 +80,10 @@ import {
   unpackConversationIdFileBoxArgsFromPb,
 }                                         from '../file-box-stream/mod'
 
-import { log } from '../config'
+import {
+  grpc,
+  log,
+}           from '../config'
 
 import { grpcError }          from './grpc-error'
 import { EventStreamManager } from './event-stream-manager'
@@ -394,6 +395,7 @@ export function puppetImplementation (
           ...new Error('GrpcServerImpl.event() can not call twice.'),
           code: grpc.status.ALREADY_EXISTS,
           details: 'GrpcServerImpl.event() can not call twice.',
+          metadata: streamingCall.metadata,
         }
 
         /**

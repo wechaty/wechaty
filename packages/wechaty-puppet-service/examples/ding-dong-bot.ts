@@ -131,7 +131,7 @@ async function onMessage (payload: EventMessagePayload) {
   if (messagePayload.type === MessageType.Text
       && /^ding$/i.test(messagePayload.text || '')
   ) {
-    let conversationId = messagePayload.roomId || messagePayload.fromId
+    const conversationId = messagePayload.roomId || messagePayload.fromId
 
     if (!conversationId) {
       throw new Error('no conversation id')

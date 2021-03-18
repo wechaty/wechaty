@@ -1,5 +1,3 @@
-import grpc             from 'grpc'
-
 import {
   EventResponse,
   EventType,
@@ -28,6 +26,7 @@ import {
 
 import {
   log,
+  grpc,
 }                 from '../config'
 
 import {
@@ -37,7 +36,7 @@ import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
 
 export class EventStreamManager {
 
-  protected eventStream: undefined | grpc.ServerWritableStream<EventRequest>
+  protected eventStream: undefined | grpc.ServerWritableStream<EventRequest, EventResponse>
 
   private puppetListened = false
 
@@ -52,7 +51,7 @@ export class EventStreamManager {
   }
 
   public start (
-    stream: grpc.ServerWritableStream<EventRequest>,
+    stream: grpc.ServerWritableStream<EventRequest, EventResponse>,
   ): void {
     log.verbose('EventStreamManager', 'start(stream)')
 

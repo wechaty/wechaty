@@ -1,7 +1,7 @@
 /**
  * Issue #7: https://github.com/Chatie/grpc/issues/7
  */
-export type Callback<T> = (err: Error | null, reply: T) => void
+export type Callback<T, E extends Error = any> = (err: E | null, reply: T) => void
 
 export type PromisifyOne<T extends any[]> =
     T extends [Callback<infer U>?] ? () => Promise<U> :

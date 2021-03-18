@@ -1,5 +1,7 @@
 /// <reference path="./typings.d.ts" />
 
+import * as grpc from '@grpc/grpc-js'
+
 import { log } from 'wechaty-puppet'
 
 export { VERSION } from './version'
@@ -52,5 +54,6 @@ export const WECHATY_PUPPET_SERVICE_ENDPOINT = () => {
 }
 
 export {
+  grpc,
   log,
 }

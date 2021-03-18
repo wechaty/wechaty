@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.17.0",
+  "version": "0.19.2",
   "description": "Puppet Service for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -8,8 +8,8 @@
     "test": "tests"
   },
   "engines": {
-    "wechaty": ">=0.50",
-    "wechaty-puppet": ">=0.33.5"
+    "wechaty": ">=0.56",
+    "wechaty-puppet": ">=0.34"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -61,13 +61,10 @@
     "wechaty-puppet": "*"
   },
   "dependencies": {
-    "wechaty-grpc": "^0.21.2",
-    "@reduxjs/toolkit": "^1.5.0",
-    "redux": "^4.0.5",
-    "redux-observable": "^2.0.0-alpha.0",
+    "@grpc/grpc-js": "^1.2.11",
+    "wechaty-grpc": "^0.23.5",
     "rxjs": "^6.6.6",
-    "stronger-typed-streams": "^0.2.0",
-    "ws": "^7.4.4"
+    "stronger-typed-streams": "^0.2.0"
   },
   "publishConfig": {
     "access": "public",
