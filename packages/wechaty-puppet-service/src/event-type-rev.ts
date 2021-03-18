@@ -1,7 +1,7 @@
 import {
   EventType,
   EventTypeMap,
-}               from '@chatie/grpc'
+}               from 'wechaty-grpc'
 
 /**
  * Huan(202003):

@@ -10,6 +10,7 @@ import {
 
   FileBox,
 
+  FriendshipAddOptions,
   FriendshipPayload,
 
   MessagePayload,
@@ -100,7 +101,7 @@ import {
   MessageSendFileStreamResponse,
   MessageSendFileStreamRequest,
   MessageSendFileRequest,
-}                                   from '@chatie/grpc'
+}                                   from 'wechaty-grpc'
 
 import { Subscription } from 'rxjs'
 
@@ -1449,13 +1450,25 @@ export class PuppetService extends Puppet {
 
   public async friendshipAdd (
     contactId : string,
-    hello     : string,
+    options   : FriendshipAddOptions,
   ): Promise<void> {
-    log.verbose('PuppetService', 'friendshipAdd(%s, %s)', contactId, hello)
+    log.verbose('PuppetService', 'friendshipAdd(%s, %s)', contactId, JSON.stringify(options))
 
     const request = new FriendshipAddRequest()
     request.setContactId(contactId)
-    request.setHello(hello)
+
+    // FIXME: for backward compatibility, need to be removed after all puppet has updated.
+    if (typeof options === 'string') {
+      request.setHello(options)
+    } else {
+      request.setHello(options.hello!)
+      const contactIdWrapper = new StringValue()
+      contactIdWrapper.setValue(options.contactId || '')
+      const roomIdWrapper = new StringValue()
+      roomIdWrapper.setValue(options.roomId || '')
+      request.setSourceRoomId(roomIdWrapper)
+      request.setSourceContactId(contactIdWrapper)
+    }
 
     await util.promisify(
       this.grpcClient!.friendshipAdd.bind(this.grpcClient)

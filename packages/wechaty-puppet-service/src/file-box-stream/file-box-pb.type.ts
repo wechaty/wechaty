@@ -1,4 +1,4 @@
-import { FileBoxChunk } from '@chatie/grpc'
+import { FileBoxChunk } from 'wechaty-grpc'
 
 /**
  * Any Protocol Buffer message that include a FileBoxChunk

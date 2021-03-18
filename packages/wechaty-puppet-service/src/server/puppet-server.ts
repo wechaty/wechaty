@@ -7,7 +7,7 @@ import {
 
 import {
   PuppetService,
-}                     from '@chatie/grpc'
+}                     from 'wechaty-grpc'
 
 import {
   log,

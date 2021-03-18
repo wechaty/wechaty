@@ -5,7 +5,7 @@ import {
   EventType,
   EventRequest,
   EventTypeMap,
-}                                   from '@chatie/grpc'
+}                                   from 'wechaty-grpc'
 
 import {
   PUPPET_EVENT_DICT,

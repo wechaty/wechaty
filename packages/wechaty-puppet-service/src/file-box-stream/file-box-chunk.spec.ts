@@ -27,7 +27,7 @@ import { FileBox }      from 'wechaty-puppet'
 
 import {
   FileBoxChunk,
-}                 from '@chatie/grpc'
+}                 from 'wechaty-grpc'
 
 import {
   unpackFileBoxFromChunk,

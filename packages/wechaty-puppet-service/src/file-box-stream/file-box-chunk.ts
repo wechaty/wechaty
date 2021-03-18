@@ -1,4 +1,4 @@
-import { FileBoxChunk } from '@chatie/grpc'
+import { FileBoxChunk } from 'wechaty-grpc'
 import { FileBox }      from 'wechaty-puppet'
 import { PassThrough }  from 'stream'
 import {

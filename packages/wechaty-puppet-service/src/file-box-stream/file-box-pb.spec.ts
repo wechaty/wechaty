@@ -6,7 +6,7 @@ import { FileBox } from 'wechaty-puppet'
 
 import {
   MessageFileStreamResponse,
-}                                 from '@chatie/grpc'
+}                                 from 'wechaty-grpc'
 
 import {
   packFileBoxToPb,

@@ -22,7 +22,7 @@
 import {
   FileBoxChunk,
   MessageSendFileStreamRequest,
-}                                       from '@chatie/grpc'
+}                                       from 'wechaty-grpc'
 import test                             from 'tstest'
 import { PassThrough }                  from 'stream'
 import { FileBox }                      from 'wechaty-puppet'

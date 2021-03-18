@@ -60,7 +60,7 @@ import {
   MessageSendFileStreamResponse,
   MessageImageStreamResponse,
   MessageFileStreamResponse,
-}                                   from '@chatie/grpc'
+}                                   from 'wechaty-grpc'
 
 import {
   FileBox,
@@ -70,6 +70,7 @@ import {
   UrlLinkPayload,
   RoomInvitationPayload,
   ImageType,
+  FriendshipAddOptions,
   FriendshipSceneType,
   EventScanPayload,
   EventReadyPayload,
@@ -435,9 +436,21 @@ export function puppetImplementation (
 
       try {
         const contactId = call.request.getContactId()
+        // FIXME: for backward compatibility, need to be removed after all puppet has updated.
         const hello = call.request.getHello()
+        const sourceContactId = call.request.getSourceContactId()
+        const sourceRoomId = call.request.getSourceRoomId()
 
-        await puppet.friendshipAdd(contactId, hello)
+        let friendshipAddOptions: FriendshipAddOptions = hello
+        if (sourceContactId || sourceRoomId) {
+          friendshipAddOptions = {
+            contactId: sourceContactId?.getValue(),
+            hello,
+            roomId: sourceRoomId?.getValue(),
+          }
+        }
+
+        await puppet.friendshipAdd(contactId, friendshipAddOptions)
         return callback(null, new FriendshipAddResponse())
 
       } catch (e) {
@@ -585,6 +598,8 @@ export function puppetImplementation (
         call.destroy(e)
       }
     },
+
+    messageForward: async () => {},
 
     /**
      * @deprecated: should not use this API because it will be changed to

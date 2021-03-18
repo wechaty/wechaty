@@ -1,4 +1,4 @@
-import { FileBoxChunk } from '@chatie/grpc'
+import { FileBoxChunk } from 'wechaty-grpc'
 import { Readable, Transform } from 'stronger-typed-streams'
 import { PassThrough } from 'stream'
 

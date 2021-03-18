@@ -10,7 +10,7 @@ import {
   FileBoxChunk,
   MessageFileStreamResponse,
   MessageSendFileStreamRequest,
-}                                 from '@chatie/grpc'
+}                                 from 'wechaty-grpc'
 
 import {
   unpackFileBoxFromChunk,
