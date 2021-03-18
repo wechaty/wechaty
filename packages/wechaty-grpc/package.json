@@ -50,6 +50,7 @@
   },
   "homepage": "https://github.com/wechaty/grpc#readme",
   "dependencies": {
+    "@grpc/grpc-js": "^1.2.11",
     "google-protobuf": "^3.15.6"
   },
   "devDependencies": {
@@ -57,7 +58,6 @@
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.14.1",
-    "@grpc/grpc-js": "^1.2.11",
     "@types/google-protobuf": "^3.7.4",
     "@types/protobufjs": "^6.0.0",
     "grpc-tools": "^1.11.0",
