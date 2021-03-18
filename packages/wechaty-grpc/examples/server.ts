@@ -1,6 +1,6 @@
 /* eslint-disable sort-keys */
-
-import grpc from 'grpc'
+import util from 'util'
+import * as grpc from '@grpc/grpc-js'
 
 import {
   IPuppetServer,
@@ -17,7 +17,7 @@ import {
   puppetServerImpl,
 }                     from '../tests/puppet-server-impl'
 
-let eventStream: undefined | grpc.ServerWritableStream<EventRequest>
+let eventStream: undefined | grpc.ServerWritableStream<EventRequest, EventResponse>
 const dingQueue = [] as string[]
 
 /**
@@ -81,7 +81,11 @@ async function main () {
     PuppetService,
     puppetServerExample,
   )
-  server.bind('127.0.0.1:8788', grpc.ServerCredentials.createInsecure())
+  const port = await util.promisify(server.bindAsync.bind(server))(
+    '127.0.0.1:8788',
+    grpc.ServerCredentials.createInsecure(),
+  )
+  console.info('Listen on port:', port)
   server.start()
   return 0
 }

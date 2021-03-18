@@ -37,7 +37,7 @@ function gen_js_stub () {
   # Generate: wechaty-puppet_grpc_pb.js
   $PROTOC_CMD \
     --plugin="protoc-gen-grpc=node_modules/.bin/grpc_tools_node_protoc_plugin" \
-    --grpc_out="${OUT_DIR}"
+    --grpc_out="grpc_js:${OUT_DIR}"
 }
 
 function gen_ts_typing () {
@@ -50,7 +50,7 @@ function gen_ts_typing () {
   #   wechaty-puppet_pb.d.ts
   $PROTOC_CMD \
     --plugin="protoc-gen-grpc=node_modules/grpc_tools_node_protoc_ts/bin/protoc-gen-ts" \
-    --grpc_out="${OUT_DIR}"
+    --grpc_out="grpc_js:${OUT_DIR}"
 }
 
 function gen_web_grpc () {
