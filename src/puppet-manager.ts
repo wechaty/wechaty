@@ -95,7 +95,12 @@ export class PuppetManager {
        * For example: PuppetA allow `constructor()` but PuppetB requires `constructor(options)`
        *
        * SOLUTION: we enforce all the PuppetImplementation to have `options` and should not allow default parameter.
-       * Issue: https://github.com/wechaty/wechaty-puppet/issues/2
+       *  Issue: https://github.com/wechaty/wechaty-puppet/issues/2
+       */
+
+      /**
+       * Huan(20210313)
+       *  error TS2511: Cannot create an instance of an abstract class.
        */
       puppetInstance = new MyPuppet(options.puppetOptions)
     }
