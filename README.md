@@ -14,6 +14,7 @@
 
 Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
 
+:spider_web: <https://wechaty.js.org>  
 :octocat: <https://github.com/Wechaty/wechaty>  
 :beetle: <https://github.com/Wechaty/wechaty/issues>  
 :book: <https://github.com/Wechaty/wechaty/wiki>  
@@ -177,12 +178,12 @@ Read the Full Documentation at [Wechaty Official API Reference](https://wechaty.
 
 Main bot class.
 
-A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://github.com/Wechaty/wechaty/wiki/Puppet).
+A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://wechaty.js.org/docs/specifications/puppet/).
 
 - `new Wechaty(options?: WechatyOptions)`
     1. `options.name?: string` the name of this bot(optional)
     2. `options.puppet?: string` select which puppet provider we want to use. must be one of the:
-        1. [wechaty-puppet-puppeteer](https://github.com/Wechaty/wechaty-puppet-puppeteer) - Angular Hook for Web Wechat <- This is the DEFAULT
+        1. [wechaty-puppet-wechat](https://github.com/Wechaty/wechaty-puppet-wechat) - Angular Hook for Web Wechat
         2. [wechaty-puppet-wechat4u](https://github.com/Wechaty/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
         3. [wechaty-puppet-padpro](https://github.com/botorange/wechaty-puppet-padpro) - iPad App Protocol
         4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
