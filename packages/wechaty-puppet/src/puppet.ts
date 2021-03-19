@@ -79,7 +79,6 @@ import {
 }                                 from './schemas/puppet'
 import { PayloadType }             from './schemas/payload'
 
-import { throwUnsupportedError }   from './throw-unsupported-error'
 import { PuppetEventEmitter }      from './events'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
@@ -800,19 +799,20 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Message
    *
    */
-  public abstract messageContact      (messageId: string)                       : Promise<string>
-  public abstract messageFile         (messageId: string)                       : Promise<FileBox>
-  public abstract messageImage        (messageId: string, imageType: ImageType) : Promise<FileBox>
-  public abstract messageMiniProgram  (messageId: string)                       : Promise<MiniProgramPayload>
-  public abstract messageUrl          (messageId: string)                       : Promise<UrlLinkPayload>
+  abstract messageContact      (messageId: string)                       : Promise<string>
+  abstract messageFile         (messageId: string)                       : Promise<FileBox>
+  abstract messageImage        (messageId: string, imageType: ImageType) : Promise<FileBox>
+  abstract messageMiniProgram  (messageId: string)                       : Promise<MiniProgramPayload>
+  abstract messageUrl          (messageId: string)                       : Promise<UrlLinkPayload>
 
-  public abstract messageSendContact      (conversationId: string, contactId: string)                      : Promise<void | string>
-  public abstract messageSendFile         (conversationId: string, file: FileBox)                          : Promise<void | string>
-  public abstract messageSendMiniProgram  (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
-  public abstract messageSendText         (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
-  public abstract messageSendUrl          (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string>
+  abstract messageForward         (conversationId: string, messageId: string,)                     : Promise<void | string>
+  abstract messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string>
+  abstract messageSendFile        (conversationId: string, file: FileBox)                          : Promise<void | string>
+  abstract messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
+  abstract messageSendText        (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
+  abstract messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string>
 
-  public abstract messageRecall (messageId: string) : Promise<boolean>
+  abstract messageRecall (messageId: string) : Promise<boolean>
 
   protected abstract messageRawPayload (messageId: string)     : Promise<any>
   protected abstract messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
@@ -931,79 +931,6 @@ export abstract class Puppet extends PuppetEventEmitter {
     const allFilterFunction: MessagePayloadFilterFunction = payload => filterFunctionList.every(func => func(payload))
 
     return allFilterFunction
-  }
-
-  public async messageForward (
-    conversationId : string,
-    messageId      : string,
-  ): Promise<void | string> {
-    log.verbose('Puppet', 'messageForward(%s, %s)', JSON.stringify(conversationId), messageId)
-
-    const payload = await this.messagePayload(messageId)
-
-    let newMsgId: void | string
-
-    switch (payload.type) {
-
-      case MessageType.Attachment:     // Attach(6),
-      case MessageType.Audio:          // Audio(1), Voice(34)
-      case MessageType.Image:          // Img(2), Image(3)
-      case MessageType.Video:          // Video(4), Video(43)
-        newMsgId = await this.messageSendFile(
-          conversationId,
-          await this.messageFile(messageId),
-        )
-        break
-
-      case MessageType.Text:           // Text(1)
-        if (payload.text) {
-          newMsgId = await this.messageSendText(
-            conversationId,
-            payload.text,
-          )
-        } else {
-          log.warn('Puppet', 'messageForward() payload.text is undefined.')
-        }
-        break
-
-      case MessageType.MiniProgram:    // MiniProgram(33)
-        newMsgId = await this.messageSendMiniProgram(
-          conversationId,
-          await this.messageMiniProgram(messageId)
-        )
-        break
-
-      case MessageType.Url:            // Url(5)
-        await this.messageSendUrl(
-          conversationId,
-          await this.messageUrl(messageId)
-        )
-        break
-
-      case MessageType.Contact:        // ShareCard(42)
-        newMsgId = await this.messageSendContact(
-          conversationId,
-          await this.messageContact(messageId)
-        )
-        break
-
-      case MessageType.ChatHistory:    // ChatHistory(19)
-      case MessageType.Location:       // Location(48)
-      case MessageType.Emoticon:       // Sticker: Emoticon(15), Emoticon(47)
-      case MessageType.Transfer:
-      case MessageType.RedEnvelope:
-      case MessageType.Recalled:       // Recalled(10002)
-        throwUnsupportedError()
-        break
-
-      case MessageType.Unknown:
-      default:
-        throw new Error('Unsupported forward message type:' + MessageType[payload.type])
-    }
-
-    if (newMsgId) {
-      return newMsgId
-    }
   }
 
   /**
