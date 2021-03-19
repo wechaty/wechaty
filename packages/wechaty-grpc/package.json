@@ -1,6 +1,6 @@
 {
   "name": "wechaty-grpc",
-  "version": "0.23.8",
+  "version": "0.23.9",
   "description": "gRPC for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.js",
