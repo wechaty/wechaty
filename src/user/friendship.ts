@@ -31,6 +31,7 @@ import {
 }                   from '../helper-functions/mod'
 
 import {
+  FriendshipAddOptions as PuppetFriendshipAddOptions,
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
@@ -43,6 +44,18 @@ import {
 import {
   Contact,
 }                   from './contact'
+
+import {
+  Room,
+}                   from './room'
+
+interface FriendshipAddOptionsObject {
+  room?: Room,
+  contact?: Contact,
+  hello?: string,
+}
+
+type FriendshipAddOptions = string | FriendshipAddOptionsObject
 
 /**
  * Send, receive friend request, and friend confirmation events.
@@ -75,7 +88,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * Search a Friend by phone or weixin.
    *
    * The best practice is to search friend request once per minute.
-   * Remeber not to do this too frequently, or your account may be blocked.
+   * Remember not to do this too frequently, or your account may be blocked.
    *
    * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
    * @returns {Promise<Contact>}
@@ -89,12 +102,12 @@ class Friendship extends EventEmitter implements Acceptable {
    *
    */
   public static async search (
-    queryFiter : FriendshipSearchQueryFilter,
+    queryFilter : FriendshipSearchQueryFilter,
   ): Promise<null | Contact> {
     log.verbose('Friendship', 'static search("%s")',
-      JSON.stringify(queryFiter),
+      JSON.stringify(queryFilter),
     )
-    const contactId = await this.wechaty.puppet.friendshipSearch(queryFiter)
+    const contactId = await this.wechaty.puppet.friendshipSearch(queryFilter)
 
     if (!contactId) {
       return null
@@ -112,24 +125,42 @@ class Friendship extends EventEmitter implements Acceptable {
    * Remeber not to do this too frequently, or your account may be blocked.
    *
    * @param {Contact} contact - Send friend request to contact
-   * @param {string} hello    - The friend request content
+   * @param {FriendshipAddOptions} options - The friend request content
    * @returns {Promise<void>}
    *
    * @example
+   * const contact = await bot.Friendship.search({phone: '13112341234'})
+   * await bot.Friendship.add(contact, 'Nice to meet you! I am wechaty bot!')
+   *
    * const memberList = await room.memberList()
    * for (let i = 0; i < memberList.length; i++) {
-   *   await bot.Friendship.add(member, 'Nice to meet you! I am wechaty bot!')
+   *   await bot.Friendship.add(member, {
+   *     room: room,
+   *     hello: `Nice to meet you! I am wechaty bot from room: ${await room.topic()}!`,
+   *   })
    * }
+   *
    */
   public static async add (
     contact : Contact,
-    hello   : string,
+    options  : FriendshipAddOptions,
   ): Promise<void> {
     log.verbose('Friendship', 'static add(%s, %s)',
       contact.id,
-      hello,
+      typeof options === 'string' ? options : options.hello,
     )
-    await this.wechaty.puppet.friendshipAdd(contact.id, hello)
+
+    if (typeof options === 'string') {
+      log.warn('Friendship', 'the params hello is deprecated in the next version, please put the attr hello into options object, e.g. { hello: "xxxx" }')
+      await this.wechaty.puppet.friendshipAdd(contact.id, { hello: options })
+    } else {
+      const friendOption: PuppetFriendshipAddOptions = {
+        contactId: options?.contact?.id,
+        hello: options.hello,
+        roomId: options.room && options.room.id,
+      }
+      await this.wechaty.puppet.friendshipAdd(contact.id, friendOption)
+    }
   }
 
   public static async del (
