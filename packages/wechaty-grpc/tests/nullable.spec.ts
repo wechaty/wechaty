@@ -4,9 +4,8 @@ import { test }  from 'tstest'
 
 import util from 'util'
 
-import * as grpc from '@grpc/grpc-js'
-
 import {
+  grpc,
   ContactAliasRequest,
   ContactAliasResponse,
   PuppetService,

@@ -1,8 +1,8 @@
 /* eslint-disable sort-keys */
 import util from 'util'
-import * as grpc from '@grpc/grpc-js'
 
 import {
+  grpc,
   IPuppetServer,
   PuppetService,
   EventResponse,
