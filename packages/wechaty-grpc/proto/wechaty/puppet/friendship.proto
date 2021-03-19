@@ -32,6 +32,11 @@ enum FriendshipSceneType {
 
 message FriendshipPayloadRequest {
   string                      id      = 1;
+  /**
+   * Huan(202003):
+   *  What's the reason we need belowing payload?
+   *  We should remove it if possible.
+   */
   google.protobuf.StringValue payload = 2;
 }
 message FriendshipPayloadResponse {
