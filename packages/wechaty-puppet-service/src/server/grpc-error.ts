@@ -1,5 +1,6 @@
+import { grpc } from 'wechaty-grpc'
+
 import {
-  grpc,
   log,
 }         from '../config'
 

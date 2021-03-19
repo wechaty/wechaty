@@ -5,11 +5,11 @@ import {
 }                 from 'wechaty-puppet'
 
 import {
+  grpc,
   PuppetService,
 }                     from 'wechaty-grpc'
 
 import {
-  grpc,
   log,
   VERSION,
   GRPC_OPTIONS,

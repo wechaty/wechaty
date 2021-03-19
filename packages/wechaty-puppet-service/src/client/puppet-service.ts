@@ -41,6 +41,7 @@ import {
 }                         from 'wechaty-puppet'
 
 import {
+  grpc,
   PuppetClient,
   EventRequest,
   EventResponse,
@@ -106,7 +107,6 @@ import {
 import { Subscription } from 'rxjs'
 
 import {
-  grpc,
   log,
   VERSION,
   WECHATY_PUPPET_SERVICE_TOKEN,

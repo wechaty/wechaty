@@ -1,4 +1,5 @@
 import {
+  grpc,
   IPuppetServer,
   ContactAliasResponse,
   ContactAvatarResponse,
@@ -82,7 +83,6 @@ import {
 }                                         from '../file-box-stream/mod'
 
 import {
-  grpc,
   log,
 }           from '../config'
 

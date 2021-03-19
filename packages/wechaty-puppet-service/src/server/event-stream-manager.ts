@@ -1,4 +1,5 @@
 import {
+  grpc,
   EventResponse,
   EventType,
   EventRequest,
@@ -26,7 +27,6 @@ import {
 
 import {
   log,
-  grpc,
 }                 from '../config'
 
 import {
