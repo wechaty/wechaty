@@ -20,7 +20,10 @@ jobs:
         with:
           node-version: 15
       - name: Install Dependencies
-        run: npm install
+        run: |
+          node --version
+          npm --version
+          npm install
 
       - name: Test
         run: npm test
@@ -83,7 +86,7 @@ jobs:
           VERSION=$(npx pkg-jq -r .version)
           if npx version-exists "$NAME" "$VERSION"
           then echo "$NAME@$VERSION exists on NPM, skipped."
-          else npm publish
+          else echo "Publishing..." && npm publish
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
