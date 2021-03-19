@@ -5,21 +5,22 @@
 
 import util from 'util'
 
-import grpc from 'grpc'
+import * as grpc from '@grpc/grpc-js'
 
 import {
   PuppetClient,
   EventRequest,
   EventResponse,
   ContactAliasRequest,
+  DingRequest,
   // EventType,
 }                     from '../src/mod'
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
 /**
- * Issue #7: https://github.com/Chatie/grpc/issues/7
+ * Issue #7: https://github.com/wechaty/grpc/issues/7
  */
-export type Callback<T> = (err: Error | null, reply: T) => void
+export type Callback<T, E extends Error = any> = (err: E | null, reply: T) => void
 
 export type PromisifyOne<T extends any[]> =
     T extends [Callback<infer U>?] ? () => Promise<U> :
@@ -91,6 +92,14 @@ async function main () {
     grpc.credentials.createInsecure()
   )
 
+  testStream(client)
+  setInterval(() => testDing(client), 1000)
+  await testAlias(client)
+
+  return 0
+}
+
+export async function testAlias (client: PuppetClient) {
   const request = new ContactAliasRequest()
 
   const contactAlias = util.promisify(client.contactAlias.bind(client))
@@ -122,10 +131,13 @@ async function main () {
 
     console.info('ok')
   }
+}
 
-  // testStream(client)
-
-  return 0
+export async function testDing (client: PuppetClient) {
+  const ding = util.promisify(client.ding.bind(client))
+  const dingRequest = new DingRequest()
+  dingRequest.setData('dingdong')
+  await ding(dingRequest)
 }
 
 export function testStream (client: PuppetClient) {

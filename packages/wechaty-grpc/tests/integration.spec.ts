@@ -3,7 +3,7 @@
 import { test }  from 'tstest'
 
 import util from 'util'
-import grpc from 'grpc'
+import * as grpc from '@grpc/grpc-js'
 
 import {
   EventResponse,
@@ -37,7 +37,10 @@ test('integration testing', async (t) => {
     PuppetService,
     testServer,
   )
-  server.bind(ENDPOINT, grpc.ServerCredentials.createInsecure())
+  await util.promisify(server.bindAsync.bind(server))(
+    ENDPOINT,
+    grpc.ServerCredentials.createInsecure(),
+  )
   server.start()
 
   /**
@@ -88,15 +91,16 @@ test('integration testing', async (t) => {
   /**
    * Close Client & Server
    */
+  await new Promise(resolve => setImmediate(resolve))
   eventStream.cancel()
 
-  await new Promise<void>(resolve => server.tryShutdown(resolve))
+  await new Promise(resolve => server.tryShutdown(resolve))
   // server.forceShutdown()
 })
 
 function getTestServer () {
 
-  let eventStream: undefined | grpc.ServerWritableStream<EventRequest>
+  let eventStream: undefined | grpc.ServerWritableStream<EventRequest, EventResponse>
   const dataQueue = [] as string[]
 
   /**

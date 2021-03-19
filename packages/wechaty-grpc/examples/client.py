@@ -5,9 +5,11 @@ import time
 
 from grpclib.client import Channel
 from pyee import AsyncIOEventEmitter
-from chatie_grpc.wechaty.puppet import (
-    EventType,
+from wechaty_grpc.wechaty import (
     PuppetStub,
+)
+from wechaty_grpc.wechaty.puppet import (
+    EventType,
 )
 
 
@@ -50,4 +52,4 @@ async def main():
 
 
 if __name__ == "__main__":
-  asyncio.run(main())
+    asyncio.run(main())
