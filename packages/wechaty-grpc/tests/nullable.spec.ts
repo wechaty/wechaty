@@ -69,8 +69,8 @@ test('use StringValue to support nullable values', async (t) => {
     SERVER_ENDPOINT,
     grpc.ServerCredentials.createInsecure(),
   )
-  if (!port) {
-    t.fail(`server bind to ${SERVER_ENDPOINT} failed.`)
+  if (port <= 0) {
+    t.fail(`server bind to ${SERVER_ENDPOINT} failed, port get ${port}.`)
     return
   }
 
