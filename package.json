@@ -154,6 +154,7 @@
   ],
   "publishConfig": {
     "access": "public",
+    "cache": "~/.npm",
     "tag": "next"
   },
   "collective": {
