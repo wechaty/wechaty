@@ -63,18 +63,27 @@ test('use StringValue to support nullable values', async (t) => {
     puppetServerImplTest,
   )
 
-  // FIXME: Huan(202002) if the port has been used by another grpc server, this will still bind with succeed!
-  // The result will be one port binded by two grpc server, and they are all working well...
-  const port = await util.promisify(server.bindAsync.bind(server))(
-    SERVER_ENDPOINT,
-    grpc.ServerCredentials.createInsecure(),
-  )
-  if (port <= 0) {
-    t.fail(`server bind to ${SERVER_ENDPOINT} failed, port get ${port}.`)
-    return
+  try {
+    // FIXME: Huan(202002) if the port has been used by another grpc server, this will still bind with succeed!
+    // The result will be one port binded by two grpc server, and they are all working well...
+    const port = await util.promisify(server.bindAsync.bind(server))(
+      SERVER_ENDPOINT,
+      grpc.ServerCredentials.createInsecure(),
+    )
+    console.info('port:', port)
+    if (port <= 0) {
+      t.fail(`server bind to ${SERVER_ENDPOINT} failed, port get ${port}.`)
+      return
+    }
+  } catch (e) {
+    /**
+      * No address added out of total 1 resolved
+      *  The above error message means the port is in use.
+      */
+    t.fail('server bindAsync fail.')
+    console.error(e)
   }
 
-  // console.info('port', port)
   server.start()
 
   const client = new PuppetClient(

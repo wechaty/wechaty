@@ -3,7 +3,9 @@
 // tslint:disable:no-shadowed-variable
 // tslint:disable:callable-types
 
-import util from 'util'
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
+
+// import { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
 
 import {
   grpc,
@@ -14,94 +16,13 @@ import {
   DingRequest,
   // EventType,
 }                     from '../src/mod'
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
-/**
- * Issue #7: https://github.com/wechaty/grpc/issues/7
- */
-export type Callback<T, E extends Error = any> = (err: E | null, reply: T) => void
-
-export type PromisifyOne<T extends any[]> =
-    T extends [Callback<infer U>?] ? () => Promise<U> :
-    T extends [infer T1, Callback<infer P>?] ? (arg1: T1) => Promise<P> :
-    T extends [infer T1, infer T2, Callback<infer U>?] ? (arg1: T1, arg2: T2) => Promise<U> :
-    T extends [infer T1, infer T2, infer T3, Callback<infer U>?]? (arg1: T1, arg2: T2, arg3: T3) => Promise<U> :
-    T extends [infer T1, infer T2, infer T3, infer T4, Callback<infer U>?] ? (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => Promise<U> :
-    never
-
-// prettier-ignore
-export type GetOverloadArgs<T> =
-    T extends {
-      (...o: infer U) : void,
-      (...o: infer U2) : void,
-      (...o: infer U3) : void,
-      (...o: infer U4) : void,
-      (...o: infer U5) : void,
-      (...o: infer U6) : void,
-      (...o: infer U7) : void
-    } ? U | U2 | U3 | U4 | U5 | U6 | U7:
-    T extends {
-      (...o: infer U) : void,
-      (...o: infer U2) : void,
-      (...o: infer U3) : void,
-      (...o: infer U4) : void,
-      (...o: infer U5) : void,
-      (...o: infer U6) : void,
-    } ? U | U2 | U3 | U4 | U5 | U6:
-    T extends {
-      (...o: infer U) : void,
-      (...o: infer U2) : void,
-      (...o: infer U3) : void,
-      (...o: infer U4) : void,
-      (...o: infer U5) : void,
-    } ? U | U2 | U3 | U4 | U5:
-    T extends {
-      (...o: infer U) : void,
-      (...o: infer U2) : void,
-      (...o: infer U3) : void,
-      (...o: infer U4) : void,
-    } ? U | U2 | U3 | U4 :
-    T extends {
-      (...o: infer U) : void,
-      (...o: infer U2) : void,
-      (...o: infer U3) : void,
-    } ? U | U2 | U3 :
-    T extends {
-      (...o: infer U) : void,
-      (...o: infer U2) : void,
-    } ? U | U2 :
-    T extends {
-      (...o: infer U) : void,
-    } ? U :
-    never
-
-export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
-
-export type Promisify<T> = UnionToIntersection<
-    PromisifyOne<GetOverloadArgs<T>>
->
-
-declare module 'util' {
-  function promisify<T> (fn: T): Promisify<T>
-}
-
-async function main () {
-  const client = new PuppetClient(
-    'localhost:8788',
-    grpc.credentials.createInsecure()
-  )
-
-  testStream(client)
-  setInterval(() => testDing(client), 1000)
-  await testAlias(client)
-
-  return 0
-}
+import { promisify }  from './promisify'
 
 export async function testAlias (client: PuppetClient) {
   const request = new ContactAliasRequest()
 
-  const contactAlias = util.promisify(client.contactAlias.bind(client))
+  const contactAlias = promisify(client.contactAlias.bind(client))
 
   {
     const response = await contactAlias(request)
@@ -133,10 +54,14 @@ export async function testAlias (client: PuppetClient) {
 }
 
 export async function testDing (client: PuppetClient) {
-  const ding = util.promisify(client.ding.bind(client))
+  const ding = promisify(client.ding.bind(client))
   const dingRequest = new DingRequest()
   dingRequest.setData('dingdong')
-  await ding(dingRequest)
+  try {
+    await ding(dingRequest)
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 export function testStream (client: PuppetClient) {
@@ -152,6 +77,35 @@ export function testStream (client: PuppetClient) {
     .on('end', () => {
       console.info('eventStream.on(end)')
     })
+}
+
+async function main () {
+  // const metadata = new grpc.Metadata()
+  // metadata.add('authorization', 'Bearer ' + 'access_token')
+  // const generateMetadata: CallMetadataGenerator = (_params, callback) => { console.info('generateMetadata'); callback(null, metadata) }
+
+  // const authCred = grpc.credentials.createFromMetadataGenerator(generateMetadata)
+  // const sslCred = grpc.credentials.createSsl()
+
+  // const creds = grpc.credentials.combineChannelCredentials(
+  //   sslCred,
+  //   authCred,
+  // )
+  const creds = grpc.credentials.createInsecure()
+
+  const client = new PuppetClient(
+    'localhost:8788',
+    creds,
+    {
+      'grpc.default_authority': 'puppet_token',
+    },
+  )
+
+  testStream(client)
+  setInterval(() => testDing(client), 1000)
+  await testAlias(client)
+
+  return 0
 }
 
 main()
