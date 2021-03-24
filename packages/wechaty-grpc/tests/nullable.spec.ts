@@ -77,6 +77,9 @@ test('use StringValue to support nullable values', async (t) => {
     }
   } catch (e) {
     /**
+      * Run gRPC server failed
+      *   https://medium.com/@yuanchaodu/run-grpc-server-failed-289172dbe6e
+      *
       * No address added out of total 1 resolved
       *  The above error message means the port is in use.
       */
