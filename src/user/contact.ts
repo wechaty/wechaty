@@ -676,6 +676,22 @@ class Contact extends ContactEventEmitter implements Sayable {
   }
 
   /**
+   * Mark the conversation as read
+   *
+   * @example
+   * const bot = new Wechaty()
+   * const contact = await bot.Contact.find({name: 'xxx'})
+   * contact.read()
+   */
+   public async read (): Promise<void> {
+    try {
+      return this.wechaty.puppet.conversationRead(this.id)
+    } catch (e) {
+      log.error('Contact', 'read() exception: %s', e.message)
+    }
+  }
+
+  /**
    * Enum for ContactType
    * @enum {number}
    * @property {number} Unknown    - ContactType.Unknown    (0) for Unknown
