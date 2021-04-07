@@ -1011,7 +1011,6 @@ class Room extends RoomEventEmitter implements Sayable {
     return null
   }
 
-
   /**
    * Mark the conversation as read
    *
@@ -1020,7 +1019,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * const room = await bot.Room.find({name: 'xxx'})
    * room.read()
    */
-   public async read (): Promise<void> {
+  public async read (): Promise<void> {
     try {
       return this.wechaty.puppet.conversationRead(this.id)
     } catch (e) {

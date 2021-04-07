@@ -683,7 +683,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const contact = await bot.Contact.find({name: 'xxx'})
    * contact.read()
    */
-   public async read (): Promise<void> {
+  public async read (): Promise<void> {
     try {
       return this.wechaty.puppet.conversationRead(this.id)
     } catch (e) {
