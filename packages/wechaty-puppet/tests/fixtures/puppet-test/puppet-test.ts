@@ -109,7 +109,8 @@ export class PuppetTest extends Puppet {
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
 
-  public async messageRecall (messageId: string)                : Promise<boolean> { return { messageId } as any }
+  public async messageRecall (messageId: string)         : Promise<boolean> { return { messageId } as any }
+  public async conversationRead (conversationId: string)      : Promise<void> { return { conversationId } as any }
 
   /**
    *

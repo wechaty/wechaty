@@ -796,6 +796,13 @@ export abstract class Puppet extends PuppetEventEmitter {
 
   /**
    *
+   * Conversation
+   *
+   */
+  abstract conversationRead (conversationId: string) : Promise<void>
+
+  /**
+   *
    * Message
    *
    */
