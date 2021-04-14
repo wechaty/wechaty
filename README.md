@@ -22,7 +22,7 @@ Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can h
 
 ## Breaking News
 
-[重磅：绕过登录限制，wechaty免费版web协议重放荣光](https://wechaty.js.org/2021/04/13/wechaty-uos-web/)
+- [重磅：绕过登录限制，wechaty免费版web协议重放荣光, @gengchen528, Apr 13, 2021](https://wechaty.js.org/2021/04/13/wechaty-uos-web/)
 
 ## :yum: Voice of Developers
 
