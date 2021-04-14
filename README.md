@@ -20,6 +20,10 @@ Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can h
 :book: <https://github.com/Wechaty/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/wechaty/wechaty>  
 
+## Breaking News
+
+[重磅：绕过登录限制，wechaty免费版web协议重放荣光](https://wechaty.js.org/2021/04/13/wechaty-uos-web/)
+
 ## :yum: Voice of Developers
 
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472)  
