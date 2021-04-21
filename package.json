@@ -103,7 +103,6 @@
     "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.35.1",
     "wechaty-puppet-service": "^0.19.4",
-    "wechaty-puppet-wechat": "^0.28.1",
     "ws": "^7.4.4"
   },
   "devDependencies": {
