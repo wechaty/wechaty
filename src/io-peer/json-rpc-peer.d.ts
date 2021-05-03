@@ -62,8 +62,6 @@ module 'json-rpc-peer' {
       end(str: string, encoding?: string, cb?: () => void): void
 
     }
-
-    export default Peer
   }
 
 }
