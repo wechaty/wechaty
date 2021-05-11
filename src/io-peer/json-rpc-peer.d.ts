@@ -2,7 +2,7 @@
  * Add typescript definitions #60
  *  https://github.com/JsCommunity/json-rpc-peer/pull/60
  */
-module 'json-rpc-peer' {
+declare module 'json-rpc-peer' {
 
   /// <reference types='json-rpc-protocol' />
   /// <reference types='node' />
@@ -15,7 +15,7 @@ module 'json-rpc-peer' {
   export * from 'json-rpc-protocol'
 
   module 'json-rpc-peer' {
-    export class Peer extends EventEmitter implements NodeJS.WritableStream {
+    export default class Peer extends EventEmitter implements NodeJS.WritableStream {
 
       constructor(onmessage?: (message: JsonRpcPayload, data: any) => Promise<any>)
 
@@ -63,7 +63,7 @@ module 'json-rpc-peer' {
 
     }
 
-    export default Peer
+//     export default Peer
   }
 
 }
