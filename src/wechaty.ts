@@ -20,8 +20,10 @@
 import cuid             from 'cuid'
 import os               from 'os'
 
+import { Brolog }           from 'brolog'
 import { StateSwitch }      from 'state-switch'
 import { instanceToClass }  from 'clone-class'
+
 import {
   Puppet,
 
@@ -133,7 +135,9 @@ const PUPPET_MEMORY_NAME = 'puppet'
  */
 class Wechaty extends WechatyEventEmitter implements Sayable {
 
-  public static readonly VERSION = VERSION
+  static readonly VERSION = VERSION
+  static readonly log: Brolog = log
+  readonly log: Brolog = log
 
   public  readonly state      : StateSwitch
   private readonly readyState : StateSwitch
@@ -173,16 +177,16 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   protected wechatifiedTag?            : typeof Tag
   protected wechatifiedUrlLink?        : typeof UrlLink
 
-  public get Contact ()        : typeof Contact         { return guardWechatify(this.wechatifiedContact)        }
-  public get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.wechatifiedContactSelf)    }
-  public get Friendship ()     : typeof Friendship      { return guardWechatify(this.wechatifiedFriendship)     }
-  public get Image ()          : typeof Image           { return guardWechatify(this.wechatifiedImage)          }
-  public get Message ()        : typeof Message         { return guardWechatify(this.wechatifiedMessage)        }
-  public get MiniProgram ()    : typeof MiniProgram     { return guardWechatify(this.wechatifiedMiniProgram)    }
-  public get Room ()           : typeof Room            { return guardWechatify(this.wechatifiedRoom)           }
-  public get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.wechatifiedRoomInvitation) }
-  public get Tag ()            : typeof Tag             { return guardWechatify(this.wechatifiedTag)            }
-  public get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.wechatifiedUrlLink)        }
+  get Contact ()        : typeof Contact         { return guardWechatify(this.wechatifiedContact)        }
+  get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.wechatifiedContactSelf)    }
+  get Friendship ()     : typeof Friendship      { return guardWechatify(this.wechatifiedFriendship)     }
+  get Image ()          : typeof Image           { return guardWechatify(this.wechatifiedImage)          }
+  get Message ()        : typeof Message         { return guardWechatify(this.wechatifiedMessage)        }
+  get MiniProgram ()    : typeof MiniProgram     { return guardWechatify(this.wechatifiedMiniProgram)    }
+  get Room ()           : typeof Room            { return guardWechatify(this.wechatifiedRoom)           }
+  get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.wechatifiedRoomInvitation) }
+  get Tag ()            : typeof Tag             { return guardWechatify(this.wechatifiedTag)            }
+  get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.wechatifiedUrlLink)        }
 
   /**
    * Get the global instance of Wechaty
