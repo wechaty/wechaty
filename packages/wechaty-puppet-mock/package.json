@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.28.3",
+  "version": "0.29.0",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
@@ -8,7 +8,7 @@
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
   "engines": {
-    "wechaty": ">=0.17.46"
+    "wechaty": ">=0.60"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -47,16 +47,16 @@
     "@chatie/eslint-config": "^0.12.3",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.14.1",
+    "@chatie/tsconfig": "^0.16.2",
     "@types/cuid": "^1.3.1",
-    "@types/faker": "^5.1.7",
+    "@types/faker": "^5.5.5",
     "@types/normalize-package-data": "^2.4.0",
     "@types/quick-lru": "^3.0.0",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tstest": "^0.4.10",
-    "wechaty": "^0.56.6",
-    "wechaty-puppet": "^0.34"
+    "wechaty": "^0.61.1",
+    "wechaty-puppet": "^0.39.1"
   },
   "peerDependencies": {
     "wechaty-puppet": ">=0.34"
@@ -64,9 +64,9 @@
   "dependencies": {
     "brolog": "^1.12.4",
     "cuid": "^2.1.8",
-    "faker": "^5.4.0",
+    "faker": "^5.5.3",
     "hot-import": "^0.2.14",
-    "normalize-package-data": "^3.0.1",
+    "normalize-package-data": "^3.0.2",
     "quick-lru": "^6.0.0",
     "state-switch": "^0.6.18",
     "typed-emitter": "^1.3.1",
