@@ -24,6 +24,7 @@ import {
   log,
   ContactGender,
   ContactType,
+  throwUnsupportedError,
 }                               from 'wechaty-puppet'
 
 import {
@@ -60,6 +61,15 @@ class PuppetTest extends PuppetMock {
     })
 
     return rawPayload
+  }
+
+  /**
+   * Huan(202105): should be removed
+   *  after PuppetMock updated to the latest version
+   * of Puppet Abstraction
+   */
+  conversationRead (_: string): Promise<void> {
+    throwUnsupportedError('not implemented. See https://github.com/wechaty/wechaty-puppet/pull/132')
   }
 
 }

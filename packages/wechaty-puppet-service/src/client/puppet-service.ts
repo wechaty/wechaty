@@ -38,6 +38,7 @@ import {
   RoomMemberPayload,
   RoomPayload,
   UrlLinkPayload,
+  throwUnsupportedError,
 }                         from 'wechaty-puppet'
 
 import {
@@ -821,6 +822,18 @@ export class PuppetService extends Puppet {
     await util.promisify(
       this.grpcClient!.contactSelfSignature.bind(this.grpcClient)
     )(request)
+  }
+
+  /**
+   *
+   * Conversation
+   *
+   */
+  conversationRead (conversationId: string) : Promise<void> {
+    log.verbose('PuppetService', 'conversationRead(%s)', conversationId)
+
+    void conversationId
+    throwUnsupportedError('not implemented. See https://github.com/wechaty/wechaty-puppet/pull/132')
   }
 
   /**

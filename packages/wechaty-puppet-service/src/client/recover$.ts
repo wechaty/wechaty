@@ -39,8 +39,11 @@ export const dingHeartbeat = (puppet: Puppet) => (n: number) => puppet.ding(`rec
 /**
  * Observables
  */
-export const switchOn$  = (puppet: Puppet) => fromEvent(puppet.state, 'on')
-export const switchOff$ = (puppet: Puppet) => fromEvent(puppet.state, 'off')
+
+// Huan(202105) FIXME: use automatically inference instead of hard coding typing here
+export const switchOn$  = (puppet: Puppet) => fromEvent<true | 'pending'>(puppet.state, 'on')
+export const switchOff$ = (puppet: Puppet) => fromEvent<true | 'pending'>(puppet.state, 'off')
+
 export const heartbeat$ = (puppet: Puppet) => fromEvent<{}>(puppet as any, 'heartbeat')
 
 /**
