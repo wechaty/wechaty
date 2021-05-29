@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.39.0",
+  "version": "0.39.1",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
