@@ -798,7 +798,7 @@ class Room extends RoomEventEmitter implements Sayable {
   }
 
   /**
-   * Delete a contact from the room
+   * Remove a contact from the room
    * It works only when the bot is the owner of the room
    *
    * > Tips:
@@ -816,16 +816,28 @@ class Room extends RoomEventEmitter implements Sayable {
    * const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
    * if (room) {
    *   try {
-   *      await room.del(contact)
+   *      await room.remove(contact)
    *   } catch(e) {
    *      console.error(e)
    *   }
    * }
    */
-  public async del (contact: Contact): Promise<void> {
+  public async remove (contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
     await this.wechaty.puppet.roomDel(this.id, contact.id)
     // this.delLocal(contact)
+  }
+
+  /**
+   * @deprecated use remove(contact) instead.
+   *
+   * Huan(202106): will be removed after Dec 31, 2023
+   */
+  public async del (contact: Contact): Promise<void> {
+    log.verbose('Room', 'del(%s)', contact)
+    log.warn('Room', 'del() is DEPRECATED, use remove() instead.')
+
+    return this.remove(contact)
   }
 
   // private delLocal(contact: Contact): void {
