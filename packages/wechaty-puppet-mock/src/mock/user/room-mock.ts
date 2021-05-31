@@ -183,8 +183,8 @@ function mockerifyRoomMock (mocker: Mocker): typeof RoomMock {
 
   class MockerifiedRoomMock extends RoomMock {
 
-    static get mocker  () { return mocker }
-    get mocker        () { return mocker }
+    static override get mocker  () { return mocker }
+    override get mocker        () { return mocker }
 
   }
 

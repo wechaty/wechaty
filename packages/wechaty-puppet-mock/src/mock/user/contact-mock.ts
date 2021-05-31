@@ -188,8 +188,8 @@ function mockerifyContactMock (mocker: Mocker): typeof ContactMock {
 
   class MockerifiedContactMock extends ContactMock {
 
-    static get mocker  () { return mocker }
-    get mocker        () { return mocker }
+    static override get mocker  () { return mocker }
+    override get mocker        () { return mocker }
 
   }
 

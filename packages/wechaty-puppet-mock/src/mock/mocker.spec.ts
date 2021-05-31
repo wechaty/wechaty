@@ -21,6 +21,7 @@ import {
 import { PuppetMock }         from '../puppet-mock'
 
 import { MessageMock }        from './user/message-mock'
+import { ContactMock }        from './user/contact-mock'
 
 import { Mocker }             from './mocker'
 import { SimpleEnvironment }  from './environment'
@@ -34,7 +35,7 @@ function createFixture () {
   const mocker = new Mocker()
   const puppet = new PuppetMock({ mocker })
 
-  const [user, mike, mary] = mocker.createContacts(3)
+  const [user, mike, mary] = mocker.createContacts(3) as [ContactMock, ContactMock, ContactMock]
   const room = mocker.createRoom({
     memberIdList: [
       mike.id,
@@ -214,8 +215,8 @@ test('event(message) for MockContact & MockRoom', async t => {
     t.ok(userSpy.calledOnce, 'should emit message event on user')
     t.ok(roomSpy.calledOnce, 'should emit message event on room')
 
-    const userMsg = userSpy.args[0][0] as MessageMock
-    const roomMsg = roomSpy.args[0][0] as MessageMock
+    const userMsg = userSpy.args[0]![0] as MessageMock
+    const roomMsg = roomSpy.args[0]![0] as MessageMock
 
     t.deepEqual(userMsg.payload, roomMsg.payload, 'should receive the same message for both user & room')
 

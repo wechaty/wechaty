@@ -207,8 +207,8 @@ function mockerifyMessageMock (mocker: Mocker): typeof MessageMock {
 
   class MockerifiedMessageMock extends MessageMock {
 
-    static get mocker  () { return mocker }
-    get mocker        () { return mocker }
+    static override get mocker  () { return mocker }
+    override get mocker        () { return mocker }
 
   }
 

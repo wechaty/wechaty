@@ -3,6 +3,10 @@
 import { test }  from 'tstest'
 
 import { Wechaty } from 'wechaty'
+import {
+  ContactMock,
+  RoomMock,
+}                 from '../src/mock/mod'
 
 import {
   PuppetMock,
@@ -41,7 +45,7 @@ test('Contact.find() mocker.createContacts()', async t => {
     wechaty,
   } of wechatyFixture()) {
     const CONTACTS_NUM = 5
-    const [user, mike] = mocker.createContacts(CONTACTS_NUM)
+    const [user, mike] = mocker.createContacts(CONTACTS_NUM) as [ContactMock, ContactMock]
     mocker.login(user)
 
     const contactList = await wechaty.Contact.findAll()
@@ -62,7 +66,7 @@ test('Room.find() mocker.createRooms()', async t => {
     mocker.login(user)
 
     const ROOMS_NUM = 5
-    const [starbucks] = mocker.createRooms(ROOMS_NUM)
+    const [starbucks] = mocker.createRooms(ROOMS_NUM) as [RoomMock]
 
     const roomList = await wechaty.Room.findAll()
     t.equal(roomList.length, ROOMS_NUM, 'should find all rooms create by mocker')

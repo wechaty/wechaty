@@ -47,14 +47,15 @@
     "@chatie/eslint-config": "^0.12.3",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.16.2",
+    "@chatie/tsconfig": "^0.17.1",
     "@types/cuid": "^1.3.1",
     "@types/faker": "^5.5.5",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tstest": "^0.4.10",
+    "typescript": "4.3",
     "wechaty": "^0.61.3",
-    "wechaty-puppet": "^0.41.1"
+    "wechaty-puppet": "^0.41.2"
   },
   "peerDependencies": {
     "wechaty-puppet": ">=0.41"

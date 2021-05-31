@@ -63,14 +63,14 @@ export type PuppetMockOptions = PuppetOptions & {
 
 class PuppetMock extends Puppet {
 
-  static readonly VERSION = VERSION
+  static override readonly VERSION = VERSION
 
   private loopTimer?: NodeJS.Timer
 
   mocker: Mocker
 
   constructor (
-    public options: PuppetMockOptions = {},
+    public override options: PuppetMockOptions = {},
   ) {
     super(options)
     log.verbose('PuppetMock', 'constructor()')
@@ -86,7 +86,7 @@ class PuppetMock extends Puppet {
     this.mocker.puppet = this
   }
 
-  async start (): Promise<void> {
+  override async start (): Promise<void> {
     log.verbose('PuppetMock', 'start()')
 
     if (this.state.on()) {
@@ -107,7 +107,7 @@ class PuppetMock extends Puppet {
     setImmediate(() => this.mocker.start())
   }
 
-  async stop (): Promise<void> {
+  override async stop (): Promise<void> {
     log.verbose('PuppetMock', 'stop()')
 
     if (this.state.off()) {
@@ -132,12 +132,12 @@ class PuppetMock extends Puppet {
     this.state.off(true)
   }
 
-  login (contactId: string): Promise<void> {
+  override login (contactId: string): Promise<void> {
     log.verbose('PuppetMock', 'login()')
     return super.login(contactId)
   }
 
-  async logout (): Promise<void> {
+  override async logout (): Promise<void> {
     log.verbose('PuppetMock', 'logout()')
 
     if (!this.id) {
@@ -150,12 +150,12 @@ class PuppetMock extends Puppet {
     // TODO: do the logout job
   }
 
-  ding (data?: string): void {
+  override ding (data?: string): void {
     log.silly('PuppetMock', 'ding(%s)', data || '')
     setTimeout(() => this.emit('dong', { data: data || '' }), 1000)
   }
 
-  unref (): void {
+  override unref (): void {
     log.verbose('PuppetMock', 'unref()')
     super.unref()
     if (this.loopTimer) {
@@ -169,16 +169,16 @@ class PuppetMock extends Puppet {
    *
    *
    */
-  async contactSelfQRCode (): Promise<string> {
+  override async contactSelfQRCode (): Promise<string> {
     log.verbose('PuppetMock', 'contactSelfQRCode()')
     return CHATIE_OFFICIAL_ACCOUNT_QRCODE
   }
 
-  async contactSelfName (name: string): Promise<void> {
+  override async contactSelfName (name: string): Promise<void> {
     log.verbose('PuppetMock', 'contactSelfName(%s)', name)
   }
 
-  async contactSelfSignature (signature: string): Promise<void> {
+  override async contactSelfSignature (signature: string): Promise<void> {
     log.verbose('PuppetMock', 'contactSelfSignature(%s)', signature)
   }
 
@@ -187,10 +187,10 @@ class PuppetMock extends Puppet {
    * Contact
    *
    */
-  contactAlias (contactId: string)                      : Promise<string>
-  contactAlias (contactId: string, alias: string | null): Promise<void>
+  override contactAlias (contactId: string)                      : Promise<string>
+  override contactAlias (contactId: string, alias: string | null): Promise<void>
 
-  async contactAlias (contactId: string, alias?: string | null): Promise<void | string> {
+  override async contactAlias (contactId: string, alias?: string | null): Promise<void | string> {
     log.verbose('PuppetMock', 'contactAlias(%s, %s)', contactId, alias)
 
     if (typeof alias === 'undefined') {
@@ -198,43 +198,33 @@ class PuppetMock extends Puppet {
     }
   }
 
-  public async contactPhone (contactId: string): Promise<string[]>
-  public async contactPhone (contactId: string, phoneList: string[]): Promise<void>
+  override async contactPhone (contactId: string): Promise<string[]>
+  override async contactPhone (contactId: string, phoneList: string[]): Promise<void>
 
-  public async contactPhone (contactId: string, phoneList?: string[]): Promise<string[] | void> {
+  override async contactPhone (contactId: string, phoneList?: string[]): Promise<string[] | void> {
     log.verbose('PuppetMock', 'contactPhone(%s, %s)', contactId, phoneList)
     if (typeof phoneList === 'undefined') {
       return []
     }
   }
 
-  public async contactCorporationRemark (contactId: string, corporationRemark: string) {
+  override async contactCorporationRemark (contactId: string, corporationRemark: string) {
     log.verbose('PuppetMock', 'contactCorporationRemark(%s, %s)', contactId, corporationRemark)
   }
 
-  public async contactDescription (contactId: string, description: string) {
+  override async contactDescription (contactId: string, description: string) {
     log.verbose('PuppetMock', 'contactDescription(%s, %s)', contactId, description)
   }
 
-  public async contactList (): Promise<string[]> {
+  override async contactList (): Promise<string[]> {
     log.verbose('PuppetMock', 'contactList()')
     return [...this.mocker.cacheContactPayload.keys()]
   }
 
-  async contactQRCode (contactId: string): Promise<string> {
-    log.verbose('PuppetMock', 'contactQRCode(%s)', contactId)
-    if (contactId !== this.selfId()) {
-      throw new Error('can not set avatar for others')
-    }
+  override async contactAvatar (contactId: string)                : Promise<FileBox>
+  override async contactAvatar (contactId: string, file: FileBox) : Promise<void>
 
-    throw new Error('not supported')
-    // return await this.bridge.WXqr
-  }
-
-  async contactAvatar (contactId: string)                : Promise<FileBox>
-  async contactAvatar (contactId: string, file: FileBox) : Promise<void>
-
-  async contactAvatar (contactId: string, file?: FileBox): Promise<void | FileBox> {
+  override async contactAvatar (contactId: string, file?: FileBox): Promise<void | FileBox> {
     log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
 
     /**
@@ -251,8 +241,8 @@ class PuppetMock extends Puppet {
     return FileBox.fromFile(WECHATY_ICON_PNG)
   }
 
-  async contactRawPayloadParser (payload: ContactPayload) { return payload }
-  async contactRawPayload (id: string): Promise<ContactPayload> {
+  override async contactRawPayloadParser (payload: ContactPayload) { return payload }
+  override async contactRawPayload (id: string): Promise<ContactPayload> {
     log.verbose('PuppetMock', 'contactRawPayload(%s)', id)
     return this.mocker.contactPayload(id)
   }
@@ -262,8 +252,8 @@ class PuppetMock extends Puppet {
    * Conversation
    *
    */
-  async conversationMarkRead (conversationId: string, read = true) : Promise<void> {
-    log.verbose('PuppetService', 'conversationRead(%s, %s)', conversationId, read)
+  override async conversationReadMark (conversationId: string, haveRead?: boolean) : Promise<void> {
+    log.verbose('PuppetService', 'conversationRead(%s, %s)', conversationId, haveRead)
   }
 
   /**
@@ -271,7 +261,7 @@ class PuppetMock extends Puppet {
    * Message
    *
    */
-  async messageContact (
+  override async messageContact (
     messageId: string,
   ): Promise<string> {
     log.verbose('PuppetMock', 'messageContact(%s)', messageId)
@@ -282,7 +272,7 @@ class PuppetMock extends Puppet {
     return ''
   }
 
-  async messageImage (
+  override async messageImage (
     messageId: string,
     imageType: ImageType,
   ) : Promise<FileBox> {
@@ -298,14 +288,14 @@ class PuppetMock extends Puppet {
     return FileBox.fromQRCode('fake-qrcode')
   }
 
-  async messageRecall (
+  override async messageRecall (
     messageId: string,
   ): Promise<boolean> {
     log.verbose('PuppetMock', 'messageRecall(%s)', messageId)
     return false
   }
 
-  async messageFile (id: string): Promise<FileBox> {
+  override async messageFile (id: string): Promise<FileBox> {
     // const attachment = this.mocker.MockMessage.loadAttachment(id)
     // if (attachment instanceof FileBox) {
     //   return attachment
@@ -316,7 +306,7 @@ class PuppetMock extends Puppet {
     )
   }
 
-  async messageUrl (messageId: string)  : Promise<UrlLinkPayload> {
+  override async messageUrl (messageId: string)  : Promise<UrlLinkPayload> {
     log.verbose('PuppetMock', 'messageUrl(%s)', messageId)
     // const attachment = this.mocker.MockMessage.loadAttachment(messageId)
     // if (attachment instanceof UrlLink) {
@@ -328,7 +318,7 @@ class PuppetMock extends Puppet {
     }
   }
 
-  async messageMiniProgram (messageId: string): Promise<MiniProgramPayload> {
+  override async messageMiniProgram (messageId: string): Promise<MiniProgramPayload> {
     log.verbose('PuppetMock', 'messageMiniProgram(%s)', messageId)
     // const attachment = this.mocker.MockMessage.loadAttachment(messageId)
     // if (attachment instanceof MiniProgram) {
@@ -339,13 +329,13 @@ class PuppetMock extends Puppet {
     }
   }
 
-  async messageRawPayloadParser (payload: MessagePayload) { return payload }
-  async messageRawPayload (id: string): Promise<MessagePayload> {
+  override async messageRawPayloadParser (payload: MessagePayload) { return payload }
+  override async messageRawPayload (id: string): Promise<MessagePayload> {
     log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
     return this.mocker.messagePayload(id)
   }
 
-  private async messageSend (
+  async #messageSend (
     conversationId: string,
     something: string | FileBox, // | Attachment
   ): Promise<void> {
@@ -366,21 +356,21 @@ class PuppetMock extends Puppet {
     user.say(something).to(conversation)
   }
 
-  async messageSendText (
+  override async messageSendText (
     conversationId: string,
     text     : string,
   ): Promise<void> {
-    return this.messageSend(conversationId, text)
+    return this.#messageSend(conversationId, text)
   }
 
-  async messageSendFile (
+  override async messageSendFile (
     conversationId: string,
     file     : FileBox,
   ): Promise<void> {
-    return this.messageSend(conversationId, file)
+    return this.#messageSend(conversationId, file)
   }
 
-  async messageSendContact (
+  override async messageSendContact (
     conversationId: string,
     contactId : string,
   ): Promise<void> {
@@ -390,7 +380,7 @@ class PuppetMock extends Puppet {
     // return this.messageSend(conversationId, contact)
   }
 
-  async messageSendUrl (
+  override async messageSendUrl (
     conversationId: string,
     urlLinkPayload: UrlLinkPayload,
   ) : Promise<void> {
@@ -400,7 +390,7 @@ class PuppetMock extends Puppet {
     // return this.messageSend(conversationId, url)
   }
 
-  async messageSendMiniProgram (
+  override async messageSendMiniProgram (
     conversationId: string,
     miniProgramPayload: MiniProgramPayload,
   ): Promise<void> {
@@ -409,7 +399,7 @@ class PuppetMock extends Puppet {
     // return this.messageSend(conversationId, miniProgram)
   }
 
-  async messageForward (
+  override async messageForward (
     conversationId: string,
     messageId : string,
   ): Promise<void> {
@@ -424,25 +414,25 @@ class PuppetMock extends Puppet {
    * Room
    *
    */
-  async roomRawPayloadParser (payload: RoomPayload) { return payload }
-  async roomRawPayload (id: string): Promise<RoomPayload> {
+  override async roomRawPayloadParser (payload: RoomPayload) { return payload }
+  override async roomRawPayload (id: string): Promise<RoomPayload> {
     log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
     return this.mocker.roomPayload(id)
   }
 
-  async roomList (): Promise<string[]> {
+  override async roomList (): Promise<string[]> {
     log.verbose('PuppetMock', 'roomList()')
     return [...this.mocker.cacheRoomPayload.keys()]
   }
 
-  async roomDel (
+  override async roomDel (
     roomId    : string,
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'roomDel(%s, %s)', roomId, contactId)
   }
 
-  async roomAvatar (roomId: string): Promise<FileBox> {
+  override async roomAvatar (roomId: string): Promise<FileBox> {
     log.verbose('PuppetMock', 'roomAvatar(%s)', roomId)
 
     const payload = await this.roomPayload(roomId)
@@ -454,17 +444,17 @@ class PuppetMock extends Puppet {
     return qrCodeForChatie()
   }
 
-  async roomAdd (
+  override async roomAdd (
     roomId    : string,
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'roomAdd(%s, %s)', roomId, contactId)
   }
 
-  async roomTopic (roomId: string)                : Promise<string>
-  async roomTopic (roomId: string, topic: string) : Promise<void>
+  override async roomTopic (roomId: string)                : Promise<string>
+  override async roomTopic (roomId: string, topic: string) : Promise<void>
 
-  async roomTopic (
+  override async roomTopic (
     roomId: string,
     topic?: string,
   ): Promise<void | string> {
@@ -477,7 +467,7 @@ class PuppetMock extends Puppet {
     await this.dirtyPayload(PayloadType.Room, roomId)
   }
 
-  async roomCreate (
+  override async roomCreate (
     contactIdList : string[],
     topic         : string,
   ): Promise<string> {
@@ -486,21 +476,21 @@ class PuppetMock extends Puppet {
     return 'mock_room_id'
   }
 
-  async roomQuit (roomId: string): Promise<void> {
+  override async roomQuit (roomId: string): Promise<void> {
     log.verbose('PuppetMock', 'roomQuit(%s)', roomId)
   }
 
-  async roomQRCode (roomId: string): Promise<string> {
+  override async roomQRCode (roomId: string): Promise<string> {
     log.verbose('PuppetMock', 'roomQRCode(%s)', roomId)
     return roomId + ' mock qrcode'
   }
 
-  async roomMemberList (roomId: string) : Promise<string[]> {
+  override async roomMemberList (roomId: string) : Promise<string[]> {
     log.verbose('PuppetMock', 'roomMemberList(%s)', roomId)
     return []
   }
 
-  async roomMemberRawPayload (roomId: string, contactId: string): Promise<RoomMemberPayload>  {
+  override async roomMemberRawPayload (roomId: string, contactId: string): Promise<RoomMemberPayload>  {
     log.verbose('PuppetMock', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
     return {
       avatar    : 'mock-avatar-data',
@@ -510,15 +500,15 @@ class PuppetMock extends Puppet {
     }
   }
 
-  async roomMemberRawPayloadParser (rawPayload: RoomMemberPayload): Promise<RoomMemberPayload>  {
+  override async roomMemberRawPayloadParser (rawPayload: RoomMemberPayload): Promise<RoomMemberPayload>  {
     log.verbose('PuppetMock', 'roomMemberRawPayloadParser(%s)', rawPayload)
     return rawPayload
   }
 
-  async roomAnnounce (roomId: string)                : Promise<string>
-  async roomAnnounce (roomId: string, text: string)  : Promise<void>
+  override async roomAnnounce (roomId: string)                : Promise<string>
+  override async roomAnnounce (roomId: string, text: string)  : Promise<void>
 
-  async roomAnnounce (roomId: string, text?: string) : Promise<void | string> {
+  override async roomAnnounce (roomId: string, text?: string) : Promise<void | string> {
     if (text) {
       return
     }
@@ -530,15 +520,15 @@ class PuppetMock extends Puppet {
    * Room Invitation
    *
    */
-  async roomInvitationAccept (roomInvitationId: string): Promise<void> {
+  override async roomInvitationAccept (roomInvitationId: string): Promise<void> {
     log.verbose('PuppetMock', 'roomInvitationAccept(%s)', roomInvitationId)
   }
 
-  async roomInvitationRawPayload (roomInvitationId: string): Promise<any> {
+  override async roomInvitationRawPayload (roomInvitationId: string): Promise<any> {
     log.verbose('PuppetMock', 'roomInvitationRawPayload(%s)', roomInvitationId)
   }
 
-  async roomInvitationRawPayloadParser (rawPayload: any): Promise<RoomInvitationPayload> {
+  override async roomInvitationRawPayloadParser (rawPayload: any): Promise<RoomInvitationPayload> {
     log.verbose('PuppetMock', 'roomInvitationRawPayloadParser(%s)', JSON.stringify(rawPayload))
     return rawPayload
   }
@@ -548,36 +538,36 @@ class PuppetMock extends Puppet {
    * Friendship
    *
    */
-  async friendshipRawPayload (id: string): Promise<any> {
+  override async friendshipRawPayload (id: string): Promise<any> {
     return { id } as any
   }
 
-  async friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload> {
+  override async friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload> {
     return rawPayload
   }
 
-  async friendshipSearchPhone (
+  override async friendshipSearchPhone (
     phone: string,
   ): Promise<null | string> {
     log.verbose('PuppetMock', 'friendshipSearchPhone(%s)', phone)
     return null
   }
 
-  async friendshipSearchWeixin (
+  override async friendshipSearchWeixin (
     weixin: string,
   ): Promise<null | string> {
     log.verbose('PuppetMock', 'friendshipSearchWeixin(%s)', weixin)
     return null
   }
 
-  async friendshipAdd (
+  override async friendshipAdd (
     contactId : string,
     hello     : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'friendshipAdd(%s, %s)', contactId, hello)
   }
 
-  async friendshipAccept (
+  override async friendshipAccept (
     friendshipId : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'friendshipAccept(%s)', friendshipId)
@@ -588,27 +578,27 @@ class PuppetMock extends Puppet {
    * Tag
    *
    */
-  async tagContactAdd (
+  override async tagContactAdd (
     tagId: string,
     contactId: string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'tagContactAdd(%s)', tagId, contactId)
   }
 
-  async tagContactRemove (
+  override async tagContactRemove (
     tagId: string,
     contactId: string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'tagContactRemove(%s)', tagId, contactId)
   }
 
-  async tagContactDelete (
+  override async tagContactDelete (
     tagId: string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'tagContactDelete(%s)', tagId)
   }
 
-  async tagContactList (
+  override async tagContactList (
     contactId?: string,
   ): Promise<string[]> {
     log.verbose('PuppetMock', 'tagContactList(%s)', contactId)

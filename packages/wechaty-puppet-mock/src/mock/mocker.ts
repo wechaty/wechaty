@@ -119,7 +119,7 @@ class Mocker {
     }
 
     const index = Math.floor(contactIdList.length * Math.random())
-    const id = contactIdList[index]
+    const id = contactIdList[index]!
 
     const payload = this.cacheContactPayload.get(id)
     if (!payload) {
@@ -138,7 +138,7 @@ class Mocker {
     }
 
     const index = Math.floor(roomIdList.length * Math.random())
-    const id = roomIdList[index]
+    const id = roomIdList[index]!
 
     const payload = this.cacheRoomPayload.get(id)
     if (!payload) {
