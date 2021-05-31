@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.39.2",
+  "version": "0.41.0",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -51,7 +51,7 @@
     "tstest": "^0.4.10",
     "typedoc": "^0.20.36",
     "typedoc-plugin-markdown": "^3.8.2",
-    "typescript": "4.2"
+    "typescript": "^4.2"
   },
   "dependencies": {
     "brolog": "^1.12.4",
