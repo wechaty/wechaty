@@ -21,7 +21,7 @@
  * DO NOT use `require('../')` here!
  * because it will cause a LOOP require ERROR
  */
-import { StateSwitch }  from 'state-switch'
+import { StateSwitch }  from 'wechaty-puppet'
 
 import {
   PuppetServer,

@@ -21,13 +21,13 @@ import cuid             from 'cuid'
 import os               from 'os'
 
 import { Brolog }           from 'brolog'
-import { StateSwitch }      from 'state-switch'
 import { instanceToClass }  from 'clone-class'
 
 import {
   Puppet,
 
   MemoryCard,
+  StateSwitch,
 
   PUPPET_EVENT_DICT,
   PuppetEventName,

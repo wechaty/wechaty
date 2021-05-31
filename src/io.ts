@@ -17,7 +17,6 @@
  *   limitations under the License.
  *
  */
-import { StateSwitch }  from 'state-switch'
 import WebSocket        from 'ws'
 
 import {
@@ -25,6 +24,8 @@ import {
 }                 from './user/mod'
 
 import {
+  StateSwitch,
+
   EventScanPayload,
 }                         from 'wechaty-puppet'
 
