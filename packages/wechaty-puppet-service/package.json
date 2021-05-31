@@ -8,8 +8,7 @@
     "test": "tests"
   },
   "engines": {
-    "wechaty": ">=0.56",
-    "wechaty-puppet": ">=0.37.1"
+    "wechaty": ">=0.60"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -54,12 +53,12 @@
     "shx": "^0.3.3",
     "tstest": "^0.4.10",
     "typescript": "4.2",
-    "wechaty": "^0.60",
-    "wechaty-puppet": "^0.39.1",
+    "wechaty": "^0.61",
+    "wechaty-puppet": "^0.41.1",
     "wechaty-puppet-mock": "^0.29.1"
   },
   "peerDependencies": {
-    "wechaty-puppet": "*"
+    "wechaty-puppet": ">=0.41"
   },
   "dependencies": {
     "rxjs": "^7.1.0",
