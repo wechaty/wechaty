@@ -50,27 +50,19 @@
     "@chatie/tsconfig": "^0.16.2",
     "@types/cuid": "^1.3.1",
     "@types/faker": "^5.5.5",
-    "@types/normalize-package-data": "^2.4.0",
-    "@types/quick-lru": "^3.0.0",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tstest": "^0.4.10",
     "wechaty": "^0.61.1",
-    "wechaty-puppet": "^0.39.1"
+    "wechaty-puppet": "^0.39.2"
   },
   "peerDependencies": {
-    "wechaty-puppet": ">=0.34"
+    "wechaty-puppet": ">=0.39.2"
   },
   "dependencies": {
-    "brolog": "^1.12.4",
     "cuid": "^2.1.8",
     "faker": "^5.5.3",
-    "hot-import": "^0.2.14",
-    "normalize-package-data": "^3.0.2",
-    "quick-lru": "^6.0.0",
-    "state-switch": "^0.6.18",
-    "typed-emitter": "^1.3.1",
-    "watchdog": "^0.8.17"
+    "typed-emitter": "^1.3.1"
   },
   "publishConfig": {
     "access": "public",

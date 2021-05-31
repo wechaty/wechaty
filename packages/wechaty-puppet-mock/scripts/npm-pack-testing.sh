@@ -22,7 +22,6 @@ npm init -y
 npm install ./*-*.*.*.tgz \
   @chatie/tsconfig \
   @types/quick-lru \
-  @types/normalize-package-data \
   \
   "wechaty-puppet@$NPM_TAG" \
   "wechaty@$NPM_TAG" \
