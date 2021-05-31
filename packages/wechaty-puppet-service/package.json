@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.21.2",
+  "version": "0.21.4",
   "description": "Puppet Service for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -43,19 +43,19 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet-service#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.3",
+    "@chatie/eslint-config": "^0.12.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.16.2",
+    "@chatie/tsconfig": "^0.17.1",
     "@types/google-protobuf": "^3.15.2",
     "@types/ws": "^7.4.4",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tstest": "^0.4.10",
-    "typescript": "4.2",
+    "typescript": "4.3",
     "wechaty": "^0.61",
     "wechaty-puppet": "^0.41.1",
-    "wechaty-puppet-mock": "^0.29.1"
+    "wechaty-puppet-mock": "^0.29.3"
   },
   "peerDependencies": {
     "wechaty-puppet": ">=0.41"

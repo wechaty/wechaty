@@ -40,7 +40,7 @@ class PuppetTest extends PuppetMock {
     super(...args)
   }
 
-  public async contactRawPayload (id: string): Promise<ContactPayload> {
+  override async contactRawPayload (id: string): Promise<ContactPayload> {
     log.verbose('PuppetTest', 'contactRawPayload(%s)', id)
     const rawPayload: ContactPayload = {
       avatar : '',
