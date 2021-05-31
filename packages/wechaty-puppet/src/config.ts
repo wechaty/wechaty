@@ -1,6 +1,7 @@
 import { log } from 'brolog'
 import { FileBox } from 'file-box'
 import { MemoryCard } from 'memory-card'
+import { StateSwitch } from 'state-switch'
 
 import { VERSION } from './version'
 
@@ -14,5 +15,6 @@ export {
   log,
   FileBox,
   MemoryCard,
+  StateSwitch,
   VERSION,
 }

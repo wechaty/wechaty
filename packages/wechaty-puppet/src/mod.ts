@@ -87,6 +87,7 @@ export {
 export {
   FileBox,
   MemoryCard,
+  StateSwitch,
   VERSION,
   log,
 }                         from './config'

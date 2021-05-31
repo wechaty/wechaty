@@ -65,7 +65,7 @@
     "rx-queue": "^0.12.3",
     "rxjs": "^7.1.0",
     "semver": "^7.3.5",
-    "state-switch": "^0.9.7",
+    "state-switch": "^0.11.3",
     "typed-emitter": "^1.3.1",
     "watchdog": "^0.8.17"
   },
