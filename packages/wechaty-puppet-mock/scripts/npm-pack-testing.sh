@@ -20,8 +20,7 @@ cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 cd $TMPDIR
 npm init -y
 npm install ./*-*.*.*.tgz \
-  @chatie/tsconfig \
-  @types/quick-lru \
+  @chatie/tsconfig@$NPM_TAG \
   \
   "wechaty-puppet@$NPM_TAG" \
   "wechaty@$NPM_TAG" \
