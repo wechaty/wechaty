@@ -5,7 +5,7 @@ rm -fr node_modules/typedoc/node_modules/typescript
 
 VERSION=$(jq -r .version package.json)
 
-typedoc \
+npx typedoc \
   --exclude "src/**/*.spec.ts" \
   --excludeExternals \
   --externalPattern node_modules/@types/node/*.d.ts \

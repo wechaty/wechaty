@@ -206,7 +206,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     this.throttleReset = this.throttleReset.bind(this)
   }
 
-  public toString () {
+  public override toString () {
     return [
       'Puppet#',
       this.counter,
@@ -617,8 +617,8 @@ export abstract class Puppet extends PuppetEventEmitter {
     } else if (Object.keys(query).length > 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
-
-    const filterKey = Object.keys(query)[0].toLowerCase() as keyof ContactQueryFilter
+    // Huan(202105): we use `!` at here because the above `if` checks
+    const filterKey = Object.keys(query)[0]!.toLowerCase() as keyof ContactQueryFilter
 
     const isValid = [
       'alias',
@@ -799,7 +799,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Conversation
    *
    */
-  abstract conversationMarkRead (conversationId: string, read: boolean) : Promise<void>
+  abstract conversationReadMark (conversationId: string, haveRead?: boolean) : Promise<void | boolean>
 
   /**
    *
@@ -1177,9 +1177,9 @@ export abstract class Puppet extends PuppetEventEmitter {
     } else if (Object.keys(query).length > 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
-
+    // Huan(202105): we use `Object.keys(query)[0]!` with `!` at here because we have the above `if` checks
     // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
-    const filterKey = Object.keys(query)[0].toLowerCase() as keyof RoomQueryFilter
+    const filterKey = Object.keys(query)[0]!.toLowerCase() as keyof RoomQueryFilter
 
     const isValid = [
       'topic',

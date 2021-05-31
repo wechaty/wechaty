@@ -40,18 +40,17 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.3",
+    "@chatie/eslint-config": "^0.12.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.16.2",
+    "@chatie/tsconfig": "^0.17.1",
     "@types/normalize-package-data": "^2.4.0",
     "@types/read-pkg-up": "^6.0.0",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tstest": "^0.4.10",
-    "typedoc": "^0.20.36",
-    "typedoc-plugin-markdown": "^3.8.2",
-    "typescript": "^4.2"
+    "typedoc": "^1.0.0-dev.4",
+    "typescript": "^4.3"
   },
   "dependencies": {
     "brolog": "^1.12.4",
