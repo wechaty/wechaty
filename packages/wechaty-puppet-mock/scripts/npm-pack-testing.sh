@@ -35,4 +35,5 @@ npm install ./*-*.*.*.tgz \
   --module commonjs \
   smoke-testing.ts
 
+node --version
 node smoke-testing.js

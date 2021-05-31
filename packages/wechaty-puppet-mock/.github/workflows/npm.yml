@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [12]
+        node: [14]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Install Dependencies
         run: npm install
@@ -42,8 +42,6 @@ jobs:
 
       - name: Pack Testing
         run: ./scripts/npm-pack-testing.sh
-        env:
-          WECHATY_PUPPET_HOSTIE_TOKEN: ${{ secrets.WECHATY_PUPPET_HOSTIE_TOKEN }}
 
   publish:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
@@ -54,7 +52,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
           registry-url: https://registry.npmjs.org/
 
       - name: Install Dependencies
