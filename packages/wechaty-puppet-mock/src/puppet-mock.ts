@@ -262,8 +262,8 @@ class PuppetMock extends Puppet {
    * Conversation
    *
    */
-  async conversationRead (conversationId: string) : Promise<void> {
-    log.verbose('PuppetService', 'conversationRead(%s)', conversationId)
+  async conversationMarkRead (conversationId: string, read = true) : Promise<void> {
+    log.verbose('PuppetService', 'conversationRead(%s, %s)', conversationId, read)
   }
 
   /**
