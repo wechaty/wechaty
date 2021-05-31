@@ -101,7 +101,7 @@ class Message extends EventEmitter implements Sayable {
       log.warn('Message', 'findAll() got more than one(%d) result', messageList.length)
     }
 
-    return messageList[0]
+    return messageList[0]!
   }
 
   /**
@@ -193,7 +193,7 @@ class Message extends EventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public toString () {
+  public override toString () {
     if (!this.payload) {
       return this.constructor.name
     }
@@ -1050,8 +1050,8 @@ function wechatifyMessage (wechaty: Wechaty): typeof Message {
 
   class WechatifiedMessage extends Message {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

@@ -293,8 +293,8 @@ function wechatifyRoomInvitation (wechaty: Wechaty): typeof RoomInvitation {
 
   class WechatifiedRoomInvitation extends RoomInvitation {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

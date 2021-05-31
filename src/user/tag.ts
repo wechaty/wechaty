@@ -214,8 +214,8 @@ function wechatifyTag (wechaty: Wechaty): typeof Tag {
 
   class WechatifiedTag extends Tag {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

@@ -52,7 +52,7 @@ test('findAll()', async t => {
 
   const roomList = await wechaty.Room.findAll()
   t.equal(roomList.length, 1, 'should find 1 room')
-  t.equal(await roomList[0].topic(), EXPECTED_ROOM_TOPIC, 'should get topic from payload')
+  t.equal(await roomList[0]!.topic(), EXPECTED_ROOM_TOPIC, 'should get topic from payload')
 
   await wechaty.stop()
 })

@@ -57,7 +57,7 @@ Raven
       release: VERSION,
       tags: {
         git_commit: GIT_COMMIT_HASH,
-        platform: process.env.WECHATY_DOCKER
+        platform: process.env['WECHATY_DOCKER']
           ? 'docker'
           : os.platform(),
       },
@@ -112,30 +112,33 @@ export interface DefaultSetting {
   DEFAULT_PROTOCOL : string,
 }
 
-const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
+const DEFAULT_SETTING = pkg['wechaty'] as DefaultSetting
 
 export class Config {
 
   public default = DEFAULT_SETTING
 
-  public apihost = process.env.WECHATY_APIHOST || DEFAULT_SETTING.DEFAULT_APIHOST
-  public serviceIp = process.env.WECHATY_PUPPET_SERVICE_IP || ''
+  public apihost = process.env['WECHATY_APIHOST'] || DEFAULT_SETTING.DEFAULT_APIHOST
+  public serviceIp = process.env['WECHATY_PUPPET_SERVICE_IP'] || ''
 
   public systemPuppetName (): PuppetModuleName {
     return (
-      process.env.WECHATY_PUPPET || PUPPET_NAME_DEFAULT
+      process.env['WECHATY_PUPPET'] || PUPPET_NAME_DEFAULT
     ).toLowerCase() as PuppetModuleName
   }
 
-  public name    = process.env.WECHATY_NAME
+  public name    = process.env['WECHATY_NAME']
 
   // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  public token   = process.env.WECHATY_TOKEN
+  public token   = process.env['WECHATY_TOKEN']
 
-  public debug   = !!(process.env.WECHATY_DEBUG)
+  public debug   = !!(process.env['WECHATY_DEBUG'])
 
-  public httpPort = process.env.PORT || process.env.WECHATY_PORT || DEFAULT_SETTING.DEFAULT_PORT
-  public docker = !!(process.env.WECHATY_DOCKER)
+  public httpPort = process.env['PORT']
+    || process.env['WECHATY_PORT']
+    || DEFAULT_SETTING.DEFAULT_PORT
+
+  public docker = !!(process.env['WECHATY_DOCKER'])
 
   constructor () {
     log.verbose('Config', 'constructor()')
@@ -172,8 +175,8 @@ export function qrcodeValueToImageUrl (qrcodeValue: string): string {
 }
 
 export function isProduction (): boolean {
-  return process.env.NODE_ENV === 'production'
-      || process.env.NODE_ENV === 'prod'
+  return process.env['NODE_ENV'] === 'production'
+      || process.env['NODE_ENV'] === 'prod'
 }
 
 /**

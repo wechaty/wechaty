@@ -96,8 +96,8 @@ function wechatifyMiniProgram (wechaty: Wechaty): typeof MiniProgram {
 
   class WechatifiedMiniProgram extends MiniProgram {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

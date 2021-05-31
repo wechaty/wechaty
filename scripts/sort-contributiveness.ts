@@ -44,14 +44,14 @@ function processLine (line: string): void {
   if (matches) {
     // console.info('match:', line)
     // console.info(matches)
-    const link        = matches[1] + matches[2]
-    const contributor = matches[3]
+    const link        = matches[1]! + matches[2]
+    const contributor = matches[3]!
     // console.info('link:', link)
     // console.info('contributor:', contributor)
     if (!(contributor in contributeMap)) {
       contributeMap[contributor] = []
     }
-    contributeMap[contributor].push(link)
+    contributeMap[contributor]!.push(link)
     // console.info(contributiveness)
   } else {
     console.error('NO match:', line)
@@ -61,7 +61,7 @@ function processLine (line: string): void {
 function outputContributorMd () {
   const MIN_MAINTAINER_COMMIT_NUM = 2
   function isMaintainer (committer: string): boolean {
-    return contributeMap[committer].length >= MIN_MAINTAINER_COMMIT_NUM
+    return contributeMap[committer]!.length >= MIN_MAINTAINER_COMMIT_NUM
   }
 
   const activeContributorList = Object
@@ -70,7 +70,7 @@ function outputContributorMd () {
     .sort(desc)
 
   function desc (committerA: string, committerB: string): number {
-    return contributeMap[committerB].length - contributeMap[committerA].length
+    return contributeMap[committerB]!.length - contributeMap[committerA]!.length
   }
 
   console.info([
@@ -83,7 +83,7 @@ function outputContributorMd () {
   ].join('\n'))
 
   for (const contributor of activeContributorList) {
-    console.info(`1. @${contributor}: ${contributeMap[contributor].join(' ')}`)
+    console.info(`1. @${contributor}: ${contributeMap[contributor]!.join(' ')}`)
   }
 
   console.info([
@@ -102,7 +102,7 @@ function outputContributorMd () {
       continue
     }
     if (!activeContributorList.includes(contributor)) {
-      console.info(`1. @${contributor}: ${contributeMap[contributor].join(' ')}`)
+      console.info(`1. @${contributor}: ${contributeMap[contributor]!.join(' ')}`)
     }
   }
   console.info()

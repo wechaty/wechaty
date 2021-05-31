@@ -96,4 +96,5 @@
     "zbeekman",
     "zixia"
   ],
+  "typescript.format.semicolons": "remove",
 }

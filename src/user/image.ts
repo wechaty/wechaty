@@ -84,8 +84,8 @@ function wechatifyImage (wechaty: Wechaty): typeof Image {
 
   class WechatifiedImage extends Image {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

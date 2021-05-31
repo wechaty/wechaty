@@ -75,8 +75,8 @@ function wechatifyFavorite (wechaty: Wechaty): typeof Favorite {
 
   class WechatifiedFavorite extends Favorite {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

@@ -51,8 +51,8 @@ class ContactSelf extends Contact {
   //   super(id)
   // }
 
-  public async avatar ()              : Promise<FileBox>
-  public async avatar (file: FileBox) : Promise<void>
+  public override async avatar ()              : Promise<FileBox>
+  public override async avatar (file: FileBox) : Promise<void>
 
   /**
    * GET / SET bot avatar
@@ -81,7 +81,7 @@ class ContactSelf extends Contact {
    * })
    *
    */
-  public async avatar (file?: FileBox): Promise<void | FileBox> {
+  public override async avatar (file?: FileBox): Promise<void | FileBox> {
     log.verbose('Contact', 'avatar(%s)', file ? file.name : '')
 
     if (!file) {
@@ -142,10 +142,10 @@ class ContactSelf extends Contact {
    *   }
    * })
    */
-  public name (): string
-  public name (name: string): Promise<void>
+  public override name (): string
+  public override name (name: string): Promise<void>
 
-  public name (name?: string): string | Promise<void> {
+  public override name (name?: string): string | Promise<void> {
     log.verbose('ContactSelf', 'name(%s)', name || '')
 
     if (typeof name === 'undefined') {
@@ -204,8 +204,8 @@ function wechatifyContactSelf (wechaty: Wechaty): typeof ContactSelf {
 
   class WechatifiedContactSelf extends ContactSelf {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

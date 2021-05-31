@@ -315,7 +315,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public toString () {
+  public override toString () {
     if (!this.options) {
       return this.constructor.name
     }
@@ -336,7 +336,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     return this.options.name || 'wechaty'
   }
 
-  public on (event: WechatyEventName, listener: (...args: any[]) => any): this {
+  public override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'on(%s, listener) registering... listenerCount: %s',
       event,
       this.listenerCount(event),

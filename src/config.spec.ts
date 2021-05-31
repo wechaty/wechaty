@@ -84,14 +84,14 @@ test('validApiHost()', async t => {
 // })
 
 test('systemPuppetName ()', async t => {
-  const WECHATY_PUPPET_ORIG = process.env.WECHATY_PUPPET
+  const WECHATY_PUPPET_ORIG = process.env['WECHATY_PUPPET']
 
-  delete process.env.WECHATY_PUPPET
+  delete process.env['WECHATY_PUPPET']
   t.equal(config.systemPuppetName(), 'wechaty-puppet-wechat', 'should get wechaty-puppet-wechat as default puppet name')
 
-  process.env.WECHATY_PUPPET = 'wechaty-puppet-mock'
+  process.env['WECHATY_PUPPET'] = 'wechaty-puppet-mock'
   t.equal(config.systemPuppetName(), 'wechaty-puppet-mock', 'should get puppet name from process.env')
 
   // restore the original value
-  process.env.WECHATY_PUPPET = WECHATY_PUPPET_ORIG
+  process.env['WECHATY_PUPPET'] = WECHATY_PUPPET_ORIG
 })

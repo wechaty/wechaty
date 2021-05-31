@@ -66,7 +66,7 @@ class LicenseTransformer extends Transform {
   //   super(options)
   // }
 
-  public _transform (chunk: any, _: string /* encoding: string */, done: () => void) {
+  override _transform (chunk: any, _: string /* encoding: string */, done: () => void) {
     if (this.updated) {
       this.push(chunk)
     } else {
@@ -127,7 +127,7 @@ class LicenseTransformer extends Transform {
     return updatedLineList.join('\n')
   }
 
-  public _flush (done: () => void) {
+  override _flush (done: () => void) {
     if (this.lineBuf) {
       this.push(this.lineBuf)
       this.lineBuf = ''

@@ -63,7 +63,7 @@ async function main () {
   const wechaty = new Wechaty({ name: token })
 
   let port
-  if (process.env.WECHATY_HOSTIE_PORT) {
+  if (process.env['WECHATY_HOSTIE_PORT']) {
     /**
      * https://github.com/wechaty/wechaty/issues/2122
      */
@@ -73,9 +73,9 @@ async function main () {
       'Use WECHATY_PUPPET_SERVER_PORT instead.',
       'See: https://github.com/wechaty/wechaty/issues/2122',
     ].join(' '))
-    port = parseInt(process.env.WECHATY_HOSTIE_PORT)
-  } else if (process.env.WECHATY_PUPPET_SERVER_PORT) {
-    port = parseInt(process.env.WECHATY_PUPPET_SERVER_PORT)
+    port = parseInt(process.env['WECHATY_HOSTIE_PORT'])
+  } else if (process.env['WECHATY_PUPPET_SERVER_PORT']) {
+    port = parseInt(process.env['WECHATY_PUPPET_SERVER_PORT'])
   }
 
   const options: IoClientOptions = {

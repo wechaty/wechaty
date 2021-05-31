@@ -171,7 +171,7 @@ class Contact extends ContactEventEmitter implements Sayable {
 
     let n = 0
     for (n = 0; n < contactList.length; n++) {
-      const contact = contactList[n]
+      const contact = contactList[n]!
       // use puppet.contactValidate() to confirm double confirm that this contactId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
@@ -313,7 +313,7 @@ class Contact extends ContactEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public toString (): string {
+  public override toString (): string {
     if (!this.payload) {
       return this.constructor.name
     }
@@ -888,8 +888,8 @@ function wechatifyContact (wechaty: Wechaty): typeof Contact {
 
   class WechatifiedContact extends Contact {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

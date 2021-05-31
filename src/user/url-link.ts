@@ -62,7 +62,7 @@ class UrlLink {
     }
 
     if (Array.isArray(meta.title)) {
-      title = meta.title[0]
+      title = meta.title[0]!
     } else {
       title = meta.title
     }

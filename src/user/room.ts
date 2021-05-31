@@ -205,7 +205,7 @@ class Room extends RoomEventEmitter implements Sayable {
 
     let n = 0
     for (n = 0; n < roomList.length; n++) {
-      const room = roomList[n]
+      const room = roomList[n]!
       // use puppet.roomValidate() to confirm double confirm that this roomId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
@@ -300,7 +300,7 @@ class Room extends RoomEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public toString () {
+  public override toString () {
     if (!this.payload) {
       return this.constructor.name
     }
@@ -613,7 +613,7 @@ class Room extends RoomEventEmitter implements Sayable {
        */
       return this.wechaty.puppet.messageSendText(
         this.id,
-        textList[0],
+        textList[0]!,
       )
     // TODO(huan) 20191222 it seems the following code will not happen,
     //            because it's equal the mentionList.length === 0 situation?
@@ -648,7 +648,7 @@ class Room extends RoomEventEmitter implements Sayable {
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
         } else {
-          finalText += textList[i] + varList[i]
+          finalText += textList[i]! + varList[i]!
         }
       }
       finalText += textList[i]
@@ -909,7 +909,7 @@ class Room extends RoomEventEmitter implements Sayable {
 
         let defaultTopic = (memberList[0] && memberList[0].name()) || ''
         for (let i = 1; i < 3 && memberList[i]; i++) {
-          defaultTopic += ',' + memberList[i].name()
+          defaultTopic += ',' + memberList[i]!.name()
         }
         return defaultTopic
       }
@@ -1147,7 +1147,7 @@ class Room extends RoomEventEmitter implements Sayable {
     if (memberList.length > 1) {
       log.warn('Room', 'member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
     }
-    return memberList[0]
+    return memberList[0]!
   }
 
   /**
@@ -1216,8 +1216,8 @@ function wechatifyRoom (wechaty: Wechaty): typeof Room {
 
   class WechatifiedRoom extends Room {
 
-    static get wechaty  () { return wechaty }
-    get wechaty        () { return wechaty }
+    static override get wechaty  () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 
