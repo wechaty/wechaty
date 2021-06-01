@@ -483,14 +483,20 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
         case 'message':
           puppet.on('message', async payload => {
             const msg = this.Message.load(payload.messageId)
-            await msg.ready()
-            this.emit('message', msg)
+            try {
 
-            const room = msg.room()
-            if (room) {
-              room.emit('message', msg)
-            } else {
-              this.userSelf().emit('message', msg)
+              await msg.ready()
+              this.emit('message', msg)
+
+              const room = msg.room()
+              if (room) {
+                room.emit('message', msg)
+              } else {
+                msg.talker().emit('message', msg)
+              }
+
+            } catch (e) {
+              this.emit('error', e)
             }
           })
           break
