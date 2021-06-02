@@ -458,25 +458,37 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
         case 'friendship':
           puppet.on('friendship', async payload => {
             const friendship = this.Friendship.load(payload.friendshipId)
-            await friendship.ready()
-            this.emit('friendship', friendship)
-            friendship.contact().emit('friendship', friendship)
+            try {
+              await friendship.ready()
+              this.emit('friendship', friendship)
+              friendship.contact().emit('friendship', friendship)
+            } catch (e) {
+              this.emit('error', e)
+            }
           })
           break
 
         case 'login':
           puppet.on('login', async payload => {
             const contact = this.ContactSelf.load(payload.contactId)
-            await contact.ready()
-            this.emit('login', contact)
+            try {
+              await contact.ready()
+              this.emit('login', contact)
+            } catch (e) {
+              this.emit('error', e)
+            }
           })
           break
 
         case 'logout':
           puppet.on('logout', async payload => {
             const contact = this.ContactSelf.load(payload.contactId)
-            await contact.ready()
-            this.emit('logout', contact, payload.data)
+            try {
+              await contact.ready()
+              this.emit('logout', contact, payload.data)
+            } catch (e) {
+              this.emit('error', e)
+            }
           })
           break
 
@@ -484,7 +496,6 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
           puppet.on('message', async payload => {
             const msg = this.Message.load(payload.messageId)
             try {
-
               await msg.ready()
               this.emit('message', msg)
 
@@ -494,7 +505,6 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               } else {
                 msg.talker().emit('message', msg)
               }
-
             } catch (e) {
               this.emit('error', e)
             }
@@ -520,60 +530,71 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
         case 'room-join':
           puppet.on('room-join', async payload => {
             const room = this.Room.load(payload.roomId)
-            await room.sync()
+            try {
+              await room.sync()
 
-            const inviteeList = payload.inviteeIdList.map(id => this.Contact.load(id))
-            await Promise.all(inviteeList.map(c => c.ready()))
+              const inviteeList = payload.inviteeIdList.map(id => this.Contact.load(id))
+              await Promise.all(inviteeList.map(c => c.ready()))
 
-            const inviter = this.Contact.load(payload.inviterId)
-            await inviter.ready()
-            const date = timestampToDate(payload.timestamp)
+              const inviter = this.Contact.load(payload.inviterId)
+              await inviter.ready()
+              const date = timestampToDate(payload.timestamp)
 
-            this.emit('room-join', room, inviteeList, inviter, date)
-            room.emit('join', inviteeList, inviter, date)
+              this.emit('room-join', room, inviteeList, inviter, date)
+              room.emit('join', inviteeList, inviter, date)
+            } catch (e) {
+              this.emit('error', e)
+            }
           })
           break
 
         case 'room-leave':
           puppet.on('room-leave', async payload => {
-            const room = this.Room.load(payload.roomId)
+            try {
+              const room = this.Room.load(payload.roomId)
 
-            /**
-             * See: https://github.com/wechaty/wechaty/pull/1833
-             */
-            await room.sync()
+              /**
+               * See: https://github.com/wechaty/wechaty/pull/1833
+               */
+              await room.sync()
 
-            const leaverList = payload.removeeIdList.map(id => this.Contact.load(id))
-            await Promise.all(leaverList.map(c => c.ready()))
+              const leaverList = payload.removeeIdList.map(id => this.Contact.load(id))
+              await Promise.all(leaverList.map(c => c.ready()))
 
-            const remover = this.Contact.load(payload.removerId)
-            await remover.ready()
-            const date = timestampToDate(payload.timestamp)
+              const remover = this.Contact.load(payload.removerId)
+              await remover.ready()
+              const date = timestampToDate(payload.timestamp)
 
-            this.emit('room-leave', room, leaverList, remover, date)
-            room.emit('leave', leaverList, remover, date)
+              this.emit('room-leave', room, leaverList, remover, date)
+              room.emit('leave', leaverList, remover, date)
 
-            // issue #254
-            const selfId = this.puppet.selfId()
-            if (selfId && payload.removeeIdList.includes(selfId)) {
-              await this.puppet.dirtyPayload(PayloadType.Room, payload.roomId)
-              await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
+              // issue #254
+              const selfId = this.puppet.selfId()
+              if (selfId && payload.removeeIdList.includes(selfId)) {
+                await this.puppet.dirtyPayload(PayloadType.Room, payload.roomId)
+                await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
+              }
+            } catch (e) {
+              this.emit('error', e)
             }
-
           })
           break
 
         case 'room-topic':
           puppet.on('room-topic', async payload => {
-            const room = this.Room.load(payload.roomId)
-            await room.sync()
+            try {
+              const room = this.Room.load(payload.roomId)
+              await room.sync()
 
-            const changer = this.Contact.load(payload.changerId)
-            await changer.ready()
-            const date = timestampToDate(payload.timestamp)
+              const changer = this.Contact.load(payload.changerId)
+              await changer.ready()
+              const date = timestampToDate(payload.timestamp)
 
-            this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
-            room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
+              this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
+              room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
+            } catch (e) {
+              this.emit('error', e)
+            }
           })
           break
 
@@ -592,28 +613,32 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
            * https://github.com/wechaty/wechaty-puppet-service/issues/43
            */
           puppet.on('dirty', async ({ payloadType, payloadId }) => {
-            switch (payloadType) {
-              case PayloadType.RoomMember:
-              case PayloadType.Contact:
-                await this.Contact.load(payloadId).sync()
-                break
-              case PayloadType.Room:
-                await this.Room.load(payloadId).sync()
-                break
+            try {
+              switch (payloadType) {
+                case PayloadType.RoomMember:
+                case PayloadType.Contact:
+                  await this.Contact.load(payloadId).sync()
+                  break
+                case PayloadType.Room:
+                  await this.Room.load(payloadId).sync()
+                  break
 
-              /**
-               * Huan(202008): noop for the following
-               */
-              case PayloadType.Friendship:
-                // Friendship has no payload
-                break
-              case PayloadType.Message:
-                // Message does not need to dirty (?)
-                break
+                /**
+                 * Huan(202008): noop for the following
+                 */
+                case PayloadType.Friendship:
+                  // Friendship has no payload
+                  break
+                case PayloadType.Message:
+                  // Message does not need to dirty (?)
+                  break
 
-              case PayloadType.Unknown:
-              default:
-                throw new Error('unknown payload type: ' + payloadType)
+                case PayloadType.Unknown:
+                default:
+                  throw new Error('unknown payload type: ' + payloadType)
+              }
+            } catch (e) {
+              this.emit('error', e)
             }
           })
           break
