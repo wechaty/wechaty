@@ -1029,7 +1029,11 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * @ignore
    */
   public async reset (reason?: string): Promise<void> {
-    log.verbose('Wechaty', 'reset() because %s', reason || 'no reason')
+    log.verbose('Wechaty', 'reset() with reason: %s, call stack: %s',
+      reason || 'no reason',
+      // https://stackoverflow.com/a/2060330/1123955
+      new Error().stack,
+    )
     await this.puppet.stop()
     await this.puppet.start()
   }
