@@ -261,23 +261,25 @@ class Message extends EventEmitter implements Sayable {
     //   return
     // }
 
-    const fromId = this.payload.fromId
-    if (!fromId) {
+    const talkerId = this.payload.fromId
+    if (!talkerId) {
       // Huan(202011): It seems that the fromId will never be null?
       // return null
       throw new Error('payload.fromId is null?')
     }
 
-    const from = this.wechaty.Contact.load(fromId)
-    return from
+    const talker = this.wechaty.Contact.load(talkerId)
+    return talker
   }
 
   /**
-   * Use `message.talker()` to replace `message.from()` #2094
+   * @depreacated Use `message.talker()` to replace `message.from()`
    *  https://github.com/wechaty/wechaty/issues/2094
    */
   public from (): null | Contact {
-    log.warn('Message', 'from() is deprecated, use talker() instead.')
+    log.warn('Message', 'from() is deprecated, use talker() instead. Call stack: %s',
+      new Error().stack,
+    )
     try {
       return this.talker()
     } catch (e) {
@@ -750,8 +752,13 @@ class Message extends EventEmitter implements Sayable {
     return contactList
   }
 
+  /**
+   * @deprecated mention() DEPRECATED. use mentionList() instead.
+   */
   public async mention (): Promise<Contact[]> {
-    log.warn('Message', 'mention() DEPRECATED. use mentionList() instead.')
+    log.warn('Message', 'mention() DEPRECATED. use mentionList() instead. Call stack: %s',
+      new Error().stack,
+    )
     return this.mentionList()
   }
 
