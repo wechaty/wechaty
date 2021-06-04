@@ -15,10 +15,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-wechaty-
 
-      - name: Use Node.js 15
+      - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: [12, 14, 16]
       - name: Install Dependencies
         run: |
           node --version
@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: 16
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/npm-pack-testing.sh
@@ -66,7 +66,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: 16
           registry-url: https://registry.npmjs.org/
       - run: npm install
       - run: ./scripts/generate-version.sh
