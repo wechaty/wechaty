@@ -65,7 +65,7 @@ const GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT = (endpoint?: string) => {
   }
 
   return process.env['WECHATY_SERVICE_DISCOVERY_ENDPOINT']
-    ?? 'https://api.chatie.io'
+    || 'https://api.chatie.io'
 }
 
 export {

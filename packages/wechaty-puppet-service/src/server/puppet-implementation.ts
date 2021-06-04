@@ -694,7 +694,6 @@ export function puppetImplementation (
         const payload = await puppet.messagePayload(id)
 
         const mentionIdList = ('mentionIdList' in payload)
-          // Huan(202006) use `??` instead of `||` after eslint get fixed
           ? payload.mentionIdList || []
           : []
 
