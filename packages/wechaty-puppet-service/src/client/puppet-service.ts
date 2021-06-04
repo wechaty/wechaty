@@ -833,11 +833,11 @@ export class PuppetService extends Puppet {
    * Conversation
    *
    */
-  override conversationMarkRead (
+  override conversationReadMark (
     conversationId: string,
-    read = true,
+    hasRead = true,
   ) : Promise<void> {
-    log.verbose('PuppetService', 'conversationMarkRead(%s, %s)', conversationId, read)
+    log.verbose('PuppetService', 'conversationMarkRead(%s, %s)', conversationId, hasRead)
     throwUnsupportedError('not implemented. See https://github.com/wechaty/wechaty-puppet/pull/132')
   }
 
