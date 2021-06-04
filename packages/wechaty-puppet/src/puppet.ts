@@ -799,7 +799,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Conversation
    *
    */
-  abstract conversationReadMark (conversationId: string, haveRead?: boolean) : Promise<void | boolean>
+  abstract conversationReadMark (conversationId: string, hasRead?: boolean) : Promise<void | boolean>
 
   /**
    *

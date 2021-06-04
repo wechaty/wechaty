@@ -116,7 +116,7 @@ export class PuppetTest extends Puppet {
    * Conversation
    *
    */
-  override async conversationReadMark (conversationId: string, haveRead?: boolean): Promise<void | boolean> { void { conversationId, haveRead } }
+  override async conversationReadMark (conversationId: string, hasRead?: boolean): Promise<void | boolean> { void { conversationId, hasRead } }
 
   /**
    *
