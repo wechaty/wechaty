@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
-        node-version: [14]
+        node-version: [12, 14, 16]
     runs-on: ${{ matrix.os }}
 
     steps:
