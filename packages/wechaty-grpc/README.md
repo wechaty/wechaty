@@ -163,6 +163,8 @@ We are using [gRPC to JSON proxy generator following the gRPC HTTP spec](https:/
 
 Learn more about the RESTful API service for Wechaty from [Wechaty OpenAPI](https://github.com/wechaty/openapi).
 
+See also: [AIP-4222 - Routing headers](https://google.aip.dev/client-libraries/4222)
+
 ## gRPC Web
 
 - [gRPC-Web ReactJS client, Golang Server](https://github.com/longfellowone/grpcwebtest)
