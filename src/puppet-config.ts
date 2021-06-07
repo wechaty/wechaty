@@ -52,7 +52,7 @@ export const PUPPET_DEPENDENCIES = {
    */
   'wechaty-puppet-wechat'           : '>=0.28',  // https://www.npmjs.com/package/wechaty-puppet-wechat
   'wechaty-puppet-wechat4u'         : '>=0.17',  // https://www.npmjs.com/package/wechaty-puppet-wechat4u
-  'wechaty-puppet-padlocal'         : '>=0.2',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
+  'wechaty-puppet-padlocal'         : '>=0.4',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
   'wechaty-puppet-official-account' : '>=0.5',   // https://www.npmjs.com/package/wechaty-puppet-official-account
 
   /**
