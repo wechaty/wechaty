@@ -1,4 +1,4 @@
-# Wechaty v0.48.2 Documentation
+# Wechaty v0.62.1 Documentation
 
 - Website - <https://wechaty.js.org>
 - Docs Site - <https://wechaty.js.org/docs/>
@@ -384,7 +384,8 @@ All WeChat rooms(groups) will be encapsulated as a Room.
         * [.sync()](#Room+sync) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.say(textOrContactOrFileOrUrlOrMini, [mention])](#Room+say) ⇒ <code>Promise.&lt;(void\|Message)&gt;</code>
         * [.add(contact)](#Room+add) ⇒ <code>Promise.&lt;void&gt;</code>
-        * [.del(contact)](#Room+del) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.remove(contact)](#Room+remove) ⇒ <code>Promise.&lt;void&gt;</code>
+        * ~~[.del()](#Room+del)~~
         * [.quit()](#Room+quit) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.topic([newTopic])](#Room+topic) ⇒ <code>Promise.&lt;(string\|void)&gt;</code>
         * [.announce([text])](#Room+announce) ⇒ <code>Promise.&lt;(void\|string)&gt;</code>
@@ -515,10 +516,10 @@ if (room) {
   }
 }
 ```
-<a name="Room+del"></a>
+<a name="Room+remove"></a>
 
-### room.del(contact) ⇒ <code>Promise.&lt;void&gt;</code>
-Delete a contact from the room
+### room.remove(contact) ⇒ <code>Promise.&lt;void&gt;</code>
+Remove a contact from the room
 It works only when the bot is the owner of the room
 
 > Tips:
@@ -541,12 +542,18 @@ const room = await bot.Room.find({topic: 'WeChat'})          // change 'WeChat' 
 const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
 if (room) {
   try {
-     await room.del(contact)
+     await room.remove(contact)
   } catch(e) {
      console.error(e)
   }
 }
 ```
+<a name="Room+del"></a>
+
+### ~~room.del()~~
+***Deprecated***
+
+**Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+quit"></a>
 
 ### room.quit() ⇒ <code>Promise.&lt;void&gt;</code>
@@ -1258,7 +1265,7 @@ Send, receive friend request, and friend confirmation events.
         * [.toJSON()](#Friendship+toJSON) ⇒ <code>FriendshipPayload</code>
     * _static_
         * [.search(condition)](#Friendship.search) ⇒ [<code>Promise.&lt;Contact&gt;</code>](#Contact)
-        * [.add(contact, hello)](#Friendship.add) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.add(contact, options)](#Friendship.add) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.fromJSON()](#Friendship.fromJSON)
 
 <a name="Friendship+accept"></a>
@@ -1380,7 +1387,7 @@ bot.on('friendship', async friendship => {
 Search a Friend by phone or weixin.
 
 The best practice is to search friend request once per minute.
-Remeber not to do this too frequently, or your account may be blocked.
+Remember not to do this too frequently, or your account may be blocked.
 
 **Kind**: static method of [<code>Friendship</code>](#Friendship)  
 
@@ -1398,7 +1405,7 @@ await bot.Friendship.add(friend_phone, 'hello')
 ```
 <a name="Friendship.add"></a>
 
-### Friendship.add(contact, hello) ⇒ <code>Promise.&lt;void&gt;</code>
+### Friendship.add(contact, options) ⇒ <code>Promise.&lt;void&gt;</code>
 Send a Friend Request to a `contact` with message `hello`.
 
 The best practice is to send friend request once per minute.
@@ -1409,13 +1416,19 @@ Remeber not to do this too frequently, or your account may be blocked.
 | Param | Type | Description |
 | --- | --- | --- |
 | contact | [<code>Contact</code>](#Contact) | Send friend request to contact |
-| hello | <code>string</code> | The friend request content |
+| options | <code>FriendshipAddOptions</code> | The friend request content |
 
 **Example**  
 ```js
+const contact = await bot.Friendship.search({phone: '13112341234'})
+await bot.Friendship.add(contact, 'Nice to meet you! I am wechaty bot!')
+
 const memberList = await room.memberList()
 for (let i = 0; i < memberList.length; i++) {
-  await bot.Friendship.add(member, 'Nice to meet you! I am wechaty bot!')
+  await bot.Friendship.add(member, {
+    room: room,
+    hello: `Nice to meet you! I am wechaty bot from room: ${await room.topic()}!`,
+  })
 }
 ```
 <a name="Friendship.fromJSON"></a>
@@ -1444,7 +1457,8 @@ All wechat messages will be encapsulated as a Message.
 
 * [Message](#Message)
     * _instance_
-        * [.from()](#Message+from) ⇒ [<code>Contact</code>](#Contact)
+        * [.talker()](#Message+talker) ⇒ [<code>Contact</code>](#Contact)
+        * [.from()](#Message+from)
         * [.to()](#Message+to) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
         * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
         * [.text()](#Message+text) ⇒ <code>string</code>
@@ -1454,6 +1468,7 @@ All wechat messages will be encapsulated as a Message.
         * [.type()](#Message+type) ⇒ <code>MessageType</code>
         * [.self()](#Message+self) ⇒ <code>boolean</code>
         * [.mentionList()](#Message+mentionList) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+        * ~~[.mention()](#Message+mention)~~
         * [.mentionSelf()](#Message+mentionSelf) ⇒ <code>Promise.&lt;boolean&gt;</code>
         * [.forward(to)](#Message+forward) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.date()](#Message+date)
@@ -1465,10 +1480,10 @@ All wechat messages will be encapsulated as a Message.
         * [.find()](#Message.find)
         * [.findAll()](#Message.findAll)
 
-<a name="Message+from"></a>
+<a name="Message+talker"></a>
 
-### message.from() ⇒ [<code>Contact</code>](#Contact)
-Get the sender from a message.
+### message.talker() ⇒ [<code>Contact</code>](#Contact)
+Get the talker of a message.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 **Example**  
@@ -1476,18 +1491,24 @@ Get the sender from a message.
 const bot = new Wechaty()
 bot
 .on('message', async m => {
-  const contact = msg.from()
+  const talker = msg.talker()
   const text = msg.text()
   const room = msg.room()
   if (room) {
     const topic = await room.topic()
-    console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+    console.log(`Room: ${topic} Contact: ${talker.name()} Text: ${text}`)
   } else {
-    console.log(`Contact: ${contact.name()} Text: ${text}`)
+    console.log(`Contact: ${talker.name()} Text: ${text}`)
   }
 })
 .start()
 ```
+<a name="Message+from"></a>
+
+### message.from()
+**Kind**: instance method of [<code>Message</code>](#Message)  
+**Depreacated**: Use `message.talker()` to replace `message.from()`
+ https://github.com/wechaty/wechaty/issues/2094  
 <a name="Message+to"></a>
 
 ### message.to() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
@@ -1715,6 +1736,12 @@ Message event table as follows
 const contactList = await message.mentionList()
 console.log(contactList)
 ```
+<a name="Message+mention"></a>
+
+### ~~message.mention()~~
+***Deprecated***
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+mentionSelf"></a>
 
 ### message.mentionSelf() ⇒ <code>Promise.&lt;boolean&gt;</code>
@@ -1830,7 +1857,7 @@ accept room invitation
     * _instance_
         * [.accept()](#RoomInvitation+accept) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.inviter()](#RoomInvitation+inviter) ⇒ [<code>Contact</code>](#Contact)
-        * [.topic()](#RoomInvitation+topic) ⇒ [<code>Contact</code>](#Contact)
+        * [.topic()](#RoomInvitation+topic) ⇒ <code>string</code>
         * [.date()](#RoomInvitation+date) ⇒ <code>Promise.&lt;Date&gt;</code>
         * [.age()](#RoomInvitation+age) ⇒ <code>number</code>
         * [.toJSON()](#RoomInvitation+toJSON) ⇒ <code>string</code>
@@ -1874,7 +1901,7 @@ bot.on('room-invite', async roomInvitation => {
 ```
 <a name="RoomInvitation+topic"></a>
 
-### roomInvitation.topic() ⇒ [<code>Contact</code>](#Contact)
+### roomInvitation.topic() ⇒ <code>string</code>
 Get the room topic from room invitation
 
 **Kind**: instance method of [<code>RoomInvitation</code>](#RoomInvitation)  
