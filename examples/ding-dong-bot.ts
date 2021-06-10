@@ -34,13 +34,13 @@ import { generate } from 'qrcode-terminal'
  */
 const bot = new Wechaty({
   name : 'ding-dong-bot',
-  
+
   /**
    * You can specify different puppet for different IM protocols.
    * Learn more from https://wechaty.js.org/docs/puppet-providers/
    */
   // puppet: 'wechaty-puppet-whatsapp'
-  
+
   /**
    * You can use wechaty puppet provider 'wechaty-puppet-service'
    *   which can connect to Wechaty Puppet Services
