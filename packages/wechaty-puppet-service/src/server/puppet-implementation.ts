@@ -1054,6 +1054,7 @@ export function puppetImplementation (
         response.setId(payload.id)
         response.setInvitation(payload.invitation)
         response.setInviterId(payload.inviterId)
+        response.setReceiverId(payload.receiverId)
         response.setMemberCount(payload.memberCount)
         response.setMemberIdsList(payload.memberIdList)
         response.setTimestamp(Math.floor(payload.timestamp))
