@@ -1028,14 +1028,34 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public async reset (reason?: string): Promise<void> {
+  public reset (reason?: string): void {
     log.verbose('Wechaty', 'reset() with reason: %s, call stack: %s',
       reason || 'no reason',
       // https://stackoverflow.com/a/2060330/1123955
       new Error().stack,
     )
-    await this.puppet.stop()
-    await this.puppet.start()
+
+    this.puppet.stop()
+      .then(() => this.puppet.start())
+      .finally(() => {
+        log.verbose('Wechaty', 'reset() done.')
+      })
+      .catch(e => {
+        log.warn('Wechaty', 'reset() rejection: %s', e && e.message)
+
+        /**
+         * Dealing with https://github.com/wechaty/wechaty/issues/2197
+         */
+        setTimeout(
+          () => this.reset(),
+          Math.floor(
+            (
+              10 + 10 * Math.random()
+            ) * 1000
+          )
+        )
+
+      })
   }
 
   public unref (): void {
