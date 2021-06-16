@@ -185,6 +185,10 @@ export class PuppetService extends Puppet {
         // eslint-disable-next-line promise/param-names
         new Promise((_, reject) => setTimeout(
           () => reject(new Error('ETIMEOUT')),
+          /**
+           * Huan(202106): Better deal with the timeout error
+           *  Related to https://github.com/wechaty/wechaty/issues/2197
+           */
           5 * 1000,
         )),
       ])
@@ -318,7 +322,7 @@ export class PuppetService extends Puppet {
       )
 
     } catch (e) {
-      log.error('PuppetService', 'start() rejection: %s', e && e.message)
+      log.error('PuppetService', 'start() rejection: %s\n%s', e && e.message, e.stack)
 
       if (this.grpcClient) {
         this.grpcClient.close()
