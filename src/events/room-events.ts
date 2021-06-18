@@ -1,5 +1,5 @@
 import { EventEmitter }   from 'events'
-import TypedEventEmitter  from 'typed-emitter'
+import type TypedEventEmitter  from 'typed-emitter'
 
 import {
   Contact,
