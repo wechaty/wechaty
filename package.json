@@ -38,8 +38,7 @@
     "typedoc": "bash scripts/typedoc.sh",
     "io-client": "ts-node bin/io-client",
     "demo": "ts-node examples/ding-dong-bot.ts",
-    "start": "npm run demo",
-    "postinstall": "opencollective-postinstall"
+    "start": "npm run demo"
   },
   "repository": {
     "type": "git",
@@ -83,7 +82,6 @@
   },
   "homepage": "https://github.com/wechaty/",
   "dependencies": {
-    "brolog": "^1.12.4",
     "clone-class": "^0.7.3",
     "cuid": "^2.1.8",
     "dotenv": "^10.0.0",
@@ -91,14 +89,10 @@
     "json-rpc-peer": "^0.17.0",
     "npm-programmatic": "0.0.12",
     "open-graph": "^0.2.4",
-    "opencollective": "^1.0.3",
-    "opencollective-postinstall": "^2.0.3",
     "pkg-dir": "^5.0.0",
-    "portfinder": "^1.0.28",
     "promise-retry": "^2.0.1",
     "raven": "^2.6.4",
     "read-pkg-up": "^7.0.1",
-    "watchdog": "^0.8.17",
     "wechaty-puppet": "^0.41.1",
     "wechaty-puppet-service": "^0.21.8",
     "ws": "^7.4.6"
@@ -134,8 +128,8 @@
     "shx": "^0.3.3",
     "sloc": "^0.2.1",
     "tstest": "^0.4.10",
-    "typedoc": "^1.0.0-dev.4 ",
     "typed-emitter": "^1.3.1",
+    "typedoc": "^1.0.0-dev.4 ",
     "typescript": "^4.3",
     "wechaty-puppet-mock": "^0.29.6"
   },

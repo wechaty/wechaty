@@ -20,7 +20,6 @@
 import cuid             from 'cuid'
 import os               from 'os'
 
-import { Brolog }           from 'brolog'
 import { instanceToClass }  from 'clone-class'
 
 import {
@@ -136,8 +135,8 @@ const PUPPET_MEMORY_NAME = 'puppet'
 class Wechaty extends WechatyEventEmitter implements Sayable {
 
   static readonly VERSION = VERSION
-  static readonly log: Brolog = log
-  readonly log: Brolog = log
+  static readonly log = log
+  readonly log = log
 
   public  readonly state      : StateSwitch
   private readonly readyState : StateSwitch

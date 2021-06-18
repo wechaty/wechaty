@@ -17,7 +17,6 @@
  *   limitations under the License.
  *
  */
-export { getPort }        from './impure/get-port'
 export { generateToken }  from './impure/generate-token'
 
 export { tryWait }                from './pure/try-wait'
