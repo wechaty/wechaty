@@ -308,10 +308,7 @@ export class PuppetService extends Puppet {
       await this.startGrpcStream()
       // this.startDing()
 
-      await util.promisify(
-        this.grpcClient.start
-          .bind(this.grpcClient)
-      )(new StartRequest())
+      await this.grpcClientStart()
 
       this.state.on(true)
 
@@ -436,6 +433,25 @@ export class PuppetService extends Puppet {
         log.verbose('PuppetService', 'startGrpcStream() eventStream.on(cancel), %s', JSON.stringify(args))
       })
 
+  }
+
+  private async grpcClientStart (): Promise<void> {
+    log.verbose('PuppetService', 'grpcClientStart()')
+
+    try {
+      await util.promisify(
+        this.grpcClient!.start
+          .bind(this.grpcClient)
+      )(new StartRequest())
+    } catch (error) {
+      const msgDetail = error.details
+      if (msgDetail === 'No connection established') {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        this.emit('reset', { data: msgDetail })
+      } else {
+        throw error
+      }
+    }
   }
 
   private onGrpcStreamEvent (event: EventResponse): void {
