@@ -125,7 +125,7 @@ class Mocker {
     if (!payload) {
       throw new Error('no payload')
     }
-    return this.ContactMock.create(payload)
+    return this.ContactMock.load(id)
   }
 
   randomRoom (): undefined | RoomMock {
@@ -144,7 +144,7 @@ class Mocker {
     if (!payload) {
       throw new Error('no payload')
     }
-    return this.RoomMock.create(payload)
+    return this.RoomMock.load(id)
   }
 
   randomConversation (): ContactMock | RoomMock {

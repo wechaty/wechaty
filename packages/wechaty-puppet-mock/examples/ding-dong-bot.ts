@@ -23,15 +23,20 @@ import {
   EventErrorPayload,
   EventMessagePayload,
 }                         from 'wechaty-puppet'
+import {
+  PuppetMock,
+  mock,
+}               from '../src/mod'
 
-import { PuppetMock } from '../src/mod'
+const mocker = new mock.Mocker()
+mocker.use(mock.SimpleEnvironment())
 
 /**
  *
  * 1. Declare your Bot!
  *
  */
-const puppet = new PuppetMock()
+const puppet = new PuppetMock({ mocker })
 
 /**
  *
