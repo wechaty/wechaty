@@ -198,10 +198,16 @@ export class PuppetService extends Puppet {
     }
   }
 
-  private async getServiceIp (endpoint: string, token: string) {
+  private async getServiceIp (
+    endpoint : string,
+    token    : string,
+  ): Promise<{
+    ip   : string,
+    port : number,
+  }> {
     const url = `${endpoint}/v0/hosties/${token}`
 
-    return new Promise<{ port: number, ip: string }>((resolve, reject) => {
+    const jsonStr = await new Promise<string>((resolve, reject) => {
       const httpClient = /^https:\/\//.test(url) ? https : http
       httpClient.get(url, function (res) {
         let body = ''
@@ -209,12 +215,31 @@ export class PuppetService extends Puppet {
           body += chunk
         })
         res.on('end', function () {
-          resolve(JSON.parse(body))
+          resolve(body)
         })
       }).on('error', function (e) {
         reject(new Error(`PuppetService discoverServiceIp() endpoint<${url}> rejection: ${e}`))
       })
     })
+
+    try {
+      const result = JSON.parse(jsonStr) as { port: number, ip: string }
+      return result
+
+    } catch (e) {
+      console.error([
+        `wechaty-puppet-service: PuppetService.getServiceIp(${endpoint}, ${token}`,
+        `failed: unable to parse JSON str to object:`,
+        '----- jsonStr START -----',
+        jsonStr,
+        '----- jsonStr END -----',
+      ].join('\n'))
+    }
+
+    return {
+      ip: '0.0.0.0',
+      port: 0,
+    }
   }
 
   protected async startGrpcClient (): Promise<void> {
