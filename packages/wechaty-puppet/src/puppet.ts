@@ -1011,15 +1011,15 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Room
    *
    */
-  public abstract roomAdd (roomId: string, contactId: string)          : Promise<void>
-  public abstract roomAvatar (roomId: string)                          : Promise<FileBox>
-  public abstract roomCreate (contactIdList: string[], topic?: string) : Promise<string>
-  public abstract roomDel (roomId: string, contactId: string)          : Promise<void>
-  public abstract roomList ()                                          : Promise<string[]>
-  public abstract roomQRCode (roomId: string)                          : Promise<string>
-  public abstract roomQuit (roomId: string)                            : Promise<void>
-  public abstract roomTopic (roomId: string)                           : Promise<string>
-  public abstract roomTopic (roomId: string, topic: string)            : Promise<void>
+  public abstract roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void>
+  public abstract roomAvatar (roomId: string)                                       : Promise<FileBox>
+  public abstract roomCreate (contactIdList: string[], topic?: string)              : Promise<string>
+  public abstract roomDel (roomId: string, contactId: string)                       : Promise<void>
+  public abstract roomList ()                                                       : Promise<string[]>
+  public abstract roomQRCode (roomId: string)                                       : Promise<string>
+  public abstract roomQuit (roomId: string)                                         : Promise<void>
+  public abstract roomTopic (roomId: string)                                        : Promise<string>
+  public abstract roomTopic (roomId: string, topic: string)                         : Promise<void>
 
   protected abstract roomRawPayload (roomId: string)        : Promise<any>
   protected abstract roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload>

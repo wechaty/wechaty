@@ -137,12 +137,12 @@ export class PuppetTest extends Puppet {
   override async roomAnnounce (roomId: string, text: string)  : Promise<void>
   override async roomAnnounce (roomId: string, text?: string) : Promise<void | string> { return { roomId, text } as any }
 
-  override async roomAdd (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
-  override async roomAvatar (roomId: string)                          : Promise<FileBox> { return { roomId } as any }
-  override async roomCreate (contactIdList: string[], topic?: string) : Promise<string> { return { contactIdList, topic } as any }
-  override async roomDel (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
-  override async roomQuit (roomId: string)                            : Promise<void> { return { roomId } as any }
-  override async roomQRCode (roomId: string)                          : Promise<string> { return { roomId } as any }
+  override async roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void> { return { contactId, roomId, inviteOnly } as any }
+  override async roomAvatar (roomId: string)                                       : Promise<FileBox> { return { roomId } as any }
+  override async roomCreate (contactIdList: string[], topic?: string)              : Promise<string> { return { contactIdList, topic } as any }
+  override async roomDel (roomId: string, contactId: string)                       : Promise<void> { return { contactId, roomId } as any }
+  override async roomQuit (roomId: string)                                         : Promise<void> { return { roomId } as any }
+  override async roomQRCode (roomId: string)                                       : Promise<string> { return { roomId } as any }
 
   override async roomTopic (roomId: string)                 : Promise<string>
   override async roomTopic (roomId: string, topic: string)  : Promise<void>
