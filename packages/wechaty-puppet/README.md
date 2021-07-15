@@ -91,6 +91,19 @@ Brolog has five log levels, it should be used and follow the following rules:
 | `log.warn()` | There's a Coverable Error | **Should not be used** unless we have to |
 | `log.error()` | There's a Un-covered Error | **Should not be used** unless we have to |
 
+### 3. Using LRU Cache
+
+Set the max size for wechaty entities in LRU Cache.
+
+| Env Name | What does it means |
+| :---     | :---               |
+| `WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT` | The max cache size for contact, default value `3000` |
+| `WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP` | The max cache size for friendship, default value `100` |
+| `WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE` | The max cache size for message, default value `500` |
+| `WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM` | The max cache size for room, default value `500` |
+| `WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION` | The max cache size for room invitation, default value `100` |
+| `WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER` | The max cache size for room member, default value `30000` |
+
 ## Resources
 
 ### Pure Function

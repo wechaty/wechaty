@@ -33,6 +33,12 @@ import {
   FileBox,
   MemoryCard,
   log,
+  WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT,
+  WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP,
+  WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE,
+  WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM,
+  WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION,
+  WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER,
 }                       from './config'
 
 import {
@@ -170,14 +176,14 @@ export abstract class Puppet extends PuppetEventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions = (maxSize = 100): QuickLruOptions<any, any> => ({ maxSize })
+    const lruOptions = (maxSize = '100'): QuickLruOptions<any, any> => ({ maxSize: Number(maxSize) })
 
-    this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions(3000))
-    this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions(100))
-    this.cacheMessagePayload        = new QuickLru<string, MessagePayload>(lruOptions(500))
-    this.cacheRoomPayload           = new QuickLru<string, RoomPayload>(lruOptions(500))
-    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions(100))
-    this.cacheRoomMemberPayload     = new QuickLru<string, RoomMemberPayload>(lruOptions(60 * 500))
+    this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT))
+    this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP))
+    this.cacheMessagePayload        = new QuickLru<string, MessagePayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE))
+    this.cacheRoomPayload           = new QuickLru<string, RoomPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM))
+    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION))
+    this.cacheRoomMemberPayload     = new QuickLru<string, RoomMemberPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER))
 
     /**
      * 4. Load the package.json for Puppet Plugin version range matching
