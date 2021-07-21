@@ -981,7 +981,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * @ignore
    */
   public static async sleep (millisecond: number): Promise<void> {
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       setTimeout(resolve, millisecond)
     })
   }
