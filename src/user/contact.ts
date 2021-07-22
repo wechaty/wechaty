@@ -844,6 +844,9 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
+  public async readMark (hasRead: boolean): Promise<void>
+  public async readMark (): Promise<boolean>
+
   /**
    * Mark the conversation as read
    * @param { undefined | boolean } hasRead
@@ -853,8 +856,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const contact = await bot.Contact.find({name: 'xxx'})
    * await contact.readMark()
    */
-  public async readMark (hasRead: boolean): Promise<void>
-  public async readMark (): Promise<boolean>
+
   public async readMark (hasRead?: boolean): Promise<void | boolean> {
     try {
       if (typeof hasRead === 'undefined') {

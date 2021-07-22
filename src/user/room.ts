@@ -1023,6 +1023,9 @@ class Room extends RoomEventEmitter implements Sayable {
     return null
   }
 
+  public async readMark (hasRead: boolean): Promise<void>
+  public async readMark (): Promise<boolean>
+
   /**
    * Mark the conversation as read
    * @param { undefined | boolean } hasRead
@@ -1032,8 +1035,6 @@ class Room extends RoomEventEmitter implements Sayable {
    * const room = await bot.Room.find({topic: 'xxx'})
    * await room.readMark()
    */
-  public async readMark (hasRead: boolean): Promise<void>
-  public async readMark (): Promise<boolean>
   public async readMark (hasRead?: boolean): Promise<void | boolean> {
     try {
       if (typeof hasRead === 'undefined') {
