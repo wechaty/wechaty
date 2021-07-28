@@ -908,8 +908,9 @@ export function puppetImplementation (
       try {
         const roomId = call.request.getId()
         const contactId = call.request.getContactId()
+        const inviteOnly = call.request.getInviteOnly()
 
-        await puppet.roomAdd(roomId, contactId)
+        await puppet.roomAdd(roomId, contactId, inviteOnly)
 
         return callback(null, new RoomAddResponse())
 

@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.23.1",
+  "version": "0.23.2",
   "description": "Puppet Service for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -54,7 +54,7 @@
     "tstest": "^0.4.10",
     "typescript": "4.3",
     "wechaty": "^0.61",
-    "wechaty-puppet": "^0.41.3",
+    "wechaty-puppet": "^0.41.7",
     "wechaty-puppet-mock": "^0.29.6"
   },
   "peerDependencies": {
@@ -63,7 +63,7 @@
   "dependencies": {
     "rxjs": "^7.1.0",
     "stronger-typed-streams": "^0.2.0",
-    "wechaty-grpc": "^0.23.9"
+    "wechaty-grpc": "^0.23.13"
   },
   "publishConfig": {
     "access": "public",
