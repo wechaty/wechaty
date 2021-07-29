@@ -19,7 +19,7 @@
  *
  */
 
-import test  from 'blue-tape'
+import { test }  from 'tap'
 
 import { config } from './config'
 // import { Puppet } from './puppet'

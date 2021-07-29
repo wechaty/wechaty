@@ -19,7 +19,7 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test, skip }  from 'tap'
 import sinon from 'sinon'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
@@ -130,7 +130,7 @@ test('event:start/stop', async t => {
 //   console.log(m)
 // })
 
-test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
+skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
   const spy     = sinon.spy()
   const wechaty = Wechaty.instance()
 
@@ -150,7 +150,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
 
 })
 
-test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) => {
+skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) => {
 
   // Do not modify the global Wechaty instance
   class MyWechatyTest extends Wechaty {}

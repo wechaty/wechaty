@@ -19,7 +19,7 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test }  from 'tap'
 
 import { Io }       from './io'
 import { Wechaty }  from './wechaty'

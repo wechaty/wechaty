@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test }  from 'tap'
 import sinon from 'sinon'
 
 import { ContactPayload } from 'wechaty-puppet'

@@ -19,7 +19,7 @@
  *
  */
 
-import test  from 'blue-tape'
+import { test }  from 'tap'
 import sinon from 'sinon'
 
 import {
