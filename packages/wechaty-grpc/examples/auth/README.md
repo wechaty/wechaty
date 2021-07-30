@@ -2,6 +2,10 @@
 
 Use Wechaty TOKEN for authorization.
 
+## GLOSSARY
+
+1. Certificate Signing Requests (CSRs)
+
 ## RESOURCES
 
 - [TLS mutual authentication fails with Node.js grpc/grpc#6757](https://github.com/grpc/grpc/issues/6757#issuecomment-261703455)
