@@ -27,6 +27,7 @@ message RoomPayloadResponse {
 message RoomAddRequest {
   string id = 1;
   string contact_id = 2;
+  bool   invite_only = 3;
 }
 message RoomAddResponse {}
 

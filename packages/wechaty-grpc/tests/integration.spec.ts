@@ -91,7 +91,7 @@ test('integration testing', async (t) => {
   /**
    * Close Client & Server
    */
-  await new Promise(resolve => setImmediate(resolve))
+  await new Promise<void>(resolve => setImmediate(resolve))
   eventStream.cancel()
 
   await new Promise(resolve => server.tryShutdown(resolve))
