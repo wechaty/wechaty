@@ -62,8 +62,10 @@ const puppetServerExample: IPuppetServer = {
   ding: (call, callback) => {
     const data = call.request.getData()
     console.info(`ding(${data})`)
-    console.info(call.metadata.getMap())
-
+    console.info('metadata:', call.metadata.getMap())
+    console.info('getPeer:', call.getPeer())
+    console.info('getDeadLine:', call.getDeadline())
+    // console.info('getDeadLine:', call.)
     if (!eventStream) {
       dingQueue.push(data)
     } else {
@@ -87,7 +89,11 @@ async function main () {
     PuppetService,
     puppetServerExample,
   )
-  const port = await util.promisify(server.bindAsync.bind(server))(
+  const serverBindPromise = util.promisify(
+    server.bindAsync.bind(server)
+  )
+
+  const port = await serverBindPromise(
     '127.0.0.1:8788',
     grpc.ServerCredentials.createInsecure(),
   )
@@ -97,7 +103,6 @@ async function main () {
 }
 
 main()
-  // .then(process.exit)
   .catch(e => {
     console.error(e)
     process.exit(1)

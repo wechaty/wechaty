@@ -171,10 +171,15 @@ See also: [AIP-4222 - Routing headers](https://google.aip.dev/client-libraries/4
 
 ## RESOURCES
 
+### Guidelines
+
+- [Google Protocol Buffers Style Guide](https://developers.google.com/protocol-buffers/docs/style)
+- [Google Cloud API Naming Conventions](https://cloud.google.com/apis/design/naming_convention)
+- [Google Cloud Cloud API Design Guide](https://cloud.google.com/apis/design/)
+
 ### Documentation
 
 - [Protocol Buffers Language Guide (proto3)](https://developers.google.com/protocol-buffers/docs/proto3)
-- [Google Protocol Buffers Style Guide](https://developers.google.com/protocol-buffers/docs/style)
 - [Protocol Buffers for TypeScript with Decorators](https://github.com/protobufjs/protobuf.js#using-decorators)
 - [Troubleshooting gRPC](https://github.com/grpc/grpc/blob/master/TROUBLESHOOTING.md)
 - [gRPC environment variables](https://github.com/grpc/grpc/blob/master/doc/environment_variables.md)
@@ -291,6 +296,6 @@ Initial commiit
 
 ## COPYRIGHT & LICENSE
 
-- Code & Docs © 2018-now Huan LI \<zixia@zixia.net\>
+- Code & Docs © 2018-now Wechaty Authors \<zixia@zixia.net\>
 - Code released under the Apache-2.0 License
 - Docs released under Creative Commons

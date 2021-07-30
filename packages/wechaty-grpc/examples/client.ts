@@ -3,6 +3,7 @@
 // tslint:disable:no-shadowed-variable
 // tslint:disable:callable-types
 
+// import { Metadata } from '@grpc/grpc-js'
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
 // import { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
@@ -58,7 +59,9 @@ export async function testDing (client: PuppetClient) {
   const dingRequest = new DingRequest()
   dingRequest.setData('dingdong')
   try {
-    await ding(dingRequest)
+    // const metadata = new Metadata()
+    // metadata.set('grpc.default_authority', 'puppet_token')
+    await ding(dingRequest/* metadata */)
   } catch (e) {
     console.error(e)
   }
@@ -103,7 +106,7 @@ async function main () {
 
   testStream(client)
   setInterval(() => testDing(client), 1000)
-  await testAlias(client)
+  // await testAlias(client)
 
   return 0
 }
