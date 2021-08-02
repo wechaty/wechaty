@@ -1,6 +1,6 @@
 # wechaty-token
 
-[![NPM](https://github.com/huan/wechaty-token/workflows/NPM/badge.svg)](https://github.com/huan/wechaty-token/actions?query=workflow%3ANPM)
+[![NPM](https://github.com/wechaty/token/actions/workflows/npm.yml/badge.svg)](https://github.com/wechaty/token/actions/workflows/npm.yml)
 [![NPM Version](https://badge.fury.io/js/wechaty-token.svg)](https://badge.fury.io/js/wechaty-token)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty-token/next.svg)](https://www.npmjs.com/package/wechaty-token?activeTab=versions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
