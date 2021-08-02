@@ -9,6 +9,7 @@ Use Wechaty TOKEN for authorization.
 ## RESOURCES
 
 - [TLS mutual authentication fails with Node.js grpc/grpc#6757](https://github.com/grpc/grpc/issues/6757#issuecomment-261703455)
+- [What is a Pem file and how does it differ from other OpenSSL Generated Key File Formats?](https://serverfault.com/questions/9708/what-is-a-pem-file-and-how-does-it-differ-from-other-openssl-generated-key-file)
 
 ## AUTHOR
 

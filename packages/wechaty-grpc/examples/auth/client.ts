@@ -24,18 +24,20 @@ export async function testDing (client: PuppetClient) {
 async function main () {
   const TOKEN = '__token__'
 
-  const metadata = new grpc.Metadata()
-  metadata.add('authorization', `Bearer ${TOKEN}`)
-  const headerCreds = grpc.credentials.createFromMetadataGenerator((_, callback) => callback(null, metadata))
+  const headerCreds = grpc.credentials.createFromMetadataGenerator((_callMetaOptoins, callback) => {
+    const metadata = new grpc.Metadata()
+    metadata.add('authorization', `Wechaty ${TOKEN}`)
+    callback(null, metadata)
+  })
 
-  const certChain  = fs.readFileSync('client.crt')
-  const privateKey = fs.readFileSync('client.key')
-  const rootCerts  = fs.readFileSync('ca.crt')
+  // const certChain  = fs.readFileSync('client.crt')
+  // const privateKey = fs.readFileSync('client.key')
+  // const rootCerts  = null // fs.readFileSync('ca.crt')
   void fs
 
   const creds = grpc.credentials.combineChannelCredentials(
     // grpc.credentials.createInsecure(),
-    grpc.credentials.createSsl(rootCerts, privateKey, certChain),
+    grpc.credentials.createSsl(), // rootCerts, privateKey, certChain),
     headerCreds,
   )
 

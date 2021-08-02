@@ -1,6 +1,8 @@
 import util from 'util'
 import fs from 'fs'
 
+import { Status as GrpcServerStatus } from '@grpc/grpc-js/build/src/constants'
+
 import {
   grpc,
   IPuppetServer,
@@ -11,6 +13,7 @@ import {
 import {
   puppetServerImpl,
 }                     from '../../tests/puppet-server-impl'
+import { StatusBuilder } from '@grpc/grpc-js'
 
 const puppetServerExample: IPuppetServer = {
   ...puppetServerImpl,
@@ -21,8 +24,18 @@ const puppetServerExample: IPuppetServer = {
     console.info('metadata:', call.metadata.getMap())
     console.info('getPeer:', call.getPeer())
     console.info('getDeadLine:', call.getDeadline())
-    // console.info('getDeadLine:', call.)
+
+    const error = new StatusBuilder()
+      .withCode(GrpcServerStatus.UNAUTHENTICATED)
+      .withDetails('The server need "Authorization: Wechaty TOKEN" to accept the request')
+      .withMetadata(call.metadata)
+      .build()
+
+    void error
     callback(null, new DingResponse())
+
+    // console.info('getDeadLine:', call.)
+    // callback(error, new DingResponse())
   },
 }
 
@@ -37,11 +50,14 @@ async function main () {
     server.bindAsync.bind(server)
   )
 
-  const rootCerts: Buffer = fs.readFileSync('ca.crt')
-  const keyCertPairs: grpc.KeyCertPair[] = [{
-    cert_chain  : fs.readFileSync('server.crt'),
-    private_key : fs.readFileSync('server.key'),
-  }]
+  void fs
+
+  const rootCerts: null | Buffer = null // fs.readFileSync('ca.crt')
+  const keyCertPairs: grpc.KeyCertPair[] = []
+  // [{
+  //   cert_chain  : fs.readFileSync('server.crt'),
+  //   private_key : fs.readFileSync('server.key'),
+  // }]
   const checkClientCertificate = false
 
   const port = await serverBindPromise(
