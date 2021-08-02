@@ -93,7 +93,7 @@ puppet_foo_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
 
 ### master
 
-### v0.1 master (Aug 2, 2021)
+### v0.2 master (Aug 2, 2021)
 
 1. `wechaty-token` CLI released
 1. gRPC Resolver for Wechaty: enable schema `wechaty:///puppet_TOKEN` for gRPC client
