@@ -88,7 +88,7 @@ class WechatyToken {
 
     } catch (e) {
       console.error([
-        `wechaty-puppet-service: WechatyToken.discover(${token})`,
+        `WechatyToken.discover(${token})`,
         'failed: unable to parse JSON str to object:',
         '----- jsonStr START -----',
         jsonStr,

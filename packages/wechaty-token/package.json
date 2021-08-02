@@ -46,8 +46,7 @@
     "@types/uuid": "^8.3.1",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
-    "tstest": "^0.4.10",
-    "wechaty-puppet": "^0.40.0"
+    "tstest": "^0.4.10"
   },
   "publishConfig": {
     "access": "public",
@@ -58,10 +57,8 @@
       "pre-push": "npx git-scripts-pre-push"
     }
   },
-  "peerDependencies": {
-    "wechaty-puppet": "*"
-  },
   "dependencies": {
+    "brolog": "^1.12.4",
     "cmd-ts": "^0.7.0",
     "uuid": "^8.3.2"
   }

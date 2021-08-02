@@ -1,4 +1,4 @@
-import { log } from 'wechaty-puppet'
+import { log } from 'brolog'
 
 const DEFAULT_AUTHORITY = 'api.chatie.io'
 

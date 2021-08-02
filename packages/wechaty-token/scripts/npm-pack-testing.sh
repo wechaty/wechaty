@@ -21,9 +21,6 @@ cd $TMPDIR
 npm init -y
 npm install ./*-*.*.*.tgz \
   @chatie/tsconfig \
-  \
-  "wechaty-puppet@$NPM_TAG" \
-  "wechaty@$NPM_TAG" \
 
 ./node_modules/.bin/tsc \
   --esModuleInterop \
