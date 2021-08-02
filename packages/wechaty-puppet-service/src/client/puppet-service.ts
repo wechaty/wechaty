@@ -228,7 +228,7 @@ export class PuppetService extends Puppet {
 
     } catch (e) {
       console.error([
-        `wechaty-puppet-service: PuppetService.getServiceIp(${endpoint}, ${token}`,
+        `wechaty-puppet-service: PuppetService.getServiceIp(${endpoint}, ${token})`,
         'failed: unable to parse JSON str to object:',
         '----- jsonStr START -----',
         jsonStr,
