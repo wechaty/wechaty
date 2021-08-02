@@ -1,0 +1,55 @@
+{
+  "name": "wechaty-token",
+  "version": "0.0.1",
+  "description": "Wechaty Token Based Authentication Manager",
+  "main": "dist/src/mod.js",
+  "typings": "dist/src/mod.d.ts",
+  "engines": {
+    "wechaty": ">=0.60"
+  },
+  "scripts": {
+    "clean": "shx rm -fr dist/*",
+    "dist": "npm run clean && tsc",
+    "pack": "npm pack",
+    "start": "ts-node examples/ding-dong-bot.ts",
+    "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
+    "lint:md": "markdownlint README.md",
+    "lint:ts": "tsc --noEmit",
+    "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
+    "test": "npm run lint && npm run test:unit",
+    "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "test:unit": "blue-tape -r ts-node/register 'src/**/*.spec.ts' 'tests/**/*.spec.ts'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wechaty/token.git"
+  },
+  "keywords": [
+    "wechaty",
+    "token",
+  ],
+  "author": "Huan LI <zixia@zixia.net>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wechaty/token/issues"
+  },
+  "homepage": "https://github.com/wechaty/token#readme",
+  "devDependencies": {
+    "@chatie/eslint-config": "^0.12.1",
+    "@chatie/git-scripts": "^0.6.2",
+    "@chatie/semver": "^0.4.7",
+    "@chatie/tsconfig": "^0.11.4",
+    "pkg-jq": "^0.2.4",
+    "shx": "^0.3.2",
+    "tstest": "^0.4.10"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
+  "git": {
+    "scripts": {
+      "pre-push": "npx git-scripts-pre-push"
+    }
+  }
+}
