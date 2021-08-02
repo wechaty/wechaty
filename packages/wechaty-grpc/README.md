@@ -168,6 +168,8 @@ See also: [AIP-4222 - Routing headers](https://google.aip.dev/client-libraries/4
 ## gRPC Web
 
 - [gRPC-Web ReactJS client, Golang Server](https://github.com/longfellowone/grpcwebtest)
+- [gRPC-Web: Moving past REST+JSON towards type-safe Web APIs](https://improbable.io/blog/grpc-web-moving-past-restjson-towards-type-safe-web-apis)
+- [Library for making gRPC-Web requests intended for TypeScript from either a browser or Node.js.](https://github.com/improbable-eng/grpc-web/tree/master/ts)
 
 ## RESOURCES
 
@@ -200,11 +202,6 @@ See also: [AIP-4222 - Routing headers](https://google.aip.dev/client-libraries/4
 - [Protocol Buffers for JavaScript (& TypeScript)](https://github.com/dcodeIO/protobuf.js)
 - [Missing value/null support for scalar value types in proto 3](https://github.com/protocolbuffers/protobuf/issues/1606)
 - [How to Make a Nullable Field in Proto3 for a HTTP Response?](https://stackoverflow.com/questions/57908389/how-to-make-a-nullable-field-in-proto3-for-a-http-response)
-
-#### gRPC Web
-
-- [gRPC-Web: Moving past REST+JSON towards type-safe Web APIs](https://improbable.io/blog/grpc-web-moving-past-restjson-towards-type-safe-web-apis)
-- [Library for making gRPC-Web requests intended for TypeScript from either a browser or Node.js.](https://github.com/improbable-eng/grpc-web/tree/master/ts)
 
 #### TypeScript Generator
 
@@ -243,6 +240,14 @@ TCP hole punching
 - [An introduction to NuGet  (microsoft)](https://docs.microsoft.com/en-us/nuget/what-is-nuget)
 - [Create a gRPC client and server in ASP.NET Core (microsoft)](https://docs.microsoft.com/en-us/aspnet/core/tutorials/grpc/grpc-start?view=aspnetcore-3.1&tabs=visual-studio)
 - [ASP.NET Core 3.0 使用gRPC (晓晨Master)](https://www.cnblogs.com/stulzq/p/11581967.html)
+
+#### gRPC with XDS (Universal Data Plane API) and Service Mesh
+
+- [Traffic Director with proxyless gRPC services overview](https://cloud.google.com/traffic-director/docs/proxyless-overview)
+- [Build Your Own Envoy Control Plane - Steve Sloka, VMware](https://www.youtube.com/watch?v=qAuq4cKEG_E)
+- [Service mesh data plane vs. control plane](https://blog.envoyproxy.io/service-mesh-data-plane-vs-control-plane-2774e720f7fc)
+- [gRPC xDS Loadbalancing](https://salmaan-rashid.medium.com/grpc-xds-loadbalancing-a05f8bd754b8)
+- [Envoy Dynamic configuration (control plane)](https://www.envoyproxy.io/docs/envoy/latest/start/sandboxes/dynamic-configuration-control-plane)
 
 ## HISTORY
 
