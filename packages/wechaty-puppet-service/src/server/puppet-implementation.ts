@@ -694,7 +694,6 @@ export function puppetImplementation (
         const payload = await puppet.messagePayload(id)
 
         const mentionIdList = ('mentionIdList' in payload)
-          // Huan(202006) use `??` instead of `||` after eslint get fixed
           ? payload.mentionIdList || []
           : []
 
@@ -909,8 +908,9 @@ export function puppetImplementation (
       try {
         const roomId = call.request.getId()
         const contactId = call.request.getContactId()
+        const inviteOnly = call.request.getInviteOnly()
 
-        await puppet.roomAdd(roomId, contactId)
+        await puppet.roomAdd(roomId, contactId, inviteOnly)
 
         return callback(null, new RoomAddResponse())
 
@@ -1055,6 +1055,7 @@ export function puppetImplementation (
         response.setId(payload.id)
         response.setInvitation(payload.invitation)
         response.setInviterId(payload.inviterId)
+        response.setReceiverId(payload.receiverId)
         response.setMemberCount(payload.memberCount)
         response.setMemberIdsList(payload.memberIdList)
         response.setTimestamp(Math.floor(payload.timestamp))

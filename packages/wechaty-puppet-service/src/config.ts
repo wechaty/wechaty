@@ -2,23 +2,27 @@
 
 import { log }  from 'wechaty-puppet'
 
-export { VERSION } from './version'
+import { VERSION } from './version'
 
-export const GRPC_OPTIONS = {
+const GRPC_OPTIONS = {
   // https://github.com/wechaty/wechaty-puppet-service/issues/86
   // 'grpc.max_receive_message_length': 1024 * 1024 * 150,
   // 'grpc.max_send_message_length': 1024 * 1024 * 150,
 }
 
 // Huan(202011): use a function to return the value in time.
-export const WECHATY_PUPPET_SERVICE_TOKEN    = () => {
-  if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
-    return process.env.WECHATY_PUPPET_SERVICE_TOKEN
+const GET_WECHATY_PUPPET_SERVICE_TOKEN = (token?: string) => {
+  if (token) {
+    return token
+  }
+
+  if (process.env['WECHATY_PUPPET_SERVICE_TOKEN']) {
+    return process.env['WECHATY_PUPPET_SERVICE_TOKEN']
   }
   /**
    * Huan(202102): remove this deprecated warning after Dec 31, 2021
    */
-  if (process.env.WECHATY_PUPPET_HOSTIE_TOKEN) {
+  if (process.env['WECHATY_PUPPET_HOSTIE_TOKEN']) {
     log.warn('wechaty-puppet-service', [
       '',
       'WECHATY_PUPPET_HOSTIE_TOKEN has been deprecated,',
@@ -26,19 +30,23 @@ export const WECHATY_PUPPET_SERVICE_TOKEN    = () => {
       'See: https://github.com/wechaty/wechaty-puppet-service/issues/118',
       '',
     ].join(' '))
-    return process.env.WECHATY_PUPPET_HOSTIE_TOKEN
+    return process.env['WECHATY_PUPPET_HOSTIE_TOKEN']
   }
   return undefined
 }
 
-export const WECHATY_PUPPET_SERVICE_ENDPOINT = () => {
-  if (process.env.WECHATY_PUPPET_SERVICE_ENDPOINT) {
-    return process.env.WECHATY_PUPPET_SERVICE_ENDPOINT
+const GET_WECHATY_PUPPET_SERVICE_ENDPOINT = (endpoint?: string) => {
+  if (endpoint) {
+    return endpoint
+  }
+
+  if (process.env['WECHATY_PUPPET_SERVICE_ENDPOINT']) {
+    return process.env['WECHATY_PUPPET_SERVICE_ENDPOINT']
   }
   /**
    * Huan(202102): remove this deprecated warning after Dec 31, 2021
    */
-  if (process.env.WECHATY_PUPPET_HOSTIE_ENDPOINT) {
+  if (process.env['WECHATY_PUPPET_HOSTIE_ENDPOINT']) {
     log.warn('wechaty-puppet-service', [
       '',
       'WECHATY_PUPPET_HOSTIE_ENDPOINT has been deprecated,',
@@ -46,11 +54,25 @@ export const WECHATY_PUPPET_SERVICE_ENDPOINT = () => {
       'See: https://github.com/wechaty/wechaty-puppet-service/issues/118',
       '',
     ].join(' '))
-    return process.env.WECHATY_PUPPET_HOSTIE_ENDPOINT
+    return process.env['WECHATY_PUPPET_HOSTIE_ENDPOINT']
   }
   return undefined
 }
 
+const GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT = (endpoint?: string) => {
+  if (endpoint) {
+    return endpoint
+  }
+
+  return process.env['WECHATY_SERVICE_DISCOVERY_ENDPOINT']
+    || 'https://api.chatie.io'
+}
+
 export {
   log,
+  GRPC_OPTIONS,
+  VERSION,
+  GET_WECHATY_PUPPET_SERVICE_ENDPOINT,
+  GET_WECHATY_PUPPET_SERVICE_TOKEN,
+  GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT,
 }
