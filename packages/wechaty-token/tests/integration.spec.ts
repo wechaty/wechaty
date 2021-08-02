@@ -7,5 +7,6 @@ import {
 }                         from '../src/mod'
 
 test('integration testing', async t => {
+  void WechatyToken
   t.skip('tbw')
 })

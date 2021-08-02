@@ -7,6 +7,9 @@
   "engines": {
     "wechaty": ">=0.60"
   },
+  "bin": {
+    "wechaty-token": "dist/bin/cli.js"
+  },
   "scripts": {
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc",
@@ -56,6 +59,7 @@
     }
   },
   "dependencies": {
+    "cmd-ts": "^0.7.0",
     "uuid": "^8.3.2"
   }
 }

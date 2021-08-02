@@ -27,5 +27,4 @@ export {
   uriToString,
   resolverManager,
   TcpSubchannelAddress,
-  // subchannel,
 }
