@@ -8,6 +8,10 @@ import {
   log,
 }                     from './config'
 
+import {
+  VERSION,
+}                     from './version'
+
 interface PuppetServiceAddress {
   host: string,
   port: number,
@@ -22,6 +26,11 @@ type WechatyTokenType = 'uuid'
                       | string
 
 class WechatyToken {
+
+  static VERSION = VERSION
+  version () {
+    return VERSION
+  }
 
   public authority: string
 

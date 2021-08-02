@@ -4,13 +4,13 @@ import {
 }                     from './config'
 
 import {
-  GrpcStatus,
   ChannelOptions,
-  Metadata,
+  GrpcStatus,
   GrpcUri,
-  uriToString,
-  TcpSubchannelAddress,
+  Metadata,
   resolverManager,
+  TcpSubchannelAddress,
+  uriToString,
 }                         from './grpc-js'
 
 import { WechatyToken } from './wechaty-token'
@@ -52,38 +52,38 @@ class WechatyResolver implements resolverManager.Resolver {
     })
   }
 
-  updateResolution (): void {
+  async updateResolution (): Promise<void> {
     log.verbose('ResolverWechaty', 'updateResolution()')
 
-    this.wechatyToken.discover(this.target.path).then(address => {
-      if (address.port) {
-        this.addresses = [address]
+    let address
 
-        /**
-         * See: grpc-js/src/resolver-uds.ts
-         */
-        process.nextTick(
-          this.listener.onSuccessfulResolution,
-          this.addresses,
-          null,
-          null,
-          null,
-          {}
-        )
-
-      } else {
-        log.warn('ResolverWechaty', 'updateResolution() Resolution error for target ' + uriToString(this.target) + ': token does not exist')
-        this.reportResolutionError(`token "${this.target.path}" does not exist`)
-      }
-
-      return undefined  // Huan(202108): make linter happy
-
-    }).catch(e => {
+    try {
+      address = await this.wechatyToken.discover(this.target.path)
+    } catch (e) {
       log.warn('WechatyResolver', 'updateResolution() Resolution error for target ' + uriToString(this.target) + ' due to error ' + e.message)
       console.error(e)
       this.reportResolutionError(e.message)
-    })
+    }
 
+    if (!address || !address.port) {
+      log.warn('ResolverWechaty', 'updateResolution() not found target ' + uriToString(this.target) + ': token does not exist')
+      this.reportResolutionError(`token "${this.target.path}" does not exist`)
+      return
+    }
+
+    this.addresses = [address]
+
+    /**
+     * See: grpc-js/src/resolver-uds.ts
+     */
+    process.nextTick(
+      this.listener.onSuccessfulResolution,
+      this.addresses,
+      null,
+      null,
+      null,
+      {}
+    )
   }
 
   destroy () {
