@@ -46,6 +46,13 @@ The token set to this environment variable will become the default value of `pup
 WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 ```
 
+## Resources
+
+### Authentication
+
+1. [Authentication and Security in gRPC Microservices - Jan Tattermusch, Google](https://youtu.be/_y-lzjdVEf0)
+1. [[gRPC #15] Implement gRPC interceptor + JWT authentication in Go](https://youtu.be/kVpB-uH6X-s)
+
 ## History
 
 ### v0.15 master
