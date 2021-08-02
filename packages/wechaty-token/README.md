@@ -5,6 +5,8 @@
 [![npm (tag)](https://img.shields.io/npm/v/wechaty-token/next.svg)](https://www.npmjs.com/package/wechaty-token?activeTab=versions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 
+![wechaty token](docs/images/wechaty-token.png)
+
 Wechaty Token Based Authentication Manager
 
 ## Install

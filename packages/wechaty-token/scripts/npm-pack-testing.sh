@@ -21,6 +21,7 @@ cd $TMPDIR
 npm init -y
 npm install ./*-*.*.*.tgz \
   @chatie/tsconfig \
+  @grpc/grpc-js \
 
 ./node_modules/.bin/tsc \
   --esModuleInterop \
