@@ -15,7 +15,7 @@ Wechaty Token Based Authentication Manager
 npm install -g wechaty-token
 ```
 
-## Usage
+## CLI Usage
 
 ```sh
 $ wechaty-token --help
@@ -88,6 +88,23 @@ $ wechaty-token generate
 $ wechaty-token generate --type foo
 puppet_foo_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
 ```
+
+## gRPC Resolver Usage
+
+We now can use `wechaty:///__token__` as gRPC address for Wechaty Service Token Discovery.
+
+The `WechatyResolver` is for resolve the above address and help gRPC to connect to the right host and port. 
+
+```ts
+import { WechatyResolver } from 'wechaty-token'
+WechatyResolver.setup()
+// That's it! You can use `wechaty:///__token__` as gRPC address now!
+```
+
+See:
+
+- [gRPC Name Resolution](https://github.com/grpc/grpc/blob/master/doc/naming.md)
+- [Wechaty Puppet Service Code](https://github.com/wechaty/wechaty-puppet-service/blob/3a0285432e6916720c40604c61bcea6be5f63ab5/src/client/puppet-service.ts#L284-L285)
 
 ## History
 
