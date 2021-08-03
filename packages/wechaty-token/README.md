@@ -99,6 +99,10 @@ The `WechatyResolver` is for resolve the above address and help gRPC to connect 
 import { WechatyResolver } from 'wechaty-token'
 WechatyResolver.setup()
 // That's it! You can use `wechaty:///__token__` as gRPC address now!
+// const routeguide = grpc.loadPackageDefinition(packageDefinition).routeguide;
+// client = new routeguide.RouteGuide('wechaty:///__token__',
+                                       grpc.credentials.createInsecure());
+// See: https://grpc.io/docs/languages/node/basics/
 ```
 
 See:
