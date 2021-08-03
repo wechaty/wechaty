@@ -55,7 +55,13 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ## History
 
-### v0.15 master
+### master v0.25
+
+1. use [wechaty-token](https://github.com/wechaty/token)
+  for gRPC service discovery with `wechaty` schema (xDS like)
+1. deprecated `WECHATY_SERVICE_DISCOVERY_ENDPOINT`,
+  replaced by `WECHATY_PUPPET_SERVICE_AUTHORITY`.
+  (See [#156](https://github.com/wechaty/wechaty-puppet-service/issues/156))
 
 ### v0.14 (Jan 2021)
 

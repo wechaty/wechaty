@@ -59,14 +59,43 @@ const GET_WECHATY_PUPPET_SERVICE_ENDPOINT = (endpoint?: string) => {
   return undefined
 }
 
-const GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT = (endpoint?: string) => {
-  if (endpoint) {
-    return endpoint
+const GET_WECHATY_PUPPET_SERVICE_AUTHORITY = (authority?: string) => {
+  if (authority) {
+    return authority
   }
 
-  return process.env['WECHATY_SERVICE_DISCOVERY_ENDPOINT']
-    || 'https://api.chatie.io'
+  authority = process.env['WECHATY_PUPPET_SERVICE_AUTHORITY']
+  if (authority) {
+    return authority
+  }
+
+  const deprecatedDiscoveryEndpoint = process.env['WECHATY_SERVICE_DISCOVERY_ENDPOINT']
+  if (deprecatedDiscoveryEndpoint) {
+    console.error([
+      'Environment variable WECHATY_SERVICE_DISCOVERY_ENDPOINT is deprecated,',
+      'Use WECHATY_PUPPET_SERVICE_AUTHORITY instead.',
+      'See: https://github.com/wechaty/wechaty-puppet-service/issues/156',
+    ].join('\n'))
+    return deprecatedDiscoveryEndpoint
+      .replace(/^https?:\/\//, '')
+      .replace(/\/*$/, '')
+  }
+
+  return 'api.chatie.io'
 }
+
+/**
+ * Huan(202108): remove the below comments after confirm the above GET_WECHATY_PUPPET_SERVICE_AUTHORITY works as expected.
+ *  See: https://github.com/wechaty/wechaty-puppet-service/issues/156
+ */
+// const GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT = (endpoint?: string) => {
+//   if (endpoint) {
+//     return endpoint
+//   }
+
+//   return process.env['WECHATY_SERVICE_DISCOVERY_ENDPOINT']
+//     || 'https://api.chatie.io'
+// }
 
 export {
   log,
@@ -74,5 +103,5 @@ export {
   VERSION,
   GET_WECHATY_PUPPET_SERVICE_ENDPOINT,
   GET_WECHATY_PUPPET_SERVICE_TOKEN,
-  GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT,
+  GET_WECHATY_PUPPET_SERVICE_AUTHORITY,
 }

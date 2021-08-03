@@ -1,8 +1,6 @@
 import util from 'util'
 
 import { FileBoxType } from 'file-box'
-import https from 'https'
-import http from 'http'
 
 import {
   ContactPayload,
@@ -104,6 +102,7 @@ import {
   MessageSendFileStreamRequest,
   MessageSendFileRequest,
 }                                   from 'wechaty-grpc'
+import { WechatyResolver }          from 'wechaty-token'
 
 import { Subscription } from 'rxjs'
 
@@ -113,8 +112,8 @@ import {
   GRPC_OPTIONS,
   GET_WECHATY_PUPPET_SERVICE_TOKEN,
   GET_WECHATY_PUPPET_SERVICE_ENDPOINT,
-  GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT,
-}                                   from '../config'
+  GET_WECHATY_PUPPET_SERVICE_AUTHORITY,
+}                                         from '../config'
 
 import {
   EventTypeRev,
@@ -130,8 +129,17 @@ import {
   recover$,
 }             from './recover$'
 
-const MAX_SERVICE_IP_DISCOVERY_RETRIES = 10
+// Huan(202108): FIXME: does wechaty:///__token__ need to be retried?
+// const MAX_SERVICE_IP_DISCOVERY_RETRIES = 10
 const MAX_GRPC_CONNECTION_RETRIES = 5
+
+/**
+ * Huan(202108): register `wechaty` schema for gRPC service discovery
+ *  so that we can use `wechaty:///__token__` for gRPC address
+ *
+ *  See: https://github.com/wechaty/wechaty-puppet-service/issues/155
+ */
+WechatyResolver.setup()
 
 export class PuppetService extends Puppet {
 
@@ -167,80 +175,84 @@ export class PuppetService extends Puppet {
     this.cleanCallbackList = []
   }
 
-  private async discoverServiceIp (
-    token: string,
-  ): Promise<{ ip?: string, port?: number }> {
-    log.verbose('PuppetService', 'discoverServiceIp(%s)', token)
+  // Huan(202108): to be deleted
+  //  remove the following comments
+  //    after confirm that the `wechaty-token` module works as expected.
 
-    const chatieEndpoint = GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT()
+  // private async discoverServiceIp (
+  //   token: string,
+  // ): Promise<{ ip?: string, port?: number }> {
+  //   log.verbose('PuppetService', 'discoverServiceIp(%s)', token)
 
-    try {
-      return Promise.race<
-        Promise<{
-          ip: string,
-          port: number
-        }>
-      >([
-        this.getServiceIp(chatieEndpoint, token),
-        // eslint-disable-next-line promise/param-names
-        new Promise((_, reject) => setTimeout(
-          () => reject(new Error('ETIMEOUT')),
-          /**
-           * Huan(202106): Better deal with the timeout error
-           *  Related to https://github.com/wechaty/wechaty/issues/2197
-           */
-          5 * 1000,
-        )),
-      ])
-    } catch (e) {
-      log.warn(`discoverServiceIp() failed to get any ip info from all service endpoints.\n${e.stack}`)
-      return {}
-    }
-  }
+  //   const chatieEndpoint = GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT()
 
-  private async getServiceIp (
-    endpoint : string,
-    token    : string,
-  ): Promise<{
-    ip   : string,
-    port : number,
-  }> {
-    const url = `${endpoint}/v0/hosties/${token}`
+  //   try {
+  //     return Promise.race<
+  //       Promise<{
+  //         ip: string,
+  //         port: number
+  //       }>
+  //     >([
+  //       this.getServiceIp(chatieEndpoint, token),
+  //       // eslint-disable-next-line promise/param-names
+  //       new Promise((_, reject) => setTimeout(
+  //         () => reject(new Error('ETIMEOUT')),
+  //         /**
+  //          * Huan(202106): Better deal with the timeout error
+  //          *  Related to https://github.com/wechaty/wechaty/issues/2197
+  //          */
+  //         5 * 1000,
+  //       )),
+  //     ])
+  //   } catch (e) {
+  //     log.warn(`discoverServiceIp() failed to get any ip info from all service endpoints.\n${e.stack}`)
+  //     return {}
+  //   }
+  // }
 
-    const jsonStr = await new Promise<string>((resolve, reject) => {
-      const httpClient = /^https:\/\//.test(url) ? https : http
-      httpClient.get(url, function (res) {
-        let body = ''
-        res.on('data', function (chunk) {
-          body += chunk
-        })
-        res.on('end', function () {
-          resolve(body)
-        })
-      }).on('error', function (e) {
-        reject(new Error(`PuppetService discoverServiceIp() endpoint<${url}> rejection: ${e}`))
-      })
-    })
+  // private async getServiceIp (
+  //   endpoint : string,
+  //   token    : string,
+  // ): Promise<{
+  //   ip   : string,
+  //   port : number,
+  // }> {
+  //   const url = `${endpoint}/v0/hosties/${token}`
 
-    try {
-      const result = JSON.parse(jsonStr) as { port: number, ip: string }
-      return result
+  //   const jsonStr = await new Promise<string>((resolve, reject) => {
+  //     const httpClient = /^https:\/\//.test(url) ? https : http
+  //     httpClient.get(url, function (res) {
+  //       let body = ''
+  //       res.on('data', function (chunk) {
+  //         body += chunk
+  //       })
+  //       res.on('end', function () {
+  //         resolve(body)
+  //       })
+  //     }).on('error', function (e) {
+  //       reject(new Error(`PuppetService discoverServiceIp() endpoint<${url}> rejection: ${e}`))
+  //     })
+  //   })
 
-    } catch (e) {
-      console.error([
-        `wechaty-puppet-service: PuppetService.getServiceIp(${endpoint}, ${token})`,
-        'failed: unable to parse JSON str to object:',
-        '----- jsonStr START -----',
-        jsonStr,
-        '----- jsonStr END -----',
-      ].join('\n'))
-    }
+  //   try {
+  //     const result = JSON.parse(jsonStr) as { port: number, ip: string }
+  //     return result
 
-    return {
-      ip: '0.0.0.0',
-      port: 0,
-    }
-  }
+  //   } catch (e) {
+  //     console.error([
+  //       `wechaty-puppet-service: PuppetService.getServiceIp(${endpoint}, ${token})`,
+  //       'failed: unable to parse JSON str to object:',
+  //       '----- jsonStr START -----',
+  //       jsonStr,
+  //       '----- jsonStr END -----',
+  //     ].join('\n'))
+  //   }
+
+  //   return {
+  //     ip: '0.0.0.0',
+  //     port: 0,
+  //   }
+  // }
 
   protected async startGrpcClient (): Promise<void> {
     log.verbose('PuppetService', 'startGrpcClient()')
@@ -251,21 +263,29 @@ export class PuppetService extends Puppet {
 
     let endpoint = this.options.endpoint
     if (!endpoint) {
-      let serviceIpResult = await this.discoverServiceIp(this.options.token!)
+      // Huan(202108): to be deleted
+      //  remove the following comments
+      //    after confirm that the `wechaty-token` module works as expected.
 
-      let retries = MAX_SERVICE_IP_DISCOVERY_RETRIES
-      while (retries > 0 && (!serviceIpResult.ip || serviceIpResult.ip === '0.0.0.0')) {
-        log.warn(`No endpoint when starting grpc client, ${retries--} retry left. Reconnecting in 10 seconds...`)
-        await new Promise<void>(resolve => setTimeout(resolve, 10 * 1000))
-        serviceIpResult = await this.discoverServiceIp(this.options.token!)
-      }
+      // let serviceIpResult = await this.discoverServiceIp(this.options.token!)
 
-      if (!serviceIpResult.ip || serviceIpResult.ip === '0.0.0.0') {
-        return
-      }
+      // let retries = MAX_SERVICE_IP_DISCOVERY_RETRIES
+      // while (retries > 0 && (!serviceIpResult.ip || serviceIpResult.ip === '0.0.0.0')) {
+      //   log.warn(`No endpoint when starting grpc client, ${retries--} retry left. Reconnecting in 10 seconds...`)
+      //   await new Promise<void>(resolve => setTimeout(resolve, 10 * 1000))
+      //   serviceIpResult = await this.discoverServiceIp(this.options.token!)
+      // }
 
-      endpoint = serviceIpResult.ip + ':' + serviceIpResult.port
+      // if (!serviceIpResult.ip || serviceIpResult.ip === '0.0.0.0') {
+      //   return
+      // }
+
+      // endpoint = serviceIpResult.ip + ':' + serviceIpResult.port
+      const authority = GET_WECHATY_PUPPET_SERVICE_AUTHORITY()
+      endpoint = `wechaty://${authority}/${this.options.token}`
     }
+
+    log.silly('PuppetService', 'startGrpcClient() endpoint="%s"', endpoint)
 
     const clientOptions = {
       ...GRPC_OPTIONS,
