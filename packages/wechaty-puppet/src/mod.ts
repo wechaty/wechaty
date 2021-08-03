@@ -1,4 +1,12 @@
 export {
+  FileBoxType,
+  FileBox,
+}                         from 'file-box'
+export {
+  MemoryCard,
+}                         from 'memory-card'
+
+export {
   ContactGender,
   ContactType,
   ContactPayload,
@@ -82,10 +90,7 @@ export {
 
   YOU,
 }                         from './schemas/puppet'
-
 export {
-  FileBox,
-  MemoryCard,
   VERSION,
   log,
 }                         from './config'
