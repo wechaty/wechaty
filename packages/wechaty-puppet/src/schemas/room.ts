@@ -17,6 +17,7 @@ export interface RoomPayload {
   memberIdList : string[],
   ownerId?     : string,
   adminIdList  : string[],
+  external?    : boolean,
 }
 
 export interface RoomMemberPayload {

@@ -21,14 +21,15 @@ import {
 import { MessagePayloadFilterFunction } from '../../../src/schemas/message'
 import { RoomPayloadFilterFunction }    from '../../../src/schemas/room'
 import { ContactPayloadFilterFunction } from '../../../src/schemas/contact'
+import { FriendshipAddOptions } from '../../../src/schemas/friendship'
 
 export class PuppetTest extends Puppet {
 
-  public async start () : Promise<void> { return super.start() }
-  public async stop ()  : Promise<void> { return super.stop() }
+  override async start () : Promise<void> { return super.start() }
+  override async stop ()  : Promise<void> { return super.stop() }
 
-  public async ding (data?: string)   : Promise<void> { return data as any as void }
-  public async logout () : Promise<void> { return {} as any }
+  override async ding (data?: string)   : Promise<void> { return data as any as void }
+  override async logout () : Promise<void> { return {} as any }
 
   /**
    *
@@ -36,135 +37,142 @@ export class PuppetTest extends Puppet {
    *
    *
    */
-  public async contactSelfQRCode ()                     : Promise<string> { return '' }
-  public async contactSelfName (name: string)           : Promise<void> { return void name }
-  public async contactSelfSignature (signature: string) : Promise<void> { return void signature }
+  override async contactSelfQRCode ()                     : Promise<string> { return '' }
+  override async contactSelfName (name: string)           : Promise<void> { void name }
+  override async contactSelfSignature (signature: string) : Promise<void> { void signature }
 
   /**
    *
    * Tag
    *
    */
-  public async tagContactAdd (tagId: string, contactId: string) : Promise<void> { return void { contactId, tagId } }
-  public async tagContactRemove (tagId: string, contactId: string) : Promise<void> { return void { contactId, tagId } }
-  public async tagContactDelete (tagId: string) : Promise<void> { return void { tagId } }
-  public async tagContactList (contactId?: string) : Promise<string[]> { return [contactId || ''] }
+  override async tagContactAdd (tagId: string, contactId: string) : Promise<void> { void { contactId, tagId } }
+  override async tagContactRemove (tagId: string, contactId: string) : Promise<void> { void { contactId, tagId } }
+  override async tagContactDelete (tagId: string) : Promise<void> { void { tagId } }
+  override async tagContactList (contactId?: string) : Promise<string[]> { return [contactId || ''] }
 
   /**
    *
    * Contact
    *
    */
-  public async contactAlias (contactId: string)                        : Promise<string>
-  public async contactAlias (contactId: string, alias: string | null)  : Promise<void>
-  public async contactAlias (contactId: string, alias?: string | null) : Promise<string | void> { return { alias, contactId } as any }
+  override async contactAlias (contactId: string)                        : Promise<string>
+  override async contactAlias (contactId: string, alias: string | null)  : Promise<void>
+  override async contactAlias (contactId: string, alias?: string | null) : Promise<string | void> { return { alias, contactId } as any }
 
-  public async contactAvatar (contactId: string)                 : Promise<FileBox>
-  public async contactAvatar (contactId: string, file: FileBox)  : Promise<void>
-  public async contactAvatar (contactId: string, file?: FileBox) : Promise<void | FileBox> { return { contactId, file } as any }
+  override async contactAvatar (contactId: string)                 : Promise<FileBox>
+  override async contactAvatar (contactId: string, file: FileBox)  : Promise<void>
+  override async contactAvatar (contactId: string, file?: FileBox) : Promise<void | FileBox> { return { contactId, file } as any }
 
-  public async contactPhone (contactId: string, phoneList: string[]): Promise<void> { return { contactId, phoneList } as any }
+  override async contactPhone (contactId: string, phoneList: string[]): Promise<void> { return { contactId, phoneList } as any }
 
-  public async contactList ()                    : Promise<string[]> { return {} as any }
+  override async contactList ()                    : Promise<string[]> { return {} as any }
 
-  public async contactCorporationRemark (contactId: string, corporationRemark: string | null) : Promise<void> { return { contactId, corporationRemark } as any }
+  override async contactCorporationRemark (contactId: string, corporationRemark: string | null) : Promise<void> { return { contactId, corporationRemark } as any }
 
-  public async contactDescription (contactId: string, description: string | null): Promise<void> { return { contactId, description } as any }
+  override async contactDescription (contactId: string, description: string | null): Promise<void> { return { contactId, description } as any }
 
-  public async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
-  public async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload> { return { rawPayload } as any }
+  override async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
+  override async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload> { return { rawPayload } as any }
 
   /**
    *
    * Friendship
    *
    */
-  public async friendshipRawPayload (id: string)            : Promise<any> { return { id } as any }
-  public async friendshipRawPayloadParser (rawPayload: any) : Promise<FriendshipPayload> { return rawPayload }
+  override async friendshipRawPayload (id: string)            : Promise<any> { return { id } as any }
+  override async friendshipRawPayloadParser (rawPayload: any) : Promise<FriendshipPayload> { return rawPayload }
 
-  public async friendshipSearchPhone (phone: string) : Promise<null | string> { return phone }
-  public async friendshipSearchWeixin (weixin: string) : Promise<null | string> { return weixin }
-  public async friendshipAdd (contactId: string, hello?: string) : Promise<void> { return { contactId, hello } as any }
-  public async friendshipAccept (friendshipId: string)           : Promise<void> { return { friendshipId } as any }
+  override async friendshipSearchPhone (phone: string) : Promise<null | string> { return phone }
+  override async friendshipSearchWeixin (weixin: string) : Promise<null | string> { return weixin }
+  override async friendshipAdd (contactId: string, option?: FriendshipAddOptions) : Promise<void> { return { contactId, option } as any }
+  override async friendshipAccept (friendshipId: string)           : Promise<void> { return { friendshipId } as any }
 
   /**
    *
    * Message
    *
    */
-  public async messageContact     (messageId: string)                       : Promise<string> { return { messageId } as any }
-  public async messageFile        (messageId: string)                       : Promise<FileBox> { return { messageId } as any }
-  public async messageImage       (messageId: string, imageType: ImageType) : Promise<FileBox> { return { imageType, messageId } as any }
-  public async messageMiniProgram (messageId: string)                       : Promise<MiniProgramPayload> { return { messageId } as any }
-  public async messageUrl         (messageId: string)                       : Promise<UrlLinkPayload> { return { messageId } as any }
+  override async messageContact     (messageId: string)                       : Promise<string> { return { messageId } as any }
+  override async messageFile        (messageId: string)                       : Promise<FileBox> { return { messageId } as any }
+  override async messageImage       (messageId: string, imageType: ImageType) : Promise<FileBox> { return { imageType, messageId } as any }
+  override async messageMiniProgram (messageId: string)                       : Promise<MiniProgramPayload> { return { messageId } as any }
+  override async messageUrl         (messageId: string)                       : Promise<UrlLinkPayload> { return { messageId } as any }
 
-  public async messageForward         (conversationId: string, messageId: string)                      : Promise<void | string> { return { conversationId, messageId } as any }
-  public async messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string> { return { contactId, conversationId } as any }
-  public async messageSendFile        (conversationId: string, file: FileBox)                          : Promise<void | string> { return { conversationId, file } as any }
-  public async messageSendText        (conversationId: string, text: string)                           : Promise<void | string> { return { conversationId, text } as any }
-  public async messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
-  public async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { conversationId, miniProgramPayload } as any }
+  override async messageForward         (conversationId: string, messageId: string)                      : Promise<void | string> { return { conversationId, messageId } as any }
+  override async messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string> { return { contactId, conversationId } as any }
+  override async messageSendFile        (conversationId: string, file: FileBox)                          : Promise<void | string> { return { conversationId, file } as any }
+  override async messageSendText        (conversationId: string, text: string)                           : Promise<void | string> { return { conversationId, text } as any }
+  override async messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
+  override async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { conversationId, miniProgramPayload } as any }
 
-  public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
-  public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
+  override async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
+  override async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
 
-  public async messageRecall (messageId: string)                : Promise<boolean> { return { messageId } as any }
+  override async messageRecall (messageId: string)         : Promise<boolean> { return { messageId } as any }
+
+  /**
+   *
+   * Conversation
+   *
+   */
+  override async conversationReadMark (conversationId: string, hasRead?: boolean): Promise<void | boolean> { void { conversationId, hasRead } }
 
   /**
    *
    * Room Invitation
    *
    */
-  public async roomInvitationAccept (_: string): Promise<void> { }
+  override async roomInvitationAccept (_: string): Promise<void> { }
 
-  public async roomInvitationRawPayload (roomInvitationId: string) : Promise<any> { return { roomInvitationId } as any }
-  public async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload> { return rawPayload }
+  override async roomInvitationRawPayload (roomInvitationId: string) : Promise<any> { return { roomInvitationId } as any }
+  override async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload> { return rawPayload }
 
   /**
    *
    * Room
    *
    */
-  public async roomAnnounce (roomId: string)                : Promise<string>
-  public async roomAnnounce (roomId: string, text: string)  : Promise<void>
-  public async roomAnnounce (roomId: string, text?: string) : Promise<void | string> { return { roomId, text } as any }
+  override async roomAnnounce (roomId: string)                : Promise<string>
+  override async roomAnnounce (roomId: string, text: string)  : Promise<void>
+  override async roomAnnounce (roomId: string, text?: string) : Promise<void | string> { return { roomId, text } as any }
 
-  public async roomAdd (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
-  public async roomAvatar (roomId: string)                          : Promise<FileBox> { return { roomId } as any }
-  public async roomCreate (contactIdList: string[], topic?: string) : Promise<string> { return { contactIdList, topic } as any }
-  public async roomDel (roomId: string, contactId: string)          : Promise<void> { return { contactId, roomId } as any }
-  public async roomQuit (roomId: string)                            : Promise<void> { return { roomId } as any }
-  public async roomQRCode (roomId: string)                          : Promise<string> { return { roomId } as any }
+  override async roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void> { return { contactId, roomId, inviteOnly } as any }
+  override async roomAvatar (roomId: string)                                       : Promise<FileBox> { return { roomId } as any }
+  override async roomCreate (contactIdList: string[], topic?: string)              : Promise<string> { return { contactIdList, topic } as any }
+  override async roomDel (roomId: string, contactId: string)                       : Promise<void> { return { contactId, roomId } as any }
+  override async roomQuit (roomId: string)                                         : Promise<void> { return { roomId } as any }
+  override async roomQRCode (roomId: string)                                       : Promise<string> { return { roomId } as any }
 
-  public async roomTopic (roomId: string)                 : Promise<string>
-  public async roomTopic (roomId: string, topic: string)  : Promise<void>
-  public async roomTopic (roomId: string, topic?: string) : Promise<string | void> { return { roomId, topic } as any }
+  override async roomTopic (roomId: string)                 : Promise<string>
+  override async roomTopic (roomId: string, topic: string)  : Promise<void>
+  override async roomTopic (roomId: string, topic?: string) : Promise<string | void> { return { roomId, topic } as any }
 
-  public async roomList ()                     : Promise<string[]> { return {} as any }
-  public async roomMemberList (roomId: string) : Promise<string[]> { return { roomId } as any }
+  override async roomList ()                     : Promise<string[]> { return {} as any }
+  override async roomMemberList (roomId: string) : Promise<string[]> { return { roomId } as any }
 
-  public async roomRawPayload (id: string)            : Promise<any> { return { id } as any }
-  public async roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload> { return { rawPayload } as any }
+  override async roomRawPayload (id: string)            : Promise<any> { return { id } as any }
+  override async roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload> { return { rawPayload } as any }
 
-  public async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any> { return { contactId, roomId } as any }
-  public async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload> { return rawPayload }
+  override async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any> { return { contactId, roomId } as any }
+  override async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload> { return rawPayload }
 
   /**
    * expose to public for internal methods:
    */
-  public messageQueryFilterFactory (
+  public override messageQueryFilterFactory (
     query: MessageQueryFilter,
   ): MessagePayloadFilterFunction {
     return super.messageQueryFilterFactory(query)
   }
 
-  public roomQueryFilterFactory (
+  public override roomQueryFilterFactory (
     query: RoomQueryFilter,
   ): RoomPayloadFilterFunction {
     return super.roomQueryFilterFactory(query)
   }
 
-  public contactQueryFilterFactory (
+  public override contactQueryFilterFactory (
     query: ContactQueryFilter,
   ): ContactPayloadFilterFunction {
     return super.contactQueryFilterFactory(query)

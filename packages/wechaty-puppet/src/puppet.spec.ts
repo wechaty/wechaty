@@ -28,7 +28,7 @@ import {
  */
 import {
   PuppetTest,
-}                                 from '../tests/fixtures/puppet-test/puppet-test'
+}               from '../tests/fixtures/puppet-test/puppet-test'
 
 test('contactQueryFilterFunction()', async t => {
 
@@ -363,17 +363,17 @@ test('messageQueryFilterFactory() one condition', async t => {
   filterFuncText = puppet.messageQueryFilterFactory(QUERY_TEXT)
   resultPayload = PAYLOAD_LIST.filter(filterFuncText)
   t.equal(resultPayload.length, 1, 'should get one result')
-  t.equal(resultPayload[0].text, EXPECTED_TEXT1, 'should get text1')
+  t.equal(resultPayload[0]!.text, EXPECTED_TEXT1, 'should get text1')
 
   filterFuncText = puppet.messageQueryFilterFactory(QUERY_RE)
   resultPayload = PAYLOAD_LIST.filter(filterFuncText)
   t.equal(resultPayload.length, 1, 'should get one result')
-  t.equal(resultPayload[0].text, EXPECTED_TEXT2, 'should get text2')
+  t.equal(resultPayload[0]!.text, EXPECTED_TEXT2, 'should get text2')
 
   filterFuncText = puppet.messageQueryFilterFactory(QUERY_ID)
   resultPayload = PAYLOAD_LIST.filter(filterFuncText)
   t.equal(resultPayload.length, 1, 'should get one result')
-  t.equal(resultPayload[0].id, EXPECTED_ID1, 'should get id1')
+  t.equal(resultPayload[0]!.id, EXPECTED_ID1, 'should get id1')
 })
 
 test('messageQueryFilterFactory() two condition', async t => {
@@ -423,24 +423,24 @@ test('messageQueryFilterFactory() two condition', async t => {
   filterFuncText = puppet.messageQueryFilterFactory(QUERY_TEXT)
   resultPayload = PAYLOAD_LIST.filter(filterFuncText)
   t.equal(resultPayload.length, 2, 'should get two result')
-  t.equal(resultPayload[0].text, EXPECTED_TEXT_DATA, 'should get text data')
-  t.equal(resultPayload[0].type, EXPECTED_TYPE_TEXT, 'should get type text')
-  t.equal(resultPayload[1].text, EXPECTED_TEXT_DATA, 'should get text data')
-  t.equal(resultPayload[1].type, EXPECTED_TYPE_URL, 'should get type url')
+  t.equal(resultPayload[0]!.text, EXPECTED_TEXT_DATA, 'should get text data')
+  t.equal(resultPayload[0]!.type, EXPECTED_TYPE_TEXT, 'should get type text')
+  t.equal(resultPayload[1]!.text, EXPECTED_TEXT_DATA, 'should get text data')
+  t.equal(resultPayload[1]!.type, EXPECTED_TYPE_URL, 'should get type url')
 
   filterFuncText = puppet.messageQueryFilterFactory(QUERY_TYPE)
   resultPayload = PAYLOAD_LIST.filter(filterFuncText)
   t.equal(resultPayload.length, 2, 'should get two result')
-  t.equal(resultPayload[0].text, EXPECTED_TEXT_DATA, 'should get text data')
-  t.equal(resultPayload[0].type, EXPECTED_TYPE_URL, 'should get type url')
-  t.equal(resultPayload[1].text, EXPECTED_TEXT_LINK, 'should get text link')
-  t.equal(resultPayload[1].type, EXPECTED_TYPE_URL, 'should get type url ')
+  t.equal(resultPayload[0]!.text, EXPECTED_TEXT_DATA, 'should get text data')
+  t.equal(resultPayload[0]!.type, EXPECTED_TYPE_URL, 'should get type url')
+  t.equal(resultPayload[1]!.text, EXPECTED_TEXT_LINK, 'should get text link')
+  t.equal(resultPayload[1]!.type, EXPECTED_TYPE_URL, 'should get type url ')
 
   filterFuncText = puppet.messageQueryFilterFactory(QUERY_TYPE_TEXT)
   resultPayload = PAYLOAD_LIST.filter(filterFuncText)
   t.equal(resultPayload.length, 1, 'should get one result')
-  t.equal(resultPayload[0].text, EXPECTED_TEXT_DATA, 'should get text data')
-  t.equal(resultPayload[0].type, EXPECTED_TYPE_URL, 'should get type url')
+  t.equal(resultPayload[0]!.text, EXPECTED_TEXT_DATA, 'should get text data')
+  t.equal(resultPayload[0]!.type, EXPECTED_TYPE_URL, 'should get type url')
 })
 
 test('name()', async t => {

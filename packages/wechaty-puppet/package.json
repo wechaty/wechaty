@@ -1,11 +1,12 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.33.7",
+  "version": "0.41.7",
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
   "engines": {
-    "wechaty": ">=0.17.46"
+    "node": ">=12",
+    "wechaty": ">=0.60"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -39,32 +40,32 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.1",
+    "@chatie/eslint-config": "^0.12.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.10.1",
+    "@chatie/tsconfig": "^0.17.1",
     "@types/normalize-package-data": "^2.4.0",
-    "@types/quick-lru": "^3.0.0",
     "@types/read-pkg-up": "^6.0.0",
-    "pkg-jq": "^0.2.4",
+    "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
+    "tsd": "^0.16.0",
     "tstest": "^0.4.10",
-    "typedoc": "^0.19.2",
-    "typedoc-plugin-markdown": "^3.0.11"
+    "typedoc": "^1.0.0-dev.4",
+    "typescript": "^4.3"
   },
   "dependencies": {
     "brolog": "^1.12.4",
     "clone-class": "^0.6.20",
-    "file-box": "^0.16.1",
+    "file-box": "^0.16.8",
     "hot-import": "^0.2.14",
-    "memory-card": "^0.10.1",
-    "normalize-package-data": "^3.0.0",
-    "quick-lru": "^5.1.1",
+    "memory-card": "^0.12.2",
+    "normalize-package-data": "^3.0.2",
+    "quick-lru": "^5",
     "read-pkg-up": "^7.0.1",
-    "rx-queue": "^0.8.5",
-    "rxjs": "^6.6.3",
-    "semver": "^7.3.2",
-    "state-switch": "^0.9.7",
+    "rx-queue": "^0.12.3",
+    "rxjs": "^7.1.0",
+    "semver": "^7.3.5",
+    "state-switch": "^0.11.3",
     "typed-emitter": "^1.3.1",
     "watchdog": "^0.8.17"
   },

@@ -5,6 +5,9 @@ export {
 export {
   MemoryCard,
 }                         from 'memory-card'
+export {
+  StateSwitch,
+}                         from 'state-switch'
 
 export {
   ContactGender,
@@ -32,6 +35,7 @@ export {
   EventScanPayload,
 }                             from './schemas/event'
 export {
+  FriendshipAddOptions,
   FriendshipPayload,
   FriendshipPayloadConfirm,
   FriendshipPayloadReceive,
