@@ -37,12 +37,13 @@ import {
   FileBox,
 
   log,
-  Raven,
   looseInstanceOfFileBox,
 }                         from '../config'
 import {
   Sayable,
 }                       from '../types'
+
+import { captureException } from '../raven'
 
 import {
   Contact,
@@ -133,7 +134,7 @@ class Message extends EventEmitter implements Sayable {
     } catch (e) {
       log.warn('Message', 'findAll() rejected: %s', e.message)
       console.error(e)
-      Raven.captureException(e)
+      captureException(e)
       return [] // fail safe
     }
   }

@@ -34,10 +34,10 @@ import {
   PayloadType,
 }                       from 'wechaty-puppet'
 
+import { captureException } from './raven'
+
 import {
   FileBox,
-  Raven,
-
   config,
   log,
 }                       from './config'
@@ -735,14 +735,14 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     } catch (e) {
       console.error(e)
       log.error('Wechaty', 'start() exception: %s', e && e.message)
-      Raven.captureException(e)
+      captureException(e)
       this.emit('error', e)
 
       try {
         await this.stop()
       } catch (e) {
         log.error('Wechaty', 'start() stop() exception: %s', e && e.message)
-        Raven.captureException(e)
+        captureException(e)
         this.emit('error', e)
       }
       return
@@ -810,7 +810,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
     } catch (e) {
       log.error('Wechaty', 'stop() exception: %s', e.message)
-      Raven.captureException(e)
+      captureException(e)
       this.emit('error', e)
     }
 
@@ -839,7 +839,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       await this.puppet.logout()
     } catch (e) {
       log.error('Wechaty', 'logout() exception: %s', e.message)
-      Raven.captureException(e)
+      captureException(e)
       throw e
     }
   }
@@ -1003,7 +1003,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       this.puppet.ding(data)
     } catch (e) {
       log.error('Wechaty', 'ding() exception: %s', e.message)
-      Raven.captureException(e)
+      captureException(e)
       throw e
     }
   }

@@ -31,8 +31,6 @@ import {
 import { Wechaty }          from '../wechaty'
 
 import {
-  Raven,
-
   log,
   qrCodeForChatie,
   looseInstanceOfFileBox,
@@ -40,6 +38,7 @@ import {
 import {
   Sayable,
 }                           from '../types'
+import { captureException } from '../raven'
 
 import { Message }      from './message'
 import { MiniProgram }  from './mini-program'
@@ -535,7 +534,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       }
     } catch (e) {
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
-      Raven.captureException(e)
+      captureException(e)
     }
   }
 
@@ -580,7 +579,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), e.message)
-      Raven.captureException(e)
+      captureException(e)
     }
   }
 
@@ -607,7 +606,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       log.error('Contact', 'corporation(%s) rejected: %s', remark, e.message)
-      Raven.captureException(e)
+      captureException(e)
     }
   }
 
@@ -630,7 +629,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       log.error('Contact', 'description(%s) rejected: %s', newDescription, e.message)
-      Raven.captureException(e)
+      captureException(e)
     }
   }
 
@@ -839,7 +838,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         e.message,
       )
-      Raven.captureException(e)
+      captureException(e)
       throw e
     }
   }
