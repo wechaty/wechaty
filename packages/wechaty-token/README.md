@@ -93,7 +93,7 @@ puppet_foo_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
 
 We now can use `wechaty:///__token__` as gRPC address for Wechaty Service Token Discovery.
 
-The `WechatyResolver` is for resolve the above address and help gRPC to connect to the right host and port. 
+The `WechatyResolver` is for resolve the above address and help gRPC to connect to the right host and port.
 
 ```ts
 import { WechatyResolver } from 'wechaty-token'
