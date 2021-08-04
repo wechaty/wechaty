@@ -51,7 +51,7 @@ Example:
 ```sh
 # Discover a valid token (in-service)
 $ wechaty-token discover puppet_IN_SERVICE_TOKEN
-{ host: '8.7.5.2', port: 58871 }
+{ host: '1.2.3.4', port: 5678 }
 $ echo $?
 0
 
