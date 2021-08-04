@@ -91,7 +91,11 @@ puppet_foo_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
 
 ## History
 
-### master v0.3
+### master v0.4
+
+1. Use `cockatiel` to implement `RetryPolicy`
+1. Use `nock` to implement HTTP unit testing
+1. Implemented [#1](https://github.com/wechaty/token/issues/1)
 
 ### v0.2 master (Aug 2, 2021)
 
