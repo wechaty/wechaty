@@ -1,6 +1,6 @@
 {
   "name": "wechaty-token",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Wechaty Token Based Authentication Manager",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
