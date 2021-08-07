@@ -69,7 +69,7 @@ jobs:
         run: ./scripts/npm-pack-testing.sh
 
   publish:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
     name: Publish
     needs: [build, pack]
     runs-on: ubuntu-latest

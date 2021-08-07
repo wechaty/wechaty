@@ -35,7 +35,7 @@ jobs:
         go build -v generated/wechaty/puppet.pb.go
 
   publish:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
     name: Publish
     needs: [build]
     runs-on: ubuntu-latest

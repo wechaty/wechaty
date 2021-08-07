@@ -2,6 +2,10 @@
 
 Use Wechaty TOKEN for authorization.
 
+## DEVELOPMENT
+
+1. Enable debug: `export GRPC_TRACE=all`
+
 ## GLOSSARY
 
 1. Certificate Signing Requests (CSRs)

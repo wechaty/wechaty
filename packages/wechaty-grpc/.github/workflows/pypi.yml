@@ -74,7 +74,7 @@ jobs:
           echo "To be add: pack testing"
 
   deploy:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
     name: Deploy
     needs: [build, pack]
     runs-on: ubuntu-latest
