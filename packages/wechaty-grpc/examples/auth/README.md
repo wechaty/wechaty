@@ -4,7 +4,11 @@ Use Wechaty TOKEN for authorization.
 
 ## DEVELOPMENT
 
-1. Enable debug: `export GRPC_TRACE=all`
+Enable debug trace messages:
+
+```sh
+export GRPC_TRACE=all
+```
 
 ## GLOSSARY
 

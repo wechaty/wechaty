@@ -1,3 +1,4 @@
+import { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
 import fs from 'fs'
 
 import {
@@ -23,31 +24,30 @@ export async function testDing (client: PuppetClient) {
 
 async function main () {
   const TOKEN = '__token__'
+  void TOKEN
 
-  const headerCreds = grpc.credentials.createFromMetadataGenerator((_callMetaOptoins, callback) => {
-    const metadata = new grpc.Metadata()
-    metadata.add('authorization', `Wechaty ${TOKEN}`)
-    callback(null, metadata)
-  })
+  const rootCerts  = fs.readFileSync('root-ca.crt')
 
-  // const certChain  = fs.readFileSync('client.crt')
-  // const privateKey = fs.readFileSync('client.key')
-  // const rootCerts  = null // fs.readFileSync('ca.crt')
-  void fs
+  /**
+   * With server authentication SSL/TLS and a custom header with token
+   *  https://grpc.io/docs/guides/auth/#with-server-authentication-ssltls-and-a-custom-header-with-token-1
+   */
+  const metaCallback: CallMetadataGenerator = (_params, callback) => {
+    const meta = new grpc.Metadata()
+    // metadata.add('authorization', `Wechaty ${TOKEN}`)
+    callback(null, meta)
+  }
 
-  const creds = grpc.credentials.combineChannelCredentials(
-    // grpc.credentials.createInsecure(),
-    grpc.credentials.createSsl(), // rootCerts, privateKey, certChain),
-    headerCreds,
-  )
-
-  // const creds = grpc.credentials.createInsecure()
+  const channelCred = grpc.credentials.createSsl(rootCerts)
+  const callCred    = grpc.credentials.createFromMetadataGenerator(metaCallback)
+  const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
 
   const client = new PuppetClient(
     'localhost:8788',
-    creds,
+    combCreds,
     {
-      'grpc.default_authority': 'puppet_token',
+      'grpc.default_authority': '__token__',
+      'grpc.ssl_target_name_override': 'wechaty-puppet-service',
     },
   )
 

@@ -1,8 +1,5 @@
-ca.crt
-ca.key
-client.crt
-client.csr
-client.key
-server.crt
-server.csr
-server.key
+# all generated openssl files
+*.crt
+*.key
+*.csr
+*.srl

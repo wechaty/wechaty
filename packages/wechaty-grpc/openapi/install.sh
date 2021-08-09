@@ -7,6 +7,10 @@ SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 ; pwd -P )"
 THIRD_PARTY_DIR="${SCRIPTPATH}/../third-party/"
 
 function go_install () {
+  #
+  # Huan(202108): https://github.com/golang/go/issues/44129
+  #   workaround: `go get ...` first.
+  #
   go install \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
