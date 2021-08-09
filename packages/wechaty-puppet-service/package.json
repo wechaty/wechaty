@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.25.1",
+  "version": "0.25.2",
   "description": "Puppet Service for Wechaty",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -64,7 +64,7 @@
     "rxjs": "^7.1.0",
     "stronger-typed-streams": "^0.2.0",
     "wechaty-grpc": "^0.25.1",
-    "wechaty-token": "^0.2.1"
+    "wechaty-token": "^0.4.3"
   },
   "publishConfig": {
     "access": "public",
