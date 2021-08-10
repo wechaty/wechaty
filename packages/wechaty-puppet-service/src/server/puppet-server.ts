@@ -18,11 +18,18 @@ import {
 import {
   puppetImplementation,
 }                         from './puppet-implementation'
+import {
+  authImplToken,
+  GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT,
+  GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY,
+}                                               from '../auth/mod'
 
 export interface PuppetServerOptions {
-  endpoint : string,
-  token    : string,
-  puppet   : Puppet,
+  endpoint       : string,
+  puppet         : Puppet,
+  sslServerCert? : string,
+  sslServerKey?  : string,
+  token          : string,
 }
 
 export class PuppetServer {
@@ -54,17 +61,24 @@ export class PuppetServer {
     const puppetImpl = puppetImplementation(
       this.options.puppet,
     )
+    const puppetImplAuth = authImplToken(this.options.token)(puppetImpl)
 
     this.grpcServer = new grpc.Server(GRPC_OPTIONS)
     this.grpcServer.addService(
       PuppetService,
-      puppetImpl,
+      puppetImplAuth,
     )
+
+    const keyCertPairs: grpc.KeyCertPair[] = [{
+      cert_chain  : Buffer.from(GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT(this.options.sslServerCert)),
+      private_key : Buffer.from(GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY(this.options.sslServerKey)),
+    }]
 
     // 127.0.0.1:8788
     const port = await util.promisify(this.grpcServer.bindAsync.bind(this.grpcServer))(
       this.options.endpoint,
-      grpc.ServerCredentials.createInsecure()
+      // grpc.ServerCredentials.createInsecure()
+      grpc.ServerCredentials.createSsl(null, keyCertPairs),
     )
 
     if (port === 0) {

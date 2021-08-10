@@ -11,7 +11,7 @@ const GRPC_OPTIONS = {
 }
 
 // Huan(202011): use a function to return the value in time.
-const GET_WECHATY_PUPPET_SERVICE_TOKEN = (token?: string) => {
+const GET_WECHATY_PUPPET_SERVICE_TOKEN: (token?: string) => string = token => {
   if (token) {
     return token
   }
@@ -19,6 +19,7 @@ const GET_WECHATY_PUPPET_SERVICE_TOKEN = (token?: string) => {
   if (process.env['WECHATY_PUPPET_SERVICE_TOKEN']) {
     return process.env['WECHATY_PUPPET_SERVICE_TOKEN']
   }
+
   /**
    * Huan(202102): remove this deprecated warning after Dec 31, 2021
    */
@@ -32,7 +33,21 @@ const GET_WECHATY_PUPPET_SERVICE_TOKEN = (token?: string) => {
     ].join(' '))
     return process.env['WECHATY_PUPPET_HOSTIE_TOKEN']
   }
-  return undefined
+
+  const tokenNotFoundError = 'wechaty-puppet-service: WECHATY_PUPPET_SERVICE_TOKEN not found'
+
+  console.error([
+    '',
+    tokenNotFoundError,
+    '(save token to WECHATY_PUPPET_SERVICE_TOKEN env var or pass it to puppet options is required.).',
+    '',
+    'To learn how to get Wechaty Puppet Service Token,',
+    'please visit <https://wechaty.js.org/docs/puppet-services/>',
+    'to see our Wechaty Puppet Service Providers.',
+    '',
+  ].join('\n'))
+
+  throw new Error(tokenNotFoundError)
 }
 
 const GET_WECHATY_PUPPET_SERVICE_ENDPOINT = (endpoint?: string) => {
@@ -56,6 +71,7 @@ const GET_WECHATY_PUPPET_SERVICE_ENDPOINT = (endpoint?: string) => {
     ].join(' '))
     return process.env['WECHATY_PUPPET_HOSTIE_ENDPOINT']
   }
+
   return undefined
 }
 
@@ -83,19 +99,6 @@ const GET_WECHATY_PUPPET_SERVICE_AUTHORITY = (authority?: string) => {
 
   return 'api.chatie.io'
 }
-
-/**
- * Huan(202108): remove the below comments after confirm the above GET_WECHATY_PUPPET_SERVICE_AUTHORITY works as expected.
- *  See: https://github.com/wechaty/wechaty-puppet-service/issues/156
- */
-// const GET_WECHATY_SERVICE_DISCOVERY_ENDPOINT = (endpoint?: string) => {
-//   if (endpoint) {
-//     return endpoint
-//   }
-
-//   return process.env['WECHATY_SERVICE_DISCOVERY_ENDPOINT']
-//     || 'https://api.chatie.io'
-// }
 
 export {
   log,
