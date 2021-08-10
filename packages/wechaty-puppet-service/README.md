@@ -55,13 +55,41 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ## History
 
-### master v0.25
+### master v0.27
+
+Implemented SSL and server-side token authorization!
+
+#### New environment variables
+
+For Puppet Server:
+
+1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT`:
+  Server CA Cert (string data),
+  will be replaced if `options.sslServerCert` has been set.
+1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY`:
+  Server CA Key (string data),
+  will be replaced if `optoins.sslServerKey` has been set.
+
+For Puppet Client:
+
+1. `WECHATY_PUPPET_SERVICE_AUTHORITY`:
+  `api.chatie.io` service discovery host name,
+  will be replaced if `options.authority` has been set.
+1. `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT`:
+  Root CA Cert (string data),
+  will be replaced if `options.sslRootCert` has been set.
+1. `WECHATY_PUPPET_SERVICE_GRPC_SSL_TARGET_NAME_OVERRIDE`:
+  Server Name (mast match for SNI),
+  will be replaced if `optoins.servername` has been set.
+
+#### Changelog
 
 1. use [wechaty-token](https://github.com/wechaty/token)
   for gRPC service discovery with `wechaty` schema (xDS like)
 1. deprecated `WECHATY_SERVICE_DISCOVERY_ENDPOINT`,
   replaced by `WECHATY_PUPPET_SERVICE_AUTHORITY`.
   (See [#156](https://github.com/wechaty/wechaty-puppet-service/issues/156))
+1. enable TLS & Token Auth (See [#124](https://github.com/wechaty/wechaty-puppet-service/issues/124))
 
 ### v0.14 (Jan 2021)
 
