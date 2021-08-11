@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "engines": {
-    "wechaty": ">=0.60"
+    "wechaty": ">=0.60",
+    "wechaty-puppet": ">=0.41"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -56,9 +57,6 @@
     "wechaty": "^0.61",
     "wechaty-puppet": "^0.41.7",
     "wechaty-puppet-mock": "^0.29.6"
-  },
-  "peerDependencies": {
-    "wechaty-puppet": ">=0.41"
   },
   "dependencies": {
     "rxjs": "^7.1.0",
