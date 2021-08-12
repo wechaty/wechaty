@@ -180,10 +180,12 @@ class Mocker {
    *
    */
   scan (qrcode: string, status: ScanStatus = ScanStatus.Waiting) {
+    log.verbose('Mocker', 'scan(%s, %s)', qrcode, status)
     this.puppet.emit('scan', { qrcode, status })
   }
 
   login (user: ContactMock) {
+    log.verbose('Mocker', 'login(%s)', user)
     this.puppet.login(user.id)
       .catch(e => log.error('Mocker', 'login(%s) rejection: %s', user.id, e))
   }

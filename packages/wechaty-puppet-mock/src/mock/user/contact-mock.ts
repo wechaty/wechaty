@@ -98,12 +98,16 @@ class ContactMock extends ContactEventEmitter {
     this.mocker.contactPayload(payload.id, payload)
   }
 
+  override toString () {
+    return `MockContact(${this.payload.name}<${this.payload.id}>)`
+  }
+
   say (
     something?: string | FileBox, // | ContactMock, // | Attachment,
     mentions: ContactMock[] = []
   ): To {
     log.verbose('MockContact', 'say(%s%s)',
-      something,
+      something || '',
       mentions.length > 0
         ? `,[${mentions.map(c => c.id).join(',')}]`
         : '',
@@ -113,7 +117,7 @@ class ContactMock extends ContactEventEmitter {
     return { to }
 
     function to (conversation?: ContactMock | RoomMock) {
-      log.verbose('MockContact', 'say(%s).to(%s)', something, conversation?.id || '')
+      log.verbose('MockContact', 'say(%s).to(%s)', something || '', conversation?.id || '')
 
       if (!conversation) {
         conversation = that.mocker.randomConversation()
