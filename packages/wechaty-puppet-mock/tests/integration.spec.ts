@@ -2,7 +2,10 @@
 
 import { test }  from 'tstest'
 
-import { Wechaty } from 'wechaty'
+import {
+  Message,
+  Wechaty,
+}                from 'wechaty'
 import {
   ContactMock,
   RoomMock,
@@ -120,5 +123,27 @@ test('Room.load() mocker.createRoom()', async t => {
 
     await room.ready()
     t.deepEqual((room as any).payload, starbucks.payload, 'should match the payload between wechaty room & mock room')
+  }
+})
+
+test('Wechaty bot can receive message sent from mocker', async t => {
+  for await (const {
+    mocker,
+    wechaty,
+  } of wechatyFixture()) {
+    await wechaty.start()
+
+    const bot    = mocker.createContact({ name: 'Bot' })
+    const player = mocker.createContact({ name: 'Player' })
+
+    mocker.login(bot)
+    const wechatyUserSelf = wechaty.wechaty.userSelf()
+
+    const directMessage = await new Promise<Message>(resolve => {
+      wechatyUserSelf.once('message', resolve)
+      player.say().to(bot)
+    })
+    t.ok(directMessage, 'should resolve a message')
+    await new Promise(setImmediate)
   }
 })
