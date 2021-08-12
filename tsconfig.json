@@ -1,9 +1,6 @@
 {
   "extends": "@chatie/tsconfig",
   "compilerOptions": {
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "noImplicitAny": false,
     "outDir": "dist",
   },
   "exclude": [

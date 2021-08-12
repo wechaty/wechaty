@@ -1,3 +1,4 @@
+/// <reference path="json-rpc-peer.d.ts"/>
 import   Peer, {
   JsonRpcPayload,
   JsonRpcPayloadError,
