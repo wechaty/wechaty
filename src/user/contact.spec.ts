@@ -39,6 +39,7 @@ test('findAll()', async t => {
   const wechaty = new Wechaty({ puppet })
 
   await wechaty.start()
+  // await puppet.login('__login_id__')
 
   sandbox.stub(puppet, 'contactSearch').resolves(EXPECTED_CONTACT_ID_LIST)
   sandbox.stub(puppet, 'contactPayload').callsFake(async () => {
