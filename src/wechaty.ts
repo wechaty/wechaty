@@ -498,11 +498,15 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               await msg.ready()
               this.emit('message', msg)
 
-              const room = msg.room()
+              const room     = msg.room()
+              const listener = msg.listener()
+
               if (room) {
                 room.emit('message', msg)
+              } else if (listener) {
+                listener.emit('message', msg)
               } else {
-                msg.talker().emit('message', msg)
+                this.emit('error', new Error('message without room or listener'))
               }
             } catch (e) {
               this.emit('error', e)
