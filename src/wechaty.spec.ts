@@ -1,5 +1,4 @@
 #!/usr/bin/env ts-node
-/* eslint-disable @typescript-eslint/no-floating-promises */
 
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -131,7 +130,7 @@ void test('event:start/stop', async t => {
 //   console.log(m)
 // })
 
-skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
+void skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
   const spy     = sinon.spy()
   const wechaty = Wechaty.instance()
 
@@ -151,7 +150,7 @@ skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t =
 
 })
 
-skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) => {
+void skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) => {
 
   // Do not modify the global Wechaty instance
   class MyWechatyTest extends Wechaty {}

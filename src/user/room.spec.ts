@@ -1,5 +1,4 @@
 #!/usr/bin/env ts-node
-/* eslint-disable @typescript-eslint/no-floating-promises */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -107,7 +106,7 @@ void test('say()', async () => {
   await contact2.sync()
   await room.sync()
 
-  test('say with Tagged Template', async t => {
+  void test('say with Tagged Template', async t => {
     callback.resetHistory()
     await room.say`To be ${contact1} or not to be ${contact2}`
 
@@ -119,7 +118,7 @@ void test('say()', async () => {
     ], 'Tagged Template say should be matched')
   })
 
-  test('say with regular mention contact', async t => {
+  void test('say with regular mention contact', async t => {
     callback.resetHistory()
     await room.say('Yo', contact1)
 
@@ -131,7 +130,7 @@ void test('say()', async () => {
     ], 'Single mention should work with old ways')
   })
 
-  test('say with multiple mention contact', async t => {
+  void test('say with multiple mention contact', async t => {
     callback.resetHistory()
     await room.say('hey buddies, let\'s party', contact1, contact2)
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env ts-node
-/* eslint-disable @typescript-eslint/no-floating-promises */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
