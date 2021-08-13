@@ -20,9 +20,6 @@
 /// <reference path="./typings.d.ts" />
 /// <reference path="./io-peer/json-rpc-peer.d.ts" />
 
-import os    from 'os'
-
-import Raven      from 'raven'
 import readPkgUp  from 'read-pkg-up'
 
 import {
@@ -39,43 +36,9 @@ import {
 }                      from './puppet-config'
 import {
   VERSION,
-  GIT_COMMIT_HASH,
 }                       from './version'
 
 const pkg = readPkgUp.sync({ cwd: __dirname })!.packageJson
-
-/**
- * Raven.io
- */
-Raven.disableConsoleAlerts()
-
-Raven
-  .config(
-    isProduction()
-      && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
-    {
-      release: VERSION,
-      tags: {
-        git_commit: GIT_COMMIT_HASH,
-        platform: process.env['WECHATY_DOCKER']
-          ? 'docker'
-          : os.platform(),
-      },
-    },
-  )
-  .install()
-
-/*
-try {
-    doSomething(a[0])
-} catch (e) {
-    Raven.captureException(e)
-}
-
-Raven.context(function () {
-  doSomething(a[0])
-})
- */
 
 /**
  * to handle unhandled exceptions
@@ -195,7 +158,6 @@ export {
   log,
   FileBox,
   MemoryCard,
-  Raven,
   looseInstanceOfFileBox,
 
   VERSION,

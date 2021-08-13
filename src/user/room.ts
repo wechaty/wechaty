@@ -26,13 +26,13 @@ import {
   FileBox,
 
   log,
-  Raven,
   looseInstanceOfFileBox,
 }                           from '../config'
 import {
   Sayable,
 }                           from '../types'
 
+import { captureException } from '../raven'
 import {
   guardQrCodeValue,
 }                       from '../helper-functions/pure/guard-qr-code-value'
@@ -101,7 +101,7 @@ class Room extends RoomEventEmitter implements Sayable {
       return room
     } catch (e) {
       log.error('Room', 'create() exception: %s', (e && e.stack) || e.message || e)
-      Raven.captureException(e)
+      captureException(e)
       throw e
     }
   }
@@ -163,7 +163,7 @@ class Room extends RoomEventEmitter implements Sayable {
     } catch (e) {
       log.verbose('Room', 'findAll() rejected: %s', e.message)
       console.error(e)
-      Raven.captureException(e)
+      captureException(e)
       return [] as Room[] // fail safe
     }
   }
@@ -933,7 +933,7 @@ class Room extends RoomEventEmitter implements Sayable {
         log.warn('Room', 'topic(newTopic=%s) exception: %s',
           newTopic, (e && e.message) || e,
         )
-        Raven.captureException(e)
+        captureException(e)
       })
 
     return future

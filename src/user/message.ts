@@ -37,12 +37,13 @@ import {
   FileBox,
 
   log,
-  Raven,
   looseInstanceOfFileBox,
 }                         from '../config'
 import {
   Sayable,
 }                       from '../types'
+
+import { captureException } from '../raven'
 
 import {
   Contact,
@@ -133,7 +134,7 @@ class Message extends EventEmitter implements Sayable {
     } catch (e) {
       log.warn('Message', 'findAll() rejected: %s', e.message)
       console.error(e)
-      Raven.captureException(e)
+      captureException(e)
       return [] // fail safe
     }
   }
@@ -268,7 +269,12 @@ class Message extends EventEmitter implements Sayable {
       throw new Error('payload.fromId is null?')
     }
 
-    const talker = this.wechaty.Contact.load(talkerId)
+    let talker
+    if (talkerId === this.wechaty.puppet.selfId()) {
+      talker = this.wechaty.ContactSelf.load(talkerId)
+    } else {
+      talker = this.wechaty.Contact.load(talkerId)
+    }
     return talker
   }
 
@@ -291,19 +297,37 @@ class Message extends EventEmitter implements Sayable {
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
+   * @deprecated use `listener()` instead
    */
   public to (): null | Contact {
+    // Huan(202108): I want to deprecate this method name in the future,
+    //  and use `message.listener()` to replace it.
+    return this.listener()
+  }
+
+  /**
+   * Get the destination of the message
+   * Message.listener() will return null if a message is in a room,
+   * use Message.room() to get the room.
+   * @returns {(Contact|null)}
+   */
+  public listener (): null | Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
 
-    const toId = this.payload.toId
-    if (!toId) {
+    const listenerId = this.payload.toId
+    if (!listenerId) {
       return null
     }
 
-    const to = this.wechaty.Contact.load(toId)
-    return to
+    let listener
+    if (listenerId === this.wechaty.puppet.selfId()) {
+      listener = this.wechaty.ContactSelf.load(listenerId)
+    } else {
+      listener = this.wechaty.Contact.load(listenerId)
+    }
+    return listener
   }
 
   /**
