@@ -73,7 +73,7 @@ void test('validApiHost()', async t => {
 
 //   config.puppetInstance(mockPuppet)
 //   const instance = config.puppetInstance()
-//   t.deepEqual(instance, EXPECTED, 'should equal with initialized data')
+//   t.same(instance, EXPECTED, 'should equal with initialized data')
 
 //   config.puppetInstance(null)
 //   t.throws(() => {

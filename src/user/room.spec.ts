@@ -110,7 +110,7 @@ void test('say()', async () => {
     callback.resetHistory()
     await room.say`To be ${contact1} or not to be ${contact2}`
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       'To be @little1 or not to be @big2',
@@ -122,7 +122,7 @@ void test('say()', async () => {
     callback.resetHistory()
     await room.say('Yo', contact1)
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       '@little1 Yo',
@@ -134,7 +134,7 @@ void test('say()', async () => {
     callback.resetHistory()
     await room.say('hey buddies, let\'s party', contact1, contact2)
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       '@little1 @big2 hey buddies, let\'s party',
