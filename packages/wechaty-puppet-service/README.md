@@ -69,6 +69,8 @@ For Puppet Server:
 1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY`:
   Server CA Key (string data),
   will be replaced if `optoins.sslServerKey` has been set.
+1. `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_SERVER`:
+  set `true` to disable server SSL
 
 For Puppet Client:
 
@@ -78,9 +80,11 @@ For Puppet Client:
 1. `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT`:
   Root CA Cert (string data),
   will be replaced if `options.sslRootCert` has been set.
-1. `WECHATY_PUPPET_SERVICE_GRPC_SSL_TARGET_NAME_OVERRIDE`:
+1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME`:
   Server Name (mast match for SNI),
   will be replaced if `optoins.servername` has been set.
+1. `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_CLIENT`:
+  set `true` to disable client SSL
 
 #### Changelog
 
