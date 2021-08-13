@@ -25,7 +25,7 @@ import {
   PuppetManager,
 }                 from './puppet-manager'
 
-test('resolve an unsupported puppet name', async t => {
+void test('resolve an unsupported puppet name', async t => {
   // try {
   //   await PuppetManager.resolve('fasdfsfasfsfdfs')
   //   t.fail('should reject')

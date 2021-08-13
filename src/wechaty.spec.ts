@@ -52,7 +52,7 @@ class WechatyTest extends Wechaty {
 
 }
 
-test('Export of the Framework', async t => {
+void test('Export of the Framework', async t => {
   t.ok(Contact,     'should export Contact')
   t.ok(Friendship,  'should export Friendship')
   t.ok(IoClient,    'should export IoClient')
@@ -63,16 +63,16 @@ test('Export of the Framework', async t => {
   t.ok(log,         'should export log')
 })
 
-test('static VERSION', async t => {
-  t.true('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
+void test('static VERSION', async t => {
+  t.ok('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
 })
 
-test('Config setting', async t => {
+void test('Config setting', async t => {
   t.ok(config, 'should export Config')
   // t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
 })
 
-test('event:start/stop', async t => {
+void test('event:start/stop', async t => {
   const wechaty = new Wechaty({ puppet: 'wechaty-puppet-mock' })
 
   const startSpy = sinon.spy()
@@ -187,7 +187,7 @@ skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) =>
   await bot.stop()
 })
 
-test('use plugin', async (t) => {
+void test('use plugin', async (t) => {
 
   // Do not modify the gloabl Wechaty instance
   class MyWechatyTest extends Wechaty {}
@@ -224,7 +224,7 @@ test('use plugin', async (t) => {
 
 })
 
-test('initPuppetAccessory()', async t => {
+void test('initPuppetAccessory()', async t => {
   const wechatyTest = new WechatyTest()
 
   const puppet = new PuppetMock()
@@ -234,7 +234,7 @@ test('initPuppetAccessory()', async t => {
 
 // TODO: add test for event args
 
-test('Wechaty restart for many times', async t => {
+void test('Wechaty restart for many times', async t => {
   const wechaty = new Wechaty({
     puppet: new PuppetMock(),
   })
@@ -252,7 +252,7 @@ test('Wechaty restart for many times', async t => {
 
 })
 
-test('@event ready', async t => {
+void test('@event ready', async t => {
   const puppet = new PuppetMock()
   const wechaty = new Wechaty({ puppet })
 
@@ -260,24 +260,24 @@ test('@event ready', async t => {
   const spy     = sandbox.spy()
 
   wechaty.on('ready', spy)
-  t.true(spy.notCalled, 'should no ready event with new wechaty instance')
+  t.ok(spy.notCalled, 'should no ready event with new wechaty instance')
 
   await wechaty.start()
-  t.true(spy.notCalled, 'should no ready event right start wechaty started')
+  t.ok(spy.notCalled, 'should no ready event right start wechaty started')
 
   puppet.emit('ready', { data: 'test' })
-  t.true(spy.calledOnce, 'should fire ready event after puppet ready')
+  t.ok(spy.calledOnce, 'should fire ready event after puppet ready')
 
   await wechaty.stop()
   await wechaty.start()
   puppet.emit('ready', { data: 'test' })
 
-  t.true(spy.calledTwice, 'should fire ready event second time after stop/start wechaty')
+  t.ok(spy.calledTwice, 'should fire ready event second time after stop/start wechaty')
 
   await wechaty.stop()
 })
 
-test('ready()', async t => {
+void test('ready()', async t => {
   const puppet = new PuppetMock()
   const wechaty = new Wechaty({ puppet })
 
@@ -289,15 +289,15 @@ test('ready()', async t => {
     .then(spy)
     .catch(e => t.fail('rejection: ' + e))
 
-  t.true(spy.notCalled, 'should not ready with new wechaty instance')
+  t.ok(spy.notCalled, 'should not ready with new wechaty instance')
 
   await wechaty.start()
 
-  t.true(spy.notCalled, 'should not ready after right start wechaty')
+  t.ok(spy.notCalled, 'should not ready after right start wechaty')
 
   puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
-  t.true(spy.calledOnce, 'should ready after puppet ready')
+  t.ok(spy.calledOnce, 'should ready after puppet ready')
 
   await wechaty.stop()
   await wechaty.start()
@@ -307,12 +307,12 @@ test('ready()', async t => {
 
   puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
-  t.true(spy.calledTwice, 'should ready again after stop/start wechaty')
+  t.ok(spy.calledTwice, 'should ready again after stop/start wechaty')
 
   await wechaty.stop()
 })
 
-test('on/off event listener management', async t => {
+void test('on/off event listener management', async t => {
   const puppet = new PuppetMock()
   const wechaty = new Wechaty({ puppet })
 

@@ -24,7 +24,7 @@ import sinon from 'sinon'
 import { tryWait } from './try-wait'
 import promiseRetry = require('promise-retry')
 
-test('promiseRetry()', async t => {
+void test('promiseRetry()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
   const EXPECTED_REJECT  = 'NotTheTime'
 
@@ -53,7 +53,7 @@ test('promiseRetry()', async t => {
   ).catch((e: any) => {
     thenSpy(e)
   })
-  t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
+  t.ok(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
 
   thenSpy.resetHistory()
   const anotherDelay50 = delayedFactory(50)
@@ -69,10 +69,10 @@ test('promiseRetry()', async t => {
     .then((r: string) => {
       return thenSpy(r)
     })
-  t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
+  t.ok(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
 
-test('retry()', async t => {
+void test('retry()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
   const EXPECTED_REJECT  = 'NotTheTime'
 
@@ -98,5 +98,5 @@ test('retry()', async t => {
     .then((r: string) => {
       return thenSpy(r)
     })
-  t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
+  t.ok(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })

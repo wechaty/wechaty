@@ -29,7 +29,7 @@ import { Wechaty }  from '../wechaty'
 
 import { Contact }  from './contact'
 
-test('findAll()', async t => {
+void test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
   const EXPECTED_CONTACT_NAME    = 'test-name'
   const EXPECTED_CONTACT_ID_LIST = [EXPECTED_CONTACT_ID]
@@ -56,7 +56,7 @@ test('findAll()', async t => {
   await wechaty.stop()
 })
 
-test('Should not be able to instanciate directly', async t => {
+void test('Should not be able to instanciate directly', async t => {
   t.throws(() => {
     const c = Contact.load('xxx')
     t.fail(c.name())
@@ -68,7 +68,7 @@ test('Should not be able to instanciate directly', async t => {
   }, 'should throw when `Contact.load()`')
 })
 
-test('Should not be able to instanciate through cloneClass without puppet', async t => {
+void test('Should not be able to instanciate through cloneClass without puppet', async t => {
   t.throws(() => {
     const c = Contact.load('xxx')
     t.fail(c.name())
@@ -81,7 +81,7 @@ test('Should not be able to instanciate through cloneClass without puppet', asyn
 
 })
 
-test('should throw when instanciate the global class', async t => {
+void test('should throw when instanciate the global class', async t => {
   t.throws(() => {
     const c = Contact.load('xxx')
     t.fail('should not run to here')

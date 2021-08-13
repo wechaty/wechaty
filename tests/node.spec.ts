@@ -25,7 +25,7 @@ import { test }  from 'tap'
 
 import { spy } from 'sinon'
 
-test('Node.js function params destructuring behaviour test', async t => {
+void test('Node.js function params destructuring behaviour test', async t => {
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 

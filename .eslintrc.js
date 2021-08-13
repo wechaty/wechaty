@@ -1,5 +1,4 @@
 const rules = {
-
 }
 
 module.exports = {

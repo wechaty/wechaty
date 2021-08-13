@@ -32,7 +32,7 @@ import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }      from '../wechaty'
 
-test('recalled()', async t => {
+void test('recalled()', async t => {
 
   const EXPECTED_RECALL_MESSAGE_ID = '1'
   const EXPECTED_RECALLED_MESSAGE_ID = '2'

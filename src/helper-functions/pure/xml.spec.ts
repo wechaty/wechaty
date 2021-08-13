@@ -29,7 +29,7 @@ import {
   unifyEmoji,
 }                   from './xml'
 
-test('stripHtml()', async t => {
+void test('stripHtml()', async t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
   const HTML_AFTER_STRIP  = 'OuterInner'
 
@@ -37,7 +37,7 @@ test('stripHtml()', async t => {
   t.is(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
 })
 
-test('unescapeHtml()', async t => {
+void test('unescapeHtml()', async t => {
   const HTML_BEFORE_UNESCAPE  = '&apos;|&quot;|&gt;|&lt;|&amp;'
   // eslint-disable-next-line
   const HTML_AFTER_UNESCAPE   = `'|"|>|<|&`
@@ -46,7 +46,7 @@ test('unescapeHtml()', async t => {
   t.is(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
 })
 
-test('plainText()', async t => {
+void test('plainText()', async t => {
   const PLAIN_BEFORE  = '&amp;<html>&amp;</html>&amp;<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
   const PLAIN_AFTER   = '&&&[流汗]'
 
@@ -55,7 +55,7 @@ test('plainText()', async t => {
 
 })
 
-test('digestEmoji()', async t => {
+void test('digestEmoji()', async t => {
   const EMOJI_XML = [
     '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
     '<img class="qqemoji qqemoji13" text="[呲牙]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
@@ -75,7 +75,7 @@ test('digestEmoji()', async t => {
   }
 })
 
-test('unifyEmoji()', async t => {
+void test('unifyEmoji()', async t => {
   const ORIGNAL_XML_LIST: Array<[string[], string]> = [
     [
       [
@@ -94,7 +94,7 @@ test('unifyEmoji()', async t => {
   })
 })
 
-test('stripEmoji()', async t => {
+void test('stripEmoji()', async t => {
   const EMOJI_STR = [
     [
       'ABC<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />DEF',

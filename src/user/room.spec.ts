@@ -31,7 +31,7 @@ import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }      from '../wechaty'
 
-test('findAll()', async t => {
+void test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
   const EXPECTED_ROOM_TOPIC   = 'test-topic'
   const EXPECTED_ROOM_ID_LIST = [EXPECTED_ROOM_ID]
@@ -58,7 +58,7 @@ test('findAll()', async t => {
   await wechaty.stop()
 })
 
-test('say()', async () => {
+void test('say()', async () => {
 
   const sandbox = sinon.createSandbox()
   const callback = sinon.spy()
