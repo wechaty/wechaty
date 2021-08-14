@@ -3,7 +3,7 @@ name: Docker
 on: [push, pull_request]
 #   push:
 #     branches:
-#       - master
+#       - main
 #       - 'v[0-9]+*'
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
   publish:
     name: Publish
     needs: [build]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/v'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
