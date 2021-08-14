@@ -57,7 +57,8 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ### master v0.27
 
-Implemented SSL and server-side token authorization!
+1. Implemented SSL and server-side token authorization.
+1. Refactor the gRPC client code.
 
 #### New environment variables
 
