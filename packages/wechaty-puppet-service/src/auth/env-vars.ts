@@ -1,5 +1,4 @@
 import {
-  SSL_ROOT_CERT,
   SSL_SERVER_KEY,
   SSL_SERVER_CERT,
   SSL_SERVER_CERT_COMMON_NAME,
@@ -9,9 +8,9 @@ import {
  *  `replace(/\\n/g, '\n')`
  *    https://stackoverflow.com/a/36439803/1123955
  */
-const WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT    = (v?: string) => v
+const WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT = (v?: string) => v
  || process.env['WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT']?.replace(/\\n/g, '\n')
- || SSL_ROOT_CERT
+ || null  // The server and the client need different default values
 
 const WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT  = (v?: string) => v
  || process.env['WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT']?.replace(/\\n/g, '\n')

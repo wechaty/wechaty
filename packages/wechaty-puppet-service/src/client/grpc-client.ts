@@ -16,8 +16,9 @@ import {
   envVars,
 }                   from '../config'
 
-import { callCredToken } from '../auth/mod'
-import { GrpcStatus } from '../auth/grpc-js'
+import { callCredToken }  from '../auth/mod'
+import { GrpcStatus }     from '../auth/grpc-js'
+import { SSL_ROOT_CERT }  from '../auth/ca'
 
 import { PuppetServiceOptions } from './puppet-service'
 
@@ -74,7 +75,7 @@ class GrpcClient extends EventEmitter {
   protected async init (): Promise<void> {
     log.verbose('GrpcClient', 'init()')
 
-    const sslRootCert = envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT(this.options.sslRootCert)
+    const sslRootCert = envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT(this.options.sslRootCert) || SSL_ROOT_CERT
     const token       = envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
     const endpoint    = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
                         || `wechaty://${envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority)}/${this.options.token}`

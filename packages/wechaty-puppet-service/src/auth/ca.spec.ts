@@ -9,9 +9,11 @@ import https from 'https'
 import * as envVar  from './env-vars'
 import { AddressInfo } from 'ws'
 
+import { SSL_ROOT_CERT } from './ca'
+
 test('CA smoke testing', async t => {
 
-  const ca   = envVar.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT()
+  const ca   = envVar.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT() || SSL_ROOT_CERT
   const cert = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT()
   const key  = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY()
 
@@ -51,7 +53,7 @@ test('CA smoke testing', async t => {
 
 test('CA SNI tests', async t => {
 
-  const ca   = envVar.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT()
+  const ca   = envVar.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT() || SSL_ROOT_CERT
   const cert = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT()
   const key  = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY()
 

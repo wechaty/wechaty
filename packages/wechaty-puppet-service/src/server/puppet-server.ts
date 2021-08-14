@@ -69,6 +69,11 @@ export class PuppetServer {
       puppetImplAuth,
     )
 
+    const rootCertsData = envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT()
+    const rootCerts = rootCertsData
+      ? Buffer.from(rootCertsData)
+      : null
+
     const keyCertPairs: grpc.KeyCertPair[] = [{
       cert_chain  : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT(this.options.sslServerCert)),
       private_key : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY(this.options.sslServerKey)),
@@ -84,10 +89,12 @@ export class PuppetServer {
       log.warn('PuppetServer', 'start() WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_SERVER should not be set in production!')
       credential = grpc.ServerCredentials.createInsecure()
     } else {
-      credential = grpc.ServerCredentials.createSsl(null, keyCertPairs)
+      credential = grpc.ServerCredentials.createSsl(rootCerts, keyCertPairs)
     }
 
-    const port = await util.promisify(this.grpcServer.bindAsync.bind(this.grpcServer))(
+    const port = await util.promisify(
+      this.grpcServer.bindAsync.bind(this.grpcServer)
+    )(
       this.options.endpoint,
       credential,
     )

@@ -64,6 +64,8 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 <!-- markdownlint-disable MD013 -->
 
+1. `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT`: can be overwrite by `options.sslRootCert`. Set Root CA Cert to verify the server or client.
+
 For Puppet Server:
 
 | Environment Variable | Options | Description |
@@ -76,7 +78,6 @@ For Puppet Client:
 | Environment Variable | Options | Description |
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
-| `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT` | `options.sslRootCert` | Root CA Cert (string data) |
 | `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
 
 Deprecated environment variables:
