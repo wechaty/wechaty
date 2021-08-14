@@ -86,7 +86,7 @@ Wechaty.instance() // Global Instance
 
 This bot can log all messages to the console after login by scan.
 
-You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts), and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/master/examples/).
+You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts), and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
 
 ## :checkered_flag: Requirements
 
@@ -324,11 +324,12 @@ Accept room invitation
 | method | [`date(): Promise<Date>`](https://wechaty.github.io/wechaty/#RoomInvitation+date) | the time it was created |
 | method | [`age(): Promise<number>`](https://wechaty.github.io/wechaty/#RoomInvitation+age) | the number of seconds since it has been created |
 
-## :eyeglasses: TEST
+## TEST
 
 [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM)
 [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
-[![Coverage Status](https://coveralls.io/repos/github/Wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Wechaty/wechaty?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=main)](https://coveralls.io/github/wechaty/wechaty?branch=main)
+
 [![Known Vulnerabilities](https://snyk.io/test/github/Wechaty/wechaty/badge.svg)](https://snyk.io/test/github/Wechaty/wechaty)
 
 Wechaty is fully automatically tested by unit and integration tests, with Continious Integration & Continious Deliver(CI/CD) support powered by CI like Travis, Shippable and Appveyor.
@@ -363,7 +364,7 @@ See:
 ## :pencil: RELEASE NOTES
 
 - [Latest Release](https://github.com/Wechaty/wechaty/releases/latest)(All releases [here](https://github.com/Wechaty/wechaty/releases))
-- [Changelog](https://github.com/Wechaty/wechaty/blob/master/CHANGELOG.md)
+- [Changelog](https://github.com/Wechaty/wechaty/blob/main/CHANGELOG.md)
 
 ### :saxophone: Views Since Feb 15, 2019
 
