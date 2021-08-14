@@ -63,8 +63,7 @@ class GrpcClient extends EventEmitter {
      * 2. Stop the puppet
      */
     await util.promisify(
-      this.client!.stop
-        .bind(this.client)
+      this.client!.stop.bind(this.client)
     )(new StopRequest())
     /**
      * 3. Destroy grpc client
@@ -133,9 +132,9 @@ class GrpcClient extends EventEmitter {
       this.client.close()
     } catch (e) {
       log.error('GrpcClient', 'destroy() grpcClient.close() rejection: %s\n%s', e && e.message, e.stack)
+    } finally {
+      this.client = undefined
     }
-
-    this.client = undefined
   }
 
   protected async startStream (): Promise<void> {
@@ -157,15 +156,67 @@ class GrpcClient extends EventEmitter {
      *  because the on('data') will start drain the stream
      */
     const future = new Promise<void>((resolve, reject) => eventStream
-      .once('error',    reject)
+      /**
+       * Huan(202108): we need a `heartbeat` event to confirm the connection is alive
+       *  for our wechaty-puppet-service server code, when the gRPC event stream is opened,
+       *  it will emit a `heartbeat` event as early as possible.
+       *
+       * However, the `heartbeat` event is not guaranteed to be emitted,
+       *  if the puppet service provider is coming from the community, like:
+       *    - paimon
+       *
+       * So we also need a timeout for compatible with those providers
+       *  in case of they are not following this special protocol.
+       */
+      .once('data', resolve) // (resp: EventResponse) => console.info('once(data)', JSON.parse(resp.getPayload())))
+      /**
+       * Any of the following events will be emitted means that there's a problem.
+       */
+      .once('cancel', reject)
+      .once('end',    reject)
+      .once('error',  reject)
+      /**
+       * The `status` event is import when we connect a gRPC stream.
+       *
+       * Huan(202108): according to the unit tests (tests/grpc-client.spec.ts)
+       *  1. If client SSL is not ok (client no-ssl but server SSL is required)
+       *    then status will be:
+       *      { code: 14, details: 'Connection dropped' }
+       *  2. If client SSL is ok but the client token is invalid,
+       *    then status will be:
+       *      { code: 16, details: 'Invalid Wechaty TOKEN "0.XXX"' }
+       */
       .once('status',   status => {
+        // console.info('once(status)', status)
         status.code === GrpcStatus.OK
           ? resolve()
           : reject(new Error('once(status)'))
       })
+      /**
+       * Huan(202108): `metadata` event will be fired
+       *  when the SSL connection is OK
+       *    even if the token is invalid
+       *
+       * Conclusion: we MUST NOT listen on `metadata` for `resolve`.
+       */
+      // .once('metadata', (...args) => console.info('once(metadata)', ...args))
+
     )
 
-    await future
+    /**
+     * Huan(202108): the `heartbeat` event is not guaranteed to be emitted
+     *  if a puppet service provider is coming from the community, and it does not follow the protocol.
+     * So we need a timeout for compatible with those providers
+     */
+    const TIMEOUT = 5 * 1000 // 5 seconds
+    const timeout = new Promise<void>(resolve => setTimeout(resolve, TIMEOUT).unref())
+
+    // console.info('here')
+    await Promise.race([
+      future,
+      timeout,
+    ])
+    // console.info('there')
 
     /**
      * Bridge the events

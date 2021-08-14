@@ -12,6 +12,44 @@ import {
   PuppetServerOptions,
 }                       from '../src/mod'
 
+test('GrpcClient with SSL and valid token', async (t) => {
+  const TOKEN         = '__test_token__'
+  const ENDPOINT      = '0.0.0.0:8788'
+
+  /**
+   * Puppet Server
+   */
+  const serverOptions = {
+    endpoint : ENDPOINT,
+    puppet   : new PuppetMock(),
+    token    : TOKEN,
+  } as PuppetServerOptions
+
+  const puppetServer = new PuppetServer(serverOptions)
+  await puppetServer.start()
+
+  /**
+   * Puppet Service Client
+   */
+  const puppetOptions = {
+    endpoint : ENDPOINT,
+    token    : TOKEN,
+  } as PuppetOptions
+
+  const invalidTokenPuppet = new GrpcClient(puppetOptions)
+
+  try {
+    await invalidTokenPuppet.start()
+    t.pass('should work with SSL and valid token')
+  } catch (e) {
+    t.fail('should not reject for a valid token & ssl')
+  } finally {
+    try { await invalidTokenPuppet.stop() } catch (_) {}
+  }
+
+  await puppetServer.stop()
+})
+
 test('GrpcClient with invalid SSL options', async (t) => {
   const TOKEN    = '__test_token__'
   const ENDPOINT = '0.0.0.0:8788'
@@ -58,17 +96,14 @@ test('GrpcClient with invalid SSL options', async (t) => {
 })
 
 test('GrpcClient with invalid token', async (t) => {
-  const TOKEN         = '__test_token__'
-  const INVALID_TOKEN = '__invalid_token__'
-  const ENDPOINT      = '0.0.0.0:8788'
-
+  const endpoint = '0.0.0.0:8788'
   /**
    * Puppet Server
    */
   const serverOptions = {
-    endpoint : ENDPOINT,
-    puppet   : new PuppetMock(),
-    token    : TOKEN,
+    endpoint,
+    puppet: new PuppetMock(),
+    token: '__token__',
   } as PuppetServerOptions
 
   const puppetServer = new PuppetServer(serverOptions)
@@ -78,18 +113,21 @@ test('GrpcClient with invalid token', async (t) => {
    * Puppet Service Client
    */
   const puppetOptions = {
-    endpoint : ENDPOINT,
-    token    : INVALID_TOKEN,
+    endpoint,
+    /**
+     * Put a random token for invalid the client token
+     *  https://stackoverflow.com/a/8084248/1123955
+     */
+    token: Math.random().toString(36),
   } as PuppetOptions
 
   const invalidTokenPuppet = new GrpcClient(puppetOptions)
-  // invalidTokenPuppet.on('error', _ => {})
 
   try {
     await invalidTokenPuppet.start()
     t.fail('should throw for invalid token instead of not running to here')
   } catch (e) {
-    t.pass('should throw for invalid token: ' + INVALID_TOKEN)
+    t.pass('should throw for invalid random token')
   } finally {
     try { await invalidTokenPuppet.stop() } catch (_) {}
   }
