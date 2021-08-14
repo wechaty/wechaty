@@ -62,6 +62,8 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 #### New environment variables
 
+<!-- markdownlint-disable MD013 -->
+
 For Puppet Server:
 
 | Environment Variable | Options | Description |
