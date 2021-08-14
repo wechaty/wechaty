@@ -64,28 +64,20 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 For Puppet Server:
 
-1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT`:
-  Server CA Cert (string data),
-  will be replaced if `options.sslServerCert` has been set.
-1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY`:
-  Server CA Key (string data),
-  will be replaced if `optoins.sslServerKey` has been set.
-1. `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_SERVER`:
-  set `true` to disable server SSL
+| Environment Variable | Options | Description |
+| -------------------- | ------- | ----------- |
+| `WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT` | `options.sslServerCert` | Server CA Cert (string data) |
+| `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY` | `optoins.sslServerKey` | Server CA Key (string data) |
+| `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_SERVER` | `deprecatedNoSslUnsafe` | set `true` to disable SSL |
 
 For Puppet Client:
 
-1. `WECHATY_PUPPET_SERVICE_AUTHORITY`:
-  `api.chatie.io` service discovery host name,
-  will be replaced if `options.authority` has been set.
-1. `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT`:
-  Root CA Cert (string data),
-  will be replaced if `options.sslRootCert` has been set.
-1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME`:
-  Server Name (mast match for SNI),
-  will be replaced if `optoins.servername` has been set.
-1. `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_CLIENT`:
-  set `true` to disable client SSL
+| Environment Variable | Options | Description |
+| -------------------- | ------- | ----------- |
+| `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
+| `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT` | `options.sslRootCert` | Root CA Cert (string data) |
+| `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
+| `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_CLIENT` | `deprecatedNoSslUnsafe` | set `true` to disable SSL |
 
 #### Changelog
 
