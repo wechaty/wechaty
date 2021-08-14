@@ -19,7 +19,7 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test }  from 'tap'
 
 import Peer, {
   format,
@@ -31,7 +31,7 @@ import {
   getPeer,
 }                   from './io-peer'
 
-test('getPeer()', async t => {
+void test('getPeer()', async t => {
   const EXPECTED_PORT = 8788
   const server = getPeer({
     serviceGrpcPort: EXPECTED_PORT,
@@ -48,7 +48,7 @@ test('getPeer()', async t => {
   t.equal(port, EXPECTED_PORT, 'should get the right port')
 })
 
-test('exec()', async t => {
+void test('exec()', async t => {
   const EXPECTED_PORT = 8788
   const server = getPeer({
     serviceGrpcPort: EXPECTED_PORT,

@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test }  from 'tap'
 import sinon from 'sinon'
 
 import {
@@ -30,7 +30,7 @@ import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }      from '../wechaty'
 
-test('findAll()', async t => {
+void test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
   const EXPECTED_ROOM_TOPIC   = 'test-topic'
   const EXPECTED_ROOM_ID_LIST = [EXPECTED_ROOM_ID]
@@ -57,7 +57,7 @@ test('findAll()', async t => {
   await wechaty.stop()
 })
 
-test('say()', async () => {
+void test('say()', async () => {
 
   const sandbox = sinon.createSandbox()
   const callback = sinon.spy()
@@ -106,11 +106,11 @@ test('say()', async () => {
   await contact2.sync()
   await room.sync()
 
-  test('say with Tagged Template', async t => {
+  void test('say with Tagged Template', async t => {
     callback.resetHistory()
     await room.say`To be ${contact1} or not to be ${contact2}`
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       'To be @little1 or not to be @big2',
@@ -118,11 +118,11 @@ test('say()', async () => {
     ], 'Tagged Template say should be matched')
   })
 
-  test('say with regular mention contact', async t => {
+  void test('say with regular mention contact', async t => {
     callback.resetHistory()
     await room.say('Yo', contact1)
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       '@little1 Yo',
@@ -130,11 +130,11 @@ test('say()', async () => {
     ], 'Single mention should work with old ways')
   })
 
-  test('say with multiple mention contact', async t => {
+  void test('say with multiple mention contact', async t => {
     callback.resetHistory()
     await room.say('hey buddies, let\'s party', contact1, contact2)
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       '@little1 @big2 hey buddies, let\'s party',

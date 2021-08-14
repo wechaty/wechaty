@@ -35,3 +35,4 @@ jobs:
     - run: npm test
       env:
         CI: true
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}

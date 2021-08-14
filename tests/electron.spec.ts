@@ -19,12 +19,12 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test, skip }  from 'tap'
 
-test('Electron smoke testing', async t => {
-  t.true(true, 'test')
+void test('Electron smoke testing', async t => {
+  t.ok(true, 'test')
 })
 
-test.skip('Electron open wx', async t => {
+void skip('Electron open wx', async t => {
   t.pass('ok')
 })

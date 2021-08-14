@@ -19,13 +19,13 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test }  from 'tap'
 
 import {
   PuppetManager,
 }                 from './puppet-manager'
 
-test('resolve an unsupported puppet name', async t => {
+void test('resolve an unsupported puppet name', async t => {
   // try {
   //   await PuppetManager.resolve('fasdfsfasfsfdfs')
   //   t.fail('should reject')

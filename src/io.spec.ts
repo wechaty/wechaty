@@ -19,12 +19,12 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import { test }  from 'tap'
 
 import { Io }       from './io'
 import { Wechaty }  from './wechaty'
 
-test('Io restart without problem', async t => {
+void test('Io restart without problem', async t => {
   const io = new Io({
     // token must not contain any white spaces
     servicePort : 8788,

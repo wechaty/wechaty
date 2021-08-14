@@ -24,14 +24,14 @@ import { FileBox } from 'file-box'
 
 import { looseInstanceOfClass } from './loose-instance-of-class'
 
-test('looseInstanceOfClass: instanceof', async t => {
+void test('looseInstanceOfClass: instanceof', async t => {
   class Test {}
   const looseInstanceOfTest = looseInstanceOfClass(Test)
   const test = new Test()
-  t.true(looseInstanceOfTest(test), 'should be true for a real Test')
+  t.ok(looseInstanceOfTest(test), 'should be true for a real Test')
 })
 
-test('looseInstanceOfClass: constructor.name', async t => {
+void test('looseInstanceOfClass: constructor.name', async t => {
   class Test {}
   const looseInstanceOfTest = looseInstanceOfClass(Test)
 
@@ -42,12 +42,12 @@ test('looseInstanceOfClass: constructor.name', async t => {
     class Test {}
     t.notEqual(OrigTest, Test, 'should has a new Test class different to the original Test class')
     const f = new Test()
-    t.true(looseInstanceOfTest(f), 'should be true for the same name class like Test')
+    t.ok(looseInstanceOfTest(f), 'should be true for the same name class like Test')
   }
 
 })
 
-test('looseInstanceOfClass: n/a', async t => {
+void test('looseInstanceOfClass: n/a', async t => {
   class Test {}
   const looseInstanceOfTest = looseInstanceOfClass(Test)
 
@@ -55,7 +55,7 @@ test('looseInstanceOfClass: n/a', async t => {
   t.false(looseInstanceOfTest(o), 'should be false for non-Test: {}')
 })
 
-test('looseInstanceOfClass for FileBox', async t => {
+void test('looseInstanceOfClass for FileBox', async t => {
   const f = FileBox.fromQRCode('test')
   const looseInstanceOfFileBox = looseInstanceOfClass(FileBox as any as FileBox & { new (...args: any): FileBox })
 
@@ -64,8 +64,8 @@ test('looseInstanceOfClass for FileBox', async t => {
     class FileBox {}
     t.notEqual(OrigFileBox, FileBox, 'should be two different FileBox class')
 
-    t.true(f instanceof OrigFileBox, 'should be instanceof OrigFileBox')
+    t.ok(f instanceof OrigFileBox, 'should be instanceof OrigFileBox')
     t.false(f instanceof FileBox, 'should not instanceof another FileBox class for one FileBox instance')
-    t.true(looseInstanceOfFileBox(f), 'should be true for looseInstanceOfFileBox because the class has the same name')
+    t.ok(looseInstanceOfFileBox(f), 'should be true for looseInstanceOfFileBox because the class has the same name')
   }
 })
