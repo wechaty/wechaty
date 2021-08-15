@@ -25,10 +25,10 @@ const WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME = (v?: string) => v
  || SSL_SERVER_CERT_COMMON_NAME
 
 const WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER = (v?: boolean) => typeof v === 'undefined'
-  ? !!process.env['WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER']
+  ? process.env['WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER'] === 'true'
   : v
 const WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT = (v?: boolean) => typeof v === 'undefined'
-  ? !!process.env['WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT']
+  ? process.env['WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT'] === 'true'
   : v
 
 export {
