@@ -70,9 +70,9 @@ test('GrpcClient with invalid SSL options', async (t) => {
    * Grpc Client
    */
   const puppetOptions = {
-    deprecatedNoSslUnsafe : true,
-    endpoint              : ENDPOINT,
-    token                 : TOKEN,
+    endpoint    : ENDPOINT,
+    noSslUnsafe : true,
+    token       : TOKEN,
   } as PuppetOptions
 
   const grpcClient = new GrpcClient(puppetOptions)
@@ -86,7 +86,7 @@ test('GrpcClient with invalid SSL options', async (t) => {
     await grpcClient.start()
     t.fail('should throw for no-ssl client to ssl-server instead of not running to here')
   } catch (e) {
-    t.pass('should throw for non-ssl client to ssl-server with deprecatedNoSslUnsafe: true')
+    t.pass('should throw for non-ssl client to ssl-server with noSslUnsafe: true')
   } finally {
     log.level(level)
     try { await grpcClient.stop() } catch (_) {}

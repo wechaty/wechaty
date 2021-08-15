@@ -72,6 +72,7 @@ For Puppet Server:
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT` | `options.sslServerCert` | Server CA Cert (string data) |
 | `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY` | `optoins.sslServerKey` | Server CA Key (string data) |
+| `WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER` | `options.noSslUnsafe` | Set `true` to disable server SSL |
 
 For Puppet Client:
 
@@ -79,11 +80,8 @@ For Puppet Client:
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
 | `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
+| `WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT` | `optoins.noSslUnsafe` | Set `true` to disable client SSL |
 
-Deprecated environment variables:
-
-1. `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_SERVER`: can be overwrite by options `deprecatedNoSslUnsafe`. Set `true` to disable server SSL
-1. `WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_CLIENT`: can be overwrite by optoins `deprecatedNoSslUnsafe`. Set `true` to disable client SSL
 
 #### Changelog
 

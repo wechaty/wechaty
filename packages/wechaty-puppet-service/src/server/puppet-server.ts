@@ -29,7 +29,7 @@ export interface PuppetServerOptions {
   sslServerCert?         : string,
   sslServerKey?          : string,
   token                  : string,
-  deprecatedNoSslUnsafe? : boolean,
+  noSslUnsafe? : boolean,
 }
 
 export class PuppetServer {
@@ -85,8 +85,8 @@ export class PuppetServer {
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
-    if (envVars.WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_SERVER(this.options.deprecatedNoSslUnsafe)) {
-      log.warn('PuppetServer', 'start() WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_SERVER should not be set in production!')
+    if (envVars.WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER(this.options.noSslUnsafe)) {
+      log.warn('PuppetServer', 'start() WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER should not be set in production!')
       credential = grpc.ServerCredentials.createInsecure()
     } else {
       credential = grpc.ServerCredentials.createSsl(rootCerts, keyCertPairs)

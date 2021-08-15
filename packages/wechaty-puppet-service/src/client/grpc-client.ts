@@ -54,7 +54,7 @@ class GrpcClient extends EventEmitter {
     /**
      *
      */
-    this.noSslUnsafe = envVars.WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_CLIENT(this.options.deprecatedNoSslUnsafe)
+    this.noSslUnsafe = envVars.WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT(this.options.noSslUnsafe)
     /**
      * for Node.js TLS SNI
      *  https://en.wikipedia.org/wiki/Server_Name_Indication

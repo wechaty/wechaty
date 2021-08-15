@@ -137,7 +137,7 @@ export type PuppetServiceOptions = PuppetOptions & {
    * Huan(202108): only for compatible with old clients/servers
    *  for disabling SSL
    */
-  deprecatedNoSslUnsafe? : boolean
+  noSslUnsafe? : boolean
 }
 
 export class PuppetService extends Puppet {
