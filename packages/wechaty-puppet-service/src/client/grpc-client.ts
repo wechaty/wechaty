@@ -57,7 +57,12 @@ class GrpcClient extends EventEmitter {
     log.verbose('GrpcClient', 'constructor() token: "%s"', this.token)
 
     this.endpoint = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
-                  || `wechaty://${envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority)}/${this.token}`
+      || [
+        'wechaty://',
+        envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority),
+        '/',
+        this.token,
+      ].join('')
     log.verbose('GrpcClient', 'constructor() endpoint: "%s"', this.endpoint)
 
     /**
