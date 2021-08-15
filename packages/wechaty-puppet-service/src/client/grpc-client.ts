@@ -1,5 +1,6 @@
 import util from 'util'
 import EventEmitter from 'events'
+import crypto from 'crypto'
 
 import {
   grpc,
@@ -43,23 +44,34 @@ class GrpcClient extends EventEmitter {
     this.sslRootCert = Buffer.from(
       envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT(this.options.sslRootCert) || SSL_ROOT_CERT
     )
+    log.verbose('GrpcClient', 'constructor() sslRootCert(hash): "%s"',
+      crypto.createHash('sha256')
+        .update(this.sslRootCert)
+        .digest('hex'),
+    )
 
     /**
      * Token will be used in the gRPC resolver (in endpoint)
      */
-    this.token    = envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
+    this.token = envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
+    log.verbose('GrpcClient', 'constructor() token: "%s"', this.token)
+
     this.endpoint = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
                   || `wechaty://${envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority)}/${this.token}`
+    log.verbose('GrpcClient', 'constructor() endpoint: "%s"', this.endpoint)
 
     /**
      *
      */
     this.noSslUnsafe = envVars.WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT(this.options.noSslUnsafe)
+    log.verbose('GrpcClient', 'constructor() noSslUnsafe: "%s"', this.noSslUnsafe)
+
     /**
      * for Node.js TLS SNI
      *  https://en.wikipedia.org/wiki/Server_Name_Indication
      */
     this.servername = envVars.WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME(this.options.servername)
+    log.verbose('GrpcClient', 'constructor() servername: "%s"', this.servername)
   }
 
   async start (): Promise<void> {
