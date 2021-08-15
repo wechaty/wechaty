@@ -82,7 +82,6 @@ For Puppet Client:
 | `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
 | `WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT` | `optoins.noSslUnsafe` | Set `true` to disable client SSL |
 
-
 #### Changelog
 
 1. use [wechaty-token](https://github.com/wechaty/token)
