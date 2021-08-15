@@ -27,9 +27,39 @@ class GrpcClient extends EventEmitter {
   client?      : PuppetClient
   eventStream? : grpc.ClientReadableStream<EventResponse>
 
+  /**
+   * gRPC settings
+   */
+  endpoint    : string
+  noSslUnsafe : boolean
+  servername  : string
+  sslRootCert : Buffer
+  token       : string
+
   constructor (private options: PuppetServiceOptions) {
     super()
     log.verbose('GrpcClient', 'constructor(%s)', JSON.stringify(options))
+
+    this.sslRootCert = Buffer.from(
+      envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT(this.options.sslRootCert) || SSL_ROOT_CERT
+    )
+
+    /**
+     * Token will be used in the gRPC resolver (in endpoint)
+     */
+    this.token    = envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
+    this.endpoint = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
+                  || `wechaty://${envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority)}/${this.token}`
+
+    /**
+     *
+     */
+    this.noSslUnsafe = envVars.WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_CLIENT(this.options.deprecatedNoSslUnsafe)
+    /**
+     * for Node.js TLS SNI
+     *  https://en.wikipedia.org/wiki/Server_Name_Indication
+     */
+    this.servername = envVars.WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME(this.options.servername)
   }
 
   async start (): Promise<void> {
@@ -75,19 +105,8 @@ class GrpcClient extends EventEmitter {
   protected async init (): Promise<void> {
     log.verbose('GrpcClient', 'init()')
 
-    const sslRootCert = envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT(this.options.sslRootCert) || SSL_ROOT_CERT
-    const token       = envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
-    const endpoint    = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
-                        || `wechaty://${envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority)}/${this.options.token}`
-    const noSslUnsafe = envVars.WECHATY_PUPPET_SERVICE_SSL_DEPRECATED_NO_SSL_UNSAFE_CLIENT(this.options.deprecatedNoSslUnsafe)
-    /**
-     * for Node.js TLS SNI
-     *  https://en.wikipedia.org/wiki/Server_Name_Indication
-     */
-    const servername  = envVars.WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME(this.options.servername)
-
-    const callCred    = callCredToken(token)
-    const channelCred = grpc.credentials.createSsl(Buffer.from(sslRootCert))
+    const callCred    = callCredToken(this.token)
+    const channelCred = grpc.credentials.createSsl(this.sslRootCert)
     const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
 
     /**
@@ -96,7 +115,7 @@ class GrpcClient extends EventEmitter {
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
-    if (noSslUnsafe) {
+    if (this.noSslUnsafe) {
       log.warn('PuppetServer', 'start() noSslUnsafe should not be set in production!')
       credential = grpc.credentials.createInsecure()
     } else {
@@ -105,8 +124,14 @@ class GrpcClient extends EventEmitter {
 
     const clientOptions: grpc.ChannelOptions = {
       ...GRPC_OPTIONS,
-      'grpc.default_authority'        : token,
-      'grpc.ssl_target_name_override' : servername,
+      /**
+       * Huan(202108): this is a workaround for compatiblity with the non-ssl community servers/clients.
+       *  Will be removed after Dec 21, 2022.
+       *
+       * See: https://github.com/wechaty/wechaty-puppet-service/pull/78
+       */
+      'grpc.default_authority'        : this.token,
+      'grpc.ssl_target_name_override' : this.servername,
     }
 
     if (this.client) {
@@ -115,7 +140,7 @@ class GrpcClient extends EventEmitter {
     }
 
     this.client = new PuppetClient(
-      endpoint,
+      this.endpoint,
       credential,
       clientOptions,
     )

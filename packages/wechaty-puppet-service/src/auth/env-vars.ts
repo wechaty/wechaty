@@ -1,6 +1,6 @@
 import {
-  SSL_SERVER_KEY,
-  SSL_SERVER_CERT,
+  SSL_SERVER_KEY_UNSAFE,
+  SSL_SERVER_CERT_UNSAFE,
   SSL_SERVER_CERT_COMMON_NAME,
 }                                 from './ca'
 /**
@@ -14,11 +14,11 @@ const WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT = (v?: string) => v
 
 const WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT  = (v?: string) => v
  || process.env['WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT']?.replace(/\\n/g, '\n')
- || SSL_SERVER_CERT
+ || SSL_SERVER_CERT_UNSAFE
 
 const WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY   = (v?: string) => v
  || process.env['WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY']?.replace(/\\n/g, '\n')
- || SSL_SERVER_KEY
+ || SSL_SERVER_KEY_UNSAFE
 
 const WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME = (v?: string) => v
  || process.env['WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME']?.replace(/\\n/g, '\n')
