@@ -70,7 +70,7 @@ export class PuppetServer {
     )
 
     const rootCertsData = envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT()
-    const rootCerts = rootCertsData
+    const rootCert = rootCertsData
       ? Buffer.from(rootCertsData)
       : null
 
@@ -81,7 +81,7 @@ export class PuppetServer {
 
     /**
      * Huan(202108): for maximum compatible with the non-ssl community servers/clients,
-     *  we introduced the WECHATY_PUPPET_SERVICE_DEPRECATED_NO_SSL_UNSAFE environment.
+     *  we introduced the WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_{SERVER,CLIENT} environment variables.
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
@@ -89,7 +89,7 @@ export class PuppetServer {
       log.warn('PuppetServer', 'start() WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER should not be set in production!')
       credential = grpc.ServerCredentials.createInsecure()
     } else {
-      credential = grpc.ServerCredentials.createSsl(rootCerts, keyCertPairs)
+      credential = grpc.ServerCredentials.createSsl(rootCert, keyCertPairs)
     }
 
     const port = await util.promisify(

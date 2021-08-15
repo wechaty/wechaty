@@ -173,9 +173,14 @@ export class PuppetService extends Puppet {
 
     try {
       const grpc = new GrpcClient(this.options)
-      await grpc.start()
+      /**
+       * Huan(202108): when we startedv the event stream,
+       *  the `this.grpc` need to be available for all listeners.
+       */
+      this.grpc = grpc
 
       this.bridgeGrpcEventStream(grpc)
+      await grpc.start()
 
       this.recoverSubscription = recover$(this).subscribe(
         x => log.verbose('PuppetService', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
@@ -183,7 +188,6 @@ export class PuppetService extends Puppet {
         () => log.verbose('PuppetService', 'constructor() recover$().subscribe() complete()'),
       )
 
-      this.grpc = grpc
       this.state.on(true)
     } catch (e) {
       log.error('PuppetService', 'start() rejection: %s\n%s', e.message, e.stack)

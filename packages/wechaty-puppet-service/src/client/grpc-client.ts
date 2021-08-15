@@ -128,7 +128,7 @@ class GrpcClient extends EventEmitter {
 
     /**
      * Huan(202108): for maximum compatible with the non-ssl community servers/clients,
-     *  we introduced the WECHATY_PUPPET_SERVICE_DEPRECATED_NO_SSL_UNSAFE environment.
+     *  we introduced the WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_{SERVER,CLIENT} environment variables.
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
@@ -195,6 +195,12 @@ class GrpcClient extends EventEmitter {
     const eventStream = this.client.event(new EventRequest())
 
     /**
+     * Store the event data from the stream when we test connection,
+     *  and re-emit the event data when we have finished testing the connection
+     */
+    const peekDataList = [] as EventResponse[]
+
+    /**
      * Huan(202108): future must be placed before other listenser registration
      *  because the on('data') will start drain the stream
      */
@@ -211,7 +217,10 @@ class GrpcClient extends EventEmitter {
        * So we also need a timeout for compatible with those providers
        *  in case of they are not following this special protocol.
        */
-      .once('data', resolve) // (resp: EventResponse) => console.info('once(data)', JSON.parse(resp.getPayload())))
+      .once('data', (resp: EventResponse) => {
+        peekDataList.push(resp)
+        resolve()
+      })
       /**
        * Any of the following events will be emitted means that there's a problem.
        */
@@ -277,6 +286,11 @@ class GrpcClient extends EventEmitter {
       .on('status',   (...args) => this.emit('status',    ...args))
 
     this.eventStream = eventStream
+
+    /**
+     * Re-emit the peeked data if there's any
+     */
+    peekDataList.forEach(data => this.emit('data', data))
   }
 
   protected stopStream (): void {
