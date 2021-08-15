@@ -19,13 +19,13 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tap'
+import { test }  from 'tstest'
 
 // import { log }  from '../src/config'
 
 import { spy } from 'sinon'
 
-void test('Node.js function params destructuring behaviour test', async t => {
+test('Node.js function params destructuring behaviour test', async t => {
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 

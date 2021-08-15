@@ -19,7 +19,7 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tap'
+import { test }  from 'tstest'
 import sinon from 'sinon'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
@@ -29,7 +29,7 @@ import {
 }                             from './wechaty'
 import { WechatyPlugin } from './plugin'
 
-void test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
+test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
   const spyPluginInstall  = sinon.spy()
   const spyPluginUninstall = sinon.spy()
 

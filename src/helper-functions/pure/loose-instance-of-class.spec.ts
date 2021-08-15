@@ -24,14 +24,14 @@ import { FileBox } from 'file-box'
 
 import { looseInstanceOfClass } from './loose-instance-of-class'
 
-void test('looseInstanceOfClass: instanceof', async t => {
+test('looseInstanceOfClass: instanceof', async t => {
   class Test {}
   const looseInstanceOfTest = looseInstanceOfClass(Test)
   const test = new Test()
   t.ok(looseInstanceOfTest(test), 'should be true for a real Test')
 })
 
-void test('looseInstanceOfClass: constructor.name', async t => {
+test('looseInstanceOfClass: constructor.name', async t => {
   class Test {}
   const looseInstanceOfTest = looseInstanceOfClass(Test)
 
@@ -47,7 +47,7 @@ void test('looseInstanceOfClass: constructor.name', async t => {
 
 })
 
-void test('looseInstanceOfClass: n/a', async t => {
+test('looseInstanceOfClass: n/a', async t => {
   class Test {}
   const looseInstanceOfTest = looseInstanceOfClass(Test)
 
@@ -55,7 +55,7 @@ void test('looseInstanceOfClass: n/a', async t => {
   t.false(looseInstanceOfTest(o), 'should be false for non-Test: {}')
 })
 
-void test('looseInstanceOfClass for FileBox', async t => {
+test('looseInstanceOfClass for FileBox', async t => {
   const f = FileBox.fromQRCode('test')
   const looseInstanceOfFileBox = looseInstanceOfClass(FileBox as any as FileBox & { new (...args: any): FileBox })
 

@@ -19,7 +19,7 @@
  *   limitations under the License.
  *
  */
-import { test, skip }  from 'tap'
+import { test }  from 'tstest'
 import sinon from 'sinon'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
@@ -51,7 +51,7 @@ class WechatyTest extends Wechaty {
 
 }
 
-void test('Export of the Framework', async t => {
+test('Export of the Framework', async t => {
   t.ok(Contact,     'should export Contact')
   t.ok(Friendship,  'should export Friendship')
   t.ok(IoClient,    'should export IoClient')
@@ -62,16 +62,16 @@ void test('Export of the Framework', async t => {
   t.ok(log,         'should export log')
 })
 
-void test('static VERSION', async t => {
+test('static VERSION', async t => {
   t.ok('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
 })
 
-void test('Config setting', async t => {
+test('Config setting', async t => {
   t.ok(config, 'should export Config')
   // t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
 })
 
-void test('event:start/stop', async t => {
+test('event:start/stop', async t => {
   const wechaty = new Wechaty({ puppet: 'wechaty-puppet-mock' })
 
   const startSpy = sinon.spy()
@@ -130,7 +130,7 @@ void test('event:start/stop', async t => {
 //   console.log(m)
 // })
 
-void skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
+test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
   const spy     = sinon.spy()
   const wechaty = Wechaty.instance()
 
@@ -150,7 +150,7 @@ void skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
 
 })
 
-void skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) => {
+test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t => {
 
   // Do not modify the global Wechaty instance
   class MyWechatyTest extends Wechaty {}
@@ -186,7 +186,7 @@ void skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (
   await bot.stop()
 })
 
-void test('use plugin', async (t) => {
+test('use plugin', async t => {
 
   // Do not modify the gloabl Wechaty instance
   class MyWechatyTest extends Wechaty {}
@@ -223,7 +223,7 @@ void test('use plugin', async (t) => {
 
 })
 
-void test('initPuppetAccessory()', async t => {
+test('initPuppetAccessory()', async t => {
   const wechatyTest = new WechatyTest()
 
   const puppet = new PuppetMock()
@@ -233,7 +233,7 @@ void test('initPuppetAccessory()', async t => {
 
 // TODO: add test for event args
 
-void test('Wechaty restart for many times', async t => {
+test('Wechaty restart for many times', async t => {
   const wechaty = new Wechaty({
     puppet: new PuppetMock(),
   })
@@ -251,7 +251,7 @@ void test('Wechaty restart for many times', async t => {
 
 })
 
-void test('@event ready', async t => {
+test('@event ready', async t => {
   const puppet = new PuppetMock()
   const wechaty = new Wechaty({ puppet })
 
@@ -276,7 +276,7 @@ void test('@event ready', async t => {
   await wechaty.stop()
 })
 
-void test('ready()', async t => {
+test('ready()', async t => {
   const puppet = new PuppetMock()
   const wechaty = new Wechaty({ puppet })
 
@@ -311,7 +311,7 @@ void test('ready()', async t => {
   await wechaty.stop()
 })
 
-void test('on/off event listener management', async t => {
+test('on/off event listener management', async t => {
   const puppet = new PuppetMock()
   const wechaty = new Wechaty({ puppet })
 

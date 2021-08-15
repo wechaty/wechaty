@@ -18,13 +18,13 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tap'
+import { test }  from 'tstest'
 import sinon from 'sinon'
 
 import { tryWait } from './try-wait'
 import promiseRetry = require('promise-retry')
 
-void test('promiseRetry()', async t => {
+test('promiseRetry()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
   const EXPECTED_REJECT  = 'NotTheTime'
 
@@ -72,7 +72,7 @@ void test('promiseRetry()', async t => {
   t.ok(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
 
-void test('retry()', async t => {
+test('retry()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
   const EXPECTED_REJECT  = 'NotTheTime'
 

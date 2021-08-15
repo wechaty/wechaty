@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tap'
+import { test }  from 'tstest'
 import sinon from 'sinon'
 
 import {
@@ -30,7 +30,7 @@ import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }      from '../wechaty'
 
-void test('findAll()', async t => {
+test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
   const EXPECTED_ROOM_TOPIC   = 'test-topic'
   const EXPECTED_ROOM_ID_LIST = [EXPECTED_ROOM_ID]
@@ -57,7 +57,7 @@ void test('findAll()', async t => {
   await wechaty.stop()
 })
 
-void test('say()', async () => {
+test('say()', async () => {
 
   const sandbox = sinon.createSandbox()
   const callback = sinon.spy()
@@ -106,7 +106,7 @@ void test('say()', async () => {
   await contact2.sync()
   await room.sync()
 
-  void test('say with Tagged Template', async t => {
+  test('say with Tagged Template', async t => {
     callback.resetHistory()
     await room.say`To be ${contact1} or not to be ${contact2}`
 
@@ -118,7 +118,7 @@ void test('say()', async () => {
     ], 'Tagged Template say should be matched')
   })
 
-  void test('say with regular mention contact', async t => {
+  test('say with regular mention contact', async t => {
     callback.resetHistory()
     await room.say('Yo', contact1)
 
@@ -130,7 +130,7 @@ void test('say()', async () => {
     ], 'Single mention should work with old ways')
   })
 
-  void test('say with multiple mention contact', async t => {
+  test('say with multiple mention contact', async t => {
     callback.resetHistory()
     await room.say('hey buddies, let\'s party', contact1, contact2)
 

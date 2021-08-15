@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tap'
+import { test }  from 'tstest'
 import sinon from 'sinon'
 
 import { ContactPayload } from 'wechaty-puppet'
@@ -28,7 +28,7 @@ import { Wechaty }  from '../wechaty'
 
 import { Contact }  from './contact'
 
-void test('findAll()', async t => {
+test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
   const EXPECTED_CONTACT_NAME    = 'test-name'
   const EXPECTED_CONTACT_ID_LIST = [EXPECTED_CONTACT_ID]
@@ -56,7 +56,7 @@ void test('findAll()', async t => {
   await wechaty.stop()
 })
 
-void test('Should not be able to instanciate directly', async t => {
+test('Should not be able to instanciate directly', async t => {
   t.throws(() => {
     const c = Contact.load('xxx')
     t.fail(c.name())
@@ -68,7 +68,7 @@ void test('Should not be able to instanciate directly', async t => {
   }, 'should throw when `Contact.load()`')
 })
 
-void test('Should not be able to instanciate through cloneClass without puppet', async t => {
+test('Should not be able to instanciate through cloneClass without puppet', async t => {
   t.throws(() => {
     const c = Contact.load('xxx')
     t.fail(c.name())
@@ -81,7 +81,7 @@ void test('Should not be able to instanciate through cloneClass without puppet',
 
 })
 
-void test('should throw when instanciate the global class', async t => {
+test('should throw when instanciate the global class', async t => {
   t.throws(() => {
     const c = Contact.load('xxx')
     t.fail('should not run to here')

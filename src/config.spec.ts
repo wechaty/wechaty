@@ -19,12 +19,12 @@
  *
  */
 
-import { test }  from 'tap'
+import { test }  from 'tstest'
 
 import { config } from './config'
 // import { Puppet } from './puppet'
 
-void test('important variables', async t => {
+test('important variables', async t => {
   // t.ok('puppet'   in config, 'should exist `puppet` in Config')
   t.ok('apihost'  in config, 'should exist `apihost` in Config')
   t.ok('token'    in config, 'should exist `token` in Config')
@@ -35,7 +35,7 @@ void test('important variables', async t => {
   t.ok(config.default.DEFAULT_APIHOST,  'should export DEFAULT_APIHOST')
 })
 
-void test('validApiHost()', async t => {
+test('validApiHost()', async t => {
   const OK_APIHOSTS = [
     'api.chatie.io',
     'chatie.io:8080',
@@ -83,7 +83,7 @@ void test('validApiHost()', async t => {
 //   config.puppetInstance(bak)
 // })
 
-void test('systemPuppetName ()', async t => {
+test('systemPuppetName ()', async t => {
   const WECHATY_PUPPET_ORIG = process.env['WECHATY_PUPPET']
 
   delete process.env['WECHATY_PUPPET']

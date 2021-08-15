@@ -19,14 +19,14 @@
  *   limitations under the License.
  *
  */
-import test  from 'tstest'
+import { test } from 'tstest'
 
 import {
   VERSION,
   GIT_COMMIT_HASH,
 }                   from './version'
 
-void test('Make sure the VERSION is fresh in source code', async (t) => {
+test('Make sure the VERSION is fresh in source code', async t => {
   t.equal(VERSION, '0.0.0', 'version should be 0.0.0 in source code, only updated before publish to NPM')
   t.equal(GIT_COMMIT_HASH, '', 'git commit hash should be empty')
 })

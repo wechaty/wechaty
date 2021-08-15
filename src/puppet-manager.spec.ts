@@ -19,13 +19,13 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tap'
+import { test }  from 'tstest'
 
 import {
   PuppetManager,
 }                 from './puppet-manager'
 
-void test('resolve an unsupported puppet name', async t => {
+test('resolve an unsupported puppet name', async t => {
   // try {
   //   await PuppetManager.resolve('fasdfsfasfsfdfs')
   //   t.fail('should reject')

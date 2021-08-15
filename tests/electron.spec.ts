@@ -19,12 +19,14 @@
  *   limitations under the License.
  *
  */
-import { test, skip }  from 'tap'
+import {
+  test,
+}  from 'tstest'
 
-void test('Electron smoke testing', async t => {
+test('Electron smoke testing', async t => {
   t.ok(true, 'test')
 })
 
-void skip('Electron open wx', async t => {
-  t.pass('ok')
+test.skip('Electron open wx', async t => {
+  t.ok('ok')
 })

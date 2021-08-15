@@ -19,7 +19,7 @@
  *
  */
 
-import { test }  from 'tap'
+import { test }  from 'tstest'
 import sinon from 'sinon'
 
 import {
@@ -32,7 +32,7 @@ import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { Wechaty }      from '../wechaty'
 
-void test('recalled()', async t => {
+test('recalled()', async t => {
 
   const EXPECTED_RECALL_MESSAGE_ID = '1'
   const EXPECTED_RECALLED_MESSAGE_ID = '2'

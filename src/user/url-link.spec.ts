@@ -1,10 +1,10 @@
 #!/usr/bin/env ts-node
 
-import test  from 'tstest'
+import { test } from 'tstest'
 
 import { UrlLink } from './url-link'
 
-void test('UrlLink', async t => {
+test('UrlLink', async t => {
   const URL = 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'
   const EXPECTED_PAYLOAD = {
     description: 'Conversational RPA SDK for Chatbot Makers',
