@@ -19,17 +19,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
-        restore-keys: |
-          ${{ runner.os }}-wechaty-
-
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: package.json
     - run: npm install
     - run: npm run build --if-present
     - run: npm test
