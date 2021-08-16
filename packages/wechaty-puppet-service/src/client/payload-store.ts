@@ -6,14 +6,14 @@ import { major, minor } from 'semver'
 
 import {
   log,
-  MessagePayload,
+  // MessagePayload,
   ContactPayload,
   RoomPayload,
   RoomMemberPayload,
 }                     from 'wechaty-puppet'
 
 import { FlashStore } from 'flash-store'
-import LRU            from 'lru-cache'
+// import LRU            from 'lru-cache'
 
 import { VERSION } from '../version'
 
@@ -23,7 +23,7 @@ interface PayloadStoreOptions {
 
 class PayloadStore {
 
-  public message?    : LRU<string, MessagePayload>
+  // public message?    : LRU<string, MessagePayload>
 
   public contact?    : FlashStore<string, ContactPayload>
   public roomMember? : FlashStore<string, RoomMemberPayload>
@@ -69,33 +69,46 @@ class PayloadStore {
 
     /**
      * LRU
+     *
+     * Huan(202108): the Wechaty Puppet has LRU cache already,
+     *  there's no need to do it again.
+     *
+     * We can focus on providing a persistent store for the performance.
      */
-    const lruOptions: LRU.Options<string, MessagePayload> = {
-      dispose (key, val) {
-        log.silly('PayloadStore', `constructor() lruOptions.dispose(${key}, ${JSON.stringify(val)})`)
-      },
-      max    : 1000,  // 1000 messages
-      maxAge : 60 * 60 * 1000,  // 1 hour
-    }
-    this.message = new LRU(lruOptions)
+    // const lruOptions: LRU.Options<string, MessagePayload> = {
+    //   dispose (key, val) {
+    //     log.silly('PayloadStore', `constructor() lruOptions.dispose(${key}, ${JSON.stringify(val)})`)
+    //   },
+    //   max    : 1000,  // 1000 messages
+    //   maxAge : 60 * 60 * 1000,  // 1 hour
+    // }
+    // this.message = new LRU(lruOptions)
   }
 
   async stop (): Promise<void> {
     log.verbose('PayloadStore', 'stop()')
 
-    await this.contact?.close()
-    await this.roomMember?.close()
-    await this.room?.close()
-
+    const contactStore    = this.contact
+    const roomMemberStore = this.roomMember
+    const roomStore       = this.room
+    /**
+      * Huan(202108): we must set all the instances of the store to underfined
+      *   in the current event loop as soon as possible
+      *   to prevent the future store calls.
+      */
     this.contact    = undefined
     this.roomMember = undefined
     this.room       = undefined
 
     // LRU
-    this.message    = undefined
+    // this.message    = undefined
 
     // clear accountId
-    this.accountId = undefined
+    this.accountId  = undefined
+
+    await contactStore?.close()
+    await roomMemberStore?.close()
+    await roomStore?.close()
   }
 
   async destroy (): Promise<void> {

@@ -170,13 +170,17 @@ class GrpcClient extends EventEmitter {
       log.error('GrpcClient', 'destroy() this.client not exist')
       return
     }
+    /**
+      * Huan(202108): we should set `this.client` to `undefined` at the current event loop
+      *   to prevent the future usage of the old client.
+      */
+    const client = this.client
+    this.client = undefined
 
     try {
-      this.client.close()
+      client.close()
     } catch (e) {
       log.error('GrpcClient', 'destroy() grpcClient.close() rejection: %s\n%s', e && e.message, e.stack)
-    } finally {
-      this.client = undefined
     }
   }
 
@@ -303,6 +307,12 @@ class GrpcClient extends EventEmitter {
       log.verbose('GrpcClient', 'no eventStream when stop, skip destroy.')
       return
     }
+    /**
+      * Huan(202108): we should set `this.eventStream` to `undefined` at the current event loop
+      *   to prevent the future usage of the old eventStream.
+      */
+    const eventStream = this.eventStream
+    this.eventStream = undefined
 
     /**
      * Huan(202003):
@@ -311,8 +321,7 @@ class GrpcClient extends EventEmitter {
      */
     // this.eventStream.cancel()
 
-    this.eventStream.destroy()
-    this.eventStream = undefined
+    eventStream.destroy()
   }
 
 }

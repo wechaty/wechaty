@@ -427,7 +427,8 @@ export class PuppetService extends Puppet {
         // TODO
         break
       case PayloadType.Message:
-        await this.payloadStore.message?.del(id)
+        // await this.payloadStore.message?.del(id)
+        // TODO
         break
       case PayloadType.Room:
         await this.payloadStore.room?.del(id)
@@ -853,11 +854,11 @@ export class PuppetService extends Puppet {
   override async messageRawPayload (id: string): Promise<MessagePayload> {
     log.verbose('PuppetService', 'messageRawPayload(%s)', id)
 
-    const cachedPayload = await this.payloadStore.message?.get(id)
-    if (cachedPayload) {
-      log.silly('PuppetService', 'messageRawPayload(%s) cache HIT', id)
-      return cachedPayload
-    }
+    // const cachedPayload = await this.payloadStore.message?.get(id)
+    // if (cachedPayload) {
+    //   log.silly('PuppetService', 'messageRawPayload(%s) cache HIT', id)
+    //   return cachedPayload
+    // }
 
     const request = new MessagePayloadRequest()
     request.setId(id)
@@ -878,8 +879,8 @@ export class PuppetService extends Puppet {
       type          : response.getType() as number,
     }
 
-    log.silly('PuppetService', 'messageRawPayload(%s) cache SET', id)
-    await this.payloadStore.message?.set(id, payload)
+    // log.silly('PuppetService', 'messageRawPayload(%s) cache SET', id)
+    // await this.payloadStore.message?.set(id, payload)
 
     return payload
   }
