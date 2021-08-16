@@ -7,8 +7,14 @@ jobs:
     name: Build
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        node: [16]
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        node:
+          - 12
+          - 14
+          - 16
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -30,7 +36,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ 12, 14, 16 ]
+        node:
+          # - 12
+          # - 14
+          - 16
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -51,7 +60,9 @@ jobs:
   publish:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
     name: Publish
-    needs: [build, pack]
+    needs:
+      - build
+      - pack
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
