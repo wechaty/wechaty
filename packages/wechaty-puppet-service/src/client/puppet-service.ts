@@ -175,6 +175,8 @@ export class PuppetService extends Puppet {
     }
 
     try {
+      await this.payloadStore.start()
+
       const grpc = new GrpcClient(this.options)
       /**
        * Huan(202108): when we startedv the event stream,
@@ -196,6 +198,7 @@ export class PuppetService extends Puppet {
       log.error('PuppetService', 'start() rejection: %s\n%s', e.message, e.stack)
       try {
         await this.grpc?.stop()
+        await this.payloadStore.stop()
       } catch (e) {
         log.error('PuppetService', 'start() this.grpc.stop() rejection: %s\n%s', e.message, e.stack)
       } finally {
@@ -234,6 +237,9 @@ export class PuppetService extends Puppet {
     try {
       await this.grpc?.stop()
       this.grpc = undefined
+
+      await this.payloadStore.stop()
+
     } catch (e) {
       log.error('PuppetService', 'stop() client.stop() rejection: %s', e.message)
     } finally {
