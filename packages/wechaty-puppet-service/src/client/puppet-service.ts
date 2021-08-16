@@ -421,7 +421,7 @@ export class PuppetService extends Puppet {
 
     switch (type) {
       case PayloadType.Contact:
-        await this.payloadStore.contact?.del(id)
+        await this.payloadStore.contact?.delete(id)
         break
       case PayloadType.Friendship:
         // TODO
@@ -431,10 +431,10 @@ export class PuppetService extends Puppet {
         // TODO
         break
       case PayloadType.Room:
-        await this.payloadStore.room?.del(id)
+        await this.payloadStore.room?.delete(id)
         break
       case PayloadType.RoomMember:
-        await this.payloadStore.roomMember?.del(id)
+        await this.payloadStore.roomMember?.delete(id)
         break
       default:
         log.error('PuppetService', 'dirtyPayload(%s) unknown type', type)
