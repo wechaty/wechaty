@@ -19,7 +19,7 @@
  *   limitations under the License.
  *
  */
-import test  from 'tstest'
+import { test } from 'tstest'
 
 import { PassThrough }  from 'stream'
 import { Duplex }       from 'stronger-typed-streams'
@@ -61,7 +61,7 @@ test('packFileBoxToChunk()', async t => {
   const stream = await packFileBoxToChunk(fileBox)
 
   const fileBoxChunk = await nextData(stream)
-  t.true(fileBoxChunk.hasName(), 'has name')
+  t.ok(fileBoxChunk.hasName(), 'has name')
 
   const fileName = fileBoxChunk.getName()
   t.equal(fileName, FILE_BOX_NAME, 'should get name')
@@ -138,13 +138,13 @@ test('should handle middle error in further ops', async t => {
   }
 })
 
-const getFileBoxStreamStub = async (
+async function getFileBoxStreamStub (
   data: string,
   name: string,
   noname = false,
   firstException = false,
   middleException = false,
-) => {
+) {
   const fileBox = FileBox.fromBuffer(
     Buffer.from(data),
     name,

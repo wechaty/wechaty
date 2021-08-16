@@ -9,7 +9,7 @@ import {
   PuppetServerOptions,
 }                          from './puppet-server'
 
-test('version()', async (t) => {
+test('version()', async t => {
   const options: PuppetServerOptions = {
     endpoint : '127.0.0.1:8788',
     puppet   : {} as Puppet,

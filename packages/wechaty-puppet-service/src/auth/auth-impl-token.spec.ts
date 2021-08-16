@@ -59,14 +59,14 @@ test('authImplToken()', async t => {
     method(call, callback as any)
 
     if (ok) {
-      t.true(spy.calledOnce, 'should call IMPL handler')
+      t.ok(spy.calledOnce, 'should call IMPL handler')
       continue
     }
 
     /**
       * not ok
       */
-    t.true(spy.notCalled, 'should not call IMPL handler')
+    t.ok(spy.notCalled, 'should not call IMPL handler')
     if (callback) {
       t.equal(callback.args[0]![0].code, GrpcStatus.UNAUTHENTICATED, 'should return UNAUTHENTICATED')
     } else {

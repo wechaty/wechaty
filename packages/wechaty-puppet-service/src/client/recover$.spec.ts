@@ -12,14 +12,14 @@ import {
   switchSuccess,
 }                     from './recover$'
 
-test('switchSuccess()', async (t) => {
+test('switchSuccess()', async t => {
   const STATUS          = true
   const EXPECTED_RESULT = true
 
   t.equal(switchSuccess(STATUS), EXPECTED_RESULT, 'should get expected result')
 })
 
-// test('switchSuccess()', async (t) => {
+// test('switchSuccess()', async t => {
 //   const SOURCE_MARBLES   = '-a-'
 //   const EXPECTED_MARBLES = '-a-'
 

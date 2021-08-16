@@ -23,11 +23,12 @@ import {
   FileBoxChunk,
   MessageSendFileStreamRequest,
 }                                       from 'wechaty-grpc'
-import test                             from 'tstest'
-import { PassThrough }                  from 'stream'
-import { FileBox }                      from 'wechaty-puppet'
 
-import { nextData }                       from './next-data'
+import { test }         from 'tstest'
+import { PassThrough }  from 'stream'
+import { FileBox }      from 'wechaty-puppet'
+
+import { nextData }     from './next-data'
 import {
   packConversationIdFileBoxToPb,
   unpackConversationIdFileBoxArgsFromPb,
@@ -92,8 +93,8 @@ test('packConversationIdFileBoxToPb()', async t => {
   t.equal(data1.getConversationId(), CONVERSATION_ID, 'match conversation id')
 
   const data2 = await nextData(stream)
-  t.true(data2.hasFileBoxChunk(), 'has file box chunk')
-  t.true(data2.getFileBoxChunk()!.hasName(), 'has file box name')
+  t.ok(data2.hasFileBoxChunk(), 'has file box chunk')
+  t.ok(data2.getFileBoxChunk()!.hasName(), 'has file box name')
   t.equal(data2.getFileBoxChunk()!.getName(), FILE_BOX_NAME, 'match file box name')
 
   let data = ''

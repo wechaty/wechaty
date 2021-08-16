@@ -198,7 +198,7 @@ class GrpcClient extends EventEmitter {
      * Store the event data from the stream when we test connection,
      *  and re-emit the event data when we have finished testing the connection
      */
-    const peekDataList = [] as EventResponse[]
+    let peekedData: undefined | EventResponse
 
     /**
      * Huan(202108): future must be placed before other listenser registration
@@ -218,7 +218,7 @@ class GrpcClient extends EventEmitter {
        *  in case of they are not following this special protocol.
        */
       .once('data', (resp: EventResponse) => {
-        peekDataList.push(resp)
+        peekedData = resp
         resolve()
       })
       /**
@@ -290,7 +290,10 @@ class GrpcClient extends EventEmitter {
     /**
      * Re-emit the peeked data if there's any
      */
-    peekDataList.forEach(data => this.emit('data', data))
+    if (peekedData) {
+      this.emit('data', peekedData)
+      peekedData = undefined
+    }
   }
 
   protected stopStream (): void {

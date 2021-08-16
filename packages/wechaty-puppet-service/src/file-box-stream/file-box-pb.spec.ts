@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import test  from 'tstest'
+import { test } from 'tstest'
 
 import { FileBox } from 'wechaty-puppet'
 
@@ -24,7 +24,7 @@ test('packFileBoxToPb()', async t => {
 
   const pb = await packFileBoxToPb(MessageFileStreamResponse)(fileBox)
   const restoredFileBox = await unpackFileBoxFromPb(pb)
-  t.true(restoredFileBox instanceof FileBox, 'should get an instance of FileBOX')
+  t.ok(restoredFileBox instanceof FileBox, 'should get an instance of FileBOX')
 
   t.equal(restoredFileBox.name, fileBox.name, 'should get the right file box name')
   t.equal(await restoredFileBox.toBase64(), await fileBox.toBase64(), 'should get the right file box content')
