@@ -57,30 +57,30 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ### master v0.27
 
-Implemented SSL and server-side token authorization!
+1. Implemented SSL and server-side token authorization.
+1. Refactor the gRPC client code.
 
 #### New environment variables
 
+<!-- markdownlint-disable MD013 -->
+
+1. `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT`: can be overwrite by `options.sslRootCert`. Set Root CA Cert to verify the server or client.
+
 For Puppet Server:
 
-1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT`:
-  Server CA Cert (string data),
-  will be replaced if `options.sslServerCert` has been set.
-1. `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY`:
-  Server CA Key (string data),
-  will be replaced if `optoins.sslServerKey` has been set.
+| Environment Variable | Options | Description |
+| -------------------- | ------- | ----------- |
+| `WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT` | `options.sslServerCert` | Server CA Cert (string data) |
+| `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY` | `optoins.sslServerKey` | Server CA Key (string data) |
+| `WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER` | `options.noSslUnsafe` | Set `true` to disable server SSL |
 
 For Puppet Client:
 
-1. `WECHATY_PUPPET_SERVICE_AUTHORITY`:
-  `api.chatie.io` service discovery host name,
-  will be replaced if `options.authority` has been set.
-1. `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT`:
-  Root CA Cert (string data),
-  will be replaced if `options.sslRootCert` has been set.
-1. `WECHATY_PUPPET_SERVICE_GRPC_SSL_TARGET_NAME_OVERRIDE`:
-  Server Name (mast match for SNI),
-  will be replaced if `optoins.servername` has been set.
+| Environment Variable | Options | Description |
+| -------------------- | ------- | ----------- |
+| `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
+| `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
+| `WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT` | `optoins.noSslUnsafe` | Set `true` to disable client SSL |
 
 #### Changelog
 

@@ -19,9 +19,9 @@ import {
 }                               from '../src/mod'
 
 test('integration testing', async (t) => {
-  const TOKEN    = 'test_token'
+  const TOKEN    = '__test_token__'
   const ENDPOINT = '0.0.0.0:8788'
-  const DING     = 'ding_data'
+  const DING     = '__ding_data__'
 
   /**
    * Puppet in Service
@@ -47,8 +47,8 @@ test('integration testing', async (t) => {
    * Puppet Service Client
    */
   const puppetOptions = {
-    endpoint: ENDPOINT,
-    token: TOKEN,
+    endpoint : ENDPOINT,
+    token    : TOKEN,
   } as PuppetOptions
 
   const puppetService = new PuppetService(puppetOptions)

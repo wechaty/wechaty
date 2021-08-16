@@ -90,10 +90,7 @@ import { grpcError }          from './grpc-error'
 import { EventStreamManager } from './event-stream-manager'
 import { serializeFileBox }   from './serialize-file-box'
 
-/**
- * Implements the SayHello RPC method.
- */
-export function puppetImplementation (
+function puppetImplementation (
   puppet: Puppet,
 ): IPuppetServer {
 
@@ -1361,3 +1358,5 @@ export function puppetImplementation (
 
   return puppetServerImpl
 }
+
+export { puppetImplementation }

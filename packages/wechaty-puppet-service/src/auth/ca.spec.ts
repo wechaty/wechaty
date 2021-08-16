@@ -6,18 +6,16 @@ import {
 
 import https from 'https'
 
-import {
-  GET_WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT,
-  GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT,
-  GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY,
-}                                               from './ca'
+import * as envVar  from './env-vars'
 import { AddressInfo } from 'ws'
+
+import { SSL_ROOT_CERT } from './ca'
 
 test('CA smoke testing', async t => {
 
-  const ca   = GET_WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT()
-  const cert = GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT()
-  const key  = GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY()
+  const ca   = envVar.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT() || SSL_ROOT_CERT
+  const cert = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT()
+  const key  = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY()
 
   const server = https.createServer({
     cert,
@@ -55,9 +53,9 @@ test('CA smoke testing', async t => {
 
 test('CA SNI tests', async t => {
 
-  const ca   = GET_WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT()
-  const cert = GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT()
-  const key  = GET_WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY()
+  const ca   = envVar.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT() || SSL_ROOT_CERT
+  const cert = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT()
+  const key  = envVar.WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY()
 
   const server = https.createServer({
     cert,

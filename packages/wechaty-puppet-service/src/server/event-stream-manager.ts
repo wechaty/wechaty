@@ -1,20 +1,18 @@
 import {
-  grpc,
+  EventRequest,
   EventResponse,
   EventType,
-  EventRequest,
   EventTypeMap,
+  grpc,
 }                                   from 'wechaty-grpc'
 
 import {
-  PUPPET_EVENT_DICT,
-  Puppet,
-  PuppetEventName,
-  EventLoginPayload,
+  EventDirtyPayload,
   EventDongPayload,
   EventErrorPayload,
-  EventHeartbeatPayload,
   EventFriendshipPayload,
+  EventHeartbeatPayload,
+  EventLoginPayload,
   EventLogoutPayload,
   EventMessagePayload,
   EventReadyPayload,
@@ -23,6 +21,9 @@ import {
   EventRoomLeavePayload,
   EventRoomTopicPayload,
   EventScanPayload,
+  PUPPET_EVENT_DICT,
+  Puppet,
+  PuppetEventName,
 }                                   from 'wechaty-puppet'
 
 import {
@@ -31,10 +32,9 @@ import {
 
 import {
   EventTypeRev,
-}                 from '../event-type-rev'
-import { EventDirtyPayload } from 'wechaty-puppet/dist/src/schemas/event'
+}                     from '../event-type-rev'
 
-export class EventStreamManager {
+class EventStreamManager {
 
   protected eventStream: undefined | grpc.ServerWritableStream<EventRequest, EventResponse>
 
@@ -62,6 +62,26 @@ export class EventStreamManager {
 
     const disconnect = this.connectPuppetEventToStreamingCall()
     this.onStreamingCallEnd(disconnect)
+
+    /**
+     * Huan(202108):
+     *  We emit a hearbeat at the beginning of the connect
+     *    to identicate that the connection is successeed.
+     *
+     *  Our client (wechaty-puppet-service client) will wait for the heartbeat
+     *    when it connect to the server.
+     *
+     *  If the server does not send the heartbeat,
+     *    then the client will wait for a 5 seconds timeout
+     *    for compatible the community gRPC puppet service providers like paimon.
+     */
+    const connectSuccessHeartbeatPayload = {
+      data: 'Wechaty Puppet gRPC stream connect successfully',
+    } as EventHeartbeatPayload
+    this.grpcEmit(
+      EventType.EVENT_TYPE_HEARTBEAT,
+      connectSuccessHeartbeatPayload,
+    )
 
     /**
       * We emit the login event if current the puppet is logged in.
@@ -327,3 +347,5 @@ export class EventStreamManager {
   }
 
 }
+
+export { EventStreamManager }
