@@ -155,6 +155,8 @@ export class PuppetService extends Puppet {
     this.payloadStore = new PayloadStore({
       token: envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token),
     })
+
+    this.hookPayloadStore()
   }
 
   override async start (): Promise<void> {
@@ -175,8 +177,6 @@ export class PuppetService extends Puppet {
     }
 
     try {
-      await this.payloadStore.start()
-
       const grpc = new GrpcClient(this.options)
       /**
        * Huan(202108): when we startedv the event stream,
@@ -198,7 +198,6 @@ export class PuppetService extends Puppet {
       log.error('PuppetService', 'start() rejection: %s\n%s', e.message, e.stack)
       try {
         await this.grpc?.stop()
-        await this.payloadStore.stop()
       } catch (e) {
         log.error('PuppetService', 'start() this.grpc.stop() rejection: %s\n%s', e.message, e.stack)
       } finally {
@@ -238,8 +237,6 @@ export class PuppetService extends Puppet {
       await this.grpc?.stop()
       this.grpc = undefined
 
-      await this.payloadStore.stop()
-
     } catch (e) {
       log.error('PuppetService', 'stop() client.stop() rejection: %s', e.message)
     } finally {
@@ -247,7 +244,29 @@ export class PuppetService extends Puppet {
     }
   }
 
-  private bridgeGrpcEventStream (client: GrpcClient): void {
+  protected hookPayloadStore (): void {
+    log.verbose('PuppetService', 'hookPayloadStore()')
+
+    this.on('login',  async ({ contactId }) => {
+      try {
+        log.verbose('PuppetService', 'hookPayloadStore() this.on(login) contactId: "%s"', contactId)
+        await this.payloadStore.start(contactId)
+      } catch (e) {
+        log.verbose('PuppetService', 'hookPayloadStore() this.on(login) rejection "%s"', e.message)
+      }
+    })
+
+    this.on('logout', async ({ contactId }) => {
+      log.verbose('PuppetService', 'hookPayloadStore() this.on(logout) contactId: "%s"', contactId)
+      try {
+        await this.payloadStore.stop()
+      } catch (e) {
+        log.verbose('PuppetService', 'hookPayloadStore() this.on(logout) rejection "%s"', e.message)
+      }
+    })
+  }
+
+  protected bridgeGrpcEventStream (client: GrpcClient): void {
     log.verbose('PuppetService', 'bridgeGrpcEventStream(client)')
 
     client

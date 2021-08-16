@@ -9,7 +9,8 @@ test('PayloadStore perfect restart', async t => {
   const store = new PayloadStore({ token })
 
   for (let i = 0; i < 3; i++) {
-    await store.start()
+    const accountId = Math.random().toString(36)
+    await store.start(accountId)
     await store.stop()
     t.pass('start/stop-ed at #' + i)
   }
