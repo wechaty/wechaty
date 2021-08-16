@@ -44,8 +44,8 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Wechaty Internal Puppets: dependency by package.json
    */
-  'wechaty-puppet-service' : '>=0.27.13',   // https://www.npmjs.com/package/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '>=0.29',   // https://www.npmjs.com/package/wechaty-puppet-mock
+  'wechaty-puppet-service' : '>=0.27.16', // https://www.npmjs.com/package/wechaty-puppet-service
+  'wechaty-puppet-mock'    : '>=0.29',    // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
    * WeChat Puppets
