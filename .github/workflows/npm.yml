@@ -8,17 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-wechaty-
-
       - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
+          cache: 'npm'
+          cache-dependency-path: package.json
+
       - name: Install Dependencies
         run: |
           node --version
@@ -38,16 +34,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-wechaty-
-
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
+          cache: 'npm'
+          cache-dependency-path: package.json
 
       - run: npm install
       - run: ./scripts/generate-version.sh
@@ -62,17 +53,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-wechaty-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-wechaty-
-
       - uses: actions/setup-node@v2
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
+          cache: 'npm'
+          cache-dependency-path: package.json
       - run: npm install
       - run: ./scripts/generate-version.sh
       - run: ./scripts/package-publish-config-tag.sh
