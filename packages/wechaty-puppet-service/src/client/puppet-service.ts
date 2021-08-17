@@ -187,11 +187,11 @@ export class PuppetService extends Puppet {
       this.bridgeGrpcEventStream(grpc)
       await grpc.start()
 
-      this.recoverSubscription = recover$(this).subscribe(
-        x => log.verbose('PuppetService', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
-        e => log.error('PuppetService', 'constructor() recover$().subscribe() error(%s)', e),
-        () => log.verbose('PuppetService', 'constructor() recover$().subscribe() complete()'),
-      )
+      this.recoverSubscription = recover$(this).subscribe({
+        complete : () => log.verbose('PuppetService', 'constructor() recover$().subscribe() complete()'),
+        error    : e  => log.error('PuppetService', 'constructor() recover$().subscribe() error(%s)', e),
+        next     : x  => log.verbose('PuppetService', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
+      })
 
       this.state.on(true)
     } catch (e) {
@@ -296,6 +296,12 @@ export class PuppetService extends Puppet {
     const payload = event.getPayload()
 
     log.verbose('PuppetService',
+      'onGrpcStreamEvent({type:%s(%s), payload(%s)})',
+      EventTypeRev[type],
+      type,
+      payload.length
+    )
+    log.silly('PuppetService',
       'onGrpcStreamEvent({type:%s(%s), payload:"%s"})',
       EventTypeRev[type],
       type,

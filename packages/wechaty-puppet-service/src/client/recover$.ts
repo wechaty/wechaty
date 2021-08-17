@@ -28,30 +28,29 @@ import {
 /**
  * Filters
  */
-export const switchSuccess = (status: true | 'pending') => status === true
+const switchSuccess = (status: true | 'pending') => status === true
 
 /**
  * Actions
  */
-export const resetPuppet   = (puppet: Puppet) => (n: number) => puppet.emit('reset', { data: `recover$() AED #${n}` })
-export const dingHeartbeat = (puppet: Puppet) => (n: number) => puppet.ding(`recover$() CPR #${n}`)
+const resetPuppet   = (puppet: Puppet) => (n: number) => puppet.emit('reset', { data: `recover$() AED #${n}` })
+const dingHeartbeat = (puppet: Puppet) => (n: number) => puppet.ding(`recover$() CPR #${n}`)
 
 /**
  * Observables
  */
+const switchOn$  = (puppet: Puppet) => fromEvent(puppet.state, 'on')
+const switchOff$ = (puppet: Puppet) => fromEvent(puppet.state, 'off')
+void switchOff$
 
-// Huan(202105) FIXME: use automatically inference instead of hard coding typing here
-export const switchOn$  = (puppet: Puppet) => fromEvent<true | 'pending'>(puppet.state, 'on')
-export const switchOff$ = (puppet: Puppet) => fromEvent<true | 'pending'>(puppet.state, 'off')
-
-export const heartbeat$ = (puppet: Puppet) => fromEvent<{}>(puppet as any, 'heartbeat')
+const heartbeat$ = (puppet: Puppet) => fromEvent(puppet, 'heartbeat')
 
 /**
  * Streams
  */
 
 // Heartbeat stream is like ECG (ElectroCardioGraphy)
-export const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
+const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
   filter(switchSuccess),
   tap(_ => log.verbose('PuppetService', 'recover$() switchOn$ fired')),
   switchMap(_ => heartbeat$(puppet).pipe(
@@ -72,7 +71,7 @@ const PUPPET_SERVICE_KEEPALIVE_TIMEOUT = 15 * 1000
 let HEARTBEAT_COUNTER = 0
 
 // Ding is like CPR (Cardio Pulmonary Resuscitation)
-export const heartbeatDing$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
+const heartbeatDing$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(() => interval(PUPPET_SERVICE_KEEPALIVE_TIMEOUT)),
   tap(_ => log.verbose('PuppetService', 'recover$() heartbeatDing()')),
   mapTo(HEARTBEAT_COUNTER++),
@@ -82,7 +81,7 @@ export const heartbeatDing$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pip
 const PUPPET_SERVICE_RESET_TIMEOUT = 60 * 1000
 
 // Reset is like AED (Automated External Defibrillator)
-export const heartbeatReset$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
+const heartbeatReset$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pipe(
   debounce(_ => interval(PUPPET_SERVICE_RESET_TIMEOUT)),
   tap(_ => log.verbose('PuppetService', 'recover$() heartbeatReset()')),
   switchMap(_ => interval(PUPPET_SERVICE_RESET_TIMEOUT).pipe(
@@ -95,7 +94,12 @@ export const heartbeatReset$ = (puppet: Puppet) => switchOnHeartbeat$(puppet).pi
 /**
  * Main stream
  */
-export const recover$ = (puppet: Puppet) => merge(
+const recover$ = (puppet: Puppet) => merge(
   heartbeatDing$(puppet),
   heartbeatReset$(puppet),
 )
+
+export {
+  recover$,
+  switchSuccess,
+}

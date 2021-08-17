@@ -38,7 +38,7 @@ class EventStreamManager {
 
   protected eventStream: undefined | grpc.ServerWritableStream<EventRequest, EventResponse>
 
-  private puppetListened = false
+  private puppetListening = false
 
   constructor (
     public puppet: Puppet,
@@ -60,8 +60,8 @@ class EventStreamManager {
     }
     this.eventStream = stream
 
-    const disconnect = this.connectPuppetEventToStreamingCall()
-    this.onStreamingCallEnd(disconnect)
+    const removeAllListeners = this.connectPuppetEventToStreamingCall()
+    this.onStreamingCallEnd(removeAllListeners)
 
     /**
      * Huan(202108):
@@ -128,6 +128,9 @@ class EventStreamManager {
     if (this.eventStream) {
       this.eventStream.write(response)
     } else {
+      /**
+        * Huan(202108): TODO: add a queue for store a maximum number of responses before the stream get connected
+        */
       log.warn('EventStreamManager', 'grpcEmit(%s, %s) this.eventStream is undefined.',
         type,
         JSON.stringify(obj),
@@ -139,13 +142,13 @@ class EventStreamManager {
     log.verbose('EventStreamManager', 'connectPuppetEventToStreamingCall() for %s', this.puppet)
 
     const offCallbackList = [] as (() => void)[]
-    const disconnect = () => {
+    const offAll = () => {
       log.verbose('EventStreamManager',
-        'connectPuppetEventToStreamingCall() disconnect() %s callbacks',
+        'connectPuppetEventToStreamingCall() offAll() %s callbacks',
         offCallbackList.length,
       )
-      offCallbackList.forEach(cb => cb())
-      this.puppetListened = false
+      offCallbackList.forEach(off => off())
+      this.puppetListening = false
     }
 
     const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]
@@ -265,8 +268,8 @@ class EventStreamManager {
       }
     }
 
-    this.puppetListened = true
-    return disconnect
+    this.puppetListening = true
+    return offAll
   }
 
   /**
@@ -274,7 +277,7 @@ class EventStreamManager {
    *  https://github.com/grpc/grpc/issues/8117#issuecomment-362198092
    */
   private onStreamingCallEnd (
-    callback: () => void,
+    removePuppetListeners: () => void,
   ): void {
     log.verbose('EventStreamManager', 'onStreamingCallEnd(callback)')
 
@@ -287,8 +290,8 @@ class EventStreamManager {
         JSON.stringify(arguments)
       )
 
-      if (this.puppetListened) {
-        callback()
+      if (this.puppetListening) {
+        removePuppetListeners()
       }
       if (this.eventStream) {
         this.eventStream = undefined
@@ -299,8 +302,8 @@ class EventStreamManager {
 
     this.eventStream.on('error', err => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(error) fired: %s', err)
-      if (this.puppetListened) {
-        callback()
+      if (this.puppetListening) {
+        removePuppetListeners()
       }
       if (this.eventStream) {
         this.eventStream = undefined
@@ -311,8 +314,8 @@ class EventStreamManager {
 
     this.eventStream.on('finish', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(finish) fired')
-      if (this.puppetListened) {
-        callback()
+      if (this.puppetListening) {
+        removePuppetListeners()
       }
       if (this.eventStream) {
         this.eventStream = undefined
@@ -323,8 +326,8 @@ class EventStreamManager {
 
     this.eventStream.on('end', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(end) fired')
-      if (this.puppetListened) {
-        callback()
+      if (this.puppetListening) {
+        removePuppetListeners()
       }
       if (this.eventStream) {
         this.eventStream = undefined
@@ -335,8 +338,8 @@ class EventStreamManager {
 
     this.eventStream.on('close', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(close) fired')
-      if (this.puppetListened) {
-        callback()
+      if (this.puppetListening) {
+        removePuppetListeners()
       }
       if (this.eventStream) {
         this.eventStream = undefined
