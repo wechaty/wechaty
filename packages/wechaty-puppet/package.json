@@ -5,8 +5,8 @@
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
   "engines": {
-    "node": ">=12",
-    "wechaty": ">=0.60"
+    "node": ">=14",
+    "wechaty": ">=0.62"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -18,7 +18,7 @@
     "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "blue-tape -r ts-node/register 'src/**/*.spec.ts' 'tests/**/*.spec.ts'",
+    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "typedoc": "bash scripts/typedoc.sh"
   },
   "repository": {
@@ -44,11 +44,11 @@
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.17.1",
-    "@types/normalize-package-data": "^2.4.0",
+    "@types/normalize-package-data": "^2.4.1",
     "@types/read-pkg-up": "^6.0.0",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
-    "tsd": "^0.16.0",
+    "tsd": "^0.17.0",
     "tstest": "^0.4.10",
     "typedoc": "^1.0.0-dev.4",
     "typescript": "^4.3"
@@ -61,9 +61,9 @@
     "memory-card": "^0.12.2",
     "normalize-package-data": "^3.0.2",
     "quick-lru": "^5",
-    "read-pkg-up": "^7.0.1",
-    "rx-queue": "^0.12.3",
-    "rxjs": "^7.1.0",
+    "read-pkg-up": "^7",
+    "rx-queue": "^0.12.4",
+    "rxjs": "^7.3.0",
     "semver": "^7.3.5",
     "state-switch": "^0.11.3",
     "typed-emitter": "^1.3.1",

@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 
-/* eslint @typescript-eslint/no-unused-vars: off */
-
-import test  from 'blue-tape'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}           from 'tstest'
 
 import {
   MemoryCard,

@@ -33,12 +33,7 @@ import {
   FileBox,
   MemoryCard,
   log,
-  WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT,
-  WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP,
-  WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE,
-  WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM,
-  WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION,
-  WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER,
+  envVars,
 }                       from './config'
 
 import {
@@ -86,6 +81,7 @@ import {
 import { PayloadType }             from './schemas/payload'
 
 import { PuppetEventEmitter }      from './events'
+import { VERSION }                 from './version'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -94,7 +90,7 @@ let   PUPPET_COUNTER           = 0
  *
  * Puppet Base Class
  *
- * See: https://github.com/Chatie/wechaty/wiki/Puppet
+ * See: https://github.com/wechaty/wechaty/wiki/Puppet
  *
  */
 export abstract class Puppet extends PuppetEventEmitter {
@@ -102,7 +98,7 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Must overwrite by child class to identify their version
    */
-  public static readonly VERSION : string = '0.0.0'
+  public static readonly VERSION = VERSION
 
   public readonly state: StateSwitch
 
@@ -176,14 +172,29 @@ export abstract class Puppet extends PuppetEventEmitter {
     /**
      * 3. Setup LRU Caches
      */
-    const lruOptions = (maxSize = '100'): QuickLruOptions<any, any> => ({ maxSize: Number(maxSize) })
+    const lruOptions = (maxSize = 100): QuickLruOptions<any, any> => ({
+      // maxAge: 60 * 60 * 1000 * 1000, // 1 hour
+      maxSize: maxSize,
+    })
 
-    this.cacheContactPayload        = new QuickLru<string, ContactPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT))
-    this.cacheFriendshipPayload     = new QuickLru<string, FriendshipPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP))
-    this.cacheMessagePayload        = new QuickLru<string, MessagePayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE))
-    this.cacheRoomPayload           = new QuickLru<string, RoomPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM))
-    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION))
-    this.cacheRoomMemberPayload     = new QuickLru<string, RoomMemberPayload>(lruOptions(WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER))
+    this.cacheContactPayload = new QuickLru<string, ContactPayload>(lruOptions(
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT(options.lruCacheSize?.contact)),
+    )
+    this.cacheFriendshipPayload = new QuickLru<string, FriendshipPayload>(lruOptions(
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP(options.lruCacheSize?.friendship)),
+    )
+    this.cacheMessagePayload = new QuickLru<string, MessagePayload>(lruOptions(
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE(options.lruCacheSize?.message)),
+    )
+    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions(
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION(options.lruCacheSize?.roomInvitation)),
+    )
+    this.cacheRoomMemberPayload = new QuickLru<string, RoomMemberPayload>(lruOptions(
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER(options.lruCacheSize?.roomMember)),
+    )
+    this.cacheRoomPayload = new QuickLru<string, RoomPayload>(lruOptions(
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM(options.lruCacheSize?.room)),
+    )
 
     /**
      * 4. Load the package.json for Puppet Plugin version range matching
