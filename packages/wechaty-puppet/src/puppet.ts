@@ -98,9 +98,9 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Must overwrite by child class to identify their version
    */
-  public static readonly VERSION = VERSION
+  static readonly VERSION = VERSION
 
-  public readonly state: StateSwitch
+  readonly state: StateSwitch
 
   protected readonly cacheContactPayload        : QuickLru<string, ContactPayload>
   protected readonly cacheFriendshipPayload     : QuickLru<string, FriendshipPayload>
@@ -223,7 +223,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     this.throttleReset = this.throttleReset.bind(this)
   }
 
-  public override toString () {
+  override toString () {
     return [
       'Puppet#',
       this.counter,
@@ -239,7 +239,7 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Unref
    */
-  public unref (): void {
+  unref (): void {
     log.verbose('Puppet', 'unref()')
     this.watchdog.unref()
   }
@@ -249,7 +249,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    *
    * For used by Wechaty internal ONLY.
    */
-  public setMemory (memory: MemoryCard): void {
+  setMemory (memory: MemoryCard): void {
     log.verbose('Puppet', 'setMemory()')
 
     if (this.memory.name) {
@@ -266,13 +266,13 @@ export abstract class Puppet extends PuppetEventEmitter {
    *
    *
    */
-  public async start () : Promise<void> {
+  async start () : Promise<void> {
     this.on('heartbeat', this.feedDog)
     this.watchdog.on('reset', this.dogReset)
     this.on('reset', this.throttleReset)
   }
 
-  public async stop (): Promise<void> {
+  async stop (): Promise<void> {
     this.removeListener('heartbeat', this.feedDog)
     this.watchdog.removeListener('reset', this.dogReset)
     this.removeListener('reset', this.throttleReset)
@@ -378,7 +378,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    *
    * Note: must set `this.id = undefined` in this function.
    */
-  public async logout (reason = 'logout()'): Promise<void> {
+  async logout (reason = 'logout()'): Promise<void> {
     log.verbose('Puppet', 'logout(%s)', this.id)
 
     if (!this.id) {
@@ -393,7 +393,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     this.id = undefined
   }
 
-  public selfId (): string {
+  selfId (): string {
     log.verbose('Puppet', 'selfId()')
 
     if (!this.id) {
@@ -403,7 +403,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return this.id
   }
 
-  public logonoff (): boolean {
+  logonoff (): boolean {
     if (this.id) {
       return true
     } else {
@@ -423,26 +423,26 @@ export abstract class Puppet extends PuppetEventEmitter {
    * @returns `false` if something went wrong
    *          'dong' if everything is OK
    */
-  public abstract ding (data?: string) : void
+  abstract ding (data?: string) : void
 
   /**
    * Get the NPM name of the Puppet
    */
-  public name () {
+  name () {
     return this.childPkg.name
   }
 
   /**
    * Get version from the Puppet Implementation
    */
-  public version (): string {
+  version (): string {
     return this.childPkg.version
   }
 
   /**
    * will be used by semver.satisfied(version, range)
    */
-  public wechatyVersionRange (strict = false): string {
+  wechatyVersionRange (strict = false): string {
     // FIXME: for development, we use `*` if not set
     if (strict) {
       return '^0.16.0'
@@ -472,9 +472,9 @@ export abstract class Puppet extends PuppetEventEmitter {
    * ContactSelf
    *
    */
-  public abstract contactSelfName (name: string)           : Promise<void>
-  public abstract contactSelfQRCode ()                     : Promise<string /* QR Code Value */>
-  public abstract contactSelfSignature (signature: string) : Promise<void>
+  abstract contactSelfName (name: string)           : Promise<void>
+  abstract contactSelfQRCode ()                     : Promise<string /* QR Code Value */>
+  abstract contactSelfSignature (signature: string) : Promise<void>
 
   /**
    *
@@ -486,35 +486,35 @@ export abstract class Puppet extends PuppetEventEmitter {
    *  tagContactList() - get tags from all Contacts
    *
    */
-  public abstract tagContactAdd (tagId: string, contactId: string)    : Promise<void>
-  public abstract tagContactDelete (tagId: string)                    : Promise<void>
-  public abstract tagContactList (contactId: string)                  : Promise<string[]>
-  public abstract tagContactList ()                                   : Promise<string[]>
-  public abstract tagContactRemove (tagId: string, contactId: string) : Promise<void>
+  abstract tagContactAdd (tagId: string, contactId: string)    : Promise<void>
+  abstract tagContactDelete (tagId: string)                    : Promise<void>
+  abstract tagContactList (contactId: string)                  : Promise<string[]>
+  abstract tagContactList ()                                   : Promise<string[]>
+  abstract tagContactRemove (tagId: string, contactId: string) : Promise<void>
 
   /**
    *
    * Contact
    *
    */
-  public abstract contactAlias (contactId: string)                       : Promise<string>
-  public abstract contactAlias (contactId: string, alias: string | null) : Promise<void>
+  abstract contactAlias (contactId: string)                       : Promise<string>
+  abstract contactAlias (contactId: string, alias: string | null) : Promise<void>
 
-  public abstract contactAvatar (contactId: string)                : Promise<FileBox>
-  public abstract contactAvatar (contactId: string, file: FileBox) : Promise<void>
+  abstract contactAvatar (contactId: string)                : Promise<FileBox>
+  abstract contactAvatar (contactId: string, file: FileBox) : Promise<void>
 
-  public abstract contactPhone (contactId: string, phoneList: string[]) : Promise<void>
+  abstract contactPhone (contactId: string, phoneList: string[]) : Promise<void>
 
-  public abstract contactCorporationRemark (contactId: string, corporationRemark: string | null): Promise<void>
+  abstract contactCorporationRemark (contactId: string, corporationRemark: string | null): Promise<void>
 
-  public abstract contactDescription (contactId: string, description: string | null): Promise<void>
+  abstract contactDescription (contactId: string, description: string | null): Promise<void>
 
-  public abstract contactList ()                   : Promise<string[]>
+  abstract contactList ()                   : Promise<string[]>
 
   protected abstract contactRawPayload (contactId: string)     : Promise<any>
   protected abstract contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
 
-  public async contactRoomList (
+  async contactRoomList (
     contactId: string,
   ): Promise<string[] /* roomId */> {
     log.verbose('Puppet', 'contactRoomList(%s)', contactId)
@@ -532,7 +532,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return resultRoomIdList
   }
 
-  public async contactSearch (
+  async contactSearch (
     query?        : string | ContactQueryFilter,
     searchIdList? : string[],
   ): Promise<string[]> {
@@ -671,7 +671,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Check a Contact Id if it's still valid.
    *  For example: talk to the server, and see if it should be deleted in the local cache.
    */
-  public async contactValidate (contactId: string) : Promise<boolean> {
+  async contactValidate (contactId: string) : Promise<boolean> {
     log.silly('Puppet', 'contactValidate(%s) base class just return `true`', contactId)
     return true
   }
@@ -692,7 +692,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return cachedPayload
   }
 
-  public async contactPayload (
+  async contactPayload (
     contactId: string,
   ): Promise<ContactPayload> {
     // log.silly('Puppet', 'contactPayload(id=%s) @ %s', contactId, this)
@@ -726,16 +726,16 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Friendship
    *
    */
-  public abstract friendshipAccept (friendshipId: string)           : Promise<void>
-  public abstract friendshipAdd (contactId: string, option?: FriendshipAddOptions) : Promise<void>
+  abstract friendshipAccept (friendshipId: string)           : Promise<void>
+  abstract friendshipAdd (contactId: string, option?: FriendshipAddOptions) : Promise<void>
 
-  public abstract friendshipSearchPhone (phone: string)   : Promise<null | string>
-  public abstract friendshipSearchWeixin (weixin: string) : Promise<null | string>
+  abstract friendshipSearchPhone (phone: string)   : Promise<null | string>
+  abstract friendshipSearchWeixin (weixin: string) : Promise<null | string>
 
   protected abstract friendshipRawPayload (friendshipId: string)  : Promise<any>
   protected abstract friendshipRawPayloadParser (rawPayload: any) : Promise<FriendshipPayload>
 
-  public async friendshipSearch (
+  async friendshipSearch (
     searchQueryFilter: FriendshipSearchQueryFilter,
   ): Promise<string | null> {
     log.verbose('Puppet', 'friendshipSearch("%s")', JSON.stringify(searchQueryFilter))
@@ -773,10 +773,10 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Get & Set
    */
-  public async friendshipPayload (friendshipId: string)                                : Promise<FriendshipPayload>
-  public async friendshipPayload (friendshipId: string, newPayload: FriendshipPayload) : Promise<void>
+  async friendshipPayload (friendshipId: string)                                : Promise<FriendshipPayload>
+  async friendshipPayload (friendshipId: string, newPayload: FriendshipPayload) : Promise<void>
 
-  public async friendshipPayload (
+  async friendshipPayload (
     friendshipId : string,
     newPayload?  : FriendshipPayload,
   ): Promise<void | FriendshipPayload> {
@@ -856,7 +856,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return cachedPayload
   }
 
-  public async messagePayload (
+  async messagePayload (
     messageId: string,
   ): Promise<MessagePayload> {
     log.verbose('Puppet', 'messagePayload(%s)', messageId)
@@ -885,12 +885,12 @@ export abstract class Puppet extends PuppetEventEmitter {
     return payload
   }
 
-  public messageList (): string[] {
+  messageList (): string[] {
     log.verbose('Puppet', 'messageList()')
     return [...this.cacheMessagePayload.keys()]
   }
 
-  public async messageSearch (
+  async messageSearch (
     query?: MessageQueryFilter,
   ): Promise<string[] /* Message Id List */> {
     log.verbose('Puppet', 'messageSearch(%s)', JSON.stringify(query))
@@ -980,7 +980,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return cachedPayload
   }
 
-  public abstract roomInvitationAccept (roomInvitationId: string): Promise<void>
+  abstract roomInvitationAccept (roomInvitationId: string): Promise<void>
 
   protected abstract roomInvitationRawPayload (roomInvitationId: string) : Promise<any>
   protected abstract roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload>
@@ -988,10 +988,10 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Get & Set
    */
-  public async roomInvitationPayload (roomInvitationId: string)                                    : Promise<RoomInvitationPayload>
-  public async roomInvitationPayload (roomInvitationId: string, newPayload: RoomInvitationPayload) : Promise<void>
+  async roomInvitationPayload (roomInvitationId: string)                                    : Promise<RoomInvitationPayload>
+  async roomInvitationPayload (roomInvitationId: string, newPayload: RoomInvitationPayload) : Promise<void>
 
-  public async roomInvitationPayload (roomInvitationId: string, newPayload?: RoomInvitationPayload): Promise<void | RoomInvitationPayload> {
+  async roomInvitationPayload (roomInvitationId: string, newPayload?: RoomInvitationPayload): Promise<void | RoomInvitationPayload> {
     log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
 
     if (typeof newPayload === 'object') {
@@ -1022,15 +1022,15 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Room
    *
    */
-  public abstract roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void>
-  public abstract roomAvatar (roomId: string)                                       : Promise<FileBox>
-  public abstract roomCreate (contactIdList: string[], topic?: string)              : Promise<string>
-  public abstract roomDel (roomId: string, contactId: string)                       : Promise<void>
-  public abstract roomList ()                                                       : Promise<string[]>
-  public abstract roomQRCode (roomId: string)                                       : Promise<string>
-  public abstract roomQuit (roomId: string)                                         : Promise<void>
-  public abstract roomTopic (roomId: string)                                        : Promise<string>
-  public abstract roomTopic (roomId: string, topic: string)                         : Promise<void>
+  abstract roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void>
+  abstract roomAvatar (roomId: string)                                       : Promise<FileBox>
+  abstract roomCreate (contactIdList: string[], topic?: string)              : Promise<string>
+  abstract roomDel (roomId: string, contactId: string)                       : Promise<void>
+  abstract roomList ()                                                       : Promise<string[]>
+  abstract roomQRCode (roomId: string)                                       : Promise<string>
+  abstract roomQuit (roomId: string)                                         : Promise<void>
+  abstract roomTopic (roomId: string)                                        : Promise<string>
+  abstract roomTopic (roomId: string, topic: string)                         : Promise<void>
 
   protected abstract roomRawPayload (roomId: string)        : Promise<any>
   protected abstract roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload>
@@ -1040,14 +1040,14 @@ export abstract class Puppet extends PuppetEventEmitter {
    * RoomMember
    *
    */
-  public abstract roomAnnounce (roomId: string)               : Promise<string>
-  public abstract roomAnnounce (roomId: string, text: string) : Promise<void>
-  public abstract roomMemberList (roomId: string)             : Promise<string[]>
+  abstract roomAnnounce (roomId: string)               : Promise<string>
+  abstract roomAnnounce (roomId: string, text: string) : Promise<void>
+  abstract roomMemberList (roomId: string)             : Promise<string[]>
 
   protected abstract roomMemberRawPayload (roomId: string, contactId: string) : Promise<any>
   protected abstract roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload>
 
-  public async roomMemberSearch (
+  async roomMemberSearch (
     roomId : string,
     query  : (YOU | string) | RoomMemberQueryFilter,
   ): Promise<string[]> {
@@ -1127,7 +1127,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return idList
   }
 
-  public async roomSearch (
+  async roomSearch (
     query?: RoomQueryFilter,
   ): Promise<string[] /* Room Id List */> {
     log.verbose('Puppet', 'roomSearch(%s)', query ? JSON.stringify(query) : '')
@@ -1227,7 +1227,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Check a Room Id if it's still valid.
    *  For example: talk to the server, and see if it should be deleted in the local cache.
    */
-  public async roomValidate (roomId: string): Promise<boolean> {
+  async roomValidate (roomId: string): Promise<boolean> {
     log.silly('Puppet', 'roomValidate(%s) base class just return `true`', roomId)
     return true
   }
@@ -1247,7 +1247,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return cachedPayload
   }
 
-  public async roomPayload (
+  async roomPayload (
     roomId: string,
   ): Promise<RoomPayload> {
     log.verbose('Puppet', 'roomPayload(%s)', roomId)
@@ -1286,7 +1286,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     return contactId + '@@@' + roomId
   }
 
-  public async roomMemberPayload (
+  async roomMemberPayload (
     roomId    : string,
     memberId : string,
   ): Promise<RoomMemberPayload> {
