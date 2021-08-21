@@ -7,23 +7,19 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Use Node.js 12
-        uses: actions/setup-node@master
+      - uses: actions/checkout@2
+      - uses: actions/setup-node@2
         with:
-          node-version: 12
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: package.json
+
       - name: Set up Go
         uses: actions/setup-go@master
         id: go
       - name: Install Protoc
         uses: arduino/setup-protoc@master
 
-      - uses: actions/cache@master
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
       - name: Install Dependencies
         run: |
           npm install
@@ -40,16 +36,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-node@master
+      - uses: actions/checkout@2
+      - uses: actions/setup-node@2
         with:
-          node-version: 12
-      - uses: actions/cache@master
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: package.json
       - name: Set up Go
         uses: actions/setup-go@master
         id: go
@@ -74,18 +66,13 @@ jobs:
     needs: [build, pack]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-node@master
+      - uses: actions/checkout@2
+      - uses: actions/setup-node@2
         with:
-          node-version: 12
+          node-version: 16
           registry-url: https://registry.npmjs.org/
-      - uses: actions/cache@master
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
+          cache: 'npm'
+          cache-dependency-path: package.json
       - name: Install Protoc
         uses: arduino/setup-protoc@master
       - name: Install Protoc 3rd party protos

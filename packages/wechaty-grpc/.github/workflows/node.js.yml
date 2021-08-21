@@ -13,16 +13,25 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
-        node-version: [10.x, 11.x, 12.x, 14.x, 15]
+        os:
+          - macos-latest
+          - windows-latest
+          - ubuntu-latest
+        node-version:
+          - 10
+          - 12
+          - 14
+          - 16
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@master
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@master
+      uses: actions/setup-node@2
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: package.json
     - name: Set up Go
       uses: actions/setup-go@master
       id: go
@@ -32,12 +41,6 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: actions/cache@master
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
     - name: Install Dependencies
       run: |
         npm install
