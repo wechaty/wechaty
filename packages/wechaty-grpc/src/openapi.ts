@@ -19,7 +19,7 @@ const puppetSwaggerFile = getOpenApiPath(
 
 const puppet: ApiStore = {
   v0: {
-    data: fs.readFileSync(puppetSwaggerFile).toString(),
+    data: fs.readFileSync(puppetSwaggerFile, 'utf-8'),
     file: puppetSwaggerFile,
   },
 }
