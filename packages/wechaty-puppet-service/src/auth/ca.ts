@@ -8,7 +8,7 @@
  * Update:
  *  - Huan(202108): init, expired in 3650 days (after 2031/07)
  */
-const SSL_ROOT_CERT = `-----BEGIN CERTIFICATE-----
+const TLS_ROOT_CERT = `-----BEGIN CERTIFICATE-----
 MIIFxTCCA62gAwIBAgIUYddLAoa8JnLzJ80l2u5vGuFsaEIwDQYJKoZIhvcNAQEL
 BQAwcjELMAkGA1UEBhMCVVMxFjAUBgNVBAgMDVNhbiBGcmFuY2lzY28xEjAQBgNV
 BAcMCVBhbG8gQWx0bzEQMA4GA1UECgwHV2VjaGF0eTELMAkGA1UECwwCQ0ExGDAW
@@ -51,12 +51,12 @@ VqO8MHX9ebjInSxPmhYOlrSZrOgEcogyMB4Z0SOtKVqPnkWmdR5hatU=
  *
  * For security, we should not use this key in production
  *  by setting it manually by
- *    either the environment variable `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY`
- *    or `options.sslServerKey`
+ *    either the environment variable `WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY`
+ *    or `options.tlsServerKey`
  *
- * So does the below `SSL_SERVER_CERT_UNSAFE`
+ * So does the below `TLS_SERVER_CERT_UNSAFE`
  */
-const SSL_SERVER_KEY_UNSAFE = `-----BEGIN RSA PRIVATE KEY-----
+const TLS_SERVER_KEY_UNSAFE = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAtdFTXAKLW16uqNokJmSowbGtwnCvsPSqIHcdbKgdcuNpaJsZ
 DTeBP0/XHFvnXcekHOyzncYgluxijzMSD1S8AKo3c2fROgem+E+WMSLYAZSTV48p
 uzTRLoypvfhKfqxsrmpct2F6tRTIQ/EABOs0TYP0dY3Nd8NkCEWBmv7ioPDek/a4
@@ -84,7 +84,7 @@ ZBVdEBseBPki5i7M7eNKNTEA3EM+Cfsfsp5U/S8ntDmzzaMoBhb+jBRor39l3+iG
 qXI72DDvrh802t6KO9W6CQIfpVcxLeOy82RfUP1pHQ/sMPkx89Fd5A==
 -----END RSA PRIVATE KEY-----`
 
-const SSL_SERVER_CERT_UNSAFE = `-----BEGIN CERTIFICATE-----
+const TLS_SERVER_CERT_UNSAFE = `-----BEGIN CERTIFICATE-----
 MIIEYzCCAksCAQEwDQYJKoZIhvcNAQELBQAwcjELMAkGA1UEBhMCVVMxFjAUBgNV
 BAgMDVNhbiBGcmFuY2lzY28xEjAQBgNVBAcMCVBhbG8gQWx0bzEQMA4GA1UECgwH
 V2VjaGF0eTELMAkGA1UECwwCQ0ExGDAWBgNVBAMMD3dlY2hhdHktcm9vdC1jYTAe
@@ -119,11 +119,11 @@ yKLeBo/ZtVPZtm6ePkea3dXWdwaqaeg=
  *
  * Will be used for Server Name Indication (SNI)
  */
-const SSL_SERVER_CERT_COMMON_NAME = 'wechaty-puppet-service'
+const TLS_SERVER_CERT_COMMON_NAME = 'wechaty-puppet-service'
 
 export {
-  SSL_SERVER_CERT_COMMON_NAME,
-  SSL_ROOT_CERT,
-  SSL_SERVER_CERT_UNSAFE,
-  SSL_SERVER_KEY_UNSAFE,
+  TLS_SERVER_CERT_COMMON_NAME,
+  TLS_ROOT_CERT,
+  TLS_SERVER_CERT_UNSAFE,
+  TLS_SERVER_KEY_UNSAFE,
 }

@@ -57,30 +57,30 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ### master v0.27
 
-1. Implemented SSL and server-side token authorization.
+1. Implemented TLS and server-side token authorization.
 1. Refactor the gRPC client code.
 
 #### New environment variables
 
 <!-- markdownlint-disable MD013 -->
 
-1. `WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT`: can be overwrite by `options.sslRootCert`. Set Root CA Cert to verify the server or client.
+1. `WECHATY_PUPPET_SERVICE_TLS_ROOT_CERT`: can be overwrite by `options.tlsRootCert`. Set Root CA Cert to verify the server or client.
 
 For Puppet Server:
 
 | Environment Variable | Options | Description |
 | -------------------- | ------- | ----------- |
-| `WECHATY_PUPPET_SERVICE_SSL_SERVER_CERT` | `options.sslServerCert` | Server CA Cert (string data) |
-| `WECHATY_PUPPET_SERVICE_SSL_SERVER_KEY` | `optoins.sslServerKey` | Server CA Key (string data) |
-| `WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_SERVER` | `options.noSslUnsafe` | Set `true` to disable server SSL |
+| `WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT` | `options.tlsServerCert` | Server CA Cert (string data) |
+| `WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY` | `optoins.tlsServerKey` | Server CA Key (string data) |
+| `WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_SERVER` | `options.noTlsUnsafe` | Set `true` to disable server TLS |
 
 For Puppet Client:
 
 | Environment Variable | Options | Description |
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
-| `WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
-| `WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT` | `optoins.noSslUnsafe` | Set `true` to disable client SSL |
+| `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
+| `WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_CLIENT` | `optoins.noTlsUnsafe` | Set `true` to disable client TLS |
 
 #### Changelog
 

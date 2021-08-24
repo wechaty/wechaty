@@ -12,7 +12,7 @@ import {
   PuppetServerOptions,
 }                       from '../src/mod'
 
-test('GrpcClient with SSL and valid token', async (t) => {
+test('GrpcClient with TLS and valid token', async (t) => {
   const TOKEN         = '__test_token__'
   const ENDPOINT      = '0.0.0.0:8788'
 
@@ -40,9 +40,9 @@ test('GrpcClient with SSL and valid token', async (t) => {
 
   try {
     await invalidTokenPuppet.start()
-    t.pass('should work with SSL and valid token')
+    t.pass('should work with TLS and valid token')
   } catch (e) {
-    t.fail('should not reject for a valid token & ssl')
+    t.fail('should not reject for a valid token & tls')
   } finally {
     try { await invalidTokenPuppet.stop() } catch (_) {}
   }
@@ -50,7 +50,7 @@ test('GrpcClient with SSL and valid token', async (t) => {
   await puppetServer.stop()
 })
 
-test('GrpcClient with invalid SSL options', async (t) => {
+test('GrpcClient with invalid TLS options', async (t) => {
   const TOKEN    = '__test_token__'
   const ENDPOINT = '0.0.0.0:8788'
 
@@ -71,12 +71,12 @@ test('GrpcClient with invalid SSL options', async (t) => {
    */
   const puppetOptions = {
     endpoint    : ENDPOINT,
-    noSslUnsafe : true,
+    noTlsUnsafe : true,
     token       : TOKEN,
   } as PuppetOptions
 
   const grpcClient = new GrpcClient(puppetOptions)
-  grpcClient.on('error', e => console.info('###noSslPuppet.on(error):', e))
+  grpcClient.on('error', e => console.info('###noTlsPuppet.on(error):', e))
 
   // Disable error log
   const level = log.level()
@@ -84,9 +84,9 @@ test('GrpcClient with invalid SSL options', async (t) => {
 
   try {
     await grpcClient.start()
-    t.fail('should throw for no-ssl client to ssl-server instead of not running to here')
+    t.fail('should throw for no-tls client to tls-server instead of not running to here')
   } catch (e) {
-    t.pass('should throw for non-ssl client to ssl-server with noSslUnsafe: true')
+    t.pass('should throw for non-tls client to tls-server with noTlsUnsafe: true')
   } finally {
     log.level(level)
     try { await grpcClient.stop() } catch (_) {}

@@ -19,7 +19,7 @@ import {
 
 import { callCredToken }  from '../auth/mod'
 import { GrpcStatus }     from '../auth/grpc-js'
-import { SSL_ROOT_CERT }  from '../auth/ca'
+import { TLS_ROOT_CERT }  from '../auth/ca'
 
 import { PuppetServiceOptions } from './puppet-service'
 
@@ -32,21 +32,21 @@ class GrpcClient extends EventEmitter {
    * gRPC settings
    */
   endpoint    : string
-  noSslUnsafe : boolean
+  noTlsUnsafe : boolean
   servername  : string
-  sslRootCert : Buffer
+  tlsRootCert : Buffer
   token       : string
 
   constructor (private options: PuppetServiceOptions) {
     super()
     log.verbose('GrpcClient', 'constructor(%s)', JSON.stringify(options))
 
-    this.sslRootCert = Buffer.from(
-      envVars.WECHATY_PUPPET_SERVICE_SSL_ROOT_CERT(this.options.sslRootCert) || SSL_ROOT_CERT
+    this.tlsRootCert = Buffer.from(
+      envVars.WECHATY_PUPPET_SERVICE_TLS_ROOT_CERT(this.options.tlsRootCert) || TLS_ROOT_CERT
     )
-    log.verbose('GrpcClient', 'constructor() sslRootCert(hash): "%s"',
+    log.verbose('GrpcClient', 'constructor() tlsRootCert(hash): "%s"',
       crypto.createHash('sha256')
-        .update(this.sslRootCert)
+        .update(this.tlsRootCert)
         .digest('hex'),
     )
 
@@ -68,14 +68,14 @@ class GrpcClient extends EventEmitter {
     /**
      *
      */
-    this.noSslUnsafe = envVars.WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_CLIENT(this.options.noSslUnsafe)
-    log.verbose('GrpcClient', 'constructor() noSslUnsafe: "%s"', this.noSslUnsafe)
+    this.noTlsUnsafe = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_CLIENT(this.options.noTlsUnsafe)
+    log.verbose('GrpcClient', 'constructor() noTlsUnsafe: "%s"', this.noTlsUnsafe)
 
     /**
      * for Node.js TLS SNI
      *  https://en.wikipedia.org/wiki/Server_Name_Indication
      */
-    this.servername = envVars.WECHATY_PUPPET_SERVICE_SSL_SERVER_NAME(this.options.servername)
+    this.servername = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.servername)
     log.verbose('GrpcClient', 'constructor() servername: "%s"', this.servername)
   }
 
@@ -123,17 +123,17 @@ class GrpcClient extends EventEmitter {
     log.verbose('GrpcClient', 'init()')
 
     const callCred    = callCredToken(this.token)
-    const channelCred = grpc.credentials.createSsl(this.sslRootCert)
+    const channelCred = grpc.credentials.createSsl(this.tlsRootCert)
     const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
 
     /**
-     * Huan(202108): for maximum compatible with the non-ssl community servers/clients,
-     *  we introduced the WECHATY_PUPPET_SERVICE_NO_SSL_UNSAFE_{SERVER,CLIENT} environment variables.
+     * Huan(202108): for maximum compatible with the non-tls community servers/clients,
+     *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_{SERVER,CLIENT} environment variables.
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
-    if (this.noSslUnsafe) {
-      log.warn('PuppetServer', 'start() noSslUnsafe should not be set in production!')
+    if (this.noTlsUnsafe) {
+      log.warn('PuppetServer', 'start() noTlsUnsafe should not be set in production!')
       credential = grpc.credentials.createInsecure()
     } else {
       credential = combCreds
@@ -142,7 +142,7 @@ class GrpcClient extends EventEmitter {
     const clientOptions: grpc.ChannelOptions = {
       ...GRPC_OPTIONS,
       /**
-       * Huan(202108): this is a workaround for compatiblity with the non-ssl community servers/clients.
+       * Huan(202108): this is a workaround for compatiblity with the non-tls community servers/clients.
        *  Will be removed after Dec 21, 2022.
        *
        * See: https://github.com/wechaty/wechaty-puppet-service/pull/78
@@ -231,10 +231,10 @@ class GrpcClient extends EventEmitter {
        * The `status` event is import when we connect a gRPC stream.
        *
        * Huan(202108): according to the unit tests (tests/grpc-client.spec.ts)
-       *  1. If client SSL is not ok (client no-ssl but server SSL is required)
+       *  1. If client TLS is not ok (client no-tls but server TLS is required)
        *    then status will be:
        *      { code: 14, details: 'Connection dropped' }
-       *  2. If client SSL is ok but the client token is invalid,
+       *  2. If client TLS is ok but the client token is invalid,
        *    then status will be:
        *      { code: 16, details: 'Invalid Wechaty TOKEN "0.XXX"' }
        */
@@ -246,7 +246,7 @@ class GrpcClient extends EventEmitter {
       })
       /**
        * Huan(202108): `metadata` event will be fired
-       *  when the SSL connection is OK
+       *  when the TLS connection is OK
        *    even if the token is invalid
        *
        * Conclusion: we MUST NOT listen on `metadata` for `resolve`.

@@ -8,7 +8,7 @@ import {
 
 /**
  * Huan(202108): This is for compatible with old clients (version v0.26 or before)
- *  for non-ssl authorization:
+ *  for non-tls authorization:
  *    use the HTTP2 header `:authority` as the token.
  *
  * This feature is planed to be removed after Dec 31, 2022

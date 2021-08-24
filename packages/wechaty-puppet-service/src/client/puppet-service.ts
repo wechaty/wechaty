@@ -132,12 +132,12 @@ WechatyResolver.setup()
 export type PuppetServiceOptions = PuppetOptions & {
   authority?   : string
   servername?  : string
-  sslRootCert? : string
+  tlsRootCert? : string
   /**
    * Huan(202108): only for compatible with old clients/servers
-   *  for disabling SSL
+   *  for disabling TLS
    */
-  noSslUnsafe? : boolean
+  noTlsUnsafe? : boolean
 }
 
 export class PuppetService extends Puppet {
