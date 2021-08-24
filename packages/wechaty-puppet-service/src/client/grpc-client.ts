@@ -170,13 +170,17 @@ class GrpcClient extends EventEmitter {
       log.error('GrpcClient', 'destroy() this.client not exist')
       return
     }
+    /**
+      * Huan(202108): we should set `this.client` to `undefined` at the current event loop
+      *   to prevent the future usage of the old client.
+      */
+    const client = this.client
+    this.client = undefined
 
     try {
-      this.client.close()
+      client.close()
     } catch (e) {
       log.error('GrpcClient', 'destroy() grpcClient.close() rejection: %s\n%s', e && e.message, e.stack)
-    } finally {
-      this.client = undefined
     }
   }
 
@@ -198,7 +202,7 @@ class GrpcClient extends EventEmitter {
      * Store the event data from the stream when we test connection,
      *  and re-emit the event data when we have finished testing the connection
      */
-    const peekDataList = [] as EventResponse[]
+    let peekedData: undefined | EventResponse
 
     /**
      * Huan(202108): future must be placed before other listenser registration
@@ -218,7 +222,7 @@ class GrpcClient extends EventEmitter {
        *  in case of they are not following this special protocol.
        */
       .once('data', (resp: EventResponse) => {
-        peekDataList.push(resp)
+        peekedData = resp
         resolve()
       })
       /**
@@ -290,7 +294,10 @@ class GrpcClient extends EventEmitter {
     /**
      * Re-emit the peeked data if there's any
      */
-    peekDataList.forEach(data => this.emit('data', data))
+    if (peekedData) {
+      this.emit('data', peekedData)
+      peekedData = undefined
+    }
   }
 
   protected stopStream (): void {
@@ -300,6 +307,12 @@ class GrpcClient extends EventEmitter {
       log.verbose('GrpcClient', 'no eventStream when stop, skip destroy.')
       return
     }
+    /**
+      * Huan(202108): we should set `this.eventStream` to `undefined` at the current event loop
+      *   to prevent the future usage of the old eventStream.
+      */
+    const eventStream = this.eventStream
+    this.eventStream = undefined
 
     /**
      * Huan(202003):
@@ -308,8 +321,7 @@ class GrpcClient extends EventEmitter {
      */
     // this.eventStream.cancel()
 
-    this.eventStream.destroy()
-    this.eventStream = undefined
+    eventStream.destroy()
   }
 
 }

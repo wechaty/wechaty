@@ -12,7 +12,7 @@ import {
   PuppetServerOptions,
 }                       from '../src/mod'
 
-test('GrpcClient with TLS and valid token', async (t) => {
+test('GrpcClient with TLS and valid token', async t => {
   const TOKEN         = '__test_token__'
   const ENDPOINT      = '0.0.0.0:8788'
 
@@ -50,7 +50,7 @@ test('GrpcClient with TLS and valid token', async (t) => {
   await puppetServer.stop()
 })
 
-test('GrpcClient with invalid TLS options', async (t) => {
+test('GrpcClient with invalid TLS options', async t => {
   const TOKEN    = '__test_token__'
   const ENDPOINT = '0.0.0.0:8788'
 
@@ -95,7 +95,7 @@ test('GrpcClient with invalid TLS options', async (t) => {
   await puppetServer.stop()
 })
 
-test('GrpcClient with invalid token', async (t) => {
+test('GrpcClient with invalid token', async t => {
   const endpoint = '0.0.0.0:8788'
   /**
    * Puppet Server

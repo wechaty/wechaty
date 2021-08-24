@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import test  from 'tstest'
+import { test } from 'tstest'
 
 import { PassThrough } from 'stream'
 
@@ -109,7 +109,7 @@ test('packFileBoxChunk(): should not throw if no read on the stream', async t =>
   try {
     outStream = packFileBoxChunkToPb(MessageFileStreamResponse)(stream)
   } catch (e) {
-    t.assert(e.message)
+    t.ok(e.message)
     return
   }
   outStream.on('error', _ => { /* Do nothing */ })
@@ -117,17 +117,14 @@ test('packFileBoxChunk(): should not throw if no read on the stream', async t =>
 })
 
 test('packFileBoxChunk(): should emit error in the output stream', async t => {
+  const EXPECTED_MESSAGE = 'test emit error'
 
-  t.plan(1)
-  const errorMessage = 'test emit error'
-  const stream = await getTestChunkStream({ errorMessage })
+  const stream = await getTestChunkStream({ errorMessage: EXPECTED_MESSAGE })
   const outStream = packFileBoxChunkToPb(MessageFileStreamResponse)(stream)
 
-  outStream.on('error', e => {
-    t.equal(e.message, errorMessage)
-  })
-
-  await new Promise(resolve => outStream.on('end', resolve))
+  const error = await new Promise<Error>(resolve => outStream.on('error', resolve))
+  // await new Promise(resolve => outStream.on('end', resolve))
+  t.equal(error.message, EXPECTED_MESSAGE, 'should emit error message')
 })
 
 test('unpackFileBoxChunkFromPb(): should not throw if no read on the stream', async t => {
@@ -163,9 +160,9 @@ test('unpackFileBoxChunkFromPb(): should emit error in the output stream', async
   }
 })
 
-const getTestChunkStream = async (options: {
+async function getTestChunkStream (options: {
   errorMessage?: string,
-}) => {
+}) {
   const { errorMessage } = options
 
   const FILE_BOX_DATA = 'test'
@@ -184,9 +181,9 @@ const getTestChunkStream = async (options: {
   return chunkStream
 }
 
-const getTestPackedStream = async (options: {
+async function getTestPackedStream (options: {
   errorMessage?: string,
-}) => {
+}) {
   const { errorMessage } = options
 
   const FILE_BOX_DATA = 'test'

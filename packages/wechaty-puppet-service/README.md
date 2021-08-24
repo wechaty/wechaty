@@ -59,6 +59,7 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 1. Implemented TLS and server-side token authorization.
 1. Refactor the gRPC client code.
+1. Add local payload cache to reduce the cost of RPC.
 
 #### New environment variables
 

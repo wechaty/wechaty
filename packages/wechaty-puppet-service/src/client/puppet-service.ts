@@ -102,6 +102,7 @@ import { WechatyResolver }          from 'wechaty-token'
 import { Subscription } from 'rxjs'
 
 import {
+  envVars,
   log,
   VERSION,
 }                                         from '../config'
@@ -116,10 +117,9 @@ import {
 }                                   from '../file-box-stream/mod'
 import { serializeFileBox }         from '../server/serialize-file-box'
 
-import {
-  recover$,
-}             from './recover$'
-import { GrpcClient } from './grpc-client'
+import { recover$ }     from './recover$'
+import { GrpcClient }   from './grpc-client'
+import { PayloadStore } from './payload-store'
 
 /**
  * Huan(202108): register `wechaty` schema for gRPC service discovery
@@ -144,14 +144,19 @@ export class PuppetService extends Puppet {
 
   static override readonly VERSION = VERSION
 
-  private grpc?: GrpcClient
-
   protected recoverSubscription?: Subscription
+  protected grpc?: GrpcClient
+  protected payloadStore: PayloadStore
 
   constructor (
     public override options: PuppetServiceOptions = {},
   ) {
     super(options)
+    this.payloadStore = new PayloadStore({
+      token: envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token),
+    })
+
+    this.hookPayloadStore()
   }
 
   override async start (): Promise<void> {
@@ -182,11 +187,11 @@ export class PuppetService extends Puppet {
       this.bridgeGrpcEventStream(grpc)
       await grpc.start()
 
-      this.recoverSubscription = recover$(this).subscribe(
-        x => log.verbose('PuppetService', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
-        e => log.error('PuppetService', 'constructor() recover$().subscribe() error(%s)', e),
-        () => log.verbose('PuppetService', 'constructor() recover$().subscribe() complete()'),
-      )
+      this.recoverSubscription = recover$(this).subscribe({
+        complete : () => log.verbose('PuppetService', 'constructor() recover$().subscribe() complete()'),
+        error    : e  => log.error('PuppetService', 'constructor() recover$().subscribe() error(%s)', e),
+        next     : x  => log.verbose('PuppetService', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
+      })
 
       this.state.on(true)
     } catch (e) {
@@ -231,6 +236,7 @@ export class PuppetService extends Puppet {
     try {
       await this.grpc?.stop()
       this.grpc = undefined
+
     } catch (e) {
       log.error('PuppetService', 'stop() client.stop() rejection: %s', e.message)
     } finally {
@@ -238,7 +244,29 @@ export class PuppetService extends Puppet {
     }
   }
 
-  private bridgeGrpcEventStream (client: GrpcClient): void {
+  protected hookPayloadStore (): void {
+    log.verbose('PuppetService', 'hookPayloadStore()')
+
+    this.on('login',  async ({ contactId }) => {
+      try {
+        log.verbose('PuppetService', 'hookPayloadStore() this.on(login) contactId: "%s"', contactId)
+        await this.payloadStore.start(contactId)
+      } catch (e) {
+        log.verbose('PuppetService', 'hookPayloadStore() this.on(login) rejection "%s"', e.message)
+      }
+    })
+
+    this.on('logout', async ({ contactId }) => {
+      log.verbose('PuppetService', 'hookPayloadStore() this.on(logout) contactId: "%s"', contactId)
+      try {
+        await this.payloadStore.stop()
+      } catch (e) {
+        log.verbose('PuppetService', 'hookPayloadStore() this.on(logout) rejection "%s"', e.message)
+      }
+    })
+  }
+
+  protected bridgeGrpcEventStream (client: GrpcClient): void {
     log.verbose('PuppetService', 'bridgeGrpcEventStream(client)')
 
     client
@@ -268,6 +296,12 @@ export class PuppetService extends Puppet {
     const payload = event.getPayload()
 
     log.verbose('PuppetService',
+      'onGrpcStreamEvent({type:%s(%s), payload(%s)})',
+      EventTypeRev[type],
+      type,
+      payload.length
+    )
+    log.silly('PuppetService',
       'onGrpcStreamEvent({type:%s(%s), payload:"%s"})',
       EventTypeRev[type],
       type,
@@ -382,8 +416,37 @@ export class PuppetService extends Puppet {
     )
   }
 
+  /**
+   * Huan(202108): consider to use `messagePayloadDirty`, `roomPayloadDirty`
+   *  to replace this `dirtyPayload` method for a clearer design and easy to maintain.
+   */
   override async dirtyPayload (type: PayloadType, id: string) {
+    log.verbose('PuppetService', 'dirtyPayload(%s, %s)', type, id)
+
     await super.dirtyPayload(type, id)
+
+    switch (type) {
+      case PayloadType.Contact:
+        await this.payloadStore.contact?.delete(id)
+        break
+      case PayloadType.Friendship:
+        // TODO
+        break
+      case PayloadType.Message:
+        // await this.payloadStore.message?.del(id)
+        // TODO
+        break
+      case PayloadType.Room:
+        await this.payloadStore.room?.delete(id)
+        break
+      case PayloadType.RoomMember:
+        await this.payloadStore.roomMember?.delete(id)
+        break
+      default:
+        log.error('PuppetService', 'dirtyPayload(%s) unknown type', type)
+        break
+    }
+
     if (!this.grpc?.client) {
       throw new Error('PuppetService dirtyPayload() can not execute due to no grpcClient.')
     }
@@ -567,6 +630,12 @@ export class PuppetService extends Puppet {
   override async contactRawPayload (id: string): Promise<ContactPayload> {
     log.verbose('PuppetService', 'contactRawPayload(%s)', id)
 
+    const cachedPayload = await this.payloadStore.contact?.get(id)
+    if (cachedPayload) {
+      log.silly('PuppetService', 'contactRawPayload(%s) cache HIT', id)
+      return cachedPayload
+    }
+
     const request = new ContactPayloadRequest()
     request.setId(id)
 
@@ -594,6 +663,9 @@ export class PuppetService extends Puppet {
       type        : response.getType() as number,
       weixin      : response.getWeixin(),
     }
+
+    await this.payloadStore.contact?.set(id, payload)
+    log.silly('PuppetService', 'contactRawPayload(%s) cache SET', id)
 
     return payload
   }
@@ -788,6 +860,12 @@ export class PuppetService extends Puppet {
   override async messageRawPayload (id: string): Promise<MessagePayload> {
     log.verbose('PuppetService', 'messageRawPayload(%s)', id)
 
+    // const cachedPayload = await this.payloadStore.message?.get(id)
+    // if (cachedPayload) {
+    //   log.silly('PuppetService', 'messageRawPayload(%s) cache HIT', id)
+    //   return cachedPayload
+    // }
+
     const request = new MessagePayloadRequest()
     request.setId(id)
 
@@ -806,6 +884,9 @@ export class PuppetService extends Puppet {
       toId          : response.getToId(),
       type          : response.getType() as number,
     }
+
+    // log.silly('PuppetService', 'messageRawPayload(%s) cache SET', id)
+    // await this.payloadStore.message?.set(id, payload)
 
     return payload
   }
@@ -929,6 +1010,12 @@ export class PuppetService extends Puppet {
   ): Promise<RoomPayload> {
     log.verbose('PuppetService', 'roomRawPayload(%s)', id)
 
+    const cachedPayload = await this.payloadStore.room?.get(id)
+    if (cachedPayload) {
+      log.silly('PuppetService', 'roomRawPayload(%s) cache HIT', id)
+      return cachedPayload
+    }
+
     const request = new RoomPayloadRequest()
     request.setId(id)
 
@@ -944,6 +1031,9 @@ export class PuppetService extends Puppet {
       ownerId      : response.getOwnerId(),
       topic        : response.getTopic(),
     }
+
+    await this.payloadStore.room?.set(id, payload)
+    log.silly('PuppetService', 'roomRawPayload(%s) cache SET', id)
 
     return payload
   }
@@ -1109,6 +1199,13 @@ export class PuppetService extends Puppet {
   override async roomMemberRawPayload (roomId: string, contactId: string): Promise<any>  {
     log.verbose('PuppetService', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
 
+    const id = this.payloadStore.roomMemberId(roomId, contactId)
+    const cachedPayload = await this.payloadStore.roomMember?.get(id)
+    if (cachedPayload) {
+      log.silly('PuppetService', 'roomMemberRawPayload(%s) cache HIT', id)
+      return cachedPayload
+    }
+
     const request = new RoomMemberPayloadRequest()
     request.setId(roomId)
     request.setMemberId(contactId)
@@ -1124,6 +1221,9 @@ export class PuppetService extends Puppet {
       name      : response.getName(),
       roomAlias : response.getRoomAlias(),
     }
+
+    await this.payloadStore.roomMember?.set(id, payload)
+    log.silly('PuppetService', 'roomMemberRawPayload(%s) cache SET', id)
 
     return payload
   }

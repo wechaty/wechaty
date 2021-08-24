@@ -64,7 +64,7 @@ class PuppetTest extends PuppetMock {
 
 }
 
-test.skip('stress testing', async (t) => {
+test.skip('stress testing', async t => {
   const TOKEN    = 'test_token'
   const ENDPOINT = '0.0.0.0:8788'
   // const DING     = 'ding_data'
