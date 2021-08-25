@@ -43,9 +43,14 @@ export const PUPPET_DEPENDENCIES = {
 
   /**
    * Wechaty Internal Puppets: dependency by package.json
+   *
+   *  Huan(202108): Notice
+   *    All the internal puppets which have already depended in package.json
+   *    MUST be listed below with their correct version number
+   *    because the `puppet-installer` will use those version to install inside the Docker
    */
-  'wechaty-puppet-service' : '*',  // https://www.npmjs.com/package/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '*',    // https://www.npmjs.com/package/wechaty-puppet-mock
+  'wechaty-puppet-service' : '>=0.29.8',  // https://www.npmjs.com/package/wechaty-puppet-service
+  'wechaty-puppet-mock'    : '>=0.29.10', // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
    * WeChat Puppets

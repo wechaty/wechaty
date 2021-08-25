@@ -40,7 +40,7 @@ test('looseInstanceOfClass: constructor.name', async t => {
 
   {
     class Test {}
-    t.notEqual(OrigTest, Test, 'should has a new Test class different to the original Test class')
+    t.not(OrigTest, Test, 'should has a new Test class different to the original Test class')
     const f = new Test()
     t.ok(looseInstanceOfTest(f), 'should be true for the same name class like Test')
   }
@@ -52,7 +52,7 @@ test('looseInstanceOfClass: n/a', async t => {
   const looseInstanceOfTest = looseInstanceOfClass(Test)
 
   const o = {}
-  t.false(looseInstanceOfTest(o), 'should be false for non-Test: {}')
+  t.notOk(looseInstanceOfTest(o), 'should be false for non-Test: {}')
 })
 
 test('looseInstanceOfClass for FileBox', async t => {
@@ -62,10 +62,10 @@ test('looseInstanceOfClass for FileBox', async t => {
   const OrigFileBox = FileBox
   {
     class FileBox {}
-    t.notEqual(OrigFileBox, FileBox, 'should be two different FileBox class')
+    t.not(OrigFileBox, FileBox, 'should be two different FileBox class')
 
     t.ok(f instanceof OrigFileBox, 'should be instanceof OrigFileBox')
-    t.false(f instanceof FileBox, 'should not instanceof another FileBox class for one FileBox instance')
+    t.notOk(f instanceof FileBox, 'should not instanceof another FileBox class for one FileBox instance')
     t.ok(looseInstanceOfFileBox(f), 'should be true for looseInstanceOfFileBox because the class has the same name')
   }
 })
