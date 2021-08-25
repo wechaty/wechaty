@@ -8,7 +8,7 @@ import {
 import { metaGeneratorToken } from './call-cred'
 
 test('metaGeneratorToken()', async t => {
-  const TOKEN = '__token__'
+  const TOKEN = 'UUIDv4'
   const EXPECTED_AUTHORIZATION = `Wechaty ${TOKEN}`
 
   const sandbox = sinon.createSandbox()

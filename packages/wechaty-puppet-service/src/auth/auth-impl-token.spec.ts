@@ -17,7 +17,7 @@ test('authImplToken()', async t => {
   const sandbox = sinon.createSandbox()
   const spy = sandbox.spy()
 
-  const TOKEN = '__token__'
+  const TOKEN = 'UUIDv4'
   const IMPL: UntypedServiceImplementation = {
     spy,
   }

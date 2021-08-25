@@ -32,7 +32,7 @@ import { PuppetServiceOptions } from './puppet-service'
 
 /**
  * Huan(202108): register `wechaty` schema for gRPC service discovery
- *  so that we can use `wechaty:///__token__` for gRPC address
+ *  so that we can use `wechaty:///UUIDv4` for gRPC address
  *
  *  See: https://github.com/wechaty/wechaty-puppet-service/issues/155
  */
@@ -74,6 +74,10 @@ class GrpcClient extends EventEmitter {
     log.verbose('GrpcClient', 'constructor() token: "%s"', this.token)
 
     this.endpoint = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
+      /**
+       * Wechaty Token Discovery-able URL
+       *  See: wechaty-token / https://github.com/wechaty/wechaty-puppet-service/issues/155
+       */
       || [
         'wechaty://',
         envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority),

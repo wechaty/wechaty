@@ -66,7 +66,7 @@
     "semver": "^6.3.0",
     "stronger-typed-streams": "^0.2.0",
     "wechaty-grpc": "^0.25.1",
-    "wechaty-token": "^0.5.7"
+    "wechaty-token": "^0.5.8"
   },
   "publishConfig": {
     "access": "public",

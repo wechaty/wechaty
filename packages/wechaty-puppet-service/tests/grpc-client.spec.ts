@@ -13,7 +13,7 @@ import {
 }                       from '../src/mod'
 
 test('GrpcClient with TLS and valid token', async t => {
-  const TOKEN         = '__test_token__'
+  const TOKEN         = 'UUIDv4'
   const ENDPOINT      = '0.0.0.0:8788'
 
   /**
@@ -42,6 +42,7 @@ test('GrpcClient with TLS and valid token', async t => {
     await invalidTokenPuppet.start()
     t.pass('should work with TLS and valid token')
   } catch (e) {
+    console.error(e)
     t.fail('should not reject for a valid token & tls')
   } finally {
     try { await invalidTokenPuppet.stop() } catch (_) {}
@@ -51,7 +52,7 @@ test('GrpcClient with TLS and valid token', async t => {
 })
 
 test('GrpcClient with invalid TLS options', async t => {
-  const TOKEN    = '__test_token__'
+  const TOKEN    = 'UUIDv4'
   const ENDPOINT = '0.0.0.0:8788'
 
   /**
@@ -105,7 +106,7 @@ test('GrpcClient with invalid token', async t => {
   const serverOptions = {
     endpoint,
     puppet: new PuppetMock(),
-    token: '__token__',
+    token: 'UUIDv4',
   } as PuppetServerOptions
 
   const puppetServer = new PuppetServer(serverOptions)

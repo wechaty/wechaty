@@ -19,7 +19,7 @@ import {
 }                               from '../src/mod'
 
 test('integration testing', async t => {
-  const TOKEN    = '__test_token__'
+  const TOKEN    = 'UUIDv4'
   const ENDPOINT = '0.0.0.0:8788'
   const DING     = '__ding_data__'
 
