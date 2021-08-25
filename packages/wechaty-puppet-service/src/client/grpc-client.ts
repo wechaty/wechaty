@@ -19,7 +19,7 @@ import {
 
 import { callCredToken }  from '../auth/mod'
 import { GrpcStatus }     from '../auth/grpc-js'
-import { TLS_ROOT_CERT }  from '../auth/ca'
+import { TLS_CA_CERT }  from '../auth/ca'
 
 import { PuppetServiceOptions } from './puppet-service'
 
@@ -32,21 +32,21 @@ class GrpcClient extends EventEmitter {
    * gRPC settings
    */
   endpoint    : string
-  noTlsUnsafe : boolean
-  servername  : string
-  tlsRootCert : Buffer
+  noTlsInsecure : boolean
+  serverName  : string
+  caCert      : Buffer
   token       : string
 
   constructor (private options: PuppetServiceOptions) {
     super()
     log.verbose('GrpcClient', 'constructor(%s)', JSON.stringify(options))
 
-    this.tlsRootCert = Buffer.from(
-      envVars.WECHATY_PUPPET_SERVICE_TLS_ROOT_CERT(this.options.tlsRootCert) || TLS_ROOT_CERT
+    this.caCert = Buffer.from(
+      envVars.WECHATY_PUPPET_SERVICE_TLS_CA_CERT(this.options.tls?.caCert) || TLS_CA_CERT
     )
     log.verbose('GrpcClient', 'constructor() tlsRootCert(hash): "%s"',
       crypto.createHash('sha256')
-        .update(this.tlsRootCert)
+        .update(this.caCert)
         .digest('hex'),
     )
 
@@ -68,15 +68,15 @@ class GrpcClient extends EventEmitter {
     /**
      *
      */
-    this.noTlsUnsafe = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_CLIENT(this.options.noTlsUnsafe)
-    log.verbose('GrpcClient', 'constructor() noTlsUnsafe: "%s"', this.noTlsUnsafe)
+    this.noTlsInsecure = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT(this.options.tls?.disable)
+    log.verbose('GrpcClient', 'constructor() noTlsInsecure: "%s"', this.noTlsInsecure)
 
     /**
      * for Node.js TLS SNI
      *  https://en.wikipedia.org/wiki/Server_Name_Indication
      */
-    this.servername = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.servername)
-    log.verbose('GrpcClient', 'constructor() servername: "%s"', this.servername)
+    this.serverName = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.tls?.serverName)
+    log.verbose('GrpcClient', 'constructor() servername: "%s"', this.serverName)
   }
 
   async start (): Promise<void> {
@@ -123,17 +123,17 @@ class GrpcClient extends EventEmitter {
     log.verbose('GrpcClient', 'init()')
 
     const callCred    = callCredToken(this.token)
-    const channelCred = grpc.credentials.createSsl(this.tlsRootCert)
+    const channelCred = grpc.credentials.createSsl(this.caCert)
     const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
 
     /**
      * Huan(202108): for maximum compatible with the non-tls community servers/clients,
-     *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_{SERVER,CLIENT} environment variables.
+     *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_{SERVER,CLIENT} environment variables.
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
-    if (this.noTlsUnsafe) {
-      log.warn('PuppetServer', 'start() noTlsUnsafe should not be set in production!')
+    if (this.noTlsInsecure) {
+      log.warn('PuppetServer', 'start() noTlsInsecure should not be set in production!')
       credential = grpc.credentials.createInsecure()
     } else {
       credential = combCreds
@@ -148,7 +148,7 @@ class GrpcClient extends EventEmitter {
        * See: https://github.com/wechaty/wechaty-puppet-service/pull/78
        */
       'grpc.default_authority'        : this.token,
-      'grpc.ssl_target_name_override' : this.servername,
+      'grpc.ssl_target_name_override' : this.serverName,
     }
 
     if (this.client) {

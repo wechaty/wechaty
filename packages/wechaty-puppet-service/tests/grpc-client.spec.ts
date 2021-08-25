@@ -69,11 +69,13 @@ test('GrpcClient with invalid TLS options', async t => {
   /**
    * Grpc Client
    */
-  const puppetOptions = {
+  const puppetOptions: PuppetOptions = {
     endpoint    : ENDPOINT,
-    noTlsUnsafe : true,
+    tls: {
+      disable : true,
+    },
     token       : TOKEN,
-  } as PuppetOptions
+  }
 
   const grpcClient = new GrpcClient(puppetOptions)
   grpcClient.on('error', e => console.info('###noTlsPuppet.on(error):', e))
@@ -86,7 +88,7 @@ test('GrpcClient with invalid TLS options', async t => {
     await grpcClient.start()
     t.fail('should throw for no-tls client to tls-server instead of not running to here')
   } catch (e) {
-    t.pass('should throw for non-tls client to tls-server with noTlsUnsafe: true')
+    t.pass('should throw for non-tls client to tls-server with noTlsInsecure: true')
   } finally {
     log.level(level)
     try { await grpcClient.stop() } catch (_) {}

@@ -130,14 +130,17 @@ import { PayloadStore } from './payload-store'
 WechatyResolver.setup()
 
 export type PuppetServiceOptions = PuppetOptions & {
-  authority?   : string
-  servername?  : string
-  tlsRootCert? : string
-  /**
-   * Huan(202108): only for compatible with old clients/servers
-   *  for disabling TLS
-   */
-  noTlsUnsafe? : boolean
+  authority?  : string
+  tls?: {
+    caCert?     : string
+    noVerify?   : boolean
+    serverName? : string
+    /**
+     * Huan(202108): only for compatible with old clients/servers
+     *  for disabling TLS
+     */
+    disable? : boolean
+  }
 }
 
 export class PuppetService extends Puppet {

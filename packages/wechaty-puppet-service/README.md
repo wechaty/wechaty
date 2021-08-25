@@ -65,7 +65,7 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 <!-- markdownlint-disable MD013 -->
 
-1. `WECHATY_PUPPET_SERVICE_TLS_ROOT_CERT`: can be overwrite by `options.tlsRootCert`. Set Root CA Cert to verify the server or client.
+1. `WECHATY_PUPPET_SERVICE_TLS_CA_CERT`: can be overwrite by `options.tlsRootCert`. Set Root CA Cert to verify the server or client.
 
 For Puppet Server:
 
@@ -73,7 +73,7 @@ For Puppet Server:
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT` | `options.tlsServerCert` | Server CA Cert (string data) |
 | `WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY` | `optoins.tlsServerKey` | Server CA Key (string data) |
-| `WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_SERVER` | `options.noTlsUnsafe` | Set `true` to disable server TLS |
+| `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER` | `options.noTlsInsecure` | Set `true` to disable server TLS |
 
 For Puppet Client:
 
@@ -81,7 +81,7 @@ For Puppet Client:
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
 | `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
-| `WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_CLIENT` | `optoins.noTlsUnsafe` | Set `true` to disable client TLS |
+| `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT` | `optoins.noTlsInsecure` | Set `true` to disable client TLS |
 
 #### Changelog
 

@@ -9,11 +9,14 @@ import https from 'https'
 import * as envVar  from './env-vars'
 import { AddressInfo } from 'ws'
 
-import { TLS_ROOT_CERT } from './ca'
+import {
+  TLS_CA_CERT,
+  TLS_INSECURE_SERVER_CERT_COMMON_NAME,
+}                                         from './ca'
 
 test('CA smoke testing', async t => {
 
-  const ca   = envVar.WECHATY_PUPPET_SERVICE_TLS_ROOT_CERT() || TLS_ROOT_CERT
+  const ca   = envVar.WECHATY_PUPPET_SERVICE_TLS_CA_CERT() || TLS_CA_CERT
   const cert = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT()
   const key  = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY()
 
@@ -23,7 +26,6 @@ test('CA smoke testing', async t => {
   })
 
   const ALIVE = 'Alive!\n'
-  const SNI = 'wechaty-puppet-service'
 
   server.on('request', (_req, res) => {
     res.writeHead(200)
@@ -40,7 +42,7 @@ test('CA smoke testing', async t => {
       method: 'GET',
       path: '/',
       port,
-      servername: SNI,
+      servername: TLS_INSECURE_SERVER_CERT_COMMON_NAME,
     }, res => {
       res.on('data', chunk => resolve(chunk.toString()))
       res.on('error', reject)
@@ -53,7 +55,7 @@ test('CA smoke testing', async t => {
 
 test('CA SNI tests', async t => {
 
-  const ca   = envVar.WECHATY_PUPPET_SERVICE_TLS_ROOT_CERT() || TLS_ROOT_CERT
+  const ca   = envVar.WECHATY_PUPPET_SERVICE_TLS_CA_CERT() || TLS_CA_CERT
   const cert = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT()
   const key  = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY()
 
@@ -73,13 +75,13 @@ test('CA SNI tests', async t => {
   const ALIVE = 'Alive!\n'
   const SNI_TEST_LIST = [
     [
-      'wechaty-puppet-service',
+      TLS_INSECURE_SERVER_CERT_COMMON_NAME,
       true,
     ],
     [
       'invalid-sni',
       false,
-      "Hostname/IP does not match certificate's altnames: Host: invalid-sni. is not cert's CN: wechaty-puppet-service",
+      "Hostname/IP does not match certificate's altnames: Host: invalid-sni. is not cert's CN: insecure",
     ],
   ] as const
 

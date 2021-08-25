@@ -24,12 +24,14 @@ import {
 }                         from '../auth/mod'
 
 export interface PuppetServerOptions {
-  endpoint               : string,
-  puppet                 : Puppet,
-  tlsServerCert?         : string,
-  tlsServerKey?          : string,
-  token                  : string,
-  noTlsUnsafe? : boolean,
+  endpoint : string,
+  puppet   : Puppet,
+  token    : string,
+  tls?: {
+    serverCert? : string,
+    serverKey?  : string,
+    disable?    : boolean,
+  }
 }
 
 export class PuppetServer {
@@ -69,27 +71,27 @@ export class PuppetServer {
       puppetImplAuth,
     )
 
-    const rootCertsData = envVars.WECHATY_PUPPET_SERVICE_TLS_ROOT_CERT()
-    const rootCert = rootCertsData
-      ? Buffer.from(rootCertsData)
+    const caCerts = envVars.WECHATY_PUPPET_SERVICE_TLS_CA_CERT()
+    const caCertBuf = caCerts
+      ? Buffer.from(caCerts)
       : null
 
     const keyCertPairs: grpc.KeyCertPair[] = [{
-      cert_chain  : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT(this.options.tlsServerCert)),
-      private_key : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tlsServerKey)),
+      cert_chain  : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT(this.options.tls?.serverCert)),
+      private_key : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey)),
     }]
 
     /**
      * Huan(202108): for maximum compatible with the non-tls community servers/clients,
-     *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_{SERVER,CLIENT} environment variables.
+     *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_{SERVER,CLIENT} environment variables.
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
-    if (envVars.WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_SERVER(this.options.noTlsUnsafe)) {
-      log.warn('PuppetServer', 'start() WECHATY_PUPPET_SERVICE_NO_TLS_UNSAFE_SERVER should not be set in production!')
+    if (envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER(this.options.tls?.disable)) {
+      log.warn('PuppetServer', 'start() WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER should not be set in production!')
       credential = grpc.ServerCredentials.createInsecure()
     } else {
-      credential = grpc.ServerCredentials.createSsl(rootCert, keyCertPairs)
+      credential = grpc.ServerCredentials.createSsl(caCertBuf, keyCertPairs)
     }
 
     const port = await util.promisify(
