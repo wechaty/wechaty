@@ -94,7 +94,7 @@
     "raven": "^2.6.4",
     "read-pkg-up": "^7.0.1",
     "wechaty-puppet": "^0.41.1",
-    "wechaty-puppet-service": "^0.29.7",
+    "wechaty-puppet-service": "^0.29.8",
     "ws": "^7.4.6"
   },
   "devDependencies": {
