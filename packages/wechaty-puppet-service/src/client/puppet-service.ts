@@ -97,7 +97,6 @@ import {
   MessageSendFileStreamRequest,
   MessageSendFileRequest,
 }                                   from 'wechaty-grpc'
-import { WechatyResolver }          from 'wechaty-token'
 
 import { Subscription } from 'rxjs'
 
@@ -120,14 +119,6 @@ import { serializeFileBox }         from '../server/serialize-file-box'
 import { recover$ }     from './recover$'
 import { GrpcClient }   from './grpc-client'
 import { PayloadStore } from './payload-store'
-
-/**
- * Huan(202108): register `wechaty` schema for gRPC service discovery
- *  so that we can use `wechaty:///__token__` for gRPC address
- *
- *  See: https://github.com/wechaty/wechaty-puppet-service/issues/155
- */
-WechatyResolver.setup()
 
 export type PuppetServiceOptions = PuppetOptions & {
   authority?  : string

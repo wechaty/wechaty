@@ -9,7 +9,11 @@ import {
   StartRequest,
   StopRequest,
   EventResponse,
-}                   from 'wechaty-grpc'
+}                     from 'wechaty-grpc'
+import {
+  WechatyToken,
+  WechatyResolver,
+}                     from 'wechaty-token'
 
 import {
   GRPC_OPTIONS,
@@ -26,6 +30,14 @@ import {
 
 import { PuppetServiceOptions } from './puppet-service'
 
+/**
+ * Huan(202108): register `wechaty` schema for gRPC service discovery
+ *  so that we can use `wechaty:///__token__` for gRPC address
+ *
+ *  See: https://github.com/wechaty/wechaty-puppet-service/issues/155
+ */
+WechatyResolver.setup()
+
 class GrpcClient extends EventEmitter {
 
   client?      : PuppetClient
@@ -38,7 +50,7 @@ class GrpcClient extends EventEmitter {
   noTlsInsecure : boolean
   serverName  : string
   caCert      : Buffer
-  token       : string
+  token       : WechatyToken
 
   constructor (private options: PuppetServiceOptions) {
     super()
@@ -56,7 +68,9 @@ class GrpcClient extends EventEmitter {
     /**
      * Token will be used in the gRPC resolver (in endpoint)
      */
-    this.token = envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
+    this.token = new WechatyToken(
+      envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
+    )
     log.verbose('GrpcClient', 'constructor() token: "%s"', this.token)
 
     this.endpoint = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
@@ -79,6 +93,9 @@ class GrpcClient extends EventEmitter {
      *  https://en.wikipedia.org/wiki/Server_Name_Indication
      */
     this.serverName = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.tls?.serverName)
+      // Huan(202108): we use SNI from token if it exists
+      || this.token.sni
+      // Fallback to default
       || TLS_INSECURE_SERVER_CERT_COMMON_NAME
     log.verbose('GrpcClient', 'constructor() servername: "%s"', this.serverName)
   }
@@ -126,7 +143,7 @@ class GrpcClient extends EventEmitter {
   protected async init (): Promise<void> {
     log.verbose('GrpcClient', 'init()')
 
-    const callCred    = callCredToken(this.token)
+    const callCred    = callCredToken(this.token.token)
     const channelCred = grpc.credentials.createSsl(this.caCert)
     const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
 
@@ -151,7 +168,7 @@ class GrpcClient extends EventEmitter {
        *
        * See: https://github.com/wechaty/wechaty-puppet-service/pull/78
        */
-      'grpc.default_authority'        : this.token,
+      'grpc.default_authority'        : this.token.token,
       'grpc.ssl_target_name_override' : this.serverName,
     }
 
