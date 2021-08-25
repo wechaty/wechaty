@@ -20,7 +20,7 @@ class WechatyResolver implements resolverManager.Resolver {
   private addresses: TcpSubchannelAddress[]
 
   static getDefaultAuthority (target: GrpcUri): string {
-    log.verbose('ResolverWechaty', 'getDefaultAuthority(%s)', target)
+    log.verbose('ResolverWechaty', 'getDefaultAuthority(%s)', JSON.stringify(target))
     return target.authority || DEFAULT_AUTHORITY
   }
 
