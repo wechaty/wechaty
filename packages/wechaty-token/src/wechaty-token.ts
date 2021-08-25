@@ -77,8 +77,11 @@ class WechatyToken {
       this.authority = options.authority || DEFAULT_AUTHORITY
     }
 
-    if (this.token.indexOf('_') > 0) {
-      this.sni = this.token.split('_')[0].toLowerCase()
+    const underscoreIndex = this.token.lastIndexOf('_')
+    if (underscoreIndex > 0) {
+      this.sni = this.token
+        .slice(0, underscoreIndex)
+        .toLowerCase()
     }
   }
 

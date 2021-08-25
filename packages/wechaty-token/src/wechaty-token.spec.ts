@@ -25,6 +25,10 @@ test('WechatyToken sni() & toString()', async t  => {
       'wxwork_ID',
       'wxwork',
     ],
+    [
+      'puppet_wxwork_ID',
+      'puppet_wxwork',
+    ],
   ] as const
 
   for (const [token, sni] of FIXTURES) {
