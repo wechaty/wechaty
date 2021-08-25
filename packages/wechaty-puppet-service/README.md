@@ -55,7 +55,11 @@ WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
 
 ## History
 
-### master v0.29
+### master
+
+Refactoring
+
+### v0.30 (Aug 25, 2021)
 
 1. Implemented TLS and server-side token authorization.
 1. Refactor the gRPC client code.
