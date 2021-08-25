@@ -43,15 +43,14 @@ class WechatyToken {
     return VERSION
   }
 
+  /**
+   * Wechaty Token is a UUID prefixed with the SNI concated with a `_`
+   *
+   * @example "uuid_63d6b063-01e5-48b9-86ed-9fa2c05a6930"
+   */
   static generate (type: WechatyTokenType = 'uuid'): string {
     log.verbose('WechatyToken', 'generate(%s)', type)
-    switch (type) {
-      case 'uuid':
-        return 'uuid/' + v4()
-
-      default:
-        return `${type}/${v4()}`
-    }
+    return type + '_' + v4()
   }
 
   /**
@@ -78,8 +77,8 @@ class WechatyToken {
       this.authority = options.authority || DEFAULT_AUTHORITY
     }
 
-    if (this.token.indexOf('/') > 0) {
-      this.sni = this.token.split('/')[0]
+    if (this.token.indexOf('_') > 0) {
+      this.sni = this.token.split('_')[0].toLowerCase()
     }
   }
 

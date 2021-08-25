@@ -8,10 +8,10 @@ import {
 import assert from 'assert'
 
 async function main () {
-  const wechatyToken = new WechatyToken('__sni__/__uuid__')
+  const wechatyToken = new WechatyToken('SNI_UUID')
 
-  assert(wechatyToken.token === '__sni__/__uuid__', 'token should be __sni__/__uuid__')
-  assert(wechatyToken.sni === '__sni__', 'sni should be __sni__')
+  assert(wechatyToken.token === 'SNI_UUID', 'token should be SNI_UUID')
+  assert(wechatyToken.sni === 'SNI', 'sni should be SNI')
 
   if (VERSION === '0.0.0') {
     throw new Error('version should not be 0.0.0 when prepare for publishing')

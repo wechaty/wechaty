@@ -14,15 +14,15 @@ test('WechatyToken sni() & toString()', async t  => {
    */
   const FIXTURES = [
     [
-      '__token__',
+      'TOKEN',
       undefined,
     ],
     [
-      'insecure/__token__',
-      'insecure',
+      'INSECURE_TOKEN',
+      'insecure', // should normalized to lowercase
     ],
     [
-      'wxwork/puppet_wxwork_abc',
+      'wxwork_ID',
       'wxwork',
     ],
   ] as const

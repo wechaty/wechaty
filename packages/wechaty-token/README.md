@@ -114,9 +114,9 @@ See:
 
 ### master v0.5
 
-1. Wechaty Token format standard released: `sni/UUIDv4`
-    1. `sni` will be used as Server Indicator Name (SNI) when we are using TLS
-    1. `UUIDv4` is a standard UUIDv4 format
+1. Wechaty Token format standard released: `SNI_UUID`
+    1. `SNI` will be used as Server Indicator Name (SNI) when we are using TLS
+    1. `UUID` is a standard UUID format (v4)
 1. add `wechatyToken.sni` support.
 
 ### v0.4 (Aug 15, 2021)
