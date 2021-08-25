@@ -100,12 +100,16 @@ export class PuppetServer {
      */
     let credential
     if (envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER(this.options.tls?.disable)) {
-      log.warn('PuppetServer', 'start() WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER should not be set in production!')
+      log.warn('PuppetServer', 'start() TLS disabled: INSECURE!')
       credential = grpc.ServerCredentials.createInsecure()
     } else {
+      log.verbose('PuppetServer', 'start() TLS enabled.')
       credential = grpc.ServerCredentials.createSsl(caCertBuf, keyCertPairs)
     }
 
+    /***
+     * Start Grpc Server
+     */
     const port = await util.promisify(
       this.grpcServer.bindAsync.bind(this.grpcServer)
     )(

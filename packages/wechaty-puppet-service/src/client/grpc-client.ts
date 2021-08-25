@@ -47,7 +47,7 @@ class GrpcClient extends EventEmitter {
    * gRPC settings
    */
   endpoint    : string
-  noTlsInsecure : boolean
+  disableTls : boolean
   serverName  : string
   caCert      : Buffer
   token       : WechatyToken
@@ -87,10 +87,10 @@ class GrpcClient extends EventEmitter {
     log.verbose('GrpcClient', 'constructor() endpoint: "%s"', this.endpoint)
 
     /**
-     *
+     * Disable TLS
      */
-    this.noTlsInsecure = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT(this.options.tls?.disable)
-    log.verbose('GrpcClient', 'constructor() noTlsInsecure: "%s"', this.noTlsInsecure)
+    this.disableTls = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT(this.options.tls?.disable)
+    log.verbose('GrpcClient', 'constructor() disableTls: "%s"', this.disableTls)
 
     /**
      * for Node.js TLS SNI
@@ -166,10 +166,11 @@ class GrpcClient extends EventEmitter {
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
     let credential
-    if (this.noTlsInsecure) {
-      log.warn('PuppetServer', 'start() noTlsInsecure should not be set in production!')
+    if (this.disableTls) {
+      log.warn('GrpcClient', 'init() TLS disabled: INSECURE!')
       credential = grpc.credentials.createInsecure()
     } else {
+      log.verbose('GrpcClient', 'init() TLS enabled.')
       credential = combCreds
     }
 
