@@ -87,6 +87,7 @@ export class PuppetServer {
       envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey)
       || TLS_INSECURE_SERVER_KEY,
     )
+
     const keyCertPairs: grpc.KeyCertPair[] = [{
       cert_chain  : certChain,
       private_key : privateKey,
