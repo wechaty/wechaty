@@ -96,12 +96,21 @@ class GrpcClient extends EventEmitter {
      * for Node.js TLS SNI
      *  https://en.wikipedia.org/wiki/Server_Name_Indication
      */
-    this.serverName = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.tls?.serverName)
+    const serverNameIndication = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.tls?.serverName)
       // Huan(202108): we use SNI from token if it exists
       || this.token.sni
-      // Fallback to default
-      || TLS_INSECURE_SERVER_CERT_COMMON_NAME
-    log.verbose('GrpcClient', 'constructor() servername: "%s"', this.serverName)
+
+    if (!serverNameIndication) {
+      throw new Error([
+        'Wechaty Puppet Service requires a SNI as prefix of the token from version 0.30 and later.',
+        `You can add the "${TLS_INSECURE_SERVER_CERT_COMMON_NAME}_" prefix to your token`,
+        `like: "${TLS_INSECURE_SERVER_CERT_COMMON_NAME}_${this.token}"`,
+        'and try again.',
+      ].join('\n'))
+    }
+
+    this.serverName = serverNameIndication
+    log.verbose('GrpcClient', 'constructor() serverName(SNI): "%s"', this.serverName)
   }
 
   async start (): Promise<void> {
