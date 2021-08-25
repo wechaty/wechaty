@@ -17,8 +17,7 @@ import { WechatyToken } from './wechaty-token'
 
 class WechatyResolver implements resolverManager.Resolver {
 
-  private addresses   : TcpSubchannelAddress[]
-  private wechatyToken: WechatyToken
+  private addresses: TcpSubchannelAddress[]
 
   static getDefaultAuthority (target: GrpcUri): string {
     log.verbose('ResolverWechaty', 'getDefaultAuthority(%s)', target)
@@ -38,8 +37,7 @@ class WechatyResolver implements resolverManager.Resolver {
     log.verbose('WechatyResolver', 'constructor("%s",)', JSON.stringify(target))
     log.silly('WechatyResolver', 'constructor(,,"%s")', JSON.stringify(channelOptions))
 
-    this.addresses    = []
-    this.wechatyToken = new WechatyToken(target.authority)
+    this.addresses = []
   }
 
   private reportResolutionError (reason: string) {
@@ -58,15 +56,18 @@ class WechatyResolver implements resolverManager.Resolver {
     let address
 
     try {
-      address = await this.wechatyToken.discover(this.target.path)
+      address = await new WechatyToken({
+        authority : this.target.authority,  // `api.chatie.io` in `wechaty://api.chatie.io/__token__`
+        token     : this.target.path,       // `__token__` in `wechaty://api.chatie.io/__token__`
+      }).discover()
     } catch (e) {
-      log.warn('WechatyResolver', 'updateResolution() Resolution error for target ' + uriToString(this.target) + ' due to error ' + e.message)
+      log.warn('WechatyResolver', 'updateResolution() wechatyToken.discover() error for target ' + uriToString(this.target) + ' due to error ' + e.message)
       console.error(e)
       this.reportResolutionError(e.message)
     }
 
     if (!address || !address.port) {
-      log.warn('ResolverWechaty', 'updateResolution() not found target ' + uriToString(this.target) + ': token does not exist')
+      log.warn('ResolverWechaty', 'updateResolution() address not found target ' + uriToString(this.target) + ': token does not exist')
       this.reportResolutionError(`token "${this.target.path}" does not exist`)
       return
     }

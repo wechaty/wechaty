@@ -8,5 +8,5 @@ import {
 
 test('integration testing', async t => {
   void WechatyToken
-  t.skip('tbw')
+  void t.skip('tbw')
 })

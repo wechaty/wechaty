@@ -9,9 +9,8 @@ import {
 import { WechatyToken } from '../wechaty-token'
 
 async function handler (args: any) {
-  const wechatyToken = new WechatyToken()
   try {
-    const result = await wechatyToken.generate(args.type)
+    const result = await WechatyToken.generate(args.type)
     console.error(result)
   } catch (e) {
     console.error(e)

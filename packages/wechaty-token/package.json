@@ -1,6 +1,6 @@
 {
   "name": "wechaty-token",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "Wechaty Token Based Authentication Manager",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
@@ -21,7 +21,7 @@
     "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "blue-tape -r ts-node/register 'src/**/*.spec.ts' 'tests/**/*.spec.ts'"
+    "test:unit": "tap --node-arg=--require=ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
@@ -47,7 +47,7 @@
     "nock": "^13.1.1",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
-    "tstest": "^0.4.10"
+    "tstest": "^0.5.16"
   },
   "publishConfig": {
     "access": "public",
@@ -57,6 +57,9 @@
     "scripts": {
       "pre-push": "npx git-scripts-pre-push"
     }
+  },
+  "tap": {
+    "check-coverage": false
   },
   "dependencies": {
     "brolog": "^1.12.4",

@@ -7,28 +7,34 @@ import {
   DEFAULT_AUTHORITY,
   log,
 }                     from './config'
-
 import {
   VERSION,
 }                     from './version'
-
 import {
-  Policy,
-  RetryPolicy,
-}                       from 'cockatiel'
+  retryPolicy,
+}                     from './retry-policy'
 
 interface PuppetServiceAddress {
   host: string,
   port: number,
 }
 
-type WechatyTokenType = 'uuid'
+/**
+ * Huan(202108): `insecure` is the default SNI for wechaty-puppet-service
+ */
+type WechatyTokenType = 'insecure'
+                      | 'uuid'
                       | 'wxwork'
                       | 'donut'
                       | 'padlocal'
                       | 'paimon'
                       | 'xp'
                       | string
+
+export interface WechatyTokenOptions {
+  authority? : string
+  token      : string
+}
 
 class WechatyToken {
 
@@ -37,45 +43,47 @@ class WechatyToken {
     return VERSION
   }
 
-  public authority: string
+  static generate (type: WechatyTokenType = 'uuid'): string {
+    log.verbose('WechatyToken', 'generate(%s)', type)
+    switch (type) {
+      case 'uuid':
+        return 'uuid/' + v4()
+
+      default:
+        return `${type}/${v4()}`
+    }
+  }
 
   /**
-    * Create a retry policy that'll try whatever function we execute 3
-    *  times with a randomized exponential backoff.
-    *
-    * https://github.com/connor4312/cockatiel#policyretry
-    */
-  private retry: RetryPolicy
+   * Instance
+   */
+
+  public authority : string
+  public sni?      : string
+  public token     : string
 
   constructor (
-    authority?: string,
+    options: string | WechatyTokenOptions,
   ) {
-    log.verbose('WechatyToken', 'constructor(%s)', authority)
+    log.verbose('WechatyToken', 'constructor(%s)', JSON.stringify(options))
 
-    if (!authority) {
-      log.silly('WechatyToken', 'constructor() authority not set, use the default value "%s"', DEFAULT_AUTHORITY)
+    if (typeof options === 'string') {
+      this.token = options
+      this.authority = DEFAULT_AUTHORITY
+    } else {
+      if (!options.authority) {
+        log.silly('WechatyToken', 'constructor() `options.authority` not set, use the default value "%s"', DEFAULT_AUTHORITY)
+      }
+      this.token = options.token
+      this.authority = options.authority || DEFAULT_AUTHORITY
     }
-    this.authority = authority || DEFAULT_AUTHORITY
 
-    this.retry = Policy
-      .handleAll()
-      .retry()
-      .attempts(3)
-      .exponential()
-
-    this.initRetry()
+    if (this.token.indexOf('/') > 0) {
+      this.sni = this.token.split('/')[0]
+    }
   }
 
-  private initRetry () {
-    this.retry.onRetry(reason => log.silly('WechatyToken',
-      'constructor() this.retry.onRetry() reason: "%s"',
-      JSON.stringify(reason),
-    ))
-    this.retry.onSuccess(({ duration }) => log.silly('WechatyToken',
-      'initRetry() onSuccess(): retry call ran in %s ms',
-      duration,
-    ))
-  }
+  toString () { return this.token }
 
   private discoverApi (url: string): Promise<undefined | string> {
     return new Promise<undefined | string>((resolve, reject) => {
@@ -110,15 +118,15 @@ class WechatyToken {
     })
   }
 
-  async discover (token: string): Promise<undefined | PuppetServiceAddress> {
-    log.verbose('WechatyToken', 'discover(%s)', token)
+  async discover (): Promise<undefined | PuppetServiceAddress> {
+    log.verbose('WechatyToken', 'discover() for "%s"', this.token)
 
-    const url = `https://${this.authority}/v0/hosties/${token}`
+    const url = `https://${this.authority}/v0/hosties/${this.token}`
 
     let jsonStr: undefined | string
 
     try {
-      jsonStr = await this.retry.execute(
+      jsonStr = await retryPolicy.execute(
         () => this.discoverApi(url)
       )
     } catch (e) {
@@ -142,7 +150,7 @@ class WechatyToken {
 
     } catch (e) {
       console.error([
-        `WechatyToken.discover(${token})`,
+        `WechatyToken.discover() for "${this.token}"`,
         'failed: unable to parse JSON str to object:',
         '----- jsonStr START -----',
         jsonStr,
@@ -154,17 +162,6 @@ class WechatyToken {
 
     log.warn('WechatyToken', 'discover() address is malformed: "%s"', jsonStr)
     return undefined
-  }
-
-  generate (type: WechatyTokenType = 'uuid'): string {
-    log.verbose('WechatyToken', 'generate(%s)', type)
-    switch (type) {
-      case 'uuid':
-        return v4()
-
-      default:
-        return `puppet_${type}_${v4()}`
-    }
   }
 
 }

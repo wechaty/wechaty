@@ -8,11 +8,10 @@ import {
 import { WechatyToken } from '../wechaty-token'
 
 async function handler (args: any) {
-  const wechatyToken = await new WechatyToken()
   let address
 
   try {
-    address = await wechatyToken.discover(args.token)
+    address = await new WechatyToken(args.token).discover()
   } catch (e) {
     console.error(e)
     process.exit(1)

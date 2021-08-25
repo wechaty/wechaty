@@ -65,8 +65,8 @@ test('wechaty resolver smoke testing', async t  => {
 
   const result = await future
 
-  t.deepEqual(result[0].host, HOST, 'should get puppet server host')
-  t.deepEqual(result[0].port, PORT, 'should get puppet server port')
+  t.same(result[0].host, HOST, 'should get puppet server host')
+  t.same(result[0].port, PORT, 'should get puppet server port')
 
   sandbox.restore()
 })
@@ -85,7 +85,6 @@ test('wechaty resolver with custom authority', async t  => {
     .callsFake(
       function (
         this: WechatyToken,
-        _token: string,
       ) {
         rr.resolve(this.authority)
         return Promise.resolve({
