@@ -13,7 +13,7 @@ import {
 }                       from '../src/mod'
 
 test('GrpcClient with TLS and valid token', async t => {
-  const TOKEN         = 'UUIDv4'
+  const TOKEN         = 'insecure_UUIDv4'
   const ENDPOINT      = '0.0.0.0:8788'
 
   /**
@@ -36,23 +36,23 @@ test('GrpcClient with TLS and valid token', async t => {
     token    : TOKEN,
   } as PuppetOptions
 
-  const invalidTokenPuppet = new GrpcClient(puppetOptions)
+  const validTokenPuppet = new GrpcClient(puppetOptions)
 
   try {
-    await invalidTokenPuppet.start()
+    await validTokenPuppet.start()
     t.pass('should work with TLS and valid token')
   } catch (e) {
     console.error(e)
     t.fail('should not reject for a valid token & tls')
   } finally {
-    try { await invalidTokenPuppet.stop() } catch (_) {}
+    try { await validTokenPuppet.stop() } catch (_) {}
   }
 
   await puppetServer.stop()
 })
 
 test('GrpcClient with invalid TLS options', async t => {
-  const TOKEN    = 'UUIDv4'
+  const TOKEN    = 'uuid_UUIDv4'
   const ENDPOINT = '0.0.0.0:8788'
 
   /**
@@ -106,7 +106,7 @@ test('GrpcClient with invalid token', async t => {
   const serverOptions = {
     endpoint,
     puppet: new PuppetMock(),
-    token: 'UUIDv4',
+    token: 'insecure_UUIDv4',
   } as PuppetServerOptions
 
   const puppetServer = new PuppetServer(serverOptions)
@@ -121,7 +121,7 @@ test('GrpcClient with invalid token', async t => {
      * Put a random token for invalid the client token
      *  https://stackoverflow.com/a/8084248/1123955
      */
-    token: Math.random().toString(36),
+    token: 'insecure_' + Math.random().toString(36),
   } as PuppetOptions
 
   const invalidTokenPuppet = new GrpcClient(puppetOptions)
