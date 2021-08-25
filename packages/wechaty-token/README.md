@@ -112,7 +112,14 @@ See:
 
 ## History
 
-### master v0.4
+### master v0.5
+
+1. Wechaty Token format standard released: `sni/UUIDv4`
+    1. `sni` will be used as Server Indicator Name (SNI) when we are using TLS
+    1. `UUIDv4` is a standard UUIDv4 format
+1. add `wechatyToken.sni` support.
+
+### v0.4 (Aug 15, 2021)
 
 1. Use `cockatiel` to implement `RetryPolicy`
 1. Use `nock` to implement HTTP unit testing
