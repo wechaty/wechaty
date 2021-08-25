@@ -22,6 +22,9 @@ import {
 import {
   authImplToken,
 }                         from '../auth/mod'
+import {
+  TLS_INSECURE_SERVER_CERT, TLS_INSECURE_SERVER_KEY,
+}                             from '../auth/ca'
 
 export interface PuppetServerOptions {
   endpoint : string,
@@ -76,9 +79,17 @@ export class PuppetServer {
       ? Buffer.from(caCerts)
       : null
 
+    const certChain = Buffer.from(
+      envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT(this.options.tls?.serverCert)
+      || TLS_INSECURE_SERVER_CERT,
+    )
+    const privateKey = Buffer.from(
+      envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey)
+      || TLS_INSECURE_SERVER_KEY,
+    )
     const keyCertPairs: grpc.KeyCertPair[] = [{
-      cert_chain  : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT(this.options.tls?.serverCert)),
-      private_key : Buffer.from(envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey)),
+      cert_chain  : certChain,
+      private_key : privateKey,
     }]
 
     /**

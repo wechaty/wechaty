@@ -19,7 +19,10 @@ import {
 
 import { callCredToken }  from '../auth/mod'
 import { GrpcStatus }     from '../auth/grpc-js'
-import { TLS_CA_CERT }  from '../auth/ca'
+import {
+  TLS_CA_CERT,
+  TLS_INSECURE_SERVER_CERT_COMMON_NAME,
+}                                         from '../auth/ca'
 
 import { PuppetServiceOptions } from './puppet-service'
 
@@ -76,6 +79,7 @@ class GrpcClient extends EventEmitter {
      *  https://en.wikipedia.org/wiki/Server_Name_Indication
      */
     this.serverName = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.tls?.serverName)
+      || TLS_INSECURE_SERVER_CERT_COMMON_NAME
     log.verbose('GrpcClient', 'constructor() servername: "%s"', this.serverName)
   }
 

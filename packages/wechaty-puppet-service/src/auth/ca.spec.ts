@@ -12,13 +12,15 @@ import { AddressInfo } from 'ws'
 import {
   TLS_CA_CERT,
   TLS_INSECURE_SERVER_CERT_COMMON_NAME,
+  TLS_INSECURE_SERVER_CERT,
+  TLS_INSECURE_SERVER_KEY,
 }                                         from './ca'
 
 test('CA smoke testing', async t => {
 
   const ca   = envVar.WECHATY_PUPPET_SERVICE_TLS_CA_CERT() || TLS_CA_CERT
-  const cert = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT()
-  const key  = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY()
+  const cert = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT() || TLS_INSECURE_SERVER_CERT
+  const key  = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY() || TLS_INSECURE_SERVER_KEY
 
   const server = https.createServer({
     cert,
@@ -55,9 +57,9 @@ test('CA smoke testing', async t => {
 
 test('CA SNI tests', async t => {
 
-  const ca   = envVar.WECHATY_PUPPET_SERVICE_TLS_CA_CERT() || TLS_CA_CERT
-  const cert = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT()
-  const key  = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY()
+  const ca   = envVar.WECHATY_PUPPET_SERVICE_TLS_CA_CERT()      || TLS_CA_CERT
+  const cert = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT()  || TLS_INSECURE_SERVER_CERT
+  const key  = envVar.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY()   || TLS_INSECURE_SERVER_KEY
 
   const server = https.createServer({
     cert,
