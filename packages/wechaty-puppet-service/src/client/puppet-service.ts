@@ -124,7 +124,6 @@ export type PuppetServiceOptions = PuppetOptions & {
   authority?  : string
   tls?: {
     caCert?     : string
-    noVerify?   : boolean
     serverName? : string
     /**
      * Huan(202108): only for compatible with old clients/servers

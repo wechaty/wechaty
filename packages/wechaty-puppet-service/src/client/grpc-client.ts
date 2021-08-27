@@ -97,7 +97,12 @@ class GrpcClient extends EventEmitter {
      *  https://en.wikipedia.org/wiki/Server_Name_Indication
      */
     const serverNameIndication = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.tls?.serverName)
-      // Huan(202108): we use SNI from token if it exists
+      /**
+       * Huan(202108): we use SNI from token
+       *  if there is
+       *    neither override from environment variable: `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME`
+       *    nor set from: `options.tls.serverName`
+       */
       || this.token.sni
 
     if (!serverNameIndication) {
@@ -156,10 +161,6 @@ class GrpcClient extends EventEmitter {
   protected async init (): Promise<void> {
     log.verbose('GrpcClient', 'init()')
 
-    const callCred    = callCredToken(this.token.token)
-    const channelCred = grpc.credentials.createSsl(this.caCert)
-    const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
-
     /**
      * Huan(202108): for maximum compatible with the non-tls community servers/clients,
      *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_{SERVER,CLIENT} environment variables.
@@ -171,19 +172,29 @@ class GrpcClient extends EventEmitter {
       credential = grpc.credentials.createInsecure()
     } else {
       log.verbose('GrpcClient', 'init() TLS enabled.')
+      const callCred    = callCredToken(this.token.token)
+      const channelCred = grpc.credentials.createSsl(this.caCert)
+      const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
+
       credential = combCreds
     }
 
     const clientOptions: grpc.ChannelOptions = {
       ...GRPC_OPTIONS,
+      'grpc.ssl_target_name_override': this.serverName,
+    }
+
+    {
+      // Deprecated: this block will be removed after Dec 21, 2022.
+
       /**
-       * Huan(202108): this is a workaround for compatiblity with the non-tls community servers/clients.
-       *  Will be removed after Dec 21, 2022.
+       * Huan(202108): `grpc.default_authority` is a workaround
+       *  for compatiblity with the non-tls community servers/clients.
        *
        * See: https://github.com/wechaty/wechaty-puppet-service/pull/78
        */
-      'grpc.default_authority'        : this.token.token,
-      'grpc.ssl_target_name_override' : this.serverName,
+      const grpcDefaultAuthority = this.token.token
+      clientOptions['grpc.default_authority'] = grpcDefaultAuthority
     }
 
     if (this.client) {

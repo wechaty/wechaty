@@ -4,6 +4,11 @@ import { test }  from 'tstest'
 
 import { GrpcClient } from './grpc-client'
 
+/**
+ * Huan(202108):
+ *  the Server Name Identifier (SNI) in the token
+ *    is required by the gRPC client.
+ */
 test('GrpcClient smoke testing', async t => {
   t.throws(() => new GrpcClient({
     token: 'UUIDv4',
