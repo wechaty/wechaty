@@ -23,11 +23,11 @@ import {
   ImageType,
 }                   from 'wechaty-puppet'
 
-import { Wechaty } from '../wechaty'
+import { Wechaty } from '../wechaty.js'
 import {
   FileBox,
   log,
-}                   from '../config'
+}                   from '../config.js'
 
 class Image {
 

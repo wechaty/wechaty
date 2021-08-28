@@ -4,11 +4,9 @@ import os from 'os'
 
 import {
   log,
-}                   from './config'
-import {
   VERSION,
   GIT_COMMIT_HASH,
-}                   from './version'
+}                   from './config'
 
 let raven: typeof Raven
 

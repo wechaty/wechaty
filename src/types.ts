@@ -17,11 +17,11 @@
  *   limitations under the License.
  *
  */
-import { Wechaty } from './wechaty'
+import { Wechaty } from './wechaty.js'
 import {
   Contact,
   Message,
-}           from './user/mod'
+}           from './user/mod.js'
 
 export type AnyFunction = (...args: any[]) => any
 

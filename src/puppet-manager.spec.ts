@@ -23,7 +23,7 @@ import { test }  from 'tstest'
 
 import {
   PuppetManager,
-}                 from './puppet-manager'
+}                 from './puppet-manager.js'
 
 test('resolve an unsupported puppet name', async t => {
   // try {

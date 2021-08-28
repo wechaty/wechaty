@@ -29,7 +29,7 @@ export {
   log,
   qrcodeValueToImageUrl,
   VERSION,
-}                         from './config'
+}                         from './config.js'
 
 /**
  * We need to put `Wechaty` at the beginning of this file for import
@@ -38,15 +38,15 @@ export {
 export {
   Wechaty,
   WechatyOptions,
-}                             from './wechaty'
+}                             from './wechaty.js'
 export {
   WechatyPlugin,
   WechatyPluginUninstaller,
-}                             from './plugin'
+}                             from './plugin.js'
 
 export {
   PuppetModuleName,
-}                             from './puppet-config'
+}                             from './puppet-config.js'
 
 export {
   Contact,
@@ -61,9 +61,9 @@ export {
   RoomInvitation,
   UrlLink,
   MiniProgram,
-}                         from './user/mod'
+}                         from './user/mod.js'
 
-export { IoClient }   from './io-client'
+export { IoClient }   from './io-client.js'
 export {
   Sayable,
-}                   from './types'
+}                   from './types.js'

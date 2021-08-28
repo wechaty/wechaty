@@ -24,7 +24,7 @@ import {
 
 import {
   log,
-}                   from './config'
+}                   from './config.js'
 
 export class Doctor {
 

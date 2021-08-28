@@ -24,13 +24,13 @@ import {
 
 import {
   guardQrCodeValue,
-}                       from '../helper-functions/pure/guard-qr-code-value'
+} from '../helper-functions/pure/guard-qr-code-value.js'
 
-import { Wechaty } from '../wechaty'
+import { Wechaty } from '../wechaty.js'
 
 import {
   Contact,
-}           from './contact'
+}           from './contact.js'
 
 /**
  * Bot itself will be encapsulated as a ContactSelf.

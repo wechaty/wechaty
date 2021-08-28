@@ -1,11 +1,17 @@
 {
   "name": "wechaty",
-  "version": "0.68.1",
+  "version": "0.69.0",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
-  "main": "dist/src/mod.js",
-  "typings": "dist/src/mod.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mod.js",
+      "require": "./dist/cjs/src/mod.js"
+    }
+  },
+  "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
-    "node": ">= 12"
+    "node": ">= 14"
   },
   "wechaty": {
     "DEFAULT_PORT": 8080,
@@ -16,7 +22,6 @@
     "build": "tsc",
     "clean": "shx rm -fr dist/*",
     "dist": "npm-run-all clean build",
-    "pack": "npm pack",
     "docs": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=lcov",
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
@@ -33,8 +38,7 @@
     "test": "npm run lint && nyc npm run test:unit && npm run sloc",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
-    "test:unit": "tap --node-arg=--require=ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "test:debug": "tap --node-arg=--require=ts-node/register src/puppet-web/bridge.spec.ts",
+    "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "typedoc": "bash scripts/typedoc.sh",
     "io-client": "ts-node bin/io-client",
     "demo": "ts-node examples/ding-dong-bot.ts",
@@ -83,6 +87,7 @@
   "homepage": "https://github.com/wechaty/",
   "dependencies": {
     "clone-class": "^0.7.3",
+    "cockatiel": "^2.0.2",
     "cuid": "^2.1.8",
     "dotenv": "^10.0.0",
     "in-gfw": "^1.2.0",
@@ -90,7 +95,6 @@
     "npm-programmatic": "0.0.12",
     "open-graph": "^0.2.6",
     "pkg-dir": "^5.0.0",
-    "promise-retry": "^2.0.1",
     "raven": "^2.6.4",
     "read-pkg-up": "^7.0.0",
     "wechaty-puppet": "^0.41.1",
@@ -101,17 +105,15 @@
     "@babel/core": "^7.15.0",
     "@babel/node": "^7.14.9",
     "@babel/preset-env": "^7.15.0",
-    "@chatie/eslint-config": "^0.12.4",
+    "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.16.2",
+    "@chatie/tsconfig": "^0.17.2",
     "@types/cuid": "^1.3.1",
     "@types/dotenv": "^8.2.0",
     "@types/glob": "^7.1.4",
     "@types/open-graph": "^0.2.2",
-    "@types/promise-retry": "^1.1.3",
     "@types/raven": "^2.5.4",
-    "@types/retry": "^0.12.1",
     "@types/ws": "^7.4.7",
     "check-node-version": "^4.1.0",
     "coveralls": "^3.1.1",
@@ -132,15 +134,9 @@
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
-    "CHANGELOG",
-    "LICENSE",
-    "README.md",
-    "package.json",
-    "bin",
-    "dist/bin",
-    "dist/index.*",
-    "dist/src",
-    "src"
+    "bin/",
+    "dist/",
+    "src/"
   ],
   "publishConfig": {
     "access": "public",

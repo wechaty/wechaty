@@ -17,27 +17,27 @@
  *   limitations under the License.
  *
  */
+import { RoomInvitationPayload } from 'wechaty-puppet'
 import {
   instanceToClass,
 }                   from 'clone-class'
 
 import {
   Wechaty,
-}               from '../wechaty'
+}               from '../wechaty.js'
 import {
   log,
-}               from '../config'
+}               from '../config.js'
 import {
   Acceptable,
-}               from '../types'
+}               from '../types.js'
 import {
   timestampToDate,
-}                   from '../helper-functions/pure/timestamp-to-date'
+}                   from '../helper-functions/pure/timestamp-to-date.js'
 
 import {
   Contact,
-}               from './contact'
-import { RoomInvitationPayload } from 'wechaty-puppet'
+}               from './contact.js'
 
 /**
  *

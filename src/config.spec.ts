@@ -21,7 +21,7 @@
 
 import { test }  from 'tstest'
 
-import { config } from './config'
+import { config } from './config.js'
 // import { Puppet } from './puppet'
 
 test('important variables', async t => {

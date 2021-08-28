@@ -2,7 +2,7 @@
 
 import { test } from 'tstest'
 
-import { UrlLink } from './url-link'
+import { UrlLink } from './url-link.js'
 
 test('UrlLink', async t => {
   const URL = 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'

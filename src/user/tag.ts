@@ -19,11 +19,11 @@
  */
 import { instanceToClass } from 'clone-class'
 
-import { log }        from '../config'
-import { Wechaty }  from '../wechaty'
+import { log }        from '../config.js'
+import { Wechaty }  from '../wechaty.js'
 
-import { Contact }  from './contact'
-import { Favorite } from './favorite'
+import { Contact }  from './contact.js'
+import { Favorite } from './favorite.js'
 
 class Tag {
 

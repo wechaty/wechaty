@@ -24,9 +24,9 @@ import sinon from 'sinon'
 import { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import { Wechaty }  from '../wechaty'
+import { Wechaty }  from '../wechaty.js'
 
-import { Contact }  from './contact'
+import { Contact }  from './contact.js'
 
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'

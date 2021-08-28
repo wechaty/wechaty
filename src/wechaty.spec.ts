@@ -22,11 +22,14 @@
 import { test }  from 'tstest'
 import sinon from 'sinon'
 
+import {
+  Puppet,
+}                     from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
   Wechaty,
-}                             from './wechaty'
+}                             from './wechaty.js'
 
 import {
   config,
@@ -37,11 +40,7 @@ import {
   Message,
 
   Room,
-}                 from './mod'
-
-import {
-  Puppet,
-}                     from 'wechaty-puppet'
+}                 from './mod.js'
 
 class WechatyTest extends Wechaty {
 

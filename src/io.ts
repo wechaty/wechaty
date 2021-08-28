@@ -20,12 +20,7 @@
 import WebSocket        from 'ws'
 
 import {
-  Message,
-}                 from './user/mod'
-
-import {
   StateSwitch,
-
   EventScanPayload,
 }                         from 'wechaty-puppet'
 
@@ -36,20 +31,24 @@ import Peer, {
 }                         from 'json-rpc-peer'
 
 import {
+  Message,
+}                 from './user/mod.js'
+
+import {
   config,
   log,
-}                 from './config'
+}                 from './config.js'
 import {
   AnyFunction,
-}                 from './types'
+}                 from './types.js'
 import {
   Wechaty,
-}                 from './wechaty'
+}                 from './wechaty.js'
 
 import {
   getPeer,
   isJsonRpcRequest,
-}                   from './io-peer/io-peer'
+}                   from './io-peer/io-peer.js'
 
 export interface IoOptions {
   wechaty      : Wechaty,
@@ -117,10 +116,10 @@ export class Io {
 
   private readonly state = new StateSwitch('Io', { log })
 
-  private reconnectTimer?   : NodeJS.Timer
+  private reconnectTimer?   : ReturnType<typeof setTimeout>
   private reconnectTimeout? : number
 
-  private lifeTimer? : NodeJS.Timer
+  private lifeTimer? : ReturnType<typeof setTimeout>
 
   private onMessage: undefined | AnyFunction
 

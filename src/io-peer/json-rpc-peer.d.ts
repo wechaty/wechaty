@@ -9,13 +9,14 @@ declare module 'json-rpc-peer' {
 
   import { EventEmitter } from 'events'
   import { JsonRpcPayload, JsonRpcParamsSchema } from 'json-rpc-protocol'
+  import stream from 'stream'
 
   // export as namespace JsonRpcPeer
 
   export * from 'json-rpc-protocol'
 
   module 'json-rpc-peer' {
-    export default class Peer extends EventEmitter implements NodeJS.WritableStream {
+    export default class Peer extends EventEmitter implements stream.Writable {
 
       constructor(onmessage?: (message: JsonRpcPayload, data: any) => Promise<any>)
 
@@ -41,7 +42,7 @@ declare module 'json-rpc-peer' {
 
       public push(chunk: any, encoding?: string)
 
-      public pipe<T extends NodeJS.WritableStream>(writable: T): T
+      public pipe<T extends stream.Writable>(writable: T): T
 
       // NodeJS.WritableStream
 

@@ -27,7 +27,7 @@ import {
   stripHtml,
   unescapeHtml,
   unifyEmoji,
-}                   from './xml'
+}                   from './xml.js'
 
 test('stripHtml()', async t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'

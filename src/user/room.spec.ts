@@ -18,8 +18,10 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tstest'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}             from 'tstest'
 
 import {
   ContactPayload,
@@ -28,7 +30,7 @@ import {
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
-import { Wechaty }      from '../wechaty'
+import { Wechaty }      from '../wechaty.js'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'

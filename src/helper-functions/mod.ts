@@ -17,10 +17,10 @@
  *   limitations under the License.
  *
  */
-export { generateToken }  from './impure/generate-token'
+export { generateToken }  from './impure/generate-token.js'
 
-export { tryWait }                from './pure/try-wait'
-export { looseInstanceOfClass }   from './pure/loose-instance-of-class'
+export { retryPolicy }            from './pure/retry-policy.js'
+export { looseInstanceOfClass }   from './pure/loose-instance-of-class.js'
 export {
   digestEmoji,
   plainText,
@@ -28,4 +28,4 @@ export {
   stripHtml,
   unescapeHtml,
   unifyEmoji,
-}                                 from './pure/xml'
+}                                 from './pure/xml.js'

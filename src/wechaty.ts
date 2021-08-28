@@ -34,32 +34,29 @@ import {
   PayloadType,
 }                       from 'wechaty-puppet'
 
-import { captureException } from './raven'
+import { captureException } from './raven.js'
 
 import {
   FileBox,
   config,
   log,
-}                       from './config'
-
-import {
   VERSION,
   GIT_COMMIT_HASH,
-}                       from './version'
+}                       from './config.js'
 
 import {
   Sayable,
-}                       from './types'
+}                       from './types.js'
 
 import {
   Io,
-}                       from './io'
+}                       from './io.js'
 import {
   PuppetModuleName,
-}                       from './puppet-config'
+}                       from './puppet-config.js'
 import {
   PuppetManager,
-}                       from './puppet-manager'
+}                       from './puppet-manager.js'
 
 import {
   Contact,
@@ -83,20 +80,20 @@ import {
   wechatifyRoomInvitation,
   wechatifyTag,
   wechatifyUrlLink,
-}                       from './user/mod'
+}                       from './user/mod.js'
 
-import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
+import { timestampToDate } from './helper-functions/pure/timestamp-to-date.js'
 
 import {
   WechatyEventEmitter,
   WechatyEventName,
-}                             from './events/wechaty-events'
+}                             from './events/wechaty-events.js'
 
 import {
   WechatyPlugin,
   WechatyPluginUninstaller,
   isWechatyPluginUninstaller,
-}                             from './plugin'
+}                             from './plugin.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -154,7 +151,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   private memory?: MemoryCard
 
-  private lifeTimer? : NodeJS.Timer
+  private lifeTimer? : ReturnType<typeof setTimeout>
   private io?        : Io
 
   public puppet!: Puppet

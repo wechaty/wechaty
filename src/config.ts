@@ -28,15 +28,18 @@ import {
   log,
 }                   from 'wechaty-puppet'
 
-import { looseInstanceOfClass } from './helper-functions/mod'
+import { looseInstanceOfClass } from './helper-functions/mod.js'
 
 import {
   PuppetModuleName,
   PUPPET_NAME_DEFAULT,
-}                      from './puppet-config'
+}                      from './puppet-config.js'
 import {
-  VERSION,
-}                       from './version'
+  packageJson,
+  GIT_COMMIT_HASH,
+}                       from './package-json.js'
+
+const VERSION = packageJson.version || '0.0.0'
 
 const pkg = readPkgUp.sync({ cwd: __dirname })!.packageJson
 
@@ -154,13 +157,15 @@ const looseInstanceOfFileBox = looseInstanceOfClass(
   FileBox as any as FileBoxClass
 )
 
+const config = new Config()
+
 export {
   log,
   FileBox,
   MemoryCard,
   looseInstanceOfFileBox,
+  config,
 
   VERSION,
+  GIT_COMMIT_HASH,
 }
-
-export const config = new Config()

@@ -21,8 +21,8 @@
  */
 import { test }  from 'tstest'
 
-import { Io }       from './io'
-import { Wechaty }  from './wechaty'
+import { Io }       from './io.js'
+import { Wechaty }  from './wechaty.js'
 
 test('Io restart without problem', async t => {
   const io = new Io({

@@ -24,6 +24,8 @@ import {
   VERSION,
 }           from 'wechaty'
 
+import assert from 'assert'
+
 function getBotList (): Wechaty[] {
   const botList = [
     new Wechaty({ puppet: 'wechaty-puppet-mock' }),
@@ -50,10 +52,6 @@ function getBotList (): Wechaty[] {
 }
 
 async function main () {
-  if (VERSION === '0.0.0') {
-    throw new Error('VERSION not set!')
-  }
-
   const botList = getBotList()
   try {
     await Promise.all(
@@ -72,6 +70,9 @@ async function main () {
       botList.map(bot => bot.stop()),
     )
   }
+
+  assert.notStrictEqual(VERSION,  '0.0.0', 'VERSION must be set!')
+
   return 0
 }
 

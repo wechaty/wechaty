@@ -28,24 +28,24 @@ import {
   PayloadType,
 }                         from 'wechaty-puppet'
 
-import { Wechaty }          from '../wechaty'
+import { Wechaty }          from '../wechaty.js'
 
 import {
   log,
   qrCodeForChatie,
   looseInstanceOfFileBox,
-}                           from '../config'
+}                           from '../config.js'
 import {
   Sayable,
-}                           from '../types'
-import { captureException } from '../raven'
+}                           from '../types.js'
+import { captureException } from '../raven.js'
 
-import { Message }      from './message'
-import { MiniProgram }  from './mini-program'
-import { Tag }          from './tag'
-import { UrlLink }      from './url-link'
+import { Message }      from './message.js'
+import { MiniProgram }  from './mini-program.js'
+import { Tag }          from './tag.js'
+import { UrlLink }      from './url-link.js'
 
-import { ContactEventEmitter }  from '../events/contact-events'
+import { ContactEventEmitter }  from '../events/contact-events.js'
 
 export const POOL = Symbol('pool')
 

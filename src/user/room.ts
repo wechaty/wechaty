@@ -17,9 +17,15 @@
  *   limitations under the License.
  *
  */
-import { instanceToClass } from 'clone-class'
+import {
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+  PayloadType,
+}                           from 'wechaty-puppet'
+import { instanceToClass }  from 'clone-class'
 
-import { Wechaty }          from '../wechaty'
+import { Wechaty }          from '../wechaty.js'
 
 import {
   FOUR_PER_EM_SPACE,
@@ -27,29 +33,22 @@ import {
 
   log,
   looseInstanceOfFileBox,
-}                           from '../config'
+}                           from '../config.js'
 import {
   Sayable,
-}                           from '../types'
+}                           from '../types.js'
 
-import { captureException } from '../raven'
+import { captureException } from '../raven.js'
 import {
   guardQrCodeValue,
-}                       from '../helper-functions/pure/guard-qr-code-value'
+}                       from '../helper-functions/pure/guard-qr-code-value.js'
 
-import { Contact }        from './contact'
-import { MiniProgram }    from './mini-program'
-import { Message }        from './message'
-import { UrlLink }        from './url-link'
+import { Contact }        from './contact.js'
+import { MiniProgram }    from './mini-program.js'
+import { Message }        from './message.js'
+import { UrlLink }        from './url-link.js'
 
-import {
-  RoomMemberQueryFilter,
-  RoomPayload,
-  RoomQueryFilter,
-  PayloadType,
-}                         from 'wechaty-puppet'
-
-import { RoomEventEmitter } from '../events/room-events'
+import { RoomEventEmitter } from '../events/room-events.js'
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.

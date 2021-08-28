@@ -29,7 +29,7 @@ import Peer, {
 
 import {
   getPeer,
-}                   from './io-peer'
+}                   from './io-peer.js'
 
 test('getPeer()', async t => {
   const EXPECTED_PORT = 8788

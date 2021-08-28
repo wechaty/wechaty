@@ -31,15 +31,15 @@ import {
   PuppetOptions,
 }                         from 'wechaty-puppet'
 
-import { looseInstanceOfClass } from './helper-functions/pure/loose-instance-of-class'
+import { looseInstanceOfClass } from './helper-functions/pure/loose-instance-of-class.js'
 
 import {
   log,
-}                       from './config'
+}                       from './config.js'
 import {
   PUPPET_DEPENDENCIES,
   PuppetModuleName,
-}                       from './puppet-config'
+}                       from './puppet-config.js'
 
 export interface ResolveOptions {
   puppet         : Puppet | PuppetModuleName,

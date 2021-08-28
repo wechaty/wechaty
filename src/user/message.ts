@@ -26,38 +26,38 @@ import {
   MessageType,
 }                       from 'wechaty-puppet'
 
-import { escapeRegExp }           from '../helper-functions/pure/escape-regexp'
-import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date'
+import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
+import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
 
 import {
   Wechaty,
-}                         from '../wechaty'
+}                         from '../wechaty.js'
 import {
   AT_SEPARATOR_REGEX,
   FileBox,
 
   log,
   looseInstanceOfFileBox,
-}                         from '../config'
+}                         from '../config.js'
 import {
   Sayable,
-}                       from '../types'
+}                       from '../types.js'
 
-import { captureException } from '../raven'
+import { captureException } from '../raven.js'
 
 import {
   Contact,
-}                       from './contact'
+}                       from './contact.js'
 import {
   Room,
-}                       from './room'
+}                       from './room.js'
 import {
   UrlLink,
-}                       from './url-link'
+}                       from './url-link.js'
 import {
   MiniProgram,
-}                       from './mini-program'
-import { Image }        from './image'
+}                       from './mini-program.js'
+import { Image }        from './image.js'
 
 /**
  * All wechat messages will be encapsulated as a Message.

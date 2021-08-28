@@ -30,7 +30,7 @@ import {
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
-import { Wechaty }      from '../wechaty'
+import { Wechaty }      from '../wechaty.js'
 
 test('recalled()', async t => {
 
