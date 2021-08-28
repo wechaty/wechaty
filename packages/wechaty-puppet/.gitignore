@@ -59,9 +59,9 @@ typings/
 
 # next.js build output
 .next
-/dist/
+dist/
 package-lock.json
 .DS_Store
 t.*
-
+t/
 .idea

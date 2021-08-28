@@ -14,7 +14,7 @@ export {
   ContactType,
   ContactPayload,
   ContactQueryFilter,
-}                             from './schemas/contact'
+}                             from './schemas/contact.js'
 export {
   ScanStatus,
 
@@ -33,7 +33,7 @@ export {
   EventRoomLeavePayload,
   EventRoomTopicPayload,
   EventScanPayload,
-}                             from './schemas/event'
+}                             from './schemas/event.js'
 export {
   FriendshipAddOptions,
   FriendshipPayload,
@@ -43,36 +43,36 @@ export {
   FriendshipSearchQueryFilter,
   FriendshipType,
   FriendshipSceneType,
-}                             from './schemas/friendship'
+}                             from './schemas/friendship.js'
 export {
   ImageType,
-}                             from './schemas/image'
+}                             from './schemas/image.js'
 export {
   MessagePayload,
   MessageType,
   MessageQueryFilter,
-}                             from './schemas/message'
+}                             from './schemas/message.js'
 export {
   RoomPayload,
   RoomQueryFilter,
   RoomMemberPayload,
   RoomMemberQueryFilter,
-}                             from './schemas/room'
+}                             from './schemas/room.js'
 export {
   RoomInvitationPayload,
-}                             from './schemas/room-invitation'
+}                             from './schemas/room-invitation.js'
 export {
   UrlLinkPayload,
-}                             from './schemas/url-link'
+}                             from './schemas/url-link.js'
 export {
   MiniProgramPayload,
-}                             from './schemas/mini-program'
+}                             from './schemas/mini-program.js'
 
 export {
   throwUnsupportedError,
-}                             from './throw-unsupported-error'
+}                             from './throw-unsupported-error.js'
 
-export { PayloadType }         from './schemas/payload'
+export { PayloadType }         from './schemas/payload.js'
 
 export {
   PuppetOptions,
@@ -93,13 +93,13 @@ export {
   PUPPET_EVENT_DICT,
 
   YOU,
-}                         from './schemas/puppet'
+}                         from './schemas/puppet.js'
 export {
   VERSION,
   log,
-}                         from './config'
+}                         from './config.js'
 
 export {
   Puppet,
   PuppetImplementation,
-}                         from './puppet'
+}                         from './puppet.js'

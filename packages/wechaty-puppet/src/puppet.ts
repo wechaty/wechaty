@@ -18,70 +18,71 @@
  */
 import QuickLru, {
   Options as QuickLruOptions,
-}                             from 'quick-lru'
+}                             from '@alloc/quick-lru'
 
 import { Watchdog }       from 'watchdog'
 import { Constructor }    from 'clone-class'
 import { StateSwitch }    from 'state-switch'
 import { ThrottleQueue }  from 'rx-queue'
-import { callerResolve }  from 'hot-import'
+// import { callerResolve }  from 'hot-import'
 
-import normalize               from 'normalize-package-data'
-import readPkgUp               from 'read-pkg-up'
+// import normalize               from 'normalize-package-data'
+// import readPkgUp               from 'read-pkg-up'
 
 import {
-  FileBox,
-  MemoryCard,
-  log,
   envVars,
-}                       from './config'
+  FileBox,
+  log,
+  MemoryCard,
+  VERSION,
+}                       from './config.js'
+import { packageJson }  from './package-json.js'
 
 import {
   ContactPayload,
   ContactPayloadFilterFunction,
   ContactQueryFilter,
-}                                 from './schemas/contact'
+}                                 from './schemas/contact.js'
 import {
   EventLoginPayload,
-}                                 from './schemas/event'
+}                                 from './schemas/event.js'
 import {
   FriendshipAddOptions,
   FriendshipPayload,
   FriendshipSearchQueryFilter,
-}                                 from './schemas/friendship'
+}                                 from './schemas/friendship.js'
 import {
   ImageType,
-}                                 from './schemas/image'
+}                                 from './schemas/image.js'
 import {
   MessagePayload,
   MessagePayloadFilterFunction,
   MessageQueryFilter,
   MessageType,
-}                                 from './schemas/message'
+}                                 from './schemas/message.js'
 import {
   RoomMemberPayload,
   RoomMemberQueryFilter,
   RoomPayload,
   RoomPayloadFilterFunction,
   RoomQueryFilter,
-}                                 from './schemas/room'
+}                                 from './schemas/room.js'
 import {
   RoomInvitationPayload,
-}                                 from './schemas/room-invitation'
+}                                 from './schemas/room-invitation.js'
 import {
   UrlLinkPayload,
-}                                 from './schemas/url-link'
+}                                 from './schemas/url-link.js'
 import {
   MiniProgramPayload,
-}                                 from './schemas/mini-program'
+}                                 from './schemas/mini-program.js'
 import {
   PuppetOptions,
   YOU,
-}                                 from './schemas/puppet'
-import { PayloadType }             from './schemas/payload'
+}                                 from './schemas/puppet.js'
+import { PayloadType }             from './schemas/payload.js'
 
-import { PuppetEventEmitter }      from './events'
-import { VERSION }                 from './version'
+import { PuppetEventEmitter }      from './events.js'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
 let   PUPPET_COUNTER           = 0
@@ -122,7 +123,8 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
-  private readonly childPkg: normalize.Package
+  // Huan(202108): Remove this property, because it the `hot-import` module is not a ESM compatible one
+  // private readonly childPkg: normalize.Package
 
   /**
    * Throttle Reset Events
@@ -173,7 +175,7 @@ export abstract class Puppet extends PuppetEventEmitter {
      * 3. Setup LRU Caches
      */
     const lruOptions = (maxSize = 100): QuickLruOptions<any, any> => ({
-      // maxAge: 60 * 60 * 1000 * 1000, // 1 hour
+      maxAge: 15 * 60 * 1000 * 1000, // 15 minutes
       maxSize: maxSize,
     })
 
@@ -196,27 +198,32 @@ export abstract class Puppet extends PuppetEventEmitter {
       envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM(options.lruCacheSize?.room)),
     )
 
-    /**
-     * 4. Load the package.json for Puppet Plugin version range matching
-     *
-     * For: dist/src/puppet/puppet.ts
-     *  We need to up 3 times: ../../../package.json
-     */
-    try {
-      const childClassPath = callerResolve('.', __filename)
-      log.verbose('Puppet', 'constructor() childClassPath=%s', childClassPath)
+    {
+      /* eslint  no-lone-blocks: off */
+      // Huan(202108): remove this code block because it's unclear what it does
 
-      this.childPkg = readPkgUp.sync({ cwd: childClassPath })!.packageJson
-    } catch (e) {
-      log.error('Puppet', 'constructor() %s', e)
-      throw e
+      /**
+       * 4. Load the package.json for Puppet Plugin version range matching
+       *
+       * For: dist/src/puppet/puppet.ts
+       *  We need to up 3 times: ../../../package.json
+       */
+      // try {
+      //   const childClassPath = callerResolve('.', __filename)
+      //   log.verbose('Puppet', 'constructor() childClassPath=%s', childClassPath)
+
+      //   this.childPkg = readPkgUp.readPackageUpSync({ cwd: childClassPath })!.packageJson
+      // } catch (e) {
+      //   log.error('Puppet', 'constructor() %s', e)
+      //   throw e
+      // }
+
+      // if (!this.childPkg) {
+      //   throw new Error('Cannot found package.json for Puppet Plugin Module')
+      // }
+
+      // normalize(this.childPkg)
     }
-
-    if (!this.childPkg) {
-      throw new Error('Cannot found package.json for Puppet Plugin Module')
-    }
-
-    normalize(this.childPkg)
 
     this.feedDog = this.feedDog.bind(this)
     this.dogReset = this.dogReset.bind(this)
@@ -320,7 +327,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    *
    * Huan(202008): Update from protected to private
    */
-  private reset (reason: string): void {
+  protected reset (reason: string): void {
     log.verbose('Puppet', 'reset(%s)', reason)
 
     /**
@@ -428,15 +435,18 @@ export abstract class Puppet extends PuppetEventEmitter {
   /**
    * Get the NPM name of the Puppet
    */
-  name () {
-    return this.childPkg.name
+  name (): string {
+    if (!packageJson.name) {
+      throw new Error('packageJson.name is undefined')
+    }
+    return packageJson.name
   }
 
   /**
    * Get version from the Puppet Implementation
    */
   version (): string {
-    return this.childPkg.version
+    return VERSION
   }
 
   /**
@@ -586,7 +596,7 @@ export abstract class Puppet extends PuppetEventEmitter {
         }
 
       } catch (e) {
-        log.silly('Puppet', 'contactSearch() contactPayload exception: %s', e.message)
+        log.silly('Puppet', 'contactSearch() contactPayload exception: %s', (e as Error).message)
         await this.dirtyPayloadContact(id)
       }
       return undefined
@@ -1157,7 +1167,7 @@ export abstract class Puppet extends PuppetEventEmitter {
               return await this.roomPayload(id)
             } catch (e) {
               // compatible with {} payload
-              log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
+              log.silly('Puppet', 'roomSearch() roomPayload exception: %s', (e as Error).message)
               // Remove invalid room id from cache to avoid getting invalid room payload again
               await this.dirtyPayloadRoom(id)
               await this.dirtyPayloadRoomMember(id)

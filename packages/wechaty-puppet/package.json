@@ -1,24 +1,30 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.41.9",
+  "version": "0.43.4",
   "description": "Abstract Puppet for Wechaty",
-  "main": "dist/src/mod.js",
-  "typings": "dist/src/mod.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mod.js",
+      "require": "./dist/cjs/src/mod.js"
+    }
+  },
+  "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
     "node": ">=14",
-    "wechaty": ">=0.62"
+    "wechaty": ">=0.68"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc",
-    "pack": "npm pack",
+    "dist": "npm run clean && npm run build && (cd dist/cjs; npm init -y > /dev/null)",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
     "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "typedoc": "bash scripts/typedoc.sh"
   },
   "repository": {
@@ -40,34 +46,39 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.4",
+    "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.17.1",
-    "@types/normalize-package-data": "^2.4.1",
-    "@types/read-pkg-up": "^6.0.0",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tsd": "^0.17.0",
-    "tstest": "^0.4.10",
+    "tstest": "^0.5.16",
+    "type-fest": "^0.8.1",
     "typedoc": "^1.0.0-dev.4",
-    "typescript": "^4.3"
+    "typescript": "^4.4"
   },
   "dependencies": {
+    "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.12.4",
-    "clone-class": "^0.6.20",
-    "file-box": "^0.16.8",
+    "clone-class": "^0.9.3",
+    "file-box": "^0.17.9",
     "hot-import": "^0.2.14",
     "memory-card": "^0.12.2",
-    "normalize-package-data": "^3.0.2",
-    "quick-lru": "^5",
-    "read-pkg-up": "^7",
-    "rx-queue": "^0.12.4",
+    "rx-queue": "^0.12.6",
     "rxjs": "^7.3.0",
     "semver": "^7.3.5",
-    "state-switch": "^0.11.3",
+    "state-switch": "^0.15.10",
     "typed-emitter": "^1.3.1",
     "watchdog": "^0.8.17"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
   },
   "git": {
     "scripts": {

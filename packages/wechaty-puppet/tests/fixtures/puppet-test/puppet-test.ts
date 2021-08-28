@@ -13,17 +13,25 @@ import {
   RoomMemberPayload,
   RoomQueryFilter,
   ContactQueryFilter,
-}                           from '../../../src/mod'
+}                           from '../../../src/mod.js'
 
 /**
  * expose to public for internal methods:
  */
-import { MessagePayloadFilterFunction } from '../../../src/schemas/message'
-import { RoomPayloadFilterFunction }    from '../../../src/schemas/room'
-import { ContactPayloadFilterFunction } from '../../../src/schemas/contact'
-import { FriendshipAddOptions } from '../../../src/schemas/friendship'
+import { MessagePayloadFilterFunction } from '../../../src/schemas/message.js'
+import { RoomPayloadFilterFunction }    from '../../../src/schemas/room.js'
+import { ContactPayloadFilterFunction } from '../../../src/schemas/contact.js'
+import { FriendshipAddOptions } from '../../../src/schemas/friendship.js'
 
-export class PuppetTest extends Puppet {
+class PuppetTest extends Puppet {
+
+  override name () {
+    return 'puppet-test'
+  }
+
+  override version () {
+    return '1.0.0'
+  }
 
   override async start () : Promise<void> { return super.start() }
   override async stop ()  : Promise<void> { return super.stop() }
@@ -137,7 +145,7 @@ export class PuppetTest extends Puppet {
   override async roomAnnounce (roomId: string, text: string)  : Promise<void>
   override async roomAnnounce (roomId: string, text?: string) : Promise<void | string> { return { roomId, text } as any }
 
-  override async roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void> { return { contactId, roomId, inviteOnly } as any }
+  override async roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void> { return { contactId, inviteOnly, roomId } as any }
   override async roomAvatar (roomId: string)                                       : Promise<FileBox> { return { roomId } as any }
   override async roomCreate (contactIdList: string[], topic?: string)              : Promise<string> { return { contactIdList, topic } as any }
   override async roomDel (roomId: string, contactId: string)                       : Promise<void> { return { contactId, roomId } as any }
@@ -186,12 +194,17 @@ export class PuppetTest extends Puppet {
    *    `error TS1034: 'super' must be followed by an argument list or member access.`
    *  first.
    *
+   * Update:
+   *  - Huan(202108): uncommented the below code
+   *      and change `reset` from private to protected in parent class
    */
-  // private reset (reason: string): void {
-  //   // return super.reset(reason)
-  //   void reason
-  // }
+  protected override reset (reason: string): void {
+    return super.reset(reason)
+  }
 
 }
 
+export {
+  PuppetTest,
+}
 export default PuppetTest

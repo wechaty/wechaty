@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test }  from 'tstest'
 import {
@@ -19,9 +19,9 @@ import {
   EventLoginPayload,
   EventScanPayload,
   ScanStatus,
-}                         from '../src/mod'
+}                         from '../src/mod.js'
 
-import { PuppetTest } from './fixtures/puppet-test/puppet-test'
+import { PuppetTest } from './fixtures/puppet-test/puppet-test.js'
 
 test('Puppet satisfy DOM EventTarget: HasEventTargetAddRemove', async t => {
   const puppet = new PuppetTest()
@@ -50,5 +50,5 @@ test('RxJS: fromEvent type inference', async t => {
 
   const result = await future
   expectType<EventScanPayload>(result)
-  t.deepEqual(result, payload, 'should get scan payload')
+  t.same(result, payload, 'should get scan payload')
 })

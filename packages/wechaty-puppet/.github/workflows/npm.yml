@@ -37,8 +37,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Generate Version
-        run: ./scripts/generate-version.sh
+      - name: Generate Package JSON
+        run: ./scripts/generate-package-json.sh
 
       - name: Pack Testing
         run: ./scripts/npm-pack-testing.sh
@@ -60,8 +60,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Generate Version
-        run: ./scripts/generate-version.sh
+      - name: Generate Package JSON
+        run: ./scripts/generate-package-json.sh
 
       - name: Set Publish Config
         run: ./scripts/package-publish-config-tag.sh

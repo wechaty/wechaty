@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --loader ts-node/esm
 
 import {
   test,
@@ -7,28 +7,28 @@ import {
 
 import {
   MemoryCard,
-}                 from './config'
+}                 from './config.js'
 
 import {
   ContactGender,
   ContactPayload,
   ContactType,
-}                                 from './schemas/contact'
+}                                 from './schemas/contact.js'
 import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
-}                                 from './schemas/message'
+}                                 from './schemas/message.js'
 import {
   RoomPayload,
-}                                 from './schemas/room'
+}                                 from './schemas/room.js'
 
 /**
  * The Fixture
  */
 import {
   PuppetTest,
-}               from '../tests/fixtures/puppet-test/puppet-test'
+}               from '../tests/fixtures/puppet-test/puppet-test.js'
 
 test('contactQueryFilterFunction()', async t => {
 
@@ -79,65 +79,65 @@ test('contactQueryFilterFunction()', async t => {
 
   const puppet = new PuppetTest()
 
-  t.test('filter name by regex', async t => {
+  void t.test('filter name by regex', async t => {
     const QUERY   = { name: REGEX_VALUE }
     const ID_LIST = ['id1', 'id3']
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter the query to id list')
+    t.same(idList, ID_LIST, 'should filter the query to id list')
   })
 
-  t.test('filter name by text', async t => {
+  void t.test('filter name by text', async t => {
     const QUERY = { name: TEXT_VALUE }
     const ID_LIST = ['id2', 'id4']
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list')
+    t.same(idList, ID_LIST, 'should filter query to id list')
   })
 
-  t.test('filter alias by regex', async t => {
+  void t.test('filter alias by regex', async t => {
     const QUERY = { alias: REGEX_VALUE }
     const ID_LIST = ['id2', 'id4']
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list')
+    t.same(idList, ID_LIST, 'should filter query to id list')
   })
 
-  t.test('filter alias by text', async t => {
+  void t.test('filter alias by text', async t => {
     const QUERY = { alias: TEXT_VALUE }
     const ID_LIST = ['id1', 'id3']
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list')
+    t.same(idList, ID_LIST, 'should filter query to id list')
   })
 
-  t.test('filter contact existing id', async t => {
+  void t.test('filter contact existing id', async t => {
     const QUERY = { id: 'id1' }
     const ID_LIST = ['id1']
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
+    t.same(idList, ID_LIST, 'should filter query to id list by id')
   })
 
-  t.test('filter contact non-existing id', async t => {
+  void t.test('filter contact non-existing id', async t => {
     const QUERY = { id: 'fasdfsdfasfas' }
     const ID_LIST = [] as string[]
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
+    t.same(idList, ID_LIST, 'should filter query to id list by id')
   })
 
-  t.test('throw if filter key unknown', async t => {
+  void t.test('throw if filter key unknown', async t => {
     t.throws(() => puppet.contactQueryFilterFactory({ xxxx: 'test' } as any), 'should throw')
   })
 
-  t.test('throw if filter key are more than one', async t => {
+  void t.test('throw if filter key are more than one', async t => {
     t.throws(() => puppet.contactQueryFilterFactory({
       alias : 'test',
       name  : 'test',
@@ -182,47 +182,47 @@ test('roomQueryFilterFunction()', async t => {
 
   const puppet = new PuppetTest()
 
-  t.test('filter name by regex', async t => {
+  void t.test('filter name by regex', async t => {
     const QUERY   = { topic: REGEX_VALUE }
     const ID_LIST = ['id2', 'id4']
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter the query to id list')
+    t.same(idList, ID_LIST, 'should filter the query to id list')
   })
 
-  t.test('filter name by text', async t => {
+  void t.test('filter name by text', async t => {
     const QUERY = { topic: TEXT_VALUE }
     const ID_LIST = ['id1', 'id3']
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list by text')
+    t.same(idList, ID_LIST, 'should filter query to id list by text')
   })
 
-  t.test('filter name by existing id', async t => {
+  void t.test('filter name by existing id', async t => {
     const QUERY = { id: 'id4' }
     const ID_LIST = ['id4']
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
+    t.same(idList, ID_LIST, 'should filter query to id list by id')
   })
 
-  t.test('filter name by non-existing id', async t => {
+  void t.test('filter name by non-existing id', async t => {
     const QUERY = { id: 'fsdfasfasfsdfsaf' }
     const ID_LIST = [] as string[]
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
-    t.deepEqual(idList, ID_LIST, 'should filter query to id list by id')
+    t.same(idList, ID_LIST, 'should filter query to id list by id')
   })
 
-  t.test('throw if filter key unknown', async t => {
+  void t.test('throw if filter key unknown', async t => {
     t.throws(() => puppet.roomQueryFilterFactory({ xxx: 'test' } as any), 'should throw')
   })
 
-  t.test('throw if filter key are more than one', async t => {
+  void t.test('throw if filter key are more than one', async t => {
     t.throws(() => puppet.roomQueryFilterFactory({
       alias: 'test',
       topic: 'test',
@@ -276,9 +276,9 @@ test('contactRoomList()', async t => {
   const roomIdList2 = await puppet.contactRoomList(CONTACT_ID_2)
   const roomIdList3 = await puppet.contactRoomList(CONTACT_ID_3)
 
-  t.deepEqual(roomIdList1, [ROOM_ID_1], 'should get room 1 for contact 1')
-  t.deepEqual(roomIdList2, [ROOM_ID_1, ROOM_ID_2], 'should get room 1&2 for contact 2')
-  t.deepEqual(roomIdList3, [ROOM_ID_2], 'should get room 2 for contact 3')
+  t.same(roomIdList1, [ROOM_ID_1], 'should get room 1 for contact 1')
+  t.same(roomIdList2, [ROOM_ID_1, ROOM_ID_2], 'should get room 1&2 for contact 2')
+  t.same(roomIdList3, [ROOM_ID_2], 'should get room 2 for contact 3')
 })
 
 test('reset event throttle for reset()', async t => {

@@ -1,12 +1,6 @@
 #!/usr/bin/env ts-node
 
-// tslint:disable:arrow-parens
-// tslint:disable:max-line-length
-// tslint:disable:member-ordering
-// tslint:disable:no-shadowed-variable
-// tslint:disable:unified-signatures
-// tslint:disable:no-console
-
+import assert from 'assert'
 import {
   // ContactGender,
   ContactPayload,
@@ -184,11 +178,12 @@ class PuppetTest extends Puppet {
 }
 
 async function main () {
-  if (VERSION === '0.0.0') {
-    throw new Error('version should not be 0.0.0 when publishing')
-  }
-
   const puppet = new PuppetTest()
+
+  assert.strictEqual(puppet.name(), 'wechaty-puppet', 'should get base class name')
+  assert.notStrictEqual(puppet.version(), '0.0.0', 'version should not be 0.0.0 when publishing')
+  assert.notStrictEqual(VERSION, '0.0.0', 'version should not be 0.0.0 when publishing')
+
   console.info(`Puppet v${puppet.version()} smoking test passed.`)
   return 0
 }

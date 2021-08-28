@@ -17,7 +17,7 @@ import {
   EventScanPayload,
   EventReadyPayload,
   EventHeartbeatPayload,
-}                                 from './schemas/event'
+}                                 from './schemas/event.js'
 
 export type PuppetDirtyListener      = (payload: EventDirtyPayload)       => void
 export type PuppetDongListener       = (payload: EventDongPayload)        => void

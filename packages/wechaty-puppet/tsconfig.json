@@ -1,12 +1,15 @@
 {
   "extends": "@chatie/tsconfig",
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "dist/esm",
+    "target": "es2020",
+    "module": "es2020",
+    "moduleResolution": "node",
   },
   "exclude": [
     "node_modules/",
     "dist/",
-    "tests/fixtures/",
+    "tests/fixtures/smoke-testing.ts"
   ],
   "include": [
     "app/**/*.ts",
@@ -15,6 +18,6 @@
     "examples/**/*.ts",
     "scripts/**/*.ts",
     "src/**/*.ts",
-    "tests/**/*.spec.ts",
+    "tests/**/*.ts",
   ],
 }

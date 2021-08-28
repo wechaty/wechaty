@@ -13,6 +13,7 @@
  *
  */
 export const YOU = Symbol('You')
+// eslint-disable-next-line no-redeclare
 export type YOU  = typeof YOU
 
 /** @hidden */

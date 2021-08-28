@@ -114,7 +114,9 @@ Set the max size for wechaty entities in LRU Cache.
 
 ## History
 
-### master
+### master v0.43 (Aug 28, 2021)
+
+1. Support ES Modules
 
 ### v0.16 (Sep 2019)
 
