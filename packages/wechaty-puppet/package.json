@@ -16,8 +16,9 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && npm run build && (cd dist/cjs; npm init -y > /dev/null)",
+    "dist": "npm-run-all clean build fixup",
     "build": "tsc && tsc -p tsconfig.cjs.json",
+    "fixup": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
