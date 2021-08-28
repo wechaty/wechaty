@@ -29,12 +29,14 @@ import { Wechaty } from 'wechaty'
 const wechaty = new Wechaty({
   puppet: 'wechaty-puppet-service',
   puppetOptions: {
-    token: '__WECHATY_PUPPET_SERVCIE_TOKEN__'
+    token: `${TOKEN}`
   }
 })
 
 wechaty.start()
 ```
+
+Learn more about Wechaty Puppet Token from our official website: <http://wechaty.js.org/docs/puppet-services/>
 
 ## Environment Variables
 
@@ -43,7 +45,7 @@ wechaty.start()
 The token set to this environment variable will become the default value of `puppetOptions.token`
 
 ```sh
-WECHATY_PUPPET_SERVICE_TOKEN=__WECHATY_PUPPET_SERVCIE_TOKEN__ node bot.js
+WECHATY_PUPPET_SERVICE_TOKEN=${WECHATY_PUPPET_SERVCIE_TOKEN} node bot.js
 ```
 
 ## Resources
@@ -75,17 +77,18 @@ For Puppet Server:
 
 | Environment Variable | Options | Description |
 | -------------------- | ------- | ----------- |
-| `WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT` | `options.tlsServerCert` | Server CA Cert (string data) |
-| `WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY` | `optoins.tlsServerKey` | Server CA Key (string data) |
-| `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER` | `options.noTlsInsecure` | Set `true` to disable server TLS |
+| `WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT` | `options.tls.serverCert` | Server CA Cert (string data) |
+| `WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY` | `options.tls.serverKey` | Server CA Key (string data) |
+| `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER` | `options.tls.disable` | Set `true` to disable server TLS |
 
 For Puppet Client:
 
 | Environment Variable | Options | Description |
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
-| `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME` | `optoins.servername` | Server Name (mast match for SNI) |
-| `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT` | `optoins.noTlsInsecure` | Set `true` to disable client TLS |
+| `WECHATY_PUPPET_SERVICE_TLS_CA_CERT` | `options.caCert` | Certification Authority Root Cert, default is using Wechaty Community root cert |
+| `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME` | `options.serverName` | Server Name (mast match for SNI) |
+| `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT` | `options.tls.disable` | Set `true` to disable client TLS |
 
 #### Changelog
 
