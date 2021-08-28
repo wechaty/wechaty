@@ -2,19 +2,16 @@ import faker from 'faker'
 import cuid  from 'cuid'
 
 import {
-  ContactPayload,
   ContactGender,
+  ContactPayload,
   ContactType,
   FileBox,
-  MessageType,
-  RoomPayload,
-}                   from 'wechaty-puppet'
-
-import {
+  MessagePayloadBase,
   MessagePayloadRoom,
   MessagePayloadTo,
-  MessagePayloadBase,
-}                       from 'wechaty-puppet/dist/src/schemas/message'
+  MessageType,
+  RoomPayload,
+}                       from 'wechaty-puppet'
 
 const generateContactPayload = (): ContactPayload => ({
   address   : faker.address.streetAddress(),

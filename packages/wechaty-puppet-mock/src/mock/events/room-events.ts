@@ -5,7 +5,7 @@ import {
   // ContactMock,
   MessageMock,
   RoomMock,
-}                   from '../user/mod'
+}                   from '../user/mod.js'
 
 // export type RoomInviteEventListener  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void
 // export type RoomJoinEventListener    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void

@@ -47,14 +47,14 @@ import {
   CHATIE_OFFICIAL_ACCOUNT_QRCODE,
   qrCodeForChatie,
   VERSION,
-}                                   from './config'
+}                                   from './config.js'
 
 // import { Attachment } from './mock/user/types'
 
 import {
   Mocker,
   // ContactMock,
-}                     from './mock/mod'
+}                     from './mock/mod.js'
 // import { UrlLink, MiniProgram } from 'wechaty'
 
 export type PuppetMockOptions = PuppetOptions & {
@@ -65,7 +65,7 @@ class PuppetMock extends Puppet {
 
   static override readonly VERSION = VERSION
 
-  private loopTimer?: NodeJS.Timer
+  private loopTimer?: ReturnType<typeof setTimeout>
 
   mocker: Mocker
 

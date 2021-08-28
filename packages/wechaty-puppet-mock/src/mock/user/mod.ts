@@ -1,12 +1,12 @@
 export {
   ContactMock,
   mockerifyContactMock,
-}                         from './contact-mock'
+}                         from './contact-mock.js'
 export {
   MessageMock,
   mockerifyMessageMock,
-}                         from './message-mock'
+}                         from './message-mock.js'
 export {
   RoomMock,
   mockerifyRoomMock,
-}                         from './room-mock'
+}                         from './room-mock.js'

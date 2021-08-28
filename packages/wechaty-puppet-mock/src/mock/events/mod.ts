@@ -1,6 +1,6 @@
 export {
   RoomEventEmitter,
-}                         from './room-events'
+}                         from './room-events.js'
 export {
   ContactEventEmitter,
-}                         from './contact-events'
+}                         from './contact-events.js'

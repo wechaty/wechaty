@@ -4,7 +4,7 @@ import TypedEventEmitter  from 'typed-emitter'
 import {
   ContactMock,
   MessageMock,
-}                   from '../user/mod'
+}                   from '../user/mod.js'
 
 export type ContactMessageEventListener = (this: ContactMock, message: MessageMock, date?: Date) => void
 

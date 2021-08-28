@@ -1,7 +1,9 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
-import test  from 'tstest'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}             from 'tstest'
 
 import {
   // UrlLink,
@@ -18,13 +20,13 @@ import {
   FileBox,
 }                         from 'wechaty-puppet'
 
-import { PuppetMock }         from '../puppet-mock'
+import { PuppetMock }         from '../puppet-mock.js'
 
-import { MessageMock }        from './user/message-mock'
-import { ContactMock }        from './user/contact-mock'
+import { MessageMock }        from './user/message-mock.js'
+import { ContactMock }        from './user/contact-mock.js'
 
-import { Mocker }             from './mocker'
-import { SimpleEnvironment }  from './environment'
+import { Mocker }             from './mocker.js'
+import { SimpleEnvironment }  from './environment.js'
 
 const sleep = () => new Promise(resolve => setImmediate(resolve))
 

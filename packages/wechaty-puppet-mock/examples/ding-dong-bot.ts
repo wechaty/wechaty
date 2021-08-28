@@ -26,7 +26,7 @@ import {
 import {
   PuppetMock,
   mock,
-}               from '../src/mod'
+}               from '../src/mod.js'
 
 const mocker = new mock.Mocker()
 mocker.use(mock.SimpleEnvironment())

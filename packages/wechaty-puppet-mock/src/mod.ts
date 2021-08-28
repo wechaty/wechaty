@@ -1,7 +1,7 @@
-import { VERSION }    from './version'
-import { PuppetMock } from './puppet-mock'
+import { VERSION }    from './config.js'
+import { PuppetMock } from './puppet-mock.js'
 
-import * as mock from './mock/mod'
+import * as mock from './mock/mod.js'
 
 export {
   VERSION,
