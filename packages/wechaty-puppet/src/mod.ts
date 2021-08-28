@@ -49,8 +49,11 @@ export {
 }                             from './schemas/image.js'
 export {
   MessagePayload,
-  MessageType,
+  MessagePayloadBase,
+  MessagePayloadRoom,
+  MessagePayloadTo,
   MessageQueryFilter,
+  MessageType,
 }                             from './schemas/message.js'
 export {
   RoomPayload,
