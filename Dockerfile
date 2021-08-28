@@ -64,7 +64,7 @@ RUN  npm install \
 
 COPY . .
 
-RUN ./scripts/generate-version.sh && rm -f src/version.spec.ts
+RUN ./scripts/generate-package-json.sh && rm -f src/package-json.spec.ts
 RUN  npm test \
   && npm run dist \
   && npm link
