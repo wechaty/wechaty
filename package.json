@@ -19,8 +19,9 @@
     "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
-    "dist": "npm-run-all clean build",
-    "build": "tsc && tsc -p tsconfig.cjs.json && (cd dist/cjs; npm init -y > /dev/null)",
+    "dist": "npm-run-all clean build fixup",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "fixup": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
     "clean": "shx rm -fr dist/*",
     "docs": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=lcov",
