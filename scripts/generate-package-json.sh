@@ -11,6 +11,7 @@ SRC_PACKAGE_JSON_TS_FILE='src/package-json.ts'
 GIT_COMMIT_HASH=$(git rev-parse HEAD)
 
 cat <<_SRC_ > ${SRC_PACKAGE_JSON_TS_FILE}
+/* eslint-disable */
 /**
  * This file was auto generated from scripts/generate-version.sh
  */
