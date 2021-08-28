@@ -8,6 +8,9 @@ export {
 export {
   StateSwitch,
 }                         from 'state-switch'
+export {
+  looseInstanceOfClass,
+}                         from 'clone-class'
 
 export {
   ContactGender,
