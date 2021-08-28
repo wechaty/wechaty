@@ -288,17 +288,20 @@ export abstract class Puppet extends PuppetEventEmitter {
 
     /**
      * FIXME: Huan(202008) clear cache when stop
-     *  keep the cache as a temp workaround since wechaty-puppet-hostie has reconnect issue
+     *  keep the cache as a temp workaround since wechaty-puppet-service has reconnect issue
      *  with un-cleared cache in wechaty-puppet will make the reconnect recoverable
      *
-     * Related issue: https://github.com/wechaty/wechaty-puppet-hostie/issues/31
+     * Related issue: https://github.com/wechaty/wechaty-puppet-service/issues/31
+     *
+     * Update:
+     *  Huan(2021-08-28): clear the cache when stop
      */
-    // this.cacheContactPayload.clear()
-    // this.cacheFriendshipPayload.clear()
-    // this.cacheMessagePayload.clear()
-    // this.cacheRoomPayload.clear()
-    // this.cacheRoomInvitationPayload.clear()
-    // this.cacheRoomMemberPayload.clear()
+    this.cacheContactPayload.clear()
+    this.cacheFriendshipPayload.clear()
+    this.cacheMessagePayload.clear()
+    this.cacheRoomPayload.clear()
+    this.cacheRoomInvitationPayload.clear()
+    this.cacheRoomMemberPayload.clear()
   }
 
   private feedDog (payload: any) {

@@ -38,7 +38,7 @@ The above puppet provider is just for mocking and easy to understand. It will be
 * [PuppetIoscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) iPhone App Hook API, created by [@linyimin-bupt](https://github.com/linyimin-bupt)
 * [PuppetWechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u) Web API via HTTP, created by [@huan](https://github.com/huan)
 * [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer) Web API via Browser, created by [@huan](https://github.com/huan)
-* [PuppetHostie](https://github.com/wechaty/wechaty-puppet-hostie) gRPC Proxy via Chatie.io(PaaS - Puppets as a Service), created by [@huan](https://github.com/huan)
+* [PuppetService](https://github.com/wechaty/wechaty-puppet-service) gRPC Proxy via Chatie.io(PaaS - Puppets as a Service), created by [@huan](https://github.com/huan)
 
 ## Dependencies
 
