@@ -26,7 +26,7 @@
     "coverage": "nyc report --reporter=lcov",
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
-    "check-node-version": "check-node-version --node \">= 12\"",
+    "check-node-version": "check-node-version --node \">= 14\"",
     "lint": "npm-run-all check-node-version lint:es lint:ts lint:sh lint:md",
     "lint:es": "eslint --ignore-pattern node_modules/ --ignore-pattern fixtures/ \"{bin,examples,src,scripts,tests}/**/*.ts\"",
     "lint:md": "markdownlint README.md",
