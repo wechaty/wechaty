@@ -194,7 +194,7 @@ export class Io {
       this.state.on(true)
 
     } catch (e) {
-      log.warn('Io', 'start() exception: %s', e.message)
+      log.warn('Io', 'start() exception: %s', (e as Error).message)
       this.state.off(true)
       throw e
     }
@@ -313,7 +313,7 @@ export class Io {
             }
           } catch (e) {
             log.warn('Io', 'server pushed function exception: %s', e)
-            this.options.wechaty.emit('error', e)
+            this.options.wechaty.emit('error', (e as Error))
           }
         }
         break
@@ -498,7 +498,7 @@ export class Io {
     try {
       await Promise.all(list)
     } catch (e) {
-      log.error('Io', 'send() exception: %s', e.stack)
+      log.error('Io', 'send() exception: %s', (e as Error).stack)
       throw e
     }
   }

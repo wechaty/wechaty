@@ -14,9 +14,9 @@ cat <<_SRC_ > ${SRC_PACKAGE_JSON_TS_FILE}
 /**
  * This file was auto generated from scripts/generate-version.sh
  */
-import { PackageJson } from 'type-fest'
+import { PackageJsonWechaty } from './config'
 
 export const GIT_COMMIT_HASH: string = '${GIT_COMMIT_HASH}'
-export const packageJson: PackageJson = $(cat package.json)
+export const packageJson: PackageJsonWechaty = $(cat package.json)
 
 _SRC_

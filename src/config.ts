@@ -25,6 +25,7 @@ import {
   MemoryCard,
   log,
 }                   from 'wechaty-puppet'
+import { PackageJson } from 'type-fest'
 
 import {
   PuppetModuleName,
@@ -34,6 +35,14 @@ import {
   packageJson,
   GIT_COMMIT_HASH,
 }                       from './package-json.js'
+
+type PackageJsonWechaty = PackageJson & {
+  wechaty: {
+    DEFAULT_PORT: number
+    DEFAULT_PROTOCOL: string
+    DEFAULT_APIHOST: string
+  }
+}
 
 const VERSION = packageJson.version || '0.0.0'
 
@@ -147,6 +156,7 @@ export {
   FileBox,
   MemoryCard,
   config,
+  PackageJsonWechaty,
 
   VERSION,
   GIT_COMMIT_HASH,

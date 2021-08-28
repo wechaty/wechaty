@@ -133,9 +133,9 @@ class Message extends EventEmitter implements Sayable {
       return messageList.filter(message => !invalidDict[message.id])
 
     } catch (e) {
-      log.warn('Message', 'findAll() rejected: %s', e.message)
+      log.warn('Message', 'findAll() rejected: %s', (e as Error).message)
       console.error(e)
-      captureException(e)
+      captureException(e as Error)
       return [] // fail safe
     }
   }

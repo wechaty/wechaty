@@ -136,7 +136,7 @@ class RoomInvitation implements Acceptable {
     } catch (e) {
       log.warn('RoomInvitation', 'accept() inviter(%s) is not ready because of %s',
         inviter,
-        (e && e.message) || e,
+        (e && (e as Error).message) || e,
       )
     }
   }

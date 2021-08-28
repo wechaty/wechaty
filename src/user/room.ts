@@ -101,8 +101,8 @@ class Room extends RoomEventEmitter implements Sayable {
       const room = this.load(roomId)
       return room
     } catch (e) {
-      log.error('Room', 'create() exception: %s', (e && e.stack) || e.message || e)
-      captureException(e)
+      log.error('Room', 'create() exception: %s', (e && (e as Error).stack) || (e as Error).message || (e as Error))
+      captureException(e as Error)
       throw e
     }
   }
@@ -162,9 +162,9 @@ class Room extends RoomEventEmitter implements Sayable {
       return roomList.filter(room => !invalidSet.has(room.id))
 
     } catch (e) {
-      log.verbose('Room', 'findAll() rejected: %s', e.message)
+      log.verbose('Room', 'findAll() rejected: %s', (e as Error).message)
       console.error(e)
-      captureException(e)
+      captureException((e as Error))
       return [] as Room[] // fail safe
     }
   }
@@ -1044,7 +1044,7 @@ class Room extends RoomEventEmitter implements Sayable {
         await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
       }
     } catch (e) {
-      log.error('Room', 'readMark() exception: %s', e.message)
+      log.error('Room', 'readMark() exception: %s', (e as Error).message)
     }
   }
 

@@ -246,7 +246,7 @@ test('Wechaty restart for many times', async t => {
     }
     t.pass('Wechaty start/restart successed.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 
 })

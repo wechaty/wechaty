@@ -39,6 +39,6 @@ test('Io restart without problem', async t => {
     }
     t.pass('start/restart successed.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 })

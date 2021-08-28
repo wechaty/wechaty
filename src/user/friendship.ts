@@ -295,7 +295,7 @@ class Friendship extends EventEmitter implements Acceptable {
       await retryPolicy.execute(doSync)
 
     } catch (e) {
-      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && e.message) || e)
+      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && (e as Error).message) || e)
       // console.error(e)
     }
 

@@ -153,7 +153,7 @@ class Tag {
       //   await this.wechaty.puppet.tagFavoriteDelete(tag.id)
       }
     } catch (e) {
-      log.error('Tag', 'static delete() exception: %s', e.message)
+      log.error('Tag', 'static delete() exception: %s', (e as Error).message)
     }
   }
 
@@ -180,8 +180,8 @@ class Tag {
         // TODO: await this.wechaty.puppet.tagAddFavorite(this.tag, to.id)
       }
     } catch (e) {
-      log.error('Tag', 'add() exception: %s', e.message)
-      throw new Error(`add error : ${e}`)
+      log.error('Tag', 'add() exception: %s', (e as Error).message)
+      throw new Error(`add error : ${(e as Error)}`)
     }
   }
 
@@ -205,7 +205,7 @@ class Tag {
         // TODO await this.wechaty.puppet.tagRemoveFavorite(this.tag, from.id)
       }
     } catch (e) {
-      log.error('Tag', 'remove() exception: %s', e.message)
+      log.error('Tag', 'remove() exception: %s', (e as Error).message)
       throw new Error(`remove error : ${e}`)
     }
   }

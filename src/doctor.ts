@@ -39,7 +39,7 @@ export class Doctor {
       const cmd = spawn('chromedriver', ['--version'])
       version = cmd.error || cmd.stdout.toString() || cmd.stderr.toString()
     } catch (e) {
-      version = e.message
+      version = (e as Error).message
     }
     return version
   }
