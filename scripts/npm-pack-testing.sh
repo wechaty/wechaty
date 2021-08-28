@@ -42,7 +42,7 @@ node smoke-testing.js
 #
 
 # https://stackoverflow.com/a/59203952/1123955
-echo "`jq '.type="module"' package.json`" > package.json
+echo `jq '.type="module"' package.json` > package.json
 
 ./node_modules/.bin/tsc \
   --target es2020 \
