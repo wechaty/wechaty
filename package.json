@@ -19,9 +19,9 @@
     "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "shx rm -fr dist/*",
     "dist": "npm-run-all clean build",
+    "build": "tsc && tsc -p tsconfig.cjs.json && (cd dist/cjs; npm init -y > /dev/null)",
+    "clean": "shx rm -fr dist/*",
     "docs": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=lcov",
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
@@ -49,10 +49,10 @@
     "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
-    "wechaty-doctor": "dist/bin/doctor.js",
-    "wechaty-io-client": "dist/bin/io-client.js",
-    "wechaty-puppet-install": "dist/bin/puppet-install.js",
-    "wechaty-version": "dist/bin/version.js"
+    "wechaty-doctor": "dist/esm/bin/doctor.js",
+    "wechaty-io-client": "dist/esm/bin/io-client.js",
+    "wechaty-puppet-install": "dist/esm/bin/puppet-install.js",
+    "wechaty-version": "dist/esm/bin/version.js"
   },
   "keywords": [
     "wechat",
