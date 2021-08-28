@@ -18,12 +18,11 @@
  *
  */
 import { EventEmitter }     from 'events'
-import { instanceToClass }  from 'clone-class'
-
 import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
+  instanceToClass,
 }                       from 'wechaty-puppet'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'

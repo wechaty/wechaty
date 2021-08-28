@@ -8,7 +8,6 @@ SRC_PACKAGE_JSON_TS_FILE='src/package-json.ts'
   exit 1
 }
 
-VERSION=$(npx pkg-jq -r .version)
 GIT_COMMIT_HASH=$(git rev-parse HEAD)
 
 cat <<_SRC_ > ${SRC_PACKAGE_JSON_TS_FILE}

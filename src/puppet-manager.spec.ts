@@ -25,24 +25,6 @@ import {
 }                 from './puppet-manager.js'
 
 test('resolve an unsupported puppet name', async t => {
-  // try {
-  //   await PuppetManager.resolve('fasdfsfasfsfdfs')
-  //   t.fail('should reject')
-  // } catch (e) {
-  //   t.pass('reject when options is a string: ' + e)
-  // }
-
-  try {
-    await PuppetManager.resolve({ puppet: 'fadfdsafa' as any })
-    t.fail('should reject')
-  } catch (e) {
-    t.pass('reject when options.puppet is unknown: ' + e)
-  }
-
-  try {
-    await PuppetManager.resolve({ puppet: 'wechaty-puppet-mock' })
-    t.pass('should allow "wechaty-puppet-mock" as puppet name')
-  } catch (e) {
-    t.fail('should pass "mock" as puppet name')
-  }
+  await t.rejects(() =>       PuppetManager.resolve({ puppet: 'fadfdsafa' as any }), 'reject when options.puppet is unknown')
+  await t.doesNotThrow(() =>  PuppetManager.resolve({ puppet: 'wechaty-puppet-mock' }), 'should allow "wechaty-puppet-mock" as puppet name')
 })

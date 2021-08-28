@@ -20,8 +20,6 @@
 import cuid             from 'cuid'
 import os               from 'os'
 
-import { instanceToClass }  from 'clone-class'
-
 import {
   Puppet,
 
@@ -32,6 +30,8 @@ import {
   PuppetEventName,
   PuppetOptions,
   PayloadType,
+
+  instanceToClass,
 }                       from 'wechaty-puppet'
 
 import { captureException } from './raven.js'

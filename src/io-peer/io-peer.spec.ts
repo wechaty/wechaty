@@ -20,7 +20,8 @@
  */
 import { test }  from 'tstest'
 
-import Peer, {
+import {
+  Peer,
   format,
   parse,
   JsonRpcPayloadResponse,

@@ -22,8 +22,8 @@ import {
   RoomPayload,
   RoomQueryFilter,
   PayloadType,
+  instanceToClass,
 }                           from 'wechaty-puppet'
-import { instanceToClass }  from 'clone-class'
 
 import { Wechaty }          from '../wechaty.js'
 

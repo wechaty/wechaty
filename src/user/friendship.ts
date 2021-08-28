@@ -18,13 +18,12 @@
  *
  */
 import { EventEmitter }     from 'events'
-import { instanceToClass }  from 'clone-class'
-
 import {
   FriendshipAddOptions as PuppetFriendshipAddOptions,
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
+  instanceToClass,
 }                                 from 'wechaty-puppet'
 
 import {

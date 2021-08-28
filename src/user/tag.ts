@@ -17,7 +17,9 @@
  *   limitations under the License.
  *
  */
-import { instanceToClass } from 'clone-class'
+import {
+  instanceToClass,
+}                     from 'wechaty-puppet'
 
 import { log }        from '../config.js'
 import { Wechaty }  from '../wechaty.js'

@@ -17,10 +17,10 @@
  *   limitations under the License.
  *
  */
-import { RoomInvitationPayload } from 'wechaty-puppet'
 import {
+  RoomInvitationPayload,
   instanceToClass,
-}                   from 'clone-class'
+}                           from 'wechaty-puppet'
 
 import {
   Wechaty,

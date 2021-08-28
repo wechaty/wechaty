@@ -18,7 +18,7 @@ declare module 'json-rpc-peer' {
   export * from 'json-rpc-protocol'
 
   module 'json-rpc-peer' {
-    export default class Peer extends EventEmitter implements Writable {
+    export class Peer extends EventEmitter implements Writable {
 
       constructor(onmessage?: (message: JsonRpcPayload, data: any) => Promise<any>)
 

@@ -21,7 +21,7 @@ export { generateToken }    from './impure/generate-token.js'
 export {
   looseInstanceOfFileBox,
   looseInstanceOfPuppet,
-}                           from './pure/loose-instanceof'
+}                           from './pure/loose-instanceof.js'
 export { retryPolicy }      from './pure/retry-policy.js'
 export {
   digestEmoji,

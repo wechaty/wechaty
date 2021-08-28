@@ -17,8 +17,6 @@
  *   limitations under the License.
  *
  */
-import { instanceToClass }  from 'clone-class'
-
 import {
   ContactGender,
   ContactPayload,
@@ -26,6 +24,7 @@ import {
   ContactType,
   FileBox,
   PayloadType,
+  instanceToClass,
 }                         from 'wechaty-puppet'
 
 import { Wechaty }          from '../wechaty.js'

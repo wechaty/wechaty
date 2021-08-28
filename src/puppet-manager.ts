@@ -32,7 +32,7 @@ import {
 }                         from './config.js'
 import {
   looseInstanceOfPuppet,
-}                           from './helper-functions/mod'
+}                           from './helper-functions/mod.js'
 import {
   PUPPET_DEPENDENCIES,
   PuppetModuleName,
@@ -122,6 +122,7 @@ export class PuppetManager {
       throw new Error(`Puppet(${puppetName}) has not provided the default export`)
     }
 
+    // console.info(puppetModule)
     const MyPuppet = puppetModule.default as PuppetImplementation
 
     return MyPuppet

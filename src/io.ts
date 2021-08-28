@@ -24,7 +24,8 @@ import {
   EventScanPayload,
 }                         from 'wechaty-puppet'
 
-import Peer, {
+import {
+  Peer,
   JsonRpcPayload,
   JsonRpcPayloadResponse,
   parse,

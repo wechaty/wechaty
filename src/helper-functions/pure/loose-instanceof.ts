@@ -1,8 +1,8 @@
-import { looseInstanceOfClass } from 'clone-class'
 import {
   Puppet,
   FileBox,
-}             from 'wechaty-puppet'
+  looseInstanceOfClass,
+}                         from 'wechaty-puppet'
 /**
  * Huan(202011):
  *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
