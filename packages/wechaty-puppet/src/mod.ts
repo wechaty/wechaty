@@ -10,6 +10,7 @@ export {
 }                         from 'state-switch'
 export {
   looseInstanceOfClass,
+  instanceToClass,
 }                         from 'clone-class'
 
 export {
