@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,17 +18,18 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tstest'
-
-// import { log }  from '../src/config'
-
-import { spy } from 'sinon'
+import {
+  test,
+  sinon,
+}           from 'tstest'
 
 test('Node.js function params destructuring behaviour test', async t => {
+  const sandbox = sinon.createSandbox()
+
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 
-  const paramSpy = spy()
+  const paramSpy = sandbox.spy()
   function paramTest ({
     n = DEFAULT_N,
     s = DEFAULT_S,
@@ -48,4 +48,6 @@ test('Node.js function params destructuring behaviour test', async t => {
   paramSpy.resetHistory()
   paramTest({ s: 'life' })
   t.same(paramSpy.args[0], [DEFAULT_N, 'life'], 'should be equal to default n args')
+
+  sandbox.restore()
 })

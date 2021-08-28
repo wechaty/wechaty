@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,8 +18,10 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tstest'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}              from 'tstest'
 
 import {
   Puppet,

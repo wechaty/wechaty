@@ -20,4 +20,3 @@
 declare module 'bl'
 declare module 'qrcode-terminal'
 declare module 'npm-programmatic'
-declare module 'in-gfw'

@@ -17,10 +17,12 @@
  *   limitations under the License.
  *
  */
-export { generateToken }  from './impure/generate-token.js'
-
-export { retryPolicy }            from './pure/retry-policy.js'
-export { looseInstanceOfClass }   from './pure/loose-instance-of-class.js'
+export { generateToken }    from './impure/generate-token.js'
+export {
+  looseInstanceOfFileBox,
+  looseInstanceOfPuppet,
+}                           from './pure/loose-instanceof'
+export { retryPolicy }      from './pure/retry-policy.js'
 export {
   digestEmoji,
   plainText,
@@ -28,4 +30,4 @@ export {
   stripHtml,
   unescapeHtml,
   unifyEmoji,
-}                                 from './pure/xml.js'
+}                          from './pure/xml.js'

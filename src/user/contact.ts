@@ -33,8 +33,10 @@ import { Wechaty }          from '../wechaty.js'
 import {
   log,
   qrCodeForChatie,
-  looseInstanceOfFileBox,
 }                           from '../config.js'
+import {
+  looseInstanceOfFileBox,
+}                           from '../helper-functions/mod.js'
 import {
   Sayable,
 }                           from '../types.js'

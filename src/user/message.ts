@@ -37,8 +37,10 @@ import {
   FileBox,
 
   log,
-  looseInstanceOfFileBox,
 }                         from '../config.js'
+import {
+  looseInstanceOfFileBox,
+}                           from '../helper-functions/mod.js'
 import {
   Sayable,
 }                       from '../types.js'

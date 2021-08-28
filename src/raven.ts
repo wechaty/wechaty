@@ -6,7 +6,7 @@ import {
   log,
   VERSION,
   GIT_COMMIT_HASH,
-}                   from './config'
+}                   from './config.js'
 
 let raven: typeof Raven
 
