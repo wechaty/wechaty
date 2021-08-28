@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings --loader ts-node/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *

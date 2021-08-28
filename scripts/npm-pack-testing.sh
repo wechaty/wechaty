@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
+VERSION=$(npx pkg-jq -r .version)
+
+if npx --package @chatie/semver semver-is-prod $VERSION; then
+  NPM_TAG=latest
+else
+  NPM_TAG=next
+fi
+
 npm run dist
 npm pack
 
@@ -16,7 +24,8 @@ npm install --production *-*.*.*.tgz \
   @types/node \
   typescript@latest \
   "wechaty-puppet-mock@$NPM_TAG" \
-
+  "wechaty-puppet-padlocal@$NPM_TAG" \
+  "wechaty-puppet-service@$NPM_TAG" \
 
 #
 # CommonJS
