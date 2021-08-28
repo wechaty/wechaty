@@ -14,7 +14,6 @@
   "scripts": {
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc",
-    "pack": "npm pack",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
