@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -21,7 +21,7 @@
 
 import { test }  from 'tstest'
 
-import { config } from './config'
+import { config } from './config.js'
 // import { Puppet } from './puppet'
 
 test('important variables', async t => {

@@ -21,10 +21,10 @@ import {
   MiniProgramPayload,
 }                   from 'wechaty-puppet'
 
-import { Wechaty } from '../wechaty'
+import { Wechaty } from '../wechaty.js'
 import {
   log,
-}               from '../config'
+}               from '../config.js'
 
 class MiniProgram {
 

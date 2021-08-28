@@ -5,7 +5,7 @@ import {
   Contact,
   Friendship,
   Message,
-}                   from '../user/mod'
+}                   from '../user/mod.js'
 
 export type ContactMessageEventListener    = (this: Contact, message: Message, date?: Date) => void
 export type ContactFriendshipEventListener = (friendship: Friendship)                       => void

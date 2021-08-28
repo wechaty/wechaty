@@ -17,8 +17,6 @@
  *   limitations under the License.
  *
  */
-import { instanceToClass }  from 'clone-class'
-
 import {
   ContactGender,
   ContactPayload,
@@ -26,26 +24,29 @@ import {
   ContactType,
   FileBox,
   PayloadType,
+  instanceToClass,
 }                         from 'wechaty-puppet'
 
-import { Wechaty }          from '../wechaty'
+import { Wechaty }          from '../wechaty.js'
 
 import {
   log,
   qrCodeForChatie,
+}                           from '../config.js'
+import {
   looseInstanceOfFileBox,
-}                           from '../config'
+}                           from '../helper-functions/mod.js'
 import {
   Sayable,
-}                           from '../types'
-import { captureException } from '../raven'
+}                           from '../types.js'
+import { captureException } from '../raven.js'
 
-import { Message }      from './message'
-import { MiniProgram }  from './mini-program'
-import { Tag }          from './tag'
-import { UrlLink }      from './url-link'
+import { Message }      from './message.js'
+import { MiniProgram }  from './mini-program.js'
+import { Tag }          from './tag.js'
+import { UrlLink }      from './url-link.js'
 
-import { ContactEventEmitter }  from '../events/contact-events'
+import { ContactEventEmitter }  from '../events/contact-events.js'
 
 export const POOL = Symbol('pool')
 
@@ -247,7 +248,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       return contactList.filter(contact => !invalidDict[contact.id])
 
     } catch (e) {
-      log.error('Contact', 'this.wechaty.puppet.contactFindAll() rejected: %s', e.message)
+      log.error('Contact', 'this.wechaty.puppet.contactFindAll() rejected: %s', (e as Error).message)
       return [] // fail safe
     }
   }
@@ -273,7 +274,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
-      log.error('Contact', 'static tags() exception: %s', e.message)
+      log.error('Contact', 'static tags() exception: %s', (e as Error).message)
       return []
     }
   }
@@ -533,8 +534,8 @@ class Contact extends ContactEventEmitter implements Sayable {
         )
       }
     } catch (e) {
-      log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
-      captureException(e)
+      log.error('Contact', 'alias(%s) rejected: %s', newAlias, (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -578,8 +579,8 @@ class Contact extends ContactEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
-      log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), e.message)
-      captureException(e)
+      log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -605,8 +606,8 @@ class Contact extends ContactEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
-      log.error('Contact', 'corporation(%s) rejected: %s', remark, e.message)
-      captureException(e)
+      log.error('Contact', 'corporation(%s) rejected: %s', remark, (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -628,8 +629,8 @@ class Contact extends ContactEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
-      log.error('Contact', 'description(%s) rejected: %s', newDescription, e.message)
-      captureException(e)
+      log.error('Contact', 'description(%s) rejected: %s', newDescription, (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -772,7 +773,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
       return fileBox
     } catch (e) {
-      log.error('Contact', 'avatar() exception: %s', e.message)
+      log.error('Contact', 'avatar() exception: %s', (e as Error).message)
       return qrCodeForChatie()
     }
   }
@@ -792,7 +793,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
-      log.error('Contact', 'tags() exception: %s', e.message)
+      log.error('Contact', 'tags() exception: %s', (e as Error).message)
       return []
     }
   }
@@ -836,9 +837,9 @@ class Contact extends ContactEventEmitter implements Sayable {
     } catch (e) {
       log.verbose('Contact', 'ready() this.wechaty.puppet.contactPayload(%s) exception: %s',
         this.id,
-        e.message,
+        (e as Error).message,
       )
-      captureException(e)
+      captureException(e as Error)
       throw e
     }
   }
@@ -864,7 +865,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
       }
     } catch (e) {
-      log.error('Contact', 'readMark() exception: %s', e.message)
+      log.error('Contact', 'readMark() exception: %s', (e as Error).message)
     }
   }
 

@@ -5,7 +5,8 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on:
+      - ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js 16
@@ -27,11 +28,12 @@ jobs:
   pack:
     name: Pack
     needs: build
-    runs-on: ubuntu-latest
+    runs-on:
+      - ubuntu-latest
     strategy:
       matrix:
-        node: [ 12, 14, 16 ]
-
+        node:
+          - 16
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -41,7 +43,8 @@ jobs:
           cache-dependency-path: package.json
 
       - run: npm install
-      - run: ./scripts/generate-version.sh
+      - name: Generate Package JSON
+        run: ./scripts/generate-package-json.sh
       - run: ./scripts/npm-pack-testing.sh
         env:
           WECHATY_PUPPET_PADPLUS_TOKEN: ${{ secrets.WECHATY_PUPPET_PADPLUS_TOKEN }}
@@ -60,7 +63,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package.json
       - run: npm install
-      - run: ./scripts/generate-version.sh
+      - name: Generate Package JSON
+        run: ./scripts/generate-package-json.sh
       - run: ./scripts/package-publish-config-tag.sh
       - run: npm run dist
 

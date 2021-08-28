@@ -15,7 +15,7 @@ import {
   RoomInvitation,
   Contact,
   Message,
-}                       from '../user/mod'
+}                       from '../user/mod.js'
 
 const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,

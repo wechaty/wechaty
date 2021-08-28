@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,14 +18,19 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tstest'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}              from 'tstest'
 
+import {
+  Puppet,
+}                     from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
   Wechaty,
-}                             from './wechaty'
+}                             from './wechaty.js'
 
 import {
   config,
@@ -37,11 +41,7 @@ import {
   Message,
 
   Room,
-}                 from './mod'
-
-import {
-  Puppet,
-}                     from 'wechaty-puppet'
+}                 from './mod.js'
 
 class WechatyTest extends Wechaty {
 
@@ -246,7 +246,7 @@ test('Wechaty restart for many times', async t => {
     }
     t.pass('Wechaty start/restart successed.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 
 })

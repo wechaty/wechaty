@@ -25,11 +25,11 @@ import {
 
 import {
   log,
-}               from '../config'
+}               from '../config.js'
 
 import {
   openGraph,
-}               from '../helper-functions/impure/open-graph'
+}               from '../helper-functions/impure/open-graph.js'
 
 class UrlLink {
 

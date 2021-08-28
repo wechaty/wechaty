@@ -20,36 +20,36 @@
 import WebSocket        from 'ws'
 
 import {
-  Message,
-}                 from './user/mod'
-
-import {
   StateSwitch,
-
   EventScanPayload,
 }                         from 'wechaty-puppet'
 
-import Peer, {
+import {
+  Peer,
   JsonRpcPayload,
   JsonRpcPayloadResponse,
   parse,
 }                         from 'json-rpc-peer'
 
 import {
+  Message,
+}                 from './user/mod.js'
+
+import {
   config,
   log,
-}                 from './config'
+}                 from './config.js'
 import {
   AnyFunction,
-}                 from './types'
+}                 from './types.js'
 import {
   Wechaty,
-}                 from './wechaty'
+}                 from './wechaty.js'
 
 import {
   getPeer,
   isJsonRpcRequest,
-}                   from './io-peer/io-peer'
+}                   from './io-peer/io-peer.js'
 
 export interface IoOptions {
   wechaty      : Wechaty,
@@ -117,10 +117,10 @@ export class Io {
 
   private readonly state = new StateSwitch('Io', { log })
 
-  private reconnectTimer?   : NodeJS.Timer
+  private reconnectTimer?   : ReturnType<typeof setTimeout>
   private reconnectTimeout? : number
 
-  private lifeTimer? : NodeJS.Timer
+  private lifeTimer? : ReturnType<typeof setTimeout>
 
   private onMessage: undefined | AnyFunction
 
@@ -194,7 +194,7 @@ export class Io {
       this.state.on(true)
 
     } catch (e) {
-      log.warn('Io', 'start() exception: %s', e.message)
+      log.warn('Io', 'start() exception: %s', (e as Error).message)
       this.state.off(true)
       throw e
     }
@@ -313,7 +313,7 @@ export class Io {
             }
           } catch (e) {
             log.warn('Io', 'server pushed function exception: %s', e)
-            this.options.wechaty.emit('error', e)
+            this.options.wechaty.emit('error', (e as Error))
           }
         }
         break
@@ -498,7 +498,7 @@ export class Io {
     try {
       await Promise.all(list)
     } catch (e) {
-      log.error('Io', 'send() exception: %s', e.stack)
+      log.error('Io', 'send() exception: %s', (e as Error).stack)
       throw e
     }
   }

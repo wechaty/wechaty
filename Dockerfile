@@ -38,7 +38,7 @@ RUN apt-get update \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - \
+RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && apt-get purge --auto-remove \
     && rm -rf /tmp/* /var/lib/apt/lists/*
@@ -64,7 +64,7 @@ RUN  npm install \
 
 COPY . .
 
-RUN ./scripts/generate-version.sh && rm -f src/version.spec.ts
+RUN ./scripts/generate-package-json.sh && rm -f src/package-json.spec.ts
 RUN  npm test \
   && npm run dist \
   && npm link

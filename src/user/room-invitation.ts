@@ -18,26 +18,26 @@
  *
  */
 import {
+  RoomInvitationPayload,
   instanceToClass,
-}                   from 'clone-class'
+}                           from 'wechaty-puppet'
 
 import {
   Wechaty,
-}               from '../wechaty'
+}               from '../wechaty.js'
 import {
   log,
-}               from '../config'
+}               from '../config.js'
 import {
   Acceptable,
-}               from '../types'
+}               from '../types.js'
 import {
   timestampToDate,
-}                   from '../helper-functions/pure/timestamp-to-date'
+}                   from '../helper-functions/pure/timestamp-to-date.js'
 
 import {
   Contact,
-}               from './contact'
-import { RoomInvitationPayload } from 'wechaty-puppet'
+}               from './contact.js'
 
 /**
  *
@@ -136,7 +136,7 @@ class RoomInvitation implements Acceptable {
     } catch (e) {
       log.warn('RoomInvitation', 'accept() inviter(%s) is not ready because of %s',
         inviter,
-        (e && e.message) || e,
+        (e && (e as Error).message) || e,
       )
     }
   }

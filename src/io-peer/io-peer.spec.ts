@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -21,7 +20,8 @@
  */
 import { test }  from 'tstest'
 
-import Peer, {
+import {
+  Peer,
   format,
   parse,
   JsonRpcPayloadResponse,
@@ -29,7 +29,7 @@ import Peer, {
 
 import {
   getPeer,
-}                   from './io-peer'
+}                   from './io-peer.js'
 
 test('getPeer()', async t => {
   const EXPECTED_PORT = 8788
@@ -37,8 +37,10 @@ test('getPeer()', async t => {
     serviceGrpcPort: EXPECTED_PORT,
   })
   const client = new Peer()
-
-  server.pipe(client).pipe(server)
+  /**
+   * FIXME: Huan(202108): remove `any` to fix the typing
+   */
+  server.pipe(client as any).pipe(server)
 
   /**
    * Huan(202101) Need to be fixed by new IO Bus system.

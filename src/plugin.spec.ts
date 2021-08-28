@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,15 +18,17 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tstest'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}           from 'tstest'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
   Wechaty,
-}                             from './wechaty'
-import { WechatyPlugin } from './plugin'
+}                         from './wechaty.js'
+import { WechatyPlugin }  from './plugin.js'
 
 test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
   const spyPluginInstall  = sinon.spy()

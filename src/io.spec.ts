@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -21,8 +20,8 @@
  */
 import { test }  from 'tstest'
 
-import { Io }       from './io'
-import { Wechaty }  from './wechaty'
+import { Io }       from './io.js'
+import { Wechaty }  from './wechaty.js'
 
 test('Io restart without problem', async t => {
   const io = new Io({
@@ -40,6 +39,6 @@ test('Io restart without problem', async t => {
     }
     t.pass('start/restart successed.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 })
