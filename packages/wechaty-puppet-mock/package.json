@@ -60,9 +60,9 @@
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tstest": "^0.5.16",
-    "typescript": "4.3",
-    "wechaty": "^0.65.6",
-    "wechaty-puppet": "^0.43.7"
+    "typescript": "4.4",
+    "wechaty": "^0.69.12",
+    "wechaty-puppet": "^0.43.9"
   },
   "peerDependencies": {},
   "dependencies": {

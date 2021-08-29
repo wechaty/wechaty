@@ -23,6 +23,6 @@ test('PuppetMock perfect restart testing', async t => {
 
     t.pass('PuppetMock() perfect restart pass.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 })

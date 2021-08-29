@@ -71,7 +71,7 @@ test('Mocker restart without problem', async t => {
     }
     t.pass('Mocker() start/restart succeed.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 })
 
