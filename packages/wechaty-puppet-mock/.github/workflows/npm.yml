@@ -32,8 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        node: [12, 14, 16]
+        os:
+          - ubuntu-latest
+        node:
+          - 14
+          - 16
 
     steps:
       - uses: actions/checkout@v2
