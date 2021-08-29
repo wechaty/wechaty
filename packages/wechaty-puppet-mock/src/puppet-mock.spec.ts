@@ -1,28 +1,28 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
-import test  from 'blue-tape'
+import { test } from 'tstest'
 
-import { PuppetMock } from './puppet-mock'
+import { PuppetMock } from './puppet-mock.js'
 
 class PuppetMockTest extends PuppetMock {
 }
 
-test('PuppetMock perfect restart testing', async (t) => {
+test('PuppetMock perfect restart testing', async t => {
   const puppet = new PuppetMockTest()
   try {
 
     for (let i = 0; i < 3; i++) {
       await puppet.start()
-      t.true(puppet.state.on(), 'should be turned on after start()')
+      t.ok(puppet.state.on(), 'should be turned on after start()')
 
       await puppet.stop()
-      t.true(puppet.state.off(), 'should be turned off after stop()')
+      t.ok(puppet.state.off(), 'should be turned off after stop()')
 
       t.pass('start/stop-ed at #' + i)
     }
 
     t.pass('PuppetMock() perfect restart pass.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 })

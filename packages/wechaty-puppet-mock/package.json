@@ -1,19 +1,27 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.29.10",
+  "version": "0.31.3",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
   },
-  "main": "dist/src/mod.js",
-  "typings": "dist/src/mod.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mod.js",
+      "require": "./dist/cjs/src/mod.js"
+    }
+  },
+  "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
+    "node": ">= 14",
     "wechaty": ">=0.60"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc",
-    "pack": "npm pack",
+    "dist": "npm-run-all clean build fixup",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "fixup": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
     "start": "ts-node examples/ding-dong-bot.ts",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
@@ -21,7 +29,7 @@
     "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "blue-tape -r ts-node/register 'src/**/*.spec.ts' 'tests/**/*.spec.ts'"
+    "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings 'src/**/*.spec.ts' 'tests/**/*.spec.ts'"
   },
   "repository": {
     "type": "git",
@@ -44,18 +52,19 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet-mock#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.4",
+    "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.17.2",
     "@types/cuid": "^1.3.1",
     "@types/faker": "^5.5.7",
+    "npm-run-all": "^4.1.5",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
-    "tstest": "^0.4.10",
-    "typescript": "4.3",
-    "wechaty": "^0.65.6",
-    "wechaty-puppet": "^0.41.3"
+    "tstest": "^0.5.16",
+    "typescript": "4.4",
+    "wechaty": "^0.69.12",
+    "wechaty-puppet": "^0.43.9"
   },
   "peerDependencies": {},
   "dependencies": {
@@ -63,6 +72,11 @@
     "faker": "^5.5.3",
     "typed-emitter": "^1.3.1"
   },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/"
+  ],
   "publishConfig": {
     "access": "public",
     "tag": "next"

@@ -6,10 +6,10 @@ import {
   log,
 }                     from 'wechaty-puppet'
 
-import { Mocker }        from '../mocker'
+import { Mocker }        from '../mocker.js'
 
-import { RoomMock }         from './room-mock'
-import { ContactMock } from './contact-mock'
+import { RoomMock }         from './room-mock.js'
+import { ContactMock } from './contact-mock.js'
 // import { UrlLink, MiniProgram } from 'wechaty'
 
 const POOL = Symbol('pool')

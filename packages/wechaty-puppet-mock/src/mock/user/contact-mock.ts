@@ -5,29 +5,28 @@ import * as path from 'path'
 import {
   MessagePayloadTo,
   MessagePayloadBase,
-  MessageType,
   MessagePayloadRoom,
+  MessageType,
   MessagePayload,
-}                        from 'wechaty-puppet/dist/src/schemas/message'
-import {
   ContactPayload,
   FileBox,
   log,
 }                         from 'wechaty-puppet'
 
-import { Mocker }    from '../mocker'
+import { Mocker }    from '../mocker.js'
 
-import { RoomMock }    from './room-mock'
+import { RoomMock }    from './room-mock.js'
 // import { MiniProgram, UrlLink } from 'wechaty'
-import { generateSentence } from '../generator'
+import { generateSentence } from '../generator.js'
 
-import { ContactEventEmitter } from '../events/contact-events'
+import { ContactEventEmitter } from '../events/contact-events.js'
 
+const POOL = Symbol('pool')
+
+/* eslint no-use-before-define: 0 */
 interface To {
   to: (conversation?: ContactMock | RoomMock) => void
 }
-
-const POOL = Symbol('pool')
 
 class ContactMock extends ContactEventEmitter {
 

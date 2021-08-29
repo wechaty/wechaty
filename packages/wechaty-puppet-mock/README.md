@@ -111,7 +111,9 @@ console.log(config)
 
 ## HISTORY
 
-### master
+### master v0.31
+
+1. Support ES Modules
 
 ### v0.25 (July 13, 2020)
 

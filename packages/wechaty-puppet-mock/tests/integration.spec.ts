@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test }  from 'tstest'
 
@@ -9,12 +9,12 @@ import {
 import {
   ContactMock,
   RoomMock,
-}                 from '../src/mock/mod'
+}                 from '../src/mock/mod.js'
 
 import {
   PuppetMock,
   mock,
-}                         from '../src/mod'
+}                         from '../src/mod.js'
 
 async function * wechatyFixture () {
   const mocker  = new mock.Mocker()
@@ -101,7 +101,7 @@ test('Contact.load() mocker.createContact()', async t => {
     t.equal(contact!.id, filehelper.id, 'should load contact with id the same as filehelper')
 
     await contact.ready()
-    t.deepEqual((contact as any).payload, filehelper.payload, 'should match the payload between wechaty contact & mock contact')
+    t.same((contact as any).payload, filehelper.payload, 'should match the payload between wechaty contact & mock contact')
   }
 })
 
@@ -122,7 +122,7 @@ test('Room.load() mocker.createRoom()', async t => {
     t.equal(room!.id, starbucks.id, 'should load room with id the same as starbucks')
 
     await room.ready()
-    t.deepEqual((room as any).payload, starbucks.payload, 'should match the payload between wechaty room & mock room')
+    t.same((room as any).payload, starbucks.payload, 'should match the payload between wechaty room & mock room')
   }
 })
 

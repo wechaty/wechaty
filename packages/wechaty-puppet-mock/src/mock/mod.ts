@@ -1,10 +1,10 @@
-export { Mocker } from './mocker'
+export { Mocker } from './mocker.js'
 export {
   EnvironmentMock,
   SimpleEnvironment,
-}                     from './environment'
+}                     from './environment.js'
 export {
   ContactMock,
   RoomMock,
   MessageMock,
-}                     from './user/mod'
+}                     from './user/mod.js'

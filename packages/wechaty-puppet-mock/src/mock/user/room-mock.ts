@@ -6,11 +6,11 @@ import {
   log,
 }                           from 'wechaty-puppet'
 
-import { Mocker } from '../mocker'
+import { Mocker } from '../mocker.js'
 
-import { ContactMock } from './contact-mock'
+import { ContactMock } from './contact-mock.js'
 
-import { RoomEventEmitter } from '../events/room-events'
+import { RoomEventEmitter } from '../events/room-events.js'
 
 interface By {
   by: (contact?: ContactMock) => void

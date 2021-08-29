@@ -3,10 +3,10 @@ import {
   ScanStatus,
 }               from 'wechaty-puppet'
 
-import { Mocker } from './mocker'
+import { Mocker } from './mocker.js'
 
-type EnvironmentStart = (mocker: Mocker) => EnvironmentStop
 type EnvironmentStop  = () => void
+type EnvironmentStart = (mocker: Mocker) => EnvironmentStop
 
 export type EnvironmentMock = EnvironmentStart
 
