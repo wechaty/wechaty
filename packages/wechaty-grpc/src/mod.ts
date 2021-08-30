@@ -9,8 +9,8 @@ export {
   openApi,
   VERSION,
 }
-export * as grpc  from '@grpc/grpc-js'
-export *          from './generated'
+export * as grpc    from '@grpc/grpc-js'
+export * as puppet  from './generated'
 export {
   StringValue,
 }                 from 'google-protobuf/google/protobuf/wrappers_pb'

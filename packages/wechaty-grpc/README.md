@@ -251,7 +251,9 @@ TCP hole punching
 
 ## HISTORY
 
-### master
+### master v0.27
+
+1. export generated protocol buffers class as `puppet`
 
 ### v0.20 (Feb 21, 2021)
 
