@@ -5,9 +5,7 @@ import { Status as GrpcServerStatus } from '@grpc/grpc-js/build/src/constants'
 
 import {
   grpc,
-  IPuppetServer,
-  PuppetService,
-  DingResponse,
+  puppet,
 }                       from '../../src/mod'
 
 import {
@@ -124,7 +122,7 @@ function authHandler (
 }
 
 const wechatyAuthToken = (validToken: string) => (
-  puppetServer: IPuppetServer,
+  puppetServer: puppet.IPuppetServer,
 ) => {
   for (const [key, val] of Object.entries(puppetServer)) {
     puppetServer[key] = authHandler(validToken, val)
@@ -134,14 +132,14 @@ const wechatyAuthToken = (validToken: string) => (
 
 monkeyPatchMetadataFromHttp2Headers(Metadata)
 
-const puppetServerExample: IPuppetServer = {
+const puppetServerExample: puppet.IPuppetServer = {
   ...puppetServerImpl,
 
   ding: (call, callback) => {
     const data = call.request.getData()
     console.info(`ding(${data})`)
     console.info('authorization:', call.metadata.getMap()['authorization'])
-    callback(null, new DingResponse())
+    callback(null, new puppet.DingResponse())
   },
 }
 
@@ -150,7 +148,7 @@ async function main () {
 
   const server = new grpc.Server()
   server.addService(
-    PuppetService,
+    puppet.PuppetService,
     puppetServerExampleWithAuth,
   )
 
