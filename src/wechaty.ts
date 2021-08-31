@@ -148,7 +148,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   private memory?: MemoryCard
 
-  private lifeTimer? : ReturnType<typeof setTimeout>
+  private lifeTimer? : ReturnType<typeof setInterval>
   private io?        : Io
 
   public puppet!: Puppet
