@@ -26,7 +26,6 @@ npm install --production *-*.*.*.tgz \
   "wechaty-puppet@$NPM_TAG" \
   "wechaty@$NPM_TAG" \
 
-
 #
 # CommonJS
 #

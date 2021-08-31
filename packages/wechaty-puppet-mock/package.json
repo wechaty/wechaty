@@ -15,7 +15,7 @@
   "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
     "node": ">= 14",
-    "wechaty": ">=0.60"
+    "wechaty": ">=0.69"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
