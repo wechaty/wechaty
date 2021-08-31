@@ -35,7 +35,6 @@
     "lint:sh": "bash -n bin/*.sh",
     "puppet-install": "ts-node bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
-    "ts-node": "ts-node",
     "test": "npm run lint && nyc npm run test:unit && npm run sloc",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
@@ -96,7 +95,7 @@
     "open-graph": "^0.2.6",
     "raven": "^2.6.4",
     "wechaty-puppet": "^0.43.8",
-    "wechaty-puppet-service": "^0.30.2",
+    "wechaty-puppet-service": "^0.31.5",
     "ws": "^7.2.0"
   },
   "devDependencies": {

@@ -18,6 +18,5 @@ cat <<_SRC_ > ${SRC_PACKAGE_JSON_TS_FILE}
 import { PackageJsonWechaty } from './config'
 
 export const GIT_COMMIT_HASH: string = '${GIT_COMMIT_HASH}'
-export const packageJson: PackageJsonWechaty = $(cat package.json)
-
+export const packageJson: PackageJsonWechaty = $(cat package.json) as any
 _SRC_
