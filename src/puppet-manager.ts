@@ -17,9 +17,10 @@
  *   limitations under the License.
  *
  */
-import npm        from 'npm-programmatic'
+// import npm        from 'npm-programmatic'
 // import pkgDir     from 'pkg-dir'
 // import inGfw      from 'in-gfw'
+import childProcess from 'child_process'
 
 import {
   Puppet,
@@ -269,15 +270,15 @@ export class PuppetManager {
       moduleList.push(`${puppetModuleName}@${version}`)
     }
 
-    await npm.install(
-      moduleList,
-      {
-        // cwd    : await pkgDir(__dirname),
-        output : true,
-        save   : false,
-      },
-    )
+    const args = [
+      'install',
+      '--no-save',
+      ...moduleList,
+    ]
+    log.info('PuppetManager', `installAll() Shell: "npm install ${args.join(' ')}"\n`)
 
+    const result = childProcess.spawn('npm', args, { stdio: 'inherit' })
+    await new Promise(resolve => result.once('exit', resolve))
   }
 
 }
