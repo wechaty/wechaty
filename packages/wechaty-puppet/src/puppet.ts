@@ -362,7 +362,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    */
 
   /**
-   * Need to be called internaly when the puppet is logined.
+   * Need to be called internally when the puppet is logined.
    * this method will emit a `login` event
    */
   protected async login (userId: string): Promise<void> {
@@ -383,7 +383,7 @@ export abstract class Puppet extends PuppetEventEmitter {
   }
 
   /**
-   * Need to be called internaly/externaly when the puppet need to be logouted
+   * Need to be called internally/externally when the puppet need to be logouted
    * this method will emit a `logout` event,
    *
    * Note: must set `this.id = undefined` in this function.
@@ -578,7 +578,7 @@ export abstract class Puppet extends PuppetEventEmitter {
       )
     }
 
-    const filterFuncion: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
+    const filterFunction: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
 
     const BATCH_SIZE = 16
     let   batchIndex = 0
@@ -594,7 +594,7 @@ export abstract class Puppet extends PuppetEventEmitter {
         // const payload    = await this.contactRawPayloadParser(rawPayload)
         const payload = await this.contactPayload(id)
 
-        if (filterFuncion(payload)) {
+        if (filterFunction(payload)) {
           return id
         }
 
@@ -645,7 +645,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     if (Object.keys(query).length < 1) {
       throw new Error('query must provide at least one key. current query is empty.')
     } else if (Object.keys(query).length > 1) {
-      throw new Error('query only support one key. multi key support is not availble now.')
+      throw new Error('query only support one key. multi key support is not available now.')
     }
     // Huan(202105): we use `!` at here because the above `if` checks
     const filterKey = Object.keys(query)[0]!.toLowerCase() as keyof ContactQueryFilter
@@ -674,7 +674,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     } else if (filterValue instanceof RegExp) {
       filterFunction = (payload: ContactPayload) => !!payload[filterKey] && filterValue.test(payload[filterKey]!)
     } else {
-      throw new Error('unsupport filterValue type: ' + typeof filterValue)
+      throw new Error('unsupported filterValue type: ' + typeof filterValue)
     }
 
     return filterFunction
@@ -1205,7 +1205,7 @@ export abstract class Puppet extends PuppetEventEmitter {
     if (Object.keys(query).length < 1) {
       throw new Error('query must provide at least one key. current query is empty.')
     } else if (Object.keys(query).length > 1) {
-      throw new Error('query only support one key. multi key support is not availble now.')
+      throw new Error('query only support one key. multi key support is not available now.')
     }
     // Huan(202105): we use `Object.keys(query)[0]!` with `!` at here because we have the above `if` checks
     // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
