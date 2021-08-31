@@ -1,23 +1,21 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 
-// tslint:disable:no-shadowed-variable
-import test  from 'tstest'
+import { test } from 'tstest'
 
 import {
   grpc,
-  IPuppetServer,
-  PuppetService,
-}                   from './mod'
+  puppet,
+}                   from './mod.js'
 
 test('`grpc` is exported', async t => {
   t.ok(grpc, 'should imported grpc')
 })
 
 test('`IPuppetServer` is exported', async t => {
-  const i: IPuppetServer = {} as any
+  const i: puppet.IPuppetServer = {} as any
   t.ok(i, 'should has typing IPuppetServer')
 })
 
 test('`PuppetService` is exported', async t => {
-  t.ok(PuppetService, 'should export PuppetSevice')
+  t.ok(puppet.PuppetService, 'should export PuppetSevice')
 })

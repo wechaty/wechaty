@@ -1,17 +1,18 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 
 import {
-  MessagePayloadResponse,
+  puppet,
   VERSION,
 }                           from 'wechaty-grpc'
 
 async function main () {
+  const messagePayloadResponse = new puppet.MessagePayloadResponse()
+  messagePayloadResponse.setId('id')
+
   if (VERSION === '0.0.0') {
     throw new Error('version should be set before publishing')
   }
 
-  const messagePayloadResponse = new MessagePayloadResponse()
-  messagePayloadResponse.setId('id')
   console.info(`wechaty-grpc v${VERSION} smoking test passed.`)
   return 0
 }

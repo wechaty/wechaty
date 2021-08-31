@@ -10,19 +10,19 @@ import {
 
 import {
   puppetServerImpl,
-}                     from '../../tests/puppet-server-impl'
+}                     from '../../tests/puppet-server-impl.js'
 import {
   StatusBuilder,
   Metadata,
   UntypedHandleCall,
 }                     from '@grpc/grpc-js'
 // import { Http2SecureServer } from 'http2'
-import {
+import type {
   sendUnaryData,
   ServerUnaryCall,
 }                             from '@grpc/grpc-js/build/src/server-call'
 
-import http2 from 'http2'
+import type http2 from 'http2'
 
 function monkeyPatchMetadataFromHttp2Headers (
   MetadataClass: typeof Metadata,

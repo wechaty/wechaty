@@ -253,7 +253,8 @@ TCP hole punching
 
 ### master v0.27
 
-1. export generated protocol buffers class as `puppet`
+1. ES Modules support
+1. Export generated protocol buffers class as `puppet`
 
 ### v0.20 (Feb 21, 2021)
 

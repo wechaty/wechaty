@@ -3,12 +3,18 @@
  *  https://github.com/googleapis/nodejs-proto-files/blob/920fe4e5f8dee9a187e1858903894810a9b5feca/src/index.ts#L18-L20
  */
 import path from 'path'
-import fs from 'fs'
+import fs   from 'fs'
 
-import { ApiStore } from './config'
+import { codeRoot } from './cjs.js'
+
+import type { ApiStore } from './config.js'
 
 function getProtoPath (...paths: string[]): string {
-  return path.join(__dirname, '..', 'proto', ...paths)
+  return path.join(
+    codeRoot,
+    'proto',
+    ...paths,
+  )
 }
 
 const puppetProtoFile = getProtoPath(

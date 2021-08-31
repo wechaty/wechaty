@@ -1,17 +1,16 @@
-import { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
+import type { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
 import fs from 'fs'
 
 import {
   grpc,
-  PuppetClient,
-  DingRequest,
-}                     from '../../src/mod'
+  puppet,
+}                     from '../../src/mod.js'
 
-import { promisify }  from '../promisify'
+import { promisify }  from '../promisify.js'
 
-export async function testDing (client: PuppetClient) {
+export async function testDing (client: puppet.PuppetClient) {
   const ding = promisify(client.ding.bind(client))
-  const dingRequest = new DingRequest()
+  const dingRequest = new puppet.DingRequest()
   dingRequest.setData('dingdong')
   try {
     // const metadata = new Metadata()
@@ -42,7 +41,7 @@ async function main () {
   const callCred    = grpc.credentials.createFromMetadataGenerator(metaCallback)
   const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
 
-  const client = new PuppetClient(
+  const client = new puppet.PuppetClient(
     'localhost:8788',
     combCreds,
     {

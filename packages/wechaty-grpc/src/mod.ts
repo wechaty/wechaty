@@ -1,15 +1,14 @@
-import * as grpc    from '@grpc/grpc-js'
-import * as puppet  from './generated'
+import wrappers   from 'google-protobuf/google/protobuf/wrappers_pb.js'
+import * as grpc  from '@grpc/grpc-js'
 
-import {
+import * as proto     from './proto.js'
+import * as openApi   from './openapi.js'
+import { puppet }     from './cjs.js'
+import { VERSION }    from './config.js'
+
+const {
   StringValue,
-}               from 'google-protobuf/google/protobuf/wrappers_pb'
-
-import * as proto   from './proto'
-import * as openApi from './openapi'
-import {
-  VERSION,
-}           from './config'
+}               = wrappers
 
 /**
  * https://stackoverflow.com/a/67697999/1123955

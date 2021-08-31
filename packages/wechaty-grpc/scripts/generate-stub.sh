@@ -71,10 +71,18 @@ function gen_openapi () {
   popd
 }
 
+#
+# Huan(202108): make generated/ a CJS module
+#
+function gen_cjs_package_json () {
+  echo '{"type": "commonjs"}' > generated/package.json
+}
+
 function main () {
   gen_js_pb
   gen_js_stub
   gen_ts_typing
+  gen_cjs_package_json
 
   gen_web_grpc
 

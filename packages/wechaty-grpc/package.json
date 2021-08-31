@@ -1,11 +1,17 @@
 {
   "name": "wechaty-grpc",
-  "version": "0.27.0",
+  "version": "0.27.4",
   "description": "gRPC for Wechaty",
-  "main": "dist/src/mod.js",
-  "typings": "dist/src/mod.d.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mod.js",
+      "require": "./dist/cjs/src/mod.js"
+    }
+  },
+  "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
-    "node": ">= 12"
+    "node": ">= 14"
   },
   "directories": {
     "example": "examples",
@@ -13,8 +19,12 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/* generated/*",
-    "dist": "npm-run-all clean generate tsc dist:cp ",
-    "dist:cp": "shx cp -R generated/ dist/ && shx cp -R proto/ dist/",
+    "dist": "npm-run-all clean generate build dist:copy dist:cjs",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "dist:cjs": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "dist:copy": "npm-run-all copy:esm copy:cjs",
+    "copy:esm": "shx cp -R generated/ dist/esm && shx cp -R proto/ dist/esm && shx cp -R cjs/ dist/esm/",
+    "copy:cjs": "shx cp -R generated/ dist/cjs && shx cp -R proto/ dist/cjs && shx cp -R cjs/ dist/cjs/",
     "dist:py": "python3 setup.py sdist bdist_wheel",
     "publish:py": "twine upload dist/*",
     "example:server": "nodemon --exec ts-node examples/server.ts",
@@ -25,11 +35,10 @@
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:proto": "bash -c 'protoc -I third-party -I proto --lint_out=. $(find proto/ -type f -name *.proto)'",
     "install:protoc": "bash -x scripts/install-protoc.sh",
-    "tsc": "tsc",
-    "test": "npm run lint && npm run test:unit",
+    "test": "npm-run-all lint test:unit test:cjs",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "pack": "npm pack"
+    "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:cjs": "TS_NODE_PROJECT=tsconfig.cjs.json tap --node-arg=--require=ts-node/register \"cjs/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
@@ -54,10 +63,10 @@
     "google-protobuf": "^3.17.3"
   },
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.4",
+    "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.19.2",
+    "@chatie/tsconfig": "^0.19.5",
     "@types/google-protobuf": "^3.15.5",
     "@types/protobufjs": "^6.0.0",
     "grpc-tools": "^1.11.2",
@@ -68,11 +77,19 @@
     "request": "^2.88.2",
     "shx": "^0.3.3",
     "ts-protoc-gen": "^0.15.0",
-    "tstest": "^0.4.10"
+    "tstest": "^0.5.16"
   },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/"
+  ],
   "publishConfig": {
     "access": "public",
     "tag": "next"
+  },
+  "tap": {
+    "check-coverage": false
   },
   "git": {
     "scripts": {

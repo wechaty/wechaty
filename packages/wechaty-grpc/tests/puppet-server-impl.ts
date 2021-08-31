@@ -1,6 +1,8 @@
-import {
-  IPuppetServer,
-}                       from '../src/mod'
+import type {
+  puppet,
+}                       from '../src/mod.js'
+
+type IPuppetServer = puppet.IPuppetServer
 
 /**
  * Implements the SayHello RPC method.

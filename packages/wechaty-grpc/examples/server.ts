@@ -3,21 +3,16 @@ import util from 'util'
 
 import {
   grpc,
-  IPuppetServer,
-  PuppetService,
-  EventResponse,
-  EventType,
-  DingResponse,
-  EventRequest,
-}                       from '../src/mod'
+  puppet,
+}                       from '../src/mod.js'
 
 // import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
 
 import {
   puppetServerImpl,
-}                     from '../tests/puppet-server-impl'
+}                     from '../tests/puppet-server-impl.js'
 
-let eventStream: undefined | grpc.ServerWritableStream<EventRequest, EventResponse>
+let eventStream: undefined | grpc.ServerWritableStream<puppet.EventRequest, puppet.EventResponse>
 
 /**
  * Huan(202003): gRPC Wait for Ready Semantics
@@ -28,7 +23,7 @@ const dingQueue = [] as string[]
 /**
  * Implements the SayHello RPC method.
  */
-const puppetServerExample: IPuppetServer = {
+const puppetServerExample: puppet.IPuppetServer = {
   ...puppetServerImpl,
 
   event: (streammingCall) => {
@@ -43,8 +38,8 @@ const puppetServerExample: IPuppetServer = {
     eventStream = streammingCall
     while (dingQueue.length > 0) {
       const data = dingQueue.shift()
-      const eventResponse = new EventResponse()
-      eventResponse.setType(EventType.EVENT_TYPE_DONG)
+      const eventResponse = new puppet.EventResponse()
+      eventResponse.setType(puppet.EventType.EVENT_TYPE_DONG)
       eventResponse.setPayload(data!)
       eventStream.write(eventResponse)
     }
@@ -69,13 +64,13 @@ const puppetServerExample: IPuppetServer = {
     if (!eventStream) {
       dingQueue.push(data)
     } else {
-      const eventResponse = new EventResponse()
-      eventResponse.setType(EventType.EVENT_TYPE_DONG)
+      const eventResponse = new puppet.EventResponse()
+      eventResponse.setType(puppet.EventType.EVENT_TYPE_DONG)
       eventResponse.setPayload(data)
       eventStream.write(eventResponse)
     }
 
-    callback(null, new DingResponse())
+    callback(null, new puppet.DingResponse())
   },
 }
 
@@ -86,7 +81,7 @@ const puppetServerExample: IPuppetServer = {
 async function main () {
   const server = new grpc.Server()
   server.addService(
-    PuppetService,
+    puppet.PuppetService,
     puppetServerExample,
   )
   const serverBindPromise = util.promisify(

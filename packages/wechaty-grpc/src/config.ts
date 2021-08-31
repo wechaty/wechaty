@@ -1,4 +1,6 @@
-export { VERSION } from './version'
+import { packageJson } from './package-json.js'
+
+const VERSION = packageJson.version || '0.0.0'
 
 enum MajorVersionEnum {
   v0 = 'v0',
@@ -10,4 +12,8 @@ export type ApiStore = {
     file: string,
     data: string,
   }
+}
+
+export {
+  VERSION,
 }
