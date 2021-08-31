@@ -19,9 +19,9 @@
  */
 import {
   instanceToClass,
+  log,
 }                     from 'wechaty-puppet'
 
-import { log }        from '../config.js'
 import { Wechaty }  from '../wechaty.js'
 
 import { Contact }  from './contact.js'

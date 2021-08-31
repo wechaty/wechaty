@@ -23,6 +23,8 @@ import {
   MessageQueryFilter,
   MessageType,
   instanceToClass,
+  FileBox,
+  log,
 }                       from 'wechaty-puppet'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
@@ -33,9 +35,6 @@ import {
 }                         from '../wechaty.js'
 import {
   AT_SEPARATOR_REGEX,
-  FileBox,
-
-  log,
 }                         from '../config.js'
 import {
   looseInstanceOfFileBox,

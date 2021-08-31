@@ -21,11 +21,8 @@ import Url from 'url'
 
 import {
   UrlLinkPayload,
-}                   from 'wechaty-puppet'
-
-import {
   log,
-}               from '../config.js'
+}                   from 'wechaty-puppet'
 
 import {
   openGraph,

@@ -22,7 +22,6 @@
 
 import {
   FileBox,
-  MemoryCard,
   log,
 }                   from 'wechaty-puppet'
 import { PackageJson } from 'type-fest'
@@ -151,13 +150,11 @@ export function isProduction (): boolean {
 
 const config = new Config()
 
-export {
-  log,
-  FileBox,
-  MemoryCard,
-  config,
+export type {
   PackageJsonWechaty,
-
-  VERSION,
+}
+export {
+  config,
   GIT_COMMIT_HASH,
+  VERSION,
 }

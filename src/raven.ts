@@ -4,6 +4,9 @@ import os from 'os'
 
 import {
   log,
+}           from 'wechaty-puppet'
+
+import {
   VERSION,
   GIT_COMMIT_HASH,
 }                   from './config.js'

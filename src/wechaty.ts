@@ -21,25 +21,22 @@ import cuid             from 'cuid'
 import os               from 'os'
 
 import {
-  Puppet,
-
+  FileBox,
+  instanceToClass,
+  log,
   MemoryCard,
-  StateSwitch,
-
+  PayloadType,
   PUPPET_EVENT_DICT,
+  Puppet,
   PuppetEventName,
   PuppetOptions,
-  PayloadType,
-
-  instanceToClass,
+  StateSwitch,
 }                       from 'wechaty-puppet'
 
 import { captureException } from './raven.js'
 
 import {
-  FileBox,
   config,
-  log,
   VERSION,
   GIT_COMMIT_HASH,
 }                       from './config.js'

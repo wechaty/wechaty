@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings --loader ts-node/esm
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -20,12 +20,7 @@
  */
 import { test }  from 'tstest'
 
-import {
-  Peer,
-  format,
-  parse,
-  JsonRpcPayloadResponse,
-}                           from 'json-rpc-peer'
+import jsonRpcPeer from 'json-rpc-peer'
 
 import {
   getPeer,
@@ -36,7 +31,7 @@ test('getPeer()', async t => {
   const server = getPeer({
     serviceGrpcPort: EXPECTED_PORT,
   })
-  const client = new Peer()
+  const client = new jsonRpcPeer.Peer()
   /**
    * FIXME: Huan(202108): remove `any` to fix the typing
    */
@@ -60,10 +55,10 @@ test('exec()', async t => {
    * Huan(202101) Need to be fixed by new IO Bus system.
    *  See: https://github.com/wechaty/wechaty-puppet-service/issues/118
    */
-  const request = format.request(42, 'getHostieGrpcPort')
+  const request = jsonRpcPeer.format.request(42, 'getHostieGrpcPort')
   const response = await server.exec(request) as string
   // console.info('response: ', response)
 
-  const obj = parse(response) as JsonRpcPayloadResponse
+  const obj = jsonRpcPeer.parse(response) as jsonRpcPeer.JsonRpcPayloadResponse
   t.equal(obj.result, EXPECTED_PORT, 'should get the right port from payload')
 })

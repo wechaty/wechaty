@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings --loader ts-node/esm
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -22,9 +22,11 @@
 import 'dotenv/config.js'
 
 import {
-  config,
   log,
-}               from '../src/config.js'
+}             from 'wechaty-puppet'
+import {
+  config,
+}             from '../src/config.js'
 
 import {
   IoClient,

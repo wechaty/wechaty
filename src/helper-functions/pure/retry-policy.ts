@@ -1,11 +1,10 @@
 import {
   Policy,
   RetryPolicy,
-}                       from 'cockatiel'
-
+}                 from 'cockatiel'
 import {
   log,
-}           from '../../config.js'
+}                 from 'wechaty-puppet'
 
 /**
  * Create a retry policy that'll try whatever function we execute 3

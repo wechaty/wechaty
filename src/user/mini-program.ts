@@ -19,12 +19,10 @@
  */
 import {
   MiniProgramPayload,
+  log,
 }                   from 'wechaty-puppet'
 
 import { Wechaty } from '../wechaty.js'
-import {
-  log,
-}               from '../config.js'
 
 class MiniProgram {
 

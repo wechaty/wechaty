@@ -25,12 +25,11 @@ import {
   FileBox,
   PayloadType,
   instanceToClass,
+  log,
 }                         from 'wechaty-puppet'
 
 import { Wechaty }          from '../wechaty.js'
-
 import {
-  log,
   qrCodeForChatie,
 }                           from '../config.js'
 import {

@@ -17,16 +17,16 @@
  *   limitations under the License.
  *
  */
-export {
+import {
   ScanStatus,
   UrlLinkPayload,
   FileBox,
   MemoryCard,
+  log,
 }                 from 'wechaty-puppet'
 
-export {
+import {
   config,
-  log,
   qrcodeValueToImageUrl,
   VERSION,
 }                         from './config.js'
@@ -35,20 +35,20 @@ export {
  * We need to put `Wechaty` at the beginning of this file for import
  * because we have circular dependencies between `Puppet` & `Wechaty`
  */
-export {
+import {
   Wechaty,
   WechatyOptions,
 }                             from './wechaty.js'
-export {
+import {
   WechatyPlugin,
   WechatyPluginUninstaller,
 }                             from './plugin.js'
 
-export {
+import {
   PuppetModuleName,
 }                             from './puppet-config.js'
 
-export {
+import {
   Contact,
   Tag,
   Friendship,
@@ -62,8 +62,39 @@ export {
   UrlLink,
   MiniProgram,
 }                         from './user/mod.js'
+import { IoClient }   from './io-client.js'
 
-export { IoClient }   from './io-client.js'
-export {
+import type {
   Sayable,
 }                   from './types.js'
+export type {
+  PuppetModuleName,
+  Sayable,
+  UrlLinkPayload,
+  WechatyOptions,
+  WechatyPlugin,
+  WechatyPluginUninstaller,
+}
+export {
+  config,
+  Contact,
+  Favorite,
+  FileBox,
+  Friendship,
+  Image,
+  IoClient,
+  log,
+  MemoryCard,
+  Message,
+  MiniProgram,
+  Moment,
+  Money,
+  qrcodeValueToImageUrl,
+  Room,
+  RoomInvitation,
+  ScanStatus,
+  Tag,
+  UrlLink,
+  VERSION,
+  Wechaty,
+}

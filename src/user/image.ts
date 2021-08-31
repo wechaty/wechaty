@@ -20,13 +20,11 @@
 import {
   ImageType,
   instanceToClass,
+  FileBox,
+  log,
 }                   from 'wechaty-puppet'
 
 import { Wechaty } from '../wechaty.js'
-import {
-  FileBox,
-  log,
-}                   from '../config.js'
 
 class Image {
 

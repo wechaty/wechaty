@@ -24,7 +24,7 @@ import {
 
 import {
   log,
-}                   from './config.js'
+}                   from 'wechaty-puppet'
 
 export class Doctor {
 

@@ -21,8 +21,10 @@
  * DO NOT use `require('../')` here!
  * because it will cause a LOOP require ERROR
  */
-import { StateSwitch }  from 'wechaty-puppet'
-
+import {
+  StateSwitch,
+  log,
+}                       from 'wechaty-puppet'
 import {
   PuppetServer,
   PuppetServerOptions,
@@ -31,7 +33,6 @@ import {
 import { Message }      from './user/mod.js'
 
 import {
-  log,
 }                      from './config.js'
 import { Io }           from './io.js'
 import { Wechaty }      from './wechaty.js'

@@ -26,11 +26,9 @@ import {
   Puppet,
   PuppetImplementation,
   PuppetOptions,
+  log,
 }                         from 'wechaty-puppet'
 
-import {
-  log,
-}                         from './config.js'
 import {
   looseInstanceOfPuppet,
 }                           from './helper-functions/mod.js'

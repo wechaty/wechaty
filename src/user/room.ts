@@ -23,15 +23,14 @@ import {
   RoomQueryFilter,
   PayloadType,
   instanceToClass,
+  FileBox,
+  log,
 }                           from 'wechaty-puppet'
 
 import { Wechaty }          from '../wechaty.js'
 
 import {
   FOUR_PER_EM_SPACE,
-  FileBox,
-
-  log,
 }                           from '../config.js'
 import {
   looseInstanceOfFileBox,

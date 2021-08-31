@@ -22,6 +22,7 @@ import WebSocket        from 'ws'
 import {
   StateSwitch,
   EventScanPayload,
+  log,
 }                         from 'wechaty-puppet'
 
 import jsonRpcPeerPkg from 'json-rpc-peer'
@@ -32,7 +33,6 @@ import {
 
 import {
   config,
-  log,
 }                 from './config.js'
 import {
   AnyFunction,
