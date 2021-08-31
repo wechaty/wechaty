@@ -152,16 +152,16 @@ function wechaty::runBot() {
 
   local -i ret=0
   case "$botFile" in
-    *.js)
+    *.js | *.cjs | *.mjs)
       echo "Executing node $*"
       node "$@" &
       ;;
     *.ts)
-      echo "Executing ts-node $*"
+      echo "Executing node --loader=ts-node/esm $*"
       node --no-warnings --loader=ts-node/esm "$@" &
       ;;
     *)
-      echo "ERROR: wechaty::runBot() neith .js nor .ts"
+      echo "ERROR: wechaty::runBot() neither .{js,cjs,mjs} nor .ts"
       exit 1 &
   esac
 
