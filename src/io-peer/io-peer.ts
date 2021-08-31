@@ -1,6 +1,5 @@
 /// <reference path="json-rpc-peer.d.ts"/>
-import jsonRpcPeer from 'json-rpc-peer';
-
+import jsonRpcPeer from 'json-rpc-peer'
 
 // // https://stackoverflow.com/a/50375286/1123955
 // type UnionToIntersection<U> =
