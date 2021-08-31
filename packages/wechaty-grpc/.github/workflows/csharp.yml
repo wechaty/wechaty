@@ -1,9 +1,9 @@
 name: "csharp"
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 jobs:
   build-push:
     runs-on: windows-latest
@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-dotnet@master
       with:
-        dotnet-version: 3.1.100 
+        dotnet-version: 3.1.100
 
     - name: copy wechaty proto
       run: .\copy.ps1

@@ -5,9 +5,9 @@ name: Node.js
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -18,8 +18,6 @@ jobs:
           - windows-latest
           - ubuntu-latest
         node-version:
-          - 10
-          - 12
           - 14
           - 16
     runs-on: ${{ matrix.os }}
