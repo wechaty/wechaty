@@ -42,12 +42,6 @@ fixtures=tests/fixtures/docker
   [ "$status" -ne 0 ]
 }
 
-@test "should succ when we using 'import = require()' in typescript" {
-  cd "$fixtures"
-  run dockerRun import-require.ts
-  [ "$status" -eq 0 ]
-}
-
 @test "should succ when using require with javascript" {
   cd "$fixtures/with-package-json/"
   run dockerRun with-require.js

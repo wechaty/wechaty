@@ -25,8 +25,8 @@
     "clean": "shx rm -fr dist/*",
     "docs": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=lcov",
-    "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
-    "doctor": "npm run check-node-version && ts-node bin/doctor",
+    "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && node --no-warnings --loader=ts-node/esm scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
+    "doctor": "npm run check-node-version && node --no-warnings --loader=ts-node/esm bin/doctor.ts",
     "check-node-version": "check-node-version --node \">= 14\"",
     "lint": "npm-run-all check-node-version lint:es lint:ts lint:sh lint:md",
     "lint:es": "eslint --ignore-pattern node_modules/ --ignore-pattern fixtures/ \"{bin,examples,src,scripts,tests}/**/*.ts\"",
@@ -40,8 +40,8 @@
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
     "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "typedoc": "bash scripts/typedoc.sh",
-    "io-client": "ts-node bin/io-client",
-    "demo": "ts-node examples/ding-dong-bot.ts",
+    "io-client": "node --no-warnings --loader=ts-node/esm bin/io-client.ts",
+    "demo": "node --no-warnings --loader=ts-node/esm examples/ding-dong-bot.ts",
     "start": "npm run demo"
   },
   "repository": {
@@ -98,9 +98,6 @@
     "ws": "^7.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/node": "^7.14.9",
-    "@babel/preset-env": "^7.15.0",
     "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",

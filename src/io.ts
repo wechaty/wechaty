@@ -24,12 +24,7 @@ import {
   EventScanPayload,
 }                         from 'wechaty-puppet'
 
-import {
-  Peer,
-  JsonRpcPayload,
-  JsonRpcPayloadResponse,
-  parse,
-}                         from 'json-rpc-peer'
+import jsonRpcPeerPkg from 'json-rpc-peer'
 
 import {
   Message,
@@ -84,7 +79,7 @@ interface IoEventScan {
 
 interface IoEventJsonRpc {
   name: 'jsonrpc',
-  payload: JsonRpcPayload,
+  payload: jsonRpcPeerPkg.JsonRpcPayload,
 }
 
 interface IoEventAny {
@@ -126,7 +121,7 @@ export class Io {
 
   private scanPayload?: EventScanPayload
 
-  protected jsonRpc?: Peer
+  protected jsonRpc?: jsonRpcPeerPkg.Peer
 
   constructor (
     private options: IoOptions,
@@ -380,7 +375,7 @@ export class Io {
             log.warn('Io', 'on(jsonrpc) response is undefined.')
             return
           }
-          const payload = parse(response) as JsonRpcPayloadResponse
+          const payload = jsonRpcPeerPkg.parse(response) as jsonRpcPeerPkg.JsonRpcPayloadResponse
 
           const jsonrpcEvent: IoEventJsonRpc = {
             name: 'jsonrpc',

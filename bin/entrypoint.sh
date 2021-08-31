@@ -153,23 +153,12 @@ function wechaty::runBot() {
   local -i ret=0
   case "$botFile" in
     *.js)
-      if [ "$NODE_ENV" = "production" ]; then
-        echo "Executing node $*"
-        node "$@" &
-      else
-        echo "Executing babel-node --presets @babel/env $*"
-        # https://stackoverflow.com/a/34025957/1123955
-        BABEL_DISABLE_CACHE=1 babel-node --presets @babel/env "$@" &
-      fi
+      echo "Executing node $*"
+      node "$@" &
       ;;
     *.ts)
-      if [ "$NODE_ENV" = "production" ]; then
-        echo "Executing ts-node $*"
-        ts-node "$@" &
-      else
-        echo "Executing ts-node --type-check $*"
-        ts-node --type-check "$@" &
-      fi
+      echo "Executing ts-node $*"
+      node --no-warnings --loader=ts-node/esm "$@" &
       ;;
     *)
       echo "ERROR: wechaty::runBot() neith .js nor .ts"

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,19 +19,18 @@
  *
  */
 
-/* eslint-disable import/first */
-require('dotenv').config()
+import 'dotenv/config.js'
 
 import {
   config,
   log,
-}               from '../src/config'
+}               from '../src/config.js'
 
 import {
   IoClient,
   IoClientOptions,
-}                   from '../src/io-client'
-import { Wechaty }  from '../src/wechaty'
+}                   from '../src/io-client.js'
+import { Wechaty }  from '../src/wechaty.js'
 
 const welcome = `
 | __        __        _           _

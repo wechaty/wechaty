@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import * as readline from 'readline'
+import readline from 'readline'
 
 const contributeMap: {
   [contributor: string]: string[],
