@@ -1,4 +1,3 @@
-import { FileBoxChunk } from 'wechaty-grpc'
 import { FileBox }      from 'wechaty-puppet'
 import { PassThrough }  from 'stream'
 import {
@@ -6,11 +5,13 @@ import {
   Transform,
 }                       from 'stronger-typed-streams'
 
-import { nextData } from './next-data'
+import { puppet } from 'wechaty-grpc'
 
-const decoder = () => new Transform<FileBoxChunk, any>({
+import { nextData } from './next-data.js'
+
+const decoder = () => new Transform<puppet.FileBoxChunk, any>({
   objectMode: true,
-  transform: (chunk: FileBoxChunk, _: any, callback: any) => {
+  transform: (chunk: puppet.FileBoxChunk, _: any, callback: any) => {
     if (!chunk.hasData()) {
       callback(new Error('no data'))
       return
@@ -21,7 +22,7 @@ const decoder = () => new Transform<FileBoxChunk, any>({
 })
 
 async function unpackFileBoxFromChunk (
-  stream: Readable<FileBoxChunk>,
+  stream: Readable<puppet.FileBoxChunk>,
 ): Promise<FileBox> {
   const chunk = await nextData(stream)
   if (!chunk.hasName()) {
@@ -40,10 +41,10 @@ async function unpackFileBoxFromChunk (
   return fileBox
 }
 
-const encoder = () => new Transform<any, FileBoxChunk>({
+const encoder = () => new Transform<any, puppet.FileBoxChunk>({
   objectMode: true,
   transform: (chunk: any, _: any, callback: any) => {
-    const fileBoxChunk = new FileBoxChunk()
+    const fileBoxChunk = new puppet.FileBoxChunk()
     fileBoxChunk.setData(chunk)
     callback(null, fileBoxChunk)
   },
@@ -51,10 +52,10 @@ const encoder = () => new Transform<any, FileBoxChunk>({
 
 async function packFileBoxToChunk (
   fileBox: FileBox,
-): Promise<Readable<FileBoxChunk>> {
+): Promise<Readable<puppet.FileBoxChunk>> {
   const stream = new PassThrough({ objectMode: true })
 
-  const chunk = new FileBoxChunk()
+  const chunk = new puppet.FileBoxChunk()
   chunk.setName(fileBox.name)
 
   // FIXME: Huan(202010) write might return false

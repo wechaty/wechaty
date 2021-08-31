@@ -4,12 +4,12 @@ import { Readable }     from 'stronger-typed-streams'
 import {
   packFileBoxToChunk,
   unpackFileBoxFromChunk,
-}                           from './file-box-chunk'
+}                           from './file-box-chunk.js'
 import {
   packFileBoxChunkToPb,
   unpackFileBoxChunkFromPb,
-}                           from './chunk-pb'
-import { FileBoxPb }        from './file-box-pb.type'
+}                           from './chunk-pb.js'
+import { FileBoxPb }        from './file-box-pb.type.js'
 
 function packFileBoxToPb<T extends FileBoxPb> (
   PbConstructor: { new(): T },

@@ -1,17 +1,17 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test } from 'tstest'
 
 import { FileBox } from 'wechaty-puppet'
 
 import {
-  MessageFileStreamResponse,
+  puppet,
 }                                 from 'wechaty-grpc'
 
 import {
   packFileBoxToPb,
   unpackFileBoxFromPb,
-}                             from './file-box-pb'
+}                             from './file-box-pb.js'
 
 test('packFileBoxToPb()', async t => {
   const FILE_BOX_DATA = 'test'
@@ -22,7 +22,7 @@ test('packFileBoxToPb()', async t => {
     FILE_BOX_NAME,
   )
 
-  const pb = await packFileBoxToPb(MessageFileStreamResponse)(fileBox)
+  const pb = await packFileBoxToPb(puppet.MessageFileStreamResponse)(fileBox)
   const restoredFileBox = await unpackFileBoxFromPb(pb)
   t.ok(restoredFileBox instanceof FileBox, 'should get an instance of FileBOX')
 

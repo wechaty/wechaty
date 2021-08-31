@@ -2,12 +2,12 @@ import { FileBox }              from 'wechaty-puppet'
 import { PassThrough }          from 'stream'
 import { Readable }             from 'stronger-typed-streams'
 
-import { nextData }                 from './next-data'
+import { nextData }                 from './next-data.js'
 import {
   packFileBoxToPb,
   unpackFileBoxFromPb,
-}                                  from './file-box-pb'
-import { ConversationIdFileBoxPb } from './file-box-pb.type'
+}                                  from './file-box-pb.js'
+import { ConversationIdFileBoxPb } from './file-box-pb.type.js'
 
 interface ConversationIdFileBoxArgs {
   conversationId: string,

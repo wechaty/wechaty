@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test }  from 'tstest'
 
@@ -10,7 +10,7 @@ import { test }  from 'tstest'
 
 import {
   switchSuccess,
-}                     from './recover$'
+}                     from './recover$.js'
 
 test('switchSuccess()', async t => {
   t.equal(switchSuccess(true), true, 'should get expected result for boolean `true`')

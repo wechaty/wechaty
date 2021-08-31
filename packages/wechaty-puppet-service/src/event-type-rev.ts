@@ -1,6 +1,5 @@
 import {
-  EventType,
-  EventTypeMap,
+  puppet,
 }               from 'wechaty-grpc'
 
 /**
@@ -14,7 +13,7 @@ export const EventTypeRev = {} as {
   [key: number]: string,
 }
 
-for (const key in EventType) {
-  const val = EventType[key as keyof EventTypeMap]
+for (const key in puppet.EventType) {
+  const val = puppet.EventType[key as keyof puppet.EventTypeMap]
   EventTypeRev[val] = key
 }

@@ -1,16 +1,17 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test }  from 'tstest'
-import { PuppetOptions } from 'wechaty-puppet'
+import {
+  PuppetOptions,
+  log,
+}                 from 'wechaty-puppet'
 import PuppetMock from 'wechaty-puppet-mock'
 
-import { log } from '../src/config'
-
-import { GrpcClient }   from '../src/client/grpc-client'
+import { GrpcClient }   from '../src/client/grpc-client.js'
 import {
   PuppetServer,
   PuppetServerOptions,
-}                       from '../src/mod'
+}                       from '../src/mod.js'
 
 test('GrpcClient with TLS and valid token', async t => {
   const TOKEN         = 'insecure_UUIDv4'

@@ -1,6 +1,6 @@
-import { authImplToken }                                      from './auth-impl-token'
-import { monkeyPatchMetadataFromHttp2Headers }                from './mokey-patch-header-authorization'
-import { callCredToken }                                      from './call-cred'
+import { authImplToken }                                      from './auth-impl-token.js'
+import { monkeyPatchMetadataFromHttp2Headers }                from './mokey-patch-header-authorization.js'
+import { callCredToken }                                      from './call-cred.js'
 
 export {
   authImplToken,

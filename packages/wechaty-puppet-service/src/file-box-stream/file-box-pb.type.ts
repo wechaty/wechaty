@@ -1,12 +1,12 @@
-import { FileBoxChunk } from 'wechaty-grpc'
+import { puppet } from 'wechaty-grpc'
 
 /**
  * Any Protocol Buffer message that include a FileBoxChunk
  */
 export interface FileBoxPb {
   hasFileBoxChunk(): boolean
-  getFileBoxChunk(): FileBoxChunk | undefined
-  setFileBoxChunk(value?: FileBoxChunk): void
+  getFileBoxChunk(): puppet.FileBoxChunk | undefined
+  setFileBoxChunk(value?: puppet.FileBoxChunk): void
 }
 
 export interface ConversationIdFileBoxPb extends FileBoxPb {

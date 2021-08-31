@@ -1,70 +1,15 @@
 import {
   grpc,
-  IPuppetServer,
-  ContactAliasResponse,
-  ContactAvatarResponse,
-  ContactListResponse,
-  ContactPayloadResponse,
-  ContactSelfNameResponse,
-  ContactSelfQRCodeResponse,
-  ContactSelfSignatureResponse,
-  DingResponse,
-  DirtyPayloadResponse,
-  FriendshipAcceptResponse,
-  FriendshipAddResponse,
-  FriendshipPayloadResponse,
-  FriendshipSearchPhoneResponse,
-  FriendshipSearchWeixinResponse,
-  LogoutResponse,
-  MessageContactResponse,
-  MessageFileResponse,
-  MessageForwardResponse,
-  MessageMiniProgramResponse,
-  MessagePayloadResponse,
-  MessageRecallResponse,
-  MessageSendContactResponse,
-  MessageSendFileResponse,
-  MessageSendTextResponse,
-  MessageUrlResponse,
-  RoomAddResponse,
-  RoomAnnounceResponse,
-  RoomAvatarResponse,
-  RoomCreateResponse,
-  RoomDelResponse,
-  RoomInvitationAcceptResponse,
-  RoomInvitationPayloadResponse,
-  RoomListResponse,
-  RoomMemberListResponse,
-  RoomMemberPayloadResponse,
-  RoomPayloadResponse,
-  RoomQRCodeResponse,
-  RoomQuitResponse,
-  RoomTopicResponse,
-  StartResponse,
-  StopResponse,
-  TagContactAddResponse,
-  TagContactDeleteResponse,
-  TagContactListResponse,
-  TagContactRemoveResponse,
-  VersionResponse,
-  MessageSendMiniProgramResponse,
-  MessageImageResponse,
-
+  puppet as pbPuppet,
   StringValue,
-  EventType,
-  MessageSendUrlResponse,
-  MessageTypeMap,
-  ContactPhoneResponse,
-  ContactDescriptionResponse,
-  ContactCorporationRemarkResponse,
-  MessageSendFileStreamResponse,
-  MessageImageStreamResponse,
-  MessageFileStreamResponse,
 }                                   from 'wechaty-grpc'
 
 import {
+  log,
   FileBox,
+
   Puppet,
+
   FriendshipPayloadReceive,
   MiniProgramPayload,
   UrlLinkPayload,
@@ -80,19 +25,15 @@ import {
 import {
   packFileBoxToPb,
   unpackConversationIdFileBoxArgsFromPb,
-}                                         from '../file-box-stream/mod'
+}                                         from '../file-box-stream/mod.js'
 
-import {
-  log,
-}           from '../config'
-
-import { grpcError }          from './grpc-error'
-import { EventStreamManager } from './event-stream-manager'
-import { serializeFileBox }   from './serialize-file-box'
+import { grpcError }          from './grpc-error.js'
+import { EventStreamManager } from './event-stream-manager.js'
+import { serializeFileBox }   from './serialize-file-box.js'
 
 function puppetImplementation (
   puppet: Puppet,
-): IPuppetServer {
+): pbPuppet.IPuppetServer {
 
   /**
    * Save scan payload to send it to the puppet-service right after connected (if needed)
@@ -101,7 +42,7 @@ function puppetImplementation (
    */
   let scanPayload: undefined | EventScanPayload
   let readyPayload: undefined | EventReadyPayload
-  let readyTimeout: undefined | NodeJS.Timeout
+  let readyTimeout: undefined | ReturnType<typeof setTimeout>
 
   puppet
     .on('scan', payload  => { scanPayload = payload    })
@@ -115,13 +56,13 @@ function puppetImplementation (
     .on('login', _       => {
       scanPayload = undefined
       readyTimeout = setTimeout(() => {
-        readyPayload && eventStreamManager.grpcEmit(EventType.EVENT_TYPE_READY, readyPayload)
+        readyPayload && eventStreamManager.grpcEmit(pbPuppet.EventType.EVENT_TYPE_READY, readyPayload)
       }, 5 * 1000)
     })
 
   const eventStreamManager = new EventStreamManager(puppet)
 
-  const puppetServerImpl: IPuppetServer = {
+  const puppetServerImpl: pbPuppet.IPuppetServer = {
 
     contactAlias: async (call, callback) => {
       log.verbose('PuppetServiceImpl', 'contactAlias()')
@@ -136,9 +77,9 @@ function puppetImplementation (
         if (aliasWrapper) {
           try {
             await puppet.contactAlias(id, aliasWrapper.getValue())
-            return callback(null, new ContactAliasResponse())
+            return callback(null, new  pbPuppet.ContactAliasResponse())
           } catch (e) {
-            return grpcError('contactAlias', e, callback)
+            return grpcError('contactAlias', (e as Error), callback)
           }
         }
       }
@@ -152,12 +93,12 @@ function puppetImplementation (
         const aliasWrapper = new StringValue()
         aliasWrapper.setValue(alias)
 
-        const response = new ContactAliasResponse()
+        const response = new pbPuppet.ContactAliasResponse()
         response.setAlias(aliasWrapper)
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactAlias', e, callback)
+        return grpcError('contactAlias', (e as Error), callback)
       }
 
     },
@@ -179,10 +120,10 @@ function puppetImplementation (
           )
           await puppet.contactAvatar(id, fileBox)
 
-          return callback(null, new ContactAvatarResponse())
+          return callback(null, new pbPuppet.ContactAvatarResponse())
         }
       } catch (e) {
-        return grpcError('contactAvatar', e, callback)
+        return grpcError('contactAvatar', (e as Error), callback)
       }
 
       /**
@@ -196,12 +137,12 @@ function puppetImplementation (
           JSON.stringify(fileBox)
         )
 
-        const response = new ContactAvatarResponse()
+        const response = new pbPuppet.ContactAvatarResponse()
         response.setFilebox(fileBoxWrapper)
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactAvatar', e, callback)
+        return grpcError('contactAvatar', (e as Error), callback)
       }
     },
 
@@ -216,9 +157,9 @@ function puppetImplementation (
           corporationRemark = corporationRemarkWrapper.getValue()
         }
         await puppet.contactCorporationRemark(contactId, corporationRemark)
-        return callback(null, new ContactCorporationRemarkResponse())
+        return callback(null, new pbPuppet.ContactCorporationRemarkResponse())
       } catch (e) {
-        return grpcError('contactCorporationRemark', e, callback)
+        return grpcError('contactCorporationRemark', (e as Error), callback)
       }
     },
 
@@ -234,9 +175,9 @@ function puppetImplementation (
           description = descriptionWrapper.getValue()
         }
         await puppet.contactDescription(contactId, description)
-        return callback(null, new ContactDescriptionResponse())
+        return callback(null, new pbPuppet.ContactDescriptionResponse())
       } catch (e) {
-        return grpcError('contactDescription', e, callback)
+        return grpcError('contactDescription', (e as Error), callback)
       }
     },
 
@@ -247,12 +188,12 @@ function puppetImplementation (
 
       try {
         const idList = await puppet.contactList()
-        const response = new ContactListResponse()
+        const response = new pbPuppet.ContactListResponse()
         response.setIdsList(idList)
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactList', e, callback)
+        return grpcError('contactList', (e as Error), callback)
       }
     },
 
@@ -264,7 +205,7 @@ function puppetImplementation (
       try {
         const payload = await puppet.contactPayload(id)
 
-        const response = new ContactPayloadResponse()
+        const response = new pbPuppet.ContactPayloadResponse()
         response.setAddress(payload.address || '')
         response.setAlias(payload.alias || '')
         response.setAvatar(payload.avatar)
@@ -286,7 +227,7 @@ function puppetImplementation (
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactPayload', e, callback)
+        return grpcError('contactPayload', (e as Error), callback)
       }
     },
 
@@ -298,9 +239,9 @@ function puppetImplementation (
         const phoneList = call.request.getPhoneListList()
 
         await puppet.contactPhone(contactId, phoneList)
-        return callback(null, new ContactPhoneResponse())
+        return callback(null, new pbPuppet.ContactPhoneResponse())
       } catch (e) {
-        return grpcError('contactPhone', e, callback)
+        return grpcError('contactPhone', (e as Error), callback)
       }
     },
 
@@ -311,10 +252,10 @@ function puppetImplementation (
         const name = call.request.getName()
         await puppet.contactSelfName(name)
 
-        return callback(null, new ContactSelfNameResponse())
+        return callback(null, new pbPuppet.ContactSelfNameResponse())
 
       } catch (e) {
-        return grpcError('contactSelfName', e, callback)
+        return grpcError('contactSelfName', (e as Error), callback)
       }
     },
 
@@ -325,13 +266,13 @@ function puppetImplementation (
       try {
         const qrcode = await puppet.contactSelfQRCode()
 
-        const response = new ContactSelfQRCodeResponse()
+        const response = new pbPuppet.ContactSelfQRCodeResponse()
         response.setQrcode(qrcode)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('contactSelfQRCode', e, callback)
+        return grpcError('contactSelfQRCode', (e as Error), callback)
       }
 
     },
@@ -343,10 +284,10 @@ function puppetImplementation (
         const signature = call.request.getSignature()
         await puppet.contactSelfSignature(signature)
 
-        return callback(null, new ContactSelfSignatureResponse())
+        return callback(null, new pbPuppet.ContactSelfSignatureResponse())
 
       } catch (e) {
-        return grpcError('contactSelfSignature', e, callback)
+        return grpcError('contactSelfSignature', (e as Error), callback)
       }
 
     },
@@ -357,10 +298,10 @@ function puppetImplementation (
       try {
         const data = call.request.getData()
         await puppet.ding(data)
-        return callback(null, new DingResponse())
+        return callback(null, new pbPuppet.DingResponse())
 
       } catch (e) {
-        return grpcError('ding', e, callback)
+        return grpcError('ding', (e as Error), callback)
       }
     },
 
@@ -372,9 +313,9 @@ function puppetImplementation (
         const type: PayloadType = call.request.getType()
 
         await puppet.dirtyPayload(type, id)
-        return callback(null, new DirtyPayloadResponse())
+        return callback(null, new pbPuppet.DirtyPayloadResponse())
       } catch (e) {
-        return grpcError('dirtyPayload', e, callback)
+        return grpcError('dirtyPayload', (e as Error), callback)
       }
     },
 
@@ -414,7 +355,7 @@ function puppetImplementation (
        * If `scanPayload` is not undefined, then we emit it to downstream immediatelly
        */
       if (scanPayload) {
-        eventStreamManager.grpcEmit(EventType.EVENT_TYPE_SCAN, scanPayload)
+        eventStreamManager.grpcEmit(pbPuppet.EventType.EVENT_TYPE_SCAN, scanPayload)
       }
     },
 
@@ -424,10 +365,10 @@ function puppetImplementation (
       try {
         const id = call.request.getId()
         await puppet.friendshipAccept(id)
-        return callback(null, new FriendshipAcceptResponse())
+        return callback(null, new pbPuppet.FriendshipAcceptResponse())
 
       } catch (e) {
-        return grpcError('friendshipAccept', e, callback)
+        return grpcError('friendshipAccept', (e as Error), callback)
       }
     },
 
@@ -451,10 +392,10 @@ function puppetImplementation (
         }
 
         await puppet.friendshipAdd(contactId, friendshipAddOptions)
-        return callback(null, new FriendshipAddResponse())
+        return callback(null, new pbPuppet.FriendshipAddResponse())
 
       } catch (e) {
-        return grpcError('friendshipAdd', e, callback)
+        return grpcError('friendshipAdd', (e as Error), callback)
       }
     },
 
@@ -466,7 +407,7 @@ function puppetImplementation (
         const payload = await puppet.friendshipPayload(id)
         const payloadReceive = payload as FriendshipPayloadReceive
 
-        const response = new FriendshipPayloadResponse()
+        const response = new pbPuppet.FriendshipPayloadResponse()
 
         response.setContactId(payload.contactId)
         response.setHello(payload.hello || '')
@@ -479,7 +420,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('friendshipPayload', e, callback)
+        return grpcError('friendshipPayload', (e as Error), callback)
       }
     },
 
@@ -490,7 +431,7 @@ function puppetImplementation (
         const phone = call.request.getPhone()
         const contactId = await puppet.friendshipSearchPhone(phone)
 
-        const response = new FriendshipSearchPhoneResponse()
+        const response = new pbPuppet.FriendshipSearchPhoneResponse()
 
         if (contactId) {
           const contactIdWrapper = new StringValue()
@@ -501,7 +442,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('friendshipSearchPhone', e, callback)
+        return grpcError('friendshipSearchPhone', (e as Error), callback)
       }
     },
 
@@ -512,7 +453,7 @@ function puppetImplementation (
         const weixin = call.request.getWeixin()
         const contactId = await puppet.friendshipSearchWeixin(weixin)
 
-        const response = new FriendshipSearchWeixinResponse()
+        const response = new pbPuppet.FriendshipSearchWeixinResponse()
 
         if (contactId) {
           const contactIdWrapper = new StringValue()
@@ -523,7 +464,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('friendshipSearchWeixin', e, callback)
+        return grpcError('friendshipSearchWeixin', (e as Error), callback)
       }
     },
 
@@ -534,10 +475,10 @@ function puppetImplementation (
       try {
         await puppet.logout()
 
-        return callback(null, new LogoutResponse())
+        return callback(null, new pbPuppet.LogoutResponse())
 
       } catch (e) {
-        return grpcError('logout', e, callback)
+        return grpcError('logout', (e as Error), callback)
       }
     },
 
@@ -549,13 +490,13 @@ function puppetImplementation (
 
         const contactId = await puppet.messageContact(id)
 
-        const response = new MessageContactResponse()
+        const response = new pbPuppet.MessageContactResponse()
         response.setId(contactId)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageContact', e, callback)
+        return grpcError('messageContact', (e as Error), callback)
       }
     },
 
@@ -571,13 +512,13 @@ function puppetImplementation (
 
         const fileBox = await puppet.messageFile(id)
 
-        const response = new MessageFileResponse()
+        const response = new pbPuppet.MessageFileResponse()
         response.setFilebox(await serializeFileBox(fileBox))
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageFile', e, callback)
+        return grpcError('messageFile', (e as Error), callback)
       }
     },
 
@@ -588,14 +529,14 @@ function puppetImplementation (
         const id = call.request.getId()
 
         const fileBox  = await puppet.messageFile(id)
-        const response = await packFileBoxToPb(MessageFileStreamResponse)(fileBox)
+        const response = await packFileBoxToPb(pbPuppet.MessageFileStreamResponse)(fileBox)
 
-        response.on('error', e => call.destroy(e))
+        response.on('error', e => call.destroy(e as Error))
         response.pipe(call)
 
       } catch (e) {
-        log.error('PuppetServiceImpl', 'grpcError() messageFileStream() rejection: %s', e && e.message)
-        call.destroy(e)
+        log.error('PuppetServiceImpl', 'grpcError() messageFileStream() rejection: %s', e && (e as Error).message)
+        call.destroy(e as Error)
       }
     },
 
@@ -608,7 +549,7 @@ function puppetImplementation (
 
         const id = await puppet.messageForward(conversationId, messageId)
 
-        const response = new MessageForwardResponse()
+        const response = new pbPuppet.MessageForwardResponse()
         if (id) {
           const idWrapper = new StringValue()
           idWrapper.setValue(id)
@@ -618,7 +559,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageForward', e, callback)
+        return grpcError('messageForward', (e as Error), callback)
       }
     },
 
@@ -635,13 +576,13 @@ function puppetImplementation (
 
         const fileBox = await puppet.messageImage(id, type as number as ImageType)
 
-        const response = new MessageImageResponse()
+        const response = new pbPuppet.MessageImageResponse()
         response.setFilebox(await serializeFileBox(fileBox))
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageImage', e, callback)
+        return grpcError('messageImage', (e as Error), callback)
       }
     },
 
@@ -653,14 +594,14 @@ function puppetImplementation (
         const type = call.request.getType()
 
         const fileBox  = await puppet.messageImage(id, type as number as ImageType)
-        const response = await packFileBoxToPb(MessageImageStreamResponse)(fileBox)
+        const response = await packFileBoxToPb(pbPuppet.MessageImageStreamResponse)(fileBox)
 
-        response.on('error', e => call.destroy(e))
+        response.on('error', e => call.destroy(e as Error))
         response.pipe(call)
 
       } catch (e) {
-        log.error('PuppetServiceImpl', 'grpcError() messageImageStream() rejection: %s', e && e.message)
-        call.destroy(e)
+        log.error('PuppetServiceImpl', 'grpcError() messageImageStream() rejection: %s', (e as Error) && (e as Error).message)
+        call.destroy(e as Error)
       }
     },
 
@@ -672,13 +613,13 @@ function puppetImplementation (
 
         const payload = await puppet.messageMiniProgram(id)
 
-        const response = new MessageMiniProgramResponse()
+        const response = new pbPuppet.MessageMiniProgramResponse()
         response.setMiniProgram(JSON.stringify(payload))
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageMiniProgram', e, callback)
+        return grpcError('messageMiniProgram', (e as Error), callback)
       }
     },
 
@@ -694,7 +635,7 @@ function puppetImplementation (
           ? payload.mentionIdList || []
           : []
 
-        const response = new MessagePayloadResponse()
+        const response = new pbPuppet.MessagePayloadResponse()
         response.setFilename(payload.filename || '')
         response.setFromId(payload.fromId || '')
         response.setId(payload.id)
@@ -703,12 +644,12 @@ function puppetImplementation (
         response.setText(payload.text || '')
         response.setTimestamp(Math.floor(payload.timestamp))
         response.setToId(payload.toId || '')
-        response.setType(payload.type as MessageTypeMap[keyof MessageTypeMap])
+        response.setType(payload.type as pbPuppet.MessageTypeMap[keyof pbPuppet.MessageTypeMap])
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messagePayload', e, callback)
+        return grpcError('messagePayload', (e as Error), callback)
       }
     },
 
@@ -720,13 +661,13 @@ function puppetImplementation (
 
         const success = await puppet.messageRecall(id)
 
-        const response = new MessageRecallResponse()
+        const response = new pbPuppet.MessageRecallResponse()
         response.setSuccess(success)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageRecall', e, callback)
+        return grpcError('messageRecall', (e as Error), callback)
       }
     },
 
@@ -739,7 +680,7 @@ function puppetImplementation (
 
         const messageId = await puppet.messageSendContact(conversationId, contactId)
 
-        const response = new MessageSendContactResponse()
+        const response = new pbPuppet.MessageSendContactResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
@@ -750,7 +691,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendContact', e, callback)
+        return grpcError('messageSendContact', (e as Error), callback)
       }
     },
 
@@ -765,7 +706,7 @@ function puppetImplementation (
 
         const messageId = await puppet.messageSendFile(conversationId, fileBox)
 
-        const response = new MessageSendFileResponse()
+        const response = new pbPuppet.MessageSendFileResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
@@ -776,7 +717,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendFile', e, callback)
+        return grpcError('messageSendFile', (e as Error), callback)
       }
     },
 
@@ -790,7 +731,7 @@ function puppetImplementation (
 
         const messageId = await puppet.messageSendFile(conversationId, fileBox)
 
-        const response = new MessageSendFileStreamResponse()
+        const response = new pbPuppet.MessageSendFileStreamResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
@@ -801,7 +742,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendFileStream', e, callback)
+        return grpcError('messageSendFileStream', (e as Error), callback)
       }
     },
 
@@ -816,7 +757,7 @@ function puppetImplementation (
 
         const messageId = await puppet.messageSendMiniProgram(conversationId, payload)
 
-        const response = new MessageSendMiniProgramResponse()
+        const response = new pbPuppet.MessageSendMiniProgramResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
@@ -827,7 +768,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendMiniProgram', e, callback)
+        return grpcError('messageSendMiniProgram', (e as Error), callback)
       }
     },
 
@@ -841,7 +782,7 @@ function puppetImplementation (
 
         const messageId = await puppet.messageSendText(conversationId, text, mentionIdList)
 
-        const response = new MessageSendTextResponse()
+        const response = new pbPuppet.MessageSendTextResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
@@ -852,7 +793,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendText', e, callback)
+        return grpcError('messageSendText', (e as Error), callback)
       }
     },
 
@@ -867,7 +808,7 @@ function puppetImplementation (
 
         const messageId = await puppet.messageSendUrl(conversationId, payload)
 
-        const response = new MessageSendUrlResponse()
+        const response = new pbPuppet.MessageSendUrlResponse()
 
         if (messageId) {
           const idWrapper = new StringValue()
@@ -878,7 +819,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendUrl', e, callback)
+        return grpcError('messageSendUrl', (e as Error), callback)
       }
     },
 
@@ -889,13 +830,13 @@ function puppetImplementation (
         const id      = call.request.getId()
         const payload = await puppet.messageUrl(id)
 
-        const response = new MessageUrlResponse()
+        const response = new pbPuppet.MessageUrlResponse()
         response.setUrlLink(JSON.stringify(payload))
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageUrl', e, callback)
+        return grpcError('messageUrl', (e as Error), callback)
       }
     },
 
@@ -909,10 +850,10 @@ function puppetImplementation (
 
         await puppet.roomAdd(roomId, contactId, inviteOnly)
 
-        return callback(null, new RoomAddResponse())
+        return callback(null, new pbPuppet.RoomAddResponse())
 
       } catch (e) {
-        return grpcError('roomAdd', e, callback)
+        return grpcError('roomAdd', (e as Error), callback)
       }
     },
 
@@ -932,7 +873,7 @@ function puppetImplementation (
             const text = textWrapper.getValue()
             await puppet.roomAnnounce(roomId, text)
 
-            return callback(null, new RoomAnnounceResponse())
+            return callback(null, new pbPuppet.RoomAnnounceResponse())
           }
         }
 
@@ -944,13 +885,13 @@ function puppetImplementation (
         const textWrapper = new StringValue()
         textWrapper.setValue(text)
 
-        const response = new RoomAnnounceResponse()
+        const response = new pbPuppet.RoomAnnounceResponse()
         response.setText(textWrapper)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomAnnounce', e, callback)
+        return grpcError('roomAnnounce', (e as Error), callback)
       }
     },
 
@@ -962,13 +903,13 @@ function puppetImplementation (
 
         const fileBox = await puppet.roomAvatar(roomId)
 
-        const response = new RoomAvatarResponse()
+        const response = new pbPuppet.RoomAvatarResponse()
         response.setFilebox(await serializeFileBox(fileBox))
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomAvatar', e, callback)
+        return grpcError('roomAvatar', (e as Error), callback)
       }
     },
 
@@ -981,13 +922,13 @@ function puppetImplementation (
 
         const roomId = await puppet.roomCreate(contactIdList, topic)
 
-        const response = new RoomCreateResponse()
+        const response = new pbPuppet.RoomCreateResponse()
         response.setId(roomId)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomCreate', e, callback)
+        return grpcError('roomCreate', (e as Error), callback)
       }
     },
 
@@ -1000,10 +941,10 @@ function puppetImplementation (
 
         await puppet.roomDel(roomId, contactId)
 
-        return callback(null, new RoomDelResponse())
+        return callback(null, new pbPuppet.RoomDelResponse())
 
       } catch (e) {
-        return grpcError('roomDel', e, callback)
+        return grpcError('roomDel', (e as Error), callback)
       }
     },
 
@@ -1015,10 +956,10 @@ function puppetImplementation (
 
         await puppet.roomInvitationAccept(id)
 
-        return callback(null, new RoomInvitationAcceptResponse())
+        return callback(null, new pbPuppet.RoomInvitationAcceptResponse())
 
       } catch (e) {
-        return grpcError('roomInvitationAccept', e, callback)
+        return grpcError('roomInvitationAccept', (e as Error), callback)
       }
     },
 
@@ -1038,7 +979,7 @@ function puppetImplementation (
             const payload = JSON.parse(jsonText) as RoomInvitationPayload
             await puppet.roomInvitationPayload(roomInvitationId, payload)
 
-            return callback(null, new RoomInvitationPayloadResponse())
+            return callback(null, new pbPuppet.RoomInvitationPayloadResponse())
           }
         }
 
@@ -1047,7 +988,7 @@ function puppetImplementation (
          */
         const payload = await puppet.roomInvitationPayload(roomInvitationId)
 
-        const response = new RoomInvitationPayloadResponse()
+        const response = new pbPuppet.RoomInvitationPayloadResponse()
         response.setAvatar(payload.avatar)
         response.setId(payload.id)
         response.setInvitation(payload.invitation)
@@ -1061,7 +1002,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomInvitationPayload', e, callback)
+        return grpcError('roomInvitationPayload', (e as Error), callback)
       }
     },
 
@@ -1072,13 +1013,13 @@ function puppetImplementation (
       try {
         const roomIdList = await puppet.roomList()
 
-        const response = new RoomListResponse()
+        const response = new pbPuppet.RoomListResponse()
         response.setIdsList(roomIdList)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomList', e, callback)
+        return grpcError('roomList', (e as Error), callback)
       }
     },
 
@@ -1090,13 +1031,13 @@ function puppetImplementation (
 
         const roomMemberIdList = await puppet.roomMemberList(roomId)
 
-        const response = new RoomMemberListResponse()
+        const response = new pbPuppet.RoomMemberListResponse()
         response.setMemberIdsList(roomMemberIdList)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomMemberList', e, callback)
+        return grpcError('roomMemberList', (e as Error), callback)
       }
     },
 
@@ -1109,7 +1050,7 @@ function puppetImplementation (
 
         const payload = await puppet.roomMemberPayload(roomId, memberId)
 
-        const response = new RoomMemberPayloadResponse()
+        const response = new pbPuppet.RoomMemberPayloadResponse()
 
         response.setAvatar(payload.avatar)
         response.setId(payload.id)
@@ -1120,7 +1061,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomMemberPayload', e, callback)
+        return grpcError('roomMemberPayload', (e as Error), callback)
       }
     },
 
@@ -1132,7 +1073,7 @@ function puppetImplementation (
 
         const payload = await puppet.roomPayload(roomId)
 
-        const response = new RoomPayloadResponse()
+        const response = new pbPuppet.RoomPayloadResponse()
         response.setAdminIdsList(payload.adminIdList)
         response.setAvatar(payload.avatar || '')
         response.setId(payload.id)
@@ -1143,7 +1084,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomPayload', e, callback)
+        return grpcError('roomPayload', (e as Error), callback)
       }
     },
 
@@ -1155,13 +1096,13 @@ function puppetImplementation (
 
         const qrcode = await puppet.roomQRCode(roomId)
 
-        const response = new RoomQRCodeResponse()
+        const response = new pbPuppet.RoomQRCodeResponse()
         response.setQrcode(qrcode)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomQRCode', e, callback)
+        return grpcError('roomQRCode', (e as Error), callback)
       }
     },
 
@@ -1173,10 +1114,10 @@ function puppetImplementation (
 
         await puppet.roomQuit(roomId)
 
-        return callback(null, new RoomQuitResponse())
+        return callback(null, new pbPuppet.RoomQuitResponse())
 
       } catch (e) {
-        return grpcError('roomQuit', e, callback)
+        return grpcError('roomQuit', (e as Error), callback)
       }
     },
 
@@ -1196,7 +1137,7 @@ function puppetImplementation (
 
             await puppet.roomTopic(roomId, topic)
 
-            return callback(null, new RoomTopicResponse())
+            return callback(null, new pbPuppet.RoomTopicResponse())
           }
         }
 
@@ -1209,13 +1150,13 @@ function puppetImplementation (
         const topicWrapper = new StringValue()
         topicWrapper.setValue(topic)
 
-        const response = new RoomTopicResponse()
+        const response = new pbPuppet.RoomTopicResponse()
         response.setTopic(topicWrapper)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomTopic', e, callback)
+        return grpcError('roomTopic', (e as Error), callback)
       }
     },
 
@@ -1226,10 +1167,10 @@ function puppetImplementation (
       try {
         await puppet.start()
 
-        return callback(null, new StartResponse())
+        return callback(null, new pbPuppet.StartResponse())
 
       } catch (e) {
-        return grpcError('start', e, callback)
+        return grpcError('start', (e as Error), callback)
       }
     },
 
@@ -1248,10 +1189,10 @@ function puppetImplementation (
         await puppet.stop()
         readyPayload = undefined
 
-        return callback(null, new StopResponse())
+        return callback(null, new pbPuppet.StopResponse())
 
       } catch (e) {
-        return grpcError('stop', e, callback)
+        return grpcError('stop', (e as Error), callback)
       }
     },
 
@@ -1264,10 +1205,10 @@ function puppetImplementation (
 
         await puppet.tagContactAdd(tagId, contactId)
 
-        return callback(null, new TagContactAddResponse())
+        return callback(null, new pbPuppet.TagContactAddResponse())
 
       } catch (e) {
-        return grpcError('tagContactAdd', e, callback)
+        return grpcError('tagContactAdd', (e as Error), callback)
       }
     },
 
@@ -1279,10 +1220,10 @@ function puppetImplementation (
 
         await puppet.tagContactDelete(tagId)
 
-        return callback(null, new TagContactDeleteResponse())
+        return callback(null, new pbPuppet.TagContactDeleteResponse())
 
       } catch (e) {
-        return grpcError('tagContactDelete', e, callback)
+        return grpcError('tagContactDelete', (e as Error), callback)
       }
     },
 
@@ -1300,10 +1241,10 @@ function puppetImplementation (
 
           const tagIdList = await puppet.tagContactList(contactId)
 
-          const response = new TagContactListResponse()
+          const response = new pbPuppet.TagContactListResponse()
           response.setIdsList(tagIdList)
 
-          return callback(null, new TagContactListResponse())
+          return callback(null, new pbPuppet.TagContactListResponse())
         }
 
         /**
@@ -1311,13 +1252,13 @@ function puppetImplementation (
          */
         const tagIdList = await puppet.tagContactList()
 
-        const response = new TagContactListResponse()
+        const response = new pbPuppet.TagContactListResponse()
         response.setIdsList(tagIdList)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('tagContactList', e, callback)
+        return grpcError('tagContactList', (e as Error), callback)
       }
     },
 
@@ -1330,10 +1271,10 @@ function puppetImplementation (
 
         await puppet.tagContactRemove(tagId, contactId)
 
-        return callback(null, new TagContactRemoveResponse())
+        return callback(null, new pbPuppet.TagContactRemoveResponse())
 
       } catch (e) {
-        return grpcError('tagContactRemove', e, callback)
+        return grpcError('tagContactRemove', (e as Error), callback)
       }
     },
 
@@ -1344,13 +1285,13 @@ function puppetImplementation (
       try {
         const version = puppet.version()
 
-        const response = new VersionResponse()
+        const response = new pbPuppet.VersionResponse()
         response.setVersion(version)
 
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('version', e, callback)
+        return grpcError('version', (e as Error), callback)
       }
     },
 

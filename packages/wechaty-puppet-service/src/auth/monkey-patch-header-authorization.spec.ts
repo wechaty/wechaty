@@ -1,13 +1,13 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test } from 'tstest'
 import http2 from 'http2'
 
 import {
   Metadata,
-}             from './grpc-js'
+}             from './grpc-js.js'
 
-import { monkeyPatchMetadataFromHttp2Headers } from './mokey-patch-header-authorization'
+import { monkeyPatchMetadataFromHttp2Headers } from './mokey-patch-header-authorization.js'
 
 test('monkeyPatchMetadataFromHttp2Headers', async t => {
   const AUTHORITY = '__authority__'

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -26,14 +26,14 @@ import { Duplex }       from 'stronger-typed-streams'
 import { FileBox }      from 'wechaty-puppet'
 
 import {
-  FileBoxChunk,
+  puppet,
 }                 from 'wechaty-grpc'
 
 import {
   unpackFileBoxFromChunk,
   packFileBoxToChunk,
-}                         from './file-box-chunk'
-import { nextData }       from './next-data'
+}                         from './file-box-chunk.js'
+import { nextData }       from './next-data.js'
 
 test('unpackFileBoxFromChunk()', async t => {
   const FILE_BOX_DATA = 'test'
@@ -67,7 +67,7 @@ test('packFileBoxToChunk()', async t => {
   t.equal(fileName, FILE_BOX_NAME, 'should get name')
 
   let data = ''
-  stream.on('data', (chunk: FileBoxChunk) => {
+  stream.on('data', (chunk: puppet.FileBoxChunk) => {
     if (!chunk.hasData()) {
       throw new Error('no data')
     }
@@ -105,7 +105,7 @@ test('should handle no name error in catch', async t => {
   try {
     await unpackFileBoxFromChunk(stream)
   } catch (e) {
-    t.equal(e.message, 'no name')
+    t.equal((e as Error).message, 'no name')
   }
 })
 
@@ -119,7 +119,7 @@ test('should handle first error catch', async t => {
   try {
     await unpackFileBoxFromChunk(stream)
   } catch (e) {
-    t.equal(e.message, 'first exception')
+    t.equal((e as Error).message, 'first exception')
   }
 })
 
@@ -134,7 +134,7 @@ test('should handle middle error in further ops', async t => {
   try {
     await fileBox.toBuffer()
   } catch (e) {
-    t.equal(e.message, 'middle exception')
+    t.equal((e as Error).message, 'middle exception')
   }
 })
 
@@ -150,7 +150,7 @@ async function getFileBoxStreamStub (
     name,
   )
 
-  const stream: Duplex<FileBoxChunk, FileBoxChunk> = new PassThrough({ objectMode: true })
+  const stream: Duplex<puppet.FileBoxChunk, puppet.FileBoxChunk> = new PassThrough({ objectMode: true })
 
   if (firstException) {
     stream.pause()
@@ -159,7 +159,7 @@ async function getFileBoxStreamStub (
       stream.resume()
     })
   } else {
-    const chunk1 = new FileBoxChunk()
+    const chunk1 = new puppet.FileBoxChunk()
     if (!noname) {
       chunk1.setName(fileBox.name)
     }
@@ -174,7 +174,7 @@ async function getFileBoxStreamStub (
 
   const fileBoxStream = await fileBox.toStream()
   fileBoxStream.on('data', chunk => {
-    const fileBoxChunk = new FileBoxChunk()
+    const fileBoxChunk = new puppet.FileBoxChunk()
     fileBoxChunk.setData(chunk)
     setTimeout(() => stream.write(fileBoxChunk), 200)
   })

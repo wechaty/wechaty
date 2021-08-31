@@ -1,14 +1,25 @@
-export {
+import {
+  log,
+}                 from 'wechaty-puppet'
+import {
   PuppetService,
-  PuppetService as default,
-}                           from './client/puppet-service'
+}                 from './client/puppet-service.js'
+import {
+  VERSION,
+}                 from './config.js'
+import {
+  PuppetServer,
+  PuppetServerOptions,
+}                         from './server/puppet-server.js'
 
 export {
   log,
-  VERSION,
-}               from './config'
-
-export {
   PuppetServer,
+  PuppetService,
+  VERSION,
+}
+export type {
   PuppetServerOptions,
-}                         from './server/puppet-server'
+}
+
+export default PuppetService

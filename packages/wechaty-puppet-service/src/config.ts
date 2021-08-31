@@ -1,11 +1,11 @@
 /// <reference path="./typings.d.ts" />
 
-import { log }  from 'wechaty-puppet'
+import { packageJson } from './package-json.js'
 
-import { VERSION } from './version'
+import * as rootEnvVars from './env-vars.js'
+import * as authEnvVars from './auth/env-vars.js'
 
-import * as rootEnvVars from './env-vars'
-import * as authEnvVars from './auth/env-vars'
+const VERSION = packageJson.version || '0.0.0'
 
 const envVars = {
   ...rootEnvVars,
@@ -23,7 +23,6 @@ const GRPC_OPTIONS = {
 
 export {
   envVars,
-  log,
   GRPC_OPTIONS,
   VERSION,
 }

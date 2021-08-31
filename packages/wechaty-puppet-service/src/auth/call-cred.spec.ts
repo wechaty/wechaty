@@ -1,11 +1,11 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import {
   test,
   sinon,
 }         from 'tstest'
 
-import { metaGeneratorToken } from './call-cred'
+import { metaGeneratorToken } from './call-cred.js'
 
 test('metaGeneratorToken()', async t => {
   const TOKEN = 'UUIDv4'

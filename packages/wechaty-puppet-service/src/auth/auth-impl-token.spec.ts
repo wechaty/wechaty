@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import {
   test,
@@ -9,9 +9,9 @@ import {
   GrpcStatus,
   Metadata,
   UntypedServiceImplementation,
-}                                   from './grpc-js'
+}                                   from './grpc-js.js'
 
-import { authImplToken } from './auth-impl-token'
+import { authImplToken } from './auth-impl-token.js'
 
 test('authImplToken()', async t => {
   const sandbox = sinon.createSandbox()

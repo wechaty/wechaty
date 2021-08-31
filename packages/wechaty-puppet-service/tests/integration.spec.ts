@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import {
   test,
@@ -16,7 +16,7 @@ import {
   PuppetService,
   PuppetServer,
   PuppetServerOptions,
-}                               from '../src/mod'
+}                               from '../src/mod.js'
 
 test('integration testing', async t => {
   const TOKEN    = 'insecure_UUIDv4'

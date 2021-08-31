@@ -57,9 +57,9 @@ WECHATY_PUPPET_SERVICE_TOKEN=${WECHATY_PUPPET_SERVCIE_TOKEN} node bot.js
 
 ## History
 
-### master
+### master v0.31
 
-Refactoring
+1. ES Modules supported.
 
 ### v0.30 (Aug 25, 2021)
 

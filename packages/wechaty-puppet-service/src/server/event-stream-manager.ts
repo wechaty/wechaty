@@ -1,8 +1,5 @@
 import {
-  EventRequest,
-  EventResponse,
-  EventType,
-  EventTypeMap,
+  puppet as grpcPuppet,
   grpc,
 }                                   from 'wechaty-grpc'
 
@@ -24,19 +21,16 @@ import {
   PUPPET_EVENT_DICT,
   Puppet,
   PuppetEventName,
+  log,
 }                                   from 'wechaty-puppet'
 
 import {
-  log,
-}                 from '../config'
-
-import {
   EventTypeRev,
-}                     from '../event-type-rev'
+}                     from '../event-type-rev.js'
 
 class EventStreamManager {
 
-  protected eventStream: undefined | grpc.ServerWritableStream<EventRequest, EventResponse>
+  protected eventStream: undefined | grpc.ServerWritableStream<grpcPuppet.EventRequest, grpcPuppet.EventResponse>
 
   private puppetListening = false
 
@@ -51,7 +45,7 @@ class EventStreamManager {
   }
 
   public start (
-    stream: grpc.ServerWritableStream<EventRequest, EventResponse>,
+    stream: grpc.ServerWritableStream<grpcPuppet.EventRequest, grpcPuppet.EventResponse>,
   ): void {
     log.verbose('EventStreamManager', 'start(stream)')
 
@@ -79,7 +73,7 @@ class EventStreamManager {
       data: 'Wechaty Puppet gRPC stream connect successfully',
     } as EventHeartbeatPayload
     this.grpcEmit(
-      EventType.EVENT_TYPE_HEARTBEAT,
+      grpcPuppet.EventType.EVENT_TYPE_HEARTBEAT,
       connectSuccessHeartbeatPayload,
     )
 
@@ -93,7 +87,7 @@ class EventStreamManager {
         contactId: this.puppet.selfId(),
       } as EventLoginPayload
 
-      this.grpcEmit(EventType.EVENT_TYPE_LOGIN, payload)
+      this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_LOGIN, payload)
     }
   }
 
@@ -109,7 +103,7 @@ class EventStreamManager {
   }
 
   public grpcEmit (
-    type : EventTypeMap[keyof EventTypeMap],  // https://stackoverflow.com/a/49286056/1123955
+    type : grpcPuppet.EventTypeMap[keyof grpcPuppet.EventTypeMap],  // https://stackoverflow.com/a/49286056/1123955
     obj  : object,
   ): void {
     log.verbose('EventStreamManager', 'grpcEmit(%s[%s], %s)',
@@ -118,7 +112,7 @@ class EventStreamManager {
       JSON.stringify(obj),
     )
 
-    const response = new EventResponse()
+    const response = new grpcPuppet.EventResponse()
 
     response.setType(type)
     response.setPayload(
@@ -161,98 +155,98 @@ class EventStreamManager {
 
       switch (eventName) {
         case 'dong': {
-          const listener = (payload: EventDongPayload) => this.grpcEmit(EventType.EVENT_TYPE_DONG, payload)
+          const listener = (payload: EventDongPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_DONG, payload)
           this.puppet.on('dong', listener)
           const off = () => this.puppet.off('dong', listener)
           offCallbackList.push(off)
           break
         }
         case 'dirty': {
-          const listener = (payload: EventDirtyPayload) => this.grpcEmit(EventType.EVENT_TYPE_DIRTY, payload)
+          const listener = (payload: EventDirtyPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_DIRTY, payload)
           this.puppet.on('dirty', listener)
           const off = () => this.puppet.off('dirty', listener)
           offCallbackList.push(off)
           break
         }
         case 'error': {
-          const listener = (payload: EventErrorPayload) => this.grpcEmit(EventType.EVENT_TYPE_ERROR, payload)
+          const listener = (payload: EventErrorPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_ERROR, payload)
           this.puppet.on('error', listener)
           const off = () => this.puppet.off('error', listener)
           offCallbackList.push(off)
           break
         }
         case 'heartbeat': {
-          const listener = (payload: EventHeartbeatPayload) => this.grpcEmit(EventType.EVENT_TYPE_HEARTBEAT, payload)
+          const listener = (payload: EventHeartbeatPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_HEARTBEAT, payload)
           this.puppet.on('heartbeat', listener)
           const off = () => this.puppet.off('heartbeat', listener)
           offCallbackList.push(off)
           break
         }
         case 'friendship': {
-          const listener = (payload: EventFriendshipPayload) => this.grpcEmit(EventType.EVENT_TYPE_FRIENDSHIP, payload)
+          const listener = (payload: EventFriendshipPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_FRIENDSHIP, payload)
           this.puppet.on('friendship', listener)
           const off = () => this.puppet.off('friendship', listener)
           offCallbackList.push(off)
           break
         }
         case 'login': {
-          const listener = (payload: EventLoginPayload) => this.grpcEmit(EventType.EVENT_TYPE_LOGIN, payload)
+          const listener = (payload: EventLoginPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_LOGIN, payload)
           this.puppet.on('login', listener)
           const off = () => this.puppet.off('login', listener)
           offCallbackList.push(off)
           break
         }
         case 'logout': {
-          const listener = (payload: EventLogoutPayload) => this.grpcEmit(EventType.EVENT_TYPE_LOGOUT, payload)
+          const listener = (payload: EventLogoutPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_LOGOUT, payload)
           this.puppet.on('logout', listener)
           const off = () => this.puppet.off('logout', listener)
           offCallbackList.push(off)
           break
         }
         case 'message': {
-          const listener = (payload: EventMessagePayload) => this.grpcEmit(EventType.EVENT_TYPE_MESSAGE, payload)
+          const listener = (payload: EventMessagePayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_MESSAGE, payload)
           this.puppet.on('message', listener)
           const off = () => this.puppet.off('message', listener)
           offCallbackList.push(off)
           break
         }
         case 'ready': {
-          const listener = (payload: EventReadyPayload) => this.grpcEmit(EventType.EVENT_TYPE_READY, payload)
+          const listener = (payload: EventReadyPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_READY, payload)
           this.puppet.on('ready', listener)
           const off = () => this.puppet.off('ready', listener)
           offCallbackList.push(off)
           break
         }
         case 'room-invite': {
-          const listener = (payload: EventRoomInvitePayload) => this.grpcEmit(EventType.EVENT_TYPE_ROOM_INVITE, payload)
+          const listener = (payload: EventRoomInvitePayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_ROOM_INVITE, payload)
           this.puppet.on('room-invite', listener)
           const off = () => this.puppet.off('room-invite', listener)
           offCallbackList.push(off)
           break
         }
         case 'room-join': {
-          const listener = (payload: EventRoomJoinPayload) => this.grpcEmit(EventType.EVENT_TYPE_ROOM_JOIN, payload)
+          const listener = (payload: EventRoomJoinPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_ROOM_JOIN, payload)
           this.puppet.on('room-join', listener)
           const off = () => this.puppet.off('room-join', listener)
           offCallbackList.push(off)
           break
         }
         case 'room-leave': {
-          const listener = (payload: EventRoomLeavePayload) => this.grpcEmit(EventType.EVENT_TYPE_ROOM_LEAVE, payload)
+          const listener = (payload: EventRoomLeavePayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_ROOM_LEAVE, payload)
           this.puppet.on('room-leave', listener)
           const off = () => this.puppet.off('room-leave', listener)
           offCallbackList.push(off)
           break
         }
         case 'room-topic': {
-          const listener = (payload: EventRoomTopicPayload) => this.grpcEmit(EventType.EVENT_TYPE_ROOM_TOPIC, payload)
+          const listener = (payload: EventRoomTopicPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_ROOM_TOPIC, payload)
           this.puppet.on('room-topic', listener)
           const off = () => this.puppet.off('room-topic', listener)
           offCallbackList.push(off)
           break
         }
         case 'scan': {
-          const listener = (payload: EventScanPayload) => this.grpcEmit(EventType.EVENT_TYPE_SCAN, payload)
+          const listener = (payload: EventScanPayload) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_SCAN, payload)
           this.puppet.on('scan', listener)
           const off = () => this.puppet.off('scan', listener)
           offCallbackList.push(off)

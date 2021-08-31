@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import {
   test,
@@ -6,7 +6,7 @@ import {
 
 import https from 'https'
 
-import * as envVar  from './env-vars'
+import * as envVar  from './env-vars.js'
 import { AddressInfo } from 'ws'
 
 import {
@@ -14,7 +14,7 @@ import {
   TLS_INSECURE_SERVER_CERT_COMMON_NAME,
   TLS_INSECURE_SERVER_CERT,
   TLS_INSECURE_SERVER_KEY,
-}                                         from './ca'
+}                                         from './ca.js'
 
 test('CA smoke testing', async t => {
 

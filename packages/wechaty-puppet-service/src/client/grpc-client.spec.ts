@@ -1,8 +1,8 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test }  from 'tstest'
 
-import { GrpcClient } from './grpc-client'
+import { GrpcClient } from './grpc-client.js'
 
 /**
  * Huan(202108):

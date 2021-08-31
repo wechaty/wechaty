@@ -15,7 +15,7 @@ import {
 import { FlashStore } from 'flash-store'
 // import LRU            from 'lru-cache'
 
-import { VERSION } from '../version'
+import { VERSION } from '../config.js'
 
 interface PayloadStoreOptions {
   token: string

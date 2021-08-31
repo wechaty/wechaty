@@ -1,9 +1,9 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 // tslint:disable:no-shadowed-variable
 import { test }  from 'tstest'
 
-import { WECHATY_PUPPET_SERVICE_AUTHORITY } from './env-vars'
+import { WECHATY_PUPPET_SERVICE_AUTHORITY } from './env-vars.js'
 
 /**
  * Huan(202108): compatible with old env var

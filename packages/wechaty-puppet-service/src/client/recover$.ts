@@ -1,5 +1,6 @@
 import {
   Puppet,
+  log,
 }                   from 'wechaty-puppet'
 
 import {
@@ -20,10 +21,6 @@ import {
   takeUntil,
   tap,
 }             from 'rxjs/operators'
-
-import {
-  log,
-}           from '../config'
 
 /**
  * Filters

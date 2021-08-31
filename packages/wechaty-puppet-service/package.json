@@ -1,26 +1,34 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.31.3",
+  "version": "0.31.5",
   "description": "Puppet Service for Wechaty",
-  "main": "dist/src/mod.js",
-  "typings": "dist/src/mod.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mod.js",
+      "require": "./dist/cjs/src/mod.js"
+    }
+  },
+  "typings": "./dist/esm/src/mod.d.ts",
+  "engines": {
+    "wechaty": ">=0.69",
+    "wechaty-puppet": ">=0.43"
+  },
   "directories": {
     "test": "tests"
   },
-  "engines": {
-    "wechaty": ">=0.60",
-    "wechaty-puppet": ">=0.41"
-  },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc",
+    "dist": "npm-run-all clean build fixup",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "fixup": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
-    "lint:ts": "tsc --noEmit",
+    "lint:ts": "tsc --isolatedModules --noEmit",
     "start": "ts-node examples/ding-dong-bot.ts",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "tap --node-arg=--require=ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "repository": {
@@ -43,7 +51,7 @@
   },
   "homepage": "https://github.com/wechaty/wechaty-puppet-service#readme",
   "devDependencies": {
-    "@chatie/eslint-config": "^0.12.4",
+    "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^0.17.2",
@@ -51,26 +59,32 @@
     "@types/lru-cache": "^5.1.1",
     "@types/semver": "^6.2.2",
     "@types/ws": "^7.4.4",
+    "npm-run-all": "^4.1.5",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tstest": "^0.5.16",
-    "typescript": "4.3",
-    "wechaty": "^0.61",
-    "wechaty-puppet": "^0.41.7",
-    "wechaty-puppet-mock": "^0.29.6"
+    "typescript": "^4.4",
+    "wechaty": "^0.69.12",
+    "wechaty-puppet": "^0.43.9",
+    "wechaty-puppet-mock": "^0.31.3"
   },
   "dependencies": {
     "flash-store": "^1.1.1",
     "rxjs": "^7.1.0",
     "semver": "^6.3.0",
     "stronger-typed-streams": "^0.2.0",
-    "wechaty-grpc": "^0.25.1",
+    "wechaty-grpc": "^0.27.6",
     "wechaty-token": "^0.5.8"
   },
   "publishConfig": {
     "access": "public",
     "tag": "next"
   },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/"
+  ],
   "tap": {
     "check-coverage": false
   },

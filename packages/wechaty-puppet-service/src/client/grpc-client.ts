@@ -2,13 +2,10 @@ import util from 'util'
 import EventEmitter from 'events'
 import crypto from 'crypto'
 
+import { log } from 'wechaty-puppet'
 import {
   grpc,
-  PuppetClient,
-  EventRequest,
-  StartRequest,
-  StopRequest,
-  EventResponse,
+  puppet,
 }                     from 'wechaty-grpc'
 import {
   WechatyToken,
@@ -17,18 +14,17 @@ import {
 
 import {
   GRPC_OPTIONS,
-  log,
   envVars,
-}                   from '../config'
+}                   from '../config.js'
 
-import { callCredToken }  from '../auth/mod'
-import { GrpcStatus }     from '../auth/grpc-js'
+import { callCredToken }  from '../auth/mod.js'
+import { GrpcStatus }     from '../auth/grpc-js.js'
 import {
   TLS_CA_CERT,
   TLS_INSECURE_SERVER_CERT_COMMON_NAME,
-}                                         from '../auth/ca'
+}                                         from '../auth/ca.js'
 
-import { PuppetServiceOptions } from './puppet-service'
+import { PuppetServiceOptions } from './puppet-service.js'
 
 /**
  * Huan(202108): register `wechaty` schema for gRPC service discovery
@@ -40,8 +36,8 @@ WechatyResolver.setup()
 
 class GrpcClient extends EventEmitter {
 
-  client?      : PuppetClient
-  eventStream? : grpc.ClientReadableStream<EventResponse>
+  client?      : puppet.PuppetClient
+  eventStream? : grpc.ClientReadableStream<puppet.EventResponse>
 
   /**
    * gRPC settings
@@ -135,7 +131,7 @@ class GrpcClient extends EventEmitter {
     await util.promisify(
       this.client!.start
         .bind(this.client)
-    )(new StartRequest())
+    )(new puppet.StartRequest())
   }
 
   async stop (): Promise<void> {
@@ -151,7 +147,7 @@ class GrpcClient extends EventEmitter {
      */
     await util.promisify(
       this.client!.stop.bind(this.client)
-    )(new StopRequest())
+    )(new puppet.StopRequest())
     /**
      * 3. Destroy grpc client
      */
@@ -202,7 +198,7 @@ class GrpcClient extends EventEmitter {
       this.client = undefined
     }
 
-    this.client = new PuppetClient(
+    this.client = new puppet.PuppetClient(
       this.endpoint,
       credential,
       clientOptions,
@@ -226,7 +222,7 @@ class GrpcClient extends EventEmitter {
     try {
       client.close()
     } catch (e) {
-      log.error('GrpcClient', 'destroy() grpcClient.close() rejection: %s\n%s', e && e.message, e.stack)
+      log.error('GrpcClient', 'destroy() grpcClient.close() rejection: %s\n%s', e && (e as Error).message, (e as Error).stack)
     }
   }
 
@@ -242,13 +238,13 @@ class GrpcClient extends EventEmitter {
       this.eventStream = undefined
     }
 
-    const eventStream = this.client.event(new EventRequest())
+    const eventStream = this.client.event(new puppet.EventRequest())
 
     /**
      * Store the event data from the stream when we test connection,
      *  and re-emit the event data when we have finished testing the connection
      */
-    let peekedData: undefined | EventResponse
+    let peekedData: undefined | puppet.EventResponse
 
     /**
      * Huan(202108): future must be placed before other listenser registration
@@ -267,7 +263,7 @@ class GrpcClient extends EventEmitter {
        * So we also need a timeout for compatible with those providers
        *  in case of they are not following this special protocol.
        */
-      .once('data', (resp: EventResponse) => {
+      .once('data', (resp: puppet.EventResponse) => {
         peekedData = resp
         resolve()
       })

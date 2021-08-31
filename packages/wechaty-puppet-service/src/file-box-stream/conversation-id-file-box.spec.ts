@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -20,19 +20,18 @@
  *
  */
 import {
-  FileBoxChunk,
-  MessageSendFileStreamRequest,
+  puppet,
 }                                       from 'wechaty-grpc'
 
 import { test }         from 'tstest'
 import { PassThrough }  from 'stream'
 import { FileBox }      from 'wechaty-puppet'
 
-import { nextData }     from './next-data'
+import { nextData }     from './next-data.js'
 import {
   packConversationIdFileBoxToPb,
   unpackConversationIdFileBoxArgsFromPb,
-}                                         from './conversation-id-file-box'
+}                                         from './conversation-id-file-box.js'
 
 test('unpackConversationIdFileBoxArgsFromPb()', async t => {
   const FILE_BOX_DATA = 'test'
@@ -46,21 +45,21 @@ test('unpackConversationIdFileBoxArgsFromPb()', async t => {
 
   const stream = new PassThrough({ objectMode: true })
 
-  const req1 = new MessageSendFileStreamRequest()
+  const req1 = new puppet.MessageSendFileStreamRequest()
   req1.setConversationId(CONVERSATION_ID)
   stream.write(req1)
 
-  const req2 = new MessageSendFileStreamRequest()
-  const chunk1 = new FileBoxChunk()
+  const req2 = new puppet.MessageSendFileStreamRequest()
+  const chunk1 = new puppet.FileBoxChunk()
   chunk1.setName(fileBox.name)
   req2.setFileBoxChunk(chunk1)
   stream.write(req2)
 
   const fileBoxStream = await fileBox.toStream()
   fileBoxStream.on('data', chunk => {
-    const fileBoxChunk = new FileBoxChunk()
+    const fileBoxChunk = new puppet.FileBoxChunk()
     fileBoxChunk.setData(chunk)
-    const req3 = new MessageSendFileStreamRequest()
+    const req3 = new puppet.MessageSendFileStreamRequest()
     req3.setFileBoxChunk(fileBoxChunk)
     stream.write(req3)
   })
@@ -84,7 +83,7 @@ test('packConversationIdFileBoxToPb()', async t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(
+  const stream = await packConversationIdFileBoxToPb(puppet.MessageSendFileStreamRequest)(
     CONVERSATION_ID,
     fileBox,
   )
@@ -98,7 +97,7 @@ test('packConversationIdFileBoxToPb()', async t => {
   t.equal(data2.getFileBoxChunk()!.getName(), FILE_BOX_NAME, 'match file box name')
 
   let data = ''
-  stream.on('data', (chunk: MessageSendFileStreamRequest) => {
+  stream.on('data', (chunk: puppet.MessageSendFileStreamRequest) => {
     if (!chunk.hasFileBoxChunk()) {
       throw new Error('no file box chunk')
     }
@@ -123,7 +122,7 @@ test('unpackConversationIdFileBoxArgsFromPb() <-> packConversationIdFileBoxToPb(
     FILE_BOX_NAME,
   )
 
-  const stream = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(CONVERSATION_ID, fileBox)
+  const stream = await packConversationIdFileBoxToPb(puppet.MessageSendFileStreamRequest)(CONVERSATION_ID, fileBox)
   const args = await unpackConversationIdFileBoxArgsFromPb(stream)
 
   t.equal(args.conversationId, CONVERSATION_ID, 'should match conversation id')

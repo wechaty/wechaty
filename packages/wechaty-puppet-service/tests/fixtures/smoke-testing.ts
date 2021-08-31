@@ -1,14 +1,10 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 import {
   VERSION,
   PuppetService,
 }                       from 'wechaty-puppet-service'
 
 async function main () {
-  if (VERSION === '0.0.0') {
-    throw new Error('version should be set before publishing')
-  }
-
   const puppetService = new PuppetService()
   const version = puppetService.version()
 
@@ -22,6 +18,12 @@ async function main () {
   // } finally {
   //   await bot.stop()
   // }
+
+  if (VERSION === '0.0.0') {
+    throw new Error('version should be set before publishing')
+  }
+
+  console.info('Wechaty Puppet Service v' + VERSION + ' passed.')
   return 0
 }
 

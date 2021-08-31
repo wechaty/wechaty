@@ -2,7 +2,7 @@ import {
   credentials,
   CallMetadataGenerator,
   Metadata,
-}                         from './grpc-js'
+}                         from './grpc-js.js'
 
 /**
  * With server authentication SSL/TLS and a custom header with token

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node --no-warnings --loader ts-node/esm
 
 import { test }  from 'tstest'
 
@@ -7,7 +7,7 @@ import { Puppet } from 'wechaty-puppet'
 import {
   PuppetServer,
   PuppetServerOptions,
-}                          from './puppet-server'
+}                          from './puppet-server.js'
 
 test('version()', async t => {
   const options: PuppetServerOptions = {

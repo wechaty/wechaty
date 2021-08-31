@@ -1,17 +1,17 @@
-import { FileBoxChunk } from 'wechaty-grpc'
+import { puppet } from 'wechaty-grpc'
 import { Readable, Transform } from 'stronger-typed-streams'
 import { PassThrough } from 'stream'
 
-import { FileBoxPb } from './file-box-pb.type'
+import { FileBoxPb } from './file-box-pb.type.js'
 
 /**
  * Wrap FileBoxChunk
  */
 const encoder = <T extends FileBoxPb>(
   PbConstructor: { new(): T },
-) => new Transform<FileBoxChunk, T>({
+) => new Transform<puppet.FileBoxChunk, T>({
   objectMode: true,
-  transform: (chunk: FileBoxChunk, _: any, callback: (error: Error | null, data: T) => void) => {
+  transform: (chunk: puppet.FileBoxChunk, _: any, callback: (error: Error | null, data: T) => void) => {
     const message = new PbConstructor()
     message.setFileBoxChunk(chunk)
     callback(null, message)
@@ -21,7 +21,7 @@ const encoder = <T extends FileBoxPb>(
 function packFileBoxChunkToPb<T extends FileBoxPb> (
   PbConstructor: { new(): T },
 ) {
-  return (stream: Readable<FileBoxChunk>): Readable<T> => {
+  return (stream: Readable<puppet.FileBoxChunk>): Readable<T> => {
     const outStream     = new PassThrough({ objectMode: true })
     const encodedStream = stream.pipe(encoder(PbConstructor))
 
@@ -36,9 +36,9 @@ function packFileBoxChunkToPb<T extends FileBoxPb> (
 /**
  * Unwrap FileBoxChunk
  */
-const decoder = <T extends FileBoxPb>() => new Transform<T, FileBoxChunk>({
+const decoder = <T extends FileBoxPb>() => new Transform<T, puppet.FileBoxChunk>({
   objectMode: true,
-  transform: (chunk: T, _: any, callback: (error: Error | null, data?: FileBoxChunk) => void) => {
+  transform: (chunk: T, _: any, callback: (error: Error | null, data?: puppet.FileBoxChunk) => void) => {
     const fileBoxChunk = chunk.getFileBoxChunk()
     if (!fileBoxChunk) {
       callback(new Error('No FileBoxChunk'))
@@ -50,7 +50,7 @@ const decoder = <T extends FileBoxPb>() => new Transform<T, FileBoxChunk>({
 
 function unpackFileBoxChunkFromPb<T extends FileBoxPb> (
   stream: Readable<T>,
-): Readable<FileBoxChunk> {
+): Readable<puppet.FileBoxChunk> {
   const outStream     = new PassThrough({ objectMode: true })
   const decodedStream = stream.pipe(decoder())
 

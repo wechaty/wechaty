@@ -12,16 +12,18 @@ import {
 import {
   CallMetadataGenerator,
 }                                 from '@grpc/grpc-js/build/src/call-credentials'
-import { Status as GrpcStatus }     from '@grpc/grpc-js/build/src/constants'
+import { Status as GrpcStatus }     from '@grpc/grpc-js/build/src/constants.js'
 
-export {
-  credentials,
-  CallMetadataGenerator,
-  GrpcStatus,
-  Metadata,
+export type {
+  UntypedServiceImplementation,
+  UntypedHandleCall,
   sendUnaryData,
   ServerUnaryCall,
+  CallMetadataGenerator,
+}
+export {
+  credentials,
+  GrpcStatus,
+  Metadata,
   StatusBuilder,
-  UntypedHandleCall,
-  UntypedServiceImplementation,
 }
