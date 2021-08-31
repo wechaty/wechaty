@@ -17,8 +17,8 @@
  *   limitations under the License.
  *
  */
-import { Wechaty } from './wechaty.js'
-import {
+import type { Wechaty } from './wechaty.js'
+import type {
   Contact,
   Message,
 }           from './user/mod.js'

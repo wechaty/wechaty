@@ -1,7 +1,7 @@
 import { EventEmitter }   from 'events'
 import type TypedEventEmitter  from 'typed-emitter'
 
-import {
+import type {
   Contact,
   Friendship,
   Message,

@@ -24,7 +24,7 @@ import {
   log,
 }                   from 'wechaty-puppet'
 
-import { Wechaty } from '../wechaty.js'
+import type { Wechaty } from '../wechaty.js'
 
 class Image {
 

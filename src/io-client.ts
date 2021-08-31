@@ -30,12 +30,12 @@ import {
   PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
-import { Message }      from './user/mod.js'
+import type { Message }      from './user/mod.js'
 
 import {
-}                      from './config.js'
+}                       from './config.js'
 import { Io }           from './io.js'
-import { Wechaty }      from './wechaty.js'
+import type { Wechaty } from './wechaty.js'
 
 export interface IoClientOptions {
   token   : string,

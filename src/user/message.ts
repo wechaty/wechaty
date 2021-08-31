@@ -30,7 +30,7 @@ import {
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
 
-import {
+import type {
   Wechaty,
 }                         from '../wechaty.js'
 import {
@@ -39,7 +39,7 @@ import {
 import {
   looseInstanceOfFileBox,
 }                           from '../helper-functions/mod.js'
-import {
+import type {
   Sayable,
 }                       from '../types.js'
 
@@ -48,7 +48,7 @@ import { captureException } from '../raven.js'
 import {
   Contact,
 }                       from './contact.js'
-import {
+import type {
   Room,
 }                       from './room.js'
 import {
@@ -57,7 +57,7 @@ import {
 import {
   MiniProgram,
 }                       from './mini-program.js'
-import { Image }        from './image.js'
+import type { Image }        from './image.js'
 
 /**
  * All wechat messages will be encapsulated as a Message.

@@ -22,7 +22,7 @@ import {
   log,
 }                     from 'wechaty-puppet'
 
-import { Wechaty }  from '../wechaty.js'
+import type { Wechaty }  from '../wechaty.js'
 
 import { Contact }  from './contact.js'
 import { Favorite } from './favorite.js'

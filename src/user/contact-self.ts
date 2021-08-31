@@ -26,7 +26,7 @@ import {
   guardQrCodeValue,
 } from '../helper-functions/pure/guard-qr-code-value.js'
 
-import { Wechaty } from '../wechaty.js'
+import type { Wechaty } from '../wechaty.js'
 
 import {
   Contact,

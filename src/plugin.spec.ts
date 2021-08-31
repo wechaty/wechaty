@@ -28,7 +28,7 @@ import { PuppetMock } from 'wechaty-puppet-mock'
 import {
   Wechaty,
 }                         from './wechaty.js'
-import { WechatyPlugin }  from './plugin.js'
+import type { WechatyPlugin }  from './plugin.js'
 
 test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
   const spyPluginInstall  = sinon.spy()

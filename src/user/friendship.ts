@@ -27,22 +27,22 @@ import {
   log,
 }                                 from 'wechaty-puppet'
 
-import {
+import type {
   Wechaty,
 }                   from '../wechaty.js'
 import {
   retryPolicy,
 }                   from '../helper-functions/mod.js'
 
-import {
+import type {
   Acceptable,
 }                   from '../types.js'
 
-import {
+import type {
   Contact,
 }                   from './contact.js'
 
-import {
+import type {
   Room,
 }                   from './room.js'
 

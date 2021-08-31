@@ -8,7 +8,7 @@ import {
   ScanStatus,
 }                       from 'wechaty-puppet'
 
-import {
+import type {
   Friendship,
   ContactSelf,
   Room,

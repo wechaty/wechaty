@@ -23,7 +23,7 @@ import {
   sinon,
 }             from 'tstest'
 
-import {
+import type {
   ContactPayload,
   RoomMemberPayload,
   RoomPayload,

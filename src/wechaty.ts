@@ -41,14 +41,14 @@ import {
   GIT_COMMIT_HASH,
 }                       from './config.js'
 
-import {
+import type {
   Sayable,
 }                       from './types.js'
 
 import {
   Io,
 }                       from './io.js'
-import {
+import type {
   PuppetModuleName,
 }                       from './puppet-config.js'
 import {

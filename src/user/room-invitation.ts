@@ -23,17 +23,17 @@ import {
   log,
 }                           from 'wechaty-puppet'
 
-import {
+import type {
   Wechaty,
 }               from '../wechaty.js'
-import {
+import type {
   Acceptable,
 }               from '../types.js'
 import {
   timestampToDate,
 }                   from '../helper-functions/pure/timestamp-to-date.js'
 
-import {
+import type {
   Contact,
 }               from './contact.js'
 

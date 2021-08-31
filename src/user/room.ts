@@ -27,7 +27,7 @@ import {
   log,
 }                           from 'wechaty-puppet'
 
-import { Wechaty }          from '../wechaty.js'
+import type { Wechaty }          from '../wechaty.js'
 
 import {
   FOUR_PER_EM_SPACE,
@@ -35,7 +35,7 @@ import {
 import {
   looseInstanceOfFileBox,
 }                           from '../helper-functions/mod.js'
-import {
+import type {
   Sayable,
 }                           from '../types.js'
 

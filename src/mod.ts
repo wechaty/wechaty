@@ -39,12 +39,12 @@ import {
   Wechaty,
   WechatyOptions,
 }                             from './wechaty.js'
-import {
+import type {
   WechatyPlugin,
   WechatyPluginUninstaller,
 }                             from './plugin.js'
 
-import {
+import type {
   PuppetModuleName,
 }                             from './puppet-config.js'
 

@@ -27,17 +27,17 @@ import {
 
 import jsonRpcPeerPkg from 'json-rpc-peer'
 
-import {
+import type {
   Message,
 }                 from './user/mod.js'
 
 import {
   config,
 }                 from './config.js'
-import {
+import type {
   AnyFunction,
 }                 from './types.js'
-import {
+import type {
   Wechaty,
 }                 from './wechaty.js'
 

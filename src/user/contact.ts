@@ -28,21 +28,21 @@ import {
   log,
 }                         from 'wechaty-puppet'
 
-import { Wechaty }          from '../wechaty.js'
+import type { Wechaty }          from '../wechaty.js'
 import {
   qrCodeForChatie,
 }                           from '../config.js'
 import {
   looseInstanceOfFileBox,
 }                           from '../helper-functions/mod.js'
-import {
+import type {
   Sayable,
 }                           from '../types.js'
 import { captureException } from '../raven.js'
 
 import { Message }      from './message.js'
 import { MiniProgram }  from './mini-program.js'
-import { Tag }          from './tag.js'
+import type { Tag }          from './tag.js'
 import { UrlLink }      from './url-link.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
