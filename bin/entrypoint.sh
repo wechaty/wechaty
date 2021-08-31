@@ -273,7 +273,7 @@ function main() {
     #
     # 2. Run a bot
     #
-    *.ts | *.js)
+    *.ts | *.js | *.cjs | *.mjs)
       # set -e will not work inside wechaty::runBot because of
       # http://stackoverflow.com/a/4073372/1123955
       wechaty::runBot "$@" || ret=$?
