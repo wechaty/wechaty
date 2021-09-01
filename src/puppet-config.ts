@@ -67,7 +67,7 @@ export const PUPPET_DEPENDENCIES = {
    */
   'wechaty-puppet-gitter'   : '>=0.4.7',   // https://www.npmjs.com/package/wechaty-puppet-gitter
   'wechaty-puppet-lark'     : '>=0.4.5',   // https://www.npmjs.com/package/wechaty-puppet-lark
-  'wechaty-puppet-whatsapp' : '>=0.2.2',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
+  'wechaty-puppet-whatsapp' : '>=0.3.3',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
 
   /**
    * Scoped puppets (private)
