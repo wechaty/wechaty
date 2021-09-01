@@ -125,6 +125,11 @@
     "typedoc": "^1.0.0-dev.4 ",
     "wechaty-puppet-mock": "^0.31.3"
   },
+  "tap": {
+    "test-env": [
+      "ESM_DISABLE_CACHE=1"
+    ]
+  },
   "files": [
     "bin/",
     "dist/",
