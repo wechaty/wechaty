@@ -56,11 +56,11 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * WeChat Puppets
    */
-  'wechaty-puppet-wechat'           : '>=0.29',  // https://www.npmjs.com/package/wechaty-puppet-wechat
-  'wechaty-puppet-wechat4u'         : '>=0.17',  // https://www.npmjs.com/package/wechaty-puppet-wechat4u
-  'wechaty-puppet-padlocal'         : '>=0.4.1',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
-  'wechaty-puppet-xp'               : '>=0.2.5',   // https://www.npmjs.com/package/wechaty-puppet-xp
-  'wechaty-puppet-official-account' : '>=0.5',   // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-wechat'           : '>=0.29',   // https://www.npmjs.com/package/wechaty-puppet-wechat
+  'wechaty-puppet-wechat4u'         : '>=0.17',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
+  'wechaty-puppet-padlocal'         : '>=0.4.1',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
+  'wechaty-puppet-xp'               : '>=0.5.3',  // https://www.npmjs.com/package/wechaty-puppet-xp
+  'wechaty-puppet-official-account' : '>=0.5',    // https://www.npmjs.com/package/wechaty-puppet-official-account
 
   /**
    * Non-WeChat External Puppets
