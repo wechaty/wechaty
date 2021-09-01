@@ -65,7 +65,7 @@ export const PUPPET_DEPENDENCIES = {
   /**
    * Non-WeChat External Puppets
    */
-  'wechaty-puppet-gitter'   : '>=0.4.7',   // https://www.npmjs.com/package/wechaty-puppet-gitter
+  'wechaty-puppet-gitter'   : '>=0.5.1',   // https://www.npmjs.com/package/wechaty-puppet-gitter
   'wechaty-puppet-lark'     : '>=0.4.5',   // https://www.npmjs.com/package/wechaty-puppet-lark
   'wechaty-puppet-whatsapp' : '>=0.3.3',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
 
