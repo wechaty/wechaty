@@ -35,10 +35,10 @@
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:proto": "bash -c 'protoc -I third-party -I proto --lint_out=. $(find proto/ -type f -name *.proto)'",
     "install:protoc": "bash -x scripts/install-protoc.sh",
-    "test": "npm-run-all lint test:unit test:cjs",
+    "test": "npm-run-all lint test:unit test:commonjs",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "test:cjs": "TS_NODE_PROJECT=tsconfig.cjs.json tap --node-arg=--require=ts-node/register \"cjs/**/*.spec.ts\""
+    "test:commonjs": "TS_NODE_PROJECT=tsconfig.cjs.json tap --node-arg=--require=ts-node/register \"commonjs/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
