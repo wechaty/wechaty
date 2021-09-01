@@ -19,6 +19,6 @@
  *
  */
 
-import { VERSION } from '../src/config'
+import { VERSION } from '../src/config.js'
 
 console.info(VERSION)

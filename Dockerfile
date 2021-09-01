@@ -74,6 +74,12 @@ RUN  npm test \
 RUN  npm run puppet-install \
   && sudo rm -fr /tmp/* ~/.npm
 
+#
+# Enable ES Modules support #2232
+#   See: https://github.com/wechaty/wechaty/issues/2232
+#
+RUN echo '{"type": "module"}' > /package.json
+
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN  mkdir /node_modules \
