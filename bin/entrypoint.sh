@@ -150,15 +150,29 @@ function wechaty::runBot() {
 
   # npm --progress=false install @types/node > /dev/null
 
+  #
+  # Huan(202108) node_arg: --es-module-specifier-resolution=node
+  #
+  #   Make .js extension default for ESM imports
+  #     See: https://github.com/nodejs/node/issues/30927#issuecomment-575998045 \
+  #
   local -i ret=0
   case "$botFile" in
     *.js | *.cjs | *.mjs)
       echo "Executing node $*"
-      node "$@" &
+      node \
+        --es-module-specifier-resolution=node \
+        "$@" \
+        &
       ;;
     *.ts)
       echo "Executing node --loader=ts-node/esm $*"
-      node --no-warnings --loader=ts-node/esm "$@" &
+      node \
+        --es-module-specifier-resolution=node \
+        --no-warnings \
+        --loader=ts-node/esm \
+        "$@" \
+        &
       ;;
     *)
       echo "ERROR: wechaty::runBot() neither .{js,cjs,mjs} nor .ts"
