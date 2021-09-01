@@ -471,7 +471,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 [![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
 
-## :point_down: Multi-language Wechaty
+## Multi-language Wechaty
 
 [![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
 [![Go Wechaty](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
@@ -488,7 +488,18 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 - [PHP Wechaty](https://github.com/wechaty/php-wechaty) - RPA SDK for Chatbot Makers written in PHP
 - [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - RPA SDK for Chatbot Makers written in .NET(C#)
 
-## :raised_hands: Creators
+## History
+
+### master v0.69
+
+1. Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
+
+### v0.68 (Aug 27, 2021)
+
+1. TLS support ([#2231](https://github.com/wechaty/wechaty/issues/2231))
+1. The latest CommonJS version
+
+## Creators
 
 1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia), Tencent TVP of Chatbot
 1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP, Founder & CEO of [Juzi.BOT](https://www.juzibot.com/) (YC W19 Alumni)
@@ -510,7 +521,7 @@ To cite this project in publications:
 }
 ```
 
-## :email: Copyright & License
+## Copyright & License
 
 - Code & Docs © 2016-now Huan, Rui, and Wechaty Community Contributors
 - Code released under the Apache-2.0 License
