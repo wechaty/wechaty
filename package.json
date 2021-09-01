@@ -24,7 +24,7 @@
     "check-node-version": "check-node-version --node \">= 14\"",
     "clean": "shx rm -fr dist/*",
     "coverage": "nyc report --reporter=lcov",
-    "demo": "node --no-warnings --loader=ts-node/esm examples/ding-dong-bot.ts",
+    "demo": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
     "dist": "npm-run-all clean build fixup",
     "docs": "bash -x scripts/generate-docs.sh",
     "doctor": "npm run check-node-version && node --no-warnings --loader=ts-node/esm bin/doctor.ts",
