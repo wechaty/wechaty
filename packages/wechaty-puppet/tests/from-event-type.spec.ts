@@ -11,9 +11,9 @@ import {
   fromEvent,
   firstValueFrom,
 }                 from 'rxjs'
-import {
+import type {
   JQueryStyleEventEmitter,
-} from 'rxjs/internal/observable/fromEvent'
+} from 'rxjs/internal/observable/fromEvent.js'
 
 import {
   EventLoginPayload,

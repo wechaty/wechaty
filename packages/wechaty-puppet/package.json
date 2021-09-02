@@ -49,14 +49,14 @@
     "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.17.1",
+    "@chatie/tsconfig": "^0.19.6",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
     "tsd": "^0.17.0",
     "tstest": "^0.5.16",
     "type-fest": "^0.8.1",
     "typedoc": "^1.0.0-dev.4",
-    "typescript": "^4.4"
+    "typescript": "^4.4.2"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",

@@ -14,7 +14,7 @@ cat <<_SRC_ > ${SRC_PACKAGE_JSON_TS_FILE}
 /**
  * This file was auto generated from scripts/generate-version.sh
  */
-import { PackageJson } from 'type-fest'
-export const packageJson: PackageJson = $(cat package.json)
+import type { PackageJson } from 'type-fest'
+export const packageJson: PackageJson = $(cat package.json) as any
 
 _SRC_

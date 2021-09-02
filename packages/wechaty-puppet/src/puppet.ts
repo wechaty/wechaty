@@ -16,12 +16,14 @@
  *   limitations under the License.
  *
  */
-import QuickLru, {
+import type {
   Options as QuickLruOptions,
 }                             from '@alloc/quick-lru'
 
+import QuickLru from '@alloc/quick-lru'
+
 import { Watchdog }       from 'watchdog'
-import { Constructor }    from 'clone-class'
+import type { Constructor }    from 'clone-class'
 import { StateSwitch }    from 'state-switch'
 import { ThrottleQueue }  from 'rx-queue'
 // import { callerResolve }  from 'hot-import'
@@ -38,42 +40,42 @@ import {
 }                       from './config.js'
 import { packageJson }  from './package-json.js'
 
-import {
+import type {
   ContactPayload,
   ContactPayloadFilterFunction,
   ContactQueryFilter,
 }                                 from './schemas/contact.js'
-import {
+import type {
   EventLoginPayload,
 }                                 from './schemas/event.js'
-import {
+import type {
   FriendshipAddOptions,
   FriendshipPayload,
   FriendshipSearchQueryFilter,
 }                                 from './schemas/friendship.js'
-import {
+import type {
   ImageType,
 }                                 from './schemas/image.js'
-import {
+import type {
   MessagePayload,
   MessagePayloadFilterFunction,
   MessageQueryFilter,
   MessageType,
 }                                 from './schemas/message.js'
-import {
+import type {
   RoomMemberPayload,
   RoomMemberQueryFilter,
   RoomPayload,
   RoomPayloadFilterFunction,
   RoomQueryFilter,
 }                                 from './schemas/room.js'
-import {
+import type {
   RoomInvitationPayload,
 }                                 from './schemas/room-invitation.js'
-import {
+import type {
   UrlLinkPayload,
 }                                 from './schemas/url-link.js'
-import {
+import type {
   MiniProgramPayload,
 }                                 from './schemas/mini-program.js'
 import {

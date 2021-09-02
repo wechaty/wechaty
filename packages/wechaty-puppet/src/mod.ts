@@ -1,8 +1,8 @@
-export {
+import {
   FileBoxType,
   FileBox,
 }                         from 'file-box'
-export {
+import {
   MemoryCard,
 }                         from 'memory-card'
 export {
@@ -94,12 +94,13 @@ export {
 
   YOU,
 }                         from './schemas/puppet.js'
-export {
+import {
   VERSION,
   log,
 }                         from './config.js'
-
-export {
-  Puppet,
+import type {
   PuppetImplementation,
+}                         from './puppet.js'
+import {
+  Puppet,
 }                         from './puppet.js'
