@@ -19,7 +19,7 @@ import {
   MessageQueryFilter,
   MessageType,
 }                                 from './schemas/message.js'
-import {
+import type {
   RoomPayload,
 }                                 from './schemas/room.js'
 

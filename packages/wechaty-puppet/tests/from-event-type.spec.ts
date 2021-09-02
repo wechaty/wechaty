@@ -15,9 +15,11 @@ import type {
   JQueryStyleEventEmitter,
 } from 'rxjs/internal/observable/fromEvent.js'
 
-import {
+import type {
   EventLoginPayload,
   EventScanPayload,
+}                         from '../src/mod.js'
+import {
   ScanStatus,
 }                         from '../src/mod.js'
 

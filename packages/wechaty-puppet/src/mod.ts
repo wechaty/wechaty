@@ -5,23 +5,21 @@ import {
 import {
   MemoryCard,
 }                         from 'memory-card'
-export {
+import {
   StateSwitch,
 }                         from 'state-switch'
-export {
+import {
   looseInstanceOfClass,
   instanceToClass,
 }                         from 'clone-class'
 
-export {
+import {
   ContactGender,
   ContactType,
   ContactPayload,
   ContactQueryFilter,
 }                             from './schemas/contact.js'
-export {
-  ScanStatus,
-
+import type {
   EventDirtyPayload,
   EventDongPayload,
   EventErrorPayload,
@@ -38,7 +36,10 @@ export {
   EventRoomTopicPayload,
   EventScanPayload,
 }                             from './schemas/event.js'
-export {
+import {
+  ScanStatus,
+}                             from './schemas/event.js'
+import {
   FriendshipAddOptions,
   FriendshipPayload,
   FriendshipPayloadConfirm,
@@ -48,10 +49,10 @@ export {
   FriendshipType,
   FriendshipSceneType,
 }                             from './schemas/friendship.js'
-export {
+import {
   ImageType,
 }                             from './schemas/image.js'
-export {
+import {
   MessagePayload,
   MessagePayloadBase,
   MessagePayloadRoom,
@@ -59,29 +60,29 @@ export {
   MessageQueryFilter,
   MessageType,
 }                             from './schemas/message.js'
-export {
+import type {
   RoomPayload,
   RoomQueryFilter,
   RoomMemberPayload,
   RoomMemberQueryFilter,
 }                             from './schemas/room.js'
-export {
+import type {
   RoomInvitationPayload,
 }                             from './schemas/room-invitation.js'
-export {
+import type {
   UrlLinkPayload,
 }                             from './schemas/url-link.js'
-export {
+import type {
   MiniProgramPayload,
 }                             from './schemas/mini-program.js'
 
-export {
+import {
   throwUnsupportedError,
 }                             from './throw-unsupported-error.js'
 
-export { PayloadType }         from './schemas/payload.js'
+import { PayloadType }         from './schemas/payload.js'
 
-export {
+import type {
   PuppetOptions,
   PuppetEventName,
   // PuppetQRCodeScanEvent,
@@ -111,3 +112,68 @@ import type {
 import {
   Puppet,
 }                         from './puppet.js'
+
+export type{
+  ContactPayload,
+  ContactQueryFilter,
+  EventDirtyPayload,
+  EventDongPayload,
+  EventErrorPayload,
+  EventFriendshipPayload,
+  EventHeartbeatPayload,
+  EventLoginPayload,
+  EventLogoutPayload,
+  EventMessagePayload,
+  EventReadyPayload,
+  EventResetPayload,
+  EventRoomInvitePayload,
+  EventRoomJoinPayload,
+  EventRoomLeavePayload,
+  EventRoomTopicPayload,
+  EventScanPayload,
+  FriendshipAddOptions,
+  FriendshipPayload,
+  FriendshipPayloadConfirm,
+  FriendshipPayloadReceive,
+  FriendshipPayloadVerify,
+  FriendshipSearchQueryFilter,
+  MessagePayload,
+  MessagePayloadBase,
+  MessagePayloadRoom,
+  MessagePayloadTo,
+  MessageQueryFilter,
+  MiniProgramPayload,
+  PuppetEventName,
+  PuppetImplementation,
+  PuppetOptions,
+  RoomInvitationPayload,
+  RoomMemberPayload,
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+  UrlLinkPayload,
+}
+
+export {
+  CHAT_EVENT_DICT,
+  ContactGender,
+  ContactType,
+  FileBox,
+  FileBoxType,
+  FriendshipSceneType,
+  FriendshipType,
+  ImageType,
+  instanceToClass,
+  log,
+  looseInstanceOfClass,
+  MemoryCard,
+  MessageType,
+  PayloadType,
+  PUPPET_EVENT_DICT,
+  Puppet,
+  ScanStatus,
+  StateSwitch,
+  throwUnsupportedError,
+  VERSION,
+  YOU,
+}

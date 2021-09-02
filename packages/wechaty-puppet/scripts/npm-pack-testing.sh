@@ -6,13 +6,13 @@ npm pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-mv *-*.*.*.tgz "$TMPDIR"
+mv ./*-*.*.*.tgz "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
 cd $TMPDIR
 
 npm init -y
-npm install *-*.*.*.tgz \
+npm install ./*-*.*.*.tgz \
   @types/node \
   typescript@latest
 

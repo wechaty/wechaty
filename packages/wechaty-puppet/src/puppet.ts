@@ -36,9 +36,9 @@ import {
   FileBox,
   log,
   MemoryCard,
+  NAME,
   VERSION,
 }                       from './config.js'
-import { packageJson }  from './package-json.js'
 
 import type {
   ContactPayload,
@@ -441,10 +441,7 @@ export abstract class Puppet extends PuppetEventEmitter {
    * Get the NPM name of the Puppet
    */
   name (): string {
-    if (!packageJson.name) {
-      throw new Error('packageJson.name is undefined')
-    }
-    return packageJson.name
+    return NAME
   }
 
   /**
