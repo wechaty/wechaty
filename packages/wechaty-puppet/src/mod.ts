@@ -14,28 +14,15 @@ import {
 }                         from 'clone-class'
 
 import {
+  Puppet,
+  PuppetImplementation,
+}                         from './puppet.js'
+import {
   ContactGender,
   ContactType,
   ContactPayload,
   ContactQueryFilter,
 }                             from './schemas/contact.js'
-import type {
-  EventDirtyPayload,
-  EventDongPayload,
-  EventErrorPayload,
-  EventFriendshipPayload,
-  EventHeartbeatPayload,
-  EventLoginPayload,
-  EventLogoutPayload,
-  EventMessagePayload,
-  EventReadyPayload,
-  EventResetPayload,
-  EventRoomInvitePayload,
-  EventRoomJoinPayload,
-  EventRoomLeavePayload,
-  EventRoomTopicPayload,
-  EventScanPayload,
-}                             from './schemas/event.js'
 import {
   ScanStatus,
 }                             from './schemas/event.js'
@@ -60,38 +47,11 @@ import {
   MessageQueryFilter,
   MessageType,
 }                             from './schemas/message.js'
-import type {
-  RoomPayload,
-  RoomQueryFilter,
-  RoomMemberPayload,
-  RoomMemberQueryFilter,
-}                             from './schemas/room.js'
-import type {
-  RoomInvitationPayload,
-}                             from './schemas/room-invitation.js'
-import type {
-  UrlLinkPayload,
-}                             from './schemas/url-link.js'
-import type {
-  MiniProgramPayload,
-}                             from './schemas/mini-program.js'
-
 import {
   throwUnsupportedError,
 }                             from './throw-unsupported-error.js'
-
 import { PayloadType }         from './schemas/payload.js'
-
-import type {
-  PuppetOptions,
-  PuppetEventName,
-  // PuppetQRCodeScanEvent,
-  // PuppetRoomInviteEvent,
-  // PuppetRoomJoinEvent,
-  // PuppetRoomLeaveEvent,
-  // PuppetRoomTopicEvent,
-  // Receiver,
-
+import {
   /**
    * Huan(202003): XXX_DICT
    *  The following two data structure is for the downstream
@@ -106,16 +66,8 @@ import {
   VERSION,
   log,
 }                         from './config.js'
-import type {
-  PuppetImplementation,
-}                         from './puppet.js'
-import {
-  Puppet,
-}                         from './puppet.js'
 
-export type{
-  ContactPayload,
-  ContactQueryFilter,
+import {
   EventDirtyPayload,
   EventDongPayload,
   EventErrorPayload,
@@ -131,18 +83,80 @@ export type{
   EventRoomLeavePayload,
   EventRoomTopicPayload,
   EventScanPayload,
+}                             from './schemas/event.js'
+
+import {
+  RoomPayload,
+  RoomQueryFilter,
+  RoomMemberPayload,
+  RoomMemberQueryFilter,
+}                             from './schemas/room.js'
+import {
+  RoomInvitationPayload,
+}                             from './schemas/room-invitation.js'
+import {
+  UrlLinkPayload,
+}                             from './schemas/url-link.js'
+import {
+  MiniProgramPayload,
+}                             from './schemas/mini-program.js'
+import {
+  PuppetOptions,
+  PuppetEventName,
+  // PuppetQRCodeScanEvent,
+  // PuppetRoomInviteEvent,
+  // PuppetRoomJoinEvent,
+  // PuppetRoomLeaveEvent,
+  // PuppetRoomTopicEvent,
+  // Receiver,
+}                       from './schemas/puppet.js'
+
+export {
+  CHAT_EVENT_DICT,
+  ContactGender,
+  ContactPayload,
+  ContactQueryFilter,
+  ContactType,
+  EventDirtyPayload,
+  EventDongPayload,
+  EventErrorPayload,
+  EventFriendshipPayload,
+  EventHeartbeatPayload,
+  EventLoginPayload,
+  EventLogoutPayload,
+  EventMessagePayload,
+  EventReadyPayload,
+  EventResetPayload,
+  EventRoomInvitePayload,
+  EventRoomJoinPayload,
+  EventRoomLeavePayload,
+  EventRoomTopicPayload,
+  EventScanPayload,
+  FileBox,
+  FileBoxType,
   FriendshipAddOptions,
   FriendshipPayload,
   FriendshipPayloadConfirm,
   FriendshipPayloadReceive,
   FriendshipPayloadVerify,
+  FriendshipSceneType,
   FriendshipSearchQueryFilter,
+  FriendshipType,
+  ImageType,
+  instanceToClass,
+  log,
+  looseInstanceOfClass,
+  MemoryCard,
   MessagePayload,
   MessagePayloadBase,
   MessagePayloadRoom,
   MessagePayloadTo,
   MessageQueryFilter,
+  MessageType,
   MiniProgramPayload,
+  PayloadType,
+  PUPPET_EVENT_DICT,
+  Puppet,
   PuppetEventName,
   PuppetImplementation,
   PuppetOptions,
@@ -151,29 +165,10 @@ export type{
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
-  UrlLinkPayload,
-}
-
-export {
-  CHAT_EVENT_DICT,
-  ContactGender,
-  ContactType,
-  FileBox,
-  FileBoxType,
-  FriendshipSceneType,
-  FriendshipType,
-  ImageType,
-  instanceToClass,
-  log,
-  looseInstanceOfClass,
-  MemoryCard,
-  MessageType,
-  PayloadType,
-  PUPPET_EVENT_DICT,
-  Puppet,
   ScanStatus,
   StateSwitch,
   throwUnsupportedError,
+  UrlLinkPayload,
   VERSION,
   YOU,
 }
