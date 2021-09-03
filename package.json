@@ -93,7 +93,7 @@
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
     "raven": "^2.6.4",
-    "wechaty-puppet": "^0.43.8",
+    "wechaty-puppet": "^0.43.12",
     "wechaty-puppet-service": "^0.31.5",
     "ws": "^7.2.0"
   },
@@ -123,6 +123,7 @@
     "tstest": "^0.5.16",
     "typed-emitter": "^1.3.1",
     "typedoc": "^1.0.0-dev.4 ",
+    "typescript": "^4.4.2",
     "wechaty-puppet-mock": "^0.31.3"
   },
   "tap": {
