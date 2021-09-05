@@ -19,9 +19,9 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm-run-all clean build fixup",
+    "dist": "npm-run-all clean build dist:commonjs",
     "build": "tsc && tsc -p tsconfig.cjs.json",
-    "fixup": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --isolatedModules --noEmit",
