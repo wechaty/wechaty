@@ -4,6 +4,9 @@ import type TypedEventEmitter  from 'typed-emitter'
 
 import {
   CHAT_EVENT_DICT,
+}                       from 'wechaty-puppet'
+
+import type {
   Puppet,
   ScanStatus,
 }                       from 'wechaty-puppet'

@@ -5,12 +5,12 @@
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript%20v4.4+-blue.svg)](https://www.typescriptlang.org/)
 
 [![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
 
-## :hearts: Connecting Chatbots
+## Connecting Chatbots
 
 Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
 
@@ -24,7 +24,7 @@ Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can h
 
 - [重磅：绕过登录限制，wechaty免费版web协议重放荣光, @gengchen528, Apr 13, 2021](https://wechaty.js.org/2021/04/13/wechaty-uos-web/)
 
-## :yum: Voice of Developers
+## Voice of Developers
 
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472)  
 > &mdash; <cite>@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)</cite>
@@ -46,7 +46,7 @@ Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can h
 
 See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
 
-### :raising_hand: Join Us
+### Join Us
 
 [![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -58,7 +58,7 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 > You are also welcome to join our Gitter channel at <https://gitter.im/wechaty/wechaty> with your GitHub account!
 
-### :book: Resource
+### Resource
 
 Wechaty already held lots of talk and got a lot of blogs in the past 4 years, here is all of the wechaty resources:
 
@@ -90,10 +90,10 @@ You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/di
 
 ## :checkered_flag: Requirements
 
-1. Node.js v12
-1. `sudo apt-get install build-essential && sudo snap install shellcheck`
+1. Node.js v14+
+1. TypeScript v4.4+
 
-## :triangular_flag_on_post: Getting Started
+## Getting Started
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
@@ -471,7 +471,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 [![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
 
-## :point_down: Multi-language Wechaty
+## Multi-language Wechaty
 
 [![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
 [![Go Wechaty](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
@@ -488,7 +488,18 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 - [PHP Wechaty](https://github.com/wechaty/php-wechaty) - RPA SDK for Chatbot Makers written in PHP
 - [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - RPA SDK for Chatbot Makers written in .NET(C#)
 
-## :raised_hands: Creators
+## History
+
+### master v0.69
+
+1. Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
+
+### v0.68 (Aug 27, 2021)
+
+1. TLS support ([#2231](https://github.com/wechaty/wechaty/issues/2231))
+1. The latest CommonJS version
+
+## Creators
 
 1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia), Tencent TVP of Chatbot
 1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP, Founder & CEO of [Juzi.BOT](https://www.juzibot.com/) (YC W19 Alumni)
@@ -510,7 +521,7 @@ To cite this project in publications:
 }
 ```
 
-## :email: Copyright & License
+## Copyright & License
 
 - Code & Docs © 2016-now Huan, Rui, and Wechaty Community Contributors
 - Code released under the Apache-2.0 License
