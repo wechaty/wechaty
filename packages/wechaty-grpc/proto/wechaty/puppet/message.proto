@@ -142,7 +142,7 @@ message MessageSendTextRequest {
 
   // Huan(202011) FIXME: Issue #99
   // https://github.com/wechaty/grpc/issues/99
-  repeated string mentonal_ids = 3;
+  repeated string mentional_ids = 3;
 }
 message MessageSendTextResponse {
   google.protobuf.StringValue id = 1;
