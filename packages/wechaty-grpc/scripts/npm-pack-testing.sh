@@ -6,7 +6,7 @@ npm pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-mv *-*.*.*.tgz "$TMPDIR"
+mv ./*-*.*.*.tgz "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
 cd $TMPDIR
@@ -14,6 +14,7 @@ cd $TMPDIR
 npm init -y
 npm install --production ./*-*.*.*.tgz \
   @types/node \
+  pkg-jq \
   typescript \
 
 #
@@ -40,7 +41,8 @@ node smoke-testing.js
 #
 
 # https://stackoverflow.com/a/59203952/1123955
-echo "`jq '.type="module"' package.json`" > package.json
+# echo "`jq '.type="module"' package.json`" > package.json
+npx pkg-jq -i '.type="module"'
 
 ./node_modules/.bin/tsc \
   --target es2020 \

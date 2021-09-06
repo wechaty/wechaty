@@ -21,7 +21,7 @@
     "clean": "shx rm -fr dist/* generated/*",
     "dist": "npm-run-all clean generate build dist:copy dist:commonjs",
     "build": "tsc && tsc -p tsconfig.cjs.json",
-    "dist:commonjs": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
     "dist:copy": "npm-run-all copy:esm copy:cjs",
     "copy:esm": "shx cp -R generated/ dist/esm && shx cp -R proto/ dist/esm && shx cp -R commonjs/ dist/esm/",
     "copy:cjs": "shx cp -R generated/ dist/cjs && shx cp -R proto/ dist/cjs && shx cp -R commonjs/ dist/cjs/",
@@ -38,7 +38,7 @@
     "test": "npm-run-all lint test:unit test:commonjs",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "test:commonjs": "TS_NODE_PROJECT=tsconfig.cjs.json tap --node-arg=--require=ts-node/register \"commonjs/**/*.spec.ts\""
+    "test:commonjs": "cross-env TS_NODE_PROJECT=tsconfig.cjs.json NODE_OPTIONS=--require=ts-node/register tap \"commonjs/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
@@ -69,6 +69,7 @@
     "@chatie/tsconfig": "^0.19.5",
     "@types/google-protobuf": "^3.15.5",
     "@types/protobufjs": "^6.0.0",
+    "cross-env": "^7.0.3",
     "grpc-tools": "^1.11.2",
     "grpc_tools_node_protoc_ts": "^5.3.2",
     "grpcc": "^1.1.3",
