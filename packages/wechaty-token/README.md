@@ -91,16 +91,16 @@ puppet_foo_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
 
 ## gRPC Resolver Usage
 
-We now can use `wechaty:///__token__` as gRPC address for Wechaty Service Token Discovery.
+We now can use `wechaty:///${TOKEN}` as gRPC address for Wechaty Service Token Discovery.
 
 The `WechatyResolver` is for resolve the above address and help gRPC to connect to the right host and port.
 
 ```ts
 import { WechatyResolver } from 'wechaty-token'
 WechatyResolver.setup()
-// That's it! You can use `wechaty:///__token__` as gRPC address now!
+// That's it! You can use `wechaty:///${TOKEN}` as gRPC address now!
 // const routeguide = grpc.loadPackageDefinition(packageDefinition).routeguide;
-// client = new routeguide.RouteGuide('wechaty:///__token__',
+// client = new routeguide.RouteGuide('wechaty:///${TOKEN}',
 //                                     grpc.credentials.createInsecure());
 // See: https://grpc.io/docs/languages/node/basics/
 ```
@@ -128,7 +128,7 @@ See:
 ### v0.2 master (Aug 2, 2021)
 
 1. `wechaty-token` CLI released
-1. gRPC Resolver for Wechaty: Enabled `xds` like schema `wechaty:///puppet_TOKEN` for gRPC client
+1. gRPC Resolver for Wechaty: Enabled `xds` like schema `wechaty:///uuid_TOKEN` for gRPC client
 
 ### v0.0.1 (Aug 1, 2021)
 
