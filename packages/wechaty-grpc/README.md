@@ -1,5 +1,5 @@
 <div align="center">
-<img src="assets/images/wechaty-grpc-logo.svg" width="400" />
+<img src="docs/images/wechaty-grpc-logo.svg" width="400" />
 <br />
 <h1>Wechaty gRPC</h1>
 <p>
