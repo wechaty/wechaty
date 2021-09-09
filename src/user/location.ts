@@ -17,23 +17,78 @@
  *   limitations under the License.
  *
  */
+import {
+  LocationPayload,
+}                   from 'wechaty-puppet'
 
-/**
- * Location information
- */
+import { Wechaty } from '../wechaty'
+
+import {
+  log,
+}               from '../config'
+
 class Location {
 
+  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+
   /**
-   * @param {number} latitude
-   * @param {number} longitude
-   * @param {?string} description
+   *
+   * Create from URL
+   *
+   */
+  public static async create (): Promise<Location> {
+    log.verbose('Location', 'create()')
+
+    const payload: LocationPayload = {
+      address   : '北京市北京市海淀区45 Chengfu Rd',
+      latitude  : 39.995120999999997,
+      longitude : 116.334154,
+      name      : '东升乡人民政府(海淀区成府路45号)',
+      precision : 15,
+    }
+
+    return new Location(payload)
+  }
+
+  /*
+   * @hideconstructor
    */
   constructor (
-    public latitude    : number,
-    public longitude   : number,
-    public description : string,
-  ) {}
+    public readonly payload: LocationPayload,
+  ) {
+    log.verbose('Location', 'constructor()')
+  }
+
+  public toString (): string {
+    return `Location<${this.payload.name}>`
+  }
+
+  public address (): string {
+    return this.payload.address
+  }
+
+  public latitude (): number {
+    return this.payload.latitude
+  }
+
+  public longitude (): number {
+    return this.payload.longitude
+  }
+
+  public name (): string {
+    return this.payload.name
+  }
 
 }
 
-export { Location }
+function wechatifyLocation (_: any): typeof Location {
+
+  return Location
+
+}
+
+export {
+  Location,
+  wechatifyLocation,
+}

@@ -45,6 +45,7 @@ import { Message }      from './message'
 import { MiniProgram }  from './mini-program'
 import { Tag }          from './tag'
 import { UrlLink }      from './url-link'
+import { Location }     from './location'
 
 import { ContactEventEmitter }  from '../events/contact-events'
 
@@ -333,12 +334,13 @@ class Contact extends ContactEventEmitter implements Sayable {
   public say (file:     FileBox)     : Promise<void | Message>
   public say (mini:     MiniProgram) : Promise<void | Message>
   public say (url:      UrlLink)     : Promise<void | Message>
+  public say (location: Location)    : Promise<void | Message>
 
   /**
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} something
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void | Message>}
@@ -399,6 +401,7 @@ class Contact extends ContactEventEmitter implements Sayable {
               | FileBox
               | MiniProgram
               | UrlLink
+              | Location
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', something)
 
@@ -448,6 +451,14 @@ class Contact extends ContactEventEmitter implements Sayable {
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
+    } else if (something instanceof Location) {
+      /**
+       * 6. Location
+       */
+      msgId = await this.wechaty.puppet.messageSendLocation(
         this.id,
         something.payload,
       )

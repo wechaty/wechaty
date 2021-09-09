@@ -73,6 +73,7 @@ import {
   RoomInvitation,
   Tag,
   UrlLink,
+  Location,
 
   wechatifyContact,
   wechatifyContactSelf,
@@ -84,6 +85,7 @@ import {
   wechatifyRoomInvitation,
   wechatifyTag,
   wechatifyUrlLink,
+  wechatifyLocation,
 }                       from './user/mod'
 
 import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
@@ -176,6 +178,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   protected wechatifiedRoomInvitation? : typeof RoomInvitation
   protected wechatifiedTag?            : typeof Tag
   protected wechatifiedUrlLink?        : typeof UrlLink
+  protected wechatifiedLocation?       : typeof Location
 
   get Contact ()        : typeof Contact         { return guardWechatify(this.wechatifiedContact)        }
   get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.wechatifiedContactSelf)    }
@@ -187,6 +190,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.wechatifiedRoomInvitation) }
   get Tag ()            : typeof Tag             { return guardWechatify(this.wechatifiedTag)            }
   get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.wechatifiedUrlLink)        }
+  get Location ()       : typeof Location        { return guardWechatify(this.wechatifiedLocation)       }
 
   /**
    * Get the global instance of Wechaty
@@ -673,6 +677,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     this.wechatifiedRoomInvitation = wechatifyRoomInvitation(this)
     this.wechatifiedTag            = wechatifyTag(this)
     this.wechatifiedUrlLink        = wechatifyUrlLink(this)
+    this.wechatifiedLocation       = wechatifyLocation(this)
 
     this.puppet = puppet
   }
@@ -879,11 +884,12 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     return user
   }
 
-  public async say (text:     string)      : Promise<void>
-  public async say (contact:  Contact)     : Promise<void>
-  public async say (file:     FileBox)     : Promise<void>
-  public async say (mini:     MiniProgram) : Promise<void>
-  public async say (url:      UrlLink)     : Promise<void>
+  public async say (text:    string)      : Promise<void>
+  public async say (contact: Contact)     : Promise<void>
+  public async say (file:    FileBox)     : Promise<void>
+  public async say (mini:    MiniProgram) : Promise<void>
+  public async say (url:     UrlLink)     : Promise<void>
+  public async say (url:     Location)    : Promise<void>
 
   public async say (...args: never[]): Promise<never>
 
@@ -892,7 +898,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} something
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    *
@@ -947,6 +953,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               | FileBox
               | MiniProgram
               | UrlLink
+              | Location
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', something)
     // huan: to make TypeScript happy

@@ -61,6 +61,7 @@ export {
   RoomInvitation,
   UrlLink,
   MiniProgram,
+  Location,
 }                         from './user/mod'
 
 export { IoClient }   from './io-client'

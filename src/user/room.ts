@@ -41,6 +41,7 @@ import { Contact }        from './contact'
 import { MiniProgram }    from './mini-program'
 import { Message }        from './message'
 import { UrlLink }        from './url-link'
+import { Location }       from './location'
 
 import {
   RoomMemberQueryFilter,
@@ -391,6 +392,7 @@ class Room extends RoomEventEmitter implements Sayable {
   public say (url:      UrlLink)                                 : Promise<void | Message>
   public say (mini:     MiniProgram)                             : Promise<void | Message>
   public say (contact:  Contact)                                 : Promise<void | Message>
+  public say (location: Location)                                : Promise<void | Message>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -472,7 +474,8 @@ class Room extends RoomEventEmitter implements Sayable {
               | FileBox
               | MiniProgram
               | TemplateStringsArray
-              | UrlLink,
+              | UrlLink
+              | Location,
     ...varList : unknown[]
   ): Promise<void | Message> {
 
@@ -584,6 +587,14 @@ class Room extends RoomEventEmitter implements Sayable {
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
+    } else if (something instanceof Location) {
+      /**
+       * 6. Location
+       */
+      msgId = await this.wechaty.puppet.messageSendLocation(
         this.id,
         something.payload,
       )
