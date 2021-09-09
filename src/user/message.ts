@@ -425,14 +425,14 @@ class Message extends EventEmitter implements Sayable {
     }
   }
 
-  public say (text:    string)         : Promise<void | Message>
-  public say (num:     number)         : Promise<void | Message>
-  public say (message: Message)        : Promise<void | Message>
-  public say (contact: Contact)        : Promise<void | Message>
-  public say (file:    FileBox)        : Promise<void | Message>
-  public say (url:     UrlLink)        : Promise<void | Message>
-  public say (mini:    MiniProgram)    : Promise<void | Message>
-  public say (videoPost:    VideoPost) : Promise<void | Message>
+  public say (text:      string)         : Promise<void | Message>
+  public say (num:       number)         : Promise<void | Message>
+  public say (message:   Message)        : Promise<void | Message>
+  public say (contact:   Contact)        : Promise<void | Message>
+  public say (file:      FileBox)        : Promise<void | Message>
+  public say (url:       UrlLink)        : Promise<void | Message>
+  public say (mini:      MiniProgram)    : Promise<void | Message>
+  public say (videoPost: VideoPost)      : Promise<void | Message>
 
   // Huan(202006): allow fall down to the definition to get more flexibility.
   // public say (...args: never[]): Promise<never>

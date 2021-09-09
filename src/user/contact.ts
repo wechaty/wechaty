@@ -44,6 +44,7 @@ import { Message }      from './message.js'
 import { MiniProgram }  from './mini-program.js'
 import type { Tag }          from './tag.js'
 import { UrlLink }      from './url-link.js'
+import { VideoPost }    from './video-post.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 
@@ -325,13 +326,14 @@ class Contact extends ContactEventEmitter implements Sayable {
     return `Contact<${identity}>`
   }
 
-  public say (text:     string)      : Promise<void | Message>
-  public say (num:      number)      : Promise<void | Message>
-  public say (message:  Message)     : Promise<void | Message>
-  public say (contact:  Contact)     : Promise<void | Message>
-  public say (file:     FileBox)     : Promise<void | Message>
-  public say (mini:     MiniProgram) : Promise<void | Message>
-  public say (url:      UrlLink)     : Promise<void | Message>
+  public say (text:      string)      : Promise<void | Message>
+  public say (num:       number)      : Promise<void | Message>
+  public say (message:   Message)     : Promise<void | Message>
+  public say (contact:   Contact)     : Promise<void | Message>
+  public say (file:      FileBox)     : Promise<void | Message>
+  public say (mini:      MiniProgram) : Promise<void | Message>
+  public say (url:       UrlLink)     : Promise<void | Message>
+  public say (videoPost: VideoPost)   : Promise<void | Message>
 
   /**
    * > Tips:
@@ -398,6 +400,7 @@ class Contact extends ContactEventEmitter implements Sayable {
               | FileBox
               | MiniProgram
               | UrlLink
+              | VideoPost
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', something)
 
@@ -447,6 +450,14 @@ class Contact extends ContactEventEmitter implements Sayable {
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
+    } else if (something instanceof VideoPost) {
+      /**
+       * VideoPost
+       */
+      msgId = await this.wechaty.puppet.messageSendVideoPost(
         this.id,
         something.payload,
       )

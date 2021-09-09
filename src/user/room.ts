@@ -48,6 +48,7 @@ import { Contact }        from './contact.js'
 import { MiniProgram }    from './mini-program.js'
 import { Message }        from './message.js'
 import { UrlLink }        from './url-link.js'
+import { VideoPost }      from './video-post.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -391,6 +392,7 @@ class Room extends RoomEventEmitter implements Sayable {
   public say (url:      UrlLink)                                 : Promise<void | Message>
   public say (mini:     MiniProgram)                             : Promise<void | Message>
   public say (contact:  Contact)                                 : Promise<void | Message>
+  public say (video:    VideoPost)                               : Promise<void | Message>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -472,7 +474,8 @@ class Room extends RoomEventEmitter implements Sayable {
               | FileBox
               | MiniProgram
               | TemplateStringsArray
-              | UrlLink,
+              | UrlLink
+              | VideoPost,
     ...varList : unknown[]
   ): Promise<void | Message> {
 
@@ -584,6 +587,14 @@ class Room extends RoomEventEmitter implements Sayable {
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
+    } else if (something instanceof VideoPost) {
+      /**
+       * VideoPost
+       */
+      msgId = await this.wechaty.puppet.messageSendVideoPost(
         this.id,
         something.payload,
       )
