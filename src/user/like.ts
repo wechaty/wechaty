@@ -18,7 +18,7 @@
  *
  */
 import type {
-  Message
+  Message,
 }                   from './message.js'
 
 import type {
@@ -31,6 +31,7 @@ import {
 }                   from 'wechaty-puppet'
 
 class Like {
+
   static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
   get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
 

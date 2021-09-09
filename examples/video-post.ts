@@ -1,5 +1,5 @@
-import { Wechaty } from "../src/wechaty"
-import { VideoPost } from "../src/user/video-post"
+import { Wechaty } from '../src/wechaty'
+import { VideoPost } from '../src/user/video-post'
 
 const bot = new Wechaty({
   name : 'video-post-bot',
@@ -38,8 +38,8 @@ bot.Comment.revoke(comment)
 
 // list comments
 bot.Comment.list(msg, {
-  pageSize: 10,
   currentPage: 0,
+  pageSize: 10,
 })
 
 /**
@@ -54,6 +54,6 @@ bot.Like.cancel(msg)
 
 // list all likers
 bot.Like.list(msg, {
-  pageSize: 10,
   currentPage: 0,
+  pageSize: 10,
 })
