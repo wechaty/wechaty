@@ -14,12 +14,14 @@ if (logLevel) {
 }
 
 const VERSION = packageJson.version || '0.0.0'
+const NAME = packageJson.name || 'Unnamed'
 
 export {
-  log,
   envVars,
   FileBox,
+  log,
   MemoryCard,
+  NAME,
   StateSwitch,
   VERSION,
 }

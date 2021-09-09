@@ -1,4 +1,4 @@
-import { PayloadType } from './payload'
+import type { PayloadType } from './payload'
 
 /**
  * The event `scan` status number.

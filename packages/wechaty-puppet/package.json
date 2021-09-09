@@ -16,12 +16,12 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm-run-all clean build fixup",
+    "dist": "npm-run-all clean build dist:commonjs",
     "build": "tsc && tsc -p tsconfig.cjs.json",
-    "fixup": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
+    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
-    "lint:ts": "tsc --noEmit",
+    "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
@@ -50,7 +50,7 @@
     "@chatie/eslint-config": "^0.13.5",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^0.17.1",
+    "@chatie/tsconfig": "^0.19.6",
     "npm-run-all": "^4.1.5",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
@@ -58,7 +58,7 @@
     "tstest": "^0.5.16",
     "type-fest": "^0.8.1",
     "typedoc": "^1.0.0-dev.4",
-    "typescript": "^4.4"
+    "typescript": "^4.4.2"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",

@@ -1,27 +1,72 @@
-export {
+import {
   FileBoxType,
   FileBox,
 }                         from 'file-box'
-export {
+import {
   MemoryCard,
 }                         from 'memory-card'
-export {
+import {
   StateSwitch,
 }                         from 'state-switch'
-export {
+import {
   looseInstanceOfClass,
   instanceToClass,
 }                         from 'clone-class'
 
-export {
+import {
+  VERSION,
+  log,
+}                         from './config.js'
+import {
+  Puppet,
+}                         from './puppet.js'
+import {
   ContactGender,
   ContactType,
   ContactPayload,
   ContactQueryFilter,
 }                             from './schemas/contact.js'
-export {
+import {
   ScanStatus,
+}                             from './schemas/event.js'
+import {
+  FriendshipAddOptions,
+  FriendshipPayload,
+  FriendshipPayloadConfirm,
+  FriendshipPayloadReceive,
+  FriendshipPayloadVerify,
+  FriendshipSearchQueryFilter,
+  FriendshipType,
+  FriendshipSceneType,
+}                             from './schemas/friendship.js'
+import {
+  ImageType,
+}                             from './schemas/image.js'
+import {
+  MessagePayload,
+  MessagePayloadBase,
+  MessagePayloadRoom,
+  MessagePayloadTo,
+  MessageQueryFilter,
+  MessageType,
+}                             from './schemas/message.js'
+import {
+  throwUnsupportedError,
+}                             from './throw-unsupported-error.js'
+import { PayloadType }         from './schemas/payload.js'
+import {
+  CHAT_EVENT_DICT,
+  PUPPET_EVENT_DICT,
 
+  YOU,
+}                       from './schemas/puppet.js'
+
+/********************
+ *
+ * Import Typings
+ *
+ ********************/
+import type {
   EventDirtyPayload,
   EventDongPayload,
   EventErrorPayload,
@@ -38,50 +83,23 @@ export {
   EventRoomTopicPayload,
   EventScanPayload,
 }                             from './schemas/event.js'
-export {
-  FriendshipAddOptions,
-  FriendshipPayload,
-  FriendshipPayloadConfirm,
-  FriendshipPayloadReceive,
-  FriendshipPayloadVerify,
-  FriendshipSearchQueryFilter,
-  FriendshipType,
-  FriendshipSceneType,
-}                             from './schemas/friendship.js'
-export {
-  ImageType,
-}                             from './schemas/image.js'
-export {
-  MessagePayload,
-  MessagePayloadBase,
-  MessagePayloadRoom,
-  MessagePayloadTo,
-  MessageQueryFilter,
-  MessageType,
-}                             from './schemas/message.js'
-export {
+import type {
   RoomPayload,
   RoomQueryFilter,
   RoomMemberPayload,
   RoomMemberQueryFilter,
 }                             from './schemas/room.js'
-export {
+import type {
   RoomInvitationPayload,
 }                             from './schemas/room-invitation.js'
-export {
+import type {
   UrlLinkPayload,
 }                             from './schemas/url-link.js'
-export {
+import type {
   MiniProgramPayload,
 }                             from './schemas/mini-program.js'
 
-export {
-  throwUnsupportedError,
-}                             from './throw-unsupported-error.js'
-
-export { PayloadType }         from './schemas/payload.js'
-
-export {
+import type {
   PuppetOptions,
   PuppetEventName,
   // PuppetQRCodeScanEvent,
@@ -96,17 +114,73 @@ export {
    *  The following two data structure is for the downstream
    *  to get a array of event string list.
    */
-  CHAT_EVENT_DICT,
-  PUPPET_EVENT_DICT,
-
-  YOU,
 }                         from './schemas/puppet.js'
-export {
-  VERSION,
-  log,
-}                         from './config.js'
 
-export {
-  Puppet,
+import type {
   PuppetImplementation,
 }                         from './puppet.js'
+
+export type {
+  ContactPayload,
+  ContactQueryFilter,
+  EventDirtyPayload,
+  EventDongPayload,
+  EventErrorPayload,
+  EventFriendshipPayload,
+  EventHeartbeatPayload,
+  EventLoginPayload,
+  EventLogoutPayload,
+  EventMessagePayload,
+  EventReadyPayload,
+  EventResetPayload,
+  EventRoomInvitePayload,
+  EventRoomJoinPayload,
+  EventRoomLeavePayload,
+  EventRoomTopicPayload,
+  EventScanPayload,
+  FriendshipAddOptions,
+  FriendshipPayload,
+  FriendshipPayloadConfirm,
+  FriendshipPayloadReceive,
+  FriendshipPayloadVerify,
+  FriendshipSearchQueryFilter,
+  MessagePayload,
+  MessagePayloadBase,
+  MessagePayloadRoom,
+  MessagePayloadTo,
+  MessageQueryFilter,
+  MiniProgramPayload,
+  PuppetEventName,
+  PuppetImplementation,
+  PuppetOptions,
+  RoomInvitationPayload,
+  RoomMemberPayload,
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+  UrlLinkPayload,
+}
+
+export {
+  CHAT_EVENT_DICT,
+  ContactGender,
+  ContactType,
+  FileBox,
+  FileBoxType,
+  FriendshipSceneType,
+  FriendshipType,
+  ImageType,
+  instanceToClass,
+  log,
+  looseInstanceOfClass,
+  MemoryCard,
+  MessageType,
+  PayloadType,
+  PUPPET_EVENT_DICT,
+  Puppet,
+  ScanStatus,
+  StateSwitch,
+  throwUnsupportedError,
+  VERSION,
+  YOU,
+}
