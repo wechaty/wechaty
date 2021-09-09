@@ -49,10 +49,12 @@ import type {
 }                             from './puppet-config.js'
 
 import {
+  Comment,
   Contact,
   Tag,
   Friendship,
   Favorite,
+  Like,
   Message,
   Image,
   Moment,
@@ -61,6 +63,7 @@ import {
   RoomInvitation,
   UrlLink,
   MiniProgram,
+  VideoPost,
 }                         from './user/mod.js'
 import { IoClient }   from './io-client.js'
 
@@ -77,10 +80,12 @@ export type {
 }
 export {
   config,
+  Comment,
   Contact,
   Favorite,
   FileBox,
   Friendship,
+  Like,
   Image,
   IoClient,
   log,
@@ -95,6 +100,7 @@ export {
   ScanStatus,
   Tag,
   UrlLink,
+  VideoPost,
   VERSION,
   Wechaty,
 }

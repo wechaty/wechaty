@@ -56,9 +56,11 @@ import {
 }                       from './puppet-manager.js'
 
 import {
+  Comment,
   Contact,
   ContactSelf,
   Friendship,
+  Like,
   Image,
   Message,
   MiniProgram,
@@ -66,10 +68,13 @@ import {
   RoomInvitation,
   Tag,
   UrlLink,
+  VideoPost,
 
+  wechatifyComment,
   wechatifyContact,
   wechatifyContactSelf,
   wechatifyFriendship,
+  wechatifyLike,
   wechatifyImage,
   wechatifyMessage,
   wechatifyMiniProgram,
@@ -77,6 +82,7 @@ import {
   wechatifyRoomInvitation,
   wechatifyTag,
   wechatifyUrlLink,
+  wechatifyVideoPost,
 }                       from './user/mod.js'
 
 import { timestampToDate } from './helper-functions/pure/timestamp-to-date.js'
@@ -169,6 +175,9 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   protected wechatifiedRoomInvitation? : typeof RoomInvitation
   protected wechatifiedTag?            : typeof Tag
   protected wechatifiedUrlLink?        : typeof UrlLink
+  protected wechatifiedComment?        : typeof Comment
+  protected wechatifiedLike?           : typeof Like
+  protected wechatifiedVideoPost?      : typeof VideoPost
 
   get Contact ()        : typeof Contact         { return guardWechatify(this.wechatifiedContact)        }
   get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.wechatifiedContactSelf)    }
@@ -180,6 +189,9 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.wechatifiedRoomInvitation) }
   get Tag ()            : typeof Tag             { return guardWechatify(this.wechatifiedTag)            }
   get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.wechatifiedUrlLink)        }
+  get VideoPost ()      : typeof VideoPost       { return guardWechatify(this.wechatifiedVideoPost)      }
+  get Comment ()        : typeof Comment         { return guardWechatify(this.wechatifiedComment)        }
+  get Like ()           : typeof Like            { return guardWechatify(this.wechatifiedLike)           }
 
   /**
    * Get the global instance of Wechaty
