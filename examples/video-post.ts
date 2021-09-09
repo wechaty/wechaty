@@ -38,10 +38,10 @@ async function testVideoPost () {
   const comment = await bot.Comment.comment(msg, 'xxxx')
 
   // reply comment
-  await comment.reply(comment, 'xxxx')
+  await comment.reply('xxxx')
 
   // revoke comment
-  await comment.revoke(comment)
+  await comment.revoke()
 
   // list comments
   await comment.list(msg, {

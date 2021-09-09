@@ -68,12 +68,12 @@ class Comment {
     return this.wechaty.puppet.comment(message.id, content)
   }
 
-  public async reply (comment: Comment, content: string): Promise<Comment> {
-    return this.wechaty.puppet.replyComment(comment.payload.id, content)
+  public async reply (content: string): Promise<Comment> {
+    return this.wechaty.puppet.replyComment(this.payload.id, content)
   }
 
-  public async revoke (comment: Comment): Promise<boolean> {
-    return this.wechaty.puppet.revokeComment(comment.payload.id)
+  public async revoke (): Promise<boolean> {
+    return this.wechaty.puppet.revokeComment(this.payload.id)
   }
 
   public async list (message: Message, option: ListOption): Promise<boolean> {
