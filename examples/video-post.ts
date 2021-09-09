@@ -1,5 +1,5 @@
 import { Wechaty } from '../src/wechaty'
-import { VideoPost } from '../src/user/video-post'
+import { VideoPost } from '../src/mod'
 
 const bot = new Wechaty({
   name : 'video-post-bot',
@@ -12,48 +12,59 @@ const videoPost = new VideoPost({
   videoUrl: 'todo',
 })
 
-/**
- * Video Post
- */
+async function testVideoPost () {
 
-// send video post
-const msg = bot.Message.say(videoPost)
+  /**
+   * Video Post
+   */
 
-// forward video post
-const contact = bot.Contact.load('xxxx')
-msg.forward(contact)
+  // send video post
+  const message = bot.Message.load('')
+  const msg = await message.say(videoPost)
 
-/**
- * Comment
- */
+  if (!msg) {
+    return
+  }
 
-// post comment
-const comment = bot.Comment.comments(msg, 'xxxx')
+  // forward video post
+  const contact = bot.Contact.load('xxxx')
+  await msg.forward(contact)
 
-// reply comment
-bot.Comment.reply(comment, 'xxxx')
+  /**
+   * Comment
+   */
 
-// revoke comment
-bot.Comment.revoke(comment)
+  // post comment
+  const comment = await bot.Comment.comment(msg, 'xxxx')
 
-// list comments
-bot.Comment.list(msg, {
-  currentPage: 0,
-  pageSize: 10,
-})
+  // reply comment
+  await comment.reply(comment, 'xxxx')
 
-/**
- * Like
- */
+  // revoke comment
+  await comment.revoke(comment)
 
-// like message
-bot.Like.like(msg)
+  // list comments
+  await comment.list(msg, {
+    currentPage: 0,
+    pageSize: 10,
+  })
 
-// cancel like
-bot.Like.cancel(msg)
+  /**
+   * Like
+   */
 
-// list all likers
-bot.Like.list(msg, {
-  currentPage: 0,
-  pageSize: 10,
-})
+  // like message
+  await bot.Like.like(msg)
+
+  // cancel like
+  await bot.Like.cancel(msg)
+
+  // list all likers
+  await bot.Like.list(msg, {
+    currentPage: 0,
+    pageSize: 10,
+  })
+
+}
+
+void testVideoPost()
