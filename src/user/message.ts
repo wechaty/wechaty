@@ -58,6 +58,7 @@ import {
   MiniProgram,
 }                       from './mini-program.js'
 import type { Image }        from './image.js'
+import { VideoPost } from './video-post.js'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -424,13 +425,14 @@ class Message extends EventEmitter implements Sayable {
     }
   }
 
-  public say (text:    string)      : Promise<void | Message>
-  public say (num:     number)      : Promise<void | Message>
-  public say (message: Message)     : Promise<void | Message>
-  public say (contact: Contact)     : Promise<void | Message>
-  public say (file:    FileBox)     : Promise<void | Message>
-  public say (url:     UrlLink)     : Promise<void | Message>
-  public say (mini:    MiniProgram) : Promise<void | Message>
+  public say (text:    string)         : Promise<void | Message>
+  public say (num:     number)         : Promise<void | Message>
+  public say (message: Message)        : Promise<void | Message>
+  public say (contact: Contact)        : Promise<void | Message>
+  public say (file:    FileBox)        : Promise<void | Message>
+  public say (url:     UrlLink)        : Promise<void | Message>
+  public say (mini:    MiniProgram)    : Promise<void | Message>
+  public say (videoPost:    VideoPost) : Promise<void | Message>
 
   // Huan(202006): allow fall down to the definition to get more flexibility.
   // public say (...args: never[]): Promise<never>
@@ -519,7 +521,8 @@ class Message extends EventEmitter implements Sayable {
                                     | Contact
                                     | FileBox
                                     | UrlLink
-                                    | MiniProgram,
+                                    | MiniProgram
+                                    | VideoPost,
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', something)
 
@@ -602,6 +605,14 @@ class Message extends EventEmitter implements Sayable {
        * MiniProgram
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
+        conversationId,
+        something.payload,
+      )
+    } else if (something instanceof VideoPost) {
+      /**
+       * VideoPost
+       */
+      msgId = await this.wechaty.puppet.messageSendVideoPost(
         conversationId,
         something.payload,
       )

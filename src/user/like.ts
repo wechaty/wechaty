@@ -42,15 +42,15 @@ class Like {
     log.verbose('Like', 'constructor()')
   }
 
-  public async like (message: Message): Promise<boolean> {
+  public static async like (message: Message): Promise<boolean> {
     return this.wechaty.puppet.like(message.id)
   }
 
-  public async cancel (message: Message): Promise<boolean> {
+  public static async cancel (message: Message): Promise<boolean> {
     return this.wechaty.puppet.cancel(message.id)
   }
 
-  public async list (message: Message, option: ListOption): Promise<boolean> {
+  public static async list (message: Message, option: ListOption): Promise<boolean> {
     return this.wechaty.puppet.listLikes(message.id, option)
   }
 

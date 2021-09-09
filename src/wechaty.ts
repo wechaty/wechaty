@@ -682,6 +682,9 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     this.wechatifiedRoomInvitation = wechatifyRoomInvitation(this)
     this.wechatifiedTag            = wechatifyTag(this)
     this.wechatifiedUrlLink        = wechatifyUrlLink(this)
+    this.wechatifiedVideoPost      = wechatifyVideoPost(this)
+    this.wechatifiedComment        = wechatifyComment(this)
+    this.wechatifiedLike           = wechatifyLike(this)
 
     this.puppet = puppet
   }

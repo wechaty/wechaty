@@ -64,7 +64,7 @@ class Comment {
     log.verbose('Comment', 'constructor()')
   }
 
-  public async comment (message: Message, content: string): Promise<Comment> {
+  public static async comment (message: Message, content: string): Promise<Comment> {
     return this.wechaty.puppet.comment(message.id, content)
   }
 
