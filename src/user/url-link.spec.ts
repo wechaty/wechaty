@@ -1,14 +1,13 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
+import { test } from 'tstest'
 
-import test  from 'tstest'
-
-import { UrlLink } from './url-link'
+import { UrlLink } from './url-link.js'
 
 test('UrlLink', async t => {
   const URL = 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'
   const EXPECTED_PAYLOAD = {
-    description: '十分钟实现一个智能问答微信聊天机器人',
-    thumbnailUrl: 'https://wechaty.js.org/assets/contributors/luweicn/avatar.png',
+    description: 'Conversational RPA SDK for Chatbot Makers',
+    thumbnailUrl: 'https://wechaty.js.org/assets/contributors/luweicn/avatar.webp',
     title: '十分钟实现一个智能问答微信聊天机器人',
     url: 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes',
   }

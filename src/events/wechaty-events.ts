@@ -1,21 +1,24 @@
 import { EventEmitter } from 'events'
 
-import TypedEventEmitter  from 'typed-emitter'
+import type TypedEventEmitter  from 'typed-emitter'
 
 import {
   CHAT_EVENT_DICT,
+}                       from 'wechaty-puppet'
+
+import type {
   Puppet,
   ScanStatus,
 }                       from 'wechaty-puppet'
 
-import {
+import type {
   Friendship,
   ContactSelf,
   Room,
   RoomInvitation,
   Contact,
   Message,
-}                       from '../user/mod'
+}                       from '../user/mod.js'
 
 const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,

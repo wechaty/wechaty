@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -23,6 +22,8 @@ import {
   Wechaty,
   VERSION,
 }           from 'wechaty'
+
+import assert from 'assert'
 
 function getBotList (): Wechaty[] {
   const botList = [
@@ -50,10 +51,6 @@ function getBotList (): Wechaty[] {
 }
 
 async function main () {
-  if (VERSION === '0.0.0') {
-    throw new Error('VERSION not set!')
-  }
-
   const botList = getBotList()
   try {
     await Promise.all(
@@ -72,6 +69,9 @@ async function main () {
       botList.map(bot => bot.stop()),
     )
   }
+
+  assert.notStrictEqual(VERSION,  '0.0.0', 'VERSION must be set!')
+
   return 0
 }
 

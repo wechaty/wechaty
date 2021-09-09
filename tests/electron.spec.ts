@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,12 +18,14 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
+import {
+  test,
+}  from 'tstest'
 
 test('Electron smoke testing', async t => {
-  t.true(true, 'test')
+  t.ok(true, 'test')
 })
 
 test.skip('Electron open wx', async t => {
-  t.pass('ok')
+  t.ok('ok')
 })

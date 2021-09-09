@@ -20,62 +20,32 @@
 /// <reference path="./typings.d.ts" />
 /// <reference path="./io-peer/json-rpc-peer.d.ts" />
 
-import os    from 'os'
-
-import Raven      from 'raven'
-import readPkgUp  from 'read-pkg-up'
-
 import {
   FileBox,
-  MemoryCard,
   log,
 }                   from 'wechaty-puppet'
-
-import { looseInstanceOfClass } from './helper-functions/mod'
+import type {
+  PackageJson,
+}                   from 'type-fest'
 
 import {
   PuppetModuleName,
   PUPPET_NAME_DEFAULT,
-}                      from './puppet-config'
+}                      from './puppet-config.js'
 import {
-  VERSION,
+  packageJson,
   GIT_COMMIT_HASH,
-}                       from './version'
+}                       from './package-json.js'
 
-const pkg = readPkgUp.sync({ cwd: __dirname })!.packageJson
-
-/**
- * Raven.io
- */
-Raven.disableConsoleAlerts()
-
-Raven
-  .config(
-    isProduction()
-      && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
-    {
-      release: VERSION,
-      tags: {
-        git_commit: GIT_COMMIT_HASH,
-        platform: process.env['WECHATY_DOCKER']
-          ? 'docker'
-          : os.platform(),
-      },
-    },
-  )
-  .install()
-
-/*
-try {
-    doSomething(a[0])
-} catch (e) {
-    Raven.captureException(e)
+type PackageJsonWechaty = PackageJson & {
+  wechaty: {
+    DEFAULT_PORT: number
+    DEFAULT_PROTOCOL: string
+    DEFAULT_APIHOST: string
+  }
 }
 
-Raven.context(function () {
-  doSomething(a[0])
-})
- */
+const VERSION = packageJson.version || '0.0.0'
 
 /**
  * to handle unhandled exceptions
@@ -112,40 +82,41 @@ export interface DefaultSetting {
   DEFAULT_PROTOCOL : string,
 }
 
-const DEFAULT_SETTING = pkg['wechaty'] as DefaultSetting
+const DEFAULT_SETTING = packageJson['wechaty'] as DefaultSetting
 
 export class Config {
 
-  public default = DEFAULT_SETTING
+  default = DEFAULT_SETTING
 
-  public apihost = process.env['WECHATY_APIHOST'] || DEFAULT_SETTING.DEFAULT_APIHOST
-  public serviceIp = process.env['WECHATY_PUPPET_SERVICE_IP'] || ''
+  apihost = process.env['WECHATY_APIHOST'] || DEFAULT_SETTING['DEFAULT_APIHOST']
 
-  public systemPuppetName (): PuppetModuleName {
+  serviceIp = process.env['WECHATY_PUPPET_SERVICE_IP'] || ''
+
+  systemPuppetName (): PuppetModuleName {
     return (
       process.env['WECHATY_PUPPET'] || PUPPET_NAME_DEFAULT
     ).toLowerCase() as PuppetModuleName
   }
 
-  public name    = process.env['WECHATY_NAME']
+  name = process.env['WECHATY_NAME']
 
   // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  public token   = process.env['WECHATY_TOKEN']
+  token   = process.env['WECHATY_TOKEN']
 
-  public debug   = !!(process.env['WECHATY_DEBUG'])
+  debug   = !!(process.env['WECHATY_DEBUG'])
 
-  public httpPort = process.env['PORT']
+  httpPort = process.env['PORT']
     || process.env['WECHATY_PORT']
-    || DEFAULT_SETTING.DEFAULT_PORT
+    || DEFAULT_SETTING['DEFAULT_PORT']
 
-  public docker = !!(process.env['WECHATY_DOCKER'])
+  docker = !!(process.env['WECHATY_DOCKER'])
 
   constructor () {
     log.verbose('Config', 'constructor()')
     this.validApiHost(this.apihost)
   }
 
-  public validApiHost (apihost: string): boolean {
+  validApiHost (apihost: string): boolean {
     if (/^[a-zA-Z0-9.\-_]+:?[0-9]*$/.test(apihost)) {
       return true
     }
@@ -179,26 +150,13 @@ export function isProduction (): boolean {
       || process.env['NODE_ENV'] === 'prod'
 }
 
-/**
- * Huan(202011):
- *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
- *    https://github.com/wechaty/wechaty/issues/2090
- */
-type FileBoxClass = FileBox & {
-  new (...args: any): FileBox
+const config = new Config()
+
+export type {
+  PackageJsonWechaty,
 }
-const looseInstanceOfFileBox = looseInstanceOfClass(
-  FileBox as any as FileBoxClass
-)
-
 export {
-  log,
-  FileBox,
-  MemoryCard,
-  Raven,
-  looseInstanceOfFileBox,
-
+  config,
+  GIT_COMMIT_HASH,
   VERSION,
 }
-
-export const config = new Config()

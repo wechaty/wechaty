@@ -18,36 +18,33 @@
  *
  */
 import { EventEmitter }     from 'events'
-import { instanceToClass }  from 'clone-class'
-
-import {
-  Wechaty,
-}                   from '../wechaty'
-import {
-  log,
-}                   from '../config'
-import {
-  tryWait,
-}                   from '../helper-functions/mod'
-
 import {
   FriendshipAddOptions as PuppetFriendshipAddOptions,
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
+  instanceToClass,
+  log,
 }                                 from 'wechaty-puppet'
 
+import type {
+  Wechaty,
+}                   from '../wechaty.js'
 import {
+  retryPolicy,
+}                   from '../helper-functions/mod.js'
+
+import type {
   Acceptable,
-}                   from '../types'
+}                   from '../types.js'
 
-import {
+import type {
   Contact,
-}                   from './contact'
+}                   from './contact.js'
 
-import {
+import type {
   Room,
-}                   from './room'
+}                   from './room.js'
 
 interface FriendshipAddOptionsObject {
   room?: Room,
@@ -284,22 +281,23 @@ class Friendship extends EventEmitter implements Acceptable {
 
     const contact = this.contact()
 
-    await tryWait(async (retry, attempt) => {
-      log.silly('Friendship', 'accept() retry() ready() attempt %d', attempt)
-
-      await contact.ready()
-
-      if (contact.isReady()) {
+    try {
+      const doSync = async () => {
+        await contact.ready()
+        if (!contact.isReady()) {
+          throw new Error('Friendship.accept() contact.ready() not ready')
+        }
         log.verbose('Friendship', 'accept() with contact %s ready()', contact.name())
-        return
       }
-      retry(new Error('Friendship.accept() contact.ready() not ready'))
 
-    }).catch((e: Error) => {
-      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && e.message) || e)
-    })
+      await retryPolicy.execute(doSync)
 
-    // try to fix issue #293
+    } catch (e) {
+      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && (e as Error).message) || e)
+      // console.error(e)
+    }
+
+    // try to fix issue #293 - https://github.com/wechaty/wechaty/issues/293
     await contact.sync()
   }
 

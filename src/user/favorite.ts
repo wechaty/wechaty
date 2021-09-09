@@ -17,10 +17,11 @@
  *   limitations under the License.
  *
  */
-import { Tag } from './tag'
+import { log }        from 'wechaty-puppet'
 
-import { Wechaty }  from '../wechaty'
-import { log }        from '../config'
+import type { Wechaty }  from '../wechaty.js'
+
+import type { Tag } from './tag.js'
 
 class Favorite {
 

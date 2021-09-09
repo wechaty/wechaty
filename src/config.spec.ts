@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,15 +19,15 @@
  *
  */
 
-import test  from 'blue-tape'
+import { test }  from 'tstest'
 
-import { config } from './config'
+import { config } from './config.js'
 // import { Puppet } from './puppet'
 
 test('important variables', async t => {
-  // t.true('puppet'   in config, 'should exist `puppet` in Config')
-  t.true('apihost'  in config, 'should exist `apihost` in Config')
-  t.true('token'    in config, 'should exist `token` in Config')
+  // t.ok('puppet'   in config, 'should exist `puppet` in Config')
+  t.ok('apihost'  in config, 'should exist `apihost` in Config')
+  t.ok('token'    in config, 'should exist `token` in Config')
 
   // t.ok(config.default.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
   // t.ok(config.default.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
@@ -73,7 +73,7 @@ test('validApiHost()', async t => {
 
 //   config.puppetInstance(mockPuppet)
 //   const instance = config.puppetInstance()
-//   t.deepEqual(instance, EXPECTED, 'should equal with initialized data')
+//   t.same(instance, EXPECTED, 'should equal with initialized data')
 
 //   config.puppetInstance(null)
 //   t.throws(() => {
@@ -87,7 +87,7 @@ test('systemPuppetName ()', async t => {
   const WECHATY_PUPPET_ORIG = process.env['WECHATY_PUPPET']
 
   delete process.env['WECHATY_PUPPET']
-  t.equal(config.systemPuppetName(), 'wechaty-puppet-wechat', 'should get wechaty-puppet-wechat as default puppet name')
+  t.equal(config.systemPuppetName(), 'wechaty-puppet-service', 'should get wechaty-puppet-service as default puppet name')
 
   process.env['WECHATY_PUPPET'] = 'wechaty-puppet-mock'
   t.equal(config.systemPuppetName(), 'wechaty-puppet-mock', 'should get puppet name from process.env')

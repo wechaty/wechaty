@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,7 +19,7 @@
  *
  */
 import { test } from 'tstest'
-import { timestampToDate } from './timestamp-to-date'
+import { timestampToDate } from './timestamp-to-date.js'
 
 /**
  * 1e11

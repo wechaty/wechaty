@@ -17,9 +17,9 @@
  *   limitations under the License.
  *
  */
-import { Wechaty } from '../wechaty'
+import type { Wechaty } from '../wechaty.js'
 
-import { Contact } from './contact'
+import type { Contact } from './contact.js'
 
 class Moment {
 

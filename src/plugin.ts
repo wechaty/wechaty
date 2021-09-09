@@ -1,4 +1,4 @@
-import { Wechaty } from './wechaty'
+import type { Wechaty } from './wechaty.js'
 
 export type WechatyPluginUninstaller = () => void
 

@@ -19,6 +19,6 @@
  *
  */
 
-import { Wechaty } from '../src/wechaty'
+import { VERSION } from '../src/config.js'
 
-console.info(Wechaty.version())
+console.info(VERSION)

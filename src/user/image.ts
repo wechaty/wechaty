@@ -17,17 +17,14 @@
  *   limitations under the License.
  *
  */
-import { instanceToClass } from 'clone-class'
-
 import {
   ImageType,
-}                   from 'wechaty-puppet'
-
-import { Wechaty } from '../wechaty'
-import {
+  instanceToClass,
   FileBox,
   log,
-}                   from '../config'
+}                   from 'wechaty-puppet'
+
+import type { Wechaty } from '../wechaty.js'
 
 class Image {
 

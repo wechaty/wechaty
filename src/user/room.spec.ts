@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,17 +18,19 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
-import sinon from 'sinon'
-
 import {
+  test,
+  sinon,
+}             from 'tstest'
+
+import type {
   ContactPayload,
   RoomMemberPayload,
   RoomPayload,
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
-import { Wechaty }      from '../wechaty'
+import { Wechaty }      from '../wechaty.js'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
@@ -110,7 +112,7 @@ test('say()', async () => {
     callback.resetHistory()
     await room.say`To be ${contact1} or not to be ${contact2}`
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       'To be @little1 or not to be @big2',
@@ -122,7 +124,7 @@ test('say()', async () => {
     callback.resetHistory()
     await room.say('Yo', contact1)
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       '@little1 Yo',
@@ -134,7 +136,7 @@ test('say()', async () => {
     callback.resetHistory()
     await room.say('hey buddies, let\'s party', contact1, contact2)
 
-    t.deepEqual(callback.getCall(0).args, [
+    t.same(callback.getCall(0).args, [
       // { contactId: EXPECTED_CONTACT_1_ID, roomId: EXPECTED_ROOM_ID },
       EXPECTED_ROOM_ID,
       '@little1 @big2 hey buddies, let\'s party',

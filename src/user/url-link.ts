@@ -21,15 +21,12 @@ import Url from 'url'
 
 import {
   UrlLinkPayload,
+  log,
 }                   from 'wechaty-puppet'
 
 import {
-  log,
-}               from '../config'
-
-import {
   openGraph,
-}               from '../helper-functions/impure/open-graph'
+}               from '../helper-functions/impure/open-graph.js'
 
 class UrlLink {
 

@@ -20,47 +20,40 @@
 import cuid             from 'cuid'
 import os               from 'os'
 
-import { Brolog }           from 'brolog'
-import { instanceToClass }  from 'clone-class'
-
-import {
-  Puppet,
-
-  MemoryCard,
-  StateSwitch,
-
-  PUPPET_EVENT_DICT,
-  PuppetEventName,
-  PuppetOptions,
-  PayloadType,
-}                       from 'wechaty-puppet'
-
 import {
   FileBox,
-  Raven,
-
-  config,
+  instanceToClass,
   log,
-}                       from './config'
+  MemoryCard,
+  PayloadType,
+  PUPPET_EVENT_DICT,
+  Puppet,
+  PuppetEventName,
+  PuppetOptions,
+  StateSwitch,
+}                       from 'wechaty-puppet'
+
+import { captureException } from './raven.js'
 
 import {
+  config,
   VERSION,
   GIT_COMMIT_HASH,
-}                       from './version'
+}                       from './config.js'
 
-import {
+import type {
   Sayable,
-}                       from './types'
+}                       from './types.js'
 
 import {
   Io,
-}                       from './io'
-import {
+}                       from './io.js'
+import type {
   PuppetModuleName,
-}                       from './puppet-config'
+}                       from './puppet-config.js'
 import {
   PuppetManager,
-}                       from './puppet-manager'
+}                       from './puppet-manager.js'
 
 import {
   Contact,
@@ -88,18 +81,18 @@ import {
   wechatifyLocation,
 }                       from './user/mod'
 
-import { timestampToDate } from './helper-functions/pure/timestamp-to-date'
+import { timestampToDate } from './helper-functions/pure/timestamp-to-date.js'
 
 import {
   WechatyEventEmitter,
   WechatyEventName,
-}                             from './events/wechaty-events'
+}                             from './events/wechaty-events.js'
 
 import {
   WechatyPlugin,
   WechatyPluginUninstaller,
   isWechatyPluginUninstaller,
-}                             from './plugin'
+}                             from './plugin.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -138,8 +131,8 @@ const PUPPET_MEMORY_NAME = 'puppet'
 class Wechaty extends WechatyEventEmitter implements Sayable {
 
   static readonly VERSION = VERSION
-  static readonly log: Brolog = log
-  readonly log: Brolog = log
+  static readonly log = log
+  readonly log = log
 
   public  readonly state      : StateSwitch
   private readonly readyState : StateSwitch
@@ -157,7 +150,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   private memory?: MemoryCard
 
-  private lifeTimer? : NodeJS.Timer
+  private lifeTimer? : ReturnType<typeof setInterval>
   private io?        : Io
 
   public puppet!: Puppet
@@ -467,7 +460,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               this.emit('friendship', friendship)
               friendship.contact().emit('friendship', friendship)
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -479,7 +472,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               await contact.ready()
               this.emit('login', contact)
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -491,7 +484,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               await contact.ready()
               this.emit('logout', contact, payload.data)
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -503,14 +496,18 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               await msg.ready()
               this.emit('message', msg)
 
-              const room = msg.room()
+              const room     = msg.room()
+              const listener = msg.listener()
+
               if (room) {
                 room.emit('message', msg)
+              } else if (listener) {
+                listener.emit('message', msg)
               } else {
-                msg.talker().emit('message', msg)
+                this.emit('error', new Error('message without room or listener'))
               }
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -547,7 +544,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               this.emit('room-join', room, inviteeList, inviter, date)
               room.emit('join', inviteeList, inviter, date)
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -579,7 +576,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
                 await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
               }
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -597,7 +594,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
               room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -642,7 +639,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
                   throw new Error('unknown payload type: ' + payloadType)
               }
             } catch (e) {
-              this.emit('error', e)
+              this.emit('error', (e as Error))
             }
           })
           break
@@ -740,16 +737,16 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
     } catch (e) {
       console.error(e)
-      log.error('Wechaty', 'start() exception: %s', e && e.message)
-      Raven.captureException(e)
-      this.emit('error', e)
+      log.error('Wechaty', 'start() exception: %s', e && (e as Error).message)
+      captureException((e as Error))
+      this.emit('error', e as Error)
 
       try {
         await this.stop()
       } catch (e) {
-        log.error('Wechaty', 'start() stop() exception: %s', e && e.message)
-        Raven.captureException(e)
-        this.emit('error', e)
+        log.error('Wechaty', 'start() stop() exception: %s', e && (e as Error).message)
+        captureException((e as Error))
+        this.emit('error', (e as Error))
       }
       return
     }
@@ -805,7 +802,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       await this.puppet.stop()
     } catch (e) {
-      log.warn('Wechaty', 'stop() puppet.stop() exception: %s', e.message)
+      log.warn('Wechaty', 'stop() puppet.stop() exception: %s', (e as Error).message)
     }
 
     try {
@@ -815,9 +812,9 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       }
 
     } catch (e) {
-      log.error('Wechaty', 'stop() exception: %s', e.message)
-      Raven.captureException(e)
-      this.emit('error', e)
+      log.error('Wechaty', 'stop() exception: %s', (e as Error).message)
+      captureException((e as Error))
+      this.emit('error', (e as Error))
     }
 
     this.state.off(true)
@@ -844,8 +841,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       await this.puppet.logout()
     } catch (e) {
-      log.error('Wechaty', 'logout() exception: %s', e.message)
-      Raven.captureException(e)
+      log.error('Wechaty', 'logout() exception: %s', (e as Error).message)
+      captureException(e as Error)
       throw e
     }
   }
@@ -989,7 +986,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * @ignore
    */
   public static async sleep (millisecond: number): Promise<void> {
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       setTimeout(resolve, millisecond)
     })
   }
@@ -1010,8 +1007,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       this.puppet.ding(data)
     } catch (e) {
-      log.error('Wechaty', 'ding() exception: %s', e.message)
-      Raven.captureException(e)
+      log.error('Wechaty', 'ding() exception: %s', (e as Error).message)
+      captureException((e as Error))
       throw e
     }
   }
@@ -1035,14 +1032,34 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public async reset (reason?: string): Promise<void> {
+  public reset (reason?: string): void {
     log.verbose('Wechaty', 'reset() with reason: %s, call stack: %s',
       reason || 'no reason',
       // https://stackoverflow.com/a/2060330/1123955
       new Error().stack,
     )
-    await this.puppet.stop()
-    await this.puppet.start()
+
+    this.puppet.stop()
+      .then(() => this.puppet.start())
+      .finally(() => {
+        log.verbose('Wechaty', 'reset() done.')
+      })
+      .catch(e => {
+        log.warn('Wechaty', 'reset() rejection: %s', e && e.message)
+
+        /**
+         * Dealing with https://github.com/wechaty/wechaty/issues/2197
+         */
+        setTimeout(
+          () => this.reset(),
+          Math.floor(
+            (
+              10 + 10 * Math.random()
+            ) * 1000
+          )
+        )
+
+      })
   }
 
   public unref (): void {

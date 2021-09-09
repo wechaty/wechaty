@@ -56,7 +56,7 @@ Safe Test: starting...
 Safe Test: running for round #0
 
 > wechaty@0.17.11 test:unit /home/zixia/chatie/wechaty
-> TS_NODE_FILES=1 blue-tape -r ts-node/register "src/**/*.spec.ts" "src/*.spec.ts" "tests/*.spec.ts" "tests/**/*.spec.ts"
+> TS_NODE_FILES=1 tap --node-arg=--require=ts-node/register "src/**/*.spec.ts" "src/*.spec.ts" "tests/*.spec.ts" "tests/**/*.spec.ts"
 
 TAP version 13
 # Accessory smoke testing

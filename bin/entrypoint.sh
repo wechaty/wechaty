@@ -150,29 +150,32 @@ function wechaty::runBot() {
 
   # npm --progress=false install @types/node > /dev/null
 
+  #
+  # Huan(202108) node_arg: --es-module-specifier-resolution=node
+  #
+  #   Make .js extension default for ESM imports
+  #     See: https://github.com/nodejs/node/issues/30927#issuecomment-575998045 \
+  #
   local -i ret=0
   case "$botFile" in
-    *.js)
-      if [ "$NODE_ENV" = "production" ]; then
-        echo "Executing node $*"
-        node "$@" &
-      else
-        echo "Executing babel-node --presets @babel/env $*"
-        # https://stackoverflow.com/a/34025957/1123955
-        BABEL_DISABLE_CACHE=1 babel-node --presets @babel/env "$@" &
-      fi
+    *.js | *.cjs | *.mjs)
+      echo "Executing node $*"
+      node \
+        --es-module-specifier-resolution=node \
+        "$@" \
+        &
       ;;
     *.ts)
-      if [ "$NODE_ENV" = "production" ]; then
-        echo "Executing ts-node $*"
-        ts-node "$@" &
-      else
-        echo "Executing ts-node --type-check $*"
-        ts-node --type-check "$@" &
-      fi
+      echo "Executing node --loader=ts-node/esm $*"
+      node \
+        --es-module-specifier-resolution=node \
+        --no-warnings \
+        --loader=ts-node/esm \
+        "$@" \
+        &
       ;;
     *)
-      echo "ERROR: wechaty::runBot() neith .js nor .ts"
+      echo "ERROR: wechaty::runBot() neither .{js,cjs,mjs} nor .ts"
       exit 1 &
   esac
 
@@ -284,7 +287,7 @@ function main() {
     #
     # 2. Run a bot
     #
-    *.ts | *.js)
+    *.ts | *.js | *.cjs | *.mjs)
       # set -e will not work inside wechaty::runBot because of
       # http://stackoverflow.com/a/4073372/1123955
       wechaty::runBot "$@" || ret=$?
