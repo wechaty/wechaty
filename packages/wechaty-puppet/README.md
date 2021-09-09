@@ -114,7 +114,11 @@ Set the max size for wechaty entities in LRU Cache.
 
 ## History
 
-### master v0.43 (Aug 28, 2021)
+### master v0.45
+
+1. Add `Error` interface to `EventErrorPayload`, and make `.data` optional
+
+### v0.43 (Aug 28, 2021)
 
 1. Support ES Modules
 
