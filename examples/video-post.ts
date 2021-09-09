@@ -13,56 +13,70 @@ const videoPost = new VideoPost({
 })
 
 async function testVideoPost () {
+  const contact = await bot.Contact.find({ id: 'xxx' })
+  const room = await bot.Room.find({ id: 'xxx' })
 
-  /**
-   * Video Post
-   */
-
-  // send video post
-  const message = bot.Message.load('')
-  const msg = await message.say(videoPost)
-
-  if (!msg) {
+  if (!contact || !room) {
     return
   }
 
-  // forward video post
-  const contact = bot.Contact.load('xxxx')
-  await msg.forward(contact)
+  bot.on('message', async message => {
 
-  /**
-   * Comment
-   */
+    if (message.type() !== message.type.VideoPost) {
+      return
+    }
 
-  // post comment
-  const comment = await bot.Comment.comment(msg, 'xxxx')
+    /**
+     * Video Post
+     */
 
-  // reply comment
-  await comment.reply('xxxx')
+    // send video post
+    const msg = await message.say(videoPost)
+    await contact.say(videoPost)
+    await room.say(videoPost)
 
-  // revoke comment
-  await comment.revoke()
+    if (!msg) {
+      return
+    }
 
-  // list comments
-  await comment.list(msg, {
-    currentPage: 0,
-    pageSize: 10,
-  })
+    // forward video post
+    contact && await msg.forward(contact)
 
-  /**
-   * Like
-   */
+    /**
+     * Comment
+     */
 
-  // like message
-  await bot.Like.like(msg)
+    // post comment
+    const comment = await bot.Comment.comment(msg, 'xxxx')
 
-  // cancel like
-  await bot.Like.cancel(msg)
+    // reply comment
+    await comment.reply('xxxx')
 
-  // list all likers
-  await bot.Like.list(msg, {
-    currentPage: 0,
-    pageSize: 10,
+    // revoke comment
+    await comment.revoke()
+
+    // list comments
+    await comment.list(msg, {
+      currentPage: 0,
+      pageSize: 10,
+    })
+
+    /**
+     * Like
+     */
+
+    // like message
+    await bot.Like.like(msg)
+
+    // cancel like
+    await bot.Like.cancel(msg)
+
+    // list all likers
+    await bot.Like.list(msg, {
+      currentPage: 0,
+      pageSize: 10,
+    })
+
   })
 
 }
