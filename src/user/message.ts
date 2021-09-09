@@ -1086,6 +1086,26 @@ class Message extends EventEmitter implements Sayable {
     return new MiniProgram(miniProgramPayload)
   }
 
+  public async toVideoPost (): Promise<VideoPost> {
+    log.verbose('Message', 'toVideoPost()')
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (this.type() !== Message.Type.VideoPost) {
+      throw new Error('message not a VideoPost')
+    }
+
+    const videoPostPayload = await this.wechaty.puppet.messageVideoPost(this.id)
+
+    if (!videoPostPayload) {
+      throw new Error(`no videoPost payload for message ${this.id}`)
+    }
+
+    return new VideoPost(videoPostPayload)
+  }
+
 }
 
 function wechatifyMessage (wechaty: Wechaty): typeof Message {
