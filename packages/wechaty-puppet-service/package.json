@@ -25,7 +25,7 @@
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --isolatedModules --noEmit",
-    "start": "cross-env NODE_OPTIONS='--no-warnings --loader=ts-node/esm' node examples/ding-dong-bot.ts",
+    "start": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",

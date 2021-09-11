@@ -23,6 +23,7 @@ npm init -y
 npm install --production *-*.*.*.tgz \
   @types/node \
   @chatie/tsconfig@$NPM_TAG \
+  pkg-jq \
   "wechaty-puppet@$NPM_TAG" \
   "wechaty@$NPM_TAG" \
 
@@ -50,7 +51,7 @@ node smoke-testing.js
 #
 
 # https://stackoverflow.com/a/59203952/1123955
-echo "`jq '.type="module"' package.json`" > package.json
+npx pkg-jq -i '.type="module"'
 
 ./node_modules/.bin/tsc \
   --target es2020 \
