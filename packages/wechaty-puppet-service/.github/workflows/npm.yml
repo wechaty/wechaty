@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package.json
 
       - name: Install Dependencies
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package.json
 
       - name: Install Dependencies
@@ -74,7 +74,7 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package.json
 
       - name: Install Dependencies

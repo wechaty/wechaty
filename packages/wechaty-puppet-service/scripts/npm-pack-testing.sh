@@ -51,7 +51,6 @@ node smoke-testing.js
 #
 
 # https://stackoverflow.com/a/59203952/1123955
-npx pkg-jq -i '.type="module"'
 
 ./node_modules/.bin/tsc \
   --target es2020 \
