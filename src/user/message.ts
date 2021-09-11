@@ -674,10 +674,15 @@ class Message extends EventEmitter implements Sayable {
    * }
    */
   public self (): boolean {
-    const userId = this.wechaty.puppet.selfId()
-    const talker = this.talker()
+    try {
+      const userId = this.wechaty.puppet.selfId()
+      const talker = this.talker()
 
-    return !!talker && talker.id === userId
+      return !!talker && talker.id === userId
+    } catch (e) {
+      log.error('Message', 'self() rejection: %s', (e as Error).message)
+      return false
+    }
   }
 
   /**
