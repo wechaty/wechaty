@@ -69,7 +69,7 @@
     "wechaty-puppet-mock": "^0.31.3"
   },
   "dependencies": {
-    "flash-store": "^1.3.2",
+    "flash-store": "^1.3.3",
     "rxjs": "^7.1.0",
     "semver": "^6.3.0",
     "stronger-typed-streams": "^0.2.0",
