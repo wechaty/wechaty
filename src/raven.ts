@@ -38,12 +38,12 @@ function enableRaven (dsn: string):void  {
     .config(dsn, ravenOptions)
     .install()
 }
-function init () {
+async function init () {
   try {
-    raven = require('raven')
+    raven = await import('raven')
   } catch (e) {
     // It's ok when there's no raven installed
-    log.verbose('Wechaty', 'init() require("raven") not succeed, skipped.')
+    log.verbose('Wechaty', 'init() import("raven") failed, ignored.')
     return
   }
 
@@ -62,7 +62,7 @@ function captureException (e: Error) {
   }
 }
 
-init()
+init().catch(console.error)
 
 export {
   captureException,
