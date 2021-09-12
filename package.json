@@ -55,21 +55,23 @@
     "wechaty-version": "dist/esm/bin/version.js"
   },
   "keywords": [
-    "wechat",
-    "rpa",
-    "conversational",
     "ai",
-    "微信",
-    "weixin",
-    "personal",
     "bot",
-    "robot",
     "chatbot",
-    "framework",
-    "sdk",
-    "wechaty",
     "chatie",
-    "微信控"
+    "conversational",
+    "framework",
+    "robot",
+    "rpa",
+    "sdk",
+    "wechat",
+    "wecom",
+    "wxwork",
+    "lark",
+    "TikTok",
+    "weixin",
+    "whatsapp",
+    "微信"
   ],
   "author": {
     "name": "Huan LI (李卓桓)",
@@ -94,7 +96,7 @@
     "open-graph": "^0.2.6",
     "raven": "^2.6.4",
     "wechaty-puppet": "^0.45.3",
-    "wechaty-puppet-service": "^0.31.6",
+    "wechaty-puppet-service": "^0.31.19",
     "ws": "^7.2.0"
   },
   "devDependencies": {
