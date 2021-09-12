@@ -96,7 +96,7 @@
     "open-graph": "^0.2.6",
     "raven": "^2.6.4",
     "wechaty-puppet": "^0.45.3",
-    "wechaty-puppet-service": "^0.31.19",
+    "wechaty-puppet-service": "^0.31.21",
     "ws": "^7.2.0"
   },
   "devDependencies": {
