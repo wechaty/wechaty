@@ -62,12 +62,16 @@ import {
   UrlLink,
   MiniProgram,
 }                         from './user/mod.js'
-import { IoClient }   from './io-client.js'
+import {
+  IoClient,
+  IoClientOptions,
+}                         from './io-client.js'
 
 import type {
   Sayable,
 }                   from './types.js'
 export type {
+  IoClientOptions,
   PuppetModuleName,
   Sayable,
   UrlLinkPayload,
