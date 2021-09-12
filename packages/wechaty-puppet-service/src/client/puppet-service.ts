@@ -65,6 +65,7 @@ import { serializeFileBox }         from '../server/serialize-file-box.js'
 import { recover$ }     from './recover$.js'
 import { GrpcClient }   from './grpc-client.js'
 import { PayloadStore } from './payload-store.js'
+import { packageJson } from '../package-json.js'
 
 export type PuppetServiceOptions = PuppetOptions & {
   authority?  : string
@@ -96,6 +97,14 @@ export class PuppetService extends Puppet {
     })
 
     this.hookPayloadStore()
+  }
+
+  override name () {
+    return packageJson.name || 'wechaty-puppet-service'
+  }
+
+  override version () {
+    return packageJson.version || '0.0.0'
   }
 
   override async start (): Promise<void> {
