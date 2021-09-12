@@ -5,11 +5,11 @@ import {
   Metadata,
   UntypedServiceImplementation,
 }                                 from '@grpc/grpc-js'
-import {
+import type {
   sendUnaryData,
   ServerUnaryCall,
 }                                 from '@grpc/grpc-js/build/src/server-call'
-import {
+import type {
   CallMetadataGenerator,
 }                                 from '@grpc/grpc-js/build/src/call-credentials'
 import { Status as GrpcStatus }     from '@grpc/grpc-js/build/src/constants.js'

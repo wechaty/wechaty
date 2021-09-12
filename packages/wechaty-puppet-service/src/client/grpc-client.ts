@@ -24,7 +24,7 @@ import {
   TLS_INSECURE_SERVER_CERT_COMMON_NAME,
 }                                         from '../auth/ca.js'
 
-import { PuppetServiceOptions } from './puppet-service.js'
+import type { PuppetServiceOptions } from './puppet-service.js'
 
 /**
  * Huan(202108): register `wechaty` schema for gRPC service discovery

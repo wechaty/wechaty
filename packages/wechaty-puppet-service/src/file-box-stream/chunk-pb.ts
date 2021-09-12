@@ -1,8 +1,8 @@
-import { puppet } from 'wechaty-grpc'
+import type { puppet } from 'wechaty-grpc'
 import { Readable, Transform } from 'stronger-typed-streams'
 import { PassThrough } from 'stream'
 
-import { FileBoxPb } from './file-box-pb.type.js'
+import type { FileBoxPb } from './file-box-pb.type.js'
 
 /**
  * Wrap FileBoxChunk

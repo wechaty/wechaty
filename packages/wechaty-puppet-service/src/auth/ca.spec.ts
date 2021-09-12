@@ -7,7 +7,7 @@ import {
 import https from 'https'
 
 import * as envVar  from './env-vars.js'
-import { AddressInfo } from 'ws'
+import type { AddressInfo } from 'ws'
 
 import {
   TLS_CA_CERT,

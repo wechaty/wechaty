@@ -1,4 +1,4 @@
-import { puppet } from 'wechaty-grpc'
+import type { puppet } from 'wechaty-grpc'
 
 /**
  * Any Protocol Buffer message that include a FileBoxChunk

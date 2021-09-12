@@ -1,7 +1,7 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 
 import { test } from 'tstest'
-import http2 from 'http2'
+import type http2 from 'http2'
 
 import {
   Metadata,

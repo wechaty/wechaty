@@ -2,7 +2,7 @@ import path from 'path'
 import os from 'os'
 import fs from 'fs'
 
-import { major, minor } from 'semver'
+import semverPkg from 'semver'
 
 import {
   log,
@@ -16,6 +16,8 @@ import { FlashStore } from 'flash-store'
 // import LRU            from 'lru-cache'
 
 import { VERSION } from '../config.js'
+
+const { major, minor } = semverPkg
 
 interface PayloadStoreOptions {
   token: string

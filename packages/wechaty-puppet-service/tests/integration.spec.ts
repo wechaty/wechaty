@@ -5,7 +5,7 @@ import {
   sinon,
 }             from 'tstest'
 
-import {
+import type {
   PuppetOptions,
 }                 from 'wechaty-puppet'
 import {

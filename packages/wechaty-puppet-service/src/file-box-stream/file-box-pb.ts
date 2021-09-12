@@ -1,5 +1,5 @@
-import { FileBox }      from 'wechaty-puppet'
-import { Readable }     from 'stronger-typed-streams'
+import type { FileBox }      from 'wechaty-puppet'
+import type { Readable }     from 'stronger-typed-streams'
 
 import {
   packFileBoxToChunk,
@@ -9,7 +9,7 @@ import {
   packFileBoxChunkToPb,
   unpackFileBoxChunkFromPb,
 }                           from './chunk-pb.js'
-import { FileBoxPb }        from './file-box-pb.type.js'
+import type { FileBoxPb }        from './file-box-pb.type.js'
 
 function packFileBoxToPb<T extends FileBoxPb> (
   PbConstructor: { new(): T },

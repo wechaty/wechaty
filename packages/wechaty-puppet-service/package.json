@@ -74,7 +74,7 @@
     "rxjs": "^7.3.0",
     "semver": "^7.3.5",
     "stronger-typed-streams": "^0.2.0",
-    "wechaty-grpc": "^0.27.6",
+    "wechaty-grpc": "^0.27.10",
     "wechaty-token": "^0.5.8"
   },
   "publishConfig": {

@@ -1,13 +1,13 @@
-import { FileBox }              from 'wechaty-puppet'
+import type { FileBox }              from 'wechaty-puppet'
 import { PassThrough }          from 'stream'
-import { Readable }             from 'stronger-typed-streams'
+import type { Readable }             from 'stronger-typed-streams'
 
 import { nextData }                 from './next-data.js'
 import {
   packFileBoxToPb,
   unpackFileBoxFromPb,
 }                                  from './file-box-pb.js'
-import { ConversationIdFileBoxPb } from './file-box-pb.type.js'
+import type { ConversationIdFileBoxPb } from './file-box-pb.type.js'
 
 interface ConversationIdFileBoxArgs {
   conversationId: string,

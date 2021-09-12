@@ -1,8 +1,8 @@
-import http2 from 'http2'
+import type http2 from 'http2'
 
 import { log } from 'wechaty-puppet'
 
-import {
+import type {
   Metadata,
 }             from './grpc-js.js'
 

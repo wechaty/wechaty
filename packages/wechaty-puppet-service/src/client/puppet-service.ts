@@ -45,7 +45,7 @@ import {
   puppet as pbPuppet,
 }                                   from 'wechaty-grpc'
 
-import { Subscription } from 'rxjs'
+import type { Subscription } from 'rxjs'
 
 import {
   envVars,
@@ -847,7 +847,7 @@ export class PuppetService extends Puppet {
     request.setConversationId(conversationId)
     request.setText(text)
     if (typeof mentionIdList !== 'undefined') {
-      request.setMentonalIdsList(mentionIdList)
+      request.setMentionalIdsList(mentionIdList)
     }
 
     const response = await util.promisify(

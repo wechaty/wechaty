@@ -778,7 +778,7 @@ function puppetImplementation (
       try {
         const conversationId = call.request.getConversationId()
         const text = call.request.getText()
-        const mentionIdList = call.request.getMentonalIdsList()
+        const mentionIdList = call.request.getMentionalIdsList()
 
         const messageId = await puppet.messageSendText(conversationId, text, mentionIdList)
 
