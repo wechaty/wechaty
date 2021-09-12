@@ -1,10 +1,21 @@
-export { Mocker } from './mocker.js'
-export {
+import { Mocker } from './mocker.js'
+import {
   EnvironmentMock,
   SimpleEnvironment,
 }                     from './environment.js'
-export {
+import {
   ContactMock,
   RoomMock,
   MessageMock,
 }                     from './user/mod.js'
+
+export type {
+  EnvironmentMock,
+}
+export {
+  Mocker,
+  SimpleEnvironment,
+  ContactMock,
+  RoomMock,
+  MessageMock,
+}

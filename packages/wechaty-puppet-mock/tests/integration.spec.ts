@@ -6,7 +6,7 @@ import {
   Message,
   Wechaty,
 }                from 'wechaty'
-import {
+import type {
   ContactMock,
   RoomMock,
 }                 from '../src/mock/mod.js'

@@ -7,7 +7,7 @@ import {
   log,
 }                     from 'wechaty-puppet'
 
-import { PuppetMock } from '../puppet-mock.js'
+import type { PuppetMock } from '../puppet-mock.js'
 
 import {
   ContactMock,
@@ -23,7 +23,7 @@ import {
   generateContactPayload,
   generateRoomPayload,
 }                           from './generator.js'
-import { EnvironmentMock } from './environment.js'
+import type { EnvironmentMock } from './environment.js'
 
 class Mocker {
 

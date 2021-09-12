@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import {
+import type {
   EventLogoutPayload,
   EventLoginPayload,
   EventScanPayload,

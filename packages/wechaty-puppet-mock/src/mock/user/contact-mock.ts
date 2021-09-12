@@ -13,7 +13,7 @@ import {
   log,
 }                         from 'wechaty-puppet'
 
-import { Mocker }    from '../mocker.js'
+import type { Mocker }    from '../mocker.js'
 
 import { RoomMock }    from './room-mock.js'
 // import { MiniProgram, UrlLink } from 'wechaty'
