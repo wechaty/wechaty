@@ -40,9 +40,9 @@ class PayloadStore {
     this.storeDir = path.join(
       os.homedir(),
       '.wechaty',
-      `wechaty-puppet-service-v${major(VERSION)}.${minor(VERSION)}`,
-      `flash-store-v${major(FlashStore.VERSION)}.${minor(FlashStore.VERSION)}`,
+      'wechaty-puppet-service',
       this.options.token,
+      `v${major(VERSION)}.${minor(VERSION)}`,
     )
     log.silly('PayloadStore', 'constructor() storeDir: "%s"', this.storeDir)
   }
