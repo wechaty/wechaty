@@ -5,7 +5,7 @@
 [![npm (tag)](https://img.shields.io/npm/v/wechaty-puppet/next.svg)](https://www.npmjs.com/package/wechaty-puppet?activeTab=versions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Linux/Mac Build Status](https://travis-ci.com/wechaty/wechaty-puppet.svg?branch=master)](https://travis-ci.com/wechaty/wechaty-puppet)
-[![Greenkeeper badge](https://badges.greenkeeper.io/wechaty/wechaty-puppet.svg)](https://greenkeeper.io/)
+[![ES Modules](https://img.shields.io/badge/ES-Modules-brightgreen)](https://github.com/Chatie/tsconfig/issues/16)
 
 ![chatie puppet](https://wechaty.github.io/wechaty-puppet/images/puppet-logo.jpg)
 
