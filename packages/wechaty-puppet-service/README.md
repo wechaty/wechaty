@@ -2,8 +2,9 @@
 
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet-service.svg)](https://www.npmjs.com/package/wechaty-puppet-service)
 [![NPM](https://github.com/wechaty/wechaty-puppet-service/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty-puppet-service/actions?query=workflow%3ANPM)
+[![ES Modules](https://img.shields.io/badge/ES-Modules-brightgreen)](https://github.com/Chatie/tsconfig/issues/16)
 
-![Wechaty Hostie](https://wechaty.github.io/wechaty-puppet-service/images/hostie.png)
+![Wechaty Service](https://wechaty.github.io/wechaty-puppet-service/images/hostie.png)
 
 Wechaty Puppet Service is gRPC for Wechaty Puppet Provider.
 
