@@ -12,6 +12,7 @@ import {
 }                   from './config.js'
 
 let raven: typeof Raven
+let enabled = false
 
 function getRavenDsn (): undefined | string {
   // const RAVEN_DSN = 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672'
@@ -37,7 +38,10 @@ function enableRaven (dsn: string):void  {
   raven
     .config(dsn, ravenOptions)
     .install()
+
+  enabled = true
 }
+
 async function init () {
   try {
     raven = await import('raven')
@@ -57,7 +61,7 @@ async function init () {
 }
 
 function captureException (e: Error) {
-  if (raven) {
+  if (enabled) {
     raven.captureException(e)
   }
 }
