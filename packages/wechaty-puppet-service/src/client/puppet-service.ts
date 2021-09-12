@@ -235,7 +235,7 @@ export class PuppetService extends Puppet {
     const payload = event.getPayload()
 
     log.verbose('PuppetService',
-      'onGrpcStreamEvent({type:%s(%s), payload(%s)})',
+      'onGrpcStreamEvent({type:%s(%s), payload(len:%s)})',
       EventTypeRev[type],
       type,
       payload.length
