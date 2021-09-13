@@ -19,13 +19,11 @@
  */
 import {
   LocationPayload,
-}                   from 'wechaty-puppet'
-
-import { Wechaty } from '../wechaty'
-
-import {
   log,
-}               from '../config'
+}               from 'wechaty-puppet'
+import type {
+  Wechaty,
+}               from '../wechaty.js'
 
 class Location {
 
