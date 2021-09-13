@@ -17,7 +17,5 @@
  *   limitations under the License.
  *
  */
-import { Brolog } from 'brolog'
-
-const brolog = new Brolog()
-brolog.info('OK', 'with-import.ts')
+import { log } from 'wechaty'
+log.info('OK', 'with-import.ts')

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import * as readline from 'readline'
+import readline from 'readline'
 
 const contributeMap: {
   [contributor: string]: string[],

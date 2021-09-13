@@ -1,12 +1,12 @@
 import { EventEmitter }   from 'events'
-import TypedEventEmitter  from 'typed-emitter'
+import type TypedEventEmitter  from 'typed-emitter'
 
-import {
+import type {
   Contact,
   Message,
   Room,
   RoomInvitation,
-}                   from '../user/mod'
+}                   from '../user/mod.js'
 
 export const ROOM_EVENT_DICT = {
   invite  : 'tbw',

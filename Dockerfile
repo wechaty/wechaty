@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:bullseye
 LABEL maintainer="Huan LI (李卓桓) <zixia@zixia.net>"
 
 ENV DEBIAN_FRONTEND     noninteractive
@@ -38,7 +38,7 @@ RUN apt-get update \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - \
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && apt-get purge --auto-remove \
     && rm -rf /tmp/* /var/lib/apt/lists/*
@@ -64,7 +64,7 @@ RUN  npm install \
 
 COPY . .
 
-RUN ./scripts/generate-version.sh && rm -f src/version.spec.ts
+RUN ./scripts/generate-package-json.sh && rm -f src/package-json.spec.ts
 RUN  npm test \
   && npm run dist \
   && npm link
@@ -73,6 +73,12 @@ RUN  npm test \
 # Must be placed after `npm link`, or it will be all deleted by `npm link`
 RUN  npm run puppet-install \
   && sudo rm -fr /tmp/* ~/.npm
+
+#
+# Enable ES Modules support #2232
+#   See: https://github.com/wechaty/wechaty/issues/2232
+#
+RUN echo '{"type": "module"}' > /package.json
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.

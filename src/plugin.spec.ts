@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,15 +18,17 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}           from 'tstest'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
   Wechaty,
-}                             from './wechaty'
-import { WechatyPlugin } from './plugin'
+}                         from './wechaty.js'
+import type { WechatyPlugin }  from './plugin.js'
 
 test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
   const spyPluginInstall  = sinon.spy()
@@ -42,15 +43,15 @@ test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t
     }
   }
 
-  t.true(spyPluginInstall.notCalled, 'should be clean for install spy')
-  t.true(spyPluginUninstall.notCalled, 'should be clean for uninstall spy')
+  t.ok(spyPluginInstall.notCalled, 'should be clean for install spy')
+  t.ok(spyPluginUninstall.notCalled, 'should be clean for uninstall spy')
 
   bot.use(plugin)
-  t.true(spyPluginInstall.called, 'should called install spy after use()')
-  t.true(spyPluginUninstall.notCalled, 'should not call uninstall spy after use()')
+  t.ok(spyPluginInstall.called, 'should called install spy after use()')
+  t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after use()')
 
   await bot.start()
   await bot.stop()
 
-  t.true(spyPluginUninstall.called, 'should called uninstall spy after stop()')
+  t.ok(spyPluginUninstall.called, 'should called uninstall spy after stop()')
 })

@@ -20,36 +20,31 @@
 import WebSocket        from 'ws'
 
 import {
-  Message,
-}                 from './user/mod'
-
-import {
   StateSwitch,
-
   EventScanPayload,
+  log,
 }                         from 'wechaty-puppet'
 
-import Peer, {
-  JsonRpcPayload,
-  JsonRpcPayloadResponse,
-  parse,
-}                         from 'json-rpc-peer'
+import jsonRpcPeerPkg from 'json-rpc-peer'
+
+import type {
+  Message,
+}                 from './user/mod.js'
 
 import {
   config,
-  log,
-}                 from './config'
-import {
+}                 from './config.js'
+import type {
   AnyFunction,
-}                 from './types'
-import {
+}                 from './types.js'
+import type {
   Wechaty,
-}                 from './wechaty'
+}                 from './wechaty.js'
 
 import {
   getPeer,
   isJsonRpcRequest,
-}                   from './io-peer/io-peer'
+}                   from './io-peer/io-peer.js'
 
 export interface IoOptions {
   wechaty      : Wechaty,
@@ -84,7 +79,7 @@ interface IoEventScan {
 
 interface IoEventJsonRpc {
   name: 'jsonrpc',
-  payload: JsonRpcPayload,
+  payload: jsonRpcPeerPkg.JsonRpcPayload,
 }
 
 interface IoEventAny {
@@ -117,16 +112,16 @@ export class Io {
 
   private readonly state = new StateSwitch('Io', { log })
 
-  private reconnectTimer?   : NodeJS.Timer
+  private reconnectTimer?   : ReturnType<typeof setTimeout>
   private reconnectTimeout? : number
 
-  private lifeTimer? : NodeJS.Timer
+  private lifeTimer? : ReturnType<typeof setTimeout>
 
   private onMessage: undefined | AnyFunction
 
   private scanPayload?: EventScanPayload
 
-  protected jsonRpc?: Peer
+  protected jsonRpc?: jsonRpcPeerPkg.Peer
 
   constructor (
     private options: IoOptions,
@@ -194,7 +189,7 @@ export class Io {
       this.state.on(true)
 
     } catch (e) {
-      log.warn('Io', 'start() exception: %s', e.message)
+      log.warn('Io', 'start() exception: %s', (e as Error).message)
       this.state.off(true)
       throw e
     }
@@ -313,7 +308,7 @@ export class Io {
             }
           } catch (e) {
             log.warn('Io', 'server pushed function exception: %s', e)
-            this.options.wechaty.emit('error', e)
+            this.options.wechaty.emit('error', (e as Error))
           }
         }
         break
@@ -380,7 +375,7 @@ export class Io {
             log.warn('Io', 'on(jsonrpc) response is undefined.')
             return
           }
-          const payload = parse(response) as JsonRpcPayloadResponse
+          const payload = jsonRpcPeerPkg.parse(response) as jsonRpcPeerPkg.JsonRpcPayloadResponse
 
           const jsonrpcEvent: IoEventJsonRpc = {
             name: 'jsonrpc',
@@ -498,7 +493,7 @@ export class Io {
     try {
       await Promise.all(list)
     } catch (e) {
-      log.error('Io', 'send() exception: %s', e.stack)
+      log.error('Io', 'send() exception: %s', (e as Error).stack)
       throw e
     }
   }

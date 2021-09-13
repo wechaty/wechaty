@@ -2,7 +2,7 @@
   "name": "with-package-json",
   "version": "1.0.0",
   "description": "",
-  "main": "with-require-error.js",
+  "type": "module",
   "dependencies": {
     "brolog": "^0.4.3"
   },

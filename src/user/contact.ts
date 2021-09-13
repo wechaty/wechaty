@@ -17,8 +17,6 @@
  *   limitations under the License.
  *
  */
-import { instanceToClass }  from 'clone-class'
-
 import {
   ContactGender,
   ContactPayload,
@@ -26,28 +24,29 @@ import {
   ContactType,
   FileBox,
   PayloadType,
+  instanceToClass,
+  log,
 }                         from 'wechaty-puppet'
 
-import { Wechaty }          from '../wechaty'
-
+import type { Wechaty }          from '../wechaty.js'
 import {
-  Raven,
-
-  log,
   qrCodeForChatie,
-  looseInstanceOfFileBox,
-}                           from '../config'
+}                           from '../config.js'
 import {
+  looseInstanceOfFileBox,
+}                           from '../helper-functions/mod.js'
+import type {
   Sayable,
-}                           from '../types'
+}                           from '../types.js'
+import { captureException } from '../raven.js'
 
-import { Message }      from './message'
-import { MiniProgram }  from './mini-program'
-import { Tag }          from './tag'
-import { UrlLink }      from './url-link'
-import { Location }     from './location'
+import { Message }      from './message.js'
+import { MiniProgram }  from './mini-program.js'
+import type { Tag }     from './tag.js'
+import { UrlLink }      from './url-link.js'
+import { Location }     from './location.js'
 
-import { ContactEventEmitter }  from '../events/contact-events'
+import { ContactEventEmitter }  from '../events/contact-events.js'
 
 export const POOL = Symbol('pool')
 
@@ -249,7 +248,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       return contactList.filter(contact => !invalidDict[contact.id])
 
     } catch (e) {
-      log.error('Contact', 'this.wechaty.puppet.contactFindAll() rejected: %s', e.message)
+      log.error('Contact', 'this.wechaty.puppet.contactFindAll() rejected: %s', (e as Error).message)
       return [] // fail safe
     }
   }
@@ -275,7 +274,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
-      log.error('Contact', 'static tags() exception: %s', e.message)
+      log.error('Contact', 'static tags() exception: %s', (e as Error).message)
       return []
     }
   }
@@ -392,6 +391,17 @@ class Contact extends ContactEventEmitter implements Sayable {
    * })
    * await contact.say(miniProgram)
    * const msg = await contact.say(miniProgram) // only supported by puppet-padplus
+   *
+   * // 6. send location to contact
+   * const location = new Location ({
+   *   accuracy  : 15,
+   *   address   : '北京市北京市海淀区45 Chengfu Rd',
+   *   latitude  : 39.995120999999997,
+   *   longitude : 116.334154,
+   *   name      : '东升乡人民政府(海淀区成府路45号)',
+   * })
+   * await contact.say(location)
+   * const msg = await contact.say(location)
    */
   public async say (
     something:  string
@@ -545,8 +555,8 @@ class Contact extends ContactEventEmitter implements Sayable {
         )
       }
     } catch (e) {
-      log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
-      Raven.captureException(e)
+      log.error('Contact', 'alias(%s) rejected: %s', newAlias, (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -590,8 +600,8 @@ class Contact extends ContactEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
-      log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), e.message)
-      Raven.captureException(e)
+      log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -617,8 +627,8 @@ class Contact extends ContactEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
-      log.error('Contact', 'corporation(%s) rejected: %s', remark, e.message)
-      Raven.captureException(e)
+      log.error('Contact', 'corporation(%s) rejected: %s', remark, (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -640,8 +650,8 @@ class Contact extends ContactEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
-      log.error('Contact', 'description(%s) rejected: %s', newDescription, e.message)
-      Raven.captureException(e)
+      log.error('Contact', 'description(%s) rejected: %s', newDescription, (e as Error).message)
+      captureException((e as Error))
     }
   }
 
@@ -784,7 +794,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
       return fileBox
     } catch (e) {
-      log.error('Contact', 'avatar() exception: %s', e.message)
+      log.error('Contact', 'avatar() exception: %s', (e as Error).message)
       return qrCodeForChatie()
     }
   }
@@ -804,7 +814,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
-      log.error('Contact', 'tags() exception: %s', e.message)
+      log.error('Contact', 'tags() exception: %s', (e as Error).message)
       return []
     }
   }
@@ -848,10 +858,35 @@ class Contact extends ContactEventEmitter implements Sayable {
     } catch (e) {
       log.verbose('Contact', 'ready() this.wechaty.puppet.contactPayload(%s) exception: %s',
         this.id,
-        e.message,
+        (e as Error).message,
       )
-      Raven.captureException(e)
+      captureException(e as Error)
       throw e
+    }
+  }
+
+  public async readMark (hasRead: boolean): Promise<void>
+  public async readMark (): Promise<boolean>
+
+  /**
+   * Mark the conversation as read
+   * @param { undefined | boolean } hasRead
+   *
+   * @example
+   * const bot = new Wechaty()
+   * const contact = await bot.Contact.find({name: 'xxx'})
+   * await contact.readMark()
+   */
+
+  public async readMark (hasRead?: boolean): Promise<void | boolean> {
+    try {
+      if (typeof hasRead === 'undefined') {
+        return this.wechaty.puppet.conversationReadMark(this.id)
+      } else {
+        await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
+      }
+    } catch (e) {
+      log.error('Contact', 'readMark() exception: %s', (e as Error).message)
     }
   }
 

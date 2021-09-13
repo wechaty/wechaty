@@ -1,12 +1,5 @@
-import   Peer, {
-  JsonRpcPayload,
-  JsonRpcPayloadError,
-  JsonRpcPayloadNotification,
-  JsonRpcPayloadRequest,
-  JsonRpcPayloadResponse,
-  // format,
-  MethodNotFound,
-}                               from 'json-rpc-peer'
+/// <reference path="json-rpc-peer.d.ts"/>
+import jsonRpcPeer from 'json-rpc-peer'
 
 // // https://stackoverflow.com/a/50375286/1123955
 // type UnionToIntersection<U> =
@@ -14,10 +7,10 @@ import   Peer, {
 
 // type UnknownJsonRpcPayload = Partial<UnionToIntersection<JsonRpcPayload>>
 
-const isJsonRpcRequest      = (payload: JsonRpcPayload): payload is JsonRpcPayloadRequest      => ('method' in payload)
-const isJsonRpcNotification = (payload: JsonRpcPayload): payload is JsonRpcPayloadNotification => isJsonRpcRequest(payload) && (!('id' in payload))
-const isJsonRpcResponse     = (payload: JsonRpcPayload): payload is JsonRpcPayloadResponse     => ('result' in payload)
-const isJsonRpcError        = (payload: JsonRpcPayload): payload is JsonRpcPayloadError        => ('error' in payload)
+const isJsonRpcRequest      = (payload: jsonRpcPeer.JsonRpcPayload): payload is jsonRpcPeer.JsonRpcPayloadRequest      => ('method' in payload)
+const isJsonRpcNotification = (payload: jsonRpcPeer.JsonRpcPayload): payload is jsonRpcPeer.JsonRpcPayloadNotification => isJsonRpcRequest(payload) && (!('id' in payload))
+const isJsonRpcResponse     = (payload: jsonRpcPeer.JsonRpcPayload): payload is jsonRpcPeer.JsonRpcPayloadResponse     => ('result' in payload)
+const isJsonRpcError        = (payload: jsonRpcPeer.JsonRpcPayload): payload is jsonRpcPeer.JsonRpcPayloadError        => ('error' in payload)
 
 interface IoPeerOptions {
   serviceGrpcPort: number,
@@ -34,7 +27,7 @@ const getPeer = (options: IoPeerOptions) => {
     getHostieGrpcPort: getServiceGrpcPort,
   }
 
-  const onMessage = async (message: JsonRpcPayload): Promise<any> => {
+  const onMessage = async (message: jsonRpcPeer.JsonRpcPayload): Promise<any> => {
     if (isJsonRpcRequest(message)) {
       const {
         // id,
@@ -57,7 +50,7 @@ const getPeer = (options: IoPeerOptions) => {
           return serviceImpl[serviceMethodName]()
 
         default:
-          throw new MethodNotFound(serviceMethodName)
+          throw new jsonRpcPeer.MethodNotFound(serviceMethodName)
       }
     } else if (isJsonRpcResponse(message)) {
       // NOOP: we are server
@@ -71,7 +64,7 @@ const getPeer = (options: IoPeerOptions) => {
     console.info(JSON.stringify(message))
   }
 
-  const ioPeer = new Peer(onMessage)
+  const ioPeer = new jsonRpcPeer.Peer(onMessage)
 
   return ioPeer
 }

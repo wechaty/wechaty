@@ -21,20 +21,21 @@
  * DO NOT use `require('../')` here!
  * because it will cause a LOOP require ERROR
  */
-import { StateSwitch }  from 'wechaty-puppet'
-
+import {
+  StateSwitch,
+  log,
+}                       from 'wechaty-puppet'
 import {
   PuppetServer,
   PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
-import { Message }      from './user/mod'
+import type { Message }      from './user/mod.js'
 
 import {
-  log,
-}                      from './config'
-import { Io }           from './io'
-import { Wechaty }      from './wechaty'
+}                       from './config.js'
+import { Io }           from './io.js'
+import type { Wechaty } from './wechaty.js'
 
 export interface IoClientOptions {
   token   : string,
@@ -130,7 +131,7 @@ export class IoClient {
       this.state.on(true)
 
     } catch (e) {
-      log.error('IoClient', 'start() exception: %s', e.message)
+      log.error('IoClient', 'start() exception: %s', (e as Error).message)
       this.state.off(true)
       throw e
     }
@@ -179,7 +180,7 @@ export class IoClient {
     try {
       await this.io.start()
     } catch (e) {
-      log.verbose('IoClient', 'startIo() init fail: %s', e.message)
+      log.verbose('IoClient', 'startIo() init fail: %s', (e as Error).message)
       throw e
     }
   }
@@ -238,7 +239,7 @@ export class IoClient {
       await this.stop()
       await this.start()
     } catch (e) {
-      log.error('IoClient', 'restart() exception %s', e.message)
+      log.error('IoClient', 'restart() exception %s', (e as Error).message)
       throw e
     }
   }
@@ -265,7 +266,7 @@ export class IoClient {
       } else { log.warn('IoClient', 'quit() no this.io') }
 
     } catch (e) {
-      log.error('IoClient', 'exception: %s', e.message)
+      log.error('IoClient', 'exception: %s', (e as Error).message)
       throw e
     } finally {
       this.state.off(true)

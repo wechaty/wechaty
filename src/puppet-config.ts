@@ -43,24 +43,32 @@ export const PUPPET_DEPENDENCIES = {
 
   /**
    * Wechaty Internal Puppets: dependency by package.json
+   *
+   *  Huan(202108): DO NOT REMOVE THE SPECIFIC VERSIONS BELOW
+   *    All the internal puppets which have already depended in package.json
+   *    MUST be listed below with their correct version number (ranges)
+   *    because the `bin/puppet-install.ts` will use those version
+   *    to install all them inside the Docker
    */
-  'wechaty-puppet-service' : '>=0.21',   // https://www.npmjs.com/package/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '>=0.29',   // https://www.npmjs.com/package/wechaty-puppet-mock
+  'wechaty-puppet-service' : '>=0.31.5',  // https://www.npmjs.com/package/wechaty-puppet-service
+  'wechaty-puppet-mock'    : '>=0.31.3', // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
-   * WeChat External Puppets
+   * WeChat Puppets
    */
-  'wechaty-puppet-wechat'           : '>=0.28',  // https://www.npmjs.com/package/wechaty-puppet-wechat
-  'wechaty-puppet-wechat4u'         : '>=0.17',  // https://www.npmjs.com/package/wechaty-puppet-wechat4u
-  'wechaty-puppet-padlocal'         : '>=0.4.1',   // https://www.npmjs.com/package/wechaty-puppet-padlocal
-  'wechaty-puppet-official-account' : '>=0.5',   // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-wechat'           : '>=0.29',   // https://www.npmjs.com/package/wechaty-puppet-wechat
+  'wechaty-puppet-wechat4u'         : '>=0.17',   // https://www.npmjs.com/package/wechaty-puppet-wechat4u
+  'wechaty-puppet-padlocal'         : '>=0.4.1',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
+  'wechaty-puppet-xp'               : '>=0.5.3',  // https://www.npmjs.com/package/wechaty-puppet-xp
+  'wechaty-puppet-oicq'             : '>=0.0.1',  // https://www.npmjs.com/package/wechaty-puppet-oicq
+  'wechaty-puppet-official-account' : '>=0.5',    // https://www.npmjs.com/package/wechaty-puppet-official-account
 
   /**
    * Non-WeChat External Puppets
    */
-  'wechaty-puppet-gitter'   : '>=0.4.7',   // https://www.npmjs.com/package/wechaty-puppet-gitter
+  'wechaty-puppet-gitter'   : '>=0.5.1',   // https://www.npmjs.com/package/wechaty-puppet-gitter
   'wechaty-puppet-lark'     : '>=0.4.5',   // https://www.npmjs.com/package/wechaty-puppet-lark
-  'wechaty-puppet-whatsapp' : '>=0.2.2',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
+  'wechaty-puppet-whatsapp' : '>=0.3.3',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
 
   /**
    * Scoped puppets (private)
@@ -71,5 +79,9 @@ export const PUPPET_DEPENDENCIES = {
 
 export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
 
-// Huan(202004): we change default puppet from puppet-service -> puppet-wechat (with UOS support)
-export const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-wechat'
+/**
+ * Updates:
+ *  - Huan(202004): we change default puppet from puppet-service -> puppet-wechat (with UOS support)
+ *  - Huan(202009): use puppet service as default
+ */
+export const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-service'

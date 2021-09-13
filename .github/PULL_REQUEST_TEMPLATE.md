@@ -5,7 +5,7 @@
   - A bugfix commit message is prefixed "fix:"
 - [ ] Tests for the changes have been added
 - [ ] CI has been passed. (GitHub actions all turns green)
-- [ ] SLA has been signed
+- [ ] CLA has been signed
 
 ## Description
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,15 +18,17 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}           from 'tstest'
 
-import { ContactPayload } from 'wechaty-puppet'
+import type { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import { Wechaty }  from '../wechaty'
+import { Wechaty }  from '../wechaty.js'
 
-import { Contact }  from './contact'
+import { Contact }  from './contact.js'
 
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
@@ -39,6 +41,7 @@ test('findAll()', async t => {
   const wechaty = new Wechaty({ puppet })
 
   await wechaty.start()
+  // await puppet.login('__login_id__')
 
   sandbox.stub(puppet, 'contactSearch').resolves(EXPECTED_CONTACT_ID_LIST)
   sandbox.stub(puppet, 'contactPayload').callsFake(async () => {

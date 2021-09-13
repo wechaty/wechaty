@@ -18,50 +18,51 @@
  *
  */
 import { EventEmitter }     from 'events'
-import { instanceToClass }  from 'clone-class'
-
 import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
+  instanceToClass,
+  FileBox,
+  log,
 }                       from 'wechaty-puppet'
 
-import { escapeRegExp }           from '../helper-functions/pure/escape-regexp'
-import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date'
+import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
+import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
 
-import {
+import type {
   Wechaty,
-}                         from '../wechaty'
+}                         from '../wechaty.js'
 import {
   AT_SEPARATOR_REGEX,
-  FileBox,
-
-  log,
-  Raven,
-  looseInstanceOfFileBox,
-}                         from '../config'
+}                         from '../config.js'
 import {
+  looseInstanceOfFileBox,
+}                           from '../helper-functions/mod.js'
+import type {
   Sayable,
-}                       from '../types'
+}                       from '../types.js'
+
+import { captureException } from '../raven.js'
 
 import {
   Contact,
-}                       from './contact'
-import {
+}                       from './contact.js'
+import type {
   Room,
-}                       from './room'
+}                       from './room.js'
 import {
   UrlLink,
-}                       from './url-link'
+}                       from './url-link.js'
 import {
   MiniProgram,
-}                       from './mini-program'
+}                       from './mini-program.js'
+import type {
+  Image,
+}                       from './image.js'
 import {
   Location,
-}                       from './location'
-import {
-  Image,
-}                       from './image'
+}                       from './location.js'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -136,9 +137,9 @@ class Message extends EventEmitter implements Sayable {
       return messageList.filter(message => !invalidDict[message.id])
 
     } catch (e) {
-      log.warn('Message', 'findAll() rejected: %s', e.message)
+      log.warn('Message', 'findAll() rejected: %s', (e as Error).message)
       console.error(e)
-      Raven.captureException(e)
+      captureException(e as Error)
       return [] // fail safe
     }
   }
@@ -273,7 +274,12 @@ class Message extends EventEmitter implements Sayable {
       throw new Error('payload.fromId is null?')
     }
 
-    const talker = this.wechaty.Contact.load(talkerId)
+    let talker
+    if (talkerId === this.wechaty.puppet.selfId()) {
+      talker = this.wechaty.ContactSelf.load(talkerId)
+    } else {
+      talker = this.wechaty.Contact.load(talkerId)
+    }
     return talker
   }
 
@@ -296,19 +302,37 @@ class Message extends EventEmitter implements Sayable {
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
+   * @deprecated use `listener()` instead
    */
   public to (): null | Contact {
+    // Huan(202108): I want to deprecate this method name in the future,
+    //  and use `message.listener()` to replace it.
+    return this.listener()
+  }
+
+  /**
+   * Get the destination of the message
+   * Message.listener() will return null if a message is in a room,
+   * use Message.room() to get the room.
+   * @returns {(Contact|null)}
+   */
+  public listener (): null | Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
 
-    const toId = this.payload.toId
-    if (!toId) {
+    const listenerId = this.payload.toId
+    if (!listenerId) {
       return null
     }
 
-    const to = this.wechaty.Contact.load(toId)
-    return to
+    let listener
+    if (listenerId === this.wechaty.puppet.selfId()) {
+      listener = this.wechaty.ContactSelf.load(listenerId)
+    } else {
+      listener = this.wechaty.Contact.load(listenerId)
+    }
+    return listener
   }
 
   /**
@@ -478,7 +502,7 @@ class Message extends EventEmitter implements Sayable {
    *
    * // 5. send MiniProgram
    *
-   *   if (/^link$/i.test(m.text())) {
+   *   if (/^miniProgram$/i.test(m.text())) {
    *     const miniProgramPayload = new MiniProgram ({
    *       username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
    *       appid              : '',               //optional, get from mp.weixin.qq.com
@@ -491,6 +515,18 @@ class Message extends EventEmitter implements Sayable {
    *     const message = await msg.say(miniProgramPayload) // only supported by puppet-padplus
    *   }
    *
+   * // 6. send location
+   *   if (/^location$/i.test(m.text())) {
+   *     const location = new Location ({
+   *       accuracy  : 15,
+   *       address   : '北京市北京市海淀区45 Chengfu Rd',
+   *       latitude  : 39.995120999999997,
+   *       longitude : 116.334154,
+   *       name      : '东升乡人民政府(海淀区成府路45号)',
+   *     })
+   *     await contact.say(location)
+   *     const msg = await msg.say(location)
+   *   }
    * })
    * .start()
    */
@@ -665,10 +701,15 @@ class Message extends EventEmitter implements Sayable {
    * }
    */
   public self (): boolean {
-    const userId = this.wechaty.puppet.selfId()
-    const talker = this.talker()
+    try {
+      const userId = this.wechaty.puppet.selfId()
+      const talker = this.talker()
 
-    return !!talker && talker.id === userId
+      return !!talker && talker.id === userId
+    } catch (e) {
+      log.error('Message', 'self() rejection: %s', (e as Error).message)
+      return false
+    }
   }
 
   /**

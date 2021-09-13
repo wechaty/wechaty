@@ -17,40 +17,40 @@
  *   limitations under the License.
  *
  */
-import { instanceToClass } from 'clone-class'
-
-import { Wechaty }          from '../wechaty'
-
-import {
-  FOUR_PER_EM_SPACE,
-  FileBox,
-
-  log,
-  Raven,
-  looseInstanceOfFileBox,
-}                           from '../config'
-import {
-  Sayable,
-}                           from '../types'
-
-import {
-  guardQrCodeValue,
-}                       from '../helper-functions/pure/guard-qr-code-value'
-
-import { Contact }        from './contact'
-import { MiniProgram }    from './mini-program'
-import { Message }        from './message'
-import { UrlLink }        from './url-link'
-import { Location }       from './location'
-
 import {
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
   PayloadType,
-}                         from 'wechaty-puppet'
+  instanceToClass,
+  FileBox,
+  log,
+}                           from 'wechaty-puppet'
 
-import { RoomEventEmitter } from '../events/room-events'
+import type { Wechaty }          from '../wechaty.js'
+
+import {
+  FOUR_PER_EM_SPACE,
+}                           from '../config.js'
+import {
+  looseInstanceOfFileBox,
+}                           from '../helper-functions/mod.js'
+import type {
+  Sayable,
+}                           from '../types.js'
+
+import { captureException } from '../raven.js'
+import {
+  guardQrCodeValue,
+}                       from '../helper-functions/pure/guard-qr-code-value.js'
+
+import { Contact }        from './contact.js'
+import { MiniProgram }    from './mini-program.js'
+import { Message }        from './message.js'
+import { UrlLink }        from './url-link.js'
+import { Location }       from './location.js'
+
+import { RoomEventEmitter } from '../events/room-events.js'
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -101,8 +101,8 @@ class Room extends RoomEventEmitter implements Sayable {
       const room = this.load(roomId)
       return room
     } catch (e) {
-      log.error('Room', 'create() exception: %s', (e && e.stack) || e.message || e)
-      Raven.captureException(e)
+      log.error('Room', 'create() exception: %s', (e && (e as Error).stack) || (e as Error).message || (e as Error))
+      captureException(e as Error)
       throw e
     }
   }
@@ -162,9 +162,9 @@ class Room extends RoomEventEmitter implements Sayable {
       return roomList.filter(room => !invalidSet.has(room.id))
 
     } catch (e) {
-      log.verbose('Room', 'findAll() rejected: %s', e.message)
+      log.verbose('Room', 'findAll() rejected: %s', (e as Error).message)
       console.error(e)
-      Raven.captureException(e)
+      captureException((e as Error))
       return [] as Room[] // fail safe
     }
   }
@@ -465,6 +465,17 @@ class Room extends RoomEventEmitter implements Sayable {
    * })
    * await room.say(miniProgram)
    * const msg = await room.say(miniProgram) // only supported by puppet-padplus
+   *
+   * // 8. send location in a room
+   * const location = new Location ({
+   *   accuracy  : 15,
+   *   address   : '北京市北京市海淀区45 Chengfu Rd',
+   *   latitude  : 39.995120999999997,
+   *   longitude : 116.334154,
+   *   name      : '东升乡人民政府(海淀区成府路45号)',
+   * })
+   * await room.say(location)
+   * const msg = await room.say(location)
    */
   public async say (
     something : string
@@ -944,7 +955,7 @@ class Room extends RoomEventEmitter implements Sayable {
         log.warn('Room', 'topic(newTopic=%s) exception: %s',
           newTopic, (e && e.message) || e,
         )
-        Raven.captureException(e)
+        captureException(e)
       })
 
     return future
@@ -1032,6 +1043,30 @@ class Room extends RoomEventEmitter implements Sayable {
     }
 
     return null
+  }
+
+  public async readMark (hasRead: boolean): Promise<void>
+  public async readMark (): Promise<boolean>
+
+  /**
+   * Mark the conversation as read
+   * @param { undefined | boolean } hasRead
+   *
+   * @example
+   * const bot = new Wechaty()
+   * const room = await bot.Room.find({topic: 'xxx'})
+   * await room.readMark()
+   */
+  public async readMark (hasRead?: boolean): Promise<void | boolean> {
+    try {
+      if (typeof hasRead === 'undefined') {
+        return this.wechaty.puppet.conversationReadMark(this.id)
+      } else {
+        await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
+      }
+    } catch (e) {
+      log.error('Room', 'readMark() exception: %s', (e as Error).message)
+    }
   }
 
   /**

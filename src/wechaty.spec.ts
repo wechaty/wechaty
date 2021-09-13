@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,14 +18,19 @@
  *   limitations under the License.
  *
  */
-import test  from 'blue-tape'
-import sinon from 'sinon'
+import {
+  test,
+  sinon,
+}              from 'tstest'
 
+import {
+  Puppet,
+}                     from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
   Wechaty,
-}                             from './wechaty'
+}                             from './wechaty.js'
 
 import {
   config,
@@ -37,11 +41,7 @@ import {
   Message,
 
   Room,
-}                 from './mod'
-
-import {
-  Puppet,
-}                     from 'wechaty-puppet'
+}                 from './mod.js'
 
 class WechatyTest extends Wechaty {
 
@@ -63,7 +63,7 @@ test('Export of the Framework', async t => {
 })
 
 test('static VERSION', async t => {
-  t.true('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
+  t.ok('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
 })
 
 test('Config setting', async t => {
@@ -150,7 +150,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
 
 })
 
-test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (t) => {
+test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t => {
 
   // Do not modify the global Wechaty instance
   class MyWechatyTest extends Wechaty {}
@@ -186,7 +186,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async (
   await bot.stop()
 })
 
-test('use plugin', async (t) => {
+test('use plugin', async t => {
 
   // Do not modify the gloabl Wechaty instance
   class MyWechatyTest extends Wechaty {}
@@ -246,7 +246,7 @@ test('Wechaty restart for many times', async t => {
     }
     t.pass('Wechaty start/restart successed.')
   } catch (e) {
-    t.fail(e)
+    t.fail(e as any)
   }
 
 })
@@ -259,19 +259,19 @@ test('@event ready', async t => {
   const spy     = sandbox.spy()
 
   wechaty.on('ready', spy)
-  t.true(spy.notCalled, 'should no ready event with new wechaty instance')
+  t.ok(spy.notCalled, 'should no ready event with new wechaty instance')
 
   await wechaty.start()
-  t.true(spy.notCalled, 'should no ready event right start wechaty started')
+  t.ok(spy.notCalled, 'should no ready event right start wechaty started')
 
   puppet.emit('ready', { data: 'test' })
-  t.true(spy.calledOnce, 'should fire ready event after puppet ready')
+  t.ok(spy.calledOnce, 'should fire ready event after puppet ready')
 
   await wechaty.stop()
   await wechaty.start()
   puppet.emit('ready', { data: 'test' })
 
-  t.true(spy.calledTwice, 'should fire ready event second time after stop/start wechaty')
+  t.ok(spy.calledTwice, 'should fire ready event second time after stop/start wechaty')
 
   await wechaty.stop()
 })
@@ -288,15 +288,15 @@ test('ready()', async t => {
     .then(spy)
     .catch(e => t.fail('rejection: ' + e))
 
-  t.true(spy.notCalled, 'should not ready with new wechaty instance')
+  t.ok(spy.notCalled, 'should not ready with new wechaty instance')
 
   await wechaty.start()
 
-  t.true(spy.notCalled, 'should not ready after right start wechaty')
+  t.ok(spy.notCalled, 'should not ready after right start wechaty')
 
   puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
-  t.true(spy.calledOnce, 'should ready after puppet ready')
+  t.ok(spy.calledOnce, 'should ready after puppet ready')
 
   await wechaty.stop()
   await wechaty.start()
@@ -306,7 +306,7 @@ test('ready()', async t => {
 
   puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
-  t.true(spy.calledTwice, 'should ready again after stop/start wechaty')
+  t.ok(spy.calledTwice, 'should ready again after stop/start wechaty')
 
   await wechaty.stop()
 })

@@ -1,5 +1,4 @@
-#!/usr/bin/env ts-node
-
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import { PuppetManager } from '../src/puppet-manager'
+import { PuppetManager } from '../src/puppet-manager.js'
 
 PuppetManager.installAll()
   .catch(e => {

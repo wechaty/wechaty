@@ -1,11 +1,11 @@
 import { EventEmitter }   from 'events'
-import TypedEventEmitter  from 'typed-emitter'
+import type TypedEventEmitter  from 'typed-emitter'
 
-import {
+import type {
   Contact,
   Friendship,
   Message,
-}                   from '../user/mod'
+}                   from '../user/mod.js'
 
 export type ContactMessageEventListener    = (this: Contact, message: Message, date?: Date) => void
 export type ContactFriendshipEventListener = (friendship: Friendship)                       => void
