@@ -50,17 +50,18 @@ import type {
 
 import {
   Contact,
-  Tag,
-  Friendship,
+  ContactSelf,
   Favorite,
-  Message,
+  Friendship,
   Image,
+  Message,
+  MiniProgram,
   Moment,
   Money,
   Room,
   RoomInvitation,
+  Tag,
   UrlLink,
-  MiniProgram,
 }                         from './user/mod.js'
 import {
   IoClient,
@@ -82,6 +83,7 @@ export type {
 export {
   config,
   Contact,
+  ContactSelf,
   Favorite,
   FileBox,
   Friendship,
