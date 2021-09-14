@@ -20,8 +20,7 @@ cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 cd $TMPDIR
 
 npm init -y
-npm install --production *-*.*.*.tgz \
-  @types/node \
+npm install --production ./*-*.*.*.tgz \
   @chatie/tsconfig@$NPM_TAG \
   pkg-jq \
   "wechaty-puppet@$NPM_TAG" \
