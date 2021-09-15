@@ -50,17 +50,18 @@ import type {
 
 import {
   Contact,
-  Tag,
-  Friendship,
+  ContactSelf,
   Favorite,
-  Message,
+  Friendship,
   Image,
+  Message,
+  MiniProgram,
   Moment,
   Money,
   Room,
   RoomInvitation,
+  Tag,
   UrlLink,
-  MiniProgram,
   Location,
 }                         from './user/mod.js'
 import {
@@ -83,6 +84,7 @@ export type {
 export {
   config,
   Contact,
+  ContactSelf,
   Favorite,
   FileBox,
   Friendship,
