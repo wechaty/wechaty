@@ -17,6 +17,15 @@
 [![Rust](https://img.shields.io/badge/--000000?logo=rust&logoColor=white)](https://wechaty.js.org/docs/polyglot/rust/)
 [![Scala](https://img.shields.io/badge/--DC322F?logo=scala&logoColor=white)](https://wechaty.js.org/docs/polyglot/scala/)
 
+[![WeChat](https://img.shields.io/badge/--07C160?logo=wechat&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/wechat)
+[![Whatsapp](https://img.shields.io/badge/--25D366?logo=whatsapp&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/whatsapp)
+
+<!--
+[![TikTok](https://img.shields.io/badge/--000000?logo=tiktok&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/tiktok)
+[![Line](https://img.shields.io/badge/--00C300?logo=line&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/line)
+[![Telegram](https://img.shields.io/badge/--2CA5E0?logo=telegram&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/telegram)
+-->
+
 [![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
 
