@@ -67,6 +67,9 @@ import {
   IoClient,
   IoClientOptions,
 }                         from './io-client.js'
+import type {
+  WechatyEventName,
+}                             from './events/wechaty-events.js'
 
 import type {
   Sayable,
@@ -76,6 +79,7 @@ export type {
   PuppetModuleName,
   Sayable,
   UrlLinkPayload,
+  WechatyEventName,
   WechatyOptions,
   WechatyPlugin,
   WechatyPluginUninstaller,
