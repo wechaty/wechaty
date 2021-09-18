@@ -109,8 +109,9 @@ You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/di
 
 ## :checkered_flag: Requirements
 
-1. Node.js v14+
-1. TypeScript v4.4+
+1. Node.js version 16+
+1. NPM version 7+
+1. TypeScript version 4.4+
 
 ## Getting Started
 
