@@ -11,7 +11,7 @@ jobs:
           - ubuntu-latest
           - windows-latest
           - macos-latest
-        node:
+        node-version:
           # - 12
           # - 14
           - 16
