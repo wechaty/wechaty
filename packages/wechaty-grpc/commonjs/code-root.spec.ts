@@ -2,7 +2,7 @@
 
 import { test } from 'tstest'
 
-import { codeRoot } from './code-root'
+import { codeRoot } from './code-root.cjs'
 
 test('CJS: codeRoot()', async t => {
   t.ok(codeRoot, 'should exist codeRoot')

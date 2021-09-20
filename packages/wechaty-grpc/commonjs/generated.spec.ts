@@ -2,7 +2,7 @@
 
 import { test } from 'tstest'
 
-import * as puppet from './generated.js'
+import * as puppet from './generated.cjs'
 
 test('CJS: "EventRequest"', async t => {
   t.ok(puppet.EventRequest, 'should export EventRequest')
