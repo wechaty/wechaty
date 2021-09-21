@@ -14,6 +14,8 @@ npm pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
+trap "rm -fr '$TMPDIR'" EXIT
+
 mv ./*-*.*.*.tgz "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
@@ -29,7 +31,7 @@ npm install --production ./*-*.*.*.tgz \
 #
 # CommonJS
 #
-./node_modules/.bin/tsc \
+npx tsc \
   --target es6 \
   --module CommonJS \
   \
@@ -50,8 +52,7 @@ node smoke-testing.js
 #
 npx pkg-jq -i '.type="module"'
 
-
-./node_modules/.bin/tsc \
+npx tsc \
   --target es2020 \
   --module es2020 \
   \
