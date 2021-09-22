@@ -16,7 +16,7 @@ import {
 import {
   looseInstanceOfFileBox,
   looseInstanceOfPuppet,
-}                         from './loose-instance-of'
+}                         from './loose-instance-of.js'
 import {
   Puppet,
 }                         from './puppet.js'

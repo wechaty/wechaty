@@ -3,7 +3,7 @@ import {
 }                         from 'clone-class'
 
 import { FileBox }  from 'file-box'
-import { Puppet }   from './puppet'
+import { Puppet }   from './puppet.js'
 
 /**
  * Huan(202011):
