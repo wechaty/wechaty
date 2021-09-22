@@ -13,6 +13,7 @@ import {
   RoomMemberPayload,
   RoomQueryFilter,
   ContactQueryFilter,
+  LocationPayload,
 }                           from '../../../src/mod.js'
 
 /**
@@ -106,6 +107,7 @@ class PuppetTest extends Puppet {
   override async messageImage       (messageId: string, imageType: ImageType) : Promise<FileBox> { return { imageType, messageId } as any }
   override async messageMiniProgram (messageId: string)                       : Promise<MiniProgramPayload> { return { messageId } as any }
   override async messageUrl         (messageId: string)                       : Promise<UrlLinkPayload> { return { messageId } as any }
+  override async messageLocation    (messageId: string)                       : Promise<LocationPayload> { return { messageId } as any }
 
   override async messageForward         (conversationId: string, messageId: string)                      : Promise<void | string> { return { conversationId, messageId } as any }
   override async messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string> { return { contactId, conversationId } as any }
@@ -113,6 +115,7 @@ class PuppetTest extends Puppet {
   override async messageSendText        (conversationId: string, text: string)                           : Promise<void | string> { return { conversationId, text } as any }
   override async messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
   override async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { conversationId, miniProgramPayload } as any }
+  override async messageSendLocation    (conversationId: string, locationPayload: LocationPayload)       : Promise<void | string> { return { conversationId, locationPayload } as any }
 
   override async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   override async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }

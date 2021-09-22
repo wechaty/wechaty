@@ -98,6 +98,9 @@ import type {
 import type {
   MiniProgramPayload,
 }                             from './schemas/mini-program.js'
+import type {
+  LocationPayload,
+}                             from './schemas/location.js'
 
 import type {
   PuppetOptions,
@@ -144,6 +147,7 @@ export type {
   FriendshipPayloadReceive,
   FriendshipPayloadVerify,
   FriendshipSearchQueryFilter,
+  LocationPayload,
   MessagePayload,
   MessagePayloadBase,
   MessagePayloadRoom,
