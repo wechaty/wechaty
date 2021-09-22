@@ -99,7 +99,7 @@ let   PUPPET_COUNTER           = 0
  * See: https://github.com/wechaty/wechaty/wiki/Puppet
  *
  */
-export abstract class Puppet extends PuppetEventEmitter {
+abstract class Puppet extends PuppetEventEmitter {
 
   /**
    * Must overwrite by child class to identify their version
@@ -1402,6 +1402,12 @@ export abstract class Puppet extends PuppetEventEmitter {
 
 }
 
-export type PuppetImplementation = typeof Puppet & Constructor<Puppet>
+type PuppetImplementation = Constructor<Puppet>
 
+export type {
+  PuppetImplementation,
+}
+export {
+  Puppet,
+}
 export default Puppet

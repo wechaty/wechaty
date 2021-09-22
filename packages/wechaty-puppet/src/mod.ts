@@ -8,15 +8,15 @@ import {
 import {
   StateSwitch,
 }                         from 'state-switch'
-import {
-  looseInstanceOfClass,
-  instanceToClass,
-}                         from 'clone-class'
 
 import {
   VERSION,
   log,
 }                         from './config.js'
+import {
+  looseInstanceOfFileBox,
+  looseInstanceOfPuppet,
+}                         from './loose-instance-of'
 import {
   Puppet,
 }                         from './puppet.js'
@@ -174,9 +174,9 @@ export {
   FriendshipSceneType,
   FriendshipType,
   ImageType,
-  instanceToClass,
   log,
-  looseInstanceOfClass,
+  looseInstanceOfFileBox,
+  looseInstanceOfPuppet,
   MemoryCard,
   MessageType,
   PayloadType,
