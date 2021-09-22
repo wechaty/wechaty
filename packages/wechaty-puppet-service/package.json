@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.31.24",
+  "version": "0.31.26",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -11,9 +11,9 @@
   },
   "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
-    "wechaty": ">=0.69",
-    "wechaty-puppet": ">=0.43",
-    "node": ">=14"
+    "node": ">=16",
+    "npm": ">=7",
+    "wechaty": ">=0.69"
   },
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cjs.json",
