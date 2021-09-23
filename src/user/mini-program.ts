@@ -20,7 +20,10 @@
 import {
   MiniProgramPayload,
   log,
-}                   from 'wechaty-puppet'
+}                         from 'wechaty-puppet'
+import {
+  looseInstanceOfClass,
+}                         from 'clone-class'
 
 import type { Wechaty } from '../wechaty.js'
 
@@ -103,7 +106,10 @@ function wechatifyMiniProgram (wechaty: Wechaty): typeof MiniProgram {
 
 }
 
+const looseInstanceOfMiniProgram = looseInstanceOfClass(MiniProgram)
+
 export {
+  looseInstanceOfMiniProgram,
   MiniProgram,
   wechatifyMiniProgram,
 }

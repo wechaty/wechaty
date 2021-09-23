@@ -17,15 +17,18 @@
  *   limitations under the License.
  *
  */
-import { EventEmitter }     from 'events'
+import { EventEmitter }           from 'events'
 import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
-  instanceToClass,
+  looseInstanceOfFileBox,
   FileBox,
   log,
-}                       from 'wechaty-puppet'
+}                                 from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                                 from 'clone-class'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
@@ -36,9 +39,6 @@ import type {
 import {
   AT_SEPARATOR_REGEX,
 }                         from '../config.js'
-import {
-  looseInstanceOfFileBox,
-}                           from '../helper-functions/mod.js'
 import type {
   Sayable,
 }                       from '../types.js'
@@ -52,16 +52,18 @@ import type {
   Room,
 }                       from './room.js'
 import {
+  looseInstanceOfUrlLink,
   UrlLink,
 }                       from './url-link.js'
 import {
+  looseInstanceOfMiniProgram,
   MiniProgram,
 }                       from './mini-program.js'
 import type {
   Image,
 }                       from './image.js'
 import {
-  Location,
+  Location, looseInstanceOfLocation,
 }                       from './location.js'
 
 /**
@@ -608,7 +610,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (looseInstanceOfUrlLink(something)) {
       /**
        * Link Message
        */
@@ -616,7 +618,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (looseInstanceOfMiniProgram(something)) {
       /**
        * MiniProgram
        */
@@ -624,7 +626,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.payload,
       )
-    } else if (something instanceof Location) {
+    } else if (looseInstanceOfLocation(something)) {
       /**
        * Location
        */

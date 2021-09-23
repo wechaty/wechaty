@@ -20,30 +20,28 @@
 import {
   LocationPayload,
   log,
-}               from 'wechaty-puppet'
-import type {
-  Wechaty,
-}               from '../wechaty.js'
+}                       from 'wechaty-puppet'
+import {
+  looseInstanceOfClass,
+}                       from 'clone-class'
 
 class Location {
-
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
 
   /**
    *
    * Create
-   *
+   * @param poi string A point of interest (POI) is a specific point location that someone may find useful or interesting.
+   *  See: https://en.wikipedia.org/wiki/Point_of_interest
    */
-  public static async create (): Promise<Location> {
-    log.verbose('Location', 'create()')
+  public static async create (poi: string): Promise<Location> {
+    log.verbose('Location', 'create(%s)', poi)
 
     const payload: LocationPayload = {
-      accuracy  : 15,
+      accuracy  : 15, // in meters
       address   : '北京市北京市海淀区45 Chengfu Rd',
       latitude  : 39.995120999999997,
       longitude : 116.334154,
-      name      : '东升乡人民政府(海淀区成府路45号)',
+      name      : poi,  // Huan(202109): FIXME: generate payload by poi
     }
 
     return new Location(payload)
@@ -90,7 +88,10 @@ function wechatifyLocation (_: any): typeof Location {
 
 }
 
+const looseInstanceOfLocation = looseInstanceOfClass(Location)
+
 export {
   Location,
+  looseInstanceOfLocation,
   wechatifyLocation,
 }

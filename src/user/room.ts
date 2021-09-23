@@ -18,23 +18,22 @@
  *
  */
 import {
+  FileBox,
+  log,
+  looseInstanceOfFileBox,
+  PayloadType,
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
-  PayloadType,
-  instanceToClass,
-  FileBox,
-  log,
 }                           from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                           from 'clone-class'
 
-import type { Wechaty }          from '../wechaty.js'
-
+import type { Wechaty }     from '../wechaty.js'
 import {
   FOUR_PER_EM_SPACE,
 }                           from '../config.js'
-import {
-  looseInstanceOfFileBox,
-}                           from '../helper-functions/mod.js'
 import type {
   Sayable,
 }                           from '../types.js'
@@ -45,10 +44,10 @@ import {
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import { Contact }        from './contact.js'
-import { MiniProgram }    from './mini-program.js'
+import { looseInstanceOfMiniProgram, MiniProgram }    from './mini-program.js'
 import { Message }        from './message.js'
-import { UrlLink }        from './url-link.js'
-import { Location }       from './location.js'
+import { looseInstanceOfUrlLink, UrlLink }        from './url-link.js'
+import { Location, looseInstanceOfLocation }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -585,7 +584,7 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.id,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (looseInstanceOfUrlLink(something)) {
       /**
        * 4. Link Message
        */
@@ -593,7 +592,7 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (looseInstanceOfMiniProgram(something)) {
       /**
        * 5. Mini Program
        */
@@ -601,7 +600,7 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (something instanceof Location) {
+    } else if (looseInstanceOfLocation(something)) {
       /**
        * 6. Location
        */
