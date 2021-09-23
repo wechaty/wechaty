@@ -22,7 +22,10 @@ import Url from 'url'
 import {
   UrlLinkPayload,
   log,
-}                   from 'wechaty-puppet'
+}                         from 'wechaty-puppet'
+import {
+  looseInstanceOfClass,
+}                         from 'clone-class'
 
 import {
   openGraph,
@@ -128,7 +131,10 @@ function wechatifyUrlLink (_: any): typeof UrlLink {
 
 }
 
+const looseInstanceOfUrlLink = looseInstanceOfClass(UrlLink)
+
 export {
+  looseInstanceOfUrlLink,
   UrlLink,
   wechatifyUrlLink,
 }

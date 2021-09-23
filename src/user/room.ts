@@ -18,23 +18,22 @@
  *
  */
 import {
+  FileBox,
+  log,
+  looseInstanceOfFileBox,
+  PayloadType,
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
-  PayloadType,
-  instanceToClass,
-  FileBox,
-  log,
 }                           from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                           from 'clone-class'
 
-import type { Wechaty }          from '../wechaty.js'
-
+import type { Wechaty }     from '../wechaty.js'
 import {
   FOUR_PER_EM_SPACE,
 }                           from '../config.js'
-import {
-  looseInstanceOfFileBox,
-}                           from '../helper-functions/mod.js'
 import type {
   Sayable,
 }                           from '../types.js'
@@ -45,9 +44,10 @@ import {
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import { Contact }        from './contact.js'
-import { MiniProgram }    from './mini-program.js'
+import { looseInstanceOfMiniProgram, MiniProgram }    from './mini-program.js'
 import { Message }        from './message.js'
-import { UrlLink }        from './url-link.js'
+import { looseInstanceOfUrlLink, UrlLink }        from './url-link.js'
+import { Location, looseInstanceOfLocation }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -391,6 +391,7 @@ class Room extends RoomEventEmitter implements Sayable {
   public say (url:      UrlLink)                                 : Promise<void | Message>
   public say (mini:     MiniProgram)                             : Promise<void | Message>
   public say (contact:  Contact)                                 : Promise<void | Message>
+  public say (location: Location)                                : Promise<void | Message>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -463,6 +464,17 @@ class Room extends RoomEventEmitter implements Sayable {
    * })
    * await room.say(miniProgram)
    * const msg = await room.say(miniProgram) // only supported by puppet-padplus
+   *
+   * // 8. send location in a room
+   * const location = new Location ({
+   *   accuracy  : 15,
+   *   address   : '北京市北京市海淀区45 Chengfu Rd',
+   *   latitude  : 39.995120999999997,
+   *   longitude : 116.334154,
+   *   name      : '东升乡人民政府(海淀区成府路45号)',
+   * })
+   * await room.say(location)
+   * const msg = await room.say(location)
    */
   public async say (
     something : string
@@ -472,7 +484,8 @@ class Room extends RoomEventEmitter implements Sayable {
               | FileBox
               | MiniProgram
               | TemplateStringsArray
-              | UrlLink,
+              | UrlLink
+              | Location,
     ...varList : unknown[]
   ): Promise<void | Message> {
 
@@ -571,7 +584,7 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.id,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (looseInstanceOfUrlLink(something)) {
       /**
        * 4. Link Message
        */
@@ -579,11 +592,19 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (looseInstanceOfMiniProgram(something)) {
       /**
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
+    } else if (looseInstanceOfLocation(something)) {
+      /**
+       * 6. Location
+       */
+      msgId = await this.wechaty.puppet.messageSendLocation(
         this.id,
         something.payload,
       )

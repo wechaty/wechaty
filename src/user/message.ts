@@ -17,15 +17,18 @@
  *   limitations under the License.
  *
  */
-import { EventEmitter }     from 'events'
+import { EventEmitter }           from 'events'
 import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
-  instanceToClass,
+  looseInstanceOfFileBox,
   FileBox,
   log,
-}                       from 'wechaty-puppet'
+}                                 from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                                 from 'clone-class'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
@@ -36,9 +39,6 @@ import type {
 import {
   AT_SEPARATOR_REGEX,
 }                         from '../config.js'
-import {
-  looseInstanceOfFileBox,
-}                           from '../helper-functions/mod.js'
 import type {
   Sayable,
 }                       from '../types.js'
@@ -52,12 +52,19 @@ import type {
   Room,
 }                       from './room.js'
 import {
+  looseInstanceOfUrlLink,
   UrlLink,
 }                       from './url-link.js'
 import {
+  looseInstanceOfMiniProgram,
   MiniProgram,
 }                       from './mini-program.js'
-import type { Image }        from './image.js'
+import type {
+  Image,
+}                       from './image.js'
+import {
+  Location, looseInstanceOfLocation,
+}                       from './location.js'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -424,13 +431,14 @@ class Message extends EventEmitter implements Sayable {
     }
   }
 
-  public say (text:    string)      : Promise<void | Message>
-  public say (num:     number)      : Promise<void | Message>
-  public say (message: Message)     : Promise<void | Message>
-  public say (contact: Contact)     : Promise<void | Message>
-  public say (file:    FileBox)     : Promise<void | Message>
-  public say (url:     UrlLink)     : Promise<void | Message>
-  public say (mini:    MiniProgram) : Promise<void | Message>
+  public say (text:     string)      : Promise<void | Message>
+  public say (num:      number)      : Promise<void | Message>
+  public say (message:  Message)     : Promise<void | Message>
+  public say (contact:  Contact)     : Promise<void | Message>
+  public say (file:     FileBox)     : Promise<void | Message>
+  public say (url:      UrlLink)     : Promise<void | Message>
+  public say (mini:     MiniProgram) : Promise<void | Message>
+  public say (location: Location)    : Promise<void | Message>
 
   // Huan(202006): allow fall down to the definition to get more flexibility.
   // public say (...args: never[]): Promise<never>
@@ -441,7 +449,7 @@ class Message extends EventEmitter implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @see {@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} textOrContactOrFile
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
@@ -496,7 +504,7 @@ class Message extends EventEmitter implements Sayable {
    *
    * // 5. send MiniProgram
    *
-   *   if (/^link$/i.test(m.text())) {
+   *   if (/^miniProgram$/i.test(m.text())) {
    *     const miniProgramPayload = new MiniProgram ({
    *       username           : 'gh_xxxxxxx',     //get from mp.weixin.qq.com
    *       appid              : '',               //optional, get from mp.weixin.qq.com
@@ -509,6 +517,18 @@ class Message extends EventEmitter implements Sayable {
    *     const message = await msg.say(miniProgramPayload) // only supported by puppet-padplus
    *   }
    *
+   * // 6. send Location
+   *   if (/^location$/i.test(m.text())) {
+   *     const location = new Location ({
+   *       accuracy  : 15,
+   *       address   : '北京市北京市海淀区45 Chengfu Rd',
+   *       latitude  : 39.995120999999997,
+   *       longitude : 116.334154,
+   *       name      : '东升乡人民政府(海淀区成府路45号)',
+   *     })
+   *     await contact.say(location)
+   *     const msg = await msg.say(location)
+   *   }
    * })
    * .start()
    */
@@ -519,6 +539,7 @@ class Message extends EventEmitter implements Sayable {
                                     | Contact
                                     | FileBox
                                     | UrlLink
+                                    | Location
                                     | MiniProgram,
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', something)
@@ -589,7 +610,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (looseInstanceOfUrlLink(something)) {
       /**
        * Link Message
        */
@@ -597,12 +618,20 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (looseInstanceOfMiniProgram(something)) {
       /**
        * MiniProgram
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
         conversationId,
+        something.payload,
+      )
+    } else if (looseInstanceOfLocation(something)) {
+      /**
+       * Location
+       */
+      msgId = await this.wechaty.puppet.messageSendLocation(
+        this.id,
         something.payload,
       )
     } else {
@@ -1078,6 +1107,26 @@ class Message extends EventEmitter implements Sayable {
     }
 
     return new MiniProgram(miniProgramPayload)
+  }
+
+  public async toLocation (): Promise<Location> {
+    log.verbose('Message', 'toLocation()')
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (this.type() !== Message.Type.Location) {
+      throw new Error('message not a Location')
+    }
+
+    const locationPayload = await this.wechaty.puppet.messageLocation(this.id)
+
+    if (!locationPayload) {
+      throw new Error(`no location payload for message ${this.id}`)
+    }
+
+    return new Location(locationPayload)
   }
 
 }

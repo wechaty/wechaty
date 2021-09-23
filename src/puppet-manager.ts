@@ -23,15 +23,13 @@
 import childProcess from 'child_process'
 
 import {
+  log,
+  looseInstanceOfPuppet,
   Puppet,
   PuppetImplementation,
   PuppetOptions,
-  log,
 }                         from 'wechaty-puppet'
 
-import {
-  looseInstanceOfPuppet,
-}                           from './helper-functions/mod.js'
 import {
   PUPPET_DEPENDENCIES,
   PuppetModuleName,

@@ -62,6 +62,7 @@ import {
   RoomInvitation,
   Tag,
   UrlLink,
+  Location,
 }                         from './user/mod.js'
 import {
   IoClient,
@@ -92,6 +93,7 @@ export {
   FileBox,
   Friendship,
   Image,
+  Location,
   IoClient,
   log,
   MemoryCard,

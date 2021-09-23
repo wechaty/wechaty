@@ -23,27 +23,37 @@ import {
   ContactQueryFilter,
   ContactType,
   FileBox,
-  PayloadType,
-  instanceToClass,
   log,
-}                         from 'wechaty-puppet'
+  looseInstanceOfFileBox,
+  PayloadType,
+}                             from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                             from 'clone-class'
 
-import type { Wechaty }          from '../wechaty.js'
+import type { Wechaty }       from '../wechaty.js'
 import {
   qrCodeForChatie,
 }                           from '../config.js'
-import {
-  looseInstanceOfFileBox,
-}                           from '../helper-functions/mod.js'
 import type {
   Sayable,
 }                           from '../types.js'
 import { captureException } from '../raven.js'
 
 import { Message }      from './message.js'
-import { MiniProgram }  from './mini-program.js'
-import type { Tag }          from './tag.js'
-import { UrlLink }      from './url-link.js'
+import type { Tag }     from './tag.js'
+import {
+  MiniProgram,
+  looseInstanceOfMiniProgram,
+}                               from './mini-program.js'
+import {
+  UrlLink,
+  looseInstanceOfUrlLink,
+}                             from './url-link.js'
+import {
+  Location,
+  looseInstanceOfLocation,
+}                             from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 
@@ -332,12 +342,13 @@ class Contact extends ContactEventEmitter implements Sayable {
   public say (file:     FileBox)     : Promise<void | Message>
   public say (mini:     MiniProgram) : Promise<void | Message>
   public say (url:      UrlLink)     : Promise<void | Message>
+  public say (location: Location)    : Promise<void | Message>
 
   /**
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram)} something
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} something
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void | Message>}
@@ -389,6 +400,17 @@ class Contact extends ContactEventEmitter implements Sayable {
    * })
    * await contact.say(miniProgram)
    * const msg = await contact.say(miniProgram) // only supported by puppet-padplus
+   *
+   * // 6. send location to contact
+   * const location = new Location ({
+   *   accuracy  : 15,
+   *   address   : '北京市北京市海淀区45 Chengfu Rd',
+   *   latitude  : 39.995120999999997,
+   *   longitude : 116.334154,
+   *   name      : '东升乡人民政府(海淀区成府路45号)',
+   * })
+   * await contact.say(location)
+   * const msg = await contact.say(location)
    */
   public async say (
     something:  string
@@ -398,6 +420,7 @@ class Contact extends ContactEventEmitter implements Sayable {
               | FileBox
               | MiniProgram
               | UrlLink
+              | Location
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', something)
 
@@ -434,7 +457,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (looseInstanceOfUrlLink(something)) {
       /**
        * 4. Link Message
        */
@@ -442,11 +465,19 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (looseInstanceOfMiniProgram(something)) {
       /**
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
+        this.id,
+        something.payload,
+      )
+    } else if (looseInstanceOfLocation(something)) {
+      /**
+       * 6. Location
+       */
+      msgId = await this.wechaty.puppet.messageSendLocation(
         this.id,
         something.payload,
       )
