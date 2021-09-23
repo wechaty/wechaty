@@ -23,9 +23,11 @@ import {
   FriendshipPayload,
   FriendshipType,
   FriendshipSearchQueryFilter,
-  instanceToClass,
   log,
 }                                 from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                                 from 'clone-class'
 
 import type {
   Wechaty,

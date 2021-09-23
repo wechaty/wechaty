@@ -22,7 +22,6 @@ import os               from 'os'
 
 import {
   FileBox,
-  instanceToClass,
   log,
   MemoryCard,
   PayloadType,
@@ -32,6 +31,9 @@ import {
   PuppetOptions,
   StateSwitch,
 }                       from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                       from 'clone-class'
 
 import { captureException } from './raven.js'
 

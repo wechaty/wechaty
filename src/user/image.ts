@@ -19,10 +19,12 @@
  */
 import {
   ImageType,
-  instanceToClass,
   FileBox,
   log,
 }                   from 'wechaty-puppet'
+import {
+  instanceToClass,
+}                                 from 'clone-class'
 
 import type { Wechaty } from '../wechaty.js'
 
