@@ -275,7 +275,7 @@ class Message extends EventEmitter implements Sayable {
     }
 
     let talker
-    if (talkerId === this.wechaty.puppet.selfId()) {
+    if (this.wechaty.logonoff() && talkerId === this.wechaty.puppet.selfId()) {
       talker = this.wechaty.ContactSelf.load(talkerId)
     } else {
       talker = this.wechaty.Contact.load(talkerId)

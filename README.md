@@ -5,8 +5,26 @@
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript%20v4.4+-blue.svg)](https://www.typescriptlang.org/)
-[![ES Modules](https://img.shields.io/badge/ES-Modules-brightgreen)](https://github.com/Chatie/tsconfig/issues/16)
+[![ES Modules](https://img.shields.io/badge/ES-Modules-orange)](https://github.com/Chatie/tsconfig/issues/16)
+
+[![TypeScript](https://img.shields.io/badge/--3178C6?logo=typescript&logoColor=ffffff)](https://wechaty.js.org/docs/polyglot/typescript/)
+[![JavaScript](https://img.shields.io/badge/--F7DF1E?logo=javascript&logoColor=000)](https://wechaty.js.org/docs/polyglot/typescript/)
+[![Python](https://img.shields.io/badge/--3670A0?logo=python&logoColor=ffdd54)](https://wechaty.js.org/docs/polyglot/python/)
+[![Go](https://img.shields.io/badge/--00ADD8?logo=go&logoColor=white)](https://wechaty.js.org/docs/polyglot/go/)
+[![Java](https://img.shields.io/badge/--red?logo=java&logoColor=white)](https://wechaty.js.org/docs/polyglot/java/)
+[![.NET](https://img.shields.io/badge/--5C2D91?logo=dotnet&logoColor=white)](https://wechaty.js.org/docs/polyglot/dotnet/)
+[![PHP](https://img.shields.io/badge/--777BB4?logo=php&logoColor=white)](https://wechaty.js.org/docs/polyglot/php/)
+[![Rust](https://img.shields.io/badge/--000000?logo=rust&logoColor=white)](https://wechaty.js.org/docs/polyglot/rust/)
+[![Scala](https://img.shields.io/badge/--DC322F?logo=scala&logoColor=white)](https://wechaty.js.org/docs/polyglot/scala/)
+
+[![WeChat](https://img.shields.io/badge/--07C160?logo=wechat&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/wechat)
+[![Whatsapp](https://img.shields.io/badge/--25D366?logo=whatsapp&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/whatsapp)
+
+<!--
+[![TikTok](https://img.shields.io/badge/--000000?logo=tiktok&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/tiktok)
+[![Line](https://img.shields.io/badge/--00C300?logo=line&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/line)
+[![Telegram](https://img.shields.io/badge/--2CA5E0?logo=telegram&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/telegram)
+-->
 
 [![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
@@ -91,8 +109,9 @@ You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/di
 
 ## :checkered_flag: Requirements
 
-1. Node.js v14+
-1. TypeScript v4.4+
+1. Node.js version 16+
+1. NPM version 7+
+1. TypeScript version 4.4+
 
 ## Getting Started
 

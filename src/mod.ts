@@ -50,23 +50,27 @@ import type {
 
 import {
   Contact,
-  Tag,
-  Friendship,
+  ContactSelf,
   Favorite,
-  Message,
+  Friendship,
   Image,
+  Message,
+  MiniProgram,
   Moment,
   Money,
   Room,
   RoomInvitation,
+  Tag,
   UrlLink,
-  MiniProgram,
   Location,
 }                         from './user/mod.js'
 import {
   IoClient,
   IoClientOptions,
 }                         from './io-client.js'
+import type {
+  WechatyEventName,
+}                             from './events/wechaty-events.js'
 
 import type {
   Sayable,
@@ -76,6 +80,7 @@ export type {
   PuppetModuleName,
   Sayable,
   UrlLinkPayload,
+  WechatyEventName,
   WechatyOptions,
   WechatyPlugin,
   WechatyPluginUninstaller,
@@ -83,6 +88,7 @@ export type {
 export {
   config,
   Contact,
+  ContactSelf,
   Favorite,
   FileBox,
   Friendship,
