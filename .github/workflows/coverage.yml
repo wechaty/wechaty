@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "See: https://github.com/wechaty/wechaty/issues/2242"
     # - uses: actions/checkout@v2
     # - uses: actions/setup-node@v2
     # - run: npm install
