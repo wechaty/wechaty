@@ -14,7 +14,7 @@ npm pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-trap "rm -fr '$TMPDIR'" EXIT
+# trap "rm -fr $TMPDIR" EXIT
 
 mv ./*-*.*.*.tgz "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
