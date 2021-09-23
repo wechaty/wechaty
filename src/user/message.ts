@@ -515,7 +515,7 @@ class Message extends EventEmitter implements Sayable {
    *     const message = await msg.say(miniProgramPayload) // only supported by puppet-padplus
    *   }
    *
-   * // 6. send location
+   * // 6. send Location
    *   if (/^location$/i.test(m.text())) {
    *     const location = new Location ({
    *       accuracy  : 15,

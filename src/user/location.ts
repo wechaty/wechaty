@@ -32,7 +32,7 @@ class Location {
 
   /**
    *
-   * Create from URL
+   * Create
    *
    */
   public static async create (): Promise<Location> {
@@ -78,7 +78,7 @@ class Location {
     return this.payload.name
   }
 
-  public accuracy (): string {
+  public accuracy (): number {
     return this.payload.accuracy
   }
 
