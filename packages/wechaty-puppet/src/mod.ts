@@ -8,10 +8,6 @@ import {
 import {
   StateSwitch,
 }                         from 'state-switch'
-import {
-  looseInstanceOfClass,
-  instanceToClass,
-}                         from 'clone-class'
 
 import {
   VERSION,
@@ -178,9 +174,7 @@ export {
   FriendshipSceneType,
   FriendshipType,
   ImageType,
-  instanceToClass,
   log,
-  looseInstanceOfClass,
   looseInstanceOfFileBox,
   looseInstanceOfPuppet,
   MemoryCard,

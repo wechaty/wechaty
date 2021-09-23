@@ -114,7 +114,7 @@ Set the max size for wechaty entities in LRU Cache.
 
 ## History
 
-### master v0.45
+### master v0.47
 
 1. Add `Error` interface to `EventErrorPayload`, and make `.data` optional
 
