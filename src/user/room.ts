@@ -43,7 +43,7 @@ import {
 import { Contact }        from './contact.js'
 import { MiniProgram }    from './mini-program.js'
 import { Message }        from './message.js'
-import { looseInstanceOfUrlLink, UrlLink }        from './url-link.js'
+import { UrlLink }        from './url-link.js'
 import { Location }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
