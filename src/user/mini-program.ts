@@ -21,16 +21,17 @@ import {
   MiniProgramPayload,
   log,
 }                         from 'wechaty-puppet'
-import {
-  looseInstanceOfClass,
-}                         from 'clone-class'
 
 import type { Wechaty } from '../wechaty.js'
+import {
+  throwWechatifyError,
+  guardWechatifyClass,
+}                                 from './guard-wechatify-class.js'
 
 class MiniProgram {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -61,6 +62,7 @@ class MiniProgram {
     public readonly payload: MiniProgramPayload,
   ) {
     log.verbose('MiniProgram', 'constructor()')
+    guardWechatifyClass.call(this, MiniProgram)
   }
 
   public appid (): undefined | string {
@@ -94,6 +96,7 @@ class MiniProgram {
 }
 
 function wechatifyMiniProgram (wechaty: Wechaty): typeof MiniProgram {
+  log.verbose('MiniProgram', 'wechatifyMiniProgram(%s)', wechaty)
 
   class WechatifiedMiniProgram extends MiniProgram {
 
@@ -106,10 +109,7 @@ function wechatifyMiniProgram (wechaty: Wechaty): typeof MiniProgram {
 
 }
 
-const looseInstanceOfMiniProgram = looseInstanceOfClass(MiniProgram)
-
 export {
-  looseInstanceOfMiniProgram,
   MiniProgram,
   wechatifyMiniProgram,
 }

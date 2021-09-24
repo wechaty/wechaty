@@ -25,9 +25,6 @@ import {
   FriendshipSearchQueryFilter,
   log,
 }                                 from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                                 from 'clone-class'
 
 import type {
   Wechaty,
@@ -42,11 +39,14 @@ import type {
 
 import type {
   Contact,
-}                   from './contact.js'
-
+}                       from './contact.js'
 import type {
   Room,
-}                   from './room.js'
+}                       from './room.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                       from './guard-wechatify-class.js'
 
 interface FriendshipAddOptionsObject {
   room?: Room,
@@ -67,8 +67,8 @@ type FriendshipAddOptions = string | FriendshipAddOptionsObject
  */
 class Friendship extends EventEmitter implements Acceptable {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static Type = FriendshipType
 
@@ -188,16 +188,7 @@ class Friendship extends EventEmitter implements Acceptable {
   ) {
     super()
     log.verbose('Friendship', 'constructor(id=%s)', id)
-
-    const MyClass = instanceToClass(this, Friendship)
-
-    if (MyClass === Friendship) {
-      throw new Error('Friendship class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
-    }
-
-    if (!this.wechaty.puppet) {
-      throw new Error('Friendship class can not be instantiated without a puppet!')
-    }
+    guardWechatifyClass.call(this, Friendship)
   }
 
   public override toString () {
@@ -441,6 +432,7 @@ class Friendship extends EventEmitter implements Acceptable {
 }
 
 function wechatifyFriendship (wechaty: Wechaty): typeof Friendship {
+  log.verbose('Friendship', 'wechatifyFriendship(%s)', wechaty)
 
   class WechatifiedFriendship extends Friendship {
 

@@ -24,13 +24,13 @@ import {
 
 import {
   guardQrCodeValue,
-} from '../helper-functions/pure/guard-qr-code-value.js'
+}                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import type { Wechaty } from '../wechaty.js'
 
 import {
   Contact,
-}           from './contact.js'
+}                       from './contact.js'
 
 /**
  * Bot itself will be encapsulated as a ContactSelf.
@@ -201,6 +201,7 @@ class ContactSelf extends Contact {
 }
 
 function wechatifyContactSelf (wechaty: Wechaty): typeof ContactSelf {
+  log.verbose('ContactSelf', 'wechatifyContactSelf(%s)', wechaty)
 
   class WechatifiedContactSelf extends ContactSelf {
 

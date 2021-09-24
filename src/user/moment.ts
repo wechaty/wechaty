@@ -17,14 +17,17 @@
  *   limitations under the License.
  *
  */
+import { log } from 'wechaty-puppet'
+
 import type { Wechaty } from '../wechaty.js'
 
 import type { Contact } from './contact.js'
+import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
 
 class Moment {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static post () {
     // post new moment
@@ -42,12 +45,13 @@ class Moment {
    * @hideconstructor
    */
   constructor () {
-    //
+    guardWechatifyClass.call(this, Moment)
   }
 
 }
 
 function wechatifyMoment (wechaty: Wechaty): typeof Moment {
+  log.verbose('Moment', 'wechatifyMoment(%s)', wechaty)
 
   class WechatifiedMoment extends Moment {
 

@@ -27,9 +27,6 @@ import {
   looseInstanceOfFileBox,
   PayloadType,
 }                             from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                             from 'clone-class'
 
 import type { Wechaty }       from '../wechaty.js'
 import {
@@ -42,22 +39,17 @@ import { captureException } from '../raven.js'
 
 import { Message }      from './message.js'
 import type { Tag }     from './tag.js'
-import {
-  MiniProgram,
-  looseInstanceOfMiniProgram,
-}                               from './mini-program.js'
-import {
-  UrlLink,
-  looseInstanceOfUrlLink,
-}                             from './url-link.js'
-import {
-  Location,
-  looseInstanceOfLocation,
-}                             from './location.js'
+import { MiniProgram }  from './mini-program.js'
+import { UrlLink }      from './url-link.js'
+import { Location }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                               from './guard-wechatify-class.js'
 
-export const POOL = Symbol('pool')
+const POOL = Symbol('pool')
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
@@ -68,8 +60,8 @@ export const POOL = Symbol('pool')
  */
 class Contact extends ContactEventEmitter implements Sayable {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static Type   = ContactType
   public static Gender = ContactGender
@@ -304,19 +296,7 @@ class Contact extends ContactEventEmitter implements Sayable {
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
-
-    const MyClass = instanceToClass(this, Contact)
-
-    if (MyClass === Contact) {
-      throw new Error(
-        'Contact class can not be instantiated directly!'
-        + 'See: https://github.com/wechaty/wechaty/issues/1217',
-      )
-    }
-
-    if (!this.wechaty) {
-      throw new Error('Contact class can not be instantiated without a wechaty instance!')
-    }
+    guardWechatifyClass.call(this, Contact)
   }
 
   /**
@@ -457,7 +437,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something,
       )
-    } else if (looseInstanceOfUrlLink(something)) {
+    } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
@@ -465,7 +445,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (looseInstanceOfMiniProgram(something)) {
+    } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
@@ -473,7 +453,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (looseInstanceOfLocation(something)) {
+    } else if (something instanceof Location) {
       /**
        * 6. Location
        */
@@ -940,6 +920,7 @@ class Contact extends ContactEventEmitter implements Sayable {
 }
 
 function wechatifyContact (wechaty: Wechaty): typeof Contact {
+  log.verbose('Contact', 'wechatifyContact(%s)', wechaty)
 
   class WechatifiedContact extends Contact {
 

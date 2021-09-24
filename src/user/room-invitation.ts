@@ -38,6 +38,7 @@ import {
 import type {
   Contact,
 }               from './contact.js'
+import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
 
 /**
  *
@@ -45,8 +46,8 @@ import type {
  */
 class RoomInvitation implements Acceptable {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static load<T extends typeof RoomInvitation> (
     this : T,
@@ -65,16 +66,7 @@ class RoomInvitation implements Acceptable {
     public readonly id: string,
   ) {
     log.verbose('RoomInvitation', 'constructor(id=%s)', id)
-
-    const MyClass = instanceToClass(this, RoomInvitation)
-
-    if (MyClass === RoomInvitation) {
-      throw new Error('RoomInvitation class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
-    }
-
-    if (!this.wechaty.puppet) {
-      throw new Error('RoomInvitation class can not be instantiated without a puppet!')
-    }
+    guardWechatifyClass.call(this, RoomInvitation)
   }
 
   public toString () {
@@ -290,10 +282,11 @@ class RoomInvitation implements Acceptable {
 }
 
 function wechatifyRoomInvitation (wechaty: Wechaty): typeof RoomInvitation {
+  log.verbose('RoomInvitation', 'wechatifyRoomInvitation(%s)', wechaty)
 
   class WechatifiedRoomInvitation extends RoomInvitation {
 
-    static override get wechaty  () { return wechaty }
+    static override get wechaty () { return wechaty }
     override get wechaty        () { return wechaty }
 
   }

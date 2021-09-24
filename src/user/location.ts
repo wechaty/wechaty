@@ -21,11 +21,16 @@ import {
   LocationPayload,
   log,
 }                       from 'wechaty-puppet'
+import type { Wechaty } from '../wechaty'
 import {
-  looseInstanceOfClass,
-}                       from 'clone-class'
+  guardWechatifyClass,
+  throwWechatifyError,
+}                       from './guard-wechatify-class.js'
 
 class Location {
+
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -54,6 +59,7 @@ class Location {
     public readonly payload: LocationPayload,
   ) {
     log.verbose('Location', 'constructor()')
+    guardWechatifyClass.call(this, Location)
   }
 
   public toString (): string {
@@ -82,16 +88,21 @@ class Location {
 
 }
 
-function wechatifyLocation (_: any): typeof Location {
+function wechatifyLocation (wechaty: Wechaty): typeof Location {
+  log.verbose('Location', 'wechatifyLocation(%s)', wechaty)
 
-  return Location
+  class WechatifiedLocation extends Location {
+
+    static override get wechaty () { return wechaty }
+    override get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedLocation
 
 }
 
-const looseInstanceOfLocation = looseInstanceOfClass(Location)
-
 export {
   Location,
-  looseInstanceOfLocation,
   wechatifyLocation,
 }

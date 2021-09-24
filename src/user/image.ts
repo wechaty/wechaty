@@ -22,34 +22,23 @@ import {
   FileBox,
   log,
 }                   from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                                 from 'clone-class'
 
 import type { Wechaty } from '../wechaty.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                                 from './guard-wechatify-class.js'
 
 class Image {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   constructor (
     public id: string,
   ) {
-    log.verbose('Image', 'constructor(%s)',
-      id,
-      this.constructor.name,
-    )
-
-    const MyClass = instanceToClass(this, Image)
-
-    if (MyClass === Image) {
-      throw new Error('Image class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
-    }
-
-    if (!this.wechaty.puppet) {
-      throw new Error('Image class can not be instantiated without a puppet!')
-    }
+    log.verbose('Image', 'constructor(%s)', id)
+    guardWechatifyClass.call(this, Image)
   }
 
   public static create (id: string): Image {
@@ -80,6 +69,7 @@ class Image {
 }
 
 function wechatifyImage (wechaty: Wechaty): typeof Image {
+  log.verbose('Image', 'wechatifyImage(%s)', wechaty)
 
   class WechatifiedImage extends Image {
 

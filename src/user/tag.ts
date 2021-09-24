@@ -20,19 +20,17 @@
 import {
   log,
 }                     from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                                 from 'clone-class'
 
 import type { Wechaty }  from '../wechaty.js'
 
 import { Contact }  from './contact.js'
 import { Favorite } from './favorite.js'
+import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
 
 class Tag {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   protected static pool: Map<string, Tag>
 
@@ -43,19 +41,7 @@ class Tag {
     public readonly id: string,
   ) {
     log.silly('Tag', `constructor(${id})`)
-
-    const MyClass = instanceToClass(this, Tag)
-
-    if (MyClass === Tag) {
-      throw new Error(
-        'Tag class can not be instantiated directly!'
-        + 'See: https://github.com/Chatie/wechaty/issues/1217',
-      )
-    }
-
-    if (!this.wechaty.puppet) {
-      throw new Error('Tag class can not be instantiated without a puppet!')
-    }
+    guardWechatifyClass.call(this, Tag)
   }
 
   /**
@@ -215,6 +201,7 @@ class Tag {
 }
 
 function wechatifyTag (wechaty: Wechaty): typeof Tag {
+  log.verbose('Tag', 'wechatifyTag(%s)', wechaty)
 
   class WechatifiedTag extends Tag {
 

@@ -1,3 +1,9 @@
+import type { Wechaty } from '../wechaty.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                                 from './guard-wechatify-class.js'
+
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -17,13 +23,20 @@
  *   limitations under the License.
  *
  */
-export class Money {
+class Money {
+
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /*
    * @hideconstructor
    */
   constructor () {
-    //
+    guardWechatifyClass.call(this, Money)
   }
 
+}
+
+export {
+  Money,
 }

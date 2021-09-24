@@ -23,15 +23,22 @@ import {
   UrlLinkPayload,
   log,
 }                         from 'wechaty-puppet'
-import {
-  looseInstanceOfClass,
-}                         from 'clone-class'
 
 import {
   openGraph,
 }               from '../helper-functions/impure/open-graph.js'
+import type {
+  Wechaty,
+}               from '../wechaty.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                                 from './guard-wechatify-class.js'
 
 class UrlLink {
+
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -101,6 +108,7 @@ class UrlLink {
     public readonly payload: UrlLinkPayload,
   ) {
     log.verbose('UrlLink', 'constructor()')
+    guardWechatifyClass.call(this, UrlLink)
   }
 
   public toString (): string {
@@ -125,16 +133,20 @@ class UrlLink {
 
 }
 
-function wechatifyUrlLink (_: any): typeof UrlLink {
+function wechatifyUrlLink (wechaty: Wechaty): typeof UrlLink {
+  log.verbose('UrlLink', 'wechatifyUrlLink(%s)', wechaty)
 
-  return UrlLink
+  class WechatifiedUrlLink extends UrlLink {
 
+    static override get wechaty () { return wechaty }
+    override get wechaty        () { return wechaty }
+
+  }
+
+  return WechatifiedUrlLink
 }
 
-const looseInstanceOfUrlLink = looseInstanceOfClass(UrlLink)
-
 export {
-  looseInstanceOfUrlLink,
   UrlLink,
   wechatifyUrlLink,
 }

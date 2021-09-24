@@ -26,9 +26,6 @@ import {
   FileBox,
   log,
 }                                 from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                                 from 'clone-class'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
@@ -52,19 +49,21 @@ import type {
   Room,
 }                       from './room.js'
 import {
-  looseInstanceOfUrlLink,
   UrlLink,
 }                       from './url-link.js'
 import {
-  looseInstanceOfMiniProgram,
   MiniProgram,
 }                       from './mini-program.js'
 import type {
   Image,
 }                       from './image.js'
 import {
-  Location, looseInstanceOfLocation,
+  Location,
 }                       from './location.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                                 from './guard-wechatify-class.js'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -73,8 +72,8 @@ import {
  */
 class Message extends EventEmitter implements Sayable {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -186,16 +185,7 @@ class Message extends EventEmitter implements Sayable {
       id || '',
       this.constructor.name,
     )
-
-    const MyClass = instanceToClass(this, Message)
-
-    if (MyClass === Message) {
-      throw new Error('Message class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
-    }
-
-    if (!this.wechaty.puppet) {
-      throw new Error('Message class can not be instantiated without a puppet!')
-    }
+    guardWechatifyClass.call(this, Message)
   }
 
   /**
@@ -610,7 +600,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something,
       )
-    } else if (looseInstanceOfUrlLink(something)) {
+    } else if (something instanceof UrlLink) {
       /**
        * Link Message
        */
@@ -618,7 +608,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.payload,
       )
-    } else if (looseInstanceOfMiniProgram(something)) {
+    } else if (something instanceof MiniProgram) {
       /**
        * MiniProgram
        */
@@ -626,7 +616,7 @@ class Message extends EventEmitter implements Sayable {
         conversationId,
         something.payload,
       )
-    } else if (looseInstanceOfLocation(something)) {
+    } else if (something instanceof Location) {
       /**
        * Location
        */
@@ -1132,10 +1122,11 @@ class Message extends EventEmitter implements Sayable {
 }
 
 function wechatifyMessage (wechaty: Wechaty): typeof Message {
+  log.verbose('Message', 'wechatifyMessage(%s)', wechaty)
 
   class WechatifiedMessage extends Message {
 
-    static override get wechaty  () { return wechaty }
+    static override get wechaty () { return wechaty }
     override get wechaty        () { return wechaty }
 
   }
