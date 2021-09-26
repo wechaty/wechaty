@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.31.28",
+  "version": "0.33.0",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -64,7 +64,7 @@
     "tstest": "^0.5.16",
     "typescript": "^4.4.3",
     "wechaty": "^0.69.12",
-    "wechaty-puppet": "^0.43.9",
+    "wechaty-puppet": "^0.47.2",
     "wechaty-puppet-mock": "^0.31.3"
   },
   "dependencies": {
