@@ -98,7 +98,7 @@ class UrlLink {
       url,
     }
 
-    return new UrlLink(payload)
+    return new (this as any)(payload)
   }
 
   /*
