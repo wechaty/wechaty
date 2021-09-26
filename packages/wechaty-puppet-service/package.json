@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.31.26",
+  "version": "0.31.27",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -13,8 +13,7 @@
   "engines": {
     "node": ">=16",
     "npm": ">=7",
-    "wechaty": ">=0.69",
-    "wechaty-puppet": ">=0.43"
+    "wechaty": ">=0.69"
   },
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cjs.json",
@@ -27,7 +26,7 @@
     "start": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "repository": {
