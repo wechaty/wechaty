@@ -7,8 +7,10 @@ jobs:
     name: Build
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        node: [16]
+        os:
+          - ubuntu-latest
+        node-version:
+          - 16
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -16,7 +18,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.noden }}
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
           cache-dependency-path: package.json
 
@@ -34,15 +36,14 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        node:
-          - 14
+        node-version:
           - 16
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node}}
+          node-version: ${{ matrix.node-version}}
           cache: 'npm'
           cache-dependency-path: package.json
 

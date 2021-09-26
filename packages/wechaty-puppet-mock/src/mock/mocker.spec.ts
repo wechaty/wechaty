@@ -22,8 +22,8 @@ import {
 
 import { PuppetMock }         from '../puppet-mock.js'
 
-import { MessageMock }        from './user/message-mock.js'
-import { ContactMock }        from './user/contact-mock.js'
+import type { MessageMock }        from './user/message-mock.js'
+import type { ContactMock }        from './user/contact-mock.js'
 
 import { Mocker }             from './mocker.js'
 import { SimpleEnvironment }  from './environment.js'

@@ -3,7 +3,7 @@ import {
   ScanStatus,
 }               from 'wechaty-puppet'
 
-import { Mocker } from './mocker.js'
+import type { Mocker } from './mocker.js'
 
 type EnvironmentStop  = () => void
 type EnvironmentStart = (mocker: Mocker) => EnvironmentStop

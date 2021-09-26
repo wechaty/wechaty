@@ -6,9 +6,9 @@ import {
   log,
 }                           from 'wechaty-puppet'
 
-import { Mocker } from '../mocker.js'
+import type { Mocker } from '../mocker.js'
 
-import { ContactMock } from './contact-mock.js'
+import type { ContactMock } from './contact-mock.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
