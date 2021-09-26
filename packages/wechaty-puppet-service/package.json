@@ -27,7 +27,7 @@
     "start": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "repository": {
@@ -58,6 +58,7 @@
     "@types/lru-cache": "^5.1.1",
     "@types/semver": "^7.3.8",
     "@types/ws": "^7.4.7",
+    "cross-env": "^7.0.3",
     "npm-run-all": "^4.1.5",
     "pkg-jq": "^0.2.11",
     "shx": "^0.3.3",
