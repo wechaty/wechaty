@@ -270,7 +270,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *
    *
    */
-  protected payload?: RoomPayload
+  #payload?: RoomPayload
 
   /**
    * @hideconstructor
@@ -289,11 +289,11 @@ class Room extends RoomEventEmitter implements Sayable {
    * @ignore
    */
   public override toString () {
-    if (!this.payload) {
+    if (!this.#payload) {
       return this.constructor.name
     }
 
-    return `Room<${this.payload.topic || 'loading...'}>`
+    return `Room<${this.#payload.topic || 'loading...'}>`
   }
 
   public async * [Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
@@ -335,9 +335,9 @@ class Room extends RoomEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Room, this.id)
       await this.wechaty.puppet.dirtyPayload(PayloadType.RoomMember, this.id)
     }
-    this.payload = await this.wechaty.puppet.roomPayload(this.id)
+    this.#payload = await this.wechaty.puppet.roomPayload(this.id)
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('ready() no payload')
     }
 
@@ -367,7 +367,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * @ignore
    */
   public isReady (): boolean {
-    return !!(this.payload)
+    return !!(this.#payload)
   }
 
   public say (text:     string)                                  : Promise<void | Message>
@@ -920,8 +920,8 @@ class Room extends RoomEventEmitter implements Sayable {
     }
 
     if (typeof newTopic === 'undefined') {
-      if (this.payload && this.payload.topic) {
-        return this.payload.topic
+      if (this.#payload && this.#payload.topic) {
+        return this.#payload.topic
       } else {
         const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
         const memberList = memberIdList
@@ -1232,7 +1232,7 @@ class Room extends RoomEventEmitter implements Sayable {
   public owner (): null | Contact {
     log.verbose('Room', 'owner()')
 
-    const ownerId = this.payload && this.payload.ownerId
+    const ownerId = this.#payload && this.#payload.ownerId
     if (!ownerId) {
       return null
     }
