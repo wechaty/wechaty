@@ -172,7 +172,7 @@ class Message extends EventEmitter implements Sayable {
    * @hidden
    *
    */
-  protected payload?: MessagePayload
+  #payload?: MessagePayload
 
   /**
    * @hideconstructor
@@ -192,7 +192,7 @@ class Message extends EventEmitter implements Sayable {
    * @ignore
    */
   public override toString () {
-    if (!this.payload) {
+    if (!this.#payload) {
       return this.constructor.name
     }
 
@@ -214,7 +214,7 @@ class Message extends EventEmitter implements Sayable {
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
 
-      if (!this.payload) {
+      if (!this.#payload) {
         throw new Error('no payload')
       }
     }
@@ -250,7 +250,7 @@ class Message extends EventEmitter implements Sayable {
    * .start()
    */
   public talker (): Contact {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
@@ -259,7 +259,7 @@ class Message extends EventEmitter implements Sayable {
     //   return
     // }
 
-    const talkerId = this.payload.fromId
+    const talkerId = this.#payload.fromId
     if (!talkerId) {
       // Huan(202011): It seems that the fromId will never be null?
       // return null
@@ -309,11 +309,11 @@ class Message extends EventEmitter implements Sayable {
    * @returns {(Contact|null)}
    */
   public listener (): null | Contact {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    const listenerId = this.payload.toId
+    const listenerId = this.#payload.toId
     if (!listenerId) {
       return null
     }
@@ -349,10 +349,10 @@ class Message extends EventEmitter implements Sayable {
    * .start()
    */
   public room (): null | Room {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
-    const roomId = this.payload.roomId
+    const roomId = this.#payload.roomId
     if (!roomId) {
       return null
     }
@@ -382,11 +382,11 @@ class Message extends EventEmitter implements Sayable {
    * .start()
    */
   public text (): string {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    return this.payload.text || ''
+    return this.#payload.text || ''
   }
 
   /**
@@ -677,10 +677,10 @@ class Message extends EventEmitter implements Sayable {
    * }
    */
   public type (): MessageType {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
-    return this.payload.type || MessageType.Unknown
+    return this.#payload.type || MessageType.Unknown
   }
 
   /**
@@ -735,13 +735,13 @@ class Message extends EventEmitter implements Sayable {
      * Use mention list if mention list is available
      * otherwise, process the message and get the mention list
      */
-    if (this.payload && 'mentionIdList' in this.payload) {
+    if (this.#payload && 'mentionIdList' in this.#payload) {
       const idToContact = async (id: string) => {
         const contact = this.wechaty.Contact.load(id)
         await contact.ready()
         return contact
       }
-      return Promise.all(this.payload.mentionIdList?.map(idToContact) ?? [])
+      return Promise.all(this.#payload.mentionIdList?.map(idToContact) ?? [])
     }
 
     /**
@@ -856,7 +856,7 @@ class Message extends EventEmitter implements Sayable {
    * @ignore
    */
   public isReady (): boolean {
-    return !!this.payload
+    return !!this.#payload
   }
 
   /**
@@ -869,15 +869,15 @@ class Message extends EventEmitter implements Sayable {
       return
     }
 
-    this.payload = await this.wechaty.puppet.messagePayload(this.id)
+    this.#payload = await this.wechaty.puppet.messagePayload(this.id)
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    const fromId = this.payload.fromId
-    const roomId = this.payload.roomId
-    const toId   = this.payload.toId
+    const fromId = this.#payload.fromId
+    const roomId = this.#payload.roomId
+    const toId   = this.#payload.toId
 
     if (roomId) {
       await this.wechaty.Room.load(roomId).ready()
@@ -969,11 +969,11 @@ class Message extends EventEmitter implements Sayable {
    * Message sent date
    */
   public date (): Date {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    const timestamp = this.payload.timestamp
+    const timestamp = this.#payload.timestamp
     return timestampToDate(timestamp)
   }
 
@@ -1062,7 +1062,7 @@ class Message extends EventEmitter implements Sayable {
   public async toUrlLink (): Promise<UrlLink> {
     log.verbose('Message', 'toUrlLink()')
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
@@ -1082,7 +1082,7 @@ class Message extends EventEmitter implements Sayable {
   public async toMiniProgram (): Promise<MiniProgram> {
     log.verbose('Message', 'toMiniProgram()')
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
@@ -1102,7 +1102,7 @@ class Message extends EventEmitter implements Sayable {
   public async toLocation (): Promise<Location> {
     log.verbose('Message', 'toLocation()')
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
