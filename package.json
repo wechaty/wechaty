@@ -129,11 +129,6 @@
     "typescript": "^4.4.3",
     "wechaty-puppet-mock": "^0.31.5"
   },
-  "tap": {
-    "test-env": [
-      "ESM_DISABLE_CACHE=1"
-    ]
-  },
   "files": [
     "bin/",
     "dist/",
