@@ -31,7 +31,7 @@ import {
 class MiniProgram {
 
   static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *

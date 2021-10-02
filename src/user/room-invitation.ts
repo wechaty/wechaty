@@ -44,7 +44,7 @@ import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-clas
 class RoomInvitation implements Acceptable {
 
   static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static load<T extends typeof RoomInvitation> (
     this : T,
@@ -284,7 +284,7 @@ function wechatifyRoomInvitation (wechaty: Wechaty): typeof RoomInvitation {
   class WechatifiedRoomInvitation extends RoomInvitation {
 
     static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
+    override get wechaty       () { return wechaty }
 
   }
 

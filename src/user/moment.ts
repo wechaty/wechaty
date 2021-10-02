@@ -27,7 +27,7 @@ import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-clas
 class Moment {
 
   static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static post () {
     // post new moment

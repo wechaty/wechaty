@@ -58,7 +58,7 @@ import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-clas
 class Room extends RoomEventEmitter implements Sayable {
 
   static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   protected static pool: Map<string, Room>
 
@@ -1263,7 +1263,7 @@ function wechatifyRoom (wechaty: Wechaty): typeof Room {
   class WechatifiedRoom extends Room {
 
     static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
+    override get wechaty       () { return wechaty }
 
   }
 

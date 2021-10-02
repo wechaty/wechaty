@@ -30,7 +30,7 @@ import {
 class Location {
 
   static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -94,7 +94,7 @@ function wechatifyLocation (wechaty: Wechaty): typeof Location {
   class WechatifiedLocation extends Location {
 
     static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
+    override get wechaty       () { return wechaty }
 
   }
 

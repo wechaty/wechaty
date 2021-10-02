@@ -61,7 +61,7 @@ const POOL = Symbol('pool')
 class Contact extends ContactEventEmitter implements Sayable {
 
   static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static Type   = ContactType
   public static Gender = ContactGender

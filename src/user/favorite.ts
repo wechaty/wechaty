@@ -30,7 +30,7 @@ import {
 class Favorite {
 
   static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty        (): Wechaty { return throwWechatifyError(this.constructor) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static list (): Favorite[] {
     return []
@@ -83,7 +83,7 @@ function wechatifyFavorite (wechaty: Wechaty): typeof Favorite {
   class WechatifiedFavorite extends Favorite {
 
     static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
+    override get wechaty       () { return wechaty }
 
   }
 
