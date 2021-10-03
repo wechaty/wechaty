@@ -643,14 +643,14 @@ function puppetImplementation (
 
         const pbMiniProgramPayload = new pbPuppet.MiniProgramPayload()
         if (payload.appid)       { pbMiniProgramPayload.setAppid(payload.appid) }
-        if (payload.description) { pbMiniProgramPayload.setAppid(payload.description) }
-        if (payload.iconUrl)     { pbMiniProgramPayload.setAppid(payload.iconUrl) }
-        if (payload.pagePath)    { pbMiniProgramPayload.setAppid(payload.pagePath) }
-        if (payload.shareId)     { pbMiniProgramPayload.setAppid(payload.shareId) }
-        if (payload.thumbKey)    { pbMiniProgramPayload.setAppid(payload.thumbKey) }
-        if (payload.thumbUrl)    { pbMiniProgramPayload.setAppid(payload.thumbUrl) }
-        if (payload.title)       { pbMiniProgramPayload.setAppid(payload.title) }
-        if (payload.username)    { pbMiniProgramPayload.setAppid(payload.username) }
+        if (payload.description) { pbMiniProgramPayload.setDescription(payload.description) }
+        if (payload.iconUrl)     { pbMiniProgramPayload.setIconUrl(payload.iconUrl) }
+        if (payload.pagePath)    { pbMiniProgramPayload.setPagePath(payload.pagePath) }
+        if (payload.shareId)     { pbMiniProgramPayload.setShareId(payload.shareId) }
+        if (payload.thumbKey)    { pbMiniProgramPayload.setThumbKey(payload.thumbKey) }
+        if (payload.thumbUrl)    { pbMiniProgramPayload.setThumbUrl(payload.thumbUrl) }
+        if (payload.title)       { pbMiniProgramPayload.setTitle(payload.title) }
+        if (payload.username)    { pbMiniProgramPayload.setUsername(payload.username) }
         response.setMiniProgram(pbMiniProgramPayload)
 
         // Deprecated after Dec 31, 2022
@@ -889,8 +889,8 @@ function puppetImplementation (
         }
 
         const payload: UrlLinkPayload = {
-          title: 'NOTITLE',
-          url: 'NOURL',
+          title : 'NOTITLE',
+          url   : 'NOURL',
           ...pbUrlLinkPayload,
         }
 

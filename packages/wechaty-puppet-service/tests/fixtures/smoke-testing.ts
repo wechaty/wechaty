@@ -6,7 +6,6 @@ import {
 
 async function main () {
   const puppetService = new PuppetService()
-  const version = puppetService.version()
 
   // try {
   //   await bot.start()
@@ -23,7 +22,7 @@ async function main () {
     throw new Error('version should be set before publishing')
   }
 
-  console.info('Wechaty Puppet Service v' + VERSION + ' passed.')
+  console.info('Wechaty Puppet Service v' + puppetService.version() + ' passed.')
   return 0
 }
 

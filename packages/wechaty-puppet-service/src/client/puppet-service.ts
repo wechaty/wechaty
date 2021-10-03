@@ -779,14 +779,14 @@ export class PuppetService extends Puppet {
 
     const pbMiniProgramPayload = new pbPuppet.MiniProgramPayload()
     if (miniProgramPayload.appid)       { pbMiniProgramPayload.setAppid(miniProgramPayload.appid) }
-    if (miniProgramPayload.description) { pbMiniProgramPayload.setAppid(miniProgramPayload.description) }
-    if (miniProgramPayload.iconUrl)     { pbMiniProgramPayload.setAppid(miniProgramPayload.iconUrl) }
-    if (miniProgramPayload.pagePath)    { pbMiniProgramPayload.setAppid(miniProgramPayload.pagePath) }
-    if (miniProgramPayload.shareId)     { pbMiniProgramPayload.setAppid(miniProgramPayload.shareId) }
-    if (miniProgramPayload.thumbKey)    { pbMiniProgramPayload.setAppid(miniProgramPayload.thumbKey) }
-    if (miniProgramPayload.thumbUrl)    { pbMiniProgramPayload.setAppid(miniProgramPayload.thumbUrl) }
-    if (miniProgramPayload.title)       { pbMiniProgramPayload.setAppid(miniProgramPayload.title) }
-    if (miniProgramPayload.username)    { pbMiniProgramPayload.setAppid(miniProgramPayload.username) }
+    if (miniProgramPayload.description) { pbMiniProgramPayload.setDescription(miniProgramPayload.description) }
+    if (miniProgramPayload.iconUrl)     { pbMiniProgramPayload.setIconUrl(miniProgramPayload.iconUrl) }
+    if (miniProgramPayload.pagePath)    { pbMiniProgramPayload.setPagePath(miniProgramPayload.pagePath) }
+    if (miniProgramPayload.shareId)     { pbMiniProgramPayload.setShareId(miniProgramPayload.shareId) }
+    if (miniProgramPayload.thumbKey)    { pbMiniProgramPayload.setThumbKey(miniProgramPayload.thumbKey) }
+    if (miniProgramPayload.thumbUrl)    { pbMiniProgramPayload.setThumbUrl(miniProgramPayload.thumbUrl) }
+    if (miniProgramPayload.title)       { pbMiniProgramPayload.setTitle(miniProgramPayload.title) }
+    if (miniProgramPayload.username)    { pbMiniProgramPayload.setUsername(miniProgramPayload.username) }
     request.setMiniProgram(pbMiniProgramPayload)
 
     /**
