@@ -5,10 +5,13 @@ import { test }  from 'tstest'
 import util from 'util'
 
 import {
+  StringValue,
+}               from 'google-protobuf/google/protobuf/wrappers_pb.js'
+
+import {
   grpc,
   puppet,
-  StringValue,
-}                             from '../src/mod.js'
+}               from '../src/mod.js'
 
 import { puppetServerImpl } from './puppet-server-impl.js'
 
