@@ -4,9 +4,7 @@ import { test }  from 'tstest'
 
 import util from 'util'
 
-import {
-  StringValue,
-}               from 'google-protobuf/google/protobuf/wrappers_pb.js'
+import wrappers from 'google-protobuf/google/protobuf/wrappers_pb.js'
 
 import {
   grpc,
@@ -14,6 +12,10 @@ import {
 }               from '../src/mod.js'
 
 import { puppetServerImpl } from './puppet-server-impl.js'
+
+const {
+  StringValue,
+}               = wrappers
 
 const SERVER_ENDPOINT = '127.0.0.1:8788'
 const ID    = 'test-id'
