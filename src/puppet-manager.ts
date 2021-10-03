@@ -113,10 +113,35 @@ export class PuppetManager {
 
     // await this.checkModule(puppetName)
 
-    const puppetModule = await import(puppetName)
+    let puppetModule = await import(puppetName)
 
-    if (!puppetModule.default) {
-      throw new Error(`Puppet(${puppetName}) has not provided the default export`)
+    /**
+     * Huan(202110): Issue wechaty/wechaty-getting-started#203
+     *  TypeError: MyPuppet is not a constructor
+     *  https://github.com/wechaty/wechaty-getting-started/issues/203
+     */
+    let retry = 0
+    while (true) {
+      /**
+       * 1. ES Module: default is the exported Puppet
+       */
+      if (typeof puppetModule.default === 'function') {
+        if (retry === 0) {
+          log.verbose('PuppetManager', 'resolveName(%s): ESM resolved', puppetName)
+        } else {
+          log.verbose('PuppetManager', 'resolveName(%s): CJS resolved, retry times: %s', puppetName, retry)
+        }
+        break
+      }
+
+      if (retry++ > 3) {
+        throw new Error(`Puppet(${puppetName}) has not provided the default export`)
+      }
+
+      /**
+       * 2. CommonJS Module: puppetModule.default.default  is the expoerted Puppet
+       */
+      puppetModule = puppetModule.default
     }
 
     // console.info(puppetModule)
