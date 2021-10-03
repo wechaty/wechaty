@@ -5,6 +5,7 @@ option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
 option java_package="io.github.wechaty.grpc.puppet";
 option csharp_namespace = "github.wechaty.grpc.puppet";
 
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 message RoomInvitationPayloadRequest {
@@ -22,10 +23,15 @@ message RoomInvitationPayloadResponse {
   string   topic             = 3;
   int32    member_count      = 4;
   repeated string member_ids = 5;
-  uint64   timestamp         = 6;
+  /**
+   * @deprecated will be removed after Dec 31, 2022
+   *  Huan(202109): use receive_time(10) instead
+   */
+  uint64   timestamp_deprecated = 6 [deprecated = true]; // deprecated
   string   avatar            = 7;
   string   invitation        = 8;
   string   receiver_id       = 9;
+  google.protobuf.Timestamp receive_time = 10;
 }
 
 message RoomInvitationAcceptRequest {

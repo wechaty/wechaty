@@ -5,6 +5,7 @@ option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
 option java_package="io.github.wechaty.grpc.puppet";
 option csharp_namespace = "github.wechaty.grpc.puppet";
 
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 import "wechaty/puppet/file-box.proto";
@@ -45,12 +46,17 @@ message MessagePayloadResponse {
   string      id                 = 1;
   string      filename           = 2;
   string      text               = 3;
-  uint64      timestamp          = 4;
+  /**
+   * @deprecated will be removed after Dec 31, 2022
+   *  Huan(202109): use receive_time(10) instead
+   */
+  uint64      timestamp_deprecated = 4 [deprecated = true];
   MessageType type               = 5;
   string      from_id            = 6;
   string      room_id            = 7;
   string      to_id              = 8;
   repeated    string mention_ids = 9;
+  google.protobuf.Timestamp receive_time = 10;
 }
 
 message MessageImageRequest {
@@ -88,7 +94,7 @@ message MessageFileResponse {
   /**
    * Huan(202011) deprecated: use MessageFileStreamResponse instead
    */
-   string filebox = 1;
+   string filebox = 1 [deprecated = true];
 }
 
 message MessageFileStreamRequest {

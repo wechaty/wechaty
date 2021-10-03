@@ -157,6 +157,18 @@ service Puppet {
     option (google.api.http) = {
       get: "/contacts/{id}"
     };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: 'Get a contact payload';
+      operation_id: 'contactPayload';
+      tags: "contact";
+      responses: {
+        key: "200"
+          value: {
+          description: "Contact payload";
+        }
+      }
+    };
   }
 
   rpc ContactAlias (puppet.ContactAliasRequest) returns (puppet.ContactAliasResponse) {

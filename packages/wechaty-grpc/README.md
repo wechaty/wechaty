@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
 <div align="center">
 <img src="docs/images/wechaty-grpc-logo.svg" width="400" />
 <br />
@@ -189,6 +191,11 @@ protoc \
 
 > <https://github.com/improbable-eng/ts-protoc-gen>
 
+### Naming conventions & Style Guide
+
+1. [Google Cloud APIs - Naming conventions](https://cloud.google.com/apis/design/naming_convention)
+1. [Protocol Buffers - Developer Guide - Style Guide](https://developers.google.com/protocol-buffers/docs/style)
+
 ## OpenAPI
 
 Thanks to the ecosystem of gRPC, we can generate OpenAPI Specification from our gRPC proto definitions automatically.
@@ -201,7 +208,10 @@ We are using [gRPC to JSON proxy generator following the gRPC HTTP spec](https:/
 
 Learn more about the RESTful API service for Wechaty from [Wechaty OpenAPI](https://github.com/wechaty/openapi).
 
-See also: [AIP-4222 - Routing headers](https://google.aip.dev/client-libraries/4222)
+See also:
+
+- [AIP-4222 - Routing headers](https://google.aip.dev/client-libraries/4222)
+- [gRPC-Gateway Official Website](https://grpc-ecosystem.github.io/grpc-gateway/)
 
 ## gRPC Web
 
@@ -218,6 +228,11 @@ Check out [RESOURCES.md](RESOURCES.md) file for learning resources.
 - [Google Cloud Cloud API Design Guide](https://cloud.google.com/apis/design/)
 
 ## Changelog
+
+### master v0.29
+
+- ~~[ ] Rename `ENUM` from `CONTACT_GENDER_MALE` to `MALE` ([#110](https://github.com/wechaty/grpc/issues/110))~~
+- [ ] Fix typos
 
 ### master v0.27
 
