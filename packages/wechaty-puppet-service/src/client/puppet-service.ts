@@ -37,6 +37,7 @@ import {
   RoomMemberPayload,
   RoomPayload,
   UrlLinkPayload,
+  LocationPayload,
   throwUnsupportedError,
 }                         from 'wechaty-puppet'
 
@@ -686,8 +687,43 @@ export class PuppetService extends Puppet {
       this.grpc!.client!.messageMiniProgram.bind(this.grpc!.client!)
     )(request)
 
-    const jsonText = response.getMiniProgram()
-    const payload = JSON.parse(jsonText) as MiniProgramPayload
+    let miniProgramPayload = response.getMiniProgram()
+    if (!miniProgramPayload) {
+      /**
+       * Deprecated: will be removed after Dec 22, 2022
+       */
+      const jsonText = response.getMiniProgramDeprecated()
+      miniProgramPayload = JSON.parse(jsonText)
+    }
+
+    const payload: MiniProgramPayload = {
+      ...miniProgramPayload,
+    }
+
+    return payload
+  }
+
+  override async messageLocation (
+    messageId: string,
+  ): Promise<LocationPayload> {
+    log.verbose('PuppetService', 'messageLocation(%s)', messageId)
+
+    const request = new pbPuppet.MessageLocationRequest()
+    request.setId(messageId)
+
+    const response = await util.promisify(
+      this.grpc!.client!.messageLocation.bind(this.grpc!.client!)
+    )(request)
+
+    const locationPayload = response.getLocation()
+    const payload: LocationPayload = {
+      accuracy  : 0,
+      address   : 'NOADDRESS',
+      latitude  : 0,
+      longitude : 0,
+      name      : 'NONAME',
+      ...locationPayload,
+    }
 
     return payload
   }
@@ -733,14 +769,30 @@ export class PuppetService extends Puppet {
   }
 
   override async messageSendMiniProgram (
-    conversationId: string,
-    miniProgramPayload: MiniProgramPayload,
+    conversationId     : string,
+    miniProgramPayload : MiniProgramPayload,
   ): Promise<void | string> {
-    log.verbose('PuppetService', 'messageSendMiniProgram(%s)', conversationId, JSON.stringify(miniProgramPayload))
+    log.verbose('PuppetService', 'messageSendMiniProgram(%s, "%s")', conversationId, JSON.stringify(miniProgramPayload))
 
     const request = new pbPuppet.MessageSendMiniProgramRequest()
     request.setConversationId(conversationId)
-    request.setMiniProgram(JSON.stringify(miniProgramPayload))
+
+    const pbMiniProgramPayload = new pbPuppet.MiniProgramPayload()
+    if (miniProgramPayload.appid)       { pbMiniProgramPayload.setAppid(miniProgramPayload.appid) }
+    if (miniProgramPayload.description) { pbMiniProgramPayload.setAppid(miniProgramPayload.description) }
+    if (miniProgramPayload.iconUrl)     { pbMiniProgramPayload.setAppid(miniProgramPayload.iconUrl) }
+    if (miniProgramPayload.pagePath)    { pbMiniProgramPayload.setAppid(miniProgramPayload.pagePath) }
+    if (miniProgramPayload.shareId)     { pbMiniProgramPayload.setAppid(miniProgramPayload.shareId) }
+    if (miniProgramPayload.thumbKey)    { pbMiniProgramPayload.setAppid(miniProgramPayload.thumbKey) }
+    if (miniProgramPayload.thumbUrl)    { pbMiniProgramPayload.setAppid(miniProgramPayload.thumbUrl) }
+    if (miniProgramPayload.title)       { pbMiniProgramPayload.setAppid(miniProgramPayload.title) }
+    if (miniProgramPayload.username)    { pbMiniProgramPayload.setAppid(miniProgramPayload.username) }
+    request.setMiniProgram(pbMiniProgramPayload)
+
+    /**
+     * Deprecated: will be removed after Dec 31, 2022
+     */
+    request.setMiniProgramDeprecated(JSON.stringify(miniProgramPayload))
 
     const response = await util.promisify(
       this.grpc!.client!.messageSendMiniProgram.bind(this.grpc!.client!)
@@ -750,6 +802,34 @@ export class PuppetService extends Puppet {
 
     if (messageIdWrapper) {
       return messageIdWrapper.getValue()
+    }
+  }
+
+  override async messageSendLocation (
+    conversationId: string,
+    locationPayload: LocationPayload,
+  ): Promise<void | string> {
+    log.verbose('PuppetService', 'messageSendLocation(%s)', conversationId, JSON.stringify(locationPayload))
+
+    const request = new pbPuppet.MessageSendLocationRequest()
+    request.setConversationId(conversationId)
+
+    const pbLocationPayload = new pbPuppet.LocationPayload()
+    pbLocationPayload.setAccuracy(locationPayload.accuracy)
+    pbLocationPayload.setAddress(locationPayload.address)
+    pbLocationPayload.setLatitude(locationPayload.latitude)
+    pbLocationPayload.setLongitude(locationPayload.longitude)
+    pbLocationPayload.setName(locationPayload.name)
+    request.setLocation(pbLocationPayload)
+
+    const response = await util.promisify(
+      this.grpc!.client!.messageSendLocation.bind(this.grpc!.client!)
+    )(request)
+
+    const id = response.getId()
+
+    if (id) {
+      return id
     }
   }
 
@@ -919,7 +999,16 @@ export class PuppetService extends Puppet {
 
     const request = new pbPuppet.MessageSendUrlRequest()
     request.setConversationId(conversationId)
-    request.setUrlLink(JSON.stringify(urlLinkPayload))
+
+    const pbUrlLinkPayload = new pbPuppet.UrlLinkPayload()
+    pbUrlLinkPayload.setUrl(urlLinkPayload.url)
+    pbUrlLinkPayload.setTitle(urlLinkPayload.title)
+    if (urlLinkPayload.description)   { pbUrlLinkPayload.setDescription(urlLinkPayload.description) }
+    if (urlLinkPayload.thumbnailUrl)  { pbUrlLinkPayload.setThumbnailUrl(urlLinkPayload.thumbnailUrl) }
+    request.setUrlLink(pbUrlLinkPayload)
+
+    // Deprecated: will be removed after Dec 31, 2022
+    request.setUrlLinkDeprecated(JSON.stringify(urlLinkPayload))
 
     const response = await util.promisify(
       this.grpc!.client!.messageSendUrl.bind(this.grpc!.client!)
@@ -942,9 +1031,18 @@ export class PuppetService extends Puppet {
       this.grpc!.client!.messageUrl.bind(this.grpc!.client!)
     )(request)
 
-    const jsonText = response.getUrlLink()
+    let pbUrlLinkPayload = response.getUrlLink()
+    if (!pbUrlLinkPayload) {
+      // Deprecated: will be removed after Dec 31, 2022
+      const jsonText = response.getUrlLinkDeprecated()
+      pbUrlLinkPayload = JSON.parse(jsonText)
+    }
 
-    const payload = JSON.parse(jsonText) as UrlLinkPayload
+    const payload: UrlLinkPayload = {
+      title : 'NOTITLE',
+      url   : 'NOURL',
+      ...pbUrlLinkPayload,
+    }
     return payload
   }
 

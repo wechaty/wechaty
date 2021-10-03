@@ -11,6 +11,7 @@ import {
   Puppet,
 
   FriendshipPayloadReceive,
+  LocationPayload,
   MiniProgramPayload,
   UrlLinkPayload,
   RoomInvitationPayload,
@@ -605,6 +606,31 @@ function puppetImplementation (
       }
     },
 
+    messageLocation: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'messageLocation()')
+
+      try {
+        const id = call.request.getId()
+
+        const payload = await puppet.messageLocation(id)
+
+        const response = new pbPuppet.MessageLocationResponse()
+
+        const pbLocationPayload = new pbPuppet.LocationPayload()
+        pbLocationPayload.setLatitude(payload.latitude)
+        pbLocationPayload.setLongitude(payload.longitude)
+        pbLocationPayload.setAccuracy(payload.accuracy)
+        pbLocationPayload.setAddress(payload.address)
+        pbLocationPayload.setName(payload.name)
+        response.setLocation(pbLocationPayload)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageLocation', (e as Error), callback)
+      }
+    },
+
     messageMiniProgram: async (call, callback) => {
       log.verbose('PuppetServiceImpl', 'messageMiniProgram()')
 
@@ -614,7 +640,21 @@ function puppetImplementation (
         const payload = await puppet.messageMiniProgram(id)
 
         const response = new pbPuppet.MessageMiniProgramResponse()
-        response.setMiniProgram(JSON.stringify(payload))
+
+        const pbMiniProgramPayload = new pbPuppet.MiniProgramPayload()
+        if (payload.appid)       { pbMiniProgramPayload.setAppid(payload.appid) }
+        if (payload.description) { pbMiniProgramPayload.setAppid(payload.description) }
+        if (payload.iconUrl)     { pbMiniProgramPayload.setAppid(payload.iconUrl) }
+        if (payload.pagePath)    { pbMiniProgramPayload.setAppid(payload.pagePath) }
+        if (payload.shareId)     { pbMiniProgramPayload.setAppid(payload.shareId) }
+        if (payload.thumbKey)    { pbMiniProgramPayload.setAppid(payload.thumbKey) }
+        if (payload.thumbUrl)    { pbMiniProgramPayload.setAppid(payload.thumbUrl) }
+        if (payload.title)       { pbMiniProgramPayload.setAppid(payload.title) }
+        if (payload.username)    { pbMiniProgramPayload.setAppid(payload.username) }
+        response.setMiniProgram(pbMiniProgramPayload)
+
+        // Deprecated after Dec 31, 2022
+        response.setMiniProgramDeprecated(JSON.stringify(payload))
 
         return callback(null, response)
 
@@ -746,14 +786,52 @@ function puppetImplementation (
       }
     },
 
+    messageSendLocation: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'messageSendLocation()')
+
+      try {
+        const conversationId    = call.request.getConversationId()
+        const pbLocationPayload = call.request.getLocation()
+
+        const payload: LocationPayload = {
+          accuracy  : 0,
+          address   : 'NOADDRESS',
+          latitude  : 0,
+          longitude : 0,
+          name      : 'NONAME',
+          ...pbLocationPayload,
+        }
+
+        const messageId = await puppet.messageSendLocation(conversationId, payload)
+
+        const response = new pbPuppet.MessageSendLocationResponse()
+
+        if (messageId) {
+          response.setId(messageId)
+        }
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('messageSendLocation', (e as Error), callback)
+      }
+    },
+
     messageSendMiniProgram: async (call, callback) => {
       log.verbose('PuppetServiceImpl', 'messageSendMiniProgram()')
 
       try {
-        const conversationId = call.request.getConversationId()
-        const jsonText = call.request.getMiniProgram()
+        const conversationId      = call.request.getConversationId()
+        let pbMiniProgramPayload  = call.request.getMiniProgram()
+        if (!pbMiniProgramPayload) {
+          // Deprecated: will be removed after Dec 31, 2022
+          const jsonText = call.request.getMiniProgramDeprecated()
+          pbMiniProgramPayload = JSON.parse(jsonText)
+        }
 
-        const payload = JSON.parse(jsonText) as MiniProgramPayload
+        const payload: MiniProgramPayload = {
+          ...pbMiniProgramPayload,
+        }
 
         const messageId = await puppet.messageSendMiniProgram(conversationId, payload)
 
@@ -802,9 +880,19 @@ function puppetImplementation (
 
       try {
         const conversationId = call.request.getConversationId()
-        const jsonText       = call.request.getUrlLink()
+        let pbUrlLinkPayload = call.request.getUrlLink()
 
-        const payload = JSON.parse(jsonText) as UrlLinkPayload
+        if (!pbUrlLinkPayload) {
+          // Deprecated: will be removed after Dec 31, 2022
+          const jsonText = call.request.getUrlLinkDeprecated()
+          pbUrlLinkPayload = JSON.parse(jsonText)
+        }
+
+        const payload: UrlLinkPayload = {
+          title: 'NOTITLE',
+          url: 'NOURL',
+          ...pbUrlLinkPayload,
+        }
 
         const messageId = await puppet.messageSendUrl(conversationId, payload)
 
@@ -831,7 +919,16 @@ function puppetImplementation (
         const payload = await puppet.messageUrl(id)
 
         const response = new pbPuppet.MessageUrlResponse()
-        response.setUrlLink(JSON.stringify(payload))
+
+        const pbUrlLinkPayload = new pbPuppet.UrlLinkPayload()
+        pbUrlLinkPayload.setTitle(payload.title)
+        pbUrlLinkPayload.setUrl(payload.url)
+        if (payload.thumbnailUrl) { pbUrlLinkPayload.setThumbnailUrl(payload.thumbnailUrl) }
+        if (payload.description)  { pbUrlLinkPayload.setDescription(payload.description) }
+        response.setUrlLink(pbUrlLinkPayload)
+
+        // Deprecated: will be removed after Dec 31, 2022
+        response.setUrlLinkDeprecated(JSON.stringify(payload))
 
         return callback(null, response)
 
