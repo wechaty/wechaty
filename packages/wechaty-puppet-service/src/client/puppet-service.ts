@@ -42,7 +42,7 @@ import {
 }                         from 'wechaty-puppet'
 
 import {
-  StringValue,
+  google,
   puppet as pbPuppet,
 }                                   from 'wechaty-grpc'
 
@@ -61,12 +61,15 @@ import {
   packConversationIdFileBoxToPb,
   unpackFileBoxFromPb,
 }                                   from '../file-box-stream/mod.js'
-import { serializeFileBox }         from '../server/serialize-file-box.js'
+import { serializeFileBox }           from '../server/serialize-file-box.js'
+import { millisecondsFromTimestamp }  from '../pure-functions/timestamp.js'
 
 import { recover$ }     from './recover$.js'
 import { GrpcClient }   from './grpc-client.js'
 import { PayloadStore } from './payload-store.js'
-import { packageJson } from '../package-json.js'
+import { packageJson }  from '../package-json.js'
+
+const { StringValue } = google
 
 export type PuppetServiceOptions = PuppetOptions & {
   authority?  : string
@@ -904,6 +907,15 @@ export class PuppetService extends Puppet {
       this.grpc.client.messagePayload.bind(this.grpc.client)
     )(request)
 
+    let timestamp
+    const receiveTime = response.getReceiveTime()
+    if (receiveTime) {
+      timestamp = millisecondsFromTimestamp(receiveTime)
+    } else {
+      // Deprecated: will be removed after Dec 31, 2022
+      timestamp = response.getTimestampDeprecated()
+    }
+
     const payload: MessagePayload = {
       filename      : response.getFilename(),
       fromId        : response.getFromId(),
@@ -911,7 +923,7 @@ export class PuppetService extends Puppet {
       mentionIdList : response.getMentionIdsList(),
       roomId        : response.getRoomId(),
       text          : response.getText(),
-      timestamp     : response.getTimestamp(),
+      timestamp,
       toId          : response.getToId(),
       type          : response.getType() as number,
     }
@@ -1354,6 +1366,15 @@ export class PuppetService extends Puppet {
       this.grpc.client.roomInvitationPayload.bind(this.grpc.client)
     )(request)
 
+    let timestamp
+    const receiveTime = response.getReceiveTime()
+    if (receiveTime) {
+      timestamp = millisecondsFromTimestamp(receiveTime)
+    } else {
+      // Deprecated: will be removed after Dec 31, 2022
+      timestamp = response.getTimestampDeprecated()
+    }
+
     const payload: RoomInvitationPayload = {
       avatar       : response.getAvatar(),
       id           : response.getId(),
@@ -1362,7 +1383,7 @@ export class PuppetService extends Puppet {
       memberCount  : response.getMemberCount(),
       memberIdList : response.getMemberIdsList(),
       receiverId   : response.getReceiverId(),
-      timestamp    : response.getTimestamp(),
+      timestamp,
       topic        : response.getTopic(),
     }
 

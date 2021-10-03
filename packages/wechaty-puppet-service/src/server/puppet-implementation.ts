@@ -1,8 +1,8 @@
 import {
+  google,
   grpc,
   puppet as pbPuppet,
-  StringValue,
-}                                   from 'wechaty-grpc'
+}                     from 'wechaty-grpc'
 
 import {
   log,
@@ -27,10 +27,15 @@ import {
   packFileBoxToPb,
   unpackConversationIdFileBoxArgsFromPb,
 }                                         from '../file-box-stream/mod.js'
+import {
+  timestampFromMilliseconds,
+}                                         from '../pure-functions/timestamp.js'
 
 import { grpcError }          from './grpc-error.js'
 import { EventStreamManager } from './event-stream-manager.js'
 import { serializeFileBox }   from './serialize-file-box.js'
+
+const { StringValue } = google
 
 function puppetImplementation (
   puppet: Puppet,
@@ -682,7 +687,11 @@ function puppetImplementation (
         response.setMentionIdsList(mentionIdList)
         response.setRoomId(payload.roomId || '')
         response.setText(payload.text || '')
-        response.setTimestamp(Math.floor(payload.timestamp))
+
+        response.setReceiveTime(timestampFromMilliseconds(payload.timestamp))
+        // Deprecated: will be removed after Dec 31, 2022
+        response.setTimestampDeprecated(Math.floor(payload.timestamp))
+
         response.setToId(payload.toId || '')
         response.setType(payload.type as pbPuppet.MessageTypeMap[keyof pbPuppet.MessageTypeMap])
 
@@ -1093,7 +1102,11 @@ function puppetImplementation (
         response.setReceiverId(payload.receiverId)
         response.setMemberCount(payload.memberCount)
         response.setMemberIdsList(payload.memberIdList)
-        response.setTimestamp(Math.floor(payload.timestamp))
+
+        response.setReceiveTime(timestampFromMilliseconds(payload.timestamp))
+        // Deprecated: will be removed after Dec 31, 2022
+        response.setTimestampDeprecated(Math.floor(payload.timestamp))
+
         response.setTopic(payload.topic)
 
         return callback(null, response)
