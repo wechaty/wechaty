@@ -34,9 +34,7 @@ jobs:
         [ -e "$WECHATY_GRPC" ] || mkdir -p "$WECHATY_GRPC"
         ln -s "$(pwd)/out/wechaty/" "$WECHATY_GRPC/wechaty"
 
-        # Huan(202110): temporary disable the below build testing,
-        #   to be restored.
-        # go build -v out/wechaty/puppet.pb.go
+        make build_test
 
   publish:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))

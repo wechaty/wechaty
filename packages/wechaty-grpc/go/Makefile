@@ -28,3 +28,6 @@ generate:
 publish: clean generate
 	./publish.sh
 
+.PHONY: build_test
+build_test:
+	./build_test.sh
