@@ -31,7 +31,7 @@ import type {
   Wechaty,
 }               from '../wechaty.js'
 import {
-  guardWechatifyClass,
+  // guardWechatifyClass,
   throwWechatifyError,
 }                                 from './guard-wechatify-class.js'
 

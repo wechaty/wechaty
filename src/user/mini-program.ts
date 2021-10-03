@@ -25,7 +25,7 @@ import {
 import type { Wechaty } from '../wechaty.js'
 import {
   throwWechatifyError,
-  guardWechatifyClass,
+  // guardWechatifyClass,
 }                                 from './guard-wechatify-class.js'
 
 class MiniProgram {

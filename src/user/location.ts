@@ -23,7 +23,7 @@ import {
 }                       from 'wechaty-puppet'
 import type { Wechaty } from '../wechaty'
 import {
-  guardWechatifyClass,
+  // guardWechatifyClass,
   throwWechatifyError,
 }                       from './guard-wechatify-class.js'
 
