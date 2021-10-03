@@ -15,10 +15,9 @@ jobs:
       matrix:
         os:
           - macos-latest
-          - windows-latest
+          # - windows-latest
           - ubuntu-latest
         node-version:
-          - 14
           - 16
     runs-on: ${{ matrix.os }}
 
@@ -28,14 +27,16 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        cache: npm
         cache-dependency-path: package.json
     - name: Set up Go
-      uses: actions/setup-go@master
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
       id: go
 
     - name: Install Protoc
-      uses: arduino/setup-protoc@master
+      uses: arduino/setup-protoc@v1
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 

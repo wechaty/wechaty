@@ -9,7 +9,7 @@ all : clean lint
 
 .PHONY: clean
 clean:
-	rm -fr generated/*
+	rm -fr out/*
 
 .PHONY: test
 test:

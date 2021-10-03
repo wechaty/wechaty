@@ -1,6 +1,6 @@
 {
   "name": "wechaty-grpc",
-  "version": "0.27.12",
+  "version": "0.29.18",
   "description": "gRPC for Wechaty",
   "type": "module",
   "exports": {
@@ -11,20 +11,20 @@
   },
   "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
-    "node": ">= 14"
+    "node": ">= 16"
   },
   "directories": {
     "example": "examples",
     "test": "tests"
   },
   "scripts": {
-    "clean": "shx rm -fr dist/* generated/*",
+    "clean": "shx rm -fr dist/* out/*",
     "dist": "npm-run-all clean generate build dist:copy dist:commonjs",
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
     "dist:copy": "npm-run-all copy:esm copy:cjs",
-    "copy:esm": "shx cp -R generated/ dist/esm && shx cp -R proto/ dist/esm && shx cp -R commonjs/ dist/esm/",
-    "copy:cjs": "shx cp -R generated/ dist/cjs && shx cp -R proto/ dist/cjs && shx cp -R commonjs/ dist/cjs/",
+    "copy:esm": "shx cp -R out/ dist/esm && shx cp -R proto/ dist/esm && shx cp -R commonjs/ dist/esm/",
+    "copy:cjs": "shx cp -R out/ dist/cjs && shx cp -R proto/ dist/cjs && shx cp -R commonjs/ dist/cjs/",
     "dist:py": "python3 setup.py sdist bdist_wheel",
     "publish:py": "twine upload dist/*",
     "example:server": "nodemon --exec ts-node examples/server.ts",

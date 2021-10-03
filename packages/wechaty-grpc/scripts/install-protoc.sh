@@ -46,7 +46,7 @@ function check_protoc_version () {
 }
 
 function install_protoc_gen_lint () {
-  go get -u github.com/ckaznocha/protoc-gen-lint
+  go install github.com/ckaznocha/protoc-gen-lint@latest
 }
 
 function install_proto_google_api () {

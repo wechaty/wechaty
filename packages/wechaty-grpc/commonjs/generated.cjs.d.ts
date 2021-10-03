@@ -7,7 +7,7 @@
 
 /**
  * Huan(202108): I want to `declare namespace puppet {...}`
- *  but it seemss the `export * from '../generated/...js` is not working
+ *  but it seemss the `export * from '../out/...js` is not working
  *
  * So I export them on the top level,
  *  then import them in another `puppet.js` file
@@ -21,16 +21,19 @@
  *  const puppet = pkg['puppet']
  *  ```
  */
-export * from '../generated/wechaty/puppet/base_pb'
-export * from '../generated/wechaty/puppet/contact_pb.js'
-export * from '../generated/wechaty/puppet/event_pb.js'
-export * from '../generated/wechaty/puppet/file_box_pb.js'
-export * from '../generated/wechaty/puppet/friendship_pb.js'
-export * from '../generated/wechaty/puppet/message_pb.js'
-export * from '../generated/wechaty/puppet/room_invitation_pb.js'
-export * from '../generated/wechaty/puppet/room_member_pb.js'
-export * from '../generated/wechaty/puppet/room_pb.js'
-export * from '../generated/wechaty/puppet/tag_pb.js'
+export * from '../out/wechaty/puppet/base_pb'
+export * from '../out/wechaty/puppet/contact_pb.js'
+export * from '../out/wechaty/puppet/event_pb.js'
+export * from '../out/wechaty/puppet/file-box_pb.js'
+export * from '../out/wechaty/puppet/friendship_pb.js'
+export * from '../out/wechaty/puppet/location_pb.js'
+export * from '../out/wechaty/puppet/message_pb.js'
+export * from '../out/wechaty/puppet/mini-program_pb.js'
+export * from '../out/wechaty/puppet/room_pb.js'
+export * from '../out/wechaty/puppet/room-invitation_pb.js'
+export * from '../out/wechaty/puppet/room-member_pb.js'
+export * from '../out/wechaty/puppet/tag_pb.js'
+export * from '../out/wechaty/puppet/url-link_pb.js'
 
-export * from '../generated/wechaty/puppet_grpc_pb.js'
-export * from '../generated/wechaty/puppet_pb.js'
+export * from '../out/wechaty/puppet_grpc_pb.js'
+export * from '../out/wechaty/puppet_pb.js'

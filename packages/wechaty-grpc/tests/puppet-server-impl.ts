@@ -157,6 +157,12 @@ export const puppetServerImpl: IPuppetServer = {
     throw new Error('not implemented.')
   },
 
+  messageLocation: (call, callback) => {
+    void call
+    void callback
+    throw new Error('not implemented.')
+  },
+
   messageMiniProgram: (call, callback) => {
     void call
     void callback
@@ -188,6 +194,12 @@ export const puppetServerImpl: IPuppetServer = {
   },
 
   messageSendFileStream: (call, callback) => {
+    void call
+    void callback
+    throw new Error('not implemented.')
+  },
+
+  messageSendLocation: (call, callback) => {
     void call
     void callback
     throw new Error('not implemented.')

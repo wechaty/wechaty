@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-GENERATED_DIR="$(pwd)/generated"
+OUT_DIR="$(pwd)/out"
 
 VERSION=$(jq -r .version ../package.json)
 DEPLOY_DIR="wechaty-php-grpc.$$"
@@ -13,7 +13,7 @@ pushd "$DEPLOY_DIR"
 
 git clone git@github.com:wechaty/php-grpc.git
 cd php-grpc
-cp -Rav "$GENERATED_DIR"/wechaty .
+cp -Rav "$OUT_DIR"/wechaty .
 echo "$VERSION" > VERSION
 
 if [ -z "$(git status --porcelain)" ]; then

@@ -8,7 +8,7 @@ import type { ApiStore } from './config.js'
 function getOpenApiPath (...paths: string[]): string {
   return path.join(
     codeRoot,
-    'generated',
+    'out',
     ...paths,
   )
 }

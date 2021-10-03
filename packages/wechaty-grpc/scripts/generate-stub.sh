@@ -5,7 +5,7 @@ PROTO_DIR="./proto/"
 THIRD_PARTY_DIR="./third-party/"
 
 # Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./generated"
+OUT_DIR="./out"
 [ -d ${OUT_DIR} ] || {
   mkdir -p ${OUT_DIR}
 }
@@ -72,10 +72,10 @@ function gen_openapi () {
 }
 
 #
-# Huan(202108): make generated/ a CJS module
+# Huan(202108): make out/ a CJS module
 #
 function gen_cjs_package_json () {
-  echo '{"type": "commonjs"}' > generated/package.json
+  echo '{"type": "commonjs"}' > out/package.json
 }
 
 function main () {

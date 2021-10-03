@@ -13,10 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-20.04]
-        php-versions: ['7.4']
+        operating-system:
+          - ubuntu-latest
+        php-version:
+          - 7.4
         node-version:
-          - 14
           - 16
     env:
       extensions: xml, opcache, xdebug, pcov, grpc-1.30.0, protobuf-3.12.2
@@ -28,22 +29,24 @@ jobs:
     - name: Setup PHP with extensions and custom config
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php-versions }}
+        php-version: ${{ matrix.php-version }}
         extensions: ${{ env.extensions }}
         ini-values: post_max_size=256M, short_open_tag=On, date.timezone=Asia/Shanghai
         tools: protoc, grpc_php_plugin
     - name: Testing PHP version
       run: |
         php -v
-        php -r "if(strpos(phpversion(), '${{ matrix.php-versions }}') === false) {throw new Exception('Wrong PHP version Installed');}"
+        php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        cache: npm
         cache-dependency-path: package.json
     - name: Set up Go
-      uses: actions/setup-go@master
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
       id: go
     - name: Install Dependencies
       run: |

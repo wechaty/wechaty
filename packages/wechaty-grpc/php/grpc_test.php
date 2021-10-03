@@ -10,8 +10,8 @@ define("ROOT", __DIR__);
 
 function autoload($clazz) {
     $file = str_replace('\\', '/', $clazz);
-    if(is_file(ROOT . "/generated/wechaty/$file.php")) {
-        require ROOT . "/generated/wechaty/$file.php";
+    if(is_file(ROOT . "/out/wechaty/$file.php")) {
+        require ROOT . "/out/wechaty/$file.php";
     } else {
         $file = str_replace('\\', '/', $clazz);
         if(is_file("/usr/share/pear/$file.php")) {

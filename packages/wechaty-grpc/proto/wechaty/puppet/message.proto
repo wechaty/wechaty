@@ -7,7 +7,10 @@ option csharp_namespace = "github.wechaty.grpc.puppet";
 
 import "google/protobuf/wrappers.proto";
 
-import "wechaty/puppet/file_box.proto";
+import "wechaty/puppet/file-box.proto";
+import "wechaty/puppet/location.proto";
+import "wechaty/puppet/mini-program.proto";
+import "wechaty/puppet/url-link.proto";
 
 enum MessageType {
   MESSAGE_TYPE_UNSPECIFIED  = 0;
@@ -99,14 +102,24 @@ message MessageMiniProgramRequest {
   string id = 1;
 }
 message MessageMiniProgramResponse {
-  string mini_program = 1;
+  /**
+   * Huan(202110): We should use payload instead of JSON.stringify string
+   *  The compatible code will be removed after Dec 31, 2022
+   */
+  string mini_program_deprecated = 1 [deprecated = true]; // deprecated after Sep 31, 2021, remove compatible code after Dec 31, 2022
+  MiniProgramPayload mini_program = 2;
 }
 
 message MessageUrlRequest {
   string id = 1;
 }
 message MessageUrlResponse {
-  string url_link = 1;
+  /**
+   * Huan(202110): We should use payload instead of JSON.stringify string
+   *  The compatible code will be removed after Dec 31, 2022
+   */
+  string url_link_deprecated = 1 [deprecated = true]; // deprecated after Sep 31, 2021, remove compatible code after Dec 31, 2022
+  UrlLinkPayload url_link = 2;
 }
 
 message MessageSendContactRequest {
@@ -150,7 +163,12 @@ message MessageSendTextResponse {
 
 message MessageSendMiniProgramRequest {
   string conversation_id = 1;
-  string mini_program = 2;
+  /**
+   * Huan(202110): We should use payload instead of JSON.stringify string
+   *  The compatible code will be removed after Dec 31, 2022
+   */
+  string mini_program_deprecated = 2 [deprecated = true]; // deprecated after Sep 31, 2021, remove compatible code after Dec 31, 2022
+  MiniProgramPayload mini_program = 3;
 }
 message MessageSendMiniProgramResponse {
   google.protobuf.StringValue id = 1;
@@ -158,7 +176,12 @@ message MessageSendMiniProgramResponse {
 
 message MessageSendUrlRequest {
   string conversation_id = 1;
-  string url_link = 2;
+  /**
+   * Huan(202110): We should use payload instead of JSON.stringify string
+   *  The compatible code will be removed after Dec 31, 2022
+   */
+  string url_link_deprecated = 2 [deprecated = true]; // deprecated after Sep 31, 2021, remove compatible code after Dec 31, 2022
+  UrlLinkPayload url_link = 3;
 }
 message MessageSendUrlResponse {
   google.protobuf.StringValue id = 1;
@@ -176,4 +199,25 @@ message MessageForwardRequest{
 }
 message MessageForwardResponse {
   google.protobuf.StringValue id = 1;
+}
+
+message MessageLocationRequest{
+  string id = 1;
+}
+message MessageLocationResponse {
+  LocationPayload location = 1;
+}
+
+message MessageSendLocationRequest {
+  string conversation_id = 1;
+  LocationPayload location = 2;
+}
+message MessageSendLocationResponse {
+  /**
+   * Huan(202110): we will not use wrappers any more by following the Google Style Guide:
+   *  If not using optional would add complexity or ambiguity, then use optional primitive fields,
+   *  Wrapper types must not be used going forward.
+   *  — Optional Primitive Fields (https://cloud.google.com/apis/design/design_patterns.md#optional-primitive-fields)
+   */
+  string id = 1;
 }

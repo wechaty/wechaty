@@ -19,8 +19,8 @@ import "wechaty/puppet/event.proto";
 import "wechaty/puppet/friendship.proto";
 import "wechaty/puppet/message.proto";
 import "wechaty/puppet/room.proto";
-import "wechaty/puppet/room_invitation.proto";
-import "wechaty/puppet/room_member.proto";
+import "wechaty/puppet/room-invitation.proto";
+import "wechaty/puppet/room-member.proto";
 import "wechaty/puppet/tag.proto";
 
 import "google/api/annotations.proto";
@@ -301,7 +301,6 @@ service Puppet {
   rpc MessageRecall (puppet.MessageRecallRequest) returns (puppet.MessageRecallResponse) {
     option (google.api.http) = {
       put: "/message/{id}/recall"
-      body: "*"
     };
   }
   rpc MessageForward (puppet.MessageForwardRequest) returns (puppet.MessageForwardResponse) {
@@ -310,6 +309,11 @@ service Puppet {
       additional_bindings {
         post: "/conversations/{conversation_id}/forward/{message_id}"
       }
+    };
+  }
+  rpc MessageLocation (puppet.MessageLocationRequest) returns (puppet.MessageLocationResponse) {
+    option (google.api.http) = {
+      get: "/message/{id}/location"
     };
   }
 
@@ -344,6 +348,12 @@ service Puppet {
   rpc MessageSendUrl (puppet.MessageSendUrlRequest) returns (puppet.MessageSendUrlResponse) {
     option (google.api.http) = {
       post: "/conversations/{conversation_id}/url-link"
+      body: "*"
+    };
+  }
+  rpc MessageSendLocation (puppet.MessageSendLocationRequest) returns (puppet.MessageSendLocationResponse) {
+    option (google.api.http) = {
+      post: "/conversations/{conversation_id}/location"
       body: "*"
     };
   }

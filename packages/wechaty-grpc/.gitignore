@@ -67,7 +67,7 @@ __pycache__/
 .idea
 
 # Generated temp dirs
-generated/
+out/
 
 id_rsa*
 t/
