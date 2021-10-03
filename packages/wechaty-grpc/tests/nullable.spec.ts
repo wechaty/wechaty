@@ -4,18 +4,13 @@ import { test }  from 'tstest'
 
 import util from 'util'
 
-import wrappers from 'google-protobuf/google/protobuf/wrappers_pb.js'
-
 import {
   grpc,
   puppet,
+  google,
 }               from '../src/mod.js'
 
 import { puppetServerImpl } from './puppet-server-impl.js'
-
-const {
-  StringValue,
-}               = wrappers
 
 const SERVER_ENDPOINT = '127.0.0.1:8788'
 const ID    = 'test-id'
@@ -42,7 +37,7 @@ const contactAlias: grpc.handleUnaryCall<
     /**
      * Get alias, return alias
      */
-    aliasWrapper = new StringValue()
+    aliasWrapper = new google.StringValue()
     aliasWrapper.setValue(id + ALIAS)
 
     const response = new puppet.ContactAliasResponse()
@@ -121,7 +116,7 @@ test('use StringValue to support nullable values', async t => {
    * Set alias
    */
   {
-    const aliasWrapper = new StringValue()
+    const aliasWrapper = new google.StringValue()
     aliasWrapper.setValue(ALIAS)
 
     const request = new puppet.ContactAliasRequest()

@@ -14,7 +14,6 @@ cd $TMPDIR
 npm init -y
 npm install --production ./*-*.*.*.tgz \
   @types/node \
-  google-protobuf \
   pkg-jq \
   typescript \
 
