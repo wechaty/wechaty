@@ -108,7 +108,8 @@ class UrlLink {
     public readonly payload: UrlLinkPayload,
   ) {
     log.verbose('UrlLink', 'constructor()')
-    guardWechatifyClass.call(this, UrlLink)
+    // Huan(202110): it is ok to create a raw one without wechaty instance
+    // guardWechatifyClass.call(this, UrlLink)
   }
 
   public toString (): string {

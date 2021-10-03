@@ -62,7 +62,8 @@ class MiniProgram {
     public readonly payload: MiniProgramPayload,
   ) {
     log.verbose('MiniProgram', 'constructor()')
-    guardWechatifyClass.call(this, MiniProgram)
+    // Huan(202110): it is ok to create a raw one without wechaty instance
+    // guardWechatifyClass.call(this, MiniProgram)
   }
 
   public appid (): undefined | string {

@@ -59,7 +59,8 @@ class Location {
     public readonly payload: LocationPayload,
   ) {
     log.verbose('Location', 'constructor()')
-    guardWechatifyClass.call(this, Location)
+    // Huan(202110): it is ok to create a raw one without wechaty instance
+    // guardWechatifyClass.call(this, Location)
   }
 
   public toString (): string {
