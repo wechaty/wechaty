@@ -1,4 +1,4 @@
-name: "csharp"
+name: "C#"
 on:
   push:
     branches: [ main ]
