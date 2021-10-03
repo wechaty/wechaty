@@ -6,8 +6,6 @@ import {
   puppet,
 }                       from '../src/mod.js'
 
-// import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
-
 import {
   puppetServerImpl,
 }                     from '../tests/puppet-server-impl.js'
