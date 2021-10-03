@@ -36,7 +36,9 @@ WechatyResolver.setup()
 
 class GrpcClient extends EventEmitter {
 
-  client?      : puppet.PuppetClient
+  #client?      : puppet.PuppetClient
+  get client () : puppet.PuppetClient { return this.#client! }
+
   eventStream? : grpc.ClientReadableStream<puppet.EventResponse>
 
   /**
@@ -129,7 +131,7 @@ class GrpcClient extends EventEmitter {
      * 3. Start the puppet
      */
     await util.promisify(
-      this.client!.start
+      this.client.start
         .bind(this.client)
     )(new puppet.StartRequest())
   }
@@ -146,7 +148,7 @@ class GrpcClient extends EventEmitter {
      * 2. Stop the puppet
      */
     await util.promisify(
-      this.client!.stop.bind(this.client)
+      this.client.stop.bind(this.client)
     )(new puppet.StopRequest())
     /**
      * 3. Destroy grpc client
@@ -193,12 +195,12 @@ class GrpcClient extends EventEmitter {
       clientOptions['grpc.default_authority'] = grpcDefaultAuthority
     }
 
-    if (this.client) {
+    if (this.#client) {
       log.error('GrpcClient', 'init() this.client exists? Old client has been dropped.')
-      this.client = undefined
+      this.#client = undefined
     }
 
-    this.client = new puppet.PuppetClient(
+    this.#client = new puppet.PuppetClient(
       this.endpoint,
       credential,
       clientOptions,
@@ -217,7 +219,7 @@ class GrpcClient extends EventEmitter {
       *   to prevent the future usage of the old client.
       */
     const client = this.client
-    this.client = undefined
+    this.#client = undefined
 
     try {
       client.close()
