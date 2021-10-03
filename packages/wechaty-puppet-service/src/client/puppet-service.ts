@@ -111,7 +111,6 @@ export class PuppetService extends Puppet {
   }
 
   override async start (): Promise<void> {
-    await super.start()
     log.verbose('PuppetService', 'start()')
 
     if (this.state.on()) {
@@ -122,45 +121,43 @@ export class PuppetService extends Puppet {
 
     this.state.on('pending')
 
-    if (this.#grpc) {
-      log.warn('PuppetService', 'start() found this.grpc is already existed. dropped.')
-      this.#grpc = undefined
-    }
-
     try {
-      const grpc = new GrpcClient(this.options)
-      /**
-       * Huan(202108): when we startedv the event stream,
-       *  the `this.grpc` need to be available for all listeners.
-       */
-      this.#grpc = grpc
-
-      this.bridgeGrpcEventStream(grpc)
-      await grpc.start()
-
-      this.recoverSubscription = recover$(this).subscribe({
-        complete : () => log.verbose('PuppetService', 'constructor() recover$().subscribe() complete()'),
-        error    : e  => log.error('PuppetService', 'constructor() recover$().subscribe() error(%s)', e),
-        next     : x  => log.verbose('PuppetService', 'constructor() recover$().subscribe() next(%s)', JSON.stringify(x)),
-      })
-
+      await this.#tryStart()
+      await super.start()
       this.state.on(true)
     } catch (e) {
       log.error('PuppetService', 'start() rejection: %s\n%s', (e as Error).message, (e as Error).stack)
-      try {
-        await this.#grpc?.stop()
-      } catch (e) {
-        log.error('PuppetService', 'start() this.grpc.stop() rejection: %s\n%s', (e as Error).message, (e as Error).stack)
-      } finally {
-        this.state.off(true)
-      }
+      await this.stop()
       throw e
     }
+  }
 
+  async #tryStart (): Promise<void> {
+    log.verbose('PuppetService', '#tryStart()')
+
+    if (this.#grpc) {
+      log.warn('PuppetService', '#tryStart() found this.grpc is already existed. dropped.')
+      this.#grpc = undefined
+    }
+
+    const grpc = new GrpcClient(this.options)
+    /**
+     * Huan(202108): when we startedv the event stream,
+     *  the `this.grpc` need to be available for all listeners.
+     */
+    this.#grpc = grpc
+
+    this.bridgeGrpcEventStream(grpc)
+    await grpc.start()
+
+    this.recoverSubscription = recover$(this).subscribe({
+      complete : () => log.verbose('PuppetService', '#tryStart() recover$().subscribe() complete()'),
+      error    : e  => log.error('PuppetService', '#tryStart() recover$().subscribe() error(%s)', e),
+      next     : x  => log.verbose('PuppetService', '#tryStart() recover$().subscribe() next(%s)', JSON.stringify(x)),
+    })
   }
 
   override async stop (): Promise<void> {
-    await super.stop()
     log.verbose('PuppetService', 'stop()')
 
     if (this.state.off()) {
@@ -170,6 +167,17 @@ export class PuppetService extends Puppet {
     }
 
     this.state.off('pending')
+
+    try {
+      await super.stop()
+      await this.#tryStop()
+    } finally {
+      this.state.off(true)
+    }
+  }
+
+  async #tryStop (): Promise<void> {
+    log.verbose('PuppetService', '#tryStop()')
 
     if (this.recoverSubscription) {
       this.recoverSubscription.unsubscribe()
@@ -184,15 +192,8 @@ export class PuppetService extends Puppet {
       this.id = undefined
     }
 
-    try {
-      await this.#grpc?.stop()
-      this.#grpc = undefined
-
-    } catch (e) {
-      log.error('PuppetService', 'stop() client.stop() rejection: %s', (e as Error).message)
-    } finally {
-      this.state.off(true)
-    }
+    await this.#grpc?.stop()
+    this.#grpc = undefined
   }
 
   protected hookPayloadStore (): void {
