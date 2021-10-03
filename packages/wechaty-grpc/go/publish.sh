@@ -23,6 +23,8 @@ if [ -z "$(git status --porcelain)" ]; then
   exit 0
 fi
 
+git add .
+
 git \
   -c "user.name=Mike BO" \
   -c "user.email=mike@zixia.net" \
