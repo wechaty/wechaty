@@ -27,10 +27,10 @@ def versioning(version: str) -> str:
 
 def setup() -> None:
     """setup"""
-    with open('../README.md', 'r') as fh:
+    with open('../../README.md', 'r') as fh:
         long_description = fh.read()
 
-    with open('../package.json') as f:
+    with open('../../package.json') as f:
         pkg = json.load(f)
         version = versioning(pkg['version'])
 
@@ -51,7 +51,10 @@ def setup() -> None:
             'License :: OSI Approved :: Apache Software License',
             'Operating System :: OS Independent',
         ],
-        install_requires=['betterproto', 'grpclib']
+        install_requires=[
+            'betterproto',
+            'grpclib',
+        ]
     )
 
 

@@ -15,7 +15,7 @@ clean:
 install:
 	pip3 install -r requirements.txt
 	pip3 install -r requirements-dev.txt
-	../scripts/install-protoc.sh
+	../../scripts/install-protoc.sh
 
 .PHONY: test
 test:

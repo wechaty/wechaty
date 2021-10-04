@@ -1,4 +1,4 @@
-name: NPM
+name: Javascript NPM
 
 on: [push, pull_request]
 

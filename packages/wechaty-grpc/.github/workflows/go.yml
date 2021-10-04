@@ -22,12 +22,12 @@ jobs:
 
     - name: Get dependencies
       run: |
-        cd go
+        cd polyglot/go
         make install
 
     - name: Build
       run: |
-        cd go
+        cd polyglot/go
         make generate
         WECHATY_GRPC="$(go env GOPATH)/src/github.com/wechaty/go-grpc"
         rm -rf "$WECHATY_GRPC/wechaty"
@@ -46,14 +46,13 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.17
-      id: go
     - name: Install Protoc
       uses: arduino/setup-protoc@v1
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
     - name: Deploy
       run: |
-        cd go
+        cd polyglot/go
         make install
         # https://stackoverflow.com/a/4565746/1123955
         # https://stackoverflow.com/a/46253163/1123955

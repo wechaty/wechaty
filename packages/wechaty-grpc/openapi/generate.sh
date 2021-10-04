@@ -6,7 +6,9 @@ set -o pipefail
 # https://stackoverflow.com/a/4774063/1123955
 WORK_DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 ; pwd -P )"
 REPO_DIR="$( cd "$WORK_DIR/../" >/dev/null 2>&1 ; pwd -P )"
+
 OUT_DIR="$REPO_DIR/out/"
+[ -d "$OUT_DIR" ] || mkdir -p $OUT_DIR
 
 PACKAGE_JSON_FILE="$REPO_DIR/package.json"
 SWAGGER_JSON_FILE="$OUT_DIR/wechaty/puppet.swagger.json"
@@ -20,10 +22,6 @@ function check_package_json () {
 }
 
 function generate_swagger () {
-  if [ ! -e "$OUT_DIR" ]; then
-    mkdir "$OUT_DIR"
-  fi
-
   PROTOC="protoc \
     -I $REPO_DIR/proto/ \
     -I $REPO_DIR/third-party/ \

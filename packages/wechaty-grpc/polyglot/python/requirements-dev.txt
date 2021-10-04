@@ -1,4 +1,4 @@
-betterproto[compiler]>=2.0.0b2
+betterproto[compiler]>=2.0.0b3
 grpcio-tools
 pyee
 pylint_quotes

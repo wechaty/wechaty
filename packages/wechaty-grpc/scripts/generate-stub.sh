@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
 set -e
 
-PROTO_DIR="./proto/"
-THIRD_PARTY_DIR="./third-party/"
+# Huan(202110): enable `**/*.proto` to include all files
+# https://stackoverflow.com/a/28199633/1123955
+shopt -s globstar
+
+# https://stackoverflow.com/a/4774063/1123955
+WORK_DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 ; pwd -P )"
+REPO_DIR="$( cd "$WORK_DIR/../" >/dev/null 2>&1 ; pwd -P )"
 
 # Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./out"
-[ -d ${OUT_DIR} ] || {
-  mkdir -p ${OUT_DIR}
-}
+OUT_DIR="$REPO_DIR/out/"
+[ -d "$OUT_DIR" ] || mkdir -p $OUT_DIR
 
-PROTO_FILE_LIST=$(find $PROTO_DIR $THIRD_PARTY_DIR -type f -name *.proto)
-
-# --proto_path=/usr/local/include/
 PROTOC_CMD="protoc \
-  -I ${THIRD_PARTY_DIR} \
-  -I ${PROTO_DIR} \
-  $PROTO_FILE_LIST \
+  -I $REPO_DIR/third-party/ \
+  -I $REPO_DIR/proto/ \
+  $REPO_DIR/third-party/**/*.proto \
+  $REPO_DIR/proto/**/*.proto \
 "
 
 function gen_js_pb () {

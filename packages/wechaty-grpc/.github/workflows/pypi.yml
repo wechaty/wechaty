@@ -1,4 +1,4 @@
-name: PyPI
+name: Python PyPI
 
 on: [push, pull_request]
 
@@ -34,12 +34,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd python
+        cd polyglot/python
         python -m pip install --upgrade pip
         make install
     - name: Test
       run: |
-        cd python
+        cd polyglot/python
         make generate
         make test
 
@@ -71,13 +71,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd python
+          cd polyglot/python
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
           make install
       - name: Pack Testing
         run: |
-          cd python
+          cd polyglot/python
           make generate
           make dist
           echo "To be add: pack testing"
@@ -112,7 +112,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd python
+          cd polyglot/python
           python -m pip install --upgrade pip
           pip3 install setuptools wheel twine
 
@@ -129,7 +129,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          cd python
+          cd polyglot/python
           make install
           make generate
           make dist

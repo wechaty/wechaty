@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -e
+
+# Huan(202110): enable `**/*.proto` to include all files
+# https://stackoverflow.com/a/28199633/1123955
 shopt -s globstar
 
 #
@@ -7,25 +10,21 @@ shopt -s globstar
 #   https://stackoverflow.com/q/16245106/1123955
 #
 
-# Directory to write generated code to (.js and .d.ts files)
-OUT_DIR="./src/wechaty_grpc"
-[ -d ${OUT_DIR} ] || {
-  mkdir -p ${OUT_DIR}
-}
+# https://stackoverflow.com/a/4774063/1123955
+WORK_DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 ; pwd -P )"
+REPO_DIR="$( cd "$WORK_DIR/../../" >/dev/null 2>&1 ; pwd -P )"
+
+OUT_DIR="$WORK_DIR/src/wechaty_grpc/"
+[ -d "$OUT_DIR" ] || mkdir -p $OUT_DIR
 
 function generate_proto_stub () {
-  # ./merge-proto.sh > "$OUT_DIR/wechaty_grpc.proto"
-  # PROTO_DIR="$OUT_DIR"
-  PROTO_DIR=../proto
-
   PROTOC_CMD="python3 \
     -m grpc_tools.protoc \
-    --proto_path=${PROTO_DIR} \
-    --proto_path=../third-party \
+    --proto_path=$REPO_DIR/proto \
+    --proto_path=$REPO_DIR/third-party \
     --proto_path=/usr/local/include/ \
     wechaty/puppet.proto \
   "
-
   $PROTOC_CMD \
     --python_betterproto_out=${OUT_DIR}
 }
@@ -39,7 +38,9 @@ function workaround_issue_120 () {
 
 main () {
   generate_proto_stub
-  workaround_issue_120
+
+  # Huan(202110): 2.0.0-beta.3 fixed this
+  # workaround_issue_120
 }
 
 main

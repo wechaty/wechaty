@@ -4,7 +4,7 @@ set -eo pipefail
 
 OUT_DIR="$(pwd)/out"
 
-VERSION=$(jq -r .version ../package.json)
+VERSION=$(jq -r .version ../../package.json)
 DEPLOY_DIR="wechaty-go-grpc.$$"
 
 mkdir "$DEPLOY_DIR"

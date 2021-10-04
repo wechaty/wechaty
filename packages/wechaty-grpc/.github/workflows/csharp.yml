@@ -1,9 +1,11 @@
-name: "C#"
+name: C# Nuget
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 jobs:
   build-push:
     runs-on: windows-latest
@@ -15,12 +17,12 @@ jobs:
 
     - name: copy wechaty proto
       run: .\copy.ps1
-      working-directory: .\csharp\Wechaty.Grpc\buildTool
+      working-directory: .\polyglot\csharp\Wechaty.Grpc\buildTool
       shell: powershell
 
     - name: publish on version change
       uses: rohith/publish-nuget@v2
       with:
-        PROJECT_FILE_PATH: .\csharp\Wechaty.Grpc\Wechaty.Grpc.csproj
-        VERSION_FILE_PATH: .\csharp\Wechaty.Grpc\common.props
+        PROJECT_FILE_PATH: .\polyglot\csharp\Wechaty.Grpc\Wechaty.Grpc.csproj
+        VERSION_FILE_PATH: .\polyglot\csharp\Wechaty.Grpc\common.props
         NUGET_KEY: ${{ secrets.NUGET_APIKEY }}

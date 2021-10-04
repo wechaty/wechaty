@@ -55,6 +55,6 @@ jobs:
     - name: Test grpc_php_plugin and protoc
       run: |
         protoc --version
-        cd php
+        cd polyglot/php
         cp /home/linuxbrew/.linuxbrew/bin/grpc_php_plugin /usr/local/bin/grpc_php_plugin
         make generate

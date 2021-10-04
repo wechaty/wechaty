@@ -4,13 +4,13 @@
 $buildFolder = (Get-Item -Path "./" -Verbose).FullName
 
 # wechaty root folder
-$rootFolder = Join-Path $buildFolder "../../../"
+$rootFolder = Join-Path $buildFolder "../../../../"
 
 # wechaty proto folder
 $wechatyProtoFolder=Join-Path $rootFolder "proto"
 
 # chsarp solution Folder
-$solutionFolder = Join-Path $rootFolder "csharp/Wechaty.Grpc"
+$solutionFolder = Join-Path $rootFolder "polyglot/csharp/Wechaty.Grpc"
 
 # get package.json data
 $packageData=Get-Content (Join-Path $rootFolder "package.json") | ConvertFrom-Json
