@@ -1,6 +1,11 @@
 name: Go
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - polyglot/go/*
+      - proto/*
+  pull_request:
 
 jobs:
 
