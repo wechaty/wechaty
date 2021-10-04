@@ -804,10 +804,21 @@ export class PuppetService extends Puppet {
       this.grpc.client.messageSendMiniProgram.bind(this.grpc.client)
     )(request)
 
-    const messageIdWrapper = response.getId()
+    const messageId = response.getId()
 
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (messageId) {
+      return messageId
+    }
+
+    {
+      /**
+       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+       */
+      const messageIdWrapper = response.getIdStringValueDeprecated()
+
+      if (messageIdWrapper) {
+        return messageIdWrapper.getValue()
+      }
     }
   }
 
@@ -884,10 +895,21 @@ export class PuppetService extends Puppet {
       this.grpc.client.messageForward.bind(this.grpc.client)
     )(request)
 
-    const messageIdWrapper = response.getId()
+    const forwardedMessageId = response.getId()
 
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (forwardedMessageId) {
+      return forwardedMessageId
+    }
+
+    {
+      /**
+       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+       */
+      const messageIdWrapper = response.getIdStringValueDeprecated()
+
+      if (messageIdWrapper) {
+        return messageIdWrapper.getValue()
+      }
     }
   }
 
@@ -958,10 +980,21 @@ export class PuppetService extends Puppet {
       this.grpc.client.messageSendText.bind(this.grpc.client)
     )(request)
 
-    const messageIdWrapper = response.getId()
+    const messageId = response.getId()
 
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (messageId) {
+      return messageId
+    }
+
+    {
+      /**
+       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+       */
+      const messageIdWrapper = response.getIdStringValueDeprecated()
+
+      if (messageIdWrapper) {
+        return messageIdWrapper.getValue()
+      }
     }
   }
 
@@ -999,10 +1032,21 @@ export class PuppetService extends Puppet {
       this.grpc.client.messageSendContact.bind(this.grpc.client)
     )(request)
 
-    const messageIdWrapper = response.getId()
+    const messageId = response.getId()
 
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (messageId) {
+      return messageId
+    }
+
+    {
+      /**
+       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+       */
+      const messageIdWrapper = response.getIdStringValueDeprecated()
+
+      if (messageIdWrapper) {
+        return messageIdWrapper.getValue()
+      }
     }
   }
 
@@ -1029,10 +1073,21 @@ export class PuppetService extends Puppet {
       this.grpc.client.messageSendUrl.bind(this.grpc.client)
     )(request)
 
-    const messageIdWrapper = response.getId()
+    const messageId = response.getId()
 
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (messageId) {
+      return messageId
+    }
+
+    {
+      /**
+       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+       */
+      const messageIdWrapper = response.getIdStringValueDeprecated()
+
+      if (messageIdWrapper) {
+        return messageIdWrapper.getValue()
+      }
     }
   }
 
@@ -1370,10 +1425,20 @@ export class PuppetService extends Puppet {
     const receiveTime = response.getReceiveTime()
     if (receiveTime) {
       timestamp = millisecondsFromTimestamp(receiveTime)
-    } else {
-      // Deprecated: will be removed after Dec 31, 2022
-      timestamp = response.getTimestampDeprecated()
     }
+
+    {
+      // Deprecated: will be removed after Dec 31, 2022
+      const deprecated = true
+      void deprecated
+
+      if (!receiveTime) {
+        timestamp = response.getTimestampUint64Deprecated()
+      }
+    }
+
+    // FIXME: how to set it better?
+    timestamp ??= 0
 
     const payload: RoomInvitationPayload = {
       avatar       : response.getAvatar(),
@@ -1482,12 +1547,21 @@ export class PuppetService extends Puppet {
       request.setHello(options)
     } else {
       request.setHello(options.hello!)
-      const contactIdWrapper = new StringValue()
-      contactIdWrapper.setValue(options.contactId || '')
-      const roomIdWrapper = new StringValue()
-      roomIdWrapper.setValue(options.roomId || '')
-      request.setSourceRoomId(roomIdWrapper)
-      request.setSourceContactId(contactIdWrapper)
+
+      const referrer = new pbPuppet.Referrer()
+      if (options.contactId)  { referrer.setContactId(options.contactId) }
+      if (options.roomId)     { referrer.setRoomId(options.roomId) }
+      request.setReferrer(referrer)
+
+      {
+        // Deprecated: will be removed after Dec 31, 2022
+        const contactIdWrapper = new StringValue()
+        contactIdWrapper.setValue(options.contactId || '')
+        const roomIdWrapper = new StringValue()
+        roomIdWrapper.setValue(options.roomId || '')
+        request.setSourceRoomIdStringValueDeprecated(roomIdWrapper)
+        request.setSourceContactIdStringValueDeprecated(contactIdWrapper)
+      }
     }
 
     await util.promisify(
@@ -1568,9 +1642,16 @@ export class PuppetService extends Puppet {
     const request = new pbPuppet.TagContactListRequest()
 
     if (typeof contactId !== 'undefined') {
-      const contactIdWrapper = new StringValue()
-      contactIdWrapper.setValue(contactId)
-      request.setContactId(contactIdWrapper)
+      request.setContactId(contactId)
+      {
+
+        /**
+         * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+         */
+        const contactIdWrapper = new StringValue()
+        contactIdWrapper.setValue(contactId)
+        request.setContactIdStringValueDeprecated(contactIdWrapper)
+      }
     }
 
     const response = await util.promisify(
@@ -1601,10 +1682,20 @@ export class PuppetService extends Puppet {
       request.pipe(stream)
     })
 
-    const messageIdWrapper = response.getId()
+    const messageId = response.getId()
 
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (messageId) {
+      return messageId
+    }
+
+    {
+      /**
+       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+       */
+      const messageIdWrapper = response.getIdStringValueDeprecated()
+      if (messageIdWrapper) {
+        return messageIdWrapper.getValue()
+      }
     }
   }
 
@@ -1620,10 +1711,20 @@ export class PuppetService extends Puppet {
       this.grpc.client.messageSendFile.bind(this.grpc.client)
     )(request)
 
-    const messageIdWrapper = response.getId()
+    const messageId = response.getId()
 
-    if (messageIdWrapper) {
-      return messageIdWrapper.getValue()
+    if (messageId) {
+      return messageId
+    }
+
+    {
+      /**
+       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+       */
+      const messageIdWrapper = response.getIdStringValueDeprecated()
+      if (messageIdWrapper) {
+        return messageIdWrapper.getValue()
+      }
     }
   }
 

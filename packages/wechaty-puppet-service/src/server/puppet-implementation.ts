@@ -385,16 +385,19 @@ function puppetImplementation (
         const contactId = call.request.getContactId()
         // FIXME: for backward compatibility, need to be removed after all puppet has updated.
         const hello = call.request.getHello()
-        const sourceContactId = call.request.getSourceContactId()
-        const sourceRoomId = call.request.getSourceRoomId()
 
-        let friendshipAddOptions: FriendshipAddOptions = hello
-        if (sourceContactId || sourceRoomId) {
-          friendshipAddOptions = {
-            contactId: sourceContactId?.getValue(),
-            hello,
-            roomId: sourceRoomId?.getValue(),
-          }
+        const referrer = call.request.getReferrer()
+        const friendshipAddOptions: FriendshipAddOptions = {
+          hello,
+          ...referrer,
+        }
+
+        {
+          // Deprecated: will be removed after Dec 31, 2022
+          const sourceContactId = call.request.getSourceContactIdStringValueDeprecated()?.getValue()
+          const sourceRoomId    = call.request.getSourceRoomIdStringValueDeprecated()?.getValue()
+          if (sourceContactId)  { friendshipAddOptions['contactId'] = sourceContactId }
+          if (sourceRoomId)     { friendshipAddOptions['roomId']    = sourceRoomId }
         }
 
         await puppet.friendshipAdd(contactId, friendshipAddOptions)
@@ -557,9 +560,15 @@ function puppetImplementation (
 
         const response = new pbPuppet.MessageForwardResponse()
         if (id) {
-          const idWrapper = new StringValue()
-          idWrapper.setValue(id)
-          response.setId(idWrapper)
+          response.setId(id)
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const idWrapper = new StringValue()
+            idWrapper.setValue(id)
+            response.setIdStringValueDeprecated(idWrapper)
+          }
         }
 
         return callback(null, response)
@@ -732,9 +741,15 @@ function puppetImplementation (
         const response = new pbPuppet.MessageSendContactResponse()
 
         if (messageId) {
-          const idWrapper = new StringValue()
-          idWrapper.setValue(messageId)
-          response.setId(idWrapper)
+          response.setId(messageId)
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const idWrapper = new StringValue()
+            idWrapper.setValue(messageId)
+            response.setIdStringValueDeprecated(idWrapper)
+          }
         }
 
         return callback(null, response)
@@ -758,9 +773,15 @@ function puppetImplementation (
         const response = new pbPuppet.MessageSendFileResponse()
 
         if (messageId) {
-          const idWrapper = new StringValue()
-          idWrapper.setValue(messageId)
-          response.setId(idWrapper)
+          response.setId(messageId)
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const idWrapper = new StringValue()
+            idWrapper.setValue(messageId)
+            response.setIdStringValueDeprecated(idWrapper)
+          }
         }
 
         return callback(null, response)
@@ -783,9 +804,15 @@ function puppetImplementation (
         const response = new pbPuppet.MessageSendFileStreamResponse()
 
         if (messageId) {
-          const idWrapper = new StringValue()
-          idWrapper.setValue(messageId)
-          response.setId(idWrapper)
+          response.setId(messageId)
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const idWrapper = new StringValue()
+            idWrapper.setValue(messageId)
+            response.setIdStringValueDeprecated(idWrapper)
+          }
         }
 
         return callback(null, response)
@@ -847,9 +874,15 @@ function puppetImplementation (
         const response = new pbPuppet.MessageSendMiniProgramResponse()
 
         if (messageId) {
-          const idWrapper = new StringValue()
-          idWrapper.setValue(messageId)
-          response.setId(idWrapper)
+          response.setId(messageId)
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const idWrapper = new StringValue()
+            idWrapper.setValue(messageId)
+            response.setIdStringValueDeprecated(idWrapper)
+          }
         }
 
         return callback(null, response)
@@ -872,9 +905,15 @@ function puppetImplementation (
         const response = new pbPuppet.MessageSendTextResponse()
 
         if (messageId) {
-          const idWrapper = new StringValue()
-          idWrapper.setValue(messageId)
-          response.setId(idWrapper)
+          response.setId(messageId)
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const idWrapper = new StringValue()
+            idWrapper.setValue(messageId)
+            response.setIdStringValueDeprecated(idWrapper)
+          }
         }
 
         return callback(null, response)
@@ -908,9 +947,15 @@ function puppetImplementation (
         const response = new pbPuppet.MessageSendUrlResponse()
 
         if (messageId) {
-          const idWrapper = new StringValue()
-          idWrapper.setValue(messageId)
-          response.setId(idWrapper)
+          response.setId(messageId)
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const idWrapper = new StringValue()
+            idWrapper.setValue(messageId)
+            response.setIdStringValueDeprecated(idWrapper)
+          }
         }
 
         return callback(null, response)
@@ -1078,14 +1123,28 @@ function puppetImplementation (
           * Set
           */
         {
-          const payloadWrapper = call.request.getPayload()
+          const jsonText = call.request.getPayload()
 
-          if (payloadWrapper) {
-            const jsonText = payloadWrapper.getValue()
+          if (jsonText) {
             const payload = JSON.parse(jsonText) as RoomInvitationPayload
             await puppet.roomInvitationPayload(roomInvitationId, payload)
 
             return callback(null, new pbPuppet.RoomInvitationPayloadResponse())
+          }
+
+          {
+            /**
+              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+              */
+            const payloadWrapper = call.request.getPayloadStringValueDeprecated()
+
+            if (payloadWrapper) {
+              const jsonText = payloadWrapper.getValue()
+              const payload = JSON.parse(jsonText) as RoomInvitationPayload
+              await puppet.roomInvitationPayload(roomInvitationId, payload)
+
+              return callback(null, new pbPuppet.RoomInvitationPayloadResponse())
+            }
           }
         }
 
@@ -1104,8 +1163,13 @@ function puppetImplementation (
         response.setMemberIdsList(payload.memberIdList)
 
         response.setReceiveTime(timestampFromMilliseconds(payload.timestamp))
-        // Deprecated: will be removed after Dec 31, 2022
-        response.setTimestampDeprecated(Math.floor(payload.timestamp))
+
+        {
+          // Deprecated: will be removed after Dec 31, 2022
+          const deprecated = true
+          void deprecated
+          response.setTimestampUint64Deprecated(Math.floor(payload.timestamp))
+        }
 
         response.setTopic(payload.topic)
 
@@ -1341,20 +1405,36 @@ function puppetImplementation (
       log.verbose('PuppetServiceImpl', 'tagContactList()')
 
       try {
-        const contactIdWrapper = call.request.getContactId()
+        const contactId = call.request.getContactId()
 
         /**
          * for a specific contact
          */
-        if (contactIdWrapper) {
-          const contactId = contactIdWrapper.getValue()
-
+        if (contactId) {
           const tagIdList = await puppet.tagContactList(contactId)
 
           const response = new pbPuppet.TagContactListResponse()
           response.setIdsList(tagIdList)
 
           return callback(null, new pbPuppet.TagContactListResponse())
+        }
+
+        {
+          /**
+            * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+            */
+          const contactIdWrapper = call.request.getContactIdStringValueDeprecated()
+
+          if (contactIdWrapper) {
+            const contactId = contactIdWrapper.getValue()
+
+            const tagIdList = await puppet.tagContactList(contactId)
+
+            const response = new pbPuppet.TagContactListResponse()
+            response.setIdsList(tagIdList)
+
+            return callback(null, new pbPuppet.TagContactListResponse())
+          }
         }
 
         /**
