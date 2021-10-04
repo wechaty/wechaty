@@ -3,9 +3,10 @@ set -e
 set -o pipefail
 
 # https://stackoverflow.com/a/4774063/1123955
-SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 ; pwd -P )"
+WORK_DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 ; pwd -P )"
+REPO_DIR="$( cd "$WORK_DIR/../" >/dev/null 2>&1 ; pwd -P )"
 
-THIRD_PARTY_DIR="${SCRIPTPATH}/../third-party/"
+THIRD_PARTY_DIR="$REPO_DIR/third-party/"
 
 function install_protoc () {
   if command -v protoc > /dev/null; then
@@ -36,9 +37,9 @@ function check_protoc_version () {
     exit 1
   }
 
-  # https://github.com/wechaty/grpc/issues/116
-  (($minorVer >= 5)) || {
-    echo "protoc minor version must >= 5 (the installed version is $protocVersion)"
+  # https://github.com/wechaty/grpc/issues/109
+  (($minorVer >= 18)) || {
+    echo "protoc minor version must >= 18 (the installed version is $protocVersion)"
     exit 1
   }
 
@@ -62,7 +63,7 @@ function install_proto_google_api () {
 }
 
 function install_protoc_gen_openapiv2 () {
-  pushd "${SCRIPTPATH}/../openapi"
+  pushd "$REPO_DIR/openapi"
   make install
   popd
 }
@@ -79,12 +80,21 @@ function install_protoc_gen_openapiv2 () {
 #     https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/descriptor.proto
 # }
 
+function install_protoc_gen_doc () {
+  if command -v protoc-gen-doc; then
+    echo "install skipped: $(command -v protoc-gen-doc) exists"
+    return 0
+  fi
+  go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest
+}
+
 function main () {
   install_protoc
   check_protoc_version
 
   install_protoc_gen_lint
   install_protoc_gen_openapiv2
+  install_protoc_gen_doc
 
   install_proto_google_api
 }

@@ -83,6 +83,11 @@ test('integration testing', async t => {
   /**
    * Close Client & Server
    */
+
+  /**
+   * Issue #130: Assertion `(current_nghttp2_memory_) >= (previous_size)' failed.
+   *  https://github.com/wechaty/grpc/issues/130
+   */
   await new Promise<void>(resolve => setImmediate(resolve))
   eventStream.cancel()
 

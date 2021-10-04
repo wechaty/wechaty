@@ -1,13 +1,8 @@
-import wrappers   from 'google-protobuf/google/protobuf/wrappers_pb.js'
-import timestamp  from 'google-protobuf/google/protobuf/timestamp_pb.js'
+import timestamp from 'google-protobuf/google/protobuf/timestamp_pb.js'
+import wrappers  from 'google-protobuf/google/protobuf/wrappers_pb.js'
 
-const {
-  StringValue,
-}               = wrappers
-
-const {
-  Timestamp,
-}               = timestamp
+class StringValue extends wrappers.StringValue  {}
+class Timestamp   extends timestamp.Timestamp   {}
 
 export {
   StringValue,

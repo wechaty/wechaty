@@ -15,6 +15,6 @@
     "examples/**/*.ts",
     "scripts/**/*.ts",
     "src/**/*.ts",
-    "tests/**/*.spec.ts",
+    "tests/**/*.spec.ts", "commonjs/google.spec.ts",
   ],
 }

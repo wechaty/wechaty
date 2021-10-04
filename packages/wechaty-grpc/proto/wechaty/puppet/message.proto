@@ -6,6 +6,12 @@ option java_package="io.github.wechaty.grpc.puppet";
 option csharp_namespace = "github.wechaty.grpc.puppet";
 
 import "google/protobuf/timestamp.proto";
+
+/**
+ * @deprecated
+ *  Huan(202109): will be removed after Dec 31, 2022
+ *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+ */
 import "google/protobuf/wrappers.proto";
 
 import "wechaty/puppet/file-box.proto";
@@ -133,8 +139,13 @@ message MessageSendContactRequest {
   string contact_id = 2;
 }
 message MessageSendContactResponse {
-  // nullable
-  google.protobuf.StringValue id = 1;
+  /**
+   * @deprecated:
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
+  string id = 2;
 }
 
 message MessageSendFileRequest {
@@ -142,7 +153,13 @@ message MessageSendFileRequest {
   string filebox = 2;
 }
 message MessageSendFileResponse {
-  google.protobuf.StringValue id = 1;
+  /**
+   * @deprecated:
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
+  string id = 2;
 }
 
 message MessageSendFileStreamRequest {
@@ -152,7 +169,13 @@ message MessageSendFileStreamRequest {
   };
 }
 message MessageSendFileStreamResponse {
-  google.protobuf.StringValue id = 1;
+  /**
+   * @deprecated:
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
+  string id = 2;
 }
 
 message MessageSendTextRequest {
@@ -164,7 +187,13 @@ message MessageSendTextRequest {
   repeated string mentional_ids = 3;
 }
 message MessageSendTextResponse {
-  google.protobuf.StringValue id = 1;
+  /**
+   * @deprecated:
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
+  string id = 2;
 }
 
 message MessageSendMiniProgramRequest {
@@ -177,7 +206,13 @@ message MessageSendMiniProgramRequest {
   MiniProgramPayload mini_program = 3;
 }
 message MessageSendMiniProgramResponse {
-  google.protobuf.StringValue id = 1;
+  /**
+   * @deprecated:
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
+  string id = 2;
 }
 
 message MessageSendUrlRequest {
@@ -190,7 +225,13 @@ message MessageSendUrlRequest {
   UrlLinkPayload url_link = 3;
 }
 message MessageSendUrlResponse {
-  google.protobuf.StringValue id = 1;
+  /**
+   * @deprecated:
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
+  string id = 2;
 }
 
 message MessageRecallRequest {
@@ -204,7 +245,13 @@ message MessageForwardRequest{
   string conversation_id = 2;
 }
 message MessageForwardResponse {
-  google.protobuf.StringValue id = 1;
+  /**
+   * @deprecated: use payload instead.
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
+  string id = 2;
 }
 
 message MessageLocationRequest{

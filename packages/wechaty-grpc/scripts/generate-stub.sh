@@ -34,6 +34,7 @@ function gen_js_stub () {
   #
   # 2. JS for gRPC Stubs
   #   - https://www.npmjs.com/package/grpc-tools
+  #   - https://github.com/grpc/grpc/tree/master/examples/node/static_codegen
   #
   # Generate: wechaty-puppet_grpc_pb.js
   $PROTOC_CMD \

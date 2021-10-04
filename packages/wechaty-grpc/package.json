@@ -1,6 +1,6 @@
 {
   "name": "wechaty-grpc",
-  "version": "0.29.38",
+  "version": "0.29.46",
   "description": "gRPC for Wechaty",
   "type": "module",
   "exports": {
@@ -29,7 +29,7 @@
     "lint": "npm-run-all lint:es lint:ts lint:proto",
     "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
     "lint:ts": "tsc --isolatedModules --noEmit",
-    "lint:proto": "bash -c 'protoc -I third-party -I proto --lint_out=. $(find proto/ -type f -name *.proto)'",
+    "lint:proto": "bash -c 'protoc -I third-party -I proto --lint_out=sort_imports:. $(find proto/ -type f -name *.proto)'",
     "install:protoc": "bash -x scripts/install-protoc.sh",
     "test": "npm-run-all lint test:unit test:commonjs",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",

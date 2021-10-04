@@ -13,18 +13,18 @@
 syntax = "proto3";
 package wechaty;
 
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 import "wechaty/puppet/base.proto";
 import "wechaty/puppet/contact.proto";
 import "wechaty/puppet/event.proto";
 import "wechaty/puppet/friendship.proto";
 import "wechaty/puppet/message.proto";
-import "wechaty/puppet/room.proto";
 import "wechaty/puppet/room-invitation.proto";
 import "wechaty/puppet/room-member.proto";
+import "wechaty/puppet/room.proto";
 import "wechaty/puppet/tag.proto";
-
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 option java_package="io.github.wechaty.grpc";
 option go_package="github.com/wechaty/go-grpc/wechaty";
