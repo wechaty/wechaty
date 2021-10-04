@@ -7,6 +7,7 @@ const pkgs = [
   '../out/wechaty/puppet/location_pb.js',
   '../out/wechaty/puppet/message_pb.js',
   '../out/wechaty/puppet/mini-program_pb.js',
+  '../out/wechaty/puppet/referrer_pb.js',
   '../out/wechaty/puppet/room_pb.js',
   '../out/wechaty/puppet/room-invitation_pb.js',
   '../out/wechaty/puppet/room-member_pb.js',
