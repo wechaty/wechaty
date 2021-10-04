@@ -5,9 +5,12 @@ name: Java Maven
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    paths:
+      - 'polyglot/java/**'
+      - 'proto/**'
 
 jobs:
   build:

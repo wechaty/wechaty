@@ -1,6 +1,14 @@
 name: Javascript NPM
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'openapi/**'
+      - 'proto/**'
+      - 'src/**'
 
 jobs:
   build:

@@ -2,10 +2,12 @@ name: Go
 
 on:
   push:
-    paths:
-      - polyglot/go/*
-      - proto/*
+    branches:
+      - main
   pull_request:
+    paths:
+      - 'polyglot/go/**'
+      - 'proto/**'
 
 jobs:
 

@@ -1,11 +1,14 @@
 name: C# Nuget
+
 on:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - main
+    paths:
+      - 'polyglot/csharp/**'
+      - 'proto/**'
+
 jobs:
   build-push:
     runs-on: windows-latest
