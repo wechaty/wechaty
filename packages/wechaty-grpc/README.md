@@ -17,7 +17,7 @@ gRPC Service & Protocol Buffers for Wechaty Puppet
 
 <div align="center">
 
-[![JavaScript NPM](https://github.com/wechaty/grpc/actions/workflows/node.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/node.yml)
+[![Node.js NPM](https://github.com/wechaty/grpc/actions/workflows/node.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/node.yml)
 [![C# Nuget](https://github.com/wechaty/grpc/actions/workflows/csharp.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/csharp.yml)
 [![Go](https://github.com/wechaty/grpc/actions/workflows/go.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/go.yml)
 [![Java Maven](https://github.com/wechaty/grpc/actions/workflows/java.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/java.yml)

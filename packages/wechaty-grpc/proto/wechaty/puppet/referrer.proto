@@ -1,0 +1,16 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option csharp_namespace = "github.wechaty.grpc.puppet";
+option go_package       = "github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package     = "io.github.wechaty.grpc.puppet";
+
+/**
+ * "Referrer" and "Referral" refers to different things. "Referrer" is something or somebody who refers. "Referral" is the act of referring.
+ *  - https://english.stackexchange.com/questions/33135/referrer-versus-referral-versus-referer
+ */
+message Referrer {
+  string contact_id = 1;
+  string room_id    = 2;
+}
+
