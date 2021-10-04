@@ -17,9 +17,20 @@ gRPC Service & Protocol Buffers for Wechaty Puppet
 
 <div align="center">
 
-[![Node.js](https://github.com/Chatie/grpc/workflows/Node.js/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3ANode.js) [![NPM](https://github.com/Chatie/grpc/workflows/NPM/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3ANPM) [![PyPI](https://github.com/Chatie/grpc/workflows/PyPI/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3APyPI) [![Maven](https://github.com/Chatie/grpc/workflows/Maven/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3A%22Maven%22) [![PHP](https://github.com/Chatie/grpc/workflows/PHP/badge.svg)](https://github.com/Chatie/grpc/actions?query=workflow%3APHP) [![Go](https://github.com/chatie/grpc/workflows/Go/badge.svg)](https://github.com/chatie/grpc/actions?query=workflow%3AGo)
+[![JavaScript NPM](https://github.com/wechaty/grpc/actions/workflows/node.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/node.yml)
+[![C# Nuget](https://github.com/wechaty/grpc/actions/workflows/csharp.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/csharp.yml)
+[![Go](https://github.com/wechaty/grpc/actions/workflows/go.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/go.yml)
+[![Java Maven](https://github.com/wechaty/grpc/actions/workflows/java.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/java.yml)
+[![PHP](https://github.com/wechaty/grpc/actions/workflows/php.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/php.yml)
+[![Python PyPI](https://github.com/wechaty/grpc/actions/workflows/python.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/python.yml)
 
-[![NPM Version](https://img.shields.io/npm/v/wechaty-grpc?color=brightgreen&label=NPM&style=flat-square)](https://www.npmjs.com/package/wechaty-grpc) [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue&label=PyPI&style=flat-square)](https://pypi.org/project/chatie-grpc/) [![Java Version](https://img.shields.io/maven-central/v/io.github.wechaty/grpc?label=Java&style=flat-square)](https://mvnrepository.com/artifact/io.github.wechaty/grpc) [![PHP Version](https://img.shields.io/packagist/v/wechaty/php-grpc?style=flat-square)](https://packagist.org/packages/wechaty/php-grpc) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800&label=Node.js&style=flat-square)](https://nodejs.org/) [![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg?label=Python&style=flat-square)](https://www.python.org/downloads/release/python-370/) [![Go Version](https://img.shields.io/github/go-mod/go-version/wechaty/go-wechaty?style=flat-square)](https://pkg.go.dev/github.com/chatie/grpc/go/wechaty)
+[![NPM Version](https://img.shields.io/npm/v/wechaty-grpc?color=brightgreen&label=NPM&style=flat-square)](https://www.npmjs.com/package/wechaty-grpc)
+[![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue&label=PyPI&style=flat-square)](https://pypi.org/project/chatie-grpc/)
+[![Java Version](https://img.shields.io/maven-central/v/io.github.wechaty/grpc?label=Java&style=flat-square)](https://mvnrepository.com/artifact/io.github.wechaty/grpc)
+[![PHP Version](https://img.shields.io/packagist/v/wechaty/php-grpc?style=flat-square)](https://packagist.org/packages/wechaty/php-grpc)
+[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800&label=Node.js&style=flat-square)](https://nodejs.org/)
+[![Python 3.7](https://img.shields.io/badge/python-3.7+-blue.svg?label=Python&style=flat-square)](https://www.python.org/downloads/release/python-370/)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/wechaty/go-wechaty?style=flat-square)](https://pkg.go.dev/github.com/wechaty/grpc/go/wechaty)
 
 </div>
 
@@ -247,22 +258,22 @@ Check out [RESOURCES.md](RESOURCES.md) file for learning resources.
 
 ### v0.18 (Oct 15, 2020)
 
-- Add new `MessageFileStream` and `MessageImageStream` to replace the `MessageFile` and `MessageImage` method to avoid blocking nodejs event loop when sending large files ([#88](https://github.com/Chatie/grpc/pull/88)) by [@windmemory](https://github.com/windmemory)
-- Add new `MessageSendFileStream` to replace the `MessageSendFile` method to avoid blocking nodejs event loop when sending large files ([#89](https://github.com/Chatie/grpc/pull/89)) by [@windmemory](https://github.com/windmemory)
+- Add new `MessageFileStream` and `MessageImageStream` to replace the `MessageFile` and `MessageImage` method to avoid blocking nodejs event loop when sending large files ([#88](https://github.com/wechaty/grpc/pull/88)) by [@windmemory](https://github.com/windmemory)
+- Add new `MessageSendFileStream` to replace the `MessageSendFile` method to avoid blocking nodejs event loop when sending large files ([#89](https://github.com/wechaty/grpc/pull/89)) by [@windmemory](https://github.com/windmemory)
 
 ### v0.17 (Aug 5, 2020)
 
-- Add PHH Support ([#76](https://github.com/Chatie/grpc/pull/76) [#78](https://github.com/Chatie/grpc/pull/78)) by [@zhangchunsheng](https://github.com/zhangchunsheng)
+- Add PHH Support ([#76](https://github.com/wechaty/grpc/pull/76) [#78](https://github.com/wechaty/grpc/pull/78)) by [@zhangchunsheng](https://github.com/zhangchunsheng)
 - Publish PHP Module at <https://github.com/wechaty/php-grpc>
 
 ### v0.13 (Apr 19, 2020)
 
-- Add Java Support ([#52](https://github.com/Chatie/grpc/issues/52) [#53](https://github.com/Chatie/grpc/issues/53) by [@diaozxin007](https://github.com/diaozxin007))
+- Add Java Support ([#52](https://github.com/wechaty/grpc/issues/52) [#53](https://github.com/wechaty/grpc/issues/53) by [@diaozxin007](https://github.com/diaozxin007))
 - Publish Java Module at [Open Source Project Repository HostingOSSRH-56843 - Release the Chatie/grpc Java Client](https://issues.sonatype.org/browse/OSSRH-56843)
 
 ### v0.11 (Apr 10, 2020)
 
-- Add Go Support ([#50](https://github.com/Chatie/grpc/issues/50) by [@dchaofei](https://github.com/dchaofei))
+- Add Go Support ([#50](https://github.com/wechaty/grpc/issues/50) by [@dchaofei](https://github.com/dchaofei))
 - Publish Go Module at <github.com/wechaty/go-grpc>
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.

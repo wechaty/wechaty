@@ -1,4 +1,4 @@
-name: Javascript NPM
+name: JavaScript NPM
 
 on:
   push:
