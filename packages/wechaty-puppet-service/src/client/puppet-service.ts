@@ -446,24 +446,36 @@ export class PuppetService extends Puppet {
         this.grpc.client.contactAlias.bind(this.grpc.client)
       )(request)
 
-      const aliasWrapper = response.getAlias()
-
-      if (!aliasWrapper) {
-        throw new Error('can not get aliasWrapper')
+      const result = response.getAlias()
+      if (result) {
+        return result
       }
 
-      return aliasWrapper.getValue()
+      {
+        // DEPRECATED, will be removed after Dec 31, 2022
+        const aliasWrapper = response.getAliasStringValueDeprecated()
+
+        if (!aliasWrapper) {
+          throw new Error('can not get aliasWrapper')
+        }
+
+        return aliasWrapper.getValue()
+      }
     }
 
     /**
      * Set alias
      */
-    const aliasWrapper = new StringValue()
-    aliasWrapper.setValue(alias || '')  // null -> '', in server, we treat '' as null
-
     const request = new pbPuppet.ContactAliasRequest()
     request.setId(contactId)
-    request.setAlias(aliasWrapper)
+    request.setAlias(alias || '')   // null -> '', in server, we treat '' as null
+
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const aliasWrapper = new StringValue()
+      aliasWrapper.setValue(alias || '')  // null -> '', in server, we treat '' as null
+      request.setAliasStringValueDeprecated(aliasWrapper)
+    }
 
     await util.promisify(
       this.grpc.client.contactAlias.bind(this.grpc.client)
@@ -475,7 +487,7 @@ export class PuppetService extends Puppet {
 
     const request = new pbPuppet.ContactPhoneRequest()
     request.setContactId(contactId)
-    request.setPhoneListList(phoneList)
+    request.setPhonesList(phoneList)
 
     await util.promisify(
       this.grpc.client.contactPhone.bind(this.grpc.client)
@@ -485,14 +497,20 @@ export class PuppetService extends Puppet {
   override async contactCorporationRemark (contactId: string, corporationRemark: string | null) {
     log.verbose('PuppetService', 'contactCorporationRemark(%s, %s)', contactId, corporationRemark)
 
-    const corporationRemarkWrapper = new StringValue()
-    if (corporationRemark) {
-      corporationRemarkWrapper.setValue(corporationRemark)
-    }
-
     const request = new pbPuppet.ContactCorporationRemarkRequest()
     request.setContactId(contactId)
-    request.setCorporationRemark(corporationRemarkWrapper)
+    if (corporationRemark) {
+      request.setCorporationRemark(corporationRemark)
+    }
+
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const corporationRemarkWrapper = new StringValue()
+      if (corporationRemark) {
+        corporationRemarkWrapper.setValue(corporationRemark)
+        request.setCorporationRemarkStringValueDeprecated(corporationRemarkWrapper)
+      }
+    }
 
     await util.promisify(
       this.grpc.client.contactCorporationRemark.bind(this.grpc.client)
@@ -502,14 +520,20 @@ export class PuppetService extends Puppet {
   override async contactDescription (contactId: string, description: string | null) {
     log.verbose('PuppetService', 'contactDescription(%s, %s)', contactId, description)
 
-    const descriptionWrapper = new StringValue()
-    if (description) {
-      descriptionWrapper.setValue(description)
-    }
-
     const request = new pbPuppet.ContactDescriptionRequest()
     request.setContactId(contactId)
-    request.setDescription(descriptionWrapper)
+    if (description) {
+      request.setDescription(description)
+    }
+
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const descriptionWrapper = new StringValue()
+      if (description) {
+        descriptionWrapper.setValue(description)
+        request.setDescriptionStringValueDeprecated(descriptionWrapper)
+      }
+    }
 
     await util.promisify(
       this.grpc.client.contactDescription.bind(this.grpc.client)
@@ -548,12 +572,16 @@ export class PuppetService extends Puppet {
      * 1. set
      */
     if (fileBox) {
-      const fileboxWrapper = new StringValue()
-      fileboxWrapper.setValue(await serializeFileBox(fileBox))
-
       const request = new pbPuppet.ContactAvatarRequest()
       request.setId(contactId)
-      request.setFilebox(fileboxWrapper)
+      request.setFilebox(await serializeFileBox(fileBox))
+
+      {
+        // DEPRECATED, will be removed after Dec 31, 2022
+        const fileboxWrapper = new StringValue()
+        fileboxWrapper.setValue(await serializeFileBox(fileBox))
+        request.setFileboxStringValueDeprecated(fileboxWrapper)
+      }
 
       await util.promisify(
         this.grpc.client.contactAvatar.bind(this.grpc.client)
@@ -572,13 +600,23 @@ export class PuppetService extends Puppet {
       this.grpc.client.contactAvatar.bind(this.grpc.client)
     )(request)
 
-    const textWrapper = response.getFilebox()
+    let jsonText: string
+    jsonText = response.getFilebox()
 
-    if (!textWrapper) {
-      throw new Error('can not get textWrapper')
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const deprecated = true
+      void deprecated
+
+      if (!jsonText) {
+        const textWrapper = response.getFileboxStringValueDeprecated()
+        if (!textWrapper) {
+          throw new Error('can not get textWrapper')
+        }
+        jsonText = textWrapper.getValue()
+      }
     }
 
-    const jsonText = textWrapper.getValue()
     return FileBox.fromJSON(jsonText)
   }
 
@@ -610,7 +648,7 @@ export class PuppetService extends Puppet {
       gender      : response.getGender() as number,
       id          : response.getId(),
       name        : response.getName(),
-      phone       : response.getPhoneList(),
+      phone       : response.getPhonesList(),
       province    : response.getProvince(),
       signature   : response.getSignature(),
       star        : response.getStar(),
@@ -1236,22 +1274,36 @@ export class PuppetService extends Puppet {
         this.grpc.client.roomTopic.bind(this.grpc.client)
       )(request)
 
-      const topicWrapper = response.getTopic()
-      if (topicWrapper) {
-        return topicWrapper.getValue()
+      const result = response.getTopic()
+      if (result) {
+        return result
       }
+
+      {
+        // DEPRECATED, will be removed after Dec 31, 2022
+        const topicWrapper = response.getTopicStringValueDeprecated()
+        if (topicWrapper) {
+          return topicWrapper.getValue()
+        }
+      }
+
       return ''
     }
 
     /**
      * Set
      */
-    const topicWrapper = new StringValue()
-    topicWrapper.setValue(topic)
-
     const request = new pbPuppet.RoomTopicRequest()
     request.setId(roomId)
-    request.setTopic(topicWrapper)
+    request.setTopic(topic)
+
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const topicWrapper = new StringValue()
+      topicWrapper.setValue(topic)
+
+      request.setTopicStringValueDeprecated(topicWrapper)
+    }
 
     await util.promisify(
       this.grpc.client.roomTopic.bind(this.grpc.client)
@@ -1365,12 +1417,16 @@ export class PuppetService extends Puppet {
      * Set
      */
     if (text) {
-      const textWrapper = new StringValue()
-      textWrapper.setValue(text)
-
       const request = new pbPuppet.RoomAnnounceRequest()
       request.setId(roomId)
-      request.setText(textWrapper)
+      request.setText(text)
+
+      {
+        // DEPRECATED, will be removed after Dec 31, 2022
+        const textWrapper = new StringValue()
+        textWrapper.setValue(text)
+        request.setTextStringValueDeprecated(textWrapper)
+      }
 
       await util.promisify(
         this.grpc.client.roomAnnounce.bind(this.grpc.client)
@@ -1389,10 +1445,19 @@ export class PuppetService extends Puppet {
       this.grpc.client.roomAnnounce.bind(this.grpc.client)
     )(request)
 
-    const textWrapper = response.getText()
-    if (textWrapper) {
-      return textWrapper.getValue()
+    const result = response.getText()
+    if (result) {
+      return result
     }
+
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const textWrapper = response.getTextStringValueDeprecated()
+      if (textWrapper) {
+        return textWrapper.getValue()
+      }
+    }
+
     return ''
   }
 
@@ -1478,10 +1543,19 @@ export class PuppetService extends Puppet {
       this.grpc.client.friendshipSearchPhone.bind(this.grpc.client)
     )(request)
 
-    const contactIdWrapper = response.getContactId()
-    if (contactIdWrapper) {
-      return contactIdWrapper.getValue()
+    const contactId = response.getContactId()
+    if (contactId) {
+      return contactId
     }
+
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const contactIdWrapper = response.getContactIdStringValueDeprecated()
+      if (contactIdWrapper) {
+        return contactIdWrapper.getValue()
+      }
+    }
+
     return null
   }
 
@@ -1497,10 +1571,19 @@ export class PuppetService extends Puppet {
       this.grpc.client.friendshipSearchWeixin.bind(this.grpc.client)
     )(request)
 
-    const contactIdWrapper = response.getContactId()
-    if (contactIdWrapper) {
-      return contactIdWrapper.getValue()
+    const contactId = response.getContactId()
+    if (contactId) {
+      return contactId
     }
+
+    {
+      // DEPRECATED, will be removed after Dec 31, 2022
+      const contactIdWrapper = response.getContactIdStringValueDeprecated()
+      if (contactIdWrapper) {
+        return contactIdWrapper.getValue()
+      }
+    }
+
     return null
   }
 

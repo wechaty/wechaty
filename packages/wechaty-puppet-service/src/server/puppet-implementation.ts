@@ -78,15 +78,12 @@ function puppetImplementation (
       /**
        * Set
        */
-      {
-        const aliasWrapper = call.request.getAlias()
-        if (aliasWrapper) {
-          try {
-            await puppet.contactAlias(id, aliasWrapper.getValue())
-            return callback(null, new  pbPuppet.ContactAliasResponse())
-          } catch (e) {
-            return grpcError('contactAlias', (e as Error), callback)
-          }
+      if (call.request.hasAlias()) {
+        try {
+          await puppet.contactAlias(id, call.request.getAlias())
+          return callback(null, new  pbPuppet.ContactAliasResponse())
+        } catch (e) {
+          return grpcError('contactAlias', (e as Error), callback)
         }
       }
 
@@ -96,11 +93,8 @@ function puppetImplementation (
       try {
         const alias = await puppet.contactAlias(id)
 
-        const aliasWrapper = new StringValue()
-        aliasWrapper.setValue(alias)
-
         const response = new pbPuppet.ContactAliasResponse()
-        response.setAlias(aliasWrapper)
+        response.setAlias(alias)
 
         return callback(null, response)
       } catch (e) {
@@ -118,11 +112,9 @@ function puppetImplementation (
        * Set
        */
       try {
-        const fileBoxWrapper = call.request.getFilebox()
-
-        if (fileBoxWrapper) {
+        if (call.request.hasFilebox()) {
           const fileBox = FileBox.fromJSON(
-            fileBoxWrapper.getValue()
+            call.request.getFilebox(),
           )
           await puppet.contactAvatar(id, fileBox)
 
@@ -137,14 +129,8 @@ function puppetImplementation (
        */
       try {
         const fileBox = await puppet.contactAvatar(id)
-
-        const fileBoxWrapper = new StringValue()
-        fileBoxWrapper.setValue(
-          JSON.stringify(fileBox)
-        )
-
         const response = new pbPuppet.ContactAvatarResponse()
-        response.setFilebox(fileBoxWrapper)
+        response.setFilebox(JSON.stringify(fileBox))
 
         return callback(null, response)
       } catch (e) {
@@ -156,13 +142,11 @@ function puppetImplementation (
       log.verbose('PuppetServiceImpl', 'contactCorporationRemark()')
 
       const contactId = call.request.getContactId()
-      let corporationRemark: string | null = null
       try {
-        const corporationRemarkWrapper = call.request.getCorporationRemark()
-        if (corporationRemarkWrapper) {
-          corporationRemark = corporationRemarkWrapper.getValue()
-        }
-        await puppet.contactCorporationRemark(contactId, corporationRemark)
+        await puppet.contactCorporationRemark(
+          contactId,
+          call.request.getCorporationRemark() || null,
+        )
         return callback(null, new pbPuppet.ContactCorporationRemarkResponse())
       } catch (e) {
         return grpcError('contactCorporationRemark', (e as Error), callback)
@@ -173,14 +157,10 @@ function puppetImplementation (
       log.verbose('PuppetServiceImpl', 'contactDescription()')
 
       const contactId = call.request.getContactId()
-      let description: string | null = null
 
       try {
-        const descriptionWrapper = call.request.getDescription()
-        if (descriptionWrapper) {
-          description = descriptionWrapper.getValue()
-        }
-        await puppet.contactDescription(contactId, description)
+        const description = call.request.getDescription()
+        await puppet.contactDescription(contactId, description || null)
         return callback(null, new pbPuppet.ContactDescriptionResponse())
       } catch (e) {
         return grpcError('contactDescription', (e as Error), callback)
@@ -225,7 +205,7 @@ function puppetImplementation (
         response.setStar(payload.star || false)
         response.setType(payload.type)
         response.setWeixin(payload.weixin || '')
-        response.setPhoneList(payload.phone)
+        response.setPhonesList(payload.phone)
         response.setCoworker(payload.coworker || false)
         response.setCorporation(payload.corporation || '')
         response.setTitle(payload.title || '')
@@ -242,7 +222,7 @@ function puppetImplementation (
 
       try {
         const contactId = call.request.getContactId()
-        const phoneList = call.request.getPhoneListList()
+        const phoneList = call.request.getPhonesList()
 
         await puppet.contactPhone(contactId, phoneList)
         return callback(null, new pbPuppet.ContactPhoneResponse())
@@ -443,9 +423,7 @@ function puppetImplementation (
         const response = new pbPuppet.FriendshipSearchPhoneResponse()
 
         if (contactId) {
-          const contactIdWrapper = new StringValue()
-          contactIdWrapper.setValue(contactId)
-          response.setContactId(contactIdWrapper)
+          response.setContactId(contactId)
         }
 
         return callback(null, response)
@@ -465,9 +443,7 @@ function puppetImplementation (
         const response = new pbPuppet.FriendshipSearchWeixinResponse()
 
         if (contactId) {
-          const contactIdWrapper = new StringValue()
-          contactIdWrapper.setValue(contactId)
-          response.setContactId(contactIdWrapper)
+          response.setContactId(contactId)
         }
 
         return callback(null, response)
@@ -1017,15 +993,9 @@ function puppetImplementation (
         /**
          * Set
          */
-        {
-          const textWrapper = call.request.getText()
-
-          if (textWrapper) {
-            const text = textWrapper.getValue()
-            await puppet.roomAnnounce(roomId, text)
-
-            return callback(null, new pbPuppet.RoomAnnounceResponse())
-          }
+        if (call.request.hasText()) {
+          await puppet.roomAnnounce(roomId, call.request.getText())
+          return callback(null, new pbPuppet.RoomAnnounceResponse())
         }
 
         /**
@@ -1033,11 +1003,8 @@ function puppetImplementation (
          */
         const text = await puppet.roomAnnounce(roomId)
 
-        const textWrapper = new StringValue()
-        textWrapper.setValue(text)
-
         const response = new pbPuppet.RoomAnnounceResponse()
-        response.setText(textWrapper)
+        response.setText(text)
 
         return callback(null, response)
 
@@ -1304,15 +1271,10 @@ function puppetImplementation (
         /**
          * Set
          */
-        {
-          const topicWrapper = call.request.getTopic()
-          if (topicWrapper) {
-            const topic = topicWrapper.getValue()
+        if (call.request.hasTopic()) {
+          await puppet.roomTopic(roomId, call.request.getTopic())
 
-            await puppet.roomTopic(roomId, topic)
-
-            return callback(null, new pbPuppet.RoomTopicResponse())
-          }
+          return callback(null, new pbPuppet.RoomTopicResponse())
         }
 
         /**
@@ -1321,11 +1283,8 @@ function puppetImplementation (
 
         const topic = await puppet.roomTopic(roomId)
 
-        const topicWrapper = new StringValue()
-        topicWrapper.setValue(topic)
-
         const response = new pbPuppet.RoomTopicResponse()
-        response.setTopic(topicWrapper)
+        response.setTopic(topic)
 
         return callback(null, response)
 
