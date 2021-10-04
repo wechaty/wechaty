@@ -7,7 +7,6 @@ import util from 'util'
 import {
   grpc,
   puppet,
-  google,
 }               from '../src/mod.js'
 
 import { puppetServerImpl } from './puppet-server-impl.js'
@@ -21,13 +20,12 @@ const contactAlias: grpc.handleUnaryCall<
   puppet.ContactAliasResponse
 > = (call, callback) => {
   const id = call.request.getId()
-  let aliasWrapper = call.request.getAlias()
 
-  if (aliasWrapper) {
+  if (call.request.hasAlias()) {
     /**
      * Set alias, return void
      */
-    const alias = aliasWrapper.getValue()
+    const alias = call.request.getAlias()
     if (alias !== ALIAS) {
       throw new Error(`alias argument value error: ${alias} not equal to ${ALIAS}`)
     }
@@ -37,11 +35,8 @@ const contactAlias: grpc.handleUnaryCall<
     /**
      * Get alias, return alias
      */
-    aliasWrapper = new google.StringValue()
-    aliasWrapper.setValue(id + ALIAS)
-
     const response = new puppet.ContactAliasResponse()
-    response.setAlias(aliasWrapper)
+    response.setAlias(id + ALIAS)
     callback(null, response)
   }
 }
@@ -101,32 +96,22 @@ test('use StringValue to support nullable values', async t => {
 
     const response = await contactAliasPromise(request) as puppet.ContactAliasResponse
 
-    const aliasWrapper = response.getAlias()
-    t.ok(aliasWrapper, 'Should return an aliasWrapper')
-
-    if (aliasWrapper) {
-      const alias = aliasWrapper.getValue()
-      t.equal(alias, ID + ALIAS, 'should get the right alias value')
-    } else {
-      t.fail('can not get alias value')
-    }
+    const alias = response.getAlias()
+    t.equal(alias, ID + ALIAS, 'should get the right alias value')
   }
 
   /**
    * Set alias
    */
   {
-    const aliasWrapper = new google.StringValue()
-    aliasWrapper.setValue(ALIAS)
-
     const request = new puppet.ContactAliasRequest()
     request.setId(ID)
-    request.setAlias(aliasWrapper)
+    request.setAlias(ALIAS)
 
     const response = await contactAliasPromise(request) as puppet.ContactAliasResponse
 
-    const nullAliasWrapper = response.getAlias()
-    t.notOk(nullAliasWrapper, 'should return undefined for null value')
+    const alias = response.getAlias()
+    t.notOk(alias, 'should return empty for after set a value')
   }
 
   await new Promise(resolve => server.tryShutdown(resolve))

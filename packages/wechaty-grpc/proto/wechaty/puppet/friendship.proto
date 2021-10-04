@@ -38,7 +38,8 @@ message FriendshipPayloadRequest {
    *  What's the reason we need belowing payload?
    *  We should remove it if possible.
    */
-  google.protobuf.StringValue payload = 2;
+  google.protobuf.StringValue payload_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string payload = 3;
 }
 message FriendshipPayloadResponse {
   string              id         = 1;
@@ -55,7 +56,8 @@ message FriendshipSearchPhoneRequest {
 }
 message FriendshipSearchPhoneResponse {
   // nullable
-  google.protobuf.StringValue contact_id = 1;
+  google.protobuf.StringValue contact_id_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string contact_id = 2;
 }
 
 message FriendshipSearchWeixinRequest {
@@ -63,7 +65,8 @@ message FriendshipSearchWeixinRequest {
 }
 message FriendshipSearchWeixinResponse {
   // nullable
-  google.protobuf.StringValue contact_id = 1;
+  google.protobuf.StringValue contact_id_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string contact_id = 2;
 }
 
 message FriendshipAddRequest {

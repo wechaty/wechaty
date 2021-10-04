@@ -416,7 +416,7 @@ service Puppet {
 
   rpc RoomTopic (puppet.RoomTopicRequest) returns (puppet.RoomTopicResponse) {
     option (google.api.http) = {
-      put: "/rooms/{id}/topic/{topic}"
+      get: "/rooms/{id}/topic"
     };
   }
   rpc RoomQRCode (puppet.RoomQRCodeRequest) returns (puppet.RoomQRCodeResponse) {

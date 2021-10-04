@@ -1,6 +1,4 @@
 // import { Metadata } from '@grpc/grpc-js'
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb'
-
 // import { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
 
 import {
@@ -17,21 +15,14 @@ export async function testAlias (client: puppet.PuppetClient) {
 
   {
     const response = await contactAlias(request)
-    const aliasWrapper = response.getAlias()
-    let alias
-    if (aliasWrapper) {
-      alias = aliasWrapper.getValue()
-    }
+    const alias = response.getAlias()
     console.info('returned alias:', alias)
   }
 
   console.info('##############')
 
   {
-    const aliasWrapper = new StringValue()
-    aliasWrapper.setValue('test alias')
-
-    request.setAlias(aliasWrapper)
+    request.setAlias('test alias')
     const response = await contactAlias(request)
 
     const returnAliasWrapper = response.getAlias()

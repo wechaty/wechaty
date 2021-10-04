@@ -64,10 +64,12 @@ message RoomQuitResponse {}
 
 message RoomTopicRequest {
   string id = 1;
-  google.protobuf.StringValue topic = 2;
+  google.protobuf.StringValue topic_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  optional string topic = 3;
 }
 message RoomTopicResponse {
-  google.protobuf.StringValue topic = 1;
+  google.protobuf.StringValue topic_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string topic = 2;
 }
 
 message RoomQRCodeRequest {
@@ -79,9 +81,11 @@ message RoomQRCodeResponse {
 
 message RoomAnnounceRequest {
   string id = 1;
-  google.protobuf.StringValue text = 2;
+  google.protobuf.StringValue text_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  optional string text = 3;
 }
 message RoomAnnounceResponse {
-  google.protobuf.StringValue text = 1;
+  google.protobuf.StringValue text_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string text = 2;
 }
 
