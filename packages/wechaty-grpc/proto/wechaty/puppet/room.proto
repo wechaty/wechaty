@@ -35,11 +35,6 @@ message RoomAvatarRequest {
   string id = 1;
 }
 message RoomAvatarResponse {
-  /**
-   * Huan(202011) TODO:
-   *  1. rename to file_box
-   *  2. replace it by FileBoxChunk with stream support
-   */
   string filebox = 1;
 }
 

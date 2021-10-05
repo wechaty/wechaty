@@ -16,6 +16,8 @@ package wechaty.puppet;
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+import "wechaty/deprecated/file-box.proto";
+
 import "wechaty/puppet/base.proto";
 import "wechaty/puppet/contact.proto";
 import "wechaty/puppet/download-upload.proto";

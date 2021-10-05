@@ -1,0 +1,13 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package="io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+enum ImageType {
+  IMAGE_TYPE_UNSPECIFIED = 0;
+  IMAGE_TYPE_THUMBNAIL   = 1;
+  IMAGE_TYPE_HD          = 2;
+  IMAGE_TYPE_ARTWORK     = 3;
+}

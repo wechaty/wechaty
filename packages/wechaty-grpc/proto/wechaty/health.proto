@@ -13,9 +13,9 @@ option go_package       = "github.com/wechaty/go-grpc/wechaty";
 option java_package     = "io.github.wechaty.grpc";
 
 enum ServingStatus {
-  SERVING_STATUS_UNSPECIFIC = 0;
-  SERVING_STATUS_SERVING = 1;
-  SERVING_STATUS_NOT_SERVING = 2;
+  SERVING_STATUS_UNSPECIFIC      = 0;
+  SERVING_STATUS_SERVING         = 1;
+  SERVING_STATUS_NOT_SERVING     = 2;
   SERVING_STATUS_SERVICE_UNKNOWN = 3;  // Used only by the Watch method.
 }
 

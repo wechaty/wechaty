@@ -14,7 +14,7 @@ import "google/protobuf/timestamp.proto";
  */
 import "google/protobuf/wrappers.proto";
 
-import "wechaty/puppet/file-box.proto";
+import "wechaty/puppet/image.proto";
 import "wechaty/puppet/location.proto";
 import "wechaty/puppet/mini-program.proto";
 import "wechaty/puppet/url-link.proto";
@@ -36,13 +36,6 @@ enum MessageType {
   MESSAGE_TYPE_RED_ENVELOPE = 12;
   MESSAGE_TYPE_RECALLED     = 13;
   MESSAGE_TYPE_URL          = 14;
-}
-
-enum ImageType {
-  IMAGE_TYPE_UNSPECIFIED = 0;
-  IMAGE_TYPE_THUMBNAIL   = 1;
-  IMAGE_TYPE_HD          = 2;
-  IMAGE_TYPE_ARTWORK     = 3;
 }
 
 message MessagePayloadRequest {
@@ -70,20 +63,7 @@ message MessageImageRequest {
   ImageType type = 2;
 }
 message MessageImageResponse {
-  /**
-   * Huan(202011) TODO:
-   *  1. rename to file_box
-   *  2. replace it by FileBoxChunk with stream support
-   */
    string filebox = 1;
-}
-
-message MessageImageStreamRequest {
-  string id = 1;
-  ImageType type = 2;
-}
-message MessageImageStreamResponse {
-  FileBoxChunk file_box_chunk = 1;
 }
 
 message MessageContactRequest {
@@ -101,13 +81,6 @@ message MessageFileResponse {
    * Huan(202011) deprecated: use MessageFileStreamResponse instead
    */
    string filebox = 1 [deprecated = true];
-}
-
-message MessageFileStreamRequest {
-  string id = 1;
-}
-message MessageFileStreamResponse {
-  FileBoxChunk file_box_chunk = 1;
 }
 
 message MessageMiniProgramRequest {
@@ -153,26 +126,6 @@ message MessageSendFileRequest {
   string filebox = 2;
 }
 message MessageSendFileResponse {
-  /**
-   * @deprecated:
-   *  Huan(202109): Wrapper types must not be used going forward.
-   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
-   */
-  google.protobuf.StringValue id_string_value_deprecated = 1 [deprecated = true]; // Deprecated after Sep 31, 2021, will be removed after Dec 31, 2022
-  string id = 2;
-}
-
-message MessageSendFileStreamRequest {
-  /**
-   * Huan(202110): `oneof xxx {}` seems equal with `optional`?
-   *  to be confirmed.
-   */
-  // oneof payload {
-  optional string conversation_id = 1;
-  optional FileBoxChunk file_box_chunk = 2;
-  // };
-}
-message MessageSendFileStreamResponse {
   /**
    * @deprecated:
    *  Huan(202109): Wrapper types must not be used going forward.
