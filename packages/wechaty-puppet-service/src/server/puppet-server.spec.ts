@@ -17,5 +17,5 @@ test('version()', async t => {
   }
 
   const puppet = new PuppetServer(options)
-  t.ok(puppet.version())
+  t.ok(puppet.version(), 'should have version() method')
 })

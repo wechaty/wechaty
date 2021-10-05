@@ -1,3 +1,4 @@
+/* eslint-disable sort-keys */
 import {
   google,
   grpc,
@@ -23,10 +24,12 @@ import {
   PayloadType,
 }                                   from 'wechaty-puppet'
 
+import uuid from 'uuid'
+
 import {
   packFileBoxToPb,
   unpackConversationIdFileBoxArgsFromPb,
-}                                         from '../file-box-stream/mod.js'
+}                                         from '../deprecated/mod.js'
 import {
   timestampFromMilliseconds,
 }                                         from '../pure-functions/timestamp.js'
@@ -34,6 +37,7 @@ import {
 import { grpcError }          from './grpc-error.js'
 import { EventStreamManager } from './event-stream-manager.js'
 import { serializeFileBox }   from './serialize-file-box.js'
+import { chunkDecoder, chunkEncoder } from '../pure-functions/filebox-chunk.js'
 
 const { StringValue } = google
 
@@ -1442,6 +1446,34 @@ function puppetImplementation (
       } catch (e) {
         return grpcError('version', (e as Error), callback)
       }
+    },
+
+    download: async (call) => {
+      log.verbose('PuppetServiceImpl', 'download()')
+
+      const id      = call.request.getId()
+      const fileBox = FileBox.fromQRCode(id)
+
+      fileBox
+        .pipe(chunkEncoder(pbPuppet.DownloadResponse))
+        .pipe(call)
+    },
+
+    upload: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'upload()')
+
+      const id = uuid.v4()
+
+      const fileBox = FileBox.fromStream(
+        call.pipe(chunkDecoder()),
+        id,
+      )
+      void fileBox
+
+      const response = new pbPuppet.UploadResponse()
+      response.setId(id)
+
+      return callback(null, response)
     },
 
   }

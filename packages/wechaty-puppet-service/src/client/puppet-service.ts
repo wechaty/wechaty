@@ -60,7 +60,7 @@ import {
 import {
   packConversationIdFileBoxToPb,
   unpackFileBoxFromPb,
-}                                   from '../file-box-stream/mod.js'
+}                                   from '../deprecated/mod.js'
 import { serializeFileBox }           from '../server/serialize-file-box.js'
 import { millisecondsFromTimestamp }  from '../pure-functions/timestamp.js'
 
