@@ -64,7 +64,7 @@
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.12.4",
-    "file-box": "^0.21.1",
+    "file-box": "^0.21.2",
     "clone-class": "^0.9.13",
     "hot-import": "^0.2.14",
     "memory-card": "^0.12.2",
