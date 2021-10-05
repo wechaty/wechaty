@@ -1,9 +1,10 @@
 const pkgs = [
+  '../out/wechaty/deprecated/file-box_pb.js',
+
   '../out/wechaty/puppet/base_pb.js',
   '../out/wechaty/puppet/contact_pb.js',
   '../out/wechaty/puppet/download-upload_pb.js',
   '../out/wechaty/puppet/event_pb.js',
-  '../out/wechaty/puppet/file-box_pb.js',
   '../out/wechaty/puppet/friendship_pb.js',
   '../out/wechaty/puppet/location_pb.js',
   '../out/wechaty/puppet/message_pb.js',

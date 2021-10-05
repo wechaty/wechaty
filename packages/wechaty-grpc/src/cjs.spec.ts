@@ -23,6 +23,5 @@ test('ESM: puppet.EventTypeMap', async t => {
 })
 
 test('ESM: puppet', async t => {
-  t.ok(puppet.DingRequest, 'should exists "DingRequest"')
-  console.info(typeof puppet.DingRequest)
+  t.equal(puppet.DingRequest, 'should exists "DingRequest"')
 })
