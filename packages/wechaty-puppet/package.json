@@ -64,7 +64,7 @@
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.12.4",
     "clone-class": "^0.9.7",
-    "file-box": "^0.17.9",
+    "file-box": "^0.19.4",
     "hot-import": "^0.2.14",
     "memory-card": "^0.12.2",
     "rx-queue": "^0.12.6",
