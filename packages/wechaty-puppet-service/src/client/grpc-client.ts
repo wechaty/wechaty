@@ -122,7 +122,7 @@ class GrpcClient extends EventEmitter {
     /**
      * 1. Init grpc client
      */
-    await this.init()
+    await this.initClient()
     /**
      * 2. Connect to stream
      */
@@ -148,16 +148,17 @@ class GrpcClient extends EventEmitter {
      * 2. Stop the puppet
      */
     await util.promisify(
-      this.client.stop.bind(this.client)
+      this.client.stop
+        .bind(this.client)
     )(new puppet.StopRequest())
     /**
      * 3. Destroy grpc client
      */
-    await this.destroy()
+    await this.destroyClient()
   }
 
-  protected async init (): Promise<void> {
-    log.verbose('GrpcClient', 'init()')
+  protected async initClient (): Promise<void> {
+    log.verbose('GrpcClient', 'initClient()')
 
     /**
      * Huan(202108): for maximum compatible with the non-tls community servers/clients,
@@ -166,10 +167,10 @@ class GrpcClient extends EventEmitter {
      */
     let credential
     if (this.disableTls) {
-      log.warn('GrpcClient', 'init() TLS disabled: INSECURE!')
+      log.warn('GrpcClient', 'initClient() TLS: disabled (INSECURE)')
       credential = grpc.credentials.createInsecure()
     } else {
-      log.verbose('GrpcClient', 'init() TLS enabled.')
+      log.verbose('GrpcClient', 'initClient() TLS: enabled')
       const callCred    = callCredToken(this.token.token)
       const channelCred = grpc.credentials.createSsl(this.caCert)
       const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
@@ -196,7 +197,7 @@ class GrpcClient extends EventEmitter {
     }
 
     if (this.#client) {
-      log.error('GrpcClient', 'init() this.client exists? Old client has been dropped.')
+      log.warn('GrpcClient', 'initClient() this.#client exists? Old client has been dropped.')
       this.#client = undefined
     }
 
@@ -207,33 +208,30 @@ class GrpcClient extends EventEmitter {
     )
   }
 
-  protected destroy (): void {
-    log.verbose('GrpcClient', 'destroy()')
+  protected destroyClient (): void {
+    log.verbose('GrpcClient', 'destroyClient()')
 
-    if (!this.client) {
-      log.error('GrpcClient', 'destroy() this.client not exist')
+    if (!this.#client) {
+      log.warn('GrpcClient', 'destroyClient() this.#client not exist')
       return
     }
+
+    const client = this.#client
     /**
       * Huan(202108): we should set `this.client` to `undefined` at the current event loop
       *   to prevent the future usage of the old client.
       */
-    const client = this.client
     this.#client = undefined
 
     try {
       client.close()
     } catch (e) {
-      log.error('GrpcClient', 'destroy() grpcClient.close() rejection: %s\n%s', e && (e as Error).message, (e as Error).stack)
+      log.error('GrpcClient', 'destroyClient() client.close() rejection: %s\n%s', e && (e as Error).message, (e as Error).stack)
     }
   }
 
   protected async startStream (): Promise<void> {
     log.verbose('GrpcClient', 'startStream()')
-
-    if (!this.client) {
-      throw new Error('this.client not exist')
-    }
 
     if (this.eventStream) {
       log.verbose('GrpcClient', 'startStream() this.eventStream exists, dropped.')

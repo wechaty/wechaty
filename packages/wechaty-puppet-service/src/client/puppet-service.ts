@@ -341,7 +341,8 @@ export class PuppetService extends Puppet {
 
     try {
       await util.promisify(
-        this.grpc.client.logout.bind(this.grpc.client)
+        this.grpc.client.logout
+          .bind(this.grpc.client)
       )(new pbPuppet.LogoutRequest())
 
     } catch (e) {
@@ -356,7 +357,7 @@ export class PuppetService extends Puppet {
     const request = new pbPuppet.DingRequest()
     request.setData(data || '')
 
-    if (!this.grpc?.client) {
+    if (!this.grpc.client) {
       log.info('PuppetService', 'ding() Skip ding since client is not connected.')
       return
     }
@@ -402,15 +403,13 @@ export class PuppetService extends Puppet {
         break
     }
 
-    if (!this.grpc?.client) {
-      throw new Error('PuppetService dirtyPayload() can not execute due to no grpcClient.')
-    }
     const request = new pbPuppet.DirtyPayloadRequest()
     request.setId(id)
     request.setType(type)
     try {
       await util.promisify(
-        this.grpc.client.dirtyPayload.bind(this.grpc.client)
+        this.grpc.client.dirtyPayload
+          .bind(this.grpc.client)
       )(request)
 
     } catch (e) {
@@ -443,7 +442,8 @@ export class PuppetService extends Puppet {
       request.setId(contactId)
 
       const response = await util.promisify(
-        this.grpc.client.contactAlias.bind(this.grpc.client)
+        this.grpc.client.contactAlias
+          .bind(this.grpc.client)
       )(request)
 
       const result = response.getAlias()
@@ -478,7 +478,8 @@ export class PuppetService extends Puppet {
     }
 
     await util.promisify(
-      this.grpc.client.contactAlias.bind(this.grpc.client)
+      this.grpc.client.contactAlias
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -490,7 +491,8 @@ export class PuppetService extends Puppet {
     request.setPhonesList(phoneList)
 
     await util.promisify(
-      this.grpc.client.contactPhone.bind(this.grpc.client)
+      this.grpc.client.contactPhone
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -513,7 +515,8 @@ export class PuppetService extends Puppet {
     }
 
     await util.promisify(
-      this.grpc.client.contactCorporationRemark.bind(this.grpc.client)
+      this.grpc.client.contactCorporationRemark
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -536,7 +539,8 @@ export class PuppetService extends Puppet {
     }
 
     await util.promisify(
-      this.grpc.client.contactDescription.bind(this.grpc.client)
+      this.grpc.client.contactDescription
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -544,7 +548,8 @@ export class PuppetService extends Puppet {
     log.verbose('PuppetService', 'contactList()')
 
     const response = await util.promisify(
-      this.grpc.client.contactList.bind(this.grpc.client)
+      this.grpc.client.contactList
+        .bind(this.grpc.client)
     )(new pbPuppet.ContactListRequest())
 
     return response.getIdsList()
@@ -584,7 +589,8 @@ export class PuppetService extends Puppet {
       }
 
       await util.promisify(
-        this.grpc.client.contactAvatar.bind(this.grpc.client)
+        this.grpc.client.contactAvatar
+          .bind(this.grpc.client)
       )(request)
 
       return
@@ -597,7 +603,8 @@ export class PuppetService extends Puppet {
     request.setId(contactId)
 
     const response = await util.promisify(
-      this.grpc.client.contactAvatar.bind(this.grpc.client)
+      this.grpc.client.contactAvatar
+        .bind(this.grpc.client)
     )(request)
 
     let jsonText: string
@@ -633,7 +640,8 @@ export class PuppetService extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpc.client.contactPayload.bind(this.grpc.client)
+      this.grpc.client.contactPayload
+        .bind(this.grpc.client)
     )(request)
 
     const payload: ContactPayload = {
@@ -676,7 +684,8 @@ export class PuppetService extends Puppet {
     request.setName(name)
 
     await util.promisify(
-      this.grpc.client.contactSelfName.bind(this.grpc.client)
+      this.grpc.client.contactSelfName
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -684,7 +693,8 @@ export class PuppetService extends Puppet {
     log.verbose('PuppetService', 'contactSelfQRCode()')
 
     const response = await util.promisify(
-      this.grpc.client.contactSelfQRCode.bind(this.grpc.client)
+      this.grpc.client.contactSelfQRCode
+        .bind(this.grpc.client)
     )(new pbPuppet.ContactSelfQRCodeRequest())
 
     return response.getQrcode()
@@ -697,7 +707,8 @@ export class PuppetService extends Puppet {
     request.setSignature(signature)
 
     await util.promisify(
-      this.grpc.client.contactSelfSignature.bind(this.grpc.client)
+      this.grpc.client.contactSelfSignature
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -728,7 +739,8 @@ export class PuppetService extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpc.client.messageMiniProgram.bind(this.grpc.client)
+      this.grpc.client.messageMiniProgram
+        .bind(this.grpc.client)
     )(request)
 
     let miniProgramPayload = response.getMiniProgram()
@@ -756,7 +768,8 @@ export class PuppetService extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpc.client.messageLocation.bind(this.grpc.client)
+      this.grpc.client.messageLocation
+        .bind(this.grpc.client)
     )(request)
 
     const locationPayload = response.getLocation()
@@ -786,9 +799,6 @@ export class PuppetService extends Puppet {
     request.setId(messageId)
     request.setType(imageType)
 
-    if (!this.grpc?.client) {
-      throw new Error('Can not get image from message since no grpc client.')
-    }
     const pbStream = this.grpc.client.messageImageStream(request)
     const fileBox = await unpackFileBoxFromPb(pbStream)
     // const fileBoxChunkStream = unpackFileBoxChunk(stream)
@@ -805,7 +815,8 @@ export class PuppetService extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpc.client.messageContact.bind(this.grpc.client)
+      this.grpc.client.messageContact
+        .bind(this.grpc.client)
     )(request)
 
     const contactId = response.getId()
@@ -839,7 +850,8 @@ export class PuppetService extends Puppet {
     request.setMiniProgramDeprecated(JSON.stringify(miniProgramPayload))
 
     const response = await util.promisify(
-      this.grpc.client.messageSendMiniProgram.bind(this.grpc.client)
+      this.grpc.client.messageSendMiniProgram
+        .bind(this.grpc.client)
     )(request)
 
     const messageId = response.getId()
@@ -878,7 +890,8 @@ export class PuppetService extends Puppet {
     request.setLocation(pbLocationPayload)
 
     const response = await util.promisify(
-      this.grpc.client.messageSendLocation.bind(this.grpc.client)
+      this.grpc.client.messageSendLocation
+        .bind(this.grpc.client)
     )(request)
 
     const id = response.getId()
@@ -897,7 +910,8 @@ export class PuppetService extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpc.client.messageRecall.bind(this.grpc.client)
+      this.grpc.client.messageRecall
+        .bind(this.grpc.client)
     )(request)
 
     return response.getSuccess()
@@ -909,9 +923,6 @@ export class PuppetService extends Puppet {
     const request = new pbPuppet.MessageFileStreamRequest()
     request.setId(id)
 
-    if (!this.grpc?.client) {
-      throw new Error('Can not get file from message since no grpc client.')
-    }
     const pbStream = this.grpc.client.messageFileStream(request)
     // const fileBoxChunkStream = unpackFileBoxChunk(pbStream)
     // return unpackFileBox(fileBoxChunkStream)
@@ -930,7 +941,8 @@ export class PuppetService extends Puppet {
     request.setMessageId(messageId)
 
     const response = await util.promisify(
-      this.grpc.client.messageForward.bind(this.grpc.client)
+      this.grpc.client.messageForward
+        .bind(this.grpc.client)
     )(request)
 
     const forwardedMessageId = response.getId()
@@ -964,7 +976,8 @@ export class PuppetService extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpc.client.messagePayload.bind(this.grpc.client)
+      this.grpc.client.messagePayload
+        .bind(this.grpc.client)
     )(request)
 
     let timestamp
@@ -1015,7 +1028,8 @@ export class PuppetService extends Puppet {
     }
 
     const response = await util.promisify(
-      this.grpc.client.messageSendText.bind(this.grpc.client)
+      this.grpc.client.messageSendText
+        .bind(this.grpc.client)
     )(request)
 
     const messageId = response.getId()
@@ -1067,7 +1081,8 @@ export class PuppetService extends Puppet {
     request.setContactId(contactId)
 
     const response = await util.promisify(
-      this.grpc.client.messageSendContact.bind(this.grpc.client)
+      this.grpc.client.messageSendContact
+        .bind(this.grpc.client)
     )(request)
 
     const messageId = response.getId()
@@ -1108,7 +1123,8 @@ export class PuppetService extends Puppet {
     request.setUrlLinkDeprecated(JSON.stringify(urlLinkPayload))
 
     const response = await util.promisify(
-      this.grpc.client.messageSendUrl.bind(this.grpc.client)
+      this.grpc.client.messageSendUrl
+        .bind(this.grpc.client)
     )(request)
 
     const messageId = response.getId()
@@ -1136,7 +1152,8 @@ export class PuppetService extends Puppet {
     request.setId(messageId)
 
     const response = await util.promisify(
-      this.grpc.client.messageUrl.bind(this.grpc.client)
+      this.grpc.client.messageUrl
+        .bind(this.grpc.client)
     )(request)
 
     let pbUrlLinkPayload = response.getUrlLink()
@@ -1174,7 +1191,8 @@ export class PuppetService extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpc.client.roomPayload.bind(this.grpc.client)
+      this.grpc.client.roomPayload
+        .bind(this.grpc.client)
     )(request)
 
     const payload: RoomPayload = {
@@ -1202,7 +1220,8 @@ export class PuppetService extends Puppet {
     log.verbose('PuppetService', 'roomList()')
 
     const response = await util.promisify(
-      this.grpc.client.roomList.bind(this.grpc.client)
+      this.grpc.client.roomList
+        .bind(this.grpc.client)
     )(new pbPuppet.RoomListRequest())
 
     return response.getIdsList()
@@ -1219,7 +1238,8 @@ export class PuppetService extends Puppet {
     request.setContactId(contactId)
 
     await util.promisify(
-      this.grpc.client.roomDel.bind(this.grpc.client)
+      this.grpc.client.roomDel
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1230,7 +1250,8 @@ export class PuppetService extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpc.client.roomAvatar.bind(this.grpc.client)
+      this.grpc.client.roomAvatar
+        .bind(this.grpc.client)
     )(request)
 
     const jsonText = response.getFilebox()
@@ -1250,7 +1271,8 @@ export class PuppetService extends Puppet {
     request.setInviteOnly(inviteOnly)
 
     await util.promisify(
-      this.grpc.client.roomAdd.bind(this.grpc.client)
+      this.grpc.client.roomAdd
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1271,7 +1293,8 @@ export class PuppetService extends Puppet {
       request.setId(roomId)
 
       const response = await util.promisify(
-        this.grpc.client.roomTopic.bind(this.grpc.client)
+        this.grpc.client.roomTopic
+          .bind(this.grpc.client)
       )(request)
 
       const result = response.getTopic()
@@ -1306,7 +1329,8 @@ export class PuppetService extends Puppet {
     }
 
     await util.promisify(
-      this.grpc.client.roomTopic.bind(this.grpc.client)
+      this.grpc.client.roomTopic
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1321,7 +1345,8 @@ export class PuppetService extends Puppet {
     request.setTopic(topic)
 
     const response = await util.promisify(
-      this.grpc.client.roomCreate.bind(this.grpc.client)
+      this.grpc.client.roomCreate
+        .bind(this.grpc.client)
     )(request)
 
     return response.getId()
@@ -1334,7 +1359,8 @@ export class PuppetService extends Puppet {
     request.setId(roomId)
 
     await util.promisify(
-      this.grpc.client.roomQuit.bind(this.grpc.client)
+      this.grpc.client.roomQuit
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1345,7 +1371,8 @@ export class PuppetService extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpc.client.roomQRCode.bind(this.grpc.client)
+      this.grpc.client.roomQRCode
+        .bind(this.grpc.client)
     )(request)
 
     return response.getQrcode()
@@ -1358,7 +1385,8 @@ export class PuppetService extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpc.client.roomMemberList.bind(this.grpc.client)
+      this.grpc.client.roomMemberList
+        .bind(this.grpc.client)
     )(request)
 
     return response.getMemberIdsList()
@@ -1379,7 +1407,8 @@ export class PuppetService extends Puppet {
     request.setMemberId(contactId)
 
     const response = await util.promisify(
-      this.grpc.client.roomMemberPayload.bind(this.grpc.client)
+      this.grpc.client.roomMemberPayload
+        .bind(this.grpc.client)
     )(request)
 
     const payload: RoomMemberPayload = {
@@ -1429,7 +1458,8 @@ export class PuppetService extends Puppet {
       }
 
       await util.promisify(
-        this.grpc.client.roomAnnounce.bind(this.grpc.client)
+        this.grpc.client.roomAnnounce
+          .bind(this.grpc.client)
       )(request)
 
       return
@@ -1442,7 +1472,8 @@ export class PuppetService extends Puppet {
     request.setId(roomId)
 
     const response = await util.promisify(
-      this.grpc.client.roomAnnounce.bind(this.grpc.client)
+      this.grpc.client.roomAnnounce
+        .bind(this.grpc.client)
     )(request)
 
     const result = response.getText()
@@ -1470,7 +1501,8 @@ export class PuppetService extends Puppet {
     request.setId(roomInvitationId)
 
     await util.promisify(
-      this.grpc.client.roomInvitationAccept.bind(this.grpc.client)
+      this.grpc.client.roomInvitationAccept
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1483,7 +1515,8 @@ export class PuppetService extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpc.client.roomInvitationPayload.bind(this.grpc.client)
+      this.grpc.client.roomInvitationPayload
+        .bind(this.grpc.client)
     )(request)
 
     let timestamp
@@ -1540,7 +1573,8 @@ export class PuppetService extends Puppet {
     request.setPhone(phone)
 
     const response = await util.promisify(
-      this.grpc.client.friendshipSearchPhone.bind(this.grpc.client)
+      this.grpc.client.friendshipSearchPhone
+        .bind(this.grpc.client)
     )(request)
 
     const contactId = response.getContactId()
@@ -1568,7 +1602,8 @@ export class PuppetService extends Puppet {
     request.setWeixin(weixin)
 
     const response = await util.promisify(
-      this.grpc.client.friendshipSearchWeixin.bind(this.grpc.client)
+      this.grpc.client.friendshipSearchWeixin
+        .bind(this.grpc.client)
     )(request)
 
     const contactId = response.getContactId()
@@ -1594,7 +1629,8 @@ export class PuppetService extends Puppet {
     request.setId(id)
 
     const response = await util.promisify(
-      this.grpc.client.friendshipPayload.bind(this.grpc.client)
+      this.grpc.client.friendshipPayload
+        .bind(this.grpc.client)
     )(request)
 
     const payload: FriendshipPayload = {
@@ -1648,7 +1684,8 @@ export class PuppetService extends Puppet {
     }
 
     await util.promisify(
-      this.grpc.client.friendshipAdd.bind(this.grpc.client)
+      this.grpc.client.friendshipAdd
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1661,7 +1698,8 @@ export class PuppetService extends Puppet {
     request.setId(friendshipId)
 
     await util.promisify(
-      this.grpc.client.friendshipAccept.bind(this.grpc.client)
+      this.grpc.client.friendshipAccept
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1682,7 +1720,8 @@ export class PuppetService extends Puppet {
     request.setContactId(contactId)
 
     await util.promisify(
-      this.grpc.client.tagContactAdd.bind(this.grpc.client)
+      this.grpc.client.tagContactAdd
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1698,7 +1737,8 @@ export class PuppetService extends Puppet {
     request.setContactId(contactId)
 
     await util.promisify(
-      this.grpc.client.tagContactRemove.bind(this.grpc.client)
+      this.grpc.client.tagContactRemove
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1712,7 +1752,8 @@ export class PuppetService extends Puppet {
     request.setId(id)
 
     await util.promisify(
-      this.grpc.client.tagContactDelete.bind(this.grpc.client)
+      this.grpc.client.tagContactDelete
+        .bind(this.grpc.client)
     )(request)
   }
 
@@ -1738,7 +1779,8 @@ export class PuppetService extends Puppet {
     }
 
     const response = await util.promisify(
-      this.grpc.client.tagContactList.bind(this.grpc.client)
+      this.grpc.client.tagContactList
+        .bind(this.grpc.client)
     )(request)
 
     return response.getIdsList()
@@ -1751,10 +1793,6 @@ export class PuppetService extends Puppet {
     const request = await packConversationIdFileBoxToPb(pbPuppet.MessageSendFileStreamRequest)(conversationId, file)
 
     const response = await new Promise<pbPuppet.MessageSendFileStreamResponse>((resolve, reject) => {
-      if (!this.grpc?.client) {
-        reject(new Error('Can not send message file since no grpc client.'))
-        return
-      }
       const stream = this.grpc.client.messageSendFileStream((err, response) => {
         if (err) {
           reject(err)
@@ -1791,7 +1829,8 @@ export class PuppetService extends Puppet {
     request.setFilebox(JSON.stringify(file))
 
     const response = await util.promisify(
-      this.grpc.client.messageSendFile.bind(this.grpc.client)
+      this.grpc.client.messageSendFile
+        .bind(this.grpc.client)
     )(request)
 
     const messageId = response.getId()
