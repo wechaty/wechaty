@@ -8,15 +8,15 @@ import {
 import {
   StateSwitch,
 }                         from 'state-switch'
-import {
-  looseInstanceOfClass,
-  instanceToClass,
-}                         from 'clone-class'
 
 import {
   VERSION,
   log,
 }                         from './config.js'
+import {
+  looseInstanceOfFileBox,
+  looseInstanceOfPuppet,
+}                         from './loose-instance-of.js'
 import {
   Puppet,
 }                         from './puppet.js'
@@ -98,6 +98,9 @@ import type {
 import type {
   MiniProgramPayload,
 }                             from './schemas/mini-program.js'
+import type {
+  LocationPayload,
+}                             from './schemas/location.js'
 
 import type {
   PuppetOptions,
@@ -144,6 +147,7 @@ export type {
   FriendshipPayloadReceive,
   FriendshipPayloadVerify,
   FriendshipSearchQueryFilter,
+  LocationPayload,
   MessagePayload,
   MessagePayloadBase,
   MessagePayloadRoom,
@@ -170,9 +174,9 @@ export {
   FriendshipSceneType,
   FriendshipType,
   ImageType,
-  instanceToClass,
   log,
-  looseInstanceOfClass,
+  looseInstanceOfFileBox,
+  looseInstanceOfPuppet,
   MemoryCard,
   MessageType,
   PayloadType,

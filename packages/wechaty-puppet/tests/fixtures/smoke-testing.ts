@@ -23,6 +23,7 @@ import {
 
   UrlLinkPayload,
   MiniProgramPayload,
+  LocationPayload,
 
   VERSION,
 }                             from 'wechaty-puppet'
@@ -86,8 +87,8 @@ class PuppetTest extends Puppet {
   override async friendshipRawPayload (id: string)            : Promise<any> { return { id } as any }
   override async friendshipRawPayloadParser (rawPayload: any) : Promise<FriendshipPayload> { return rawPayload }
 
-  override async friendshipSearchPhone (phone: string) : Promise<string | null> { return phone }
-  override async friendshipSearchWeixin (weixin: string) : Promise<string | null> { return weixin }
+  override async friendshipSearchPhone (phone: string)             : Promise<string | null> { return phone }
+  override async friendshipSearchWeixin (weixin: string)           : Promise<string | null> { return weixin }
   override async friendshipAdd (contactId: string, hello?: string) : Promise<void> { return { contactId, hello } as any }
   override async friendshipAccept (friendshipId: string)           : Promise<void> { return { friendshipId } as any }
 
@@ -96,18 +97,20 @@ class PuppetTest extends Puppet {
    * Message
    *
    */
-  override async messageFile (messageId: string) : Promise<FileBox> { return { messageId } as any }
-  override async messageUrl (messageId: string)  : Promise<UrlLinkPayload> { return { messageId } as any }
+  override async messageFile (messageId: string)                        : Promise<FileBox> { return { messageId } as any }
+  override async messageUrl (messageId: string)                         : Promise<UrlLinkPayload> { return { messageId } as any }
   override async messageImage (messageId: string, imageType: ImageType) : Promise<FileBox> { return { imageType, messageId } as any }
-  override async messageContact (messageId: string)  : Promise<string> { return { messageId } as any }
-  override async messageMiniProgram (messageId: string)  : Promise<MiniProgramPayload> { return { messageId } as any }
+  override async messageContact (messageId: string)                     : Promise<string> { return { messageId } as any }
+  override async messageMiniProgram (messageId: string)                 : Promise<MiniProgramPayload> { return { messageId } as any }
+  override async messageLocation (messageId: string)                    : Promise<LocationPayload> { return { messageId } as any }
 
-  override async messageForward (to: string, messageId: string)              : Promise<void | string> { return { messageId, to } as any }
-  override async messageSendContact (receiver: string, contactId: string)    : Promise<void | string> { return { contactId, receiver } as any }
-  override async messageSendFile (to: string, file: FileBox)                 : Promise<void | string> { return { file, to } as any }
-  override async messageSendText (to: string, text: string)                  : Promise<void | string> { return { text, to } as any }
-  override async messageSendUrl (to: string, urlLinkPayload: UrlLinkPayload) : Promise<void | string> { return { to, urlLinkPayload } as any }
-  override async messageSendMiniProgram (to: string, miniProgramPayload: MiniProgramPayload) : Promise<void> { return { miniProgramPayload, to } as any }
+  override async messageForward (to: string, messageId: string)                                 : Promise<void | string> { return { messageId, to } as any }
+  override async messageSendContact (receiver: string, contactId: string)                       : Promise<void | string> { return { contactId, receiver } as any }
+  override async messageSendFile (to: string, file: FileBox)                                    : Promise<void | string> { return { file, to } as any }
+  override async messageSendText (to: string, text: string)                                     : Promise<void | string> { return { text, to } as any }
+  override async messageSendUrl (to: string, urlLinkPayload: UrlLinkPayload)                    : Promise<void | string> { return { to, urlLinkPayload } as any }
+  override async messageSendMiniProgram (to: string, miniProgramPayload: MiniProgramPayload)    : Promise<void> { return { miniProgramPayload, to } as any }
+  override async messageSendLocation (conversationId: string, locationPayload: LocationPayload) : Promise<void | string> { return { conversationId, locationPayload } as any }
 
   override async messageRecall (messageId: string) : Promise<boolean> { void messageId; return true }
 

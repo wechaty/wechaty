@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "0.47.1",
+  "version": "0.47.2",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
@@ -11,7 +11,8 @@
   },
   "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
-    "node": ">=14",
+    "node": ">=16",
+    "npm": ">=7",
     "wechaty": ">=0.68"
   },
   "scripts": {
@@ -63,8 +64,8 @@
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.12.4",
-    "clone-class": "^0.9.7",
     "file-box": "^0.19.4",
+    "clone-class": "^0.9.13",
     "hot-import": "^0.2.14",
     "memory-card": "^0.12.2",
     "rx-queue": "^0.12.6",

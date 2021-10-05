@@ -78,6 +78,9 @@ import type {
 import type {
   MiniProgramPayload,
 }                                 from './schemas/mini-program.js'
+import type {
+  LocationPayload,
+}                                 from './schemas/location.js'
 import {
   PuppetOptions,
   YOU,
@@ -96,7 +99,7 @@ let   PUPPET_COUNTER           = 0
  * See: https://github.com/wechaty/wechaty/wiki/Puppet
  *
  */
-export abstract class Puppet extends PuppetEventEmitter {
+abstract class Puppet extends PuppetEventEmitter {
 
   /**
    * Must overwrite by child class to identify their version
@@ -840,6 +843,7 @@ export abstract class Puppet extends PuppetEventEmitter {
   abstract messageImage        (messageId: string, imageType: ImageType) : Promise<FileBox>
   abstract messageMiniProgram  (messageId: string)                       : Promise<MiniProgramPayload>
   abstract messageUrl          (messageId: string)                       : Promise<UrlLinkPayload>
+  abstract messageLocation     (messageId: string)                       : Promise<LocationPayload>
 
   abstract messageForward         (conversationId: string, messageId: string,)                     : Promise<void | string>
   abstract messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string>
@@ -847,6 +851,7 @@ export abstract class Puppet extends PuppetEventEmitter {
   abstract messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
   abstract messageSendText        (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
   abstract messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string>
+  abstract messageSendLocation    (conversationId: string, locationPayload: LocationPayload)       : Promise<void | string>
 
   abstract messageRecall (messageId: string) : Promise<boolean>
 
@@ -1397,6 +1402,12 @@ export abstract class Puppet extends PuppetEventEmitter {
 
 }
 
-export type PuppetImplementation = typeof Puppet & Constructor<Puppet>
+type PuppetImplementation = Constructor<Puppet>
 
+export type {
+  PuppetImplementation,
+}
+export {
+  Puppet,
+}
 export default Puppet
