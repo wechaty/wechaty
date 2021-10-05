@@ -108,7 +108,7 @@ message ContactPhoneResponse {
 message ContactCorporationRemarkRequest {
   string contact_id = 1;
   google.protobuf.StringValue corporation_remark_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
-  optional string corporation_remark = 3;
+  string corporation_remark = 3;
 }
 
 message ContactCorporationRemarkResponse {}
@@ -116,7 +116,7 @@ message ContactCorporationRemarkResponse {}
 message ContactDescriptionRequest {
   string contact_id = 1;
   google.protobuf.StringValue description_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
-  optional string description = 3;
+  string description = 3;
 }
 
 message ContactDescriptionResponse {}
