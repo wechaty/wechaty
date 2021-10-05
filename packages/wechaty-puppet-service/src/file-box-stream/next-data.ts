@@ -8,10 +8,10 @@ import type {
  */
 const TIMEOUT = 60 * 1000
 
-async function nextData<T> (
+function nextData<T> (
   stream: Readable<T>
 ): Promise<T> {
-  const chunk = await new Promise<T>((resolve, reject) => {
+  const chunk = new Promise<T>((resolve, reject) => {
     const timer = setTimeout(reject, TIMEOUT)
     stream.once('data', chunk => {
       stream.pause()
