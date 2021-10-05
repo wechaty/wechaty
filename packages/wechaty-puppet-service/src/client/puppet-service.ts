@@ -1,10 +1,14 @@
 import util from 'util'
 
-import { FileBoxType } from 'file-box'
+import type {
+  FileBox,
+}                 from 'file-box'
+import {
+  FileBoxType,
+}                 from 'file-box'
 
 import {
   log,
-  FileBox,
 
   ContactPayload,
 
@@ -39,7 +43,7 @@ import {
   UrlLinkPayload,
   LocationPayload,
   throwUnsupportedError,
-}                         from 'wechaty-puppet'
+}                           from 'wechaty-puppet'
 
 import {
   google,
@@ -60,9 +64,11 @@ import {
 import {
   packConversationIdFileBoxToPb,
   unpackFileBoxFromPb,
-}                                   from '../deprecated/mod.js'
+}                                     from '../deprecated/mod.js'
 import { serializeFileBox }           from '../server/serialize-file-box.js'
 import { millisecondsFromTimestamp }  from '../pure-functions/timestamp.js'
+
+import { uuidifyFileBox } from '../uuid-file-box/uuidify-file-box.js'
 
 import { recover$ }     from './recover$.js'
 import { GrpcClient }   from './grpc-client.js'
@@ -94,6 +100,13 @@ export class PuppetService extends Puppet {
   #grpc?      : GrpcClient
   get grpc () : GrpcClient { return this.#grpc! }
 
+  /**
+   * UUIDify:
+   *  We need to clone a FileBox
+   *  to set uuid loader/saver with this grpc client
+   */
+  protected FileBox: typeof FileBox
+
   constructor (
     public override options: PuppetServiceOptions = {},
   ) {
@@ -103,6 +116,8 @@ export class PuppetService extends Puppet {
     })
 
     this.hookPayloadStore()
+
+    this.FileBox = uuidifyFileBox(() => this.grpc.client)
   }
 
   override name () {
@@ -145,7 +160,7 @@ export class PuppetService extends Puppet {
 
     const grpc = new GrpcClient(this.options)
     /**
-     * Huan(202108): when we startedv the event stream,
+     * Huan(202108): when we started the event stream,
      *  the `this.grpc` need to be available for all listeners.
      */
     this.#grpc = grpc
@@ -624,7 +639,7 @@ export class PuppetService extends Puppet {
       }
     }
 
-    return FileBox.fromJSON(jsonText)
+    return this.FileBox.fromJSON(jsonText)
   }
 
   override async contactRawPayload (id: string): Promise<ContactPayload> {
@@ -1255,7 +1270,7 @@ export class PuppetService extends Puppet {
     )(request)
 
     const jsonText = response.getFilebox()
-    return FileBox.fromJSON(jsonText)
+    return this.FileBox.fromJSON(jsonText)
   }
 
   override async roomAdd (

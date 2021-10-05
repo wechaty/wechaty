@@ -110,7 +110,8 @@ export class PuppetServer {
      * Start Grpc Server
      */
     const port = await util.promisify(
-      this.grpcServer.bindAsync.bind(this.grpcServer)
+      this.grpcServer.bindAsync
+        .bind(this.grpcServer)
     )(
       this.options.endpoint,
       credential,

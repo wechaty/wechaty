@@ -37,7 +37,10 @@ import {
 import { grpcError }          from './grpc-error.js'
 import { EventStreamManager } from './event-stream-manager.js'
 import { serializeFileBox }   from './serialize-file-box.js'
-import { chunkDecoder, chunkEncoder } from '../pure-functions/filebox-chunk.js'
+import {
+  chunkDecoder,
+  chunkEncoder,
+}                   from '../uuid-file-box/mod.js'
 
 const { StringValue } = google
 
@@ -50,7 +53,7 @@ function puppetImplementation (
    *
    * TODO: clean the listeners if necessary
    */
-  let scanPayload: undefined | EventScanPayload
+  let scanPayload: undefined  | EventScanPayload
   let readyPayload: undefined | EventReadyPayload
   let readyTimeout: undefined | ReturnType<typeof setTimeout>
 
