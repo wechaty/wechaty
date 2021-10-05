@@ -35,7 +35,7 @@ message RoomAvatarRequest {
   string id = 1;
 }
 message RoomAvatarResponse {
-  string filebox = 1;
+  string file_box = 1;
 }
 
 message RoomCreateRequest {

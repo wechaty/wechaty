@@ -63,7 +63,7 @@ message MessageImageRequest {
   ImageType type = 2;
 }
 message MessageImageResponse {
-   string filebox = 1;
+   string file_box = 1;
 }
 
 message MessageContactRequest {
@@ -77,10 +77,7 @@ message MessageFileRequest {
   string id = 1;
 }
 message MessageFileResponse {
-  /**
-   * Huan(202011) deprecated: use MessageFileStreamResponse instead
-   */
-   string filebox = 1 [deprecated = true];
+   string file_box = 1;
 }
 
 message MessageMiniProgramRequest {
@@ -123,7 +120,7 @@ message MessageSendContactResponse {
 
 message MessageSendFileRequest {
   string conversation_id = 1;
-  string filebox = 2;
+  string file_box = 2;
 }
 message MessageSendFileResponse {
   /**
