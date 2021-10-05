@@ -1,3 +1,4 @@
+/* eslint-disable sort-keys */
 import type {
   puppet,
 }                       from '../src/mod.js'
@@ -350,6 +351,17 @@ export const puppetServerImpl: IPuppetServer = {
   },
 
   version: (call, callback) => {
+    void call
+    void callback
+    throw new Error('not implemented.')
+  },
+
+  download: (call) => {
+    void call
+    throw new Error('not implemented.')
+  },
+
+  upload: (call, callback) => {
     void call
     void callback
     throw new Error('not implemented.')

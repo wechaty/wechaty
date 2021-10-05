@@ -78,7 +78,7 @@ test('integration testing', async t => {
    * Check Result
    */
   await future
-  t.deepEqual(EVENT_DATA_LIST, DING_DATA_LIST, 'should get ding data back through event stream')
+  t.same(EVENT_DATA_LIST, DING_DATA_LIST, 'should get ding data back through event stream')
 
   /**
    * Close Client & Server

@@ -21,8 +21,9 @@
  *  const puppet = pkg['puppet']
  *  ```
  */
-export * from '../out/wechaty/puppet/base_pb'
+export * from '../out/wechaty/puppet/base_pb.js'
 export * from '../out/wechaty/puppet/contact_pb.js'
+export * from '../out/wechaty/puppet/download-upload_pb.js'
 export * from '../out/wechaty/puppet/event_pb.js'
 export * from '../out/wechaty/puppet/file-box_pb.js'
 export * from '../out/wechaty/puppet/friendship_pb.js'
@@ -38,3 +39,6 @@ export * from '../out/wechaty/puppet/url-link_pb.js'
 
 export * from '../out/wechaty/puppet_grpc_pb.js'
 export * from '../out/wechaty/puppet_pb.js'
+
+export * from '../out/wechaty/health_grpc_pb.js'
+export * from '../out/wechaty/health_pb.js'

@@ -11,13 +11,14 @@
  *
  */
 syntax = "proto3";
-package wechaty;
+package wechaty.puppet;
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "wechaty/puppet/base.proto";
 import "wechaty/puppet/contact.proto";
+import "wechaty/puppet/download-upload.proto";
 import "wechaty/puppet/event.proto";
 import "wechaty/puppet/friendship.proto";
 import "wechaty/puppet/message.proto";
@@ -496,6 +497,21 @@ service Puppet {
    rpc TagContactList (puppet.TagContactListRequest) returns (puppet.TagContactListResponse) {
     option (google.api.http) = {
       get: "/contacts/{contact_id}/tags"
+    };
+  }
+
+  /**
+   * File/Blob download & upload
+   */
+  rpc Download (puppet.DownloadRequest) returns (stream puppet.DownloadResponse) {
+    option (google.api.http) = {
+      get: "/download/{id}"
+    };
+  }
+  rpc Upload (stream puppet.UploadRequest) returns (puppet.UploadResponse) {
+    option (google.api.http) = {
+      post: "/upload"
+      body: "*"
     };
   }
 

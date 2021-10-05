@@ -1,6 +1,7 @@
 const pkgs = [
   '../out/wechaty/puppet/base_pb.js',
   '../out/wechaty/puppet/contact_pb.js',
+  '../out/wechaty/puppet/download-upload_pb.js',
   '../out/wechaty/puppet/event_pb.js',
   '../out/wechaty/puppet/file-box_pb.js',
   '../out/wechaty/puppet/friendship_pb.js',
@@ -13,6 +14,9 @@ const pkgs = [
   '../out/wechaty/puppet/room-member_pb.js',
   '../out/wechaty/puppet/tag_pb.js',
   '../out/wechaty/puppet/url-link_pb.js',
+
+  '../out/wechaty/health_grpc_pb.js',
+  '../out/wechaty/health_pb.js',
 
   '../out/wechaty/puppet_grpc_pb.js',
   '../out/wechaty/puppet_pb.js',
