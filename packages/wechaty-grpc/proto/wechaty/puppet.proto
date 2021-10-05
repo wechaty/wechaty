@@ -67,12 +67,9 @@ service Puppet {
   /**
    * Deprecated: will be removed after Dec 31, 2022
    */
-  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {
-  }
-  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {
-  }
-  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {
-  }
+  rpc MessageFileStream     (puppet.MessageFileStreamRequest)             returns (stream puppet.MessageFileStreamResponse)   {}
+  rpc MessageImageStream    (puppet.MessageImageStreamRequest)            returns (stream puppet.MessageImageStreamResponse)  {}
+  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest)  returns (puppet.MessageSendFileStreamResponse)      {}
 
   /**
    *
