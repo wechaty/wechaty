@@ -20,13 +20,13 @@ message FileBoxChunk {
    *  to be confirmed.
    */
   // oneof payload {
-  optional bytes data = 1;
+  optional bytes data  = 1;
   optional string name = 2;
   // }
 }
 
 message MessageImageStreamRequest {
-  string id = 1;
+  string    id   = 1;
   ImageType type = 2;
 }
 message MessageImageStreamResponse {
@@ -46,7 +46,7 @@ message MessageSendFileStreamRequest {
    *  to be confirmed.
    */
   // oneof payload {
-  optional string conversation_id = 1;
+  optional string conversation_id      = 1;
   optional FileBoxChunk file_box_chunk = 2;
   // };
 }

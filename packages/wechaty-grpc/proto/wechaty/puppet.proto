@@ -65,6 +65,16 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Puppet {
   /**
+   * Deprecated: will be removed after Dec 31, 2022
+   */
+  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {
+  }
+  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {
+  }
+  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {
+  }
+
+  /**
    *
    * Base
    *
@@ -258,28 +268,13 @@ service Puppet {
    *
    */
 
-  /**
-   * @deprecated: using MessageFileStream to transfer files
-   * Huan(202010): will be removed (replaced by MessageFileStream) after Dec 31, 2021
-   */
   rpc MessageFile (puppet.MessageFileRequest) returns (puppet.MessageFileResponse) {
-    option deprecated = true;
   }
 
-  /**
-   * @deprecated: using MessageImageStream to transfer images
-   * Huan(202010): will be removed (replaced by MessageImageStream) after Dec 31, 2021
-   */
   rpc MessageImage (puppet.MessageImageRequest) returns (puppet.MessageImageResponse) {
-    option deprecated = true;
   }
 
-  /**
-   * @deprecated: using MesageSendFileStream to transfer file message to server
-   * Huan(202010): will be removed (replaced by MessageSendFileStream) after Dec 31, 2021
-   */
   rpc MessageSendFile (puppet.MessageSendFileRequest) returns (puppet.MessageSendFileResponse) {
-    option deprecated = true;
   }
 
   rpc MessagePayload (puppet.MessagePayloadRequest)  returns (puppet.MessagePayloadResponse) {
@@ -291,16 +286,6 @@ service Puppet {
   rpc MessageContact (puppet.MessageContactRequest) returns (puppet.MessageContactResponse) {
     option (google.api.http) = {
       get: "/message/{id}/contact"
-    };
-  }
-  rpc MessageFileStream (puppet.MessageFileStreamRequest) returns (stream puppet.MessageFileStreamResponse) {
-    option (google.api.http) = {
-      get: "/message/{id}/filebox"
-    };
-  }
-  rpc MessageImageStream (puppet.MessageImageStreamRequest) returns (stream puppet.MessageImageStreamResponse) {
-    option (google.api.http) = {
-      get: "/message/{id}/image/{type}"
     };
   }
   rpc MessageMiniProgram (puppet.MessageMiniProgramRequest) returns (puppet.MessageMiniProgramResponse) {
@@ -335,16 +320,6 @@ service Puppet {
   rpc MessageSendContact (puppet.MessageSendContactRequest) returns (puppet.MessageSendContactResponse) {
     option (google.api.http) = {
       post: "/conversations/{conversation_id}/contact"
-      body: "*"
-    };
-  }
-  rpc MessageSendFileStream (stream puppet.MessageSendFileStreamRequest) returns (puppet.MessageSendFileStreamResponse) {
-    /**
-      * TODO: Add support for client upload files
-      *   https://github.com/wechaty/openapi/issues/1
-      */
-    option (google.api.http) = {
-      post: "/conversations/-/filebox"
       body: "*"
     };
   }
