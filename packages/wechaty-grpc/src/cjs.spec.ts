@@ -5,6 +5,7 @@ import { test } from 'tstest'
 import {
   codeRoot,
   puppet,
+  google,
 }                 from './cjs.js'
 
 test('ESM: codeRoot', async t => {
@@ -22,6 +23,14 @@ test('ESM: puppet.EventTypeMap', async t => {
   t.equal(Object.keys(map).length, 1, 'should export type "EventTypeMap"')
 })
 
-test('ESM: puppet', async t => {
+test('ESM: puppet.DingRequest', async t => {
   t.equal(typeof puppet.DingRequest, 'function', 'should exists "DingRequest"')
+})
+
+test('ESM: google.HealthCheckResponse', async t => {
+  t.ok(google.HealthCheckResponse, 'should exists "HealthCheckResponse"')
+})
+
+test('ESM: google.ServingStatus.SERVING', async t => {
+  t.ok(google.HealthCheckResponse.ServingStatus.SERVING, 'should exists "ServingStatus.SERVING"')
 })

@@ -6,13 +6,13 @@ import { promisify } from 'util'
 
 import {
   grpc,
-  puppet,
+  google,
 }             from '../src/mod.js'
 
 test('HealthCheck protocol buffer', async t => {
-  const request = new puppet.HealthCheckRequest()
-  const response = new puppet.HealthCheckResponse()
-  response.setStatus(puppet.ServingStatus.SERVING_STATUS_SERVICE_UNKNOWN)
+  const request   = new google.HealthCheckRequest()
+  const response  = new google.HealthCheckResponse()
+  response.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
   await t.ok(request && response, 'should export HealCheck protobuf')
 })
 
@@ -26,7 +26,7 @@ test('health check smoke testing', async t => {
 
   const server = new grpc.Server()
   server.addService(
-    puppet.HealthService,
+    google.HealthService,
     testServer,
   )
   await promisify(
@@ -41,18 +41,18 @@ test('health check smoke testing', async t => {
   /**
    * Create Client
    */
-  const client = new puppet.HealthClient(
+  const client = new google.HealthClient(
     ENDPOINT,
     grpc.credentials.createInsecure()
   )
 
-  const request = new puppet.HealthCheckRequest()
+  const request = new google.HealthCheckRequest()
   const response = await promisify(
     client.check
       .bind(client)
   )(request) as any
 
-  t.equal(response.getStatus(), puppet.ServingStatus.SERVING_STATUS_SERVING, 'should return SERVING_STATUS_SERVING for check method')
+  t.equal(response.getStatus(), google.HealthCheckResponse.ServingStatus.SERVING, 'should return SERVING_STATUS_SERVING for check method')
 
   /**
    * gRPC: Stream
@@ -62,8 +62,8 @@ test('health check smoke testing', async t => {
   let counter = 0
   const future = new Promise<void>((resolve, reject) => {
     eventStream
-      .on('data', (response: puppet.HealthCheckResponse) => {
-        t.equal(response.getStatus(), puppet.ServingStatus.SERVING_STATUS_SERVING, `should return SERVING_STATUS_SERVING for watch method with counter #${counter}`)
+      .on('data', (response: google.HealthCheckResponse) => {
+        t.equal(response.getStatus(), google.HealthCheckResponse.ServingStatus.SERVING, `should return SERVING_STATUS_SERVING for watch method with counter #${counter}`)
         counter++
       })
       .on('close', resolve)
@@ -79,19 +79,19 @@ test('health check smoke testing', async t => {
 
 function getTestServer () {
 
-  const puppetTestServer: puppet.IHealthServer = {
+  const puppetTestServer: google.IHealthServer = {
     check: (_call, callback) => {
-      const response = new puppet.HealthCheckResponse()
-      response.setStatus(puppet.ServingStatus.SERVING_STATUS_SERVING)
+      const response = new google.HealthCheckResponse()
+      response.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
       callback(null, response)
     },
     watch: (call) => {
-      const response1 = new puppet.HealthCheckResponse()
-      response1.setStatus(puppet.ServingStatus.SERVING_STATUS_SERVING)
+      const response1 = new google.HealthCheckResponse()
+      response1.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
       call.write(response1)
 
-      const response2 = new puppet.HealthCheckResponse()
-      response2.setStatus(puppet.ServingStatus.SERVING_STATUS_SERVING)
+      const response2 = new google.HealthCheckResponse()
+      response2.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
       call.write(response2)
 
       call.end()

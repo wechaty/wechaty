@@ -5,6 +5,7 @@ import { test } from 'tstest'
 import {
   grpc,
   puppet,
+  google,
 }                   from './mod.js'
 
 test('`grpc` is exported', async t => {
@@ -18,4 +19,12 @@ test('`IPuppetServer` is exported', async t => {
 
 test('`PuppetService` is exported', async t => {
   t.ok(puppet.PuppetService, 'should export PuppetSevice')
+})
+
+test('CJS: HealthCheckResponse', async t => {
+  t.ok(google.HealthCheckResponse, 'should exists "HealthCheckResponse"')
+})
+
+test('CJS: ServingStatus.SERVING', async t => {
+  t.ok(google.HealthCheckResponse.ServingStatus.SERVING, 'should exists "ServingStatus.SERVING"')
 })
