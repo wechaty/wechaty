@@ -1,32 +1,31 @@
 /* eslint-disable sort-keys */
 import {
-  puppet as pbPuppet,
-}                     from 'wechaty-grpc'
-
+  google as grpcGoogle,
+}                         from 'wechaty-grpc'
 import {
   log,
   Puppet,
-}                                   from 'wechaty-puppet'
+}                         from 'wechaty-puppet'
 
 const HEARTBEAT_TIMEOUT_SECONDS = 60
 
 function healthImplementation (
   puppet: Puppet,
-): pbPuppet.IHealthServer {
+): grpcGoogle.IHealthServer {
 
   let lastHeartbeatTimestamp = -1
 
   const healthCheckResponse = () => {
-    const response = new pbPuppet.HealthCheckResponse()
+    const response = new grpcGoogle.HealthCheckResponse()
 
     if (lastHeartbeatTimestamp < 0 || lastHeartbeatTimestamp > Date.now()) {
-      response.setStatus(pbPuppet.ServingStatus.SERVING_STATUS_SERVICE_UNKNOWN)
+      response.setStatus(grpcGoogle.HealthCheckResponse.ServingStatus.SERVICE_UNKNOWN)
 
     } else if (Date.now() - lastHeartbeatTimestamp < HEARTBEAT_TIMEOUT_SECONDS * 1000) {
-      response.setStatus(pbPuppet.ServingStatus.SERVING_STATUS_SERVING)
+      response.setStatus(grpcGoogle.HealthCheckResponse.ServingStatus.SERVING)
 
     } else {
-      response.setStatus(pbPuppet.ServingStatus.SERVING_STATUS_NOT_SERVING)
+      response.setStatus(grpcGoogle.HealthCheckResponse.ServingStatus.NOT_SERVING)
     }
 
     return response
@@ -36,7 +35,7 @@ function healthImplementation (
     lastHeartbeatTimestamp = Date.now()
   })
 
-  const healthServerImpl: pbPuppet.IHealthServer = {
+  const healthServerImpl: grpcGoogle.IHealthServer = {
 
     check: async (call, callback) => {
       log.verbose('HealthServiceImpl', 'check()')

@@ -6,6 +6,7 @@ import {
 import {
   grpc,
   puppet as grpcPuppet,
+  google as grpcGoogle,
 }                       from 'wechaty-grpc'
 
 import {
@@ -99,7 +100,7 @@ export class PuppetServer {
       this.options.puppet,
     )
     this.grpcServer.addService(
-      grpcPuppet.HealthService,
+      grpcGoogle.HealthService,
       healthImpl,
     )
 

@@ -42,9 +42,9 @@ import {
 }                           from 'wechaty-puppet'
 
 import {
-  google,
-  puppet as pbPuppet,
-}                                   from 'wechaty-grpc'
+  StringValue,
+  puppet as grpcPuppet,
+}                           from 'wechaty-grpc'
 
 import type { Subscription } from 'rxjs'
 
@@ -76,8 +76,6 @@ import { packageJson }  from '../package-json.js'
 import { recover$ }     from './recover$.js'
 import { GrpcClient }   from './grpc-client.js'
 import { PayloadStore } from './payload-store.js'
-
-const { StringValue } = google
 
 export type PuppetServiceOptions = PuppetOptions & {
   authority?  : string
@@ -275,7 +273,7 @@ export class PuppetService extends Puppet {
       })
   }
 
-  private onGrpcStreamEvent (event: pbPuppet.EventResponse): void {
+  private onGrpcStreamEvent (event: grpcPuppet.EventResponse): void {
     const type    = event.getType()
     const payload = event.getPayload()
 
@@ -292,66 +290,66 @@ export class PuppetService extends Puppet {
       payload,
     )
 
-    if (type !== pbPuppet.EventType.EVENT_TYPE_HEARTBEAT) {
+    if (type !== grpcPuppet.EventType.EVENT_TYPE_HEARTBEAT) {
       this.emit('heartbeat', {
         data: `onGrpcStreamEvent(${EventTypeRev[type]})`,
       })
     }
 
     switch (type) {
-      case pbPuppet.EventType.EVENT_TYPE_DONG:
+      case grpcPuppet.EventType.EVENT_TYPE_DONG:
         this.emit('dong', JSON.parse(payload) as EventDongPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_ERROR:
+      case grpcPuppet.EventType.EVENT_TYPE_ERROR:
         this.emit('error', JSON.parse(payload) as EventErrorPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_HEARTBEAT:
+      case grpcPuppet.EventType.EVENT_TYPE_HEARTBEAT:
         this.emit('heartbeat', JSON.parse(payload) as EventHeartbeatPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_FRIENDSHIP:
+      case grpcPuppet.EventType.EVENT_TYPE_FRIENDSHIP:
         this.emit('friendship', JSON.parse(payload) as EventFriendshipPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_LOGIN:
+      case grpcPuppet.EventType.EVENT_TYPE_LOGIN:
         {
           const loginPayload = JSON.parse(payload) as EventLoginPayload
           this.id = loginPayload.contactId
           this.emit('login', loginPayload)
         }
         break
-      case pbPuppet.EventType.EVENT_TYPE_LOGOUT:
+      case grpcPuppet.EventType.EVENT_TYPE_LOGOUT:
         this.id = undefined
         this.emit('logout', JSON.parse(payload) as EventLogoutPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_DIRTY:
+      case grpcPuppet.EventType.EVENT_TYPE_DIRTY:
         this.emit('dirty', JSON.parse(payload) as EventDirtyPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_MESSAGE:
+      case grpcPuppet.EventType.EVENT_TYPE_MESSAGE:
         this.emit('message', JSON.parse(payload) as EventMessagePayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_READY:
+      case grpcPuppet.EventType.EVENT_TYPE_READY:
         this.emit('ready', JSON.parse(payload) as EventReadyPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_ROOM_INVITE:
+      case grpcPuppet.EventType.EVENT_TYPE_ROOM_INVITE:
         this.emit('room-invite', JSON.parse(payload) as EventRoomInvitePayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_ROOM_JOIN:
+      case grpcPuppet.EventType.EVENT_TYPE_ROOM_JOIN:
         this.emit('room-join', JSON.parse(payload) as EventRoomJoinPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_ROOM_LEAVE:
+      case grpcPuppet.EventType.EVENT_TYPE_ROOM_LEAVE:
         this.emit('room-leave', JSON.parse(payload) as EventRoomLeavePayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_ROOM_TOPIC:
+      case grpcPuppet.EventType.EVENT_TYPE_ROOM_TOPIC:
         this.emit('room-topic', JSON.parse(payload) as EventRoomTopicPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_SCAN:
+      case grpcPuppet.EventType.EVENT_TYPE_SCAN:
         this.emit('scan', JSON.parse(payload) as EventScanPayload)
         break
-      case pbPuppet.EventType.EVENT_TYPE_RESET:
+      case grpcPuppet.EventType.EVENT_TYPE_RESET:
         log.warn('PuppetService', 'onGrpcStreamEvent() got an EventType.EVENT_TYPE_RESET ?')
         // the `reset` event should be dealed not send out
         break
 
-      case pbPuppet.EventType.EVENT_TYPE_UNSPECIFIED:
+      case grpcPuppet.EventType.EVENT_TYPE_UNSPECIFIED:
         log.error('PuppetService', 'onGrpcStreamEvent() got an EventType.EVENT_TYPE_UNSPECIFIED ?')
         break
 
@@ -372,7 +370,7 @@ export class PuppetService extends Puppet {
       await util.promisify(
         this.grpc.client.logout
           .bind(this.grpc.client)
-      )(new pbPuppet.LogoutRequest())
+      )(new grpcPuppet.LogoutRequest())
 
     } catch (e) {
       log.error('PuppetService', 'logout() rejection: %s', e && (e as Error).message)
@@ -383,7 +381,7 @@ export class PuppetService extends Puppet {
   override ding (data: string): void {
     log.silly('PuppetService', 'ding(%s)', data)
 
-    const request = new pbPuppet.DingRequest()
+    const request = new grpcPuppet.DingRequest()
     request.setData(data || '')
 
     if (!this.grpc.client) {
@@ -432,7 +430,7 @@ export class PuppetService extends Puppet {
         break
     }
 
-    const request = new pbPuppet.DirtyPayloadRequest()
+    const request = new grpcPuppet.DirtyPayloadRequest()
     request.setId(id)
     request.setType(type)
     try {
@@ -467,7 +465,7 @@ export class PuppetService extends Puppet {
      * Get alias
      */
     if (typeof alias === 'undefined') {
-      const request = new pbPuppet.ContactAliasRequest()
+      const request = new grpcPuppet.ContactAliasRequest()
       request.setId(contactId)
 
       const response = await util.promisify(
@@ -495,7 +493,7 @@ export class PuppetService extends Puppet {
     /**
      * Set alias
      */
-    const request = new pbPuppet.ContactAliasRequest()
+    const request = new grpcPuppet.ContactAliasRequest()
     request.setId(contactId)
     request.setAlias(alias || '')   // null -> '', in server, we treat '' as null
 
@@ -515,7 +513,7 @@ export class PuppetService extends Puppet {
   override async contactPhone (contactId: string, phoneList: string[]): Promise<void> {
     log.verbose('PuppetService', 'contactPhone(%s, %s)', contactId, phoneList)
 
-    const request = new pbPuppet.ContactPhoneRequest()
+    const request = new grpcPuppet.ContactPhoneRequest()
     request.setContactId(contactId)
     request.setPhonesList(phoneList)
 
@@ -528,7 +526,7 @@ export class PuppetService extends Puppet {
   override async contactCorporationRemark (contactId: string, corporationRemark: string | null) {
     log.verbose('PuppetService', 'contactCorporationRemark(%s, %s)', contactId, corporationRemark)
 
-    const request = new pbPuppet.ContactCorporationRemarkRequest()
+    const request = new grpcPuppet.ContactCorporationRemarkRequest()
     request.setContactId(contactId)
     if (corporationRemark) {
       request.setCorporationRemark(corporationRemark)
@@ -552,7 +550,7 @@ export class PuppetService extends Puppet {
   override async contactDescription (contactId: string, description: string | null) {
     log.verbose('PuppetService', 'contactDescription(%s, %s)', contactId, description)
 
-    const request = new pbPuppet.ContactDescriptionRequest()
+    const request = new grpcPuppet.ContactDescriptionRequest()
     request.setContactId(contactId)
     if (description) {
       request.setDescription(description)
@@ -579,7 +577,7 @@ export class PuppetService extends Puppet {
     const response = await util.promisify(
       this.grpc.client.contactList
         .bind(this.grpc.client)
-    )(new pbPuppet.ContactListRequest())
+    )(new grpcPuppet.ContactListRequest())
 
     return response.getIdsList()
   }
@@ -606,7 +604,7 @@ export class PuppetService extends Puppet {
      * 1. set
      */
     if (fileBox) {
-      const request = new pbPuppet.ContactAvatarRequest()
+      const request = new grpcPuppet.ContactAvatarRequest()
       request.setId(contactId)
 
       const serializedFileBox = await this.serializeFileBox(fileBox)
@@ -630,7 +628,7 @@ export class PuppetService extends Puppet {
     /**
      * 2. get
      */
-    const request = new pbPuppet.ContactAvatarRequest()
+    const request = new grpcPuppet.ContactAvatarRequest()
     request.setId(contactId)
 
     const response = await util.promisify(
@@ -667,7 +665,7 @@ export class PuppetService extends Puppet {
       return cachedPayload
     }
 
-    const request = new pbPuppet.ContactPayloadRequest()
+    const request = new grpcPuppet.ContactPayloadRequest()
     request.setId(id)
 
     const response = await util.promisify(
@@ -711,7 +709,7 @@ export class PuppetService extends Puppet {
   override async contactSelfName (name: string): Promise<void> {
     log.verbose('PuppetService', 'contactSelfName(%s)', name)
 
-    const request = new pbPuppet.ContactSelfNameRequest()
+    const request = new grpcPuppet.ContactSelfNameRequest()
     request.setName(name)
 
     await util.promisify(
@@ -726,7 +724,7 @@ export class PuppetService extends Puppet {
     const response = await util.promisify(
       this.grpc.client.contactSelfQRCode
         .bind(this.grpc.client)
-    )(new pbPuppet.ContactSelfQRCodeRequest())
+    )(new grpcPuppet.ContactSelfQRCodeRequest())
 
     return response.getQrcode()
   }
@@ -734,7 +732,7 @@ export class PuppetService extends Puppet {
   override async contactSelfSignature (signature: string): Promise<void> {
     log.verbose('PuppetService', 'contactSelfSignature(%s)', signature)
 
-    const request = new pbPuppet.ContactSelfSignatureRequest()
+    const request = new grpcPuppet.ContactSelfSignatureRequest()
     request.setSignature(signature)
 
     await util.promisify(
@@ -766,7 +764,7 @@ export class PuppetService extends Puppet {
   ): Promise<MiniProgramPayload> {
     log.verbose('PuppetService', 'messageMiniProgram(%s)', messageId)
 
-    const request = new pbPuppet.MessageMiniProgramRequest()
+    const request = new grpcPuppet.MessageMiniProgramRequest()
     request.setId(messageId)
 
     const response = await util.promisify(
@@ -795,7 +793,7 @@ export class PuppetService extends Puppet {
   ): Promise<LocationPayload> {
     log.verbose('PuppetService', 'messageLocation(%s)', messageId)
 
-    const request = new pbPuppet.MessageLocationRequest()
+    const request = new grpcPuppet.MessageLocationRequest()
     request.setId(messageId)
 
     const response = await util.promisify(
@@ -827,7 +825,7 @@ export class PuppetService extends Puppet {
     )
 
     try {
-      const request = new pbPuppet.MessageImageRequest()
+      const request = new grpcPuppet.MessageImageRequest()
       request.setId(messageId)
       request.setType(imageType)
 
@@ -848,7 +846,7 @@ export class PuppetService extends Puppet {
 
     {
       // Deprecated. Will be removed after Dec 31, 2022
-      const request = new pbPuppet.MessageImageStreamRequest()
+      const request = new grpcPuppet.MessageImageStreamRequest()
       request.setId(messageId)
       request.setType(imageType)
 
@@ -865,7 +863,7 @@ export class PuppetService extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetService', 'messageContact(%s)', messageId)
 
-    const request = new pbPuppet.MessageContactRequest()
+    const request = new grpcPuppet.MessageContactRequest()
     request.setId(messageId)
 
     const response = await util.promisify(
@@ -883,10 +881,10 @@ export class PuppetService extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendMiniProgram(%s, "%s")', conversationId, JSON.stringify(miniProgramPayload))
 
-    const request = new pbPuppet.MessageSendMiniProgramRequest()
+    const request = new grpcPuppet.MessageSendMiniProgramRequest()
     request.setConversationId(conversationId)
 
-    const pbMiniProgramPayload = new pbPuppet.MiniProgramPayload()
+    const pbMiniProgramPayload = new grpcPuppet.MiniProgramPayload()
     if (miniProgramPayload.appid)       { pbMiniProgramPayload.setAppid(miniProgramPayload.appid) }
     if (miniProgramPayload.description) { pbMiniProgramPayload.setDescription(miniProgramPayload.description) }
     if (miniProgramPayload.iconUrl)     { pbMiniProgramPayload.setIconUrl(miniProgramPayload.iconUrl) }
@@ -932,10 +930,10 @@ export class PuppetService extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendLocation(%s)', conversationId, JSON.stringify(locationPayload))
 
-    const request = new pbPuppet.MessageSendLocationRequest()
+    const request = new grpcPuppet.MessageSendLocationRequest()
     request.setConversationId(conversationId)
 
-    const pbLocationPayload = new pbPuppet.LocationPayload()
+    const pbLocationPayload = new grpcPuppet.LocationPayload()
     pbLocationPayload.setAccuracy(locationPayload.accuracy)
     pbLocationPayload.setAddress(locationPayload.address)
     pbLocationPayload.setLatitude(locationPayload.latitude)
@@ -960,7 +958,7 @@ export class PuppetService extends Puppet {
   ): Promise<boolean> {
     log.verbose('PuppetService', 'messageRecall(%s)', messageId)
 
-    const request = new pbPuppet.MessageRecallRequest()
+    const request = new grpcPuppet.MessageRecallRequest()
     request.setId(messageId)
 
     const response = await util.promisify(
@@ -974,7 +972,7 @@ export class PuppetService extends Puppet {
   override async messageFile (id: string): Promise<FileBox> {
     log.verbose('PuppetService', 'messageFile(%s)', id)
 
-    const request = new pbPuppet.MessageFileStreamRequest()
+    const request = new grpcPuppet.MessageFileStreamRequest()
     request.setId(id)
 
     const pbStream = this.grpc.client.messageFileStream(request)
@@ -990,7 +988,7 @@ export class PuppetService extends Puppet {
   ): Promise<string | void> {
     log.verbose('PuppetService', 'messageForward(%s, %s)', conversationId, messageId)
 
-    const request = new pbPuppet.MessageForwardRequest()
+    const request = new grpcPuppet.MessageForwardRequest()
     request.setConversationId(conversationId)
     request.setMessageId(messageId)
 
@@ -1026,7 +1024,7 @@ export class PuppetService extends Puppet {
     //   return cachedPayload
     // }
 
-    const request = new pbPuppet.MessagePayloadRequest()
+    const request = new grpcPuppet.MessagePayloadRequest()
     request.setId(id)
 
     const response = await util.promisify(
@@ -1074,7 +1072,7 @@ export class PuppetService extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSend(%s, %s)', conversationId, text)
 
-    const request = new pbPuppet.MessageSendTextRequest()
+    const request = new grpcPuppet.MessageSendTextRequest()
     request.setConversationId(conversationId)
     request.setText(text)
     if (typeof mentionIdList !== 'undefined') {
@@ -1111,7 +1109,7 @@ export class PuppetService extends Puppet {
     log.verbose('PuppetService', 'messageSendFile(%s, %s)', conversationId, fileBox)
 
     try {
-      const request = new pbPuppet.MessageSendFileRequest()
+      const request = new grpcPuppet.MessageSendFileRequest()
       request.setConversationId(conversationId)
 
       const serializedFileBox = await this.serializeFileBox(fileBox)
@@ -1157,7 +1155,7 @@ export class PuppetService extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSend("%s", %s)', conversationId, contactId)
 
-    const request = new pbPuppet.MessageSendContactRequest()
+    const request = new grpcPuppet.MessageSendContactRequest()
     request.setConversationId(conversationId)
     request.setContactId(contactId)
 
@@ -1190,10 +1188,10 @@ export class PuppetService extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendUrl("%s", %s)', conversationId, JSON.stringify(urlLinkPayload))
 
-    const request = new pbPuppet.MessageSendUrlRequest()
+    const request = new grpcPuppet.MessageSendUrlRequest()
     request.setConversationId(conversationId)
 
-    const pbUrlLinkPayload = new pbPuppet.UrlLinkPayload()
+    const pbUrlLinkPayload = new grpcPuppet.UrlLinkPayload()
     pbUrlLinkPayload.setUrl(urlLinkPayload.url)
     pbUrlLinkPayload.setTitle(urlLinkPayload.title)
     if (urlLinkPayload.description)   { pbUrlLinkPayload.setDescription(urlLinkPayload.description) }
@@ -1229,7 +1227,7 @@ export class PuppetService extends Puppet {
   override async messageUrl (messageId: string): Promise<UrlLinkPayload> {
     log.verbose('PuppetService', 'messageUrl(%s)', messageId)
 
-    const request = new pbPuppet.MessageUrlRequest()
+    const request = new grpcPuppet.MessageUrlRequest()
     request.setId(messageId)
 
     const response = await util.promisify(
@@ -1268,7 +1266,7 @@ export class PuppetService extends Puppet {
       return cachedPayload
     }
 
-    const request = new pbPuppet.RoomPayloadRequest()
+    const request = new grpcPuppet.RoomPayloadRequest()
     request.setId(id)
 
     const response = await util.promisify(
@@ -1303,7 +1301,7 @@ export class PuppetService extends Puppet {
     const response = await util.promisify(
       this.grpc.client.roomList
         .bind(this.grpc.client)
-    )(new pbPuppet.RoomListRequest())
+    )(new grpcPuppet.RoomListRequest())
 
     return response.getIdsList()
   }
@@ -1314,7 +1312,7 @@ export class PuppetService extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetService', 'roomDel(%s, %s)', roomId, contactId)
 
-    const request = new pbPuppet.RoomDelRequest()
+    const request = new grpcPuppet.RoomDelRequest()
     request.setId(roomId)
     request.setContactId(contactId)
 
@@ -1327,7 +1325,7 @@ export class PuppetService extends Puppet {
   override async roomAvatar (roomId: string): Promise<FileBox> {
     log.verbose('PuppetService', 'roomAvatar(%s)', roomId)
 
-    const request = new pbPuppet.RoomAvatarRequest()
+    const request = new grpcPuppet.RoomAvatarRequest()
     request.setId(roomId)
 
     const response = await util.promisify(
@@ -1346,7 +1344,7 @@ export class PuppetService extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetService', 'roomAdd(%s, %s)', roomId, contactId)
 
-    const request = new pbPuppet.RoomAddRequest()
+    const request = new grpcPuppet.RoomAddRequest()
     request.setId(roomId)
     request.setContactId(contactId)
     request.setInviteOnly(inviteOnly)
@@ -1370,7 +1368,7 @@ export class PuppetService extends Puppet {
      * Get
      */
     if (typeof topic === 'undefined') {
-      const request = new pbPuppet.RoomTopicRequest()
+      const request = new grpcPuppet.RoomTopicRequest()
       request.setId(roomId)
 
       const response = await util.promisify(
@@ -1397,7 +1395,7 @@ export class PuppetService extends Puppet {
     /**
      * Set
      */
-    const request = new pbPuppet.RoomTopicRequest()
+    const request = new grpcPuppet.RoomTopicRequest()
     request.setId(roomId)
     request.setTopic(topic)
 
@@ -1421,7 +1419,7 @@ export class PuppetService extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetService', 'roomCreate(%s, %s)', contactIdList, topic)
 
-    const request = new pbPuppet.RoomCreateRequest()
+    const request = new grpcPuppet.RoomCreateRequest()
     request.setContactIdsList(contactIdList)
     request.setTopic(topic)
 
@@ -1436,7 +1434,7 @@ export class PuppetService extends Puppet {
   override async roomQuit (roomId: string): Promise<void> {
     log.verbose('PuppetService', 'roomQuit(%s)', roomId)
 
-    const request = new pbPuppet.RoomQuitRequest()
+    const request = new grpcPuppet.RoomQuitRequest()
     request.setId(roomId)
 
     await util.promisify(
@@ -1448,7 +1446,7 @@ export class PuppetService extends Puppet {
   override async roomQRCode (roomId: string): Promise<string> {
     log.verbose('PuppetService', 'roomQRCode(%s)', roomId)
 
-    const request = new pbPuppet.RoomQRCodeRequest()
+    const request = new grpcPuppet.RoomQRCodeRequest()
     request.setId(roomId)
 
     const response = await util.promisify(
@@ -1462,7 +1460,7 @@ export class PuppetService extends Puppet {
   override async roomMemberList (roomId: string) : Promise<string[]> {
     log.verbose('PuppetService', 'roomMemberList(%s)', roomId)
 
-    const request = new pbPuppet.RoomMemberListRequest()
+    const request = new grpcPuppet.RoomMemberListRequest()
     request.setId(roomId)
 
     const response = await util.promisify(
@@ -1483,7 +1481,7 @@ export class PuppetService extends Puppet {
       return cachedPayload
     }
 
-    const request = new pbPuppet.RoomMemberPayloadRequest()
+    const request = new grpcPuppet.RoomMemberPayloadRequest()
     request.setId(roomId)
     request.setMemberId(contactId)
 
@@ -1527,7 +1525,7 @@ export class PuppetService extends Puppet {
      * Set
      */
     if (text) {
-      const request = new pbPuppet.RoomAnnounceRequest()
+      const request = new grpcPuppet.RoomAnnounceRequest()
       request.setId(roomId)
       request.setText(text)
 
@@ -1549,7 +1547,7 @@ export class PuppetService extends Puppet {
     /**
      * Get
      */
-    const request = new pbPuppet.RoomAnnounceRequest()
+    const request = new grpcPuppet.RoomAnnounceRequest()
     request.setId(roomId)
 
     const response = await util.promisify(
@@ -1578,7 +1576,7 @@ export class PuppetService extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetService', 'roomInvitationAccept(%s)', roomInvitationId)
 
-    const request = new pbPuppet.RoomInvitationAcceptRequest()
+    const request = new grpcPuppet.RoomInvitationAcceptRequest()
     request.setId(roomInvitationId)
 
     await util.promisify(
@@ -1592,7 +1590,7 @@ export class PuppetService extends Puppet {
   ): Promise<RoomInvitationPayload> {
     log.verbose('PuppetService', 'roomInvitationRawPayload(%s)', id)
 
-    const request = new pbPuppet.RoomInvitationPayloadRequest()
+    const request = new grpcPuppet.RoomInvitationPayloadRequest()
     request.setId(id)
 
     const response = await util.promisify(
@@ -1650,7 +1648,7 @@ export class PuppetService extends Puppet {
   ): Promise<string | null> {
     log.verbose('PuppetService', 'friendshipSearchPhone(%s)', phone)
 
-    const request = new pbPuppet.FriendshipSearchPhoneRequest()
+    const request = new grpcPuppet.FriendshipSearchPhoneRequest()
     request.setPhone(phone)
 
     const response = await util.promisify(
@@ -1679,7 +1677,7 @@ export class PuppetService extends Puppet {
   ): Promise<string | null> {
     log.verbose('PuppetService', 'friendshipSearchWeixin(%s)', weixin)
 
-    const request = new pbPuppet.FriendshipSearchWeixinRequest()
+    const request = new grpcPuppet.FriendshipSearchWeixinRequest()
     request.setWeixin(weixin)
 
     const response = await util.promisify(
@@ -1706,7 +1704,7 @@ export class PuppetService extends Puppet {
   override async friendshipRawPayload (id: string): Promise<FriendshipPayload> {
     log.verbose('PuppetService', 'friendshipRawPayload(%s)', id)
 
-    const request = new pbPuppet.FriendshipPayloadRequest()
+    const request = new grpcPuppet.FriendshipPayloadRequest()
     request.setId(id)
 
     const response = await util.promisify(
@@ -1739,7 +1737,7 @@ export class PuppetService extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetService', 'friendshipAdd(%s, %s)', contactId, JSON.stringify(options))
 
-    const request = new pbPuppet.FriendshipAddRequest()
+    const request = new grpcPuppet.FriendshipAddRequest()
     request.setContactId(contactId)
 
     // FIXME: for backward compatibility, need to be removed after all puppet has updated.
@@ -1748,7 +1746,7 @@ export class PuppetService extends Puppet {
     } else {
       request.setHello(options.hello!)
 
-      const referrer = new pbPuppet.Referrer()
+      const referrer = new grpcPuppet.Referrer()
       if (options.contactId)  { referrer.setContactId(options.contactId) }
       if (options.roomId)     { referrer.setRoomId(options.roomId) }
       request.setReferrer(referrer)
@@ -1775,7 +1773,7 @@ export class PuppetService extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetService', 'friendshipAccept(%s)', friendshipId)
 
-    const request = new pbPuppet.FriendshipAcceptRequest()
+    const request = new grpcPuppet.FriendshipAcceptRequest()
     request.setId(friendshipId)
 
     await util.promisify(
@@ -1796,7 +1794,7 @@ export class PuppetService extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetService', 'tagContactAdd(%s, %s)', id, contactId)
 
-    const request = new pbPuppet.TagContactAddRequest()
+    const request = new grpcPuppet.TagContactAddRequest()
     request.setId(id)
     request.setContactId(contactId)
 
@@ -1813,7 +1811,7 @@ export class PuppetService extends Puppet {
   ) : Promise<void> {
     log.verbose('PuppetService', 'tagContactRemove(%s, %s)', id, contactId)
 
-    const request = new pbPuppet.TagContactRemoveRequest()
+    const request = new grpcPuppet.TagContactRemoveRequest()
     request.setId(id)
     request.setContactId(contactId)
 
@@ -1829,7 +1827,7 @@ export class PuppetService extends Puppet {
   ) : Promise<void> {
     log.verbose('PuppetService', 'tagContactDelete(%s)', id)
 
-    const request = new pbPuppet.TagContactDeleteRequest()
+    const request = new grpcPuppet.TagContactDeleteRequest()
     request.setId(id)
 
     await util.promisify(
@@ -1844,7 +1842,7 @@ export class PuppetService extends Puppet {
   ) : Promise<string[]> {
     log.verbose('PuppetService', 'tagContactList(%s)', contactId)
 
-    const request = new pbPuppet.TagContactListRequest()
+    const request = new grpcPuppet.TagContactListRequest()
 
     if (typeof contactId !== 'undefined') {
       request.setContactId(contactId)
@@ -1874,9 +1872,9 @@ export class PuppetService extends Puppet {
     conversationId : string,
     file           : FileBox,
   ): Promise<void | string> {
-    const request = await packConversationIdFileBoxToPb(pbPuppet.MessageSendFileStreamRequest)(conversationId, file)
+    const request = await packConversationIdFileBoxToPb(grpcPuppet.MessageSendFileStreamRequest)(conversationId, file)
 
-    const response = await new Promise<pbPuppet.MessageSendFileStreamResponse>((resolve, reject) => {
+    const response = await new Promise<grpcPuppet.MessageSendFileStreamResponse>((resolve, reject) => {
       const stream = this.grpc.client.messageSendFileStream((err, response) => {
         if (err) {
           reject(err)
