@@ -72,8 +72,8 @@ import {
  */
 class Message extends EventEmitter implements Sayable {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -1127,7 +1127,7 @@ function wechatifyMessage (wechaty: Wechaty): typeof Message {
   class WechatifiedMessage extends Message {
 
     static override get wechaty () { return wechaty }
-    override get wechaty       () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

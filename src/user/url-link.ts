@@ -37,8 +37,8 @@ import {
 
 class UrlLink {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -140,7 +140,7 @@ function wechatifyUrlLink (wechaty: Wechaty): typeof UrlLink {
   class WechatifiedUrlLink extends UrlLink {
 
     static override get wechaty () { return wechaty }
-    override get wechaty       () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 

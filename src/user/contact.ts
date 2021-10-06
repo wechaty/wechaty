@@ -60,8 +60,8 @@ const POOL = Symbol('pool')
  */
 class Contact extends ContactEventEmitter implements Sayable {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static Type   = ContactType
   public static Gender = ContactGender
@@ -926,7 +926,7 @@ function wechatifyContact (wechaty: Wechaty): typeof Contact {
 
   class WechatifiedContact extends Contact {
 
-    static override get wechaty  () { return wechaty }
+    static override get wechaty () { return wechaty }
     override get wechaty        () { return wechaty }
 
   }

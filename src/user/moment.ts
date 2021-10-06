@@ -26,8 +26,8 @@ import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-clas
 
 class Moment {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static post () {
     // post new moment
@@ -55,7 +55,7 @@ function wechatifyMoment (wechaty: Wechaty): typeof Moment {
 
   class WechatifiedMoment extends Moment {
 
-    static override get wechaty  () { return wechaty }
+    static override get wechaty () { return wechaty }
     override get wechaty        () { return wechaty }
 
   }

@@ -67,8 +67,8 @@ type FriendshipAddOptions = string | FriendshipAddOptionsObject
  */
 class Friendship extends EventEmitter implements Acceptable {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static Type = FriendshipType
 
@@ -436,7 +436,7 @@ function wechatifyFriendship (wechaty: Wechaty): typeof Friendship {
 
   class WechatifiedFriendship extends Friendship {
 
-    static override get wechaty  () { return wechaty }
+    static override get wechaty () { return wechaty }
     override get wechaty        () { return wechaty }
 
   }

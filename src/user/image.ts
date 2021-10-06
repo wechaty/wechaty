@@ -31,8 +31,8 @@ import {
 
 class Image {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   static create (id: string): Image {
     log.verbose('Image', 'static create(%s)', id)

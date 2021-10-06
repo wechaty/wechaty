@@ -43,8 +43,8 @@ import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-clas
  */
 class RoomInvitation implements Acceptable {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static load<T extends typeof RoomInvitation> (
     this : T,

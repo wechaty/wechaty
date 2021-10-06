@@ -30,8 +30,8 @@ import {
 
 class MiniProgram {
 
-  static get wechaty (): Wechaty { return throwWechatifyError(this) }
-  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
+  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
+  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
   /**
    *
@@ -101,7 +101,7 @@ function wechatifyMiniProgram (wechaty: Wechaty): typeof MiniProgram {
 
   class WechatifiedMiniProgram extends MiniProgram {
 
-    static override get wechaty  () { return wechaty }
+    static override get wechaty () { return wechaty }
     override get wechaty        () { return wechaty }
 
   }
