@@ -42,7 +42,7 @@ class Image {
   }
 
   constructor (
-    id: string,
+    public id: string,
   ) {
     log.verbose('Image', 'constructor(%s)', id)
     guardWechatifyClass.call(this, Image)
