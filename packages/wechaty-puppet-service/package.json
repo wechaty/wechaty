@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.35.19",
+  "version": "0.37.0",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -74,7 +74,7 @@
     "semver": "^7.3.5",
     "stronger-typed-streams": "^0.2.0",
     "uuid": "^3.4.0",
-    "wechaty-grpc": "^0.31.13",
+    "wechaty-grpc": "^0.33.1",
     "wechaty-token": "^0.5.8"
   },
   "publishConfig": {
