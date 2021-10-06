@@ -62,6 +62,16 @@ function install_proto_google_api () {
   curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > ${THIRD_PARTY_DIR}/google/api/http.proto
 }
 
+function install_proto_health_check () {
+  if [ -d ${THIRD_PARTY_DIR}/google/api/health_check/v1/health_check.proto ]; then
+    echo "install skipped: ${THIRD_PARTY_DIR}/google/api/health_check/v1/health_check.proto exists"
+    return
+  fi
+
+  mkdir -p ${THIRD_PARTY_DIR}/google/api/health_check/v1/
+  curl https://raw.githubusercontent.com/grpc/grpc/master/src/proto/grpc/health/v1/health.proto > ${THIRD_PARTY_DIR}/google/api/health_check/v1/health_check.proto
+}
+
 function install_protoc_gen_openapiv2 () {
   pushd "$REPO_DIR/openapi"
   make install
@@ -97,6 +107,7 @@ function main () {
   install_protoc_gen_doc
 
   install_proto_google_api
+  install_proto_health_check
 }
 
 main

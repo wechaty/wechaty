@@ -16,8 +16,8 @@ const pkgs = [
   '../out/wechaty/puppet/tag_pb.js',
   '../out/wechaty/puppet/url-link_pb.js',
 
-  '../out/wechaty/health_grpc_pb.js',
-  '../out/wechaty/health_pb.js',
+  '../out/google/api/health_check/v1/health_check_grpc_pb.js',
+  '../out/google/api/health_check/v1/health_check_pb.js',
 
   '../out/wechaty/puppet_grpc_pb.js',
   '../out/wechaty/puppet_pb.js',

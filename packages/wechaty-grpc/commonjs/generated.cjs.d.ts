@@ -41,5 +41,5 @@ export * from '../out/wechaty/puppet/url-link_pb.js'
 export * from '../out/wechaty/puppet_grpc_pb.js'
 export * from '../out/wechaty/puppet_pb.js'
 
-export * from '../out/wechaty/health_grpc_pb.js'
-export * from '../out/wechaty/health_pb.js'
+export * from '../out/google/api/health_check/v1/health_check_grpc_pb.js'
+export * from '../out/google/api/health_check/v1/health_check_pb.js'
