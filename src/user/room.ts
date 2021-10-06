@@ -26,9 +26,6 @@ import {
   RoomPayload,
   RoomQueryFilter,
 }                           from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                           from 'clone-class'
 
 import type { Wechaty }     from '../wechaty.js'
 import {
@@ -44,12 +41,13 @@ import {
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import { Contact }        from './contact.js'
-import { looseInstanceOfMiniProgram, MiniProgram }    from './mini-program.js'
+import { MiniProgram }    from './mini-program.js'
 import { Message }        from './message.js'
-import { looseInstanceOfUrlLink, UrlLink }        from './url-link.js'
-import { Location, looseInstanceOfLocation }       from './location.js'
+import { UrlLink }        from './url-link.js'
+import { Location }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
+import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -59,8 +57,8 @@ import { RoomEventEmitter } from '../events/room-events.js'
  */
 class Room extends RoomEventEmitter implements Sayable {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   protected static pool: Map<string, Room>
 
@@ -272,7 +270,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *
    *
    */
-  protected payload?: RoomPayload
+  #payload?: RoomPayload
 
   /**
    * @hideconstructor
@@ -284,28 +282,18 @@ class Room extends RoomEventEmitter implements Sayable {
   ) {
     super()
     log.silly('Room', `constructor(${id})`)
-
-    const MyClass = instanceToClass(this, Room)
-
-    if (MyClass === Room) {
-      throw new Error('Room class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
-    }
-
-    if (!this.wechaty.puppet) {
-      throw new Error('Room class can not be instantiated without a puppet!')
-    }
-
+    guardWechatifyClass.call(this, Room)
   }
 
   /**
    * @ignore
    */
   public override toString () {
-    if (!this.payload) {
+    if (!this.#payload) {
       return this.constructor.name
     }
 
-    return `Room<${this.payload.topic || 'loading...'}>`
+    return `Room<${this.#payload.topic || 'loading...'}>`
   }
 
   public async * [Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
@@ -347,9 +335,9 @@ class Room extends RoomEventEmitter implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Room, this.id)
       await this.wechaty.puppet.dirtyPayload(PayloadType.RoomMember, this.id)
     }
-    this.payload = await this.wechaty.puppet.roomPayload(this.id)
+    this.#payload = await this.wechaty.puppet.roomPayload(this.id)
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('ready() no payload')
     }
 
@@ -379,7 +367,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * @ignore
    */
   public isReady (): boolean {
-    return !!(this.payload)
+    return !!(this.#payload)
   }
 
   public say (text:     string)                                  : Promise<void | Message>
@@ -584,7 +572,7 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.id,
       )
-    } else if (looseInstanceOfUrlLink(something)) {
+    } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
@@ -592,7 +580,7 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (looseInstanceOfMiniProgram(something)) {
+    } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
@@ -600,7 +588,7 @@ class Room extends RoomEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (looseInstanceOfLocation(something)) {
+    } else if (something instanceof Location) {
       /**
        * 6. Location
        */
@@ -932,8 +920,8 @@ class Room extends RoomEventEmitter implements Sayable {
     }
 
     if (typeof newTopic === 'undefined') {
-      if (this.payload && this.payload.topic) {
-        return this.payload.topic
+      if (this.#payload && this.#payload.topic) {
+        return this.#payload.topic
       } else {
         const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
         const memberList = memberIdList
@@ -1244,7 +1232,7 @@ class Room extends RoomEventEmitter implements Sayable {
   public owner (): null | Contact {
     log.verbose('Room', 'owner()')
 
-    const ownerId = this.payload && this.payload.ownerId
+    const ownerId = this.#payload && this.#payload.ownerId
     if (!ownerId) {
       return null
     }
@@ -1270,11 +1258,12 @@ class Room extends RoomEventEmitter implements Sayable {
 }
 
 function wechatifyRoom (wechaty: Wechaty): typeof Room {
+  log.verbose('Room', 'wechatifyRoom(%s)', wechaty)
 
   class WechatifiedRoom extends Room {
 
-    static override get wechaty  () { return wechaty }
-    override get wechaty        () { return wechaty }
+    static override get wechaty () { return wechaty }
+    override get wechaty       () { return wechaty }
 
   }
 

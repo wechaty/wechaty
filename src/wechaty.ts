@@ -163,29 +163,29 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    */
   public readonly id : string
 
-  protected wechatifiedContact?        : typeof Contact
-  protected wechatifiedContactSelf?    : typeof ContactSelf
-  protected wechatifiedFriendship?     : typeof Friendship
-  protected wechatifiedImage?          : typeof Image
-  protected wechatifiedMessage?        : typeof Message
-  protected wechatifiedMiniProgram?    : typeof MiniProgram
-  protected wechatifiedRoom?           : typeof Room
-  protected wechatifiedRoomInvitation? : typeof RoomInvitation
-  protected wechatifiedTag?            : typeof Tag
-  protected wechatifiedUrlLink?        : typeof UrlLink
-  protected wechatifiedLocation?       : typeof Location
+  #wechatifiedContact?        : typeof Contact
+  #wechatifiedContactSelf?    : typeof ContactSelf
+  #wechatifiedFriendship?     : typeof Friendship
+  #wechatifiedImage?          : typeof Image
+  #wechatifiedMessage?        : typeof Message
+  #wechatifiedMiniProgram?    : typeof MiniProgram
+  #wechatifiedRoom?           : typeof Room
+  #wechatifiedRoomInvitation? : typeof RoomInvitation
+  #wechatifiedTag?            : typeof Tag
+  #wechatifiedUrlLink?        : typeof UrlLink
+  #wechatifiedLocation?       : typeof Location
 
-  get Contact ()        : typeof Contact         { return guardWechatify(this.wechatifiedContact)        }
-  get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.wechatifiedContactSelf)    }
-  get Friendship ()     : typeof Friendship      { return guardWechatify(this.wechatifiedFriendship)     }
-  get Image ()          : typeof Image           { return guardWechatify(this.wechatifiedImage)          }
-  get Message ()        : typeof Message         { return guardWechatify(this.wechatifiedMessage)        }
-  get MiniProgram ()    : typeof MiniProgram     { return guardWechatify(this.wechatifiedMiniProgram)    }
-  get Room ()           : typeof Room            { return guardWechatify(this.wechatifiedRoom)           }
-  get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.wechatifiedRoomInvitation) }
-  get Tag ()            : typeof Tag             { return guardWechatify(this.wechatifiedTag)            }
-  get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.wechatifiedUrlLink)        }
-  get Location ()       : typeof Location        { return guardWechatify(this.wechatifiedLocation)       }
+  get Contact ()        : typeof Contact         { return guardWechatify(this.#wechatifiedContact)        }
+  get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.#wechatifiedContactSelf)    }
+  get Friendship ()     : typeof Friendship      { return guardWechatify(this.#wechatifiedFriendship)     }
+  get Image ()          : typeof Image           { return guardWechatify(this.#wechatifiedImage)          }
+  get Message ()        : typeof Message         { return guardWechatify(this.#wechatifiedMessage)        }
+  get MiniProgram ()    : typeof MiniProgram     { return guardWechatify(this.#wechatifiedMiniProgram)    }
+  get Room ()           : typeof Room            { return guardWechatify(this.#wechatifiedRoom)           }
+  get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.#wechatifiedRoomInvitation) }
+  get Tag ()            : typeof Tag             { return guardWechatify(this.#wechatifiedTag)            }
+  get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.#wechatifiedUrlLink)        }
+  get Location ()       : typeof Location        { return guardWechatify(this.#wechatifiedLocation)       }
 
   /**
    * Get the global instance of Wechaty
@@ -659,24 +659,24 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   protected wechatifyUserModules (puppet: Puppet) {
     log.verbose('Wechaty', 'wechatifyUserModules(%s)', puppet)
 
-    if (this.wechatifiedContactSelf) {
+    if (this.#wechatifiedContactSelf) {
       throw new Error('can not be initialized twice!')
     }
 
     /**
      * 1. Setup Wechaty User Classes
      */
-    this.wechatifiedContact        = wechatifyContact(this)
-    this.wechatifiedContactSelf    = wechatifyContactSelf(this)
-    this.wechatifiedFriendship     = wechatifyFriendship(this)
-    this.wechatifiedImage          = wechatifyImage(this)
-    this.wechatifiedMessage        = wechatifyMessage(this)
-    this.wechatifiedMiniProgram    = wechatifyMiniProgram(this)
-    this.wechatifiedRoom           = wechatifyRoom(this)
-    this.wechatifiedRoomInvitation = wechatifyRoomInvitation(this)
-    this.wechatifiedTag            = wechatifyTag(this)
-    this.wechatifiedUrlLink        = wechatifyUrlLink(this)
-    this.wechatifiedLocation       = wechatifyLocation(this)
+    this.#wechatifiedContact        = wechatifyContact(this)
+    this.#wechatifiedContactSelf    = wechatifyContactSelf(this)
+    this.#wechatifiedFriendship     = wechatifyFriendship(this)
+    this.#wechatifiedImage          = wechatifyImage(this)
+    this.#wechatifiedMessage        = wechatifyMessage(this)
+    this.#wechatifiedMiniProgram    = wechatifyMiniProgram(this)
+    this.#wechatifiedRoom           = wechatifyRoom(this)
+    this.#wechatifiedRoomInvitation = wechatifyRoomInvitation(this)
+    this.#wechatifiedTag            = wechatifyTag(this)
+    this.#wechatifiedUrlLink        = wechatifyUrlLink(this)
+    this.#wechatifiedLocation       = wechatifyLocation(this)
 
     this.puppet = puppet
   }

@@ -21,12 +21,16 @@ import { log }        from 'wechaty-puppet'
 
 import type { Wechaty }  from '../wechaty.js'
 
-import type { Tag } from './tag.js'
+import type { Tag }       from './tag.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                         from './guard-wechatify-class.js'
 
 class Favorite {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static list (): Favorite[] {
     return []
@@ -59,6 +63,7 @@ class Favorite {
    * @hideconstructor
    */
   constructor () {
+    guardWechatifyClass.call(this, Favorite)
   }
 
   public async tags (): Promise<Tag []> {
@@ -73,11 +78,12 @@ class Favorite {
 }
 
 function wechatifyFavorite (wechaty: Wechaty): typeof Favorite {
+  log.verbose('Favorite', 'wechatifyFavorite(%s)', wechaty)
 
   class WechatifiedFavorite extends Favorite {
 
     static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
+    override get wechaty       () { return wechaty }
 
   }
 

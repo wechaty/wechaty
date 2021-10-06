@@ -19,12 +19,31 @@
  *
  */
 import { test }  from 'tstest'
+import type { PuppetModuleName } from './puppet-config.js'
 
 import {
   PuppetManager,
 }                 from './puppet-manager.js'
 
+class PuppetManagerTest extends PuppetManager {
+
+  static override resolveName (puppetName: PuppetModuleName) { return super.resolveName(puppetName) }
+
+}
+
 test('resolve an unsupported puppet name', async t => {
-  await t.rejects(() =>       PuppetManager.resolve({ puppet: 'fadfdsafa' as any }), 'reject when options.puppet is unknown')
-  await t.doesNotThrow(() =>  PuppetManager.resolve({ puppet: 'wechaty-puppet-mock' }), 'should allow "wechaty-puppet-mock" as puppet name')
+  await t.rejects(()  =>  PuppetManager.resolve({ puppet: 'fadfdsafa' as any }), 'reject when options.puppet is unknown')
+  await t.resolves(() =>  PuppetManager.resolve({ puppet: 'wechaty-puppet-mock' }), 'should allow "wechaty-puppet-mock" as puppet name')
+})
+
+test('resolveName() for ESM', async t => {
+  const PuppetImplementation = await PuppetManagerTest.resolveName('wechaty-puppet-mock')
+  t.equal(typeof PuppetImplementation, 'function', 'should get the puppet class function')
+  t.ok(PuppetImplementation.name === 'PuppetMock', 'should return a valid puppet name')
+})
+
+test('resolveName() for CJS', async t => {
+  const PuppetImplementation = await PuppetManagerTest.resolveName('wechaty-puppet-padlocal')
+  t.equal(typeof PuppetImplementation, 'function', 'should get the puppet class function')
+  t.ok(PuppetImplementation.name === 'PuppetPadlocal', 'should return a valid puppet name')
 })

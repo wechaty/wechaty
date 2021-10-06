@@ -27,9 +27,6 @@ import {
   looseInstanceOfFileBox,
   PayloadType,
 }                             from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                             from 'clone-class'
 
 import type { Wechaty }       from '../wechaty.js'
 import {
@@ -42,22 +39,17 @@ import { captureException } from '../raven.js'
 
 import { Message }      from './message.js'
 import type { Tag }     from './tag.js'
-import {
-  MiniProgram,
-  looseInstanceOfMiniProgram,
-}                               from './mini-program.js'
-import {
-  UrlLink,
-  looseInstanceOfUrlLink,
-}                             from './url-link.js'
-import {
-  Location,
-  looseInstanceOfLocation,
-}                             from './location.js'
+import { MiniProgram }  from './mini-program.js'
+import { UrlLink }      from './url-link.js'
+import { Location }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                               from './guard-wechatify-class.js'
 
-export const POOL = Symbol('pool')
+const POOL = Symbol('pool')
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
@@ -68,8 +60,8 @@ export const POOL = Symbol('pool')
  */
 class Contact extends ContactEventEmitter implements Sayable {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static Type   = ContactType
   public static Gender = ContactGender
@@ -296,7 +288,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @ignore
    *
    */
-  protected payload?: ContactPayload
+  #payload?: ContactPayload
 
   /**
    * @hideconstructor
@@ -306,31 +298,19 @@ class Contact extends ContactEventEmitter implements Sayable {
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
-
-    const MyClass = instanceToClass(this, Contact)
-
-    if (MyClass === Contact) {
-      throw new Error(
-        'Contact class can not be instantiated directly!'
-        + 'See: https://github.com/wechaty/wechaty/issues/1217',
-      )
-    }
-
-    if (!this.wechaty) {
-      throw new Error('Contact class can not be instantiated without a wechaty instance!')
-    }
+    guardWechatifyClass.call(this, Contact)
   }
 
   /**
    * @ignore
    */
   public override toString (): string {
-    if (!this.payload) {
+    if (!this.#payload) {
       return this.constructor.name
     }
 
-    const identity = this.payload.alias
-                    || this.payload.name
+    const identity = this.#payload.alias
+                    || this.#payload.name
                     || this.id
                     || 'loading...'
 
@@ -459,7 +439,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something,
       )
-    } else if (looseInstanceOfUrlLink(something)) {
+    } else if (something instanceof UrlLink) {
       /**
        * 4. Link Message
        */
@@ -467,7 +447,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (looseInstanceOfMiniProgram(something)) {
+    } else if (something instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
@@ -475,7 +455,7 @@ class Contact extends ContactEventEmitter implements Sayable {
         this.id,
         something.payload,
       )
-    } else if (looseInstanceOfLocation(something)) {
+    } else if (something instanceof Location) {
       /**
        * 6. Location
        */
@@ -501,7 +481,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const name = contact.name()
    */
   public name (): string {
-    return (this.payload && this.payload.name) || ''
+    return (this.#payload && this.#payload.name) || ''
   }
 
   public async alias ()                  : Promise<null | string>
@@ -546,23 +526,23 @@ class Contact extends ContactEventEmitter implements Sayable {
         : newAlias,
     )
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
     if (typeof newAlias === 'undefined') {
-      return this.payload.alias || null
+      return this.#payload.alias || null
     }
 
     try {
       await this.wechaty.puppet.contactAlias(this.id, newAlias)
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
-      this.payload = await this.wechaty.puppet.contactPayload(this.id)
-      if (newAlias && newAlias !== this.payload.alias) {
+      this.#payload = await this.wechaty.puppet.contactPayload(this.id)
+      if (newAlias && newAlias !== this.#payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
           newAlias,
           newAlias,
-          this.payload.alias,
+          this.#payload.alias,
         )
       }
     } catch (e) {
@@ -598,18 +578,18 @@ class Contact extends ContactEventEmitter implements Sayable {
   public async phone (phoneList?: string[]): Promise<string[] | void> {
     log.silly('Contact', 'phone(%s)', phoneList === undefined ? '' : JSON.stringify(phoneList))
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
     if (typeof phoneList === 'undefined') {
-      return this.payload.phone
+      return this.#payload.phone
     }
 
     try {
       await this.wechaty.puppet.contactPhone(this.id, phoneList)
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
-      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), (e as Error).message)
       captureException((e as Error))
@@ -621,22 +601,22 @@ class Contact extends ContactEventEmitter implements Sayable {
   public async corporation (remark?: string | null): Promise<string | null | void> {
     log.silly('Contact', 'corporation(%s)', remark)
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
     if (typeof remark === 'undefined') {
-      return this.payload.corporation || null
+      return this.#payload.corporation || null
     }
 
-    if (this.payload.type !== ContactType.Individual) {
+    if (this.#payload.type !== ContactType.Individual) {
       throw new Error('Can not set corporation remark on non individual contact.')
     }
 
     try {
       await this.wechaty.puppet.contactCorporationRemark(this.id, remark)
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
-      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       log.error('Contact', 'corporation(%s) rejected: %s', remark, (e as Error).message)
       captureException((e as Error))
@@ -648,18 +628,18 @@ class Contact extends ContactEventEmitter implements Sayable {
   public async description (newDescription?: string | null): Promise<string | null | void> {
     log.silly('Contact', 'description(%s)', newDescription)
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
     if (typeof newDescription === 'undefined') {
-      return this.payload.description || null
+      return this.#payload.description || null
     }
 
     try {
       await this.wechaty.puppet.contactDescription(this.id, newDescription)
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
-      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       log.error('Contact', 'description(%s) rejected: %s', newDescription, (e as Error).message)
       captureException((e as Error))
@@ -667,19 +647,19 @@ class Contact extends ContactEventEmitter implements Sayable {
   }
 
   public title (): string | null {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    return this.payload.title || null
+    return this.#payload.title || null
   }
 
   public coworker (): boolean {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    return !!this.payload.coworker
+    return !!this.#payload.coworker
   }
 
   /**
@@ -697,11 +677,11 @@ class Contact extends ContactEventEmitter implements Sayable {
    */
   public friend (): null | boolean {
     log.verbose('Contact', 'friend()')
-    if (!this.payload) {
+    if (!this.#payload) {
       return null
     }
-    if (typeof this.payload.friend === 'boolean') {
-      return this.payload.friend
+    if (typeof this.#payload.friend === 'boolean') {
+      return this.#payload.friend
     } else {
       return null
     }
@@ -726,10 +706,10 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
   public type (): ContactType {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
-    return this.payload.type
+    return this.#payload.type
   }
 
   /**
@@ -742,12 +722,12 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const isStar = contact.star()
    */
   public star (): null | boolean {
-    if (!this.payload) {
+    if (!this.#payload) {
       return null
     }
-    return this.payload.star === undefined
+    return this.#payload.star === undefined
       ? null
-      : this.payload.star
+      : this.#payload.star
   }
 
   /**
@@ -759,8 +739,8 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const gender = contact.gender() === bot.Contact.Gender.Male
    */
   public gender (): ContactGender {
-    return this.payload
-      ? this.payload.gender
+    return this.#payload
+      ? this.#payload.gender
       : ContactGender.Unknown
   }
 
@@ -772,7 +752,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const province = contact.province()
    */
   public province (): null | string {
-    return (this.payload && this.payload.province) || null
+    return (this.#payload && this.#payload.province) || null
   }
 
   /**
@@ -783,7 +763,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const city = contact.city()
    */
   public city (): null | string {
-    return (this.payload && this.payload.city) || null
+    return (this.#payload && this.#payload.city) || null
   }
 
   /**
@@ -863,7 +843,7 @@ class Contact extends ContactEventEmitter implements Sayable {
       if (forceSync) {
         await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       }
-      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.#payload = await this.wechaty.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
@@ -905,7 +885,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @ignore
    */
   public isReady (): boolean {
-    return !!(this.payload && this.payload.name)
+    return !!(this.#payload && this.#payload.name)
   }
 
   /**
@@ -936,12 +916,13 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const weixin = contact.weixin()
    */
   public weixin (): null | string {
-    return (this.payload && this.payload.weixin) || null
+    return (this.#payload && this.#payload.weixin) || null
   }
 
 }
 
 function wechatifyContact (wechaty: Wechaty): typeof Contact {
+  log.verbose('Contact', 'wechatifyContact(%s)', wechaty)
 
   class WechatifiedContact extends Contact {
 

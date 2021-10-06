@@ -25,9 +25,6 @@ import {
   FriendshipSearchQueryFilter,
   log,
 }                                 from 'wechaty-puppet'
-import {
-  instanceToClass,
-}                                 from 'clone-class'
 
 import type {
   Wechaty,
@@ -42,11 +39,14 @@ import type {
 
 import type {
   Contact,
-}                   from './contact.js'
-
+}                       from './contact.js'
 import type {
   Room,
-}                   from './room.js'
+}                       from './room.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                       from './guard-wechatify-class.js'
 
 interface FriendshipAddOptionsObject {
   room?: Room,
@@ -67,8 +67,8 @@ type FriendshipAddOptions = string | FriendshipAddOptionsObject
  */
 class Friendship extends EventEmitter implements Acceptable {
 
-  static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
-  get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
+  static get wechaty (): Wechaty { return throwWechatifyError(this) }
+  get wechaty       (): Wechaty { return throwWechatifyError(this.constructor) }
 
   public static Type = FriendshipType
 
@@ -178,7 +178,7 @@ class Friendship extends EventEmitter implements Acceptable {
   /**
     * @ignore
    */
-  protected payload?: FriendshipPayload
+  #payload?: FriendshipPayload
 
   /*
    * @hideconstructor
@@ -188,34 +188,25 @@ class Friendship extends EventEmitter implements Acceptable {
   ) {
     super()
     log.verbose('Friendship', 'constructor(id=%s)', id)
-
-    const MyClass = instanceToClass(this, Friendship)
-
-    if (MyClass === Friendship) {
-      throw new Error('Friendship class can not be instantiated directly! See: https://github.com/wechaty/wechaty/issues/1217')
-    }
-
-    if (!this.wechaty.puppet) {
-      throw new Error('Friendship class can not be instantiated without a puppet!')
-    }
+    guardWechatifyClass.call(this, Friendship)
   }
 
   public override toString () {
-    if (!this.payload) {
+    if (!this.#payload) {
       return this.constructor.name
     }
 
     return [
       'Friendship#',
-      FriendshipType[this.payload.type],
+      FriendshipType[this.#payload.type],
       '<',
-      this.payload.contactId,
+      this.#payload.contactId,
       '>',
     ].join('')
   }
 
   public isReady (): boolean {
-    return !!this.payload && (Object.keys(this.payload).length > 0)
+    return !!this.#payload && (Object.keys(this.#payload).length > 0)
   }
 
   /**
@@ -227,9 +218,9 @@ class Friendship extends EventEmitter implements Acceptable {
       return
     }
 
-    this.payload = await this.wechaty.puppet.friendshipPayload(this.id)
+    this.#payload = await this.wechaty.puppet.friendshipPayload(this.id)
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
@@ -269,15 +260,15 @@ class Friendship extends EventEmitter implements Acceptable {
   public async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    if (this.payload.type !== Friendship.Type.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + Friendship.Type[this.payload.type])
+    if (this.#payload.type !== Friendship.Type.Receive) {
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + Friendship.Type[this.#payload.type])
     }
 
-    log.silly('Friendship', 'accept() to %s', this.payload.contactId)
+    log.silly('Friendship', 'accept() to %s', this.#payload.contactId)
 
     await this.wechaty.puppet.friendshipAccept(this.id)
 
@@ -322,10 +313,10 @@ class Friendship extends EventEmitter implements Acceptable {
    * .start()
    */
   public hello (): string {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
-    return this.payload.hello || ''
+    return this.#payload.hello || ''
   }
 
   /**
@@ -342,11 +333,11 @@ class Friendship extends EventEmitter implements Acceptable {
    * .start()
    */
   public contact (): Contact {
-    if (!this.payload) {
+    if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    const contact = this.wechaty.Contact.load(this.payload.contactId)
+    const contact = this.wechaty.Contact.load(this.#payload.contactId)
     return contact
   }
 
@@ -374,8 +365,8 @@ class Friendship extends EventEmitter implements Acceptable {
    * .start()
    */
   public type (): FriendshipType {
-    return this.payload
-      ? this.payload.type
+    return this.#payload
+      ? this.#payload.type
       : FriendshipType.Unknown
   }
 
@@ -401,7 +392,7 @@ class Friendship extends EventEmitter implements Acceptable {
     if (!this.isReady()) {
       throw new Error(`Friendship<${this.id}> needs to be ready. Please call ready() before toJSON()`)
     }
-    return JSON.stringify(this.payload)
+    return JSON.stringify(this.#payload)
   }
 
   /**
@@ -441,6 +432,7 @@ class Friendship extends EventEmitter implements Acceptable {
 }
 
 function wechatifyFriendship (wechaty: Wechaty): typeof Friendship {
+  log.verbose('Friendship', 'wechatifyFriendship(%s)', wechaty)
 
   class WechatifiedFriendship extends Friendship {
 
