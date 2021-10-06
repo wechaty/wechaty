@@ -65,7 +65,7 @@
     "tstest": "^0.5.16",
     "typescript": "^4.4.3",
     "wechaty": "^0.73.9",
-    "wechaty-puppet": "^0.47.6",
+    "wechaty-puppet": "^0.47.7",
     "wechaty-puppet-mock": "^0.31.6"
   },
   "dependencies": {
