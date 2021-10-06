@@ -6,9 +6,9 @@
  */
 syntax = "proto3";
 
-package wechaty.puppet;
+package wechaty;
 
-option csharp_namespace = "github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc";
 option go_package       = "github.com/wechaty/go-grpc/wechaty";
 option java_package     = "io.github.wechaty.grpc";
 

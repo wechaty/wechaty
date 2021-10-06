@@ -11,7 +11,7 @@
  *
  */
 syntax = "proto3";
-package wechaty.puppet;
+package wechaty;
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
