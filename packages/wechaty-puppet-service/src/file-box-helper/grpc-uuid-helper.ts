@@ -2,6 +2,7 @@ import type {
   Readable,
 }                       from 'stream'
 import type {
+  FileBox,
   UuidLoader,
   UuidSaver,
 }                       from 'file-box'
@@ -12,28 +13,31 @@ import {
 import {
   chunkDecoder,
   chunkEncoder,
-}                       from './transformer.js'
+}                       from './grpc-transformer.js'
 
 const uuidLoaderGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidLoader = (
   grpcClient,
-) => async (
-  uuid: string,
-) => {
+) => async function uuidLoader (
+  this : FileBox,
+  uuid : string,
+) {
   const request = new pbPuppet.DownloadRequest()
   request.setId(uuid)
 
   const response = grpcClient().download(request)
 
-  return response.pipe(
-    chunkDecoder(),
-  )
+  const stream = response
+    .pipe(chunkDecoder())
+
+  return stream
 }
 
 const uuidSaverGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidSaver = (
   grpcClient,
-) => async (
-  stream: Readable,
-) => {
+) => async function uuidSaver (
+  this   : FileBox,
+  stream : Readable,
+) {
   const response = await new Promise<pbPuppet.UploadResponse>((resolve, reject) => {
     const request = grpcClient().upload((err, response) => {
       if (err) {
@@ -48,9 +52,8 @@ const uuidSaverGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidSaver = (
       .pipe(request)
   })
 
-  const messageId = response.getId()
-
-  return messageId
+  const uuid = response.getId()
+  return uuid
 }
 
 export {

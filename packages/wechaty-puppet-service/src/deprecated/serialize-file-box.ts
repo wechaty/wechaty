@@ -1,13 +1,16 @@
 import { FileBox } from 'wechaty-puppet'
 import { FileBoxType } from 'file-box'
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 export const serializeFileBox = async (fileBox: FileBox): Promise<string> => {
   const serializableFileBoxTypes = [
     FileBoxType.Base64,
     FileBoxType.Url,
     FileBoxType.QRCode,
   ]
-  if (serializableFileBoxTypes.includes(fileBox.type())) {
+  if (serializableFileBoxTypes.includes(fileBox.type)) {
     return JSON.stringify(fileBox)
   }
   const base64 = await fileBox.toBase64()

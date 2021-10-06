@@ -11,6 +11,9 @@ import {
 }                           from './chunk-pb.js'
 import type { FileBoxPb }        from './file-box-pb.type.js'
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 function packFileBoxToPb<T extends FileBoxPb> (
   PbConstructor: { new(): T },
 ) {
@@ -21,6 +24,9 @@ function packFileBoxToPb<T extends FileBoxPb> (
   }
 }
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 async function unpackFileBoxFromPb<T extends FileBoxPb> (
   pbStream: Readable<T>,
 ): Promise<FileBox> {

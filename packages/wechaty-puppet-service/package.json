@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.35.9",
+  "version": "0.35.17",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -65,7 +65,7 @@
     "tstest": "^0.5.16",
     "typescript": "^4.4.3",
     "wechaty": "^0.73.9",
-    "wechaty-puppet": "^0.47.5",
+    "wechaty-puppet": "^0.47.6",
     "wechaty-puppet-mock": "^0.31.6"
   },
   "dependencies": {
@@ -74,7 +74,7 @@
     "semver": "^7.3.5",
     "stronger-typed-streams": "^0.2.0",
     "uuid": "^3.4.0",
-    "wechaty-grpc": "^0.31.5",
+    "wechaty-grpc": "^0.31.12",
     "wechaty-token": "^0.5.8"
   },
   "publishConfig": {

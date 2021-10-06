@@ -9,6 +9,9 @@ import { puppet } from 'wechaty-grpc'
 
 import { nextData } from './next-data.js'
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 const decoder = () => new Transform<puppet.FileBoxChunk, any>({
   objectMode: true,
   transform: (chunk: puppet.FileBoxChunk, _: any, callback: any) => {
@@ -21,6 +24,9 @@ const decoder = () => new Transform<puppet.FileBoxChunk, any>({
   },
 })
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 async function unpackFileBoxFromChunk (
   stream: Readable<puppet.FileBoxChunk>,
 ): Promise<FileBox> {
@@ -41,6 +47,9 @@ async function unpackFileBoxFromChunk (
   return fileBox
 }
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 const encoder = () => new Transform<any, puppet.FileBoxChunk>({
   objectMode: true,
   transform: (chunk: any, _: any, callback: any) => {
@@ -50,6 +59,9 @@ const encoder = () => new Transform<any, puppet.FileBoxChunk>({
   },
 })
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 async function packFileBoxToChunk (
   fileBox: FileBox,
 ): Promise<Readable<puppet.FileBoxChunk>> {

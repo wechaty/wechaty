@@ -1,9 +1,8 @@
-import util from 'util'
-
+import util             from 'util'
 import {
   Puppet,
   log,
-}                 from 'wechaty-puppet'
+}                       from 'wechaty-puppet'
 import {
   grpc,
   puppet as grpcPuppet,
@@ -13,17 +12,28 @@ import {
   envVars,
   VERSION,
   GRPC_OPTIONS,
-}                     from '../config.js'
+}                             from '../config.js'
+
+import {
+  authImplToken,
+}                             from '../auth/mod.js'
+import {
+  TLS_INSECURE_SERVER_CERT,
+  TLS_INSECURE_SERVER_KEY,
+}                             from '../auth/ca.js'
 
 import {
   puppetImplementation,
-}                         from './puppet-implementation.js'
+}                             from './puppet-implementation.js'
 import {
-  authImplToken,
-}                         from '../auth/mod.js'
+  healthImplementation,
+}                             from './health-implementation.js'
 import {
-  TLS_INSECURE_SERVER_CERT, TLS_INSECURE_SERVER_KEY,
-}                             from '../auth/ca.js'
+  UuidFileManager,
+}                             from '../file-box-helper/uuid-file-manager.js'
+import {
+  uuidifyFileBoxLocal,
+}                             from '../file-box-helper/local-uuidify-file-box.js'
 
 export interface PuppetServerOptions {
   endpoint : string,
@@ -38,7 +48,8 @@ export interface PuppetServerOptions {
 
 export class PuppetServer {
 
-  private grpcServer?: grpc.Server
+  protected grpcServer?      : grpc.Server
+  protected uuidFileManager? : UuidFileManager
 
   constructor (
     public readonly options: PuppetServerOptions,
@@ -62,15 +73,34 @@ export class PuppetServer {
       throw new Error('grpc server existed!')
     }
 
-    const puppetImpl = puppetImplementation(
-      this.options.puppet,
-    )
-    const puppetImplAuth = authImplToken(this.options.token)(puppetImpl)
+    if (!this.uuidFileManager) {
+      this.uuidFileManager = new UuidFileManager()
+      await this.uuidFileManager.init()
+    }
 
     this.grpcServer = new grpc.Server(GRPC_OPTIONS)
+
+    /**
+     * Connect FileBox with UUID Manager
+     */
+    const FileBoxUuid = uuidifyFileBoxLocal(this.uuidFileManager)
+
+    const puppetImpl = puppetImplementation(
+      this.options.puppet,
+      FileBoxUuid,
+    )
+    const puppetImplAuth = authImplToken(this.options.token)(puppetImpl)
     this.grpcServer.addService(
       grpcPuppet.PuppetService,
       puppetImplAuth,
+    )
+
+    const healthImpl = healthImplementation(
+      this.options.puppet,
+    )
+    this.grpcServer.addService(
+      grpcPuppet.HealthService,
+      healthImpl,
     )
 
     const caCerts = envVars.WECHATY_PUPPET_SERVICE_TLS_CA_CERT()
@@ -140,6 +170,11 @@ export class PuppetServer {
     setImmediate(() => grpcServer.forceShutdown())
 
     this.grpcServer = undefined
+
+    if (this.uuidFileManager) {
+      await this.uuidFileManager.destroy()
+      this.uuidFileManager = undefined
+    }
   }
 
 }

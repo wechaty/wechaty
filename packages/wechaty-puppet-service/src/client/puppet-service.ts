@@ -4,10 +4,6 @@ import type {
   FileBox,
 }                 from 'file-box'
 import {
-  FileBoxType,
-}                 from 'file-box'
-
-import {
   log,
 
   ContactPayload,
@@ -52,28 +48,34 @@ import {
 
 import type { Subscription } from 'rxjs'
 
-import {
-  envVars,
-  VERSION,
-}                                         from '../config.js'
-
-import {
-  EventTypeRev,
-}                 from '../event-type-rev.js'
-
+/**
+ * Deprecated. Will be removed after Dec 31, 2022
+ */
 import {
   packConversationIdFileBoxToPb,
   unpackFileBoxFromPb,
 }                                     from '../deprecated/mod.js'
-import { serializeFileBox }           from '../server/serialize-file-box.js'
+import { serializeFileBox }           from '../deprecated/serialize-file-box.js'
+
 import { millisecondsFromTimestamp }  from '../pure-functions/timestamp.js'
 
-import { uuidifyFileBox } from '../uuid-file-box/uuidify-file-box.js'
+import {
+  uuidifyFileBoxGrpc,
+  normalizeFileBoxUuid,
+}                       from '../file-box-helper/mod.js'
+
+import {
+  envVars,
+  VERSION,
+}                       from '../config.js'
+import {
+  EventTypeRev,
+}                       from '../event-type-rev.js'
+import { packageJson }  from '../package-json.js'
 
 import { recover$ }     from './recover$.js'
 import { GrpcClient }   from './grpc-client.js'
 import { PayloadStore } from './payload-store.js'
-import { packageJson }  from '../package-json.js'
 
 const { StringValue } = google
 
@@ -117,7 +119,19 @@ export class PuppetService extends Puppet {
 
     this.hookPayloadStore()
 
-    this.FileBox = uuidifyFileBox(() => this.grpc.client)
+    this.FileBox = uuidifyFileBoxGrpc(() => this.grpc.client)
+  }
+
+  protected async serializeFileBox (fileBox: FileBox): Promise<string> {
+    /**
+     * 1. if the fileBox is one of type `Url`, `QRCode`, `Uuid`, etc,
+     *  then it can be serialized by `fileBox.toString()`
+     * 2. if the fileBox is one of type `Stream`, `Buffer`, `File`, etc,
+     *  then it need to be convert to type `Uuid`
+     *  before serialized by `fileBox.toString()`
+     */
+    const normalizedFileBox = await normalizeFileBoxUuid(this.FileBox)(fileBox)
+    return JSON.stringify(normalizedFileBox)
   }
 
   override name () {
@@ -594,7 +608,9 @@ export class PuppetService extends Puppet {
     if (fileBox) {
       const request = new pbPuppet.ContactAvatarRequest()
       request.setId(contactId)
-      request.setFilebox(await serializeFileBox(fileBox))
+
+      const serializedFileBox = await this.serializeFileBox(fileBox)
+      request.setFileBox(serializedFileBox)
 
       {
         // DEPRECATED, will be removed after Dec 31, 2022
@@ -623,7 +639,7 @@ export class PuppetService extends Puppet {
     )(request)
 
     let jsonText: string
-    jsonText = response.getFilebox()
+    jsonText = response.getFileBox()
 
     {
       // DEPRECATED, will be removed after Dec 31, 2022
@@ -810,15 +826,38 @@ export class PuppetService extends Puppet {
       ImageType[imageType],
     )
 
-    const request = new pbPuppet.MessageImageStreamRequest()
-    request.setId(messageId)
-    request.setType(imageType)
+    try {
+      const request = new pbPuppet.MessageImageRequest()
+      request.setId(messageId)
+      request.setType(imageType)
 
-    const pbStream = this.grpc.client.messageImageStream(request)
-    const fileBox = await unpackFileBoxFromPb(pbStream)
-    // const fileBoxChunkStream = unpackFileBoxChunk(stream)
-    // return unpackFileBox(fileBoxChunkStream)
-    return fileBox
+      const response = await util.promisify(
+        this.grpc.client.messageImage
+          .bind(this.grpc.client)
+      )(request)
+
+      const jsonText = response.getFileBox()
+
+      if (jsonText) {
+        return this.FileBox.fromJSON(jsonText)
+      }
+
+    } catch (e) {
+      log.verbose('PuppetService', 'messageImage() rejection %s', (e as Error).message)
+    }
+
+    {
+      // Deprecated. Will be removed after Dec 31, 2022
+      const request = new pbPuppet.MessageImageStreamRequest()
+      request.setId(messageId)
+      request.setType(imageType)
+
+      const pbStream = this.grpc.client.messageImageStream(request)
+      const fileBox = await unpackFileBoxFromPb(pbStream)
+      // const fileBoxChunkStream = unpackFileBoxChunk(stream)
+      // return unpackFileBox(fileBoxChunkStream)
+      return fileBox
+    }
   }
 
   override async messageContact (
@@ -1067,22 +1106,49 @@ export class PuppetService extends Puppet {
 
   override async messageSendFile (
     conversationId : string,
-    file           : FileBox,
+    fileBox        : FileBox,
   ): Promise<void | string> {
-    log.verbose('PuppetService', 'messageSend(%s, %s)', conversationId, file)
+    log.verbose('PuppetService', 'messageSendFile(%s, %s)', conversationId, fileBox)
 
-    const fileBoxStreamTypes = [
-      FileBoxType.Base64,
-      FileBoxType.Buffer,
-      FileBoxType.File,
-      FileBoxType.Stream,
-    ]
+    try {
+      const request = new pbPuppet.MessageSendFileRequest()
+      request.setConversationId(conversationId)
 
-    if (fileBoxStreamTypes.includes(file.type())) {
-      return this.messageSendFileStream(conversationId, file)
-    } else {
-      return this.messageSendFileNonStream(conversationId, file)
+      const serializedFileBox = await this.serializeFileBox(fileBox)
+      request.setFileBox(serializedFileBox)
+
+      const response = await util.promisify(
+        this.grpc.client.messageSendFile
+          .bind(this.grpc.client)
+      )(request)
+
+      const messageId = response.getId()
+
+      if (messageId) {
+        return messageId
+      } else {
+        /**
+         * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+         */
+        const messageIdWrapper = response.getIdStringValueDeprecated()
+        if (messageIdWrapper) {
+          return messageIdWrapper.getValue()
+        }
+      }
+
+      return // void
+
+    } catch (e) {
+      log.verbose('PuppetService', 'messageSendFile() rejection: %s', (e as Error).message)
     }
+
+    /**
+     * Huan(202110): Deprecated: will be removed after Dec 31, 2022
+     *  The old server will not support `Upload` gRPC method,
+     *  which I'm expecting the above code will throw a exception,
+     *  then the below code will be executed.
+     */
+    return this.messageSendFileStream(conversationId, fileBox)
   }
 
   override async messageSendContact (
@@ -1269,7 +1335,7 @@ export class PuppetService extends Puppet {
         .bind(this.grpc.client)
     )(request)
 
-    const jsonText = response.getFilebox()
+    const jsonText = response.getFileBox()
     return this.FileBox.fromJSON(jsonText)
   }
 
@@ -1801,6 +1867,9 @@ export class PuppetService extends Puppet {
     return response.getIdsList()
   }
 
+  /**
+   * @deprecated Will be removed after Dec 31, 2022
+   */
   private async messageSendFileStream (
     conversationId : string,
     file           : FileBox,
@@ -1817,36 +1886,6 @@ export class PuppetService extends Puppet {
       })
       request.pipe(stream)
     })
-
-    const messageId = response.getId()
-
-    if (messageId) {
-      return messageId
-    }
-
-    {
-      /**
-       * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-       */
-      const messageIdWrapper = response.getIdStringValueDeprecated()
-      if (messageIdWrapper) {
-        return messageIdWrapper.getValue()
-      }
-    }
-  }
-
-  private async messageSendFileNonStream (
-    conversationId : string,
-    file           : FileBox,
-  ): Promise<void | string> {
-    const request = new pbPuppet.MessageSendFileRequest()
-    request.setConversationId(conversationId)
-    request.setFilebox(JSON.stringify(file))
-
-    const response = await util.promisify(
-      this.grpc.client.messageSendFile
-        .bind(this.grpc.client)
-    )(request)
 
     const messageId = response.getId()
 

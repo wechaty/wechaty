@@ -16,6 +16,7 @@ interface ConversationIdFileBoxArgs {
 
 /**
  * MessageSendFileStreamRequest to Args
+ * @deprecated Will be removed after Dec 31, 2022
  */
 async function unpackConversationIdFileBoxArgsFromPb (
   stream: Readable<ConversationIdFileBoxPb>
@@ -37,6 +38,7 @@ async function unpackConversationIdFileBoxArgsFromPb (
 
 /**
  * Args to MessageSendFileStreamRequest
+ * @deprecated Will be removed after Dec 31, 2022
  */
 function packConversationIdFileBoxToPb<T extends ConversationIdFileBoxPb> (
   PbConstructor: { new(): T },

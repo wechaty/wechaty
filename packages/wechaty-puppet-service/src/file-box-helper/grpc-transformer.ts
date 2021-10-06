@@ -5,7 +5,6 @@ import {
 type Chunk = string | Uint8Array
 
 interface ChunkPb {
-  // hasChunk(): boolean
   getChunk(): Chunk
   setChunk(value: Chunk): void
 }

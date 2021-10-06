@@ -12,11 +12,11 @@ import {
 import {
   uuidLoaderGrpc,
   uuidSaverGrpc,
-}                   from './uuid-helper.js'
+}                   from './grpc-uuid-helper.js'
 
-type UuidifyFileBoxFactory = (grpcClient: () => pbPuppet.PuppetClient) => typeof FileBox
+type UuidifyFileBoxGrpcFactory = (grpcClient: () => pbPuppet.PuppetClient) => typeof FileBox
 
-const uuidifyFileBox: UuidifyFileBoxFactory = (
+const uuidifyFileBoxGrpc: UuidifyFileBoxGrpcFactory = (
   grpcClient,
 ) => {
   /**
@@ -25,14 +25,14 @@ const uuidifyFileBox: UuidifyFileBoxFactory = (
    * Huan(202110): TypeError: Cannot read property 'valueDeclaration' of undefined #58
    *  https://github.com/huan/clone-class/issues/58
    */
-  const FileBoxGrpc: typeof FileBox = cloneClass(FileBox as any as Constructor<FileBox>) as any
+  const FileBoxUuid: typeof FileBox = cloneClass(FileBox as any as Constructor<FileBox>) as any
 
-  FileBoxGrpc.setUuidLoader(uuidLoaderGrpc(grpcClient))
-  FileBoxGrpc.setUuidSaver(uuidSaverGrpc(grpcClient))
+  FileBoxUuid.setUuidLoader(uuidLoaderGrpc(grpcClient))
+  FileBoxUuid.setUuidSaver(uuidSaverGrpc(grpcClient))
 
-  return FileBoxGrpc
+  return FileBoxUuid
 }
 
 export {
-  uuidifyFileBox,
+  uuidifyFileBoxGrpc,
 }

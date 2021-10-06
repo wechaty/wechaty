@@ -6,6 +6,7 @@ import type { FileBoxPb } from './file-box-pb.type.js'
 
 /**
  * Wrap FileBoxChunk
+ * @deprecated Will be removed after Dec 31, 2022
  */
 const encoder = <T extends FileBoxPb>(
   PbConstructor: { new(): T },
@@ -18,6 +19,9 @@ const encoder = <T extends FileBoxPb>(
   },
 })
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 function packFileBoxChunkToPb<T extends FileBoxPb> (
   PbConstructor: { new(): T },
 ) {
@@ -35,6 +39,7 @@ function packFileBoxChunkToPb<T extends FileBoxPb> (
 
 /**
  * Unwrap FileBoxChunk
+ * @deprecated Will be removed after Dec 31, 2022
  */
 const decoder = <T extends FileBoxPb>() => new Transform<T, puppet.FileBoxChunk>({
   objectMode: true,
@@ -48,6 +53,9 @@ const decoder = <T extends FileBoxPb>() => new Transform<T, puppet.FileBoxChunk>
   },
 })
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 function unpackFileBoxChunkFromPb<T extends FileBoxPb> (
   stream: Readable<T>,
 ): Readable<puppet.FileBoxChunk> {

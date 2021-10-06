@@ -8,6 +8,9 @@ import type {
  */
 const TIMEOUT = 60 * 1000
 
+/**
+ * @deprecated Will be removed after Dec 31, 2022
+ */
 async function nextData<T> (
   stream: Readable<T>
 ): Promise<T> {
