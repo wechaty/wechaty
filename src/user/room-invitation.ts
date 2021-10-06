@@ -52,7 +52,7 @@ class RoomInvitation implements Acceptable {
     this : T,
     id   : string,
   ): T['prototype'] {
-    const newRoomInvitation = new (this as any)(id)
+    const newRoomInvitation = new this(id)
     return newRoomInvitation
   }
 

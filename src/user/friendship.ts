@@ -79,7 +79,7 @@ class Friendship extends EventEmitter implements Acceptable {
     this : T,
     id   : string,
   ): T['prototype'] {
-    const newFriendship = new (this as any)(id)
+    const newFriendship = new this(id)
     return newFriendship
   }
 

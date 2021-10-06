@@ -96,7 +96,7 @@ class Tag {
       return existingTag
     }
 
-    const newTag = new (this as any)(id) as Tag
+    const newTag = new this(id)
     this.pool.set(id, newTag)
 
     return newTag

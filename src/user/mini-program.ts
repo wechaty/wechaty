@@ -51,7 +51,7 @@ class MiniProgram {
       username           : 'todo',
     }
 
-    return new MiniProgram(payload)
+    return new this(payload)
   }
 
   /*

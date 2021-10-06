@@ -44,7 +44,7 @@ class Location {
       name      : poi,  // Huan(202109): FIXME: generate payload by poi
     }
 
-    return new Location(payload)
+    return new this(payload)
   }
 
   /*

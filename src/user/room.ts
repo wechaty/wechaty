@@ -259,7 +259,7 @@ class Room extends RoomEventEmitter implements Sayable {
       return existingRoom
     }
 
-    const newRoom = new (this as any)(id) as Room
+    const newRoom = new this(id)
 
     this.pool.set(id, newRoom)
     return newRoom

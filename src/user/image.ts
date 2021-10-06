@@ -33,8 +33,15 @@ class Image {
   static get wechaty  (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
   get wechaty        (): Wechaty { throw new Error('This class can not be used directly. See: https://github.com/wechaty/wechaty/issues/2027') }
 
+  static create (id: string): Image {
+    log.verbose('Image', 'static create(%s)', id)
+
+    const image = new this(id)
+    return image
+  }
+
   constructor (
-    public id: string,
+    id: string,
   ) {
     log.verbose('Image', 'constructor(%s)',
       id,
@@ -52,26 +59,19 @@ class Image {
     }
   }
 
-  public static create (id: string): Image {
-    log.verbose('Image', 'static create(%s)', id)
-
-    const image = new this(id)
-    return image
-  }
-
-  public async thumbnail (): Promise<FileBox> {
+  async thumbnail (): Promise<FileBox> {
     log.verbose('Image', 'thumbnail() for id: "%s"', this.id)
     const fileBox = await this.wechaty.puppet.messageImage(this.id, ImageType.Thumbnail)
     return fileBox
   }
 
-  public async hd (): Promise<FileBox> {
+  async hd (): Promise<FileBox> {
     log.verbose('Image', 'hd() for id: "%s"', this.id)
     const fileBox = await this.wechaty.puppet.messageImage(this.id, ImageType.HD)
     return fileBox
   }
 
-  public async artwork (): Promise<FileBox> {
+  async artwork (): Promise<FileBox> {
     log.verbose('Image', 'artwork() for id: "%s"', this.id)
     const fileBox = await this.wechaty.puppet.messageImage(this.id, ImageType.Artwork)
     return fileBox

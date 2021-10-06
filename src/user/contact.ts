@@ -129,7 +129,9 @@ class Contact extends ContactEventEmitter implements Sayable {
 
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
-    const newContact = new (this as any)(id) as Contact
+    //
+    // Huan(202110): it seems that there's no `this as any` needed anymore
+    const newContact = new this(id)
 
     this.pool.set(id, newContact)
 
