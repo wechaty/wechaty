@@ -24,33 +24,42 @@ const yellowFileBoxTypes = [
   FileBoxType.Base64,
 ]
 
-const PASS_THROUGH_THRESHOLD_BYTES = 2 * 1024 * 1024 // 2MB
+/**
+ * Huan(202110): for testing propose, use 20KB as the threshold
+ *  after stable we should use 256KB as the threshold
+ */
+const PASS_THROUGH_THRESHOLD_BYTES = 20 * 1024 // 20KB
 
 const canPassthrough = (fileBox: FileBox) => {
   /**
-   * 1. Green types
+   * 1. Green types: YES
    */
   if (greenFileBoxTypes.includes(fileBox.type)) {
     return true
   }
 
   /**
-   * 2. Yellow types
+   * 2. Red types: NO
    */
-  if (yellowFileBoxTypes.includes(fileBox.type)) {
-    const size = fileBox.size
-    if (size < 0) {
-      return false
-    }
-    if (size < PASS_THROUGH_THRESHOLD_BYTES) {
-      return true
-    }
+  if (!yellowFileBoxTypes.includes(fileBox.type)) {
+    return false
   }
 
   /**
-   * 3. Red types
+   * 3. Yellow types: CHECK size
    */
-  return false
+  const size = fileBox.size
+  if (size < 0) {
+    // 1. Size unknown: NO
+    return false
+  } else if (size > PASS_THROUGH_THRESHOLD_BYTES) {
+    // 2. Size: bigger than threshold: NO
+    return false
+  } else {
+    // 3. Size: smaller than threshold: YES
+    return true
+  }
+
 }
 
 const normalizeFileBoxUuid = (FileBoxUuid: typeof FileBox) => async (fileBox: FileBox) => {
@@ -69,5 +78,6 @@ const normalizeFileBoxUuid = (FileBoxUuid: typeof FileBox) => async (fileBox: Fi
 }
 
 export {
+  canPassthrough,
   normalizeFileBoxUuid,
 }
