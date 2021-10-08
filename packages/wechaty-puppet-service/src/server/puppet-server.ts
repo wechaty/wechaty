@@ -30,8 +30,8 @@ import {
   healthImplementation,
 }                             from './health-implementation.js'
 import {
-  UuidFileManager,
-}                             from '../file-box-helper/uuid-file-manager.js'
+  UniformResourceNameRegistry,
+}                             from '../file-box-helper/uniform-resource-name-registry.js'
 import {
   uuidifyFileBoxLocal,
 }                             from '../file-box-helper/local-uuidify-file-box.js'
@@ -49,8 +49,8 @@ export interface PuppetServerOptions {
 
 export class PuppetServer {
 
-  protected grpcServer?      : grpc.Server
-  protected uuidFileManager? : UuidFileManager
+  protected grpcServer?  : grpc.Server
+  protected urnRegistry? : UniformResourceNameRegistry
 
   constructor (
     public readonly options: PuppetServerOptions,
@@ -74,9 +74,9 @@ export class PuppetServer {
       throw new Error('grpc server existed!')
     }
 
-    if (!this.uuidFileManager) {
-      this.uuidFileManager = new UuidFileManager()
-      await this.uuidFileManager.init()
+    if (!this.urnRegistry) {
+      this.urnRegistry = new UniformResourceNameRegistry()
+      await this.urnRegistry.init()
     }
 
     this.grpcServer = new grpc.Server(GRPC_OPTIONS)
@@ -84,7 +84,7 @@ export class PuppetServer {
     /**
      * Connect FileBox with UUID Manager
      */
-    const FileBoxUuid = uuidifyFileBoxLocal(this.uuidFileManager)
+    const FileBoxUuid = uuidifyFileBoxLocal(this.urnRegistry)
 
     const puppetImpl = puppetImplementation(
       this.options.puppet,
@@ -172,9 +172,9 @@ export class PuppetServer {
 
     this.grpcServer = undefined
 
-    if (this.uuidFileManager) {
-      await this.uuidFileManager.destroy()
-      this.uuidFileManager = undefined
+    if (this.urnRegistry) {
+      await this.urnRegistry.destroy()
+      this.urnRegistry = undefined
     }
   }
 

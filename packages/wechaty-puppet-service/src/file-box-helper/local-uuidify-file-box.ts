@@ -6,12 +6,12 @@ import {
   Constructor,
 }                         from 'clone-class'
 
-import type { UuidFileManager } from './uuid-file-manager.js'
+import type { UniformResourceNameRegistry } from './uniform-resource-name-registry.js'
 
-type UuidifyFileBoxLocalFactory = (uuidFileManager: UuidFileManager) => typeof FileBox
+type UuidifyFileBoxLocalFactory = (urnRegistry: UniformResourceNameRegistry) => typeof FileBox
 
 const uuidifyFileBoxLocal: UuidifyFileBoxLocalFactory = (
-  uuidFileManager,
+  urnRegistry,
 ) => {
   /**
    * `as any`:
@@ -21,8 +21,8 @@ const uuidifyFileBoxLocal: UuidifyFileBoxLocalFactory = (
    */
   const FileBoxUuid: typeof FileBox = cloneClass(FileBox as any as Constructor<FileBox>) as any
 
-  FileBoxUuid.setUuidLoader(uuid  => uuidFileManager.load(uuid))
-  FileBoxUuid.setUuidSaver(stream => uuidFileManager.save(stream))
+  FileBoxUuid.setUuidLoader(uuid  => urnRegistry.resolve(uuid))
+  FileBoxUuid.setUuidSaver(stream => urnRegistry.register(stream))
 
   return FileBoxUuid
 }
