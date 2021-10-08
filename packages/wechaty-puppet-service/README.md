@@ -49,6 +49,25 @@ The token set to this environment variable will become the default value of `pup
 WECHATY_PUPPET_SERVICE_TOKEN=${WECHATY_PUPPET_SERVCIE_TOKEN} node bot.js
 ```
 
+## gRPC Health Checking Protocol
+
+From version 0.37, Wechaty Puppet Service start supporting the [GRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md).
+
+```
+$ npm install --global wechaty-token
+$ go install github.com/grpc-ecosystem/grpc-health-probe@latest
+
+$ wechaty-token discovery uuid_12345678-1234-1234-1234-567812345678
+{"host": 1.2.3.4, "port": 5678}
+
+$ grpc-health-probe -tls -tls-no-verify -addr 1.2.3.4
+status: SERVING
+```
+
+See:
+
+- [Add health checking API wechaty/grpc#151](https://github.com/wechaty/grpc/issues/151)
+
 ## Resources
 
 ### Authentication
@@ -61,6 +80,7 @@ WECHATY_PUPPET_SERVICE_TOKEN=${WECHATY_PUPPET_SERVCIE_TOKEN} node bot.js
 ### master v0.31
 
 1. ES Modules supported.
+1. gRPC Health Service support
 
 ### v0.30 (Aug 25, 2021)
 
