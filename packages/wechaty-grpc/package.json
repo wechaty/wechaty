@@ -66,15 +66,15 @@
     "@types/google-protobuf": "^3.15.5",
     "@types/protobufjs": "^6.0.0",
     "cross-env": "^7.0.3",
-    "grpc-tools": "^1.11.2",
     "grpc_tools_node_protoc_ts": "^5.3.2",
+    "grpc-tools": "^1.11.2",
     "grpcc": "^1.1.3",
     "nodemon": "^2.0.12",
     "npm-run-all": "^4.1.5",
     "request": "^2.88.2",
     "shx": "^0.3.3",
     "ts-protoc-gen": "^0.15.0",
-    "tstest": "^0.5.16"
+    "tstest": "^0.7.3"
   },
   "files": [
     "bin/",

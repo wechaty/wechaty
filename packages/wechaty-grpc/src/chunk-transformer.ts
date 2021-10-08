@@ -5,7 +5,9 @@ import {
   Transform,
 }             from 'stream'
 
-import type { UploadRequest } from '../out/wechaty/puppet/download-upload_pb.js'
+import type {
+  UploadRequest,
+}                 from '../out/wechaty/puppet/download-upload_pb.js'
 
 // string | Uint8Array
 type Chunk = UploadRequest.AsObject['chunk']
@@ -45,6 +47,9 @@ const chunkDecoder = <T extends ChunkPb> () => new Transform({
   },
 })
 
+export type {
+  Chunk,
+}
 export {
   chunkEncoder,
   chunkDecoder,
