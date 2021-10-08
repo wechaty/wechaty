@@ -65,7 +65,7 @@
     "tstest": "^0.5.16",
     "typescript": "^4.4.3",
     "wechaty": "^0.73.9",
-    "wechaty-puppet": "^0.47.7",
+    "wechaty-puppet": "^0.47.8",
     "wechaty-puppet-mock": "^0.31.6"
   },
   "dependencies": {
@@ -75,7 +75,7 @@
     "semver": "^7.3.5",
     "stronger-typed-streams": "^0.2.0",
     "uuid": "^3.4.0",
-    "wechaty-grpc": "^0.33.1",
+    "wechaty-grpc": "^0.33.4",
     "wechaty-token": "^0.5.8"
   },
   "publishConfig": {

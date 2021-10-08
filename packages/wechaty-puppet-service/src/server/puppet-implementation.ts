@@ -1,5 +1,7 @@
 /* eslint-disable sort-keys */
 import {
+  chunkDecoder,
+  chunkEncoder,
   StringValue,
   grpc,
   puppet as grpcPuppet,
@@ -34,8 +36,6 @@ import {
   timestampFromMilliseconds,
 }                             from '../pure-functions/timestamp.js'
 import {
-  chunkDecoder,
-  chunkEncoder,
   normalizeFileBoxUuid,
 }                             from '../file-box-helper/mod.js'
 

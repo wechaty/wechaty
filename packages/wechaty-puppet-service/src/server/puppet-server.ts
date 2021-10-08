@@ -1,13 +1,17 @@
 import util             from 'util'
+
 import {
   Puppet,
   log,
-}                       from 'wechaty-puppet'
+}                               from 'wechaty-puppet'
 import {
   grpc,
   puppet as grpcPuppet,
   google as grpcGoogle,
-}                       from 'wechaty-grpc'
+}                               from 'wechaty-grpc'
+import {
+  UniformResourceNameRegistry,
+}                               from 'file-box'
 
 import {
   envVars,
@@ -30,11 +34,8 @@ import {
   healthImplementation,
 }                             from './health-implementation.js'
 import {
-  UniformResourceNameRegistry,
-}                             from '../file-box-helper/uniform-resource-name-registry.js'
-import {
   uuidifyFileBoxLocal,
-}                             from '../file-box-helper/local-uuidify-file-box.js'
+}                             from '../file-box-helper/uuidify-file-box-local.js'
 
 export interface PuppetServerOptions {
   endpoint : string,

@@ -4,6 +4,13 @@ import type {
 import {
   FileBoxType,
 }                 from 'file-box'
+
+/**
+ * Huan(202110): for testing propose, use 20KB as the threshold
+ *  after stable we should use 256KB as the threshold
+ */
+const PASS_THROUGH_THRESHOLD_BYTES = 20 * 1024 // 20KB
+
 /**
  * 1. Green:
  *  Can be serialized directly
@@ -23,12 +30,6 @@ const yellowFileBoxTypes = [
   FileBoxType.Buffer,
   FileBoxType.Base64,
 ]
-
-/**
- * Huan(202110): for testing propose, use 20KB as the threshold
- *  after stable we should use 256KB as the threshold
- */
-const PASS_THROUGH_THRESHOLD_BYTES = 20 * 1024 // 20KB
 
 const canPassthrough = (fileBox: FileBox) => {
   /**
