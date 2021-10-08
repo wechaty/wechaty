@@ -80,7 +80,7 @@ See:
 ### master v0.31
 
 1. ES Modules supported.
-1. gRPC Health Service support
+1. gRPC Health Checking Protocol support
 
 ### v0.30 (Aug 25, 2021)
 
