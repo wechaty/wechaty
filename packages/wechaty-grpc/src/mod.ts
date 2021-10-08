@@ -12,8 +12,14 @@ import {
   StringValue,
   Timestamp,
 }                     from './google.js'
+import {
+  chunkEncoder,
+  chunkDecoder,
+}                     from './chunk-transformer.js'
 
 export {
+  chunkEncoder,
+  chunkDecoder,
   google,
   grpc,
   openApi,
