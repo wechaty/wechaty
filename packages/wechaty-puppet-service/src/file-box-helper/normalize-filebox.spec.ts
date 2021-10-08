@@ -10,14 +10,8 @@ const kbFileBox = (size: number) => FileBox.fromBuffer(Buffer.from(
 ), size + 'KB.txt')
 
 test('canPassthrough() size threshold', async t => {
-  t.ok(canPassthrough(kbFileBox(16)),       'should passthrough 16KB')
-  t.notOk(canPassthrough(kbFileBox(32)),    'should not passthrough 32KB')
-  t.notOk(canPassthrough(kbFileBox(64)),    'should not passthrough 64KB')
-  t.notOk(canPassthrough(kbFileBox(128)),   'should not passthrough 128KB')
-  t.notOk(canPassthrough(kbFileBox(256)),   'should not passthrough 256KB')
-  t.notOk(canPassthrough(kbFileBox(512)),   'should not passthrough 512KB')
-  t.notOk(canPassthrough(kbFileBox(1024)),  'should not passthrough 1024KB')
-  t.notOk(canPassthrough(kbFileBox(2048)),  'should not passthrough 2048KB')
+  t.ok(canPassthrough(kbFileBox(16)),     'should passthrough 16KB')
+  t.notOk(canPassthrough(kbFileBox(32)),  'should not passthrough 32KB')
 })
 
 test('canPassthrough(): always true for green types', async t => {
@@ -25,15 +19,14 @@ test('canPassthrough(): always true for green types', async t => {
   const QRCODE = 'qrcode'
   const UUID   = '12345678-1234-5678-1234-567812345678'
 
-  t.ok(canPassthrough(FileBox.fromUrl(URL)),    'should passthrough Url')
-  t.ok(canPassthrough(FileBox.fromQRCode(QRCODE)), 'should passthrough QRCode')
-  t.ok(canPassthrough(FileBox.fromUuid(UUID, 'uuid.dat')),      'should passthrough UUID')
+  t.ok(canPassthrough(FileBox.fromUrl(URL)),        'should passthrough Url')
+  t.ok(canPassthrough(FileBox.fromQRCode(QRCODE)),  'should passthrough QRCode')
+  t.ok(canPassthrough(FileBox.fromUuid(UUID)),      'should passthrough UUID')
 })
 
 test('canPassthrough(): always false for red types', async t => {
   const streamFileBox = FileBox.fromStream(
     await FileBox.fromQRCode('qr').toStream(),
-    'stream.dat',
   )
   const localFileBox = FileBox.fromFile('tests/fixtures/smoke-testing.ts')
 
@@ -42,8 +35,8 @@ test('canPassthrough(): always false for red types', async t => {
 })
 
 test('canPassthrough(): will depend on the size for yellow types', async t => {
-  const bufferFileBox = FileBox.fromBuffer(Buffer.from('buf'), 'buf.dat')
-  const base64FileBox = FileBox.fromBase64(Buffer.from('buf').toString('base64'), 'base64.dat')
+  const bufferFileBox = FileBox.fromBuffer(Buffer.from('buf'))
+  const base64FileBox = FileBox.fromBase64(Buffer.from('buf').toString('base64'))
 
   t.ok(canPassthrough(bufferFileBox), 'should not passthrough small Buffer')
   t.ok(canPassthrough(base64FileBox), 'should not passthrough small Base64')
