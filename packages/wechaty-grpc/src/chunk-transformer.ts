@@ -3,7 +3,7 @@
  */
 import {
   Transform,
-}             from 'stream'
+}                 from 'stronger-typed-streams'
 
 import type {
   UploadRequest,
@@ -23,7 +23,9 @@ interface ChunkPb {
 /**
  * Wrap Chunk
  */
-const chunkEncoder = <T extends ChunkPb> (PbConstructor: { new(): T }) => new Transform({
+const chunkEncoder = <T extends ChunkPb> (
+  PbConstructor: { new(): T },
+) => new Transform<Chunk, T>({
   objectMode: true,
   transform: (chunk: Chunk, _: any, callback: (error: Error | null, pb: T) => void) => {
     const pb = new PbConstructor()
@@ -35,7 +37,7 @@ const chunkEncoder = <T extends ChunkPb> (PbConstructor: { new(): T }) => new Tr
 /**
  * Unwrap Chunk
  */
-const chunkDecoder = <T extends ChunkPb> () => new Transform({
+const chunkDecoder = <T extends ChunkPb> () => new Transform<T, Chunk>({
   objectMode: true,
   transform: (pb: T, _: any, callback: (error: Error | null, chunk?: Chunk) => void) => {
     const chunk = pb.getChunk()
