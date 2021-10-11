@@ -274,8 +274,12 @@ export class Io {
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
 
-    if (typeof data !== 'string') {
-      throw new Error('data should be string...')
+    let payload: string
+
+    if (Array.isArray(data)) {
+      payload = data[0]?.toString() ?? 'NODATA'
+    } else {
+      payload = data.toString()
     }
 
     const ioEvent: IoEvent = {
@@ -284,7 +288,7 @@ export class Io {
     }
 
     try {
-      const obj = JSON.parse(data)
+      const obj = JSON.parse(payload)
       ioEvent.name    = obj.name
       ioEvent.payload = obj.payload
     } catch (e) {
