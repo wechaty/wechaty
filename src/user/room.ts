@@ -1259,7 +1259,7 @@ function wechatifyRoom (wechaty: Wechaty): typeof Room {
   class WechatifiedRoom extends Room {
 
     static override get wechaty () { return wechaty }
-    override get wechaty       () { return wechaty }
+    override get wechaty        () { return wechaty }
 
   }
 
