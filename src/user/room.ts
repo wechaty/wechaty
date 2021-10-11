@@ -48,7 +48,10 @@ import { UrlLink }        from './url-link.js'
 import { Location }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
-import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
+import {
+  guardWechatifyClass,
+  throwWechatifyError,
+}                           from './guard-wechatify-class.js'
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
