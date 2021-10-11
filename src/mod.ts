@@ -74,11 +74,13 @@ import type {
 
 import type {
   Sayable,
+  SayableMessage,
 }                   from './types.js'
 export type {
   IoClientOptions,
   PuppetModuleName,
   Sayable,
+  SayableMessage,
   UrlLinkPayload,
   WechatyEventName,
   WechatyOptions,

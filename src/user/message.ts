@@ -38,9 +38,10 @@ import {
 }                         from '../config.js'
 import type {
   Sayable,
-}                       from '../types.js'
+  SayableMessage,
+}                           from '../types.js'
 
-import { captureException } from '../raven.js'
+import { captureException }   from '../raven.js'
 
 import {
   Contact,
@@ -523,16 +524,9 @@ class Message extends EventEmitter implements Sayable {
    * .start()
    */
   public async say (
-    something :  string
-                                    | number
-                                    | Message
-                                    | Contact
-                                    | FileBox
-                                    | UrlLink
-                                    | Location
-                                    | MiniProgram,
+    sayableMsg: SayableMessage,
   ): Promise<void | Message> {
-    log.verbose('Message', 'say(%s)', something)
+    log.verbose('Message', 'say(%s)', sayableMsg)
 
     // const user = this.wechaty.puppet.userSelf()
     const talker = this.talker()
@@ -555,17 +549,17 @@ class Message extends EventEmitter implements Sayable {
     /**
      * Support say a existing message: just forward it.
      */
-    if (something instanceof Message) {
-      return something.forward(conversation)
+    if (sayableMsg instanceof Message) {
+      return sayableMsg.forward(conversation)
     }
 
     // Convert number to string
-    if (typeof something === 'number') {
-      something = String(something)
+    if (typeof sayableMsg === 'number') {
+      sayableMsg = String(sayableMsg)
     }
 
     let msgId: void | string
-    if (typeof something === 'string') {
+    if (typeof sayableMsg === 'string') {
       /**
        * Text Message
        */
@@ -576,18 +570,18 @@ class Message extends EventEmitter implements Sayable {
 
       msgId = await this.wechaty.puppet.messageSendText(
         conversationId,
-        something,
+        sayableMsg,
         mentionIdList,
       )
-    } else if (something instanceof Contact) {
+    } else if (sayableMsg instanceof Contact) {
       /**
        * Contact Card
        */
       msgId = await this.wechaty.puppet.messageSendContact(
         conversationId,
-        something.id,
+        sayableMsg.id,
       )
-    } else if (looseInstanceOfFileBox(something)) {
+    } else if (looseInstanceOfFileBox(sayableMsg)) {
       /**
        * Be aware of minified codes:
        *  https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class#comment60309941_1249554
@@ -598,35 +592,36 @@ class Message extends EventEmitter implements Sayable {
        */
       msgId = await this.wechaty.puppet.messageSendFile(
         conversationId,
-        something,
+        sayableMsg,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (sayableMsg instanceof UrlLink) {
       /**
        * Link Message
        */
       msgId = await this.wechaty.puppet.messageSendUrl(
         conversationId,
-        something.payload,
+        sayableMsg.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (sayableMsg instanceof MiniProgram) {
       /**
        * MiniProgram
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
         conversationId,
-        something.payload,
+        sayableMsg.payload,
       )
-    } else if (something instanceof Location) {
+    } else if (sayableMsg instanceof Location) {
       /**
        * Location
        */
       msgId = await this.wechaty.puppet.messageSendLocation(
         this.id,
-        something.payload,
+        sayableMsg.payload,
       )
     } else {
-      throw new Error('Message.say() received unknown msg: ' + something)
+      throw new Error('Message.say() received unknown msg: ' + sayableMsg)
     }
+
     if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()

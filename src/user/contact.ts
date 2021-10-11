@@ -34,7 +34,8 @@ import {
 }                           from '../config.js'
 import type {
   Sayable,
-}                           from '../types.js'
+  SayableMessage,
+}                          from '../types.js'
 import { captureException } from '../raven.js'
 
 import { Message }      from './message.js'
@@ -330,7 +331,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} something
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void | Message>}
@@ -395,77 +396,71 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const msg = await contact.say(location)
    */
   public async say (
-    something:  string
-              | number
-              | Message
-              | Contact
-              | FileBox
-              | MiniProgram
-              | UrlLink
-              | Location
+    sayableMsg: SayableMessage,
   ): Promise<void | Message> {
-    log.verbose('Contact', 'say(%s)', something)
+    log.verbose('Contact', 'say(%s)', sayableMsg)
 
-    if (something instanceof Message) {
-      return something.forward(this)
+    if (sayableMsg instanceof Message) {
+      return sayableMsg.forward(this)
     }
 
-    if (typeof something === 'number') {
-      something = String(something)
+    if (typeof sayableMsg === 'number') {
+      sayableMsg = String(sayableMsg)
     }
 
     let msgId: string | void
-    if (typeof something === 'string') {
+    if (typeof sayableMsg === 'string') {
       /**
        * 1. Text
        */
       msgId = await this.wechaty.puppet.messageSendText(
         this.id,
-        something,
+        sayableMsg,
       )
-    } else if (something instanceof Contact) {
+    } else if (sayableMsg instanceof Contact) {
       /**
        * 2. Contact
        */
       msgId = await this.wechaty.puppet.messageSendContact(
         this.id,
-        something.id,
+        sayableMsg.id,
       )
-    } else if (looseInstanceOfFileBox(something)) {
+    } else if (looseInstanceOfFileBox(sayableMsg)) {
       /**
        * 3. File
        */
       msgId = await this.wechaty.puppet.messageSendFile(
         this.id,
-        something,
+        sayableMsg,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (sayableMsg instanceof UrlLink) {
       /**
        * 4. Link Message
        */
       msgId = await this.wechaty.puppet.messageSendUrl(
         this.id,
-        something.payload,
+        sayableMsg.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (sayableMsg instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
         this.id,
-        something.payload,
+        sayableMsg.payload,
       )
-    } else if (something instanceof Location) {
+    } else if (sayableMsg instanceof Location) {
       /**
        * 6. Location
        */
       msgId = await this.wechaty.puppet.messageSendLocation(
         this.id,
-        something.payload,
+        sayableMsg.payload,
       )
     } else {
-      throw new Error('unsupported arg: ' + something)
+      throw new Error('unsupported arg: ' + sayableMsg)
     }
+
     if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
       await msg.ready()

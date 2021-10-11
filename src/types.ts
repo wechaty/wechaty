@@ -17,24 +17,44 @@
  *   limitations under the License.
  *
  */
+import type { FileBox } from 'file-box'
+
 import type { Wechaty } from './wechaty.js'
 import type {
   Contact,
+  Location,
   Message,
-}           from './user/mod.js'
+  MiniProgram,
+  UrlLink,
+}                 from './user/mod.js'
 
-export type AnyFunction = (...args: any[]) => any
+type SayableMessage = never
+                    | Contact
+                    | FileBox
+                    | Location
+                    | Message
+                    | MiniProgram
+                    | number
+                    | string
+                    | UrlLink
 
-export interface Sayable {
+interface Sayable {
   id      : string,
   wechaty : Wechaty,
   say (
-    text     : string,
+    text     : SayableMessage,
     replyTo? : Contact | Contact[]
   ): Promise<void | Message>
 }
 
-export interface Acceptable {
-  accept: () => Promise<void>
-  wechaty: Wechaty
+interface Acceptable {
+  accept  : () => Promise<void>
+  id      : string,
+  wechaty : Wechaty
+}
+
+export type  {
+  Acceptable,
+  Sayable,
+  SayableMessage,
 }
