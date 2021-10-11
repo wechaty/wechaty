@@ -33,6 +33,7 @@ import {
 }                           from '../config.js'
 import type {
   Sayable,
+  SayableMessage,
 }                           from '../types.js'
 
 import { captureException } from '../raven.js'
@@ -465,28 +466,20 @@ class Room extends RoomEventEmitter implements Sayable {
    * const msg = await room.say(location)
    */
   public async say (
-    something : string
-              | number
-              | Message
-              | Contact
-              | FileBox
-              | MiniProgram
-              | TemplateStringsArray
-              | UrlLink
-              | Location,
+    sayableMsg : SayableMessage | TemplateStringsArray,
     ...varList : unknown[]
   ): Promise<void | Message> {
 
     log.verbose('Room', 'say(%s, %s)',
-      something,
+      sayableMsg,
       varList.join(', '),
     )
 
-    let text: string
-    let msgId: string | void
+    let text  : string
+    let msgId : void | string
 
-    if (something instanceof Message) {
-      return something.forward(this)
+    if (sayableMsg instanceof Message) {
+      return sayableMsg.forward(this)
     }
 
     function isTemplateStringArray (tsa: any): tsa is TemplateStringsArray {
@@ -498,9 +491,9 @@ class Room extends RoomEventEmitter implements Sayable {
      * 0. TemplateStringArray
      *
      */
-    if (isTemplateStringArray(something)) {
+    if (isTemplateStringArray(sayableMsg)) {
       const msgId = await this.sayTemplateStringsArray(
-        something as TemplateStringsArray,
+        sayableMsg as TemplateStringsArray,
         ...varList,
       )
 
@@ -518,11 +511,11 @@ class Room extends RoomEventEmitter implements Sayable {
      * Other conditions
      *
      */
-    if (typeof something === 'number') {
-      something = String(something)
+    if (typeof sayableMsg === 'number') {
+      sayableMsg = String(sayableMsg)
     }
 
-    if (typeof something === 'string') {
+    if (typeof sayableMsg === 'string') {
       /**
        * 1. string
        */
@@ -543,9 +536,9 @@ class Room extends RoomEventEmitter implements Sayable {
         ))
         const mentionText = mentionAlias.join(AT_SEPARATOR)
 
-        text = mentionText + ' ' + something
+        text = mentionText + ' ' + sayableMsg
       } else {
-        text = something
+        text = sayableMsg
       }
       // const receiver = {
       //   contactId : (mentionList.length && mentionList[0].id) || undefined,
@@ -556,48 +549,48 @@ class Room extends RoomEventEmitter implements Sayable {
         text,
         mentionList.map(c => c.id),
       )
-    } else if (looseInstanceOfFileBox(something)) {
+    } else if (looseInstanceOfFileBox(sayableMsg)) {
       /**
        * 2. File Message
        */
       msgId = await this.wechaty.puppet.messageSendFile(
         this.id,
-        something,
+        sayableMsg,
       )
-    } else if (something instanceof Contact) {
+    } else if (sayableMsg instanceof Contact) {
       /**
        * 3. Contact Card
        */
       msgId = await this.wechaty.puppet.messageSendContact(
         this.id,
-        something.id,
+        sayableMsg.id,
       )
-    } else if (something instanceof UrlLink) {
+    } else if (sayableMsg instanceof UrlLink) {
       /**
        * 4. Link Message
        */
       msgId = await this.wechaty.puppet.messageSendUrl(
         this.id,
-        something.payload,
+        sayableMsg.payload,
       )
-    } else if (something instanceof MiniProgram) {
+    } else if (sayableMsg instanceof MiniProgram) {
       /**
        * 5. Mini Program
        */
       msgId = await this.wechaty.puppet.messageSendMiniProgram(
         this.id,
-        something.payload,
+        sayableMsg.payload,
       )
-    } else if (something instanceof Location) {
+    } else if (sayableMsg instanceof Location) {
       /**
        * 6. Location
        */
       msgId = await this.wechaty.puppet.messageSendLocation(
         this.id,
-        something.payload,
+        sayableMsg.payload,
       )
     } else {
-      throw new Error('arg unsupported: ' + something)
+      throw new Error('arg unsupported: ' + sayableMsg)
     }
 
     if (msgId) {

@@ -45,6 +45,7 @@ import {
 
 import type {
   Sayable,
+  SayableMessage,
 }                       from './types.js'
 
 import {
@@ -897,7 +898,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} something
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    *
@@ -947,16 +948,11 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    */
 
   public async say (
-    something:  string
-              | Contact
-              | FileBox
-              | MiniProgram
-              | UrlLink
-              | Location
+    sayableMsg: SayableMessage,
   ): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', something)
+    log.verbose('Wechaty', 'say(%s)', sayableMsg)
     // huan: to make TypeScript happy
-    await this.userSelf().say(something as any)
+    await this.userSelf().say(sayableMsg as any)
   }
 
   /**
