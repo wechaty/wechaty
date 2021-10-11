@@ -5,8 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build
-    runs-on:
-      - ubuntu-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
@@ -32,8 +31,7 @@ jobs:
   pack:
     name: Pack
     needs: build
-    runs-on:
-      - ubuntu-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
