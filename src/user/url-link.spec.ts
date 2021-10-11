@@ -10,9 +10,9 @@ const wechaty = {
   puppet: {} as any,
 } as any as Wechaty
 
-const TestUrlLink = wechatifyUrlLink(wechaty)
+const UrlLinkTest = wechatifyUrlLink(wechaty)
 
-test('UrlLink', async t => {
+test('UrlLink.create() for wechaty.js.org', async t => {
   const URL = 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'
   const EXPECTED_PAYLOAD = {
     description: 'Conversational RPA SDK for Chatbot Makers',
@@ -21,7 +21,7 @@ test('UrlLink', async t => {
     url: 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes',
   }
 
-  const urlLink = await TestUrlLink.create(URL)
+  const urlLink = await UrlLinkTest.create(URL)
   t.equal(urlLink.title(),        EXPECTED_PAYLOAD.title, 'should have title',)
   t.equal(urlLink.description(),  EXPECTED_PAYLOAD.description, 'should have description',)
   t.equal(urlLink.url(),          EXPECTED_PAYLOAD.url, 'should have url',)
