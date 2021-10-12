@@ -51,7 +51,7 @@ function guardWechatifyInstance<T extends { constructor: Function }> (
 const wechatifyMixin = <TBase extends Constructor<Object>> (base: TBase) => {
   log.verbose('user/mixins/wechatify', 'wechatifyMixin(%s)', base.name)
 
-  class WechatifyUserClass extends base {
+  abstract class AbstractWechatifyMixin extends base {
 
     static get wechaty  (): Wechaty { return throwWechatifyError(this) }
     get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
@@ -63,7 +63,7 @@ const wechatifyMixin = <TBase extends Constructor<Object>> (base: TBase) => {
 
   }
 
-  return WechatifyUserClass
+  return AbstractWechatifyMixin
 }
 
 export {

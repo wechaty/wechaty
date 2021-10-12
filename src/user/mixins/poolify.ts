@@ -13,7 +13,9 @@ interface PoolifyMixin<T> {
 }
 
 const poolifyMixin = <T, TBase extends Constructor<{}>> (base: TBase) => {
-  return class extends base {
+  log.verbose('user/mixins/poolify', 'poolifyMixin(%s)', base.name)
+
+  abstract class AbstractPoolifyMixin extends base {
 
     static [POOL]?: Map<string, T>
     static get pool (): Map<string, T> {
@@ -48,6 +50,8 @@ const poolifyMixin = <T, TBase extends Constructor<{}>> (base: TBase) => {
     }
 
   }
+
+  return AbstractPoolifyMixin
 }
 
 export type {
