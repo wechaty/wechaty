@@ -1,10 +1,9 @@
-#!/usr/bin/env node --no-warnings --loader ts-node/esm
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 
-import { test }  from 'tstest'
 import {
-  expectType,
-  expectAssignable,
-}                   from 'tsd'
+  test,
+  AssertEqual,
+}               from 'tstest'
 
 import {
   Observable,
@@ -27,22 +26,38 @@ import { PuppetTest } from './fixtures/puppet-test/puppet-test.js'
 
 test('Puppet satisfy DOM EventTarget: HasEventTargetAddRemove', async t => {
   const puppet = new PuppetTest()
-  expectAssignable<
-    JQueryStyleEventEmitter<
-      any,
-      EventScanPayload | EventLoginPayload
-    >
-  >(puppet)
 
+  // Huan(202110): do not use `tsd` module because the TypeScript version conflict
+  //  - https://github.com/SamVerschueren/tsd/issues/122
+  //
+  // expectAssignable<
+  //   JQueryStyleEventEmitter<
+  //     any,
+  //     EventScanPayload | EventLoginPayload
+  //   >
+  // >(puppet)
+
+  const target: JQueryStyleEventEmitter<
+    any,
+    EventScanPayload | EventLoginPayload
+  > = puppet
+  void target
   t.pass('expectAssignable match listener argument typings')
 })
 
 test('RxJS: fromEvent type inference', async t => {
   const puppet = new PuppetTest()
 
-  // FIXME(202106): get inference from on/off typings
+  /**
+   * Issue #96: Add Typing support for RxJS fromEvent
+   *  - https://github.com/wechaty/wechaty-puppet/issues/96
+   *
+   * FIXME(202106): get inference from on/off typings
+   */
   const event$ = fromEvent<EventScanPayload>(puppet, 'scan')
-  expectType<Observable<EventScanPayload>>(event$)
+
+  const typeTest: AssertEqual<Observable<EventScanPayload>, typeof event$> = true
+  t.ok(typeTest, 'should be equal type')
 
   const future = firstValueFrom(event$)
   const payload: EventScanPayload = {
@@ -51,6 +66,8 @@ test('RxJS: fromEvent type inference', async t => {
   puppet.emit('scan', payload)
 
   const result = await future
-  expectType<EventScanPayload>(result)
+  const typeTest2: AssertEqual<EventScanPayload, typeof result> = true
+  t.ok(typeTest2, 'should be equal type')
+
   t.same(result, payload, 'should get scan payload')
 })
