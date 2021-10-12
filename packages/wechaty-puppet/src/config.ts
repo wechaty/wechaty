@@ -1,7 +1,7 @@
-import { log } from 'brolog'
-import { FileBox } from 'file-box'
-import { MemoryCard } from 'memory-card'
-import { StateSwitch } from 'state-switch'
+import { FileBox }      from 'file-box'
+import { log }          from 'brolog'
+import { MemoryCard }   from 'memory-card'
+import { StateSwitch }  from 'state-switch'
 
 import { packageJson } from './package-json.js'
 
@@ -14,7 +14,7 @@ if (logLevel) {
 }
 
 const VERSION = packageJson.version || '0.0.0'
-const NAME = packageJson.name || 'Unnamed'
+const NAME    = packageJson.name    || 'NONAME'
 
 export {
   envVars,

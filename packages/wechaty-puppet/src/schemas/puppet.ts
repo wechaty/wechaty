@@ -50,9 +50,9 @@ export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
  * timeout: WatchDog Timeout in Seconds
  */
 export interface PuppetOptions {
-  endpoint? : string
-  timeout?  : number
-  token?    : string
+  endpoint?       : string
+  timeoutSeconds? : number
+  token?          : string
   lruCacheSize?: {
     contact?        : number
     friendship?     : number
