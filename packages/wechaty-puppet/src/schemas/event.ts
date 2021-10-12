@@ -1,4 +1,4 @@
-import type { PayloadType } from './payload'
+import type { PayloadType } from './payload.js'
 
 /**
  * The event `scan` status number.
@@ -87,7 +87,8 @@ export interface EventDirtyPayload {
   payloadId   : string,
 }
 
-export type EventAllPayload =  EventDirtyPayload
+export type EventAllPayload = never
+                            | EventDirtyPayload
                             | EventDongPayload
                             | EventErrorPayload
                             | EventFriendshipPayload

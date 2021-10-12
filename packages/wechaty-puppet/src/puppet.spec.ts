@@ -1,4 +1,4 @@
-#!/usr/bin/env node --loader ts-node/esm
+#!/usr/bin/env -S node --loader ts-node/esm
 
 import {
   test,

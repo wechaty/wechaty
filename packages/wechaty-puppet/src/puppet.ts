@@ -320,11 +320,11 @@ abstract class Puppet extends PuppetEventEmitter {
 
   private throttleReset (payload: any) {
     log.silly('Puppet', 'throttleReset() payload: "%s"', JSON.stringify(payload))
-    if (this.resetThrottleQueue) {
-      this.resetThrottleQueue.next(payload.data)
-    } else {
-      log.warn('Puppet', 'Drop reset since no resetThrottleQueue.')
-    }
+    // if (this.resetThrottleQueue) {
+    this.resetThrottleQueue.next(payload.data)
+    // } else {
+    //   log.warn('Puppet', 'Drop reset since no resetThrottleQueue.')
+    // }
   }
 
   /**
@@ -537,8 +537,8 @@ abstract class Puppet extends PuppetEventEmitter {
     const roomIdList = await this.roomList()
     const roomPayloadList = await Promise.all(
       roomIdList.map(
-        roomId => this.roomPayload(roomId)
-      )
+        roomId => this.roomPayload(roomId),
+      ),
     )
     const resultRoomIdList = roomPayloadList
       .filter(roomPayload => roomPayload.memberIdList.includes(contactId))
@@ -576,7 +576,7 @@ abstract class Puppet extends PuppetEventEmitter {
         new Set([
           ...nameIdList,
           ...aliasIdList,
-        ])
+        ]),
       )
     }
 
@@ -921,7 +921,7 @@ abstract class Puppet extends PuppetEventEmitter {
 
     const messagePayloadList: MessagePayload[] = await Promise.all(
       allMessageIdList.map(
-        id => this.messagePayload(id)
+        id => this.messagePayload(id),
       ),
     )
 
@@ -1180,7 +1180,7 @@ abstract class Puppet extends PuppetEventEmitter {
               await this.dirtyPayloadRoomMember(id)
               return {} as any
             }
-          }
+          },
         ),
       )).filter(payload => Object.keys(payload).length > 0)
 
