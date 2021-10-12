@@ -1,5 +1,5 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
+ *   Wechaty - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
@@ -22,10 +22,10 @@ import type {
 
 import QuickLru from '@alloc/quick-lru'
 
-import { Watchdog }       from 'watchdog'
-import type { Constructor }    from 'clone-class'
-import { StateSwitch }    from 'state-switch'
-import { ThrottleQueue }  from 'rx-queue'
+import type { Constructor }     from 'clone-class'
+import { Watchdog }             from 'watchdog'
+import { StateSwitch }          from 'state-switch'
+import { ThrottleQueue }        from 'rx-queue'
 // import { callerResolve }  from 'hot-import'
 
 // import normalize               from 'normalize-package-data'
@@ -85,12 +85,12 @@ import {
   PuppetOptions,
   YOU,
 }                                 from './schemas/puppet.js'
-import { PayloadType }             from './schemas/payload.js'
+import { PayloadType }            from './schemas/payload.js'
 
-import { PuppetEventEmitter }      from './events.js'
+import { PuppetEventEmitter }     from './events.js'
 
-const DEFAULT_WATCHDOG_TIMEOUT = 60
-let   PUPPET_COUNTER           = 0
+const DEFAULT_WATCHDOG_TIMEOUT_SECONDS  = 60
+let   PUPPET_COUNTER                    = 0
 
 /**
  *
@@ -116,7 +116,7 @@ abstract class Puppet extends PuppetEventEmitter {
   protected readonly cacheRoomInvitationPayload : QuickLru<string, RoomInvitationPayload>
 
   protected readonly counter : number
-  protected memory          : MemoryCard
+  protected memory           : MemoryCard
 
   /**
    * Login-ed User ID
@@ -163,9 +163,9 @@ abstract class Puppet extends PuppetEventEmitter {
      *  puppet implementation class only need to do one thing:
      *  feed the watchdog by `this.emit('heartbeat', ...)`
      */
-    const timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
-    log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
-    this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
+    const timeoutSeconds = this.options.timeoutSeconds || DEFAULT_WATCHDOG_TIMEOUT_SECONDS
+    log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeoutSeconds)
+    this.watchdog = new Watchdog(1000 * timeoutSeconds, 'Puppet')
 
     /**
      * 2. Setup `reset` Event via a 1 second Throttle Queue:
@@ -230,9 +230,9 @@ abstract class Puppet extends PuppetEventEmitter {
       // normalize(this.childPkg)
     }
 
-    this.feedDog = this.feedDog.bind(this)
-    this.dogReset = this.dogReset.bind(this)
-    this.throttleReset = this.throttleReset.bind(this)
+    this.feedDog        = this.feedDog.bind(this)
+    this.dogReset       = this.dogReset.bind(this)
+    this.throttleReset  = this.throttleReset.bind(this)
   }
 
   override toString () {

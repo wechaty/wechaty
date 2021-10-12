@@ -4,7 +4,7 @@
 
 Puppet Base Class
 
-See: [https://github.com/Chatie/wechaty/wiki/Puppet](https://github.com/Chatie/wechaty/wiki/Puppet)
+See: [https://github.com/wechaty/wechaty/wiki/Puppet](https://github.com/wechaty/wechaty/wiki/Puppet)
 
 ## Hierarchy
 
