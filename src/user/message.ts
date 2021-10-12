@@ -85,12 +85,12 @@ class Message extends EventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public static readonly Type = MessageType
+  static readonly Type = MessageType
 
   /**
    * Find message in cache
    */
-  public static async find<T extends typeof Message> (
+  static async find<T extends typeof Message> (
     this  : T,
     query : string | MessageQueryFilter,
   ): Promise<T['prototype'] | null> {
@@ -115,7 +115,7 @@ class Message extends EventEmitter implements Sayable {
   /**
    * Find messages in cache
    */
-  public static async findAll<T extends typeof Message> (
+  static async findAll<T extends typeof Message> (
     this   : T,
     query? : MessageQueryFilter,
   ): Promise<Array<T['prototype']>> {
@@ -148,12 +148,11 @@ class Message extends EventEmitter implements Sayable {
 
   /**
    * Create a Mobile Terminated Message
-    * @ignore
    * @ignore
    * "mobile originated" or "mobile terminated"
    * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
    */
-  public static load (id: string): Message {
+  static load (id: string): Message {
     log.verbose('Message', 'static load(%s)', id)
 
     /**
@@ -178,7 +177,7 @@ class Message extends EventEmitter implements Sayable {
   /**
    * @hideconstructor
    */
-  protected constructor (
+  constructor (
     public readonly id: string,
   ) {
     super()
@@ -192,7 +191,7 @@ class Message extends EventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public override toString () {
+  override toString () {
     if (!this.#payload) {
       return this.constructor.name
     }
@@ -223,7 +222,7 @@ class Message extends EventEmitter implements Sayable {
     return msgStrList.join('')
   }
 
-  public conversation (): Contact | Room {
+  conversation (): Contact | Room {
     if (this.room()) {
       return this.room()!
     } else {
@@ -250,7 +249,7 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public talker (): Contact {
+  talker (): Contact {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -280,7 +279,7 @@ class Message extends EventEmitter implements Sayable {
    * @depreacated Use `message.talker()` to replace `message.from()`
    *  https://github.com/wechaty/wechaty/issues/2094
    */
-  public from (): null | Contact {
+  from (): null | Contact {
     log.warn('Message', 'from() is deprecated, use talker() instead. Call stack: %s',
       new Error().stack,
     )
@@ -297,7 +296,7 @@ class Message extends EventEmitter implements Sayable {
    * @returns {(Contact|null)}
    * @deprecated use `listener()` instead
    */
-  public to (): null | Contact {
+  to (): null | Contact {
     // Huan(202108): I want to deprecate this method name in the future,
     //  and use `message.listener()` to replace it.
     return this.listener()
@@ -309,7 +308,7 @@ class Message extends EventEmitter implements Sayable {
    * use Message.room() to get the room.
    * @returns {(Contact|null)}
    */
-  public listener (): null | Contact {
+  listener (): null | Contact {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -349,7 +348,7 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public room (): null | Room {
+  room (): null | Room {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -382,7 +381,7 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public text (): string {
+  text (): string {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -404,7 +403,7 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public async toRecalled (): Promise<Message | null> {
+  async toRecalled (): Promise<Message | null> {
     if (this.type() !== MessageType.Recalled) {
       throw new Error('Can not call toRecalled() on message which is not recalled type.')
     }
@@ -422,14 +421,14 @@ class Message extends EventEmitter implements Sayable {
     }
   }
 
-  public say (text:     string)      : Promise<void | Message>
-  public say (num:      number)      : Promise<void | Message>
-  public say (message:  Message)     : Promise<void | Message>
-  public say (contact:  Contact)     : Promise<void | Message>
-  public say (file:     FileBox)     : Promise<void | Message>
-  public say (url:      UrlLink)     : Promise<void | Message>
-  public say (mini:     MiniProgram) : Promise<void | Message>
-  public say (location: Location)    : Promise<void | Message>
+  say (text:     string)      : Promise<void | Message>
+  say (num:      number)      : Promise<void | Message>
+  say (message:  Message)     : Promise<void | Message>
+  say (contact:  Contact)     : Promise<void | Message>
+  say (file:     FileBox)     : Promise<void | Message>
+  say (url:      UrlLink)     : Promise<void | Message>
+  say (mini:     MiniProgram) : Promise<void | Message>
+  say (location: Location)    : Promise<void | Message>
 
   // Huan(202006): allow fall down to the definition to get more flexibility.
   // public say (...args: never[]): Promise<never>
@@ -523,7 +522,7 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public async say (
+  async say (
     sayableMsg: SayableMessage,
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', sayableMsg)
@@ -643,7 +642,7 @@ class Message extends EventEmitter implements Sayable {
    * })
    */
 
-  public async recall (): Promise<boolean> {
+  async recall (): Promise<boolean> {
     log.verbose('Message', 'recall()')
     const isSuccess = await this.wechaty.puppet.messageRecall(this.id)
     return isSuccess
@@ -669,7 +668,7 @@ class Message extends EventEmitter implements Sayable {
    *   console.log('This is a text message')
    * }
    */
-  public type (): MessageType {
+  type (): MessageType {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -685,7 +684,7 @@ class Message extends EventEmitter implements Sayable {
    *  console.log('this message is sent by myself!')
    * }
    */
-  public self (): boolean {
+  self (): boolean {
     try {
       const userId = this.wechaty.puppet.selfId()
       const talker = this.talker()
@@ -716,7 +715,7 @@ class Message extends EventEmitter implements Sayable {
    * const contactList = await message.mentionList()
    * console.log(contactList)
    */
-  public async mentionList (): Promise<Contact[]> {
+  async mentionList (): Promise<Contact[]> {
     log.verbose('Message', 'mentionList()')
 
     const room = this.room()
@@ -796,14 +795,14 @@ class Message extends EventEmitter implements Sayable {
   /**
    * @deprecated mention() DEPRECATED. use mentionList() instead.
    */
-  public async mention (): Promise<Contact[]> {
+  async mention (): Promise<Contact[]> {
     log.warn('Message', 'mention() DEPRECATED. use mentionList() instead. Call stack: %s',
       new Error().stack,
     )
     return this.mentionList()
   }
 
-  public async mentionText (): Promise<string> {
+  async mentionText (): Promise<string> {
     const text = this.text()
     const room = this.room()
 
@@ -839,7 +838,7 @@ class Message extends EventEmitter implements Sayable {
    *  console.log('this message were mentioned me! [You were mentioned] tip ([有人@我]的提示)')
    * }
    */
-  public async mentionSelf (): Promise<boolean> {
+  async mentionSelf (): Promise<boolean> {
     const selfId = this.wechaty.puppet.selfId()
     const mentionList = await this.mentionList()
     return mentionList.some(contact => contact.id === selfId)
@@ -848,14 +847,14 @@ class Message extends EventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public isReady (): boolean {
+  isReady (): boolean {
     return !!this.#payload
   }
 
   /**
    * @ignore
    */
-  public async ready (): Promise<void> {
+  async ready (): Promise<void> {
     log.verbose('Message', 'ready()')
 
     if (this.isReady()) {
@@ -932,7 +931,7 @@ class Message extends EventEmitter implements Sayable {
    * })
    * .start()
    */
-  public async forward (to: Room | Contact): Promise<void | Message> {
+  async forward (to: Room | Contact): Promise<void | Message> {
     log.verbose('Message', 'forward(%s)', to)
 
     // let roomId
@@ -957,7 +956,7 @@ class Message extends EventEmitter implements Sayable {
   /**
    * Message sent date
    */
-  public date (): Date {
+  date (): Date {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -975,7 +974,7 @@ class Message extends EventEmitter implements Sayable {
    *
    * @returns {number} message age in seconds.
    */
-  public age (): number {
+  age (): number {
     const ageMilliseconds = Date.now() - this.date().getTime()
     const ageSeconds = Math.floor(ageMilliseconds / 1000)
     return ageSeconds
@@ -993,7 +992,7 @@ class Message extends EventEmitter implements Sayable {
    * const fileName = fileBox.name
    * fileBox.toFile(fileName)
    */
-  public async toFileBox (): Promise<FileBox> {
+  async toFileBox (): Promise<FileBox> {
     log.verbose('Message', 'toFileBox()')
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
@@ -1015,7 +1014,7 @@ class Message extends EventEmitter implements Sayable {
    * const fileName = fileBox.name
    * fileBox.toFile(fileName)
    */
-  public toImage (): Image {
+  toImage (): Image {
     log.verbose('Message', 'toImage() for message id: %s', this.id)
     if (this.type() !== Message.Type.Image) {
       throw new Error(`not a image type message. type: ${this.type()}`)
@@ -1030,7 +1029,7 @@ class Message extends EventEmitter implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {Promise<Contact>}
    */
-  public async toContact (): Promise<Contact> {
+  async toContact (): Promise<Contact> {
     log.verbose('Message', 'toContact()')
 
     if (this.type() !== Message.Type.Contact) {
@@ -1048,7 +1047,7 @@ class Message extends EventEmitter implements Sayable {
     return contact
   }
 
-  public async toUrlLink (): Promise<UrlLink> {
+  async toUrlLink (): Promise<UrlLink> {
     log.verbose('Message', 'toUrlLink()')
 
     if (!this.#payload) {
@@ -1064,7 +1063,7 @@ class Message extends EventEmitter implements Sayable {
     return new UrlLink(urlPayload)
   }
 
-  public async toMiniProgram (): Promise<MiniProgram> {
+  async toMiniProgram (): Promise<MiniProgram> {
     log.verbose('Message', 'toMiniProgram()')
 
     if (!this.#payload) {
@@ -1080,7 +1079,7 @@ class Message extends EventEmitter implements Sayable {
     return new MiniProgram(miniProgramPayload)
   }
 
-  public async toLocation (): Promise<Location> {
+  async toLocation (): Promise<Location> {
     log.verbose('Message', 'toLocation()')
 
     if (!this.#payload) {

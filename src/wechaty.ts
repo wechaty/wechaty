@@ -71,17 +71,7 @@ import {
   UrlLink,
   Location,
 
-  wechatifyContact,
-  wechatifyContactSelf,
-  wechatifyFriendship,
-  wechatifyImage,
-  wechatifyMessage,
-  wechatifyMiniProgram,
-  wechatifyRoom,
-  wechatifyRoomInvitation,
-  wechatifyTag,
-  wechatifyUrlLink,
-  wechatifyLocation,
+  wechatifyUserClass,
 }                       from './user/mod.js'
 
 import { timestampToDate } from './helper-functions/pure/timestamp-to-date.js'
@@ -672,17 +662,17 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     /**
      * 1. Setup Wechaty User Classes
      */
-    this.#wechatifiedContact        = wechatifyContact(this)
-    this.#wechatifiedContactSelf    = wechatifyContactSelf(this)
-    this.#wechatifiedFriendship     = wechatifyFriendship(this)
-    this.#wechatifiedImage          = wechatifyImage(this)
-    this.#wechatifiedMessage        = wechatifyMessage(this)
-    this.#wechatifiedMiniProgram    = wechatifyMiniProgram(this)
-    this.#wechatifiedRoom           = wechatifyRoom(this)
-    this.#wechatifiedRoomInvitation = wechatifyRoomInvitation(this)
-    this.#wechatifiedTag            = wechatifyTag(this)
-    this.#wechatifiedUrlLink        = wechatifyUrlLink(this)
-    this.#wechatifiedLocation       = wechatifyLocation(this)
+    this.#wechatifiedContact        = wechatifyUserClass(Contact)(this)
+    this.#wechatifiedContactSelf    = wechatifyUserClass(ContactSelf)(this)
+    this.#wechatifiedFriendship     = wechatifyUserClass(Friendship)(this)
+    this.#wechatifiedImage          = wechatifyUserClass(Image)(this)
+    this.#wechatifiedMessage        = wechatifyUserClass(Message)(this)
+    this.#wechatifiedMiniProgram    = wechatifyUserClass(MiniProgram)(this)
+    this.#wechatifiedRoom           = wechatifyUserClass(Room)(this)
+    this.#wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitation)(this)
+    this.#wechatifiedTag            = wechatifyUserClass(Tag)(this)
+    this.#wechatifiedUrlLink        = wechatifyUserClass(UrlLink)(this)
+    this.#wechatifiedLocation       = wechatifyUserClass(Location)(this)
   }
 
   /**

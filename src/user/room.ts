@@ -27,7 +27,6 @@ import {
   RoomQueryFilter,
 }                           from 'wechaty-puppet'
 
-import type { Wechaty }     from '../wechaty.js'
 import {
   FOUR_PER_EM_SPACE,
 }                           from '../config.js'
@@ -48,12 +47,18 @@ import { UrlLink }        from './url-link.js'
 import { Location }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
-import {
-  guardWechatifyClass,
-  throwWechatifyError,
-}                           from './guard-wechatify-class.js'
 
-const POOL = Symbol('pool')
+import {
+  poolifyMixin,
+  POOL,
+}             from './mixins/poolify.js'
+
+import {
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
+
+// FIXME:
+void POOL
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -61,30 +66,11 @@ const POOL = Symbol('pool')
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-class Room extends RoomEventEmitter implements Sayable {
-
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
-
-  static [POOL]?: Map<string, Room>
-  protected static get pool (): Map<string, Room> {
-    /**
-     * hasOwnProperty() is important because we will have child classes
-     */
-    if (!Object.prototype.hasOwnProperty.call(this, POOL)) {
-      log.verbose('Room', 'pool() init pool')
-
-      if (this === Room) {
-        throw new Error([
-          'The global Room class can not be used directly!',
-          'See: https://github.com/wechaty/wechaty/issues/1217',
-        ].join('\n'))
-      }
-      this[POOL] = new Map<string, Room>()
-    }
-
-    return this[POOL]!  // FIXME: why we need "!" at here?
-  }
+class Room extends wechatifyMixin(
+  poolifyMixin<Room, typeof RoomEventEmitter>(
+    RoomEventEmitter,
+  ),
+) implements Sayable {
 
   /**
    * Create a new room.
@@ -103,7 +89,10 @@ class Room extends RoomEventEmitter implements Sayable {
    * await room.topic('ding - created')
    * await room.say('ding - created')
    */
-  public static async create (contactList: Contact[], topic?: string): Promise<Room> {
+  static async create (
+    contactList : Contact[],
+    topic?      : string,
+  ): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
     if (contactList.length < 2) {
@@ -141,7 +130,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * const roomList = await bot.Room.findAll()                    // get the room list of the bot
    * const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
    */
-  public static async findAll<T extends typeof Room> (
+  static async findAll<T extends typeof Room> (
     this   : T,
     query? : RoomQueryFilter,
   ): Promise<Array<T['prototype']>> {
@@ -197,7 +186,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * const roomList = await bot.Room.find({topic: 'wechaty'})
    */
 
-  public static async find<T extends typeof Room> (
+  static async find<T extends typeof Room> (
     this  : T,
     query : string | RoomQueryFilter,
   ): Promise<T['prototype'] | null> {
@@ -245,40 +234,6 @@ class Room extends RoomEventEmitter implements Sayable {
 
   /**
    * @ignore
-   * About the Generic: https://stackoverflow.com/q/43003970/1123955
-   *
-   * Load room by topic. <br>
-   * > Tips: For Web solution, it cannot get the unique topic id,
-   * but for other solutions besides web,
-   * we can get unique and permanent topic id.
-   *
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   * @static
-   * @param {string} id
-   * @returns {Room}
-   * @example
-   * const bot = new Wechaty()
-   * await bot.start()
-   * // after logged in...
-   * const room = bot.Room.load('roomId')
-   */
-  public static load<T extends typeof Room> (
-    this : T,
-    id   : string,
-  ): T['prototype'] {
-    const existingRoom = this.pool.get(id)
-    if (existingRoom) {
-      return existingRoom
-    }
-
-    const newRoom = new this(id)
-
-    this.pool.set(id, newRoom)
-    return newRoom
-  }
-
-  /**
-   * @ignore
    *
    * Instance Properties
    *
@@ -297,18 +252,17 @@ class Room extends RoomEventEmitter implements Sayable {
    * @property {string}  id - Room id.
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    */
-  protected constructor (
+  constructor (
     public readonly id: string,
   ) {
     super()
     log.silly('Room', `constructor(${id})`)
-    guardWechatifyClass.call(this, Room)
   }
 
   /**
    * @ignore
    */
-  public override toString () {
+  override toString () {
     if (!this.#payload) {
       return this.constructor.name
     }
@@ -316,7 +270,7 @@ class Room extends RoomEventEmitter implements Sayable {
     return `Room<${this.#payload.topic || 'loading...'}>`
   }
 
-  public async * [Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
+  async * [Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
     const memberList = await this.memberList()
     for (const contact of memberList) {
       yield contact
@@ -330,7 +284,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * @example
    * await room.sync()
    */
-  public async sync (): Promise<void> {
+  async sync (): Promise<void> {
     await this.ready(true)
   }
 
@@ -342,7 +296,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *
    * @ignore
    */
-  public async ready (
+  async ready (
     forceSync = false,
   ): Promise<void> {
     log.verbose('Room', 'ready()')
@@ -382,20 +336,20 @@ class Room extends RoomEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public isReady (): boolean {
+  isReady (): boolean {
     return !!(this.#payload)
   }
 
-  public say (text:     string)                                  : Promise<void | Message>
-  public say (num:      number)                                  : Promise<void | Message>
-  public say (message:  Message)                                 : Promise<void | Message>
-  public say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
-  public say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
-  public say (file:     FileBox)                                 : Promise<void | Message>
-  public say (url:      UrlLink)                                 : Promise<void | Message>
-  public say (mini:     MiniProgram)                             : Promise<void | Message>
-  public say (contact:  Contact)                                 : Promise<void | Message>
-  public say (location: Location)                                : Promise<void | Message>
+  say (text:     string)                                  : Promise<void | Message>
+  say (num:      number)                                  : Promise<void | Message>
+  say (message:  Message)                                 : Promise<void | Message>
+  say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
+  say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
+  say (file:     FileBox)                                 : Promise<void | Message>
+  say (url:      UrlLink)                                 : Promise<void | Message>
+  say (mini:     MiniProgram)                             : Promise<void | Message>
+  say (contact:  Contact)                                 : Promise<void | Message>
+  say (location: Location)                                : Promise<void | Message>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -480,7 +434,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * await room.say(location)
    * const msg = await room.say(location)
    */
-  public async say (
+  async say (
     sayableMsg : SayableMessage | TemplateStringsArray,
     ...varList : unknown[]
   ): Promise<void | Message> {
@@ -809,7 +763,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *   }
    * }
    */
-  public async add (contact: Contact): Promise<void> {
+  async add (contact: Contact): Promise<void> {
     log.verbose('Room', 'add(%s)', contact)
     await this.wechaty.puppet.roomAdd(this.id, contact.id)
   }
@@ -839,7 +793,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *   }
    * }
    */
-  public async remove (contact: Contact): Promise<void> {
+  async remove (contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
     await this.wechaty.puppet.roomDel(this.id, contact.id)
     // this.delLocal(contact)
@@ -850,7 +804,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *
    * Huan(202106): will be removed after Dec 31, 2023
    */
-  public async del (contact: Contact): Promise<void> {
+  async del (contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
     log.warn('Room', 'del() is DEPRECATED, use remove() instead.')
 
@@ -881,13 +835,13 @@ class Room extends RoomEventEmitter implements Sayable {
    * @example
    * await room.quit()
    */
-  public async quit (): Promise<void> {
+  async quit (): Promise<void> {
     log.verbose('Room', 'quit() %s', this)
     await this.wechaty.puppet.roomQuit(this.id)
   }
 
-  public async topic ()                : Promise<string>
-  public async topic (newTopic: string): Promise<void>
+  async topic ()                : Promise<string>
+  async topic (newTopic: string): Promise<void>
 
   /**
    * SET/GET topic from the room
@@ -920,7 +874,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * })
    * .start()
    */
-  public async topic (newTopic?: string): Promise<void | string> {
+  async topic (newTopic?: string): Promise<void | string> {
     log.verbose('Room', 'topic(%s)', newTopic || '')
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
@@ -956,8 +910,8 @@ class Room extends RoomEventEmitter implements Sayable {
     return future
   }
 
-  public async announce ()             : Promise<string>
-  public async announce (text: string) : Promise<void>
+  async announce ()             : Promise<string>
+  async announce (text: string) : Promise<void>
 
   /**
    * SET/GET announce from the room
@@ -985,7 +939,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * await room.announce('change announce to wechaty!')
    * console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
    */
-  public async announce (text?: string): Promise<void | string> {
+  async announce (text?: string): Promise<void | string> {
     log.verbose('Room', 'announce(%s)',
       typeof text === 'undefined'
         ? ''
@@ -1007,7 +961,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * 2. The return should be the QR Code Data, instead of the QR Code Image. (the data should be less than 8KB. See: https://stackoverflow.com/a/12764370/1123955 )
    * @returns {Promise<string>}
    */
-  public async qrCode (): Promise<string> {
+  async qrCode (): Promise<string> {
     log.verbose('Room', 'qrCode()')
     const qrcodeValue = await this.wechaty.puppet.roomQRCode(this.id)
     return guardQrCodeValue(qrcodeValue)
@@ -1030,7 +984,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * })
    * .start()
    */
-  public async alias (contact: Contact): Promise<null | string> {
+  async alias (contact: Contact): Promise<null | string> {
     const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
 
     if (memberPayload.roomAlias) {
@@ -1040,8 +994,8 @@ class Room extends RoomEventEmitter implements Sayable {
     return null
   }
 
-  public async readMark (hasRead: boolean): Promise<void>
-  public async readMark (): Promise<boolean>
+  async readMark (hasRead: boolean): Promise<void>
+  async readMark (): Promise<boolean>
 
   /**
    * Mark the conversation as read
@@ -1052,7 +1006,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * const room = await bot.Room.find({topic: 'xxx'})
    * await room.readMark()
    */
-  public async readMark (hasRead?: boolean): Promise<void | boolean> {
+  async readMark (hasRead?: boolean): Promise<void | boolean> {
     try {
       if (typeof hasRead === 'undefined') {
         return this.wechaty.puppet.conversationReadMark(this.id)
@@ -1083,7 +1037,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *   }
    * }
    */
-  public async has (contact: Contact): Promise<boolean> {
+  async has (contact: Contact): Promise<boolean> {
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
     // if (!memberIdList) {
@@ -1095,9 +1049,9 @@ class Room extends RoomEventEmitter implements Sayable {
       .length > 0
   }
 
-  public async memberAll ()                              : Promise<Contact[]>
-  public async memberAll (name: string)                  : Promise<Contact[]>
-  public async memberAll (filter: RoomMemberQueryFilter) : Promise<Contact[]>
+  async memberAll ()                              : Promise<Contact[]>
+  async memberAll (name: string)                  : Promise<Contact[]>
+  async memberAll (filter: RoomMemberQueryFilter) : Promise<Contact[]>
 
   /**
    * The way to search member by Room.member()
@@ -1125,7 +1079,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * const memberContactList: Contact[] | null =await room.findAll(`abc`)
    * console.log(`contact list with all name, room alias, alias are abc:`, memberContactList)
    */
-  public async memberAll (
+  async memberAll (
     query?: string | RoomMemberQueryFilter,
   ): Promise<Contact[]> {
     log.silly('Room', 'memberAll(%s)',
@@ -1142,8 +1096,8 @@ class Room extends RoomEventEmitter implements Sayable {
     return contactList
   }
 
-  public async member (name  : string)               : Promise<null | Contact>
-  public async member (filter: RoomMemberQueryFilter): Promise<null | Contact>
+  async member (name  : string)               : Promise<null | Contact>
+  async member (filter: RoomMemberQueryFilter): Promise<null | Contact>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
@@ -1179,7 +1133,7 @@ class Room extends RoomEventEmitter implements Sayable {
    *   }
    * }
    */
-  public async member (
+  async member (
     queryArg: string | RoomMemberQueryFilter,
   ): Promise<null | Contact> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
@@ -1237,7 +1191,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * @example
    * const owner = room.owner()
    */
-  public owner (): null | Contact {
+  owner (): null | Contact {
     log.verbose('Room', 'owner()')
 
     const ownerId = this.#payload && this.#payload.ownerId
@@ -1257,7 +1211,7 @@ class Room extends RoomEventEmitter implements Sayable {
    * const name = fileBox.name
    * fileBox.toFile(name)
    */
-  public async avatar (): Promise<FileBox> {
+  async avatar (): Promise<FileBox> {
     log.verbose('Room', 'avatar()')
 
     return this.wechaty.puppet.roomAvatar(this.id)
@@ -1265,21 +1219,6 @@ class Room extends RoomEventEmitter implements Sayable {
 
 }
 
-function wechatifyRoom (wechaty: Wechaty): typeof Room {
-  log.verbose('Room', 'wechatifyRoom(%s)', wechaty)
-
-  class WechatifiedRoom extends Room {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedRoom
-
-}
-
 export {
   Room,
-  wechatifyRoom,
 }

@@ -25,14 +25,21 @@ import type { Wechaty }  from '../wechaty.js'
 
 import { Contact }  from './contact.js'
 import { Favorite } from './favorite.js'
-import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
 
-class Tag {
+import {
+  poolifyMixin,
+  POOL,
+}                     from './mixins/poolify.js'
+import {
+  wechatifyMixin,
+}                     from './mixins/wechatify.js'
 
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
+// FIXME:
+void POOL
 
-  protected static pool?: Map<string, Tag>
+class Tag extends wechatifyMixin(
+  poolifyMixin<Tag, typeof Object>(Object),
+) {
 
   /**
    * @hideconstructor
@@ -40,52 +47,8 @@ class Tag {
   constructor (
     public readonly id: string,
   ) {
+    super()
     log.silly('Tag', `constructor(${id})`)
-    guardWechatifyClass.call(this, Tag)
-  }
-
-  /**
-   * @private
-   * About the Generic: https://stackoverflow.com/q/43003970/1123955
-   *
-   * Get Tag by id
-   * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   *
-   * @static
-   * @param {string} id
-   * @returns {Tag}
-   * @example
-   * const bot = new Wechaty()
-   * await bot.start()
-   * const tag = bot.Tag.load('tagId')
-   */
-  public static load<T extends typeof Tag> (
-    this : T,
-    id   : string,
-  ): T['prototype'] {
-    if (!this.pool) {
-      log.verbose('Tag', 'load(%s) init pool', id)
-      this.pool = new Map<string, Tag>()
-    }
-    if (this === Tag) {
-      throw new Error(
-        'The global Tag class can not be used directly!'
-        + 'See: https://github.com/Chatie/wechaty/issues/1217',
-      )
-    }
-    if (this.pool === Tag.pool) {
-      throw new Error('the current pool is equal to the global pool error!')
-    }
-    const existingTag = this.pool.get(id)
-    if (existingTag) {
-      return existingTag
-    }
-
-    const newTag = new this(id)
-    this.pool.set(id, newTag)
-
-    return newTag
   }
 
   /**
@@ -200,21 +163,6 @@ class Tag {
 
 }
 
-function wechatifyTag (wechaty: Wechaty): typeof Tag {
-  log.verbose('Tag', 'wechatifyTag(%s)', wechaty)
-
-  class WechatifiedTag extends Tag {
-
-    static override get wechaty  () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedTag
-
-}
-
 export {
   Tag,
-  wechatifyTag,
 }
