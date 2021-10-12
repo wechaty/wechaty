@@ -35,9 +35,7 @@ class Moment {
 
   public static timeline (contact: Contact): Moment[] {
     // list all moment
-    if (contact) {
-      //
-    }
+    void contact
     return []
   }
 

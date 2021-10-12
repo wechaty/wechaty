@@ -53,6 +53,8 @@ import {
   throwWechatifyError,
 }                           from './guard-wechatify-class.js'
 
+const POOL = Symbol('pool')
+
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
  *
@@ -64,7 +66,25 @@ class Room extends RoomEventEmitter implements Sayable {
   static get wechaty  (): Wechaty { return throwWechatifyError(this) }
   get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
-  protected static pool: Map<string, Room>
+  static [POOL]?: Map<string, Room>
+  protected static get pool (): Map<string, Room> {
+    /**
+     * hasOwnProperty() is important because we will have child classes
+     */
+    if (!Object.prototype.hasOwnProperty.call(this, POOL)) {
+      log.verbose('Room', 'pool() init pool')
+
+      if (this === Room) {
+        throw new Error([
+          'The global Room class can not be used directly!',
+          'See: https://github.com/wechaty/wechaty/issues/1217',
+        ].join('\n'))
+      }
+      this[POOL] = new Map<string, Room>()
+    }
+
+    return this[POOL]!  // FIXME: why we need "!" at here?
+  }
 
   /**
    * Create a new room.
@@ -85,12 +105,6 @@ class Room extends RoomEventEmitter implements Sayable {
    */
   public static async create (contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
-
-    if (!contactList
-      || !Array.isArray(contactList)
-    ) {
-      throw new Error('contactList not found')
-    }
 
     if (contactList.length < 2) {
       throw new Error('contactList need at least 2 contact to create a new room')
@@ -153,7 +167,7 @@ class Room extends RoomEventEmitter implements Sayable {
               .catch(e => {
                 log.warn('Room', 'findAll() room.ready() rejection:\n%s', e.stack)
                 invalidSet.add(room.id)
-              })
+              }),
           ),
         )
 
@@ -194,9 +208,9 @@ class Room extends RoomEventEmitter implements Sayable {
     }
 
     const roomList = await this.findAll(query)
-    if (!roomList) {
-      return null
-    }
+    // if (!roomList) {
+    //   return null
+    // }
     if (roomList.length < 1) {
       return null
     }
@@ -252,10 +266,6 @@ class Room extends RoomEventEmitter implements Sayable {
     this : T,
     id   : string,
   ): T['prototype'] {
-    if (!this.pool) {
-      this.pool = new Map<string, Room>()
-    }
-
     const existingRoom = this.pool.get(id)
     if (existingRoom) {
       return existingRoom
@@ -275,6 +285,12 @@ class Room extends RoomEventEmitter implements Sayable {
    *
    */
   #payload?: RoomPayload
+  get payload () {
+    if (this.#payload) {
+      return this.#payload
+    }
+    throw new Error('no payload')
+  }
 
   /**
    * @hideconstructor
@@ -341,10 +357,6 @@ class Room extends RoomEventEmitter implements Sayable {
     }
     this.#payload = await this.wechaty.puppet.roomPayload(this.id)
 
-    if (!this.#payload) {
-      throw new Error('ready() no payload')
-    }
-
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
     const memberList = memberIdList.map(id => this.wechaty.Contact.load(id))
@@ -359,7 +371,7 @@ class Room extends RoomEventEmitter implements Sayable {
       )
       await Promise.all(
         batchMemberList.map(
-          c => c.ready().catch(e => log.error('Room', 'ready() member.ready() exception:\n%s', e.stack))
+          c => c.ready().catch(e => log.error('Room', 'ready() member.ready() exception:\n%s', e.stack)),
         ),
       )
 
@@ -535,7 +547,7 @@ class Room extends RoomEventEmitter implements Sayable {
 
         const AT_SEPARATOR = FOUR_PER_EM_SPACE
         const mentionAlias = await Promise.all(mentionList.map(async contact =>
-          '@' + (await this.alias(contact) || contact.name())
+          '@' + (await this.alias(contact) || contact.name()),
         ))
         const mentionText = mentionAlias.join(AT_SEPARATOR)
 
@@ -977,7 +989,7 @@ class Room extends RoomEventEmitter implements Sayable {
     log.verbose('Room', 'announce(%s)',
       typeof text === 'undefined'
         ? ''
-        : `"${text || ''}"`
+        : `"${text || ''}"`,
     )
 
     if (typeof text === 'undefined') {
@@ -1021,7 +1033,7 @@ class Room extends RoomEventEmitter implements Sayable {
   public async alias (contact: Contact): Promise<null | string> {
     const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
 
-    if (memberPayload && memberPayload.roomAlias) {
+    if (memberPayload.roomAlias) {
       return memberPayload.roomAlias
     }
 
@@ -1074,9 +1086,9 @@ class Room extends RoomEventEmitter implements Sayable {
   public async has (contact: Contact): Promise<boolean> {
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
-    if (!memberIdList) {
-      return false
-    }
+    // if (!memberIdList) {
+    //   return false
+    // }
 
     return memberIdList
       .filter(id => id === contact.id)
@@ -1181,7 +1193,7 @@ class Room extends RoomEventEmitter implements Sayable {
       memberList =  await this.memberAll(queryArg)
     }
 
-    if (!memberList || !memberList.length) {
+    if (memberList.length <= 0) {
       return null
     }
 
@@ -1206,10 +1218,10 @@ class Room extends RoomEventEmitter implements Sayable {
 
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
-    if (!memberIdList) {
-      log.warn('Room', 'memberList() not ready')
-      return []
-    }
+    // if (!memberIdList) {
+    //   log.warn('Room', 'memberList() not ready')
+    //   return []
+    // }
 
     const contactList = memberIdList.map(
       id => this.wechaty.Contact.load(id),

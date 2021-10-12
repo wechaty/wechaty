@@ -97,11 +97,11 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
  *
  */
 
-export type RoomInviteEventListener  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void
-export type RoomJoinEventListener    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void
-export type RoomLeaveEventListener   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)          => void
-export type RoomMessageEventListener = (this: Room, message: Message, date?: Date)                                  => void
-export type RoomTopicEventListener   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date) => void
+type RoomInviteEventListener  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void | Promise<void>
+type RoomJoinEventListener    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void | Promise<void>
+type RoomLeaveEventListener   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)          => void | Promise<void>
+type RoomMessageEventListener = (this: Room, message: Message, date?: Date)                                  => void | Promise<void>
+type RoomTopicEventListener   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date) => void | Promise<void>
 
 interface RoomEvents {
   invite  : RoomInviteEventListener
@@ -111,6 +111,17 @@ interface RoomEvents {
   topic   : RoomTopicEventListener,
 }
 
-export const RoomEventEmitter = EventEmitter as new () => TypedEventEmitter<
+const RoomEventEmitter = EventEmitter as new () => TypedEventEmitter<
   RoomEvents
 >
+
+export type {
+  RoomInviteEventListener,
+  RoomJoinEventListener,
+  RoomLeaveEventListener,
+  RoomMessageEventListener,
+  RoomTopicEventListener,
+}
+export {
+  RoomEventEmitter,
+}

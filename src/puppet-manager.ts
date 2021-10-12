@@ -43,7 +43,7 @@ export interface ResolveOptions {
 export class PuppetManager {
 
   static async resolve (
-    options: ResolveOptions
+    options: ResolveOptions,
   ): Promise<Puppet> {
     log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
       options.puppet,
@@ -95,9 +95,9 @@ export class PuppetManager {
   ): Promise<PuppetImplementation> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
-    if (!puppetName) {
-      throw new Error('must provide a puppet name')
-    }
+    // if (!puppetName) {
+    //   throw new Error('must provide a puppet name')
+    // }
 
     if (!(puppetName in PUPPET_DEPENDENCIES)) {
       throw new Error(
@@ -107,7 +107,7 @@ export class PuppetManager {
           'learn more about supported Wechaty Puppet from our directory at',
           '<https://github.com/wechaty/wechaty-puppet/wiki/Directory>',
           '',
-        ].join('\n')
+        ].join('\n'),
       )
     }
 
@@ -121,27 +121,23 @@ export class PuppetManager {
      *  https://github.com/wechaty/wechaty-getting-started/issues/203
      */
     let retry = 0
-    while (true) {
-      /**
-       * 1. ES Module: default is the exported Puppet
-       */
-      if (typeof puppetModule.default === 'function') {
-        if (retry === 0) {
-          log.verbose('PuppetManager', 'resolveName(%s): ESM resolved', puppetName)
-        } else {
-          log.verbose('PuppetManager', 'resolveName(%s): CJS resolved, retry times: %s', puppetName, retry)
-        }
-        break
-      }
-
-      if (retry++ > 3) {
+    while (typeof puppetModule.default !== 'function') {
+      if (!puppetModule || retry++ > 3) {
         throw new Error(`Puppet(${puppetName}) has not provided the default export`)
       }
-
       /**
-       * 2. CommonJS Module: puppetModule.default.default  is the expoerted Puppet
+       * CommonJS Module: puppetModule.default.default is the expoerted Puppet
        */
       puppetModule = puppetModule.default
+    }
+
+    if (retry === 0) {
+      /**
+       * ES Module: default is the exported Puppet
+       */
+      log.verbose('PuppetManager', 'resolveName(%s): ESM resolved', puppetName)
+    } else {
+      log.verbose('PuppetManager', 'resolveName(%s): CJS resolved, retry times: %s', puppetName, retry)
     }
 
     // console.info(puppetModule)

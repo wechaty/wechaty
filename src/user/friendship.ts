@@ -154,7 +154,7 @@ class Friendship extends EventEmitter implements Acceptable {
       await this.wechaty.puppet.friendshipAdd(contact.id, { hello: options })
     } else {
       const friendOption: PuppetFriendshipAddOptions = {
-        contactId: options?.contact?.id,
+        contactId: options.contact?.id,
         hello: options.hello,
         roomId: options.room && options.room.id,
       }
@@ -220,9 +220,9 @@ class Friendship extends EventEmitter implements Acceptable {
 
     this.#payload = await this.wechaty.puppet.friendshipPayload(this.id)
 
-    if (!this.#payload) {
-      throw new Error('no payload')
-    }
+    // if (!this.#payload) {
+    //   throw new Error('no payload')
+    // }
 
     await this.contact().ready()
   }

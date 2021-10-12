@@ -67,19 +67,31 @@ class Contact extends ContactEventEmitter implements Sayable {
   public static Type   = ContactType
   public static Gender = ContactGender
 
-  protected static [POOL]: Map<string, Contact>
-  protected static get pool () {
-    return this[POOL]
-  }
+  protected static [POOL]?: Map<string, Contact>
+  protected static get pool (): Map<string, Contact> {
+    /**
+     * hasOwnProperty() is important because we will have child classes
+     */
+    if (!Object.prototype.hasOwnProperty.call(this, POOL)) {
+      log.verbose('Contact', 'pool() init pool')
 
-  protected static set pool (newPool: Map<string, Contact>) {
-    if (this === Contact) {
-      throw new Error(
-        'The global Contact class can not be used directly!'
-        + 'See: https://github.com/wechaty/wechaty/issues/1217',
-      )
+      if (this === Contact) {
+        throw new Error([
+          'The global Contact class can not be used directly!',
+          'See: https://github.com/wechaty/wechaty/issues/1217',
+        ].join('\n'))
+      }
+      this[POOL] = new Map<string, Contact>()
+
+      /**
+       * Huan(202110): we should never use `Contact.pool` because this will cause error.
+       */
+      // if (this.pool === Contact.pool) {
+      //   throw new Error('the current pool is equal to the global pool error!')
+      // }
     }
-    this[POOL] = newPool
+
+    return this[POOL]!  // FIXME: why we need "!" at here?
   }
 
   /**
@@ -102,19 +114,6 @@ class Contact extends ContactEventEmitter implements Sayable {
     this : T,
     id   : string,
   ): T['prototype'] {
-    if (!this.pool) {
-      log.verbose('Contact', 'load(%s) init pool', id)
-      this.pool = new Map<string, Contact>()
-    }
-    if (this === Contact) {
-      throw new Error(
-        'The global Contact class can not be used directly!'
-        + 'See: https://github.com/wechaty/wechaty/issues/1217',
-      )
-    }
-    if (this.pool === Contact.pool) {
-      throw new Error('the current pool is equal to the global pool error!')
-    }
     const existingContact = this.pool.get(id)
     if (existingContact) {
       return existingContact
@@ -162,9 +161,9 @@ class Contact extends ContactEventEmitter implements Sayable {
 
     const contactList = await this.findAll(query)
 
-    if (!contactList) {
-      return null
-    }
+    // if (!contactList) {
+    //   return null
+    // }
     if (contactList.length < 1) {
       return null
     }

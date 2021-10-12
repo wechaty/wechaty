@@ -186,7 +186,7 @@ class RoomInvitation implements Acceptable {
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
-    const contactIdList = payload.memberIdList || payload.memberIdList || []
+    const contactIdList = payload.memberIdList
 
     const contactList = contactIdList.map(
       id => this.wechaty.Contact.load(id),

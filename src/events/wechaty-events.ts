@@ -31,26 +31,26 @@ const WECHATY_EVENT_DICT = {
   stop      : 'Will be emitted after the Wechaty had been stopped.',
 }
 
-export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
+type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 /**
  * Wechaty Event Listener Interfaces
  */
-export type WechatyDongEventListener       = (data?: string) => void
-export type WechatyErrorEventListener      = (error: Error) => void
-export type WechatyFriendshipEventListener = (friendship: Friendship) => void
-export type WechatyHeartbeatEventListener  = (data: any) => void
-export type WechatyLoginEventListener      = (user: ContactSelf) => void
-export type WechatyLogoutEventListener     = (user: ContactSelf, reason?: string) => void
-export type WechatyMessageEventListener    = (message: Message) => void
-export type WechatyPuppetEventListener     = (puppet: Puppet) => void
-export type WechatyReadyEventListener      = () => void
-export type WechatyRoomInviteEventListener = (roomInvitation: RoomInvitation) => void
-export type WechatyRoomJoinEventListener   = (room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void
-export type WechatyRoomLeaveEventListener  = (room: Room, leaverList: Contact[],  remover?: Contact, date?: Date) => void
-export type WechatyRoomTopicEventListener  = (room: Room, newTopic: string, oldTopic: string, changer: Contact, date?: Date) => void
-export type WechatyScanEventListener       = (qrcode: string, status: ScanStatus, data?: string) => void
-export type WechatyStartStopEventListener  = () => void
+type WechatyDongEventListener       = (data?: string)                      => void | Promise<void>
+type WechatyErrorEventListener      = (error: Error)                       => void | Promise<void>
+type WechatyFriendshipEventListener = (friendship: Friendship)             => void | Promise<void>
+type WechatyHeartbeatEventListener  = (data: any)                          => void | Promise<void>
+type WechatyLoginEventListener      = (user: ContactSelf)                  => void | Promise<void>
+type WechatyLogoutEventListener     = (user: ContactSelf, reason?: string) => void | Promise<void>
+type WechatyMessageEventListener    = (message: Message)                   => void | Promise<void>
+type WechatyPuppetEventListener     = (puppet: Puppet)                     => void | Promise<void>
+type WechatyReadyEventListener      = ()                                   => void | Promise<void>
+type WechatyRoomInviteEventListener = (roomInvitation: RoomInvitation)                                                 => void | Promise<void>
+type WechatyRoomJoinEventListener   = (room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)             => void | Promise<void>
+type WechatyRoomLeaveEventListener  = (room: Room, leaverList: Contact[],  remover?: Contact, date?: Date)             => void | Promise<void>
+type WechatyRoomTopicEventListener  = (room: Room, newTopic: string, oldTopic: string, changer: Contact, date?: Date)  => void | Promise<void>
+type WechatyScanEventListener       = (qrcode: string, status: ScanStatus, data?: string)                              => void | Promise<void>
+type WechatyStartStopEventListener  = ()                                                                               => void | Promise<void>
 
 /**
  * @desc       Wechaty Class Event Type
@@ -74,10 +74,10 @@ export type WechatyStartStopEventListener  = () => void
 /**
  * @desc       Wechaty Class Event Function
  * @typedef    WechatyEventFunction
- * @property   {Function} error           -(this: Wechaty, error: Error) => void callback function
+ * @property   {Function} error           -(this: Wechaty, error: Error) => void | Promise<void> callback function
  * @property   {Function} login           -(this: Wechaty, user: ContactSelf)=> void
- * @property   {Function} logout          -(this: Wechaty, user: ContactSelf) => void
- * @property   {Function} scan            -(this: Wechaty, url: string, code: number) => void <br>
+ * @property   {Function} logout          -(this: Wechaty, user: ContactSelf) => void | Promise<void>
+ * @property   {Function} scan            -(this: Wechaty, url: string, code: number) => void | Promise<void> <br>
  * <ol>
  * <li>URL: {String} the QR code image URL</li>
  * <li>code: {Number} the scan status code. some known status of the code list here is:</li>
@@ -88,14 +88,14 @@ export type WechatyStartStopEventListener  = () => void
  * <li>201 scanned, wait for confirm</li>
  * <li>408 waits for scan</li>
  * </ul>
- * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
- * @property   {Function} friendship      -(this: Wechaty, friendship: Friendship) => void
- * @property   {Function} message         -(this: Wechaty, message: Message) => void
- * @property   {Function} ready           -(this: Wechaty) => void
- * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
- * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
- * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
- * @property   {Function} room-invite     -(this: Wechaty, room: Room, roomInvitation: RoomInvitation) => void <br>
+ * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void | Promise<void>
+ * @property   {Function} friendship      -(this: Wechaty, friendship: Friendship) => void | Promise<void>
+ * @property   {Function} message         -(this: Wechaty, message: Message) => void | Promise<void>
+ * @property   {Function} ready           -(this: Wechaty) => void | Promise<void>
+ * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void | Promise<void>
+ * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void | Promise<void>
+ * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void | Promise<void>
+ * @property   {Function} room-invite     -(this: Wechaty, room: Room, roomInvitation: RoomInvitation) => void | Promise<void> <br>
  *                                        see more in  {@link RoomInvitation}
  */
 
@@ -225,6 +225,29 @@ interface WechatyEvents {
   stop          : WechatyStartStopEventListener
 }
 
-export const WechatyEventEmitter = EventEmitter as new () => TypedEventEmitter<
+const WechatyEventEmitter = EventEmitter as new () => TypedEventEmitter<
   WechatyEvents
 >
+
+export type {
+  WechatyEventName,
+
+  WechatyDongEventListener,
+  WechatyErrorEventListener,
+  WechatyFriendshipEventListener,
+  WechatyHeartbeatEventListener,
+  WechatyLoginEventListener,
+  WechatyLogoutEventListener,
+  WechatyMessageEventListener,
+  WechatyPuppetEventListener,
+  WechatyReadyEventListener,
+  WechatyRoomInviteEventListener,
+  WechatyRoomJoinEventListener,
+  WechatyRoomLeaveEventListener,
+  WechatyRoomTopicEventListener,
+  WechatyScanEventListener,
+  WechatyStartStopEventListener,
+}
+export {
+  WechatyEventEmitter,
+}

@@ -137,15 +137,15 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   static readonly log = log
   readonly log = log
 
-  public  readonly state      : StateSwitch
+   readonly state      : StateSwitch
   private readonly readyState : StateSwitch
-  public  readonly wechaty    : Wechaty
+   readonly wechaty    : Wechaty
 
   /**
    * singleton globalInstance
    * @ignore
    */
-  private static globalInstance: Wechaty
+  private static globalInstance?: Wechaty
 
   private static globalPluginList: WechatyPlugin[] = []
 
@@ -156,13 +156,19 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   private lifeTimer? : ReturnType<typeof setInterval>
   private io?        : Io
 
-  public puppet!: Puppet
+  #puppet?: Puppet
+  get puppet (): Puppet {
+    if (!this.#puppet) {
+      throw new Error('no puppet')
+    }
+    return this.#puppet
+  }
 
   /**
    * the cuid
    * @ignore
    */
-  public readonly id : string
+  readonly id : string
 
   #wechatifiedContact?        : typeof Contact
   #wechatifiedContactSelf?    : typeof ContactSelf
@@ -202,7 +208,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * .on('message',  message => console.log(`Message: ${message}`))
    * .start()
    */
-  public static instance (
+  static instance (
     options?: WechatyOptions,
   ) {
     if (options && this.globalInstance) {
@@ -233,7 +239,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    *
    * bot.use(WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' })
    */
-  public static use (
+  static use (
     ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
   ) {
     const pluginList = plugins.flat()
@@ -315,15 +321,15 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public override toString () {
-    if (!this.options) {
+  override toString () {
+    if (Object.keys(this.options).length <= 0) {
       return this.constructor.name
     }
 
     return [
       'Wechaty#',
       this.id,
-      `<${(this.options && this.options.puppet) || ''}>`,
+      `<${(this.options.puppet) || ''}>`,
       `(${(this.memory && this.memory.name) || ''})`,
     ].join('')
   }
@@ -332,11 +338,11 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * Wechaty bot name set by `options.name`
    * default: `wechaty`
    */
-  public name () {
+  name () {
     return this.options.name || 'wechaty'
   }
 
-  public override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
+  override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'on(%s, listener) registering... listenerCount: %s',
       event,
       this.listenerCount(event),
@@ -357,7 +363,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * // The same usage with Wechaty.use().
    *
    */
-  public use (...plugins: (WechatyPlugin | WechatyPlugin[])[]) {
+  use (...plugins: (WechatyPlugin | WechatyPlugin[])[]) {
     const pluginList = plugins.flat() as WechatyPlugin[]
     const uninstallerList = pluginList
       .map(plugin => plugin(this))
@@ -384,10 +390,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   private async initPuppet (): Promise<void> {
     log.verbose('Wechaty', 'initPuppet() %s', this.options.puppet || '')
 
-    const initialized = !!this.puppet
-
-    if (initialized) {
-      log.verbose('Wechaty', 'initPuppet(%s) had already been initialized, no need to init twice', this.options.puppet)
+    if (this.#puppet) {
+      log.warn('Wechaty', 'initPuppet(%s) had already been initialized, no need to init twice', this.options.puppet)
       return
     }
 
@@ -408,9 +412,10 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
      * Plug the Memory Card to Puppet
      */
     puppetInstance.setMemory(puppetMemory)
+    this.#puppet = puppetInstance
 
     this.initPuppetEventBridge(puppetInstance)
-    this.wechatifyUserModules(puppetInstance)
+    this.wechatifyUserModules()
 
     /**
       * Private Event
@@ -657,8 +662,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     }
   }
 
-  protected wechatifyUserModules (puppet: Puppet) {
-    log.verbose('Wechaty', 'wechatifyUserModules(%s)', puppet)
+  protected wechatifyUserModules () {
+    log.verbose('Wechaty', 'wechatifyUserModules()')
 
     if (this.#wechatifiedContactSelf) {
       throw new Error('can not be initialized twice!')
@@ -678,8 +683,6 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     this.#wechatifiedTag            = wechatifyTag(this)
     this.#wechatifiedUrlLink        = wechatifyUrlLink(this)
     this.#wechatifiedLocation       = wechatifyLocation(this)
-
-    this.puppet = puppet
   }
 
   /**
@@ -693,7 +696,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * await bot.start()
    * // do other stuff with bot here
    */
-  public async start (): Promise<void> {
+  async start (): Promise<void> {
     log.verbose('Wechaty', '<%s>(%s) start() v%s is starting...',
       this.options.puppet || config.systemPuppetName(),
       this.options.name   || '',
@@ -771,7 +774,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * @example
    * await bot.stop()
    */
-  public async stop (): Promise<void> {
+  async stop (): Promise<void> {
     log.verbose('Wechaty', '<%s> stop() v%s is stopping ...',
       this.options.puppet || config.systemPuppetName(),
       this.version(),
@@ -824,7 +827,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     this.emit('stop')
   }
 
-  public async ready (): Promise<void> {
+  async ready (): Promise<void> {
     log.verbose('Wechaty', 'ready()')
     return this.readyState.ready('on').then(() => {
       return log.silly('Wechaty', 'ready() this.readyState.ready(on) resolved')
@@ -838,7 +841,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * @example
    * await bot.logout()
    */
-  public async logout (): Promise<void>  {
+  async logout (): Promise<void>  {
     log.verbose('Wechaty', 'logout()')
 
     try {
@@ -861,7 +864,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    *   console.log('Bot not logged in')
    * }
    */
-  public logonoff (): boolean {
+  logonoff (): boolean {
     try {
       return this.puppet.logonoff()
     } catch (e) {
@@ -878,20 +881,20 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * const contact = bot.userSelf()
    * console.log(`Bot is ${contact.name()}`)
    */
-  public userSelf (): ContactSelf {
+  userSelf (): ContactSelf {
     const userId = this.puppet.selfId()
     const user = this.ContactSelf.load(userId)
     return user
   }
 
-  public async say (text:    string)      : Promise<void>
-  public async say (contact: Contact)     : Promise<void>
-  public async say (file:    FileBox)     : Promise<void>
-  public async say (mini:    MiniProgram) : Promise<void>
-  public async say (url:     UrlLink)     : Promise<void>
-  public async say (url:     Location)    : Promise<void>
+  async say (text:    string)      : Promise<void>
+  async say (contact: Contact)     : Promise<void>
+  async say (file:    FileBox)     : Promise<void>
+  async say (mini:    MiniProgram) : Promise<void>
+  async say (url:     UrlLink)     : Promise<void>
+  async say (url:     Location)    : Promise<void>
 
-  public async say (...args: never[]): Promise<never>
+  async say (...args: never[]): Promise<never>
 
   /**
    * Send message to userSelf, in other words, bot send message to itself.
@@ -947,7 +950,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * await bot.say(miniPayload)
    */
 
-  public async say (
+  async say (
     sayableMsg: SayableMessage,
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', sayableMsg)
@@ -958,8 +961,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public static version (gitHash = false): string {
-    if (gitHash && GIT_COMMIT_HASH) {
+  static version (gitHash = false): string {
+    if (gitHash) {
       return `#git[${GIT_COMMIT_HASH}]`
     }
     return VERSION
@@ -976,14 +979,14 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * console.log(Wechaty.instance().version())       // return '#git[af39df]'
    * console.log(Wechaty.instance().version(true))   // return '0.7.9'
    */
-  public version (forceNpm = false): string {
+  version (forceNpm = false): string {
     return Wechaty.version(forceNpm)
   }
 
   /**
    * @ignore
    */
-  public static async sleep (millisecond: number): Promise<void> {
+  static async sleep (millisecond: number): Promise<void> {
     await new Promise<void>(resolve => {
       setTimeout(resolve, millisecond)
     })
@@ -992,14 +995,14 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public async sleep (millisecond: number): Promise<void> {
+  async sleep (millisecond: number): Promise<void> {
     return Wechaty.sleep(millisecond)
   }
 
   /**
    * @private
    */
-  public ding (data?: string): void {
+  ding (data?: string): void {
     log.silly('Wechaty', 'ding(%s)', data || '')
 
     try {
@@ -1030,7 +1033,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public reset (reason?: string): void {
+  reset (reason?: string): void {
     log.verbose('Wechaty', 'reset() with reason: %s, call stack: %s',
       reason || 'no reason',
       // https://stackoverflow.com/a/2060330/1123955
@@ -1053,14 +1056,14 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
           Math.floor(
             (
               10 + 10 * Math.random()
-            ) * 1000
-          )
+            ) * 1000,
+          ),
         )
 
       })
   }
 
-  public unref (): void {
+  unref (): void {
     log.verbose('Wechaty', 'unref()')
 
     if (this.lifeTimer) {

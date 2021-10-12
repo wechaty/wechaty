@@ -32,7 +32,7 @@ class Tag {
   static get wechaty  (): Wechaty { return throwWechatifyError(this) }
   get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
 
-  protected static pool: Map<string, Tag>
+  protected static pool?: Map<string, Tag>
 
   /**
    * @hideconstructor

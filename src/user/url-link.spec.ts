@@ -22,8 +22,8 @@ test('UrlLink.create() for wechaty.js.org', async t => {
   }
 
   const urlLink = await UrlLinkTest.create(URL)
-  t.equal(urlLink.title(),        EXPECTED_PAYLOAD.title, 'should have title',)
-  t.equal(urlLink.description(),  EXPECTED_PAYLOAD.description, 'should have description',)
-  t.equal(urlLink.url(),          EXPECTED_PAYLOAD.url, 'should have url',)
-  t.equal(urlLink.thumbnailUrl(), EXPECTED_PAYLOAD.thumbnailUrl, 'should have thumbnailUrl',)
+  t.equal(urlLink.title(),        EXPECTED_PAYLOAD.title, 'should have title')
+  t.equal(urlLink.description(),  EXPECTED_PAYLOAD.description, 'should have description')
+  t.equal(urlLink.url(),          EXPECTED_PAYLOAD.url, 'should have url')
+  t.equal(urlLink.thumbnailUrl(), EXPECTED_PAYLOAD.thumbnailUrl, 'should have thumbnailUrl')
 })

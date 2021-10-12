@@ -68,7 +68,7 @@ export class IoClient {
         .map(key => {
           return `${key}:${(options as any)[key]}`
         })
-        .reduce((acc, cur) => `${acc}, ${cur}`)
+        .reduce((acc, cur) => `${acc}, ${cur}`),
     )
 
     const normalizedOptions = {
@@ -255,10 +255,10 @@ export class IoClient {
     this.state.off('pending')
 
     try {
-      if (this.options.wechaty) {
-        await this.options.wechaty.stop()
-        // this.wechaty = null
-      } else { log.warn('IoClient', 'quit() no this.wechaty') }
+      // if (this.options.wechaty) {
+      await this.options.wechaty.stop()
+      // this.wechaty = null
+      // } else { log.warn('IoClient', 'quit() no this.wechaty') }
 
       if (this.io) {
         await this.io.stop()

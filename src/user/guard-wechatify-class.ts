@@ -11,8 +11,7 @@ const throwWechatifyError = (WechatyUserClass: Function) => {
 
 function guardWechatifyClass (
   this: { wechaty: Wechaty },
-  WechatyUserClass: Function
-
+  WechatyUserClass: Function,
 ) {
   const ThisClass = instanceToClass(this, WechatyUserClass)
 
@@ -20,11 +19,11 @@ function guardWechatifyClass (
     throwWechatifyError(WechatyUserClass)
   }
 
-  if (!this.wechaty.puppet) {
-    throw new Error([
-      `${WechatyUserClass.name}: Wechaty User Class (WUC) can not be instantiated without a puppet!`,
-    ].join('\n'))
-  }
+  // if (!this.wechaty.puppet) {
+  //   throw new Error([
+  //     `${WechatyUserClass.name}: Wechaty User Class (WUC) can not be instantiated without a puppet!`,
+  //   ].join('\n'))
+  // }
 }
 
 export {

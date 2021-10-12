@@ -242,7 +242,7 @@ export class Io {
     return ws
   }
 
-  private async wsOnOpen (ws: WebSocket): Promise<void> {
+  private wsOnOpen (ws: WebSocket): void {
     if (this.protocol !== ws.protocol) {
       log.error('Io', 'initWebSocket() require protocol[%s] failed', this.protocol)
       // XXX deal with error?
@@ -263,14 +263,19 @@ export class Io {
       name,
       payload,
     }
-    await this.send(initEvent)
+    this.send(initEvent).catch(console.error)
   }
 
-  private async wsOnMessage (data: WebSocket.Data) {
+  private wsOnMessage (data: WebSocket.Data): void {
     log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
+    this.wsOnMessageAsync(data).catch(console.error)
+  }
+
+  private async wsOnMessageAsync (data: WebSocket.Data): Promise<void> {
+    log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
+
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
-
     let payload: string
 
     if (Array.isArray(data)) {
@@ -450,9 +455,9 @@ export class Io {
     }
 
     log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout / 1000))
-    this.reconnectTimer = setTimeout(async () => {
+    this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined
-      await this.initWebSocket()
+      this.initWebSocket().catch(console.error)
     }, this.reconnectTimeout)// as any as NodeJS.Timer
   }
 

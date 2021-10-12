@@ -132,7 +132,7 @@ class Message extends EventEmitter implements Sayable {
             .catch(e => {
               log.warn('Room', 'findAll() message.ready() rejection: %s', e)
               invalidDict[message.id] = true
-            })
+            }),
         ),
       )
 
@@ -208,16 +208,16 @@ class Message extends EventEmitter implements Sayable {
         : '',
       ']',
     ]
+
     if (this.type() === Message.Type.Text
      || this.type() === Message.Type.Unknown
     ) {
       msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
-
-      if (!this.#payload) {
-        throw new Error('no payload')
-      }
+      // if (!this.#payload) {
+      //   throw new Error('no payload')
+      // }
     }
 
     return msgStrList.join('')
@@ -539,11 +539,9 @@ class Message extends EventEmitter implements Sayable {
     if (room) {
       conversation = room
       conversationId = room.id
-    } else if (talker) {
+    } else {
       conversation = talker
       conversationId = talker.id
-    } else {
-      throw new Error('neither room nor from?')
     }
 
     /**
@@ -564,7 +562,7 @@ class Message extends EventEmitter implements Sayable {
        * Text Message
        */
       let mentionIdList
-      if (talker && await this.mentionSelf()) {
+      if (await this.mentionSelf()) {
         mentionIdList = [talker.id]
       }
 
@@ -692,7 +690,7 @@ class Message extends EventEmitter implements Sayable {
       const userId = this.wechaty.puppet.selfId()
       const talker = this.talker()
 
-      return !!talker && talker.id === userId
+      return talker.id === userId
     } catch (e) {
       log.error('Message', 'self() rejection: %s', (e as Error).message)
       return false
@@ -811,7 +809,7 @@ class Message extends EventEmitter implements Sayable {
 
     const mentionList = await this.mentionList()
 
-    if (!room || !mentionList || mentionList.length === 0) {
+    if (!room || mentionList.length === 0) {
       return text
     }
 
@@ -865,10 +863,6 @@ class Message extends EventEmitter implements Sayable {
     }
 
     this.#payload = await this.wechaty.puppet.messagePayload(this.id)
-
-    if (!this.#payload) {
-      throw new Error('no payload')
-    }
 
     const fromId = this.#payload.fromId
     const roomId = this.#payload.roomId
@@ -1067,10 +1061,6 @@ class Message extends EventEmitter implements Sayable {
 
     const urlPayload = await this.wechaty.puppet.messageUrl(this.id)
 
-    if (!urlPayload) {
-      throw new Error(`no url payload for message ${this.id}`)
-    }
-
     return new UrlLink(urlPayload)
   }
 
@@ -1087,10 +1077,6 @@ class Message extends EventEmitter implements Sayable {
 
     const miniProgramPayload = await this.wechaty.puppet.messageMiniProgram(this.id)
 
-    if (!miniProgramPayload) {
-      throw new Error(`no miniProgram payload for message ${this.id}`)
-    }
-
     return new MiniProgram(miniProgramPayload)
   }
 
@@ -1106,10 +1092,6 @@ class Message extends EventEmitter implements Sayable {
     }
 
     const locationPayload = await this.wechaty.puppet.messageLocation(this.id)
-
-    if (!locationPayload) {
-      throw new Error(`no location payload for message ${this.id}`)
-    }
 
     return new Location(locationPayload)
   }

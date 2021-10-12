@@ -45,9 +45,10 @@ function enableRaven (dsn: string):void  {
 async function init () {
   try {
     raven = await import('raven')
+    log.verbose('Wechaty', 'init() Raven enabled (import("raven") succeed)')
   } catch (e) {
     // It's ok when there's no raven installed
-    log.verbose('Wechaty', 'init() import("raven") failed, ignored.')
+    log.verbose('Wechaty', 'init() Raven disabled (import("raven") failed)')
     return
   }
 

@@ -21,7 +21,7 @@ import {
   LocationPayload,
   log,
 }                       from 'wechaty-puppet'
-import type { Wechaty } from '../wechaty'
+import type { Wechaty } from '../wechaty.js'
 import {
   // guardWechatifyClass,
   throwWechatifyError,
