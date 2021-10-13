@@ -27,6 +27,9 @@ import {
   looseInstanceOfFileBox,
   PayloadType,
 }                             from 'wechaty-puppet'
+import type {
+  Constructor,
+}                             from 'clone-class'
 
 import {
   qrCodeForChatie,
@@ -53,8 +56,16 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-// FIXME:
+/**
+ * Huan(202110): Issue #2273
+ *  https://github.com/wechaty/wechaty/issues/2273
+ *
+ *  FIXME: POOL & Constructor must be imported by TypeScript.
+ *  why?
+ */
 void POOL
+const t: Constructor = {} as any
+void t
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
