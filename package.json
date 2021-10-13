@@ -6,10 +6,10 @@
   "exports": {
     ".": {
       "import": "./dist/esm/src/mod.js",
-      "require": "./dist/cjs/src/mod.js",
-      "types": "./dist/esm/src/mod.d.ts"
+      "require": "./dist/cjs/src/mod.js"
     }
   },
+  "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
     "node": ">=16",
     "npm": ">=7"
