@@ -16,12 +16,6 @@
  *   limitations under the License.
  *
  */
-import type {
-  Options as QuickLruOptions,
-}                             from '@alloc/quick-lru'
-
-import QuickLru from '@alloc/quick-lru'
-
 import type { Constructor }     from 'clone-class'
 import { Watchdog }             from 'watchdog'
 import { StateSwitch }          from 'state-switch'
@@ -32,7 +26,6 @@ import { ThrottleQueue }        from 'rx-queue'
 // import readPkgUp               from 'read-pkg-up'
 
 import {
-  envVars,
   FileBox,
   log,
   MemoryCard,
@@ -88,6 +81,7 @@ import {
 import { PayloadType }            from './schemas/payload.js'
 
 import { PuppetEventEmitter }     from './events.js'
+import { PayloadCache }           from './payload-cache.js'
 
 const DEFAULT_WATCHDOG_TIMEOUT_SECONDS  = 60
 let   PUPPET_COUNTER                    = 0
@@ -107,13 +101,6 @@ abstract class Puppet extends PuppetEventEmitter {
   static readonly VERSION = VERSION
 
   readonly state: StateSwitch
-
-  protected readonly cacheContactPayload        : QuickLru<string, ContactPayload>
-  protected readonly cacheFriendshipPayload     : QuickLru<string, FriendshipPayload>
-  protected readonly cacheMessagePayload        : QuickLru<string, MessagePayload>
-  protected readonly cacheRoomPayload           : QuickLru<string, RoomPayload>
-  protected readonly cacheRoomMemberPayload     : QuickLru<string, RoomMemberPayload>
-  protected readonly cacheRoomInvitationPayload : QuickLru<string, RoomInvitationPayload>
 
   protected readonly counter : number
   protected memory           : MemoryCard
@@ -135,6 +122,8 @@ abstract class Puppet extends PuppetEventEmitter {
    * Throttle Reset Events
    */
   private resetThrottleQueue: ThrottleQueue<string>
+
+  protected payloadCache: PayloadCache
 
   /**
    *
@@ -176,32 +165,7 @@ abstract class Puppet extends PuppetEventEmitter {
       this.reset(reason)
     })
 
-    /**
-     * 3. Setup LRU Caches
-     */
-    const lruOptions = (maxSize = 100): QuickLruOptions<any, any> => ({
-      maxAge: 15 * 60 * 1000 * 1000, // 15 minutes
-      maxSize: maxSize,
-    })
-
-    this.cacheContactPayload = new QuickLru<string, ContactPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT(options.lruCacheSize?.contact)),
-    )
-    this.cacheFriendshipPayload = new QuickLru<string, FriendshipPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP(options.lruCacheSize?.friendship)),
-    )
-    this.cacheMessagePayload = new QuickLru<string, MessagePayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE(options.lruCacheSize?.message)),
-    )
-    this.cacheRoomInvitationPayload = new QuickLru<string, RoomInvitationPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION(options.lruCacheSize?.roomInvitation)),
-    )
-    this.cacheRoomMemberPayload = new QuickLru<string, RoomMemberPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER(options.lruCacheSize?.roomMember)),
-    )
-    this.cacheRoomPayload = new QuickLru<string, RoomPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM(options.lruCacheSize?.room)),
-    )
+    this.payloadCache = new PayloadCache(options.lruCacheSize)
 
     {
       /* eslint  no-lone-blocks: off */
@@ -282,6 +246,8 @@ abstract class Puppet extends PuppetEventEmitter {
     this.on('heartbeat', this.feedDog)
     this.watchdog.on('reset', this.dogReset)
     this.on('reset', this.throttleReset)
+
+    this.payloadCache.start()
   }
 
   async stop (): Promise<void> {
@@ -291,22 +257,7 @@ abstract class Puppet extends PuppetEventEmitter {
 
     this.watchdog.sleep()
 
-    /**
-     * FIXME: Huan(202008) clear cache when stop
-     *  keep the cache as a temp workaround since wechaty-puppet-service has reconnect issue
-     *  with un-cleared cache in wechaty-puppet will make the reconnect recoverable
-     *
-     * Related issue: https://github.com/wechaty/wechaty-puppet-service/issues/31
-     *
-     * Update:
-     *  Huan(2021-08-28): clear the cache when stop
-     */
-    this.cacheContactPayload.clear()
-    this.cacheFriendshipPayload.clear()
-    this.cacheMessagePayload.clear()
-    this.cacheRoomPayload.clear()
-    this.cacheRoomInvitationPayload.clear()
-    this.cacheRoomMemberPayload.clear()
+    this.payloadCache.stop()
   }
 
   private feedDog (payload: any) {
@@ -696,7 +647,7 @@ abstract class Puppet extends PuppetEventEmitter {
     if (!contactId) {
       throw new Error('no id')
     }
-    const cachedPayload = this.cacheContactPayload.get(contactId)
+    const cachedPayload = this.payloadCache.contact.get(contactId)
 
     if (cachedPayload) {
       // log.silly('Puppet', 'contactPayload(%s) cache HIT', contactId)
@@ -730,7 +681,7 @@ abstract class Puppet extends PuppetEventEmitter {
     const rawPayload = await this.contactRawPayload(contactId)
     const payload    = await this.contactRawPayloadParser(rawPayload)
 
-    this.cacheContactPayload.set(contactId, payload)
+    this.payloadCache.contact.set(contactId, payload)
     log.silly('Puppet', 'contactPayload(%s) cache SET', contactId)
 
     return payload
@@ -774,7 +725,7 @@ abstract class Puppet extends PuppetEventEmitter {
     if (!friendshipId) {
       throw new Error('no id')
     }
-    const cachedPayload = this.cacheFriendshipPayload.get(friendshipId)
+    const cachedPayload = this.payloadCache.friendship.get(friendshipId)
 
     if (cachedPayload) {
       // log.silly('Puppet', 'friendshipPayloadCache(%s) cache HIT', friendshipId)
@@ -803,7 +754,7 @@ abstract class Puppet extends PuppetEventEmitter {
     )
 
     if (typeof newPayload === 'object') {
-      await this.cacheFriendshipPayload.set(friendshipId, newPayload)
+      await this.payloadCache.friendship.set(friendshipId, newPayload)
       return
     }
 
@@ -821,7 +772,7 @@ abstract class Puppet extends PuppetEventEmitter {
     const rawPayload = await this.friendshipRawPayload(friendshipId)
     const payload    = await this.friendshipRawPayloadParser(rawPayload)
 
-    this.cacheFriendshipPayload.set(friendshipId, payload)
+    this.payloadCache.friendship.set(friendshipId, payload)
 
     return payload
   }
@@ -863,7 +814,7 @@ abstract class Puppet extends PuppetEventEmitter {
     if (!messageId) {
       throw new Error('no id')
     }
-    const cachedPayload = this.cacheMessagePayload.get(messageId)
+    const cachedPayload = this.payloadCache.message.get(messageId)
     if (cachedPayload) {
       // log.silly('Puppet', 'messagePayloadCache(%s) cache HIT', messageId)
     } else {
@@ -896,7 +847,7 @@ abstract class Puppet extends PuppetEventEmitter {
     const rawPayload = await this.messageRawPayload(messageId)
     const payload    = await this.messageRawPayloadParser(rawPayload)
 
-    this.cacheMessagePayload.set(messageId, payload)
+    this.payloadCache.message.set(messageId, payload)
     log.silly('Puppet', 'messagePayload(%s) cache SET', messageId)
 
     return payload
@@ -904,7 +855,7 @@ abstract class Puppet extends PuppetEventEmitter {
 
   messageList (): string[] {
     log.verbose('Puppet', 'messageList()')
-    return [...this.cacheMessagePayload.keys()]
+    return [...this.payloadCache.message.keys()]
   }
 
   async messageSearch (
@@ -986,7 +937,7 @@ abstract class Puppet extends PuppetEventEmitter {
     if (!roomInvitationId) {
       throw new Error('no id')
     }
-    const cachedPayload = this.cacheRoomInvitationPayload.get(roomInvitationId)
+    const cachedPayload = this.payloadCache.roomInvitation.get(roomInvitationId)
 
     if (cachedPayload) {
       // log.silly('Puppet', 'roomInvitationPayloadCache(%s) cache HIT', roomInvitationId)
@@ -1012,7 +963,7 @@ abstract class Puppet extends PuppetEventEmitter {
     log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
 
     if (typeof newPayload === 'object') {
-      this.cacheRoomInvitationPayload.set(roomInvitationId, newPayload)
+      this.payloadCache.roomInvitation.set(roomInvitationId, newPayload)
       return
     }
 
@@ -1254,7 +1205,7 @@ abstract class Puppet extends PuppetEventEmitter {
     if (!roomId) {
       throw new Error('no id')
     }
-    const cachedPayload = this.cacheRoomPayload.get(roomId)
+    const cachedPayload = this.payloadCache.room.get(roomId)
     if (cachedPayload) {
       // log.silly('Puppet', 'roomPayloadCache(%s) cache HIT', roomId)
     } else {
@@ -1287,20 +1238,10 @@ abstract class Puppet extends PuppetEventEmitter {
     const rawPayload = await this.roomRawPayload(roomId)
     const payload    = await this.roomRawPayloadParser(rawPayload)
 
-    this.cacheRoomPayload.set(roomId, payload)
+    this.payloadCache.room.set(roomId, payload)
     log.silly('Puppet', 'roomPayload(%s) cache SET', roomId)
 
     return payload
-  }
-
-  /**
-   * Concat roomId & contactId to one string
-   */
-  private cacheKeyRoomMember (
-    roomId    : string,
-    contactId : string,
-  ): string {
-    return contactId + '@@@' + roomId
   }
 
   async roomMemberPayload (
@@ -1319,8 +1260,8 @@ abstract class Puppet extends PuppetEventEmitter {
     /**
      * 1. Try to get from cache
      */
-    const CACHE_KEY     = this.cacheKeyRoomMember(roomId, memberId)
-    const cachedPayload = this.cacheRoomMemberPayload.get(CACHE_KEY)
+    const CACHE_KEY     = this.payloadCache.roomMemberId(roomId, memberId)
+    const cachedPayload = this.payloadCache.roomMember.get(CACHE_KEY)
 
     if (cachedPayload) {
       return cachedPayload
@@ -1335,7 +1276,7 @@ abstract class Puppet extends PuppetEventEmitter {
     }
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 
-    this.cacheRoomMemberPayload.set(CACHE_KEY, payload)
+    this.payloadCache.roomMember.set(CACHE_KEY, payload)
     log.silly('Puppet', 'roomMemberPayload(%s) cache SET', roomId)
 
     return payload
@@ -1370,22 +1311,22 @@ abstract class Puppet extends PuppetEventEmitter {
 
   private async dirtyPayloadRoom (roomId: string): Promise<void> {
     log.verbose('Puppet', 'dirtyPayloadRoom(%s)', roomId)
-    this.cacheRoomPayload.delete(roomId)
+    this.payloadCache.room.delete(roomId)
   }
 
   private async dirtyPayloadContact (contactId: string): Promise<void> {
     log.verbose('Puppet', 'dirtyPayloadContact(%s)', contactId)
-    this.cacheContactPayload.delete(contactId)
+    this.payloadCache.contact.delete(contactId)
   }
 
   private async dirtyPayloadFriendship (friendshipId: string): Promise<void> {
     log.verbose('Puppet', 'dirtyPayloadFriendship(%s)', friendshipId)
-    this.cacheFriendshipPayload.delete(friendshipId)
+    this.payloadCache.friendship.delete(friendshipId)
   }
 
   private async dirtyPayloadMessage (messageId: string): Promise<void> {
     log.verbose('Puppet', 'dirtyPayloadMessage(%s)', messageId)
-    this.cacheMessagePayload.delete(messageId)
+    this.payloadCache.message.delete(messageId)
   }
 
   private async dirtyPayloadRoomMember (roomId: string): Promise<void> {
@@ -1395,8 +1336,8 @@ abstract class Puppet extends PuppetEventEmitter {
 
     let cacheKey
     contactIdList.forEach(contactId => {
-      cacheKey = this.cacheKeyRoomMember(roomId, contactId)
-      this.cacheRoomMemberPayload.delete(cacheKey)
+      cacheKey = this.payloadCache.roomMemberId(roomId, contactId)
+      this.payloadCache.roomMember.delete(cacheKey)
     })
   }
 
