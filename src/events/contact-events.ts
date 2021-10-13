@@ -20,6 +20,7 @@ const ContactEventEmitter = EventEmitter as new () => TypedEventEmitter<
 >
 
 export type {
+  ContactEvents,
   ContactMessageEventListener,
   ContactFriendshipEventListener,
 }

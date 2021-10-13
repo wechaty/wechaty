@@ -23,9 +23,6 @@ import {
 }                           from 'wechaty-puppet'
 
 import type {
-  Wechaty,
-}               from '../wechaty.js'
-import type {
   Acceptable,
 }               from '../types.js'
 import {
@@ -35,18 +32,18 @@ import {
 import type {
   Contact,
 }               from './contact.js'
-import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
+import {
+  EmptyBase,
+  wechatifyMixin,
+}                     from './mixins/wechatify.js'
 
 /**
  *
  * accept room invitation
  */
-class RoomInvitation implements Acceptable {
+class RoomInvitation extends wechatifyMixin(EmptyBase) implements Acceptable {
 
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
-
-  public static load<T extends typeof RoomInvitation> (
+  static load<T extends typeof RoomInvitation> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -62,11 +59,11 @@ class RoomInvitation implements Acceptable {
   constructor (
     public readonly id: string,
   ) {
+    super()
     log.verbose('RoomInvitation', 'constructor(id=%s)', id)
-    guardWechatifyClass.call(this, RoomInvitation)
   }
 
-  public toString () {
+  override toString () {
     return [
       'RoomInvitation#',
       this.id || 'loading',
@@ -76,7 +73,7 @@ class RoomInvitation implements Acceptable {
   /**
     * @ignore
    */
-  public async toStringAsync (): Promise<string> {
+  async toStringAsync (): Promise<string> {
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
     return [
       'RoomInvitation#',
@@ -106,7 +103,7 @@ class RoomInvitation implements Acceptable {
    * }
    * .start()
    */
-  public async accept (): Promise<void> {
+  async accept (): Promise<void> {
     log.verbose('RoomInvitation', 'accept()')
 
     await this.wechaty.puppet.roomInvitationAccept(this.id)
@@ -143,7 +140,7 @@ class RoomInvitation implements Acceptable {
    * }
    * .start()
    */
-  public async inviter (): Promise<Contact> {
+  async inviter (): Promise<Contact> {
     log.verbose('RoomInvitation', 'inviter()')
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
@@ -163,13 +160,13 @@ class RoomInvitation implements Acceptable {
    * }
    * .start()
    */
-  public async topic (): Promise<string> {
+  async topic (): Promise<string> {
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
 
     return payload.topic || payload.topic || ''
   }
 
-  public async memberCount (): Promise<number> {
+  async memberCount (): Promise<number> {
     log.verbose('RoomInvitation', 'memberCount()')
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
@@ -181,7 +178,7 @@ class RoomInvitation implements Acceptable {
    * List of Room Members that you known(is friend)
     * @ignore
    */
-  public async memberList (): Promise<Contact[]> {
+  async memberList (): Promise<Contact[]> {
     log.verbose('RoomInvitation', 'roomMemberList()')
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
@@ -205,7 +202,7 @@ class RoomInvitation implements Acceptable {
    *
    * @returns {Promise<Date>}
    */
-  public async date (): Promise<Date> {
+  async date (): Promise<Date> {
     log.verbose('RoomInvitation', 'date()')
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
@@ -220,7 +217,7 @@ class RoomInvitation implements Acceptable {
    * then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
    * @returns {number}
    */
-  public async age (): Promise<number> {
+  async age (): Promise<number> {
     const recvDate = await this.date()
 
     const ageMilliseconds = Date.now() - recvDate.getTime()
@@ -239,7 +236,7 @@ class RoomInvitation implements Acceptable {
    * const roomInvitation = await bot.RoomInvitation.fromJSON(dataFromDisk)
    * await roomInvitation.accept()
    */
-  public static async fromJSON (
+  static async fromJSON (
     payload: string | RoomInvitationPayload,
   ): Promise<RoomInvitation> {
     log.verbose('RoomInvitation', 'fromJSON(%s)',
@@ -270,7 +267,7 @@ class RoomInvitation implements Acceptable {
    * }
    * .start()
    */
-  public async toJSON (): Promise<string> {
+  async toJSON (): Promise<string> {
     log.verbose('RoomInvitation', 'toJSON()')
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
     return JSON.stringify(payload)
@@ -278,21 +275,6 @@ class RoomInvitation implements Acceptable {
 
 }
 
-function wechatifyRoomInvitation (wechaty: Wechaty): typeof RoomInvitation {
-  log.verbose('RoomInvitation', 'wechatifyRoomInvitation(%s)', wechaty)
-
-  class WechatifiedRoomInvitation extends RoomInvitation {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty       () { return wechaty }
-
-  }
-
-  return WechatifiedRoomInvitation
-
-}
-
 export {
   RoomInvitation,
-  wechatifyRoomInvitation,
 }

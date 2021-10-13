@@ -116,6 +116,7 @@ const RoomEventEmitter = EventEmitter as new () => TypedEventEmitter<
 >
 
 export type {
+  RoomEvents,
   RoomInviteEventListener,
   RoomJoinEventListener,
   RoomLeaveEventListener,

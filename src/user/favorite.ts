@@ -19,20 +19,15 @@
  */
 import { log }        from 'wechaty-puppet'
 
-import type { Wechaty }  from '../wechaty.js'
-
 import type { Tag }       from './tag.js'
 import {
-  guardWechatifyClass,
-  throwWechatifyError,
-}                         from './guard-wechatify-class.js'
+  EmptyBase,
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
-class Favorite {
+class Favorite extends wechatifyMixin(EmptyBase) {
 
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
-
-  public static list (): Favorite[] {
+  static list (): Favorite[] {
     return []
   }
 
@@ -44,7 +39,7 @@ class Favorite {
    * @example
    * const tags = await wechaty.Favorite.tags()
    */
-  public static async tags (): Promise<Tag []> {
+  static async tags (): Promise<Tag []> {
     log.verbose('Favorite', 'static tags() for %s', this)
 
     // TODO:
@@ -63,35 +58,20 @@ class Favorite {
    * @hideconstructor
    */
   constructor () {
-    guardWechatifyClass.call(this, Favorite)
+    super()
   }
 
-  public async tags (): Promise<Tag []> {
+  async tags (): Promise<Tag []> {
     // TODO: implmente this method
     return []
   }
 
-  public async findAll () {
+  async findAll () {
     //
   }
 
 }
 
-function wechatifyFavorite (wechaty: Wechaty): typeof Favorite {
-  log.verbose('Favorite', 'wechatifyFavorite(%s)', wechaty)
-
-  class WechatifiedFavorite extends Favorite {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedFavorite
-
-}
-
 export {
   Favorite,
-  wechatifyFavorite,
 }

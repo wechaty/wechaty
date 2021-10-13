@@ -22,23 +22,19 @@ import {
   log,
 }                         from 'wechaty-puppet'
 
-import type { Wechaty } from '../wechaty.js'
 import {
-  throwWechatifyError,
-  // guardWechatifyClass,
-}                                 from './guard-wechatify-class.js'
+  EmptyBase,
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
-class MiniProgram {
-
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
+class MiniProgram extends wechatifyMixin(EmptyBase) {
 
   /**
    *
    * Create
    *
    */
-  public static async create (): Promise<MiniProgram> {
+  static async create (): Promise<MiniProgram> {
     log.verbose('MiniProgram', 'create()')
 
     // TODO: get appid and username from wechat
@@ -61,56 +57,42 @@ class MiniProgram {
   constructor (
     public readonly payload: MiniProgramPayload,
   ) {
+    super()
     log.verbose('MiniProgram', 'constructor()')
     // Huan(202110): it is ok to create a raw one without wechaty instance
     // guardWechatifyClass.call(this, MiniProgram)
   }
 
-  public appid (): undefined | string {
+  appid (): undefined | string {
     return this.payload.appid
   }
 
-  public title (): undefined | string {
+  title (): undefined | string {
     return this.payload.title
   }
 
-  public pagePath (): undefined | string {
+  pagePath (): undefined | string {
     return this.payload.pagePath
   }
 
-  public username (): undefined | string {
+  username (): undefined | string {
     return this.payload.username
   }
 
-  public description (): undefined | string {
+  description (): undefined | string {
     return this.payload.description
   }
 
-  public thumbUrl (): undefined | string {
+  thumbUrl (): undefined | string {
     return this.payload.thumbUrl
   }
 
-  public thumbKey (): undefined | string {
+  thumbKey (): undefined | string {
     return this.payload.thumbKey
   }
 
 }
 
-function wechatifyMiniProgram (wechaty: Wechaty): typeof MiniProgram {
-  log.verbose('MiniProgram', 'wechatifyMiniProgram(%s)', wechaty)
-
-  class WechatifiedMiniProgram extends MiniProgram {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedMiniProgram
-
-}
-
 export {
   MiniProgram,
-  wechatifyMiniProgram,
 }

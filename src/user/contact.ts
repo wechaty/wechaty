@@ -27,8 +27,10 @@ import {
   looseInstanceOfFileBox,
   PayloadType,
 }                             from 'wechaty-puppet'
+import type {
+  Constructor,
+}                             from 'clone-class'
 
-import type { Wechaty }       from '../wechaty.js'
 import {
   qrCodeForChatie,
 }                           from '../config.js'
@@ -46,11 +48,24 @@ import { Location }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
-  guardWechatifyClass,
-  throwWechatifyError,
-}                               from './guard-wechatify-class.js'
+  poolifyMixin,
+  POOL,
+}             from './mixins/poolify.js'
 
-const POOL = Symbol('pool')
+import {
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
+
+/**
+ * Huan(202110): Issue #2273
+ *  https://github.com/wechaty/wechaty/issues/2273
+ *
+ *  FIXME: POOL & Constructor must be imported by TypeScript.
+ *  why?
+ */
+void POOL
+const t: Constructor = {} as any
+void t
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
@@ -59,76 +74,12 @@ const POOL = Symbol('pool')
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-class Contact extends ContactEventEmitter implements Sayable {
+class Contact extends wechatifyMixin(
+  poolifyMixin<Contact>()(ContactEventEmitter),
+) implements Sayable {
 
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
-
-  public static Type   = ContactType
-  public static Gender = ContactGender
-
-  protected static [POOL]?: Map<string, Contact>
-  protected static get pool (): Map<string, Contact> {
-    /**
-     * hasOwnProperty() is important because we will have child classes
-     */
-    if (!Object.prototype.hasOwnProperty.call(this, POOL)) {
-      log.verbose('Contact', 'pool() init pool')
-
-      if (this === Contact) {
-        throw new Error([
-          'The global Contact class can not be used directly!',
-          'See: https://github.com/wechaty/wechaty/issues/1217',
-        ].join('\n'))
-      }
-      this[POOL] = new Map<string, Contact>()
-
-      /**
-       * Huan(202110): we should never use `Contact.pool` because this will cause error.
-       */
-      // if (this.pool === Contact.pool) {
-      //   throw new Error('the current pool is equal to the global pool error!')
-      // }
-    }
-
-    return this[POOL]!  // FIXME: why we need "!" at here?
-  }
-
-  /**
-   * @ignore
-   * About the Generic: https://stackoverflow.com/q/43003970/1123955
-   *
-   * Get Contact by id
-   * > Tips:
-   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   *
-   * @static
-   * @param {string} id
-   * @returns {Contact}
-   * @example
-   * const bot = new Wechaty()
-   * await bot.start()
-   * const contact = bot.Contact.load('contactId')
-   */
-  public static load<T extends typeof Contact> (
-    this : T,
-    id   : string,
-  ): T['prototype'] {
-    const existingContact = this.pool.get(id)
-    if (existingContact) {
-      return existingContact
-    }
-
-    // when we call `load()`, `this` should already be extend-ed a child class.
-    // so we force `this as any` at here to make the call.
-    //
-    // Huan(202110): it seems that there's no `this as any` needed anymore
-    const newContact = new this(id)
-
-    this.pool.set(id, newContact)
-
-    return newContact
-  }
+  static Type   = ContactType
+  static Gender = ContactGender
 
   /**
    * The way to search Contact
@@ -153,7 +104,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
-  public static async find<T extends typeof Contact> (
+  static async find<T extends typeof Contact> (
     this  : T,
     query : string | ContactQueryFilter,
   ): Promise<T['prototype'] | null> {
@@ -215,7 +166,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
-  public static async findAll<T extends typeof Contact> (
+  static async findAll<T extends typeof Contact> (
     this  : T,
     query? : string | ContactQueryFilter,
   ): Promise<Array<T['prototype']>> {
@@ -257,7 +208,7 @@ class Contact extends ContactEventEmitter implements Sayable {
   }
 
   // TODO
-  public static async delete (contact: Contact): Promise<void> {
+  static async delete (contact: Contact): Promise<void> {
     log.verbose('Contact', 'static delete(%s)', contact.id)
   }
 
@@ -269,7 +220,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const tags = await wechaty.Contact.tags()
    */
-  public static async tags (): Promise<Tag []> {
+  static async tags (): Promise<Tag []> {
     log.verbose('Contact', 'static tags() for %s', this)
 
     try {
@@ -293,18 +244,17 @@ class Contact extends ContactEventEmitter implements Sayable {
   /**
    * @hideconstructor
    */
-  protected constructor (
+  constructor (
     public readonly id: string,
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
-    guardWechatifyClass.call(this, Contact)
   }
 
   /**
    * @ignore
    */
-  public override toString (): string {
+  override toString (): string {
     if (!this.#payload) {
       return this.constructor.name
     }
@@ -317,14 +267,14 @@ class Contact extends ContactEventEmitter implements Sayable {
     return `Contact<${identity}>`
   }
 
-  public say (text:     string)      : Promise<void | Message>
-  public say (num:      number)      : Promise<void | Message>
-  public say (message:  Message)     : Promise<void | Message>
-  public say (contact:  Contact)     : Promise<void | Message>
-  public say (file:     FileBox)     : Promise<void | Message>
-  public say (mini:     MiniProgram) : Promise<void | Message>
-  public say (url:      UrlLink)     : Promise<void | Message>
-  public say (location: Location)    : Promise<void | Message>
+  say (text:     string)      : Promise<void | Message>
+  say (num:      number)      : Promise<void | Message>
+  say (message:  Message)     : Promise<void | Message>
+  say (contact:  Contact)     : Promise<void | Message>
+  say (file:     FileBox)     : Promise<void | Message>
+  say (mini:     MiniProgram) : Promise<void | Message>
+  say (url:      UrlLink)     : Promise<void | Message>
+  say (location: Location)    : Promise<void | Message>
 
   /**
    * > Tips:
@@ -394,7 +344,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * await contact.say(location)
    * const msg = await contact.say(location)
    */
-  public async say (
+  async say (
     sayableMsg: SayableMessage,
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayableMsg)
@@ -474,13 +424,13 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const name = contact.name()
    */
-  public name (): string {
+  name (): string {
     return (this.#payload && this.#payload.name) || ''
   }
 
-  public async alias ()                  : Promise<null | string>
-  public async alias (newAlias:  string) : Promise<void>
-  public async alias (empty:     null)   : Promise<void>
+  async alias ()                  : Promise<null | string>
+  async alias (newAlias:  string) : Promise<void>
+  async alias (empty:     null)   : Promise<void>
 
   /**
    * GET / SET / DELETE the alias for a contact
@@ -513,7 +463,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  public async alias (newAlias?: null | string): Promise<null | string | void> {
+  async alias (newAlias?: null | string): Promise<null | string | void> {
     log.silly('Contact', 'alias(%s)',
       newAlias === undefined
         ? ''
@@ -567,9 +517,9 @@ class Contact extends ContactEventEmitter implements Sayable {
    *   console.log(`failed to change ${contact.name()} phone!`)
    * }
    */
-  public async phone (): Promise<string[]>
-  public async phone (phoneList: string[]): Promise<void>
-  public async phone (phoneList?: string[]): Promise<string[] | void> {
+  async phone (): Promise<string[]>
+  async phone (phoneList: string[]): Promise<void>
+  async phone (phoneList?: string[]): Promise<string[] | void> {
     log.silly('Contact', 'phone(%s)', phoneList === undefined ? '' : JSON.stringify(phoneList))
 
     if (!this.#payload) {
@@ -590,9 +540,9 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
-  public async corporation (): Promise<string | null>
-  public async corporation (remark: string | null): Promise<void>
-  public async corporation (remark?: string | null): Promise<string | null | void> {
+  async corporation (): Promise<string | null>
+  async corporation (remark: string | null): Promise<void>
+  async corporation (remark?: string | null): Promise<string | null | void> {
     log.silly('Contact', 'corporation(%s)', remark)
 
     if (!this.#payload) {
@@ -617,9 +567,9 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
-  public async description (): Promise<string | null>
-  public async description (newDescription: string | null): Promise<void>
-  public async description (newDescription?: string | null): Promise<string | null | void> {
+  async description (): Promise<string | null>
+  async description (newDescription: string | null): Promise<void>
+  async description (newDescription?: string | null): Promise<string | null | void> {
     log.silly('Contact', 'description(%s)', newDescription)
 
     if (!this.#payload) {
@@ -640,7 +590,7 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
-  public title (): string | null {
+  title (): string | null {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -648,7 +598,7 @@ class Contact extends ContactEventEmitter implements Sayable {
     return this.#payload.title || null
   }
 
-  public coworker (): boolean {
+  coworker (): boolean {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -669,7 +619,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const isFriend = contact.friend()
    */
-  public friend (): null | boolean {
+  friend (): null | boolean {
     log.verbose('Contact', 'friend()')
     if (!this.#payload) {
       return null
@@ -699,7 +649,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * await bot.start()
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
-  public type (): ContactType {
+  type (): ContactType {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -715,7 +665,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const isStar = contact.star()
    */
-  public star (): null | boolean {
+  star (): null | boolean {
     if (!this.#payload) {
       return null
     }
@@ -732,7 +682,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const gender = contact.gender() === bot.Contact.Gender.Male
    */
-  public gender (): ContactGender {
+  gender (): ContactGender {
     return this.#payload
       ? this.#payload.gender
       : ContactGender.Unknown
@@ -745,7 +695,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const province = contact.province()
    */
-  public province (): null | string {
+  province (): null | string {
     return (this.#payload && this.#payload.province) || null
   }
 
@@ -756,7 +706,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const city = contact.city()
    */
-  public city (): null | string {
+  city (): null | string {
     return (this.#payload && this.#payload.city) || null
   }
 
@@ -772,7 +722,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * await file.toFile(name, true)
    * console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
    */
-  public async avatar (): Promise<FileBox> {
+  async avatar (): Promise<FileBox> {
     log.verbose('Contact', 'avatar()')
 
     try {
@@ -791,7 +741,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const tags = await contact.tags()
    */
-  public async tags (): Promise<Tag []> {
+  async tags (): Promise<Tag []> {
     log.verbose('Contact', 'tags() for %s', this)
 
     try {
@@ -811,7 +761,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * await contact.sync()
    */
-  public async sync (): Promise<void> {
+  async sync (): Promise<void> {
     await this.ready(true)
   }
 
@@ -823,7 +773,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    *
    * @ignore
    */
-  public async ready (
+  async ready (
     forceSync = false,
   ): Promise<void> {
     log.silly('Contact', 'ready() @ %s with id="%s"', this.wechaty.puppet, this.id)
@@ -850,8 +800,8 @@ class Contact extends ContactEventEmitter implements Sayable {
     }
   }
 
-  public async readMark (hasRead: boolean): Promise<void>
-  public async readMark (): Promise<boolean>
+  async readMark (hasRead: boolean): Promise<void>
+  async readMark (): Promise<boolean>
 
   /**
    * Mark the conversation as read
@@ -863,7 +813,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * await contact.readMark()
    */
 
-  public async readMark (hasRead?: boolean): Promise<void | boolean> {
+  async readMark (hasRead?: boolean): Promise<void | boolean> {
     try {
       if (typeof hasRead === 'undefined') {
         return this.wechaty.puppet.conversationReadMark(this.id)
@@ -878,7 +828,7 @@ class Contact extends ContactEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  public isReady (): boolean {
+  isReady (): boolean {
     return !!(this.#payload && this.#payload.name)
   }
 
@@ -889,7 +839,7 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const isSelf = contact.self()
    */
-  public self (): boolean {
+  self (): boolean {
     const userId = this.wechaty.puppet.selfId()
 
     if (!userId) {
@@ -909,27 +859,12 @@ class Contact extends ContactEventEmitter implements Sayable {
    * @example
    * const weixin = contact.weixin()
    */
-  public weixin (): null | string {
+  weixin (): null | string {
     return (this.#payload && this.#payload.weixin) || null
   }
 
 }
 
-function wechatifyContact (wechaty: Wechaty): typeof Contact {
-  log.verbose('Contact', 'wechatifyContact(%s)', wechaty)
-
-  class WechatifiedContact extends Contact {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedContact
-
-}
-
 export {
   Contact,
-  wechatifyContact,
 }

@@ -27,25 +27,19 @@ import {
 import {
   openGraph,
 }               from '../helper-functions/impure/open-graph.js'
-import type {
-  Wechaty,
-}               from '../wechaty.js'
 import {
-  // guardWechatifyClass,
-  throwWechatifyError,
-}                                 from './guard-wechatify-class.js'
+  EmptyBase,
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
-class UrlLink {
-
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
+class UrlLink extends wechatifyMixin(EmptyBase) {
 
   /**
    *
    * Create from URL
    *
    */
-  public static async create (url: string): Promise<UrlLink> {
+  static async create (url: string): Promise<UrlLink> {
     log.verbose('UrlLink', 'create(%s)', url)
 
     const meta = await openGraph(url)
@@ -107,47 +101,34 @@ class UrlLink {
   constructor (
     public readonly payload: UrlLinkPayload,
   ) {
+    super()
     log.verbose('UrlLink', 'constructor()')
     // Huan(202110): it is ok to create a raw one without wechaty instance
     // guardWechatifyClass.call(this, UrlLink)
   }
 
-  public toString (): string {
+  override toString (): string {
     return `UrlLink<${this.payload.url}>`
   }
 
-  public url (): string {
+  url (): string {
     return this.payload.url
   }
 
-  public title (): string {
+  title (): string {
     return this.payload.title
   }
 
-  public thumbnailUrl (): undefined | string {
+  thumbnailUrl (): undefined | string {
     return this.payload.thumbnailUrl
   }
 
-  public description (): undefined | string {
+  description (): undefined | string {
     return this.payload.description
   }
 
 }
 
-function wechatifyUrlLink (wechaty: Wechaty): typeof UrlLink {
-  log.verbose('UrlLink', 'wechatifyUrlLink(%s)', wechaty)
-
-  class WechatifiedUrlLink extends UrlLink {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedUrlLink
-}
-
 export {
   UrlLink,
-  wechatifyUrlLink,
 }

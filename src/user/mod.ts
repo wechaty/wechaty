@@ -17,17 +17,38 @@
  *   limitations under the License.
  *
  */
-export * from './contact.js'
-export * from './tag.js'
-export * from './contact-self.js'
-export * from './favorite.js'
-export * from './friendship.js'
-export * from './message.js'
-export * from './image.js'
-export * from './moment.js'
-export * from './money.js'
-export * from './room.js'
-export * from './room-invitation.js'
-export * from './url-link.js'
-export * from './mini-program.js'
-export * from './location.js'
+import { Contact }          from './contact.js'
+import { ContactSelf }      from './contact-self.js'
+import { Favorite }         from './favorite.js'
+import { Friendship }       from './friendship.js'
+import { Image }            from './image.js'
+import { Location }         from './location.js'
+import { Message }          from './message.js'
+import { MiniProgram }      from './mini-program.js'
+import { Moment }           from './moment.js'
+import { Money }            from './money.js'
+import { Room }             from './room.js'
+import { RoomInvitation }   from './room-invitation.js'
+import { Tag }              from './tag.js'
+import { UrlLink }          from './url-link.js'
+
+import { wechatifyUserClass } from './mixins/wechatify.js'
+
+export {
+  wechatifyUserClass,
+
+  Contact,
+  ContactSelf,
+  Favorite,
+  Friendship,
+  Image,
+  Location,
+  Message,
+  MiniProgram,
+  Moment,
+  Money,
+  Room,
+  RoomInvitation,
+  Tag,
+  UrlLink,
+}

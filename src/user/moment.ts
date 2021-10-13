@@ -19,21 +19,19 @@
  */
 import { log } from 'wechaty-puppet'
 
-import type { Wechaty } from '../wechaty.js'
-
 import type { Contact } from './contact.js'
-import { guardWechatifyClass, throwWechatifyError } from './guard-wechatify-class.js'
+import {
+  EmptyBase,
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
-class Moment {
+class Moment extends wechatifyMixin(EmptyBase) {
 
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
-
-  public static post () {
+  static post () {
     // post new moment
   }
 
-  public static timeline (contact: Contact): Moment[] {
+  static timeline (contact: Contact): Moment[] {
     // list all moment
     void contact
     return []
@@ -43,26 +41,12 @@ class Moment {
    * @hideconstructor
    */
   constructor () {
-    guardWechatifyClass.call(this, Moment)
+    super()
+    log.verbose('Moment', 'constructor()')
   }
-
-}
-
-function wechatifyMoment (wechaty: Wechaty): typeof Moment {
-  log.verbose('Moment', 'wechatifyMoment(%s)', wechaty)
-
-  class WechatifiedMoment extends Moment {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedMoment
 
 }
 
 export {
   Moment,
-  wechatifyMoment,
 }

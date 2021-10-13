@@ -23,16 +23,12 @@ import {
   log,
 }                   from 'wechaty-puppet'
 
-import type { Wechaty } from '../wechaty.js'
 import {
-  guardWechatifyClass,
-  throwWechatifyError,
-}                                 from './guard-wechatify-class.js'
+  EmptyBase,
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
-class Image {
-
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
+class Image extends wechatifyMixin(EmptyBase) {
 
   static create (id: string): Image {
     log.verbose('Image', 'static create(%s)', id)
@@ -44,8 +40,8 @@ class Image {
   constructor (
     public id: string,
   ) {
+    super()
     log.verbose('Image', 'constructor(%s)', id)
-    guardWechatifyClass.call(this, Image)
   }
 
   async thumbnail (): Promise<FileBox> {
@@ -68,21 +64,6 @@ class Image {
 
 }
 
-function wechatifyImage (wechaty: Wechaty): typeof Image {
-  log.verbose('Image', 'wechatifyImage(%s)', wechaty)
-
-  class WechatifiedImage extends Image {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedImage
-
-}
-
 export {
   Image,
-  wechatifyImage,
 }
