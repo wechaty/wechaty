@@ -2,8 +2,6 @@
   "extends": "@chatie/tsconfig",
   "compilerOptions": {
     "outDir": "dist/esm",
-    // https://stackoverflow.com/a/63909124/1123955
-    "types": [ "node" ],
   },
   "exclude": [
     "node_modules/",
