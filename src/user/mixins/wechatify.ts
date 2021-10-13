@@ -42,10 +42,10 @@ const throwWechatifyError = (WechatyUserClass: Function) => {
 
 const isWechatified = (klass: Function) => klass.name.startsWith(WECHATIFIED_PREFIX)
 
-const wechatifyMixin = <TBase extends Constructor<{}>> (base: TBase) => {
-  log.verbose('user/mixins/wechatify', 'wechatifyMixin(%s)', base.name)
+const wechatifyMixin = <TBase extends Constructor> (Base: TBase) => {
+  log.verbose('user/mixins/wechatify', 'wechatifyMixin(%s)', Base.name || '')
 
-  abstract class AbstractWechatifyMixin extends base {
+  abstract class AbstractWechatifyMixin extends Base {
 
     static get wechaty  (): Wechaty { return throwWechatifyError(this) }
     get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
@@ -62,8 +62,11 @@ const wechatifyMixin = <TBase extends Constructor<{}>> (base: TBase) => {
   return AbstractWechatifyMixin
 }
 
+class EmptyBase {}
+
 export {
+  EmptyBase,
   isWechatified,
-  wechatifyUserClass,
   wechatifyMixin,
+  wechatifyUserClass,
 }

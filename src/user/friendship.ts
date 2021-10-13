@@ -26,9 +26,6 @@ import {
   log,
 }                                 from 'wechaty-puppet'
 
-import type {
-  Wechaty,
-}                   from '../wechaty.js'
 import {
   retryPolicy,
 }                   from '../helper-functions/mod.js'
@@ -44,9 +41,8 @@ import type {
   Room,
 }                       from './room.js'
 import {
-  guardWechatifyClass,
-  throwWechatifyError,
-}                       from './guard-wechatify-class.js'
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
 interface FriendshipAddOptionsObject {
   room?: Room,
@@ -65,17 +61,14 @@ type FriendshipAddOptions = string | FriendshipAddOptionsObject
  *
  * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
-class Friendship extends EventEmitter implements Acceptable {
+class Friendship extends wechatifyMixin(EventEmitter) implements Acceptable {
 
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
-
-  public static Type = FriendshipType
+  static Type = FriendshipType
 
   /**
    * @ignore
    */
-  public static load<T extends typeof Friendship> (
+  static load<T extends typeof Friendship> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -100,7 +93,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * await bot.Friendship.add(friend_phone, 'hello')
    *
    */
-  public static async search (
+  static async search (
     queryFilter : FriendshipSearchQueryFilter,
   ): Promise<null | Contact> {
     log.verbose('Friendship', 'static search("%s")',
@@ -140,7 +133,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * }
    *
    */
-  public static async add (
+  static async add (
     contact : Contact,
     options  : FriendshipAddOptions,
   ): Promise<void> {
@@ -162,7 +155,7 @@ class Friendship extends EventEmitter implements Acceptable {
     }
   }
 
-  public static async del (
+  static async del (
     contact: Contact,
   ): Promise<void> {
     log.verbose('Friendship', 'static del(%s)', contact.id)
@@ -188,10 +181,9 @@ class Friendship extends EventEmitter implements Acceptable {
   ) {
     super()
     log.verbose('Friendship', 'constructor(id=%s)', id)
-    guardWechatifyClass.call(this, Friendship)
   }
 
-  public override toString () {
+  override toString () {
     if (!this.#payload) {
       return this.constructor.name
     }
@@ -205,7 +197,7 @@ class Friendship extends EventEmitter implements Acceptable {
     ].join('')
   }
 
-  public isReady (): boolean {
+  isReady (): boolean {
     return !!this.#payload && (Object.keys(this.#payload).length > 0)
   }
 
@@ -213,7 +205,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * no `dirty` support because Friendship has no rawPayload(yet)
     * @ignore
    */
-  public async ready (): Promise<void> {
+  async ready (): Promise<void> {
     if (this.isReady()) {
       return
     }
@@ -257,7 +249,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * }
    * .start()
    */
-  public async accept (): Promise<void> {
+  async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
     if (!this.#payload) {
@@ -312,7 +304,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * }
    * .start()
    */
-  public hello (): string {
+  hello (): string {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -332,7 +324,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * }
    * .start()
    */
-  public contact (): Contact {
+  contact (): Contact {
     if (!this.#payload) {
       throw new Error('no payload')
     }
@@ -364,7 +356,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * }
    * .start()
    */
-  public type (): FriendshipType {
+  type (): FriendshipType {
     return this.#payload
       ? this.#payload.type
       : FriendshipType.Unknown
@@ -386,7 +378,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * }
    * .start()
    */
-  public toJSON (): string {
+  toJSON (): string {
     log.verbose('Friendship', 'toJSON()')
 
     if (!this.isReady()) {
@@ -405,7 +397,7 @@ class Friendship extends EventEmitter implements Acceptable {
    * const friendship = bot.FriendShip.fromJSON(friendshipFromDisk)
    * await friendship.accept()
    */
-  public static async fromJSON (
+  static async fromJSON (
     payload: string | FriendshipPayload,
   ): Promise<Friendship> {
     log.verbose('Friendship', 'static fromJSON(%s)',
@@ -431,21 +423,6 @@ class Friendship extends EventEmitter implements Acceptable {
 
 }
 
-function wechatifyFriendship (wechaty: Wechaty): typeof Friendship {
-  log.verbose('Friendship', 'wechatifyFriendship(%s)', wechaty)
-
-  class WechatifiedFriendship extends Friendship {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedFriendship
-
-}
-
 export {
   Friendship,
-  wechatifyFriendship,
 }

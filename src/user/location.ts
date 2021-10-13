@@ -21,16 +21,13 @@ import {
   LocationPayload,
   log,
 }                       from 'wechaty-puppet'
-import type { Wechaty } from '../wechaty.js'
+
 import {
-  // guardWechatifyClass,
-  throwWechatifyError,
-}                       from './guard-wechatify-class.js'
+  EmptyBase,
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
-class Location {
-
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
+class Location extends wechatifyMixin(EmptyBase) {
 
   /**
    *
@@ -38,7 +35,7 @@ class Location {
    * @param poi string A point of interest (POI) is a specific point location that someone may find useful or interesting.
    *  See: https://en.wikipedia.org/wiki/Point_of_interest
    */
-  public static async create (poi: string): Promise<Location> {
+  static async create (poi: string): Promise<Location> {
     log.verbose('Location', 'create(%s)', poi)
 
     const payload: LocationPayload = {
@@ -58,52 +55,38 @@ class Location {
   constructor (
     public readonly payload: LocationPayload,
   ) {
+    super()
     log.verbose('Location', 'constructor()')
     // Huan(202110): it is ok to create a raw one without wechaty instance
     // guardWechatifyClass.call(this, Location)
   }
 
-  public toString (): string {
+  override toString (): string {
     return `Location<${this.payload.name}>`
   }
 
-  public address (): string {
+  address (): string {
     return this.payload.address
   }
 
-  public latitude (): number {
+  latitude (): number {
     return this.payload.latitude
   }
 
-  public longitude (): number {
+  longitude (): number {
     return this.payload.longitude
   }
 
-  public name (): string {
+  name (): string {
     return this.payload.name
   }
 
-  public accuracy (): number {
+  accuracy (): number {
     return this.payload.accuracy
   }
 
 }
 
-function wechatifyLocation (wechaty: Wechaty): typeof Location {
-  log.verbose('Location', 'wechatifyLocation(%s)', wechaty)
-
-  class WechatifiedLocation extends Location {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedLocation
-
-}
-
 export {
   Location,
-  wechatifyLocation,
 }

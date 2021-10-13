@@ -42,7 +42,7 @@ const poolifyMixin = <T>() => <TBase extends Constructor>(base: TBase) => {
       return this[POOL]!  // FIXME: why we need "!" at here?
     }
 
-    public static load<L extends (Function & PoolifyMixin<InstanceType<L>> & { prototype: any })> (
+    public static load<L extends Constructor<T> & PoolifyMixin<T>> (
       this : L,
       id   : string,
     ): L['prototype'] {

@@ -26,6 +26,9 @@ import {
   RoomPayload,
   RoomQueryFilter,
 }                           from 'wechaty-puppet'
+import type {
+  Constructor,
+}                           from 'clone-class'
 
 import {
   FOUR_PER_EM_SPACE,
@@ -57,8 +60,10 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-// FIXME:
+// FIXME: #2273
 void POOL
+const t: Constructor = {} as any
+void t
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.

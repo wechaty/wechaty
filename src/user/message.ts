@@ -30,18 +30,18 @@ import {
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
 
-import type {
-  Wechaty,
-}                         from '../wechaty.js'
 import {
   AT_SEPARATOR_REGEX,
 }                         from '../config.js'
 import type {
   Sayable,
   SayableMessage,
-}                           from '../types.js'
-
+}                             from '../types.js'
 import { captureException }   from '../raven.js'
+
+import {
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
 
 import {
   Contact,
@@ -61,20 +61,13 @@ import type {
 import {
   Location,
 }                       from './location.js'
-import {
-  guardWechatifyClass,
-  throwWechatifyError,
-}                                 from './guard-wechatify-class.js'
 
 /**
  * All wechat messages will be encapsulated as a Message.
  *
  * [Examples/Ding-Dong-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
-class Message extends EventEmitter implements Sayable {
-
-  static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-  get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
+class Message extends wechatifyMixin(EventEmitter) implements Sayable {
 
   /**
    *
@@ -185,7 +178,6 @@ class Message extends EventEmitter implements Sayable {
       id || '',
       this.constructor.name,
     )
-    guardWechatifyClass.call(this, Message)
   }
 
   /**
@@ -1097,21 +1089,6 @@ class Message extends EventEmitter implements Sayable {
 
 }
 
-function wechatifyMessage (wechaty: Wechaty): typeof Message {
-  log.verbose('Message', 'wechatifyMessage(%s)', wechaty)
-
-  class WechatifiedMessage extends Message {
-
-    static override get wechaty () { return wechaty }
-    override get wechaty        () { return wechaty }
-
-  }
-
-  return WechatifiedMessage
-
-}
-
 export {
   Message,
-  wechatifyMessage,
 }

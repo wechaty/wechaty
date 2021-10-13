@@ -21,7 +21,7 @@ import {
   log,
 }                     from 'wechaty-puppet'
 
-import type { Wechaty }  from '../wechaty.js'
+import type { Constructor }  from 'clone-class'
 
 import { Contact }  from './contact.js'
 import { Favorite } from './favorite.js'
@@ -34,11 +34,13 @@ import {
   wechatifyMixin,
 }                     from './mixins/wechatify.js'
 
-// FIXME:
+// FIXME: Issue #2273
 void POOL
+const t: Constructor = {} as any
+void t
 
 class Tag extends wechatifyMixin(
-  poolifyMixin<Tag, typeof Object>(Object),
+  poolifyMixin<Tag>()(Object),
 ) {
 
   /**
@@ -64,7 +66,7 @@ class Tag extends wechatifyMixin(
    * const bot = new Wechaty()
    * await bot.Tag.get('TagName')
    */
-  public static async get<T extends typeof Tag> (
+  static async get<T extends typeof Tag> (
     this: T,
     tag: string,
   ): Promise<T['prototype']> {
@@ -85,7 +87,7 @@ class Tag extends wechatifyMixin(
    * const tag = wechaty.Tag.get('tag')
    * await wechaty.Tag.delete(tag)
    */
-  public static async delete (
+  static async delete (
     tag: Tag,
     target?: typeof Contact | typeof Favorite,
   ): Promise<void> {
@@ -119,7 +121,7 @@ class Tag extends wechatifyMixin(
    * @example
    * await tag.add(contact)
    */
-  public async add (
+  async add (
     to: Contact | Favorite,
   ): Promise<void> {
     log.verbose('Tag', 'add(%s) for %s', to, this.id)
@@ -146,7 +148,7 @@ class Tag extends wechatifyMixin(
    * @example
    * await tag.remove(contact)
    */
-  public async remove (from: Contact | Favorite): Promise<void> {
+  async remove (from: Contact | Favorite): Promise<void> {
     log.verbose('Tag', 'remove(%s) for %s', from, this.id)
 
     try {

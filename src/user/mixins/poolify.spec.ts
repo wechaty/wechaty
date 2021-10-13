@@ -98,13 +98,10 @@ test('static findAll()', async t => {
   }
 
   /* eslint-disable no-undef */
-  type findAllReturnType = Exclude<
-    Awaited<
-      ReturnType<
-        typeof UserClassTest.findAll
-      >
-    >,
-    any
+  type findAllReturnType = Awaited<
+    ReturnType<
+      typeof UserClassTest.findAll
+    >
   >
   const typeTest: AssertEqual<
     findAllReturnType,
