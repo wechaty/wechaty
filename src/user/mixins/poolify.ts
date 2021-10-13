@@ -15,7 +15,7 @@ interface PoolifyMixin<T> {
 const poolifyMixin = <T, TBase extends Constructor<{}>> (base: TBase) => {
   log.verbose('user/mixins/poolify', 'poolifyMixin(%s)', base.name)
 
-  abstract class AbstractPoolifyMixin extends base {
+  class PoolifiedMixin extends base {
 
     static [POOL]?: Map<string, T>
     static get pool (): Map<string, T> {
@@ -30,19 +30,19 @@ const poolifyMixin = <T, TBase extends Constructor<{}>> (base: TBase) => {
       return this[POOL]!  // FIXME: why we need "!" at here?
     }
 
-    public static load<L extends PoolifyMixin<L> & { new (...args: any[]): L }> (
+    public static load<L extends (Function & PoolifyMixin<InstanceType<L>> & { prototype: any })> (
       this : L,
       id   : string,
-    ): L {
-      const existingRoom = this.pool.get(id)
-      if (existingRoom) {
-        return existingRoom
+    ): L['prototype'] {
+      const existingItem = this.pool.get(id)
+      if (existingItem) {
+        return existingItem
       }
 
-      const newRoom = new this(id)
+      const newItem = new this(id)
+      this.pool.set(id, newItem)
 
-      this.pool.set(id, newRoom)
-      return newRoom
+      return newItem
     }
 
     constructor (...args: any[]) {
@@ -51,7 +51,7 @@ const poolifyMixin = <T, TBase extends Constructor<{}>> (base: TBase) => {
 
   }
 
-  return AbstractPoolifyMixin
+  return PoolifiedMixin
 }
 
 export type {

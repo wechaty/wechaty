@@ -40,15 +40,9 @@ const throwWechatifyError = (WechatyUserClass: Function) => {
   ].join('\n'))
 }
 
-function guardWechatifyInstance<T extends { constructor: Function }> (
-  instance: T,
-) {
-  if (!instance.constructor.name.startsWith(WECHATIFIED_PREFIX)) {
-    throwWechatifyError(instance.constructor)
-  }
-}
+const isWechatified = (klass: Function) => klass.name.startsWith(WECHATIFIED_PREFIX)
 
-const wechatifyMixin = <TBase extends Constructor<Object>> (base: TBase) => {
+const wechatifyMixin = <TBase extends Constructor<{}>> (base: TBase) => {
   log.verbose('user/mixins/wechatify', 'wechatifyMixin(%s)', base.name)
 
   abstract class AbstractWechatifyMixin extends base {
@@ -58,7 +52,9 @@ const wechatifyMixin = <TBase extends Constructor<Object>> (base: TBase) => {
 
     constructor (...args: any[]) {
       super(...args)
-      guardWechatifyInstance(this)
+      if (!isWechatified(this.constructor)) {
+        throwWechatifyError(this.constructor)
+      }
     }
 
   }
@@ -67,6 +63,7 @@ const wechatifyMixin = <TBase extends Constructor<Object>> (base: TBase) => {
 }
 
 export {
+  isWechatified,
   wechatifyUserClass,
   wechatifyMixin,
 }
