@@ -64,9 +64,7 @@ void POOL
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
 class Contact extends wechatifyMixin(
-  poolifyMixin<Contact, typeof ContactEventEmitter>(
-    ContactEventEmitter,
-  ),
+  poolifyMixin<Contact>()(ContactEventEmitter),
 ) implements Sayable {
 
   static Type   = ContactType

@@ -16,10 +16,11 @@ test('poolifyMixin()', async t => {
   class Life {
 
     meaning = 42
+    constructor () {}
 
   }
 
-  class UserClassTest extends poolifyMixin<UserClassTest, typeof Life>(Life) {
+  class UserClassTest extends poolifyMixin<UserClassTest>()(Life) {
 
     id = 0
     constructor () { super() }
@@ -55,10 +56,7 @@ test('poolifyMixin() pool', async t => {
   }
 
   class UserClassTest extends wechatifyMixin(
-    poolifyMixin<
-      UserClassTest,
-      typeof Life
-    >(Life),
+    poolifyMixin<UserClassTest>()(Life),
   ) {
 
     id = 0
@@ -79,4 +77,39 @@ test('poolifyMixin() pool', async t => {
   UserClass2.load('id2')
   t.equal(UserClass1.pool.size, 1, 'should be size 1 for class 1 after class2.load()')
   t.equal(UserClass2.pool.size, 1, 'should be size 1 for class 2 after class2.load()')
+})
+
+test('static findAll()', async t => {
+
+  class UserClassTest extends wechatifyMixin(
+    poolifyMixin<UserClassTest>()(Object),
+  ) {
+
+    static async findAll<T extends typeof UserClassTest> (
+      this : T,
+      id   : string,
+    ) {
+      return this.load(id)
+    }
+
+    id = 0
+    constructor () { super() }
+
+  }
+
+  /* eslint-disable no-undef */
+  type findAllReturnType = Exclude<
+    Awaited<
+      ReturnType<
+        typeof UserClassTest.findAll
+      >
+    >,
+    any
+  >
+  const typeTest: AssertEqual<
+    findAllReturnType,
+    UserClassTest
+  > = true
+
+  t.ok(typeTest, 'should return the UserClassTest type')
 })

@@ -12,10 +12,22 @@ interface PoolifyMixin<T> {
   pool: Map<string, T>
 }
 
-const poolifyMixin = <T, TBase extends Constructor<{}>> (base: TBase) => {
+/**
+ * https://stackoverflow.com/a/60378737/1123955
+ *
+ * You want something like partial type parameter inference,
+ * which is not currently a feature of TypeScript (see microsoft/TypeScript#26242).
+ * Right now you either have to specify all type parameters manually
+ * or let the compiler infer all type parameters;
+ * there's no partial inference.
+ * As you've noticed,
+ * generic type parameter defaults do not scratch this itch;
+ * a default turns off inference.
+ */
+const poolifyMixin = <T>() => <TBase extends Constructor>(base: TBase) => {
   log.verbose('user/mixins/poolify', 'poolifyMixin(%s)', base.name)
 
-  class PoolifiedMixin extends base {
+  const PoolifiedMixin = class extends base {
 
     static [POOL]?: Map<string, T>
     static get pool (): Map<string, T> {

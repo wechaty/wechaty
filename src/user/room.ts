@@ -67,9 +67,7 @@ void POOL
  *
  */
 class Room extends wechatifyMixin(
-  poolifyMixin<Room, typeof RoomEventEmitter>(
-    RoomEventEmitter,
-  ),
+  poolifyMixin<Room>()(RoomEventEmitter),
 ) implements Sayable {
 
   /**
@@ -138,7 +136,7 @@ class Room extends wechatifyMixin(
 
     try {
       const roomIdList = await this.wechaty.puppet.roomSearch(query)
-      const roomList = roomIdList.map(id => this.load(id))
+      const roomList = roomIdList.map(id => this.load<T>(id))
 
       const BATCH_SIZE = 10
       let   batchIndex = 0

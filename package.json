@@ -89,7 +89,7 @@
   },
   "homepage": "https://github.com/wechaty/",
   "dependencies": {
-    "clone-class": "^0.9.18",
+    "clone-class": "^0.9.19",
     "cockatiel": "^2.0.2",
     "cuid": "^2.1.8",
     "dotenv": "^10.0.0",
