@@ -33,6 +33,7 @@ type ProtectedMethods = never
   | 'messageRawPayloadParser'
   | 'messagePayloadCache'
   | 'messageQueryFilterFactory'
+  | 'resetState'
   | 'roomInvitationPayloadCache'
   | 'roomInvitationRawPayload'
   | 'roomInvitationRawPayloadParser'
