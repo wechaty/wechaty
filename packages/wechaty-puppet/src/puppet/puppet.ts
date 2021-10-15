@@ -25,7 +25,6 @@ import {
 }                       from '../config.js'
 
 import type {
-  EventLoginPayload,
   PuppetOptions,
 }                       from '../schemas/mod.js'
 import {
@@ -46,6 +45,7 @@ import {
 
 import { PuppetSkelton } from './skelton.js'
 import { stateMixin } from '../mixins/state-mixin.js'
+import { loginMixin } from '../mixins/login-mixin.js'
 
 let PUPPET_COUNTER = 0
 
@@ -55,11 +55,13 @@ const MixinBase = messageMixin(
       friendshipMixin(
         roomMixin(
           contactMixin(
-            memoryMixin(
-              cacheMixin(
-                watchdogMixin(
-                  stateMixin(
-                    PuppetSkelton,
+            loginMixin(
+              memoryMixin(
+                cacheMixin(
+                  watchdogMixin(
+                    stateMixin(
+                      PuppetSkelton,
+                    ),
                   ),
                 ),
               ),
@@ -86,8 +88,6 @@ abstract class Puppet extends MixinBase {
   static readonly VERSION = VERSION
 
   protected readonly counter : number
-
-  readonly state: StateSwitch
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -176,74 +176,6 @@ abstract class Puppet extends MixinBase {
   override async stop (): Promise<void> {
     log.verbose('Puppet', 'stop()')
     await super.stop()
-  }
-
-  /**
-   *
-   *
-   * Login / Logout
-   *
-   *
-   */
-
-  /**
-   * Need to be called internally when the puppet is logined.
-   * this method will emit a `login` event
-   */
-  protected async login (userId: string): Promise<void> {
-    log.verbose('Puppet', 'login(%s)', userId)
-
-    if (this.id) {
-      throw new Error('must logout first before login again!')
-    }
-
-    this.id = userId
-    // console.log('this.id=', this.id)
-
-    const payload: EventLoginPayload = {
-      contactId: userId,
-    }
-
-    this.emit('login', payload)
-  }
-
-  /**
-   * Need to be called internally/externally when the puppet need to be logouted
-   * this method will emit a `logout` event,
-   *
-   * Note: must set `this.id = undefined` in this function.
-   */
-  async logout (reason = 'logout()'): Promise<void> {
-    log.verbose('Puppet', 'logout(%s)', this.id)
-
-    if (!this.id) {
-      throw new Error('must login first before logout!')
-    }
-
-    this.emit('logout', {
-      contactId : this.id,
-      data      : reason,
-    })
-
-    this.id = undefined
-  }
-
-  selfId (): string {
-    log.verbose('Puppet', 'selfId()')
-
-    if (!this.id) {
-      throw new Error('not logged in, no this.id yet.')
-    }
-
-    return this.id
-  }
-
-  logonoff (): boolean {
-    if (this.id) {
-      return true
-    } else {
-      return false
-    }
   }
 
   /**

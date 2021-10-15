@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import * as uuid from 'uuid'
+import uuid from 'uuid'
 
 import {
   log,
@@ -33,12 +33,14 @@ import {
 abstract class PuppetSkelton extends PuppetEventEmitter {
 
   /**
-  * Login-ed User ID
-  *
-  * FIXME: remove the override
-  * FIXME: rename the id to loggedInUserId?
-  */
-  id: string
+   * Puppet ID
+   *
+   * Issue #160 - puppet.id will change to puppet.loggedInUserId #160
+   *  - `id` is NOT logged in user ID
+   *  - `currentUserId` is the logged in user ID
+   *  @see https://github.com/wechaty/puppet/issues/160
+   */
+  readonly id: string
 
   options: PuppetOptions
 
