@@ -16,7 +16,6 @@
  *   limitations under the License.
  *
  */
-import type { Constructor }     from 'clone-class'
 import { StateSwitch }          from 'state-switch'
 
 import {
