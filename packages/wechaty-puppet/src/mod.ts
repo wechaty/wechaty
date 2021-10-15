@@ -79,6 +79,7 @@ import {
 
 import type {
   PuppetImplementation,
+  PuppetInterface,
 }                         from './puppet/mod.js'
 
 import {
@@ -121,6 +122,7 @@ export type {
   MiniProgramPayload,
   PuppetEventName,
   PuppetImplementation,
+  PuppetInterface,
   PuppetOptions,
   RoomInvitationPayload,
   RoomMemberPayload,

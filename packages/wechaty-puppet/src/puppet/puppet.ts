@@ -344,11 +344,6 @@ abstract class Puppet extends MixinBase {
 
 }
 
-type PuppetImplementation = Constructor<Puppet>
-
-export type {
-  PuppetImplementation,
-}
 export {
   Puppet,
 }
