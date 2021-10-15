@@ -18,6 +18,9 @@ const isGError = (payload: any): payload is GError => payload instanceof Object
 
 class GError extends Error implements GrpcStatus, EcmaError {
 
+  /**
+   * GrpcStatus additional properties
+   */
   code     : number
   details? : any[]
 

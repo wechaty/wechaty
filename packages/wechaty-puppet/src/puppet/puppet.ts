@@ -45,6 +45,7 @@ import {
 }                     from '../mixins/mod.js'
 
 import { PuppetSkelton } from './skelton.js'
+import { stateMixin } from '../mixins/state-mixin.js'
 
 let PUPPET_COUNTER = 0
 
@@ -57,7 +58,9 @@ const MixinBase = messageMixin(
             memoryMixin(
               cacheMixin(
                 watchdogMixin(
-                  PuppetSkelton,
+                  stateMixin(
+                    PuppetSkelton,
+                  ),
                 ),
               ),
             ),
