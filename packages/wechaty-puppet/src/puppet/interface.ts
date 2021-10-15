@@ -3,8 +3,9 @@ import type { Constructor } from 'clone-class'
 import type { Puppet } from './mod.js'
 
 /**
- * Mixin: Property 'messageRawPayload' of exported class expression may not be private or protected.ts(4094) #155
- *  https://github.com/wechaty/puppet/issues/155
+ * Issue #155 - Mixin: Property 'messageRawPayload' of exported class expression
+ *  may not be private or protected.ts(4094)
+ *  @see https://github.com/wechaty/puppet/issues/155
  *
  * We can not use `private` or `protected` to declare Mixins
  *  So we define a `ProtectedMethods` list to mark the protected methods
