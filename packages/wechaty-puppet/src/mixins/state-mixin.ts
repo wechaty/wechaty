@@ -1,22 +1,25 @@
+import { StateSwitch }        from 'state-switch'
+
 import {
   log,
 }           from '../config.js'
 
 import type { PuppetSkelton } from '../puppet/skelton.js'
-import { StateSwitch }        from 'state-switch'
+import { BusyIndicator }      from '../busy-indicator.js'
 
 const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
 
   abstract class StateMixin extends mixinBase {
 
-    state: StateSwitch
-    resetState: StateSwitch
+    state          : StateSwitch
+    resetIndicator : BusyIndicator
 
     constructor (...args: any[]) {
       super(...args)
       log.verbose('PuppetStateMixin', 'constructor()')
-      this.resetState = new StateSwitch('StateMixin', { log })
-      this.state      = new StateSwitch('Puppet', { log })
+
+      this.resetIndicator = new BusyIndicator('PuppetBusyIndicator', { log })
+      this.state          = new StateSwitch('PuppetState', { log })
     }
 
     /**
@@ -35,42 +38,45 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     async reset (reason: string): Promise<void> {
       log.verbose('PuppetStateMixin', 'reset(%s)', reason)
 
+      /**
+       * Do not start Puppet if it's OFF
+       */
       if (this.state.off()) {
         log.verbose('PuppetStateMixin', 'reset() `state` is `off`, do nothing')
         return
       }
 
-      if (this.resetState.pending) {
-        log.verbose('PuppetStateMixin', 'reset() `resetState` is `pending`, wait `ready()`...')
-        await this.resetState.ready()
-        log.verbose('PuppetStateMixin', 'reset() `resetState` is `pending`, wait `ready()` done')
+      /**
+       * Do not reset again if it's already resetting
+       */
+      if (this.resetIndicator.busy()) {
+        log.verbose('PuppetStateMixin', 'reset() `resetBusy` is `busy`, wait `available()`...')
+        await this.resetIndicator.available()
+        log.verbose('PuppetStateMixin', 'reset() `resetBusy` is `busy`, wait `available()` done')
         return
       }
 
-      this.resetState.on('pending')
+      this.resetIndicator.busy(true)
 
-      /**
-       * If the state is `on/pending` or `off/pending`,
-       *  wait it to be stable before reset it
-       */
-      await this.state.ready()
+      try {
+        /**
+         * If the Puppet is starting/stopping, wait for it
+         * The state will be `'on'` after await `ready()`
+         */
+        await this.state.ready()
 
-      /**
-       * Huan(202003):
-       *  do not care state.off()
-       *  reset will cause the puppet to start (?)
-       */
-      return Promise.resolve()
-        .then(() => this.stop())
-        .then(() => this.start())
-        .catch(e => {
-          log.warn('Puppet', 'reset() rejection: %s', e)
-          this.emit('error', e)
-        })
-        .finally(() => {
-          log.verbose('Puppet', 'reset() done')
-          this.resetState.off(true)
-        })
+        await this.stop()
+        await this.start()
+
+      } catch (e) {
+        log.warn('PuppetStateMixin', 'reset() rejection: %s', e)
+        this.emit('error', e as Error)
+
+      } finally {
+        log.verbose('PuppetStateMixin', 'reset() done')
+        this.resetIndicator.busy(false)
+      }
+
     }
 
   }

@@ -6,8 +6,9 @@ import {
 import {
   WatchdogAgent,
 }                   from '../agents/mod.js'
+import type { StateMixin } from './state-mixin.js'
 
-const watchdogMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const watchdogMixin = <MixinBase extends typeof PuppetSkelton & StateMixin>(mixinBase: MixinBase) => {
 
   abstract class WatchdogMixin extends mixinBase {
 
@@ -37,9 +38,4 @@ const watchdogMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinB
   return WatchdogMixin
 }
 
-type WatchdogMixin = ReturnType<typeof watchdogMixin>
-
-export type {
-  WatchdogMixin,
-}
 export { watchdogMixin }

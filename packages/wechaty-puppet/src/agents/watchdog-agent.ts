@@ -4,6 +4,8 @@ import {
 }                       from 'watchdog'
 
 import type { PuppetSkelton } from '../puppet/skelton.js'
+import type { StateMixin } from '../mixins/state-mixin.js'
+
 import {
   log,
 }           from '../config.js'
@@ -16,15 +18,8 @@ class WatchdogAgent {
 
   private cleanCallbackList: Function[]
 
-  /**
-   * Throttle Reset Events
-   *
-   * @private
-   */
-  // protected readonly resetThrottleQueue: ThrottleQueue<string>
-
   constructor (
-    protected readonly puppet: PuppetSkelton,
+    protected readonly puppet: PuppetSkelton & InstanceType<StateMixin>,
   ) {
     log.verbose('WatchdogAgent', 'constructor(%s)', puppet)
 
@@ -49,11 +44,6 @@ class WatchdogAgent {
     // })
   }
 
-  /**
-   * @private
-   *
-   * For used by Wechaty internal ONLY.
-   */
   start (): void {
     /**
      * puppet event `heartbeat` to feed() watchdog
