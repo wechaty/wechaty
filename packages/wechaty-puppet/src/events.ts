@@ -53,6 +53,13 @@ interface PuppetEvents {
   scan          : PuppetScanListener
 }
 
-export const PuppetEventEmitter = EventEmitter as new () => TypedEventEmitter<
+const PuppetEventEmitter = EventEmitter as new () => TypedEventEmitter<
   PuppetEvents
 >
+
+export type {
+  PuppetEvents,
+}
+export {
+  PuppetEventEmitter,
+}

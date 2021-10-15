@@ -53,7 +53,7 @@ export interface PuppetOptions {
   endpoint?       : string
   timeoutSeconds? : number
   token?          : string
-  lruCacheSize?: {
+  cache?: {
     contact?        : number
     friendship?     : number
     message?        : number

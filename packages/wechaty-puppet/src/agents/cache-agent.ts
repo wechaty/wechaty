@@ -6,34 +6,28 @@ import QuickLru                 from '@alloc/quick-lru'
 import {
   envVars,
   log,
-}                         from './config.js'
+}                         from '../config.js'
 import type {
   ContactPayload,
-}                         from './schemas/contact.js'
+}                         from '../schemas/contact.js'
 import type {
   FriendshipPayload,
-}                         from './schemas/friendship.js'
+}                         from '../schemas/friendship.js'
 import type {
   MessagePayload,
-}                         from './schemas/message.js'
+}                         from '../schemas/message.js'
 import type {
   RoomMemberPayload,
   RoomPayload,
-}                         from './schemas/room.js'
+}                         from '../schemas/room.js'
 import type {
   RoomInvitationPayload,
-}                         from './schemas/room-invitation.js'
+}                         from '../schemas/room-invitation.js'
+import type { PuppetOptions } from '../schemas/puppet.js'
 
-interface PayloadCacheOptions {
-  contact?        : number
-  friendship?     : number
-  message?        : number
-  room?           : number
-  roomInvitation? : number
-  roomMember?     : number
-}
+type PayloadCacheOptions = Required<PuppetOptions>['cache']
 
-class PayloadCache {
+class CacheAgent {
 
   readonly contact        : QuickLru<string, ContactPayload>
   readonly friendship     : QuickLru<string, FriendshipPayload>
@@ -45,7 +39,7 @@ class PayloadCache {
   constructor (
     protected options: PayloadCacheOptions = {},
   ) {
-    log.verbose('PayloadCache', 'constructor(%s)', JSON.stringify(options))
+    log.verbose('CacheAgent', 'constructor("%s")', JSON.stringify(options))
 
     /**
      * Setup LRU Caches
@@ -77,12 +71,12 @@ class PayloadCache {
   }
 
   start (): void {
-    log.verbose('PayloadCache', 'start()')
+    log.verbose('CacheAgent', 'start()')
     this.clear()
   }
 
   stop (): void {
-    log.verbose('PayloadCache', 'stop()')
+    log.verbose('CacheAgent', 'stop()')
     this.clear()
   }
 
@@ -97,7 +91,7 @@ class PayloadCache {
    *  Huan(2021-08-28): clear the cache when stop
    */
   clear (): void {
-    log.verbose('PayloadCache', 'clear()')
+    log.verbose('CacheAgent', 'clear()')
 
     this.contact.clear()
     this.friendship.clear()
@@ -119,4 +113,5 @@ class PayloadCache {
 
 }
 
-export { PayloadCache }
+export type { PayloadCacheOptions }
+export { CacheAgent }

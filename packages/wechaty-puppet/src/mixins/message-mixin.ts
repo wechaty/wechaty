@@ -1,0 +1,211 @@
+import {
+  FileBox,
+  log,
+}                       from '../config.js'
+
+import type {
+  ImageType,
+}                                 from '../schemas/image.js'
+import type {
+  MessagePayload,
+  MessagePayloadFilterFunction,
+  MessageQueryFilter,
+  MessageType,
+}                                 from '../schemas/message.js'
+import type {
+  UrlLinkPayload,
+}                                 from '../schemas/url-link.js'
+import type {
+  MiniProgramPayload,
+}                                 from '../schemas/mini-program.js'
+import type {
+  LocationPayload,
+}                                 from '../schemas/location.js'
+
+import type { PuppetSkelton }        from '../puppet/skelton.js'
+import type { CacheMixin } from './cache-mixin.js'
+
+const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(baseMixin: MinxinBase) => {
+
+  abstract class MessageMixin extends baseMixin {
+
+    constructor (...args: any[]) {
+      super(...args)
+      log.verbose('PuppetMessageMixin', 'constructor()')
+    }
+
+    /**
+     *
+     * Conversation
+     *
+     */
+    abstract conversationReadMark (conversationId: string, hasRead?: boolean) : Promise<void | boolean>
+
+    /**
+    *
+    * Message
+    *
+    */
+    abstract messageContact      (messageId: string)                       : Promise<string>
+    abstract messageFile         (messageId: string)                       : Promise<FileBox>
+    abstract messageImage        (messageId: string, imageType: ImageType) : Promise<FileBox>
+    abstract messageMiniProgram  (messageId: string)                       : Promise<MiniProgramPayload>
+    abstract messageUrl          (messageId: string)                       : Promise<UrlLinkPayload>
+    abstract messageLocation     (messageId: string)                       : Promise<LocationPayload>
+
+    abstract messageForward         (conversationId: string, messageId: string,)                     : Promise<void | string>
+    abstract messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string>
+    abstract messageSendFile        (conversationId: string, file: FileBox)                          : Promise<void | string>
+    abstract messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
+    abstract messageSendText        (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
+    abstract messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string>
+    abstract messageSendLocation    (conversationId: string, locationPayload: LocationPayload)       : Promise<void | string>
+
+    abstract messageRecall (messageId: string) : Promise<boolean>
+
+    /**
+     * Issue #155 - https://github.com/wechaty/puppet/issues/155
+     *
+     * @protected
+     */
+    abstract messageRawPayload (messageId: string)     : Promise<any>
+
+    /**
+     * Issue #155 - https://github.com/wechaty/puppet/issues/155
+     *
+     * @protected
+     */
+    abstract messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
+
+    /**
+     * Issue #155 - https://github.com/wechaty/puppet/issues/155
+     *
+     * @protected
+     */
+    messagePayloadCache (messageId: string): undefined | MessagePayload {
+      // log.silly('PuppetMessageMixin', 'messagePayloadCache(id=%s) @ %s', messageId, this)
+      if (!messageId) {
+        throw new Error('no id')
+      }
+      const cachedPayload = this.cache.message.get(messageId)
+      if (cachedPayload) {
+        // log.silly('PuppetMessageMixin', 'messagePayloadCache(%s) cache HIT', messageId)
+      } else {
+        log.silly('PuppetMessageMixin', 'messagePayloadCache(%s) cache MISS', messageId)
+      }
+
+      return cachedPayload
+    }
+
+    async messagePayload (
+      messageId: string,
+    ): Promise<MessagePayload> {
+      log.verbose('PuppetMessageMixin', 'messagePayload(%s)', messageId)
+
+      if (!messageId) {
+        throw new Error('no id')
+      }
+
+      /**
+      * 1. Try to get from cache first
+      */
+      const cachedPayload = this.messagePayloadCache(messageId)
+      if (cachedPayload) {
+        return cachedPayload
+      }
+
+      /**
+      * 2. Cache not found
+      */
+      const rawPayload = await this.messageRawPayload(messageId)
+      const payload    = await this.messageRawPayloadParser(rawPayload)
+
+      this.cache.message.set(messageId, payload)
+      log.silly('PuppetMessageMixin', 'messagePayload(%s) cache SET', messageId)
+
+      return payload
+    }
+
+    messageList (): string[] {
+      log.verbose('PuppetMessageMixin', 'messageList()')
+      return [...this.cache.message.keys()]
+    }
+
+    async messageSearch (
+      query?: MessageQueryFilter,
+    ): Promise<string[] /* Message Id List */> {
+      log.verbose('PuppetMessageMixin', 'messageSearch(%s)', JSON.stringify(query))
+
+      const allMessageIdList: string[] = this.messageList()
+      log.silly('PuppetMessageMixin', 'messageSearch() allMessageIdList.length=%d', allMessageIdList.length)
+
+      if (!query || Object.keys(query).length <= 0) {
+        return allMessageIdList
+      }
+
+      const messagePayloadList: MessagePayload[] = await Promise.all(
+        allMessageIdList.map(
+          id => this.messagePayload(id),
+        ),
+      )
+
+      const filterFunction = this.messageQueryFilterFactory(query)
+
+      const messageIdList = messagePayloadList
+        .filter(filterFunction)
+        .map(payload => payload.id)
+
+      log.silly('PuppetMessageMixin', 'messageSearch() messageIdList filtered. result length=%d', messageIdList.length)
+
+      return messageIdList
+    }
+
+    /**
+     * Issue #155 - https://github.com/wechaty/puppet/issues/155
+     *
+     * @protected
+     */
+    messageQueryFilterFactory (
+      query: MessageQueryFilter,
+    ): MessagePayloadFilterFunction {
+      log.verbose('PuppetMessageMixin', 'messageQueryFilterFactory(%s)',
+        JSON.stringify(query),
+      )
+
+      if (Object.keys(query).length < 1) {
+        throw new Error('query empty')
+      }
+
+      const filterFunctionList: MessagePayloadFilterFunction[] = []
+
+      const filterKeyList = Object.keys(query) as Array<keyof MessageQueryFilter>
+
+      for (const filterKey of filterKeyList) {
+        // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
+        const filterValue: undefined | string | MessageType | RegExp = query[filterKey]
+        if (!filterValue) {
+          throw new Error('filterValue not found for filterKey: ' + filterKey)
+        }
+
+        let filterFunction: MessagePayloadFilterFunction
+
+        if (filterValue instanceof RegExp) {
+          filterFunction = (payload: MessagePayload) => filterValue.test(payload[filterKey] as string)
+        } else { // if (typeof filterValue === 'string') {
+          filterFunction = (payload: MessagePayload) => filterValue === payload[filterKey]
+        }
+
+        filterFunctionList.push(filterFunction)
+      }
+
+      const allFilterFunction: MessagePayloadFilterFunction = payload => filterFunctionList.every(func => func(payload))
+
+      return allFilterFunction
+    }
+
+  }
+
+  return MessageMixin
+}
+
+export { messageMixin }

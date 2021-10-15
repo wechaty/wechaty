@@ -7,28 +7,28 @@ import {
 
 import {
   MemoryCard,
-}                 from './config.js'
+}                 from '../config.js'
 
 import {
   ContactGender,
   ContactPayload,
   ContactType,
-}                                 from './schemas/contact.js'
+}                                 from '../schemas/contact.js'
 import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
-}                                 from './schemas/message.js'
+}                                 from '../schemas/message.js'
 import type {
   RoomPayload,
-}                                 from './schemas/room.js'
+}                                 from '../schemas/room.js'
 
 /**
  * The Fixture
  */
 import {
   PuppetTest,
-}               from '../tests/fixtures/puppet-test/puppet-test.js'
+}               from '../../tests/fixtures/puppet-test/puppet-test.js'
 
 test('contactQueryFilterFunction()', async t => {
 
@@ -230,58 +230,68 @@ test('roomQueryFilterFunction()', async t => {
   })
 })
 
-test('contactRoomList()', async t => {
-  const puppet = new PuppetTest()
+/**
+ * Huan(202110): remove contactRoomList
+ *  because it seems not being used by Wechaty at all
+ *    and it is very to be implemented in the user land
+ */
+// test('contactRoomList()', async t => {
+//   const puppet = new PuppetTest()
 
-  const sandbox = sinon.createSandbox()
+//   const sandbox = sinon.createSandbox()
 
-  const CONTACT_ID_1 = 'contact-id-1'
-  const CONTACT_ID_2 = 'contact-id-2'
-  const CONTACT_ID_3 = 'contact-id-3'
+//   const CONTACT_ID_1 = 'contact-id-1'
+//   const CONTACT_ID_2 = 'contact-id-2'
+//   const CONTACT_ID_3 = 'contact-id-3'
 
-  const ROOM_ID_1 = 'room-id-1'
-  const ROOM_ID_2 = 'room-id-2'
+//   const ROOM_ID_1 = 'room-id-1'
+//   const ROOM_ID_2 = 'room-id-2'
 
-  const ROOM_PAYLOAD_LIST: RoomPayload[] = [
-    {
-      adminIdList : [],
-      id: ROOM_ID_1,
-      memberIdList: [
-        CONTACT_ID_1,
-        CONTACT_ID_2,
-      ],
-      topic: 'room-topic-1',
-    },
-    {
-      adminIdList : [],
-      id: ROOM_ID_2,
-      memberIdList: [
-        CONTACT_ID_2,
-        CONTACT_ID_3,
-      ],
-      topic: 'room-topic-2',
-    },
-  ]
-  sandbox.stub(puppet, 'roomList').resolves(ROOM_PAYLOAD_LIST.map(payload => payload.id))
-  sandbox.stub(puppet, 'roomPayload').callsFake(async roomId => {
-    for (const payload of ROOM_PAYLOAD_LIST) {
-      if (payload.id === roomId) {
-        return payload
-      }
-    }
-    throw new Error('no payload for room id ' + roomId)
-  })
+//   const ROOM_PAYLOAD_LIST: RoomPayload[] = [
+//     {
+//       adminIdList : [],
+//       id: ROOM_ID_1,
+//       memberIdList: [
+//         CONTACT_ID_1,
+//         CONTACT_ID_2,
+//       ],
+//       topic: 'room-topic-1',
+//     },
+//     {
+//       adminIdList : [],
+//       id: ROOM_ID_2,
+//       memberIdList: [
+//         CONTACT_ID_2,
+//         CONTACT_ID_3,
+//       ],
+//       topic: 'room-topic-2',
+//     },
+//   ]
+//   sandbox.stub(puppet, 'roomList').resolves(ROOM_PAYLOAD_LIST.map(payload => payload.id))
+//   sandbox.stub(puppet, 'roomPayload').callsFake(async roomId => {
+//     for (const payload of ROOM_PAYLOAD_LIST) {
+//       if (payload.id === roomId) {
+//         return payload
+//       }
+//     }
+//     throw new Error('no payload for room id ' + roomId)
+//   })
 
-  const roomIdList1 = await puppet.contactRoomList(CONTACT_ID_1)
-  const roomIdList2 = await puppet.contactRoomList(CONTACT_ID_2)
-  const roomIdList3 = await puppet.contactRoomList(CONTACT_ID_3)
+//   const roomIdList1 = await puppet.contactRoomList(CONTACT_ID_1)
+//   const roomIdList2 = await puppet.contactRoomList(CONTACT_ID_2)
+//   const roomIdList3 = await puppet.contactRoomList(CONTACT_ID_3)
 
-  t.same(roomIdList1, [ROOM_ID_1], 'should get room 1 for contact 1')
-  t.same(roomIdList2, [ROOM_ID_1, ROOM_ID_2], 'should get room 1&2 for contact 2')
-  t.same(roomIdList3, [ROOM_ID_2], 'should get room 2 for contact 3')
-})
+//   t.same(roomIdList1, [ROOM_ID_1], 'should get room 1 for contact 1')
+//   t.same(roomIdList2, [ROOM_ID_1, ROOM_ID_2], 'should get room 1&2 for contact 2')
+//   t.same(roomIdList3, [ROOM_ID_2], 'should get room 2 for contact 3')
+// })
 
-test('reset event throttle for reset()', async t => {
+/**
+ * Huan(202110): the reset logic has been refactored
+ *  See: reset() method and 'reset' event breaking change #157
+ *    https://github.com/wechaty/puppet/issues/157
+ */
+test.skip('reset event throttle for reset()', async t => {
   const puppet = new PuppetTest({})
 
   const sandbox = sinon.createSandbox()
@@ -304,20 +314,12 @@ test('reset event throttle for reset()', async t => {
   sandbox.restore()
 })
 
-test('setMemory() memory without name', async t => {
-  const puppet = new PuppetTest()
-  const memory = new MemoryCard()
-
-  t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a no-name memory first time ')
-  t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a no-name memory second time')
-})
-
-test('setMemory() memory with a name', async t => {
+test('set memory() memory with a name', async t => {
   const puppet = new PuppetTest()
   const memory = new MemoryCard({ name: 'name' })
 
-  t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a named memory first time ')
-  t.throws(() => puppet.setMemory(memory), 'should throw when set a named memory second time')
+  t.doesNotThrow(() => { puppet.memory = memory }, 'should not throw when set a named memory first time ')
+  t.throws(()       => { puppet.memory = memory }, 'should throw when set a named memory second time')
 })
 
 test('messageQueryFilterFactory() one condition', async t => {

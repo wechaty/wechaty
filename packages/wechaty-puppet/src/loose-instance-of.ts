@@ -4,7 +4,8 @@ import {
 }                         from 'clone-class'
 
 import { FileBox }  from 'file-box'
-import { Puppet }   from './puppet.js'
+
+import { Puppet }   from './puppet/mod.js'
 
 /**
  * Huan(202011):

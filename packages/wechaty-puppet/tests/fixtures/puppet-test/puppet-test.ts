@@ -171,19 +171,19 @@ class PuppetTest extends Puppet {
   /**
    * expose to public for internal methods:
    */
-  public override messageQueryFilterFactory (
+  override messageQueryFilterFactory (
     query: MessageQueryFilter,
   ): MessagePayloadFilterFunction {
     return super.messageQueryFilterFactory(query)
   }
 
-  public override roomQueryFilterFactory (
+  override roomQueryFilterFactory (
     query: RoomQueryFilter,
   ): RoomPayloadFilterFunction {
     return super.roomQueryFilterFactory(query)
   }
 
-  public override contactQueryFilterFactory (
+  override contactQueryFilterFactory (
     query: ContactQueryFilter,
   ): ContactPayloadFilterFunction {
     return super.contactQueryFilterFactory(query)
@@ -201,7 +201,7 @@ class PuppetTest extends Puppet {
    *  - Huan(202108): uncommented the below code
    *      and change `reset` from private to protected in parent class
    */
-  protected override reset (reason: string): void {
+  override async reset (reason: string): Promise<void> {
     return super.reset(reason)
   }
 

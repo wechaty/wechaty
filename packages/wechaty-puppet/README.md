@@ -112,11 +112,17 @@ Set the max size for wechaty entities in LRU Cache.
 * [What Are Pure Functions And Why Use Them?](https://medium.com/@jamesjefferyuk/javascript-what-are-pure-functions-4d4d5392d49c)
 * [Master the JavaScript Interview: What is a Pure Function?](https://medium.com/javascript-scene/master-the-javascript-interview-what-is-a-pure-function-d1c076bec976)
 
+### Mixin
+
+* [The mixin pattern in TypeScript – all you need to know](https://www.bryntum.com/blog/the-mixin-pattern-in-typescript-all-you-need-to-know/)
+* [Mixin Classes in TypeScript](https://mariusschulz.com/blog/mixin-classes-in-typescript)
+
 ## History
 
-### master v0.47
+### master v0.49
 
 1. Add `Error` interface to `EventErrorPayload`, and make `.data` optional
+2. Using [Mixin](https://en.wikipedia.org/wiki/Mixin) to extend `Puppet`
 
 ### v0.43 (Aug 28, 2021)
 
