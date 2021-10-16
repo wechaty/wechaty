@@ -53,7 +53,7 @@ export const PUPPET_DEPENDENCIES = {
    *    because the `bin/puppet-install.ts` will use those version
    *    to install all them inside the Docker
    */
-  'wechaty-puppet-service' : '>=0.37.5',  // https://www.npmjs.com/package/wechaty-puppet-service
+  'wechaty-puppet-service' : '>=0.37.6',  // https://www.npmjs.com/package/wechaty-puppet-service
   'wechaty-puppet-mock'    : '>=0.31.3',  // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**

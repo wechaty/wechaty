@@ -25,6 +25,8 @@ npm init -y
 npm install --production ./*-*.*.*.tgz \
   @types/node \
   typescript@latest \
+  pkg-jq \
+  file-box@next \
   "wechaty-puppet-mock@$NPM_TAG" \
   "wechaty-puppet-padlocal@$NPM_TAG" \
   "wechaty-puppet-service@$NPM_TAG" \
@@ -33,7 +35,7 @@ npm install --production ./*-*.*.*.tgz \
 # CommonJS
 #
 npx tsc \
-  --target es6 \
+  --target esnext \
   --module CommonJS \
   \
   --moduleResolution node \
@@ -54,8 +56,8 @@ node smoke-testing.js
 npx pkg-jq -i '.type="module"'
 
 npx tsc \
-  --target es2020 \
-  --module es2020 \
+  --target esnext \
+  --module esnext \
   \
   --moduleResolution node \
   --esModuleInterop \
