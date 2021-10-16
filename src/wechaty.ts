@@ -703,7 +703,27 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
     if (this.state.off() === 'pending') {
       log.warn('Wechaty', 'start() found that is stopping, waiting stable ...')
-      await this.state.ready('off')
+
+      const TIMEOUT_SECONDS = 5
+      const timeoutFuture = new Promise((resolve, reject) => {
+        void resolve
+        setTimeout(
+          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
+          TIMEOUT_SECONDS * 1000,
+        )
+      })
+
+      try {
+        await Promise.all([
+          this.state.ready('off'),
+          timeoutFuture,
+        ])
+        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
+      } catch (e) {
+        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... %s',
+          (e as Error).message,
+        )
+      }
     }
 
     this.state.on('pending')
@@ -785,7 +805,27 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
     if (this.state.on() === 'pending') {
       log.warn('Wechaty', 'stop() found that is starting, waiting stable ...')
-      await this.state.ready('on')
+
+      const TIMEOUT_SECONDS = 5
+      const timeoutFuture = new Promise((resolve, reject) => {
+        void resolve
+        setTimeout(
+          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
+          TIMEOUT_SECONDS * 1000,
+        )
+      })
+
+      try {
+        await Promise.all([
+          this.state.ready('on'),
+          timeoutFuture,
+        ])
+        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
+      } catch (e) {
+        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... %s',
+          (e as Error).message,
+        )
+      }
     }
 
     this.state.off('pending')
