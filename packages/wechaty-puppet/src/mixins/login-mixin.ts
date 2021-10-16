@@ -12,7 +12,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     /**
      * @internal used by public API `currentUserId()`
      */
-    #currentUserId?: string
+    _currentUserId?: string
 
     constructor (...args: any[]) {
       super(...args)
@@ -22,7 +22,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     override async start (): Promise<void> {
       log.verbose('PuppetLoginMixin', 'start()')
       await super.start()
-      this.#currentUserId = undefined
+      this._currentUserId = undefined
     }
 
     override async stop (): Promise<void> {
@@ -39,10 +39,10 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     async login (userId: string): Promise<void> {
       log.verbose('PuppetLoginMixin', 'login(%s)', userId)
 
-      if (this.#currentUserId) {
+      if (this._currentUserId) {
         throw new Error('must logout first before login again!')
       }
-      this.#currentUserId = userId
+      this._currentUserId = userId
 
       const payload: EventLoginPayload = {
         contactId: userId,
@@ -69,7 +69,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     async logout (reason = 'logout()'): Promise<void> {
       log.verbose('PuppetLoginMixin', 'logout(%s)', this.currentUserId)
 
-      if (!this.#currentUserId) {
+      if (!this._currentUserId) {
         log.verbose('PuppetLoginMixin', 'logout() no currentUserId, do nothing')
         return
       }
@@ -77,7 +77,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
       const future = new Promise(resolve => this.once('logout', resolve))
 
       this.emit('logout', {
-        contactId : this.#currentUserId,
+        contactId : this._currentUserId,
         data      : reason,
       })
       log.verbose('PuppetLoginMixin', 'logout() event "logout" has been emitted')
@@ -87,17 +87,17 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
       await new Promise(setImmediate)
 
       log.verbose('PuppetLoginMixin', 'logout() event "logout" listeners all executed (hopefully)')
-      this.#currentUserId = undefined
+      this._currentUserId = undefined
     }
 
     currentUserId (): string {
       log.verbose('PuppetLoginMixin', 'currentUserId()')
 
-      if (!this.#currentUserId) {
+      if (!this._currentUserId) {
         throw new Error('not logged in, no this.currentUserId yet.')
       }
 
-      return this.#currentUserId
+      return this._currentUserId
     }
 
     /**
@@ -112,7 +112,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     }
 
     logonoff (): boolean {
-      if (this.#currentUserId) {
+      if (this._currentUserId) {
         return true
       } else {
         return false
@@ -128,6 +128,7 @@ type LoginMixin = ReturnType<typeof loginMixin>
 
 type ProtectedPropertyLoginMixin = never
   | 'login'
+  | '_currentUserId'
 
 export type {
   LoginMixin,
