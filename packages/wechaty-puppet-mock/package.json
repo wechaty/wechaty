@@ -15,7 +15,7 @@
   "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
     "node": ">= 14",
-    "wechaty": ">=0.69"
+    "wechaty": ">=0.68"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
@@ -66,7 +66,7 @@
     "wechaty": "^0.73.2"
   },
   "peerDependencies": {
-    "wechaty-puppet": ">=0.47.2"
+    "wechaty-puppet": ">=0.40"
   },
   "dependencies": {
     "cuid": "^2.1.8",
