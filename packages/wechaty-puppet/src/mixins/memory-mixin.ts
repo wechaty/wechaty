@@ -12,16 +12,16 @@ const memoryMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBas
 
   abstract class MemoryMixin extends mixinBase {
 
-    #memory: MemoryCard
+    _memory: MemoryCard
 
     get memory (): MemoryCard {
-      return this.#memory
+      return this._memory
     }
 
     constructor (...args: any[]) {
       super(...args)
       log.verbose('PuppetMemoryMixin', 'constructor()')
-      this.#memory = new MemoryCard()
+      this._memory = new MemoryCard()
     }
 
     override async start (): Promise<void> {
@@ -42,10 +42,10 @@ const memoryMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBas
     setMemory (memory: MemoryCard): void {
       log.verbose('PuppetMemoryMixin', 'setMemory(%s)', memory.name)
 
-      if (this.#memory.name) {
+      if (this._memory.name) {
         throw new Error('Puppet memory can be only set once')
       }
-      this.#memory = memory
+      this._memory = memory
     }
 
   }
@@ -56,6 +56,7 @@ const memoryMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBas
 type MemoryMixin = ReturnType<typeof memoryMixin>
 
 type ProtectedPropertyMemoryMixin = never
+  | '_memory'
   | 'memory'
 
 export type {
