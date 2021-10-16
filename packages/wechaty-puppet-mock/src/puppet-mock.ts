@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import path  from 'path'
+import path from 'path'
 
 import {
   ContactPayload,
@@ -87,20 +87,8 @@ class PuppetMock extends Puppet {
     this.mocker.puppet = this
   }
 
-  override async start (): Promise<void> {
-    log.verbose('PuppetMock', 'start()')
-
-    if (this.state.on()) {
-      log.warn('PuppetMock', 'start() is called on a ON puppet. await ready(on) and return.')
-      await this.state.ready('on')
-      return
-    }
-
-    this.state.on('pending')
-
-    // Do some async initializing tasks
-
-    this.state.on(true)
+  override async tryStart (): Promise<void> {
+    log.verbose('PuppetMock', 'tryStart()')
 
     /**
      * Start mocker after the puppet fully turned ON.
@@ -108,60 +96,19 @@ class PuppetMock extends Puppet {
     setImmediate(() => this.mocker.start())
   }
 
-  override async stop (): Promise<void> {
-    log.verbose('PuppetMock', 'stop()')
-
-    if (this.state.off()) {
-      log.warn('PuppetMock', 'stop() is called on a OFF puppet. await ready(off) and return.')
-      await this.state.ready('off')
-      return
-    }
-
-    this.state.off('pending')
+  override async tryStop (): Promise<void> {
+    log.verbose('PuppetMock', 'tryStop()')
 
     if (this.loopTimer) {
       clearInterval(this.loopTimer)
     }
 
     this.mocker.stop()
-
-    if (this.logonoff()) {
-      await this.logout()
-    }
-
-    // await some tasks...
-    this.state.off(true)
-  }
-
-  override login (contactId: string): Promise<void> {
-    log.verbose('PuppetMock', 'login()')
-    return super.login(contactId)
-  }
-
-  override async logout (): Promise<void> {
-    log.verbose('PuppetMock', 'logout()')
-
-    if (!this.id) {
-      throw new Error('logout before login?')
-    }
-
-    this.emit('logout', { contactId: this.id, data: 'test' }) // before we will throw above by logonoff() when this.user===undefined
-    this.id = undefined
-
-    // TODO: do the logout job
   }
 
   override ding (data?: string): void {
     log.silly('PuppetMock', 'ding(%s)', data || '')
     setTimeout(() => this.emit('dong', { data: data || '' }), 1000)
-  }
-
-  override unref (): void {
-    log.verbose('PuppetMock', 'unref()')
-    super.unref()
-    if (this.loopTimer) {
-      this.loopTimer.unref()
-    }
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.31.8",
+  "version": "0.33.0",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
@@ -19,17 +19,17 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm-run-all clean build fixup",
+    "dist": "npm-run-all clean build dist:commonjs",
     "build": "tsc && tsc -p tsconfig.cjs.json",
-    "fixup": "shx echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
-    "start": "ts-node examples/ding-dong-bot.ts",
+    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
+    "start": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "tap --node-arg=--loader=ts-node/esm --node-arg=--no-warnings \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\""
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
@@ -63,10 +63,10 @@
     "shx": "^0.3.3",
     "tstest": "^0.5.16",
     "typescript": "4.4",
-    "wechaty": "^0.73.2"
+    "wechaty": "^0.75.25"
   },
   "peerDependencies": {
-    "wechaty-puppet": ">=0.40"
+    "wechaty-puppet": "^0.49.21"
   },
   "dependencies": {
     "cuid": "^2.1.8",
