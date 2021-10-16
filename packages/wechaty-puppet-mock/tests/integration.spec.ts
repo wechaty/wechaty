@@ -1,4 +1,4 @@
-#!/usr/bin/env node --no-warnings --loader ts-node/esm
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 
 import { test }  from 'tstest'
 
@@ -101,7 +101,7 @@ test('Contact.load() mocker.createContact()', async t => {
     t.equal(contact!.id, filehelper.id, 'should load contact with id the same as filehelper')
 
     await contact.ready()
-    t.same((contact as any).payload, filehelper.payload, 'should match the payload between wechaty contact & mock contact')
+    t.same(contact.name(), filehelper.payload.name, 'should match the payload name between wechaty contact & mock contact')
   }
 })
 
@@ -122,7 +122,7 @@ test('Room.load() mocker.createRoom()', async t => {
     t.equal(room!.id, starbucks.id, 'should load room with id the same as starbucks')
 
     await room.ready()
-    t.same((room as any).payload, starbucks.payload, 'should match the payload between wechaty room & mock room')
+    t.same(await room.topic(), starbucks.payload.topic, 'should match the payload topic between wechaty room & mock room')
   }
 })
 
