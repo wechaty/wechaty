@@ -25,7 +25,6 @@ import childProcess from 'child_process'
 import {
   log,
   looseInstanceOfPuppet,
-  Puppet,
   PuppetImplementation,
   PuppetInterface,
   PuppetOptions,
@@ -37,7 +36,7 @@ import {
 }                         from './puppet-config.js'
 
 export interface ResolveOptions {
-  puppet         : Puppet | PuppetModuleName,
+  puppet         : PuppetInterface | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
 

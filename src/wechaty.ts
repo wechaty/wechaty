@@ -26,7 +26,6 @@ import {
   MemoryCard,
   PayloadType,
   PUPPET_EVENT_DICT,
-  Puppet,
   PuppetEventName,
   PuppetOptions,
   StateSwitch,
@@ -90,11 +89,11 @@ import {
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
-  name?          : string,                    // Wechaty Name
+  name?          : string,                              // Wechaty Name
 
-  puppet?        : PuppetModuleName | Puppet, // Puppet name or instance
-  puppetOptions? : PuppetOptions,             // Puppet TOKEN
-  ioToken?       : string,                    // Io TOKEN
+  puppet?        : PuppetModuleName | PuppetInterface,  // Puppet name or instance
+  puppetOptions? : PuppetOptions,                       // Puppet TOKEN
+  ioToken?       : string,                              // Io TOKEN
 }
 
 const PUPPET_MEMORY_NAME = 'puppet'
