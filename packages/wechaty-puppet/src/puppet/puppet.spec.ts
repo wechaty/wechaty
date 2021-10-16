@@ -318,8 +318,8 @@ test('set memory() memory with a name', async t => {
   const puppet = new PuppetTest()
   const memory = new MemoryCard({ name: 'name' })
 
-  t.doesNotThrow(() => { puppet.memory = memory }, 'should not throw when set a named memory first time ')
-  t.throws(()       => { puppet.memory = memory }, 'should throw when set a named memory second time')
+  t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a named memory first time ')
+  t.throws(()       => puppet.setMemory(memory), 'should throw when set a named memory second time')
 })
 
 test('messageQueryFilterFactory() one condition', async t => {
