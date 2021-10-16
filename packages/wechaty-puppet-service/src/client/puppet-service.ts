@@ -98,7 +98,12 @@ export class PuppetService extends Puppet {
   protected payloadStore: PayloadStore
 
   #grpc?      : GrpcClient
-  get grpc () : GrpcClient { return this.#grpc! }
+  get grpc () : GrpcClient {
+    if (!this.#grpc) {
+      throw new Error('no grpc client')
+    }
+    return this.#grpc
+  }
 
   /**
    * UUIDify:
@@ -140,33 +145,11 @@ export class PuppetService extends Puppet {
     return packageJson.version || '0.0.0'
   }
 
-  override async start (): Promise<void> {
-    log.verbose('PuppetService', 'start()')
-
-    if (this.state.on()) {
-      log.warn('PuppetService', 'start() is called on a ON puppet. await ready(on) and return.')
-      await this.state.ready('on')
-      return
-    }
-
-    this.state.on('pending')
-
-    try {
-      await this.#tryStart()
-      await super.start()
-      this.state.on(true)
-    } catch (e) {
-      log.error('PuppetService', 'start() rejection: %s\n%s', (e as Error).message, (e as Error).stack)
-      await this.stop()
-      throw e
-    }
-  }
-
-  async #tryStart (): Promise<void> {
-    log.verbose('PuppetService', '#tryStart()')
+  override async tryStart (): Promise<void> {
+    log.verbose('PuppetService', 'tryStart()')
 
     if (this.#grpc) {
-      log.warn('PuppetService', '#tryStart() found this.grpc is already existed. dropped.')
+      log.warn('PuppetService', 'tryStart() found this.grpc is already existed. dropped.')
       this.#grpc = undefined
     }
 
@@ -187,39 +170,12 @@ export class PuppetService extends Puppet {
     })
   }
 
-  override async stop (): Promise<void> {
-    log.verbose('PuppetService', 'stop()')
-
-    if (this.state.off()) {
-      log.warn('PuppetService', 'stop() is called on a OFF puppet. await ready(off) and return.')
-      await this.state.ready('off')
-      return
-    }
-
-    this.state.off('pending')
-
-    try {
-      await super.stop()
-      await this.#tryStop()
-    } finally {
-      this.state.off(true)
-    }
-  }
-
-  async #tryStop (): Promise<void> {
-    log.verbose('PuppetService', '#tryStop()')
+  override async tryStop (): Promise<void> {
+    log.verbose('PuppetService', 'tryStop()')
 
     if (this.recoverSubscription) {
       this.recoverSubscription.unsubscribe()
       this.recoverSubscription = undefined
-    }
-
-    if (this.logonoff()) {
-      this.emit('logout', {
-        contactId : this.selfId(),
-        data      : 'PuppetService stop()',
-      })
-      this.id = undefined
     }
 
     await this.#grpc?.stop()
@@ -312,13 +268,26 @@ export class PuppetService extends Puppet {
       case grpcPuppet.EventType.EVENT_TYPE_LOGIN:
         {
           const loginPayload = JSON.parse(payload) as EventLoginPayload
-          this.id = loginPayload.contactId
-          this.emit('login', loginPayload)
+          ;(
+            async () => this.login(loginPayload.contactId)
+          )().catch(e =>
+            log.error('PuppetService', 'onGrpcStreamEvent() this.login() rejection %s',
+              (e as Error).message,
+            )
+          )
         }
         break
       case grpcPuppet.EventType.EVENT_TYPE_LOGOUT:
-        this.id = undefined
-        this.emit('logout', JSON.parse(payload) as EventLogoutPayload)
+        {
+          const logoutPayload = JSON.parse(payload) as EventLogoutPayload
+          ;(
+            async () => this.logout(logoutPayload.data)
+          )().catch(e =>
+            log.error('PuppetService', 'onGrpcStreamEvent() this.logout() rejection %s',
+              (e as Error).message,
+            )
+          )
+        }
         break
       case grpcPuppet.EventType.EVENT_TYPE_DIRTY:
         this.emit('dirty', JSON.parse(payload) as EventDirtyPayload)
@@ -359,11 +328,14 @@ export class PuppetService extends Puppet {
     }
   }
 
-  override async logout (): Promise<void> {
-    log.verbose('PuppetService', 'logout()')
+  override async logout (reason = 'logout()'): Promise<void> {
+    log.verbose('PuppetService', 'logout("%s")', reason)
 
-    if (!this.id) {
-      throw new Error('logout before login?')
+    if (!this.logonoff()) {
+      log.warn('PuppetService', 'logout("%s") puppet does not logged in: %s',
+        reason,
+        new Error().stack,
+      )
     }
 
     try {
@@ -443,11 +415,6 @@ export class PuppetService extends Puppet {
       log.error('PuppetService', 'dirtyPayload() rejection: %s', e && (e as Error).message)
       throw e
     }
-  }
-
-  override unref (): void {
-    log.verbose('PuppetService', 'unref()')
-    super.unref()
   }
 
   /**

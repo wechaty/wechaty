@@ -12,8 +12,6 @@ import type {
 import {
   log,
 
-  Puppet,
-
   FriendshipPayloadReceive,
   LocationPayload,
   MiniProgramPayload,
@@ -25,6 +23,7 @@ import {
   EventScanPayload,
   EventReadyPayload,
   PayloadType,
+  PuppetInterface,
 }                               from 'wechaty-puppet'
 
 import {
@@ -43,7 +42,7 @@ import { grpcError }          from './grpc-error.js'
 import { EventStreamManager } from './event-stream-manager.js'
 
 function puppetImplementation (
-  puppet      : Puppet,
+  puppet      : PuppetInterface,
   FileBoxUuid : typeof FileBox,
 ): grpcPuppet.IPuppetServer {
 
@@ -56,22 +55,21 @@ function puppetImplementation (
   let readyPayload: undefined | EventReadyPayload
   let readyTimeout: undefined | ReturnType<typeof setTimeout>
 
-  puppet
-    .on('scan', payload  => { scanPayload = payload    })
-    .on('ready', payload => { readyPayload = payload   })
-    .on('logout', _      => {
-      readyPayload = undefined
-      if (readyTimeout) {
-        clearTimeout(readyTimeout)
-      }
-    })
-    .on('login', _       => {
-      scanPayload = undefined
-      readyTimeout = setTimeout(() => {
-        // Huan(202110): should we emit ready event here?
-        readyPayload && eventStreamManager.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_READY, readyPayload)
-      }, 5 * 1000)
-    })
+  puppet.on('scan', payload  => { scanPayload = payload    })
+  puppet.on('ready', payload => { readyPayload = payload   })
+  puppet.on('logout', _      => {
+    readyPayload = undefined
+    if (readyTimeout) {
+      clearTimeout(readyTimeout)
+    }
+  })
+  puppet.on('login', _       => {
+    scanPayload = undefined
+    readyTimeout = setTimeout(() => {
+      // Huan(202110): should we emit ready event here?
+      readyPayload && eventStreamManager.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_READY, readyPayload)
+    }, 5 * 1000)
+  })
 
   const eventStreamManager = new EventStreamManager(puppet)
 

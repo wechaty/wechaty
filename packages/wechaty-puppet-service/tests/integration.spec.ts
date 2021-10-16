@@ -18,8 +18,8 @@ import {
   PuppetServerOptions,
 }                               from '../src/mod.js'
 
-test('integration testing', async t => {
-  const TOKEN    = 'insecure_UUIDv4'
+test('Integration testing', async t => {
+  const TOKEN    = 'insecure_00000000-0000-0000-000000000000'
   const ENDPOINT = '0.0.0.0:8788'
   const DING     = '__ding_data__'
 

@@ -19,9 +19,9 @@ import {
   EventRoomTopicPayload,
   EventScanPayload,
   PUPPET_EVENT_DICT,
-  Puppet,
   PuppetEventName,
   log,
+  PuppetInterface,
 }                                   from 'wechaty-puppet'
 
 import {
@@ -35,7 +35,7 @@ class EventStreamManager {
   private puppetListening = false
 
   constructor (
-    public puppet: Puppet,
+    public puppet: PuppetInterface,
   ) {
     log.verbose('EventStreamManager', 'constructor(%s)', puppet)
   }

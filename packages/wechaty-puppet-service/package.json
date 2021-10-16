@@ -64,11 +64,11 @@
     "shx": "^0.3.3",
     "tstest": "^0.5.16",
     "typescript": "^4.4.3",
-    "wechaty": "^0.73.9",
-    "wechaty-puppet-mock": "^0.31.6"
+    "wechaty": "^0.75.25",
+    "wechaty-puppet-mock": "^0.33.2"
   },
   "peerDependencies": {
-    "wechaty-puppet": ">=0.40"
+    "wechaty-puppet": "^0.49.22"
   },
   "dependencies": {
     "clone-class": "^0.9.13",
