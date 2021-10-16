@@ -105,15 +105,10 @@ abstract class Puppet extends MixinBase {
     public override options: PuppetOptions = {},
   ) {
     super(options)
-    log.verbose('Puppet', 'constructor(%s) #%d', JSON.stringify(options), this.counter)
+    log.verbose('Puppet', 'constructor(%s)', JSON.stringify(options))
   }
 
   override toString () {
-    let memoryName
-    try {
-      memoryName = this.memory.name
-    } catch (_) {}
-
     return [
       'Puppet#',
       this.counter,
@@ -121,7 +116,7 @@ abstract class Puppet extends MixinBase {
       this.constructor.name,
       '>',
       '(',
-      memoryName || 'NOMEMORY',
+      this.memory.name || 'NONAME',
       ')',
     ].join('')
   }
@@ -141,9 +136,35 @@ abstract class Puppet extends MixinBase {
     log.verbose('Puppet', 'start()')
 
     if (this.state.on()) {
-      log.warn('Puppet', 'start() already on, skip')
-      await this.state.ready()
+      log.warn('Puppet', 'start() found that is starting/statred...')
+      await this.state.ready('on')
+      log.warn('Puppet', 'start() found that is starting/statred... done')
       return
+    }
+
+    if (this.state.off() === 'pending') {
+      log.warn('Puppet', 'start() found that is stopping...')
+
+      const TIMEOUT_SECONDS = 5
+      const timeoutFuture = new Promise((resolve, reject) => {
+        void resolve
+        setTimeout(
+          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
+          TIMEOUT_SECONDS * 1000,
+        )
+      })
+
+      try {
+        await Promise.all([
+          this.state.ready('off'),
+          timeoutFuture,
+        ])
+        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
+      } catch (e) {
+        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... %s',
+          (e as Error).message,
+        )
+      }
     }
 
     this.state.on('pending')
@@ -167,8 +188,8 @@ abstract class Puppet extends MixinBase {
       /**
        * The puppet has not been started
        */
-      this.state.off(true)
       log.error('Puppet', 'start() rejection: %s', (e as Error).message)
+      await this.stop()
       throw e
     }
   }
@@ -177,9 +198,34 @@ abstract class Puppet extends MixinBase {
     log.verbose('Puppet', 'stop()')
 
     if (this.state.off()) {
-      log.warn('Puppet', 'stop() already off, skip')
+      log.warn('Puppet', 'stop() found that is stopping/stopped...')
       await this.state.ready()
+      log.warn('Puppet', 'stop() found that is stopping/stopped... done')
       return
+    }
+
+    if (this.state.on() === 'pending') {
+      log.warn('Puppet', 'stop() found that is starting...')
+      const TIMEOUT_SECONDS = 5
+      const timeoutFuture = new Promise((resolve, reject) => {
+        void resolve
+        setTimeout(
+          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
+          TIMEOUT_SECONDS * 1000,
+        )
+      })
+
+      try {
+        await Promise.all([
+          this.state.ready('on'),
+          timeoutFuture,
+        ])
+        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
+      } catch (e) {
+        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... %s',
+          (e as Error).message,
+        )
+      }
     }
 
     this.state.off('pending')
@@ -194,17 +240,13 @@ abstract class Puppet extends MixinBase {
        */
       await super.stop()
 
-      /**
-       * The puppet has been successfully stopped
-       */
-      this.state.off(true)
-
     } catch (e) {
       /**
        * The puppet has not been stopped
        */
       log.error('Puppet', 'start() rejection: %s', (e as Error).message)
       throw e
+
     } finally {
       /**
        * Put the puppet into a stopped state

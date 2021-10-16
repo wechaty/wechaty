@@ -52,7 +52,11 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
     ...args: any[]
   ) {
     super()
-    log.verbose('PuppetSkelton', 'constructor("%s")', JSON.stringify(args))
+    log.verbose('PuppetSkelton', 'constructor(%s)',
+      args.length
+        ? JSON.stringify(args[0])
+        : '',
+    )
 
     this.id      = uuid.v4()
     this.options = args[0] || {}
