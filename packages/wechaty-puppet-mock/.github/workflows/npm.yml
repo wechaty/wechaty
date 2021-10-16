@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package.json
 
       - name: Install Dependencies
@@ -32,19 +32,12 @@ jobs:
     name: Pack
     needs: build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-        node-version:
-          - 16
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version}}
-          cache: 'npm'
+          node-version: 16
+          cache: npm
           cache-dependency-path: package.json
 
       - name: Install Dependencies
@@ -67,7 +60,7 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package.json
       - name: Install Dependencies
         run: npm install
