@@ -51,9 +51,10 @@ WECHATY_PUPPET_SERVICE_TOKEN=${WECHATY_PUPPET_SERVCIE_TOKEN} node bot.js
 
 ## gRPC Health Checking Protocol
 
-From version 0.37, Wechaty Puppet Service start supporting the [GRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md).
+From version 0.37, Wechaty Puppet Service start
+supporting the [GRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md).
 
-```
+```sh
 $ npm install --global wechaty-token
 $ go install github.com/grpc-ecosystem/grpc-health-probe@latest
 
