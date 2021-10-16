@@ -95,7 +95,7 @@
     "dotenv": "^10.0.0",
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
-    "wechaty-puppet": "^0.49.3",
+    "wechaty-puppet": "^0.49.18",
     "wechaty-puppet-service": "^0.37.5",
     "ws": "^8.2.3"
   },

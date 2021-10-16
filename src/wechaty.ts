@@ -30,6 +30,7 @@ import {
   PuppetEventName,
   PuppetOptions,
   StateSwitch,
+  PuppetInterface,
 }                       from 'wechaty-puppet'
 import {
   instanceToClass,
@@ -146,8 +147,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   private lifeTimer? : ReturnType<typeof setInterval>
   private io?        : Io
 
-  #puppet?: Puppet
-  get puppet (): Puppet {
+  #puppet?: PuppetInterface
+  get puppet (): PuppetInterface {
     if (!this.#puppet) {
       throw new Error('no puppet')
     }
@@ -401,7 +402,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     /**
      * Plug the Memory Card to Puppet
      */
-    puppetInstance.memory = puppetMemory
+    puppetInstance.setMemory(puppetMemory)
+
     this.#puppet = puppetInstance
 
     this.initPuppetEventBridge(puppetInstance)
@@ -416,7 +418,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     ;(this.emit as any)('puppet', puppetInstance)
   }
 
-  protected initPuppetEventBridge (puppet: Puppet) {
+  protected initPuppetEventBridge (puppet: PuppetInterface) {
     log.verbose('Wechaty', 'initPuppetEventBridge(%s)', puppet)
 
     const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as PuppetEventName[]

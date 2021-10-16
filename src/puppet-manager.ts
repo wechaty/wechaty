@@ -27,6 +27,7 @@ import {
   looseInstanceOfPuppet,
   Puppet,
   PuppetImplementation,
+  PuppetInterface,
   PuppetOptions,
 }                         from 'wechaty-puppet'
 
@@ -44,7 +45,7 @@ export class PuppetManager {
 
   static async resolve (
     options: ResolveOptions,
-  ): Promise<Puppet> {
+  ): Promise<PuppetInterface> {
     log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
       options.puppet,
       JSON.stringify(options.puppetOptions),

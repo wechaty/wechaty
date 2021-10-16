@@ -90,7 +90,12 @@ export class IoClient {
 
     const options: PuppetServerOptions = {
       endpoint : '0.0.0.0:' + this.options.port,
-      puppet   : this.options.wechaty.puppet,
+      /**
+       * Huan(202110): FIXME: remove the any
+       *  by updating the puppet-service server code
+       *  to use PuppetInterface
+       */
+      puppet   : this.options.wechaty.puppet as any,
       token    : this.options.token,
     }
     this.puppetServer = new PuppetServer(options)
