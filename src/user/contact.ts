@@ -840,7 +840,7 @@ class Contact extends wechatifyMixin(
    * const isSelf = contact.self()
    */
   self (): boolean {
-    const userId = this.wechaty.puppet.selfId()
+    const userId = this.wechaty.puppet.currentUserId()
 
     if (!userId) {
       return false

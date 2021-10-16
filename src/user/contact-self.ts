@@ -87,7 +87,7 @@ class ContactSelf extends Contact {
       return filebox
     }
 
-    if (this.id !== this.wechaty.puppet.selfId()) {
+    if (this.id !== this.wechaty.puppet.currentUserId()) {
       throw new Error('set avatar only available for user self')
     }
 
@@ -112,7 +112,7 @@ class ContactSelf extends Contact {
     log.verbose('Contact', 'qrcode()')
     let puppetId: string
     try {
-      puppetId = this.wechaty.puppet.selfId()
+      puppetId = this.wechaty.puppet.currentUserId()
     } catch (e) {
       throw Error('Can not get qrcode, user might be either not logged in or already logged out')
     }
@@ -152,7 +152,7 @@ class ContactSelf extends Contact {
 
     let puppetId: string
     try {
-      puppetId = this.wechaty.puppet.selfId()
+      puppetId = this.wechaty.puppet.currentUserId()
     } catch (e) {
       throw Error('Can not set name for user self, user might be either not logged in or already logged out')
     }
@@ -184,7 +184,7 @@ class ContactSelf extends Contact {
 
     let puppetId: string
     try {
-      puppetId = this.wechaty.puppet.selfId()
+      puppetId = this.wechaty.puppet.currentUserId()
     } catch (e) {
       throw Error('Can not set signature for user self, user might be either not logged in or already logged out')
     }

@@ -223,7 +223,7 @@ test('use plugin', async t => {
 
 })
 
-test('initPuppetAccessory()', async t => {
+test('wechatifyUserModules()', async t => {
   const wechatyTest = new WechatyTest()
 
   t.doesNotThrow(() => wechatyTest.wechatifyUserModules(), 'should not throw for the 1st time init')
@@ -232,7 +232,7 @@ test('initPuppetAccessory()', async t => {
 
 // TODO: add test for event args
 
-test('Wechaty restart for many times', async t => {
+test('Perfect restart', async t => {
   const wechaty = new Wechaty({
     puppet: new PuppetMock(),
   })

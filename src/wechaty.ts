@@ -17,7 +17,7 @@
  *   limitations under the License.
  *
  */
-import cuid             from 'cuid'
+import uuid             from 'uuid'
 import os               from 'os'
 
 import {
@@ -124,13 +124,13 @@ const PUPPET_MEMORY_NAME = 'puppet'
  */
 class Wechaty extends WechatyEventEmitter implements Sayable {
 
-  static readonly VERSION = VERSION
-  static readonly log = log
-  readonly log = log
+  static   readonly VERSION = VERSION
+  static   readonly log     = log
+  readonly log              = log
 
-   readonly state      : StateSwitch
-  private readonly readyState : StateSwitch
-   readonly wechaty    : Wechaty
+  private  readonly state      : StateSwitch
+  private  readonly readyState : StateSwitch
+  readonly wechaty             : Wechaty
 
   /**
    * singleton globalInstance
@@ -144,8 +144,9 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   private memory?: MemoryCard
 
-  private lifeTimer? : ReturnType<typeof setInterval>
   private io?        : Io
+
+  protected readonly cleanCallbackList: Function[] = []
 
   #puppet?: PuppetInterface
   get puppet (): PuppetInterface {
@@ -287,7 +288,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
     this.memory = this.options.memory
 
-    this.id = cuid()
+    this.id                = uuid.v4()
+    this.cleanCallbackList = []
 
     this.state      = new StateSwitch('Wechaty', { log })
     this.readyState = new StateSwitch('WechatyReady', { log })
@@ -570,8 +572,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               room.emit('leave', leaverList, remover, date)
 
               // issue #254
-              const selfId = this.puppet.selfId()
-              if (selfId && payload.removeeIdList.includes(selfId)) {
+              const currentUserId = this.puppet.currentUserId()
+              if (currentUserId && payload.removeeIdList.includes(currentUserId)) {
                 await this.puppet.dirtyPayload(PayloadType.Room, payload.roomId)
                 await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
               }
@@ -662,7 +664,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     }
 
     /**
-     * 1. Setup Wechaty User Classes
+     * Wechatify User Classes
+     *  1. Binding the wechaty instance to the class
      */
     this.#wechatifiedContact        = wechatifyUserClass(Contact)(this)
     this.#wechatifiedContactSelf    = wechatifyUserClass(ContactSelf)(this)
@@ -689,74 +692,78 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * // do other stuff with bot here
    */
   async start (): Promise<void> {
-    log.verbose('Wechaty', '<%s>(%s) start() v%s is starting...',
+    log.verbose('Wechaty', 'start()')
+
+    if (this.state.on()) {
+      log.warn('Wechaty', 'start() found that is starting/started, waiting stable ...')
+      await this.state.ready('on')
+      log.warn('Wechaty', 'start() found that is starting/started, waiting stable ... done')
+      return
+    }
+
+    if (this.state.off() === 'pending') {
+      log.warn('Wechaty', 'start() found that is stopping, waiting stable ...')
+      await this.state.ready('off')
+    }
+
+    this.state.on('pending')
+
+    try {
+      await this.tryStart()
+      this.state.on(true)
+      this.emit('start')
+
+    } catch (e) {
+      console.error(e)
+      log.error('Wechaty', 'start() rejection: %s', e && (e as Error).message)
+      captureException((e as Error))
+
+      await this.stop()
+      this.emit('error', e as Error)
+    }
+  }
+
+  protected async tryStart (): Promise<void> {
+    log.verbose('Wechaty', '<%s>(%s) tryStart() v%s is starting...',
       this.options.puppet || config.systemPuppetName(),
       this.options.name   || '',
       this.version(),
     )
     log.verbose('Wechaty', 'id: %s', this.id)
 
-    if (this.state.on()) {
-      log.silly('Wechaty', 'start() on a starting/started instance')
-      await this.state.ready('on')
-      log.silly('Wechaty', 'start() state.ready() resolved')
-      return
-    }
-
+    /**
+     * Clear the `wechaty.ready()` state
+     */
     this.readyState.off(true)
 
-    if (this.lifeTimer) {
-      throw new Error('start() lifeTimer exist')
-    }
-
-    this.state.on('pending')
-
-    try {
-      if (!this.memory) {
-        this.memory = new MemoryCard(this.options.name)
-      }
-
+    if (!this.memory) {
+      this.memory = new MemoryCard(this.options.name)
       try {
         await this.memory.load()
       } catch (e) {
-        log.silly('Wechaty', 'start() memory.load() had already loaded')
+        log.silly('Wechaty', 'tryStart() memory.load() had already loaded')
       }
-
-      await this.initPuppet()
-      await this.puppet.start()
-
-      if (this.options.ioToken) {
-        this.io = new Io({
-          token   : this.options.ioToken,
-          wechaty : this,
-        })
-        await this.io.start()
-      }
-
-    } catch (e) {
-      console.error(e)
-      log.error('Wechaty', 'start() exception: %s', e && (e as Error).message)
-      captureException((e as Error))
-      this.emit('error', e as Error)
-
-      try {
-        await this.stop()
-      } catch (e) {
-        log.error('Wechaty', 'start() stop() exception: %s', e && (e as Error).message)
-        captureException((e as Error))
-        this.emit('error', (e as Error))
-      }
-      return
     }
 
-    this.on('heartbeat', () => this.memoryCheck())
+    await this.initPuppet()
+    await this.puppet.start()
 
-    this.lifeTimer = setInterval(() => {
-      log.silly('Wechaty', 'start() setInterval() this timer is to keep Wechaty running...')
+    if (this.options.ioToken) {
+      this.io = new Io({
+        token   : this.options.ioToken,
+        wechaty : this,
+      })
+      await this.io.start()
+    }
+
+    const memoryCheck = () => this.memoryCheck()
+    this.on('heartbeat', memoryCheck)
+    this.cleanCallbackList.push(() => this.off('heartbeat', memoryCheck))
+
+    const lifeTimer = setInterval(() => {
+      log.silly('Wechaty', 'tryStart() setInterval() this timer is to keep Wechaty running...')
     }, 1000 * 60 * 60)
-
-    this.state.on(true)
-    this.emit('start')
+    this.cleanCallbackList.push(() => clearInterval(lifeTimer))
   }
 
   /**
@@ -767,7 +774,39 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * await bot.stop()
    */
   async stop (): Promise<void> {
-    log.verbose('Wechaty', '<%s> stop() v%s is stopping ...',
+    log.verbose('Wechaty', 'stop()')
+
+    if (this.state.off()) {
+      log.warn('Wechaty', 'stop() found that is stopping/stopped ...')
+      await this.state.ready('off')
+      log.warn('Wechaty', 'stop() found that is stopping/stopped ... done')
+      return
+    }
+
+    if (this.state.on() === 'pending') {
+      log.warn('Wechaty', 'stop() found that is starting, waiting stable ...')
+      await this.state.ready('on')
+    }
+
+    this.state.off('pending')
+
+    try {
+      await this.tryStop()
+
+    } catch (e) {
+      log.error('Wechaty', 'stop() rejection: %s', e && (e as Error).message)
+      captureException((e as Error))
+
+      this.emit('error', e as Error)
+
+    } finally {
+      this.state.off(true)
+      this.emit('stop')
+    }
+  }
+
+  protected async tryStop (): Promise<void> {
+    log.verbose('Wechaty', '<%s> tryStop() v%s is stopping ...',
       this.options.puppet || config.systemPuppetName(),
       this.version(),
     )
@@ -781,26 +820,15 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       if (uninstaller) uninstaller()
     }
 
-    if (this.state.off()) {
-      log.silly('Wechaty', 'stop() on an stopping/stopped instance')
-      await this.state.ready('off')
-      log.silly('Wechaty', 'stop() state.ready(off) resolved')
-      return
-    }
-
-    this.readyState.off(true)
-
-    this.state.off('pending')
-
-    if (this.lifeTimer) {
-      clearInterval(this.lifeTimer)
-      this.lifeTimer = undefined
+    while (this.cleanCallbackList.length > 0) {
+      const cleaner = this.cleanCallbackList.pop()
+      if (cleaner) cleaner()
     }
 
     try {
       await this.puppet.stop()
     } catch (e) {
-      log.warn('Wechaty', 'stop() puppet.stop() exception: %s', (e as Error).message)
+      log.warn('Wechaty', 'tryStop() puppet.stop() exception: %s', (e as Error).message)
     }
 
     try {
@@ -810,13 +838,10 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       }
 
     } catch (e) {
-      log.error('Wechaty', 'stop() exception: %s', (e as Error).message)
+      log.error('Wechaty', 'tryStop() exception: %s', (e as Error).message)
       captureException((e as Error))
       this.emit('error', (e as Error))
     }
-
-    this.state.off(true)
-    this.emit('stop')
   }
 
   async ready (): Promise<void> {
@@ -874,7 +899,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * console.log(`Bot is ${contact.name()}`)
    */
   userSelf (): ContactSelf {
-    const userId = this.puppet.selfId()
+    const userId = this.puppet.currentUserId()
     const user = this.ContactSelf.load(userId)
     return user
   }
