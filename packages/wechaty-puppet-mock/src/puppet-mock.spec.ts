@@ -26,3 +26,10 @@ test('PuppetMock perfect restart testing', async t => {
     t.fail(e as any)
   }
 })
+
+test('PuppetMock toString()', async t => {
+  const puppet = new PuppetMockTest()
+  const REGEXP = /PuppetMock/
+  t.doesNotThrow(() => puppet.toString(), 'should not throw')
+  t.ok(REGEXP.test(puppet.toString()), 'should be PuppetMock')
+})
