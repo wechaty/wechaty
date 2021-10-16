@@ -57,9 +57,9 @@ const MixinBase = miscMixin(
             roomMemberMixin(
               contactMixin(
                 loginMixin(
-                  memoryMixin(
-                    cacheMixin(
-                      stateMixin(
+                  cacheMixin(
+                    stateMixin(
+                      memoryMixin(
                         PuppetSkelton,
                       ),
                     ),

@@ -10,9 +10,19 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
   abstract class LoginMixin extends mixinBase {
 
     /**
-     * @internal used by public API `currentUserId()`
+     * @internal used by public API `currentUserId`
      */
     _currentUserId?: string
+
+    get currentUserId (): string {
+      log.verbose('PuppetLoginMixin', 'get currentUserId')
+
+      if (!this._currentUserId) {
+        throw new Error('not logged in, no this.currentUserId yet.')
+      }
+
+      return this._currentUserId
+    }
 
     constructor (...args: any[]) {
       super(...args)
@@ -22,7 +32,6 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     override async start (): Promise<void> {
       log.verbose('PuppetLoginMixin', 'start()')
       await super.start()
-      this._currentUserId = undefined
     }
 
     override async stop (): Promise<void> {
@@ -67,9 +76,9 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
      * Note: must set `this.currentUserId = undefined` in this function.
      */
     async logout (reason = 'logout()'): Promise<void> {
-      log.verbose('PuppetLoginMixin', 'logout(%s)', this.currentUserId)
+      log.verbose('PuppetLoginMixin', 'logout(%s)', reason)
 
-      if (!this._currentUserId) {
+      if (!this.logonoff()) {
         log.verbose('PuppetLoginMixin', 'logout() no currentUserId, do nothing')
         return
       }
@@ -77,7 +86,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
       const future = new Promise(resolve => this.once('logout', resolve))
 
       this.emit('logout', {
-        contactId : this._currentUserId,
+        contactId : this.currentUserId,
         data      : reason,
       })
       log.verbose('PuppetLoginMixin', 'logout() event "logout" has been emitted')
@@ -90,25 +99,15 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
       this._currentUserId = undefined
     }
 
-    currentUserId (): string {
-      log.verbose('PuppetLoginMixin', 'currentUserId()')
-
-      if (!this._currentUserId) {
-        throw new Error('not logged in, no this.currentUserId yet.')
-      }
-
-      return this._currentUserId
-    }
-
     /**
-     * @deprecated use `currentUserId()` instead. (will be removed after Dec 31, 2022)
+     * @deprecated use `currentUserId` instead. (will be removed after Dec 31, 2022)
      */
     selfId (): string {
       log.warn('PuppetLoginMixin',
-        'selfId() is deprecated, use `currentUserId()` instead:\n%s',
+        'selfId() is deprecated, use `currentUserId` instead:\n%s',
         new Error().stack,
       )
-      return this.currentUserId()
+      return this.currentUserId
     }
 
     logonoff (): boolean {

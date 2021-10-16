@@ -21,7 +21,7 @@ class WatchdogAgent {
   constructor (
     protected readonly puppet: PuppetSkelton & InstanceType<StateMixin>,
   ) {
-    log.verbose('WatchdogAgent', 'constructor(%s)', puppet)
+    log.verbose('WatchdogAgent', 'constructor(%s)', puppet.id)
 
     this.cleanCallbackList = []
 
