@@ -25,13 +25,17 @@ const memoryMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBas
     }
 
     override async start (): Promise<void> {
-      log.verbose('PuppetMemoryMixin', 'constructor()')
-      await this.memory.load()
+      log.verbose('PuppetMemoryMixin', 'start()')
+      try {
+        await this.memory.load()
+      } catch (_) {
+        log.silly('PuppetMemoryMixin', 'start() memory has already been loaded before')
+      }
       await super.start()
     }
 
     override async stop (): Promise<void> {
-      log.verbose('PuppetMemoryMixin', 'constructor()')
+      log.verbose('PuppetMemoryMixin', 'stop()')
       await super.stop()
     }
 
