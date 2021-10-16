@@ -232,4 +232,16 @@ const roomMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin & RoomM
   return RoomMixin
 }
 
+type RoomMixin = ReturnType<typeof roomMixin>
+
+type ProtectedPropertyRoomMixin = never
+  | 'roomPayloadCache'
+  | 'roomQueryFilterFactory'
+  | 'roomRawPayload'
+  | 'roomRawPayloadParser'
+
+export type {
+  RoomMixin,
+  ProtectedPropertyRoomMixin,
+}
 export { roomMixin }

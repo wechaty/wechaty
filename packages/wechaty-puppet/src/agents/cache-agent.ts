@@ -23,7 +23,9 @@ import type {
 import type {
   RoomInvitationPayload,
 }                         from '../schemas/room-invitation.js'
-import type { PuppetOptions } from '../schemas/puppet.js'
+import type {
+  PuppetOptions,
+}                         from '../schemas/puppet.js'
 
 type PayloadCacheOptions = Required<PuppetOptions>['cache']
 
@@ -33,8 +35,8 @@ class CacheAgent {
   readonly friendship     : QuickLru<string, FriendshipPayload>
   readonly message        : QuickLru<string, MessagePayload>
   readonly room           : QuickLru<string, RoomPayload>
-  readonly roomMember     : QuickLru<string, RoomMemberPayload>
   readonly roomInvitation : QuickLru<string, RoomInvitationPayload>
+  readonly roomMember     : QuickLru<string, RoomMemberPayload>
 
   constructor (
     protected options: PayloadCacheOptions = {},

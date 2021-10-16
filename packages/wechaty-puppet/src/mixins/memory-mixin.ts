@@ -51,4 +51,13 @@ const memoryMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBas
   return MemoryMixin
 }
 
+type MemoryMixin = ReturnType<typeof memoryMixin>
+
+type ProtectedPropertyMemoryMixin = never
+  | 'memory'
+
+export type {
+  MemoryMixin,
+  ProtectedPropertyMemoryMixin,
+}
 export { memoryMixin }

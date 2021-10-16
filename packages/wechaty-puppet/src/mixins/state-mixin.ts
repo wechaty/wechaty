@@ -6,6 +6,7 @@ import {
 
 import type { PuppetSkelton } from '../puppet/skelton.js'
 import { BusyIndicator }      from '../busy-indicator.js'
+import { WatchdogAgent }      from '../agents/watchdog-agent.js'
 
 let PUPPET_COUNTER = 0
 
@@ -13,10 +14,10 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
   abstract class StateMixin extends mixinBase {
 
-    readonly counter: number
-
-    state          : StateSwitch
-    resetIndicator : BusyIndicator
+    readonly counter        : number
+    readonly resetIndicator : BusyIndicator
+    readonly state          : StateSwitch
+    readonly watchdog       : WatchdogAgent
 
     constructor (...args: any[]) {
       super(...args)
@@ -27,6 +28,7 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
       this.resetIndicator = new BusyIndicator('PuppetBusyIndicator', { log })
       this.state          = new StateSwitch('PuppetState', { log })
+      this.watchdog       = new WatchdogAgent(this)
     }
 
     /**
@@ -86,6 +88,18 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
     }
 
+    override async start (): Promise<void> {
+      log.verbose('PuppetStateMixin', 'start()')
+      await super.start()
+      this.watchdog.start()
+    }
+
+    override async stop (): Promise<void> {
+      log.verbose('PuppetStateMixin', 'stop()')
+      this.watchdog.stop()
+      await super.stop()
+    }
+
   }
 
   return StateMixin
@@ -93,7 +107,12 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
 type StateMixin = ReturnType<typeof stateMixin>
 
+type ProtectedPropertyStateMixin = never
+  | 'resetIndicator'
+  | 'counter'
+
 export type {
+  ProtectedPropertyStateMixin,
   StateMixin,
 }
 export { stateMixin }

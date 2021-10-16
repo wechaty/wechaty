@@ -294,9 +294,16 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
   return ContactMixin
 }
 
+type ProtectedPropertyContactMixin = never
+| 'contactRawPayload'
+| 'contactRawPayloadParser'
+| 'contactQueryFilterFactory'
+| 'contactPayloadCache'
+
 type ContactMixin = ReturnType<typeof contactMixin>
 
 export type {
   ContactMixin,
+  ProtectedPropertyContactMixin,
 }
 export { contactMixin }

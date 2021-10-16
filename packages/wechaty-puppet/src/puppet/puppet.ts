@@ -41,7 +41,6 @@ import {
   roomMixin,
   stateMixin,
   tagMixin,
-  watchdogMixin,
 }                        from '../mixins/mod.js'
 
 import { PuppetSkelton }    from './skelton.js'
@@ -60,10 +59,8 @@ const MixinBase = miscMixin(
                 loginMixin(
                   memoryMixin(
                     cacheMixin(
-                      watchdogMixin(
-                        stateMixin(
-                          PuppetSkelton,
-                        ),
+                      stateMixin(
+                        PuppetSkelton,
                       ),
                     ),
                   ),

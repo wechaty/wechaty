@@ -126,7 +126,11 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
 type LoginMixin = ReturnType<typeof loginMixin>
 
+type ProtectedPropertyLoginMixin = never
+  | 'login'
+
 export type {
   LoginMixin,
+  ProtectedPropertyLoginMixin,
 }
 export { loginMixin }
