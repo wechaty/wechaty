@@ -8,7 +8,14 @@ class BusyIndicator {
     this.state = new StateSwitch(...args)
   }
 
+  /**
+   * Set busy state
+   * @param b busy or not
+   */
   busy (b: boolean): void
+  /**
+   * Get busy state
+   */
   busy (): boolean
 
   busy (b?: boolean): void | boolean {
@@ -23,6 +30,9 @@ class BusyIndicator {
     }
   }
 
+  /**
+   * Return a Promise that resolves when the busy state is off
+   */
   async available (): Promise<void> {
     await this.state.ready('off')
   }

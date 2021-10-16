@@ -7,16 +7,23 @@ import {
 import type { PuppetSkelton } from '../puppet/skelton.js'
 import { BusyIndicator }      from '../busy-indicator.js'
 
+let PUPPET_COUNTER = 0
+
 const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
 
   abstract class StateMixin extends mixinBase {
+
+    readonly counter: number
 
     state          : StateSwitch
     resetIndicator : BusyIndicator
 
     constructor (...args: any[]) {
       super(...args)
-      log.verbose('PuppetStateMixin', 'constructor()')
+
+      PUPPET_COUNTER++
+      this.counter = PUPPET_COUNTER
+      log.verbose('PuppetStateMixin', 'constructor() #%s', PUPPET_COUNTER)
 
       this.resetIndicator = new BusyIndicator('PuppetBusyIndicator', { log })
       this.state          = new StateSwitch('PuppetState', { log })

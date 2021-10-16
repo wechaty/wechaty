@@ -16,11 +16,8 @@
  *   limitations under the License.
  *
  */
-import { StateSwitch }          from 'state-switch'
-
 import {
   log,
-  NAME,
   VERSION,
 }                       from '../config.js'
 
@@ -32,35 +29,42 @@ import {
 }                       from '../schemas/mod.js'
 
 import {
+  cacheMixin,
   contactMixin,
   friendshipMixin,
-  messageMixin,
-  roomInvitationMixin,
-  roomMixin,
-  tagMixin,
+  loginMixin,
   memoryMixin,
-  cacheMixin,
+  messageMixin,
+  miscMixin,
+  roomInvitationMixin,
+  roomMemberMixin,
+  roomMixin,
+  stateMixin,
+  tagMixin,
   watchdogMixin,
-}                     from '../mixins/mod.js'
+}                        from '../mixins/mod.js'
 
-import { PuppetSkelton } from './skelton.js'
-import { stateMixin } from '../mixins/state-mixin.js'
-import { loginMixin } from '../mixins/login-mixin.js'
+import { PuppetSkelton }    from './skelton.js'
 
-let PUPPET_COUNTER = 0
-
-const MixinBase = messageMixin(
-  roomInvitationMixin(
-    tagMixin(
-      friendshipMixin(
-        roomMixin(
-          contactMixin(
-            loginMixin(
-              memoryMixin(
-                cacheMixin(
-                  watchdogMixin(
-                    stateMixin(
-                      PuppetSkelton,
+/**
+ * Huan(202110): use compose() to compose mixins
+ */
+const MixinBase = miscMixin(
+  messageMixin(
+    roomInvitationMixin(
+      tagMixin(
+        friendshipMixin(
+          roomMixin(
+            roomMemberMixin(
+              contactMixin(
+                loginMixin(
+                  memoryMixin(
+                    cacheMixin(
+                      watchdogMixin(
+                        stateMixin(
+                          PuppetSkelton,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -87,8 +91,6 @@ abstract class Puppet extends MixinBase {
    */
   static readonly VERSION = VERSION
 
-  protected readonly counter : number
-
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
@@ -105,42 +107,16 @@ abstract class Puppet extends MixinBase {
   constructor (
     public override options: PuppetOptions = {},
   ) {
-    super()
-
-    this.counter = PUPPET_COUNTER++
+    super(options)
     log.verbose('Puppet', 'constructor(%s) #%d', JSON.stringify(options), this.counter)
-
-    this.state    = new StateSwitch(this.constructor.name, { log })
-    {
-      /* eslint  no-lone-blocks: off */
-      // Huan(202108): remove this code block because it's unclear what it does
-
-      /**
-       * 4. Load the package.json for Puppet Plugin version range matching
-       *
-       * For: dist/src/puppet/puppet.ts
-       *  We need to up 3 times: ../../../package.json
-       */
-      // try {
-      //   const childClassPath = callerResolve('.', __filename)
-      //   log.verbose('Puppet', 'constructor() childClassPath=%s', childClassPath)
-
-      //   this.childPkg = readPkgUp.readPackageUpSync({ cwd: childClassPath })!.packageJson
-      // } catch (e) {
-      //   log.error('Puppet', 'constructor() %s', e)
-      //   throw e
-      // }
-
-      // if (!this.childPkg) {
-      //   throw new Error('Cannot found package.json for Puppet Plugin Module')
-      // }
-
-      // normalize(this.childPkg)
-    }
-
   }
 
   override toString () {
+    let memoryName
+    try {
+      memoryName = this.memory.name
+    } catch (_) {}
+
     return [
       'Puppet#',
       this.counter,
@@ -148,90 +124,97 @@ abstract class Puppet extends MixinBase {
       this.constructor.name,
       '>',
       '(',
-      this.memory.name || '',
+      memoryName || 'NOMEMORY',
       ')',
     ].join('')
   }
 
   /**
-   * Unref
+   * The child puppet provider should put all start code inside `tryStart()`
+   *  becasue the `start()` will call `tryStart()` with the state management.
    */
-  unref (): void {
-    log.verbose('Puppet', 'unref()')
-    // this.watchdog.unref()
-  }
-
+  abstract tryStart (): Promise<void>
   /**
-   *
-   *
-   * Start / Stop
-   *
-   *
+   * The child puppet provider should put all start code inside `tryStop()`
+   *  becasue the `stop()` will call `tryStop()` with the state management.
    */
+  abstract tryStop  (): Promise<void>
+
   override async start () : Promise<void> {
     log.verbose('Puppet', 'start()')
-    await super.start()
+
+    if (this.state.on()) {
+      log.warn('Puppet', 'start() already on, skip')
+      await this.state.ready()
+      return
+    }
+
+    this.state.on('pending')
+
+    try {
+      /**
+       * Call all the mixins start()
+       */
+      await super.start()
+      /**
+       * Call the child provider start()
+       */
+      await this.tryStart()
+
+      /**
+       * The puppet has been successfully started
+       */
+      this.state.on(true)
+
+    } catch (e) {
+      /**
+       * The puppet has not been started
+       */
+      this.state.off(true)
+      log.error('Puppet', 'start() rejection: %s', (e as Error).message)
+      throw e
+    }
   }
 
   override async stop (): Promise<void> {
     log.verbose('Puppet', 'stop()')
-    await super.stop()
-  }
 
-  /**
-   *
-   *
-   * Misc
-   *
-   *
-   */
-  /**
-   * Check whether the puppet is work property.
-   * @returns `false` if something went wrong
-   *          'dong' if everything is OK
-   */
-  abstract ding (data?: string) : void
-
-  /**
-   * Get the NPM name of the Puppet
-   */
-  name (): string {
-    return NAME
-  }
-
-  /**
-   * Get version from the Puppet Implementation
-   */
-  version (): string {
-    return VERSION
-  }
-
-  /**
-   * will be used by semver.satisfied(version, range)
-   */
-  wechatyVersionRange (strict = false): string {
-    // FIXME: for development, we use `*` if not set
-    if (strict) {
-      return '^0.16.0'
+    if (this.state.off()) {
+      log.warn('Puppet', 'stop() already off, skip')
+      await this.state.ready()
+      return
     }
 
-    return '*'
+    this.state.off('pending')
 
-    // TODO: test and uncomment the following codes after promote the `wehcaty-puppet` as a solo NPM module
+    try {
+      /**
+       * Call the child provider stop()
+       */
+      await this.tryStop()
+      /**
+       * Call all the mixins stop()
+       */
+      await super.stop()
 
-    // if (this.pkg.dependencies && this.pkg.dependencies.wechaty) {
-    //   throw new Error('Wechaty Puppet Implementation should add `wechaty` from `dependencies` to `peerDependencies` in package.json')
-    // }
+      /**
+       * The puppet has been successfully stopped
+       */
+      this.state.off(true)
 
-    // if (!this.pkg.peerDependencies || !this.pkg.peerDependencies.wechaty) {
-    //   throw new Error('Wechaty Puppet Implementation should add `wechaty` to `peerDependencies`')
-    // }
-
-    // if (!this.pkg.engines || !this.pkg.engines.wechaty) {
-    //   throw new Error('Wechaty Puppet Implementation must define `package.engines.wechaty` for a required Version Range')
-    // }
-
-    // return this.pkg.engines.wechaty
+    } catch (e) {
+      /**
+       * The puppet has not been stopped
+       */
+      log.error('Puppet', 'start() rejection: %s', (e as Error).message)
+      throw e
+    } finally {
+      /**
+       * Put the puppet into a stopped state
+       *  no matter the `tryStop()` success or fail
+       */
+      this.state.off(true)
+    }
   }
 
   /**

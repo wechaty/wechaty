@@ -87,19 +87,19 @@ export interface EventDirtyPayload {
   payloadId   : string,
 }
 
-export type EventAllPayload = never
-                            | EventDirtyPayload
-                            | EventDongPayload
-                            | EventErrorPayload
-                            | EventFriendshipPayload
-                            | EventHeartbeatPayload
-                            | EventLoginPayload
-                            | EventLogoutPayload
-                            | EventMessagePayload
-                            | EventReadyPayload
-                            | EventResetPayload
-                            | EventRoomInvitePayload
-                            | EventRoomJoinPayload
-                            | EventRoomLeavePayload
-                            | EventRoomTopicPayload
-                            | EventScanPayload
+export type EventPayload = never
+  | EventDirtyPayload
+  | EventDongPayload
+  | EventErrorPayload
+  | EventFriendshipPayload
+  | EventHeartbeatPayload
+  | EventLoginPayload
+  | EventLogoutPayload
+  | EventMessagePayload
+  | EventReadyPayload
+  | EventResetPayload
+  | EventRoomInvitePayload
+  | EventRoomJoinPayload
+  | EventRoomLeavePayload
+  | EventRoomTopicPayload
+  | EventScanPayload

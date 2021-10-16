@@ -12,44 +12,47 @@ import type { Puppet } from './mod.js'
  *    And Omit them from the Puppet typing defination
  *    to build a new PuppetInterface
  */
-type ProtectedMethods = never
-  | 'cacheContactPayload'
-  | 'cacheFriendshipPayload'
-  | 'cacheMessagePayload'
-  | 'cacheRoomPayload'
-  | 'cacheRoomMemberPayload'
-  | 'cacheRoomInvitationPayload'
+type ProtectedProperty = never
+  | 'cache'
   | 'counter'
   | 'memory'
   | 'login'
+  // Contact
   | 'contactRawPayload'
   | 'contactRawPayloadParser'
   | 'contactQueryFilterFactory'
   | 'contactPayloadCache'
+  // Friend
   | 'friendshipRawPayload'
   | 'friendshipRawPayloadParser'
   | 'friendshipPayloadCache'
-  | 'messageRawPayload'
-  | 'messageRawPayloadParser'
+  // Message
   | 'messagePayloadCache'
   | 'messageQueryFilterFactory'
-  | 'resetState'
+  | 'messageRawPayload'
+  | 'messageRawPayloadParser'
+  // Indicator
+  | 'resetIndicator'
+  // RoomInvitation
   | 'roomInvitationPayloadCache'
   | 'roomInvitationRawPayload'
   | 'roomInvitationRawPayloadParser'
-  | 'roomRawPayload'
-  | 'roomRawPayloadParser'
+  // RoomMember
   | 'roomMemberRawPayload'
   | 'roomMemberRawPayloadParser'
-  | 'roomQueryFilterFactory'
+  // Room
   | 'roomPayloadCache'
+  | 'roomQueryFilterFactory'
+  | 'roomRawPayload'
+  | 'roomRawPayloadParser'
 
 // https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
-type PuppetInterface = Omit<Puppet, ProtectedMethods>
+type PuppetInterface = Omit<Puppet, ProtectedProperty>
 
 type PuppetImplementation = Constructor<PuppetInterface>
 
 export type {
+  ProtectedProperty,
   PuppetImplementation,
   PuppetInterface,
 }

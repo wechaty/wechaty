@@ -28,12 +28,12 @@ import type {
 
 import {
   PuppetEventEmitter,
-}                                 from '../events.js'
+}                                 from './events.js'
 
 abstract class PuppetSkelton extends PuppetEventEmitter {
 
   /**
-   * Puppet ID
+   * Puppet ID (UUID)
    *
    * Issue #160 - puppet.id will change to puppet.loggedInUserId #160
    *  - `id` is NOT logged in user ID
@@ -44,6 +44,10 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
 
   options: PuppetOptions
 
+  /**
+   * Huan(202110): mixins required the constructor arguments to be `...args: any[]`
+   * @param args
+   */
   constructor (
     ...args: any[]
   ) {
@@ -59,7 +63,7 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
    *
    *  All mixins should implemente both `start()` and `stop()`,
    *  and they must call `super.start()` and `super.stop()`
-   *  so that all start()/stop() can be chained.
+   *  so that all start()/stop() calls can be chained through all mixins.
    */
   async start (): Promise<void> {
     log.verbose('PuppetSkelton', 'start()')
