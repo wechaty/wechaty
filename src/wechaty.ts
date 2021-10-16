@@ -401,7 +401,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     /**
      * Plug the Memory Card to Puppet
      */
-    puppetInstance.setMemory(puppetMemory)
+    puppetInstance.memory = puppetMemory
     this.#puppet = puppetInstance
 
     this.initPuppetEventBridge(puppetInstance)
@@ -1053,15 +1053,15 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       })
   }
 
-  unref (): void {
-    log.verbose('Wechaty', 'unref()')
+  // unref (): void {
+  //   log.verbose('Wechaty', 'unref()')
 
-    if (this.lifeTimer) {
-      this.lifeTimer.unref()
-    }
+  //   if (this.lifeTimer) {
+  //     this.lifeTimer.unref()
+  //   }
 
-    this.puppet.unref()
-  }
+  //   this.puppet.unref()
+  // }
 
 }
 

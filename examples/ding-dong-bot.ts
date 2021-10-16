@@ -25,7 +25,7 @@ import {
   Wechaty,
 }               from '../src/mod.js' // from 'wechaty'
 
-import { generate } from 'qrcode-terminal'
+import * as qrTerm from 'qrcode-terminal'
 
 /**
  *
@@ -91,7 +91,7 @@ bot.start()
  */
 function onScan (qrcode: string, status: ScanStatus) {
   if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
-    generate(qrcode)
+    qrTerm.generate(qrcode)
 
     const qrcodeImageUrl = [
       'https://wechaty.js.org/qrcode/',
