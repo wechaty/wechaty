@@ -332,10 +332,11 @@ export class PuppetService extends Puppet {
     log.verbose('PuppetService', 'logout("%s")', reason)
 
     if (!this.logonoff()) {
-      log.warn('PuppetService', 'logout("%s") puppet does not logged in: %s',
+      log.verbose('PuppetService', 'logout("%s") puppet does not logged in, do nothing. %s',
         reason,
         new Error().stack,
       )
+      return
     }
 
     try {
