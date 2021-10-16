@@ -890,7 +890,7 @@ class Room extends wechatifyMixin(
       } else {
         const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
         const memberList = memberIdList
-          .filter(id => id !== this.wechaty.puppet.currentUserId())
+          .filter(id => id !== this.wechaty.puppet.currentUserId)
           .map(id => this.wechaty.Contact.load(id))
 
         let defaultTopic = (memberList[0] && memberList[0].name()) || ''

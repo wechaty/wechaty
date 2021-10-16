@@ -571,8 +571,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               room.emit('leave', leaverList, remover, date)
 
               // issue #254
-              const currentUserId = this.puppet.currentUserId()
-              if (currentUserId && payload.removeeIdList.includes(currentUserId)) {
+              if (payload.removeeIdList.includes(this.puppet.currentUserId)) {
                 await this.puppet.dirtyPayload(PayloadType.Room, payload.roomId)
                 await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
               }
@@ -938,7 +937,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * console.log(`Bot is ${contact.name()}`)
    */
   userSelf (): ContactSelf {
-    const userId = this.puppet.currentUserId()
+    const userId = this.puppet.currentUserId
     const user = this.ContactSelf.load(userId)
     return user
   }

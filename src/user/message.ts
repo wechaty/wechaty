@@ -259,7 +259,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
     }
 
     let talker
-    if (this.wechaty.logonoff() && talkerId === this.wechaty.puppet.currentUserId()) {
+    if (this.wechaty.logonoff() && talkerId === this.wechaty.puppet.currentUserId) {
       talker = this.wechaty.ContactSelf.load(talkerId)
     } else {
       talker = this.wechaty.Contact.load(talkerId)
@@ -311,7 +311,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
     }
 
     let listener
-    if (listenerId === this.wechaty.puppet.currentUserId()) {
+    if (listenerId === this.wechaty.puppet.currentUserId) {
       listener = this.wechaty.ContactSelf.load(listenerId)
     } else {
       listener = this.wechaty.Contact.load(listenerId)
@@ -678,10 +678,9 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    */
   self (): boolean {
     try {
-      const userId = this.wechaty.puppet.currentUserId()
       const talker = this.talker()
 
-      return talker.id === userId
+      return talker.id === this.wechaty.puppet.currentUserId
     } catch (e) {
       log.error('Message', 'self() rejection: %s', (e as Error).message)
       return false
@@ -831,7 +830,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * }
    */
   async mentionSelf (): Promise<boolean> {
-    const currentUserId = this.wechaty.puppet.currentUserId()
+    const currentUserId = this.wechaty.puppet.currentUserId
     const mentionList = await this.mentionList()
     return mentionList.some(contact => contact.id === currentUserId)
   }
