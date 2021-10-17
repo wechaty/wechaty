@@ -96,7 +96,7 @@
     "open-graph": "^0.2.6",
     "uuid": "^3.4.0",
     "wechaty-puppet": "^0.51.3",
-    "wechaty-puppet-service": "^0.37.11",
+    "wechaty-puppet-service": "^0.39.1",
     "ws": "^8.2.3"
   },
   "devDependencies": {
@@ -121,7 +121,7 @@
     "tstest": "^0.7.3",
     "typed-emitter": "^1.3.1",
     "typedoc": "^1.0.0-dev.4 ",
-    "wechaty-puppet-mock": "^0.33.3",
+    "wechaty-puppet-mock": "^0.35.1",
     "wechaty-puppet-padlocal": "^0.4.2"
   },
   "files": [
