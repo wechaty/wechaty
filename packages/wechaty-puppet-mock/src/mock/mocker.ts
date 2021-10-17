@@ -187,7 +187,6 @@ class Mocker {
   login (user: ContactMock) {
     log.verbose('Mocker', 'login(%s)', user)
     this.puppet.login(user.id)
-      .catch(e => log.error('Mocker', 'login(%s) rejection: %s', user.id, e))
   }
 
   /**

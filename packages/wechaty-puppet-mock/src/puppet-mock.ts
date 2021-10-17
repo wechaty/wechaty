@@ -87,8 +87,8 @@ class PuppetMock extends Puppet {
     this.mocker.puppet = this
   }
 
-  override async tryStart (): Promise<void> {
-    log.verbose('PuppetMock', 'tryStart()')
+  override async onStart (): Promise<void> {
+    log.verbose('PuppetMock', 'onStart()')
 
     /**
      * Start mocker after the puppet fully turned ON.
@@ -96,8 +96,8 @@ class PuppetMock extends Puppet {
     setImmediate(() => this.mocker.start())
   }
 
-  override async tryStop (): Promise<void> {
-    log.verbose('PuppetMock', 'tryStop()')
+  override async onStop (): Promise<void> {
+    log.verbose('PuppetMock', 'onStop()')
 
     if (this.loopTimer) {
       clearInterval(this.loopTimer)
