@@ -42,7 +42,10 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
    */
   readonly id: string
 
-  options: PuppetOptions
+  calledSkeltonStart : boolean
+  calledSkeltonStop  : boolean
+
+  readonly options: PuppetOptions
 
   /**
    * Huan(202110): mixins required the constructor arguments to be `...args: any[]`
@@ -60,6 +63,9 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
 
     this.id      = uuid.v4()
     this.options = args[0] || {}
+
+    this.calledSkeltonStart = false
+    this.calledSkeltonStop  = false
   }
 
   /**
@@ -71,12 +77,22 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
    */
   async start (): Promise<void> {
     log.verbose('PuppetSkelton', 'start()')
+    this.calledSkeltonStart = true
   }
 
-  async stop  (): Promise<void> {
+  async stop (): Promise<void> {
     log.verbose('PuppetSkelton', 'stop()')
+    this.calledSkeltonStop  = true
+
   }
 
 }
 
+type SkeltonProtectedProperty = never
+  | 'calledSkeltonStart'
+  | 'calledSkeltonStop'
+
+export type {
+  SkeltonProtectedProperty,
+}
 export { PuppetSkelton }

@@ -51,7 +51,7 @@ import { tagMixin }                   from '../mixins/tag-mixin.js'
  *    And Omit them from the Puppet typing defination
  *    to build a new PuppetInterface
  */
-type PuppetProtectedProperty = never
+type MixinProtectedProperty = never
   | ProtectedPropertyCacheMixin
   | ProtectedPropertyContactMixin
   | ProtectedPropertyFriendshipMixin
@@ -64,7 +64,7 @@ type PuppetProtectedProperty = never
   | ProtectedPropertyStateMixin
 
 export type {
-  PuppetProtectedProperty,
+  MixinProtectedProperty,
 }
 export {
   cacheMixin,

@@ -1,7 +1,6 @@
 import {
   log,
 }           from '../config.js'
-import type { EventLoginPayload } from '../mod.js'
 
 import type { PuppetSkelton } from '../puppet/skelton.js'
 
@@ -45,7 +44,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
      * this method will emit a `login` event
      * @internal for puppet internal usage
      */
-    async login (userId: string): Promise<void> {
+    login (userId: string): void {
       log.verbose('PuppetLoginMixin', 'login(%s)', userId)
 
       if (this._currentUserId) {
@@ -53,20 +52,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
       }
       this._currentUserId = userId
 
-      const payload: EventLoginPayload = {
-        contactId: userId,
-      }
-
-      const future = new Promise(resolve => this.once('login', resolve))
-
-      this.emit('login', payload)
-      log.verbose('PuppetLoginMixin', 'login() event "login" has been emitted')
-
-      await future
-      // wait all existing tasks from event loop
-      await new Promise(setImmediate)
-
-      log.verbose('PuppetLoginMixin', 'login() event "login" listeners have all executed (hopefully)')
+      this.emit('login', { contactId: userId })
     }
 
     /**
@@ -75,7 +61,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
      *
      * Note: must set `this.currentUserId = undefined` in this function.
      */
-    async logout (reason = 'logout()'): Promise<void> {
+    logout (reason = 'logout()'): void {
       log.verbose('PuppetLoginMixin', 'logout(%s)', reason)
 
       if (!this.logonoff()) {
@@ -83,20 +69,13 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
         return
       }
 
-      const future = new Promise(resolve => this.once('logout', resolve))
+      const currentUserId = this.currentUserId
+      this._currentUserId = undefined
 
       this.emit('logout', {
-        contactId : this.currentUserId,
+        contactId : currentUserId,
         data      : reason,
       })
-      log.verbose('PuppetLoginMixin', 'logout() event "logout" has been emitted')
-
-      await future
-      // wait all existing tasks from event loop
-      await new Promise(setImmediate)
-
-      log.verbose('PuppetLoginMixin', 'logout() event "logout" listeners all executed (hopefully)')
-      this._currentUserId = undefined
     }
 
     /**

@@ -124,12 +124,11 @@ abstract class Puppet extends MixinBase {
   /**
    * The child puppet provider should put all start code inside `onStart()`
    *  becasue the `start()` will call `onStart()` with the state management.
+   *
+   * `onStop()` is the same as the `onStart()`
+   *  @see https://github.com/wechaty/puppet/issues/163
    */
   abstract onStart (): Promise<void>
-  /**
-   * The child puppet provider should put all start code inside `onStop()`
-   *  becasue the `stop()` will call `onStop()` with the state management.
-   */
   abstract onStop  (): Promise<void>
 
   override async start () : Promise<void> {
@@ -174,6 +173,12 @@ abstract class Puppet extends MixinBase {
        * start parent(super) first, then self(this)
        */
       await super.start()
+      if (!this.calledSkeltonStart) {
+        throw new Error([
+          'All mixin classes should propogate the `start()` call to its base class.',
+          '@see https://github.com/wechaty/puppet/issues/156',
+        ].join('\n'))
+      }
       log.verbose('Puppet', 'start() super.start() done')
 
       await this.onStart()
@@ -238,6 +243,12 @@ abstract class Puppet extends MixinBase {
       log.verbose('Puppet', 'stop() this.stop() done')
 
       await super.stop()
+      if (!this.calledSkeltonStop) {
+        throw new Error([
+          'All mixin classes should propogate the `stop()` call to its base class.',
+          '@see https://github.com/wechaty/puppet/issues/156',
+        ].join('\n'))
+      }
       log.verbose('Puppet', 'stop() super.stop() done')
 
     } catch (e) {
