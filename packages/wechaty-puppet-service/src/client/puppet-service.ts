@@ -145,11 +145,11 @@ export class PuppetService extends Puppet {
     return packageJson.version || '0.0.0'
   }
 
-  override async tryStart (): Promise<void> {
-    log.verbose('PuppetService', 'tryStart()')
+  override async onStart (): Promise<void> {
+    log.verbose('PuppetService', 'onStart()')
 
     if (this.#grpc) {
-      log.warn('PuppetService', 'tryStart() found this.grpc is already existed. dropped.')
+      log.warn('PuppetService', 'onStart() found this.grpc is already existed. dropped.')
       this.#grpc = undefined
     }
 
@@ -164,14 +164,14 @@ export class PuppetService extends Puppet {
     await grpc.start()
 
     this.recoverSubscription = recover$(this).subscribe({
-      complete : () => log.verbose('PuppetService', '#tryStart() recover$().subscribe() complete()'),
-      error    : e  => log.error('PuppetService', '#tryStart() recover$().subscribe() error(%s)', e),
-      next     : x  => log.verbose('PuppetService', '#tryStart() recover$().subscribe() next(%s)', JSON.stringify(x)),
+      complete : () => log.verbose('PuppetService', 'onStart() recover$().subscribe() complete()'),
+      error    : e  => log.error('PuppetService', 'onStart() recover$().subscribe() error(%s)', e),
+      next     : x  => log.verbose('PuppetService', 'onStart() recover$().subscribe() next(%s)', JSON.stringify(x)),
     })
   }
 
-  override async tryStop (): Promise<void> {
-    log.verbose('PuppetService', 'tryStop()')
+  override async onStop (): Promise<void> {
+    log.verbose('PuppetService', 'onStop()')
 
     if (this.recoverSubscription) {
       this.recoverSubscription.unsubscribe()
