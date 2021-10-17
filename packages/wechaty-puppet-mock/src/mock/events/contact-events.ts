@@ -6,7 +6,7 @@ import type {
   MessageMock,
 }                   from '../user/mod.js'
 
-export type ContactMessageEventListener = (this: ContactMock, message: MessageMock, date?: Date) => void
+export type ContactMessageEventListener = (this: ContactMock, message: MessageMock, date?: Date) => void | Promise<void>
 
 interface ContactEvents {
   message    : ContactMessageEventListener,
