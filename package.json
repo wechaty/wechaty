@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.75.27",
+  "version": "0.77.0",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "type": "module",
   "exports": {
@@ -95,7 +95,7 @@
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
     "uuid": "^3.4.0",
-    "wechaty-puppet": "^0.49.23",
+    "wechaty-puppet": "^0.51.3",
     "wechaty-puppet-service": "^0.37.11",
     "ws": "^8.2.3"
   },
