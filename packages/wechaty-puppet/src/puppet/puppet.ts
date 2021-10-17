@@ -122,15 +122,15 @@ abstract class Puppet extends MixinBase {
   }
 
   /**
-   * The child puppet provider should put all start code inside `tryStart()`
-   *  becasue the `start()` will call `tryStart()` with the state management.
+   * The child puppet provider should put all start code inside `onStart()`
+   *  becasue the `start()` will call `onStart()` with the state management.
    */
-  abstract tryStart (): Promise<void>
+  abstract onStart (): Promise<void>
   /**
-   * The child puppet provider should put all start code inside `tryStop()`
-   *  becasue the `stop()` will call `tryStop()` with the state management.
+   * The child puppet provider should put all start code inside `onStop()`
+   *  becasue the `stop()` will call `onStop()` with the state management.
    */
-  abstract tryStop  (): Promise<void>
+  abstract onStop  (): Promise<void>
 
   override async start () : Promise<void> {
     log.verbose('Puppet', 'start()')
@@ -177,7 +177,7 @@ abstract class Puppet extends MixinBase {
       /**
        * Call the child provider start()
        */
-      await this.tryStart()
+      await this.onStart()
 
       /**
        * The puppet has been successfully started
@@ -234,7 +234,7 @@ abstract class Puppet extends MixinBase {
       /**
        * Call the child provider stop()
        */
-      await this.tryStop()
+      await this.onStop()
       /**
        * Call all the mixins stop()
        */
@@ -250,7 +250,7 @@ abstract class Puppet extends MixinBase {
     } finally {
       /**
        * Put the puppet into a stopped state
-       *  no matter the `tryStop()` success or fail
+       *  no matter the `onStop()` success or fail
        */
       this.state.off(true)
     }
