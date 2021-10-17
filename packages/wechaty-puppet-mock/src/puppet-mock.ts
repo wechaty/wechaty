@@ -48,6 +48,7 @@ import {
   CHATIE_OFFICIAL_ACCOUNT_QRCODE,
   qrCodeForChatie,
   VERSION,
+  NAME,
 }                                   from './config.js'
 
 // import { Attachment } from './mock/user/types'
@@ -86,6 +87,9 @@ class PuppetMock extends Puppet {
     }
     this.mocker.puppet = this
   }
+
+  override name ()    { return NAME }
+  override version () { return VERSION }
 
   override async onStart (): Promise<void> {
     log.verbose('PuppetMock', 'onStart()')
