@@ -7,6 +7,7 @@ import {
 import type { PuppetSkelton } from '../puppet/skelton.js'
 import { BusyIndicator }      from '../busy-indicator.js'
 import { WatchdogAgent }      from '../agents/watchdog-agent.js'
+import { GError } from '../mod.js'
 
 let PUPPET_COUNTER = 0
 
@@ -79,7 +80,9 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
       } catch (e) {
         log.warn('PuppetStateMixin', 'reset() rejection: %s', e)
-        this.emit('error', e as Error)
+        this.emit('error', {
+          data: JSON.stringify(GError.from(e as Error)),
+        })
 
       } finally {
         log.verbose('PuppetStateMixin', 'reset() done')

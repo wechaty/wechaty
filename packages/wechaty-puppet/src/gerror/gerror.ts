@@ -24,6 +24,10 @@ class GError extends Error implements GrpcStatus, EcmaError {
   code     : number
   details? : any[]
 
+  public static from (payload: string | GrpcStatus | EcmaError) {
+    return this.fromJSON(payload)
+  }
+
   /**
    * From a gRPC standard error
    *  Protobuf
