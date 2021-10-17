@@ -15,6 +15,7 @@
   "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
     "node": ">= 14",
+    "npm": ">=7",
     "wechaty": ">=0.77"
   },
   "scripts": {
