@@ -171,16 +171,13 @@ abstract class Puppet extends MixinBase {
 
     try {
       /**
-       * Call all the mixins start()
+       * start parent(super) first, then self(this)
        */
       await super.start()
-      /**
-       * Call the child provider start()
-       */
       await this.onStart()
 
       /**
-       * The puppet has been successfully started
+       * the puppet has been successfully started
        */
       this.state.on(true)
 
@@ -232,25 +229,22 @@ abstract class Puppet extends MixinBase {
 
     try {
       /**
-       * Call the child provider stop()
+       * stop self(this) first, then (parent) super
        */
       await this.onStop()
-      /**
-       * Call all the mixins stop()
-       */
       await super.stop()
 
     } catch (e) {
       /**
-       * The puppet has not been stopped
+       * the puppet has not been successfully stopped
        */
       log.error('Puppet', 'start() rejection: %s', (e as Error).message)
       throw e
 
     } finally {
       /**
-       * Put the puppet into a stopped state
-       *  no matter the `onStop()` success or fail
+       * set the puppet state to off(stopped) state
+       *  no matter whether the `onStop()` success or not
        */
       this.state.off(true)
     }
