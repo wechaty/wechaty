@@ -88,8 +88,8 @@ class PuppetMock extends Puppet {
     this.mocker.puppet = this
   }
 
-  override name ()    { return NAME }
-  override version () { return VERSION }
+  override name ()    { return `${NAME}<${super.name()}>` }
+  override version () { return `${VERSION}<${super.version}>` }
 
   override async onStart (): Promise<void> {
     log.verbose('PuppetMock', 'onStart()')
