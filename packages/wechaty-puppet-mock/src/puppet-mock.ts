@@ -307,11 +307,11 @@ class PuppetMock extends Puppet {
     something: string | FileBox, // | Attachment
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, something)
-    if (!this.id) {
-      throw new Error('no this.id')
+    if (!this.logonoff()) {
+      throw new Error('not logged in')
     }
 
-    const user = this.mocker.ContactMock.load(this.id)
+    const user = this.mocker.ContactMock.load(this.currentUserId)
     let conversation
 
     if (/@/.test(conversationId)) {
