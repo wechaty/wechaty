@@ -337,7 +337,9 @@ export class Io {
           if (wechaty.logonoff()) {
             const loginEvent: IoEvent = {
               name    : 'login',
-              payload : (wechaty.userSelf() as any).payload,
+              payload : await wechaty.puppet.contactPayload(
+                wechaty.puppet.currentUserId,
+              ),
             }
             await this.send(loginEvent)
           }
@@ -557,7 +559,7 @@ export class Io {
 
     const messageEvent: IoEvent = {
       name    : 'message',
-      payload : (m as any).payload,
+      payload : await m.wechaty.puppet.messagePayload(m.id),
     }
     await this.send(messageEvent)
   }

@@ -229,7 +229,7 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://w
 | method | [`stop(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+stop) | stop the bot |
 | method | [`logonoff(): boolean`](https://wechaty.github.io/wechaty/#Wechaty+logonoff) | bot login status |
 | method | [`logout(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+logout) | logout the bot |
-| method | [`userSelf(): ContactSelf`](https://wechaty.github.io/wechaty/#Wechaty+userSelf) | get the login-ed bot contact |
+| method | [`currentUser(): ContactSelf`](https://wechaty.github.io/wechaty/#Wechaty+currentUser) | get the login-ed bot contact |
 | method | [`say(text: string): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+say) | let bot say `text` to itself |
 
 ### 2 Class `Contact`

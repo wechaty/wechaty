@@ -934,13 +934,24 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    *
    * @returns {ContactSelf}
    * @example
-   * const contact = bot.userSelf()
+   * const contact = bot.currentUser()
    * console.log(`Bot is ${contact.name()}`)
    */
-  userSelf (): ContactSelf {
+  currentUser (): ContactSelf {
     const userId = this.puppet.currentUserId
     const user = this.ContactSelf.load(userId)
     return user
+  }
+
+  /**
+   * Will be removed after Dec 31, 2022
+   * @deprecated use {@link Wechaty#currentUser} instead
+   */
+  userSelf () {
+    log.warn('Wechaty', 'userSelf() deprecated: use currentUser() instead.\n%s',
+      new Error().stack,
+    )
+    return this.currentUser()
   }
 
   async say (text:    string)      : Promise<void>
@@ -953,7 +964,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   async say (...args: never[]): Promise<never>
 
   /**
-   * Send message to userSelf, in other words, bot send message to itself.
+   * Send message to currentUser, in other words, bot send message to itself.
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
@@ -1011,7 +1022,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', sayableMsg)
     // huan: to make TypeScript happy
-    await this.userSelf().say(sayableMsg as any)
+    await this.currentUser().say(sayableMsg as any)
   }
 
   /**

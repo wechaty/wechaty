@@ -519,7 +519,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', sayableMsg)
 
-    // const user = this.wechaty.puppet.userSelf()
+    // const user = this.wechaty.puppet.currentUser()
     const talker = this.talker()
     // const to   = this.to()
     const room = this.room()

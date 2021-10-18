@@ -111,7 +111,7 @@ class ContactSelf extends Contact {
   public async qrcode (): Promise<string> {
     log.verbose('Contact', 'qrcode()')
     if (this.id !== this.wechaty.puppet.currentUserId) {
-      throw new Error('only can get qrcode for the login userself')
+      throw new Error('only can get qrcode for the currentUser')
     }
 
     const qrcodeValue = await this.wechaty.puppet.contactSelfQRCode()
