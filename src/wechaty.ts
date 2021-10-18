@@ -728,7 +728,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     this.state.on('pending')
 
     try {
-      await this.tryStart()
+      await this.onStart()
       this.state.on(true)
       this.emit('start')
 
@@ -742,8 +742,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     }
   }
 
-  protected async tryStart (): Promise<void> {
-    log.verbose('Wechaty', '<%s>(%s) tryStart() v%s is starting...',
+  protected async onStart (): Promise<void> {
+    log.verbose('Wechaty', '<%s>(%s) onStart() v%s is starting...',
       this.options.puppet || config.systemPuppetName(),
       this.options.name   || '',
       this.version(),
@@ -751,7 +751,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     log.verbose('Wechaty', 'id: %s', this.id)
 
     /**
-     * Clear the `wechaty.ready()` state
+     * Init the `wechaty.ready()` state
      */
     this.readyState.off(true)
 
@@ -760,7 +760,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       try {
         await this.memory.load()
       } catch (e) {
-        log.silly('Wechaty', 'tryStart() memory.load() had already loaded')
+        log.silly('Wechaty', 'onStart() memory.load() had already loaded')
       }
     }
 
@@ -780,7 +780,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     this.cleanCallbackList.push(() => this.off('heartbeat', memoryCheck))
 
     const lifeTimer = setInterval(() => {
-      log.silly('Wechaty', 'tryStart() setInterval() this timer is to keep Wechaty running...')
+      log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
     }, 1000 * 60 * 60)
     this.cleanCallbackList.push(() => clearInterval(lifeTimer))
   }
@@ -830,7 +830,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     this.state.off('pending')
 
     try {
-      await this.tryStop()
+      await this.onStop()
 
     } catch (e) {
       log.error('Wechaty', 'stop() rejection: %s', e && (e as Error).message)
@@ -844,8 +844,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     }
   }
 
-  protected async tryStop (): Promise<void> {
-    log.verbose('Wechaty', '<%s> tryStop() v%s is stopping ...',
+  protected async onStop (): Promise<void> {
+    log.verbose('Wechaty', '<%s> onStop() v%s is stopping ...',
       this.options.puppet || config.systemPuppetName(),
       this.version(),
     )
@@ -867,7 +867,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       await this.puppet.stop()
     } catch (e) {
-      log.warn('Wechaty', 'tryStop() puppet.stop() exception: %s', (e as Error).message)
+      log.warn('Wechaty', 'onStop() puppet.stop() exception: %s', (e as Error).message)
     }
 
     try {
@@ -877,7 +877,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       }
 
     } catch (e) {
-      log.error('Wechaty', 'tryStop() exception: %s', (e as Error).message)
+      log.error('Wechaty', 'onStop() exception: %s', (e as Error).message)
       captureException((e as Error))
       this.emit('error', (e as Error))
     }
