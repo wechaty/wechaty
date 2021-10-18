@@ -125,11 +125,12 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   static   readonly VERSION = VERSION
   static   readonly log     = log
-  readonly log              = log
 
-  private  readonly state      : StateSwitch
+  readonly log              = log
+  readonly state   : StateSwitch
+  readonly wechaty : Wechaty
+
   private  readonly readyState : StateSwitch
-  readonly wechaty             : Wechaty
 
   /**
    * singleton globalInstance
