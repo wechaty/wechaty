@@ -26,6 +26,7 @@ import {
   FileBox,
   log,
 }                                 from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
@@ -1088,6 +1089,16 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
 
 }
 
+interface MessageInterface extends Message {}
+type MessageConstructor = Constructor<
+  MessageInterface,
+  typeof Message
+>
+
+export type {
+  MessageInterface,
+  MessageConstructor,
+}
 export {
   Message,
 }

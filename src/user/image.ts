@@ -22,6 +22,7 @@ import {
   FileBox,
   log,
 }                   from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import {
   EmptyBase,
@@ -64,6 +65,16 @@ class Image extends wechatifyMixin(EmptyBase) {
 
 }
 
+interface ImageInterface extends Image { }
+type ImageConstructor = Constructor<
+  ImageInterface,
+  typeof Image
+>
+
+export type {
+  ImageConstructor,
+  ImageInterface,
+}
 export {
   Image,
 }

@@ -23,6 +23,7 @@ import {
   UrlLinkPayload,
   log,
 }                         from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import {
   openGraph,
@@ -129,6 +130,15 @@ class UrlLink extends wechatifyMixin(EmptyBase) {
 
 }
 
+interface UrlLinkInterface extends UrlLink {}
+type UrlLinkConstructor = Constructor<
+  UrlLinkInterface,
+  typeof UrlLink
+>
+export type {
+  UrlLinkConstructor,
+  UrlLinkInterface,
+}
 export {
   UrlLink,
 }

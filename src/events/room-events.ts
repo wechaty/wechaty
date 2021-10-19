@@ -97,31 +97,31 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
  *
  */
 
-type RoomInviteEventListener  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void | Promise<void>
-type RoomJoinEventListener    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void | Promise<void>
-type RoomLeaveEventListener   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)          => void | Promise<void>
-type RoomMessageEventListener = (this: Room, message: Message, date?: Date)                                  => void | Promise<void>
-type RoomTopicEventListener   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date) => void | Promise<void>
+type RoomEventListenerInvite  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void | Promise<void>
+type RoomEventListenerJoin    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void | Promise<void>
+type RoomEventListenerLeave   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)          => void | Promise<void>
+type RoomEventListenerMessage = (this: Room, message: Message, date?: Date)                                  => void | Promise<void>
+type RoomEventListenerTopic   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date) => void | Promise<void>
 
-interface RoomEvents {
-  invite  : RoomInviteEventListener
-  join    : RoomJoinEventListener,
-  leave   : RoomLeaveEventListener,
-  message : RoomMessageEventListener,
-  topic   : RoomTopicEventListener,
+interface RoomEventListeners {
+  invite  : RoomEventListenerInvite
+  join    : RoomEventListenerJoin
+  leave   : RoomEventListenerLeave
+  message : RoomEventListenerMessage
+  topic   : RoomEventListenerTopic
 }
 
 const RoomEventEmitter = EventEmitter as new () => TypedEventEmitter<
-  RoomEvents
+  RoomEventListeners
 >
 
 export type {
-  RoomEvents,
-  RoomInviteEventListener,
-  RoomJoinEventListener,
-  RoomLeaveEventListener,
-  RoomMessageEventListener,
-  RoomTopicEventListener,
+  RoomEventListeners,
+  RoomEventListenerInvite,
+  RoomEventListenerJoin,
+  RoomEventListenerLeave,
+  RoomEventListenerMessage,
+  RoomEventListenerTopic,
 }
 export {
   RoomEventEmitter,

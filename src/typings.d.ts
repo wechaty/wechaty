@@ -18,3 +18,24 @@
  *
  */
 declare module 'qrcode-terminal'
+
+/**
+ * Should be removed after Nov 16
+ * @see https://github.com/huan/clone-class/issues/58
+ */
+declare module 'clone-class' {
+  export { instanceToClass } from 'clone-class'
+  type ClassInterface<C> = {
+    [key in keyof C]: C[key];
+  }
+
+  type InstanceInterface <I> = {
+    new (...args: any[]): I
+    prototype: I
+  }
+
+  export type Constructor<
+    I extends {} = {},
+    C = any
+  > = InstanceInterface<I> & ClassInterface<C>
+}

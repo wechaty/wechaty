@@ -1,8 +1,3 @@
-import {
-  EmptyBase,
-  wechatifyMixin,
-}                       from './mixins/wechatify.js'
-
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -22,6 +17,13 @@ import {
  *   limitations under the License.
  *
  */
+import type { Constructor } from 'clone-class'
+
+import {
+  EmptyBase,
+  wechatifyMixin,
+}                       from './mixins/wechatify.js'
+
 class Money extends wechatifyMixin(EmptyBase) {
 
   /*
@@ -33,6 +35,16 @@ class Money extends wechatifyMixin(EmptyBase) {
 
 }
 
+interface MoneyInterface extends Money {}
+type MoneyConstructor = Constructor<
+  MoneyInterface,
+  typeof Money
+>
+
+export type {
+  MoneyConstructor,
+  MoneyInterface,
+}
 export {
   Money,
 }

@@ -21,6 +21,7 @@ import {
   RoomInvitationPayload,
   log,
 }                           from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import type {
   Acceptable,
@@ -275,6 +276,16 @@ class RoomInvitation extends wechatifyMixin(EmptyBase) implements Acceptable {
 
 }
 
+interface RoomInvitationInterface extends RoomInvitation {}
+type RoomInvitationConstructor = Constructor<
+  RoomInvitationInterface,
+  typeof RoomInvitation
+>
+
+export type {
+  RoomInvitationConstructor,
+  RoomInvitationInterface,
+}
 export {
   RoomInvitation,
 }

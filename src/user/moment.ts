@@ -18,6 +18,7 @@
  *
  */
 import { log } from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import type { Contact } from './contact.js'
 import {
@@ -47,6 +48,16 @@ class Moment extends wechatifyMixin(EmptyBase) {
 
 }
 
+interface MomentInterface extends Moment {}
+type MomentConstructor = Constructor<
+  MomentInterface,
+  typeof Moment
+>
+
+export type {
+  MomentConstructor,
+  MomentInterface,
+}
 export {
   Moment,
 }

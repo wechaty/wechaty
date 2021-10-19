@@ -71,6 +71,30 @@ import {
   UrlLink,
   Location,
 
+  ContactConstructor,
+  ContactSelfConstructor,
+  FriendshipConstructor,
+  ImageConstructor,
+  MessageConstructor,
+  MiniProgramConstructor,
+  RoomConstructor,
+  RoomInvitationConstructor,
+  TagConstructor,
+  UrlLinkConstructor,
+  LocationConstructor,
+
+  ContactInterface,
+  ContactSelfInterface,
+  FriendshipInterface,
+  ImageInterface,
+  MessageInterface,
+  MiniProgramInterface,
+  RoomInterface,
+  RoomInvitationInterface,
+  TagInterface,
+  UrlLinkInterface,
+  LocationInterface,
+
   wechatifyUserClass,
 }                       from './user/mod.js'
 
@@ -86,6 +110,10 @@ import {
   WechatyPluginUninstaller,
   isWechatyPluginUninstaller,
 }                             from './plugin.js'
+import type {
+  WechatyInterface,
+  WechatyConstructor,
+}                       from './interface/wechaty-interface.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -128,7 +156,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   readonly log              = log
   readonly state   : StateSwitch
-  readonly wechaty : Wechaty
+  readonly wechaty : WechatyInterface
 
   private  readonly readyState : StateSwitch
 
@@ -136,7 +164,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * singleton globalInstance
    * @ignore
    */
-  private static globalInstance?: Wechaty
+  private static globalInstance?: WechatyInterface
 
   private static globalPluginList: WechatyPlugin[] = []
 
@@ -162,29 +190,29 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    */
   readonly id : string
 
-  #wechatifiedContact?        : typeof Contact
-  #wechatifiedContactSelf?    : typeof ContactSelf
-  #wechatifiedFriendship?     : typeof Friendship
-  #wechatifiedImage?          : typeof Image
-  #wechatifiedMessage?        : typeof Message
-  #wechatifiedMiniProgram?    : typeof MiniProgram
-  #wechatifiedRoom?           : typeof Room
-  #wechatifiedRoomInvitation? : typeof RoomInvitation
-  #wechatifiedTag?            : typeof Tag
-  #wechatifiedUrlLink?        : typeof UrlLink
-  #wechatifiedLocation?       : typeof Location
+  #wechatifiedContact?        : ContactConstructor
+  #wechatifiedContactSelf?    : ContactSelfConstructor
+  #wechatifiedFriendship?     : FriendshipConstructor
+  #wechatifiedImage?          : ImageConstructor
+  #wechatifiedMessage?        : MessageConstructor
+  #wechatifiedMiniProgram?    : MiniProgramConstructor
+  #wechatifiedRoom?           : RoomConstructor
+  #wechatifiedRoomInvitation? : RoomInvitationConstructor
+  #wechatifiedTag?            : TagConstructor
+  #wechatifiedUrlLink?        : UrlLinkConstructor
+  #wechatifiedLocation?       : LocationConstructor
 
-  get Contact ()        : typeof Contact         { return guardWechatify(this.#wechatifiedContact)        }
-  get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.#wechatifiedContactSelf)    }
-  get Friendship ()     : typeof Friendship      { return guardWechatify(this.#wechatifiedFriendship)     }
-  get Image ()          : typeof Image           { return guardWechatify(this.#wechatifiedImage)          }
-  get Message ()        : typeof Message         { return guardWechatify(this.#wechatifiedMessage)        }
-  get MiniProgram ()    : typeof MiniProgram     { return guardWechatify(this.#wechatifiedMiniProgram)    }
-  get Room ()           : typeof Room            { return guardWechatify(this.#wechatifiedRoom)           }
-  get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.#wechatifiedRoomInvitation) }
-  get Tag ()            : typeof Tag             { return guardWechatify(this.#wechatifiedTag)            }
-  get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.#wechatifiedUrlLink)        }
-  get Location ()       : typeof Location        { return guardWechatify(this.#wechatifiedLocation)       }
+  get Contact ()        : ContactConstructor        { return guardWechatify(this.#wechatifiedContact)        }
+  get ContactSelf ()    : ContactSelfConstructor    { return guardWechatify(this.#wechatifiedContactSelf)    }
+  get Friendship ()     : FriendshipConstructor     { return guardWechatify(this.#wechatifiedFriendship)     }
+  get Image ()          : ImageConstructor          { return guardWechatify(this.#wechatifiedImage)          }
+  get Message ()        : MessageConstructor        { return guardWechatify(this.#wechatifiedMessage)        }
+  get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this.#wechatifiedMiniProgram)    }
+  get Room ()           : RoomConstructor           { return guardWechatify(this.#wechatifiedRoom)           }
+  get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this.#wechatifiedRoomInvitation) }
+  get Tag ()            : TagConstructor            { return guardWechatify(this.#wechatifiedTag)            }
+  get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this.#wechatifiedUrlLink)        }
+  get Location ()       : LocationConstructor       { return guardWechatify(this.#wechatifiedLocation)       }
 
   /**
    * Get the global instance of Wechaty
@@ -202,14 +230,28 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    */
   static instance (
     options?: WechatyOptions,
-  ) {
+  ): WechatyInterface {
     if (options && this.globalInstance) {
       throw new Error('instance can be only initialized once by options!')
     }
     if (!this.globalInstance) {
-      this.globalInstance = new Wechaty(options)
+      this.globalInstance = this.create(options)
     }
     return this.globalInstance
+  }
+
+  /**
+   * Wechaty.create() will return a `WechatyInterface` instance.
+   */
+  static create (
+    options?: WechatyOptions,
+  ): WechatyInterface {
+    log.verbose('Wechaty', 'create(%s)',
+      options
+        ? `"${JSON.stringify(options)}"`
+        : '',
+    )
+    return new this(options)
   }
 
   /**
@@ -955,11 +997,11 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   }
 
   async say (text:    string)      : Promise<void>
-  async say (contact: Contact)     : Promise<void>
+  async say (contact: ContactInterface)     : Promise<void>
   async say (file:    FileBox)     : Promise<void>
-  async say (mini:    MiniProgram) : Promise<void>
-  async say (url:     UrlLink)     : Promise<void>
-  async say (url:     Location)    : Promise<void>
+  async say (mini:    MiniProgramInterface) : Promise<void>
+  async say (url:     UrlLinkInterface)     : Promise<void>
+  async say (url:     LocationInterface)    : Promise<void>
 
   async say (...args: never[]): Promise<never>
 

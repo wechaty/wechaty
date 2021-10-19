@@ -19,7 +19,6 @@
  */
 import type { FileBox } from 'file-box'
 
-import type { Wechaty } from './wechaty.js'
 import type {
   Contact,
   Location,
@@ -27,6 +26,7 @@ import type {
   MiniProgram,
   UrlLink,
 }                 from './user/mod.js'
+import type { WechatyInterface } from './interface/wechaty-interface.js'
 
 type SayableMessage = never
                     | Contact
@@ -40,7 +40,7 @@ type SayableMessage = never
 
 interface Sayable {
   id      : string,
-  wechaty : Wechaty,
+  wechaty : WechatyInterface,
   say (
     text     : SayableMessage,
     replyTo? : Contact | Contact[]
@@ -50,7 +50,7 @@ interface Sayable {
 interface Acceptable {
   accept  : () => Promise<void>
   id      : string,
-  wechaty : Wechaty
+  wechaty : WechatyInterface
 }
 
 export type  {

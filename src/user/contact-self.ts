@@ -21,6 +21,7 @@ import {
   FileBox,
   log,
 }           from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import {
   guardQrCodeValue,
@@ -178,6 +179,16 @@ class ContactSelf extends Contact {
 
 }
 
+interface ContactSelfInterface extends ContactSelf {}
+type ContactSelfConstructor = Constructor<
+  ContactSelfInterface,
+  typeof ContactSelf
+>
+
+export type {
+  ContactSelfConstructor,
+  ContactSelfInterface,
+}
 export {
   ContactSelf,
 }

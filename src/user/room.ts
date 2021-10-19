@@ -1222,6 +1222,15 @@ class Room extends wechatifyMixin(
 
 }
 
+interface RoomInterface extends Room {}
+type RoomConstructor = Constructor<
+  RoomInterface,
+  typeof Room
+>
+export type {
+  RoomConstructor,
+  RoomInterface,
+}
 export {
   Room,
 }

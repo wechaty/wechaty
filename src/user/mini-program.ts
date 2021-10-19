@@ -21,6 +21,7 @@ import {
   MiniProgramPayload,
   log,
 }                         from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import {
   EmptyBase,
@@ -93,6 +94,16 @@ class MiniProgram extends wechatifyMixin(EmptyBase) {
 
 }
 
+interface MiniProgramInterface extends MiniProgram {}
+type MiniProgramConstructor = Constructor<
+  MiniProgramInterface,
+  typeof MiniProgram
+>
+
+export type {
+  MiniProgramConstructor,
+  MiniProgramInterface,
+}
 export {
   MiniProgram,
 }

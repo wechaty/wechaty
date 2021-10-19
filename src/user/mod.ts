@@ -17,26 +17,112 @@
  *   limitations under the License.
  *
  */
-import { Contact }          from './contact.js'
-import { ContactSelf }      from './contact-self.js'
-import { Favorite }         from './favorite.js'
-import { Friendship }       from './friendship.js'
-import { Image }            from './image.js'
-import { Location }         from './location.js'
-import { Message }          from './message.js'
-import { MiniProgram }      from './mini-program.js'
-import { Moment }           from './moment.js'
-import { Money }            from './money.js'
-import { Room }             from './room.js'
-import { RoomInvitation }   from './room-invitation.js'
-import { Tag }              from './tag.js'
-import { UrlLink }          from './url-link.js'
+import {
+  Contact,
+  ContactInterface,
+  ContactConstructor,
+}                           from './contact.js'
+import {
+  ContactSelf,
+  ContactSelfInterface,
+  ContactSelfConstructor,
+}                           from './contact-self.js'
+import {
+  Favorite,
+  FavoriteInterface,
+  FavoriteConstructor,
+}                           from './favorite.js'
+import {
+  Friendship,
+  FriendshipInterface,
+  FriendshipConstructor,
+}                           from './friendship.js'
+import {
+  Image,
+  ImageInterface,
+  ImageConstructor,
+}                           from './image.js'
+import {
+  Location,
+  LocationInterface,
+  LocationConstructor,
+}                           from './location.js'
+import {
+  Message,
+  MessageInterface,
+  MessageConstructor,
+}                           from './message.js'
+import {
+  MiniProgram,
+  MiniProgramInterface,
+  MiniProgramConstructor,
+}                           from './mini-program.js'
+import {
+  Moment,
+  MomentInterface,
+  MomentConstructor,
+}                           from './moment.js'
+import {
+  Money,
+  MoneyInterface,
+  MoneyConstructor,
+}                           from './money.js'
+import {
+  Room,
+  RoomInterface,
+  RoomConstructor,
+}                           from './room.js'
+import {
+  RoomInvitation,
+  RoomInvitationInterface,
+  RoomInvitationConstructor,
+}                           from './room-invitation.js'
+import {
+  Tag,
+  TagInterface,
+  TagConstructor,
+}                           from './tag.js'
+import {
+  UrlLink,
+  UrlLinkInterface,
+  UrlLinkConstructor,
+}                           from './url-link.js'
 
 import { wechatifyUserClass } from './mixins/wechatify.js'
 
+export type {
+  ContactInterface,
+  ContactSelfInterface,
+  FavoriteInterface,
+  FriendshipInterface,
+  ImageInterface,
+  LocationInterface,
+  MessageInterface,
+  MiniProgramInterface,
+  MomentInterface,
+  MoneyInterface,
+  RoomInterface,
+  RoomInvitationInterface,
+  TagInterface,
+  UrlLinkInterface,
+
+  ContactConstructor,
+  ContactSelfConstructor,
+  FavoriteConstructor,
+  FriendshipConstructor,
+  ImageConstructor,
+  LocationConstructor,
+  MessageConstructor,
+  MiniProgramConstructor,
+  MomentConstructor,
+  MoneyConstructor,
+  RoomConstructor,
+  RoomInvitationConstructor,
+  TagConstructor,
+  UrlLinkConstructor,
+}
 export {
   wechatifyUserClass,
-
   Contact,
   ContactSelf,
   Favorite,

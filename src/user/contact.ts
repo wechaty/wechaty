@@ -859,6 +859,16 @@ class Contact extends wechatifyMixin(
 
 }
 
+interface ContactInterface extends Contact {}
+type ContactConstructor = Constructor<
+  ContactInterface,
+  typeof Contact
+>
+
+export type {
+  ContactConstructor,
+  ContactInterface,
+}
 export {
   Contact,
 }

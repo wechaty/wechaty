@@ -18,6 +18,7 @@
  *
  */
 import { log }        from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import type { Tag }       from './tag.js'
 import {
@@ -72,6 +73,16 @@ class Favorite extends wechatifyMixin(EmptyBase) {
 
 }
 
+interface FavoriteInterface extends Favorite {}
+type FavoriteConstructor = Constructor<
+  FavoriteInterface,
+  typeof Favorite
+>
+
+export type {
+  FavoriteConstructor,
+  FavoriteInterface,
+}
 export {
   Favorite,
 }

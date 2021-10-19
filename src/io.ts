@@ -34,17 +34,15 @@ import type {
 import {
   config,
 }                 from './config.js'
-import type {
-  Wechaty,
-}                 from './wechaty.js'
 
 import {
   getPeer,
   isJsonRpcRequest,
 }                   from './io-peer/io-peer.js'
+import type { WechatyInterface } from './interface/mod.js'
 
 export interface IoOptions {
-  wechaty      : Wechaty,
+  wechaty      : WechatyInterface,
   token        : string,
   apihost?     : string,
   protocol?    : string,
@@ -198,8 +196,8 @@ export class Io {
 
     wechaty.on('error',     error =>        this.send({ name: 'error',      payload: error }))
     wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user.payload }))
-    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user.payload }))
+    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: wechaty.puppet.contactPayload(user.id) }))
+    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: wechaty.puppet.contactPayload(user.id) }))
     wechaty.on('message',   message =>      this.ioMessage(message))
 
     // FIXME: payload schema need to be defined universal

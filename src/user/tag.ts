@@ -34,7 +34,10 @@ import {
   wechatifyMixin,
 }                     from './mixins/wechatify.js'
 
-// FIXME: Issue #2273
+/**
+ * FIXME: Issue #2273
+ * @see https://github.com/wechaty/wechaty/issues/2273
+ */
 void POOL
 const t: Constructor = {} as any
 void t
@@ -165,6 +168,16 @@ class Tag extends wechatifyMixin(
 
 }
 
+interface TagInterface extends Tag {}
+type TagConstructor = Constructor<
+  TagInterface,
+  typeof Tag
+>
+
+export type {
+  TagConstructor,
+  TagInterface,
+}
 export {
   Tag,
 }

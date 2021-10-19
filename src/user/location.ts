@@ -21,6 +21,7 @@ import {
   LocationPayload,
   log,
 }                       from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import {
   EmptyBase,
@@ -87,6 +88,16 @@ class Location extends wechatifyMixin(EmptyBase) {
 
 }
 
+interface LocationInterface extends Location {}
+type LocationConstructor = Constructor<
+  LocationInterface,
+  typeof Location
+>
+
+export type {
+  LocationConstructor,
+  LocationInterface,
+}
 export {
   Location,
 }

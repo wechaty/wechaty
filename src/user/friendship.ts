@@ -25,6 +25,7 @@ import {
   FriendshipSearchQueryFilter,
   log,
 }                                 from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import {
   retryPolicy,
@@ -423,6 +424,16 @@ class Friendship extends wechatifyMixin(EventEmitter) implements Acceptable {
 
 }
 
+interface FriendshipInterface extends Friendship {}
+type FriendshipConstructor = Constructor<
+  FriendshipInterface,
+  typeof Friendship
+>
+
+export type {
+  FriendshipConstructor,
+  FriendshipInterface,
+}
 export {
   Friendship,
 }
