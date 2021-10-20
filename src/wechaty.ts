@@ -84,7 +84,7 @@ import {
   LocationConstructor,
 
   Contact,
-  // ContactSelfInterface,
+  ContactSelf,
   // FriendshipInterface,
   // ImageInterface,
   // MessageInterface,
@@ -962,7 +962,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
    * const contact = bot.currentUser()
    * console.log(`Bot is ${contact.name()}`)
    */
-  currentUser (): Contact {
+  currentUser (): ContactSelf {
     const userId = this.puppet.currentUserId
     const user = this.ContactSelf.load(userId)
     return user

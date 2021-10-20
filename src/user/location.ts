@@ -36,7 +36,7 @@ class LocationImpl extends wechatifyMixin(EmptyBase) {
    * @param poi string A point of interest (POI) is a specific point location that someone may find useful or interesting.
    *  See: https://en.wikipedia.org/wiki/Point_of_interest
    */
-  static async create (poi: string): Promise<LocationImpl> {
+  static async create (poi: string): Promise<Location> {
     log.verbose('Location', 'create(%s)', poi)
 
     const payload: LocationPayload = {

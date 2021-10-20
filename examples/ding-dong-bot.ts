@@ -20,12 +20,12 @@
 import {
   Contact,
   FileBox,
-  MessageImpl,
   ScanStatus,
   createWechaty,
 }                 from '../src/mod.js' // from 'wechaty'
 
 import * as qrTerm from 'qrcode-terminal'
+import type { Message } from '../src/user/message.js'
 
 /**
  *
@@ -129,7 +129,7 @@ function onError (e: Error) {
  *    dealing with Messages.
  *
  */
-async function onMessage (msg: MessageImpl) {
+async function onMessage (msg: Message) {
   console.info(msg.toString())
 
   if (msg.self()) {

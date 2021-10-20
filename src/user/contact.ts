@@ -278,10 +278,10 @@ class ContactImpl extends wechatifyMixin(
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | ContactImpl | FileBox | UrlLinkImpl | MiniProgramImpl | LocationImpl)} sayableMsg
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
-   * @returns {Promise<void | MessageImpl>}
+   * @returns {Promise<void | Message>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()

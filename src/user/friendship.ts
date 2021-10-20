@@ -83,7 +83,7 @@ class FriendshipImpl extends wechatifyMixin(EventEmitter) implements Acceptable 
    * Remember not to do this too frequently, or your account may be blocked.
    *
    * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
-   * @returns {Promise<ContactImpl>}
+   * @returns {Promise<Contact>}
    *
    * @example
    * const friend_phone = await bot.Friendship.search({phone: '13112341234'})
