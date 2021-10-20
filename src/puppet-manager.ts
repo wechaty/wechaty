@@ -24,7 +24,7 @@ import childProcess from 'child_process'
 
 import {
   log,
-  looseInstanceOfPuppet,
+  Puppet,
   PuppetImplementation,
   PuppetInterface,
   PuppetOptions,
@@ -56,7 +56,7 @@ export class PuppetManager {
      *  then options.puppet will not instanceof Puppet. (looseInstanceOfPuppet)
      *  So I changed here to match not a string as a workaround.
      */
-    if (looseInstanceOfPuppet(options.puppet)) {
+    if (Puppet.validInstance(options.puppet)) {
       return options.puppet
     }
 

@@ -22,11 +22,10 @@ import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
-  looseInstanceOfFileBox,
   FileBox,
   log,
 }                                 from 'wechaty-puppet'
-import type { Constructor } from 'clone-class'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
@@ -37,7 +36,7 @@ import {
 import type {
   Sayable,
   SayableMessage,
-}                             from '../types.js'
+}                             from '../interface/mod.js'
 import { captureException }   from '../raven.js'
 
 import {
@@ -571,7 +570,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
         conversationId,
         sayableMsg.id,
       )
-    } else if (looseInstanceOfFileBox(sayableMsg)) {
+    } else if (FileBox.validInstance(sayableMsg) || FileBox.validInterface(sayableMsg)) {
       /**
        * Be aware of minified codes:
        *  https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class#comment60309941_1249554

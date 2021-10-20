@@ -5,6 +5,19 @@ import type { StateSwitch }   from 'state-switch'
 import { test } from 'tstest'
 import type { PuppetInterface } from 'wechaty-puppet'
 import type { Message } from '../mod.js'
+import type {
+  ContactSelfConstructor,
+  ContactConstructor,
+  FriendshipConstructor,
+  ImageConstructor,
+  LocationConstructor,
+  MessageConstructor,
+  MiniProgramConstructor,
+  RoomInvitationConstructor,
+  RoomConstructor,
+  TagConstructor,
+  UrlLinkConstructor,
+}                             from '../user/mod.js'
 
 import type {
   WechatyConstructor,
@@ -15,13 +28,39 @@ import type {
 test('WechatyInterface', async t => {
   abstract class WechatyImplementation extends EventEmitter implements WechatyInterface {
 
+    Contact        : ContactConstructor
+    ContactSelf    : ContactSelfConstructor
+    Friendship     : FriendshipConstructor
+    Image          : ImageConstructor
+    Location       : LocationConstructor
+    Message        : MessageConstructor
+    MiniProgram    : MiniProgramConstructor
+    Room           : RoomConstructor
+    RoomInvitation : RoomInvitationConstructor
+    Tag            : TagConstructor
+    UrlLink        : UrlLinkConstructor
+
     id     : string
     puppet : PuppetInterface
     state  : StateSwitch
 
     constructor () {
       super()
-      this.id = this.state = this.puppet = {} as any
+      this.id
+        = this.Contact
+        = this.ContactSelf
+        = this.Friendship
+        = this.Image
+        = this.Location
+        = this.Message
+        = this.MiniProgram
+        = this.puppet
+        = this.Room
+        = this.RoomInvitation
+        = this.state
+        = this.Tag
+        = this.UrlLink
+        = {} as any
     }
 
     abstract currentUser : WechatyInterface['currentUser']

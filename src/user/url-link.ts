@@ -23,7 +23,7 @@ import {
   UrlLinkPayload,
   log,
 }                         from 'wechaty-puppet'
-import type { Constructor } from 'clone-class'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   openGraph,

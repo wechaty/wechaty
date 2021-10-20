@@ -20,7 +20,6 @@
 import {
   FileBox,
   log,
-  looseInstanceOfFileBox,
   PayloadType,
   RoomMemberQueryFilter,
   RoomPayload,
@@ -28,7 +27,7 @@ import {
 }                           from 'wechaty-puppet'
 import type {
   Constructor,
-}                           from 'clone-class'
+}                           from '../deprecated/clone-class.js'
 
 import {
   FOUR_PER_EM_SPACE,
@@ -36,7 +35,7 @@ import {
 import type {
   Sayable,
   SayableMessage,
-}                           from '../types.js'
+}                           from '../interface/mod.js'
 
 import { captureException } from '../raven.js'
 import {
@@ -62,8 +61,6 @@ import {
 
 // FIXME: #2273
 void POOL
-const t: Constructor = {} as any
-void t
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -521,7 +518,7 @@ class Room extends wechatifyMixin(
         text,
         mentionList.map(c => c.id),
       )
-    } else if (looseInstanceOfFileBox(sayableMsg)) {
+    } else if (FileBox.validInstance(sayableMsg) ||  FileBox.validInterface(sayableMsg)) {
       /**
        * 2. File Message
        */

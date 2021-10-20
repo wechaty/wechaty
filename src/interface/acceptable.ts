@@ -17,34 +17,14 @@
  *   limitations under the License.
  *
  */
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { WechatyInterface } from './wechaty-interface.js'
 
-import {
-  EmptyBase,
-  wechatifyMixin,
-}                       from './mixins/wechatify.js'
-
-class Money extends wechatifyMixin(EmptyBase) {
-
-  /*
-   * @hideconstructor
-   */
-  constructor () {
-    super()
-  }
-
+interface Acceptable {
+  accept  : () => Promise<void>
+  id      : string,
+  wechaty : WechatyInterface
 }
 
-interface MoneyInterface extends Money {}
-type MoneyConstructor = Constructor<
-  MoneyInterface,
-  typeof Money
->
-
-export type {
-  MoneyConstructor,
-  MoneyInterface,
-}
-export {
-  Money,
+export type  {
+  Acceptable,
 }

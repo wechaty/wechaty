@@ -24,12 +24,11 @@ import {
   ContactType,
   FileBox,
   log,
-  looseInstanceOfFileBox,
   PayloadType,
 }                             from 'wechaty-puppet'
 import type {
   Constructor,
-}                             from 'clone-class'
+}                             from '../deprecated/clone-class.js'
 
 import {
   qrCodeForChatie,
@@ -37,7 +36,7 @@ import {
 import type {
   Sayable,
   SayableMessage,
-}                          from '../types.js'
+}                          from '../interface/mod.js'
 import { captureException } from '../raven.js'
 
 import { Message }      from './message.js'
@@ -64,8 +63,6 @@ import {
  *  why?
  */
 void POOL
-const t: Constructor = {} as any
-void t
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
@@ -374,7 +371,7 @@ class Contact extends wechatifyMixin(
         this.id,
         sayableMsg.id,
       )
-    } else if (looseInstanceOfFileBox(sayableMsg)) {
+    } else if (FileBox.validInstance(sayableMsg) || FileBox.validInterface(sayableMsg)) {
       /**
        * 3. File
        */
@@ -860,6 +857,7 @@ class Contact extends wechatifyMixin(
 }
 
 interface ContactInterface extends Contact {}
+
 type ContactConstructor = Constructor<
   ContactInterface,
   typeof Contact

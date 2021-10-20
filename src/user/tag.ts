@@ -21,7 +21,7 @@ import {
   log,
 }                     from 'wechaty-puppet'
 
-import type { Constructor }  from 'clone-class'
+import type { Constructor }  from '../deprecated/clone-class.js'
 
 import { Contact }  from './contact.js'
 import { Favorite } from './favorite.js'
@@ -39,8 +39,6 @@ import {
  * @see https://github.com/wechaty/wechaty/issues/2273
  */
 void POOL
-const t: Constructor = {} as any
-void t
 
 class Tag extends wechatifyMixin(
   poolifyMixin<Tag>()(Object),

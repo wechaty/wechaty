@@ -1,5 +1,6 @@
-import type { Constructor } from 'clone-class'
 import type { EventEmitter }  from 'events'
+
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import type { Wechaty }             from '../wechaty.js'
 import type { WechatyEventListeners } from '../events/wechaty-events.js'
@@ -49,8 +50,8 @@ type WechatyInterface = Pick<Wechaty, PublicProperties>
   & TypedEventEmitter<WechatyEventListeners>
 
 type WechatyConstructor = Constructor<
-WechatyInterface,
-typeof Wechaty
+  WechatyInterface,
+  typeof Wechaty
 >
 
 export type {

@@ -89,13 +89,13 @@
   },
   "homepage": "https://github.com/wechaty/",
   "dependencies": {
-    "clone-class": "^0.9.19",
+    "clone-class": "^0.10.5",
     "cockatiel": "^2.0.2",
     "dotenv": "^10.0.0",
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
     "uuid": "^3.4.0",
-    "wechaty-puppet": "^0.51.3",
+    "wechaty-puppet": "^0.51.6",
     "wechaty-puppet-service": "^0.39.1",
     "ws": "^8.2.3"
   },

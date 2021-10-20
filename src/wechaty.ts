@@ -46,7 +46,7 @@ import {
 import type {
   Sayable,
   SayableMessage,
-}                       from './types.js'
+}                       from './interface/mod.js'
 
 import {
   Io,
@@ -84,14 +84,14 @@ import {
   LocationConstructor,
 
   ContactInterface,
-  ContactSelfInterface,
-  FriendshipInterface,
-  ImageInterface,
-  MessageInterface,
+  // ContactSelfInterface,
+  // FriendshipInterface,
+  // ImageInterface,
+  // MessageInterface,
   MiniProgramInterface,
-  RoomInterface,
-  RoomInvitationInterface,
-  TagInterface,
+  // RoomInterface,
+  // RoomInvitationInterface,
+  // TagInterface,
   UrlLinkInterface,
   LocationInterface,
 
@@ -112,7 +112,7 @@ import {
 }                             from './plugin.js'
 import type {
   WechatyInterface,
-  WechatyConstructor,
+  // WechatyConstructor,
 }                       from './interface/wechaty-interface.js'
 
 export interface WechatyOptions {
@@ -700,7 +700,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   protected wechatifyUserModules () {
     log.verbose('Wechaty', 'wechatifyUserModules()')
 
-    if (this.#wechatifiedContactSelf) {
+    if (this.#wechatifiedMessage) {
       throw new Error('can not be initialized twice!')
     }
 

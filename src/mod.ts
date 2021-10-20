@@ -75,7 +75,7 @@ import type {
 import type {
   Sayable,
   SayableMessage,
-}                   from './types.js'
+}                   from './interface/mod.js'
 export type {
   IoClientOptions,
   PuppetModuleName,

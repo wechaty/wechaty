@@ -21,11 +21,11 @@ import {
   RoomInvitationPayload,
   log,
 }                           from 'wechaty-puppet'
-import type { Constructor } from 'clone-class'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import type {
   Acceptable,
-}               from '../types.js'
+}               from '../interface/acceptable.js'
 import {
   timestampToDate,
 }                   from '../helper-functions/pure/timestamp-to-date.js'

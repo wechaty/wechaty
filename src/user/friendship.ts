@@ -25,7 +25,7 @@ import {
   FriendshipSearchQueryFilter,
   log,
 }                                 from 'wechaty-puppet'
-import type { Constructor } from 'clone-class'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   retryPolicy,
@@ -33,7 +33,7 @@ import {
 
 import type {
   Acceptable,
-}                   from '../types.js'
+}                   from '../interface/acceptable.js'
 
 import type {
   Contact,

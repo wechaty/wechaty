@@ -17,44 +17,40 @@
  *   limitations under the License.
  *
  */
-import type { FileBox } from 'file-box'
+import type { FileBoxInterface } from 'file-box'
 
 import type {
-  Contact,
-  Location,
-  Message,
-  MiniProgram,
-  UrlLink,
-}                 from './user/mod.js'
-import type { WechatyInterface } from './interface/wechaty-interface.js'
+  ContactInterface,
+  LocationInterface,
+  MessageInterface,
+  MiniProgramInterface,
+  UrlLinkInterface,
+}                           from '../user/mod.js'
 
-type SayableMessage = never
-                    | Contact
-                    | FileBox
-                    | Location
-                    | Message
-                    | MiniProgram
-                    | number
-                    | string
-                    | UrlLink
+import type {
+  WechatyInterface,
+}                           from './wechaty-interface.js'
+
+ type SayableMessage = never
+  | ContactInterface
+  | FileBoxInterface
+  | LocationInterface
+  | MessageInterface
+  | MiniProgramInterface
+  | number
+  | string
+  | UrlLinkInterface
 
 interface Sayable {
   id      : string,
   wechaty : WechatyInterface,
   say (
     text     : SayableMessage,
-    replyTo? : Contact | Contact[]
-  ): Promise<void | Message>
+    replyTo? : ContactInterface | ContactInterface[]
+  ): Promise<void | MessageInterface>
 }
 
-interface Acceptable {
-  accept  : () => Promise<void>
-  id      : string,
-  wechaty : WechatyInterface
-}
-
-export type  {
-  Acceptable,
+export type {
   Sayable,
   SayableMessage,
 }
