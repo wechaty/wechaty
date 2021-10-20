@@ -31,8 +31,7 @@ import {
   RoomPayload,
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
-
-import { Wechaty }      from '../wechaty.js'
+import { createWechaty } from '../factory.js'
 
 test('recalled()', async t => {
 
@@ -47,7 +46,7 @@ test('recalled()', async t => {
   const sandbox = sinon.createSandbox()
 
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = createWechaty({ puppet })
 
   await wechaty.start()
 

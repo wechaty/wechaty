@@ -25,8 +25,7 @@ import {
 
 import type { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
-
-import { Wechaty }  from '../wechaty.js'
+import { createWechaty } from '../factory.js'
 
 import { Contact }  from './contact.js'
 
@@ -38,7 +37,7 @@ test('findAll()', async t => {
   const sandbox = sinon.createSandbox()
 
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = createWechaty({ puppet })
 
   await wechaty.start()
   // await puppet.login('__login_id__')

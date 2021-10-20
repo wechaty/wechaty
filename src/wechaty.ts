@@ -111,9 +111,10 @@ import {
   isWechatyPluginUninstaller,
 }                             from './plugin.js'
 import type {
-  WechatyInterface,
+  Wechaty,
   // WechatyConstructor,
 }                       from './interface/wechaty-interface.js'
+import { singletonWechaty } from './factory.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -149,22 +150,16 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
-class Wechaty extends WechatyEventEmitter implements Sayable {
+class WechatyImpl extends WechatyEventEmitter implements Sayable {
 
   static   readonly VERSION = VERSION
   static   readonly log     = log
 
   readonly log              = log
   readonly state   : StateSwitch
-  readonly wechaty : WechatyInterface
+  readonly wechaty : Wechaty
 
   private  readonly readyState : StateSwitch
-
-  /**
-   * singleton globalInstance
-   * @ignore
-   */
-  private static globalInstance?: WechatyInterface
 
   private static globalPluginList: WechatyPlugin[] = []
 
@@ -215,41 +210,30 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   get Location ()       : LocationConstructor       { return guardWechatify(this.#wechatifiedLocation)       }
 
   /**
-   * Get the global instance of Wechaty
-   *
-   * @param {WechatyOptions} [options={}]
-   *
-   * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
-   * const { Wechaty } = require('wechaty')
-   *
-   * Wechaty.instance() // Global instance
-   * .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
-   * .on('login',       user => console.log(`User ${user} logged in`))
-   * .on('message',  message => console.log(`Message: ${message}`))
-   * .start()
+   * @deprecated will be removed after Dec 31, 2022. Use createWechaty() instead
+   * @see https://github.com/wechaty/wechaty/issues/2276
    */
   static instance (
     options?: WechatyOptions,
-  ): WechatyInterface {
-    if (options && this.globalInstance) {
-      throw new Error('instance can be only initialized once by options!')
-    }
-    if (!this.globalInstance) {
-      this.globalInstance = this.create(options)
-    }
-    return this.globalInstance
+  ): Wechaty {
+    log.warn('Wechaty', 'instance() is DEPRECATED. Use singletonWechaty() instead.\n%s\n%s',
+      '@see https://github.com/wechaty/wechaty/issues/2276',
+      new Error().stack,
+    )
+    return singletonWechaty(options)
   }
 
   /**
    * Wechaty.create() will return a `WechatyInterface` instance.
+   * @deprecated will be removed after Dec 31, 2022. Use createWechaty() instead
+   * @see https://github.com/wechaty/wechaty/issues/2276
    */
   static create (
     options?: WechatyOptions,
-  ): WechatyInterface {
-    log.verbose('Wechaty', 'create(%s)',
-      options
-        ? `"${JSON.stringify(options)}"`
-        : '',
+  ): Wechaty {
+    log.warn('Wechaty', 'create() is DEPRECATED. Use createWechaty() instead.\n%s\n%s',
+      '@see https://github.com/wechaty/wechaty/issues/2276',
+      new Error().stack,
     )
     return new this(options)
   }
@@ -412,7 +396,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   private installGlobalPlugin () {
 
-    const uninstallerList = instanceToClass(this, Wechaty)
+    const uninstallerList = instanceToClass(this, WechatyImpl)
       .globalPluginList
       .map(plugin => plugin(this))
       .filter(isWechatyPluginUninstaller)
@@ -455,9 +439,8 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
     /**
       * Private Event
-      *  emit puppet when set
-      *
-      * Huan(202005)
+      *   - Huan(202005): emit puppet when set
+      *   - Huan(202110): what's the purpose of this? (who is using this?)
       */
     ;(this.emit as any)('puppet', puppetInstance)
   }
@@ -1089,7 +1072,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * console.log(Wechaty.instance().version(true))   // return '0.7.9'
    */
   version (forceNpm = false): string {
-    return Wechaty.version(forceNpm)
+    return WechatyImpl.version(forceNpm)
   }
 
   /**
@@ -1105,7 +1088,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * @ignore
    */
   async sleep (millisecond: number): Promise<void> {
-    return Wechaty.sleep(millisecond)
+    return WechatyImpl.sleep(millisecond)
   }
 
   /**
@@ -1195,5 +1178,5 @@ function guardWechatify<T extends Function> (userModule?: T): T {
 }
 
 export {
-  Wechaty,
+  WechatyImpl,
 }

@@ -2,7 +2,7 @@ import type { EventEmitter }  from 'events'
 
 import type { Constructor } from '../deprecated/clone-class.js'
 
-import type { Wechaty }             from '../wechaty.js'
+import type { WechatyImpl }             from '../wechaty.js'
 import type { WechatyEventListeners } from '../events/wechaty-events.js'
 import type TypedEventEmitter from 'typed-emitter'
 
@@ -34,7 +34,7 @@ type NonInterfaceProperties = never
 //   | 'UrlLink'
 
 // https://stackoverflow.com/a/64754408/1123955
-type KeyOfWechaty       = keyof Wechaty
+type KeyOfWechaty       = keyof WechatyImpl
 // Huan(202110): remove all EventEmitter first, or will get error
 type KeyOfEventEmitter  = keyof EventEmitter
 
@@ -46,15 +46,15 @@ type PublicProperties = Exclude<KeyOfWechaty, never
 >
 
 // https://stackoverflow.com/questions/41926269/naming-abstract-classes-and-interfaces-in-typescript
-type WechatyInterface = Pick<Wechaty, PublicProperties>
+type Wechaty = Pick<WechatyImpl, PublicProperties>
   & TypedEventEmitter<WechatyEventListeners>
 
 type WechatyConstructor = Constructor<
-  WechatyInterface,
-  typeof Wechaty
+  Wechaty,
+  typeof WechatyImpl
 >
 
 export type {
-  WechatyInterface,
+  Wechaty,
   WechatyConstructor,
 }

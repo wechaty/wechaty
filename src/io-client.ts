@@ -35,11 +35,11 @@ import type { Message }      from './user/mod.js'
 import {
 }                       from './config.js'
 import { Io }           from './io.js'
-import type { WechatyInterface } from './interface/mod.js'
+import type { Wechaty } from './interface/mod.js'
 
 export interface IoClientOptions {
   token   : string,
-  wechaty : WechatyInterface,
+  wechaty : Wechaty,
   port?: number
 }
 
@@ -142,7 +142,7 @@ export class IoClient {
     }
   }
 
-  private async hookWechaty (wechaty: WechatyInterface): Promise<void> {
+  private async hookWechaty (wechaty: Wechaty): Promise<void> {
     log.verbose('IoClient', 'hookWechaty()')
 
     if (this.state.off()) {

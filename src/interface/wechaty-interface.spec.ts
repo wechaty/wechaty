@@ -21,12 +21,12 @@ import type {
 
 import type {
   WechatyConstructor,
-  WechatyInterface,
+  Wechaty,
   // WechatyConstructor,
 }                       from './wechaty-interface.js'
 
-test('WechatyInterface', async t => {
-  abstract class WechatyImplementation extends EventEmitter implements WechatyInterface {
+test('Wechaty interface', async t => {
+  abstract class WechatyImplementation extends EventEmitter implements Wechaty {
 
     Contact        : ContactConstructor
     ContactSelf    : ContactSelfConstructor
@@ -63,23 +63,23 @@ test('WechatyInterface', async t => {
         = {} as any
     }
 
-    abstract currentUser : WechatyInterface['currentUser']
-    abstract ding        : WechatyInterface['ding']
-    abstract logonoff    : WechatyInterface['logonoff']
-    abstract logout      : WechatyInterface['logout']
-    abstract name        : WechatyInterface['name']
-    abstract ready       : WechatyInterface['ready']
-    abstract reset       : WechatyInterface['reset']
-    abstract say         : WechatyInterface['say']
-    abstract start       : WechatyInterface['start']
-    abstract stop        : WechatyInterface['stop']
-    abstract use         : WechatyInterface['use']
-    abstract version     : WechatyInterface['version']
+    abstract currentUser : Wechaty['currentUser']
+    abstract ding        : Wechaty['ding']
+    abstract logonoff    : Wechaty['logonoff']
+    abstract logout      : Wechaty['logout']
+    abstract name        : Wechaty['name']
+    abstract ready       : Wechaty['ready']
+    abstract reset       : Wechaty['reset']
+    abstract say         : Wechaty['say']
+    abstract start       : Wechaty['start']
+    abstract stop        : Wechaty['stop']
+    abstract use         : Wechaty['use']
+    abstract version     : Wechaty['version']
 
   }
 
-  const Wechaty = WechatyImplementation as unknown as WechatyConstructor
-  const w: WechatyInterface = new Wechaty()
+  const WechatyTest = WechatyImplementation as unknown as WechatyConstructor
+  const w: Wechaty = new WechatyTest()
   w.on('message', (msg: Message) => {
     msg.say('ok').catch(console.error)
   })

@@ -6,7 +6,7 @@ import type {
   Acceptable,
 }                           from './acceptable.js'
 import type {
-  WechatyInterface,
+  Wechaty,
   WechatyConstructor,
 }                             from './wechaty-interface.js'
 
@@ -14,6 +14,6 @@ export type {
   Acceptable,
   Sayable,
   SayableMessage,
-  WechatyInterface,
+  Wechaty,
   WechatyConstructor,
 }

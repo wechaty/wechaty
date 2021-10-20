@@ -29,7 +29,7 @@ import {
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
-  Wechaty,
+  WechatyImpl,
 }                             from './wechaty.js'
 
 import {
@@ -41,9 +41,10 @@ import {
   Message,
 
   Room,
+  Wechaty,
 }                 from './mod.js'
 
-class WechatyTest extends Wechaty {
+class WechatyTest extends WechatyImpl {
 
   override wechatifyUserModules (): void {
     return super.wechatifyUserModules()
@@ -58,12 +59,12 @@ test('Export of the Framework', async t => {
   t.ok(Message,     'should export Message')
   t.ok(Puppet,      'should export Puppet')
   t.ok(Room,        'should export Room')
-  t.ok(Wechaty,     'should export Wechaty')
+  t.ok(WechatyImpl,     'should export Wechaty')
   t.ok(log,         'should export log')
 })
 
 test('static VERSION', async t => {
-  t.ok('VERSION' in Wechaty, 'Wechaty should has a static VERSION property')
+  t.ok('VERSION' in WechatyImpl, 'Wechaty should has a static VERSION property')
 })
 
 test('Config setting', async t => {
@@ -72,7 +73,7 @@ test('Config setting', async t => {
 })
 
 test('event:start/stop', async t => {
-  const wechaty = new Wechaty({ puppet: 'wechaty-puppet-mock' })
+  const wechaty = new WechatyImpl({ puppet: 'wechaty-puppet-mock' })
 
   const startSpy = sinon.spy()
   const stopSpy  = sinon.spy()
@@ -132,7 +133,7 @@ test('event:start/stop', async t => {
 
 test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
   const spy     = sinon.spy()
-  const wechaty = Wechaty.instance()
+  const wechaty = new WechatyImpl()
 
   const EXPECTED_ERROR = new Error('testing123')
   wechaty.on('message', () => { throw EXPECTED_ERROR })
@@ -153,7 +154,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
 test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t => {
 
   // Do not modify the global Wechaty instance
-  class MyWechatyTest extends Wechaty {}
+  class MyWechatyTest extends WechatyImpl {}
 
   const EXPECTED_ERROR = new Error('test')
 
@@ -189,19 +190,19 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t
 test('use plugin', async t => {
 
   // Do not modify the gloabl Wechaty instance
-  class MyWechatyTest extends Wechaty {}
+  class MyWechatyTest extends WechatyImpl {}
 
   let result = ''
 
   const myGlobalPlugin = function () {
     return function (bot: Wechaty) {
-      bot.on('message', () => (result += 'FROM_GLOBAL_PLUGIN:'))
+      bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
     }
   }
 
   const myPlugin = function () {
     return function (bot: Wechaty) {
-      bot.on('message', () => (result += 'FROM_MY_PLUGIN:'))
+      bot.on('message', () => { result += 'FROM_MY_PLUGIN:' })
     }
   }
 
@@ -233,7 +234,7 @@ test('wechatifyUserModules()', async t => {
 // TODO: add test for event args
 
 test('Perfect restart', async t => {
-  const wechaty = new Wechaty({
+  const wechaty = new WechatyImpl({
     puppet: new PuppetMock(),
   })
 
@@ -252,7 +253,7 @@ test('Perfect restart', async t => {
 
 test('@event ready', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = new WechatyImpl({ puppet })
 
   const sandbox = sinon.createSandbox()
   const spy     = sandbox.spy()
@@ -277,7 +278,7 @@ test('@event ready', async t => {
 
 test('ready()', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = new WechatyImpl({ puppet })
 
   const sandbox = sinon.createSandbox()
 
@@ -312,7 +313,7 @@ test('ready()', async t => {
 
 test('on/off event listener management', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = new WechatyImpl({ puppet })
 
   const onMessage = (_: any) => {}
   t.equal(wechaty.listenerCount('message'), 0, 'should no listener after initializing')

@@ -31,12 +31,17 @@ import {
   VERSION,
 }                         from './config.js'
 
+import {
+  createWechaty,
+  singletonWechaty,
+}                        from './factory.js'
+
 /**
  * We need to put `Wechaty` at the beginning of this file for import
  * because we have circular dependencies between `Puppet` & `Wechaty`
  */
 import {
-  Wechaty,
+  WechatyImpl,
   WechatyOptions,
 }                             from './wechaty.js'
 import type {
@@ -75,6 +80,7 @@ import type {
 import type {
   Sayable,
   SayableMessage,
+  Wechaty,
 }                   from './interface/mod.js'
 export type {
   IoClientOptions,
@@ -83,11 +89,14 @@ export type {
   SayableMessage,
   UrlLinkPayload,
   WechatyEventName,
+  Wechaty,
   WechatyOptions,
   WechatyPlugin,
   WechatyPluginUninstaller,
 }
 export {
+  createWechaty,
+  singletonWechaty,
   config,
   Contact,
   ContactSelf,
@@ -110,5 +119,5 @@ export {
   Tag,
   UrlLink,
   VERSION,
-  Wechaty,
+  WechatyImpl,
 }

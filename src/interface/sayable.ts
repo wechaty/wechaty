@@ -28,7 +28,7 @@ import type {
 }                           from '../user/mod.js'
 
 import type {
-  WechatyInterface,
+  Wechaty,
 }                           from './wechaty-interface.js'
 
  type SayableMessage = never
@@ -43,7 +43,7 @@ import type {
 
 interface Sayable {
   id      : string,
-  wechaty : WechatyInterface,
+  wechaty : Wechaty,
   say (
     text     : SayableMessage,
     replyTo? : ContactInterface | ContactInterface[]
