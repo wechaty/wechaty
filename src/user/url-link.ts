@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import Url from 'url'
 
 import {
@@ -135,10 +136,19 @@ type UrlLinkConstructor = Constructor<
   UrlLink,
   typeof UrlLinkImpl
 >
+
+const interfaceOfUrlLink  = interfaceOfClass(UrlLinkImpl)<UrlLink>()
+const instanceOfUrlLink   = looseInstanceOfClass(UrlLinkImpl)
+const validUrlLink = (o: any): o is UrlLink =>
+  instanceOfUrlLink(o) && interfaceOfUrlLink(o)
+
 export type {
   UrlLinkConstructor,
   UrlLink,
 }
 export {
   UrlLinkImpl,
+  interfaceOfUrlLink,
+  instanceOfUrlLink,
+  validUrlLink,
 }

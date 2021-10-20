@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import {
   MiniProgramPayload,
   log,
@@ -100,10 +101,18 @@ type MiniProgramConstructor = Constructor<
   typeof MiniProgramImpl
 >
 
+const interfaceOfMiniProgram  = interfaceOfClass(MiniProgramImpl)<MiniProgram>()
+const instanceOfMiniProgram   = looseInstanceOfClass(MiniProgramImpl)
+const validMiniProgram = (o: any): o is MiniProgram =>
+  instanceOfMiniProgram(o) && interfaceOfMiniProgram(o)
+
 export type {
   MiniProgramConstructor,
   MiniProgram,
 }
 export {
   MiniProgramImpl,
+  interfaceOfMiniProgram,
+  instanceOfMiniProgram,
+  validMiniProgram,
 }

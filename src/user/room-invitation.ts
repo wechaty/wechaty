@@ -37,6 +37,7 @@ import {
   EmptyBase,
   wechatifyMixin,
 }                     from './mixins/wechatify.js'
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 
 /**
  *
@@ -281,10 +282,18 @@ type RoomInvitationConstructor = Constructor<
   typeof RoomInvitationImpl
 >
 
+const interfaceOfRoomInvitation  = interfaceOfClass(RoomInvitationImpl)<RoomInvitation>()
+const instanceOfRoomInvitation   = looseInstanceOfClass(RoomInvitationImpl)
+const validRoomInvitation = (o: any): o is RoomInvitation =>
+  instanceOfRoomInvitation(o) && interfaceOfRoomInvitation(o)
+
 export type {
   RoomInvitationConstructor,
   RoomInvitation,
 }
 export {
   RoomInvitationImpl,
+  interfaceOfRoomInvitation,
+  instanceOfRoomInvitation,
+  validRoomInvitation,
 }

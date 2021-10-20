@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import { log }        from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
@@ -79,10 +80,18 @@ type FavoriteConstructor = Constructor<
   typeof FavoriteImpl
 >
 
+const interfaceOfFavorite  = interfaceOfClass(FavoriteImpl)<Favorite>()
+const instanceOfFavorite   = looseInstanceOfClass(FavoriteImpl)
+const validFavorite = (o: any): o is Favorite =>
+  instanceOfFavorite(o) && interfaceOfFavorite(o)
+
 export type {
   FavoriteConstructor,
   Favorite,
 }
 export {
   FavoriteImpl,
+  interfaceOfFavorite,
+  instanceOfFavorite,
+  validFavorite,
 }

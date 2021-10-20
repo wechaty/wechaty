@@ -42,11 +42,11 @@ import {
   guardQrCodeValue,
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
-import { Contact, ContactImpl }        from './contact.js'
-import { MiniProgram, MiniProgramImpl }    from './mini-program.js'
-import { Message, MessageImpl }        from './message.js'
-import { UrlLink, UrlLinkImpl }        from './url-link.js'
-import { Location, LocationImpl }       from './location.js'
+import { Contact, ContactImpl, validContact }        from './contact.js'
+import { MiniProgram, validMiniProgram }    from './mini-program.js'
+import { Message, validMessage }        from './message.js'
+import { UrlLink, validUrlLink }        from './url-link.js'
+import { Location, validLocation }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -58,6 +58,7 @@ import {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 
 // FIXME: #2273
 void POOL
@@ -445,8 +446,7 @@ class RoomImpl extends wechatifyMixin(
     let text  : string
     let msgId : void | string
 
-    if (sayableMsg instanceof MessageImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    if (validMessage(sayableMsg)) {
       return sayableMsg.forward(this)
     }
 
@@ -490,9 +490,7 @@ class RoomImpl extends wechatifyMixin(
       let mentionList: Contact[] = []
 
       if (varList.length > 0) {
-
-        // Huan(202110): TODO: use validInterfaceOfContact() to replace `instanceof`
-        const allIsContact = varList.every(c => c instanceof ContactImpl)
+        const allIsContact = varList.every(c => validContact(c))
         if (!allIsContact) {
           throw new Error('mentionList must be contact when not using TemplateStringArray function call.')
         }
@@ -526,8 +524,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg,
       )
-    } else if (sayableMsg instanceof ContactImpl) {
-      // Huan(202110): TODO: use validInterfaceOfContact() to replace `instanceof`
+    } else if (validContact(sayableMsg)) {
       /**
        * 3. Contact Card
        */
@@ -535,8 +532,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg.id,
       )
-    } else if (sayableMsg instanceof UrlLinkImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    } else if (validUrlLink(sayableMsg)) {
       /**
        * 4. Link Message
        */
@@ -544,8 +540,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof MiniProgramImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    } else if (validMiniProgram(sayableMsg)) {
       /**
        * 5. Mini Program
        */
@@ -553,8 +548,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof LocationImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    } else if (validLocation(sayableMsg)) {
       /**
        * 6. Location
        */
@@ -577,8 +571,8 @@ class RoomImpl extends wechatifyMixin(
     textList: TemplateStringsArray,
     ...varList: unknown[]
   ) {
-    // Huan(202110) TODO: use validInterfaceOfContact() to replace `instanceof`
-    const mentionList: Contact[] = varList.filter(v => v instanceof ContactImpl) as any
+    const mentionList = varList.filter(c => validContact(c)) as Contact[]
+
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
     //   roomId    : this.id,
@@ -619,8 +613,7 @@ class RoomImpl extends wechatifyMixin(
 
       let i = 0
       for (; i < varListLength; i++) {
-        // Huan(202110) TODO: use validInterfaceOfContact() to replace `instanceof`
-        if (varList[i] instanceof ContactImpl) {
+        if (validContact(varList[i])) {
           const mentionContact: Contact = varList[i] as any
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
@@ -1223,15 +1216,24 @@ class RoomImpl extends wechatifyMixin(
 
 }
 
+const interfaceOfRoom  = interfaceOfClass(RoomImpl)<Room>()
+const instanceOfRoom   = looseInstanceOfClass(RoomImpl)
+const validRoom = (o: any): o is Room =>
+  instanceOfRoom(o) && interfaceOfRoom(o)
+
 interface Room extends RoomImpl {}
 type RoomConstructor = Constructor<
   Room,
   typeof RoomImpl
 >
+
 export type {
   RoomConstructor,
   Room,
 }
 export {
   RoomImpl,
+  interfaceOfRoom,
+  instanceOfRoom,
+  validRoom,
 }

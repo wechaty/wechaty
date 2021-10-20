@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import { log } from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
@@ -54,10 +55,18 @@ type MomentConstructor = Constructor<
   typeof MomentImpl
 >
 
+const interfaceOfMoment  = interfaceOfClass(MomentImpl)<Moment>()
+const instanceOfMoment   = looseInstanceOfClass(MomentImpl)
+const validMoment = (o: any): o is Moment =>
+  instanceOfMoment(o) && interfaceOfMoment(o)
+
 export type {
   MomentConstructor,
   Moment,
 }
 export {
   MomentImpl,
+  interfaceOfMoment,
+  instanceOfMoment,
+  validMoment,
 }

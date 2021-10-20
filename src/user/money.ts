@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
@@ -41,10 +42,18 @@ type MoneyConstructor = Constructor<
   typeof MoneyImpl
 >
 
+const interfaceOfMoney  = interfaceOfClass(MoneyImpl)<Money>()
+const instanceOfMoney   = looseInstanceOfClass(MoneyImpl)
+const validMoney = (o: any): o is Money =>
+  instanceOfMoney(o) && interfaceOfMoney(o)
+
 export type {
   MoneyConstructor,
   Money,
 }
 export {
   MoneyImpl,
+  interfaceOfMoney,
+  instanceOfMoney,
+  validMoney,
 }

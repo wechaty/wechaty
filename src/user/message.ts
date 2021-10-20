@@ -45,7 +45,7 @@ import {
 
 import {
   Contact,
-  ContactImpl,
+  validContact,
 }                       from './contact.js'
 import type {
   Room,
@@ -53,10 +53,12 @@ import type {
 import {
   UrlLink,
   UrlLinkImpl,
+  validUrlLink,
 }                       from './url-link.js'
 import {
   MiniProgram,
   MiniProgramImpl,
+  validMiniProgram,
 }                       from './mini-program.js'
 import type {
   Image,
@@ -64,7 +66,9 @@ import type {
 import {
   Location,
   LocationImpl,
+  validLocation,
 }                       from './location.js'
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -540,8 +544,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
     /**
      * Support say a existing message: just forward it.
      */
-    if (sayableMsg instanceof MessageImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    if (validMessage(sayableMsg)) {
       return sayableMsg.forward(conversation)
     }
 
@@ -565,8 +568,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         sayableMsg,
         mentionIdList,
       )
-    } else if (sayableMsg instanceof ContactImpl) {
-      // Huan(202110) TODO: use validInterfaceOfContact() to check it
+    } else if (validContact(sayableMsg)) {
       /**
        * Contact Card
        */
@@ -587,8 +589,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         conversationId,
         sayableMsg,
       )
-    } else if (sayableMsg instanceof UrlLinkImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    } else if (validUrlLink(sayableMsg)) {
       /**
        * Link Message
        */
@@ -596,8 +597,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         conversationId,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof MiniProgramImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    } else if (validMiniProgram(sayableMsg)) {
       /**
        * MiniProgram
        */
@@ -605,8 +605,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         conversationId,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof LocationImpl) {
-      // TODO: use `interfaceOfMessage()` to replace instanceof
+    } else if (validLocation(sayableMsg)) {
       /**
        * Location
        */
@@ -1101,10 +1100,18 @@ type MessageConstructor = Constructor<
   typeof MessageImpl
 >
 
+const interfaceOfMessage  = interfaceOfClass(MessageImpl)<Message>()
+const instanceOfMessage   = looseInstanceOfClass(MessageImpl)
+const validMessage = (o: any): o is Message =>
+  instanceOfMessage(o) && interfaceOfMessage(o)
+
 export type {
   Message,
   MessageConstructor,
 }
 export {
   MessageImpl,
+  interfaceOfMessage,
+  instanceOfMessage,
+  validMessage,
 }

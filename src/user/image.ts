@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import {
   ImageType,
   FileBox,
@@ -71,10 +72,18 @@ type ImageConstructor = Constructor<
   typeof ImageImpl
 >
 
+const interfaceOfImage  = interfaceOfClass(ImageImpl)<Image>()
+const instanceOfImage   = looseInstanceOfClass(ImageImpl)
+const validImage = (o: any): o is Image =>
+  instanceOfImage(o) && interfaceOfImage(o)
+
 export type {
   ImageConstructor,
   Image,
 }
 export {
   ImageImpl,
+  interfaceOfImage,
+  instanceOfImage,
+  validImage,
 }

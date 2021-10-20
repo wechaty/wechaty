@@ -39,11 +39,11 @@ import type {
 }                          from '../interface/mod.js'
 import { captureException } from '../raven.js'
 
-import { Message, MessageImpl }      from './message.js'
+import { Message, validMessage }      from './message.js'
 import type { Tag }     from './tag.js'
-import { MiniProgram, MiniProgramImpl }  from './mini-program.js'
-import { UrlLink, UrlLinkImpl }      from './url-link.js'
-import { Location, LocationImpl }     from './location.js'
+import { MiniProgram, validMiniProgram }  from './mini-program.js'
+import { UrlLink, validUrlLink }      from './url-link.js'
+import { Location, validLocation }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
@@ -54,6 +54,7 @@ import {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 
 /**
  * Huan(202110): Issue #2273
@@ -347,8 +348,7 @@ class ContactImpl extends wechatifyMixin(
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayableMsg)
 
-    // TODO(202110): use interfaceOfClass to replace instanceof
-    if (sayableMsg instanceof MessageImpl) {
+    if (validMessage(sayableMsg)) {
       return sayableMsg.forward(this)
     }
 
@@ -384,8 +384,7 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg,
       )
-    } else if (sayableMsg instanceof UrlLinkImpl) {
-      // TODO(202110): use interfaceOfClass to replace instanceof
+    } else if (validUrlLink(sayableMsg)) {
       /**
        * 4. Link Message
        */
@@ -393,8 +392,7 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof MiniProgramImpl) {
-      // TODO(202110): use interfaceOfClass to replace instanceof
+    } else if (validMiniProgram(sayableMsg)) {
       /**
        * 5. Mini Program
        */
@@ -402,8 +400,7 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof LocationImpl) {
-      // TODO(202110): use interfaceOfClass to replace instanceof
+    } else if (validLocation(sayableMsg)) {
       /**
        * 6. Location
        */
@@ -656,8 +653,7 @@ class ContactImpl extends wechatifyMixin(
 
   /**
    * @ignore
-   * TODO
-   * Check if the contact is star contact.
+   * TODO: Check if the contact is star contact.
    *
    * @returns {boolean | null} - True for star friend, False for no star friend.
    * @example
@@ -859,10 +855,18 @@ type ContactConstructor = Constructor<
   typeof ContactImpl
 >
 
+const interfaceOfContact  = interfaceOfClass(ContactImpl)<Contact>()
+const instanceOfContact   = looseInstanceOfClass(ContactImpl)
+const validContact = (o: any): o is Contact =>
+  instanceOfContact(o) && interfaceOfContact(o)
+
 export type {
   ContactConstructor,
   Contact,
 }
 export {
   ContactImpl,
+  interfaceOfContact,
+  instanceOfContact,
+  validContact,
 }

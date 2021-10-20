@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import {
   LocationPayload,
   log,
@@ -94,10 +95,18 @@ type LocationConstructor = Constructor<
   typeof LocationImpl
 >
 
+const interfaceOfLocation  = interfaceOfClass(LocationImpl)<Location>()
+const instanceOfLocation   = looseInstanceOfClass(LocationImpl)
+const validLocation = (o: any): o is Location =>
+  instanceOfLocation(o) && interfaceOfLocation(o)
+
 export type {
   LocationConstructor,
   Location,
 }
 export {
   LocationImpl,
+  interfaceOfLocation,
+  instanceOfLocation,
+  validLocation,
 }

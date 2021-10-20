@@ -44,6 +44,7 @@ import type {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 
 interface FriendshipAddOptionsObject {
   room?: Room,
@@ -429,10 +430,18 @@ type FriendshipConstructor = Constructor<
   typeof FriendshipImpl
 >
 
+const interfaceOfFriendship  = interfaceOfClass(FriendshipImpl)<Friendship>()
+const instanceOfFriendship   = looseInstanceOfClass(FriendshipImpl)
+const validFriendship = (o: any): o is Friendship =>
+  instanceOfFriendship(o) && interfaceOfFriendship(o)
+
 export type {
   FriendshipConstructor,
   Friendship,
 }
 export {
   FriendshipImpl,
+  interfaceOfFriendship,
+  instanceOfFriendship,
+  validFriendship,
 }

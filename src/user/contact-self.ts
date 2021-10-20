@@ -18,9 +18,13 @@
  *
  */
 import {
+  interfaceOfClass,
+  looseInstanceOfClass,
+}                           from 'clone-class'
+import {
   FileBox,
   log,
-}           from 'wechaty-puppet'
+}                             from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
@@ -185,10 +189,18 @@ type ContactSelfConstructor = Constructor<
   typeof ContactSelfImpl
 >
 
+const interfaceOfContactSelf  = interfaceOfClass(ContactSelfImpl)<ContactSelf>()
+const instanceOfContactSelf   = looseInstanceOfClass(ContactSelfImpl)
+const validContactSelf = (o: any): o is ContactSelf =>
+  instanceOfContactSelf(o) && interfaceOfContactSelf(o)
+
 export type {
   ContactSelfConstructor,
   ContactSelf,
 }
 export {
   ContactSelfImpl,
+  interfaceOfContactSelf,
+  instanceOfContactSelf,
+  validContactSelf,
 }
