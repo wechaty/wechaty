@@ -1,6 +1,7 @@
 import {
-  FileBoxType,
   FileBox,
+  FileBoxInterface,
+  FileBoxType,
 }                         from 'file-box'
 import {
   MemoryCard,
@@ -90,6 +91,8 @@ import {
 }                 from './gerror/mod.js'
 
 export type {
+  FileBoxInterface,
+
   ContactPayload,
   ContactQueryFilter,
   EventDirtyPayload,

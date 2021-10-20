@@ -1,8 +1,10 @@
+import type {
+  FileBoxInterface,
+}                       from 'file-box'
+
 import {
-  FileBox,
   log,
 }                       from '../config.js'
-
 import type {
   RoomPayload,
   RoomPayloadFilterFunction,
@@ -28,7 +30,7 @@ const roomMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin & RoomM
      *
      */
     abstract roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void>
-    abstract roomAvatar (roomId: string)                                       : Promise<FileBox>
+    abstract roomAvatar (roomId: string)                                       : Promise<FileBoxInterface>
     abstract roomCreate (contactIdList: string[], topic?: string)              : Promise<string>
     abstract roomDel (roomId: string, contactId: string)                       : Promise<void>
     abstract roomList ()                                                       : Promise<string[]>

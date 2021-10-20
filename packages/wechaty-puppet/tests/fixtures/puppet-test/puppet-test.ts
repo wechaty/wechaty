@@ -1,6 +1,6 @@
 import {
   Puppet,
-  FileBox,
+  // FileBox,
   ContactPayload,
   FriendshipPayload,
   ImageType,
@@ -15,6 +15,9 @@ import {
   ContactQueryFilter,
   LocationPayload,
 }                           from '../../../src/mod.js'
+import type {
+  FileBoxInterface,
+}                           from 'file-box'
 
 /**
  * expose to public for internal methods:
@@ -69,9 +72,9 @@ class PuppetTest extends Puppet {
   override async contactAlias (contactId: string, alias: string | null)  : Promise<void>
   override async contactAlias (contactId: string, alias?: string | null) : Promise<string | void> { return { alias, contactId } as any }
 
-  override async contactAvatar (contactId: string)                 : Promise<FileBox>
-  override async contactAvatar (contactId: string, file: FileBox)  : Promise<void>
-  override async contactAvatar (contactId: string, file?: FileBox) : Promise<void | FileBox> { return { contactId, file } as any }
+  override async contactAvatar (contactId: string)                          : Promise<FileBoxInterface>
+  override async contactAvatar (contactId: string, file: FileBoxInterface)  : Promise<void>
+  override async contactAvatar (contactId: string, file?: FileBoxInterface) : Promise<void | FileBoxInterface> { return { contactId, file } as any }
 
   override async contactPhone (contactId: string, phoneList: string[]): Promise<void> { return { contactId, phoneList } as any }
 
@@ -103,15 +106,15 @@ class PuppetTest extends Puppet {
    *
    */
   override async messageContact     (messageId: string)                       : Promise<string> { return { messageId } as any }
-  override async messageFile        (messageId: string)                       : Promise<FileBox> { return { messageId } as any }
-  override async messageImage       (messageId: string, imageType: ImageType) : Promise<FileBox> { return { imageType, messageId } as any }
+  override async messageFile        (messageId: string)                       : Promise<FileBoxInterface> { return { messageId } as any }
+  override async messageImage       (messageId: string, imageType: ImageType) : Promise<FileBoxInterface> { return { imageType, messageId } as any }
   override async messageMiniProgram (messageId: string)                       : Promise<MiniProgramPayload> { return { messageId } as any }
   override async messageUrl         (messageId: string)                       : Promise<UrlLinkPayload> { return { messageId } as any }
   override async messageLocation    (messageId: string)                       : Promise<LocationPayload> { return { messageId } as any }
 
   override async messageForward         (conversationId: string, messageId: string)                      : Promise<void | string> { return { conversationId, messageId } as any }
   override async messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string> { return { contactId, conversationId } as any }
-  override async messageSendFile        (conversationId: string, file: FileBox)                          : Promise<void | string> { return { conversationId, file } as any }
+  override async messageSendFile        (conversationId: string, file: FileBoxInterface)                 : Promise<void | string> { return { conversationId, file } as any }
   override async messageSendText        (conversationId: string, text: string)                           : Promise<void | string> { return { conversationId, text } as any }
   override async messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
   override async messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string> { return { conversationId, miniProgramPayload } as any }
@@ -149,7 +152,7 @@ class PuppetTest extends Puppet {
   override async roomAnnounce (roomId: string, text?: string) : Promise<void | string> { return { roomId, text } as any }
 
   override async roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void> { return { contactId, inviteOnly, roomId } as any }
-  override async roomAvatar (roomId: string)                                       : Promise<FileBox> { return { roomId } as any }
+  override async roomAvatar (roomId: string)                                       : Promise<FileBoxInterface> { return { roomId } as any }
   override async roomCreate (contactIdList: string[], topic?: string)              : Promise<string> { return { contactIdList, topic } as any }
   override async roomDel (roomId: string, contactId: string)                       : Promise<void> { return { contactId, roomId } as any }
   override async roomQuit (roomId: string)                                         : Promise<void> { return { roomId } as any }

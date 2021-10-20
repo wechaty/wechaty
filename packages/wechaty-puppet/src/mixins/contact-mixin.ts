@@ -1,5 +1,7 @@
+import type {
+  FileBoxInterface,
+}                       from 'file-box'
 import {
-  FileBox,
   log,
 }                       from '../config.js'
 import type { PuppetSkelton } from '../puppet/skelton.js'
@@ -38,8 +40,8 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
     abstract contactAlias (contactId: string)                       : Promise<string>
     abstract contactAlias (contactId: string, alias: string | null) : Promise<void>
 
-    abstract contactAvatar (contactId: string)                : Promise<FileBox>
-    abstract contactAvatar (contactId: string, file: FileBox) : Promise<void>
+    abstract contactAvatar (contactId: string)                : Promise<FileBoxInterface>
+    abstract contactAvatar (contactId: string, file: FileBoxInterface) : Promise<void>
 
     abstract contactPhone (contactId: string, phoneList: string[]) : Promise<void>
 

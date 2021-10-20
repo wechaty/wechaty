@@ -1,5 +1,10 @@
+// import {
+//   FileBox,
+// } from 'file-box'
+import type {
+  FileBoxInterface,
+}                     from 'file-box'
 import {
-  FileBox,
   log,
 }                       from '../config.js'
 
@@ -47,15 +52,15 @@ const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(base
     *
     */
     abstract messageContact      (messageId: string)                       : Promise<string>
-    abstract messageFile         (messageId: string)                       : Promise<FileBox>
-    abstract messageImage        (messageId: string, imageType: ImageType) : Promise<FileBox>
+    abstract messageFile         (messageId: string)                       : Promise<FileBoxInterface>
+    abstract messageImage        (messageId: string, imageType: ImageType) : Promise<FileBoxInterface>
     abstract messageMiniProgram  (messageId: string)                       : Promise<MiniProgramPayload>
     abstract messageUrl          (messageId: string)                       : Promise<UrlLinkPayload>
     abstract messageLocation     (messageId: string)                       : Promise<LocationPayload>
 
     abstract messageForward         (conversationId: string, messageId: string,)                     : Promise<void | string>
     abstract messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string>
-    abstract messageSendFile        (conversationId: string, file: FileBox)                          : Promise<void | string>
+    abstract messageSendFile        (conversationId: string, file: FileBoxInterface)                 : Promise<void | string>
     abstract messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
     abstract messageSendText        (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
     abstract messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string>
