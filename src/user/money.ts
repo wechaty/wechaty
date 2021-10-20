@@ -24,7 +24,7 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class Money extends wechatifyMixin(EmptyBase) {
+class MoneyImpl extends wechatifyMixin(EmptyBase) {
 
   /*
    * @hideconstructor
@@ -35,16 +35,16 @@ class Money extends wechatifyMixin(EmptyBase) {
 
 }
 
-interface MoneyInterface extends Money {}
+interface Money extends MoneyImpl {}
 type MoneyConstructor = Constructor<
-  MoneyInterface,
-  typeof Money
+  Money,
+  typeof MoneyImpl
 >
 
 export type {
   MoneyConstructor,
-  MoneyInterface,
+  Money,
 }
 export {
-  Money,
+  MoneyImpl,
 }

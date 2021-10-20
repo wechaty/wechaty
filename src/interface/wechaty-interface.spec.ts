@@ -4,7 +4,7 @@ import type { StateSwitch }   from 'state-switch'
 
 import { test } from 'tstest'
 import type { PuppetInterface } from 'wechaty-puppet'
-import type { Message } from '../mod.js'
+import type { MessageImpl } from '../mod.js'
 import type {
   ContactSelfConstructor,
   ContactConstructor,
@@ -80,7 +80,7 @@ test('Wechaty interface', async t => {
 
   const WechatyTest = WechatyImplementation as unknown as WechatyConstructor
   const w: Wechaty = new WechatyTest()
-  w.on('message', (msg: Message) => {
+  w.on('message', (msg: MessageImpl) => {
     msg.say('ok').catch(console.error)
   })
 

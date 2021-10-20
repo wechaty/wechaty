@@ -33,7 +33,7 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class UrlLink extends wechatifyMixin(EmptyBase) {
+class UrlLinkImpl extends wechatifyMixin(EmptyBase) {
 
   /**
    *
@@ -130,15 +130,15 @@ class UrlLink extends wechatifyMixin(EmptyBase) {
 
 }
 
-interface UrlLinkInterface extends UrlLink {}
+interface UrlLink extends UrlLinkImpl {}
 type UrlLinkConstructor = Constructor<
-  UrlLinkInterface,
-  typeof UrlLink
+  UrlLink,
+  typeof UrlLinkImpl
 >
 export type {
   UrlLinkConstructor,
-  UrlLinkInterface,
+  UrlLink,
 }
 export {
-  UrlLink,
+  UrlLinkImpl,
 }

@@ -20,11 +20,11 @@
 import { log }        from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
-import type { Tag }       from './tag.js'
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import type { Tag } from './tag.js'
 
 class FavoriteImpl extends wechatifyMixin(EmptyBase) {
 
@@ -40,7 +40,7 @@ class FavoriteImpl extends wechatifyMixin(EmptyBase) {
    * @example
    * const tags = await wechaty.Favorite.tags()
    */
-  static async tags (): Promise<Tag []> {
+  static async tags (): Promise<Tag[]> {
     log.verbose('Favorite', 'static tags() for %s', this)
 
     // TODO:
@@ -62,7 +62,7 @@ class FavoriteImpl extends wechatifyMixin(EmptyBase) {
     super()
   }
 
-  async tags (): Promise<Tag []> {
+  async tags (): Promise<Tag[]> {
     // TODO: implmente this method
     return []
   }

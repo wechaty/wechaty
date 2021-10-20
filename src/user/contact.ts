@@ -39,11 +39,11 @@ import type {
 }                          from '../interface/mod.js'
 import { captureException } from '../raven.js'
 
-import { Message }      from './message.js'
+import { Message, MessageImpl }      from './message.js'
 import type { Tag }     from './tag.js'
-import { MiniProgram }  from './mini-program.js'
-import { UrlLink }      from './url-link.js'
-import { Location }     from './location.js'
+import { MiniProgram, MiniProgramImpl }  from './mini-program.js'
+import { UrlLink, UrlLinkImpl }      from './url-link.js'
+import { Location, LocationImpl }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
@@ -218,7 +218,7 @@ class ContactImpl extends wechatifyMixin(
    * @example
    * const tags = await wechaty.Contact.tags()
    */
-  static async tags (): Promise<Tag []> {
+  static async tags (): Promise<Tag[]> {
     log.verbose('Contact', 'static tags() for %s', this)
 
     try {
@@ -278,10 +278,10 @@ class ContactImpl extends wechatifyMixin(
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | ContactImpl | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
+   * @param {(string | ContactImpl | FileBox | UrlLinkImpl | MiniProgramImpl | LocationImpl)} sayableMsg
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
-   * @returns {Promise<void | Message>}
+   * @returns {Promise<void | MessageImpl>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -347,7 +347,8 @@ class ContactImpl extends wechatifyMixin(
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayableMsg)
 
-    if (sayableMsg instanceof Message) {
+    // TODO(202110): use interfaceOfClass to replace instanceof
+    if (sayableMsg instanceof MessageImpl) {
       return sayableMsg.forward(this)
     }
 
@@ -383,7 +384,8 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg,
       )
-    } else if (sayableMsg instanceof UrlLink) {
+    } else if (sayableMsg instanceof UrlLinkImpl) {
+      // TODO(202110): use interfaceOfClass to replace instanceof
       /**
        * 4. Link Message
        */
@@ -391,7 +393,8 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof MiniProgram) {
+    } else if (sayableMsg instanceof MiniProgramImpl) {
+      // TODO(202110): use interfaceOfClass to replace instanceof
       /**
        * 5. Mini Program
        */
@@ -399,7 +402,8 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof Location) {
+    } else if (sayableMsg instanceof LocationImpl) {
+      // TODO(202110): use interfaceOfClass to replace instanceof
       /**
        * 6. Location
        */
@@ -429,7 +433,7 @@ class ContactImpl extends wechatifyMixin(
     return (this.#payload && this.#payload.name) || ''
   }
 
-  async alias ()                  : Promise<null | string>
+  async alias ()                  : Promise<undefined | string>
   async alias (newAlias:  string) : Promise<void>
   async alias (empty:     null)   : Promise<void>
 
@@ -438,7 +442,7 @@ class ContactImpl extends wechatifyMixin(
    *
    * Tests show it will failed if set alias too frequently(60 times in one minute).
    * @param {(none | string | null)} newAlias
-   * @returns {(Promise<null | string | void>)}
+   * @returns {(Promise<undefined | string | void>)}
    * @example <caption> GET the alias for a contact, return {(Promise<string | null>)}</caption>
    * const alias = await contact.alias()
    * if (alias === null) {
@@ -464,7 +468,7 @@ class ContactImpl extends wechatifyMixin(
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  async alias (newAlias?: null | string): Promise<null | string | void> {
+  async alias (newAlias?: null | string): Promise<void | undefined | string> {
     log.silly('Contact', 'alias(%s)',
       newAlias === undefined
         ? ''
@@ -476,7 +480,7 @@ class ContactImpl extends wechatifyMixin(
     }
 
     if (typeof newAlias === 'undefined') {
-      return this.#payload.alias || null
+      return this.#payload.alias
     }
 
     try {
@@ -541,9 +545,9 @@ class ContactImpl extends wechatifyMixin(
     }
   }
 
-  async corporation (): Promise<string | null>
+  async corporation (): Promise<undefined | string>
   async corporation (remark: string | null): Promise<void>
-  async corporation (remark?: string | null): Promise<string | null | void> {
+  async corporation (remark?: string | null): Promise<void | undefined | string> {
     log.silly('Contact', 'corporation(%s)', remark)
 
     if (!this.#payload) {
@@ -551,7 +555,7 @@ class ContactImpl extends wechatifyMixin(
     }
 
     if (typeof remark === 'undefined') {
-      return this.#payload.corporation || null
+      return this.#payload.corporation
     }
 
     if (this.#payload.type !== ContactType.Individual) {
@@ -568,9 +572,9 @@ class ContactImpl extends wechatifyMixin(
     }
   }
 
-  async description (): Promise<string | null>
+  async description (): Promise<undefined | string>
   async description (newDescription: string | null): Promise<void>
-  async description (newDescription?: string | null): Promise<string | null | void> {
+  async description (newDescription?: string | null): Promise<void | undefined | string> {
     log.silly('Contact', 'description(%s)', newDescription)
 
     if (!this.#payload) {
@@ -578,7 +582,7 @@ class ContactImpl extends wechatifyMixin(
     }
 
     if (typeof newDescription === 'undefined') {
-      return this.#payload.description || null
+      return this.#payload.description
     }
 
     try {
@@ -620,16 +624,9 @@ class ContactImpl extends wechatifyMixin(
    * @example
    * const isFriend = contact.friend()
    */
-  friend (): null | boolean {
+  friend (): undefined | boolean {
     log.verbose('Contact', 'friend()')
-    if (!this.#payload) {
-      return null
-    }
-    if (typeof this.#payload.friend === 'boolean') {
-      return this.#payload.friend
-    } else {
-      return null
-    }
+    return this.#payload?.friend
   }
 
   /**
@@ -666,13 +663,8 @@ class ContactImpl extends wechatifyMixin(
    * @example
    * const isStar = contact.star()
    */
-  star (): null | boolean {
-    if (!this.#payload) {
-      return null
-    }
-    return this.#payload.star === undefined
-      ? null
-      : this.#payload.star
+  star (): undefined | boolean {
+    return this.#payload?.star
   }
 
   /**
@@ -696,8 +688,8 @@ class ContactImpl extends wechatifyMixin(
    * @example
    * const province = contact.province()
    */
-  province (): null | string {
-    return (this.#payload && this.#payload.province) || null
+  province (): undefined | string {
+    return this.#payload?.province
   }
 
   /**
@@ -707,8 +699,8 @@ class ContactImpl extends wechatifyMixin(
    * @example
    * const city = contact.city()
    */
-  city (): null | string {
-    return (this.#payload && this.#payload.city) || null
+  city (): undefined | string {
+    return this.#payload?.city
   }
 
   /**
@@ -742,7 +734,7 @@ class ContactImpl extends wechatifyMixin(
    * @example
    * const tags = await contact.tags()
    */
-  async tags (): Promise<Tag []> {
+  async tags (): Promise<Tag[]> {
     log.verbose('Contact', 'tags() for %s', this)
 
     try {
@@ -854,8 +846,8 @@ class ContactImpl extends wechatifyMixin(
    * @example
    * const weixin = contact.weixin()
    */
-  weixin (): null | string {
-    return (this.#payload && this.#payload.weixin) || null
+  weixin (): undefined | string {
+    return this.#payload?.weixin
   }
 
 }

@@ -26,13 +26,13 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class Moment extends wechatifyMixin(EmptyBase) {
+class MomentImpl extends wechatifyMixin(EmptyBase) {
 
   static post () {
     // post new moment
   }
 
-  static timeline (contact: Contact): Moment[] {
+  static timeline (contact: Contact): MomentImpl[] {
     // list all moment
     void contact
     return []
@@ -48,16 +48,16 @@ class Moment extends wechatifyMixin(EmptyBase) {
 
 }
 
-interface MomentInterface extends Moment {}
+interface Moment extends MomentImpl {}
 type MomentConstructor = Constructor<
-  MomentInterface,
-  typeof Moment
+  Moment,
+  typeof MomentImpl
 >
 
 export type {
   MomentConstructor,
-  MomentInterface,
+  Moment,
 }
 export {
-  Moment,
+  MomentImpl,
 }

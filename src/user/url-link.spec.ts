@@ -3,13 +3,13 @@ import { test } from 'tstest'
 import type { Wechaty } from '../mod.js'
 
 import { wechatifyUserClass } from './mod.js'
-import { UrlLink } from './url-link.js'
+import { UrlLinkImpl } from './url-link.js'
 
 const wechaty = {
   puppet: {} as any,
 } as any as Wechaty
 
-const UrlLinkTest = wechatifyUserClass(UrlLink)(wechaty)
+const UrlLinkTest = wechatifyUserClass(UrlLinkImpl)(wechaty)
 
 test('UrlLink.create() for wechaty.js.org', async t => {
   const URL = 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'

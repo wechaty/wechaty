@@ -28,7 +28,7 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class Location extends wechatifyMixin(EmptyBase) {
+class LocationImpl extends wechatifyMixin(EmptyBase) {
 
   /**
    *
@@ -36,7 +36,7 @@ class Location extends wechatifyMixin(EmptyBase) {
    * @param poi string A point of interest (POI) is a specific point location that someone may find useful or interesting.
    *  See: https://en.wikipedia.org/wiki/Point_of_interest
    */
-  static async create (poi: string): Promise<Location> {
+  static async create (poi: string): Promise<LocationImpl> {
     log.verbose('Location', 'create(%s)', poi)
 
     const payload: LocationPayload = {
@@ -88,16 +88,16 @@ class Location extends wechatifyMixin(EmptyBase) {
 
 }
 
-interface LocationInterface extends Location {}
+interface Location extends LocationImpl {}
 type LocationConstructor = Constructor<
-  LocationInterface,
-  typeof Location
+  Location,
+  typeof LocationImpl
 >
 
 export type {
   LocationConstructor,
-  LocationInterface,
+  Location,
 }
 export {
-  Location,
+  LocationImpl,
 }

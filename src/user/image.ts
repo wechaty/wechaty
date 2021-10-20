@@ -29,9 +29,9 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class Image extends wechatifyMixin(EmptyBase) {
+class ImageImpl extends wechatifyMixin(EmptyBase) {
 
-  static create (id: string): Image {
+  static create (id: string): ImageImpl {
     log.verbose('Image', 'static create(%s)', id)
 
     const image = new this(id)
@@ -65,16 +65,16 @@ class Image extends wechatifyMixin(EmptyBase) {
 
 }
 
-interface ImageInterface extends Image { }
+interface Image extends ImageImpl { }
 type ImageConstructor = Constructor<
-  ImageInterface,
-  typeof Image
+  Image,
+  typeof ImageImpl
 >
 
 export type {
   ImageConstructor,
-  ImageInterface,
+  Image,
 }
 export {
-  Image,
+  ImageImpl,
 }

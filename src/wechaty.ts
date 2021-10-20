@@ -62,14 +62,14 @@ import {
   ContactImpl,
   ContactSelfImpl,
   FriendshipImpl,
-  Image,
-  Message,
-  MiniProgram,
-  Room,
-  RoomInvitation,
-  Tag,
-  UrlLink,
-  Location,
+  ImageImpl,
+  MessageImpl,
+  MiniProgramImpl,
+  RoomImpl,
+  RoomInvitationImpl,
+  TagImpl,
+  UrlLinkImpl,
+  LocationImpl,
 
   ContactConstructor,
   ContactSelfConstructor,
@@ -88,12 +88,12 @@ import {
   // FriendshipInterface,
   // ImageInterface,
   // MessageInterface,
-  MiniProgramInterface,
+  MiniProgram,
   // RoomInterface,
   // RoomInvitationInterface,
   // TagInterface,
-  UrlLinkInterface,
-  LocationInterface,
+  UrlLink,
+  Location,
 
   wechatifyUserClass,
 }                       from './user/mod.js'
@@ -694,14 +694,14 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     this.#wechatifiedContact        = wechatifyUserClass(ContactImpl)(this)
     this.#wechatifiedContactSelf    = wechatifyUserClass(ContactSelfImpl)(this)
     this.#wechatifiedFriendship     = wechatifyUserClass(FriendshipImpl)(this)
-    this.#wechatifiedImage          = wechatifyUserClass(Image)(this)
-    this.#wechatifiedMessage        = wechatifyUserClass(Message)(this)
-    this.#wechatifiedMiniProgram    = wechatifyUserClass(MiniProgram)(this)
-    this.#wechatifiedRoom           = wechatifyUserClass(Room)(this)
-    this.#wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitation)(this)
-    this.#wechatifiedTag            = wechatifyUserClass(Tag)(this)
-    this.#wechatifiedUrlLink        = wechatifyUserClass(UrlLink)(this)
-    this.#wechatifiedLocation       = wechatifyUserClass(Location)(this)
+    this.#wechatifiedImage          = wechatifyUserClass(ImageImpl)(this)
+    this.#wechatifiedMessage        = wechatifyUserClass(MessageImpl)(this)
+    this.#wechatifiedMiniProgram    = wechatifyUserClass(MiniProgramImpl)(this)
+    this.#wechatifiedRoom           = wechatifyUserClass(RoomImpl)(this)
+    this.#wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitationImpl)(this)
+    this.#wechatifiedTag            = wechatifyUserClass(TagImpl)(this)
+    this.#wechatifiedUrlLink        = wechatifyUserClass(UrlLinkImpl)(this)
+    this.#wechatifiedLocation       = wechatifyUserClass(LocationImpl)(this)
   }
 
   /**
@@ -982,9 +982,9 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   async say (text:    string)      : Promise<void>
   async say (contact: Contact)     : Promise<void>
   async say (file:    FileBox)     : Promise<void>
-  async say (mini:    MiniProgramInterface) : Promise<void>
-  async say (url:     UrlLinkInterface)     : Promise<void>
-  async say (url:     LocationInterface)    : Promise<void>
+  async say (mini:    MiniProgram) : Promise<void>
+  async say (url:     UrlLink)     : Promise<void>
+  async say (url:     Location)    : Promise<void>
 
   async say (...args: never[]): Promise<never>
 

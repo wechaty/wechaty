@@ -43,10 +43,10 @@ import {
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import { Contact, ContactImpl }        from './contact.js'
-import { MiniProgram }    from './mini-program.js'
-import { Message }        from './message.js'
-import { UrlLink }        from './url-link.js'
-import { Location }       from './location.js'
+import { MiniProgram, MiniProgramImpl }    from './mini-program.js'
+import { Message, MessageImpl }        from './message.js'
+import { UrlLink, UrlLinkImpl }        from './url-link.js'
+import { Location, LocationImpl }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -68,8 +68,8 @@ void POOL
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-class Room extends wechatifyMixin(
-  poolifyMixin<Room>()(RoomEventEmitter),
+class RoomImpl extends wechatifyMixin(
+  poolifyMixin<RoomImpl>()(RoomEventEmitter),
 ) implements Sayable {
 
   /**
@@ -130,15 +130,14 @@ class Room extends wechatifyMixin(
    * const roomList = await bot.Room.findAll()                    // get the room list of the bot
    * const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
    */
-  static async findAll<T extends typeof Room> (
-    this   : T,
+  static async findAll (
     query? : RoomQueryFilter,
-  ): Promise<Array<T['prototype']>> {
+  ): Promise<Room[]> {
     log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
 
     try {
       const roomIdList = await this.wechaty.puppet.roomSearch(query)
-      const roomList = roomIdList.map(id => this.load<T>(id))
+      const roomList = roomIdList.map(id => this.load(id))
 
       const BATCH_SIZE = 10
       let   batchIndex = 0
@@ -186,10 +185,9 @@ class Room extends wechatifyMixin(
    * const roomList = await bot.Room.find({topic: 'wechaty'})
    */
 
-  static async find<T extends typeof Room> (
-    this  : T,
+  static async find (
     query : string | RoomQueryFilter,
-  ): Promise<T['prototype'] | null> {
+  ): Promise<undefined | Room> {
     log.verbose('Room', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'string') {
@@ -201,7 +199,7 @@ class Room extends wechatifyMixin(
     //   return null
     // }
     if (roomList.length < 1) {
-      return null
+      return undefined
     }
 
     if (roomList.length > 1) {
@@ -229,7 +227,7 @@ class Room extends wechatifyMixin(
       }
     }
     log.warn('Room', 'find() got %d rooms but no one is valid.', roomList.length)
-    return null
+    return undefined
   }
 
   /**
@@ -447,7 +445,8 @@ class Room extends wechatifyMixin(
     let text  : string
     let msgId : void | string
 
-    if (sayableMsg instanceof Message) {
+    if (sayableMsg instanceof MessageImpl) {
+      // TODO: use `interfaceOfMessage()` to replace instanceof
       return sayableMsg.forward(this)
     }
 
@@ -536,7 +535,8 @@ class Room extends wechatifyMixin(
         this.id,
         sayableMsg.id,
       )
-    } else if (sayableMsg instanceof UrlLink) {
+    } else if (sayableMsg instanceof UrlLinkImpl) {
+      // TODO: use `interfaceOfMessage()` to replace instanceof
       /**
        * 4. Link Message
        */
@@ -544,7 +544,8 @@ class Room extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof MiniProgram) {
+    } else if (sayableMsg instanceof MiniProgramImpl) {
+      // TODO: use `interfaceOfMessage()` to replace instanceof
       /**
        * 5. Mini Program
        */
@@ -552,7 +553,8 @@ class Room extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (sayableMsg instanceof Location) {
+    } else if (sayableMsg instanceof LocationImpl) {
+      // TODO: use `interfaceOfMessage()` to replace instanceof
       /**
        * 6. Location
        */
@@ -1105,7 +1107,7 @@ class Room extends wechatifyMixin(
    * Find all contacts in a room, if get many, return the first one.
    *
    * @param {(RoomMemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
-   * @returns {Promise<null | ContactImpl>}
+   * @returns {Promise<undefined | Contact>}
    *
    * @example <caption>Find member by name</caption>
    * const bot = new Wechaty()
@@ -1221,15 +1223,15 @@ class Room extends wechatifyMixin(
 
 }
 
-interface RoomInterface extends Room {}
+interface Room extends RoomImpl {}
 type RoomConstructor = Constructor<
-  RoomInterface,
-  typeof Room
+  Room,
+  typeof RoomImpl
 >
 export type {
   RoomConstructor,
-  RoomInterface,
+  Room,
 }
 export {
-  Room,
+  RoomImpl,
 }

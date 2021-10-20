@@ -40,8 +40,8 @@ import {
  */
 void POOL
 
-class Tag extends wechatifyMixin(
-  poolifyMixin<Tag>()(Object),
+class TagImpl extends wechatifyMixin(
+  poolifyMixin<TagImpl>()(Object),
 ) {
 
   /**
@@ -62,15 +62,14 @@ class Tag extends wechatifyMixin(
    *
    * @static
    * @param {string} [tag] the tag name which want to create
-   * @returns {Promise<Tag>}
+   * @returns {Promise<TagImpl>}
    * @example
    * const bot = new Wechaty()
    * await bot.Tag.get('TagName')
    */
-  static async get<T extends typeof Tag> (
-    this: T,
+  static async get (
     tag: string,
-  ): Promise<T['prototype']> {
+  ): Promise<Tag> {
     log.verbose('Tag', 'get(%s)', tag)
     return this.load(tag)
   }
@@ -87,6 +86,10 @@ class Tag extends wechatifyMixin(
    * @example
    * const tag = wechaty.Tag.get('tag')
    * await wechaty.Tag.delete(tag)
+   */
+
+  /**
+   * TODO: refactoring the target: do not use ContactIml or FavoriteImpl
    */
   static async delete (
     tag: Tag,
@@ -183,16 +186,16 @@ class Tag extends wechatifyMixin(
 
 }
 
-interface TagInterface extends Tag {}
+interface Tag extends TagImpl {}
 type TagConstructor = Constructor<
-  TagInterface,
-  typeof Tag
+  Tag,
+  typeof TagImpl
 >
 
 export type {
   TagConstructor,
-  TagInterface,
+  Tag,
 }
 export {
-  Tag,
+  TagImpl,
 }

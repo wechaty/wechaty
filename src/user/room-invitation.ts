@@ -42,12 +42,11 @@ import {
  *
  * accept room invitation
  */
-class RoomInvitation extends wechatifyMixin(EmptyBase) implements Acceptable {
+class RoomInvitationImpl extends wechatifyMixin(EmptyBase) implements Acceptable {
 
-  static load<T extends typeof RoomInvitation> (
-    this : T,
+  static load (
     id   : string,
-  ): T['prototype'] {
+  ): RoomInvitation {
     const newRoomInvitation = new this(id)
     return newRoomInvitation
   }
@@ -276,16 +275,16 @@ class RoomInvitation extends wechatifyMixin(EmptyBase) implements Acceptable {
 
 }
 
-interface RoomInvitationInterface extends RoomInvitation {}
+interface RoomInvitation extends RoomInvitationImpl {}
 type RoomInvitationConstructor = Constructor<
-  RoomInvitationInterface,
-  typeof RoomInvitation
+  RoomInvitation,
+  typeof RoomInvitationImpl
 >
 
 export type {
   RoomInvitationConstructor,
-  RoomInvitationInterface,
+  RoomInvitation,
 }
 export {
-  RoomInvitation,
+  RoomInvitationImpl,
 }

@@ -20,7 +20,7 @@
 import {
   Contact,
   FileBox,
-  Message,
+  MessageImpl,
   ScanStatus,
   createWechaty,
 }                 from '../src/mod.js' // from 'wechaty'
@@ -129,7 +129,7 @@ function onError (e: Error) {
  *    dealing with Messages.
  *
  */
-async function onMessage (msg: Message) {
+async function onMessage (msg: MessageImpl) {
   console.info(msg.toString())
 
   if (msg.self()) {

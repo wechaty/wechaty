@@ -38,53 +38,53 @@ import {
   FriendshipConstructor,
 }                           from './friendship.js'
 import {
+  ImageImpl,
   Image,
-  ImageInterface,
   ImageConstructor,
 }                           from './image.js'
 import {
+  LocationImpl,
   Location,
-  LocationInterface,
   LocationConstructor,
 }                           from './location.js'
 import {
+  MessageImpl,
   Message,
-  MessageInterface,
   MessageConstructor,
 }                           from './message.js'
 import {
+  MiniProgramImpl,
   MiniProgram,
-  MiniProgramInterface,
   MiniProgramConstructor,
 }                           from './mini-program.js'
 import {
+  MomentImpl,
   Moment,
-  MomentInterface,
   MomentConstructor,
 }                           from './moment.js'
 import {
+  MoneyImpl,
   Money,
-  MoneyInterface,
   MoneyConstructor,
 }                           from './money.js'
 import {
+  RoomImpl,
   Room,
-  RoomInterface,
   RoomConstructor,
 }                           from './room.js'
 import {
+  RoomInvitationImpl,
   RoomInvitation,
-  RoomInvitationInterface,
   RoomInvitationConstructor,
 }                           from './room-invitation.js'
 import {
+  TagImpl,
   Tag,
-  TagInterface,
   TagConstructor,
 }                           from './tag.js'
 import {
+  UrlLinkImpl,
   UrlLink,
-  UrlLinkInterface,
   UrlLinkConstructor,
 }                           from './url-link.js'
 
@@ -95,16 +95,16 @@ export type {
   ContactSelf,
   Favorite,
   Friendship,
-  ImageInterface,
-  LocationInterface,
-  MessageInterface,
-  MiniProgramInterface,
-  MomentInterface,
-  MoneyInterface,
-  RoomInterface,
-  RoomInvitationInterface,
-  TagInterface,
-  UrlLinkInterface,
+  Image,
+  Location,
+  Message,
+  MiniProgram,
+  Moment,
+  Money,
+  Room,
+  RoomInvitation,
+  Tag,
+  UrlLink,
 
   ContactConstructor,
   ContactSelfConstructor,
@@ -127,14 +127,14 @@ export {
   ContactSelfImpl,
   FavoriteImpl,
   FriendshipImpl,
-  Image,
-  Location,
-  Message,
-  MiniProgram,
-  Moment,
-  Money,
-  Room,
-  RoomInvitation,
-  Tag,
-  UrlLink,
+  ImageImpl,
+  LocationImpl,
+  MessageImpl,
+  MiniProgramImpl,
+  MomentImpl,
+  MoneyImpl,
+  RoomImpl,
+  RoomInvitationImpl,
+  TagImpl,
+  UrlLinkImpl,
 }

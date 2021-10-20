@@ -21,10 +21,10 @@ import type { FileBoxInterface } from 'file-box'
 
 import type {
   Contact,
-  LocationInterface,
-  MessageInterface,
-  MiniProgramInterface,
-  UrlLinkInterface,
+  Location,
+  Message,
+  MiniProgram,
+  UrlLink,
 }                           from '../user/mod.js'
 
 import type {
@@ -34,12 +34,12 @@ import type {
  type SayableMessage = never
   | Contact
   | FileBoxInterface
-  | LocationInterface
-  | MessageInterface
-  | MiniProgramInterface
+  | Location
+  | Message
+  | MiniProgram
   | number
   | string
-  | UrlLinkInterface
+  | UrlLink
 
 interface Sayable {
   id      : string,
@@ -47,7 +47,7 @@ interface Sayable {
   say (
     text     : SayableMessage,
     replyTo? : Contact | Contact[]
-  ): Promise<void | MessageInterface>
+  ): Promise<void | Message>
 }
 
 export type {

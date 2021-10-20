@@ -28,7 +28,7 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class MiniProgram extends wechatifyMixin(EmptyBase) {
+class MiniProgramImpl extends wechatifyMixin(EmptyBase) {
 
   /**
    *
@@ -94,16 +94,16 @@ class MiniProgram extends wechatifyMixin(EmptyBase) {
 
 }
 
-interface MiniProgramInterface extends MiniProgram {}
+interface MiniProgram extends MiniProgramImpl {}
 type MiniProgramConstructor = Constructor<
-  MiniProgramInterface,
-  typeof MiniProgram
+  MiniProgram,
+  typeof MiniProgramImpl
 >
 
 export type {
   MiniProgramConstructor,
-  MiniProgramInterface,
+  MiniProgram,
 }
 export {
-  MiniProgram,
+  MiniProgramImpl,
 }

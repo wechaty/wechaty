@@ -38,9 +38,9 @@ import {
   FriendshipImpl,
   IoClient,
   log,
-  Message,
+  MessageImpl,
 
-  Room,
+  RoomImpl,
   Wechaty,
 }                 from './mod.js'
 
@@ -56,9 +56,9 @@ test('Export of the Framework', async t => {
   t.ok(ContactImpl,     'should export Contact')
   t.ok(FriendshipImpl,  'should export Friendship')
   t.ok(IoClient,    'should export IoClient')
-  t.ok(Message,     'should export Message')
+  t.ok(MessageImpl,     'should export Message')
   t.ok(Puppet,      'should export Puppet')
-  t.ok(Room,        'should export Room')
+  t.ok(RoomImpl,        'should export Room')
   t.ok(WechatyImpl,     'should export Wechaty')
   t.ok(log,         'should export log')
 })
