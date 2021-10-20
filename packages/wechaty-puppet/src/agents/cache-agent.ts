@@ -39,9 +39,13 @@ class CacheAgent {
   readonly roomMember     : QuickLru<string, RoomMemberPayload>
 
   constructor (
-    protected options: PayloadCacheOptions = {},
+    protected options?: PayloadCacheOptions,
   ) {
-    log.verbose('CacheAgent', 'constructor("%s")', JSON.stringify(options))
+    log.verbose('CacheAgent', 'constructor(%s)',
+      options
+        ? JSON.stringify(options)
+        : '',
+    )
 
     /**
      * Setup LRU Caches
@@ -52,22 +56,22 @@ class CacheAgent {
     })
 
     this.contact = new QuickLru<string, ContactPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT(options.contact)),
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT(options?.contact)),
     )
     this.friendship = new QuickLru<string, FriendshipPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP(options.friendship)),
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_FRIENDSHIP(options?.friendship)),
     )
     this.message = new QuickLru<string, MessagePayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE(options.message)),
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_MESSAGE(options?.message)),
     )
     this.roomInvitation = new QuickLru<string, RoomInvitationPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION(options.roomInvitation)),
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION(options?.roomInvitation)),
     )
     this.roomMember = new QuickLru<string, RoomMemberPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER(options.roomMember)),
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER(options?.roomMember)),
     )
     this.room = new QuickLru<string, RoomPayload>(lruOptions(
-      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM(options.room)),
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM(options?.room)),
     )
 
   }

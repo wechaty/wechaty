@@ -58,8 +58,8 @@
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.12.4",
-    "clone-class": "^0.9.19",
-    "file-box": "^0.23.2",
+    "clone-class": "^0.10.5",
+    "file-box": "^1.0.3",
     "memory-card": "^0.12.2",
     "state-switch": "^0.18.1",
     "tstest": "^0.7.3",
