@@ -15,8 +15,8 @@ import {
 }                         from './config.js'
 import {
   looseInstanceOfFileBox,
-  looseInstanceOfPuppet,
-}                         from './loose-instance-of.js'
+  looseInstanceOfPuppetDeprecated,
+}                         from './puppet/interface-of.js'
 import {
   Puppet,
 }                         from './puppet/mod.js'
@@ -146,7 +146,7 @@ export {
   isGError,
   log,
   looseInstanceOfFileBox,
-  looseInstanceOfPuppet,
+  looseInstanceOfPuppetDeprecated as looseInstanceOfPuppet,
   MemoryCard,
   MessageType,
   PayloadType,

@@ -41,16 +41,16 @@ import {
   roomMixin,
   stateMixin,
   tagMixin,
+  validateMixin,
 }                        from '../mixins/mod.js'
 
-import { PuppetSkelton }    from './skelton.js'
-import { validationMixin } from '../mixins/validation-mixin.js'
+import { PuppetSkelton } from './skelton.js'
 
 /**
  * Huan(202110): use compose() to compose mixins
  */
 const MixinBase = miscMixin(
-  validationMixin(
+  validateMixin(
     messageMixin(
       roomInvitationMixin(
         tagMixin(

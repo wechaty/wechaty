@@ -41,9 +41,9 @@ import {
 }                                     from '../mixins/state-mixin.js'
 import { tagMixin }                   from '../mixins/tag-mixin.js'
 import {
-  validationMixin,
-  ProtectedPropertyValidationMixin,
-}                                     from '../mixins/validation-mixin.js'
+  validateMixin,
+  ProtectedPropertyValidateMixin,
+}                                     from './validate-mixin.js'
 
 /**
  * Issue #155 - Mixin: Property 'messageRawPayload' of exported class expression
@@ -66,7 +66,7 @@ type MixinProtectedProperty = never
   | ProtectedPropertyRoomMemberMixin
   | ProtectedPropertyRoomMixin
   | ProtectedPropertyStateMixin
-  | ProtectedPropertyValidationMixin
+  | ProtectedPropertyValidateMixin
 
 export type {
   MixinProtectedProperty,
@@ -84,5 +84,5 @@ export {
   roomMixin,
   stateMixin,
   tagMixin,
-  validationMixin,
+  validateMixin,
 }
