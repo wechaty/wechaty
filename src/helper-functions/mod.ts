@@ -17,7 +17,6 @@
  *   limitations under the License.
  *
  */
-export { generateToken }    from './impure/generate-token.js'
 export { retryPolicy }      from './pure/retry-policy.js'
 export {
   digestEmoji,

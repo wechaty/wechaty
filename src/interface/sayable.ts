@@ -20,7 +20,7 @@
 import type { FileBoxInterface } from 'file-box'
 
 import type {
-  ContactInterface,
+  Contact,
   LocationInterface,
   MessageInterface,
   MiniProgramInterface,
@@ -32,7 +32,7 @@ import type {
 }                           from './wechaty-interface.js'
 
  type SayableMessage = never
-  | ContactInterface
+  | Contact
   | FileBoxInterface
   | LocationInterface
   | MessageInterface
@@ -46,7 +46,7 @@ interface Sayable {
   wechaty : Wechaty,
   say (
     text     : SayableMessage,
-    replyTo? : ContactInterface | ContactInterface[]
+    replyTo? : Contact | Contact[]
   ): Promise<void | MessageInterface>
 }
 

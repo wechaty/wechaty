@@ -18,23 +18,23 @@
  *
  */
 import {
+  ContactImpl,
   Contact,
-  ContactInterface,
   ContactConstructor,
 }                           from './contact.js'
 import {
+  ContactSelfImpl,
   ContactSelf,
-  ContactSelfInterface,
   ContactSelfConstructor,
 }                           from './contact-self.js'
 import {
+  FavoriteImpl,
   Favorite,
-  FavoriteInterface,
   FavoriteConstructor,
 }                           from './favorite.js'
 import {
+  FriendshipImpl,
   Friendship,
-  FriendshipInterface,
   FriendshipConstructor,
 }                           from './friendship.js'
 import {
@@ -91,10 +91,10 @@ import {
 import { wechatifyUserClass } from './mixins/wechatify.js'
 
 export type {
-  ContactInterface,
-  ContactSelfInterface,
-  FavoriteInterface,
-  FriendshipInterface,
+  Contact,
+  ContactSelf,
+  Favorite,
+  Friendship,
   ImageInterface,
   LocationInterface,
   MessageInterface,
@@ -123,10 +123,10 @@ export type {
 }
 export {
   wechatifyUserClass,
-  Contact,
-  ContactSelf,
-  Favorite,
-  Friendship,
+  ContactImpl,
+  ContactSelfImpl,
+  FavoriteImpl,
+  FriendshipImpl,
   Image,
   Location,
   Message,

@@ -45,6 +45,7 @@ import {
 
 import {
   Contact,
+  ContactImpl,
 }                       from './contact.js'
 import type {
   Room,
@@ -271,14 +272,14 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * @depreacated Use `message.talker()` to replace `message.from()`
    *  https://github.com/wechaty/wechaty/issues/2094
    */
-  from (): null | Contact {
+  from (): undefined | Contact {
     log.warn('Message', 'from() is deprecated, use talker() instead. Call stack: %s',
       new Error().stack,
     )
     try {
       return this.talker()
     } catch (e) {
-      return null
+      return undefined
     }
   }
 
@@ -288,7 +289,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * @returns {(Contact|null)}
    * @deprecated use `listener()` instead
    */
-  to (): null | Contact {
+  to (): undefined | Contact {
     // Huan(202108): I want to deprecate this method name in the future,
     //  and use `message.listener()` to replace it.
     return this.listener()
@@ -298,16 +299,16 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * Get the destination of the message
    * Message.listener() will return null if a message is in a room,
    * use Message.room() to get the room.
-   * @returns {(Contact|null)}
+   * @returns {(undefined | Contact)}
    */
-  listener (): null | Contact {
+  listener (): undefined | Contact {
     if (!this.#payload) {
       throw new Error('no payload')
     }
 
     const listenerId = this.#payload.toId
     if (!listenerId) {
-      return null
+      return undefined
     }
 
     let listener
@@ -562,7 +563,8 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
         sayableMsg,
         mentionIdList,
       )
-    } else if (sayableMsg instanceof Contact) {
+    } else if (sayableMsg instanceof ContactImpl) {
+      // Huan(202110) TODO: use validInterfaceOfContact() to check it
       /**
        * Contact Card
        */

@@ -26,7 +26,7 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class Favorite extends wechatifyMixin(EmptyBase) {
+class FavoriteImpl extends wechatifyMixin(EmptyBase) {
 
   static list (): Favorite[] {
     return []
@@ -73,16 +73,16 @@ class Favorite extends wechatifyMixin(EmptyBase) {
 
 }
 
-interface FavoriteInterface extends Favorite {}
+interface Favorite extends FavoriteImpl {}
 type FavoriteConstructor = Constructor<
-  FavoriteInterface,
-  typeof Favorite
+  Favorite,
+  typeof FavoriteImpl
 >
 
 export type {
   FavoriteConstructor,
-  FavoriteInterface,
+  Favorite,
 }
 export {
-  Favorite,
+  FavoriteImpl,
 }

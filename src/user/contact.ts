@@ -71,8 +71,8 @@ void POOL
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-class Contact extends wechatifyMixin(
-  poolifyMixin<Contact>()(ContactEventEmitter),
+class ContactImpl extends wechatifyMixin(
+  poolifyMixin<ContactImpl>()(ContactEventEmitter),
 ) implements Sayable {
 
   static Type   = ContactType
@@ -94,14 +94,14 @@ class Contact extends wechatifyMixin(
    *
    * @static
    * @param {ContactQueryFilter} query
-   * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
+   * @returns {(Promise<ContactImpl | null>)} If can find the contact, return Contact, or return null
    * @example
    * const bot = new Wechaty()
    * await bot.start()
    * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
-  static async find<T extends typeof Contact> (
+  static async find<T extends typeof ContactImpl> (
     this  : T,
     query : string | ContactQueryFilter,
   ): Promise<T['prototype'] | null> {
@@ -155,7 +155,7 @@ class Contact extends wechatifyMixin(
    *
    * @static
    * @param {ContactQueryFilter} [queryArg]
-   * @returns {Promise<Contact[]>}
+   * @returns {Promise<ContactImpl[]>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -163,7 +163,7 @@ class Contact extends wechatifyMixin(
    * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
-  static async findAll<T extends typeof Contact> (
+  static async findAll<T extends typeof ContactImpl> (
     this  : T,
     query? : string | ContactQueryFilter,
   ): Promise<Array<T['prototype']>> {
@@ -205,6 +205,7 @@ class Contact extends wechatifyMixin(
   }
 
   // TODO
+  // eslint-disable-next-line no-use-before-define
   static async delete (contact: Contact): Promise<void> {
     log.verbose('Contact', 'static delete(%s)', contact.id)
   }
@@ -277,7 +278,7 @@ class Contact extends wechatifyMixin(
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
+   * @param {(string | ContactImpl | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void | Message>}
@@ -363,7 +364,10 @@ class Contact extends wechatifyMixin(
         this.id,
         sayableMsg,
       )
-    } else if (sayableMsg instanceof Contact) {
+    } else if (sayableMsg instanceof ContactImpl) {
+      /**
+       * Huan(202110): FIXME: use interfaceOfContact() to check it is a Contact
+       */
       /**
        * 2. Contact
        */
@@ -856,17 +860,17 @@ class Contact extends wechatifyMixin(
 
 }
 
-interface ContactInterface extends Contact {}
+interface Contact extends ContactImpl {}
 
 type ContactConstructor = Constructor<
-  ContactInterface,
-  typeof Contact
+  Contact,
+  typeof ContactImpl
 >
 
 export type {
   ContactConstructor,
-  ContactInterface,
+  Contact,
 }
 export {
-  Contact,
+  ContactImpl,
 }

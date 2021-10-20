@@ -62,17 +62,16 @@ type FriendshipAddOptions = string | FriendshipAddOptionsObject
  *
  * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
-class Friendship extends wechatifyMixin(EventEmitter) implements Acceptable {
+class FriendshipImpl extends wechatifyMixin(EventEmitter) implements Acceptable {
 
   static Type = FriendshipType
 
   /**
    * @ignore
    */
-  static load<T extends typeof Friendship> (
-    this : T,
+  static load (
     id   : string,
-  ): T['prototype'] {
+  ): Friendship {
     const newFriendship = new this(id)
     return newFriendship
   }
@@ -84,7 +83,7 @@ class Friendship extends wechatifyMixin(EventEmitter) implements Acceptable {
    * Remember not to do this too frequently, or your account may be blocked.
    *
    * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
-   * @returns {Promise<Contact>}
+   * @returns {Promise<ContactImpl>}
    *
    * @example
    * const friend_phone = await bot.Friendship.search({phone: '13112341234'})
@@ -96,14 +95,14 @@ class Friendship extends wechatifyMixin(EventEmitter) implements Acceptable {
    */
   static async search (
     queryFilter : FriendshipSearchQueryFilter,
-  ): Promise<null | Contact> {
+  ): Promise<undefined | Contact> {
     log.verbose('Friendship', 'static search("%s")',
       JSON.stringify(queryFilter),
     )
     const contactId = await this.wechaty.puppet.friendshipSearch(queryFilter)
 
     if (!contactId) {
-      return null
+      return undefined
     }
 
     const contact = this.wechaty.Contact.load(contactId)
@@ -257,8 +256,8 @@ class Friendship extends wechatifyMixin(EventEmitter) implements Acceptable {
       throw new Error('no payload')
     }
 
-    if (this.#payload.type !== Friendship.Type.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + Friendship.Type[this.#payload.type])
+    if (this.#payload.type !== FriendshipType.Receive) {
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this.#payload.type])
     }
 
     log.silly('Friendship', 'accept() to %s', this.#payload.contactId)
@@ -424,16 +423,16 @@ class Friendship extends wechatifyMixin(EventEmitter) implements Acceptable {
 
 }
 
-interface FriendshipInterface extends Friendship {}
+interface Friendship extends FriendshipImpl {}
 type FriendshipConstructor = Constructor<
-  FriendshipInterface,
-  typeof Friendship
+  Friendship,
+  typeof FriendshipImpl
 >
 
 export type {
   FriendshipConstructor,
-  FriendshipInterface,
+  Friendship,
 }
 export {
-  Friendship,
+  FriendshipImpl,
 }

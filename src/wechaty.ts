@@ -59,9 +59,9 @@ import {
 }                       from './puppet-manager.js'
 
 import {
-  Contact,
-  ContactSelf,
-  Friendship,
+  ContactImpl,
+  ContactSelfImpl,
+  FriendshipImpl,
   Image,
   Message,
   MiniProgram,
@@ -83,7 +83,7 @@ import {
   UrlLinkConstructor,
   LocationConstructor,
 
-  ContactInterface,
+  Contact,
   // ContactSelfInterface,
   // FriendshipInterface,
   // ImageInterface,
@@ -691,9 +691,9 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
      * Wechatify User Classes
      *  1. Binding the wechaty instance to the class
      */
-    this.#wechatifiedContact        = wechatifyUserClass(Contact)(this)
-    this.#wechatifiedContactSelf    = wechatifyUserClass(ContactSelf)(this)
-    this.#wechatifiedFriendship     = wechatifyUserClass(Friendship)(this)
+    this.#wechatifiedContact        = wechatifyUserClass(ContactImpl)(this)
+    this.#wechatifiedContactSelf    = wechatifyUserClass(ContactSelfImpl)(this)
+    this.#wechatifiedFriendship     = wechatifyUserClass(FriendshipImpl)(this)
     this.#wechatifiedImage          = wechatifyUserClass(Image)(this)
     this.#wechatifiedMessage        = wechatifyUserClass(Message)(this)
     this.#wechatifiedMiniProgram    = wechatifyUserClass(MiniProgram)(this)
@@ -962,7 +962,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
    * const contact = bot.currentUser()
    * console.log(`Bot is ${contact.name()}`)
    */
-  currentUser (): ContactSelf {
+  currentUser (): Contact {
     const userId = this.puppet.currentUserId
     const user = this.ContactSelf.load(userId)
     return user
@@ -980,7 +980,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   }
 
   async say (text:    string)      : Promise<void>
-  async say (contact: ContactInterface)     : Promise<void>
+  async say (contact: Contact)     : Promise<void>
   async say (file:    FileBox)     : Promise<void>
   async say (mini:    MiniProgramInterface) : Promise<void>
   async say (url:     UrlLinkInterface)     : Promise<void>

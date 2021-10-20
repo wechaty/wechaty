@@ -55,9 +55,11 @@ import type {
 
 import {
   Contact,
-  ContactSelf,
-  Favorite,
+  ContactImpl,
+  ContactSelfImpl,
+  FavoriteImpl,
   Friendship,
+  FriendshipImpl,
   Image,
   Message,
   MiniProgram,
@@ -83,6 +85,8 @@ import type {
   Wechaty,
 }                   from './interface/mod.js'
 export type {
+  Contact,
+  Friendship,
   IoClientOptions,
   PuppetModuleName,
   Sayable,
@@ -98,11 +102,11 @@ export {
   createWechaty,
   singletonWechaty,
   config,
-  Contact,
-  ContactSelf,
-  Favorite,
+  ContactImpl,
+  ContactSelfImpl,
+  FavoriteImpl,
   FileBox,
-  Friendship,
+  FriendshipImpl,
   Image,
   Location,
   IoClient,

@@ -42,7 +42,7 @@ import {
   guardQrCodeValue,
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
-import { Contact }        from './contact.js'
+import { Contact, ContactImpl }        from './contact.js'
 import { MiniProgram }    from './mini-program.js'
 import { Message }        from './message.js'
 import { UrlLink }        from './url-link.js'
@@ -492,7 +492,8 @@ class Room extends wechatifyMixin(
 
       if (varList.length > 0) {
 
-        const allIsContact = varList.every(c => c instanceof Contact)
+        // Huan(202110): TODO: use validInterfaceOfContact() to replace `instanceof`
+        const allIsContact = varList.every(c => c instanceof ContactImpl)
         if (!allIsContact) {
           throw new Error('mentionList must be contact when not using TemplateStringArray function call.')
         }
@@ -526,7 +527,8 @@ class Room extends wechatifyMixin(
         this.id,
         sayableMsg,
       )
-    } else if (sayableMsg instanceof Contact) {
+    } else if (sayableMsg instanceof ContactImpl) {
+      // Huan(202110): TODO: use validInterfaceOfContact() to replace `instanceof`
       /**
        * 3. Contact Card
        */
@@ -573,7 +575,8 @@ class Room extends wechatifyMixin(
     textList: TemplateStringsArray,
     ...varList: unknown[]
   ) {
-    const mentionList: Contact[] = varList.filter(v => v instanceof Contact) as any
+    // Huan(202110) TODO: use validInterfaceOfContact() to replace `instanceof`
+    const mentionList: Contact[] = varList.filter(v => v instanceof ContactImpl) as any
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
     //   roomId    : this.id,
@@ -614,7 +617,8 @@ class Room extends wechatifyMixin(
 
       let i = 0
       for (; i < varListLength; i++) {
-        if (varList[i] instanceof Contact) {
+        // Huan(202110) TODO: use validInterfaceOfContact() to replace `instanceof`
+        if (varList[i] instanceof ContactImpl) {
           const mentionContact: Contact = varList[i] as any
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
@@ -804,10 +808,8 @@ class Room extends wechatifyMixin(
    *
    * Huan(202106): will be removed after Dec 31, 2023
    */
-  async del (contact: Contact): Promise<void> {
-    log.verbose('Room', 'del(%s)', contact)
-    log.warn('Room', 'del() is DEPRECATED, use remove() instead.')
-
+  async del (contact: ContactImpl): Promise<void> {
+    log.warn('Room', 'del() is DEPRECATED, use remove() instead.\n%s', new Error().stack)
     return this.remove(contact)
   }
 
@@ -984,14 +986,14 @@ class Room extends wechatifyMixin(
    * })
    * .start()
    */
-  async alias (contact: Contact): Promise<null | string> {
+  async alias (contact: Contact): Promise<undefined | string> {
     const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
 
     if (memberPayload.roomAlias) {
       return memberPayload.roomAlias
     }
 
-    return null
+    return undefined
   }
 
   async readMark (hasRead: boolean): Promise<void>
@@ -1096,14 +1098,14 @@ class Room extends wechatifyMixin(
     return contactList
   }
 
-  async member (name  : string)               : Promise<null | Contact>
-  async member (filter: RoomMemberQueryFilter): Promise<null | Contact>
+  async member (name  : string)               : Promise<undefined | Contact>
+  async member (filter: RoomMemberQueryFilter): Promise<undefined | Contact>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
    *
    * @param {(RoomMemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
-   * @returns {Promise<null | Contact>}
+   * @returns {Promise<null | ContactImpl>}
    *
    * @example <caption>Find member by name</caption>
    * const bot = new Wechaty()
@@ -1135,7 +1137,7 @@ class Room extends wechatifyMixin(
    */
   async member (
     queryArg: string | RoomMemberQueryFilter,
-  ): Promise<null | Contact> {
+  ): Promise<undefined | Contact> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
     let memberList: Contact[]
@@ -1148,7 +1150,7 @@ class Room extends wechatifyMixin(
     }
 
     if (memberList.length <= 0) {
-      return null
+      return undefined
     }
 
     if (memberList.length > 1) {
@@ -1187,16 +1189,16 @@ class Room extends wechatifyMixin(
    * Get room's owner from the room.
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   * @returns {(Contact | null)}
+   * @returns {(Contact | undefined)}
    * @example
    * const owner = room.owner()
    */
-  owner (): null | Contact {
+  owner (): undefined | Contact {
     log.verbose('Room', 'owner()')
 
     const ownerId = this.#payload && this.#payload.ownerId
     if (!ownerId) {
-      return null
+      return undefined
     }
 
     const owner = this.wechaty.Contact.load(ownerId)

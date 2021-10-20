@@ -28,7 +28,7 @@ import {
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import {
-  Contact,
+  ContactImpl,
 }                       from './contact.js'
 
 /**
@@ -42,7 +42,7 @@ import {
  *   console.log(`user ${user} login`)
  * })
  */
-class ContactSelf extends Contact {
+class ContactSelfImpl extends ContactImpl {
 
   // constructor (
   //   id: string,
@@ -179,16 +179,16 @@ class ContactSelf extends Contact {
 
 }
 
-interface ContactSelfInterface extends ContactSelf {}
+interface ContactSelf extends ContactSelfImpl {}
 type ContactSelfConstructor = Constructor<
-  ContactSelfInterface,
-  typeof ContactSelf
+  ContactSelf,
+  typeof ContactSelfImpl
 >
 
 export type {
   ContactSelfConstructor,
-  ContactSelfInterface,
+  ContactSelf,
 }
 export {
-  ContactSelf,
+  ContactSelfImpl,
 }

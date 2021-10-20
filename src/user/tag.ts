@@ -23,8 +23,8 @@ import {
 
 import type { Constructor }  from '../deprecated/clone-class.js'
 
-import { Contact }  from './contact.js'
-import { Favorite } from './favorite.js'
+import { Contact, ContactImpl }  from './contact.js'
+import { Favorite, FavoriteImpl } from './favorite.js'
 
 import {
   poolifyMixin,
@@ -90,9 +90,15 @@ class Tag extends wechatifyMixin(
    */
   static async delete (
     tag: Tag,
-    target?: typeof Contact | typeof Favorite,
+    target?: typeof ContactImpl | typeof FavoriteImpl,
   ): Promise<void> {
     log.verbose('Tag', 'static delete(%s)', tag)
+
+    /**
+     * Huan(202110) TODO: refactory this design:
+     *  1. we should not pass `typeof ContactImpl` as argument
+     *  2. find a better way to manage tag.
+     */
 
     try {
 
@@ -100,7 +106,7 @@ class Tag extends wechatifyMixin(
        * TODO(huan): add tag check code here for checking if this tag is still being used.
        */
 
-      if (!target || target === Contact || target === this.wechaty.Contact) {
+      if (!target || target === ContactImpl || target === this.wechaty.Contact) {
         await this.wechaty.puppet.tagContactDelete(tag.id)
       // TODO:
       // } else if (!target || target === Favorite || target === this.wechaty.Favorite) {
@@ -127,10 +133,15 @@ class Tag extends wechatifyMixin(
   ): Promise<void> {
     log.verbose('Tag', 'add(%s) for %s', to, this.id)
 
+    /**
+     * Huan(202110): TODO: refactory this design:
+     *  1. we should not pass `typeof ContactImpl` as argument
+     *  2. use instanceof to check the type of `to`
+     */
     try {
-      if (to instanceof Contact) {
+      if (to instanceof ContactImpl) {
         await this.wechaty.puppet.tagContactAdd(this.id, to.id)
-      } else if (to instanceof Favorite) {
+      } else if (to instanceof FavoriteImpl) {
         // TODO: await this.wechaty.puppet.tagAddFavorite(this.tag, to.id)
       }
     } catch (e) {
@@ -152,10 +163,16 @@ class Tag extends wechatifyMixin(
   async remove (from: Contact | Favorite): Promise<void> {
     log.verbose('Tag', 'remove(%s) for %s', from, this.id)
 
+    /**
+     * Huan(202110): TODO: refactory this design:
+     *  1. we should not pass `typeof ContactImpl` as argument
+     *  2. use instanceof to check the type of `to`
+     */
+
     try {
-      if (from instanceof Contact) {
+      if (from instanceof ContactImpl) {
         await this.wechaty.puppet.tagContactRemove(this.id, from.id)
-      } else if (from instanceof Favorite) {
+      } else if (from instanceof FavoriteImpl) {
         // TODO await this.wechaty.puppet.tagRemoveFavorite(this.tag, from.id)
       }
     } catch (e) {
