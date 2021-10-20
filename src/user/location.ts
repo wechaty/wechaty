@@ -17,19 +17,24 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import {
   LocationPayload,
   log,
 }                       from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class LocationImpl extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Location>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+class LocationImpl extends MixinBase {
 
   /**
    *
@@ -95,18 +100,10 @@ type LocationConstructor = Constructor<
   typeof LocationImpl
 >
 
-const interfaceOfLocation  = interfaceOfClass(LocationImpl)<Location>()
-const instanceOfLocation   = looseInstanceOfClass(LocationImpl)
-const validLocation = (o: any): o is Location =>
-  instanceOfLocation(o) && interfaceOfLocation(o)
-
 export type {
   LocationConstructor,
   Location,
 }
 export {
   LocationImpl,
-  interfaceOfLocation,
-  instanceOfLocation,
-  validLocation,
 }

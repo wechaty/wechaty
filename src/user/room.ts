@@ -42,11 +42,11 @@ import {
   guardQrCodeValue,
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
-import { Contact, ContactImpl, validContact }        from './contact.js'
-import { MiniProgram, validMiniProgram }    from './mini-program.js'
-import { Message, validMessage }        from './message.js'
-import { UrlLink, validUrlLink }        from './url-link.js'
-import { Location, validLocation }       from './location.js'
+import { Contact, ContactImpl }        from './contact.js'
+import { MiniProgram, MiniProgramImpl }    from './mini-program.js'
+import { Message, MessageImpl }        from './message.js'
+import { UrlLink, UrlLinkImpl }        from './url-link.js'
+import { Location, LocationImpl }       from './location.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -58,10 +58,18 @@ import {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
+import { validationMixin } from './mixins/validation.js'
 
 // FIXME: #2273
 void POOL
+
+const MixinBase = validationMixin<Room>()(
+  wechatifyMixin(
+    poolifyMixin<RoomImpl>()(
+      RoomEventEmitter,
+    ),
+  ),
+)
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -69,9 +77,7 @@ void POOL
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-class RoomImpl extends wechatifyMixin(
-  poolifyMixin<RoomImpl>()(RoomEventEmitter),
-) implements Sayable {
+class RoomImpl extends MixinBase implements Sayable {
 
   /**
    * Create a new room.
@@ -446,7 +452,7 @@ class RoomImpl extends wechatifyMixin(
     let text  : string
     let msgId : void | string
 
-    if (validMessage(sayableMsg)) {
+    if (MessageImpl.valid(sayableMsg)) {
       return sayableMsg.forward(this)
     }
 
@@ -490,7 +496,7 @@ class RoomImpl extends wechatifyMixin(
       let mentionList: Contact[] = []
 
       if (varList.length > 0) {
-        const allIsContact = varList.every(c => validContact(c))
+        const allIsContact = varList.every(c => ContactImpl.valid(c))
         if (!allIsContact) {
           throw new Error('mentionList must be contact when not using TemplateStringArray function call.')
         }
@@ -524,7 +530,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg,
       )
-    } else if (validContact(sayableMsg)) {
+    } else if (ContactImpl.valid(sayableMsg)) {
       /**
        * 3. Contact Card
        */
@@ -532,7 +538,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg.id,
       )
-    } else if (validUrlLink(sayableMsg)) {
+    } else if (UrlLinkImpl.valid(sayableMsg)) {
       /**
        * 4. Link Message
        */
@@ -540,7 +546,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (validMiniProgram(sayableMsg)) {
+    } else if (MiniProgramImpl.valid(sayableMsg)) {
       /**
        * 5. Mini Program
        */
@@ -548,7 +554,7 @@ class RoomImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (validLocation(sayableMsg)) {
+    } else if (LocationImpl.valid(sayableMsg)) {
       /**
        * 6. Location
        */
@@ -571,7 +577,7 @@ class RoomImpl extends wechatifyMixin(
     textList: TemplateStringsArray,
     ...varList: unknown[]
   ) {
-    const mentionList = varList.filter(c => validContact(c)) as Contact[]
+    const mentionList = varList.filter(c => ContactImpl.valid(c)) as Contact[]
 
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
@@ -613,7 +619,7 @@ class RoomImpl extends wechatifyMixin(
 
       let i = 0
       for (; i < varListLength; i++) {
-        if (validContact(varList[i])) {
+        if (ContactImpl.valid(varList[i])) {
           const mentionContact: Contact = varList[i] as any
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
@@ -1216,11 +1222,6 @@ class RoomImpl extends wechatifyMixin(
 
 }
 
-const interfaceOfRoom  = interfaceOfClass(RoomImpl)<Room>()
-const instanceOfRoom   = looseInstanceOfClass(RoomImpl)
-const validRoom = (o: any): o is Room =>
-  instanceOfRoom(o) && interfaceOfRoom(o)
-
 interface Room extends RoomImpl {}
 type RoomConstructor = Constructor<
   Room,
@@ -1233,7 +1234,4 @@ export type {
 }
 export {
   RoomImpl,
-  interfaceOfRoom,
-  instanceOfRoom,
-  validRoom,
 }

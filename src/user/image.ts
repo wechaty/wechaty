@@ -17,20 +17,26 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import {
   ImageType,
   FileBox,
   log,
 }                   from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class ImageImpl extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Image>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+
+class ImageImpl extends MixinBase {
 
   static create (id: string): ImageImpl {
     log.verbose('Image', 'static create(%s)', id)
@@ -72,18 +78,10 @@ type ImageConstructor = Constructor<
   typeof ImageImpl
 >
 
-const interfaceOfImage  = interfaceOfClass(ImageImpl)<Image>()
-const instanceOfImage   = looseInstanceOfClass(ImageImpl)
-const validImage = (o: any): o is Image =>
-  instanceOfImage(o) && interfaceOfImage(o)
-
 export type {
   ImageConstructor,
   Image,
 }
 export {
   ImageImpl,
-  interfaceOfImage,
-  instanceOfImage,
-  validImage,
 }

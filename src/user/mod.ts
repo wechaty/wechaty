@@ -21,113 +21,71 @@ import {
   ContactImpl,
   Contact,
   ContactConstructor,
-  interfaceOfContact,
-  instanceOfContact,
-  validContact,
 }                           from './contact.js'
 import {
   ContactSelfImpl,
   ContactSelf,
   ContactSelfConstructor,
-  interfaceOfContactSelf,
-  instanceOfContactSelf,
-  validContactSelf,
 }                           from './contact-self.js'
 import {
   FavoriteImpl,
   Favorite,
   FavoriteConstructor,
-  interfaceOfFavorite,
-  instanceOfFavorite,
-  validFavorite,
 }                           from './favorite.js'
 import {
   FriendshipImpl,
   Friendship,
   FriendshipConstructor,
-  interfaceOfFriendship,
-  instanceOfFriendship,
-  validFriendship,
 }                           from './friendship.js'
 import {
   ImageImpl,
   Image,
   ImageConstructor,
-  interfaceOfImage,
-  instanceOfImage,
-  validImage,
 }                           from './image.js'
 import {
   LocationImpl,
   Location,
   LocationConstructor,
-  interfaceOfLocation,
-  instanceOfLocation,
-  validLocation,
 }                           from './location.js'
 import {
   MessageImpl,
   Message,
   MessageConstructor,
-  interfaceOfMessage,
-  instanceOfMessage,
-  validMessage,
 }                           from './message.js'
 import {
   MiniProgramImpl,
   MiniProgram,
   MiniProgramConstructor,
-  interfaceOfMiniProgram,
-  instanceOfMiniProgram,
-  validMiniProgram,
 }                           from './mini-program.js'
 import {
   MomentImpl,
   Moment,
   MomentConstructor,
-  interfaceOfMoment,
-  instanceOfMoment,
-  validMoment,
 }                           from './moment.js'
 import {
   MoneyImpl,
   Money,
   MoneyConstructor,
-  interfaceOfMoney,
-  instanceOfMoney,
-  validMoney,
 }                           from './money.js'
 import {
   RoomImpl,
   Room,
   RoomConstructor,
-  interfaceOfRoom,
-  instanceOfRoom,
-  validRoom,
 }                           from './room.js'
 import {
   RoomInvitationImpl,
   RoomInvitation,
   RoomInvitationConstructor,
-  interfaceOfRoomInvitation,
-  instanceOfRoomInvitation,
-  validRoomInvitation,
 }                           from './room-invitation.js'
 import {
   TagImpl,
   Tag,
   TagConstructor,
-  interfaceOfTag,
-  instanceOfTag,
-  validTag,
 }                           from './tag.js'
 import {
   UrlLinkImpl,
   UrlLink,
   UrlLinkConstructor,
-  interfaceOfUrlLink,
-  instanceOfUrlLink,
-  validUrlLink,
 }                           from './url-link.js'
 
 import { wechatifyUserClass } from './mixins/wechatify.js'
@@ -182,55 +140,4 @@ export {
   RoomInvitationImpl,
   TagImpl,
   UrlLinkImpl,
-}
-
-export {
-  interfaceOfContact,
-  interfaceOfContactSelf,
-  interfaceOfFavorite,
-  interfaceOfFriendship,
-  interfaceOfImage,
-  interfaceOfLocation,
-  interfaceOfMessage,
-  interfaceOfMiniProgram,
-  interfaceOfMoment,
-  interfaceOfMoney,
-  interfaceOfRoom,
-  interfaceOfRoomInvitation,
-  interfaceOfTag,
-  interfaceOfUrlLink,
-}
-
-export {
-  instanceOfContact,
-  instanceOfContactSelf,
-  instanceOfFavorite,
-  instanceOfFriendship,
-  instanceOfImage,
-  instanceOfLocation,
-  instanceOfMessage,
-  instanceOfMiniProgram,
-  instanceOfMoment,
-  instanceOfMoney,
-  instanceOfRoom,
-  instanceOfRoomInvitation,
-  instanceOfTag,
-  instanceOfUrlLink,
-}
-
-export {
-  validContact,
-  validContactSelf,
-  validFavorite,
-  validFriendship,
-  validImage,
-  validLocation,
-  validMessage,
-  validMiniProgram,
-  validMoment,
-  validMoney,
-  validRoom,
-  validRoomInvitation,
-  validTag,
-  validUrlLink,
 }

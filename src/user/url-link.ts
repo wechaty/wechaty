@@ -17,7 +17,6 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import Url from 'url'
 
 import {
@@ -29,12 +28,19 @@ import type { Constructor } from '../deprecated/clone-class.js'
 import {
   openGraph,
 }               from '../helper-functions/impure/open-graph.js'
+import { validationMixin } from './mixins/validation.js'
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class UrlLinkImpl extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<UrlLink>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+
+class UrlLinkImpl extends MixinBase {
 
   /**
    *
@@ -137,18 +143,10 @@ type UrlLinkConstructor = Constructor<
   typeof UrlLinkImpl
 >
 
-const interfaceOfUrlLink  = interfaceOfClass(UrlLinkImpl)<UrlLink>()
-const instanceOfUrlLink   = looseInstanceOfClass(UrlLinkImpl)
-const validUrlLink = (o: any): o is UrlLink =>
-  instanceOfUrlLink(o) && interfaceOfUrlLink(o)
-
 export type {
   UrlLinkConstructor,
   UrlLink,
 }
 export {
   UrlLinkImpl,
-  interfaceOfUrlLink,
-  instanceOfUrlLink,
-  validUrlLink,
 }

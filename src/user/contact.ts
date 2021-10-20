@@ -39,11 +39,14 @@ import type {
 }                          from '../interface/mod.js'
 import { captureException } from '../raven.js'
 
-import { Message, validMessage }      from './message.js'
+import {
+  Message,
+  MessageImpl,
+}                   from './message.js'
 import type { Tag }     from './tag.js'
-import { MiniProgram, validMiniProgram }  from './mini-program.js'
-import { UrlLink, validUrlLink }      from './url-link.js'
-import { Location, validLocation }     from './location.js'
+import { MiniProgram, MiniProgramImpl }  from './mini-program.js'
+import { UrlLink, UrlLinkImpl }      from './url-link.js'
+import { Location, LocationImpl }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
@@ -54,7 +57,7 @@ import {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
+import { validationMixin } from './mixins/validation.js'
 
 /**
  * Huan(202110): Issue #2273
@@ -65,6 +68,12 @@ import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
  */
 void POOL
 
+const MixinBase = validationMixin<Contact>()(
+  wechatifyMixin(
+    poolifyMixin<ContactImpl>()(ContactEventEmitter),
+  ),
+)
+
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
  * [Examples/Contact-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts}
@@ -72,9 +81,7 @@ void POOL
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-class ContactImpl extends wechatifyMixin(
-  poolifyMixin<ContactImpl>()(ContactEventEmitter),
-) implements Sayable {
+class ContactImpl extends MixinBase implements Sayable {
 
   static Type   = ContactType
   static Gender = ContactGender
@@ -348,7 +355,7 @@ class ContactImpl extends wechatifyMixin(
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayableMsg)
 
-    if (validMessage(sayableMsg)) {
+    if (MessageImpl.valid(sayableMsg)) {
       return sayableMsg.forward(this)
     }
 
@@ -384,7 +391,7 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg,
       )
-    } else if (validUrlLink(sayableMsg)) {
+    } else if (UrlLinkImpl.valid(sayableMsg)) {
       /**
        * 4. Link Message
        */
@@ -392,7 +399,7 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (validMiniProgram(sayableMsg)) {
+    } else if (MiniProgramImpl.valid(sayableMsg)) {
       /**
        * 5. Mini Program
        */
@@ -400,7 +407,7 @@ class ContactImpl extends wechatifyMixin(
         this.id,
         sayableMsg.payload,
       )
-    } else if (validLocation(sayableMsg)) {
+    } else if (LocationImpl.valid(sayableMsg)) {
       /**
        * 6. Location
        */
@@ -855,18 +862,10 @@ type ContactConstructor = Constructor<
   typeof ContactImpl
 >
 
-const interfaceOfContact  = interfaceOfClass(ContactImpl)<Contact>()
-const instanceOfContact   = looseInstanceOfClass(ContactImpl)
-const validContact = (o: any): o is Contact =>
-  instanceOfContact(o) && interfaceOfContact(o)
-
 export type {
   ContactConstructor,
   Contact,
 }
 export {
   ContactImpl,
-  interfaceOfContact,
-  instanceOfContact,
-  validContact,
 }

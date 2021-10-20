@@ -17,17 +17,23 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import { log } from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import type { Contact } from './contact.js'
+import { validationMixin } from './mixins/validation.js'
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class MomentImpl extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Moment>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+
+class MomentImpl extends MixinBase {
 
   static post () {
     // post new moment
@@ -55,18 +61,10 @@ type MomentConstructor = Constructor<
   typeof MomentImpl
 >
 
-const interfaceOfMoment  = interfaceOfClass(MomentImpl)<Moment>()
-const instanceOfMoment   = looseInstanceOfClass(MomentImpl)
-const validMoment = (o: any): o is Moment =>
-  instanceOfMoment(o) && interfaceOfMoment(o)
-
 export type {
   MomentConstructor,
   Moment,
 }
 export {
   MomentImpl,
-  interfaceOfMoment,
-  instanceOfMoment,
-  validMoment,
 }

@@ -17,15 +17,21 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class MoneyImpl extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Money>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+
+class MoneyImpl extends MixinBase {
 
   /*
    * @hideconstructor
@@ -42,18 +48,10 @@ type MoneyConstructor = Constructor<
   typeof MoneyImpl
 >
 
-const interfaceOfMoney  = interfaceOfClass(MoneyImpl)<Money>()
-const instanceOfMoney   = looseInstanceOfClass(MoneyImpl)
-const validMoney = (o: any): o is Money =>
-  instanceOfMoney(o) && interfaceOfMoney(o)
-
 export type {
   MoneyConstructor,
   Money,
 }
 export {
   MoneyImpl,
-  interfaceOfMoney,
-  instanceOfMoney,
-  validMoney,
 }

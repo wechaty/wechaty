@@ -17,19 +17,25 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import {
   MiniProgramPayload,
   log,
 }                         from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class MiniProgramImpl extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<MiniProgram>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+
+class MiniProgramImpl extends MixinBase {
 
   /**
    *
@@ -101,18 +107,10 @@ type MiniProgramConstructor = Constructor<
   typeof MiniProgramImpl
 >
 
-const interfaceOfMiniProgram  = interfaceOfClass(MiniProgramImpl)<MiniProgram>()
-const instanceOfMiniProgram   = looseInstanceOfClass(MiniProgramImpl)
-const validMiniProgram = (o: any): o is MiniProgram =>
-  instanceOfMiniProgram(o) && interfaceOfMiniProgram(o)
-
 export type {
   MiniProgramConstructor,
   MiniProgram,
 }
 export {
   MiniProgramImpl,
-  interfaceOfMiniProgram,
-  instanceOfMiniProgram,
-  validMiniProgram,
 }

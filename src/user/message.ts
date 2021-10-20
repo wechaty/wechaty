@@ -45,7 +45,7 @@ import {
 
 import {
   Contact,
-  validContact,
+  ContactImpl,
 }                       from './contact.js'
 import type {
   Room,
@@ -53,12 +53,10 @@ import type {
 import {
   UrlLink,
   UrlLinkImpl,
-  validUrlLink,
 }                       from './url-link.js'
 import {
   MiniProgram,
   MiniProgramImpl,
-  validMiniProgram,
 }                       from './mini-program.js'
 import type {
   Image,
@@ -66,16 +64,21 @@ import type {
 import {
   Location,
   LocationImpl,
-  validLocation,
 }                       from './location.js'
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
+import { validationMixin } from './mixins/validation.js'
+
+const MixinBase = validationMixin<Message>()(
+  wechatifyMixin(
+    EventEmitter,
+  ),
+)
 
 /**
  * All wechat messages will be encapsulated as a Message.
  *
  * [Examples/Ding-Dong-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
-class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
+class MessageImpl extends MixinBase implements Sayable {
 
   /**
    *
@@ -544,7 +547,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
     /**
      * Support say a existing message: just forward it.
      */
-    if (validMessage(sayableMsg)) {
+    if (MessageImpl.valid(sayableMsg)) {
       return sayableMsg.forward(conversation)
     }
 
@@ -568,7 +571,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         sayableMsg,
         mentionIdList,
       )
-    } else if (validContact(sayableMsg)) {
+    } else if (ContactImpl.valid(sayableMsg)) {
       /**
        * Contact Card
        */
@@ -589,7 +592,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         conversationId,
         sayableMsg,
       )
-    } else if (validUrlLink(sayableMsg)) {
+    } else if (UrlLinkImpl.valid(sayableMsg)) {
       /**
        * Link Message
        */
@@ -597,7 +600,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         conversationId,
         sayableMsg.payload,
       )
-    } else if (validMiniProgram(sayableMsg)) {
+    } else if (MiniProgramImpl.valid(sayableMsg)) {
       /**
        * MiniProgram
        */
@@ -605,7 +608,7 @@ class MessageImpl extends wechatifyMixin(EventEmitter) implements Sayable {
         conversationId,
         sayableMsg.payload,
       )
-    } else if (validLocation(sayableMsg)) {
+    } else if (LocationImpl.valid(sayableMsg)) {
       /**
        * Location
        */
@@ -1100,18 +1103,10 @@ type MessageConstructor = Constructor<
   typeof MessageImpl
 >
 
-const interfaceOfMessage  = interfaceOfClass(MessageImpl)<Message>()
-const instanceOfMessage   = looseInstanceOfClass(MessageImpl)
-const validMessage = (o: any): o is Message =>
-  instanceOfMessage(o) && interfaceOfMessage(o)
-
 export type {
   Message,
   MessageConstructor,
 }
 export {
   MessageImpl,
-  interfaceOfMessage,
-  instanceOfMessage,
-  validMessage,
 }

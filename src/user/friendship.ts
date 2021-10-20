@@ -44,7 +44,7 @@ import type {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
+import { validationMixin } from './mixins/validation.js'
 
 interface FriendshipAddOptionsObject {
   room?: Room,
@@ -53,6 +53,12 @@ interface FriendshipAddOptionsObject {
 }
 
 type FriendshipAddOptions = string | FriendshipAddOptionsObject
+
+const MixinBase = validationMixin<Friendship>()(
+  wechatifyMixin(
+    EventEmitter,
+  ),
+)
 
 /**
  * Send, receive friend request, and friend confirmation events.
@@ -63,7 +69,7 @@ type FriendshipAddOptions = string | FriendshipAddOptionsObject
  *
  * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
-class FriendshipImpl extends wechatifyMixin(EventEmitter) implements Acceptable {
+class FriendshipImpl extends MixinBase implements Acceptable {
 
   static Type = FriendshipType
 
@@ -430,18 +436,10 @@ type FriendshipConstructor = Constructor<
   typeof FriendshipImpl
 >
 
-const interfaceOfFriendship  = interfaceOfClass(FriendshipImpl)<Friendship>()
-const instanceOfFriendship   = looseInstanceOfClass(FriendshipImpl)
-const validFriendship = (o: any): o is Friendship =>
-  instanceOfFriendship(o) && interfaceOfFriendship(o)
-
 export type {
   FriendshipConstructor,
   Friendship,
 }
 export {
   FriendshipImpl,
-  interfaceOfFriendship,
-  instanceOfFriendship,
-  validFriendship,
 }

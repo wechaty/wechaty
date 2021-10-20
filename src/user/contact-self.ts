@@ -18,10 +18,6 @@
  *
  */
 import {
-  interfaceOfClass,
-  looseInstanceOfClass,
-}                           from 'clone-class'
-import {
   FileBox,
   log,
 }                             from 'wechaty-puppet'
@@ -34,6 +30,11 @@ import {
 import {
   ContactImpl,
 }                       from './contact.js'
+import { validationMixin } from './mixins/validation.js'
+
+const MixinBase = validationMixin<ContactSelf>()(
+  ContactImpl,
+)
 
 /**
  * Bot itself will be encapsulated as a ContactSelf.
@@ -46,7 +47,7 @@ import {
  *   console.log(`user ${user} login`)
  * })
  */
-class ContactSelfImpl extends ContactImpl {
+class ContactSelfImpl extends MixinBase {
 
   // constructor (
   //   id: string,
@@ -189,18 +190,10 @@ type ContactSelfConstructor = Constructor<
   typeof ContactSelfImpl
 >
 
-const interfaceOfContactSelf  = interfaceOfClass(ContactSelfImpl)<ContactSelf>()
-const instanceOfContactSelf   = looseInstanceOfClass(ContactSelfImpl)
-const validContactSelf = (o: any): o is ContactSelf =>
-  instanceOfContactSelf(o) && interfaceOfContactSelf(o)
-
 export type {
   ContactSelfConstructor,
   ContactSelf,
 }
 export {
   ContactSelfImpl,
-  interfaceOfContactSelf,
-  instanceOfContactSelf,
-  validContactSelf,
 }

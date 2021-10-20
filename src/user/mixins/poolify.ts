@@ -24,10 +24,10 @@ interface PoolifyMixin<T> {
  * generic type parameter defaults do not scratch this itch;
  * a default turns off inference.
  */
-const poolifyMixin = <T>() => <TBase extends Constructor>(base: TBase) => {
-  log.verbose('user/mixins/poolify', 'poolifyMixin(%s)', base.name)
+const poolifyMixin = <T>() => <MixinBase extends Constructor>(mixinBase: MixinBase) => {
+  log.verbose('user/mixins/poolify', 'poolifyMixin(%s)', mixinBase.name)
 
-  const PoolifiedMixin = class extends base {
+  const PoolifiedMixin = class extends mixinBase {
 
     static [POOL]?: Map<string, T>
     static get pool (): Map<string, T> {

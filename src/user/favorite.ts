@@ -17,9 +17,9 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import { log }        from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
@@ -27,7 +27,11 @@ import {
 }                       from './mixins/wechatify.js'
 import type { Tag } from './tag.js'
 
-class FavoriteImpl extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Favorite>()(
+  wechatifyMixin(EmptyBase),
+)
+
+class FavoriteImpl extends MixinBase {
 
   static list (): Favorite[] {
     return []
@@ -80,18 +84,10 @@ type FavoriteConstructor = Constructor<
   typeof FavoriteImpl
 >
 
-const interfaceOfFavorite  = interfaceOfClass(FavoriteImpl)<Favorite>()
-const instanceOfFavorite   = looseInstanceOfClass(FavoriteImpl)
-const validFavorite = (o: any): o is Favorite =>
-  instanceOfFavorite(o) && interfaceOfFavorite(o)
-
 export type {
   FavoriteConstructor,
   Favorite,
 }
 export {
   FavoriteImpl,
-  interfaceOfFavorite,
-  instanceOfFavorite,
-  validFavorite,
 }

@@ -17,7 +17,6 @@
  *   limitations under the License.
  *
  */
-import { interfaceOfClass, looseInstanceOfClass } from 'clone-class'
 import {
   log,
 }                     from 'wechaty-puppet'
@@ -31,7 +30,9 @@ import {
   poolifyMixin,
   POOL,
 }                     from './mixins/poolify.js'
+import { validationMixin } from './mixins/validation.js'
 import {
+  EmptyBase,
   wechatifyMixin,
 }                     from './mixins/wechatify.js'
 
@@ -41,9 +42,15 @@ import {
  */
 void POOL
 
-class TagImpl extends wechatifyMixin(
-  poolifyMixin<TagImpl>()(Object),
-) {
+const MixinBase = validationMixin<Tag>()(
+  wechatifyMixin(
+    poolifyMixin<TagImpl>()(
+      EmptyBase,
+    ),
+  ),
+)
+
+class TagImpl extends MixinBase {
 
   /**
    * @hideconstructor
@@ -187,11 +194,6 @@ class TagImpl extends wechatifyMixin(
 
 }
 
-const interfaceOfTag  = interfaceOfClass(TagImpl)<Tag>()
-const instanceOfTag   = looseInstanceOfClass(TagImpl)
-const validTag = (o: any): o is Tag =>
-  instanceOfTag(o) && interfaceOfTag(o)
-
 interface Tag extends TagImpl {}
 type TagConstructor = Constructor<
   Tag,
@@ -204,7 +206,4 @@ export type {
 }
 export {
   TagImpl,
-  interfaceOfTag,
-  instanceOfTag,
-  validTag,
 }
