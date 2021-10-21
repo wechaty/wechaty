@@ -108,6 +108,7 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
 type SkeltonProtectedProperty = never
   | 'calledSkeltonStart'
   | 'calledSkeltonStop'
+  | 'emitError'
 
 export type {
   SkeltonProtectedProperty,
