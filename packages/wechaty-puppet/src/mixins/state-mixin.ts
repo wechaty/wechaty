@@ -7,7 +7,6 @@ import {
 import type { PuppetSkelton } from '../puppet/skelton.js'
 import { BusyIndicator }      from '../busy-indicator.js'
 import { WatchdogAgent }      from '../agents/watchdog-agent.js'
-import { GError } from '../mod.js'
 
 let PUPPET_COUNTER = 0
 
