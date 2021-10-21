@@ -137,7 +137,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
           }
 
         } catch (e) {
-          log.silly('PuppetContactMixin', 'contactSearch() contactPayload exception: %s', (e as Error).message)
+          this.emitError(e)
           await this.dirtyPayloadContact(id)
         }
         return undefined

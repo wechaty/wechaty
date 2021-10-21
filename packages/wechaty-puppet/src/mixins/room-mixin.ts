@@ -91,7 +91,8 @@ const roomMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin & RoomM
                 return await this.roomPayload(id)
               } catch (e) {
                 // compatible with {} payload
-                log.silly('PuppetRoomMixin', 'roomSearch() roomPayload exception: %s', (e as Error).message)
+                // log.silly('PuppetRoomMixin', 'roomSearch() roomPayload exception: %s', (e as Error).message)
+                this.emitError(e)
                 // Remove invalid room id from cache to avoid getting invalid room payload again
                 await this.dirtyPayloadRoom(id)
                 await this.dirtyPayloadRoomMember(id)

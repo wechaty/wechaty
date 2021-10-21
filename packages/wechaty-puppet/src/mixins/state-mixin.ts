@@ -79,10 +79,8 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
         await this.start()
 
       } catch (e) {
-        log.warn('PuppetStateMixin', 'reset() rejection: %s', e)
-        this.emit('error', {
-          data: JSON.stringify(GError.from(e as Error)),
-        })
+        // log.warn('PuppetStateMixin', 'reset() rejection: %s', e)
+        this.emitError(e)
 
       } finally {
         log.verbose('PuppetStateMixin', 'reset() done')

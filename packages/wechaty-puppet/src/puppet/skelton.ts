@@ -21,6 +21,9 @@ import uuid from 'uuid'
 import {
   log,
 }                       from '../config.js'
+import {
+  GError,
+}                       from '../mod.js'
 
 import type {
   PuppetOptions,
@@ -84,6 +87,20 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
     log.verbose('PuppetSkelton', 'stop()')
     this.calledSkeltonStop  = true
 
+  }
+
+  /**
+   * Convert any error to GError,
+   *  and emit `error` event with GError
+   */
+  emitError (e: unknown): void {
+    if (!(e instanceof GError)) {
+      e = GError.from(e)
+    }
+
+    this.emit('error', {
+      data: JSON.stringify(e),
+    })
   }
 
 }

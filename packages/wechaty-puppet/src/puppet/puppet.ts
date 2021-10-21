@@ -163,9 +163,7 @@ abstract class Puppet extends MixinBase {
         ])
         log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
       } catch (e) {
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... %s',
-          (e as Error).message,
-        )
+        this.emitError(e)
       }
     }
 
@@ -196,7 +194,6 @@ abstract class Puppet extends MixinBase {
       /**
        * The puppet has not been started
        */
-      log.error('Puppet', 'start() rejection: %s', (e as Error).message)
       await this.stop()
       throw e
     }
@@ -230,9 +227,7 @@ abstract class Puppet extends MixinBase {
         ])
         log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
       } catch (e) {
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... %s',
-          (e as Error).message,
-        )
+        this.emitError(e)
       }
     }
 
@@ -244,7 +239,11 @@ abstract class Puppet extends MixinBase {
        */
       await this.onStop()
       log.verbose('Puppet', 'stop() this.stop() done')
+    } catch (e) {
+      this.emitError(e)
+    }
 
+    try {
       await super.stop()
       if (!this.calledSkeltonStop) {
         throw new Error([
@@ -253,18 +252,15 @@ abstract class Puppet extends MixinBase {
         ].join('\n'))
       }
       log.verbose('Puppet', 'stop() super.stop() done')
-
     } catch (e) {
-      log.error('Puppet', 'start() rejection: %s', (e as Error).message)
-      throw e
-
-    } finally {
-      /**
-       * no matter whether the `try {...}` code success or not
-       *  set the puppet state to off(stopped) state
-       */
-      this.state.off(true)
+      this.emitError(e)
     }
+
+    /**
+     * no matter whether the `try {...}` code success or not
+     *  set the puppet state to off(stopped) state
+     */
+    this.state.off(true)
   }
 
   /**

@@ -14,3 +14,20 @@ test('GError class smoke testing', async t => {
   t.equal(obj.code, Code.UNKNOWN, 'should be default code UNKNOWN')
   t.equal(obj.message, MESSAGE, 'should set message')
 })
+
+test('GError from primitive values', async t => {
+  const FIXTURES = [
+    42,
+    'hello world',
+    null,
+    undefined,
+    true,
+    false,
+    {},
+    [],
+  ]
+
+  for (const value of FIXTURES) {
+    t.doesNotThrow(() => GError.from(value as any), `should not throw for ${typeof value}: "${JSON.stringify(value)}"`)
+  }
+})
