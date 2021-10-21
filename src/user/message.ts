@@ -141,9 +141,8 @@ class MessageImpl extends MixinBase implements Sayable {
       return messageList.filter(message => !invalidDict[message.id])
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.warn('Message', 'findAll() rejected: %s', (e as Error).message)
-      console.error(e)
-      captureException(e as Error)
       return [] // fail safe
     }
   }
@@ -287,6 +286,7 @@ class MessageImpl extends MixinBase implements Sayable {
     try {
       return this.talker()
     } catch (e) {
+      this.wechaty.emitError(e)
       return undefined
     }
   }
@@ -417,6 +417,7 @@ class MessageImpl extends MixinBase implements Sayable {
       await message.ready()
       return message
     } catch (e) {
+      this.wechaty.emitError(e)
       log.verbose(`Can not retrieve the recalled message with id ${originalMessageId}.`)
       return null
     }
@@ -691,6 +692,7 @@ class MessageImpl extends MixinBase implements Sayable {
 
       return talker.id === this.wechaty.puppet.currentUserId
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Message', 'self() rejection: %s', (e as Error).message)
       return false
     }
@@ -948,6 +950,7 @@ class MessageImpl extends MixinBase implements Sayable {
         return msg
       }
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Message', 'forward(%s) exception: %s', to, e)
       throw e
     }

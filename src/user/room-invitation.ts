@@ -127,6 +127,7 @@ class RoomInvitationImpl extends MixinBase implements Acceptable {
       )
       return
     } catch (e) {
+      this.wechaty.emitError(e)
       log.warn('RoomInvitation', 'accept() inviter(%s) is not ready because of %s',
         inviter,
         (e && (e as Error).message) || e,

@@ -112,8 +112,8 @@ class RoomImpl extends MixinBase implements Sayable {
       const room = this.load(roomId)
       return room
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Room', 'create() exception: %s', (e && (e as Error).stack) || (e as Error).message || (e as Error))
-      captureException(e as Error)
       throw e
     }
   }
@@ -172,9 +172,8 @@ class RoomImpl extends MixinBase implements Sayable {
       return roomList.filter(room => !invalidSet.has(room.id))
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.verbose('Room', 'findAll() rejected: %s', (e as Error).message)
-      console.error(e)
-      captureException((e as Error))
       return [] as Room[] // fail safe
     }
   }
@@ -1017,6 +1016,7 @@ class RoomImpl extends MixinBase implements Sayable {
         await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
       }
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Room', 'readMark() exception: %s', (e as Error).message)
     }
   }

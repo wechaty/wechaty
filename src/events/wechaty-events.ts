@@ -4,6 +4,7 @@ import type TypedEventEmitter  from 'typed-emitter'
 
 import {
   CHAT_EVENT_DICT,
+  GError,
 }                       from 'wechaty-puppet'
 
 import type {
@@ -37,7 +38,7 @@ type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
  * Wechaty Event Listener Interfaces
  */
 type WechatyEventListenerDong       = (data?: string)                      => void | Promise<void>
-type WechatyEventListenerError      = (error: Error)                       => void | Promise<void>
+type WechatyEventListenerError      = (error: GError)                      => void | Promise<void>
 type WechatyEventListenerFriendship = (friendship: Friendship)             => void | Promise<void>
 type WechatyEventListenerHeartbeat  = (data: any)                          => void | Promise<void>
 type WechatyEventListenerLogin      = (user: ContactSelf)                  => void | Promise<void>

@@ -285,6 +285,7 @@ class FriendshipImpl extends MixinBase implements Acceptable {
       await retryPolicy.execute(doSync)
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && (e as Error).message) || e)
       // console.error(e)
     }

@@ -23,6 +23,7 @@ import os               from 'os'
 import {
   FileBox,
   log,
+  GError,
   MemoryCard,
   PayloadType,
   PUPPET_EVENT_DICT,
@@ -487,7 +488,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
               this.emit('friendship', friendship)
               friendship.contact().emit('friendship', friendship)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -499,7 +500,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
               await contact.ready()
               this.emit('login', contact)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -511,7 +512,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
               await contact.ready()
               this.emit('logout', contact, payload.data)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -534,7 +535,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
                 this.emit('error', new Error('message without room or listener'))
               }
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -571,7 +572,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
               this.emit('room-join', room, inviteeList, inviter, date)
               room.emit('join', inviteeList, inviter, date)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -602,7 +603,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
                 await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
               }
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -620,7 +621,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
               this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
               room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -665,7 +666,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
                   throw new Error('unknown payload type: ' + payloadType)
               }
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -702,6 +703,18 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     this.#wechatifiedTag            = wechatifyUserClass(TagImpl)(this)
     this.#wechatifiedUrlLink        = wechatifyUserClass(UrlLinkImpl)(this)
     this.#wechatifiedLocation       = wechatifyUserClass(LocationImpl)(this)
+  }
+
+  /**
+   * Convert any error to GError,
+   *  and emit `error` event with GError
+   */
+  emitError (e: unknown): void {
+    if (!(e instanceof GError)) {
+      e = GError.from(e)
+    }
+    this.emit('error', e)
+    captureException(e)
   }
 
   /**
@@ -744,9 +757,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
         ])
         log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
       } catch (e) {
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... %s',
-          (e as Error).message,
-        )
+        this.emitError(e)
       }
     }
 
@@ -758,12 +769,9 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
       this.emit('start')
 
     } catch (e) {
-      console.error(e)
-      log.error('Wechaty', 'start() rejection: %s', e && (e as Error).message)
-      captureException((e as Error))
-
+      this.emitError(e)
       await this.stop()
-      this.emit('error', e as Error)
+      throw e
     }
   }
 
@@ -784,7 +792,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
       this.memory = new MemoryCard(this.options.name)
       try {
         await this.memory.load()
-      } catch (e) {
+      } catch (_) {
         log.silly('Wechaty', 'onStart() memory.load() had already loaded')
       }
     }
@@ -846,9 +854,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
         ])
         log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
       } catch (e) {
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... %s',
-          (e as Error).message,
-        )
+        this.emitError(e)
       }
     }
 
@@ -858,10 +864,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
       await this.onStop()
 
     } catch (e) {
-      log.error('Wechaty', 'stop() rejection: %s', e && (e as Error).message)
-      captureException((e as Error))
-
-      this.emit('error', e as Error)
+      this.emitError(e)
 
     } finally {
       this.state.off(true)
@@ -892,7 +895,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     try {
       await this.puppet.stop()
     } catch (e) {
-      log.warn('Wechaty', 'onStop() puppet.stop() exception: %s', (e as Error).message)
+      this.emitError(e)
     }
 
     try {
@@ -902,9 +905,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
       }
 
     } catch (e) {
-      log.error('Wechaty', 'onStop() exception: %s', (e as Error).message)
-      captureException((e as Error))
-      this.emit('error', (e as Error))
+      this.emitError(e)
     }
   }
 
@@ -928,9 +929,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     try {
       await this.puppet.logout()
     } catch (e) {
-      log.error('Wechaty', 'logout() exception: %s', (e as Error).message)
-      captureException(e as Error)
-      throw e
+      this.emitError(e)
     }
   }
 
@@ -949,6 +948,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     try {
       return this.puppet.logonoff()
     } catch (e) {
+      this.emitError(e)
       // https://github.com/wechaty/wechaty/issues/1878
       return false
     }
@@ -1100,9 +1100,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     try {
       this.puppet.ding(data)
     } catch (e) {
-      log.error('Wechaty', 'ding() exception: %s', (e as Error).message)
-      captureException((e as Error))
-      throw e
+      this.emitError(e)
     }
   }
 

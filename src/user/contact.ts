@@ -207,6 +207,7 @@ class ContactImpl extends MixinBase implements Sayable {
       return contactList.filter(contact => !invalidDict[contact.id])
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'this.wechaty.puppet.contactFindAll() rejected: %s', (e as Error).message)
       return [] // fail safe
     }
@@ -234,6 +235,7 @@ class ContactImpl extends MixinBase implements Sayable {
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'static tags() exception: %s', (e as Error).message)
       return []
     }
@@ -499,8 +501,8 @@ class ContactImpl extends MixinBase implements Sayable {
         )
       }
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, (e as Error).message)
-      captureException((e as Error))
     }
   }
 
@@ -544,8 +546,8 @@ class ContactImpl extends MixinBase implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), (e as Error).message)
-      captureException((e as Error))
     }
   }
 
@@ -571,8 +573,8 @@ class ContactImpl extends MixinBase implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'corporation(%s) rejected: %s', remark, (e as Error).message)
-      captureException((e as Error))
     }
   }
 
@@ -594,8 +596,8 @@ class ContactImpl extends MixinBase implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'description(%s) rejected: %s', newDescription, (e as Error).message)
-      captureException((e as Error))
     }
   }
 
@@ -725,8 +727,8 @@ class ContactImpl extends MixinBase implements Sayable {
       const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
       return fileBox
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'avatar() exception: %s', (e as Error).message)
-      return qrCodeForChatie()
     }
   }
 
@@ -745,6 +747,7 @@ class ContactImpl extends MixinBase implements Sayable {
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'tags() exception: %s', (e as Error).message)
       return []
     }
@@ -787,11 +790,11 @@ class ContactImpl extends MixinBase implements Sayable {
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.verbose('Contact', 'ready() this.wechaty.puppet.contactPayload(%s) exception: %s',
         this.id,
         (e as Error).message,
       )
-      captureException(e as Error)
       throw e
     }
   }
@@ -817,6 +820,7 @@ class ContactImpl extends MixinBase implements Sayable {
         await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
       }
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'readMark() exception: %s', (e as Error).message)
     }
   }
