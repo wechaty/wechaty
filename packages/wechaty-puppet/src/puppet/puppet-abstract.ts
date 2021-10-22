@@ -27,6 +27,7 @@ import type {
 import {
   PayloadType,
 }                       from '../schemas/mod.js'
+import { GError }       from '../gerror/gerror.js'
 
 import {
   cacheMixin,
@@ -45,6 +46,7 @@ import {
 }                        from '../mixins/mod.js'
 
 import { PuppetSkelton } from './puppet-skelton.js'
+import { timeoutPromise } from './timeout-promise.js'
 
 /**
  * Huan(202110): use compose() to compose mixins
@@ -147,23 +149,16 @@ abstract class Puppet extends MixinBase {
     if (this.state.off() === 'pending') {
       log.warn('Puppet', 'start() found that is stopping...')
 
-      const TIMEOUT_SECONDS = 5
-      const timeoutFuture = new Promise((resolve, reject) => {
-        void resolve
-        setTimeout(
-          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
-          TIMEOUT_SECONDS * 1000,
-        )
-      })
-
       try {
-        await Promise.all([
+        log.warn('Wechaty', 'start() found that is stopping, waiting stable ...')
+        await timeoutPromise(
           this.state.ready('off'),
-          timeoutFuture,
-        ])
+          5 * 1000, // 5 seconds
+        )
         log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
       } catch (e) {
         this.emitError(e)
+        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... timeout')
       }
     }
 
@@ -175,7 +170,7 @@ abstract class Puppet extends MixinBase {
        */
       await super.start()
       if (!this.calledSkeltonStart) {
-        throw new Error([
+        throw GError.from([
           'All mixin classes should propogate the `start()` call to its base class.',
           '@see https://github.com/wechaty/puppet/issues/156',
         ].join('\n'))
@@ -209,23 +204,17 @@ abstract class Puppet extends MixinBase {
 
     if (this.state.on() === 'pending') {
       log.warn('Puppet', 'stop() found that is starting...')
-      const TIMEOUT_SECONDS = 5
-      const timeoutFuture = new Promise((resolve, reject) => {
-        void resolve
-        setTimeout(
-          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
-          TIMEOUT_SECONDS * 1000,
-        )
-      })
 
       try {
-        await Promise.all([
+        log.warn('Wechaty', 'stop() found that is starting, waiting stable ...')
+        await timeoutPromise(
           this.state.ready('on'),
-          timeoutFuture,
-        ])
+          5 * 1000, // 5 seconds
+        )
         log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
       } catch (e) {
         this.emitError(e)
+        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... timeout')
       }
     }
 
@@ -244,7 +233,7 @@ abstract class Puppet extends MixinBase {
     try {
       await super.stop()
       if (!this.calledSkeltonStop) {
-        throw new Error([
+        throw GError.from([
           'All mixin classes should propogate the `stop()` call to its base class.',
           '@see https://github.com/wechaty/puppet/issues/156',
         ].join('\n'))
@@ -284,7 +273,7 @@ abstract class Puppet extends MixinBase {
         return this.dirtyPayloadFriendship(id)
 
       default:
-        throw new Error('unknown payload type: ' + type)
+        throw GError.from('unknown payload type: ' + type)
     }
   }
 
