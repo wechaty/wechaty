@@ -21,9 +21,13 @@ import uuid from 'uuid'
 import {
   log,
 }                       from '../config.js'
+/**
+ * Issue #165 - ReferenceError: Cannot access 'PuppetSkelton' before initialization
+ *  @see https://github.com/wechaty/puppet/issues/165
+ */
 import {
   GError,
-}                       from '../mod.js'
+}                       from '../gerror/gerror.js'
 
 import type {
   PuppetOptions,
