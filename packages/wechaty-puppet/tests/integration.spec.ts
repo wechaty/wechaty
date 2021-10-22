@@ -3,11 +3,11 @@
 
 import { test }  from 'tstest'
 
-import { PuppetTest } from './fixtures/puppet-test/puppet-test.js'
+import { PuppetTestImpl } from './fixtures/puppet-test/puppet-test.js'
 
 test('Integration testing', async t => {
 
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
 
   t.ok(puppet, 'tbw')
 })

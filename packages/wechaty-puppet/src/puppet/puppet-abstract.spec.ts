@@ -27,7 +27,7 @@ import type {
  * The Fixture
  */
 import {
-  PuppetTest,
+  PuppetTestImpl,
 }               from '../../tests/fixtures/puppet-test/puppet-test.js'
 
 test('contactQueryFilterFunction()', async t => {
@@ -77,7 +77,7 @@ test('contactQueryFilterFunction()', async t => {
   const REGEX_VALUE = new RegExp(TEXT_REGEX)
   const TEXT_VALUE  = TEXT_TEXT
 
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
 
   void t.test('filter name by regex', async t => {
     const QUERY   = { name: REGEX_VALUE }
@@ -180,7 +180,7 @@ test('roomQueryFilterFunction()', async t => {
   const REGEX_VALUE = new RegExp(TEXT_REGEX)
   const TEXT_VALUE  = TEXT_TEXT
 
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
 
   void t.test('filter name by regex', async t => {
     const QUERY   = { topic: REGEX_VALUE }
@@ -292,7 +292,7 @@ test('roomQueryFilterFunction()', async t => {
  *    https://github.com/wechaty/puppet/issues/157
  */
 test.skip('reset event throttle for reset()', async t => {
-  const puppet = new PuppetTest({})
+  const puppet = new PuppetTestImpl({})
 
   const sandbox = sinon.createSandbox()
 
@@ -315,7 +315,7 @@ test.skip('reset event throttle for reset()', async t => {
 })
 
 test('set memory() memory with a name', async t => {
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
   const memory = new MemoryCard({ name: 'name' })
 
   t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a named memory first time ')
@@ -357,7 +357,7 @@ test('messageQueryFilterFactory() one condition', async t => {
     },
   ] as MessagePayload[]
 
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
 
   let filterFuncText
   let resultPayload
@@ -417,7 +417,7 @@ test('messageQueryFilterFactory() two condition', async t => {
     },
   ] as MessagePayload[]
 
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
 
   let filterFuncText
   let resultPayload
@@ -446,7 +446,7 @@ test('messageQueryFilterFactory() two condition', async t => {
 })
 
 test('name()', async t => {
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
 
   const name = puppet.name()
   const EXPECTED_NAME = 'puppet-test'
@@ -455,7 +455,7 @@ test('name()', async t => {
 })
 
 test('version()', async t => {
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTestImpl()
 
   const version = puppet.version()
   const EXPECTED_VERSION = '1.0.0'

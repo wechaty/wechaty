@@ -4,11 +4,11 @@ import {
   test,
 }           from 'tstest'
 
-import type { Puppet } from './mod.js'
+import type { PuppetAbstractImpl } from './mod.js'
 import type { PuppetProtectedProperty } from './interface.js'
 
 test('ProtectedProperties', async t => {
-  type NotExistInPuppet = Exclude<PuppetProtectedProperty, keyof Puppet>
+  type NotExistInPuppet = Exclude<PuppetProtectedProperty, keyof PuppetAbstractImpl>
   type NotExistTest = NotExistInPuppet extends never ? true : false
 
   const noOneLeft: NotExistTest = true

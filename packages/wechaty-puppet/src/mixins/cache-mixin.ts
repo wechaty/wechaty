@@ -5,9 +5,9 @@ import {
 import type { PuppetOptions }   from '../schemas/puppet.js'
 import { CacheAgent }           from '../agents/mod.js'
 
-import type { PuppetSkelton } from '../puppet/skelton.js'
+import type { PuppetSkeltonImpl } from '../puppet/puppet-skelton.js'
 
-const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const cacheMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: MixinBase) => {
 
   abstract class CacheMixin extends mixinBase {
 

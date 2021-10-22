@@ -4,13 +4,13 @@ import {
   log,
 }           from '../config.js'
 
-import type { PuppetSkelton } from '../puppet/skelton.js'
+import type { PuppetSkeltonImpl } from '../puppet/puppet-skelton.js'
 import { BusyIndicator }      from '../busy-indicator.js'
 import { WatchdogAgent }      from '../agents/watchdog-agent.js'
 
 let PUPPET_COUNTER = 0
 
-const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const stateMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: MixinBase) => {
 
   abstract class StateMixin extends mixinBase {
 

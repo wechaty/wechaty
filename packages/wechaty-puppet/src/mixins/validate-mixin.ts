@@ -1,30 +1,42 @@
 import type {
+  PuppetAbstractImpl,
   Puppet,
-  PuppetInterface,
 }                         from '../puppet/mod.js'
 
-import type { PuppetSkelton }   from '../puppet/skelton.js'
+import type { PuppetSkeltonImpl }   from '../puppet/puppet-skelton.js'
 import {
   interfaceOfPuppet,
   looseInstanceOfPuppet,
 }                           from '../puppet/interface-of.js'
 
-const validateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const validateMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: MixinBase) => {
 
   abstract class ValidateMixin extends mixinBase {
 
     /**
      * Check if obj satisfy Puppet interface
      */
-    static validInterface (target: any): target is PuppetInterface {
+    static validInterface (target: any): target is Puppet {
       return interfaceOfPuppet(target)
     }
 
     /**
      * loose check instance of Puppet
      */
-    static validInstance (target: any): target is Puppet {
+    static validInstance (target: any): target is PuppetAbstractImpl {
       return looseInstanceOfPuppet(target)
+    }
+
+    /**
+     * Huan(202110): I believe `valid()` will be a better performance than `validInterface()`
+     *  because it will check `instanceof` first, which I believe it will be the most case
+     *  and it will be faster than `interfaceOfPuppet()`
+     */
+    static valid (target: any): target is Puppet {
+      if (this.validInstance(target) || this.validInterface(target)) {
+        return true
+      }
+      return false
     }
 
   }

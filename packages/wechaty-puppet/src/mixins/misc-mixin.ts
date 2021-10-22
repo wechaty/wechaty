@@ -4,9 +4,9 @@ import {
   VERSION,
 }                       from '../config.js'
 
-import type { PuppetSkelton }   from '../puppet/skelton.js'
+import type { PuppetSkeltonImpl }   from '../puppet/puppet-skelton.js'
 
-const miscMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const miscMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: MixinBase) => {
 
   abstract class MiscMixin extends mixinBase {
 

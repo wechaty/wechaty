@@ -11,11 +11,11 @@ import type {
   RoomQueryFilter,
 }                                 from '../schemas/room.js'
 
-import type { PuppetSkelton } from '../puppet/skelton.js'
+import type { PuppetSkeltonImpl } from '../puppet/puppet-skelton.js'
 import type { ContactMixin }  from './contact-mixin.js'
 import type { RoomMemberMixin } from './room-member-mixin.js'
 
-const roomMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin & RoomMemberMixin>(mixinBase: MixinBase) => {
+const roomMixin = <MixinBase extends typeof PuppetSkeltonImpl & ContactMixin & RoomMemberMixin>(mixinBase: MixinBase) => {
 
   abstract class RoomMixin extends mixinBase {
 

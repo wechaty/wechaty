@@ -6,11 +6,11 @@ import {
 
 import type {
   SkeltonProtectedProperty,
-  PuppetSkelton,
-}                             from './skelton.js'
+  PuppetSkeltonImpl,
+}                             from './puppet-skelton.js'
 
 test('ProtectedPropertySkelton', async t => {
-  type NotExistInMixin = Exclude<SkeltonProtectedProperty, keyof PuppetSkelton>
+  type NotExistInMixin = Exclude<SkeltonProtectedProperty, keyof PuppetSkeltonImpl>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
