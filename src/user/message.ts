@@ -37,15 +37,14 @@ import type {
   Sayable,
   SayableMessage,
 }                             from '../interface/mod.js'
-import { captureException }   from '../raven.js'
+// import { captureException }   from '../raven.js'
 
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-import {
+import type {
   Contact,
-  ContactImpl,
 }                       from './contact.js'
 import type {
   Room,
@@ -55,7 +54,6 @@ import {
   UrlLinkImpl,
 }                       from './url-link.js'
 import {
-  MiniProgram,
   MiniProgramImpl,
 }                       from './mini-program.js'
 import type {
@@ -65,6 +63,7 @@ import {
   Location,
   LocationImpl,
 }                       from './location.js'
+
 import { validationMixin } from './mixins/validation.js'
 
 const MixinBase = validationMixin<Message>()(
@@ -423,18 +422,6 @@ class MessageImpl extends MixinBase implements Sayable {
     }
   }
 
-  say (text:     string)      : Promise<void | Message>
-  say (num:      number)      : Promise<void | Message>
-  say (message:  Message)     : Promise<void | Message>
-  say (contact:  Contact)     : Promise<void | Message>
-  say (file:     FileBox)     : Promise<void | Message>
-  say (url:      UrlLink)     : Promise<void | Message>
-  say (mini:     MiniProgram) : Promise<void | Message>
-  say (location: Location)    : Promise<void | Message>
-
-  // Huan(202006): allow fall down to the definition to get more flexibility.
-  // public say (...args: never[]): Promise<never>
-
   /**
    * Reply a Text or Media File message to the sender.
    * > Tips:
@@ -529,102 +516,13 @@ class MessageImpl extends MixinBase implements Sayable {
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', sayableMsg)
 
-    // const user = this.wechaty.puppet.currentUser()
-    const talker = this.talker()
-    // const to   = this.to()
-    const room = this.room()
-
-    let conversationId: string
-    let conversation
+    const talker  = this.talker()
+    const room    = this.room()
 
     if (room) {
-      conversation = room
-      conversationId = room.id
+      return room.say(sayableMsg)
     } else {
-      conversation = talker
-      conversationId = talker.id
-    }
-
-    /**
-     * Support say a existing message: just forward it.
-     */
-    if (MessageImpl.valid(sayableMsg)) {
-      return sayableMsg.forward(conversation)
-    }
-
-    // Convert number to string
-    if (typeof sayableMsg === 'number') {
-      sayableMsg = String(sayableMsg)
-    }
-
-    let msgId: void | string
-    if (typeof sayableMsg === 'string') {
-      /**
-       * Text Message
-       */
-      let mentionIdList
-      if (await this.mentionSelf()) {
-        mentionIdList = [talker.id]
-      }
-
-      msgId = await this.wechaty.puppet.messageSendText(
-        conversationId,
-        sayableMsg,
-        mentionIdList,
-      )
-    } else if (ContactImpl.valid(sayableMsg)) {
-      /**
-       * Contact Card
-       */
-      msgId = await this.wechaty.puppet.messageSendContact(
-        conversationId,
-        sayableMsg.id,
-      )
-    } else if (FileBox.validInstance(sayableMsg) || FileBox.validInterface(sayableMsg)) {
-      /**
-       * Be aware of minified codes:
-       *  https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class#comment60309941_1249554
-       */
-
-      /**
-       * File Message
-       */
-      msgId = await this.wechaty.puppet.messageSendFile(
-        conversationId,
-        sayableMsg,
-      )
-    } else if (UrlLinkImpl.valid(sayableMsg)) {
-      /**
-       * Link Message
-       */
-      msgId = await this.wechaty.puppet.messageSendUrl(
-        conversationId,
-        sayableMsg.payload,
-      )
-    } else if (MiniProgramImpl.valid(sayableMsg)) {
-      /**
-       * MiniProgram
-       */
-      msgId = await this.wechaty.puppet.messageSendMiniProgram(
-        conversationId,
-        sayableMsg.payload,
-      )
-    } else if (LocationImpl.valid(sayableMsg)) {
-      /**
-       * Location
-       */
-      msgId = await this.wechaty.puppet.messageSendLocation(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else {
-      throw new Error('Message.say() received unknown msg: ' + sayableMsg)
-    }
-
-    if (msgId) {
-      const msg = this.wechaty.Message.load(msgId)
-      await msg.ready()
-      return msg
+      return talker.say(sayableMsg)
     }
   }
 
@@ -950,7 +848,6 @@ class MessageImpl extends MixinBase implements Sayable {
         return msg
       }
     } catch (e) {
-      this.wechaty.emitError(e)
       log.error('Message', 'forward(%s) exception: %s', to, e)
       throw e
     }

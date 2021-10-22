@@ -22,31 +22,29 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
-  FileBox,
   log,
   PayloadType,
 }                             from 'wechaty-puppet'
 import type {
+  FileBoxInterface,
+}                             from 'file-box'
+import type {
   Constructor,
 }                             from '../deprecated/clone-class.js'
 
-import {
-  qrCodeForChatie,
-}                           from '../config.js'
+// import {
+//   qrCodeForChatie,
+// }                           from '../config.js'
 import type {
   Sayable,
   SayableMessage,
 }                          from '../interface/mod.js'
-import { captureException } from '../raven.js'
+// import { captureException } from '../raven.js'
 
-import {
+import type {
   Message,
-  MessageImpl,
 }                   from './message.js'
 import type { Tag }     from './tag.js'
-import { MiniProgram, MiniProgramImpl }  from './mini-program.js'
-import { UrlLink, UrlLinkImpl }      from './url-link.js'
-import { Location, LocationImpl }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
@@ -58,6 +56,7 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 import { validationMixin } from './mixins/validation.js'
+import { deliverSayableConversationPuppet } from '../interface/sayable.js'
 
 /**
  * Huan(202110): Issue #2273
@@ -275,15 +274,6 @@ class ContactImpl extends MixinBase implements Sayable {
     return `Contact<${identity}>`
   }
 
-  say (text:     string)      : Promise<void | Message>
-  say (num:      number)      : Promise<void | Message>
-  say (message:  Message)     : Promise<void | Message>
-  say (contact:  Contact)     : Promise<void | Message>
-  say (file:     FileBox)     : Promise<void | Message>
-  say (mini:     MiniProgram) : Promise<void | Message>
-  say (url:      UrlLink)     : Promise<void | Message>
-  say (location: Location)    : Promise<void | Message>
-
   /**
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
@@ -357,69 +347,7 @@ class ContactImpl extends MixinBase implements Sayable {
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayableMsg)
 
-    if (MessageImpl.valid(sayableMsg)) {
-      return sayableMsg.forward(this)
-    }
-
-    if (typeof sayableMsg === 'number') {
-      sayableMsg = String(sayableMsg)
-    }
-
-    let msgId: string | void
-    if (typeof sayableMsg === 'string') {
-      /**
-       * 1. Text
-       */
-      msgId = await this.wechaty.puppet.messageSendText(
-        this.id,
-        sayableMsg,
-      )
-    } else if (sayableMsg instanceof ContactImpl) {
-      /**
-       * Huan(202110): FIXME: use interfaceOfContact() to check it is a Contact
-       */
-      /**
-       * 2. Contact
-       */
-      msgId = await this.wechaty.puppet.messageSendContact(
-        this.id,
-        sayableMsg.id,
-      )
-    } else if (FileBox.validInstance(sayableMsg) || FileBox.validInterface(sayableMsg)) {
-      /**
-       * 3. File
-       */
-      msgId = await this.wechaty.puppet.messageSendFile(
-        this.id,
-        sayableMsg,
-      )
-    } else if (UrlLinkImpl.valid(sayableMsg)) {
-      /**
-       * 4. Link Message
-       */
-      msgId = await this.wechaty.puppet.messageSendUrl(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (MiniProgramImpl.valid(sayableMsg)) {
-      /**
-       * 5. Mini Program
-       */
-      msgId = await this.wechaty.puppet.messageSendMiniProgram(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (LocationImpl.valid(sayableMsg)) {
-      /**
-       * 6. Location
-       */
-      msgId = await this.wechaty.puppet.messageSendLocation(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else {
-      throw new Error('unsupported arg: ' + sayableMsg)
-    }
+    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
 
     if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
@@ -720,16 +648,11 @@ class ContactImpl extends MixinBase implements Sayable {
    * await file.toFile(name, true)
    * console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
    */
-  async avatar (): Promise<FileBox> {
+  async avatar (): Promise<FileBoxInterface> {
     log.verbose('Contact', 'avatar()')
 
-    try {
-      const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
-      return fileBox
-    } catch (e) {
-      this.wechaty.emitError(e)
-      log.error('Contact', 'avatar() exception: %s', (e as Error).message)
-    }
+    const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
+    return fileBox
   }
 
   /**

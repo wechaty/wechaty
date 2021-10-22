@@ -15,7 +15,6 @@ type NonInterfaceProperties = never
   | 'pluginUninstallerList'
   | 'readyState'
   | 'sleep'
-  | 'waitForMessage'
   | 'wechaty'
 
 // type WechatyUserClass = never

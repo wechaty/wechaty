@@ -68,6 +68,7 @@ import {
   MiniProgramImpl,
   RoomImpl,
   RoomInvitationImpl,
+  SleeperImpl,
   TagImpl,
   UrlLinkImpl,
   LocationImpl,
@@ -81,18 +82,20 @@ import {
   RoomConstructor,
   RoomInvitationConstructor,
   TagConstructor,
+  SleeperConstructor,
   UrlLinkConstructor,
   LocationConstructor,
 
   Contact,
   ContactSelf,
-  // FriendshipInterface,
-  // ImageInterface,
-  // MessageInterface,
+  // Friendship,
+  // Image,
+  // Message,
   MiniProgram,
-  // RoomInterface,
-  // RoomInvitationInterface,
-  // TagInterface,
+  // Room,
+  // RoomInvitation,
+  // Tag,
+  // Sleeper,
   UrlLink,
   Location,
 
@@ -113,7 +116,7 @@ import {
 }                             from './plugin.js'
 import type {
   Wechaty,
-  // WechatyConstructor,
+  WechatyConstructor,
 }                       from './interface/wechaty-interface.js'
 import { singletonWechaty } from './factory.js'
 
@@ -194,6 +197,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   #wechatifiedMiniProgram?    : MiniProgramConstructor
   #wechatifiedRoom?           : RoomConstructor
   #wechatifiedRoomInvitation? : RoomInvitationConstructor
+  #wechatifiedSleeper?        : SleeperConstructor
   #wechatifiedTag?            : TagConstructor
   #wechatifiedUrlLink?        : UrlLinkConstructor
   #wechatifiedLocation?       : LocationConstructor
@@ -206,6 +210,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this.#wechatifiedMiniProgram)    }
   get Room ()           : RoomConstructor           { return guardWechatify(this.#wechatifiedRoom)           }
   get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this.#wechatifiedRoomInvitation) }
+  get Sleeper ()        : SleeperConstructor        { return guardWechatify(this.#wechatifiedSleeper)        }
   get Tag ()            : TagConstructor            { return guardWechatify(this.#wechatifiedTag)            }
   get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this.#wechatifiedUrlLink)        }
   get Location ()       : LocationConstructor       { return guardWechatify(this.#wechatifiedLocation)       }
@@ -260,9 +265,10 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
    */
   static use (
     ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
-  ) {
+  ): WechatyConstructor {
     const pluginList = plugins.flat()
     this.globalPluginList = this.globalPluginList.concat(pluginList)
+    return this
   }
 
   /**
@@ -383,7 +389,11 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
    * // The same usage with Wechaty.use().
    *
    */
-  use (...plugins: (WechatyPlugin | WechatyPlugin[])[]) {
+  use (
+    ...plugins: (
+      WechatyPlugin | WechatyPlugin[]
+    )[]
+  ): Wechaty {
     const pluginList = plugins.flat() as WechatyPlugin[]
     const uninstallerList = pluginList
       .map(plugin => plugin(this))
@@ -466,7 +476,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
 
         case 'error':
           puppet.on('error', payload => {
-            this.emit('error', new Error(payload.data))
+            this.emitError(payload)
           })
           break
 
@@ -532,7 +542,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
               } else if (listener) {
                 listener.emit('message', msg)
               } else {
-                this.emit('error', new Error('message without room or listener'))
+                this.emitError('message without room and listener')
               }
             } catch (e) {
               this.emitError(e)
@@ -700,6 +710,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     this.#wechatifiedMiniProgram    = wechatifyUserClass(MiniProgramImpl)(this)
     this.#wechatifiedRoom           = wechatifyUserClass(RoomImpl)(this)
     this.#wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitationImpl)(this)
+    this.#wechatifiedSleeper        = wechatifyUserClass(SleeperImpl)(this)
     this.#wechatifiedTag            = wechatifyUserClass(TagImpl)(this)
     this.#wechatifiedUrlLink        = wechatifyUserClass(UrlLinkImpl)(this)
     this.#wechatifiedLocation       = wechatifyUserClass(LocationImpl)(this)
@@ -710,11 +721,15 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
    *  and emit `error` event with GError
    */
   emitError (e: unknown): void {
-    if (!(e instanceof GError)) {
-      e = GError.from(e)
+    let gerror: GError
+    if (e instanceof GError) {
+      gerror = e
+    } else {
+      gerror = GError.from(e)
     }
-    this.emit('error', e)
-    captureException(e)
+
+    this.emit('error', gerror)
+    captureException(gerror)
   }
 
   /**
@@ -986,7 +1001,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   async say (url:     UrlLink)     : Promise<void>
   async say (url:     Location)    : Promise<void>
 
-  async say (...args: never[]): Promise<never>
+  async say (...args: never[]): Promise<void>
 
   /**
    * Send message to currentUser, in other words, bot send message to itself.
@@ -1078,17 +1093,17 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   /**
    * @ignore
    */
-  static async sleep (millisecond: number): Promise<void> {
+  static async sleep (milliseconds: number): Promise<void> {
     await new Promise<void>(resolve => {
-      setTimeout(resolve, millisecond)
+      setTimeout(resolve, milliseconds)
     })
   }
 
   /**
    * @ignore
    */
-  async sleep (millisecond: number): Promise<void> {
-    return WechatyImpl.sleep(millisecond)
+  async sleep (milliseconds: number): Promise<void> {
+    return WechatyImpl.sleep(milliseconds)
   }
 
   /**
@@ -1114,9 +1129,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     )
 
     if (freeMegabyte < minMegabyte) {
-      const e = new Error(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
-      log.warn('Wechaty', 'memoryCheck() %s', e.message)
-      this.emit('error', e)
+      this.emitError(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
     }
   }
 
@@ -1153,15 +1166,18 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
       })
   }
 
-  // unref (): void {
-  //   log.verbose('Wechaty', 'unref()')
-
-  //   if (this.lifeTimer) {
-  //     this.lifeTimer.unref()
-  //   }
-
-  //   this.puppet.unref()
-  // }
+  /**
+   * Convert a callback function from returning `Promise<void>` to `void`
+   *  catch any errors by emit an error event
+   */
+  wrapAsync<T extends (...args: any[]) => Promise<any>> (
+    asyncFunction: T,
+  ) {
+    const wechaty = this
+    return function (this: any, ...args: Parameters<T>): void {
+      asyncFunction.apply(this, args).catch(e => wechaty.emitError(e))
+    }
+  }
 
 }
 

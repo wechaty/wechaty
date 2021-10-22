@@ -15,6 +15,7 @@ import type {
   MiniProgramConstructor,
   RoomInvitationConstructor,
   RoomConstructor,
+  SleeperConstructor,
   TagConstructor,
   UrlLinkConstructor,
 }                             from '../user/mod.js'
@@ -37,6 +38,7 @@ test('Wechaty interface', async t => {
     MiniProgram    : MiniProgramConstructor
     Room           : RoomConstructor
     RoomInvitation : RoomInvitationConstructor
+    Sleeper        : SleeperConstructor
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
 
@@ -58,6 +60,7 @@ test('Wechaty interface', async t => {
         = this.Room
         = this.RoomInvitation
         = this.state
+        = this.Sleeper
         = this.Tag
         = this.UrlLink
         = {} as any
@@ -75,6 +78,8 @@ test('Wechaty interface', async t => {
     abstract stop        : Wechaty['stop']
     abstract use         : Wechaty['use']
     abstract version     : Wechaty['version']
+    abstract emitError   : Wechaty['emitError']
+    abstract wrapAsync   : Wechaty['wrapAsync']
 
   }
 

@@ -25,7 +25,7 @@ import childProcess from 'child_process'
 import {
   log,
   Puppet,
-  PuppetImplementation,
+  PuppetConstructor,
   PuppetInterface,
   PuppetOptions,
 }                         from 'wechaty-puppet'
@@ -76,7 +76,7 @@ export class PuppetManager {
      * When we have different puppet with different `constructor()` args.
      * For example: PuppetA allow `constructor()` but PuppetB requires `constructor(options)`
      *
-     * SOLUTION: we enforce all the PuppetImplementation to have `options` and should not allow default parameter.
+     * SOLUTION: we enforce all the PuppetConstructor to have `options` and should not allow default parameter.
      *  Issue: https://github.com/wechaty/wechaty-puppet/issues/2
      */
 
@@ -92,7 +92,7 @@ export class PuppetManager {
 
   protected static async resolveName (
     puppetName: PuppetModuleName,
-  ): Promise<PuppetImplementation> {
+  ): Promise<PuppetConstructor> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
     // if (!puppetName) {
@@ -141,7 +141,7 @@ export class PuppetManager {
     }
 
     // console.info(puppetModule)
-    const MyPuppet = puppetModule.default as PuppetImplementation
+    const MyPuppet = puppetModule.default as PuppetConstructor
 
     return MyPuppet
   }

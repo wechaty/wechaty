@@ -26,7 +26,7 @@ import {
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import type { WechatyPlugin }  from './plugin.js'
-import type { Wechaty } from './mod.js'
+import type { Wechaty } from './mods/mod.js'
 import { createWechaty } from './factory.js'
 
 test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {

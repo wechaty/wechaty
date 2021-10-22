@@ -312,7 +312,7 @@ export class Io {
             }
           } catch (e) {
             log.warn('Io', 'server pushed function exception: %s', e)
-            this.options.wechaty.emit('error', (e as Error))
+            this.options.wechaty.emitError(e)
           }
         }
         break
@@ -410,7 +410,7 @@ export class Io {
     if (!e) {
       return
     }
-    this.options.wechaty.emit('error', e)
+    this.options.wechaty.emitError(e)
 
     // when `error`, there must have already a `close` event
     // we should not call this.reconnect() again

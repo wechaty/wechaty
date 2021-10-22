@@ -5,11 +5,11 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/esm/src/mod.js",
-      "require": "./dist/cjs/src/mod.js"
+      "import": "./dist/esm/src/mods/mod.js",
+      "require": "./dist/cjs/src/mods/mod.js"
     }
   },
-  "typings": "./dist/esm/src/mod.d.ts",
+  "typings": "./dist/esm/src/mods/mod.d.ts",
   "engines": {
     "node": ">=16",
     "npm": ">=7"
@@ -95,7 +95,7 @@
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
     "uuid": "^3.4.0",
-    "wechaty-puppet": "^0.51.7",
+    "wechaty-puppet": "^0.51.14",
     "wechaty-puppet-service": "^0.39.1",
     "ws": "^8.2.3"
   },

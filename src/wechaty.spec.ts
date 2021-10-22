@@ -32,17 +32,14 @@ import {
   WechatyImpl,
 }                             from './wechaty.js'
 
+import * as impl from './mods/mod-impl.js'
+
 import {
   config,
-  ContactImpl,
-  FriendshipImpl,
   IoClient,
   log,
-  MessageImpl,
-
-  RoomImpl,
   Wechaty,
-}                 from './mod.js'
+}                 from './mods/mod.js'
 
 class WechatyTest extends WechatyImpl {
 
@@ -53,13 +50,13 @@ class WechatyTest extends WechatyImpl {
 }
 
 test('Export of the Framework', async t => {
-  t.ok(ContactImpl,     'should export Contact')
-  t.ok(FriendshipImpl,  'should export Friendship')
+  t.ok(impl.Contact,     'should export Contact')
+  t.ok(impl.Friendship,  'should export Friendship')
   t.ok(IoClient,    'should export IoClient')
-  t.ok(MessageImpl,     'should export Message')
+  t.ok(impl.Message,     'should export Message')
   t.ok(Puppet,      'should export Puppet')
-  t.ok(RoomImpl,        'should export Room')
-  t.ok(WechatyImpl,     'should export Wechaty')
+  t.ok(impl.Room,        'should export Room')
+  t.ok(impl.Wechaty,     'should export Wechaty')
   t.ok(log,         'should export log')
 })
 
@@ -324,4 +321,25 @@ test('on/off event listener management', async t => {
   wechaty.off('message', onMessage)
   t.equal(wechaty.listenerCount('message'), 0, 'should -1 listener after off(message)')
 
+})
+
+test('wrapAsync()', async t => {
+  const puppet = new PuppetMock()
+  const wechaty = new WechatyImpl({ puppet })
+
+  const spy = sinon.spy()
+  wechaty.on('error', spy)
+
+  const DATA = 'test'
+  const asyncFunc = async () => DATA
+  const syncFunc = wechaty.wrapAsync(asyncFunc)
+
+  t.notOk(syncFunc(), 'should get sync function return void')
+  t.ok(spy.notCalled, 'should not emit error when sync function return value')
+
+  const asyncFunc2 = async () => { throw new Error('test') }
+  const syncFunc2 = wechaty.wrapAsync(asyncFunc2)
+  t.doesNotThrow(() => syncFunc2(), 'should not throw when async function throw error')
+  await wechaty.sleep(0)  // wait async event loop task to be executed
+  t.ok(spy.calledOnce, 'should emit error when async function throw error')
 })

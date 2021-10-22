@@ -151,9 +151,9 @@ class TagImpl extends MixinBase {
      *  2. use instanceof to check the type of `to`
      */
     try {
-      if (to instanceof ContactImpl) {
+      if (ContactImpl.valid(to)) {
         await this.wechaty.puppet.tagContactAdd(this.id, to.id)
-      } else if (to instanceof FavoriteImpl) {
+      } else if (FavoriteImpl.valid(to)) {
         // TODO: await this.wechaty.puppet.tagAddFavorite(this.tag, to.id)
       }
     } catch (e) {

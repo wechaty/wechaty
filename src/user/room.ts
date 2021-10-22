@@ -43,10 +43,7 @@ import {
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import { Contact, ContactImpl }        from './contact.js'
-import { MiniProgram, MiniProgramImpl }    from './mini-program.js'
-import { Message, MessageImpl }        from './message.js'
-import { UrlLink, UrlLinkImpl }        from './url-link.js'
-import { Location, LocationImpl }       from './location.js'
+import type { Message }        from './message.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -59,6 +56,8 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 import { validationMixin } from './mixins/validation.js'
+import { deliverSayableConversationPuppet } from '../interface/sayable.js'
+import { isTemplateStringArray } from '../helper-functions/pure/is-template-string-array.js'
 
 // FIXME: #2273
 void POOL
@@ -344,16 +343,9 @@ class RoomImpl extends MixinBase implements Sayable {
     return !!(this.#payload)
   }
 
-  say (text:     string)                                  : Promise<void | Message>
-  say (num:      number)                                  : Promise<void | Message>
-  say (message:  Message)                                 : Promise<void | Message>
+  say (text:     SayableMessage)                          : Promise<void | Message>
   say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
   say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
-  say (file:     FileBox)                                 : Promise<void | Message>
-  say (url:      UrlLink)                                 : Promise<void | Message>
-  say (mini:     MiniProgram)                             : Promise<void | Message>
-  say (contact:  Contact)                                 : Promise<void | Message>
-  say (location: Location)                                : Promise<void | Message>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -448,47 +440,15 @@ class RoomImpl extends MixinBase implements Sayable {
       varList.join(', '),
     )
 
-    let text  : string
-    let msgId : void | string
+    let msgId
+    let text: string
 
-    if (MessageImpl.valid(sayableMsg)) {
-      return sayableMsg.forward(this)
-    }
-
-    function isTemplateStringArray (tsa: any): tsa is TemplateStringsArray {
-      return tsa instanceof Array
-    }
-
-    /**
-     *
-     * 0. TemplateStringArray
-     *
-     */
     if (isTemplateStringArray(sayableMsg)) {
-      const msgId = await this.sayTemplateStringsArray(
+      msgId = await this.sayTemplateStringsArray(
         sayableMsg as TemplateStringsArray,
         ...varList,
       )
-
-      if (!msgId) {
-        return
-      }
-
-      const msg = this.wechaty.Message.load(msgId)
-      await msg.ready()
-      return msg
-    }
-
-    /**
-     *
-     * Other conditions
-     *
-     */
-    if (typeof sayableMsg === 'number') {
-      sayableMsg = String(sayableMsg)
-    }
-
-    if (typeof sayableMsg === 'string') {
+    } else if (typeof sayableMsg === 'string') {
       /**
        * 1. string
        */
@@ -521,48 +481,8 @@ class RoomImpl extends MixinBase implements Sayable {
         text,
         mentionList.map(c => c.id),
       )
-    } else if (FileBox.validInstance(sayableMsg) ||  FileBox.validInterface(sayableMsg)) {
-      /**
-       * 2. File Message
-       */
-      msgId = await this.wechaty.puppet.messageSendFile(
-        this.id,
-        sayableMsg,
-      )
-    } else if (ContactImpl.valid(sayableMsg)) {
-      /**
-       * 3. Contact Card
-       */
-      msgId = await this.wechaty.puppet.messageSendContact(
-        this.id,
-        sayableMsg.id,
-      )
-    } else if (UrlLinkImpl.valid(sayableMsg)) {
-      /**
-       * 4. Link Message
-       */
-      msgId = await this.wechaty.puppet.messageSendUrl(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (MiniProgramImpl.valid(sayableMsg)) {
-      /**
-       * 5. Mini Program
-       */
-      msgId = await this.wechaty.puppet.messageSendMiniProgram(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (LocationImpl.valid(sayableMsg)) {
-      /**
-       * 6. Location
-       */
-      msgId = await this.wechaty.puppet.messageSendLocation(
-        this.id,
-        sayableMsg.payload,
-      )
     } else {
-      throw new Error('arg unsupported: ' + sayableMsg)
+      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
     }
 
     if (msgId) {
@@ -635,27 +555,6 @@ class RoomImpl extends MixinBase implements Sayable {
       )
     }
   }
-
-  // public emit (event: 'invite',  inviter:       Contact,    invitation: RoomInvitation)                  : boolean
-  // public emit (event: 'leave',   leaverList:    Contact[],  remover:  Contact, date: Date)                    : boolean
-  // public emit (event: 'message', message:       Message)                                                      : boolean
-  // public emit (event: 'join',    inviteeList:   Contact[],  inviter:  Contact, date: Date)                    : boolean
-  // public emit (event: 'topic',   topic:         string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
-  // public emit (event: never, ...args: never[]): never
-
-  // public emit (
-  //   event:   RoomEventName,
-  //   ...args: any[]
-  // ): boolean {
-  //   return super.emit(event, ...args)
-  // }
-
-  // public on (event: 'invite',  listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
-  // public on (event: 'leave',   listener: (this: Room, leaverList:  Contact[], remover?:  Contact, date?: Date) => void)                   : this
-  // public on (event: 'message', listener: (this: Room, message:  Message, date?: Date) => void)                             : this
-  // public on (event: 'join',    listener: (this: Room, inviteeList: Contact[], inviter:  Contact,  date?: Date) => void)                   : this
-  // public on (event: 'topic',   listener: (this: Room, topic:       string,    oldTopic: string,   changer: Contact, date?: Date) => void) : this
-  // public on (event: never,   ...args: never[])                                                                            : never
 
   /**
    * @desc       Room Class Event Type

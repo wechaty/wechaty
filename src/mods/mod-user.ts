@@ -17,38 +17,20 @@
  *   limitations under the License.
  *
  */
-import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from './mixins/validation.js'
-
-import {
-  EmptyBase,
-  wechatifyMixin,
-}                       from './mixins/wechatify.js'
-
-const MixinBase = validationMixin<Money>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
-)
-
-class MoneyImpl extends MixinBase {
-
-  constructor () {
-    super()
-  }
-
-}
-
-interface Money extends MoneyImpl {}
-type MoneyConstructor = Constructor<
-  Money,
-  typeof MoneyImpl
->
-
 export type {
-  MoneyConstructor,
+  Contact,
+  ContactSelf,
+  Favorite,
+  Friendship,
+  Image,
+  Location,
+  Message,
+  MiniProgram,
+  Moment,
   Money,
-}
-export {
-  MoneyImpl,
-}
+  Room,
+  RoomInvitation,
+  Sleeper,
+  Tag,
+  UrlLink,
+}                   from '../user/mod.js'

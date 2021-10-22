@@ -25,30 +25,42 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<Money>()(
+const MixinBase = validationMixin<Sleeper>()(
   wechatifyMixin(
     EmptyBase,
   ),
 )
 
-class MoneyImpl extends MixinBase {
+class SleeperImpl extends MixinBase {
 
-  constructor () {
+  static create (milliseconds: number): Sleeper {
+    return new SleeperImpl(milliseconds)
+  }
+
+  constructor (
+    public milliseconds: number,
+  ) {
     super()
+  }
+
+  sleep (): Promise<void> {
+    return new Promise<void>(resolve => {
+      setTimeout(resolve, this.milliseconds)
+    })
   }
 
 }
 
-interface Money extends MoneyImpl {}
-type MoneyConstructor = Constructor<
-  Money,
-  typeof MoneyImpl
+interface Sleeper extends SleeperImpl {}
+type SleeperConstructor = Constructor<
+  Sleeper,
+  typeof SleeperImpl
 >
 
 export type {
-  MoneyConstructor,
-  Money,
+  SleeperConstructor,
+  Sleeper,
 }
 export {
-  MoneyImpl,
+  SleeperImpl,
 }

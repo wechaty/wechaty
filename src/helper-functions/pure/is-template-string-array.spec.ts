@@ -1,3 +1,4 @@
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -17,38 +18,27 @@
  *   limitations under the License.
  *
  */
-import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from './mixins/validation.js'
+import { test } from 'tstest'
+import { isTemplateStringArray } from './is-template-string-array.js'
 
-import {
-  EmptyBase,
-  wechatifyMixin,
-}                       from './mixins/wechatify.js'
-
-const MixinBase = validationMixin<Money>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
-)
-
-class MoneyImpl extends MixinBase {
-
-  constructor () {
-    super()
+test('isTemplateStringArray', async t => {
+  function test (
+    s: string | TemplateStringsArray,
+    ...varList : unknown[]
+  ) {
+    void varList
+    if (isTemplateStringArray(s)) {
+      return true
+    }
+    return false
   }
 
-}
+  const n = 42
+  const obj = {}
 
-interface Money extends MoneyImpl {}
-type MoneyConstructor = Constructor<
-  Money,
-  typeof MoneyImpl
->
+  t.ok(test`foo`, 'should return true for template string')
+  t.ok(test`bar${n}`, 'should return true for template string with one var')
+  t.ok(test`obj${obj}`, 'should return true for template string with one obj')
 
-export type {
-  MoneyConstructor,
-  Money,
-}
-export {
-  MoneyImpl,
-}
+  t.notOk(test('xixi'), 'should return false for (string) call')
+})

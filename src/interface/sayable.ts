@@ -17,13 +17,15 @@
  *   limitations under the License.
  *
  */
-import type { FileBoxInterface } from 'file-box'
+import { FileBox, FileBoxInterface } from 'file-box'
+import type { PuppetInterface } from 'wechaty-puppet'
 
 import type {
   Contact,
   Location,
   Message,
   MiniProgram,
+  Sleeper,
   UrlLink,
 }                           from '../user/mod.js'
 
@@ -31,7 +33,16 @@ import type {
   Wechaty,
 }                           from './wechaty-interface.js'
 
- type SayableMessage = never
+import {
+  ContactImpl,
+  MessageImpl,
+  SleeperImpl,
+  UrlLinkImpl,
+  MiniProgramImpl,
+  LocationImpl,
+}                     from '../user/mod.js'
+
+type SayableMessage = never
   | Contact
   | FileBoxInterface
   | Location
@@ -39,6 +50,7 @@ import type {
   | MiniProgram
   | number
   | string
+  | Sleeper
   | UrlLink
 
 interface Sayable {
@@ -50,6 +62,86 @@ interface Sayable {
   ): Promise<void | Message>
 }
 
+const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversationId: string) => async (sayableMessage: SayableMessage) => {
+  let msgId: string | void
+
+  if (typeof sayableMessage === 'number') {
+    sayableMessage = String(sayableMessage)
+  }
+
+  if (MessageImpl.valid(sayableMessage)) {
+    /**
+     * 0. Message
+     */
+    msgId = await puppet.messageForward(
+      conversationId,
+      sayableMessage.id,
+    )
+  } else if (typeof sayableMessage === 'string') {
+    /**
+     * 1. Text
+     */
+    msgId = await puppet.messageSendText(
+      conversationId,
+      sayableMessage,
+    )
+  } else if (ContactImpl.valid(sayableMessage)) {
+    /**
+     * 2. Contact
+     */
+    msgId = await puppet.messageSendContact(
+      conversationId,
+      sayableMessage.id,
+    )
+  } else if (FileBox.validInstance(sayableMessage) || FileBox.validInterface(sayableMessage)) {
+    /**
+     * 3. File
+     */
+    msgId = await puppet.messageSendFile(
+      conversationId,
+      sayableMessage,
+    )
+  } else if (UrlLinkImpl.valid(sayableMessage)) {
+    /**
+     * 4. Link Message
+     */
+    msgId = await puppet.messageSendUrl(
+      conversationId,
+      sayableMessage.payload,
+    )
+  } else if (MiniProgramImpl.valid(sayableMessage)) {
+    /**
+     * 5. Mini Program
+     */
+    msgId = await puppet.messageSendMiniProgram(
+      conversationId,
+      sayableMessage.payload,
+    )
+  } else if (LocationImpl.valid(sayableMessage)) {
+    /**
+     * 6. Location
+     */
+    msgId = await puppet.messageSendLocation(
+      conversationId,
+      sayableMessage.payload,
+    )
+  } else if (SleeperImpl.valid(sayableMessage)) {
+    /**
+     * 7. Sleep for a while
+     */
+    await sayableMessage.sleep()
+  } else {
+
+    throw new Error('unsupported arg: ' + sayableMessage)
+
+  }
+
+  return msgId
+}
+
+export {
+  deliverSayableConversationPuppet,
+}
 export type {
   Sayable,
   SayableMessage,

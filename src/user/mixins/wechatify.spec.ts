@@ -1,6 +1,6 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 import { test } from 'tstest'
-import type { Wechaty } from '../../mod.js'
+import type { Wechaty } from '../../mods/mod.js'
 
 import {
   isWechatified,
