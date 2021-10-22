@@ -189,31 +189,31 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
    */
   readonly id : string
 
-  #wechatifiedContact?        : ContactConstructor
-  #wechatifiedContactSelf?    : ContactSelfConstructor
-  #wechatifiedFriendship?     : FriendshipConstructor
-  #wechatifiedImage?          : ImageConstructor
-  #wechatifiedMessage?        : MessageConstructor
-  #wechatifiedMiniProgram?    : MiniProgramConstructor
-  #wechatifiedRoom?           : RoomConstructor
-  #wechatifiedRoomInvitation? : RoomInvitationConstructor
-  #wechatifiedSleeper?        : SleeperConstructor
-  #wechatifiedTag?            : TagConstructor
-  #wechatifiedUrlLink?        : UrlLinkConstructor
-  #wechatifiedLocation?       : LocationConstructor
+  protected _wechatifiedContact?        : ContactConstructor
+  protected _wechatifiedContactSelf?    : ContactSelfConstructor
+  protected _wechatifiedFriendship?     : FriendshipConstructor
+  protected _wechatifiedImage?          : ImageConstructor
+  protected _wechatifiedMessage?        : MessageConstructor
+  protected _wechatifiedMiniProgram?    : MiniProgramConstructor
+  protected _wechatifiedRoom?           : RoomConstructor
+  protected _wechatifiedRoomInvitation? : RoomInvitationConstructor
+  protected _wechatifiedSleeper?        : SleeperConstructor
+  protected _wechatifiedTag?            : TagConstructor
+  protected _wechatifiedUrlLink?        : UrlLinkConstructor
+  protected _wechatifiedLocation?       : LocationConstructor
 
-  get Contact ()        : ContactConstructor        { return guardWechatify(this.#wechatifiedContact)        }
-  get ContactSelf ()    : ContactSelfConstructor    { return guardWechatify(this.#wechatifiedContactSelf)    }
-  get Friendship ()     : FriendshipConstructor     { return guardWechatify(this.#wechatifiedFriendship)     }
-  get Image ()          : ImageConstructor          { return guardWechatify(this.#wechatifiedImage)          }
-  get Message ()        : MessageConstructor        { return guardWechatify(this.#wechatifiedMessage)        }
-  get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this.#wechatifiedMiniProgram)    }
-  get Room ()           : RoomConstructor           { return guardWechatify(this.#wechatifiedRoom)           }
-  get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this.#wechatifiedRoomInvitation) }
-  get Sleeper ()        : SleeperConstructor        { return guardWechatify(this.#wechatifiedSleeper)        }
-  get Tag ()            : TagConstructor            { return guardWechatify(this.#wechatifiedTag)            }
-  get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this.#wechatifiedUrlLink)        }
-  get Location ()       : LocationConstructor       { return guardWechatify(this.#wechatifiedLocation)       }
+  get Contact ()        : ContactConstructor        { return guardWechatify(this._wechatifiedContact)        }
+  get ContactSelf ()    : ContactSelfConstructor    { return guardWechatify(this._wechatifiedContactSelf)    }
+  get Friendship ()     : FriendshipConstructor     { return guardWechatify(this._wechatifiedFriendship)     }
+  get Image ()          : ImageConstructor          { return guardWechatify(this._wechatifiedImage)          }
+  get Message ()        : MessageConstructor        { return guardWechatify(this._wechatifiedMessage)        }
+  get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this._wechatifiedMiniProgram)    }
+  get Room ()           : RoomConstructor           { return guardWechatify(this._wechatifiedRoom)           }
+  get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this._wechatifiedRoomInvitation) }
+  get Sleeper ()        : SleeperConstructor        { return guardWechatify(this._wechatifiedSleeper)        }
+  get Tag ()            : TagConstructor            { return guardWechatify(this._wechatifiedTag)            }
+  get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this._wechatifiedUrlLink)        }
+  get Location ()       : LocationConstructor       { return guardWechatify(this._wechatifiedLocation)       }
 
   /**
    * @deprecated will be removed after Dec 31, 2022. Use createWechaty() instead
@@ -694,7 +694,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   protected wechatifyUserModules () {
     log.verbose('Wechaty', 'wechatifyUserModules()')
 
-    if (this.#wechatifiedMessage) {
+    if (this._wechatifiedMessage) {
       throw new Error('can not be initialized twice!')
     }
 
@@ -702,18 +702,18 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
      * Wechatify User Classes
      *  1. Binding the wechaty instance to the class
      */
-    this.#wechatifiedContact        = wechatifyUserClass(ContactImpl)(this)
-    this.#wechatifiedContactSelf    = wechatifyUserClass(ContactSelfImpl)(this)
-    this.#wechatifiedFriendship     = wechatifyUserClass(FriendshipImpl)(this)
-    this.#wechatifiedImage          = wechatifyUserClass(ImageImpl)(this)
-    this.#wechatifiedMessage        = wechatifyUserClass(MessageImpl)(this)
-    this.#wechatifiedMiniProgram    = wechatifyUserClass(MiniProgramImpl)(this)
-    this.#wechatifiedRoom           = wechatifyUserClass(RoomImpl)(this)
-    this.#wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitationImpl)(this)
-    this.#wechatifiedSleeper        = wechatifyUserClass(SleeperImpl)(this)
-    this.#wechatifiedTag            = wechatifyUserClass(TagImpl)(this)
-    this.#wechatifiedUrlLink        = wechatifyUserClass(UrlLinkImpl)(this)
-    this.#wechatifiedLocation       = wechatifyUserClass(LocationImpl)(this)
+    this._wechatifiedContact        = wechatifyUserClass(ContactImpl)(this)
+    this._wechatifiedContactSelf    = wechatifyUserClass(ContactSelfImpl)(this)
+    this._wechatifiedFriendship     = wechatifyUserClass(FriendshipImpl)(this)
+    this._wechatifiedImage          = wechatifyUserClass(ImageImpl)(this)
+    this._wechatifiedMessage        = wechatifyUserClass(MessageImpl)(this)
+    this._wechatifiedMiniProgram    = wechatifyUserClass(MiniProgramImpl)(this)
+    this._wechatifiedRoom           = wechatifyUserClass(RoomImpl)(this)
+    this._wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitationImpl)(this)
+    this._wechatifiedSleeper        = wechatifyUserClass(SleeperImpl)(this)
+    this._wechatifiedTag            = wechatifyUserClass(TagImpl)(this)
+    this._wechatifiedUrlLink        = wechatifyUserClass(UrlLinkImpl)(this)
+    this._wechatifiedLocation       = wechatifyUserClass(LocationImpl)(this)
   }
 
   /**
