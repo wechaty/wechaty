@@ -14,6 +14,7 @@ import {
   ImageType,
 
   Puppet,
+  PuppetAbstractImpl,
 
   RoomInvitationPayload,
 
@@ -31,7 +32,7 @@ import type {
   FileBoxInterface,
 }                             from 'file-box'
 
-class PuppetTest extends Puppet {
+class PuppetTestImpl extends PuppetAbstractImpl {
 
   override async onStart () : Promise<void> { return {} as any }
   override async onStop ()  : Promise<void> { return {} as any }
@@ -184,14 +185,13 @@ class PuppetTest extends Puppet {
 }
 
 async function main () {
-  const puppet = new PuppetTest()
+  const puppet: Puppet = new PuppetTestImpl()
 
   if (VERSION === '0.0.0' || puppet.name() === 'NONAME') {
     throw new Error('the `src/package-json.ts` has not been generated correctly.')
   }
 
   assert.strictEqual(puppet.name(), 'wechaty-puppet', 'should get base class name')
-  assert.notStrictEqual(VERSION, '0.0.0', 'version should not be 0.0.0 when publishing')
   assert.notStrictEqual(puppet.version(), '0.0.0', 'version should not be 0.0.0 when publishing')
 
   console.info(`Puppet v${puppet.version()} smoking test passed.`)
