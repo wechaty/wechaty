@@ -191,9 +191,7 @@ abstract class Puppet extends MixinBase {
       this.state.on(true)
 
     } catch (e) {
-      /**
-       * The puppet has not been started
-       */
+      this.emitError(e)
       await this.stop()
       throw e
     }
