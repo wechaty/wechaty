@@ -1,29 +1,29 @@
 import type {
-  PuppetAbstractImpl,
   Puppet,
+  PuppetInterface,
 }                         from '../puppet/mod.js'
 
-import type { PuppetSkeltonImpl }   from '../puppet/puppet-skelton.js'
+import type { PuppetSkelton }   from '../puppet/puppet-skelton.js'
 import {
   interfaceOfPuppet,
   looseInstanceOfPuppet,
 }                           from '../puppet/interface-of.js'
 
-const validateMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: MixinBase) => {
+const validateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
 
   abstract class ValidateMixin extends mixinBase {
 
     /**
      * Check if obj satisfy Puppet interface
      */
-    static validInterface (target: any): target is Puppet {
+    static validInterface (target: any): target is PuppetInterface {
       return interfaceOfPuppet(target)
     }
 
     /**
      * loose check instance of Puppet
      */
-    static validInstance (target: any): target is PuppetAbstractImpl {
+    static validInstance (target: any): target is Puppet {
       return looseInstanceOfPuppet(target)
     }
 
@@ -32,7 +32,7 @@ const validateMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: Mi
      *  because it will check `instanceof` first, which I believe it will be the most case
      *  and it will be faster than `interfaceOfPuppet()`
      */
-    static valid (target: any): target is Puppet {
+    static valid (target: any): target is PuppetInterface {
       if (this.validInstance(target) || this.validInterface(target)) {
         return true
       }

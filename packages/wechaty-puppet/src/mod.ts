@@ -19,7 +19,7 @@ import {
   looseInstanceOfPuppetDeprecated,
 }                         from './puppet/interface-of.js'
 import {
-  PuppetAbstractImpl,
+  Puppet,
 }                         from './puppet/mod.js'
 import {
   throwUnsupportedError,
@@ -80,7 +80,7 @@ import {
 
 import type {
   PuppetConstructor,
-  Puppet,
+  PuppetInterface,
 }                         from './puppet/mod.js'
 
 import {
@@ -125,7 +125,7 @@ export type {
   MiniProgramPayload,
   PuppetEventName,
   PuppetConstructor,
-  Puppet,
+  PuppetInterface,
   PuppetOptions,
   RoomInvitationPayload,
   RoomMemberPayload,
@@ -154,7 +154,7 @@ export {
   MessageType,
   PayloadType,
   PUPPET_EVENT_DICT,
-  PuppetAbstractImpl,
+  Puppet,
   GError,
   ScanStatus,
   StateSwitch,

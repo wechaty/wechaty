@@ -3,7 +3,7 @@ import {
   WatchdogFood,
 }                       from 'watchdog'
 
-import type { PuppetSkeltonImpl } from '../puppet/puppet-skelton.js'
+import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
 import type { StateMixin } from '../mixins/state-mixin.js'
 
 import {
@@ -19,7 +19,7 @@ class WatchdogAgent {
   private cleanCallbackList: Function[]
 
   constructor (
-    protected readonly puppet: PuppetSkeltonImpl & InstanceType<StateMixin>,
+    protected readonly puppet: PuppetSkelton & InstanceType<StateMixin>,
   ) {
     log.verbose('WatchdogAgent', 'constructor(%s)', puppet.id)
 

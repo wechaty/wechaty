@@ -3,7 +3,7 @@
 import {
   test,
 }           from 'tstest'
-import { PuppetSkeltonImpl } from '../puppet/puppet-skelton.js'
+import { PuppetSkelton } from '../puppet/puppet-skelton.js'
 
 import type {
   MemoryMixin,
@@ -22,7 +22,7 @@ test('ProtectedPropertyMemoryMixin', async t => {
 })
 
 test('MemoryMixin', async t => {
-  const Test = class extends memoryMixin(PuppetSkeltonImpl) {}
+  const Test = class extends memoryMixin(PuppetSkelton) {}
 
   const test = new Test()
   t.ok(test.memory, 'should has memory')

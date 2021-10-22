@@ -14,7 +14,6 @@ import {
   ImageType,
 
   Puppet,
-  PuppetAbstractImpl,
 
   RoomInvitationPayload,
 
@@ -32,7 +31,7 @@ import type {
   FileBoxInterface,
 }                             from 'file-box'
 
-class PuppetTestImpl extends PuppetAbstractImpl {
+class PuppetTest extends Puppet {
 
   override async onStart () : Promise<void> { return {} as any }
   override async onStop ()  : Promise<void> { return {} as any }
@@ -185,7 +184,7 @@ class PuppetTestImpl extends PuppetAbstractImpl {
 }
 
 async function main () {
-  const puppet: Puppet = new PuppetTestImpl()
+  const puppet: Puppet = new PuppetTest()
 
   if (VERSION === '0.0.0' || puppet.name() === 'NONAME') {
     throw new Error('the `src/package-json.ts` has not been generated correctly.')

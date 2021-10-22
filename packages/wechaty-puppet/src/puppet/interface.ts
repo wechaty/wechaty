@@ -1,20 +1,20 @@
 import type { Constructor } from 'clone-class'
 import type { MixinProtectedProperty } from '../mixins/mod.js'
 
-import type { SkeltonProtectedProperty } from './puppet-skelton.js'
-import type { PuppetAbstractImpl } from './mod.js'
+import type { PuppetSkeltonProtectedProperty } from './puppet-skelton.js'
+import type { Puppet } from './mod.js'
 
 type PuppetProtectedProperty = never
   | MixinProtectedProperty
-  | SkeltonProtectedProperty
+  | PuppetSkeltonProtectedProperty
 
 // https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
-type Puppet = Omit<PuppetAbstractImpl, PuppetProtectedProperty>
+type PuppetInterface = Omit<Puppet, PuppetProtectedProperty>
 
-type PuppetConstructor = Constructor<Puppet>
+type PuppetConstructor = Constructor<PuppetInterface>
 
 export type {
   PuppetProtectedProperty,
   PuppetConstructor,
-  Puppet,
+  PuppetInterface,
 }

@@ -6,8 +6,8 @@ import {
 }                         from 'clone-class'
 
 import {
-  PuppetAbstractImpl,
   Puppet,
+  PuppetInterface,
 }                     from './mod.js'
 import { log }        from '../config.js'
 
@@ -31,8 +31,8 @@ const looseInstanceOfPuppetDeprecated  = (target: any) => {
   return looseInstanceOfPuppet(target)
 }
 
-const interfaceOfPuppet     = interfaceOfClass(PuppetAbstractImpl as any as Constructor<PuppetAbstractImpl>)<Puppet>()
-const looseInstanceOfPuppet = looseInstanceOfClass(PuppetAbstractImpl as any as Constructor<PuppetAbstractImpl>)
+const interfaceOfPuppet     = interfaceOfClass(Puppet as any as Constructor<Puppet>)<PuppetInterface>()
+const looseInstanceOfPuppet = looseInstanceOfClass(Puppet as any as Constructor<Puppet>)
 
 export {
   interfaceOfPuppet,

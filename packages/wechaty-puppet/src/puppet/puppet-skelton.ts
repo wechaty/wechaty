@@ -37,7 +37,7 @@ import {
   PuppetEventEmitter,
 }                                 from './events.js'
 
-abstract class PuppetSkeltonImpl extends PuppetEventEmitter {
+abstract class PuppetSkelton extends PuppetEventEmitter {
 
   /**
    * Puppet ID (UUID)
@@ -109,12 +109,12 @@ abstract class PuppetSkeltonImpl extends PuppetEventEmitter {
 
 }
 
-type SkeltonProtectedProperty = never
+type PuppetSkeltonProtectedProperty = never
   | 'calledSkeltonStart'
   | 'calledSkeltonStop'
   | 'emitError'
 
 export type {
-  SkeltonProtectedProperty,
+  PuppetSkeltonProtectedProperty,
 }
-export { PuppetSkeltonImpl }
+export { PuppetSkelton }

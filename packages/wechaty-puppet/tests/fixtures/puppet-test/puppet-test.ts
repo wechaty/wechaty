@@ -1,5 +1,5 @@
 import {
-  PuppetAbstractImpl,
+  Puppet,
   // FileBox,
   ContactPayload,
   FriendshipPayload,
@@ -27,7 +27,7 @@ import type { RoomPayloadFilterFunction }    from '../../../src/schemas/room.js'
 import type { ContactPayloadFilterFunction } from '../../../src/schemas/contact.js'
 import type { FriendshipAddOptions } from '../../../src/schemas/friendship.js'
 
-class PuppetTestImpl extends PuppetAbstractImpl {
+class PuppetTest extends Puppet {
 
   override name () {
     return 'puppet-test'
@@ -211,6 +211,6 @@ class PuppetTestImpl extends PuppetAbstractImpl {
 }
 
 export {
-  PuppetTestImpl,
+  PuppetTest,
 }
-export default PuppetTestImpl
+export default PuppetTest

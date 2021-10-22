@@ -22,10 +22,10 @@ import {
   ScanStatus,
 }                         from '../src/mod.js'
 
-import { PuppetTestImpl } from './fixtures/puppet-test/puppet-test.js'
+import { PuppetTest } from './fixtures/puppet-test/puppet-test.js'
 
 test('Puppet satisfy DOM EventTarget: HasEventTargetAddRemove', async t => {
-  const puppet = new PuppetTestImpl()
+  const puppet = new PuppetTest()
 
   // Huan(202110): do not use `tsd` module because the TypeScript version conflict
   //  - https://github.com/SamVerschueren/tsd/issues/122
@@ -46,7 +46,7 @@ test('Puppet satisfy DOM EventTarget: HasEventTargetAddRemove', async t => {
 })
 
 test('RxJS: fromEvent type inference', async t => {
-  const puppet = new PuppetTestImpl()
+  const puppet = new PuppetTest()
 
   /**
    * Issue #96: Add Typing support for RxJS fromEvent

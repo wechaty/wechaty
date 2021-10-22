@@ -1,8 +1,8 @@
 import { log } from '../config.js'
 
-import type { PuppetSkeltonImpl }   from '../puppet/puppet-skelton.js'
+import type { PuppetSkelton }   from '../puppet/puppet-skelton.js'
 
-const tagMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: MixinBase) => {
+const tagMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
 
   abstract class TagMixin extends mixinBase {
 

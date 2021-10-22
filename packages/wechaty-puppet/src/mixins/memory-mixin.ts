@@ -1,14 +1,14 @@
 import { MemoryCard }  from 'memory-card'
 
 import type {
-  PuppetSkeltonImpl,
+  PuppetSkelton,
 }                   from '../puppet/puppet-skelton.js'
 
 import {
   log,
 }           from '../config.js'
 
-const memoryMixin = <MixinBase extends typeof PuppetSkeltonImpl>(mixinBase: MixinBase) => {
+const memoryMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
 
   abstract class MemoryMixin extends mixinBase {
 

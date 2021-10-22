@@ -1,17 +1,17 @@
-import { PuppetSkeltonImpl } from './puppet-skelton.js'
+import { PuppetSkelton } from './puppet-skelton.js'
 import {
-  PuppetAbstractImpl,
+  Puppet,
 }                         from './puppet-abstract.js'
 import type {
   PuppetConstructor,
-  Puppet,
+  PuppetInterface,
 }                         from './interface.js'
 
 export type {
   PuppetConstructor,
-  Puppet,
+  PuppetInterface,
 }
 export {
-  PuppetAbstractImpl,
-  PuppetSkeltonImpl,
+  Puppet,
+  PuppetSkelton,
 }

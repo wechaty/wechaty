@@ -44,7 +44,7 @@ import {
   validateMixin,
 }                        from '../mixins/mod.js'
 
-import { PuppetSkeltonImpl } from './puppet-skelton.js'
+import { PuppetSkelton } from './puppet-skelton.js'
 
 /**
  * Huan(202110): use compose() to compose mixins
@@ -62,7 +62,7 @@ const MixinBase = miscMixin(
                     cacheMixin(
                       stateMixin(
                         memoryMixin(
-                          PuppetSkeltonImpl,
+                          PuppetSkelton,
                         ),
                       ),
                     ),
@@ -84,7 +84,7 @@ const MixinBase = miscMixin(
  * See: https://github.com/wechaty/wechaty/wiki/Puppet
  *
  */
-abstract class PuppetAbstractImpl extends MixinBase {
+abstract class Puppet extends MixinBase {
 
   /**
    * Must overwrite by child class to identify their version
@@ -306,6 +306,6 @@ abstract class PuppetAbstractImpl extends MixinBase {
 }
 
 export {
-  PuppetAbstractImpl,
+  Puppet,
 }
-export default PuppetAbstractImpl
+export default Puppet
