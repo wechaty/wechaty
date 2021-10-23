@@ -1161,15 +1161,23 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
    *    by catcing any errors and emit them to error event
    *  2. wrap a Promise by catcing any errors and emit them to error event
    */
+  wrapAsync (promise: Promise<any>): void
+  wrapAsync <T extends (...args: any[]) => Promise<any>> (
+    asyncStaff: T,
+  ): (...args: Parameters<T>) => void
+
   wrapAsync<T extends (...args: any[]) => Promise<any>> (
     asyncStaff: T | Promise<any>,
   ) {
+    const wechaty = this
+
     if (asyncStaff instanceof Promise) {
-      asyncStaff.catch(e => wechaty.emitError(e))
+      asyncStaff
+        .then(_ => _)
+        .catch(e => wechaty.emitError(e))
       return
     }
 
-    const wechaty = this
     return function (this: any, ...args: Parameters<T>): void {
       asyncStaff.apply(this, args).catch(e => wechaty.emitError(e))
     }

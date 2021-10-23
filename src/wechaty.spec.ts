@@ -323,7 +323,7 @@ test('on/off event listener management', async t => {
 
 })
 
-test('wrapAsync()', async t => {
+test('wrapAsync() async function', async t => {
   const puppet = new PuppetMock()
   const wechaty = new WechatyImpl({ puppet })
 
@@ -342,4 +342,25 @@ test('wrapAsync()', async t => {
   t.doesNotThrow(() => syncFunc2(), 'should not throw when async function throw error')
   await wechaty.sleep(0)  // wait async event loop task to be executed
   t.ok(spy.calledOnce, 'should emit error when async function throw error')
+})
+
+test('wrapAsync() promise', async t => {
+  const puppet = new PuppetMock()
+  const wechaty = new WechatyImpl({ puppet })
+
+  const spy = sinon.spy()
+  wechaty.on('error', spy)
+
+  const DATA = 'test'
+  const promise = Promise.resolve(DATA)
+  const wrappedPromise = wechaty.wrapAsync(promise)
+  t.equal(await wrappedPromise, undefined, 'should resolve Promise<any> to void')
+
+  const rejection = Promise.reject(new Error('test'))
+  const wrappedRejection = wechaty.wrapAsync(rejection)
+  t.equal(wrappedRejection, undefined, 'should be void and not to reject')
+
+  t.equal(spy.callCount, 0, 'should have no error before sleep')
+  await wechaty.sleep(0)  // wait async event loop task to be executed
+  t.equal(spy.callCount, 1, 'should emit error when promise reject with error')
 })
