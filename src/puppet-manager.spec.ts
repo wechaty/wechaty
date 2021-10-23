@@ -37,13 +37,13 @@ test('resolve an unsupported puppet name', async t => {
 })
 
 test('resolveName() for ESM', async t => {
-  const PuppetImplementation = await PuppetManagerTest.resolveName('wechaty-puppet-mock')
-  t.equal(typeof PuppetImplementation, 'function', 'should get the puppet class function')
-  t.ok(PuppetImplementation.name === 'PuppetMock', 'should return a valid puppet name')
+  const PuppetConstructor = await PuppetManagerTest.resolveName('wechaty-puppet-mock')
+  t.equal(typeof PuppetConstructor, 'function', 'should get the puppet class function')
+  t.ok(PuppetConstructor.name === 'PuppetMock', 'should return a valid puppet name')
 })
 
 test('resolveName() for CJS', async t => {
-  const PuppetImplementation = await PuppetManagerTest.resolveName('wechaty-puppet-padlocal')
-  t.equal(typeof PuppetImplementation, 'function', 'should get the puppet class function')
-  t.ok(PuppetImplementation.name === 'PuppetPadlocal', 'should return a valid puppet name')
+  const PuppetConstructor = await PuppetManagerTest.resolveName('wechaty-puppet-padlocal')
+  t.equal(typeof PuppetConstructor, 'function', 'should get the puppet class function')
+  t.ok(PuppetConstructor.name === 'PuppetPadlocal', 'should return a valid puppet name')
 })
