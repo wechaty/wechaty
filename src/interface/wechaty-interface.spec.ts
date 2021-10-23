@@ -68,17 +68,18 @@ test('Wechaty interface', async t => {
 
     abstract currentUser : Wechaty['currentUser']
     abstract ding        : Wechaty['ding']
+    abstract emitError   : Wechaty['emitError']
     abstract logonoff    : Wechaty['logonoff']
     abstract logout      : Wechaty['logout']
     abstract name        : Wechaty['name']
     abstract ready       : Wechaty['ready']
     abstract reset       : Wechaty['reset']
     abstract say         : Wechaty['say']
+    abstract sleep       : Wechaty['sleep']
     abstract start       : Wechaty['start']
     abstract stop        : Wechaty['stop']
     abstract use         : Wechaty['use']
     abstract version     : Wechaty['version']
-    abstract emitError   : Wechaty['emitError']
     abstract wrapAsync   : Wechaty['wrapAsync']
 
   }
