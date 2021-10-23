@@ -39,17 +39,15 @@ import {
 }                     from './mixins/wechatify.js'
 import { validationMixin } from './mixins/validation.js'
 
-const MixinBase = validationMixin<RoomInvitation>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
+const MixinBase = wechatifyMixin(
+  EmptyBase,
 )
 
 /**
  *
  * accept room invitation
  */
-class RoomInvitationImpl extends MixinBase implements Acceptable {
+class RoomInvitationMixin extends MixinBase implements Acceptable {
 
   static load (
     id   : string,
@@ -283,7 +281,9 @@ class RoomInvitationImpl extends MixinBase implements Acceptable {
 
 }
 
+class RoomInvitationImpl extends validationMixin(RoomInvitationMixin)<RoomInvitation>() {}
 interface RoomInvitation extends RoomInvitationImpl {}
+
 type RoomInvitationConstructor = Constructor<
   RoomInvitation,
   typeof RoomInvitationImpl

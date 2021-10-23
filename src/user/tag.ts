@@ -28,7 +28,6 @@ import { Favorite, FavoriteImpl } from './favorite.js'
 
 import {
   poolifyMixin,
-  POOL,
 }                     from './mixins/poolify.js'
 import { validationMixin } from './mixins/validation.js'
 import {
@@ -36,21 +35,13 @@ import {
   wechatifyMixin,
 }                     from './mixins/wechatify.js'
 
-/**
- * FIXME: Issue #2273
- * @see https://github.com/wechaty/wechaty/issues/2273
- */
-void POOL
-
-const MixinBase = validationMixin<Tag>()(
-  wechatifyMixin(
-    poolifyMixin<TagImpl>()(
-      EmptyBase,
-    ),
-  ),
+const MixinBase = wechatifyMixin(
+  poolifyMixin(
+    EmptyBase,
+  )<Tag>(),
 )
 
-class TagImpl extends MixinBase {
+class TagMixin extends MixinBase {
 
   /**
    * @hideconstructor
@@ -197,7 +188,9 @@ class TagImpl extends MixinBase {
 
 }
 
+class TagImpl extends validationMixin(TagMixin)<Tag>() {}
 interface Tag extends TagImpl {}
+
 type TagConstructor = Constructor<
   Tag,
   typeof TagImpl

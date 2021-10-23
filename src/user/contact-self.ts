@@ -18,9 +18,12 @@
  *
  */
 import {
-  FileBox,
   log,
 }                             from 'wechaty-puppet'
+import type {
+  FileBoxInterface,
+}                             from 'file-box'
+
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
@@ -31,10 +34,11 @@ import {
   ContactImpl,
 }                       from './contact.js'
 import { validationMixin } from './mixins/validation.js'
+import { poolifyMixin } from './mixins/poolify.js'
 
-const MixinBase = validationMixin<ContactSelf>()(
+const MixinBase = poolifyMixin(
   ContactImpl,
-)
+)<ContactSelf>()
 
 /**
  * Bot itself will be encapsulated as a ContactSelf.
@@ -47,7 +51,7 @@ const MixinBase = validationMixin<ContactSelf>()(
  *   console.log(`user ${user} login`)
  * })
  */
-class ContactSelfImpl extends MixinBase {
+class ContactSelfMixin extends MixinBase {
 
   // constructor (
   //   id: string,
@@ -55,8 +59,8 @@ class ContactSelfImpl extends MixinBase {
   //   super(id)
   // }
 
-  public override async avatar ()              : Promise<FileBox>
-  public override async avatar (file: FileBox) : Promise<void>
+  public override async avatar ()                       : Promise<FileBoxInterface>
+  public override async avatar (file: FileBoxInterface) : Promise<void>
 
   /**
    * GET / SET bot avatar
@@ -85,7 +89,7 @@ class ContactSelfImpl extends MixinBase {
    * })
    *
    */
-  public override async avatar (file?: FileBox): Promise<void | FileBox> {
+  public override async avatar (file?: FileBoxInterface): Promise<void | FileBoxInterface> {
     log.verbose('Contact', 'avatar(%s)', file ? file.name : '')
 
     if (!file) {
@@ -184,6 +188,7 @@ class ContactSelfImpl extends MixinBase {
 
 }
 
+class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelf>() {}
 interface ContactSelf extends ContactSelfImpl {}
 type ContactSelfConstructor = Constructor<
   ContactSelf,

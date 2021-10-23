@@ -5,8 +5,6 @@
 import type { Constructor } from 'clone-class'
 import { log } from 'wechaty-puppet'
 
-const POOL = Symbol('pool')
-
 interface PoolifyMixin<T> {
   new (...args: any[]): T
   pool: Map<string, T>
@@ -24,28 +22,28 @@ interface PoolifyMixin<T> {
  * generic type parameter defaults do not scratch this itch;
  * a default turns off inference.
  */
-const poolifyMixin = <T>() => <MixinBase extends Constructor>(mixinBase: MixinBase) => {
+const poolifyMixin = <MixinBase extends Constructor>(mixinBase: MixinBase) => <T>() => {
   log.verbose('user/mixins/poolify', 'poolifyMixin(%s)', mixinBase.name)
 
   const PoolifiedMixin = class extends mixinBase {
 
-    static [POOL]?: Map<string, T>
+    static _pool?     : Map<string, T>
     static get pool (): Map<string, T> {
       /**
-       * hasOwnProperty() is important because we will have child classes
+       * hasOwnProperty() is important because we are calling this from the child classes
        */
-      if (!Object.prototype.hasOwnProperty.call(this, POOL)) {
-        log.verbose('Room', 'pool() init pool')
-        this[POOL] = new Map<string, T>()
+      if (!Object.prototype.hasOwnProperty.call(this, '_pool')) {
+        log.verbose('user/mixins/poolify', 'poolifyMixin() PoolifiedMixin get pool() init pool')
+        this._pool = new Map<string, T>()
       }
 
-      return this[POOL]!  // FIXME: why we need "!" at here?
+      return this._pool!  // FIXME: why we need "!" at here?
     }
 
     public static load<L extends Constructor<T> & PoolifyMixin<T>> (
       this : L,
       id   : string,
-    ): L['prototype'] {
+    ): T {
       const existingItem = this.pool.get(id)
       if (existingItem) {
         return existingItem
@@ -70,6 +68,5 @@ export type {
   PoolifyMixin,
 }
 export {
-  POOL,
   poolifyMixin,
 }

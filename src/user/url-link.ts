@@ -34,13 +34,11 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<UrlLink>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
+const MixinBase = wechatifyMixin(
+  EmptyBase,
 )
 
-class UrlLinkImpl extends MixinBase {
+class UrlLinkMixin extends MixinBase {
 
   /**
    *
@@ -137,7 +135,9 @@ class UrlLinkImpl extends MixinBase {
 
 }
 
+class UrlLinkImpl extends validationMixin(UrlLinkMixin)<UrlLink>() {}
 interface UrlLink extends UrlLinkImpl {}
+
 type UrlLinkConstructor = Constructor<
   UrlLink,
   typeof UrlLinkImpl

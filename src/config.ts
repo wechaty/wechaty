@@ -25,6 +25,9 @@ import {
   log,
 }                   from 'wechaty-puppet'
 import type {
+  FileBoxInterface,
+}                   from 'file-box'
+import type {
   PackageJson,
 }                   from 'type-fest'
 
@@ -127,7 +130,7 @@ export class Config {
 
 export const CHATIE_OFFICIAL_ACCOUNT_ID = 'gh_051c89260e5d'
 
-export function qrCodeForChatie (): FileBox {
+export function qrCodeForChatie (): FileBoxInterface {
   const CHATIE_OFFICIAL_ACCOUNT_QRCODE = 'http://weixin.qq.com/r/qymXj7DEO_1ErfTs93y5'
   return FileBox.fromQRCode(CHATIE_OFFICIAL_ACCOUNT_QRCODE)
 }

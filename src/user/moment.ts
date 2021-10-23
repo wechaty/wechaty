@@ -27,13 +27,11 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<Moment>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
+const MixinBase = wechatifyMixin(
+  EmptyBase,
 )
 
-class MomentImpl extends MixinBase {
+class MomentMixin extends MixinBase {
 
   static post () {
     // post new moment
@@ -55,6 +53,7 @@ class MomentImpl extends MixinBase {
 
 }
 
+class MomentImpl extends validationMixin(MomentMixin)<Moment>() {}
 interface Moment extends MomentImpl {}
 type MomentConstructor = Constructor<
   Moment,

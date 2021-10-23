@@ -29,12 +29,10 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<Location>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
+const MixinBase = wechatifyMixin(
+  EmptyBase,
 )
-class LocationImpl extends MixinBase {
+class LocationMixin extends MixinBase {
 
   /**
    *
@@ -94,7 +92,9 @@ class LocationImpl extends MixinBase {
 
 }
 
+class LocationImpl extends validationMixin(LocationMixin)<Location>() {}
 interface Location extends LocationImpl {}
+
 type LocationConstructor = Constructor<
   Location,
   typeof LocationImpl

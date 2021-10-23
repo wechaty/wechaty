@@ -29,13 +29,11 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<MiniProgram>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
+const MixinBase = wechatifyMixin(
+  EmptyBase,
 )
 
-class MiniProgramImpl extends MixinBase {
+class MiniProgramMixin extends MixinBase {
 
   /**
    *
@@ -101,7 +99,9 @@ class MiniProgramImpl extends MixinBase {
 
 }
 
+class MiniProgramImpl extends validationMixin(MiniProgramMixin)<MiniProgram>() {}
 interface MiniProgram extends MiniProgramImpl {}
+
 type MiniProgramConstructor = Constructor<
   MiniProgram,
   typeof MiniProgramImpl

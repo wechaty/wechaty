@@ -21,7 +21,6 @@ import uuid             from 'uuid'
 import os               from 'os'
 
 import {
-  FileBox,
   log,
   GError,
   MemoryCard,
@@ -86,18 +85,18 @@ import {
   UrlLinkConstructor,
   LocationConstructor,
 
-  Contact,
+  // Contact,
   ContactSelf,
   // Friendship,
   // Image,
   // Message,
-  MiniProgram,
+  // MiniProgram,
   // Room,
   // RoomInvitation,
   // Tag,
   // Sleeper,
-  UrlLink,
-  Location,
+  // UrlLink,
+  // Location,
 
   wechatifyUserClass,
 }                       from './user/mod.js'
@@ -988,15 +987,6 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     return this.currentUser()
   }
 
-  async say (text:    string)      : Promise<void>
-  async say (contact: Contact)     : Promise<void>
-  async say (file:    FileBox)     : Promise<void>
-  async say (mini:    MiniProgram) : Promise<void>
-  async say (url:     UrlLink)     : Promise<void>
-  async say (url:     Location)    : Promise<void>
-
-  async say (...args: never[]): Promise<void>
-
   /**
    * Send message to currentUser, in other words, bot send message to itself.
    * > Tips:
@@ -1055,8 +1045,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     sayableMsg: SayableMessage,
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', sayableMsg)
-    // huan: to make TypeScript happy
-    await this.currentUser().say(sayableMsg as any)
+    await this.currentUser().say(sayableMsg)
   }
 
   /**

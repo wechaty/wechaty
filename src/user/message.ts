@@ -22,9 +22,12 @@ import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
-  FileBox,
   log,
 }                                 from 'wechaty-puppet'
+import type {
+  FileBoxInterface,
+}                                 from 'file-box'
+
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
@@ -66,10 +69,8 @@ import {
 
 import { validationMixin } from './mixins/validation.js'
 
-const MixinBase = validationMixin<Message>()(
-  wechatifyMixin(
-    EventEmitter,
-  ),
+const MixinBase = wechatifyMixin(
+  EventEmitter,
 )
 
 /**
@@ -77,7 +78,7 @@ const MixinBase = validationMixin<Message>()(
  *
  * [Examples/Ding-Dong-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
-class MessageImpl extends MixinBase implements Sayable {
+class MessageMixin extends MixinBase implements Sayable {
 
   /**
    *
@@ -885,14 +886,14 @@ class MessageImpl extends MixinBase implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @returns {Promise<FileBox>}
+   * @returns {Promise<FileBoxInterface>}
    *
    * @example <caption>Save media file from a message</caption>
    * const fileBox = await message.toFileBox()
    * const fileName = fileBox.name
    * fileBox.toFile(fileName)
    */
-  async toFileBox (): Promise<FileBox> {
+  async toFileBox (): Promise<FileBoxInterface> {
     log.verbose('Message', 'toFileBox()')
     if (this.type() === MessageType.Text) {
       throw new Error('text message no file')
@@ -997,7 +998,9 @@ class MessageImpl extends MixinBase implements Sayable {
 
 }
 
+class MessageImpl extends validationMixin(MessageMixin)<Message>() {}
 interface Message extends MessageImpl {}
+
 type MessageConstructor = Constructor<
   Message,
   typeof MessageImpl

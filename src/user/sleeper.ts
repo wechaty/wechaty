@@ -25,13 +25,11 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<Sleeper>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
+const MixinBase = wechatifyMixin(
+  EmptyBase,
 )
 
-class SleeperImpl extends MixinBase {
+class SleeperMixin extends MixinBase {
 
   static create (milliseconds: number): Sleeper {
     return new SleeperImpl(milliseconds)
@@ -51,7 +49,9 @@ class SleeperImpl extends MixinBase {
 
 }
 
+class SleeperImpl extends validationMixin(SleeperMixin)<Sleeper>() {}
 interface Sleeper extends SleeperImpl {}
+
 type SleeperConstructor = Constructor<
   Sleeper,
   typeof SleeperImpl

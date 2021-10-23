@@ -27,11 +27,9 @@ import {
 }                       from './mixins/wechatify.js'
 import type { Tag } from './tag.js'
 
-const MixinBase = validationMixin<Favorite>()(
-  wechatifyMixin(EmptyBase),
-)
+const MixinBase = wechatifyMixin(EmptyBase)
 
-class FavoriteImpl extends MixinBase {
+class FavoriteMixin extends MixinBase {
 
   static list (): Favorite[] {
     return []
@@ -78,6 +76,7 @@ class FavoriteImpl extends MixinBase {
 
 }
 
+class FavoriteImpl extends validationMixin(FavoriteMixin)<Favorite>() {}
 interface Favorite extends FavoriteImpl {}
 type FavoriteConstructor = Constructor<
   Favorite,

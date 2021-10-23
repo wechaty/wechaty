@@ -54,10 +54,8 @@ interface FriendshipAddOptionsObject {
 
 type FriendshipAddOptions = string | FriendshipAddOptionsObject
 
-const MixinBase = validationMixin<Friendship>()(
-  wechatifyMixin(
-    EventEmitter,
-  ),
+const MixinBase = wechatifyMixin(
+  EventEmitter,
 )
 
 /**
@@ -69,7 +67,7 @@ const MixinBase = validationMixin<Friendship>()(
  *
  * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
-class FriendshipImpl extends MixinBase implements Acceptable {
+class FriendshipMixin extends MixinBase implements Acceptable {
 
   static Type = FriendshipType
 
@@ -431,7 +429,9 @@ class FriendshipImpl extends MixinBase implements Acceptable {
 
 }
 
+class FriendshipImpl extends validationMixin(FriendshipMixin)<Friendship>() {}
 interface Friendship extends FriendshipImpl {}
+
 type FriendshipConstructor = Constructor<
   Friendship,
   typeof FriendshipImpl

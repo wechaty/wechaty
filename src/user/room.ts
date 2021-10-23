@@ -49,7 +49,6 @@ import { RoomEventEmitter } from '../events/room-events.js'
 
 import {
   poolifyMixin,
-  POOL,
 }             from './mixins/poolify.js'
 
 import {
@@ -59,15 +58,10 @@ import { validationMixin } from './mixins/validation.js'
 import { deliverSayableConversationPuppet } from '../interface/sayable.js'
 import { isTemplateStringArray } from '../helper-functions/pure/is-template-string-array.js'
 
-// FIXME: #2273
-void POOL
-
-const MixinBase = validationMixin<Room>()(
-  wechatifyMixin(
-    poolifyMixin<RoomImpl>()(
-      RoomEventEmitter,
-    ),
-  ),
+const MixinBase = wechatifyMixin(
+  poolifyMixin(
+    RoomEventEmitter,
+  )<Room>(),
 )
 
 /**
@@ -76,7 +70,7 @@ const MixinBase = validationMixin<Room>()(
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-class RoomImpl extends MixinBase implements Sayable {
+class RoomMixin extends MixinBase implements Sayable {
 
   /**
    * Create a new room.
@@ -1120,7 +1114,9 @@ class RoomImpl extends MixinBase implements Sayable {
 
 }
 
+class RoomImpl extends validationMixin(RoomMixin)<Room>() {}
 interface Room extends RoomImpl {}
+
 type RoomConstructor = Constructor<
   Room,
   typeof RoomImpl

@@ -20,7 +20,7 @@ test('poolifyMixin()', async t => {
 
   }
 
-  class UserClassTest extends poolifyMixin<UserClassTest>()(Life) {
+  class UserClassTest extends poolifyMixin(Life)<UserClassTest>() {
 
     id = 0
     constructor () { super() }
@@ -56,7 +56,7 @@ test('poolifyMixin() pool', async t => {
   }
 
   class UserClassTest extends wechatifyMixin(
-    poolifyMixin<UserClassTest>()(Life),
+    poolifyMixin(Life)<UserClassTest>(),
   ) {
 
     id = 0
@@ -82,7 +82,7 @@ test('poolifyMixin() pool', async t => {
 test('static findAll()', async t => {
 
   class UserClassTest extends wechatifyMixin(
-    poolifyMixin<UserClassTest>()(Object),
+    poolifyMixin(Object)<UserClassTest>(),
   ) {
 
     static async findAll<T extends typeof UserClassTest> (

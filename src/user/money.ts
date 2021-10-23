@@ -25,13 +25,11 @@ import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<Money>()(
-  wechatifyMixin(
-    EmptyBase,
-  ),
+const MixinBase = wechatifyMixin(
+  EmptyBase,
 )
 
-class MoneyImpl extends MixinBase {
+class MoneyMixin extends MixinBase {
 
   constructor () {
     super()
@@ -39,7 +37,9 @@ class MoneyImpl extends MixinBase {
 
 }
 
+class MoneyImpl extends validationMixin(MoneyMixin)<Money>() {}
 interface Money extends MoneyImpl {}
+
 type MoneyConstructor = Constructor<
   Money,
   typeof MoneyImpl

@@ -8,68 +8,65 @@ import {
   validationMixin,
 }                       from './validation.js'
 
-test('validationMixin() typing', async t => {
-  class Life {
+test('validationMixin() valid()', async t => {
+  class Parent {
 
-    meaning = 42
-
-    hello () {
-      return 'world'
-    }
-
-    constructor () {}
+    foo () { return 'foo' }
 
   }
 
-  class UserClassImpl extends validationMixin<UserClass>()(Life) {
+  class Child extends Parent {
 
-    id = 0
-    constructor () { super() }
+    bar () { return 'bar' }
 
   }
 
+  class UserClassImpl extends validationMixin(Child)<UserClass>() {}
   interface UserClass extends UserClassImpl {}
 
-  const emptyObj: string | UserClass = {} as any
-  t.notOk(UserClassImpl.valid(emptyObj), 'should invalid for a empty object')
+  const FIXTURES = [
+    [new UserClassImpl(),       true],
+    // Invalid things
+    [{},                        false],
+    [[],                        false],
+    [new Map(),                 false],
+    // Object interface
+    [{ bar: true, foo: true },  true],
+    [{ bar: true },             false],
+    [{ foo: true },             false],
+  ]
 
-  const instance = new UserClassImpl()
-  t.ok(UserClassImpl.valid(instance), 'should valid for a instance')
+  for (const [input, expected] of FIXTURES) {
+    const valid = expected ? 'valid' : 'invalid'
+    /* eslint-disable multiline-ternary */
+    const type = typeof input !== 'object' ? typeof input
+      : typeof input.constructor === 'function' ? input.constructor.name
+        : 'object'
 
-  const map = new Map<any, any>()
-  t.notOk(UserClassImpl.valid(map), 'should invalid for a map instance')
-
-  const obj = {
-    hello: () => 'world',
-    id: 1,
-    meaning: 42,
+    t.equal(
+      UserClassImpl.valid(input),
+      expected,
+      `should be ${valid} for ${type} "${JSON.stringify(input)}"`,
+    )
   }
-  t.ok(UserClassImpl.valid(obj), 'should valid for a object that implements the interface')
-
-  delete (obj as any).hello
-  t.notOk(UserClassImpl.valid(obj), 'should invalid if an object has not fully implemented interface')
 })
 
-test('validationMixin() typing', async t => {
-  class Life {
+test('validationMixin() type guard', async t => {
+  class Parent {
 
-    meaning = 42
-
-    hello () {
-      return 'world'
-    }
-
+    foo () { return 'foo' }
     constructor () {}
 
   }
 
-  class UserClassImpl extends validationMixin<UserClass>()(Life) {
+  class Child extends Parent {
 
-    id = 0
+    bar () { return 'bar' }
     constructor () { super() }
 
   }
 
+  class UserClassImpl extends validationMixin(Child)<UserClass>() {}
   interface UserClass extends UserClassImpl {}
 
   const obj: string | UserClass = {} as any
