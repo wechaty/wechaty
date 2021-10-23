@@ -45,15 +45,15 @@ test('throw when set options twice', async t => {
 })
 
 test('WechatyBuilder class static', async t => {
-  const wechaty1 = WechatyBuilder.create()
-  const wechaty2 = WechatyBuilder.create()
+  const wechaty1 = WechatyBuilder.build()
+  const wechaty2 = WechatyBuilder.build()
   t.not(wechaty1, wechaty2, 'should build two different Wechaty instance')
 
-  const singleton1 = WechatyBuilder.instance()
-  const singleton2 = WechatyBuilder.instance()
+  const singleton1 = WechatyBuilder.singleton()
+  const singleton2 = WechatyBuilder.singleton()
   t.equal(singleton1, singleton2, 'should get the same singleton instance')
 
-  const wechaty = WechatyBuilder.create({ puppet: 'wechaty-puppet-mock' })
+  const wechaty = WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' })
   await wechaty.start()
   t.ok(/wechaty-puppet-mock/.test(wechaty.puppet.name()), 'should get options.puppet')
   await wechaty.stop()

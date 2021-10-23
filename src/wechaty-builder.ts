@@ -39,17 +39,20 @@ class WechatyBuilder {
    * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
    * import { WechatyBuilder } from 'wechaty'
    *
-   * WechatyBuilder.create(options) // instance() for singleton mode
+   * WechatyBuilder.build(options) // instance() for singleton mode
    *  .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
    *  .on('login',       user => console.log(`User ${user} logged in`))
    *  .on('message',  message => console.log(`Message: ${message}`))
    *  .start()
    */
-  static create (options?: WechatyOptions): Wechaty {
+  static build (options?: WechatyOptions): Wechaty {
     return new WechatyBuilder().options(options).build()
   }
 
-  static instance (options?: WechatyOptions): Wechaty {
+  /**
+   * @param options is a `WechatyOptions` object, it can only be set once
+   */
+  static singleton (options?: WechatyOptions): Wechaty {
     const builder = new WechatyBuilder()
     if (options) {
       builder.options(options)
