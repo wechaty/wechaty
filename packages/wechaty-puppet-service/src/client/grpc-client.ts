@@ -55,7 +55,7 @@ class GrpcClient extends EventEmitter {
     log.verbose('GrpcClient', 'constructor(%s)', JSON.stringify(options))
 
     this.caCert = Buffer.from(
-      envVars.WECHATY_PUPPET_SERVICE_TLS_CA_CERT(this.options.tls?.caCert) || TLS_CA_CERT
+      envVars.WECHATY_PUPPET_SERVICE_TLS_CA_CERT(this.options.tls?.caCert) || TLS_CA_CERT,
     )
     log.verbose('GrpcClient', 'constructor() tlsRootCert(hash): "%s"',
       crypto.createHash('sha256')
@@ -67,7 +67,7 @@ class GrpcClient extends EventEmitter {
      * Token will be used in the gRPC resolver (in endpoint)
      */
     this.token = new WechatyToken(
-      envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token)
+      envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token),
     )
     log.verbose('GrpcClient', 'constructor() token: "%s"', this.token)
 
@@ -132,7 +132,7 @@ class GrpcClient extends EventEmitter {
      */
     await util.promisify(
       this.client.start
-        .bind(this.client)
+        .bind(this.client),
     )(new puppet.StartRequest())
   }
 
@@ -149,7 +149,7 @@ class GrpcClient extends EventEmitter {
      */
     await util.promisify(
       this.client.stop
-        .bind(this.client)
+        .bind(this.client),
     )(new puppet.StopRequest())
     /**
      * 3. Destroy grpc client
@@ -289,7 +289,7 @@ class GrpcClient extends EventEmitter {
         status.code === GrpcStatus.OK
           ? resolve()
           : reject(new Error('once(status)'))
-      })
+      }),
       /**
        * Huan(202108): `metadata` event will be fired
        *  when the TLS connection is OK

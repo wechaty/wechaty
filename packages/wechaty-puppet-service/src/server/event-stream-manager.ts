@@ -84,7 +84,7 @@ class EventStreamManager {
       log.verbose('EventStreamManager', 'start() puppet is logged in, emit a login event for downstream')
 
       const payload = {
-        contactId: this.puppet.selfId(),
+        contactId: this.puppet.currentUserId,
       } as EventLoginPayload
 
       this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_LOGIN, payload)
@@ -116,7 +116,7 @@ class EventStreamManager {
 
     response.setType(type)
     response.setPayload(
-      JSON.stringify(obj)
+      JSON.stringify(obj),
     )
 
     if (this.eventStream) {
@@ -150,7 +150,7 @@ class EventStreamManager {
       log.verbose('EventStreamManager',
         'connectPuppetEventToStreamingCall() this.puppet.on(%s) (listenerCount:%s) registering...',
         eventName,
-        this.puppet.listenerCount(eventName)
+        this.puppet.listenerCount(eventName),
       )
 
       switch (eventName) {
@@ -281,7 +281,7 @@ class EventStreamManager {
 
     this.eventStream.on('cancelled', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(cancelled) fired with arguments: %s',
-        JSON.stringify(arguments)
+        JSON.stringify(arguments),
       )
 
       if (this.puppetListening) {

@@ -19,7 +19,7 @@ interface ConversationIdFileBoxArgs {
  * @deprecated Will be removed after Dec 31, 2022
  */
 async function unpackConversationIdFileBoxArgsFromPb (
-  stream: Readable<ConversationIdFileBoxPb>
+  stream: Readable<ConversationIdFileBoxPb>,
 ): Promise<ConversationIdFileBoxArgs> {
   const chunk = await nextData(stream)
   if (!chunk.hasConversationId()) {

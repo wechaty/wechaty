@@ -8,10 +8,10 @@ import {
 import type {
   sendUnaryData,
   ServerUnaryCall,
-}                                 from '@grpc/grpc-js/build/src/server-call'
+}                                 from '@grpc/grpc-js/build/src/server-call.js'
 import type {
   CallMetadataGenerator,
-}                                 from '@grpc/grpc-js/build/src/call-credentials'
+}                                 from '@grpc/grpc-js/build/src/call-credentials.js'
 import { Status as GrpcStatus }     from '@grpc/grpc-js/build/src/constants.js'
 
 export type {

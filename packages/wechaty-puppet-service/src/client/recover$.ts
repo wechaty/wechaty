@@ -20,6 +20,7 @@ import {
   switchMap,
   takeUntil,
   tap,
+  // eslint-disable-next-line import/extensions
 }             from 'rxjs/operators'
 
 /**
@@ -53,7 +54,7 @@ const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
   switchMap(_ => heartbeat$(puppet).pipe(
     startWith(undefined), // initial beat
     tap(payload => log.verbose('PuppetService', 'recover$() heartbeat: %s', JSON.stringify(payload))),
-  ))
+  )),
 )
 
 /**

@@ -121,7 +121,7 @@ async function onMessage (payload: EventMessagePayload) {
     console.info(`contactPayload(toId:${messagePayload.toId}):`, JSON.stringify(contactPayload))
   }
 
-  if (messagePayload.fromId === puppet.selfId()) {
+  if (messagePayload.fromId === puppet.currentUserId) {
     console.info('skip self message')
     return
   }

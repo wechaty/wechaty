@@ -116,8 +116,8 @@ test.skip('stress testing', async t => {
 
   const resultList = await Promise.all(
     concurrencyList.map(
-      id => puppetService.contactPayload(id)
-    )
+      id => puppetService.contactPayload(id),
+    ),
   )
   console.info()
 

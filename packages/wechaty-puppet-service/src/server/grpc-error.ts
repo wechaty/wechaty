@@ -8,7 +8,7 @@ export function grpcError (
   err      : Error,
   callback : Function,
 ): void {
-  log.error('PuppetServiceImpl', `grpcError() ${method}() rejection: %s`, err && err.message)
+  log.error('PuppetServiceImpl', `grpcError() ${method}() rejection: %s`, err.message)
 
   const error: grpc.ServiceError = {
     ...err,

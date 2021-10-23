@@ -20,7 +20,7 @@ function monkeyPatchMetadataFromHttp2Headers (
 
   const fromHttp2Headers = MetadataClass.fromHttp2Headers
   MetadataClass.fromHttp2Headers = function (
-    headers: http2.IncomingHttpHeaders
+    headers: http2.IncomingHttpHeaders,
   ): Metadata {
     const metadata = fromHttp2Headers.call(MetadataClass, headers)
 

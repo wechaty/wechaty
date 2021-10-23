@@ -611,7 +611,7 @@ function puppetImplementation (
         response.pipe(call)
 
       } catch (e) {
-        log.error('PuppetServiceImpl', 'grpcError() messageImageStream() rejection: %s', (e as Error) && (e as Error).message)
+        log.error('PuppetServiceImpl', 'grpcError() messageImageStream() rejection: %s', (e as Error).message)
         call.destroy(e as Error)
       }
     },
@@ -857,7 +857,7 @@ function puppetImplementation (
 
       try {
         const conversationId      = call.request.getConversationId()
-        let pbMiniProgramPayload  = call.request.getMiniProgram()
+        let pbMiniProgramPayload  = call.request.getMiniProgram()?.toObject()
         if (!pbMiniProgramPayload) {
           // Deprecated: will be removed after Dec 31, 2022
           const jsonText = call.request.getMiniProgramDeprecated()
@@ -927,7 +927,7 @@ function puppetImplementation (
 
       try {
         const conversationId = call.request.getConversationId()
-        let pbUrlLinkPayload = call.request.getUrlLink()
+        let pbUrlLinkPayload = call.request.getUrlLink()?.toObject()
 
         if (!pbUrlLinkPayload) {
           // Deprecated: will be removed after Dec 31, 2022

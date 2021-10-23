@@ -167,7 +167,7 @@ async function getFileBoxStreamStub (
   }
 
   if (middleException) {
-    setTimeout(async () => {
+    setTimeout(() => {
       stream.emit('error', new Error('middle exception'))
     }, 100)
   }

@@ -60,7 +60,7 @@ export class PuppetServer {
       'constructor({endpoint: "%s", puppet: "%s", token: "%s"})',
       options.endpoint,
       options.puppet,
-      options.token
+      options.token,
     )
   }
 
@@ -143,7 +143,7 @@ export class PuppetServer {
      */
     const port = await util.promisify(
       this.grpcServer.bindAsync
-        .bind(this.grpcServer)
+        .bind(this.grpcServer),
     )(
       this.options.endpoint,
       credential,
@@ -165,7 +165,7 @@ export class PuppetServer {
 
     await util.promisify(
       this.grpcServer.tryShutdown
-        .bind(this.grpcServer)
+        .bind(this.grpcServer),
     )()
 
     const grpcServer = this.grpcServer
