@@ -236,10 +236,10 @@ class RoomMixin extends MixinBase implements Sayable {
    *
    *
    */
-  #payload?: RoomPayload
+  protected _payload?: RoomPayload
   get payload () {
-    if (this.#payload) {
-      return this.#payload
+    if (this._payload) {
+      return this._payload
     }
     throw new Error('no payload')
   }
@@ -260,11 +260,11 @@ class RoomMixin extends MixinBase implements Sayable {
    * @ignore
    */
   override toString () {
-    if (!this.#payload) {
+    if (!this._payload) {
       return this.constructor.name
     }
 
-    return `Room<${this.#payload.topic || 'loading...'}>`
+    return `Room<${this._payload.topic || 'loading...'}>`
   }
 
   async * [Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
@@ -306,7 +306,7 @@ class RoomMixin extends MixinBase implements Sayable {
       await this.wechaty.puppet.dirtyPayload(PayloadType.Room, this.id)
       await this.wechaty.puppet.dirtyPayload(PayloadType.RoomMember, this.id)
     }
-    this.#payload = await this.wechaty.puppet.roomPayload(this.id)
+    this._payload = await this.wechaty.puppet.roomPayload(this.id)
 
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
@@ -334,7 +334,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * @ignore
    */
   isReady (): boolean {
-    return !!(this.#payload)
+    return !!(this._payload)
   }
 
   say (text:     SayableMessage)                          : Promise<void | Message>
@@ -776,8 +776,8 @@ class RoomMixin extends MixinBase implements Sayable {
     }
 
     if (typeof newTopic === 'undefined') {
-      if (this.#payload && this.#payload.topic) {
-        return this.#payload.topic
+      if (this._payload && this._payload.topic) {
+        return this._payload.topic
       } else {
         const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
         const memberList = memberIdList
@@ -1089,7 +1089,7 @@ class RoomMixin extends MixinBase implements Sayable {
   owner (): undefined | Contact {
     log.verbose('Room', 'owner()')
 
-    const ownerId = this.#payload && this.#payload.ownerId
+    const ownerId = this._payload && this._payload.ownerId
     if (!ownerId) {
       return undefined
     }

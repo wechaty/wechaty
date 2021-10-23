@@ -173,7 +173,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * @hidden
    *
    */
-  #payload?: MessagePayload
+  protected _payload?: MessagePayload
 
   /**
    * @hideconstructor
@@ -192,7 +192,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * @ignore
    */
   override toString () {
-    if (!this.#payload) {
+    if (!this._payload) {
       return this.constructor.name
     }
 
@@ -250,7 +250,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * .start()
    */
   talker (): Contact {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
@@ -259,7 +259,7 @@ class MessageMixin extends MixinBase implements Sayable {
     //   return
     // }
 
-    const talkerId = this.#payload.fromId
+    const talkerId = this._payload.fromId
     if (!talkerId) {
       // Huan(202011): It seems that the fromId will never be null?
       // return null
@@ -310,11 +310,11 @@ class MessageMixin extends MixinBase implements Sayable {
    * @returns {(undefined | Contact)}
    */
   listener (): undefined | Contact {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
-    const listenerId = this.#payload.toId
+    const listenerId = this._payload.toId
     if (!listenerId) {
       return undefined
     }
@@ -350,10 +350,10 @@ class MessageMixin extends MixinBase implements Sayable {
    * .start()
    */
   room (): undefined | Room {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
-    const roomId = this.#payload.roomId
+    const roomId = this._payload.roomId
     if (!roomId) {
       return undefined
     }
@@ -383,11 +383,11 @@ class MessageMixin extends MixinBase implements Sayable {
    * .start()
    */
   text (): string {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
-    return this.#payload.text || ''
+    return this._payload.text || ''
   }
 
   /**
@@ -570,10 +570,10 @@ class MessageMixin extends MixinBase implements Sayable {
    * }
    */
   type (): MessageType {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
-    return this.#payload.type || MessageType.Unknown
+    return this._payload.type || MessageType.Unknown
   }
 
   /**
@@ -628,13 +628,13 @@ class MessageMixin extends MixinBase implements Sayable {
      * Use mention list if mention list is available
      * otherwise, process the message and get the mention list
      */
-    if (this.#payload && 'mentionIdList' in this.#payload) {
+    if (this._payload && 'mentionIdList' in this._payload) {
       const idToContact = async (id: string) => {
         const contact = this.wechaty.Contact.load(id)
         await contact.ready()
         return contact
       }
-      return Promise.all(this.#payload.mentionIdList?.map(idToContact) ?? [])
+      return Promise.all(this._payload.mentionIdList?.map(idToContact) ?? [])
     }
 
     /**
@@ -749,7 +749,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * @ignore
    */
   isReady (): boolean {
-    return !!this.#payload
+    return !!this._payload
   }
 
   /**
@@ -762,11 +762,11 @@ class MessageMixin extends MixinBase implements Sayable {
       return
     }
 
-    this.#payload = await this.wechaty.puppet.messagePayload(this.id)
+    this._payload = await this.wechaty.puppet.messagePayload(this.id)
 
-    const fromId = this.#payload.fromId
-    const roomId = this.#payload.roomId
-    const toId   = this.#payload.toId
+    const fromId = this._payload.fromId
+    const roomId = this._payload.roomId
+    const toId   = this._payload.toId
 
     if (roomId) {
       await this.wechaty.Room.load(roomId).ready()
@@ -858,11 +858,11 @@ class MessageMixin extends MixinBase implements Sayable {
    * Message sent date
    */
   date (): Date {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
-    const timestamp = this.#payload.timestamp
+    const timestamp = this._payload.timestamp
     return timestampToDate(timestamp)
   }
 
@@ -951,7 +951,7 @@ class MessageMixin extends MixinBase implements Sayable {
   async toUrlLink (): Promise<UrlLink> {
     log.verbose('Message', 'toUrlLink()')
 
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
@@ -967,7 +967,7 @@ class MessageMixin extends MixinBase implements Sayable {
   async toMiniProgram (): Promise<MiniProgramImpl> {
     log.verbose('Message', 'toMiniProgram()')
 
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
@@ -983,7 +983,7 @@ class MessageMixin extends MixinBase implements Sayable {
   async toLocation (): Promise<Location> {
     log.verbose('Message', 'toLocation()')
 
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
