@@ -1,6 +1,7 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 import { test } from 'tstest'
 import type { Wechaty } from '../mods/mod.js'
+import { MessageImpl } from './message.js'
 
 import { wechatifyUserClass } from './mod.js'
 import { UrlLinkImpl } from './url-link.js'
@@ -25,4 +26,10 @@ test('UrlLink.create() for wechaty.js.org', async t => {
   t.equal(urlLink.description(),  EXPECTED_PAYLOAD.description, 'should have description')
   t.equal(urlLink.url(),          EXPECTED_PAYLOAD.url, 'should have url')
   t.equal(urlLink.thumbnailUrl(), EXPECTED_PAYLOAD.thumbnailUrl, 'should have thumbnailUrl')
+})
+
+test('UrlLink.valid()', async t => {
+  const urlLink = new UrlLinkTest({} as any)
+  t.ok(UrlLinkImpl.valid(urlLink), 'should pass the validation of UrlLinkImpl')
+  t.notOk(MessageImpl.valid(urlLink), 'should not pass the validation of MessageImpl')
 })
