@@ -1,4 +1,4 @@
-const { Wechaty } = require('wechaty')
+const { WechatyBuilder } = require('wechaty')
 
-const bot = Wechaty.instance()
+const bot = new WechatyBuilder().build()
 console.log(bot.version())

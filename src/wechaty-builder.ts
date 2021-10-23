@@ -31,6 +31,32 @@ class WechatyBuilder {
 
   private static _instance?: Wechaty
 
+  /**
+   * Create an instance of Wechaty
+   *
+   * @param {WechatyOptions} [options={}]
+   *
+   * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
+   * import { WechatyBuilder } from 'wechaty'
+   *
+   * WechatyBuilder.create(options) // instance() for singleton mode
+   *  .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
+   *  .on('login',       user => console.log(`User ${user} logged in`))
+   *  .on('message',  message => console.log(`Message: ${message}`))
+   *  .start()
+   */
+  static create (options?: WechatyOptions): Wechaty {
+    return new WechatyBuilder().options(options).build()
+  }
+
+  static instance (options?: WechatyOptions): Wechaty {
+    const builder = new WechatyBuilder()
+    if (options) {
+      builder.options(options)
+    }
+    return builder.singleton().build()
+  }
+
   protected _singleton: boolean
   protected _options?: WechatyOptions
 
@@ -61,23 +87,6 @@ class WechatyBuilder {
     return this
   }
 
-  /**
-   * Build a instance of Wechaty
-   *
-   * @param {WechatyOptions} [options={}]
-   *
-   * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
-   * import { WechatyBuilder } from 'wechaty'
-   *
-   * new WechatyBuilder()
-   *  .singleton() // Global instance
-   *  .options(options)
-   *  .build() // return Wechaty instance
-   *    .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
-   *    .on('login',       user => console.log(`User ${user} logged in`))
-   *    .on('message',  message => console.log(`Message: ${message}`))
-   *    .start()
-   */
   build (): Wechaty {
     if (this._singleton) {
       return this.singletonInstance()

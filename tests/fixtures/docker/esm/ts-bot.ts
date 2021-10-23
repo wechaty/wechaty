@@ -17,7 +17,7 @@
  *   limitations under the License.
  *
  */
-import { Wechaty } from 'wechaty'
+import { WechatyBuilder } from 'wechaty'
 
-const bot = Wechaty.instance()
+const bot = new WechatyBuilder().build()
 console.info(bot.version())
