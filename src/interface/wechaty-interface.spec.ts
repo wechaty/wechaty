@@ -1,9 +1,8 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
-import { EventEmitter }       from 'events'
-import type { StateSwitch }   from 'state-switch'
+import { EventEmitter } from 'events'
 
 import { test } from 'tstest'
-import type { PuppetInterface } from 'wechaty-puppet'
+
 import type {
   Message,
   ContactSelfConstructor,
@@ -42,9 +41,9 @@ test('Wechaty interface', async t => {
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
 
-    id     : string
-    puppet : PuppetInterface
-    state  : StateSwitch
+    id     : Wechaty['id']
+    puppet : Wechaty['puppet']
+    state  : Wechaty['state']
 
     constructor () {
       super()

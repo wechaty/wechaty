@@ -28,9 +28,14 @@ import {
   PUPPET_EVENT_DICT,
   PuppetEventName,
   PuppetOptions,
-  StateSwitch,
   PuppetInterface,
 }                       from 'wechaty-puppet'
+import {
+  StateSwitch,
+}                       from 'state-switch'
+import type {
+  StateSwitchInterface,
+}                       from 'state-switch'
 import {
   instanceToClass,
 }                       from 'clone-class'
@@ -160,10 +165,11 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   static   readonly log     = log
 
   readonly log              = log
-  readonly state   : StateSwitch
+  readonly state   : StateSwitchInterface
   readonly wechaty : Wechaty
 
-  private  readonly readyState : StateSwitch
+  private  readonly readyState : StateSwitchInterface
+
   private static globalPluginList: WechatyPlugin[] = []
   private pluginUninstallerList: WechatyPluginUninstaller[]
   private memory?: MemoryCard
@@ -1150,15 +1156,22 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   }
 
   /**
-   * Convert a callback function from returning `Promise<void>` to `void`
-   *  catch any errors by emit an error event
+   * Wrap promise in sync way (catch error by emitting it)
+   *  1. convert a async callback function to be sync function
+   *    by catcing any errors and emit them to error event
+   *  2. wrap a Promise by catcing any errors and emit them to error event
    */
   wrapAsync<T extends (...args: any[]) => Promise<any>> (
-    asyncFunction: T,
+    asyncStaff: T | Promise<any>,
   ) {
+    if (asyncStaff instanceof Promise) {
+      asyncStaff.catch(e => wechaty.emitError(e))
+      return
+    }
+
     const wechaty = this
     return function (this: any, ...args: Parameters<T>): void {
-      asyncFunction.apply(this, args).catch(e => wechaty.emitError(e))
+      asyncStaff.apply(this, args).catch(e => wechaty.emitError(e))
     }
   }
 

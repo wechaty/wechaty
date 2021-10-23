@@ -94,6 +94,7 @@
     "dotenv": "^10.0.0",
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
+    "state-switch": "^1.0.4",
     "uuid": "^3.4.0",
     "wechaty-puppet": "^0.51.20",
     "wechaty-puppet-service": "^0.39.3",
