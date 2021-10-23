@@ -1,11 +1,13 @@
-import { StateSwitch }        from 'state-switch'
+import {
+  BusyIndicator,
+  StateSwitch,
+}                 from 'state-switch'
 
 import {
   log,
 }           from '../config.js'
 
 import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
-import { BusyIndicator }      from '../busy-indicator.js'
 import { WatchdogAgent }      from '../agents/watchdog-agent.js'
 
 let PUPPET_COUNTER = 0
