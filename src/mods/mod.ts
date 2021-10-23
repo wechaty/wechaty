@@ -29,15 +29,17 @@ export {
   WechatyBuilder,
 }                       from '../wechaty-builder.js'
 
-export *                from './mod-user.js'
 export * as impl        from './mod-impl.js'
+export * as type        from './mod-type.js'
+export * as payload     from './mod-payload.js'
+export *                from './mod-user.js'
 
-export type {
-  UrlLinkPayload,
-  MiniProgramPayload,
-}                       from 'wechaty-puppet'
 export {
+  /**
+   * @deprecated use `type.ScanStatus` instead
+   */
   ScanStatus,
+
   FileBox,
   MemoryCard,
   log,

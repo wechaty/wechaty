@@ -100,6 +100,9 @@ class WechatyBuilder {
 
 }
 
+export type {
+  WechatyOptions,
+}
 export {
   WechatyBuilder,
 }
