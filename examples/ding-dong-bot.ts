@@ -21,7 +21,7 @@ import {
   Contact,
   FileBox,
   ScanStatus,
-  createWechaty,
+  WechatyBuilder,
 }                 from '../src/mods/mod.js' // from 'wechaty'
 
 import * as qrTerm from 'qrcode-terminal'
@@ -32,7 +32,7 @@ import type { Message } from '../src/user/message.js'
  * 1. Declare your Bot!
  *
  */
-const bot = createWechaty({
+const options = {
   name : 'ding-dong-bot',
 
   /**
@@ -51,7 +51,11 @@ const bot = createWechaty({
   // puppetOptions: {
   //   token: 'xxx',
   // }
-})
+}
+
+const bot = new WechatyBuilder()
+  .options(options)
+  .build()
 
 /**
  *

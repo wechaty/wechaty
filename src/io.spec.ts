@@ -19,7 +19,7 @@
  *
  */
 import { test }  from 'tstest'
-import { createWechaty } from './factory.js'
+import { WechatyBuilder } from './wechaty-builder.js'
 
 import { Io }       from './io.js'
 
@@ -28,7 +28,7 @@ test('Io restart without problem', async t => {
     // token must not contain any white spaces
     servicePort : 8788,
     token       : 'mock_00000000-0000-0000-0000-000000000000',
-    wechaty     : createWechaty(),
+    wechaty     : new WechatyBuilder().build(),
   })
 
   try {

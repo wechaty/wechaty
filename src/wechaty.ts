@@ -118,7 +118,7 @@ import type {
   Wechaty,
   WechatyConstructor,
 }                       from './interface/wechaty-interface.js'
-import { singletonWechaty } from './factory.js'
+import { WechatyBuilder } from './wechaty-builder.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -164,23 +164,18 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   readonly wechaty : Wechaty
 
   private  readonly readyState : StateSwitch
-
   private static globalPluginList: WechatyPlugin[] = []
-
   private pluginUninstallerList: WechatyPluginUninstaller[]
-
   private memory?: MemoryCard
-
   private io?        : Io
 
   protected readonly cleanCallbackList: Function[] = []
-
-  #puppet?: PuppetInterface
+  protected _puppet?: PuppetInterface
   get puppet (): PuppetInterface {
-    if (!this.#puppet) {
-      throw new Error('no puppet')
+    if (!this._puppet) {
+      throw new Error('NOPUPPET')
     }
-    return this.#puppet
+    return this._puppet
   }
 
   /**
@@ -216,22 +211,34 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   get Location ()       : LocationConstructor       { return guardWechatify(this._wechatifiedLocation)       }
 
   /**
-   * @deprecated will be removed after Dec 31, 2022. Use createWechaty() instead
+   * Get the global instance of Wechaty (Singleton)
+   *
+   * @param {WechatyOptions} [options={}]
+   *
+   * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
+   * import { singletonWechaty } from 'wechaty'
+   *
+   * singletonWechaty() // Global instance
+   * .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
+   * .on('login',       user => console.log(`User ${user} logged in`))
+   * .on('message',  message => console.log(`Message: ${message}`))
+   * .start()
+   *
+   * @deprecated will be removed after Dec 31, 2022. Use `new WechatyBuilder().singleton().build()` instead
    * @see https://github.com/wechaty/wechaty/issues/2276
    */
   static instance (
     options?: WechatyOptions,
   ): Wechaty {
-    log.warn('Wechaty', 'instance() is DEPRECATED. Use singletonWechaty() instead.\n%s\n%s',
-      '@see https://github.com/wechaty/wechaty/issues/2276',
-      new Error().stack,
-    )
-    return singletonWechaty(options)
+    return new WechatyBuilder()
+      .singleton()
+      .options(options)
+      .build()
   }
 
   /**
    * Wechaty.create() will return a `WechatyInterface` instance.
-   * @deprecated will be removed after Dec 31, 2022. Use createWechaty() instead
+   * @deprecated will be removed after Dec 31, 2022. Use `new WechatyBuilder().build()` instead
    * @see https://github.com/wechaty/wechaty/issues/2276
    */
   static create (
@@ -420,7 +427,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   private async initPuppet (): Promise<void> {
     log.verbose('Wechaty', 'initPuppet() %s', this.options.puppet || '')
 
-    if (this.#puppet) {
+    if (this._puppet) {
       log.warn('Wechaty', 'initPuppet(%s) had already been initialized, no need to init twice', this.options.puppet)
       return
     }
@@ -443,7 +450,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
      */
     puppetInstance.setMemory(puppetMemory)
 
-    this.#puppet = puppetInstance
+    this._puppet = puppetInstance
 
     this.initPuppetEventBridge(puppetInstance)
     this.wechatifyUserModules()

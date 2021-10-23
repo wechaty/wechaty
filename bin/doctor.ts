@@ -23,9 +23,9 @@ import os from 'os'
 
 import { config }   from '../src/config.js'
 import { Doctor }   from '../src/doctor.js'
-import { singletonWechaty }  from '../src/factory.js'
+import { WechatyBuilder }  from '../src/wechaty-builder.js'
 
-const wechaty = singletonWechaty()
+const wechaty = new WechatyBuilder().singleton().build()
 const doctor = new Doctor()
 
 async function main () {

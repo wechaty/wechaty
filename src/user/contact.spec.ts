@@ -25,7 +25,7 @@ import {
 
 import type { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
-import { createWechaty } from '../factory.js'
+import { WechatyBuilder } from '../wechaty-builder.js'
 
 import { ContactImpl }  from './contact.js'
 
@@ -37,7 +37,7 @@ test('findAll()', async t => {
   const sandbox = sinon.createSandbox()
 
   const puppet = new PuppetMock()
-  const wechaty = createWechaty({ puppet })
+  const wechaty = new WechatyBuilder().options({ puppet }).build()
 
   await wechaty.start()
   // await puppet.login('__login_id__')

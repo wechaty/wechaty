@@ -26,9 +26,8 @@ export type {
   WechatyOptions,
 }                       from '../wechaty.js'
 export {
-  createWechaty,
-  singletonWechaty,
-}                       from '../factory.js'
+  WechatyBuilder,
+}                       from '../wechaty-builder.js'
 
 export *                from './mod-user.js'
 export * as impl        from './mod-impl.js'

@@ -32,7 +32,7 @@ import {
   IoClient,
   IoClientOptions,
 }                   from '../src/io-client.js'
-import { createWechaty }  from '../src/factory.js'
+import { WechatyBuilder }  from '../src/wechaty-builder.js'
 
 const welcome = `
 | __        __        _           _
@@ -61,7 +61,7 @@ async function main () {
   console.info(welcome)
   log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
-  const wechaty = createWechaty({ name: token })
+  const wechaty = new WechatyBuilder().options({ name: token }).build()
 
   let port
   if (process.env['WECHATY_PUPPET_SERVER_PORT']) {
