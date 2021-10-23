@@ -21,13 +21,20 @@ import {
   LocationPayload,
   log,
 }                       from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class Location extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Location>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+class LocationImpl extends MixinBase {
 
   /**
    *
@@ -87,6 +94,16 @@ class Location extends wechatifyMixin(EmptyBase) {
 
 }
 
-export {
+interface Location extends LocationImpl {}
+type LocationConstructor = Constructor<
   Location,
+  typeof LocationImpl
+>
+
+export type {
+  LocationConstructor,
+  Location,
+}
+export {
+  LocationImpl,
 }

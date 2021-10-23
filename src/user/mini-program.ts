@@ -21,13 +21,21 @@ import {
   MiniProgramPayload,
   log,
 }                         from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class MiniProgram extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<MiniProgram>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+
+class MiniProgramImpl extends MixinBase {
 
   /**
    *
@@ -93,6 +101,16 @@ class MiniProgram extends wechatifyMixin(EmptyBase) {
 
 }
 
-export {
+interface MiniProgram extends MiniProgramImpl {}
+type MiniProgramConstructor = Constructor<
   MiniProgram,
+  typeof MiniProgramImpl
+>
+
+export type {
+  MiniProgramConstructor,
+  MiniProgram,
+}
+export {
+  MiniProgramImpl,
 }

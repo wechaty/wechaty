@@ -25,10 +25,9 @@ import {
 
 import type { ContactPayload } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
+import { WechatyBuilder } from '../wechaty-builder.js'
 
-import { Wechaty }  from '../wechaty.js'
-
-import { Contact }  from './contact.js'
+import { ContactImpl }  from './contact.js'
 
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
@@ -38,7 +37,7 @@ test('findAll()', async t => {
   const sandbox = sinon.createSandbox()
 
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = new WechatyBuilder().options({ puppet }).build()
 
   await wechaty.start()
   // await puppet.login('__login_id__')
@@ -60,24 +59,24 @@ test('findAll()', async t => {
 
 test('Should not be able to instanciate directly', async t => {
   t.throws(() => {
-    const c = Contact.load('xxx')
+    const c = ContactImpl.load('xxx')
     t.fail(c.name())
   }, 'should throw when `Contact.load()`')
 
   t.throws(() => {
-    const c = Contact.load('xxx')
+    const c = ContactImpl.load('xxx')
     t.fail(c.name())
   }, 'should throw when `Contact.load()`')
 })
 
 test('Should not be able to instanciate through cloneClass without puppet', async t => {
   t.throws(() => {
-    const c = Contact.load('xxx')
+    const c = ContactImpl.load('xxx')
     t.fail(c.name())
   }, 'should throw when `MyContact.load()` without puppet')
 
   t.throws(() => {
-    const c = Contact.load('xxx')
+    const c = ContactImpl.load('xxx')
     t.fail(c.name())
   }, 'should throw when `MyContact.load()` without puppet')
 
@@ -85,7 +84,7 @@ test('Should not be able to instanciate through cloneClass without puppet', asyn
 
 test('should throw when instanciate the global class', async t => {
   t.throws(() => {
-    const c = Contact.load('xxx')
+    const c = ContactImpl.load('xxx')
     t.fail('should not run to here')
     t.fail(c.toString())
   }, 'should throw when we instanciate a global class')

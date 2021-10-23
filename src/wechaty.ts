@@ -23,6 +23,7 @@ import os               from 'os'
 import {
   FileBox,
   log,
+  GError,
   MemoryCard,
   PayloadType,
   PUPPET_EVENT_DICT,
@@ -46,7 +47,7 @@ import {
 import type {
   Sayable,
   SayableMessage,
-}                       from './types.js'
+}                       from './interface/mod.js'
 
 import {
   Io,
@@ -59,15 +60,42 @@ import {
 }                       from './puppet-manager.js'
 
 import {
+  ContactImpl,
+  ContactSelfImpl,
+  FriendshipImpl,
+  ImageImpl,
+  MessageImpl,
+  MiniProgramImpl,
+  RoomImpl,
+  RoomInvitationImpl,
+  SleeperImpl,
+  TagImpl,
+  UrlLinkImpl,
+  LocationImpl,
+
+  ContactConstructor,
+  ContactSelfConstructor,
+  FriendshipConstructor,
+  ImageConstructor,
+  MessageConstructor,
+  MiniProgramConstructor,
+  RoomConstructor,
+  RoomInvitationConstructor,
+  TagConstructor,
+  SleeperConstructor,
+  UrlLinkConstructor,
+  LocationConstructor,
+
   Contact,
   ContactSelf,
-  Friendship,
-  Image,
-  Message,
+  // Friendship,
+  // Image,
+  // Message,
   MiniProgram,
-  Room,
-  RoomInvitation,
-  Tag,
+  // Room,
+  // RoomInvitation,
+  // Tag,
+  // Sleeper,
   UrlLink,
   Location,
 
@@ -86,6 +114,11 @@ import {
   WechatyPluginUninstaller,
   isWechatyPluginUninstaller,
 }                             from './plugin.js'
+import type {
+  Wechaty,
+  WechatyConstructor,
+}                       from './interface/wechaty-interface.js'
+import { WechatyBuilder } from './wechaty-builder.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -114,14 +147,14 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * > If you want to know how to get contact, see [Contact](#Contact)
  *
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
- * const { Wechaty } = require('wechaty')
+ * import { Wechaty } from 'wechaty'
  * const bot = new Wechaty()
  * bot.on('scan',    (qrCode, status) => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(qrcode)))
  * bot.on('login',   user => console.log(`User ${user} logged in`))
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
-class Wechaty extends WechatyEventEmitter implements Sayable {
+class WechatyImpl extends WechatyEventEmitter implements Sayable {
 
   static   readonly VERSION = VERSION
   static   readonly log     = log
@@ -131,29 +164,18 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   readonly wechaty : Wechaty
 
   private  readonly readyState : StateSwitch
-
-  /**
-   * singleton globalInstance
-   * @ignore
-   */
-  private static globalInstance?: Wechaty
-
   private static globalPluginList: WechatyPlugin[] = []
-
   private pluginUninstallerList: WechatyPluginUninstaller[]
-
   private memory?: MemoryCard
-
   private io?        : Io
 
   protected readonly cleanCallbackList: Function[] = []
-
-  #puppet?: PuppetInterface
+  protected _puppet?: PuppetInterface
   get puppet (): PuppetInterface {
-    if (!this.#puppet) {
-      throw new Error('no puppet')
+    if (!this._puppet) {
+      throw new Error('NOPUPPET')
     }
-    return this.#puppet
+    return this._puppet
   }
 
   /**
@@ -162,54 +184,71 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    */
   readonly id : string
 
-  #wechatifiedContact?        : typeof Contact
-  #wechatifiedContactSelf?    : typeof ContactSelf
-  #wechatifiedFriendship?     : typeof Friendship
-  #wechatifiedImage?          : typeof Image
-  #wechatifiedMessage?        : typeof Message
-  #wechatifiedMiniProgram?    : typeof MiniProgram
-  #wechatifiedRoom?           : typeof Room
-  #wechatifiedRoomInvitation? : typeof RoomInvitation
-  #wechatifiedTag?            : typeof Tag
-  #wechatifiedUrlLink?        : typeof UrlLink
-  #wechatifiedLocation?       : typeof Location
+  protected _wechatifiedContact?        : ContactConstructor
+  protected _wechatifiedContactSelf?    : ContactSelfConstructor
+  protected _wechatifiedFriendship?     : FriendshipConstructor
+  protected _wechatifiedImage?          : ImageConstructor
+  protected _wechatifiedMessage?        : MessageConstructor
+  protected _wechatifiedMiniProgram?    : MiniProgramConstructor
+  protected _wechatifiedRoom?           : RoomConstructor
+  protected _wechatifiedRoomInvitation? : RoomInvitationConstructor
+  protected _wechatifiedSleeper?        : SleeperConstructor
+  protected _wechatifiedTag?            : TagConstructor
+  protected _wechatifiedUrlLink?        : UrlLinkConstructor
+  protected _wechatifiedLocation?       : LocationConstructor
 
-  get Contact ()        : typeof Contact         { return guardWechatify(this.#wechatifiedContact)        }
-  get ContactSelf ()    : typeof ContactSelf     { return guardWechatify(this.#wechatifiedContactSelf)    }
-  get Friendship ()     : typeof Friendship      { return guardWechatify(this.#wechatifiedFriendship)     }
-  get Image ()          : typeof Image           { return guardWechatify(this.#wechatifiedImage)          }
-  get Message ()        : typeof Message         { return guardWechatify(this.#wechatifiedMessage)        }
-  get MiniProgram ()    : typeof MiniProgram     { return guardWechatify(this.#wechatifiedMiniProgram)    }
-  get Room ()           : typeof Room            { return guardWechatify(this.#wechatifiedRoom)           }
-  get RoomInvitation () : typeof RoomInvitation  { return guardWechatify(this.#wechatifiedRoomInvitation) }
-  get Tag ()            : typeof Tag             { return guardWechatify(this.#wechatifiedTag)            }
-  get UrlLink ()        : typeof UrlLink         { return guardWechatify(this.#wechatifiedUrlLink)        }
-  get Location ()       : typeof Location        { return guardWechatify(this.#wechatifiedLocation)       }
+  get Contact ()        : ContactConstructor        { return guardWechatify(this._wechatifiedContact)        }
+  get ContactSelf ()    : ContactSelfConstructor    { return guardWechatify(this._wechatifiedContactSelf)    }
+  get Friendship ()     : FriendshipConstructor     { return guardWechatify(this._wechatifiedFriendship)     }
+  get Image ()          : ImageConstructor          { return guardWechatify(this._wechatifiedImage)          }
+  get Message ()        : MessageConstructor        { return guardWechatify(this._wechatifiedMessage)        }
+  get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this._wechatifiedMiniProgram)    }
+  get Room ()           : RoomConstructor           { return guardWechatify(this._wechatifiedRoom)           }
+  get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this._wechatifiedRoomInvitation) }
+  get Sleeper ()        : SleeperConstructor        { return guardWechatify(this._wechatifiedSleeper)        }
+  get Tag ()            : TagConstructor            { return guardWechatify(this._wechatifiedTag)            }
+  get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this._wechatifiedUrlLink)        }
+  get Location ()       : LocationConstructor       { return guardWechatify(this._wechatifiedLocation)       }
 
   /**
-   * Get the global instance of Wechaty
+   * Get the global instance of Wechaty (Singleton)
    *
    * @param {WechatyOptions} [options={}]
    *
    * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
-   * const { Wechaty } = require('wechaty')
+   * import { singletonWechaty } from 'wechaty'
    *
-   * Wechaty.instance() // Global instance
+   * singletonWechaty() // Global instance
    * .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
    * .on('login',       user => console.log(`User ${user} logged in`))
    * .on('message',  message => console.log(`Message: ${message}`))
    * .start()
+   *
+   * @deprecated will be removed after Dec 31, 2022. Use `new WechatyBuilder().singleton().build()` instead
+   * @see https://github.com/wechaty/wechaty/issues/2276
    */
   static instance (
     options?: WechatyOptions,
-  ) {
-    if (options && this.globalInstance) {
-      throw new Error('instance can be only initialized once by options!')
-    }
-    if (!this.globalInstance) {
-      this.globalInstance = new Wechaty(options)
-    }
-    return this.globalInstance
+  ): Wechaty {
+    return new WechatyBuilder()
+      .singleton()
+      .options(options)
+      .build()
+  }
+
+  /**
+   * Wechaty.create() will return a `WechatyInterface` instance.
+   * @deprecated will be removed after Dec 31, 2022. Use `new WechatyBuilder().build()` instead
+   * @see https://github.com/wechaty/wechaty/issues/2276
+   */
+  static create (
+    options?: WechatyOptions,
+  ): Wechaty {
+    log.warn('Wechaty', 'create() is DEPRECATED. Use createWechaty() instead.\n%s\n%s',
+      '@see https://github.com/wechaty/wechaty/issues/2276',
+      new Error().stack,
+    )
+    return new this(options)
   }
 
   /**
@@ -233,9 +272,10 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    */
   static use (
     ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
-  ) {
+  ): WechatyConstructor {
     const pluginList = plugins.flat()
     this.globalPluginList = this.globalPluginList.concat(pluginList)
+    return this
   }
 
   /**
@@ -356,7 +396,11 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * // The same usage with Wechaty.use().
    *
    */
-  use (...plugins: (WechatyPlugin | WechatyPlugin[])[]) {
+  use (
+    ...plugins: (
+      WechatyPlugin | WechatyPlugin[]
+    )[]
+  ): Wechaty {
     const pluginList = plugins.flat() as WechatyPlugin[]
     const uninstallerList = pluginList
       .map(plugin => plugin(this))
@@ -370,7 +414,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
   private installGlobalPlugin () {
 
-    const uninstallerList = instanceToClass(this, Wechaty)
+    const uninstallerList = instanceToClass(this, WechatyImpl)
       .globalPluginList
       .map(plugin => plugin(this))
       .filter(isWechatyPluginUninstaller)
@@ -383,7 +427,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   private async initPuppet (): Promise<void> {
     log.verbose('Wechaty', 'initPuppet() %s', this.options.puppet || '')
 
-    if (this.#puppet) {
+    if (this._puppet) {
       log.warn('Wechaty', 'initPuppet(%s) had already been initialized, no need to init twice', this.options.puppet)
       return
     }
@@ -406,16 +450,15 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
      */
     puppetInstance.setMemory(puppetMemory)
 
-    this.#puppet = puppetInstance
+    this._puppet = puppetInstance
 
     this.initPuppetEventBridge(puppetInstance)
     this.wechatifyUserModules()
 
     /**
       * Private Event
-      *  emit puppet when set
-      *
-      * Huan(202005)
+      *   - Huan(202005): emit puppet when set
+      *   - Huan(202110): what's the purpose of this? (who is using this?)
       */
     ;(this.emit as any)('puppet', puppetInstance)
   }
@@ -440,7 +483,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
 
         case 'error':
           puppet.on('error', payload => {
-            this.emit('error', new Error(payload.data))
+            this.emitError(payload)
           })
           break
 
@@ -462,7 +505,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               this.emit('friendship', friendship)
               friendship.contact().emit('friendship', friendship)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -474,7 +517,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               await contact.ready()
               this.emit('login', contact)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -486,7 +529,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               await contact.ready()
               this.emit('logout', contact, payload.data)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -506,10 +549,10 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               } else if (listener) {
                 listener.emit('message', msg)
               } else {
-                this.emit('error', new Error('message without room or listener'))
+                this.emitError('message without room and listener')
               }
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -546,7 +589,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               this.emit('room-join', room, inviteeList, inviter, date)
               room.emit('join', inviteeList, inviter, date)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -577,7 +620,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
                 await this.puppet.dirtyPayload(PayloadType.RoomMember, payload.roomId)
               }
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -595,7 +638,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
               this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
               room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -640,7 +683,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
                   throw new Error('unknown payload type: ' + payloadType)
               }
             } catch (e) {
-              this.emit('error', (e as Error))
+              this.emitError(e)
             }
           })
           break
@@ -658,7 +701,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   protected wechatifyUserModules () {
     log.verbose('Wechaty', 'wechatifyUserModules()')
 
-    if (this.#wechatifiedContactSelf) {
+    if (this._wechatifiedMessage) {
       throw new Error('can not be initialized twice!')
     }
 
@@ -666,17 +709,34 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
      * Wechatify User Classes
      *  1. Binding the wechaty instance to the class
      */
-    this.#wechatifiedContact        = wechatifyUserClass(Contact)(this)
-    this.#wechatifiedContactSelf    = wechatifyUserClass(ContactSelf)(this)
-    this.#wechatifiedFriendship     = wechatifyUserClass(Friendship)(this)
-    this.#wechatifiedImage          = wechatifyUserClass(Image)(this)
-    this.#wechatifiedMessage        = wechatifyUserClass(Message)(this)
-    this.#wechatifiedMiniProgram    = wechatifyUserClass(MiniProgram)(this)
-    this.#wechatifiedRoom           = wechatifyUserClass(Room)(this)
-    this.#wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitation)(this)
-    this.#wechatifiedTag            = wechatifyUserClass(Tag)(this)
-    this.#wechatifiedUrlLink        = wechatifyUserClass(UrlLink)(this)
-    this.#wechatifiedLocation       = wechatifyUserClass(Location)(this)
+    this._wechatifiedContact        = wechatifyUserClass(ContactImpl)(this)
+    this._wechatifiedContactSelf    = wechatifyUserClass(ContactSelfImpl)(this)
+    this._wechatifiedFriendship     = wechatifyUserClass(FriendshipImpl)(this)
+    this._wechatifiedImage          = wechatifyUserClass(ImageImpl)(this)
+    this._wechatifiedMessage        = wechatifyUserClass(MessageImpl)(this)
+    this._wechatifiedMiniProgram    = wechatifyUserClass(MiniProgramImpl)(this)
+    this._wechatifiedRoom           = wechatifyUserClass(RoomImpl)(this)
+    this._wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitationImpl)(this)
+    this._wechatifiedSleeper        = wechatifyUserClass(SleeperImpl)(this)
+    this._wechatifiedTag            = wechatifyUserClass(TagImpl)(this)
+    this._wechatifiedUrlLink        = wechatifyUserClass(UrlLinkImpl)(this)
+    this._wechatifiedLocation       = wechatifyUserClass(LocationImpl)(this)
+  }
+
+  /**
+   * Convert any error to GError,
+   *  and emit `error` event with GError
+   */
+  emitError (e: unknown): void {
+    let gerror: GError
+    if (e instanceof GError) {
+      gerror = e
+    } else {
+      gerror = GError.from(e)
+    }
+
+    this.emit('error', gerror)
+    captureException(gerror)
   }
 
   /**
@@ -719,9 +779,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
         ])
         log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
       } catch (e) {
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... %s',
-          (e as Error).message,
-        )
+        this.emitError(e)
       }
     }
 
@@ -733,12 +791,9 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       this.emit('start')
 
     } catch (e) {
-      console.error(e)
-      log.error('Wechaty', 'start() rejection: %s', e && (e as Error).message)
-      captureException((e as Error))
-
+      this.emitError(e)
       await this.stop()
-      this.emit('error', e as Error)
+      throw e
     }
   }
 
@@ -759,7 +814,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       this.memory = new MemoryCard(this.options.name)
       try {
         await this.memory.load()
-      } catch (e) {
+      } catch (_) {
         log.silly('Wechaty', 'onStart() memory.load() had already loaded')
       }
     }
@@ -821,9 +876,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
         ])
         log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
       } catch (e) {
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... %s',
-          (e as Error).message,
-        )
+        this.emitError(e)
       }
     }
 
@@ -833,10 +886,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       await this.onStop()
 
     } catch (e) {
-      log.error('Wechaty', 'stop() rejection: %s', e && (e as Error).message)
-      captureException((e as Error))
-
-      this.emit('error', e as Error)
+      this.emitError(e)
 
     } finally {
       this.state.off(true)
@@ -867,7 +917,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       await this.puppet.stop()
     } catch (e) {
-      log.warn('Wechaty', 'onStop() puppet.stop() exception: %s', (e as Error).message)
+      this.emitError(e)
     }
 
     try {
@@ -877,9 +927,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       }
 
     } catch (e) {
-      log.error('Wechaty', 'onStop() exception: %s', (e as Error).message)
-      captureException((e as Error))
-      this.emit('error', (e as Error))
+      this.emitError(e)
     }
   }
 
@@ -903,9 +951,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       await this.puppet.logout()
     } catch (e) {
-      log.error('Wechaty', 'logout() exception: %s', (e as Error).message)
-      captureException(e as Error)
-      throw e
+      this.emitError(e)
     }
   }
 
@@ -924,6 +970,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       return this.puppet.logonoff()
     } catch (e) {
+      this.emitError(e)
       // https://github.com/wechaty/wechaty/issues/1878
       return false
     }
@@ -961,7 +1008,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
   async say (url:     UrlLink)     : Promise<void>
   async say (url:     Location)    : Promise<void>
 
-  async say (...args: never[]): Promise<never>
+  async say (...args: never[]): Promise<void>
 
   /**
    * Send message to currentUser, in other words, bot send message to itself.
@@ -1047,23 +1094,23 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
    * console.log(Wechaty.instance().version(true))   // return '0.7.9'
    */
   version (forceNpm = false): string {
-    return Wechaty.version(forceNpm)
+    return WechatyImpl.version(forceNpm)
   }
 
   /**
    * @ignore
    */
-  static async sleep (millisecond: number): Promise<void> {
+  static async sleep (milliseconds: number): Promise<void> {
     await new Promise<void>(resolve => {
-      setTimeout(resolve, millisecond)
+      setTimeout(resolve, milliseconds)
     })
   }
 
   /**
    * @ignore
    */
-  async sleep (millisecond: number): Promise<void> {
-    return Wechaty.sleep(millisecond)
+  async sleep (milliseconds: number): Promise<void> {
+    return WechatyImpl.sleep(milliseconds)
   }
 
   /**
@@ -1075,9 +1122,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     try {
       this.puppet.ding(data)
     } catch (e) {
-      log.error('Wechaty', 'ding() exception: %s', (e as Error).message)
-      captureException((e as Error))
-      throw e
+      this.emitError(e)
     }
   }
 
@@ -1091,9 +1136,7 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
     )
 
     if (freeMegabyte < minMegabyte) {
-      const e = new Error(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
-      log.warn('Wechaty', 'memoryCheck() %s', e.message)
-      this.emit('error', e)
+      this.emitError(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
     }
   }
 
@@ -1130,15 +1173,18 @@ class Wechaty extends WechatyEventEmitter implements Sayable {
       })
   }
 
-  // unref (): void {
-  //   log.verbose('Wechaty', 'unref()')
-
-  //   if (this.lifeTimer) {
-  //     this.lifeTimer.unref()
-  //   }
-
-  //   this.puppet.unref()
-  // }
+  /**
+   * Convert a callback function from returning `Promise<void>` to `void`
+   *  catch any errors by emit an error event
+   */
+  wrapAsync<T extends (...args: any[]) => Promise<any>> (
+    asyncFunction: T,
+  ) {
+    const wechaty = this
+    return function (this: any, ...args: Parameters<T>): void {
+      asyncFunction.apply(this, args).catch(e => wechaty.emitError(e))
+    }
+  }
 
 }
 
@@ -1153,5 +1199,5 @@ function guardWechatify<T extends Function> (userModule?: T): T {
 }
 
 export {
-  Wechaty,
+  WechatyImpl,
 }

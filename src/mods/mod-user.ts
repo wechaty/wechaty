@@ -17,44 +17,20 @@
  *   limitations under the License.
  *
  */
-import type { FileBox } from 'file-box'
-
-import type { Wechaty } from './wechaty.js'
-import type {
+export type {
   Contact,
+  ContactSelf,
+  Favorite,
+  Friendship,
+  Image,
   Location,
   Message,
   MiniProgram,
+  Moment,
+  Money,
+  Room,
+  RoomInvitation,
+  Sleeper,
+  Tag,
   UrlLink,
-}                 from './user/mod.js'
-
-type SayableMessage = never
-                    | Contact
-                    | FileBox
-                    | Location
-                    | Message
-                    | MiniProgram
-                    | number
-                    | string
-                    | UrlLink
-
-interface Sayable {
-  id      : string,
-  wechaty : Wechaty,
-  say (
-    text     : SayableMessage,
-    replyTo? : Contact | Contact[]
-  ): Promise<void | Message>
-}
-
-interface Acceptable {
-  accept  : () => Promise<void>
-  id      : string,
-  wechaty : Wechaty
-}
-
-export type  {
-  Acceptable,
-  Sayable,
-  SayableMessage,
-}
+}                   from '../user/mod.js'

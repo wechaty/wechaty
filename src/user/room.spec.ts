@@ -30,7 +30,7 @@ import type {
 }                       from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
-import { Wechaty }      from '../wechaty.js'
+import { WechatyBuilder } from '../wechaty-builder.js'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
@@ -40,7 +40,7 @@ test('findAll()', async t => {
   const sandbox = sinon.createSandbox()
 
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = new WechatyBuilder().options({ puppet }).build()
 
   await wechaty.start()
 
@@ -65,7 +65,7 @@ test('say()', async () => {
   const callback = sinon.spy()
 
   const puppet = new PuppetMock()
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = new WechatyBuilder().options({ puppet }).build()
 
   await wechaty.start()
 

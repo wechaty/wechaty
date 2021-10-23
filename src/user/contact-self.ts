@@ -20,15 +20,21 @@
 import {
   FileBox,
   log,
-}           from 'wechaty-puppet'
+}                             from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   guardQrCodeValue,
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
 import {
-  Contact,
+  ContactImpl,
 }                       from './contact.js'
+import { validationMixin } from './mixins/validation.js'
+
+const MixinBase = validationMixin<ContactSelf>()(
+  ContactImpl,
+)
 
 /**
  * Bot itself will be encapsulated as a ContactSelf.
@@ -41,7 +47,7 @@ import {
  *   console.log(`user ${user} login`)
  * })
  */
-class ContactSelf extends Contact {
+class ContactSelfImpl extends MixinBase {
 
   // constructor (
   //   id: string,
@@ -178,6 +184,16 @@ class ContactSelf extends Contact {
 
 }
 
-export {
+interface ContactSelf extends ContactSelfImpl {}
+type ContactSelfConstructor = Constructor<
   ContactSelf,
+  typeof ContactSelfImpl
+>
+
+export type {
+  ContactSelfConstructor,
+  ContactSelf,
+}
+export {
+  ContactSelfImpl,
 }

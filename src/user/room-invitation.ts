@@ -21,10 +21,11 @@ import {
   RoomInvitationPayload,
   log,
 }                           from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import type {
   Acceptable,
-}               from '../types.js'
+}               from '../interface/acceptable.js'
 import {
   timestampToDate,
 }                   from '../helper-functions/pure/timestamp-to-date.js'
@@ -36,17 +37,23 @@ import {
   EmptyBase,
   wechatifyMixin,
 }                     from './mixins/wechatify.js'
+import { validationMixin } from './mixins/validation.js'
+
+const MixinBase = validationMixin<RoomInvitation>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
 
 /**
  *
  * accept room invitation
  */
-class RoomInvitation extends wechatifyMixin(EmptyBase) implements Acceptable {
+class RoomInvitationImpl extends MixinBase implements Acceptable {
 
-  static load<T extends typeof RoomInvitation> (
-    this : T,
+  static load (
     id   : string,
-  ): T['prototype'] {
+  ): RoomInvitation {
     const newRoomInvitation = new this(id)
     return newRoomInvitation
   }
@@ -120,6 +127,7 @@ class RoomInvitation extends wechatifyMixin(EmptyBase) implements Acceptable {
       )
       return
     } catch (e) {
+      this.wechaty.emitError(e)
       log.warn('RoomInvitation', 'accept() inviter(%s) is not ready because of %s',
         inviter,
         (e && (e as Error).message) || e,
@@ -275,6 +283,16 @@ class RoomInvitation extends wechatifyMixin(EmptyBase) implements Acceptable {
 
 }
 
-export {
+interface RoomInvitation extends RoomInvitationImpl {}
+type RoomInvitationConstructor = Constructor<
   RoomInvitation,
+  typeof RoomInvitationImpl
+>
+
+export type {
+  RoomInvitationConstructor,
+  RoomInvitation,
+}
+export {
+  RoomInvitationImpl,
 }

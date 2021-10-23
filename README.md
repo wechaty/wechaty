@@ -92,7 +92,7 @@ Wechaty already held lots of talk and got a lot of blogs in the past 4 years, he
 
 ```javascript
 
-const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
+import { Wechaty } from 'wechaty'
 
 Wechaty.instance() // Global Instance
 .on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))

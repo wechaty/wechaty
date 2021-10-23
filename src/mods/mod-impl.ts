@@ -19,133 +19,78 @@
  */
 import {
   ContactImpl,
-  Contact,
   ContactConstructor,
-}                           from './contact.js'
-import {
   ContactSelfImpl,
-  ContactSelf,
   ContactSelfConstructor,
-}                           from './contact-self.js'
-import {
   FavoriteImpl,
-  Favorite,
   FavoriteConstructor,
-}                           from './favorite.js'
-import {
   FriendshipImpl,
-  Friendship,
   FriendshipConstructor,
-}                           from './friendship.js'
-import {
   ImageImpl,
-  Image,
   ImageConstructor,
-}                           from './image.js'
-import {
   LocationImpl,
-  Location,
   LocationConstructor,
-}                           from './location.js'
-import {
   MessageImpl,
-  Message,
   MessageConstructor,
-}                           from './message.js'
-import {
   MiniProgramImpl,
-  MiniProgram,
   MiniProgramConstructor,
-}                           from './mini-program.js'
-import {
   MomentImpl,
-  Moment,
   MomentConstructor,
-}                           from './moment.js'
-import {
   MoneyImpl,
-  Money,
   MoneyConstructor,
-}                           from './money.js'
-import {
   RoomImpl,
-  Room,
   RoomConstructor,
-}                           from './room.js'
-import {
   RoomInvitationImpl,
-  RoomInvitation,
   RoomInvitationConstructor,
-}                           from './room-invitation.js'
-import {
-  TagImpl,
-  Tag,
-  TagConstructor,
-}                           from './tag.js'
-import {
-  UrlLinkImpl,
-  UrlLink,
-  UrlLinkConstructor,
-}                           from './url-link.js'
-import {
   SleeperImpl,
-  Sleeper,
   SleeperConstructor,
-}                           from './sleeper.js'
-
-import { wechatifyUserClass } from './mixins/wechatify.js'
-
-export type {
-  Contact,
-  ContactSelf,
-  Favorite,
-  Friendship,
-  Image,
-  Location,
-  Message,
-  MiniProgram,
-  Moment,
-  Money,
-  Room,
-  RoomInvitation,
-  Tag,
-  Sleeper,
-  UrlLink,
-}
-
-export type {
-  ContactConstructor,
-  ContactSelfConstructor,
-  FavoriteConstructor,
-  FriendshipConstructor,
-  ImageConstructor,
-  LocationConstructor,
-  MessageConstructor,
-  MiniProgramConstructor,
-  MomentConstructor,
-  MoneyConstructor,
-  RoomConstructor,
-  RoomInvitationConstructor,
-  SleeperConstructor,
+  TagImpl,
   TagConstructor,
+  UrlLinkImpl,
   UrlLinkConstructor,
-}
+}                             from '../user/mod.js'
+
+import {
+  WechatyImpl,
+}                         from '../wechaty.js'
+import type {
+  WechatyConstructor,
+}                         from '../interface/mod.js'
 
 export {
-  wechatifyUserClass,
-  ContactImpl,
-  ContactSelfImpl,
-  FavoriteImpl,
-  FriendshipImpl,
-  ImageImpl,
-  LocationImpl,
-  MessageImpl,
-  MiniProgramImpl,
-  MomentImpl,
-  MoneyImpl,
-  RoomImpl,
-  RoomInvitationImpl,
-  SleeperImpl,
-  TagImpl,
-  UrlLinkImpl,
+  ContactImpl         as Contact,
+  ContactSelfImpl     as ContactSelf,
+  FavoriteImpl        as Favorite,
+  FriendshipImpl      as Friendship,
+  ImageImpl           as Image,
+  LocationImpl        as Location,
+  MessageImpl         as Message,
+  MiniProgramImpl     as MiniProgram,
+  MomentImpl          as Moment,
+  MoneyImpl           as Money,
+  RoomImpl            as Room,
+  RoomInvitationImpl  as RoomInvitation,
+  SleeperImpl         as Sleeper,
+  TagImpl             as Tag,
+  UrlLinkImpl         as UrlLink,
+  WechatyImpl         as Wechaty,
+}
+
+export type {
+  ContactConstructor,
+  ContactSelfConstructor,
+  FavoriteConstructor,
+  FriendshipConstructor,
+  ImageConstructor,
+  LocationConstructor,
+  MessageConstructor,
+  MiniProgramConstructor,
+  MomentConstructor,
+  MoneyConstructor,
+  RoomConstructor,
+  RoomInvitationConstructor,
+  SleeperConstructor,
+  TagConstructor,
+  UrlLinkConstructor,
+  WechatyConstructor,
 }

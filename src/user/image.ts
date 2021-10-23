@@ -22,15 +22,23 @@ import {
   FileBox,
   log,
 }                   from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class Image extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Image>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
 
-  static create (id: string): Image {
+class ImageImpl extends MixinBase {
+
+  static create (id: string): ImageImpl {
     log.verbose('Image', 'static create(%s)', id)
 
     const image = new this(id)
@@ -64,6 +72,16 @@ class Image extends wechatifyMixin(EmptyBase) {
 
 }
 
-export {
+interface Image extends ImageImpl { }
+type ImageConstructor = Constructor<
   Image,
+  typeof ImageImpl
+>
+
+export type {
+  ImageConstructor,
+  Image,
+}
+export {
+  ImageImpl,
 }

@@ -18,27 +18,28 @@
  *   limitations under the License.
  *
  */
+
 import { test }  from 'tstest'
+
 import { WechatyBuilder } from './wechaty-builder.js'
 
-import { Io }       from './io.js'
+test('WechatyBuilder class', async t => {
+  const wechaty1 = new WechatyBuilder().build()
+  const wechaty2 = new WechatyBuilder().build()
+  t.not(wechaty1, wechaty2, 'should build two different Wechaty instance')
 
-test('Io restart without problem', async t => {
-  const io = new Io({
-    // token must not contain any white spaces
-    servicePort : 8788,
-    token       : 'mock_00000000-0000-0000-0000-000000000000',
-    wechaty     : new WechatyBuilder().build(),
-  })
+  const singleton1 = new WechatyBuilder().singleton().build()
+  const singleton2 = new WechatyBuilder().singleton().build()
+  t.equal(singleton1, singleton2, 'should get the same singleton instance')
 
-  try {
-    for (let i = 0; i < 2; i++) {
-      await io.start()
-      await io.stop()
-      t.pass('start/stop-ed at #' + i)
-    }
-    t.pass('start/restart successed.')
-  } catch (e) {
-    t.fail(e as any)
-  }
+  const wechaty = new WechatyBuilder().options({ puppet: 'wechaty-puppet-mock' }).build()
+  await wechaty.start()
+  t.ok(/wechaty-puppet-mock/.test(wechaty.puppet.name()), 'should get options.puppet')
+  await wechaty.stop()
+})
+
+test('throw when set options twice', async t => {
+  const builder = new WechatyBuilder()
+  t.doesNotThrow(() => builder.options({}), 'should not throw for the first time')
+  t.throws(() => builder.options({}), 'should throw for calling options() method the second time')
 })

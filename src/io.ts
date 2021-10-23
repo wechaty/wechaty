@@ -34,14 +34,12 @@ import type {
 import {
   config,
 }                 from './config.js'
-import type {
-  Wechaty,
-}                 from './wechaty.js'
 
 import {
   getPeer,
   isJsonRpcRequest,
 }                   from './io-peer/io-peer.js'
+import type { Wechaty } from './interface/mod.js'
 
 export interface IoOptions {
   wechaty      : Wechaty,
@@ -198,8 +196,8 @@ export class Io {
 
     wechaty.on('error',     error =>        this.send({ name: 'error',      payload: error }))
     wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user.payload }))
-    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: user.payload }))
+    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: wechaty.puppet.contactPayload(user.id) }))
+    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: wechaty.puppet.contactPayload(user.id) }))
     wechaty.on('message',   message =>      this.ioMessage(message))
 
     // FIXME: payload schema need to be defined universal
@@ -314,7 +312,7 @@ export class Io {
             }
           } catch (e) {
             log.warn('Io', 'server pushed function exception: %s', e)
-            this.options.wechaty.emit('error', (e as Error))
+            this.options.wechaty.emitError(e)
           }
         }
         break
@@ -412,7 +410,7 @@ export class Io {
     if (!e) {
       return
     }
-    this.options.wechaty.emit('error', e)
+    this.options.wechaty.emitError(e)
 
     // when `error`, there must have already a `close` event
     // we should not call this.reconnect() again

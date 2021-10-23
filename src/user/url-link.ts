@@ -23,16 +23,24 @@ import {
   UrlLinkPayload,
   log,
 }                         from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   openGraph,
 }               from '../helper-functions/impure/open-graph.js'
+import { validationMixin } from './mixins/validation.js'
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-class UrlLink extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<UrlLink>()(
+  wechatifyMixin(
+    EmptyBase,
+  ),
+)
+
+class UrlLinkImpl extends MixinBase {
 
   /**
    *
@@ -129,6 +137,16 @@ class UrlLink extends wechatifyMixin(EmptyBase) {
 
 }
 
-export {
+interface UrlLink extends UrlLinkImpl {}
+type UrlLinkConstructor = Constructor<
   UrlLink,
+  typeof UrlLinkImpl
+>
+
+export type {
+  UrlLinkConstructor,
+  UrlLink,
+}
+export {
+  UrlLinkImpl,
 }

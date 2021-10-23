@@ -20,7 +20,6 @@
 import {
   FileBox,
   log,
-  looseInstanceOfFileBox,
   PayloadType,
   RoomMemberQueryFilter,
   RoomPayload,
@@ -28,7 +27,7 @@ import {
 }                           from 'wechaty-puppet'
 import type {
   Constructor,
-}                           from 'clone-class'
+}                           from '../deprecated/clone-class.js'
 
 import {
   FOUR_PER_EM_SPACE,
@@ -36,18 +35,15 @@ import {
 import type {
   Sayable,
   SayableMessage,
-}                           from '../types.js'
+}                           from '../interface/mod.js'
 
 import { captureException } from '../raven.js'
 import {
   guardQrCodeValue,
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
 
-import { Contact }        from './contact.js'
-import { MiniProgram }    from './mini-program.js'
-import { Message }        from './message.js'
-import { UrlLink }        from './url-link.js'
-import { Location }       from './location.js'
+import { Contact, ContactImpl }        from './contact.js'
+import type { Message }        from './message.js'
 
 import { RoomEventEmitter } from '../events/room-events.js'
 
@@ -59,11 +55,20 @@ import {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import { validationMixin } from './mixins/validation.js'
+import { deliverSayableConversationPuppet } from '../interface/sayable.js'
+import { isTemplateStringArray } from '../helper-functions/pure/is-template-string-array.js'
 
 // FIXME: #2273
 void POOL
-const t: Constructor = {} as any
-void t
+
+const MixinBase = validationMixin<Room>()(
+  wechatifyMixin(
+    poolifyMixin<RoomImpl>()(
+      RoomEventEmitter,
+    ),
+  ),
+)
 
 /**
  * All WeChat rooms(groups) will be encapsulated as a Room.
@@ -71,9 +76,7 @@ void t
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-class Room extends wechatifyMixin(
-  poolifyMixin<Room>()(RoomEventEmitter),
-) implements Sayable {
+class RoomImpl extends MixinBase implements Sayable {
 
   /**
    * Create a new room.
@@ -108,8 +111,8 @@ class Room extends wechatifyMixin(
       const room = this.load(roomId)
       return room
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Room', 'create() exception: %s', (e && (e as Error).stack) || (e as Error).message || (e as Error))
-      captureException(e as Error)
       throw e
     }
   }
@@ -133,15 +136,14 @@ class Room extends wechatifyMixin(
    * const roomList = await bot.Room.findAll()                    // get the room list of the bot
    * const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
    */
-  static async findAll<T extends typeof Room> (
-    this   : T,
+  static async findAll (
     query? : RoomQueryFilter,
-  ): Promise<Array<T['prototype']>> {
+  ): Promise<Room[]> {
     log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
 
     try {
       const roomIdList = await this.wechaty.puppet.roomSearch(query)
-      const roomList = roomIdList.map(id => this.load<T>(id))
+      const roomList = roomIdList.map(id => this.load(id))
 
       const BATCH_SIZE = 10
       let   batchIndex = 0
@@ -169,9 +171,8 @@ class Room extends wechatifyMixin(
       return roomList.filter(room => !invalidSet.has(room.id))
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.verbose('Room', 'findAll() rejected: %s', (e as Error).message)
-      console.error(e)
-      captureException((e as Error))
       return [] as Room[] // fail safe
     }
   }
@@ -189,10 +190,9 @@ class Room extends wechatifyMixin(
    * const roomList = await bot.Room.find({topic: 'wechaty'})
    */
 
-  static async find<T extends typeof Room> (
-    this  : T,
+  static async find (
     query : string | RoomQueryFilter,
-  ): Promise<T['prototype'] | null> {
+  ): Promise<undefined | Room> {
     log.verbose('Room', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'string') {
@@ -204,7 +204,7 @@ class Room extends wechatifyMixin(
     //   return null
     // }
     if (roomList.length < 1) {
-      return null
+      return undefined
     }
 
     if (roomList.length > 1) {
@@ -232,7 +232,7 @@ class Room extends wechatifyMixin(
       }
     }
     log.warn('Room', 'find() got %d rooms but no one is valid.', roomList.length)
-    return null
+    return undefined
   }
 
   /**
@@ -343,16 +343,9 @@ class Room extends wechatifyMixin(
     return !!(this.#payload)
   }
 
-  say (text:     string)                                  : Promise<void | Message>
-  say (num:      number)                                  : Promise<void | Message>
-  say (message:  Message)                                 : Promise<void | Message>
+  say (text:     SayableMessage)                          : Promise<void | Message>
   say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
   say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
-  say (file:     FileBox)                                 : Promise<void | Message>
-  say (url:      UrlLink)                                 : Promise<void | Message>
-  say (mini:     MiniProgram)                             : Promise<void | Message>
-  say (contact:  Contact)                                 : Promise<void | Message>
-  say (location: Location)                                : Promise<void | Message>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -447,55 +440,22 @@ class Room extends wechatifyMixin(
       varList.join(', '),
     )
 
-    let text  : string
-    let msgId : void | string
+    let msgId
+    let text: string
 
-    if (sayableMsg instanceof Message) {
-      return sayableMsg.forward(this)
-    }
-
-    function isTemplateStringArray (tsa: any): tsa is TemplateStringsArray {
-      return tsa instanceof Array
-    }
-
-    /**
-     *
-     * 0. TemplateStringArray
-     *
-     */
     if (isTemplateStringArray(sayableMsg)) {
-      const msgId = await this.sayTemplateStringsArray(
+      msgId = await this.sayTemplateStringsArray(
         sayableMsg as TemplateStringsArray,
         ...varList,
       )
-
-      if (!msgId) {
-        return
-      }
-
-      const msg = this.wechaty.Message.load(msgId)
-      await msg.ready()
-      return msg
-    }
-
-    /**
-     *
-     * Other conditions
-     *
-     */
-    if (typeof sayableMsg === 'number') {
-      sayableMsg = String(sayableMsg)
-    }
-
-    if (typeof sayableMsg === 'string') {
+    } else if (typeof sayableMsg === 'string') {
       /**
        * 1. string
        */
       let mentionList: Contact[] = []
 
       if (varList.length > 0) {
-
-        const allIsContact = varList.every(c => c instanceof Contact)
+        const allIsContact = varList.every(c => ContactImpl.valid(c))
         if (!allIsContact) {
           throw new Error('mentionList must be contact when not using TemplateStringArray function call.')
         }
@@ -521,48 +481,8 @@ class Room extends wechatifyMixin(
         text,
         mentionList.map(c => c.id),
       )
-    } else if (looseInstanceOfFileBox(sayableMsg)) {
-      /**
-       * 2. File Message
-       */
-      msgId = await this.wechaty.puppet.messageSendFile(
-        this.id,
-        sayableMsg,
-      )
-    } else if (sayableMsg instanceof Contact) {
-      /**
-       * 3. Contact Card
-       */
-      msgId = await this.wechaty.puppet.messageSendContact(
-        this.id,
-        sayableMsg.id,
-      )
-    } else if (sayableMsg instanceof UrlLink) {
-      /**
-       * 4. Link Message
-       */
-      msgId = await this.wechaty.puppet.messageSendUrl(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (sayableMsg instanceof MiniProgram) {
-      /**
-       * 5. Mini Program
-       */
-      msgId = await this.wechaty.puppet.messageSendMiniProgram(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (sayableMsg instanceof Location) {
-      /**
-       * 6. Location
-       */
-      msgId = await this.wechaty.puppet.messageSendLocation(
-        this.id,
-        sayableMsg.payload,
-      )
     } else {
-      throw new Error('arg unsupported: ' + sayableMsg)
+      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
     }
 
     if (msgId) {
@@ -576,7 +496,8 @@ class Room extends wechatifyMixin(
     textList: TemplateStringsArray,
     ...varList: unknown[]
   ) {
-    const mentionList: Contact[] = varList.filter(v => v instanceof Contact) as any
+    const mentionList = varList.filter(c => ContactImpl.valid(c)) as Contact[]
+
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
     //   roomId    : this.id,
@@ -617,7 +538,7 @@ class Room extends wechatifyMixin(
 
       let i = 0
       for (; i < varListLength; i++) {
-        if (varList[i] instanceof Contact) {
+        if (ContactImpl.valid(varList[i])) {
           const mentionContact: Contact = varList[i] as any
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
@@ -634,27 +555,6 @@ class Room extends wechatifyMixin(
       )
     }
   }
-
-  // public emit (event: 'invite',  inviter:       Contact,    invitation: RoomInvitation)                  : boolean
-  // public emit (event: 'leave',   leaverList:    Contact[],  remover:  Contact, date: Date)                    : boolean
-  // public emit (event: 'message', message:       Message)                                                      : boolean
-  // public emit (event: 'join',    inviteeList:   Contact[],  inviter:  Contact, date: Date)                    : boolean
-  // public emit (event: 'topic',   topic:         string,     oldTopic: string,  changer: Contact, date: Date)  : boolean
-  // public emit (event: never, ...args: never[]): never
-
-  // public emit (
-  //   event:   RoomEventName,
-  //   ...args: any[]
-  // ): boolean {
-  //   return super.emit(event, ...args)
-  // }
-
-  // public on (event: 'invite',  listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)               : this
-  // public on (event: 'leave',   listener: (this: Room, leaverList:  Contact[], remover?:  Contact, date?: Date) => void)                   : this
-  // public on (event: 'message', listener: (this: Room, message:  Message, date?: Date) => void)                             : this
-  // public on (event: 'join',    listener: (this: Room, inviteeList: Contact[], inviter:  Contact,  date?: Date) => void)                   : this
-  // public on (event: 'topic',   listener: (this: Room, topic:       string,    oldTopic: string,   changer: Contact, date?: Date) => void) : this
-  // public on (event: never,   ...args: never[])                                                                            : never
 
   /**
    * @desc       Room Class Event Type
@@ -803,14 +703,11 @@ class Room extends wechatifyMixin(
   }
 
   /**
-   * @deprecated use remove(contact) instead.
-   *
    * Huan(202106): will be removed after Dec 31, 2023
+   * @deprecated use remove(contact) instead.
    */
-  async del (contact: Contact): Promise<void> {
-    log.verbose('Room', 'del(%s)', contact)
-    log.warn('Room', 'del() is DEPRECATED, use remove() instead.')
-
+  async del (contact: ContactImpl): Promise<void> {
+    log.warn('Room', 'del() is DEPRECATED, use remove() instead.\n%s', new Error().stack)
     return this.remove(contact)
   }
 
@@ -987,14 +884,14 @@ class Room extends wechatifyMixin(
    * })
    * .start()
    */
-  async alias (contact: Contact): Promise<null | string> {
+  async alias (contact: Contact): Promise<undefined | string> {
     const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
 
     if (memberPayload.roomAlias) {
       return memberPayload.roomAlias
     }
 
-    return null
+    return undefined
   }
 
   async readMark (hasRead: boolean): Promise<void>
@@ -1017,6 +914,7 @@ class Room extends wechatifyMixin(
         await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
       }
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Room', 'readMark() exception: %s', (e as Error).message)
     }
   }
@@ -1099,14 +997,14 @@ class Room extends wechatifyMixin(
     return contactList
   }
 
-  async member (name  : string)               : Promise<null | Contact>
-  async member (filter: RoomMemberQueryFilter): Promise<null | Contact>
+  async member (name  : string)               : Promise<undefined | Contact>
+  async member (filter: RoomMemberQueryFilter): Promise<undefined | Contact>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
    *
    * @param {(RoomMemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
-   * @returns {Promise<null | Contact>}
+   * @returns {Promise<undefined | Contact>}
    *
    * @example <caption>Find member by name</caption>
    * const bot = new Wechaty()
@@ -1138,7 +1036,7 @@ class Room extends wechatifyMixin(
    */
   async member (
     queryArg: string | RoomMemberQueryFilter,
-  ): Promise<null | Contact> {
+  ): Promise<undefined | Contact> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
     let memberList: Contact[]
@@ -1151,7 +1049,7 @@ class Room extends wechatifyMixin(
     }
 
     if (memberList.length <= 0) {
-      return null
+      return undefined
     }
 
     if (memberList.length > 1) {
@@ -1190,16 +1088,16 @@ class Room extends wechatifyMixin(
    * Get room's owner from the room.
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   * @returns {(Contact | null)}
+   * @returns {(Contact | undefined)}
    * @example
    * const owner = room.owner()
    */
-  owner (): null | Contact {
+  owner (): undefined | Contact {
     log.verbose('Room', 'owner()')
 
     const ownerId = this.#payload && this.#payload.ownerId
     if (!ownerId) {
-      return null
+      return undefined
     }
 
     const owner = this.wechaty.Contact.load(ownerId)
@@ -1222,6 +1120,16 @@ class Room extends wechatifyMixin(
 
 }
 
-export {
+interface Room extends RoomImpl {}
+type RoomConstructor = Constructor<
   Room,
+  typeof RoomImpl
+>
+
+export type {
+  RoomConstructor,
+  Room,
+}
+export {
+  RoomImpl,
 }

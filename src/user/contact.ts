@@ -22,29 +22,29 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
-  FileBox,
   log,
-  looseInstanceOfFileBox,
   PayloadType,
 }                             from 'wechaty-puppet'
 import type {
+  FileBoxInterface,
+}                             from 'file-box'
+import type {
   Constructor,
-}                             from 'clone-class'
+}                             from '../deprecated/clone-class.js'
 
-import {
-  qrCodeForChatie,
-}                           from '../config.js'
+// import {
+//   qrCodeForChatie,
+// }                           from '../config.js'
 import type {
   Sayable,
   SayableMessage,
-}                          from '../types.js'
-import { captureException } from '../raven.js'
+}                          from '../interface/mod.js'
+// import { captureException } from '../raven.js'
 
-import { Message }      from './message.js'
+import type {
+  Message,
+}                   from './message.js'
 import type { Tag }     from './tag.js'
-import { MiniProgram }  from './mini-program.js'
-import { UrlLink }      from './url-link.js'
-import { Location }     from './location.js'
 
 import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
@@ -55,6 +55,8 @@ import {
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import { validationMixin } from './mixins/validation.js'
+import { deliverSayableConversationPuppet } from '../interface/sayable.js'
 
 /**
  * Huan(202110): Issue #2273
@@ -64,8 +66,12 @@ import {
  *  why?
  */
 void POOL
-const t: Constructor = {} as any
-void t
+
+const MixinBase = validationMixin<Contact>()(
+  wechatifyMixin(
+    poolifyMixin<ContactImpl>()(ContactEventEmitter),
+  ),
+)
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
@@ -74,9 +80,7 @@ void t
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-class Contact extends wechatifyMixin(
-  poolifyMixin<Contact>()(ContactEventEmitter),
-) implements Sayable {
+class ContactImpl extends MixinBase implements Sayable {
 
   static Type   = ContactType
   static Gender = ContactGender
@@ -97,14 +101,14 @@ class Contact extends wechatifyMixin(
    *
    * @static
    * @param {ContactQueryFilter} query
-   * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
+   * @returns {(Promise<ContactImpl | null>)} If can find the contact, return Contact, or return null
    * @example
    * const bot = new Wechaty()
    * await bot.start()
    * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
-  static async find<T extends typeof Contact> (
+  static async find<T extends typeof ContactImpl> (
     this  : T,
     query : string | ContactQueryFilter,
   ): Promise<T['prototype'] | null> {
@@ -158,7 +162,7 @@ class Contact extends wechatifyMixin(
    *
    * @static
    * @param {ContactQueryFilter} [queryArg]
-   * @returns {Promise<Contact[]>}
+   * @returns {Promise<ContactImpl[]>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -166,7 +170,7 @@ class Contact extends wechatifyMixin(
    * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
-  static async findAll<T extends typeof Contact> (
+  static async findAll<T extends typeof ContactImpl> (
     this  : T,
     query? : string | ContactQueryFilter,
   ): Promise<Array<T['prototype']>> {
@@ -202,12 +206,14 @@ class Contact extends wechatifyMixin(
       return contactList.filter(contact => !invalidDict[contact.id])
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'this.wechaty.puppet.contactFindAll() rejected: %s', (e as Error).message)
       return [] // fail safe
     }
   }
 
   // TODO
+  // eslint-disable-next-line no-use-before-define
   static async delete (contact: Contact): Promise<void> {
     log.verbose('Contact', 'static delete(%s)', contact.id)
   }
@@ -220,7 +226,7 @@ class Contact extends wechatifyMixin(
    * @example
    * const tags = await wechaty.Contact.tags()
    */
-  static async tags (): Promise<Tag []> {
+  static async tags (): Promise<Tag[]> {
     log.verbose('Contact', 'static tags() for %s', this)
 
     try {
@@ -228,6 +234,7 @@ class Contact extends wechatifyMixin(
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'static tags() exception: %s', (e as Error).message)
       return []
     }
@@ -266,15 +273,6 @@ class Contact extends wechatifyMixin(
 
     return `Contact<${identity}>`
   }
-
-  say (text:     string)      : Promise<void | Message>
-  say (num:      number)      : Promise<void | Message>
-  say (message:  Message)     : Promise<void | Message>
-  say (contact:  Contact)     : Promise<void | Message>
-  say (file:     FileBox)     : Promise<void | Message>
-  say (mini:     MiniProgram) : Promise<void | Message>
-  say (url:      UrlLink)     : Promise<void | Message>
-  say (location: Location)    : Promise<void | Message>
 
   /**
    * > Tips:
@@ -349,66 +347,7 @@ class Contact extends wechatifyMixin(
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayableMsg)
 
-    if (sayableMsg instanceof Message) {
-      return sayableMsg.forward(this)
-    }
-
-    if (typeof sayableMsg === 'number') {
-      sayableMsg = String(sayableMsg)
-    }
-
-    let msgId: string | void
-    if (typeof sayableMsg === 'string') {
-      /**
-       * 1. Text
-       */
-      msgId = await this.wechaty.puppet.messageSendText(
-        this.id,
-        sayableMsg,
-      )
-    } else if (sayableMsg instanceof Contact) {
-      /**
-       * 2. Contact
-       */
-      msgId = await this.wechaty.puppet.messageSendContact(
-        this.id,
-        sayableMsg.id,
-      )
-    } else if (looseInstanceOfFileBox(sayableMsg)) {
-      /**
-       * 3. File
-       */
-      msgId = await this.wechaty.puppet.messageSendFile(
-        this.id,
-        sayableMsg,
-      )
-    } else if (sayableMsg instanceof UrlLink) {
-      /**
-       * 4. Link Message
-       */
-      msgId = await this.wechaty.puppet.messageSendUrl(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (sayableMsg instanceof MiniProgram) {
-      /**
-       * 5. Mini Program
-       */
-      msgId = await this.wechaty.puppet.messageSendMiniProgram(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else if (sayableMsg instanceof Location) {
-      /**
-       * 6. Location
-       */
-      msgId = await this.wechaty.puppet.messageSendLocation(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else {
-      throw new Error('unsupported arg: ' + sayableMsg)
-    }
+    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
 
     if (msgId) {
       const msg = this.wechaty.Message.load(msgId)
@@ -428,7 +367,7 @@ class Contact extends wechatifyMixin(
     return (this.#payload && this.#payload.name) || ''
   }
 
-  async alias ()                  : Promise<null | string>
+  async alias ()                  : Promise<undefined | string>
   async alias (newAlias:  string) : Promise<void>
   async alias (empty:     null)   : Promise<void>
 
@@ -437,7 +376,7 @@ class Contact extends wechatifyMixin(
    *
    * Tests show it will failed if set alias too frequently(60 times in one minute).
    * @param {(none | string | null)} newAlias
-   * @returns {(Promise<null | string | void>)}
+   * @returns {(Promise<undefined | string | void>)}
    * @example <caption> GET the alias for a contact, return {(Promise<string | null>)}</caption>
    * const alias = await contact.alias()
    * if (alias === null) {
@@ -463,7 +402,7 @@ class Contact extends wechatifyMixin(
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  async alias (newAlias?: null | string): Promise<null | string | void> {
+  async alias (newAlias?: null | string): Promise<void | undefined | string> {
     log.silly('Contact', 'alias(%s)',
       newAlias === undefined
         ? ''
@@ -475,7 +414,7 @@ class Contact extends wechatifyMixin(
     }
 
     if (typeof newAlias === 'undefined') {
-      return this.#payload.alias || null
+      return this.#payload.alias
     }
 
     try {
@@ -490,8 +429,8 @@ class Contact extends wechatifyMixin(
         )
       }
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'alias(%s) rejected: %s', newAlias, (e as Error).message)
-      captureException((e as Error))
     }
   }
 
@@ -535,14 +474,14 @@ class Contact extends wechatifyMixin(
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), (e as Error).message)
-      captureException((e as Error))
     }
   }
 
-  async corporation (): Promise<string | null>
+  async corporation (): Promise<undefined | string>
   async corporation (remark: string | null): Promise<void>
-  async corporation (remark?: string | null): Promise<string | null | void> {
+  async corporation (remark?: string | null): Promise<void | undefined | string> {
     log.silly('Contact', 'corporation(%s)', remark)
 
     if (!this.#payload) {
@@ -550,7 +489,7 @@ class Contact extends wechatifyMixin(
     }
 
     if (typeof remark === 'undefined') {
-      return this.#payload.corporation || null
+      return this.#payload.corporation
     }
 
     if (this.#payload.type !== ContactType.Individual) {
@@ -562,14 +501,14 @@ class Contact extends wechatifyMixin(
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'corporation(%s) rejected: %s', remark, (e as Error).message)
-      captureException((e as Error))
     }
   }
 
-  async description (): Promise<string | null>
+  async description (): Promise<undefined | string>
   async description (newDescription: string | null): Promise<void>
-  async description (newDescription?: string | null): Promise<string | null | void> {
+  async description (newDescription?: string | null): Promise<void | undefined | string> {
     log.silly('Contact', 'description(%s)', newDescription)
 
     if (!this.#payload) {
@@ -577,7 +516,7 @@ class Contact extends wechatifyMixin(
     }
 
     if (typeof newDescription === 'undefined') {
-      return this.#payload.description || null
+      return this.#payload.description
     }
 
     try {
@@ -585,8 +524,8 @@ class Contact extends wechatifyMixin(
       await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
       this.#payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'description(%s) rejected: %s', newDescription, (e as Error).message)
-      captureException((e as Error))
     }
   }
 
@@ -619,16 +558,9 @@ class Contact extends wechatifyMixin(
    * @example
    * const isFriend = contact.friend()
    */
-  friend (): null | boolean {
+  friend (): undefined | boolean {
     log.verbose('Contact', 'friend()')
-    if (!this.#payload) {
-      return null
-    }
-    if (typeof this.#payload.friend === 'boolean') {
-      return this.#payload.friend
-    } else {
-      return null
-    }
+    return this.#payload?.friend
   }
 
   /**
@@ -658,20 +590,14 @@ class Contact extends wechatifyMixin(
 
   /**
    * @ignore
-   * TODO
-   * Check if the contact is star contact.
+   * TODO: Check if the contact is star contact.
    *
    * @returns {boolean | null} - True for star friend, False for no star friend.
    * @example
    * const isStar = contact.star()
    */
-  star (): null | boolean {
-    if (!this.#payload) {
-      return null
-    }
-    return this.#payload.star === undefined
-      ? null
-      : this.#payload.star
+  star (): undefined | boolean {
+    return this.#payload?.star
   }
 
   /**
@@ -695,8 +621,8 @@ class Contact extends wechatifyMixin(
    * @example
    * const province = contact.province()
    */
-  province (): null | string {
-    return (this.#payload && this.#payload.province) || null
+  province (): undefined | string {
+    return this.#payload?.province
   }
 
   /**
@@ -706,8 +632,8 @@ class Contact extends wechatifyMixin(
    * @example
    * const city = contact.city()
    */
-  city (): null | string {
-    return (this.#payload && this.#payload.city) || null
+  city (): undefined | string {
+    return this.#payload?.city
   }
 
   /**
@@ -722,16 +648,11 @@ class Contact extends wechatifyMixin(
    * await file.toFile(name, true)
    * console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
    */
-  async avatar (): Promise<FileBox> {
+  async avatar (): Promise<FileBoxInterface> {
     log.verbose('Contact', 'avatar()')
 
-    try {
-      const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
-      return fileBox
-    } catch (e) {
-      log.error('Contact', 'avatar() exception: %s', (e as Error).message)
-      return qrCodeForChatie()
-    }
+    const fileBox = await this.wechaty.puppet.contactAvatar(this.id)
+    return fileBox
   }
 
   /**
@@ -741,7 +662,7 @@ class Contact extends wechatifyMixin(
    * @example
    * const tags = await contact.tags()
    */
-  async tags (): Promise<Tag []> {
+  async tags (): Promise<Tag[]> {
     log.verbose('Contact', 'tags() for %s', this)
 
     try {
@@ -749,6 +670,7 @@ class Contact extends wechatifyMixin(
       const tagList = tagIdList.map(id => this.wechaty.Tag.load(id))
       return tagList
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'tags() exception: %s', (e as Error).message)
       return []
     }
@@ -791,11 +713,11 @@ class Contact extends wechatifyMixin(
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.verbose('Contact', 'ready() this.wechaty.puppet.contactPayload(%s) exception: %s',
         this.id,
         (e as Error).message,
       )
-      captureException(e as Error)
       throw e
     }
   }
@@ -821,6 +743,7 @@ class Contact extends wechatifyMixin(
         await this.wechaty.puppet.conversationReadMark(this.id, hasRead)
       }
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Contact', 'readMark() exception: %s', (e as Error).message)
     }
   }
@@ -853,12 +776,23 @@ class Contact extends wechatifyMixin(
    * @example
    * const weixin = contact.weixin()
    */
-  weixin (): null | string {
-    return (this.#payload && this.#payload.weixin) || null
+  weixin (): undefined | string {
+    return this.#payload?.weixin
   }
 
 }
 
-export {
+interface Contact extends ContactImpl {}
+
+type ContactConstructor = Constructor<
   Contact,
+  typeof ContactImpl
+>
+
+export type {
+  ContactConstructor,
+  Contact,
+}
+export {
+  ContactImpl,
 }

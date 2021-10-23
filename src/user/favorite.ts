@@ -18,14 +18,20 @@
  *
  */
 import { log }        from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
+import { validationMixin } from './mixins/validation.js'
 
-import type { Tag }       from './tag.js'
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import type { Tag } from './tag.js'
 
-class Favorite extends wechatifyMixin(EmptyBase) {
+const MixinBase = validationMixin<Favorite>()(
+  wechatifyMixin(EmptyBase),
+)
+
+class FavoriteImpl extends MixinBase {
 
   static list (): Favorite[] {
     return []
@@ -39,7 +45,7 @@ class Favorite extends wechatifyMixin(EmptyBase) {
    * @example
    * const tags = await wechaty.Favorite.tags()
    */
-  static async tags (): Promise<Tag []> {
+  static async tags (): Promise<Tag[]> {
     log.verbose('Favorite', 'static tags() for %s', this)
 
     // TODO:
@@ -61,7 +67,7 @@ class Favorite extends wechatifyMixin(EmptyBase) {
     super()
   }
 
-  async tags (): Promise<Tag []> {
+  async tags (): Promise<Tag[]> {
     // TODO: implmente this method
     return []
   }
@@ -72,6 +78,16 @@ class Favorite extends wechatifyMixin(EmptyBase) {
 
 }
 
-export {
+interface Favorite extends FavoriteImpl {}
+type FavoriteConstructor = Constructor<
   Favorite,
+  typeof FavoriteImpl
+>
+
+export type {
+  FavoriteConstructor,
+  Favorite,
+}
+export {
+  FavoriteImpl,
 }

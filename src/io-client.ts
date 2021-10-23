@@ -17,10 +17,6 @@
  *   limitations under the License.
  *
  */
-/**
- * DO NOT use `require('../')` here!
- * because it will cause a LOOP require ERROR
- */
 import {
   StateSwitch,
   log,
@@ -35,7 +31,7 @@ import type { Message }      from './user/mod.js'
 import {
 }                       from './config.js'
 import { Io }           from './io.js'
-import type { Wechaty } from './wechaty.js'
+import type { Wechaty } from './interface/mod.js'
 
 export interface IoClientOptions {
   token   : string,

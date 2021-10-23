@@ -22,10 +22,10 @@ import {
   MessagePayload,
   MessageQueryFilter,
   MessageType,
-  looseInstanceOfFileBox,
   FileBox,
   log,
 }                                 from 'wechaty-puppet'
+import type { Constructor } from '../deprecated/clone-class.js'
 
 import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
 import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
@@ -36,14 +36,14 @@ import {
 import type {
   Sayable,
   SayableMessage,
-}                             from '../types.js'
-import { captureException }   from '../raven.js'
+}                             from '../interface/mod.js'
+// import { captureException }   from '../raven.js'
 
 import {
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-import {
+import type {
   Contact,
 }                       from './contact.js'
 import type {
@@ -51,23 +51,33 @@ import type {
 }                       from './room.js'
 import {
   UrlLink,
+  UrlLinkImpl,
 }                       from './url-link.js'
 import {
-  MiniProgram,
+  MiniProgramImpl,
 }                       from './mini-program.js'
 import type {
   Image,
 }                       from './image.js'
 import {
   Location,
+  LocationImpl,
 }                       from './location.js'
+
+import { validationMixin } from './mixins/validation.js'
+
+const MixinBase = validationMixin<Message>()(
+  wechatifyMixin(
+    EventEmitter,
+  ),
+)
 
 /**
  * All wechat messages will be encapsulated as a Message.
  *
  * [Examples/Ding-Dong-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
-class Message extends wechatifyMixin(EventEmitter) implements Sayable {
+class MessageImpl extends MixinBase implements Sayable {
 
   /**
    *
@@ -83,10 +93,9 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
   /**
    * Find message in cache
    */
-  static async find<T extends typeof Message> (
-    this  : T,
+  static async find (
     query : string | MessageQueryFilter,
-  ): Promise<T['prototype'] | null> {
+  ): Promise<undefined | Message> {
     log.verbose('Message', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'string') {
@@ -95,7 +104,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
 
     const messageList = await this.findAll(query)
     if (messageList.length < 1) {
-      return null
+      return undefined
     }
 
     if (messageList.length > 1) {
@@ -108,10 +117,9 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
   /**
    * Find messages in cache
    */
-  static async findAll<T extends typeof Message> (
-    this   : T,
+  static async findAll (
     query? : MessageQueryFilter,
-  ): Promise<Array<T['prototype']>> {
+  ): Promise<Message[]> {
     log.verbose('Message', 'findAll(%s)', JSON.stringify(query) || '')
 
     const invalidDict: { [id: string]: true } = {}
@@ -132,9 +140,8 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
       return messageList.filter(message => !invalidDict[message.id])
 
     } catch (e) {
+      this.wechaty.emitError(e)
       log.warn('Message', 'findAll() rejected: %s', (e as Error).message)
-      console.error(e)
-      captureException(e as Error)
       return [] // fail safe
     }
   }
@@ -200,12 +207,12 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
       ']',
     ]
 
-    if (this.type() === Message.Type.Text
-     || this.type() === Message.Type.Unknown
+    if (this.type() === MessageType.Text
+     || this.type() === MessageType.Unknown
     ) {
       msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
-      log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
+      log.silly('Message', 'toString() for message type: %s(%s)', MessageType[this.type()], this.type())
       // if (!this.#payload) {
       //   throw new Error('no payload')
       // }
@@ -271,14 +278,15 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * @depreacated Use `message.talker()` to replace `message.from()`
    *  https://github.com/wechaty/wechaty/issues/2094
    */
-  from (): null | Contact {
+  from (): undefined | Contact {
     log.warn('Message', 'from() is deprecated, use talker() instead. Call stack: %s',
       new Error().stack,
     )
     try {
       return this.talker()
     } catch (e) {
-      return null
+      this.wechaty.emitError(e)
+      return undefined
     }
   }
 
@@ -288,7 +296,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * @returns {(Contact|null)}
    * @deprecated use `listener()` instead
    */
-  to (): null | Contact {
+  to (): undefined | Contact {
     // Huan(202108): I want to deprecate this method name in the future,
     //  and use `message.listener()` to replace it.
     return this.listener()
@@ -298,16 +306,16 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * Get the destination of the message
    * Message.listener() will return null if a message is in a room,
    * use Message.room() to get the room.
-   * @returns {(Contact|null)}
+   * @returns {(undefined | Contact)}
    */
-  listener (): null | Contact {
+  listener (): undefined | Contact {
     if (!this.#payload) {
       throw new Error('no payload')
     }
 
     const listenerId = this.#payload.toId
     if (!listenerId) {
-      return null
+      return undefined
     }
 
     let listener
@@ -340,13 +348,13 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    * })
    * .start()
    */
-  room (): null | Room {
+  room (): undefined | Room {
     if (!this.#payload) {
       throw new Error('no payload')
     }
     const roomId = this.#payload.roomId
     if (!roomId) {
-      return null
+      return undefined
     }
 
     const room = this.wechaty.Room.load(roomId)
@@ -408,22 +416,11 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
       await message.ready()
       return message
     } catch (e) {
+      this.wechaty.emitError(e)
       log.verbose(`Can not retrieve the recalled message with id ${originalMessageId}.`)
       return null
     }
   }
-
-  say (text:     string)      : Promise<void | Message>
-  say (num:      number)      : Promise<void | Message>
-  say (message:  Message)     : Promise<void | Message>
-  say (contact:  Contact)     : Promise<void | Message>
-  say (file:     FileBox)     : Promise<void | Message>
-  say (url:      UrlLink)     : Promise<void | Message>
-  say (mini:     MiniProgram) : Promise<void | Message>
-  say (location: Location)    : Promise<void | Message>
-
-  // Huan(202006): allow fall down to the definition to get more flexibility.
-  // public say (...args: never[]): Promise<never>
 
   /**
    * Reply a Text or Media File message to the sender.
@@ -519,102 +516,13 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', sayableMsg)
 
-    // const user = this.wechaty.puppet.currentUser()
-    const talker = this.talker()
-    // const to   = this.to()
-    const room = this.room()
-
-    let conversationId: string
-    let conversation
+    const talker  = this.talker()
+    const room    = this.room()
 
     if (room) {
-      conversation = room
-      conversationId = room.id
+      return room.say(sayableMsg)
     } else {
-      conversation = talker
-      conversationId = talker.id
-    }
-
-    /**
-     * Support say a existing message: just forward it.
-     */
-    if (sayableMsg instanceof Message) {
-      return sayableMsg.forward(conversation)
-    }
-
-    // Convert number to string
-    if (typeof sayableMsg === 'number') {
-      sayableMsg = String(sayableMsg)
-    }
-
-    let msgId: void | string
-    if (typeof sayableMsg === 'string') {
-      /**
-       * Text Message
-       */
-      let mentionIdList
-      if (await this.mentionSelf()) {
-        mentionIdList = [talker.id]
-      }
-
-      msgId = await this.wechaty.puppet.messageSendText(
-        conversationId,
-        sayableMsg,
-        mentionIdList,
-      )
-    } else if (sayableMsg instanceof Contact) {
-      /**
-       * Contact Card
-       */
-      msgId = await this.wechaty.puppet.messageSendContact(
-        conversationId,
-        sayableMsg.id,
-      )
-    } else if (looseInstanceOfFileBox(sayableMsg)) {
-      /**
-       * Be aware of minified codes:
-       *  https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class#comment60309941_1249554
-       */
-
-      /**
-       * File Message
-       */
-      msgId = await this.wechaty.puppet.messageSendFile(
-        conversationId,
-        sayableMsg,
-      )
-    } else if (sayableMsg instanceof UrlLink) {
-      /**
-       * Link Message
-       */
-      msgId = await this.wechaty.puppet.messageSendUrl(
-        conversationId,
-        sayableMsg.payload,
-      )
-    } else if (sayableMsg instanceof MiniProgram) {
-      /**
-       * MiniProgram
-       */
-      msgId = await this.wechaty.puppet.messageSendMiniProgram(
-        conversationId,
-        sayableMsg.payload,
-      )
-    } else if (sayableMsg instanceof Location) {
-      /**
-       * Location
-       */
-      msgId = await this.wechaty.puppet.messageSendLocation(
-        this.id,
-        sayableMsg.payload,
-      )
-    } else {
-      throw new Error('Message.say() received unknown msg: ' + sayableMsg)
-    }
-
-    if (msgId) {
-      const msg = this.wechaty.Message.load(msgId)
-      await msg.ready()
-      return msg
+      return talker.say(sayableMsg)
     }
   }
 
@@ -682,6 +590,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
 
       return talker.id === this.wechaty.puppet.currentUserId
     } catch (e) {
+      this.wechaty.emitError(e)
       log.error('Message', 'self() rejection: %s', (e as Error).message)
       return false
     }
@@ -985,7 +894,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    */
   async toFileBox (): Promise<FileBox> {
     log.verbose('Message', 'toFileBox()')
-    if (this.type() === Message.Type.Text) {
+    if (this.type() === MessageType.Text) {
       throw new Error('text message no file')
     }
     const fileBox = await this.wechaty.puppet.messageFile(this.id)
@@ -1007,7 +916,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
    */
   toImage (): Image {
     log.verbose('Message', 'toImage() for message id: %s', this.id)
-    if (this.type() !== Message.Type.Image) {
+    if (this.type() !== MessageType.Image) {
       throw new Error(`not a image type message. type: ${this.type()}`)
     }
     return this.wechaty.Image.create(this.id)
@@ -1023,7 +932,7 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
   async toContact (): Promise<Contact> {
     log.verbose('Message', 'toContact()')
 
-    if (this.type() !== Message.Type.Contact) {
+    if (this.type() !== MessageType.Contact) {
       throw new Error('message not a ShareCard')
     }
 
@@ -1045,29 +954,29 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
       throw new Error('no payload')
     }
 
-    if (this.type() !== Message.Type.Url) {
+    if (this.type() !== MessageType.Url) {
       throw new Error('message not a Url Link')
     }
 
     const urlPayload = await this.wechaty.puppet.messageUrl(this.id)
 
-    return new UrlLink(urlPayload)
+    return new UrlLinkImpl(urlPayload)
   }
 
-  async toMiniProgram (): Promise<MiniProgram> {
+  async toMiniProgram (): Promise<MiniProgramImpl> {
     log.verbose('Message', 'toMiniProgram()')
 
     if (!this.#payload) {
       throw new Error('no payload')
     }
 
-    if (this.type() !== Message.Type.MiniProgram) {
+    if (this.type() !== MessageType.MiniProgram) {
       throw new Error('message not a MiniProgram')
     }
 
     const miniProgramPayload = await this.wechaty.puppet.messageMiniProgram(this.id)
 
-    return new MiniProgram(miniProgramPayload)
+    return new MiniProgramImpl(miniProgramPayload)
   }
 
   async toLocation (): Promise<Location> {
@@ -1077,17 +986,27 @@ class Message extends wechatifyMixin(EventEmitter) implements Sayable {
       throw new Error('no payload')
     }
 
-    if (this.type() !== Message.Type.Location) {
+    if (this.type() !== MessageType.Location) {
       throw new Error('message not a Location')
     }
 
     const locationPayload = await this.wechaty.puppet.messageLocation(this.id)
 
-    return new Location(locationPayload)
+    return new LocationImpl(locationPayload)
   }
 
 }
 
-export {
+interface Message extends MessageImpl {}
+type MessageConstructor = Constructor<
   Message,
+  typeof MessageImpl
+>
+
+export type {
+  Message,
+  MessageConstructor,
+}
+export {
+  MessageImpl,
 }

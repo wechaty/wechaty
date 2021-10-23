@@ -17,54 +17,50 @@
  *   limitations under the License.
  *
  */
-import { log } from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
-
-import type { Contact } from './contact.js'
 import { validationMixin } from './mixins/validation.js'
+
 import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
 
-const MixinBase = validationMixin<Moment>()(
+const MixinBase = validationMixin<Sleeper>()(
   wechatifyMixin(
     EmptyBase,
   ),
 )
 
-class MomentImpl extends MixinBase {
+class SleeperImpl extends MixinBase {
 
-  static post () {
-    // post new moment
+  static create (milliseconds: number): Sleeper {
+    return new SleeperImpl(milliseconds)
   }
 
-  static timeline (contact: Contact): MomentImpl[] {
-    // list all moment
-    void contact
-    return []
-  }
-
-  /*
-   * @hideconstructor
-   */
-  constructor () {
+  constructor (
+    public milliseconds: number,
+  ) {
     super()
-    log.verbose('Moment', 'constructor()')
+  }
+
+  sleep (): Promise<void> {
+    return new Promise<void>(resolve => {
+      setTimeout(resolve, this.milliseconds)
+    })
   }
 
 }
 
-interface Moment extends MomentImpl {}
-type MomentConstructor = Constructor<
-  Moment,
-  typeof MomentImpl
+interface Sleeper extends SleeperImpl {}
+type SleeperConstructor = Constructor<
+  Sleeper,
+  typeof SleeperImpl
 >
 
 export type {
-  MomentConstructor,
-  Moment,
+  SleeperConstructor,
+  Sleeper,
 }
 export {
-  MomentImpl,
+  SleeperImpl,
 }
