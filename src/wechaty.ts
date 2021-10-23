@@ -147,7 +147,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * > If you want to know how to get contact, see [Contact](#Contact)
  *
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
- * const { Wechaty } = require('wechaty')
+ * import { Wechaty } from 'wechaty'
  * const bot = new Wechaty()
  * bot.on('scan',    (qrCode, status) => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(qrcode)))
  * bot.on('login',   user => console.log(`User ${user} logged in`))

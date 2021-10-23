@@ -93,7 +93,7 @@ const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversat
       conversationId,
       sayableMessage.id,
     )
-  } else if (FileBox.validInstance(sayableMessage) || FileBox.validInterface(sayableMessage)) {
+  } else if (FileBox.valid(sayableMessage)) {
     /**
      * 3. File
      */

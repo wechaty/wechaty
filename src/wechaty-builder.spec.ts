@@ -37,3 +37,9 @@ test('WechatyBuilder class', async t => {
   t.ok(/wechaty-puppet-mock/.test(wechaty.puppet.name()), 'should get options.puppet')
   await wechaty.stop()
 })
+
+test('throw when set options twice', async t => {
+  const builder = new WechatyBuilder()
+  t.doesNotThrow(() => builder.options({}), 'should not throw for the first time')
+  t.throws(() => builder.options({}), 'should throw for calling options() method the second time')
+})

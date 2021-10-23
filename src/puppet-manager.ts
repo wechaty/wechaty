@@ -56,7 +56,7 @@ export class PuppetManager {
      *  then options.puppet will not instanceof Puppet. (looseInstanceOfPuppet)
      *  So I changed here to match not a string as a workaround.
      */
-    if (Puppet.validInstance(options.puppet)) {
+    if (Puppet.valid(options.puppet)) {
       return options.puppet
     }
 

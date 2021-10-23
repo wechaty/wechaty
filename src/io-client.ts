@@ -17,10 +17,6 @@
  *   limitations under the License.
  *
  */
-/**
- * DO NOT use `require('../')` here!
- * because it will cause a LOOP require ERROR
- */
 import {
   StateSwitch,
   log,
