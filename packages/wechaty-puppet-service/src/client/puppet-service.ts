@@ -740,7 +740,7 @@ export class PuppetService extends Puppet {
         .bind(this.grpc.client)
     )(request)
 
-    let miniProgramPayload = response.getMiniProgram()
+    let miniProgramPayload = response.getMiniProgram()?.toObject()
     if (!miniProgramPayload) {
       /**
        * Deprecated: will be removed after Dec 22, 2022
@@ -1203,7 +1203,7 @@ export class PuppetService extends Puppet {
         .bind(this.grpc.client)
     )(request)
 
-    let pbUrlLinkPayload = response.getUrlLink()
+    let pbUrlLinkPayload = response.getUrlLink()?.toObject()
     if (!pbUrlLinkPayload) {
       // Deprecated: will be removed after Dec 31, 2022
       const jsonText = response.getUrlLinkDeprecated()
