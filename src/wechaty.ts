@@ -119,6 +119,7 @@ import type {
   WechatyConstructor,
 }                       from './interface/wechaty-interface.js'
 import { WechatyBuilder } from './wechaty-builder.js'
+import { timeoutPromise } from './helper-functions/impure/timeout-promise.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -763,23 +764,16 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     if (this.state.off() === 'pending') {
       log.warn('Wechaty', 'start() found that is stopping, waiting stable ...')
 
-      const TIMEOUT_SECONDS = 5
-      const timeoutFuture = new Promise((resolve, reject) => {
-        void resolve
-        setTimeout(
-          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
-          TIMEOUT_SECONDS * 1000,
-        )
-      })
-
       try {
-        await Promise.all([
+        await timeoutPromise(
           this.state.ready('off'),
-          timeoutFuture,
-        ])
+          5 * 1000, // 5 seconds
+          () => new Error('start() timeout because stopping is too long'),
+        )
         log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
       } catch (e) {
         this.emitError(e)
+        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... timeout')
       }
     }
 
@@ -860,23 +854,16 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     if (this.state.on() === 'pending') {
       log.warn('Wechaty', 'stop() found that is starting, waiting stable ...')
 
-      const TIMEOUT_SECONDS = 5
-      const timeoutFuture = new Promise((resolve, reject) => {
-        void resolve
-        setTimeout(
-          () => reject(new Error(TIMEOUT_SECONDS + ' seconds timeout')),
-          TIMEOUT_SECONDS * 1000,
-        )
-      })
-
       try {
-        await Promise.all([
+        await timeoutPromise(
           this.state.ready('on'),
-          timeoutFuture,
-        ])
+          5 * 1000, // 5 seconds
+          () => new Error('stop() timeout after 5 seconds'),
+        )
         log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
       } catch (e) {
         this.emitError(e)
+        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... timeout')
       }
     }
 
