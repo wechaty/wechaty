@@ -9,6 +9,7 @@ import {
 
 import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
 import { WatchdogAgent }      from '../agents/watchdog-agent.js'
+import { timeoutPromise } from '../puppet/timeout-promise.js'
 
 let PUPPET_COUNTER = 0
 
@@ -62,9 +63,20 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
        */
       if (this.resetIndicator.busy()) {
         log.verbose('PuppetStateMixin', 'reset() `resetBusy` is `busy`, wait `available()`...')
-        await this.resetIndicator.available()
-        log.verbose('PuppetStateMixin', 'reset() `resetBusy` is `busy`, wait `available()` done')
-        return
+        try {
+          await timeoutPromise(
+            this.resetIndicator.available(),
+            15 * 1000, // 15 seconds timeout
+            () => new Error('wait resetting timeout'),
+          )
+          log.verbose('PuppetStateMixin', 'reset() `resetBusy` is `busy`, wait `available()` done')
+
+          return
+
+        } catch (e) {
+          this.emitError(e)
+          log.verbose('PuppetStateMixin', 'reset() `resetBusy` is `busy`, wait `available()` timeout')
+        }
       }
 
       this.resetIndicator.busy(true)
@@ -74,14 +86,23 @@ const stateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
          * If the Puppet is starting/stopping, wait for it
          * The state will be `'on'` after await `ready()`
          */
-        await this.state.ready()
+        try {
+          await timeoutPromise(
+            this.state.ready(),
+            15 * 1000, // 15 seconds timeout
+            () => new Error('state.ready() timeout'),
+          )
+        } catch (e) {
+          this.emitError(e)
+          log.verbose('PuppetStateMixin', 'reset() `this.state.ready()` timeout')
+        }
 
         await this.stop()
         await this.start()
 
       } catch (e) {
-        // log.warn('PuppetStateMixin', 'reset() rejection: %s', e)
         this.emitError(e)
+        log.warn('PuppetStateMixin', 'reset() rejection: %s', (e as Error).message)
 
       } finally {
         log.verbose('PuppetStateMixin', 'reset() done')
