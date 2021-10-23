@@ -20,30 +20,31 @@
  */
 import {
   Wechaty,
+  WechatyBuilder,
   VERSION,
-}           from 'wechaty'
+}                   from 'wechaty'
 
 import assert from 'assert'
 
 function getBotList (): Wechaty[] {
   const botList = [
-    new Wechaty({ puppet: 'wechaty-puppet-mock' }),
+    new WechatyBuilder().options({ puppet: 'wechaty-puppet-mock' }).build(),
     // new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
     // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
   if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
     botList.push(
-      new Wechaty({
+      new WechatyBuilder().options({
         puppet: 'wechaty-puppet-service',
-      })
+      }).build()
     )
   }
   if (process.env.WECHATY_PUPPET_PADLOCAL_TOKEN) {
     botList.push(
-      new Wechaty({
+      new WechatyBuilder().options({
         puppet: 'wechaty-puppet-padlocal',
-      })
+      }).build()
     )
   }
 
