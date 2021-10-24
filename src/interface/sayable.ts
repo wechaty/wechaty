@@ -62,46 +62,53 @@ interface Sayable {
   ): Promise<void | Message>
 }
 
+/**
+ * TODO: add unit test to ensure the interface validation code works
+ */
 const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversationId: string) => async (sayableMessage: SayableMessage) => {
   let msgId: string | void
 
-  if (typeof sayableMessage === 'number') {
-    sayableMessage = String(sayableMessage)
-  }
+  if (!(sayableMessage instanceof Object)) {
+    if (typeof sayableMessage === 'number') {
+      sayableMessage = String(sayableMessage)
+    }
 
-  if (MessageImpl.valid(sayableMessage)) {
-    /**
-     * 0. Message
-     */
-    msgId = await puppet.messageForward(
-      conversationId,
-      sayableMessage.id,
-    )
-  } else if (typeof sayableMessage === 'string') {
-    /**
-     * 1. Text
-     */
     msgId = await puppet.messageSendText(
       conversationId,
       sayableMessage,
     )
-  } else if (ContactImpl.valid(sayableMessage)) {
+    return msgId
+  }
+
+  /**
+   * Huan(202110): Checking `looseInstanceOf` is enough for the following types:
+   *  so we do not check `interfaceOfClass` anymore because it will consume more resources.
+   */
+  if (FileBox.validInstance(sayableMessage)) {
     /**
-     * 2. Contact
-     */
-    msgId = await puppet.messageSendContact(
-      conversationId,
-      sayableMessage.id,
-    )
-  } else if (FileBox.valid(sayableMessage)) {
-    /**
-     * 3. File
+     * 1. File
      */
     msgId = await puppet.messageSendFile(
       conversationId,
       sayableMessage,
     )
-  } else if (UrlLinkImpl.valid(sayableMessage)) {
+  } else if (MessageImpl.validInstance(sayableMessage)) {
+    /**
+     * 2. Message
+     */
+    msgId = await puppet.messageForward(
+      conversationId,
+      sayableMessage.id,
+    )
+  } else if (ContactImpl.validInstance(sayableMessage)) {
+    /**
+     * 3. Contact
+     */
+    msgId = await puppet.messageSendContact(
+      conversationId,
+      sayableMessage.id,
+    )
+  } else if (UrlLinkImpl.validInstance(sayableMessage)) {
     /**
      * 4. Link Message
      */
@@ -109,7 +116,7 @@ const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversat
       conversationId,
       sayableMessage.payload,
     )
-  } else if (MiniProgramImpl.valid(sayableMessage)) {
+  } else if (MiniProgramImpl.validInstance(sayableMessage)) {
     /**
      * 5. Mini Program
      */
@@ -117,7 +124,7 @@ const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversat
       conversationId,
       sayableMessage.payload,
     )
-  } else if (LocationImpl.valid(sayableMessage)) {
+  } else if (LocationImpl.validInstance(sayableMessage)) {
     /**
      * 6. Location
      */
@@ -125,15 +132,13 @@ const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversat
       conversationId,
       sayableMessage.payload,
     )
-  } else if (SleeperImpl.valid(sayableMessage)) {
+  } else if (SleeperImpl.validInstance(sayableMessage)) {
     /**
      * 7. Sleep for a while
      */
     await sayableMessage.sleep()
   } else {
-
     throw new Error('unsupported arg: ' + sayableMessage)
-
   }
 
   return msgId
