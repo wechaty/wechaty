@@ -134,7 +134,7 @@ const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversat
     )
   } else if (DelayImpl.validInstance(sayableMessage)) {
     /**
-     * 7. Sleep for a while
+     * 7. Delay for a while
      */
     await sayableMessage.wait()
   } else {

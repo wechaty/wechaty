@@ -14,7 +14,7 @@ import type {
   MiniProgramConstructor,
   RoomInvitationConstructor,
   RoomConstructor,
-  SleeperConstructor,
+  DelayConstructor,
   TagConstructor,
   UrlLinkConstructor,
 }                             from '../user/mod.js'
@@ -37,7 +37,7 @@ test('Wechaty interface', async t => {
     MiniProgram    : MiniProgramConstructor
     Room           : RoomConstructor
     RoomInvitation : RoomInvitationConstructor
-    Sleeper        : SleeperConstructor
+    Delay        : DelayConstructor
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
 
@@ -58,7 +58,7 @@ test('Wechaty interface', async t => {
         = this.puppet
         = this.Room
         = this.RoomInvitation
-        = this.Sleeper
+        = this.Delay
         = this.state
         = this.Tag
         = this.UrlLink
