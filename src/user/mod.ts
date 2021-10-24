@@ -88,10 +88,10 @@ import {
   UrlLinkConstructor,
 }                           from './url-link.js'
 import {
-  SleeperImpl,
-  Sleeper,
-  SleeperConstructor,
-}                           from './sleeper.js'
+  DelayImpl,
+  Delay,
+  DelayConstructor,
+}                           from './delay.js'
 
 import { wechatifyUserClass } from './mixins/wechatify.js'
 
@@ -109,7 +109,7 @@ export type {
   Room,
   RoomInvitation,
   Tag,
-  Sleeper,
+  Delay,
   UrlLink,
 }
 
@@ -126,7 +126,7 @@ export type {
   MoneyConstructor,
   RoomConstructor,
   RoomInvitationConstructor,
-  SleeperConstructor,
+  DelayConstructor,
   TagConstructor,
   UrlLinkConstructor,
 }
@@ -145,7 +145,7 @@ export {
   MoneyImpl,
   RoomImpl,
   RoomInvitationImpl,
-  SleeperImpl,
+  DelayImpl,
   TagImpl,
   UrlLinkImpl,
 }

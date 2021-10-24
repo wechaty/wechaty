@@ -29,10 +29,10 @@ const MixinBase = wechatifyMixin(
   EmptyBase,
 )
 
-class SleeperMixin extends MixinBase {
+class DelayMixin extends MixinBase {
 
-  static create (milliseconds: number): Sleeper {
-    return new SleeperImpl(milliseconds)
+  static create (milliseconds: number): Delay {
+    return new DelayImpl(milliseconds)
   }
 
   constructor (
@@ -41,7 +41,7 @@ class SleeperMixin extends MixinBase {
     super()
   }
 
-  sleep (): Promise<void> {
+  wait (): Promise<void> {
     return new Promise<void>(resolve => {
       setTimeout(resolve, this.milliseconds)
     })
@@ -49,18 +49,18 @@ class SleeperMixin extends MixinBase {
 
 }
 
-class SleeperImpl extends validationMixin(SleeperMixin)<Sleeper>() {}
-interface Sleeper extends SleeperImpl {}
+class DelayImpl extends validationMixin(DelayMixin)<Delay>() {}
+interface Delay extends DelayImpl {}
 
-type SleeperConstructor = Constructor<
-  Sleeper,
-  typeof SleeperImpl
+type DelayConstructor = Constructor<
+  Delay,
+  typeof DelayImpl
 >
 
 export type {
-  SleeperConstructor,
-  Sleeper,
+  DelayConstructor,
+  Delay,
 }
 export {
-  SleeperImpl,
+  DelayImpl,
 }

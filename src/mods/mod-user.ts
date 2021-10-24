@@ -30,7 +30,7 @@ export type {
   Money,
   Room,
   RoomInvitation,
-  Sleeper,
+  Delay,
   Tag,
   UrlLink,
 }                   from '../user/mod.js'
