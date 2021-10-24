@@ -72,7 +72,7 @@ import {
   MiniProgramImpl,
   RoomImpl,
   RoomInvitationImpl,
-  SleeperImpl,
+  DelayImpl,
   TagImpl,
   UrlLinkImpl,
   LocationImpl,
@@ -86,7 +86,7 @@ import {
   RoomConstructor,
   RoomInvitationConstructor,
   TagConstructor,
-  SleeperConstructor,
+  DelayConstructor,
   UrlLinkConstructor,
   LocationConstructor,
 
@@ -99,7 +99,7 @@ import {
   // Room,
   // RoomInvitation,
   // Tag,
-  // Sleeper,
+  // Delay,
   // UrlLink,
   // Location,
 
@@ -198,7 +198,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   protected _wechatifiedMiniProgram?    : MiniProgramConstructor
   protected _wechatifiedRoom?           : RoomConstructor
   protected _wechatifiedRoomInvitation? : RoomInvitationConstructor
-  protected _wechatifiedSleeper?        : SleeperConstructor
+  protected _wechatifiedDelay?          : DelayConstructor
   protected _wechatifiedTag?            : TagConstructor
   protected _wechatifiedUrlLink?        : UrlLinkConstructor
   protected _wechatifiedLocation?       : LocationConstructor
@@ -211,7 +211,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
   get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this._wechatifiedMiniProgram)    }
   get Room ()           : RoomConstructor           { return guardWechatify(this._wechatifiedRoom)           }
   get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this._wechatifiedRoomInvitation) }
-  get Sleeper ()        : SleeperConstructor        { return guardWechatify(this._wechatifiedSleeper)        }
+  get Delay ()          : DelayConstructor          { return guardWechatify(this._wechatifiedDelay)        }
   get Tag ()            : TagConstructor            { return guardWechatify(this._wechatifiedTag)            }
   get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this._wechatifiedUrlLink)        }
   get Location ()       : LocationConstructor       { return guardWechatify(this._wechatifiedLocation)       }
@@ -723,7 +723,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     this._wechatifiedMiniProgram    = wechatifyUserClass(MiniProgramImpl)(this)
     this._wechatifiedRoom           = wechatifyUserClass(RoomImpl)(this)
     this._wechatifiedRoomInvitation = wechatifyUserClass(RoomInvitationImpl)(this)
-    this._wechatifiedSleeper        = wechatifyUserClass(SleeperImpl)(this)
+    this._wechatifiedDelay          = wechatifyUserClass(DelayImpl)(this)
     this._wechatifiedTag            = wechatifyUserClass(TagImpl)(this)
     this._wechatifiedUrlLink        = wechatifyUserClass(UrlLinkImpl)(this)
     this._wechatifiedLocation       = wechatifyUserClass(LocationImpl)(this)

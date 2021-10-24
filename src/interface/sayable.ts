@@ -25,7 +25,7 @@ import type {
   Location,
   Message,
   MiniProgram,
-  Sleeper,
+  Delay,
   UrlLink,
 }                           from '../user/mod.js'
 
@@ -36,7 +36,7 @@ import type {
 import {
   ContactImpl,
   MessageImpl,
-  SleeperImpl,
+  DelayImpl,
   UrlLinkImpl,
   MiniProgramImpl,
   LocationImpl,
@@ -50,7 +50,7 @@ type SayableMessage = never
   | MiniProgram
   | number
   | string
-  | Sleeper
+  | Delay
   | UrlLink
 
 interface Sayable {
@@ -132,11 +132,11 @@ const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversat
       conversationId,
       sayableMessage.payload,
     )
-  } else if (SleeperImpl.validInstance(sayableMessage)) {
+  } else if (DelayImpl.validInstance(sayableMessage)) {
     /**
      * 7. Sleep for a while
      */
-    await sayableMessage.sleep()
+    await sayableMessage.wait()
   } else {
     throw new Error('unsupported arg: ' + sayableMessage)
   }
