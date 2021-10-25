@@ -119,7 +119,13 @@ class RoomMixin extends MixinBase implements Sayable {
    */
 
   /**
-   * Find room by by filter: {topic: string | RegExp}, return all the matched room
+   * Find room by filter: {topic: string | RegExp}, return all the matched room.
+   *
+   * NOTE: The returned list would be limited by the underlying puppet
+   * implementation of `puppet.roomList`. Some implementation (i.e.
+   * wechaty-puppet-wechat) would only return rooms which have received messges
+   * after a log-in.
+   *
    * @static
    * @param {RoomQueryFilter} [query]
    * @returns {Promise<Room[]>}
@@ -173,6 +179,11 @@ class RoomMixin extends MixinBase implements Sayable {
 
   /**
    * Try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
+   *
+   * NOTE: The search space is limited by the underlying puppet
+   * implementation of `puppet.roomList`. Some implementation (i.e.
+   * wechaty-puppet-wechat) would only return rooms which have received messges
+   * after a log-in.
    *
    * @param {RoomQueryFilter} query
    * @returns {Promise<Room | null>} If can find the room, return Room, or return null
