@@ -119,7 +119,6 @@
     "qrcode-terminal": "^0.12.0",
     "raven": "^2.6.4",
     "sloc": "^0.2.1",
-    "tstest": "^1.0.1",
     "typed-emitter": "^1.4.0",
     "typedoc": "^1.0.0-dev.4 ",
     "wechaty-puppet-mock": "^0.36.0",
