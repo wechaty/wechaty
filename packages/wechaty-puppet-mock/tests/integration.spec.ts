@@ -2,10 +2,12 @@
 
 import { test }  from 'tstest'
 
-import {
+import type {
   Message,
-  Wechaty,
-}                from 'wechaty'
+}                 from 'wechaty'
+import {
+  WechatyBuilder,
+}                 from 'wechaty'
 import type {
   ContactMock,
   RoomMock,
@@ -19,7 +21,7 @@ import {
 async function * wechatyFixture () {
   const mocker  = new mock.Mocker()
   const puppet  = new PuppetMock({ mocker })
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = WechatyBuilder.build({ puppet })
 
   try {
     await wechaty.start()
@@ -37,7 +39,7 @@ async function * wechatyFixture () {
 test('integration testing', async t => {
   const mocker = new mock.Mocker()
   const puppet = new PuppetMock({ mocker })
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = WechatyBuilder.build({ puppet })
 
   t.ok(wechaty, 'should instantiate wechaty with puppet mocker')
 })
@@ -137,7 +139,7 @@ test('Wechaty bot can receive message sent from mocker', async t => {
     const player = mocker.createContact({ name: 'Player' })
 
     mocker.login(bot)
-    const wechatyUserSelf = wechaty.wechaty.userSelf()
+    const wechatyUserSelf = wechaty.currentUser()
 
     const directMessage = await new Promise<Message>(resolve => {
       wechatyUserSelf.once('message', resolve)

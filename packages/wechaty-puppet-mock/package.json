@@ -64,10 +64,10 @@
     "shx": "^0.3.3",
     "tstest": "^0.5.16",
     "typescript": "4.4",
-    "wechaty": "^0.77"
+    "wechaty": "^0.78.6"
   },
   "peerDependencies": {
-    "wechaty-puppet": ">=0.52"
+    "wechaty-puppet": ">=0.52.1"
   },
   "dependencies": {
     "cuid": "^2.1.8",

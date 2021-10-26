@@ -7,7 +7,7 @@ import {
 
 import {
   // UrlLink,
-  Wechaty,
+  WechatyBuilder,
   // MiniProgram,
 }                       from 'wechaty'
 import {
@@ -337,7 +337,7 @@ test.skip('wechaty.reply(contact)', async t => {
   }         = createFixture()
   await puppet.start()
   await mocker.login(user)
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = WechatyBuilder.build({ puppet })
   await wechaty.start()
   wechaty.on('message', async message => {
     if (message.self()) {
@@ -399,12 +399,11 @@ test.skip('wechaty.reply(fileBox)', async t => {
   }         = createFixture()
   await puppet.start()
   await mocker.login(user)
-  const wechaty = new Wechaty({ puppet })
+  const wechaty = WechatyBuilder.build({ puppet })
   await wechaty.start()
 
   const fileBox = FileBox.fromBase64(
     'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
-    'mock-file.txt',
   )
   wechaty.on('message', async message => {
     if (message.self()) {
