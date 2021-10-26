@@ -17,8 +17,8 @@
  *   limitations under the License.
  *
  */
-import uuid             from 'uuid'
-import os               from 'os'
+import * as uuid  from 'uuid'
+import os         from 'os'
 
 import {
   log,
