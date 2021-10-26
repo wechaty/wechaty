@@ -57,6 +57,6 @@ test('WechatyBuilder class static', async t => {
 
   const wechaty = WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' })
   await wechaty.start()
-  t.ok(PuppetMock.validInstance(wechaty.puppet), 'should get options.puppet')
+  t.ok(PuppetMock.validInstance(wechaty.puppet), 'should set options.puppet to mock')
   await wechaty.stop()
 })
