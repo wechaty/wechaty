@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "0.35.8",
+  "version": "0.36.0",
   "description": "Puppet Mocker for Wechaty",
   "directories": {
     "test": "tests"
@@ -67,7 +67,7 @@
     "wechaty": "^0.77"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^0.51.3"
+    "wechaty-puppet": ">=0.52"
   },
   "dependencies": {
     "cuid": "^2.1.8",
