@@ -10,6 +10,7 @@ import {
   FriendshipType,
   ImageType,
   MessageType,
+  PayloadType,
 
   CHAT_EVENT_DICT,
   PUPPET_EVENT_DICT,
@@ -21,8 +22,6 @@ import {
 export type {
   PuppetEventName,
   ChatEventName,
-  CHAT_EVENT_DICT,
-  PUPPET_EVENT_DICT,
 }
 export {
   ContactGender,
@@ -31,11 +30,14 @@ export {
   FriendshipType      as Friendship,
   ImageType           as Image,
   MessageType         as Message,
+  PayloadType         as Payload,
 }
 
 export {
   ScanStatus,
   YOU,
+  CHAT_EVENT_DICT,
+  PUPPET_EVENT_DICT,
 }
 
 export type {

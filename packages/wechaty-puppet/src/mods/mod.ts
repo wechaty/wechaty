@@ -19,6 +19,9 @@ import {
   VERSION,
   log,
 }                             from '../config.js'
+import type {
+  PuppetOptions,
+}                             from '../schemas/puppet.js'
 import {
   Puppet,
 }                             from '../puppet/puppet-abstract.js'
@@ -26,6 +29,9 @@ import {
   throwUnsupportedError,
 }                             from '../throw-unsupported-error.js'
 
+export type {
+  PuppetOptions,
+}
 export {
   log,
   Puppet,

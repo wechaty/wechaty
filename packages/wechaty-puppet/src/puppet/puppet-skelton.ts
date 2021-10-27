@@ -117,13 +117,13 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
       return super.emit(event, ...args)
     }
 
-    const err = args[0]
+    const arg0 = args[0]
     let gerr: GError
 
-    if (err instanceof GError) {
-      gerr = err
+    if (arg0 instanceof GError) {
+      gerr = arg0
     } else {
-      gerr = GError.from(err)
+      gerr = GError.from(arg0)
     }
 
     /**
