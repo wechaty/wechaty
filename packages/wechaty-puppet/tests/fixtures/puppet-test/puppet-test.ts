@@ -204,8 +204,8 @@ class PuppetTest extends Puppet {
    *  - Huan(202108): uncommented the below code
    *      and change `reset` from private to protected in parent class
    */
-  override async reset (reason: string): Promise<void> {
-    return super.reset(reason)
+  override async reset (): Promise<void> {
+    return super.reset()
   }
 
 }

@@ -4,7 +4,7 @@ import type { MixinProtectedProperty } from '../mixins/mod.js'
 import type { PuppetSkeltonProtectedProperty } from './puppet-skelton.js'
 import type { Puppet } from './mod.js'
 
-type PuppetProtectedProperty = never
+type PuppetProtectedProperty =
   | MixinProtectedProperty
   | PuppetSkeltonProtectedProperty
 

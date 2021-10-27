@@ -11,6 +11,7 @@ import {
   isGrpcStatus,
   Code,
 }                           from './grpc.js'
+import { isEventErrorPayload } from './puppet.js'
 
 const isGError = (payload: any): payload is GError => payload instanceof Object
   && isEcmaError(payload)
@@ -25,6 +26,15 @@ class GError extends Error implements GrpcStatus, EcmaError {
   details? : any[]
 
   public static from (payload: any): GError {
+    /**
+     * Huan(202110): in case of the payload is a Puppet Error Payload
+     *  CAUTION: we must make sure the payload with a { data } property
+     *    can be only the EventErrorPayload
+     */
+    if (isEventErrorPayload(payload)) {
+      payload = payload.data
+    }
+
     if (payload instanceof Object || typeof payload === 'string') {
       try {
         return this.fromJSON(payload)

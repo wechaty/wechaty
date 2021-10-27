@@ -40,29 +40,28 @@ import {
   roomInvitationMixin,
   roomMemberMixin,
   roomMixin,
-  stateMixin,
+  serviceMixin,
   tagMixin,
   validateMixin,
 }                        from '../mixins/mod.js'
 
 import { PuppetSkelton } from './puppet-skelton.js'
-import { timeoutPromise } from './timeout-promise.js'
 
 /**
  * Huan(202110): use compose() to compose mixins
  */
-const MixinBase = miscMixin(
-  validateMixin(
-    messageMixin(
-      roomInvitationMixin(
-        tagMixin(
-          friendshipMixin(
-            roomMixin(
-              roomMemberMixin(
-                contactMixin(
-                  loginMixin(
-                    cacheMixin(
-                      stateMixin(
+const MixinBase = serviceMixin(
+  miscMixin(
+    validateMixin(
+      messageMixin(
+        roomInvitationMixin(
+          tagMixin(
+            friendshipMixin(
+              roomMixin(
+                roomMemberMixin(
+                  contactMixin(
+                    loginMixin(
+                      cacheMixin(
                         memoryMixin(
                           PuppetSkelton,
                         ),
@@ -91,21 +90,8 @@ abstract class Puppet extends MixinBase {
   /**
    * Must overwrite by child class to identify their version
    */
-  static readonly VERSION = VERSION
+  static override readonly VERSION = VERSION
 
-  /**
-   * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
-   */
-  // Huan(202108): Remove this property, because it the `hot-import` module is not a ESM compatible one
-  // private readonly childPkg: normalize.Package
-
-  /**
-   *
-   *
-   * Constructor
-   *
-   *
-   */
   constructor (
     public override options: PuppetOptions = {},
   ) {
@@ -133,122 +119,8 @@ abstract class Puppet extends MixinBase {
    * `onStop()` is the same as the `onStart()`
    *  @see https://github.com/wechaty/puppet/issues/163
    */
-  abstract onStart (): Promise<void>
-  abstract onStop  (): Promise<void>
-
-  override async start () : Promise<void> {
-    log.verbose('Puppet', 'start()')
-
-    if (this.state.on()) {
-      log.warn('Puppet', 'start() found that is starting/statred...')
-      await this.state.ready('on')
-      log.warn('Puppet', 'start() found that is starting/statred... done')
-      return
-    }
-
-    if (this.state.off() === 'pending') {
-      log.warn('Puppet', 'start() found that is stopping...')
-
-      try {
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ...')
-        await timeoutPromise(
-          this.state.ready('off'),
-          5 * 1000, // 5 seconds
-        )
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
-      } catch (e) {
-        this.emitError(e)
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... timeout')
-      }
-    }
-
-    this.state.on('pending')
-
-    try {
-      /**
-       * start parent(super) first, then self(this)
-       */
-      await super.start()
-      if (!this.calledSkeltonStart) {
-        throw GError.from([
-          'All mixin classes should propogate the `start()` call to its base class.',
-          '@see https://github.com/wechaty/puppet/issues/156',
-        ].join('\n'))
-      }
-      log.verbose('Puppet', 'start() super.start() done')
-
-      await this.onStart()
-      log.verbose('Puppet', 'start() this.onStart() done')
-
-      /**
-       * the puppet has been successfully started
-       */
-      this.state.on(true)
-
-    } catch (e) {
-      this.emitError(e)
-      await this.stop()
-      throw e
-    }
-  }
-
-  override async stop (): Promise<void> {
-    log.verbose('Puppet', 'stop()')
-
-    if (this.state.off()) {
-      log.warn('Puppet', 'stop() found that is stopping/stopped...')
-      await this.state.ready()
-      log.warn('Puppet', 'stop() found that is stopping/stopped... done')
-      return
-    }
-
-    if (this.state.on() === 'pending') {
-      log.warn('Puppet', 'stop() found that is starting...')
-
-      try {
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ...')
-        await timeoutPromise(
-          this.state.ready('on'),
-          5 * 1000, // 5 seconds
-        )
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
-      } catch (e) {
-        this.emitError(e)
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... timeout')
-      }
-    }
-
-    this.state.off('pending')
-
-    try {
-      /**
-       * stop self(this) first, then (parent) super
-       */
-      await this.onStop()
-      log.verbose('Puppet', 'stop() this.stop() done')
-    } catch (e) {
-      this.emitError(e)
-    }
-
-    try {
-      await super.stop()
-      if (!this.calledSkeltonStop) {
-        throw GError.from([
-          'All mixin classes should propogate the `stop()` call to its base class.',
-          '@see https://github.com/wechaty/puppet/issues/156',
-        ].join('\n'))
-      }
-      log.verbose('Puppet', 'stop() super.stop() done')
-    } catch (e) {
-      this.emitError(e)
-    }
-
-    /**
-     * no matter whether the `try {...}` code success or not
-     *  set the puppet state to off(stopped) state
-     */
-    this.state.off(true)
-  }
+  abstract override onStart (): Promise<void>
+  abstract override onStop  (): Promise<void>
 
   /**
    *

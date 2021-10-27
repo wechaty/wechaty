@@ -137,7 +137,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
           }
 
         } catch (e) {
-          this.emitError(e)
+          this.emit('error', e)
           await this.dirtyPayloadContact(id)
         }
         return undefined
@@ -296,7 +296,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
   return ContactMixin
 }
 
-type ProtectedPropertyContactMixin = never
+type ProtectedPropertyContactMixin =
 | 'contactRawPayload'
 | 'contactRawPayloadParser'
 | 'contactQueryFilterFactory'

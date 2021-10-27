@@ -215,7 +215,7 @@ const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(base
 
 type MessageMixin = ReturnType<typeof messageMixin>
 
-type ProtectedPropertyMessageMixin = never
+type ProtectedPropertyMessageMixin =
   | 'messagePayloadCache'
   | 'messageQueryFilterFactory'
   | 'messageRawPayload'

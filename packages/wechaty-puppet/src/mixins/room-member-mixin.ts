@@ -169,7 +169,7 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin>(
 
 type RoomMemberMixin = ReturnType<typeof roomMemberMixin>
 
-type ProtectedPropertyRoomMemberMixin = never
+type ProtectedPropertyRoomMemberMixin =
 | 'roomMemberRawPayload'
 | 'roomMemberRawPayloadParser'
 

@@ -4,7 +4,7 @@ import {
 }                       from 'watchdog'
 
 import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
-import type { StateMixin } from '../mixins/state-mixin.js'
+import type { ServiceMixin } from '../mixins/service-mixin.js'
 
 import {
   log,
@@ -19,7 +19,7 @@ class WatchdogAgent {
   private cleanCallbackList: Function[]
 
   constructor (
-    protected readonly puppet: PuppetSkelton & InstanceType<StateMixin>,
+    protected readonly puppet: PuppetSkelton & InstanceType<ServiceMixin>,
   ) {
     log.verbose('WatchdogAgent', 'constructor(%s)', puppet.id)
 
@@ -57,9 +57,10 @@ class WatchdogAgent {
      */
     const reset = (lastFood: WatchdogFood) => {
       log.warn('WatchdogAgent', 'start() reset() reason: %s', JSON.stringify(lastFood))
-      this.puppet
-        .reset(`WatchdogAgent reset: lastFood: "${JSON.stringify(lastFood)}"`)
-        .catch(e => log.error('WatchdogAgent', 'start() reset() rejection: %s', e.message))
+      this.puppet.emit('error', new Error(
+        `WatchdogAgent reset: lastFood: "${JSON.stringify(lastFood)}"`,
+      ))
+      this.puppet.wrapAsync(this.puppet.reset())
     }
     this.watchdog.on('reset', reset)
     this.cleanCallbackList.push(() => this.puppet.off('reset', reset))

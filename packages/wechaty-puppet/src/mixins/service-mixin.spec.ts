@@ -5,12 +5,12 @@ import {
 }           from 'tstest'
 
 import type {
-  StateMixin,
-  ProtectedPropertyStateMixin,
-}                                         from './state-mixin.js'
+  ServiceMixin,
+  ProtectedPropertyServiceMixin,
+}                                         from './service-mixin.js'
 
-test('ProtectedPropertyStateMixin', async t => {
-  type NotExistInMixin = Exclude<ProtectedPropertyStateMixin, keyof InstanceType<StateMixin>>
+test('ProtectedPropertyServiceMixin', async t => {
+  type NotExistInMixin = Exclude<ProtectedPropertyServiceMixin, keyof InstanceType<ServiceMixin>>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true

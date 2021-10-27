@@ -102,7 +102,7 @@ const roomInvitationMixin = <MixinBase extends typeof PuppetSkelton & CacheMixin
 
 type RoomInvitationMixin = ReturnType<typeof roomInvitationMixin>
 
-type ProtectedPropertyRoomInvitationMixin = never
+type ProtectedPropertyRoomInvitationMixin =
   | 'roomInvitationPayloadCache'
   | 'roomInvitationRawPayload'
   | 'roomInvitationRawPayloadParser'

@@ -28,6 +28,7 @@ import {
 import {
   GError,
 }                       from '../gerror/gerror.js'
+import type { EventErrorPayload } from '../mod.js'
 
 import type {
   PuppetOptions,
@@ -90,29 +91,70 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
   async stop (): Promise<void> {
     log.verbose('PuppetSkelton', 'stop()')
     this.calledSkeltonStop  = true
-
   }
 
   /**
-   * Convert any error to GError,
-   *  and emit `error` event with GError
+   * Convert any error payload to GError ,
+   *  and re-emit a `error` event with EventErrorPayload(GError)
    */
-  emitError (e: unknown): void {
-    if (!(e instanceof GError)) {
-      e = GError.from(e)
+  override emit (event: any, ...args: any) {
+    if (event !== 'error') {
+      return super.emit(event, ...args)
     }
 
-    this.emit('error', {
-      data: JSON.stringify(e),
-    })
+    const err = args[0]
+    let gerr: GError
+
+    if (err instanceof GError) {
+      gerr = err
+    } else {
+      gerr = GError.from(err)
+    }
+
+    /**
+     * Convert everything to a GError toJSON object
+     *  as EventErrorPayload
+     */
+    const payload: EventErrorPayload = {
+      data: JSON.stringify(gerr),
+    }
+
+    return super.emit('error', payload)
+  }
+
+  /**
+   * Wrap promise in sync way (catch error by emitting it)
+   *  1. convert a async callback function to be sync function
+   *    by catcing any errors and emit them to error event
+   *  2. wrap a Promise by catcing any errors and emit them to error event
+   */
+  wrapAsync (promise: Promise<any>): void
+  wrapAsync <T extends (...args: any[]) => Promise<any>> (
+    asyncStaff: T,
+  ): (...args: Parameters<T>) => void
+
+  wrapAsync<T extends (...args: any[]) => Promise<any>> (
+    asyncStaff: T | Promise<any>,
+  ) {
+    const puppet = this
+
+    if (asyncStaff instanceof Promise) {
+      asyncStaff
+        .then(_ => _)
+        .catch(e => puppet.emit('error', e))
+      return
+    }
+
+    return function (this: any, ...args: Parameters<T>): void {
+      asyncStaff.apply(this, args).catch(e => puppet.emit('error', e))
+    }
   }
 
 }
 
-type PuppetSkeltonProtectedProperty = never
+type PuppetSkeltonProtectedProperty =
   | 'calledSkeltonStart'
   | 'calledSkeltonStop'
-  | 'emitError'
 
 export type {
   PuppetSkeltonProtectedProperty,

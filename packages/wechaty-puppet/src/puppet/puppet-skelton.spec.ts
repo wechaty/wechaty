@@ -2,10 +2,15 @@
 
 import {
   test,
+  sinon,
 }           from 'tstest'
+import { isEventErrorPayload } from '../gerror/puppet.js'
+import { GError } from '../gerror/gerror.js'
 
 import type {
   PuppetSkeltonProtectedProperty,
+}                             from './puppet-skelton.js'
+import {
   PuppetSkelton,
 }                             from './puppet-skelton.js'
 
@@ -15,4 +20,61 @@ test('ProtectedPropertySkelton', async t => {
 
   const noOneLeft: NotExistTest = true
   t.ok(noOneLeft, 'should match Mixin properties for every protected property')
+})
+
+test('emit(error, ...) with GError', async t => {
+  class PuppetSkeltonImpl extends PuppetSkelton {}
+
+  const puppet = new PuppetSkeltonImpl()
+
+  const FIXTURES = [
+    undefined,
+    null,
+    true,
+    false,
+    0,
+    1,
+    '',
+    'foo',
+    [],
+    [1],
+    {},
+    { foo: 'bar' },
+    new Error(),
+    new Error('foo'),
+    GError.from(new Error('test')),
+  ]
+
+  let payload: any
+  puppet.on('error', (...args: any[]) => {
+    payload = args[0]
+  })
+
+  for (const data of FIXTURES) {
+    puppet.emit('error', data)
+    await Promise.resolve()
+    t.ok(isEventErrorPayload(payload), `should be an error payload for ${typeof data} "${JSON.stringify(data)}"`)
+    t.doesNotThrow(() => GError.fromJSON(payload.data), 'should be successfully deserialized to GError')
+  }
+})
+
+test('wrapAsync() promise', async t => {
+  class PuppetSkeltonImpl extends PuppetSkelton {}
+  const puppet = new PuppetSkeltonImpl()
+
+  const spy = sinon.spy()
+  puppet.on('error', spy)
+
+  const DATA = 'test'
+  const promise = Promise.resolve(DATA)
+  const wrappedPromise = puppet.wrapAsync(promise)
+  t.equal(await wrappedPromise, undefined, 'should resolve Promise<any> to void')
+
+  const rejection = Promise.reject(new Error('test'))
+  const wrappedRejection = puppet.wrapAsync(rejection)
+  t.equal(wrappedRejection, undefined, 'should be void and not to reject')
+
+  t.equal(spy.callCount, 0, 'should have no error before sleep')
+  await new Promise(resolve => setImmediate(resolve)) // wait async event loop task to be executed
+  t.equal(spy.callCount, 1, 'should emit error when promise reject with error')
 })

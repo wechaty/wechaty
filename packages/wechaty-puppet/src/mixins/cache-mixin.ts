@@ -45,7 +45,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
 type CacheMixin = ReturnType<typeof cacheMixin>
 
-type ProtectedPropertyCacheMixin = never
+type ProtectedPropertyCacheMixin =
   | 'cache'
 
 export type {

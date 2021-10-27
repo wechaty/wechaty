@@ -32,4 +32,9 @@ const tagMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) 
   return TagMixin
 }
 
+type ProtectedPropertyTagMixin = never
+
+export type {
+  ProtectedPropertyTagMixin,
+}
 export { tagMixin }

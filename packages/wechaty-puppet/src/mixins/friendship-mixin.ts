@@ -132,7 +132,7 @@ const friendshipMixin = <MixinBase extends typeof PuppetSkelton & CacheMixin>(mi
 
 type FriendshipMixin = ReturnType<typeof friendshipMixin>
 
-type ProtectedPropertyFriendshipMixin = never
+type ProtectedPropertyFriendshipMixin =
   | 'friendshipRawPayload'
   | 'friendshipRawPayloadParser'
   | 'friendshipPayloadCache'

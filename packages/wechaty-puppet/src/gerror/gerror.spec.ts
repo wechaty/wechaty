@@ -4,6 +4,7 @@ import { test } from 'tstest'
 
 import { GError } from './gerror.js'
 import { Code } from './grpc.js'
+import { isEventErrorPayload } from './puppet.js'
 
 test('GError class smoke testing', async t => {
   const MESSAGE = 'test'
@@ -30,4 +31,13 @@ test('GError from primitive values', async t => {
   for (const value of FIXTURES) {
     t.doesNotThrow(() => GError.from(value as any), `should not throw for ${typeof value}: "${JSON.stringify(value)}"`)
   }
+})
+
+test('GError JSON payload v.s. EventErrorPayload', async t => {
+  const MESSAGE = 'test'
+
+  const gerror = GError.fromJSON(new Error(MESSAGE))
+  const obj    = gerror.toJSON()
+
+  t.notOk(isEventErrorPayload(obj), 'should not pass the EventErrorPayload check')
 })

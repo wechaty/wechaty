@@ -104,7 +104,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
 
 type LoginMixin = ReturnType<typeof loginMixin>
 
-type ProtectedPropertyLoginMixin = never
+type ProtectedPropertyLoginMixin =
   | 'login'
   | '_currentUserId'
 

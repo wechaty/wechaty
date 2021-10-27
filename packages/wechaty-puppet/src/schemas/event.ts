@@ -87,7 +87,7 @@ export interface EventDirtyPayload {
   payloadId   : string,
 }
 
-export type EventPayload = never
+export type EventPayload =
   | EventDirtyPayload
   | EventDongPayload
   | EventErrorPayload
