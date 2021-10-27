@@ -17,10 +17,9 @@
  *   limitations under the License.
  *
  */
-import {
-  RoomInvitationPayload,
-  log,
-}                           from 'wechaty-puppet'
+import type * as PUPPET          from 'wechaty-puppet'
+
+import { log } from '../config.js'
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import type {
@@ -243,7 +242,7 @@ class RoomInvitationMixin extends MixinBase implements Acceptable {
    * await roomInvitation.accept()
    */
   static async fromJSON (
-    payload: string | RoomInvitationPayload,
+    payload: string | PUPPET.payload.RoomInvitation,
   ): Promise<RoomInvitation> {
     log.verbose('RoomInvitation', 'fromJSON(%s)',
       typeof payload === 'string'
@@ -252,7 +251,7 @@ class RoomInvitationMixin extends MixinBase implements Acceptable {
     )
 
     if (typeof payload === 'string') {
-      payload = JSON.parse(payload) as RoomInvitationPayload
+      payload = JSON.parse(payload) as PUPPET.payload.RoomInvitation
     }
 
     await this.wechaty.puppet.roomInvitationPayload(payload.id, payload)

@@ -18,13 +18,7 @@
  *
  */
 import { EventEmitter }     from 'events'
-import {
-  FriendshipAddOptions as PuppetFriendshipAddOptions,
-  FriendshipPayload,
-  FriendshipType,
-  FriendshipSearchQueryFilter,
-  log,
-}                                 from 'wechaty-puppet'
+import * as PUPPET          from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
@@ -34,6 +28,7 @@ import {
 import type {
   Acceptable,
 }                   from '../interface/acceptable.js'
+import { log } from '../config.js'
 
 import type {
   Contact,
@@ -69,7 +64,7 @@ const MixinBase = wechatifyMixin(
  */
 class FriendshipMixin extends MixinBase implements Acceptable {
 
-  static Type = FriendshipType
+  static Type = PUPPET.type.Friendship
 
   /**
    * @ignore
@@ -99,7 +94,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
    *
    */
   static async search (
-    queryFilter : FriendshipSearchQueryFilter,
+    queryFilter : PUPPET.query.Friendship,
   ): Promise<undefined | Contact> {
     log.verbose('Friendship', 'static search("%s")',
       JSON.stringify(queryFilter),
@@ -151,7 +146,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
       log.warn('Friendship', 'the params hello is deprecated in the next version, please put the attr hello into options object, e.g. { hello: "xxxx" }')
       await this.wechaty.puppet.friendshipAdd(contact.id, { hello: options })
     } else {
-      const friendOption: PuppetFriendshipAddOptions = {
+      const friendOption: PUPPET.type.FriendshipAddOptions = {
         contactId: options.contact?.id,
         hello: options.hello,
         roomId: options.room && options.room.id,
@@ -176,7 +171,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
   /**
     * @ignore
    */
-  #payload?: FriendshipPayload
+  protected _payload?: PUPPET.payload.Friendship
 
   /*
    * @hideconstructor
@@ -189,21 +184,21 @@ class FriendshipMixin extends MixinBase implements Acceptable {
   }
 
   override toString () {
-    if (!this.#payload) {
+    if (!this._payload) {
       return this.constructor.name
     }
 
     return [
       'Friendship#',
-      FriendshipType[this.#payload.type],
+      PUPPET.type.Friendship[this._payload.type],
       '<',
-      this.#payload.contactId,
+      this._payload.contactId,
       '>',
     ].join('')
   }
 
   isReady (): boolean {
-    return !!this.#payload && (Object.keys(this.#payload).length > 0)
+    return !!this._payload && (Object.keys(this._payload).length > 0)
   }
 
   /**
@@ -215,7 +210,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
       return
     }
 
-    this.#payload = await this.wechaty.puppet.friendshipPayload(this.id)
+    this._payload = await this.wechaty.puppet.friendshipPayload(this.id)
 
     // if (!this.#payload) {
     //   throw new Error('no payload')
@@ -257,15 +252,15 @@ class FriendshipMixin extends MixinBase implements Acceptable {
   async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
-    if (this.#payload.type !== FriendshipType.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this.#payload.type])
+    if (this._payload.type !== PUPPET.type.Friendship.Receive) {
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this._payload.type])
     }
 
-    log.silly('Friendship', 'accept() to %s', this.#payload.contactId)
+    log.silly('Friendship', 'accept() to %s', this._payload.contactId)
 
     await this.wechaty.puppet.friendshipAccept(this.id)
 
@@ -311,10 +306,10 @@ class FriendshipMixin extends MixinBase implements Acceptable {
    * .start()
    */
   hello (): string {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
-    return this.#payload.hello || ''
+    return this._payload.hello || ''
   }
 
   /**
@@ -331,11 +326,11 @@ class FriendshipMixin extends MixinBase implements Acceptable {
    * .start()
    */
   contact (): Contact {
-    if (!this.#payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
-    const contact = this.wechaty.Contact.load(this.#payload.contactId)
+    const contact = this.wechaty.Contact.load(this._payload.contactId)
     return contact
   }
 
@@ -362,10 +357,10 @@ class FriendshipMixin extends MixinBase implements Acceptable {
    * }
    * .start()
    */
-  type (): FriendshipType {
-    return this.#payload
-      ? this.#payload.type
-      : FriendshipType.Unknown
+  type (): PUPPET.type.Friendship {
+    return this._payload
+      ? this._payload.type
+      : PUPPET.type.Friendship.Unknown
   }
 
   /**
@@ -390,7 +385,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
     if (!this.isReady()) {
       throw new Error(`Friendship<${this.id}> needs to be ready. Please call ready() before toJSON()`)
     }
-    return JSON.stringify(this.#payload)
+    return JSON.stringify(this._payload)
   }
 
   /**
@@ -404,7 +399,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
    * await friendship.accept()
    */
   static async fromJSON (
-    payload: string | FriendshipPayload,
+    payload: string | PUPPET.payload.Friendship,
   ): Promise<Friendship> {
     log.verbose('Friendship', 'static fromJSON(%s)',
       typeof payload === 'string'
@@ -413,7 +408,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
     )
 
     if (typeof payload === 'string') {
-      payload = JSON.parse(payload) as FriendshipPayload
+      payload = JSON.parse(payload) as PUPPET.payload.Friendship
     }
 
     /**

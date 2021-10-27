@@ -29,22 +29,24 @@ export {
   WechatyBuilder,
 }                       from '../wechaty-builder.js'
 
+export { type }        from 'wechaty-puppet'
+export { payload }     from 'wechaty-puppet'
+export { helper }      from 'wechaty-puppet'
+
 export * as impl        from './mod-impl.js'
-export * as type        from './mod-type.js'
-export * as payload     from './mod-payload.js'
 export *                from './mod-user.js'
 
 export {
   /**
    * @deprecated use `type.ScanStatus` instead
    */
-  ScanStatus,
+  // Puppet.type.ScanStatus as ScanStatus,
 
-  FileBox,
-  MemoryCard,
-  log,
-}                       from 'wechaty-puppet'
+  // FileBox,
+  // MemoryCard,
+}
 export {
+  log,
   config,
   qrcodeValueToImageUrl,
   VERSION,

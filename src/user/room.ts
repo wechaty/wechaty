@@ -17,20 +17,15 @@
  *   limitations under the License.
  *
  */
-import {
-  FileBox,
-  log,
-  PayloadType,
-  RoomMemberQueryFilter,
-  RoomPayload,
-  RoomQueryFilter,
-}                           from 'wechaty-puppet'
+import * as puppet          from 'wechaty-puppet'
+import type { FileBoxInterface } from 'file-box'
 import type {
   Constructor,
 }                           from '../deprecated/clone-class.js'
 
 import {
   FOUR_PER_EM_SPACE,
+  log,
 }                           from '../config.js'
 import type {
   Sayable,
@@ -137,7 +132,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
    */
   static async findAll (
-    query? : RoomQueryFilter,
+    query? : puppet.query.Room,
   ): Promise<Room[]> {
     log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
 
@@ -196,7 +191,7 @@ class RoomMixin extends MixinBase implements Sayable {
    */
 
   static async find (
-    query : string | RoomQueryFilter,
+    query : string | puppet.query.Room,
   ): Promise<undefined | Room> {
     log.verbose('Room', 'find(%s)', JSON.stringify(query))
 
@@ -247,7 +242,7 @@ class RoomMixin extends MixinBase implements Sayable {
    *
    *
    */
-  protected _payload?: RoomPayload
+  protected _payload?: puppet.payload.Room
   get payload () {
     if (this._payload) {
       return this._payload
@@ -314,8 +309,8 @@ class RoomMixin extends MixinBase implements Sayable {
     }
 
     if (forceSync) {
-      await this.wechaty.puppet.dirtyPayload(PayloadType.Room, this.id)
-      await this.wechaty.puppet.dirtyPayload(PayloadType.RoomMember, this.id)
+      await this.wechaty.puppet.dirtyPayload(puppet.type.Payload.Room, this.id)
+      await this.wechaty.puppet.dirtyPayload(puppet.type.Payload.RoomMember, this.id)
     }
     this._payload = await this.wechaty.puppet.roomPayload(this.id)
 
@@ -955,9 +950,9 @@ class RoomMixin extends MixinBase implements Sayable {
       .length > 0
   }
 
-  async memberAll ()                              : Promise<Contact[]>
-  async memberAll (name: string)                  : Promise<Contact[]>
-  async memberAll (filter: RoomMemberQueryFilter) : Promise<Contact[]>
+  async memberAll ()                                : Promise<Contact[]>
+  async memberAll (name: string)                    : Promise<Contact[]>
+  async memberAll (filter: puppet.query.RoomMember) : Promise<Contact[]>
 
   /**
    * The way to search member by Room.member()
@@ -986,7 +981,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * console.log(`contact list with all name, room alias, alias are abc:`, memberContactList)
    */
   async memberAll (
-    query?: string | RoomMemberQueryFilter,
+    query?: string | puppet.query.RoomMember,
   ): Promise<Contact[]> {
     log.silly('Room', 'memberAll(%s)',
       JSON.stringify(query) || '',
@@ -1002,8 +997,8 @@ class RoomMixin extends MixinBase implements Sayable {
     return contactList
   }
 
-  async member (name  : string)               : Promise<undefined | Contact>
-  async member (filter: RoomMemberQueryFilter): Promise<undefined | Contact>
+  async member (name  : string)                 : Promise<undefined | Contact>
+  async member (filter: puppet.query.RoomMember): Promise<undefined | Contact>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
@@ -1040,7 +1035,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * }
    */
   async member (
-    queryArg: string | RoomMemberQueryFilter,
+    queryArg: string | puppet.query.RoomMember,
   ): Promise<undefined | Contact> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
@@ -1117,7 +1112,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * const name = fileBox.name
    * fileBox.toFile(name)
    */
-  async avatar (): Promise<FileBox> {
+  async avatar (): Promise<FileBoxInterface> {
     log.verbose('Room', 'avatar()')
 
     return this.wechaty.puppet.roomAvatar(this.id)

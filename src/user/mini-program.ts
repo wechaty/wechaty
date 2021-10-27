@@ -17,11 +17,11 @@
  *   limitations under the License.
  *
  */
-import {
-  MiniProgramPayload,
-  log,
-}                         from 'wechaty-puppet'
+import type * as PUPPET  from 'wechaty-puppet'
+
 import type { Constructor } from '../deprecated/clone-class.js'
+import { log } from '../config.js'
+
 import { validationMixin } from './mixins/validation.js'
 
 import {
@@ -44,7 +44,7 @@ class MiniProgramMixin extends MixinBase {
     log.verbose('MiniProgram', 'create()')
 
     // TODO: get appid and username from wechat
-    const payload: MiniProgramPayload = {
+    const payload: PUPPET.payload.MiniProgram = {
       appid              : 'todo',
       description        : 'todo',
       pagePath           : 'todo',
@@ -61,7 +61,7 @@ class MiniProgramMixin extends MixinBase {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: MiniProgramPayload,
+    public readonly payload: PUPPET.payload.MiniProgram,
   ) {
     super()
     log.verbose('MiniProgram', 'constructor()')

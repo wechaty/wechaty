@@ -24,13 +24,8 @@ import {
   sinon,
 }             from 'tstest'
 
-import {
-  ContactPayload,
-  MessagePayload,
-  MessageType,
-  RoomPayload,
-}                       from 'wechaty-puppet'
-import { PuppetMock }   from 'wechaty-puppet-mock'
+import * as PUPPET        from 'wechaty-puppet'
+import { PuppetMock }     from 'wechaty-puppet-mock'
 import { WechatyBuilder } from '../wechaty-builder.js'
 
 test('recalled()', async t => {
@@ -57,8 +52,8 @@ test('recalled()', async t => {
         id: EXPECTED_RECALL_MESSAGE_ID,
         text: EXPECTED_RECALLED_MESSAGE_ID,
         timestamp: EXPECTED_MESSAGE_TIMESTAMP,
-        type: MessageType.Recalled,
-      } as MessagePayload
+        type: PUPPET.type.Message.Recalled,
+      } as PUPPET.payload.Message
     } else {
       return {
         fromId: EXPECTED_FROM_CONTACT_ID,
@@ -67,15 +62,15 @@ test('recalled()', async t => {
         text: '',
         timestamp: EXPECTED_MESSAGE_TIMESTAMP,
         toId: EXPECTED_TO_CONTACT_ID,
-        type: MessageType.Text,
-      } as MessagePayload
+        type: PUPPET.type.Message.Text,
+      } as PUPPET.payload.Message
     }
   })
   sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
-    } as RoomPayload
+    } as PUPPET.payload.Room
   })
 
   sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
@@ -88,7 +83,7 @@ test('recalled()', async t => {
     return {
       id,
       name: id,
-    } as ContactPayload
+    } as PUPPET.payload.Contact
   })
 
   await puppet.login(EXPECTED_TO_CONTACT_ID)

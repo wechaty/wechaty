@@ -19,11 +19,8 @@
  */
 import WebSocket        from 'ws'
 
-import {
-  StateSwitch,
-  EventScanPayload,
-  log,
-}                         from 'wechaty-puppet'
+import type * as PUPPET from 'wechaty-puppet'
+import { StateSwitch } from 'state-switch'
 
 import * as jsonRpcPeer from 'json-rpc-peer'
 
@@ -32,6 +29,7 @@ import type {
 }                 from './user/mod.js'
 
 import {
+  log,
   config,
 }                 from './config.js'
 
@@ -69,7 +67,7 @@ type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
   name    : 'scan',
-  payload : EventScanPayload,
+  payload : PUPPET.payload.EventScan,
 }
 
 interface IoEventJsonRpc {
@@ -100,26 +98,26 @@ const AsyncFunction = Object.getPrototypeOf(async () => null).constructor
 
 export class Io {
 
-  private readonly id       : string
-  private readonly protocol : string
-  private eventBuffer       : IoEvent[] = []
-  private ws                : undefined | WebSocket
+  protected readonly id       : string
+  protected readonly protocol : string
+  protected eventBuffer       : IoEvent[] = []
+  protected ws                : undefined | WebSocket
 
-  private readonly state = new StateSwitch('Io', { log })
+  protected readonly state = new StateSwitch('Io', { log })
 
-  private reconnectTimer?   : ReturnType<typeof setTimeout>
-  private reconnectTimeout? : number
+  protected reconnectTimer?   : ReturnType<typeof setTimeout>
+  protected reconnectTimeout? : number
 
-  private lifeTimer? : ReturnType<typeof setTimeout>
+  protected lifeTimer? : ReturnType<typeof setTimeout>
 
-  private onMessage: undefined | Function
+  protected onMessage: undefined | Function
 
-  private scanPayload?: EventScanPayload
+  protected scanPayload?: PUPPET.payload.EventScan
 
   protected jsonRpc?: jsonRpcPeer.Peer
 
   constructor (
-    private options: IoOptions,
+    protected options: IoOptions,
   ) {
     options.apihost   = options.apihost   || config.apihost
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
@@ -157,7 +155,7 @@ export class Io {
       throw new Error('lifeTimer exist')
     }
 
-    this.state.on('pending')
+    this.state.active('pending')
 
     try {
       this.initEventHook()
@@ -181,11 +179,11 @@ export class Io {
         }
       }, 1000 * 10)
 
-      this.state.on(true)
+      this.state.active(true)
 
     } catch (e) {
       log.warn('Io', 'start() exception: %s', (e as Error).message)
-      this.state.off(true)
+      this.state.inactive(true)
       throw e
     }
   }
@@ -424,7 +422,7 @@ export class Io {
     code    : number,
     message : string,
   ): void {
-    if (this.state.on()) {
+    if (this.state.active()) {
       log.warn('Io', 'initWebSocket() close event[%d: %s]', code, message)
       ws.close()
       this.reconnect()
@@ -434,7 +432,7 @@ export class Io {
   private reconnect () {
     log.verbose('Io', 'reconnect()')
 
-    if (this.state.off()) {
+    if (this.state.inactive()) {
       log.warn('Io', 'reconnect() canceled because state.target() === offline')
       return
     }
@@ -511,7 +509,7 @@ export class Io {
       throw new Error('no ws')
     }
 
-    this.state.off('pending')
+    this.state.inactive('pending')
 
     // try to send IoEvents in buffer
     await this.send()
@@ -537,7 +535,7 @@ export class Io {
     })
     this.ws = undefined
 
-    this.state.off(true)
+    this.state.inactive(true)
   }
 
   /**

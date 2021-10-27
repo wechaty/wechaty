@@ -21,9 +21,9 @@
 /// <reference path="./io-peer/json-rpc-peer.d.ts" />
 
 import {
-  FileBox,
   log,
 }                   from 'wechaty-puppet'
+import { FileBox } from 'file-box'
 import type {
   FileBoxInterface,
 }                   from 'file-box'
@@ -62,7 +62,7 @@ if (log.level() === 'verbose' || log.level() === 'silly') {
    */
   process.on('unhandledRejection', (reason: Error | any, promise) => {
     log.error('Config', '###########################')
-    log.error('Config', 'unhandledRejection: %s %s', reason.stack || reason, promise)
+    log.error('Config', 'Wechaty unhandledRejection: %s %s', reason.stack || reason, promise)
     log.error('Config', '###########################')
     promise.catch(err => {
       log.error('Config', 'process.on(unhandledRejection) promise.catch(%s)', err.message)
@@ -74,7 +74,7 @@ if (log.level() === 'verbose' || log.level() === 'silly') {
     const origin = arguments[1] // to compatible with node 12 or below version typings
 
     log.error('Config', '###########################')
-    log.error('Config', 'uncaughtException: %s %s', error.stack, origin)
+    log.error('Config', 'Wechaty uncaughtException: %s %s', error.stack, origin)
     log.error('Config', '###########################')
   })
 }
@@ -159,6 +159,7 @@ export type {
   PackageJsonWechaty,
 }
 export {
+  log,
   config,
   GIT_COMMIT_HASH,
   VERSION,

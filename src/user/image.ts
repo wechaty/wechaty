@@ -17,15 +17,13 @@
  *   limitations under the License.
  *
  */
-import {
-  ImageType,
-  log,
-}                   from 'wechaty-puppet'
+import * as PUPPET          from 'wechaty-puppet'
 import type {
   FileBoxInterface,
 }                   from 'file-box'
 import type { Constructor } from '../deprecated/clone-class.js'
 import { validationMixin } from './mixins/validation.js'
+import { log } from '../config.js'
 
 import {
   EmptyBase,
@@ -54,19 +52,28 @@ class ImageMixin extends MixinBase {
 
   async thumbnail (): Promise<FileBoxInterface> {
     log.verbose('Image', 'thumbnail() for id: "%s"', this.id)
-    const fileBox = await this.wechaty.puppet.messageImage(this.id, ImageType.Thumbnail)
+    const fileBox = await this.wechaty.puppet.messageImage(
+      this.id,
+      PUPPET.type.Image.Thumbnail,
+    )
     return fileBox
   }
 
   async hd (): Promise<FileBoxInterface> {
     log.verbose('Image', 'hd() for id: "%s"', this.id)
-    const fileBox = await this.wechaty.puppet.messageImage(this.id, ImageType.HD)
+    const fileBox = await this.wechaty.puppet.messageImage(
+      this.id,
+      PUPPET.type.Image.HD,
+    )
     return fileBox
   }
 
   async artwork (): Promise<FileBoxInterface> {
     log.verbose('Image', 'artwork() for id: "%s"', this.id)
-    const fileBox = await this.wechaty.puppet.messageImage(this.id, ImageType.Artwork)
+    const fileBox = await this.wechaty.puppet.messageImage(
+      this.id,
+      PUPPET.type.Image.Artwork,
+    )
     return fileBox
   }
 

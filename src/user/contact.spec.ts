@@ -23,7 +23,7 @@ import {
   sinon,
 }           from 'tstest'
 
-import type { ContactPayload } from 'wechaty-puppet'
+import type * as PUPPET from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 import { WechatyBuilder } from '../wechaty-builder.js'
 
@@ -47,7 +47,7 @@ test('findAll()', async t => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       name: EXPECTED_CONTACT_NAME,
-    } as ContactPayload
+    } as PUPPET.payload.Contact
   })
 
   const contactList = await wechaty.Contact.findAll()

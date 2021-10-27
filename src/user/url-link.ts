@@ -19,10 +19,7 @@
  */
 import Url from 'url'
 
-import {
-  UrlLinkPayload,
-  log,
-}                         from 'wechaty-puppet'
+import type * as PUPPET          from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
@@ -33,6 +30,7 @@ import {
   EmptyBase,
   wechatifyMixin,
 }                       from './mixins/wechatify.js'
+import { log } from '../config.js'
 
 const MixinBase = wechatifyMixin(
   EmptyBase,
@@ -91,7 +89,7 @@ class UrlLinkMixin extends MixinBase {
       imageUrl = resolvedUrl.toString()
     }
 
-    const payload: UrlLinkPayload = {
+    const payload: PUPPET.payload.UrlLink = {
       description,
       thumbnailUrl: imageUrl,
       title,
@@ -105,7 +103,7 @@ class UrlLinkMixin extends MixinBase {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: UrlLinkPayload,
+    public readonly payload: PUPPET.payload.UrlLink,
   ) {
     super()
     log.verbose('UrlLink', 'constructor()')

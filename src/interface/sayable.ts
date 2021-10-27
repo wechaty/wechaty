@@ -17,8 +17,11 @@
  *   limitations under the License.
  *
  */
-import { FileBox, FileBoxInterface } from 'file-box'
-import type { PuppetInterface } from 'wechaty-puppet'
+import {
+  FileBox,
+  FileBoxInterface,
+}                       from 'file-box'
+import type * as PUPPET from 'wechaty-puppet'
 
 import type {
   Contact,
@@ -65,7 +68,7 @@ interface Sayable {
 /**
  * TODO: add unit test to ensure the interface validation code works
  */
-const deliverSayableConversationPuppet = (puppet: PuppetInterface) => (conversationId: string) => async (sayableMessage: SayableMessage) => {
+const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conversationId: string) => async (sayableMessage: SayableMessage) => {
   let msgId: string | void
 
   if (!(sayableMessage instanceof Object)) {

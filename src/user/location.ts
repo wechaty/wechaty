@@ -17,13 +17,11 @@
  *   limitations under the License.
  *
  */
-import {
-  LocationPayload,
-  log,
-}                       from 'wechaty-puppet'
+import type * as PUPPET          from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from './mixins/validation.js'
+import { log } from '../config.js'
 
+import { validationMixin }  from './mixins/validation.js'
 import {
   EmptyBase,
   wechatifyMixin,
@@ -43,7 +41,7 @@ class LocationMixin extends MixinBase {
   static async create (poi: string): Promise<Location> {
     log.verbose('Location', 'create(%s)', poi)
 
-    const payload: LocationPayload = {
+    const payload: PUPPET.payload.Location = {
       accuracy  : 15, // in meters
       address   : '北京市北京市海淀区45 Chengfu Rd',
       latitude  : 39.995120999999997,
@@ -58,7 +56,7 @@ class LocationMixin extends MixinBase {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: LocationPayload,
+    public readonly payload: PUPPET.payload.Location,
   ) {
     super()
     log.verbose('Location', 'constructor()')

@@ -17,24 +17,18 @@
  *   limitations under the License.
  *
  */
-import {
-  ContactGender,
-  ContactPayload,
-  ContactQueryFilter,
-  ContactType,
-  log,
-  PayloadType,
-}                             from 'wechaty-puppet'
+import * as PUPPET      from 'wechaty-puppet'
 import type {
   FileBoxInterface,
-}                             from 'file-box'
+}                       from 'file-box'
+
 import type {
   Constructor,
 }                             from '../deprecated/clone-class.js'
 
-// import {
-//   qrCodeForChatie,
-// }                           from '../config.js'
+import {
+  log,
+}                           from '../config.js'
 import type {
   Sayable,
   SayableMessage,
@@ -72,8 +66,8 @@ const MixinBase = wechatifyMixin(
  */
 class ContactMixin extends MixinBase implements Sayable {
 
-  static Type   = ContactType
-  static Gender = ContactGender
+  static Type   = PUPPET.type.Contact
+  static Gender = PUPPET.type.ContactGender
 
   /**
    * The way to search Contact
@@ -99,7 +93,7 @@ class ContactMixin extends MixinBase implements Sayable {
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
   static async find (
-    query : string | ContactQueryFilter,
+    query : string | PUPPET.query.Contact,
   ): Promise<undefined | Contact> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
@@ -160,7 +154,7 @@ class ContactMixin extends MixinBase implements Sayable {
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
   static async findAll (
-    query? : string | ContactQueryFilter,
+    query? : string | PUPPET.query.Contact,
   ): Promise<Contact[]> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
@@ -234,7 +228,7 @@ class ContactMixin extends MixinBase implements Sayable {
    * @ignore
    *
    */
-  protected _payload?: ContactPayload
+  protected _payload?: PUPPET.payload.Contact
 
   /**
    * @hideconstructor
@@ -407,7 +401,7 @@ class ContactMixin extends MixinBase implements Sayable {
 
     try {
       await this.wechaty.puppet.contactAlias(this.id, newAlias)
-      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
+      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
       if (newAlias && newAlias !== this._payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
@@ -459,7 +453,7 @@ class ContactMixin extends MixinBase implements Sayable {
 
     try {
       await this.wechaty.puppet.contactPhone(this.id, phoneList)
-      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
+      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
@@ -480,13 +474,13 @@ class ContactMixin extends MixinBase implements Sayable {
       return this._payload.corporation
     }
 
-    if (this._payload.type !== ContactType.Individual) {
+    if (this._payload.type !== PUPPET.type.Contact.Individual) {
       throw new Error('Can not set corporation remark on non individual contact.')
     }
 
     try {
       await this.wechaty.puppet.contactCorporationRemark(this.id, remark)
-      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
+      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
@@ -509,7 +503,7 @@ class ContactMixin extends MixinBase implements Sayable {
 
     try {
       await this.wechaty.puppet.contactDescription(this.id, newDescription)
-      await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
+      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
@@ -569,7 +563,7 @@ class ContactMixin extends MixinBase implements Sayable {
    * await bot.start()
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
-  type (): ContactType {
+  type (): PUPPET.type.Contact {
     if (!this._payload) {
       throw new Error('no payload')
     }
@@ -596,10 +590,10 @@ class ContactMixin extends MixinBase implements Sayable {
    * @example
    * const gender = contact.gender() === bot.Contact.Gender.Male
    */
-  gender (): ContactGender {
+  gender (): PUPPET.type.ContactGender {
     return this._payload
       ? this._payload.gender
-      : ContactGender.Unknown
+      : PUPPET.type.ContactGender.Unknown
   }
 
   /**
@@ -695,7 +689,10 @@ class ContactMixin extends MixinBase implements Sayable {
 
     try {
       if (forceSync) {
-        await this.wechaty.puppet.dirtyPayload(PayloadType.Contact, this.id)
+        await this.wechaty.puppet.dirtyPayload(
+          PUPPET.type.Payload.Contact,
+          this.id,
+        )
       }
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
