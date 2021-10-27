@@ -1059,8 +1059,9 @@ class RoomMixin extends MixinBase implements Sayable {
   }
 
   /**
-   * Huan(202110): why this method marked as `privated` before?
-   *  make it public.
+   * Huan(202110):
+   *  - Q: why this method marked as `privated` before?
+   *  - A: it is for supporting the `memberAll()` API
    *
    * Get all room member from the room
    *
@@ -1068,7 +1069,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * @example
    * await room.memberList()
    */
-  async memberList (): Promise<Contact[]> {
+  protected async memberList (): Promise<Contact[]> {
     log.verbose('Room', 'memberList()')
 
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
