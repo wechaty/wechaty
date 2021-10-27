@@ -61,7 +61,7 @@ import { isTemplateStringArray } from '../helper-functions/pure/is-template-stri
 const MixinBase = wechatifyMixin(
   poolifyMixin(
     RoomEventEmitter,
-  )<Room>(),
+  )<RoomImplInterface>(),
 )
 
 /**
@@ -186,7 +186,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * after a log-in.
    *
    * @param {RoomQueryFilter} query
-   * @returns {Promise<Room | null>} If can find the room, return Room, or return null
+   * @returns {Promise<undefined | Room>} If can find the room, return Room, or return null
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -1064,8 +1064,8 @@ class RoomMixin extends MixinBase implements Sayable {
   }
 
   /**
-    * @ignore
-   * @ignore
+   * Huan(202110): why this method marked as `privated` before?
+   *  make it public.
    *
    * Get all room member from the room
    *
@@ -1073,7 +1073,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * @example
    * await room.memberList()
    */
-  private async memberList (): Promise<Contact[]> {
+  async memberList (): Promise<Contact[]> {
     log.verbose('Room', 'memberList()')
 
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
@@ -1125,11 +1125,15 @@ class RoomMixin extends MixinBase implements Sayable {
 
 }
 
-class RoomImpl extends validationMixin(RoomMixin)<Room>() {}
-interface Room extends RoomImpl {}
+class RoomImpl extends validationMixin(RoomMixin)<RoomImplInterface>() {}
+interface RoomImplInterface extends RoomImpl {}
+
+type RoomProtectedProperty =
+  'load'
+type Room = Omit<RoomImplInterface, RoomProtectedProperty>
 
 type RoomConstructor = Constructor<
-  Room,
+  RoomImplInterface,
   typeof RoomImpl
 >
 

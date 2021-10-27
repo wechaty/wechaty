@@ -60,7 +60,7 @@ import { deliverSayableConversationPuppet } from '../interface/sayable.js'
 const MixinBase = wechatifyMixin(
   poolifyMixin(
     ContactEventEmitter,
-  )<Contact>(),
+  )<ContactImplInterface>(),
 )
 
 /**
@@ -91,17 +91,16 @@ class ContactMixin extends MixinBase implements Sayable {
    *
    * @static
    * @param {ContactQueryFilter} query
-   * @returns {(Promise<ContactImpl | null>)} If can find the contact, return Contact, or return null
+   * @returns {(Promise<undefined | Contact>)} If can find the contact, return Contact, or return null
    * @example
    * const bot = new Wechaty()
    * await bot.start()
    * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
-  static async find<T extends typeof ContactImpl> (
-    this  : T,
+  static async find (
     query : string | ContactQueryFilter,
-  ): Promise<T['prototype'] | null> {
+  ): Promise<undefined | Contact> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await this.findAll(query)
@@ -109,8 +108,8 @@ class ContactMixin extends MixinBase implements Sayable {
     // if (!contactList) {
     //   return null
     // }
-    if (contactList.length < 1) {
-      return null
+    if (contactList.length <= 0) {
+      return
     }
 
     if (contactList.length > 1) {
@@ -138,7 +137,7 @@ class ContactMixin extends MixinBase implements Sayable {
       }
     }
     log.warn('Contact', 'find() got %d contacts but no one is valid.', contactList.length)
-    return null
+    return undefined
   }
 
   /**
@@ -152,7 +151,7 @@ class ContactMixin extends MixinBase implements Sayable {
    *
    * @static
    * @param {ContactQueryFilter} [queryArg]
-   * @returns {Promise<ContactImpl[]>}
+   * @returns {Promise<Contact[]>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -160,10 +159,9 @@ class ContactMixin extends MixinBase implements Sayable {
    * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
-  static async findAll<T extends typeof ContactImpl> (
-    this  : T,
+  static async findAll (
     query? : string | ContactQueryFilter,
-  ): Promise<Array<T['prototype']>> {
+  ): Promise<Contact[]> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
     try {
@@ -772,11 +770,16 @@ class ContactMixin extends MixinBase implements Sayable {
 
 }
 
-class ContactImpl extends validationMixin(ContactMixin)<Contact>() {}
-interface Contact extends ContactImpl {}
+class ContactImpl extends validationMixin(ContactMixin)<ContactImplInterface>() {}
+interface ContactImplInterface extends ContactImpl {}
+
+type ContactProtectedProperty =
+  'load'
+
+type Contact = Omit<ContactImplInterface, ContactProtectedProperty>
 
 type ContactConstructor = Constructor<
-  Contact,
+  ContactImplInterface,
   typeof ContactImpl
 >
 
