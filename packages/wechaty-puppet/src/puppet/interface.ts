@@ -1,8 +1,8 @@
 import type { Constructor } from 'clone-class'
-import type { MixinProtectedProperty } from '../mixins/mod.js'
 
+import type { MixinProtectedProperty } from '../mixins/mod.js'
 import type { PuppetSkeltonProtectedProperty } from './puppet-skelton.js'
-import type { Puppet } from './mod.js'
+import type { Puppet } from './puppet-abstract.js'
 
 type PuppetProtectedProperty =
   | MixinProtectedProperty

@@ -1,5 +1,8 @@
 import {
   Puppet,
+}               from '../../../src/puppet/mod.js'
+
+import type {
   // FileBox,
   ContactPayload,
   FriendshipPayload,
@@ -14,7 +17,7 @@ import {
   RoomQueryFilter,
   ContactQueryFilter,
   LocationPayload,
-}                           from '../../../src/mod.js'
+}                           from '../../../src/schemas/mod.js'
 import type {
   FileBoxInterface,
 }                           from 'file-box'

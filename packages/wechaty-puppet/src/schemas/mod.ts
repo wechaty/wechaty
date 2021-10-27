@@ -81,9 +81,11 @@ import type {
 import type {
   PuppetOptions,
   PuppetEventName,
+  ChatEventName,
 }                         from './puppet.js'
 
 export type {
+  ChatEventName,
   ContactPayload,
   ContactQueryFilter,
   EventDirtyPayload,

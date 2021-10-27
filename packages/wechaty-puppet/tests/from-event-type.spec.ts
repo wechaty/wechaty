@@ -17,10 +17,10 @@ import type {
 import type {
   EventLoginPayload,
   EventScanPayload,
-}                         from '../src/mod.js'
+}                         from '../src/schemas/mod.js'
 import {
   ScanStatus,
-}                         from '../src/mod.js'
+}                         from '../src/mods/mod-type.js'
 
 import { PuppetTest } from './fixtures/puppet-test/puppet-test.js'
 

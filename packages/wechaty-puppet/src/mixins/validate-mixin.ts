@@ -1,13 +1,11 @@
-import type {
-  Puppet,
-  PuppetInterface,
-}                         from '../puppet/mod.js'
-
-import type { PuppetSkelton }   from '../puppet/puppet-skelton.js'
 import {
   interfaceOfPuppet,
   looseInstanceOfPuppet,
-}                           from '../puppet/interface-of.js'
+}                             from '../puppet/interface-of.js'
+
+import type { Puppet }          from '../puppet/puppet-abstract.js'
+import type { PuppetInterface } from '../puppet/interface.js'
+import type { PuppetSkelton }   from '../puppet/puppet-skelton.js'
 
 const validateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
 

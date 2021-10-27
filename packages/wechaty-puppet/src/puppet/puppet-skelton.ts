@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import uuid from 'uuid'
+import * as uuid from 'uuid'
 
 import {
   log,
@@ -28,7 +28,14 @@ import {
 import {
   GError,
 }                       from '../gerror/gerror.js'
-import type { EventErrorPayload } from '../mod.js'
+import type {
+  WrapAsync,
+}                     from '../helpers/wrap-async-error.js'
+import {
+  wrapAsyncError,
+}                     from '../helpers/wrap-async-error.js'
+
+import type { EventErrorPayload } from '../schemas/event.js'
 
 import type {
   PuppetOptions,
@@ -54,6 +61,14 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
   calledSkeltonStop  : boolean
 
   readonly options: PuppetOptions
+
+  /**
+   * Wrap promise in sync way (catch error by emitting it)
+   *  1. convert a async callback function to be sync function
+   *    by catcing any errors and emit them to error event
+   *  2. wrap a Promise by catcing any errors and emit them to error event
+   */
+  wrapAsync: WrapAsync = wrapAsyncError((e: any) => this.emit('error', e))
 
   /**
    * Huan(202110): mixins required the constructor arguments to be `...args: any[]`
@@ -120,34 +135,6 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
     }
 
     return super.emit('error', payload)
-  }
-
-  /**
-   * Wrap promise in sync way (catch error by emitting it)
-   *  1. convert a async callback function to be sync function
-   *    by catcing any errors and emit them to error event
-   *  2. wrap a Promise by catcing any errors and emit them to error event
-   */
-  wrapAsync (promise: Promise<any>): void
-  wrapAsync <T extends (...args: any[]) => Promise<any>> (
-    asyncStaff: T,
-  ): (...args: Parameters<T>) => void
-
-  wrapAsync<T extends (...args: any[]) => Promise<any>> (
-    asyncStaff: T | Promise<any>,
-  ) {
-    const puppet = this
-
-    if (asyncStaff instanceof Promise) {
-      asyncStaff
-        .then(_ => _)
-        .catch(e => puppet.emit('error', e))
-      return
-    }
-
-    return function (this: any, ...args: Parameters<T>): void {
-      asyncStaff.apply(this, args).catch(e => puppet.emit('error', e))
-    }
   }
 
 }

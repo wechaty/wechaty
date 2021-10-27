@@ -6,7 +6,7 @@ import {
   FileBox,
   MemoryCard,
   StateSwitch,
-}                 from '../src/mod.js'
+}                 from '../src/mods/mod-helper.js'
 
 test('Re-export helper modules', async t => {
   t.ok(FileBox,     'should re-export FileBox')

@@ -1,27 +1,16 @@
-import { FileBox }  from 'file-box'
 import {
   Constructor,
   interfaceOfClass,
   looseInstanceOfClass,
 }                         from 'clone-class'
 
+import { log }        from '../config.js'
 import {
   Puppet,
+}                     from './puppet-abstract.js'
+import type {
   PuppetInterface,
-}                     from './mod.js'
-import { log }        from '../config.js'
-
-/**
- * Huan(202011):
- *  Create a `looseInstanceOfClass` to check `FileBox` and `Puppet` instances #2090
- *    https://github.com/wechaty/wechaty/issues/2090
- *
- * @deprecated will be remove after Dec 31, 2022
- */
-const looseInstanceOfFileBox = (target: any) => {
-  log.warn('looseInstanceOfFileBox', '@deprecated: use FileBox.validInstance(target) instead\n%s', new Error().stack)
-  return FileBox.validInstance(target)
-}
+}                     from './interface.js'
 
 /**
  * @deprecated will be remove after Dec 31, 2022
@@ -37,6 +26,5 @@ const looseInstanceOfPuppet = looseInstanceOfClass(Puppet as any as Constructor<
 export {
   interfaceOfPuppet,
   looseInstanceOfPuppet,
-  looseInstanceOfFileBox,
   looseInstanceOfPuppetDeprecated,
 }
