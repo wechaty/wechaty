@@ -26,7 +26,7 @@ import {
 }                       from 'memory-card'
 import {
   StateSwitch,
-  serviceCtlFsmMixin,
+  serviceCtlMixin,
 }                       from 'state-switch'
 import type {
   StateSwitchInterface,
@@ -132,7 +132,7 @@ export interface WechatyOptions {
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
-const mixinBase = serviceCtlFsmMixin('Wechaty', { log })(WechatyEventEmitter)
+const mixinBase = serviceCtlMixin('Wechaty', { log })(WechatyEventEmitter)
 /**
  * Main bot class.
  *
@@ -806,6 +806,8 @@ class WechatyImpl extends mixinBase implements Sayable {
       log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
     }, 1000 * 60 * 60)
     this.cleanCallbackList.push(() => clearInterval(lifeTimer))
+
+    this.emit('start')
   }
 
   override async onStop (): Promise<void> {
@@ -843,6 +845,8 @@ class WechatyImpl extends mixinBase implements Sayable {
     } catch (e) {
       this.emit('error', e)
     }
+
+    this.emit('stop')
   }
 
   async ready (): Promise<void> {

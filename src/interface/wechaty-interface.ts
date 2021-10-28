@@ -17,8 +17,9 @@ type NonInterfaceProperties = never
   | 'wechaty'
   | 'onStart'
   | 'onStop'
-  | '_serviceCtlLog'
-  | '_serviceCtlFsmInterpreter'
+  | '_serviceCtlFsmInterpreter'     // from ServiceCtlFsm
+  | '_serviceCtlLogger'             // from ServiceCtl(&Fsm)
+  | '_serviceCtlResettingIndicator' // from ServiceCtl
 
 // https://stackoverflow.com/a/64754408/1123955
 type KeyOfWechaty       = keyof WechatyImpl
