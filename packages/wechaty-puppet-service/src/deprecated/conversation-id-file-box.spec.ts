@@ -25,7 +25,7 @@ import {
 
 import { test }         from 'tstest'
 import { PassThrough }  from 'stream'
-import { FileBox }      from 'wechaty-puppet'
+import { FileBox }      from 'file-box'
 
 import { nextData }     from './next-data.js'
 import {

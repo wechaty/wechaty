@@ -1,4 +1,4 @@
-import type { FileBox }      from 'wechaty-puppet'
+import type { FileBoxInterface }      from 'file-box'
 import type { Readable }     from 'stronger-typed-streams'
 
 import {
@@ -17,7 +17,7 @@ import type { FileBoxPb }        from './file-box-pb.type.js'
 function packFileBoxToPb<T extends FileBoxPb> (
   PbConstructor: { new(): T },
 ) {
-  return async (fileBox: FileBox) => {
+  return async (fileBox: FileBoxInterface) => {
     const fileBoxChunkStream = await packFileBoxToChunk(fileBox)
     const pbFileBox = packFileBoxChunkToPb(PbConstructor)(fileBoxChunkStream)
     return pbFileBox
@@ -29,7 +29,7 @@ function packFileBoxToPb<T extends FileBoxPb> (
  */
 async function unpackFileBoxFromPb<T extends FileBoxPb> (
   pbStream: Readable<T>,
-): Promise<FileBox> {
+): Promise<FileBoxInterface> {
   const fileBoxChunkStream = unpackFileBoxChunkFromPb(pbStream)
   const fileBox = await unpackFileBoxFromChunk(fileBoxChunkStream)
   return fileBox

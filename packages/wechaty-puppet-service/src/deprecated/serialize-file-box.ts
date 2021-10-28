@@ -1,10 +1,15 @@
-import { FileBox } from 'wechaty-puppet'
-import { FileBoxType } from 'file-box'
+import {
+  FileBox,
+  FileBoxType,
+}                     from 'file-box'
+import type {
+  FileBoxInterface,
+}                     from 'file-box'
 
 /**
  * @deprecated Will be removed after Dec 31, 2022
  */
-export const serializeFileBox = async (fileBox: FileBox): Promise<string> => {
+export const serializeFileBox = async (fileBox: FileBoxInterface): Promise<string> => {
   const serializableFileBoxTypes = [
     FileBoxType.Base64,
     FileBoxType.Url,

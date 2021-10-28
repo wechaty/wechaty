@@ -13,13 +13,7 @@ import {
   sinon,
 }             from 'tstest'
 
-import {
-  PuppetOptions,
-  ContactPayload,
-  log,
-  ContactGender,
-  ContactType,
-}                               from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
 
 import {
   PuppetMock,
@@ -31,6 +25,8 @@ import {
   PuppetServerOptions,
 }                               from '../src/mod.js'
 
+import { log } from '../src/config.js'
+
 const idToName = (id: string) => {
   return `name of ${id}`
 }
@@ -41,15 +37,15 @@ class PuppetTest extends PuppetMock {
     super(...args)
   }
 
-  override async contactRawPayload (id: string): Promise<ContactPayload> {
+  override async contactRawPayload (id: string): Promise<PUPPET.payload.Contact> {
     log.verbose('PuppetTest', 'contactRawPayload(%s)', id)
-    const rawPayload: ContactPayload = {
+    const rawPayload: PUPPET.payload.Contact = {
       avatar : '',
-      gender : ContactGender.Male,
+      gender : PUPPET.type.ContactGender.Male,
       id,
       name : idToName(id),
       phone: [],
-      type   : ContactType.Individual,
+      type   : PUPPET.type.Contact.Individual,
     }
 
     await new Promise<void>(resolve => {
@@ -94,7 +90,7 @@ test.skip('stress testing', async t => {
   const puppetOptions = {
     endpoint : ENDPOINT,
     token    : TOKEN,
-  } as PuppetOptions
+  } as PUPPET.PuppetOptions
 
   const puppetService = new PuppetService(puppetOptions)
   await puppetService.start()

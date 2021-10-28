@@ -9,22 +9,7 @@ import {
 import type {
   FileBox,
 }                               from 'file-box'
-import {
-  log,
-
-  FriendshipPayloadReceive,
-  LocationPayload,
-  MiniProgramPayload,
-  UrlLinkPayload,
-  RoomInvitationPayload,
-  ImageType,
-  FriendshipAddOptions,
-  FriendshipSceneType,
-  EventScanPayload,
-  EventReadyPayload,
-  PayloadType,
-  PuppetInterface,
-}                               from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
 
 import {
   packFileBoxToPb,
@@ -37,12 +22,12 @@ import {
 import {
   normalizeFileBoxUuid,
 }                             from '../file-box-helper/mod.js'
-
+import { log } from '../config.js'
 import { grpcError }          from './grpc-error.js'
 import { EventStreamManager } from './event-stream-manager.js'
 
 function puppetImplementation (
-  puppet      : PuppetInterface,
+  puppet      : PUPPET.impl.Puppet,
   FileBoxUuid : typeof FileBox,
 ): grpcPuppet.IPuppetServer {
 
@@ -51,8 +36,8 @@ function puppetImplementation (
    *
    * TODO: clean the listeners if necessary
    */
-  let scanPayload: undefined  | EventScanPayload
-  let readyPayload: undefined | EventReadyPayload
+  let scanPayload: undefined  | PUPPET.payload.EventScan
+  let readyPayload: undefined | PUPPET.payload.EventReady
   let readyTimeout: undefined | ReturnType<typeof setTimeout>
 
   puppet.on('scan', payload  => { scanPayload = payload    })
@@ -316,7 +301,7 @@ function puppetImplementation (
 
       try {
         const id = call.request.getId()
-        const type: PayloadType = call.request.getType()
+        const type: PUPPET.type.Payload = call.request.getType()
 
         await puppet.dirtyPayload(type, id)
         return callback(null, new grpcPuppet.DirtyPayloadResponse())
@@ -387,7 +372,7 @@ function puppetImplementation (
         const hello = call.request.getHello()
 
         const referrer = call.request.getReferrer()
-        const friendshipAddOptions: FriendshipAddOptions = {
+        const friendshipAddOptions: PUPPET.type.FriendshipAddOptions = {
           hello,
           ...referrer,
         }
@@ -414,14 +399,14 @@ function puppetImplementation (
       try {
         const id = call.request.getId()
         const payload = await puppet.friendshipPayload(id)
-        const payloadReceive = payload as FriendshipPayloadReceive
+        const payloadReceive = payload as PUPPET.payload.FriendshipReceive
 
         const response = new grpcPuppet.FriendshipPayloadResponse()
 
         response.setContactId(payload.contactId)
         response.setHello(payload.hello || '')
         response.setId(payload.id)
-        response.setScene(payloadReceive.scene || FriendshipSceneType.Unknown)
+        response.setScene(payloadReceive.scene || PUPPET.type.FriendshipScene.Unknown)
         response.setStranger(payloadReceive.stranger || '')
         response.setTicket(payloadReceive.ticket)
         response.setType(payload.type)
@@ -604,7 +589,7 @@ function puppetImplementation (
         const id    = call.request.getId()
         const type  = call.request.getType()
 
-        const fileBox  = await puppet.messageImage(id, type as number as ImageType)
+        const fileBox  = await puppet.messageImage(id, type) //  as number as PUPPET.type.Image
         const response = await packFileBoxToPb(grpcPuppet.MessageImageStreamResponse)(fileBox)
 
         response.on('error', e => call.destroy(e as Error))
@@ -828,7 +813,7 @@ function puppetImplementation (
         const conversationId    = call.request.getConversationId()
         const pbLocationPayload = call.request.getLocation()
 
-        const payload: LocationPayload = {
+        const payload: PUPPET.payload.Location = {
           accuracy  : 0,
           address   : 'NOADDRESS',
           latitude  : 0,
@@ -864,7 +849,7 @@ function puppetImplementation (
           pbMiniProgramPayload = JSON.parse(jsonText)
         }
 
-        const payload: MiniProgramPayload = {
+        const payload: PUPPET.payload.MiniProgram = {
           ...pbMiniProgramPayload,
         }
 
@@ -935,7 +920,7 @@ function puppetImplementation (
           pbUrlLinkPayload = JSON.parse(jsonText)
         }
 
-        const payload: UrlLinkPayload = {
+        const payload: PUPPET.payload.UrlLink = {
           title : 'NOTITLE',
           url   : 'NOURL',
           ...pbUrlLinkPayload,
@@ -1117,7 +1102,7 @@ function puppetImplementation (
           const jsonText = call.request.getPayload()
 
           if (jsonText) {
-            const payload = JSON.parse(jsonText) as RoomInvitationPayload
+            const payload = JSON.parse(jsonText) as PUPPET.payload.RoomInvitation
             await puppet.roomInvitationPayload(roomInvitationId, payload)
 
             return callback(null, new grpcPuppet.RoomInvitationPayloadResponse())
@@ -1131,7 +1116,7 @@ function puppetImplementation (
 
             if (payloadWrapper) {
               const jsonText = payloadWrapper.getValue()
-              const payload = JSON.parse(jsonText) as RoomInvitationPayload
+              const payload = JSON.parse(jsonText) as PUPPET.payload.RoomInvitation
               await puppet.roomInvitationPayload(roomInvitationId, payload)
 
               return callback(null, new grpcPuppet.RoomInvitationPayloadResponse())

@@ -1,7 +1,7 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib",
 
-  "editor.fontFamily": "'Fira Code iScript', Consolas, 'Courier New', monospace",
+  "editor.fontFamily": "Consolas, 'Courier New', monospace",
   "editor.fontLigatures": true,
 
   "editor.tokenColorCustomizations": {

@@ -1,4 +1,4 @@
-import type { FileBox }              from 'wechaty-puppet'
+import type { FileBox }              from 'file-box'
 import { PassThrough }          from 'stream'
 import type { Readable }             from 'stronger-typed-streams'
 

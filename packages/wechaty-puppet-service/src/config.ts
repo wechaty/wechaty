@@ -1,5 +1,7 @@
 /// <reference path="./typings.d.ts" />
 
+import { log } from 'wechaty-puppet'
+
 import { packageJson } from './package-json.js'
 
 import * as rootEnvVars from './env-vars.js'
@@ -23,6 +25,7 @@ const GRPC_OPTIONS = {
 
 export {
   envVars,
+  log,
   GRPC_OPTIONS,
   VERSION,
 }

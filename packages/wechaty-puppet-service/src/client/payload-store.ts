@@ -4,18 +4,15 @@ import fs from 'fs'
 
 import semverPkg from 'semver'
 
-import {
-  log,
-  // MessagePayload,
-  ContactPayload,
-  RoomPayload,
-  RoomMemberPayload,
-}                     from 'wechaty-puppet'
+import type * as PUPPET from 'wechaty-puppet'
 
 import { FlashStore } from 'flash-store'
 // import LRU            from 'lru-cache'
 
-import { VERSION } from '../config.js'
+import {
+  VERSION,
+  log,
+}             from '../config.js'
 
 const { major, minor } = semverPkg
 
@@ -27,9 +24,9 @@ class PayloadStore {
 
   // public message?    : LRU<string, MessagePayload>
 
-  public contact?    : FlashStore<string, ContactPayload>
-  public roomMember? : FlashStore<string, RoomMemberPayload>
-  public room?       : FlashStore<string, RoomPayload>
+  public contact?    : FlashStore<string, PUPPET.payload.Contact>
+  public roomMember? : FlashStore<string, PUPPET.payload.RoomMember>
+  public room?       : FlashStore<string, PUPPET.payload.Room>
 
   protected storeDir:   string
   protected accountId?: string

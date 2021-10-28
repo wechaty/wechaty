@@ -1,13 +1,5 @@
-import {
-  EventErrorPayload,
-  EventLoginPayload,
-  EventLogoutPayload,
-  EventMessagePayload,
-  EventScanPayload,
-  MessageType,
-  ScanStatus,
-  FileBox,
-}                     from 'wechaty-puppet'
+import * as PUPPET  from 'wechaty-puppet'
+import { FileBox } from 'file-box'
 
 import { PuppetService } from '../src/mod.js'
 
@@ -54,7 +46,7 @@ puppet.start()
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
-function onScan (payload: EventScanPayload) {
+function onScan (payload: PUPPET.payload.EventScan) {
   if (payload.qrcode) {
     const qrcodeImageUrl = [
       'https://wechaty.js.org/qrcode/',
@@ -63,11 +55,11 @@ function onScan (payload: EventScanPayload) {
 
     console.info(`[${payload.status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
   } else {
-    console.info(`[${payload.status}] `, ScanStatus[payload.status])
+    console.info(`[${payload.status}] `, PUPPET.type.ScanStatus[payload.status])
   }
 }
 
-async function onLogin (payload: EventLoginPayload) {
+async function onLogin (payload: PUPPET.payload.EventLogin) {
   console.info(`${payload.contactId} login`)
 
   const contactPayload = await puppet.contactPayload(payload.contactId)
@@ -76,11 +68,11 @@ async function onLogin (payload: EventLoginPayload) {
   puppet.messageSendText(payload.contactId, 'Wechaty login').catch(console.error)
 }
 
-function onLogout (payload: EventLogoutPayload) {
+function onLogout (payload: PUPPET.payload.EventLogout) {
   console.info(`${payload.contactId} logouted`)
 }
 
-function onError (payload: EventErrorPayload) {
+function onError (payload: PUPPET.payload.EventError) {
   console.error('Bot error:', payload.data)
   /*
   if (bot.logonoff()) {
@@ -95,7 +87,7 @@ function onError (payload: EventErrorPayload) {
  *    dealing with Messages.
  *
  */
-async function onMessage (payload: EventMessagePayload) {
+async function onMessage (payload: PUPPET.payload.EventMessage) {
   console.info(`onMessage(${payload.messageId})`)
 
   // const DEBUG: boolean = true
@@ -126,7 +118,7 @@ async function onMessage (payload: EventMessagePayload) {
     return
   }
 
-  if (messagePayload.type === MessageType.Text
+  if (messagePayload.type === PUPPET.type.Message.Text
       && /^ding$/i.test(messagePayload.text || '')
   ) {
     const conversationId = messagePayload.roomId || messagePayload.fromId

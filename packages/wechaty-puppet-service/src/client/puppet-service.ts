@@ -3,44 +3,8 @@ import util from 'util'
 import {
   FileBox,
   FileBoxInterface,
-}                   from 'file-box'
-import {
-  log,
-
-  ContactPayload,
-
-  FriendshipAddOptions,
-  FriendshipPayload,
-
-  MessagePayload,
-
-  Puppet,
-  PuppetOptions,
-
-  EventDirtyPayload,
-  EventDongPayload,
-  EventErrorPayload,
-  EventFriendshipPayload,
-  EventHeartbeatPayload,
-  EventLoginPayload,
-  EventLogoutPayload,
-  EventMessagePayload,
-  EventReadyPayload,
-  EventRoomInvitePayload,
-  EventRoomJoinPayload,
-  EventRoomLeavePayload,
-  EventRoomTopicPayload,
-  EventScanPayload,
-  ImageType,
-  MiniProgramPayload,
-  PayloadType,
-  RoomInvitationPayload,
-  RoomMemberPayload,
-  RoomPayload,
-  UrlLinkPayload,
-  LocationPayload,
-  throwUnsupportedError,
-}                           from 'wechaty-puppet'
+}                     from 'file-box'
+import * as PUPPET    from 'wechaty-puppet'
 
 import {
   StringValue,
@@ -67,6 +31,7 @@ import {
 
 import {
   envVars,
+  log,
   VERSION,
 }                       from '../config.js'
 import {
@@ -78,7 +43,7 @@ import { recover$ }     from './recover$.js'
 import { GrpcClient }   from './grpc-client.js'
 import { PayloadStore } from './payload-store.js'
 
-export type PuppetServiceOptions = PuppetOptions & {
+export type PuppetServiceOptions = PUPPET.PuppetOptions & {
   authority?  : string
   tls?: {
     caCert?     : string
@@ -91,7 +56,7 @@ export type PuppetServiceOptions = PuppetOptions & {
   }
 }
 
-export class PuppetService extends Puppet {
+export class PuppetService extends PUPPET.Puppet {
 
   static override readonly VERSION = VERSION
 
@@ -218,12 +183,17 @@ export class PuppetService extends Puppet {
         log.verbose('PuppetService', 'bridgeGrpcEventStream() eventStream.on(error) %s', e)
         const reason = 'bridgeGrpcEventStream() eventStream.on(error) ' + e
         /**
-         * The `Puppet` class have a throttleQueue for receiving the `reset` events
-         *  and it's the `Puppet` class's duty for call the `puppet.reset()` to reset the puppet.
+         * Huan(202110): simple reset puppet when grpc client has error? (or not?)
          */
-        if (this.state.on()) {
-          this.emit('reset', { data: reason })
-        }
+        this.emit('error', new Error(reason))
+        this.wrapAsync(this.reset())
+        // /**
+        //  * The `Puppet` class have a throttleQueue for receiving the `reset` events
+        //  *  and it's the `Puppet` class's duty for call the `puppet.reset()` to reset the puppet.
+        //  */
+        // if (this.state.on()) {
+        //   this.emit('reset', { data: reason })
+        // }
       })
       .on('cancel', (...args: any[]) => {
         log.verbose('PuppetService', 'bridgeGrpcEventStream() eventStream.on(cancel), %s', JSON.stringify(args))
@@ -255,20 +225,20 @@ export class PuppetService extends Puppet {
 
     switch (type) {
       case grpcPuppet.EventType.EVENT_TYPE_DONG:
-        this.emit('dong', JSON.parse(payload) as EventDongPayload)
+        this.emit('dong', JSON.parse(payload) as PUPPET.payload.EventDong)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ERROR:
-        this.emit('error', JSON.parse(payload) as EventErrorPayload)
+        this.emit('error', JSON.parse(payload) as PUPPET.payload.EventError)
         break
       case grpcPuppet.EventType.EVENT_TYPE_HEARTBEAT:
-        this.emit('heartbeat', JSON.parse(payload) as EventHeartbeatPayload)
+        this.emit('heartbeat', JSON.parse(payload) as PUPPET.payload.EventHeartbeat)
         break
       case grpcPuppet.EventType.EVENT_TYPE_FRIENDSHIP:
-        this.emit('friendship', JSON.parse(payload) as EventFriendshipPayload)
+        this.emit('friendship', JSON.parse(payload) as PUPPET.payload.EventFriendship)
         break
       case grpcPuppet.EventType.EVENT_TYPE_LOGIN:
         {
-          const loginPayload = JSON.parse(payload) as EventLoginPayload
+          const loginPayload = JSON.parse(payload) as PUPPET.payload.EventLogin
           ;(
             async () => this.login(loginPayload.contactId)
           )().catch(e =>
@@ -280,7 +250,7 @@ export class PuppetService extends Puppet {
         break
       case grpcPuppet.EventType.EVENT_TYPE_LOGOUT:
         {
-          const logoutPayload = JSON.parse(payload) as EventLogoutPayload
+          const logoutPayload = JSON.parse(payload) as PUPPET.payload.EventLogout
           ;(
             async () => this.logout(logoutPayload.data)
           )().catch(e =>
@@ -291,28 +261,28 @@ export class PuppetService extends Puppet {
         }
         break
       case grpcPuppet.EventType.EVENT_TYPE_DIRTY:
-        this.emit('dirty', JSON.parse(payload) as EventDirtyPayload)
+        this.emit('dirty', JSON.parse(payload) as PUPPET.payload.EventDirty)
         break
       case grpcPuppet.EventType.EVENT_TYPE_MESSAGE:
-        this.emit('message', JSON.parse(payload) as EventMessagePayload)
+        this.emit('message', JSON.parse(payload) as PUPPET.payload.EventMessage)
         break
       case grpcPuppet.EventType.EVENT_TYPE_READY:
-        this.emit('ready', JSON.parse(payload) as EventReadyPayload)
+        this.emit('ready', JSON.parse(payload) as PUPPET.payload.EventReady)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_INVITE:
-        this.emit('room-invite', JSON.parse(payload) as EventRoomInvitePayload)
+        this.emit('room-invite', JSON.parse(payload) as PUPPET.payload.EventRoomInvite)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_JOIN:
-        this.emit('room-join', JSON.parse(payload) as EventRoomJoinPayload)
+        this.emit('room-join', JSON.parse(payload) as PUPPET.payload.EventRoomJoin)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_LEAVE:
-        this.emit('room-leave', JSON.parse(payload) as EventRoomLeavePayload)
+        this.emit('room-leave', JSON.parse(payload) as PUPPET.payload.EventRoomLeave)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_TOPIC:
-        this.emit('room-topic', JSON.parse(payload) as EventRoomTopicPayload)
+        this.emit('room-topic', JSON.parse(payload) as PUPPET.payload.EventRoomTopic)
         break
       case grpcPuppet.EventType.EVENT_TYPE_SCAN:
-        this.emit('scan', JSON.parse(payload) as EventScanPayload)
+        this.emit('scan', JSON.parse(payload) as PUPPET.payload.EventScan)
         break
       case grpcPuppet.EventType.EVENT_TYPE_RESET:
         log.warn('PuppetService', 'onGrpcStreamEvent() got an EventType.EVENT_TYPE_RESET ?')
@@ -372,26 +342,26 @@ export class PuppetService extends Puppet {
    * Huan(202108): consider to use `messagePayloadDirty`, `roomPayloadDirty`
    *  to replace this `dirtyPayload` method for a clearer design and easy to maintain.
    */
-  override async dirtyPayload (type: PayloadType, id: string) {
+  override async dirtyPayload (type: PUPPET.type.Payload, id: string) {
     log.verbose('PuppetService', 'dirtyPayload(%s, %s)', type, id)
 
     await super.dirtyPayload(type, id)
 
     switch (type) {
-      case PayloadType.Contact:
+      case PUPPET.type.Payload.Contact:
         await this.payloadStore.contact?.delete(id)
         break
-      case PayloadType.Friendship:
+      case PUPPET.type.Payload.Friendship:
         // TODO
         break
-      case PayloadType.Message:
+      case PUPPET.type.Payload.Message:
         // await this.payloadStore.message?.del(id)
         // TODO
         break
-      case PayloadType.Room:
+      case PUPPET.type.Payload.Room:
         await this.payloadStore.room?.delete(id)
         break
-      case PayloadType.RoomMember:
+      case PUPPET.type.Payload.RoomMember:
         await this.payloadStore.roomMember?.delete(id)
         break
       default:
@@ -608,7 +578,7 @@ export class PuppetService extends Puppet {
     return this.FileBox.fromJSON(jsonText)
   }
 
-  override async contactRawPayload (id: string): Promise<ContactPayload> {
+  override async contactRawPayload (id: string): Promise<PUPPET.payload.Contact> {
     log.verbose('PuppetService', 'contactRawPayload(%s)', id)
 
     const cachedPayload = await this.payloadStore.contact?.get(id)
@@ -625,7 +595,7 @@ export class PuppetService extends Puppet {
         .bind(this.grpc.client),
     )(request)
 
-    const payload: ContactPayload = {
+    const payload: PUPPET.payload.Contact = {
       address     : response.getAddress(),
       alias       : response.getAlias(),
       avatar      : response.getAvatar(),
@@ -652,7 +622,7 @@ export class PuppetService extends Puppet {
     return payload
   }
 
-  override async contactRawPayloadParser (payload: ContactPayload): Promise<ContactPayload> {
+  override async contactRawPayloadParser (payload: PUPPET.payload.Contact): Promise<PUPPET.payload.Contact> {
     // log.silly('PuppetService', 'contactRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -703,7 +673,7 @@ export class PuppetService extends Puppet {
     hasRead = true,
   ) : Promise<void> {
     log.verbose('PuppetService', 'conversationMarkRead(%s, %s)', conversationId, hasRead)
-    throwUnsupportedError('not implemented. See https://github.com/wechaty/wechaty-puppet/pull/132')
+    return PUPPET.throwUnsupportedError('not implemented. See https://github.com/wechaty/wechaty-puppet/pull/132')
   }
 
   /**
@@ -713,7 +683,7 @@ export class PuppetService extends Puppet {
    */
   override async messageMiniProgram (
     messageId: string,
-  ): Promise<MiniProgramPayload> {
+  ): Promise<PUPPET.payload.MiniProgram> {
     log.verbose('PuppetService', 'messageMiniProgram(%s)', messageId)
 
     const request = new grpcPuppet.MessageMiniProgramRequest()
@@ -733,7 +703,7 @@ export class PuppetService extends Puppet {
       miniProgramPayload = JSON.parse(jsonText)
     }
 
-    const payload: MiniProgramPayload = {
+    const payload: PUPPET.payload.MiniProgram = {
       ...miniProgramPayload,
     }
 
@@ -742,7 +712,7 @@ export class PuppetService extends Puppet {
 
   override async messageLocation (
     messageId: string,
-  ): Promise<LocationPayload> {
+  ): Promise<PUPPET.payload.Location> {
     log.verbose('PuppetService', 'messageLocation(%s)', messageId)
 
     const request = new grpcPuppet.MessageLocationRequest()
@@ -754,7 +724,7 @@ export class PuppetService extends Puppet {
     )(request)
 
     const locationPayload = response.getLocation()
-    const payload: LocationPayload = {
+    const payload: PUPPET.payload.Location = {
       accuracy  : 0,
       address   : 'NOADDRESS',
       latitude  : 0,
@@ -768,12 +738,12 @@ export class PuppetService extends Puppet {
 
   override async messageImage (
     messageId: string,
-    imageType: ImageType,
+    imageType: PUPPET.type.Image,
   ): Promise<FileBox> {
     log.verbose('PuppetService', 'messageImage(%s, %s[%s])',
       messageId,
       imageType,
-      ImageType[imageType],
+      PUPPET.type.Image[imageType],
     )
 
     try {
@@ -829,7 +799,7 @@ export class PuppetService extends Puppet {
 
   override async messageSendMiniProgram (
     conversationId     : string,
-    miniProgramPayload : MiniProgramPayload,
+    miniProgramPayload : PUPPET.payload.MiniProgram,
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendMiniProgram(%s, "%s")', conversationId, JSON.stringify(miniProgramPayload))
 
@@ -878,7 +848,7 @@ export class PuppetService extends Puppet {
 
   override async messageSendLocation (
     conversationId: string,
-    locationPayload: LocationPayload,
+    locationPayload: PUPPET.payload.Location,
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendLocation(%s)', conversationId, JSON.stringify(locationPayload))
 
@@ -982,7 +952,7 @@ export class PuppetService extends Puppet {
     }
   }
 
-  override async messageRawPayload (id: string): Promise<MessagePayload> {
+  override async messageRawPayload (id: string): Promise<PUPPET.payload.Message> {
     log.verbose('PuppetService', 'messageRawPayload(%s)', id)
 
     // const cachedPayload = await this.payloadStore.message?.get(id)
@@ -1008,7 +978,7 @@ export class PuppetService extends Puppet {
       timestamp = response.getTimestampDeprecated()
     }
 
-    const payload: MessagePayload = {
+    const payload: PUPPET.payload.Message = {
       filename      : response.getFilename(),
       fromId        : response.getFromId(),
       id            : response.getId(),
@@ -1026,7 +996,7 @@ export class PuppetService extends Puppet {
     return payload
   }
 
-  override async messageRawPayloadParser (payload: MessagePayload): Promise<MessagePayload> {
+  override async messageRawPayloadParser (payload: PUPPET.payload.Message): Promise<PUPPET.payload.Message> {
     // log.silly('PuppetService', 'messagePayload({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1151,7 +1121,7 @@ export class PuppetService extends Puppet {
 
   override async messageSendUrl (
     conversationId: string,
-    urlLinkPayload: UrlLinkPayload,
+    urlLinkPayload: PUPPET.payload.UrlLink,
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendUrl("%s", %s)', conversationId, JSON.stringify(urlLinkPayload))
 
@@ -1191,7 +1161,7 @@ export class PuppetService extends Puppet {
     }
   }
 
-  override async messageUrl (messageId: string): Promise<UrlLinkPayload> {
+  override async messageUrl (messageId: string): Promise<PUPPET.payload.UrlLink> {
     log.verbose('PuppetService', 'messageUrl(%s)', messageId)
 
     const request = new grpcPuppet.MessageUrlRequest()
@@ -1209,7 +1179,7 @@ export class PuppetService extends Puppet {
       pbUrlLinkPayload = JSON.parse(jsonText)
     }
 
-    const payload: UrlLinkPayload = {
+    const payload: PUPPET.payload.UrlLink = {
       title : 'NOTITLE',
       url   : 'NOURL',
       ...pbUrlLinkPayload,
@@ -1224,7 +1194,7 @@ export class PuppetService extends Puppet {
    */
   override async roomRawPayload (
     id: string,
-  ): Promise<RoomPayload> {
+  ): Promise<PUPPET.payload.Room> {
     log.verbose('PuppetService', 'roomRawPayload(%s)', id)
 
     const cachedPayload = await this.payloadStore.room?.get(id)
@@ -1241,7 +1211,7 @@ export class PuppetService extends Puppet {
         .bind(this.grpc.client),
     )(request)
 
-    const payload: RoomPayload = {
+    const payload: PUPPET.payload.Room = {
       adminIdList  : response.getAdminIdsList(),
       avatar       : response.getAvatar(),
       id           : response.getId(),
@@ -1256,7 +1226,7 @@ export class PuppetService extends Puppet {
     return payload
   }
 
-  override async roomRawPayloadParser (payload: RoomPayload): Promise<RoomPayload> {
+  override async roomRawPayloadParser (payload: PUPPET.payload.Room): Promise<PUPPET.payload.Room> {
     // log.silly('PuppetService', 'roomRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1457,7 +1427,7 @@ export class PuppetService extends Puppet {
         .bind(this.grpc.client),
     )(request)
 
-    const payload: RoomMemberPayload = {
+    const payload: PUPPET.payload.RoomMember = {
       avatar    : response.getAvatar(),
       id        : response.getId(),
       inviterId : response.getInviterId(),
@@ -1471,7 +1441,7 @@ export class PuppetService extends Puppet {
     return payload
   }
 
-  override async roomMemberRawPayloadParser (payload: any): Promise<RoomMemberPayload>  {
+  override async roomMemberRawPayloadParser (payload: any): Promise<PUPPET.payload.RoomMember>  {
     // log.silly('PuppetService', 'roomMemberRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1554,7 +1524,7 @@ export class PuppetService extends Puppet {
 
   override async roomInvitationRawPayload (
     id: string,
-  ): Promise<RoomInvitationPayload> {
+  ): Promise<PUPPET.payload.RoomInvitation> {
     log.verbose('PuppetService', 'roomInvitationRawPayload(%s)', id)
 
     const request = new grpcPuppet.RoomInvitationPayloadRequest()
@@ -1584,7 +1554,7 @@ export class PuppetService extends Puppet {
     // FIXME: how to set it better?
     timestamp ??= 0
 
-    const payload: RoomInvitationPayload = {
+    const payload: PUPPET.payload.RoomInvitation = {
       avatar       : response.getAvatar(),
       id           : response.getId(),
       invitation   : response.getInvitation(),
@@ -1599,7 +1569,7 @@ export class PuppetService extends Puppet {
     return payload
   }
 
-  override async roomInvitationRawPayloadParser (payload: RoomInvitationPayload): Promise<RoomInvitationPayload> {
+  override async roomInvitationRawPayloadParser (payload: PUPPET.payload.RoomInvitation): Promise<PUPPET.payload.RoomInvitation> {
     // log.silly('PuppetService', 'roomInvitationRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1668,7 +1638,7 @@ export class PuppetService extends Puppet {
     return null
   }
 
-  override async friendshipRawPayload (id: string): Promise<FriendshipPayload> {
+  override async friendshipRawPayload (id: string): Promise<PUPPET.payload.Friendship> {
     log.verbose('PuppetService', 'friendshipRawPayload(%s)', id)
 
     const request = new grpcPuppet.FriendshipPayloadRequest()
@@ -1679,7 +1649,7 @@ export class PuppetService extends Puppet {
         .bind(this.grpc.client),
     )(request)
 
-    const payload: FriendshipPayload = {
+    const payload: PUPPET.payload.Friendship = {
       contactId : response.getContactId(),
       hello: response.getHello(),
       id,
@@ -1692,7 +1662,7 @@ export class PuppetService extends Puppet {
     return payload
   }
 
-  override async friendshipRawPayloadParser (payload: FriendshipPayload) : Promise<FriendshipPayload> {
+  override async friendshipRawPayloadParser (payload: PUPPET.payload.Friendship) : Promise<PUPPET.payload.Friendship> {
     // log.silly('PuppetService', 'friendshipRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1700,7 +1670,7 @@ export class PuppetService extends Puppet {
 
   override async friendshipAdd (
     contactId : string,
-    options   : FriendshipAddOptions,
+    options   : PUPPET.type.FriendshipAddOptions,
   ): Promise<void> {
     log.verbose('PuppetService', 'friendshipAdd(%s, %s)', contactId, JSON.stringify(options))
 

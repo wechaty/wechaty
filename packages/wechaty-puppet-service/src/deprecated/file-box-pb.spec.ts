@@ -2,7 +2,7 @@
 
 import { test } from 'tstest'
 
-import { FileBox } from 'wechaty-puppet'
+import { FileBox } from 'file-box'
 
 import {
   puppet,

@@ -23,7 +23,7 @@ import { test } from 'tstest'
 
 import { PassThrough }  from 'stream'
 import type { Duplex }       from 'stronger-typed-streams'
-import { FileBox }      from 'wechaty-puppet'
+import { FileBox }      from 'file-box'
 
 import {
   puppet,
