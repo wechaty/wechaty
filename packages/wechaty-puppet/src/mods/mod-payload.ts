@@ -50,7 +50,7 @@ export type {
   EventScanPayload          as EventScan,
   FriendshipPayload         as Friendship,
   FriendshipPayloadConfirm  as FriendshipConfirm,
-  FriendshipPayloadReceive  as FriendReceive,
+  FriendshipPayloadReceive  as FriendshipReceive,
   FriendshipPayloadVerify   as FriendshipVerify,
   LocationPayload           as Location,
   MessagePayload            as Message,
