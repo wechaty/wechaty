@@ -24,6 +24,9 @@ import {
   VERSION,
 }                   from 'wechaty'
 
+import * as USERS from 'wechaty/users'
+import * as IMPLS from 'wechaty/impls'
+
 import assert from 'assert'
 
 function getBotList (): Wechaty[] {
@@ -70,6 +73,9 @@ async function main () {
       botList.map(bot => bot.stop()),
     )
   }
+
+  const tag: USERS.Tag = {} as any as IMPLS.TagImpl
+  assert.ok(tag, 'should get valid USERS & IMPLS')
 
   assert.notStrictEqual(VERSION,  '0.0.0', 'VERSION must be set!')
 

@@ -93,7 +93,7 @@ class ContactMixin extends MixinBase implements Sayable {
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
   static async find (
-    query : string | PUPPET.query.Contact,
+    query : string | PUPPET.filter.Contact,
   ): Promise<undefined | Contact> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
@@ -154,7 +154,7 @@ class ContactMixin extends MixinBase implements Sayable {
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
   static async findAll (
-    query? : string | PUPPET.query.Contact,
+    query? : string | PUPPET.filter.Contact,
   ): Promise<Contact[]> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 

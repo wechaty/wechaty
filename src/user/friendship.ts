@@ -94,7 +94,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
    *
    */
   static async search (
-    queryFilter : PUPPET.query.Friendship,
+    queryFilter : PUPPET.filter.Friendship,
   ): Promise<undefined | Contact> {
     log.verbose('Friendship', 'static search("%s")',
       JSON.stringify(queryFilter),

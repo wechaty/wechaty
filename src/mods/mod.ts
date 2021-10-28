@@ -25,26 +25,24 @@
 export type {
   WechatyOptions,
 }                       from '../wechaty.js'
+export type {
+  Sayable,
+  SayableMessage,
+  Wechaty,
+}                   from '../interface/mod.js'
 export {
   WechatyBuilder,
 }                       from '../wechaty-builder.js'
 
-export { type }        from 'wechaty-puppet'
-export { payload }     from 'wechaty-puppet'
-export { helper }      from 'wechaty-puppet'
+export * as type        from 'wechaty-puppet/types'
+export * as payload     from 'wechaty-puppet/payloads'
+export * as helper      from 'wechaty-puppet/helpers'
 
-export * as impl        from './mod-impl.js'
-export *                from './mod-user.js'
+export * as impl        from './impls.js'
+export * as user        from './users.js'
 
-export {
-  /**
-   * @deprecated use `type.ScanStatus` instead
-   */
-  // Puppet.type.ScanStatus as ScanStatus,
+export *                from './users.js'
 
-  // FileBox,
-  // MemoryCard,
-}
 export {
   log,
   config,
@@ -70,8 +68,3 @@ export {
 export type {
   WechatyEventName,
 }                             from '../events/wechaty-events.js'
-export type {
-  Sayable,
-  SayableMessage,
-  Wechaty,
-}                   from '../interface/mod.js'

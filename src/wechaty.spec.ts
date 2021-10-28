@@ -32,7 +32,7 @@ import {
   WechatyImpl,
 }                             from './wechaty.js'
 
-import * as impl from './mods/mod-impl.js'
+import * as impl from './mods/impls.js'
 
 import {
   config,
@@ -50,13 +50,13 @@ class WechatyTest extends WechatyImpl {
 }
 
 test('Export of the Framework', async t => {
-  t.ok(impl.Contact,     'should export Contact')
-  t.ok(impl.Friendship,  'should export Friendship')
+  t.ok(impl.ContactImpl,     'should export Contact')
+  t.ok(impl.FriendshipImpl,  'should export Friendship')
   t.ok(IoClient,    'should export IoClient')
-  t.ok(impl.Message,     'should export Message')
+  t.ok(impl.MessageImpl,     'should export Message')
   t.ok(Puppet,      'should export Puppet')
-  t.ok(impl.Room,        'should export Room')
-  t.ok(impl.Wechaty,     'should export Wechaty')
+  t.ok(impl.RoomImpl,        'should export Room')
+  t.ok(impl.WechatyImpl,     'should export Wechaty')
   t.ok(log,         'should export log')
 })
 

@@ -91,7 +91,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * Find message in cache
    */
   static async find (
-    query : string | PUPPET.query.Message,
+    query : string | PUPPET.filter.Message,
   ): Promise<undefined | Message> {
     log.verbose('Message', 'find(%s)', JSON.stringify(query))
 
@@ -115,7 +115,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * Find messages in cache
    */
   static async findAll (
-    query? : PUPPET.query.Message,
+    query? : PUPPET.filter.Message,
   ): Promise<Message[]> {
     log.verbose('Message', 'findAll(%s)', JSON.stringify(query) || '')
 
