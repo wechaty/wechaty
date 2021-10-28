@@ -31,21 +31,11 @@
   },
   "typesVersions": {
     "*": {
-      "filters": [
-        "./dist/esm/src/mods/filters.d.ts"
-      ],
-      "helpers": [
-        "./dist/esm/src/mods/helpers.d.ts"
-      ],
-      "impls": [
-        "./dist/esm/src/mods/impls.d.ts"
-      ],
-      "payloads": [
-        "./dist/esm/src/mods/payloads.d.ts"
-      ],
-      "types": [
-        "./dist/esm/src/mods/types.d.ts"
-      ]
+      "filters": ["./dist/esm/src/mods/filters.d.ts"],
+      "helpers": ["./dist/esm/src/mods/helpers.d.ts"],
+      "impls": ["./dist/esm/src/mods/impls.d.ts"],
+      "payloads": ["./dist/esm/src/mods/payloads.d.ts"],
+      "types": ["./dist/esm/src/mods/types.d.ts"]
     }
   },
   "types": "./dist/esm/src/mods/mod.d.ts",
