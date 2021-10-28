@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.41.2",
+  "version": "0.41.3",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
