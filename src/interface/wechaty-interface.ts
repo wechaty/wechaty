@@ -12,8 +12,8 @@ type DeprecatedProperties = never
 type NonInterfaceProperties = never
   | 'log'
   | 'options'
-  | 'pluginUninstallerList'
-  | 'readyState'
+  | '_pluginUninstallerList'
+  | '_readyState'
   | 'wechaty'
   | 'onStart'
   | 'onStop'

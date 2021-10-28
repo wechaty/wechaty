@@ -162,17 +162,16 @@ class WechatyImpl extends mixinBase implements Sayable {
   static   readonly log: Loggable = log
 
   readonly log: Loggable = log
-  // readonly state   : StateSwitchInterface
   readonly wechaty : Wechaty
 
-  private  readonly readyState : StateSwitchInterface
+  private  readonly _readyState : StateSwitchInterface
 
-  private static globalPluginList: WechatyPlugin[] = []
-  private pluginUninstallerList: WechatyPluginUninstaller[]
-  private memory?: MemoryCard
-  private io?: Io
+  private static _globalPluginList: WechatyPlugin[] = []
+  private _pluginUninstallerList: WechatyPluginUninstaller[]
+  private _memory?: MemoryCard
+  private _io?: Io
 
-  protected readonly cleanCallbackList: Function[] = []
+  protected readonly _cleanCallbackList: Function[] = []
   protected _puppet?: PUPPET.impl.Puppet
   get puppet (): PUPPET.impl.Puppet {
     if (!this._puppet) {
@@ -277,7 +276,7 @@ class WechatyImpl extends mixinBase implements Sayable {
     ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
   ): WechatyConstructor {
     const pluginList = plugins.flat()
-    this.globalPluginList = this.globalPluginList.concat(pluginList)
+    this._globalPluginList = this._globalPluginList.concat(pluginList)
     return this
   }
 
@@ -337,13 +336,13 @@ class WechatyImpl extends mixinBase implements Sayable {
     super()
     log.verbose('Wechaty', 'constructor()')
 
-    this.memory = this.options.memory
+    this._memory = this.options.memory
 
     this.id                = uuid.v4()
-    this.cleanCallbackList = []
+    this._cleanCallbackList = []
 
     this.state      = new StateSwitch('Wechaty', { log })
-    this.readyState = new StateSwitch('WechatyReady', { log })
+    this._readyState = new StateSwitch('WechatyReady', { log })
 
     this.wechaty = this
 
@@ -358,7 +357,7 @@ class WechatyImpl extends mixinBase implements Sayable {
      */
     super.setMaxListeners(1024)
 
-    this.pluginUninstallerList = []
+    this._pluginUninstallerList = []
     this.installGlobalPlugin()
   }
 
@@ -374,7 +373,7 @@ class WechatyImpl extends mixinBase implements Sayable {
       'Wechaty#',
       this.id,
       `<${(this.options.puppet) || ''}>`,
-      `(${(this.memory && this.memory.name) || ''})`,
+      `(${(this._memory && this._memory.name) || ''})`,
     ].join('')
   }
 
@@ -417,7 +416,7 @@ class WechatyImpl extends mixinBase implements Sayable {
       .map(plugin => plugin(this))
       .filter(isWechatyPluginUninstaller)
 
-    this.pluginUninstallerList.push(
+    this._pluginUninstallerList.push(
       ...uninstallerList,
     )
     return this
@@ -426,11 +425,11 @@ class WechatyImpl extends mixinBase implements Sayable {
   private installGlobalPlugin () {
 
     const uninstallerList = instanceToClass(this, WechatyImpl)
-      .globalPluginList
+      ._globalPluginList
       .map(plugin => plugin(this))
       .filter(isWechatyPluginUninstaller)
 
-    this.pluginUninstallerList.push(
+    this._pluginUninstallerList.push(
       ...uninstallerList,
     )
   }
@@ -443,12 +442,12 @@ class WechatyImpl extends mixinBase implements Sayable {
       return
     }
 
-    if (!this.memory) {
+    if (!this._memory) {
       throw new Error('no memory')
     }
 
     const puppet       = this.options.puppet || config.systemPuppetName()
-    const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
+    const puppetMemory = this._memory.multiplex(PUPPET_MEMORY_NAME)
 
     const puppetInstance = await PuppetManager.resolve({
       puppet,
@@ -573,7 +572,7 @@ class WechatyImpl extends mixinBase implements Sayable {
             log.silly('Wechaty', 'initPuppetEventBridge() puppet.on(ready)')
 
             this.emit('ready')
-            this.readyState.active(true)
+            this._readyState.active(true)
           })
           break
 
@@ -776,12 +775,12 @@ class WechatyImpl extends mixinBase implements Sayable {
     /**
      * Init the `wechaty.ready()` state
      */
-    this.readyState.inactive(true)
+    this._readyState.inactive(true)
 
-    if (!this.memory) {
-      this.memory = new MemoryCard(this.options.name)
+    if (!this._memory) {
+      this._memory = new MemoryCard(this.options.name)
       try {
-        await this.memory.load()
+        await this._memory.load()
       } catch (_) {
         log.silly('Wechaty', 'onStart() memory.load() had already loaded')
       }
@@ -791,21 +790,21 @@ class WechatyImpl extends mixinBase implements Sayable {
     await this.puppet.start()
 
     if (this.options.ioToken) {
-      this.io = new Io({
+      this._io = new Io({
         token   : this.options.ioToken,
         wechaty : this,
       })
-      await this.io.start()
+      await this._io.start()
     }
 
     const memoryCheck = () => this.memoryCheck()
     this.on('heartbeat', memoryCheck)
-    this.cleanCallbackList.push(() => this.off('heartbeat', memoryCheck))
+    this._cleanCallbackList.push(() => this.off('heartbeat', memoryCheck))
 
     const lifeTimer = setInterval(() => {
       log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
     }, 1000 * 60 * 60)
-    this.cleanCallbackList.push(() => clearInterval(lifeTimer))
+    this._cleanCallbackList.push(() => clearInterval(lifeTimer))
 
     this.emit('start')
   }
@@ -820,13 +819,13 @@ class WechatyImpl extends mixinBase implements Sayable {
      * Uninstall Plugins
      *  no matter the state is `ON` or `OFF`.
      */
-    while (this.pluginUninstallerList.length > 0) {
-      const uninstaller = this.pluginUninstallerList.pop()
+    while (this._pluginUninstallerList.length > 0) {
+      const uninstaller = this._pluginUninstallerList.pop()
       if (uninstaller) uninstaller()
     }
 
-    while (this.cleanCallbackList.length > 0) {
-      const cleaner = this.cleanCallbackList.pop()
+    while (this._cleanCallbackList.length > 0) {
+      const cleaner = this._cleanCallbackList.pop()
       if (cleaner) cleaner()
     }
 
@@ -837,9 +836,9 @@ class WechatyImpl extends mixinBase implements Sayable {
     }
 
     try {
-      if (this.io) {
-        await this.io.stop()
-        this.io = undefined
+      if (this._io) {
+        await this._io.stop()
+        this._io = undefined
       }
 
     } catch (e) {
@@ -851,7 +850,7 @@ class WechatyImpl extends mixinBase implements Sayable {
 
   async ready (): Promise<void> {
     log.verbose('Wechaty', 'ready()')
-    await this.readyState.stable('on')
+    await this._readyState.stable('on')
     log.silly('Wechaty', 'ready() this.readyState.stable(on) resolved')
   }
 
