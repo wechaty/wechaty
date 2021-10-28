@@ -317,7 +317,13 @@ export class Io {
 
       case 'reset':
         log.verbose('Io', 'on(reset): %s', ioEvent.payload)
-        await this.options.wechaty.reset(ioEvent.payload)
+        this.options.wechaty.emitError(
+          new Error(
+            'reset by server: '
+            + JSON.stringify(ioEvent.payload),
+          ),
+        )
+        await this.options.wechaty.reset()
         break
 
       case 'shutdown':

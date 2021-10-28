@@ -15,21 +15,10 @@ type NonInterfaceProperties = never
   | 'pluginUninstallerList'
   | 'readyState'
   | 'wechaty'
-
-// type WechatyUserClass = never
-//   | 'Contact'
-//   | 'ContactSelf'
-//   | 'Friendship'
-//   | 'Image'
-//   | 'Location'
-//   | 'Message'
-//   | 'MiniProgram'
-//   | 'Moment'
-//   | 'Money'
-//   | 'Room'
-//   | 'RoomInvitation'
-//   | 'Tag'
-//   | 'UrlLink'
+  | 'onStart'
+  | 'onStop'
+  | '_serviceCtlLog'
+  | '_serviceCtlFsmInterpreter'
 
 // https://stackoverflow.com/a/64754408/1123955
 type KeyOfWechaty       = keyof WechatyImpl

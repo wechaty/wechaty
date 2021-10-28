@@ -26,6 +26,7 @@ import {
 }                       from 'memory-card'
 import {
   StateSwitch,
+  serviceCtlFsmMixin,
 }                       from 'state-switch'
 import type {
   StateSwitchInterface,
@@ -119,7 +120,6 @@ import type {
   WechatyConstructor,
 }                       from './interface/wechaty-interface.js'
 import { WechatyBuilder } from './wechaty-builder.js'
-import { timeoutPromise } from './helper-functions/impure/timeout-promise.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -132,6 +132,7 @@ export interface WechatyOptions {
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
+const mixinBase = serviceCtlFsmMixin('Wechaty', { log })(WechatyEventEmitter)
 /**
  * Main bot class.
  *
@@ -155,13 +156,13 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
-class WechatyImpl extends WechatyEventEmitter implements Sayable {
+class WechatyImpl extends mixinBase implements Sayable {
 
-  static   readonly VERSION = VERSION
+  static   override readonly VERSION = VERSION
   static   readonly log: Loggable = log
 
   readonly log: Loggable = log
-  readonly state   : StateSwitchInterface
+  // readonly state   : StateSwitchInterface
   readonly wechaty : Wechaty
 
   private  readonly readyState : StateSwitchInterface
@@ -764,58 +765,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     return super.emit('error', gerr)
   }
 
-  /**
-   * Start the bot, return Promise.
-   *
-   * @returns {Promise<void>}
-   * @description
-   * When you start the bot, bot will begin to login, need you WeChat scan qrcode to login
-   * > Tips: All the bot operation needs to be triggered after start() is done
-   * @example
-   * await bot.start()
-   * // do other stuff with bot here
-   */
-  async start (): Promise<void> {
-    log.verbose('Wechaty', 'start()')
-
-    if (this.state.active()) {
-      log.warn('Wechaty', 'start() found that is starting/started, waiting stable ...')
-      await this.state.stable('on')
-      log.warn('Wechaty', 'start() found that is starting/started, waiting stable ... done')
-      return
-    }
-
-    if (this.state.inactive() === 'pending') {
-      log.warn('Wechaty', 'start() found that is stopping, waiting stable ...')
-
-      try {
-        await timeoutPromise(
-          this.state.stable('off'),
-          5 * 1000, // 5 seconds
-          () => new Error('start() timeout because stopping is too long'),
-        )
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... done')
-      } catch (e) {
-        this.emit('error', e)
-        log.warn('Wechaty', 'start() found that is stopping, waiting stable ... timeout')
-      }
-    }
-
-    this.state.active('pending')
-
-    try {
-      await this.onStart()
-      this.state.active(true)
-      this.emit('start')
-
-    } catch (e) {
-      this.emit('error', e)
-      await this.stop()
-      throw e
-    }
-  }
-
-  protected async onStart (): Promise<void> {
+  override async onStart (): Promise<void> {
     log.verbose('Wechaty', '<%s>(%s) onStart() v%s is starting...',
       this.options.puppet || config.systemPuppetName(),
       this.options.name   || '',
@@ -858,54 +808,7 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     this.cleanCallbackList.push(() => clearInterval(lifeTimer))
   }
 
-  /**
-   * Stop the bot
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await bot.stop()
-   */
-  async stop (): Promise<void> {
-    log.verbose('Wechaty', 'stop()')
-
-    if (this.state.inactive()) {
-      log.warn('Wechaty', 'stop() found that is stopping/stopped ...')
-      await this.state.stable('off')
-      log.warn('Wechaty', 'stop() found that is stopping/stopped ... done')
-      return
-    }
-
-    if (this.state.active() === 'pending') {
-      log.warn('Wechaty', 'stop() found that is starting, waiting stable ...')
-
-      try {
-        await timeoutPromise(
-          this.state.stable('on'),
-          5 * 1000, // 5 seconds
-          () => new Error('stop() timeout after 5 seconds'),
-        )
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... done')
-      } catch (e) {
-        this.emit('error', e)
-        log.warn('Wechaty', 'stop() found that is starting, waiting stable ... timeout')
-      }
-    }
-
-    this.state.inactive('pending')
-
-    try {
-      await this.onStop()
-
-    } catch (e) {
-      this.emit('error', e)
-
-    } finally {
-      this.state.inactive(true)
-      this.emit('stop')
-    }
-  }
-
-  protected async onStop (): Promise<void> {
+  override async onStop (): Promise<void> {
     log.verbose('Wechaty', '<%s> onStop() v%s is stopping ...',
       this.options.puppet || config.systemPuppetName(),
       this.version(),
@@ -1138,39 +1041,6 @@ class WechatyImpl extends WechatyEventEmitter implements Sayable {
     if (freeMegabyte < minMegabyte) {
       this.emit('error', `memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
     }
-  }
-
-  /**
-   * @ignore
-   */
-  reset (reason?: string): void {
-    log.verbose('Wechaty', 'reset() with reason: %s, call stack: %s',
-      reason || 'no reason',
-      // https://stackoverflow.com/a/2060330/1123955
-      new Error().stack,
-    )
-
-    this.puppet.stop()
-      .then(() => this.puppet.start())
-      .finally(() => {
-        log.verbose('Wechaty', 'reset() done.')
-      })
-      .catch(e => {
-        log.warn('Wechaty', 'reset() rejection: %s', e && e.message)
-
-        /**
-         * Dealing with https://github.com/wechaty/wechaty/issues/2197
-         */
-        setTimeout(
-          () => this.reset(),
-          Math.floor(
-            (
-              10 + 10 * Math.random()
-            ) * 1000,
-          ),
-        )
-
-      })
   }
 
 }

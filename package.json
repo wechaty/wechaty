@@ -94,10 +94,10 @@
     "dotenv": "^10.0.0",
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
-    "state-switch": "^1.0.16",
+    "state-switch": "^1.1.14",
     "uuid": "^8.3.2",
-    "wechaty-puppet": "^0.53.4",
-    "wechaty-puppet-service": "^0.40.1",
+    "wechaty-puppet": "^0.53.6",
+    "wechaty-puppet-service": "^0.41.3",
     "ws": "^8.2.3"
   },
   "devDependencies": {
