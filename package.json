@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.79.5",
+  "version": "0.79.6",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "type": "module",
   "exports": {
@@ -19,8 +19,12 @@
   },
   "typesVersions": {
     "*": {
-      "users": ["./dist/esm/src/mods/users.d.ts"],
-      "impls": ["./dist/esm/src/mods/impls.d.ts"]
+      "users": [
+        "./dist/esm/src/mods/users.d.ts"
+      ],
+      "impls": [
+        "./dist/esm/src/mods/impls.d.ts"
+      ]
     }
   },
   "types": "./dist/esm/src/mods/mod.d.ts",
