@@ -7,9 +7,38 @@
     ".": {
       "import": "./dist/esm/src/mods/mod.js",
       "require": "./dist/cjs/src/mods/mod.js"
+    },
+    "./impls": {
+      "import": "./dist/esm/src/mods/impls.js",
+      "require": "./dist/cjs/src/mods/impls.js"
+    },
+    "./payloads": {
+      "import": "./dist/esm/src/mods/payloads.js",
+      "require": "./dist/cjs/src/mods/payloads.js"
+    },
+    "./types": {
+      "import": "./dist/esm/src/mods/types.js",
+      "require": "./dist/cjs/src/mods/types.js"
+    },
+    "./filters": {
+      "import": "./dist/esm/src/mods/filters.js",
+      "require": "./dist/cjs/src/mods/filters.js"
+    },
+    "./helpers": {
+      "import": "./dist/esm/src/mods/helpers.js",
+      "require": "./dist/cjs/src/mods/helpers.js"
     }
   },
-  "typings": "./dist/esm/src/mods/mod.d.ts",
+  "typesVersions": {
+    "*": {
+      "filters": ["./dist/esm/src/mods/filters.d.ts"],
+      "helpers": ["./dist/esm/src/mods/helpers.d.ts"],
+      "impls": ["./dist/esm/src/mods/impls.d.ts"],
+      "payloads": ["./dist/esm/src/mods/payloads.d.ts"],
+      "types": ["./dist/esm/src/mods/types.d.ts"]
+    }
+  },
+  "types": "./dist/esm/src/mods/mod.d.ts",
   "engines": {
     "node": ">=16",
     "npm": ">=7",

@@ -39,8 +39,8 @@ export {
   VERSION,
 }
 
-export * as payload from './mod-payload.js'
-export * as impl    from './mod-impl.js'
-export * as type    from './mod-type.js'
-export * as helper  from './mod-helper.js'
-export * as query   from './mod-query.js'
+export * as filter  from './filters.js'
+export * as helper  from './helpers.js'
+export * as impl    from './impls.js'
+export * as payload from './payloads.js'
+export * as type    from './types.js'
