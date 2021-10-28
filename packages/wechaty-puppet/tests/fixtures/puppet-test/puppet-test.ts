@@ -40,8 +40,8 @@ class PuppetTest extends Puppet {
     return '1.0.0'
   }
 
-  override async onStart () : Promise<void> { return super.start() }
-  override async onStop ()  : Promise<void> { return super.stop() }
+  override async onStart () : Promise<void> { }
+  override async onStop ()  : Promise<void> { }
 
   override async ding (data?: string)   : Promise<void> { return data as any as void }
   override async logout () : Promise<void> { return {} as any }

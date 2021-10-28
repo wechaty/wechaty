@@ -93,7 +93,7 @@ abstract class Puppet extends MixinBase {
   static override readonly VERSION = VERSION
 
   constructor (
-    public override options: PuppetOptions = {},
+    options: PuppetOptions = {},
   ) {
     super(options)
     log.verbose('Puppet', 'constructor(%s)', JSON.stringify(options))

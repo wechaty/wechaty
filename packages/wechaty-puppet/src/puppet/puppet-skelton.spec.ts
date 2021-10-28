@@ -4,6 +4,7 @@ import {
   test,
   sinon,
 }           from 'tstest'
+
 import { isEventErrorPayload } from '../gerror/puppet.js'
 import { GError } from '../gerror/gerror.js'
 

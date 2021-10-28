@@ -57,8 +57,8 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
    */
   readonly id: string
 
-  calledSkeltonStart : boolean
-  calledSkeltonStop  : boolean
+  _flagSkeltonStartCalled : boolean
+  _flagSkeltonStopCalled  : boolean
 
   readonly options: PuppetOptions
 
@@ -71,7 +71,10 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
   wrapAsync: WrapAsync = wrapAsyncError((e: any) => this.emit('error', e))
 
   /**
-   * Huan(202110): mixins required the constructor arguments to be `...args: any[]`
+   * Huan(202110): keep constructor with `args: any[]` parameters
+   *  because mixins required it
+   *
+   * We will save args[0] to `this.options` so that all mixins can access it
    * @param args
    */
   constructor (
@@ -84,11 +87,11 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
         : '',
     )
 
-    this.id      = uuid.v4()
-    this.options = args[0] || {}
+    this.id       = uuid.v4()
+    this.options  = args[0] || {}
 
-    this.calledSkeltonStart = false
-    this.calledSkeltonStop  = false
+    this._flagSkeltonStartCalled = false
+    this._flagSkeltonStopCalled  = false
   }
 
   /**
@@ -100,12 +103,12 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
    */
   async start (): Promise<void> {
     log.verbose('PuppetSkelton', 'start()')
-    this.calledSkeltonStart = true
+    this._flagSkeltonStartCalled = true
   }
 
   async stop (): Promise<void> {
     log.verbose('PuppetSkelton', 'stop()')
-    this.calledSkeltonStop  = true
+    this._flagSkeltonStopCalled  = true
   }
 
   /**
@@ -140,8 +143,8 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
 }
 
 type PuppetSkeltonProtectedProperty =
-  | 'calledSkeltonStart'
-  | 'calledSkeltonStop'
+  | '_flagSkeltonStartCalled'
+  | '_flagSkeltonStopCalled'
 
 export type {
   PuppetSkeltonProtectedProperty,
