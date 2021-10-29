@@ -119,9 +119,11 @@ Set the max size for wechaty entities in LRU Cache.
 
 ## History
 
-### master v0.49
+### master v1.0 - Initial Release
 
-1. Add `Error` interface to `EventErrorPayload`, and make `.data` optional
+### v0.49 (Oct 2021)
+
+1. ~~Add `Error` interface to `EventErrorPayload`, and make `.data` optional~~
 2. Using [Mixin](https://en.wikipedia.org/wiki/Mixin) to extend `Puppet`
 
 ### v0.43 (Aug 28, 2021)
