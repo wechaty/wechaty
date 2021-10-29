@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "0.41.3",
+  "version": "1.0.0",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -13,7 +13,7 @@
   "engines": {
     "node": ">=16",
     "npm": ">=7",
-    "wechaty": ">=0.79"
+    "wechaty": ">=1.0"
   },
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cjs.json",
@@ -58,11 +58,11 @@
     "@types/semver": "^7.3.9",
     "@types/uuid": "^8.3.1",
     "@types/ws": "^8.2.0",
-    "wechaty": "^0.79",
+    "wechaty": "^1.0.1",
     "wechaty-puppet-mock": "^0.37"
   },
   "peerDependencies": {
-    "wechaty-puppet": ">=0.53.8"
+    "wechaty-puppet": "^1.0.1"
   },
   "dependencies": {
     "clone-class": "^1.0.2",

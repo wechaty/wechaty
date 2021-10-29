@@ -112,7 +112,11 @@ For Puppet Client:
 | `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME` | `options.serverName` | Server Name (mast match for SNI) |
 | `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT` | `options.tls.disable` | Set `true` to disable client TLS |
 
-#### Changelog
+## Changelog
+
+### main v1.0 (Oct 29, 2021)
+
+Release v1.0 of Wechaty Puppet Service.
 
 1. use [wechaty-token](https://github.com/wechaty/token)
   for gRPC service discovery with `wechaty` schema (xDS like)
