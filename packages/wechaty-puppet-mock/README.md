@@ -112,9 +112,11 @@ console.log(config)
 
 ## HISTORY
 
-### master v0.31
+### master v1.0 (Oct 29, 2021)
 
-1. Support ES Modules
+Release v1.0 of Puppet Mock
+
+1. v0.31: Support ES Modules
 
 ### v0.25 (July 13, 2020)
 

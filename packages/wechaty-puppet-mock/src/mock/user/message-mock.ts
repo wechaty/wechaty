@@ -1,10 +1,10 @@
 // import { Attachment } from './types'
-import {
-  MessageType,
-  MessagePayload,
-  FileBox,
-  log,
-}                     from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
+import type {
+  FileBoxInterface,
+}           from 'file-box'
+
+import { log } from '../../config.js'
 
 import type { Mocker }        from '../mocker.js'
 
@@ -20,7 +20,7 @@ class MessageMock {
   static get mocker (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
   get mocker       (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
-  protected static [POOL]: Map<string, MessageMock>
+  protected static [POOL]: undefined | Map<string, MessageMock>
   // protected static [ATTACHMENT]: Map<string, Attachment>
   protected static get pool () {
     if (!this[POOL]) {
@@ -35,7 +35,7 @@ class MessageMock {
       )
     }
 
-    return this[POOL]
+    return this[POOL]!
   }
 
   // protected static get attachmentPool () {
@@ -91,7 +91,7 @@ class MessageMock {
   // }
 
   static create<T extends typeof MessageMock> (
-    payload: MessagePayload,
+    payload: PUPPET.payload.Message,
   ): T['prototype'] {
     log.verbose('MockMessage', 'static create(%s)', JSON.stringify(payload))
 
@@ -112,7 +112,7 @@ class MessageMock {
   get id () { return this.payload.id }
 
   constructor (
-    public payload: MessagePayload,
+    public payload: PUPPET.payload.Message,
   ) {
     log.silly('MockMessage', 'constructor(%s)', JSON.stringify(payload))
   }
@@ -152,7 +152,7 @@ class MessageMock {
     return this.payload.text
   }
 
-  type (): MessageType {
+  type (): PUPPET.type.Message {
     log.silly('MockMessage', 'text()')
     return this.payload.type
   }
@@ -160,7 +160,7 @@ class MessageMock {
   async toContact (): Promise<ContactMock> {
     log.verbose('MockMessage', 'toContact()')
 
-    if (this.type() !== MessageType.Contact) {
+    if (this.type() !== PUPPET.type.Message.Contact) {
       throw new Error('message not a ShareCard')
     }
 
@@ -193,9 +193,9 @@ class MessageMock {
   //   return new MiniProgram(miniprogram)
   // }
 
-  async toFileBox (): Promise<FileBox> {
+  async toFileBox (): Promise<FileBoxInterface> {
     log.verbose('MockMessage', 'toFileBox()')
-    if (this.type() === MessageType.Text) {
+    if (this.type() === PUPPET.type.Message.Text) {
       throw new Error('message is a Text')
     }
     return this.mocker.puppet.messageFile(this.id)

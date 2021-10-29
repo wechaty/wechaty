@@ -16,13 +16,7 @@
  *   limitations under the License.
  *
  */
-import type {
-  EventLogoutPayload,
-  EventLoginPayload,
-  EventScanPayload,
-  EventErrorPayload,
-  EventMessagePayload,
-}                         from 'wechaty-puppet'
+import type * as PUPPET from 'wechaty-puppet'
 import {
   PuppetMock,
   mock,
@@ -74,7 +68,7 @@ puppet.start()
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
-function onScan (payload: EventScanPayload) {
+function onScan (payload: PUPPET.payload.EventScan) {
   if (payload.qrcode) {
     const qrcodeImageUrl = [
       'https://wechaty.js.org/qrcode/',
@@ -86,16 +80,16 @@ function onScan (payload: EventScanPayload) {
   }
 }
 
-function onLogin (payload: EventLoginPayload) {
+function onLogin (payload: PUPPET.payload.EventLogin) {
   console.info(`${payload.contactId} login`)
   puppet.messageSendText(payload.contactId, 'Wechaty login').catch(console.error)
 }
 
-function onLogout (payload: EventLogoutPayload) {
+function onLogout (payload: PUPPET.payload.EventLogout) {
   console.info(`${payload.contactId} logouted`)
 }
 
-function onError (payload: EventErrorPayload) {
+function onError (payload: PUPPET.payload.EventError) {
   console.error('Bot error:', payload.data)
   /*
   if (bot.logonoff()) {
@@ -110,7 +104,7 @@ function onError (payload: EventErrorPayload) {
  *    dealing with Messages.
  *
  */
-async function onMessage (payload: EventMessagePayload) {
+async function onMessage (payload: PUPPET.payload.EventMessage) {
   const msgPayload = await puppet.messagePayload(payload.messageId)
   console.info(JSON.stringify(msgPayload))
 }

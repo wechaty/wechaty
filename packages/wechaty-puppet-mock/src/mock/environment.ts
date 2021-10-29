@@ -1,7 +1,5 @@
-import {
-  log,
-  ScanStatus,
-}               from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
+import { log } from '../config.js'
 
 import type { Mocker } from './mocker.js'
 
@@ -26,7 +24,7 @@ const SimpleEnvironment: () => EnvironmentMock = () => {
       clearInterval(timer)
     }
 
-    mocker.scan('https://github.com/wechaty/wechaty-puppet-mock', ScanStatus.Waiting)
+    mocker.scan('https://github.com/wechaty/wechaty-puppet-mock', PUPPET.type.ScanStatus.Waiting)
 
     const user = mocker.createContact()
     mocker.login(user)

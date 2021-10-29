@@ -10,15 +10,10 @@ import {
   WechatyBuilder,
   // MiniProgram,
 }                       from 'wechaty'
+import * as PUPPET  from 'wechaty-puppet'
 import {
-  EventScanPayload,
-  ScanStatus,
-  EventLoginPayload,
-  EventMessagePayload,
-  MessagePayload,
-  MessageType,
   FileBox,
-}                         from 'wechaty-puppet'
+}                 from 'file-box'
 
 import { PuppetMock }         from '../puppet-mock.js'
 
@@ -82,9 +77,9 @@ test('Mocker.scan()', async t => {
   }         = createFixture()
 
   const QR_CODE = 'https://github.com/wechaty'
-  const EXPECTED_PAYLOAD: EventScanPayload = {
+  const EXPECTED_PAYLOAD: PUPPET.payload.EventScan = {
     qrcode: QR_CODE,
-    status: ScanStatus.Waiting,
+    status: PUPPET.type.ScanStatus.Waiting,
   }
 
   const sandbox = sinon.createSandbox()
@@ -92,7 +87,7 @@ test('Mocker.scan()', async t => {
   puppet.on('scan', spy)
 
   await puppet.start()
-  mocker.scan(QR_CODE, ScanStatus.Waiting)
+  mocker.scan(QR_CODE, PUPPET.type.ScanStatus.Waiting)
 
   t.ok(spy.calledOnce, 'should received the scan event')
   t.ok(spy.calledWith(EXPECTED_PAYLOAD), 'should received expected QR CODE')
@@ -107,7 +102,7 @@ test('Mocker.login()', async t => {
     puppet,
   }         = createFixture()
 
-  const EXPECTED_PAYLOAD: EventLoginPayload = {
+  const EXPECTED_PAYLOAD: PUPPET.payload.EventLogin = {
     contactId: user.id,
   }
 
@@ -133,27 +128,27 @@ test('MockContact.say().to(contact)', async t => {
 
   const TEXT = 'Hello, contact!'
 
-  const future = new Promise<EventMessagePayload>(resolve => puppet.once('message', resolve))
+  const future = new Promise<PUPPET.payload.EventMessage>(resolve => puppet.once('message', resolve))
 
   await puppet.start()
   user.say(TEXT).to(mary)
 
   const { messageId } = await future
 
-  const EXPECTED_PAYLOAD: MessagePayload = {
+  const EXPECTED_PAYLOAD: PUPPET.payload.Message = {
     fromId    : user.id,
     id        : messageId,
     text      : TEXT,
     timestamp : Date.now(),
     toId      : mary.id,
-    type      : MessageType.Text,
+    type      : PUPPET.type.Message.Text,
   }
 
   const payload = await puppet.messagePayload(messageId)
 
   EXPECTED_PAYLOAD.timestamp = payload.timestamp
 
-  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should received the expected text message payload')
+  t.same(payload, EXPECTED_PAYLOAD, 'should received the expected text message payload')
 
   await puppet.stop()
 })
@@ -167,28 +162,28 @@ test('MockContact.say().to(room)', async t => {
 
   const TEXT = 'Hello, room!'
 
-  const future = new Promise<EventMessagePayload>(resolve => puppet.once('message', resolve))
+  const future = new Promise<PUPPET.payload.EventMessage>(resolve => puppet.once('message', resolve))
 
   await puppet.start()
   user.say(TEXT).to(room)
 
   const { messageId } = await future
 
-  const EXPECTED_PAYLOAD: MessagePayload = {
+  const EXPECTED_PAYLOAD: PUPPET.payload.Message = {
     fromId        : user.id,
     id            : messageId,
     mentionIdList : [],
     roomId        : room.id,
     text          : TEXT,
     timestamp     : Date.now(),
-    type          : MessageType.Text,
+    type          : PUPPET.type.Message.Text,
   }
 
   const payload = await puppet.messagePayload(messageId)
 
   EXPECTED_PAYLOAD.timestamp = payload.timestamp
 
-  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should received the expected room message payload')
+  t.same(payload, EXPECTED_PAYLOAD, 'should received the expected room message payload')
 
   await puppet.stop()
 })
@@ -220,7 +215,7 @@ test('event(message) for MockContact & MockRoom', async t => {
     const userMsg = userSpy.args[0]![0] as MessageMock
     const roomMsg = roomSpy.args[0]![0] as MessageMock
 
-    t.deepEqual(userMsg.payload, roomMsg.payload, 'should receive the same message for both user & room')
+    t.same(userMsg.payload, roomMsg.payload, 'should receive the same message for both user & room')
 
     t.equal(userMsg.payload.text, TEXT, 'should receive the TEXT as the message')
   } finally {
@@ -263,7 +258,7 @@ test('Multiple Mockers with their MockContact(s)', async t => {
 //   user.say(url).to(mary)
 
 //   await sleep()
-//   t.deepEqual(receive, url, 'should received the expected contact message payload')
+//   t.same(receive, url, 'should received the expected contact message payload')
 //   await puppet.stop()
 // })
 
@@ -300,7 +295,7 @@ test('Multiple Mockers with their MockContact(s)', async t => {
 //   mary.say('test').to(user)
 
 //   await sleep()
-//   t.deepEqual(receive, url, 'should received the expected contact message payload')
+//   t.same(receive, url, 'should received the expected contact message payload')
 //   await puppet.stop()
 //   await wechaty.stop()
 // })
@@ -323,7 +318,7 @@ test('Multiple Mockers with their MockContact(s)', async t => {
 //   user.say(mike).to(mary)
 
 //   await sleep()
-//   t.deepEqual(receive, mike, 'should received the expected contact message payload')
+//   t.same(receive, mike, 'should received the expected contact message payload')
 //   await puppet.stop()
 // })
 
@@ -352,7 +347,7 @@ test.skip('wechaty.reply(contact)', async t => {
 
   let receive
   mary.on('message', async message => {
-    if (message.type() === MessageType.Text) {
+    if (message.type() === PUPPET.type.Message.Text) {
       return
     }
     receive = await message.toContact()
@@ -360,7 +355,7 @@ test.skip('wechaty.reply(contact)', async t => {
 
   mary.say('test').to(user)
   await sleep()
-  t.deepEqual(receive, mike, 'should received the expected contact message payload')
+  t.same(receive, mike, 'should received the expected contact message payload')
   await puppet.stop()
   await wechaty.stop()
 })
@@ -386,7 +381,7 @@ test.skip('MockContact.say(fileBox).to(contact)', async t => {
   user.say(fileBox).to(mary)
 
   await sleep()
-  t.deepEqual(receive, fileBox, 'should received the expected fileBox message payload')
+  t.same(receive, fileBox, 'should received the expected fileBox message payload')
   await puppet.stop()
 })
 
@@ -414,7 +409,7 @@ test.skip('wechaty.reply(fileBox)', async t => {
 
   let receive
   mary.on('message', async message => {
-    if (message.type() === MessageType.Text) {
+    if (message.type() === PUPPET.type.Message.Text) {
       return
     }
     receive = await message.toFileBox()
@@ -422,7 +417,7 @@ test.skip('wechaty.reply(fileBox)', async t => {
 
   mary.say('test').to(user)
   await sleep()
-  t.deepEqual(receive, fileBox, 'should received the expected fileBox message payload')
+  t.same(receive, fileBox, 'should received the expected fileBox message payload')
   await puppet.stop()
   await wechaty.stop()
 })
@@ -448,7 +443,7 @@ test.skip('wechaty.reply(fileBox)', async t => {
 //   user.say(mp).to(mary)
 
 //   await sleep()
-//   t.deepEqual(receive, mp, 'should received the expected contact message payload')
+//   t.same(receive, mp, 'should received the expected contact message payload')
 //   await puppet.stop()
 // })
 
@@ -483,7 +478,7 @@ test.skip('wechaty.reply(fileBox)', async t => {
 
 //   mary.say('test').to(user)
 //   await sleep()
-//   t.deepEqual(receive, mp, 'should received the expected contact message payload')
+//   t.same(receive, mp, 'should received the expected contact message payload')
 //   await puppet.stop()
 //   await wechaty.stop()
 // })

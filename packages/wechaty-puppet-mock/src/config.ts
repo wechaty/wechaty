@@ -1,5 +1,8 @@
 import {
   FileBox,
+}             from 'file-box'
+import {
+  log,
 }             from 'wechaty-puppet'
 
 import { packageJson } from './package-json.js'
@@ -15,6 +18,7 @@ function qrCodeForChatie (): FileBox {
 
 export {
   CHATIE_OFFICIAL_ACCOUNT_QRCODE,
+  log,
   NAME,
   qrCodeForChatie,
   VERSION,

@@ -1,12 +1,7 @@
-import {
-  EventRoomTopicPayload,
-  RoomPayload,
-  EventRoomJoinPayload,
-  EventRoomLeavePayload,
-  log,
-}                           from 'wechaty-puppet'
+import type * as PUPPET from 'wechaty-puppet'
 
 import type { Mocker } from '../mocker.js'
+import { log } from '../../config.js'
 
 import type { ContactMock } from './contact-mock.js'
 
@@ -23,7 +18,7 @@ class RoomMock extends RoomEventEmitter {
   static get mocker (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
   get mocker       (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
-  protected static [POOL]: Map<string, RoomMock>
+  protected static [POOL]: undefined | Map<string, RoomMock>
 
   protected static get pool () {
     if (!this[POOL]) {
@@ -38,7 +33,7 @@ class RoomMock extends RoomEventEmitter {
       )
     }
 
-    return this[POOL]
+    return this[POOL]!
   }
 
   /**
@@ -60,7 +55,7 @@ class RoomMock extends RoomEventEmitter {
   }
 
   static create<T extends typeof RoomMock> (
-    payload: RoomPayload,
+    payload: PUPPET.payload.Room,
   ): T['prototype'] {
     log.verbose('MockRoom', 'static create(%s)', JSON.stringify(payload))
 
@@ -79,7 +74,7 @@ class RoomMock extends RoomEventEmitter {
   get id () { return this.payload.id }
 
   constructor (
-    public payload: RoomPayload,
+    public payload: PUPPET.payload.Room,
   ) {
     super()
     log.silly('MockRoom', 'constructor(%s)', JSON.stringify(payload))
@@ -102,7 +97,7 @@ class RoomMock extends RoomEventEmitter {
         }
       }
 
-      const payload: EventRoomTopicPayload = {
+      const payload: PUPPET.payload.EventRoomTopic = {
         changerId : contact.id,
         newTopic  : text,
         oldTopic  : that.payload.topic,
@@ -131,7 +126,7 @@ class RoomMock extends RoomEventEmitter {
       }
 
       that.payload.memberIdList.push(...inviteeList.map(i => i.id))
-      const payload: EventRoomJoinPayload = {
+      const payload: PUPPET.payload.EventRoomJoin = {
         inviteeIdList : inviteeList.map(i => i.id),
         inviterId     : inviter.id,
         roomId        : that.id,
@@ -165,7 +160,7 @@ class RoomMock extends RoomEventEmitter {
         }
       }
 
-      const payload: EventRoomLeavePayload = {
+      const payload: PUPPET.payload.EventRoomLeave = {
         removeeIdList : removeeList.map(r => r.id),
         removerId     : remover.id,
         roomId        : that.id,

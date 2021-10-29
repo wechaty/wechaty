@@ -2,16 +2,14 @@
 import cuid from 'cuid'
 import * as path from 'path'
 
+import * as PUPPET from 'wechaty-puppet'
 import {
-  MessagePayloadTo,
-  MessagePayloadBase,
-  MessagePayloadRoom,
-  MessageType,
-  MessagePayload,
-  ContactPayload,
   FileBox,
+}             from 'file-box'
+
+import {
   log,
-}                         from 'wechaty-puppet'
+}         from '../../config.js'
 
 import type { Mocker }    from '../mocker.js'
 
@@ -33,7 +31,7 @@ class ContactMock extends ContactEventEmitter {
   static get mocker (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
   get mocker       (): Mocker { throw new Error('This class can not be used directory. See: https://github.com/wechaty/wechaty/issues/2027') }
 
-  protected static [POOL]: Map<string, ContactMock>
+  protected static [POOL]: undefined | Map<string, ContactMock>
   protected static get pool () {
     if (!this[POOL]) {
       log.verbose('MockContact', 'get pool() init pool')
@@ -47,7 +45,7 @@ class ContactMock extends ContactEventEmitter {
       )
     }
 
-    return this[POOL]
+    return this[POOL]!
   }
 
   /**
@@ -71,7 +69,7 @@ class ContactMock extends ContactEventEmitter {
   }
 
   static create<T extends typeof ContactMock> (
-    payload: ContactPayload,
+    payload: PUPPET.payload.Contact,
   ): T['prototype'] {
     log.verbose('MockContact', 'static create(%s)', JSON.stringify(payload))
 
@@ -90,7 +88,7 @@ class ContactMock extends ContactEventEmitter {
   get id () { return this.payload.id }
 
   constructor (
-    public payload: ContactPayload,
+    public payload: PUPPET.payload.Contact,
   ) {
     super()
     log.silly('MockContact', 'constructor(%s)', JSON.stringify(payload))
@@ -103,7 +101,7 @@ class ContactMock extends ContactEventEmitter {
 
   say (
     something?: string | FileBox, // | ContactMock, // | Attachment,
-    mentions: ContactMock[] = []
+    mentions: ContactMock[] = [],
   ): To {
     log.verbose('MockContact', 'say(%s%s)',
       something || '',
@@ -122,13 +120,13 @@ class ContactMock extends ContactEventEmitter {
         conversation = that.mocker.randomConversation()
       }
 
-      const basePayload: MessagePayloadBase = {
+      const basePayload: PUPPET.payload.MessageBase = {
         id        : cuid(),
         timestamp : Date.now(),
-        type      : MessageType.Text,
+        type      : PUPPET.type.Message.Text,
       }
 
-      let payload: MessagePayload
+      let payload: PUPPET.payload.Message
 
       if (something instanceof FileBox) {
       //   basePayload.type = MessageType.Contact
@@ -142,14 +140,14 @@ class ContactMock extends ContactEventEmitter {
           case '.jpg':
           case '.jpeg':
           case '.png':
-            basePayload.type = MessageType.Image
+            basePayload.type = PUPPET.type.Message.Image
             break
           case 'video/mp4':
           case '.mp4':
-            basePayload.type = MessageType.Audio
+            basePayload.type = PUPPET.type.Message.Audio
             break
           default:
-            basePayload.type = MessageType.Unknown
+            basePayload.type = PUPPET.type.Message.Unknown
             break
         }
       // } else if (something instanceof MiniProgram) {
@@ -165,14 +163,14 @@ class ContactMock extends ContactEventEmitter {
           ...basePayload,
           fromId        : that.id,
           toId          : conversation.id,
-        } as MessagePayloadBase & MessagePayloadTo
+        } as PUPPET.payload.MessageBase & PUPPET.payload.MessageTo
       } else if (conversation instanceof RoomMock) {
         payload = {
           ...basePayload,
           fromId        : that.id,
           mentionIdList : mentions.map(c => c.id),
           roomId        : conversation.id,
-        } as MessagePayloadBase & MessagePayloadRoom
+        } as PUPPET.payload.MessageBase & PUPPET.payload.MessageRoom
       } else {
         throw new Error('unknown conversation type: ' + typeof conversation)
       }

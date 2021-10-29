@@ -1,25 +1,18 @@
 import faker from 'faker'
 import cuid  from 'cuid'
 
+import * as PUPPET from 'wechaty-puppet'
 import {
-  ContactGender,
-  ContactPayload,
-  ContactType,
   FileBox,
-  MessagePayloadBase,
-  MessagePayloadRoom,
-  MessagePayloadTo,
-  MessageType,
-  RoomPayload,
-}                       from 'wechaty-puppet'
+}               from 'file-box'
 
-const generateContactPayload = (): ContactPayload => ({
+const generateContactPayload = (): PUPPET.payload.Contact => ({
   address   : faker.address.streetAddress(),
   alias     : undefined,
   avatar    : faker.image.avatar(),
   city      : faker.address.city(),
   friend    : true,
-  gender    : ContactGender.Male,
+  gender    : PUPPET.type.ContactGender.Male,
   id        : cuid(),
   name      : faker.name.findName(),
   phone     : [
@@ -28,20 +21,20 @@ const generateContactPayload = (): ContactPayload => ({
   province  : faker.address.state(),
   signature : faker.lorem.sentence(),
   star      : false,
-  type      : ContactType.Individual,
+  type      : PUPPET.type.Contact.Individual,
   weixin    : undefined,
 })
 
 const generateImageFileBox = (): FileBox => FileBox.fromUrl(faker.image.avatar())
 
-const generateRoomPayload = (...contactIdList: string[]): RoomPayload => {
+const generateRoomPayload = (...contactIdList: string[]): PUPPET.payload.Room => {
   const maxNum = Math.max(500, contactIdList.length)
   const roomNum = Math.floor(maxNum * Math.random())
 
   const shuffledList = contactIdList.sort(() => Math.random() - 0.5)
   const memberIdList = shuffledList.slice(0, roomNum)
 
-  const payload: RoomPayload = {
+  const payload: PUPPET.payload.Room = {
     adminIdList  : [],
     avatar       : faker.image.avatar(),
     id           : cuid() + '@chatroom',
@@ -52,23 +45,23 @@ const generateRoomPayload = (...contactIdList: string[]): RoomPayload => {
   return payload
 }
 
-const generateMessagePayloadTo = (): MessagePayloadBase & MessagePayloadTo => ({
+const generateMessagePayloadTo = (): PUPPET.payload.MessageBase & PUPPET.payload.MessageTo => ({
   fromId        : cuid(),
   id            : cuid(),
   text          : faker.lorem.sentence(),
   timestamp     : Date.now(),
   toId          : cuid(),
-  type          : MessageType.Text,
+  type          : PUPPET.type.Message.Text,
 })
 
-const generateMessagePayloadRoom = (): MessagePayloadBase & MessagePayloadRoom => ({
+const generateMessagePayloadRoom = (): PUPPET.payload.MessageBase & PUPPET.payload.MessageRoom => ({
   fromId        : cuid(),
   id            : cuid(),
   mentionIdList : [],
   roomId        : cuid() + '@chatroom',
   text          : faker.lorem.sentence(),
   timestamp     : Date.now(),
-  type          : MessageType.Text,
+  type          : PUPPET.type.Message.Text,
 })
 
 const generateSentence = (): string => faker.lorem.sentence()
