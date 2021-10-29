@@ -44,6 +44,9 @@ export * as user        from './users.js'
 export *                from './users.js'
 
 export {
+  ScanStatus,
+}                       from 'wechaty-puppet/types'
+export {
   log,
   config,
   qrcodeValueToImageUrl,
