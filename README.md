@@ -510,9 +510,11 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## History
 
-### master v0.69
+### master v1.0 (Sep 2021)
 
-1. Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
+Release v1.0 of Wechaty is the first stable release of Wechaty.
+
+1. v0.69: Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
 
 ### v0.68 (Aug 27, 2021)
 
