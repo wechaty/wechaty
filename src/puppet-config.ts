@@ -54,13 +54,13 @@ export const PUPPET_DEPENDENCIES = {
    *    to install all them inside the Docker
    */
   'wechaty-puppet-service' : '>=1.0.1',  // https://www.npmjs.com/package/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '>=1.0.2',  // https://www.npmjs.com/package/wechaty-puppet-mock
+  'wechaty-puppet-mock'    : '>=1.0.3',  // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
    * WeChat Puppets
    */
   'wechaty-puppet-wechat'           : '>=1.0.1', // https://www.npmjs.com/package/wechaty-puppet-wechat
-  'wechaty-puppet-wechat4u'         : '>=0.19.2', // https://www.npmjs.com/package/wechaty-puppet-wechat4u
+  'wechaty-puppet-wechat4u'         : '>=1.0.1', // https://www.npmjs.com/package/wechaty-puppet-wechat4u
   'wechaty-puppet-padlocal'         : '>=0.4.1',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
   'wechaty-puppet-xp'               : '>=0.10.1',  // https://www.npmjs.com/package/wechaty-puppet-xp
   'wechaty-puppet-oicq'             : '>=1.0.1',  // https://www.npmjs.com/package/wechaty-puppet-oicq
@@ -71,7 +71,7 @@ export const PUPPET_DEPENDENCIES = {
    */
   'wechaty-puppet-gitter'   : '>=1.0.2',   // https://www.npmjs.com/package/wechaty-puppet-gitter
   'wechaty-puppet-lark'     : '>=0.4.5',   // https://www.npmjs.com/package/wechaty-puppet-lark
-  'wechaty-puppet-whatsapp' : '>=0.3.3',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
+  'wechaty-puppet-whatsapp' : '>=1.0.1',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
   'wechaty-puppet-walnut'   : '>=0.1.41',  // https://www.npmjs.com/package/wechaty-puppet-walnut
 
   /**
