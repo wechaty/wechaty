@@ -53,23 +53,23 @@ export const PUPPET_DEPENDENCIES = {
    *    because the `bin/puppet-install.ts` will use those version
    *    to install all them inside the Docker
    */
-  'wechaty-puppet-service' : '>=0.41.3',  // https://www.npmjs.com/package/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '>=0.36.1',  // https://www.npmjs.com/package/wechaty-puppet-mock
+  'wechaty-puppet-service' : '>=1.0.1',  // https://www.npmjs.com/package/wechaty-puppet-service
+  'wechaty-puppet-mock'    : '>=1.0.2',  // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
    * WeChat Puppets
    */
-  'wechaty-puppet-wechat'           : '>=0.31.3', // https://www.npmjs.com/package/wechaty-puppet-wechat
+  'wechaty-puppet-wechat'           : '>=1.0.1', // https://www.npmjs.com/package/wechaty-puppet-wechat
   'wechaty-puppet-wechat4u'         : '>=0.19.2', // https://www.npmjs.com/package/wechaty-puppet-wechat4u
   'wechaty-puppet-padlocal'         : '>=0.4.1',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
-  'wechaty-puppet-xp'               : '>=0.5.3',  // https://www.npmjs.com/package/wechaty-puppet-xp
-  'wechaty-puppet-oicq'             : '>=0.1.6',  // https://www.npmjs.com/package/wechaty-puppet-oicq
-  'wechaty-puppet-official-account' : '>=0.5',    // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-xp'               : '>=0.10.1',  // https://www.npmjs.com/package/wechaty-puppet-xp
+  'wechaty-puppet-oicq'             : '>=1.0.1',  // https://www.npmjs.com/package/wechaty-puppet-oicq
+  'wechaty-puppet-official-account' : '>=1.0.1',    // https://www.npmjs.com/package/wechaty-puppet-official-account
 
   /**
    * Non-WeChat External Puppets
    */
-  'wechaty-puppet-gitter'   : '>=0.5.1',   // https://www.npmjs.com/package/wechaty-puppet-gitter
+  'wechaty-puppet-gitter'   : '>=1.0.2',   // https://www.npmjs.com/package/wechaty-puppet-gitter
   'wechaty-puppet-lark'     : '>=0.4.5',   // https://www.npmjs.com/package/wechaty-puppet-lark
   'wechaty-puppet-whatsapp' : '>=0.3.3',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
   'wechaty-puppet-walnut'   : '>=0.1.41',  // https://www.npmjs.com/package/wechaty-puppet-walnut
