@@ -98,7 +98,7 @@
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.13.6",
     "clone-class": "^1.0.2",
-    "file-box": "^1.0.4",
+    "file-box": "^1.0.6",
     "memory-card": "^0.12.2",
     "state-switch": "^1.1.14",
     "typed-emitter": "^1.4.0",
