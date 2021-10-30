@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import * as uuid from 'uuid'
+import * as UUID from 'uuid'
 
 import {
   log,
@@ -87,7 +87,7 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
         : '',
     )
 
-    this.id       = uuid.v4()
+    this.id       = UUID.v4()
     this.options  = args[0] || {}
 
     this._flagSkeltonStartCalled = false
