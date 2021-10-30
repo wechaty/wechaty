@@ -1,13 +1,14 @@
 import type {
   FileBox,
-}                 from 'file-box'
+}                     from 'file-box'
 import {
   FileBoxType,
-}                 from 'file-box'
+  FileBoxInterface,
+}                     from 'file-box'
 
 /**
  * Huan(202110): for testing propose, use 20KB as the threshold
- *  after stable we should use 256KB as the threshold
+ *  after stable we should use a value between 64KB to 256KB as the threshold
  */
 const PASS_THROUGH_THRESHOLD_BYTES = 20 * 1024 // 20KB
 
@@ -31,7 +32,7 @@ const yellowFileBoxTypes = [
   FileBoxType.Base64,
 ]
 
-const canPassthrough = (fileBox: FileBox) => {
+const canPassthrough = (fileBox: FileBoxInterface) => {
   /**
    * 1. Green types: YES
    */
@@ -63,7 +64,7 @@ const canPassthrough = (fileBox: FileBox) => {
 
 }
 
-const normalizeFileBoxUuid = (FileBoxUuid: typeof FileBox) => async (fileBox: FileBox) => {
+const normalizeFileBoxUuid = (FileBoxUuid: typeof FileBox) => async (fileBox: FileBoxInterface) => {
   if (canPassthrough(fileBox)) {
     return fileBox
   }

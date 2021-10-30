@@ -1,10 +1,11 @@
 import util from 'util'
 
-import {
-  FileBox,
-  FileBoxInterface,
-}                     from 'file-box'
 import * as PUPPET    from 'wechaty-puppet'
+
+import type {
+  FileBoxInterface,
+  FileBox,
+}                     from 'file-box'
 
 import {
   StringValue,
@@ -76,7 +77,7 @@ export class PuppetService extends PUPPET.Puppet {
    *  We need to clone a FileBox
    *  to set uuid loader/saver with this grpc client
    */
-  protected FileBox: typeof FileBox
+  protected FileBoxUuid: typeof FileBox
 
   constructor (
     public override options: PuppetServiceOptions = {},
@@ -88,10 +89,10 @@ export class PuppetService extends PUPPET.Puppet {
 
     this.hookPayloadStore()
 
-    this.FileBox = uuidifyFileBoxGrpc(() => this.grpc.client)
+    this.FileBoxUuid = uuidifyFileBoxGrpc(() => this.grpc.client)
   }
 
-  protected async serializeFileBox (fileBox: FileBox): Promise<string> {
+  protected async serializeFileBox (fileBox: FileBoxInterface): Promise<string> {
     /**
      * 1. if the fileBox is one of type `Url`, `QRCode`, `Uuid`, etc,
      *  then it can be serialized by `fileBox.toString()`
@@ -99,7 +100,7 @@ export class PuppetService extends PUPPET.Puppet {
      *  then it need to be convert to type `Uuid`
      *  before serialized by `fileBox.toString()`
      */
-    const normalizedFileBox = await normalizeFileBoxUuid(this.FileBox)(fileBox)
+    const normalizedFileBox = await normalizeFileBoxUuid(this.FileBoxUuid)(fileBox)
     return JSON.stringify(normalizedFileBox)
   }
 
@@ -519,7 +520,7 @@ export class PuppetService extends PUPPET.Puppet {
   override async contactAvatar (contactId: string)                          : Promise<FileBoxInterface>
   override async contactAvatar (contactId: string, file: FileBoxInterface)  : Promise<void>
 
-  override async contactAvatar (contactId: string, fileBox?: FileBox): Promise<void | FileBoxInterface> {
+  override async contactAvatar (contactId: string, fileBox?: FileBoxInterface): Promise<void | FileBoxInterface> {
     log.verbose('PuppetService', 'contactAvatar(%s)', contactId)
 
     /**
@@ -575,7 +576,7 @@ export class PuppetService extends PUPPET.Puppet {
       }
     }
 
-    return this.FileBox.fromJSON(jsonText)
+    return this.FileBoxUuid.fromJSON(jsonText)
   }
 
   override async contactRawPayload (id: string): Promise<PUPPET.payload.Contact> {
@@ -739,7 +740,7 @@ export class PuppetService extends PUPPET.Puppet {
   override async messageImage (
     messageId: string,
     imageType: PUPPET.type.Image,
-  ): Promise<FileBox> {
+  ): Promise<FileBoxInterface> {
     log.verbose('PuppetService', 'messageImage(%s, %s[%s])',
       messageId,
       imageType,
@@ -759,7 +760,7 @@ export class PuppetService extends PUPPET.Puppet {
       const jsonText = response.getFileBox()
 
       if (jsonText) {
-        return this.FileBox.fromJSON(jsonText)
+        return this.FileBoxUuid.fromJSON(jsonText)
       }
 
     } catch (e) {
@@ -903,7 +904,7 @@ export class PuppetService extends PUPPET.Puppet {
 
     const jsonText = response.getFileBox()
     if (jsonText) {
-      return FileBox.fromJSON(jsonText)
+      return this.FileBoxUuid.fromJSON(jsonText)
     }
 
     {
@@ -1041,7 +1042,7 @@ export class PuppetService extends PUPPET.Puppet {
 
   override async messageSendFile (
     conversationId : string,
-    fileBox        : FileBox,
+    fileBox        : FileBoxInterface,
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendFile(%s, %s)', conversationId, fileBox)
 
@@ -1259,7 +1260,7 @@ export class PuppetService extends PUPPET.Puppet {
     )(request)
   }
 
-  override async roomAvatar (roomId: string): Promise<FileBox> {
+  override async roomAvatar (roomId: string): Promise<FileBoxInterface> {
     log.verbose('PuppetService', 'roomAvatar(%s)', roomId)
 
     const request = new grpcPuppet.RoomAvatarRequest()
@@ -1271,7 +1272,7 @@ export class PuppetService extends PUPPET.Puppet {
     )(request)
 
     const jsonText = response.getFileBox()
-    return this.FileBox.fromJSON(jsonText)
+    return this.FileBoxUuid.fromJSON(jsonText)
   }
 
   override async roomAdd (
@@ -1807,7 +1808,7 @@ export class PuppetService extends PUPPET.Puppet {
    */
   private async messageSendFileStream (
     conversationId : string,
-    file           : FileBox,
+    file           : FileBoxInterface,
   ): Promise<void | string> {
     const request = await packConversationIdFileBoxToPb(grpcPuppet.MessageSendFileStreamRequest)(conversationId, file)
 

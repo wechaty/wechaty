@@ -62,7 +62,7 @@
     "wechaty-puppet-mock": "^1.0"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^1.0.1"
+    "wechaty-puppet": "^1.2.1"
   },
   "dependencies": {
     "clone-class": "^1.0.2",

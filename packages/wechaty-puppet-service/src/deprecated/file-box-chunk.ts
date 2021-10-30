@@ -1,4 +1,5 @@
 import { FileBox }      from 'file-box'
+import type { FileBoxInterface } from 'file-box'
 import { PassThrough }  from 'stream'
 import {
   Readable,
@@ -63,7 +64,7 @@ const encoder = () => new Transform<any, puppet.FileBoxChunk>({
  * @deprecated Will be removed after Dec 31, 2022
  */
 async function packFileBoxToChunk (
-  fileBox: FileBox,
+  fileBox: FileBoxInterface,
 ): Promise<Readable<puppet.FileBoxChunk>> {
   const stream = new PassThrough({ objectMode: true })
 

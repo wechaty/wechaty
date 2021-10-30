@@ -7,6 +7,7 @@ import {
   puppet as grpcPuppet,
 }                               from 'wechaty-grpc'
 import type {
+  FileBoxInterface,
   FileBox,
 }                               from 'file-box'
 import * as PUPPET from 'wechaty-puppet'
@@ -58,7 +59,7 @@ function puppetImplementation (
 
   const eventStreamManager = new EventStreamManager(puppet)
 
-  const serializeFileBox = async (fileBox: FileBox) => {
+  const serializeFileBox = async (fileBox: FileBoxInterface) => {
     /**
      * 1. if the fileBox is one of type `Url`, `QRCode`, `Uuid`, etc,
      *  then it can be serialized by `fileBox.toString()`

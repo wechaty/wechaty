@@ -4,8 +4,8 @@ import type {
 
 import {
   FileBox,
-  UuidResolver,
-  UuidRegister,
+  UuidLoader,
+  UuidSaver,
 }                         from 'file-box'
 import {
   chunkDecoder,
@@ -17,7 +17,7 @@ import {
   Constructor,
 }                         from 'clone-class'
 
-const uuidResolverGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidResolver = (
+const uuidResolverGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidLoader = (
   grpcClient,
 ) => async function uuidResolver (
   this : FileBox,
@@ -34,7 +34,7 @@ const uuidResolverGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidResolve
   return stream
 }
 
-const uuidRegisterGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidRegister = (
+const uuidRegisterGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidSaver = (
   grpcClient,
 ) => async function uuidRegister (
   this   : FileBox,
@@ -71,8 +71,8 @@ const uuidifyFileBoxGrpc: UuidifyFileBoxGrpcFactory = (
    */
   const FileBoxUuid: typeof FileBox = cloneClass(FileBox as any as Constructor<FileBox>) as any
 
-  FileBoxUuid.setUuidResolver(uuidResolverGrpc(grpcClient))
-  FileBoxUuid.setUuidRegister(uuidRegisterGrpc(grpcClient))
+  FileBoxUuid.setUuidLoader(uuidResolverGrpc(grpcClient))
+  FileBoxUuid.setUuidSaver(uuidRegisterGrpc(grpcClient))
 
   return FileBoxUuid
 }

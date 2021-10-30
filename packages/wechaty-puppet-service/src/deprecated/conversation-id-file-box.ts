@@ -1,4 +1,6 @@
-import type { FileBox }              from 'file-box'
+import type {
+  FileBoxInterface,
+}                               from 'file-box'
 import { PassThrough }          from 'stream'
 import type { Readable }             from 'stronger-typed-streams'
 
@@ -11,7 +13,7 @@ import type { ConversationIdFileBoxPb } from './file-box-pb.type.js'
 
 interface ConversationIdFileBoxArgs {
   conversationId: string,
-  fileBox: FileBox,
+  fileBox: FileBoxInterface,
 }
 
 /**
@@ -45,7 +47,7 @@ function packConversationIdFileBoxToPb<T extends ConversationIdFileBoxPb> (
 ) {
   return async (
     conversationId: string,
-    fileBox:        FileBox,
+    fileBox:        FileBoxInterface,
   ): Promise<
     Readable<T>
   > => {
