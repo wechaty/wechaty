@@ -102,9 +102,10 @@ class GError extends Error implements GrpcStatus, EcmaError {
        * Convert EcmaError to gRPC error
        */
       this.code  = Code.UNKNOWN
-      this.details = [
-        ...payload.stack?.split('\n') ?? [],
-      ]
+      this.details = []
+      if (payload.stack) {
+        this.details.push(payload.stack)
+      }
 
     } else {
       throw new Error('payload is neither EcmaError nor GrpcStatus')
