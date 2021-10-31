@@ -44,3 +44,16 @@ export * as helper  from './helpers.js'
 export * as impl    from './impls.js'
 export * as payload from './payloads.js'
 export * as type    from './types.js'
+
+/**
+ * @deprecated use above exports instead
+ *
+ * The below exports are deprecated
+ *  for compatible with old version (Puppet API < v1.0)
+ */
+// export * from '../schemas/mod.js'
+// export * from '../puppet/mod.js'
+
+// export { FileBox } from 'file-box'
+// export { MemoryCard } from 'memory-card'
+// export { StateSwitch } from 'state-switch'
