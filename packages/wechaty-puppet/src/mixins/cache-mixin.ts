@@ -16,8 +16,8 @@ const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
     constructor (...args: any[]) {
       super(...args)
       log.verbose('PuppetCacheMixin', 'constructor(%s)',
-        args[0]
-          ? JSON.stringify(args[0])
+        args[0]?.cache
+          ? '{ cache: ' + JSON.stringify(args[0].cache) + ' }'
           : '',
       )
 
