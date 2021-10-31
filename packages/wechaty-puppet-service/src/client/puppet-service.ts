@@ -316,7 +316,7 @@ export class PuppetService extends PUPPET.Puppet {
       )(new grpcPuppet.LogoutRequest())
 
     } catch (e) {
-      this.emit('error', e)
+      log.silly('PuppetService', 'logout() no grpc client')
     }
   }
 

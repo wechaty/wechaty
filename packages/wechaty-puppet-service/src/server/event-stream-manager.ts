@@ -261,6 +261,20 @@ class EventStreamManager {
       throw new Error('no this.eventStream found')
     }
 
+    /**
+     * Huan(202110): useful log messages
+     *
+     * ServiceCtl<PuppetServiceMixin> stop() super.stop() ... done
+     * StateSwitch <PuppetServiceMixin> inactive(true) <- (pending)
+     * EventStreamManager this.onStreamingCallEnd() this.eventStream.on(finish) fired
+     * EventStreamManager connectPuppetEventToStreamingCall() offAll() 14 callbacks
+     * EventStreamManager this.onStreamingCallEnd() this.eventStream.on(finish) eventStream is undefined
+     * EventStreamManager this.onStreamingCallEnd() this.eventStream.on(close) fired
+     * EventStreamManager this.onStreamingCallEnd() this.eventStream.on(close) eventStream is undefined
+     * EventStreamManager this.onStreamingCallEnd() this.eventStream.on(cancelled) fired with arguments: {}
+     * EventStreamManager this.onStreamingCallEnd() this.eventStream.on(cancelled) eventStream is undefined
+     * GrpcClient stop() stop client ... done
+     */
     this.eventStream.on('cancelled', () => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(cancelled) fired with arguments: %s',
         JSON.stringify(arguments),
