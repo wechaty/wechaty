@@ -23,7 +23,7 @@ class GError extends Error implements GrpcStatus, EcmaError {
    * GrpcStatus additional properties
    */
   code     : number
-  details? : any[]
+  details? : string
 
   public static from (payload: any): GError {
     /**
@@ -101,11 +101,8 @@ class GError extends Error implements GrpcStatus, EcmaError {
       /**
        * Convert EcmaError to gRPC error
        */
-      this.code  = Code.UNKNOWN
-      this.details = []
-      if (payload.stack) {
-        this.details.push(payload.stack)
-      }
+      this.code     = Code.UNKNOWN
+      this.details  = payload.stack
 
     } else {
       throw new Error('payload is neither EcmaError nor GrpcStatus')

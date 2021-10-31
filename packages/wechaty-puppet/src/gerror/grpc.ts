@@ -59,7 +59,22 @@ enum Code {
 interface GrpcStatus {
   code     : Code
   message  : string
-  details? : any[]
+  /**
+   * In gRPC Protobuf, details is a Array
+   *  but here, we only keep the first element (if ther's any)
+   *
+   * The reason is for compatible with `@grpc/grpc-js` package defination:
+   *  @see https://github.com/grpc/grpc-node/blob/4a5c1da93b77cc82e31063ae32990ba2d0883387/packages/grpc-js/src/call-stream.ts#L94-L98
+   *
+   * ```ts
+   * export interface StatusObject {
+   *   code: Status;
+   *   details: string;
+   *   metadata: Metadata;
+   * }
+   * ```
+   */
+  details? : string
 }
 
 const isGrpcStatus = (payload: any): payload is GrpcStatus => payload instanceof Object
