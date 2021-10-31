@@ -10,6 +10,7 @@
  *  https://stackoverflow.com/a/60935367/1123955
  *    GRPC_VERBOSITY=DEBUG GRPC_TRACE=all
  */
+/// <reference path="./typings.d.ts" />
 
 import {
   test,
@@ -22,6 +23,7 @@ import {
   PuppetMock,
 }                             from 'wechaty-puppet-mock'
 import getPort                from 'get-port'
+// import whyIsNodeRunning       from 'why-is-node-running'
 
 import {
   PuppetService,
@@ -29,7 +31,7 @@ import {
   PuppetServerOptions,
 }                             from '../src/mod.js'
 
-test('Close eventStream when gRPC breaks', async t => {
+test('gRPC client breaks', async t => {
   /**
    * Huan(202110):
    * `insecure_` prefix is required for the TLS version of Puppet Service
@@ -68,12 +70,16 @@ test('Close eventStream when gRPC breaks', async t => {
 
   puppetService.on('error', console.error)
 
-  // mock grpcClient break
+  /**
+   * mock grpcClient break
+   */
   await puppetService.grpc.client.close()
+
   await puppetService.stop()
 
   // get eventStream status
   t.throws(() => puppetService.grpc, 'should clean grpc after stop()')
 
+  // setTimeout(() => whyIsNodeRunning(), 1000)
   await puppetServer.stop()
 })

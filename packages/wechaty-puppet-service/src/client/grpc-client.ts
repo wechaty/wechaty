@@ -142,11 +142,14 @@ class GrpcClient extends EventEmitter {
     /**
      * 1. Disconnect from stream
      */
+    log.verbose('GrpcClient', 'stop() stop stream ...')
     this.stopStream()
+    log.verbose('GrpcClient', 'stop() stop stream ... done')
 
     /**
      * 2. Stop the puppet
      */
+    log.verbose('GrpcClient', 'stop() stop client ...')
     try {
       await util.promisify(
         this.client.stop
@@ -155,15 +158,18 @@ class GrpcClient extends EventEmitter {
     } catch (e) {
       this.emit('error', e)
     }
+    log.verbose('GrpcClient', 'stop() stop client ... done')
 
     /**
      * 3. Destroy grpc client
      */
+    log.verbose('GrpcClient', 'stop() destroy client ...')
     try {
       this.destroyClient()
     } catch (e) {
       this.emit('error', e)
     }
+    log.verbose('GrpcClient', 'stop() destroy client ... done')
   }
 
   protected async initClient (): Promise<void> {
@@ -372,9 +378,11 @@ class GrpcClient extends EventEmitter {
      */
     // this.eventStream.cancel()
 
-    log.verbose('GrpcClient', 'stopStream() eventStream destroying ...')
-    eventStream.destroy()
-    log.verbose('GrpcClient', 'stopStream() eventStream destroyed')
+    try {
+      eventStream.destroy()
+    } catch (e) {
+      this.emit('error', e)
+    }
   }
 
 }

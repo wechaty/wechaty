@@ -304,8 +304,8 @@ export class PuppetService extends PUPPET.Puppet {
     }
   }
 
-  override async logout (reason = 'logout()'): Promise<void> {
-    log.verbose('PuppetService', 'logout("%s")', reason)
+  override async logout (reason?: string): Promise<void> {
+    log.verbose('PuppetService', 'logout(%s)', reason ? `"${reason}"` : '')
 
     super.logout(reason)
 
