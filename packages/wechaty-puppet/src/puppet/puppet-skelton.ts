@@ -25,9 +25,9 @@ import {
  * Issue #165 - ReferenceError: Cannot access 'PuppetSkelton' before initialization
  *  @see https://github.com/wechaty/puppet/issues/165
  */
-import {
-  GError,
-}                       from '../gerror/gerror.js'
+
+import { GError }       from 'gerror'
+
 import type {
   WrapAsync,
 }                     from '../helpers/wrap-async-error.js'

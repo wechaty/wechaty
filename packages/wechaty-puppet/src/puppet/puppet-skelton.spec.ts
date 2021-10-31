@@ -4,9 +4,7 @@ import {
   test,
   sinon,
 }           from 'tstest'
-
-import { isEventErrorPayload } from '../gerror/puppet.js'
-import { GError } from '../gerror/gerror.js'
+import { GError }       from 'gerror'
 
 import type {
   PuppetSkeltonProtectedProperty,
@@ -54,7 +52,7 @@ test('emit(error, ...) with GError', async t => {
   for (const data of FIXTURES) {
     puppet.emit('error', data)
     await Promise.resolve()
-    t.ok(isEventErrorPayload(payload), `should be an error payload for ${typeof data} "${JSON.stringify(data)}"`)
+    t.equal(typeof payload.data, 'string', `should be an error payload for ${typeof data} "${JSON.stringify(data)}"`)
     t.doesNotThrow(() => GError.fromJSON(payload.data), 'should be successfully deserialized to GError')
   }
 })

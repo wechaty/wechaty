@@ -16,6 +16,8 @@
  *   limitations under the License.
  *
  */
+import { GError }       from 'gerror'
+
 import {
   log,
   VERSION,
@@ -27,7 +29,6 @@ import type {
 import {
   PayloadType,
 }                       from '../schemas/mod.js'
-import { GError }       from '../gerror/gerror.js'
 
 import {
   cacheMixin,

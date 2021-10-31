@@ -7,6 +7,9 @@ import {
 import {
   StateSwitch,
 }                         from 'state-switch'
+import {
+  GError,
+}                         from 'gerror'
 
 import type {
   WrapAsync,
@@ -15,17 +18,13 @@ import {
   wrapAsyncError,
 }                           from '../helpers/wrap-async-error.js'
 
-import {
-  GError,
-}                 from '../gerror/mod.js'
-
 export type {
   WrapAsync,
 }
 export {
   FileBox,
+  GError,
   MemoryCard,
   StateSwitch,
   wrapAsyncError,
-  GError,
 }
