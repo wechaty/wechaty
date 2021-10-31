@@ -1,6 +1,6 @@
 import type {
   PuppetConstructor,
-  PuppetInterface as Puppet,
+  PuppetInterface,
 }                               from '../puppet/mod.js'
 import {
   Puppet as PuppetAbstract,
@@ -8,7 +8,8 @@ import {
 
 export type {
   PuppetConstructor,
-  Puppet,
+  PuppetInterface as Puppet,
+  PuppetInterface,
 }
 export {
   PuppetAbstract,
