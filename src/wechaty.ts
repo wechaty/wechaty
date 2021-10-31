@@ -25,6 +25,9 @@ import {
   MemoryCard,
 }                       from 'memory-card'
 import {
+  GError,
+}                       from 'gerror'
+import {
   StateSwitch,
   serviceCtlMixin,
 }                       from 'state-switch'
@@ -743,8 +746,8 @@ class WechatyImpl extends mixinBase implements Sayable {
   }
 
   /**
-   * Convert any error to puppet.helper.GError,
-   *  and emit `error` event with puppet.helper.GError
+   * Convert any error to GError,
+   *  and emit `error` event with GError
    */
   override emit (event: any, ...args: any) {
     if (event !== 'error') {
@@ -752,12 +755,12 @@ class WechatyImpl extends mixinBase implements Sayable {
     }
 
     const data = args[0]
-    let gerr: PUPPET.helper.GError
+    let gerr: GError
 
-    if (data instanceof PUPPET.helper.GError) {
+    if (data instanceof GError) {
       gerr = data
     } else {
-      gerr = PUPPET.helper.GError.from(data)
+      gerr = GError.from(data)
     }
 
     captureException(gerr)
