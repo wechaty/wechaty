@@ -1,20 +1,23 @@
-import { grpc } from 'wechaty-grpc'
-import {
-  log,
-}         from 'wechaty-puppet'
+import type { grpc }  from 'wechaty-grpc'
+import { log }        from 'wechaty-puppet'
+import { GError }     from 'gerror'
+
+type GErrorCallback = (
+  gerror: Partial<grpc.StatusObject>,
+  value: null,
+) => void
 
 export function grpcError (
   method   : string,
-  err      : Error,
-  callback : Function,
+  error    : any,
+  callback : GErrorCallback,
 ): void {
-  log.error('PuppetServiceImpl', `grpcError() ${method}() rejection: %s`, err.message)
+  const gerr = GError.from(error)
 
-  const error: grpc.ServiceError = {
-    ...err,
-    code: grpc.status.INTERNAL,
-    details: err.message,
-    metadata: new grpc.Metadata(),
-  }
-  return callback(error, null)
+  log.error('PuppetServiceImpl', `grpcError() ${method}() rejection: %s\n%s`,
+    gerr.message,
+    gerr.stack,
+  )
+
+  return callback(gerr, null)
 }

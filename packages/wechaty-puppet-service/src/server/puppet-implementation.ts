@@ -86,7 +86,7 @@ function puppetImplementation (
           await puppet.contactAlias(id, call.request.getAlias())
           return callback(null, new  grpcPuppet.ContactAliasResponse())
         } catch (e) {
-          return grpcError('contactAlias', (e as Error), callback)
+          return grpcError('contactAlias', e, callback)
         }
       }
 
@@ -101,7 +101,7 @@ function puppetImplementation (
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactAlias', (e as Error), callback)
+        return grpcError('contactAlias', e, callback)
       }
 
     },
@@ -125,7 +125,7 @@ function puppetImplementation (
           return callback(null, new grpcPuppet.ContactAvatarResponse())
         }
       } catch (e) {
-        return grpcError('contactAvatar', (e as Error), callback)
+        return grpcError('contactAvatar', e, callback)
       }
 
       /**
@@ -140,7 +140,7 @@ function puppetImplementation (
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactAvatar', (e as Error), callback)
+        return grpcError('contactAvatar', e, callback)
       }
     },
 
@@ -155,7 +155,7 @@ function puppetImplementation (
         )
         return callback(null, new grpcPuppet.ContactCorporationRemarkResponse())
       } catch (e) {
-        return grpcError('contactCorporationRemark', (e as Error), callback)
+        return grpcError('contactCorporationRemark', e, callback)
       }
     },
 
@@ -169,7 +169,7 @@ function puppetImplementation (
         await puppet.contactDescription(contactId, description || null)
         return callback(null, new grpcPuppet.ContactDescriptionResponse())
       } catch (e) {
-        return grpcError('contactDescription', (e as Error), callback)
+        return grpcError('contactDescription', e, callback)
       }
     },
 
@@ -185,7 +185,7 @@ function puppetImplementation (
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactList', (e as Error), callback)
+        return grpcError('contactList', e, callback)
       }
     },
 
@@ -219,7 +219,7 @@ function puppetImplementation (
 
         return callback(null, response)
       } catch (e) {
-        return grpcError('contactPayload', (e as Error), callback)
+        return grpcError('contactPayload', e, callback)
       }
     },
 
@@ -233,7 +233,7 @@ function puppetImplementation (
         await puppet.contactPhone(contactId, phoneList)
         return callback(null, new grpcPuppet.ContactPhoneResponse())
       } catch (e) {
-        return grpcError('contactPhone', (e as Error), callback)
+        return grpcError('contactPhone', e, callback)
       }
     },
 
@@ -247,7 +247,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.ContactSelfNameResponse())
 
       } catch (e) {
-        return grpcError('contactSelfName', (e as Error), callback)
+        return grpcError('contactSelfName', e, callback)
       }
     },
 
@@ -264,7 +264,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('contactSelfQRCode', (e as Error), callback)
+        return grpcError('contactSelfQRCode', e, callback)
       }
 
     },
@@ -279,7 +279,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.ContactSelfSignatureResponse())
 
       } catch (e) {
-        return grpcError('contactSelfSignature', (e as Error), callback)
+        return grpcError('contactSelfSignature', e, callback)
       }
 
     },
@@ -293,7 +293,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.DingResponse())
 
       } catch (e) {
-        return grpcError('ding', (e as Error), callback)
+        return grpcError('ding', e, callback)
       }
     },
 
@@ -307,7 +307,7 @@ function puppetImplementation (
         await puppet.dirtyPayload(type, id)
         return callback(null, new grpcPuppet.DirtyPayloadResponse())
       } catch (e) {
-        return grpcError('dirtyPayload', (e as Error), callback)
+        return grpcError('dirtyPayload', e, callback)
       }
     },
 
@@ -360,7 +360,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.FriendshipAcceptResponse())
 
       } catch (e) {
-        return grpcError('friendshipAccept', (e as Error), callback)
+        return grpcError('friendshipAccept', e, callback)
       }
     },
 
@@ -390,7 +390,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.FriendshipAddResponse())
 
       } catch (e) {
-        return grpcError('friendshipAdd', (e as Error), callback)
+        return grpcError('friendshipAdd', e, callback)
       }
     },
 
@@ -415,7 +415,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('friendshipPayload', (e as Error), callback)
+        return grpcError('friendshipPayload', e, callback)
       }
     },
 
@@ -435,7 +435,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('friendshipSearchPhone', (e as Error), callback)
+        return grpcError('friendshipSearchPhone', e, callback)
       }
     },
 
@@ -455,7 +455,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('friendshipSearchWeixin', (e as Error), callback)
+        return grpcError('friendshipSearchWeixin', e, callback)
       }
     },
 
@@ -469,7 +469,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.LogoutResponse())
 
       } catch (e) {
-        return grpcError('logout', (e as Error), callback)
+        return grpcError('logout', e, callback)
       }
     },
 
@@ -487,7 +487,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageContact', (e as Error), callback)
+        return grpcError('messageContact', e, callback)
       }
     },
 
@@ -506,7 +506,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageFile', (e as Error), callback)
+        return grpcError('messageFile', e, callback)
       }
     },
 
@@ -556,7 +556,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageForward', (e as Error), callback)
+        return grpcError('messageForward', e, callback)
       }
     },
 
@@ -576,7 +576,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageImage', (e as Error), callback)
+        return grpcError('messageImage', e, callback)
       }
     },
 
@@ -623,7 +623,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageLocation', (e as Error), callback)
+        return grpcError('messageLocation', e, callback)
       }
     },
 
@@ -655,7 +655,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageMiniProgram', (e as Error), callback)
+        return grpcError('messageMiniProgram', e, callback)
       }
     },
 
@@ -689,7 +689,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messagePayload', (e as Error), callback)
+        return grpcError('messagePayload', e, callback)
       }
     },
 
@@ -707,7 +707,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageRecall', (e as Error), callback)
+        return grpcError('messageRecall', e, callback)
       }
     },
 
@@ -737,7 +737,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendContact', (e as Error), callback)
+        return grpcError('messageSendContact', e, callback)
       }
     },
 
@@ -769,7 +769,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendFile', (e as Error), callback)
+        return grpcError('messageSendFile', e, callback)
       }
     },
 
@@ -803,7 +803,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendFileStream', (e as Error), callback)
+        return grpcError('messageSendFileStream', e, callback)
       }
     },
 
@@ -834,7 +834,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendLocation', (e as Error), callback)
+        return grpcError('messageSendLocation', e, callback)
       }
     },
 
@@ -873,7 +873,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendMiniProgram', (e as Error), callback)
+        return grpcError('messageSendMiniProgram', e, callback)
       }
     },
 
@@ -904,7 +904,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendText', (e as Error), callback)
+        return grpcError('messageSendText', e, callback)
       }
     },
 
@@ -946,7 +946,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageSendUrl', (e as Error), callback)
+        return grpcError('messageSendUrl', e, callback)
       }
     },
 
@@ -972,7 +972,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('messageUrl', (e as Error), callback)
+        return grpcError('messageUrl', e, callback)
       }
     },
 
@@ -989,7 +989,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.RoomAddResponse())
 
       } catch (e) {
-        return grpcError('roomAdd', (e as Error), callback)
+        return grpcError('roomAdd', e, callback)
       }
     },
 
@@ -1018,7 +1018,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomAnnounce', (e as Error), callback)
+        return grpcError('roomAnnounce', e, callback)
       }
     },
 
@@ -1037,7 +1037,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomAvatar', (e as Error), callback)
+        return grpcError('roomAvatar', e, callback)
       }
     },
 
@@ -1056,7 +1056,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomCreate', (e as Error), callback)
+        return grpcError('roomCreate', e, callback)
       }
     },
 
@@ -1072,7 +1072,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.RoomDelResponse())
 
       } catch (e) {
-        return grpcError('roomDel', (e as Error), callback)
+        return grpcError('roomDel', e, callback)
       }
     },
 
@@ -1087,7 +1087,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.RoomInvitationAcceptResponse())
 
       } catch (e) {
-        return grpcError('roomInvitationAccept', (e as Error), callback)
+        return grpcError('roomInvitationAccept', e, callback)
       }
     },
 
@@ -1153,7 +1153,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomInvitationPayload', (e as Error), callback)
+        return grpcError('roomInvitationPayload', e, callback)
       }
     },
 
@@ -1170,7 +1170,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomList', (e as Error), callback)
+        return grpcError('roomList', e, callback)
       }
     },
 
@@ -1188,7 +1188,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomMemberList', (e as Error), callback)
+        return grpcError('roomMemberList', e, callback)
       }
     },
 
@@ -1212,7 +1212,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomMemberPayload', (e as Error), callback)
+        return grpcError('roomMemberPayload', e, callback)
       }
     },
 
@@ -1235,7 +1235,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomPayload', (e as Error), callback)
+        return grpcError('roomPayload', e, callback)
       }
     },
 
@@ -1253,7 +1253,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomQRCode', (e as Error), callback)
+        return grpcError('roomQRCode', e, callback)
       }
     },
 
@@ -1268,7 +1268,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.RoomQuitResponse())
 
       } catch (e) {
-        return grpcError('roomQuit', (e as Error), callback)
+        return grpcError('roomQuit', e, callback)
       }
     },
 
@@ -1299,7 +1299,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('roomTopic', (e as Error), callback)
+        return grpcError('roomTopic', e, callback)
       }
     },
 
@@ -1313,7 +1313,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.StartResponse())
 
       } catch (e) {
-        return grpcError('start', (e as Error), callback)
+        return grpcError('start', e, callback)
       }
     },
 
@@ -1335,7 +1335,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.StopResponse())
 
       } catch (e) {
-        return grpcError('stop', (e as Error), callback)
+        return grpcError('stop', e, callback)
       }
     },
 
@@ -1351,7 +1351,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.TagContactAddResponse())
 
       } catch (e) {
-        return grpcError('tagContactAdd', (e as Error), callback)
+        return grpcError('tagContactAdd', e, callback)
       }
     },
 
@@ -1366,7 +1366,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.TagContactDeleteResponse())
 
       } catch (e) {
-        return grpcError('tagContactDelete', (e as Error), callback)
+        return grpcError('tagContactDelete', e, callback)
       }
     },
 
@@ -1417,7 +1417,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('tagContactList', (e as Error), callback)
+        return grpcError('tagContactList', e, callback)
       }
     },
 
@@ -1433,7 +1433,7 @@ function puppetImplementation (
         return callback(null, new grpcPuppet.TagContactRemoveResponse())
 
       } catch (e) {
-        return grpcError('tagContactRemove', (e as Error), callback)
+        return grpcError('tagContactRemove', e, callback)
       }
     },
 
@@ -1450,7 +1450,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('version', (e as Error), callback)
+        return grpcError('version', e, callback)
       }
     },
 
