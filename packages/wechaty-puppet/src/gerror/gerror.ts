@@ -103,7 +103,6 @@ class GError extends Error implements GrpcStatus, EcmaError {
        */
       this.code  = Code.UNKNOWN
       this.details = [
-        payload.name,
         ...payload.stack?.split('\n') ?? [],
       ]
 
