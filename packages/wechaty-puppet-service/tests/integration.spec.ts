@@ -11,6 +11,7 @@ import type {
 import {
   PuppetMock,
 }                 from 'wechaty-puppet-mock'
+import getPort from 'get-port'
 
 import {
   PuppetService,
@@ -18,9 +19,13 @@ import {
   PuppetServerOptions,
 }                               from '../src/mod.js'
 
+const NIL_UUID_V4 = '00000000-0000-0000-0000-000000000000'
+
 test('Integration testing', async t => {
-  const TOKEN    = 'insecure_00000000-0000-0000-000000000000'
-  const ENDPOINT = '0.0.0.0:8788'
+  const PORT     = await getPort()
+  const TOKEN    = `insecure_${NIL_UUID_V4}`
+  const ENDPOINT = `0.0.0.0:${PORT}`
+
   const DING     = '__ding_data__'
 
   /**

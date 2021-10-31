@@ -6,6 +6,7 @@ import {
   log,
 }                 from 'wechaty-puppet'
 import PuppetMock from 'wechaty-puppet-mock'
+import getPort from 'get-port'
 
 import { GrpcClient }   from '../src/client/grpc-client.js'
 import {
@@ -13,9 +14,12 @@ import {
   PuppetServerOptions,
 }                       from '../src/mod.js'
 
+const NIL_UUID_V4 = '00000000-0000-0000-0000-000000000000'
+
 test('GrpcClient with TLS and valid token', async t => {
-  const TOKEN         = 'insecure_UUIDv4'
-  const ENDPOINT      = '0.0.0.0:8788'
+  const PORT          = await getPort()
+  const TOKEN         = `insecure_${NIL_UUID_V4}`
+  const ENDPOINT      = `0.0.0.0:${PORT}`
 
   /**
    * Puppet Server
@@ -53,8 +57,9 @@ test('GrpcClient with TLS and valid token', async t => {
 })
 
 test('GrpcClient with invalid TLS options', async t => {
-  const TOKEN    = 'uuid_UUIDv4'
-  const ENDPOINT = '0.0.0.0:8788'
+  const PORT     = await getPort()
+  const TOKEN    = `uuid_${NIL_UUID_V4}`
+  const ENDPOINT = `0.0.0.0:${PORT}`
 
   /**
    * Puppet Server
@@ -100,7 +105,9 @@ test('GrpcClient with invalid TLS options', async t => {
 })
 
 test('GrpcClient with invalid token', async t => {
-  const endpoint = '0.0.0.0:8788'
+  const PORT     = await getPort()
+  const endpoint = `0.0.0.0:${PORT}`
+
   /**
    * Puppet Server
    */
