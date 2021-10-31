@@ -6,6 +6,10 @@
  *
  * 负载测试，并发测试和压力测试，这三者之前的区别和联系？
  *  https://www.zhihu.com/question/269215477/answer/350162604
+ *
+ * NodeJS: How Is Logging Enabled for the @grpc/grpc.js Package
+ *  https://stackoverflow.com/a/60935367/1123955
+ *    GRPC_VERBOSITY=DEBUG GRPC_TRACE=all
  */
 
 import {
@@ -122,8 +126,8 @@ test.skip('stress testing', async t => {
   const actualNameList       = resultList.map(payload => payload.name)
   const EXPECTED_RESULT_LIST = concurrencyList.map(idToName)
 
-  t.equals(spy.callCount, CONCURRENCY, `should be called ${CONCURRENCY} times`)
-  t.deepEqual(actualNameList, EXPECTED_RESULT_LIST, `should get the right result with a huge concurrency ${CONCURRENCY}`)
+  t.equal(spy.callCount, CONCURRENCY, `should be called ${CONCURRENCY} times`)
+  t.same(actualNameList, EXPECTED_RESULT_LIST, `should get the right result with a huge concurrency ${CONCURRENCY}`)
 
   t.ok(dongList.length > 10, `dongList should receive many dong data (actual: ${dongList.length})`)
   t.equal(dongList[0], 'interval 0', 'dongList should get the first response from counter 0')

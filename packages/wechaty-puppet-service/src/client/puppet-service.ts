@@ -141,12 +141,16 @@ export class PuppetService extends PUPPET.Puppet {
     log.verbose('PuppetService', 'onStop()')
 
     if (this.recoverSubscription) {
-      this.recoverSubscription.unsubscribe()
+      const recoverSubscription = this.recoverSubscription
       this.recoverSubscription = undefined
+      recoverSubscription.unsubscribe()
     }
 
-    await this._grpc?.stop()
-    this._grpc = undefined
+    if (this._grpc) {
+      const grpc = this._grpc
+      this._grpc = undefined
+      await grpc.stop()
+    }
   }
 
   protected hookPayloadStore (): void {
@@ -180,14 +184,14 @@ export class PuppetService extends PUPPET.Puppet {
         log.verbose('PuppetService', 'bridgeGrpcEventStream() eventStream.on(end)')
       })
       .on('error', (e: unknown) => {
+        this.emit('error', e)
         // https://github.com/wechaty/wechaty-puppet-service/issues/16
-        log.verbose('PuppetService', 'bridgeGrpcEventStream() eventStream.on(error) %s', e)
-        const reason = 'bridgeGrpcEventStream() eventStream.on(error) ' + e
+        // log.verbose('PuppetService', 'bridgeGrpcEventStream() eventStream.on(error) %s', e)
+        // const reason = 'bridgeGrpcEventStream() eventStream.on(error) ' + e
         /**
          * Huan(202110): simple reset puppet when grpc client has error? (or not?)
          */
-        this.emit('error', new Error(reason))
-        this.wrapAsync(this.reset())
+        // this.wrapAsync(this.reset())
         // /**
         //  * The `Puppet` class have a throttleQueue for receiving the `reset` events
         //  *  and it's the `Puppet` class's duty for call the `puppet.reset()` to reset the puppet.
@@ -303,13 +307,7 @@ export class PuppetService extends PUPPET.Puppet {
   override async logout (reason = 'logout()'): Promise<void> {
     log.verbose('PuppetService', 'logout("%s")', reason)
 
-    if (!this.logonoff()) {
-      log.verbose('PuppetService', 'logout("%s") puppet does not logged in, do nothing. %s',
-        reason,
-        new Error().stack,
-      )
-      return
-    }
+    super.logout(reason)
 
     try {
       await util.promisify(
@@ -318,8 +316,7 @@ export class PuppetService extends PUPPET.Puppet {
       )(new grpcPuppet.LogoutRequest())
 
     } catch (e) {
-      log.error('PuppetService', 'logout() rejection: %s', e && (e as Error).message)
-      throw e
+      this.emit('error', e)
     }
   }
 

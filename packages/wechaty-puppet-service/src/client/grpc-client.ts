@@ -36,19 +36,19 @@ WechatyResolver.setup()
 
 class GrpcClient extends EventEmitter {
 
-  #client?      : puppet.PuppetClient
-  get client () : puppet.PuppetClient { return this.#client! }
+  protected _client?  : puppet.PuppetClient
+  get       client () : puppet.PuppetClient { return this._client! }
 
   eventStream? : grpc.ClientReadableStream<puppet.EventResponse>
 
   /**
    * gRPC settings
    */
-  endpoint    : string
+  caCert     : Buffer
   disableTls : boolean
-  serverName  : string
-  caCert      : Buffer
-  token       : WechatyToken
+  endpoint   : string
+  serverName : string
+  token      : WechatyToken
 
   constructor (private options: PuppetServiceOptions) {
     super()
@@ -142,19 +142,28 @@ class GrpcClient extends EventEmitter {
     /**
      * 1. Disconnect from stream
      */
-    await this.stopStream()
+    this.stopStream()
 
     /**
      * 2. Stop the puppet
      */
-    await util.promisify(
-      this.client.stop
-        .bind(this.client),
-    )(new puppet.StopRequest())
+    try {
+      await util.promisify(
+        this.client.stop
+          .bind(this.client),
+      )(new puppet.StopRequest())
+    } catch (e) {
+      this.emit('error', e)
+    }
+
     /**
      * 3. Destroy grpc client
      */
-    await this.destroyClient()
+    try {
+      this.destroyClient()
+    } catch (e) {
+      this.emit('error', e)
+    }
   }
 
   protected async initClient (): Promise<void> {
@@ -196,12 +205,12 @@ class GrpcClient extends EventEmitter {
       clientOptions['grpc.default_authority'] = grpcDefaultAuthority
     }
 
-    if (this.#client) {
+    if (this._client) {
       log.warn('GrpcClient', 'initClient() this.#client exists? Old client has been dropped.')
-      this.#client = undefined
+      this._client = undefined
     }
 
-    this.#client = new puppet.PuppetClient(
+    this._client = new puppet.PuppetClient(
       this.endpoint,
       credential,
       clientOptions,
@@ -211,17 +220,17 @@ class GrpcClient extends EventEmitter {
   protected destroyClient (): void {
     log.verbose('GrpcClient', 'destroyClient()')
 
-    if (!this.#client) {
+    if (!this._client) {
       log.warn('GrpcClient', 'destroyClient() this.#client not exist')
       return
     }
 
-    const client = this.#client
+    const client = this._client
     /**
       * Huan(202108): we should set `this.client` to `undefined` at the current event loop
       *   to prevent the future usage of the old client.
       */
-    this.#client = undefined
+    this._client = undefined
 
     try {
       client.close()
@@ -303,7 +312,7 @@ class GrpcClient extends EventEmitter {
 
     /**
      * Huan(202108): the `heartbeat` event is not guaranteed to be emitted
-     *  if a puppet service provider is coming from the community, and it does not follow the protocol.
+     *  if a puppet service provider is coming from the community, it might not follow the protocol specification.
      * So we need a timeout for compatible with those providers
      */
     const TIMEOUT = 5 * 1000 // 5 seconds
@@ -346,7 +355,7 @@ class GrpcClient extends EventEmitter {
     log.verbose('GrpcClient', 'stopStream()')
 
     if (!this.eventStream) {
-      log.verbose('GrpcClient', 'no eventStream when stop, skip destroy.')
+      log.verbose('GrpcClient', 'stopStream() no eventStream when stop, skip destroy.')
       return
     }
     /**
@@ -363,7 +372,9 @@ class GrpcClient extends EventEmitter {
      */
     // this.eventStream.cancel()
 
+    log.verbose('GrpcClient', 'stopStream() eventStream destroying ...')
     eventStream.destroy()
+    log.verbose('GrpcClient', 'stopStream() eventStream destroyed')
   }
 
 }

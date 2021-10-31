@@ -76,27 +76,37 @@ export class PuppetServer {
     }
 
     if (!this.urnRegistry) {
+      log.verbose('PuppetServer', 'start() initializing FileBox UUID URN Registry ...')
       this.urnRegistry = new UniformResourceNameRegistry()
       await this.urnRegistry.init()
+      log.verbose('PuppetServer', 'start() initializing FileBox UUID URN Registry ... done')
     }
-
-    this.grpcServer = new grpc.Server(GRPC_OPTIONS)
 
     /**
      * Connect FileBox with UUID Manager
      */
     const FileBoxUuid = uuidifyFileBoxLocal(this.urnRegistry)
 
+    log.verbose('PuppetServer', 'start() initializing gRPC Server with options "%s"', JSON.stringify(GRPC_OPTIONS))
+    this.grpcServer = new grpc.Server(GRPC_OPTIONS)
+    log.verbose('PuppetServer', 'start() initializing gRPC Server ... done', JSON.stringify(GRPC_OPTIONS))
+
+    log.verbose('PuppetServer', 'start() initializing puppet implementation with FileBoxUuid...')
     const puppetImpl = puppetImplementation(
       this.options.puppet,
       FileBoxUuid,
     )
+    log.verbose('PuppetServer', 'start() initializing puppet implementation with FileBoxUuid... done')
+
+    log.verbose('PuppetServer', 'start() initializing authorization with token ...')
     const puppetImplAuth = authImplToken(this.options.token)(puppetImpl)
     this.grpcServer.addService(
       grpcPuppet.PuppetService,
       puppetImplAuth,
     )
+    log.verbose('PuppetServer', 'start() initializing authorization with token ... done')
 
+    log.verbose('PuppetServer', 'start() initializing gRPC health service ...')
     const healthImpl = healthImplementation(
       this.options.puppet,
     )
@@ -104,7 +114,9 @@ export class PuppetServer {
       grpcGoogle.HealthService,
       healthImpl,
     )
+    log.verbose('PuppetServer', 'start() initializing gRPC health service ... done')
 
+    log.verbose('PuppetServer', 'start() initializing TLS CA ...')
     const caCerts = envVars.WECHATY_PUPPET_SERVICE_TLS_CA_CERT()
     const caCertBuf = caCerts
       ? Buffer.from(caCerts)
@@ -118,6 +130,7 @@ export class PuppetServer {
       envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey)
       || TLS_INSECURE_SERVER_KEY,
     )
+    log.verbose('PuppetServer', 'start() initializing TLS CA ... done')
 
     const keyCertPairs: grpc.KeyCertPair[] = [{
       cert_chain  : certChain,
@@ -129,6 +142,7 @@ export class PuppetServer {
      *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_{SERVER,CLIENT} environment variables.
      *  if it has been set, then we will run under HTTP instead of HTTPS
      */
+    log.verbose('PuppetServer', 'start() initializing gRPC server credentials ...')
     let credential
     if (envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER(this.options.tls?.disable)) {
       log.warn('PuppetServer', 'start() TLS disabled: INSECURE!')
@@ -137,10 +151,12 @@ export class PuppetServer {
       log.verbose('PuppetServer', 'start() TLS enabled.')
       credential = grpc.ServerCredentials.createSsl(caCertBuf, keyCertPairs)
     }
+    log.verbose('PuppetServer', 'start() initializing gRPC server credentials ... done')
 
     /***
      * Start Grpc Server
      */
+    log.verbose('PuppetServer', 'start() gRPC server starting ...')
     const port = await util.promisify(
       this.grpcServer.bindAsync
         .bind(this.grpcServer),
@@ -154,29 +170,40 @@ export class PuppetServer {
     }
 
     this.grpcServer.start()
+    log.verbose('PuppetServer', 'start() gRPC server starting ... done')
   }
 
   public async stop (): Promise<void> {
     log.verbose('PuppetServer', 'stop()')
 
-    if (!this.grpcServer) {
-      throw new Error('no grpc server')
+    if (this.grpcServer) {
+      const grpcServer = this.grpcServer
+      this.grpcServer = undefined
+
+      log.verbose('PuppetServer', 'stop() shuting down gRPC server ...')
+      await util.promisify(
+        grpcServer.tryShutdown
+          .bind(grpcServer),
+      )()
+      log.verbose('PuppetServer', 'stop() shuting down gRPC server ... done')
+
+      try {
+        grpcServer.forceShutdown()
+      } catch (e) {
+        log.warn('PuppetServer', 'stop() grpcServer.forceShutdown() rejection: %s', (e as Error).message)
+      }
+
+    } else {
+      log.warn('PuppetServer', 'stop() no grpcServer exist')
     }
-
-    await util.promisify(
-      this.grpcServer.tryShutdown
-        .bind(this.grpcServer),
-    )()
-
-    const grpcServer = this.grpcServer
-    setImmediate(() => grpcServer.forceShutdown())
-
-    this.grpcServer = undefined
 
     if (this.urnRegistry) {
+      log.verbose('PuppetServer', 'stop() destory URN Registry ...')
       await this.urnRegistry.destroy()
       this.urnRegistry = undefined
+      log.verbose('PuppetServer', 'stop() destory URN Registry ... done')
     }
+
   }
 
 }
