@@ -6,14 +6,12 @@ import type { WechatyImpl }             from '../wechaty.js'
 import type { WechatyEventListeners } from '../events/wechaty-events.js'
 import type TypedEventEmitter from 'typed-emitter'
 
-type DeprecatedProperties =
+type DeprecatedProperty =
   | 'userSelf'
 
-type NonInterfaceProperties =
+type WechatyInternalProperty =
   | 'log'
-  // | 'options'
-  // | '_pluginUninstallerList'
-  // | '_readyState'
+  | '_pluginUninstallerList'
   | 'wechaty'
   | 'onStart'
   | 'onStop'
@@ -26,11 +24,12 @@ type NonInterfaceProperties =
   | '_setupPuppetEventBridge'
   | 'memory'
   | '_wechatifyUserModules'
+  | '_installGlobalPlugin'
 
 type WechatyProtectedProperty =
-  | DeprecatedProperties
+  | DeprecatedProperty
   | keyof EventEmitter  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
-  | NonInterfaceProperties
+  | WechatyInternalProperty
 
 // https://stackoverflow.com/questions/41926269/naming-abstract-classes-and-interfaces-in-typescript
 // type Wechaty2 = Pick<WechatyImpl, PublicProperties>

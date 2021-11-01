@@ -26,9 +26,6 @@ import type {
 import {
   serviceCtlMixin,
 }                       from 'state-switch'
-import {
-  instanceToClass,
-}                       from 'clone-class'
 import type { Loggable } from 'brolog'
 
 import {
@@ -53,14 +50,8 @@ import type {
   WechatyEventName,
 }                             from './events/wechaty-events.js'
 
-import {
-  WechatyPlugin,
-  WechatyPluginUninstaller,
-  isWechatyPluginUninstaller,
-}                             from './plugin.js'
 import type {
   Wechaty,
-  WechatyConstructor,
 }                       from './interface/wechaty-interface.js'
 import { puppetEventBridgeMixin } from './wechaty-mixins/puppet-event-bridge-mixin.js'
 import { wechatifyUserModuleMixin } from './wechaty-mixins/wechatify-user-module-mixin.js'
@@ -70,6 +61,7 @@ import type {
   ContactSelfImpl,
 }                     from './user-modules/contact-self.js'
 import { gErrorMixin } from './wechaty-mixins/gerror-mixin.js'
+import { pluginMixin } from './wechaty-mixins/plugin-mixin.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -81,10 +73,12 @@ export interface WechatyOptions {
 }
 
 const mixinBase = serviceCtlMixin('Wechaty', { log })(
-  puppetEventBridgeMixin(
-    wechatifyUserModuleMixin(
-      gErrorMixin(
-        WechatySkelton,
+  pluginMixin(
+    puppetEventBridgeMixin(
+      wechatifyUserModuleMixin(
+        gErrorMixin(
+          WechatySkelton,
+        ),
       ),
     ),
   ),
@@ -121,8 +115,6 @@ class WechatyImpl extends mixinBase implements Sayable {
   readonly log: Loggable = log
   readonly wechaty : Wechaty
 
-  private static _globalPluginList: WechatyPlugin[] = []
-  private _pluginUninstallerList: WechatyPluginUninstaller[]
   private _io?: Io
 
   protected readonly _cleanCallbackList: Function[] = []
@@ -132,33 +124,6 @@ class WechatyImpl extends mixinBase implements Sayable {
    * @ignore
    */
   readonly id : string
-
-  /**
-   * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
-   *
-   * @return  {Wechaty}                      - this for chaining,
-   *
-   * @desc
-   * For wechaty ecosystem, allow user to define a 3rd party plugin for the all wechaty instances
-   *
-   * @example
-   * // Report all chat message to my server.
-   *
-   * function WechatyReportPlugin(options: { url: string }) {
-   *   return function (this: Wechaty) {
-   *     this.on('message', message => http.post(options.url, { data: message }))
-   *   }
-   * }
-   *
-   * bot.use(WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' })
-   */
-  static use (
-    ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
-  ): WechatyConstructor {
-    const pluginList = plugins.flat()
-    this._globalPluginList = this._globalPluginList.concat(pluginList)
-    return this
-  }
 
   /**
    * The term [Puppet](https://github.com/wechaty/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
@@ -225,9 +190,6 @@ class WechatyImpl extends mixinBase implements Sayable {
      *  3. etc...
      */
     super.setMaxListeners(1024)
-
-    this._pluginUninstallerList = []
-    this.installGlobalPlugin()
   }
 
   /**
@@ -261,46 +223,6 @@ class WechatyImpl extends mixinBase implements Sayable {
     )
 
     return super.on(event, listener)
-  }
-
-  /**
-   * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
-   *
-   * @return  {Wechaty}                      - this for chaining,
-   *
-   * @desc
-   * For wechaty ecosystem, allow user to define a 3rd party plugin for the current wechaty instance.
-   *
-   * @example
-   * // The same usage with Wechaty.use().
-   *
-   */
-  use (
-    ...plugins: (
-      WechatyPlugin | WechatyPlugin[]
-    )[]
-  ): Wechaty {
-    const pluginList = plugins.flat() as WechatyPlugin[]
-    const uninstallerList = pluginList
-      .map(plugin => plugin(this))
-      .filter(isWechatyPluginUninstaller)
-
-    this._pluginUninstallerList.push(
-      ...uninstallerList,
-    )
-    return this
-  }
-
-  private installGlobalPlugin () {
-
-    const uninstallerList = instanceToClass(this, WechatyImpl)
-      ._globalPluginList
-      .map(plugin => plugin(this))
-      .filter(isWechatyPluginUninstaller)
-
-    this._pluginUninstallerList.push(
-      ...uninstallerList,
-    )
   }
 
   override async onStart (): Promise<void> {
