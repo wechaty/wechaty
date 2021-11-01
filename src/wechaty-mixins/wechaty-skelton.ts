@@ -17,7 +17,7 @@
  *   limitations under the License.
  *
  */
-import type { MemoryCard } from 'memory-card'
+import { MemoryCard } from 'memory-card'
 import { log } from 'wechaty-puppet'
 
 import {
@@ -52,6 +52,16 @@ abstract class WechatySkelton extends WechatyEventEmitter {
   async start (): Promise<void> {
     log.verbose('WechatySkelton', 'start()')
     // no super.start()
+
+    if (!this._memory) {
+      this._memory = new MemoryCard(this._options.name)
+      try {
+        await this._memory.load()
+      } catch (_) {
+        log.silly('Wechaty', 'onStart() memory.load() had already loaded')
+      }
+    }
+
   }
 
   async stop  (): Promise<void> {

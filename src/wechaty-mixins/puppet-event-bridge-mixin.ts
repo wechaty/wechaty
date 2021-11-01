@@ -52,9 +52,12 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
       await super.start()
 
       /**
-       * Init the `wechaty.ready()` state
+       * reset the `wechaty.ready()` state
+       *  if it was previous set to `active`
        */
-      this._readyState.inactive(true)
+      if (this._readyState.active()) {
+        this._readyState.inactive(true)
+      }
 
       await this._initPuppetInstance()
     }

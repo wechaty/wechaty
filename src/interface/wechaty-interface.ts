@@ -25,6 +25,7 @@ type NonInterfaceProperties =
   | '_initPuppetInstance'
   | '_setupPuppetEventBridge'
   | 'memory'
+  | '_wechatifyUserModules'
 
 type WechatyProtectedProperty =
   | DeprecatedProperties

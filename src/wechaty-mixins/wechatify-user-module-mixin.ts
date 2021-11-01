@@ -73,16 +73,21 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkelton> (mixi
       log.verbose('WechatifyUserModuleMixin', 'start()')
 
       await super.start()
+      this._wechatifyUserModules()
+    }
+
+    _wechatifyUserModules (): void {
+      log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules()')
 
       /**
        * Skip if already wechatified
        */
       if (this._wechatifiedMessage) {
-        log.verbose('WechatifyUserModuleMixin', 'start() Wechaty User Module (WUM)s have already wechatified: skip')
+        log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() Wechaty User Module (WUM)s have already wechatified: skip')
         return
       }
 
-      log.verbose('WechatifyUserModuleMixin', 'start() initializing Wechaty User Module (WUM) ...')
+      log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() initializing Wechaty User Module (WUM) ...')
 
       /**
        * Wechatify User Classes
@@ -103,7 +108,7 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkelton> (mixi
       this._wechatifiedUrlLink        = wechatifyUserModule(UrlLinkImpl)(this as any)
       this._wechatifiedLocation       = wechatifyUserModule(LocationImpl)(this as any)
 
-      log.verbose('WechatifyUserModuleMixin', 'start() initializing Wechaty User Module (WUM) ... done')
+      log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() initializing Wechaty User Module (WUM) ... done')
     }
 
   }

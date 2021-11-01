@@ -20,7 +20,7 @@
 import * as uuid  from 'uuid'
 
 import type * as PUPPET from 'wechaty-puppet'
-import {
+import type {
   MemoryCard,
 }                       from 'memory-card'
 import {
@@ -310,15 +310,6 @@ class WechatyImpl extends mixinBase implements Sayable {
       this.version(),
     )
     log.verbose('Wechaty', 'id: %s', this.id)
-
-    if (!this._memory) {
-      this._memory = new MemoryCard(this._options.name)
-      try {
-        await this._memory.load()
-      } catch (_) {
-        log.silly('Wechaty', 'onStart() memory.load() had already loaded')
-      }
-    }
 
     await this.puppet.start()
 
