@@ -27,6 +27,10 @@ import type * as PUPPET from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
 import { WechatyBuilder } from '../wechaty-builder.js'
+import type {
+  RoomImpl,
+  RoomProtectedProperty,
+}                         from './room.js'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'
@@ -97,12 +101,16 @@ test('say()', async () => {
   // sandbox.spy(puppet, 'messageSendText')
   sandbox.stub(puppet, 'messageSendText').callsFake(callback)
 
-  const room = wechaty.Room.load(EXPECTED_ROOM_ID)
-  const contact1 = wechaty.Contact.load(EXPECTED_CONTACT_1_ID)
-  const contact2 = wechaty.Contact.load(EXPECTED_CONTACT_2_ID)
-  await contact1.sync()
-  await contact2.sync()
-  await room.sync()
+  const room = await wechaty.Room.find({ id: EXPECTED_ROOM_ID })
+  const contact1 = await wechaty.Contact.find({ id: EXPECTED_CONTACT_1_ID })
+  const contact2 = await wechaty.Contact.find({ id: EXPECTED_CONTACT_2_ID })
+
+  if (!room || !contact1 || !contact2) {
+    throw new Error('find by id: not found')
+  }
+  // await contact1.sync()
+  // await contact2.sync()
+  // await room.sync()
 
   test('say with Tagged Template', async t => {
     callback.resetHistory()
@@ -141,4 +149,12 @@ test('say()', async () => {
   })
 
   await wechaty.stop()
+})
+
+test('ProtectedProperties', async t => {
+  type NotExistInWechaty = Exclude<RoomProtectedProperty, keyof RoomImpl>
+  type NotExistTest = NotExistInWechaty extends never ? true : false
+
+  const noOneLeft: NotExistTest = true
+  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })

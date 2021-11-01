@@ -110,13 +110,11 @@ class RoomInvitationMixin extends MixinBase implements Acceptable {
   async accept (): Promise<void> {
     log.verbose('RoomInvitation', 'accept()')
 
-    await this.wechaty.puppet.roomInvitationAccept(this.id)
-
-    const inviter = await this.inviter()
-    const topic   = await this.topic()
-
     try {
-      await inviter.ready()
+      await this.wechaty.puppet.roomInvitationAccept(this.id)
+
+      const inviter = await this.inviter()
+      const topic   = await this.topic()
 
       log.verbose('RoomInvitation', 'accept() with room(%s) & inviter(%s) ready()',
         topic,
@@ -125,8 +123,7 @@ class RoomInvitationMixin extends MixinBase implements Acceptable {
       return
     } catch (e) {
       this.wechaty.emitError(e)
-      log.warn('RoomInvitation', 'accept() inviter(%s) is not ready because of %s',
-        inviter,
+      log.warn('RoomInvitation', 'accept() rejection: %s',
         (e && (e as Error).message) || e,
       )
     }
@@ -149,7 +146,11 @@ class RoomInvitationMixin extends MixinBase implements Acceptable {
     log.verbose('RoomInvitation', 'inviter()')
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
-    const inviter = this.wechaty.Contact.load(payload.inviterId)
+    const inviter = await this.wechaty.Contact.find({ id: payload.inviterId })
+
+    if (!inviter) {
+      throw new Error('can not found inviter with id: ' + payload.inviterId)
+    }
     return inviter
   }
 
@@ -190,15 +191,13 @@ class RoomInvitationMixin extends MixinBase implements Acceptable {
 
     const contactIdList = payload.memberIdList
 
-    const contactList = contactIdList.map(
-      id => this.wechaty.Contact.load(id),
-    )
-    await Promise.all(
-      contactList.map(
-        c => c.ready(),
+    const contactListAll = await Promise.all(
+      contactIdList.map(
+        id => this.wechaty.Contact.find({ id }),
       ),
     )
 
+    const contactList = contactListAll.filter(c => !!c) as Contact[]
     return contactList
   }
 

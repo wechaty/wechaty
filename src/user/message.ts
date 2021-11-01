@@ -44,9 +44,11 @@ import {
 
 import type {
   Contact,
+  ContactImpl,
 }                       from './contact.js'
 import type {
   Room,
+  RoomImpl,
 }                       from './room.js'
 import {
   UrlLink,
@@ -64,6 +66,7 @@ import {
 }                       from './location.js'
 
 import { validationMixin } from './mixins/validation.js'
+import type { ContactSelfImpl } from './contact-self.js'
 
 const MixinBase = wechatifyMixin(
   EventEmitter,
@@ -149,7 +152,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * "mobile originated" or "mobile terminated"
    * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
    */
-  static load (id: string): Message {
+  static load (id: string): MessageImplInterface {
     log.verbose('Message', 'static load(%s)', id)
 
     /**
@@ -264,9 +267,9 @@ class MessageMixin extends MixinBase implements Sayable {
 
     let talker
     if (this.wechaty.logonoff() && talkerId === this.wechaty.puppet.currentUserId) {
-      talker = this.wechaty.ContactSelf.load(talkerId)
+      talker = (this.wechaty.ContactSelf as typeof ContactSelfImpl).load(talkerId)
     } else {
-      talker = this.wechaty.Contact.load(talkerId)
+      talker = (this.wechaty.Contact as typeof ContactImpl).load(talkerId)
     }
     return talker
   }
@@ -317,9 +320,9 @@ class MessageMixin extends MixinBase implements Sayable {
 
     let listener
     if (listenerId === this.wechaty.puppet.currentUserId) {
-      listener = this.wechaty.ContactSelf.load(listenerId)
+      listener = (this.wechaty.ContactSelf as typeof ContactSelfImpl).load(listenerId)
     } else {
-      listener = this.wechaty.Contact.load(listenerId)
+      listener = (this.wechaty.Contact as typeof ContactImpl).load(listenerId)
     }
     return listener
   }
@@ -354,7 +357,7 @@ class MessageMixin extends MixinBase implements Sayable {
       return undefined
     }
 
-    const room = this.wechaty.Room.load(roomId)
+    const room = (this.wechaty.Room as typeof RoomImpl).load(roomId)
     return room
   }
 
@@ -400,7 +403,7 @@ class MessageMixin extends MixinBase implements Sayable {
    * })
    * .start()
    */
-  async toRecalled (): Promise<Message | null> {
+  async toRecalled (): Promise<undefined | Message> {
     if (this.type() !== PUPPET.type.Message.Recalled) {
       throw new Error('Can not call toRecalled() on message which is not recalled type.')
     }
@@ -409,14 +412,16 @@ class MessageMixin extends MixinBase implements Sayable {
       throw new Error('Can not find recalled message')
     }
     try {
-      const message = this.wechaty.Message.load(originalMessageId)
-      await message.ready()
-      return message
+      const message = await this.wechaty.Message.find({ id: originalMessageId })
+      if (message) {
+        return message
+      }
+
     } catch (e) {
       this.wechaty.emitError(e)
       log.verbose(`Can not retrieve the recalled message with id ${originalMessageId}.`)
-      return null
     }
+    return undefined
   }
 
   /**
@@ -621,17 +626,24 @@ class MessageMixin extends MixinBase implements Sayable {
     }
 
     /**
-     * Use mention list if mention list is available
-     * otherwise, process the message and get the mention list
+     * 1. Use mention list if mention list is available
      */
-    if (this._payload && 'mentionIdList' in this._payload) {
-      const idToContact = async (id: string) => {
-        const contact = this.wechaty.Contact.load(id)
-        await contact.ready()
-        return contact
-      }
-      return Promise.all(this._payload.mentionIdList?.map(idToContact) ?? [])
+    if (this._payload
+        && 'mentionIdList' in this._payload
+        && Array.isArray(this._payload.mentionIdList)
+    ) {
+      const idToContact = (id: string) => this.wechaty.Contact.find({ id })
+      const allContact = await Promise.all(
+        this._payload.mentionIdList
+          .map(idToContact),
+      )
+      // remove `undefined` types because we use a `filter(Boolean)`
+      return allContact.filter(Boolean) as Contact[]
     }
+
+    /**
+     * 2. Otherwise, process the message and get the mention list
+     */
 
     /**
      * define magic code `8197` to identify @xxx
@@ -765,13 +777,13 @@ class MessageMixin extends MixinBase implements Sayable {
     const toId   = this._payload.toId
 
     if (roomId) {
-      await this.wechaty.Room.load(roomId).ready()
+      await this.wechaty.Room.find({ id: roomId })
     }
     if (fromId) {
-      await this.wechaty.Contact.load(fromId).ready()
+      await this.wechaty.Contact.find({ id: fromId })
     }
     if (toId) {
-      await this.wechaty.Contact.load(toId).ready()
+      await this.wechaty.Contact.find({ id: toId })
     }
   }
 
@@ -840,8 +852,7 @@ class MessageMixin extends MixinBase implements Sayable {
         this.id,
       )
       if (msgId) {
-        const msg = this.wechaty.Message.load(msgId)
-        await msg.ready()
+        const msg = await this.wechaty.Message.find({ id: msgId })
         return msg
       }
     } catch (e) {
@@ -939,8 +950,11 @@ class MessageMixin extends MixinBase implements Sayable {
       throw new Error(`can not get Contact id by message: ${contactId}`)
     }
 
-    const contact = this.wechaty.Contact.load(contactId)
-    await contact.ready()
+    const contact = await this.wechaty.Contact.find({ id: contactId })
+    if (!contact) {
+      throw new Error(`can not get Contact payload by from id: ${contactId}`)
+    }
+
     return contact
   }
 
@@ -994,16 +1008,22 @@ class MessageMixin extends MixinBase implements Sayable {
 
 }
 
-class MessageImpl extends validationMixin(MessageMixin)<Message>() {}
-interface Message extends MessageImpl {}
+class MessageImpl extends validationMixin(MessageMixin)<MessageImplInterface>() {}
+interface MessageImplInterface extends MessageImpl {}
+
+type MessageProtectedProperty =
+  | 'ready'
+
+type Message = Omit<MessageImplInterface, MessageProtectedProperty>
 
 type MessageConstructor = Constructor<
   Message,
-  typeof MessageImpl
+  Omit<typeof MessageImpl, 'load'>
 >
 
 export type {
   Message,
+  MessageProtectedProperty,
   MessageConstructor,
 }
 export {

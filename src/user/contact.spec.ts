@@ -27,7 +27,10 @@ import type * as PUPPET from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 import { WechatyBuilder } from '../wechaty-builder.js'
 
-import { ContactImpl }  from './contact.js'
+import {
+  ContactImpl,
+  ContactProtectedProperty,
+}                             from './contact.js'
 
 test('findAll()', async t => {
   const EXPECTED_CONTACT_ID      = 'test-id'
@@ -88,4 +91,12 @@ test('should throw when instanciate the global class', async t => {
     t.fail('should not run to here')
     t.fail(c.toString())
   }, 'should throw when we instanciate a global class')
+})
+
+test('ProtectedProperties', async t => {
+  type NotExistInWechaty = Exclude<ContactProtectedProperty, keyof ContactImpl>
+  type NotExistTest = NotExistInWechaty extends never ? true : false
+
+  const noOneLeft: NotExistTest = true
+  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })

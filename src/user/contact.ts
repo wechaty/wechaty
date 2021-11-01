@@ -172,6 +172,12 @@ class ContactMixin extends MixinBase implements Sayable {
           BATCH_SIZE * batchIndex,
           BATCH_SIZE * (batchIndex + 1),
         )
+
+        /**
+         * Huan(202110): use a interator with works to control the concurrency of Promise.all.
+         *  @see https://stackoverflow.com/a/51020535/1123955
+         */
+
         await Promise.all(
           batchContactList.map(
             c => c.ready()
@@ -332,9 +338,10 @@ class ContactMixin extends MixinBase implements Sayable {
     const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
 
     if (msgId) {
-      const msg = this.wechaty.Message.load(msgId)
-      await msg.ready()
-      return msg
+      const msg = await this.wechaty.Message.find({ id: msgId })
+      if (msg) {
+        return msg
+      }
     }
   }
 
@@ -771,17 +778,18 @@ class ContactImpl extends validationMixin(ContactMixin)<ContactImplInterface>() 
 interface ContactImplInterface extends ContactImpl {}
 
 type ContactProtectedProperty =
-  'load'
+  | 'ready'
 
 type Contact = Omit<ContactImplInterface, ContactProtectedProperty>
 
 type ContactConstructor = Constructor<
   ContactImplInterface,
-  typeof ContactImpl
+  Omit<typeof ContactImpl, 'load'>
 >
 
 export type {
   ContactConstructor,
+  ContactProtectedProperty,
   Contact,
 }
 export {

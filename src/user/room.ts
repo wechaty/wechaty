@@ -150,6 +150,11 @@ class RoomMixin extends MixinBase implements Sayable {
           BATCH_SIZE * (batchIndex + 1),
         )
 
+        /**
+         * Huan(202110): TODO: use an iterator with works to control the concurrency of Promise.all.
+         *  @see https://stackoverflow.com/a/51020535/1123955
+         */
+
         await Promise.all(
           batchRoomList.map(
             room => room.ready()
@@ -316,20 +321,21 @@ class RoomMixin extends MixinBase implements Sayable {
 
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
-    const memberList = memberIdList.map(id => this.wechaty.Contact.load(id))
-
     const BATCH_SIZE = 16
     let   batchIndex = 0
 
-    while (batchIndex * BATCH_SIZE < memberList.length) {
-      const batchMemberList = memberList.slice(
+    while (batchIndex * BATCH_SIZE < memberIdList.length) {
+      const batchMemberIdList = memberIdList.slice(
         BATCH_SIZE * batchIndex,
         BATCH_SIZE * (batchIndex + 1),
       )
+
+      /**
+       * Huan(202110): use a interator with works to control the concurrency of Promise.all.
+       *  @see https://stackoverflow.com/a/51020535/1123955
+       */
       await Promise.all(
-        batchMemberList.map(
-          c => c.ready().catch(e => log.error('Room', 'ready() member.ready() exception:\n%s', e.stack)),
-        ),
+        batchMemberIdList.map(id => this.wechaty.Contact.find({ id })),
       )
 
       batchIndex++
@@ -486,8 +492,7 @@ class RoomMixin extends MixinBase implements Sayable {
     }
 
     if (msgId) {
-      const msg = this.wechaty.Message.load(msgId)
-      await msg.ready()
+      const msg = await this.wechaty.Message.find({ id: msgId })
       return msg
     }
   }
@@ -786,9 +791,12 @@ class RoomMixin extends MixinBase implements Sayable {
         return this._payload.topic
       } else {
         const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
-        const memberList = memberIdList
+        const memberListFuture = memberIdList
           .filter(id => id !== this.wechaty.puppet.currentUserId)
-          .map(id => this.wechaty.Contact.load(id))
+          .map(id => this.wechaty.Contact.find({ id }))
+
+        const memberList = (await Promise.all(memberListFuture))
+          .filter(Boolean) as Contact[]
 
         let defaultTopic = (memberList[0] && memberList[0].name()) || ''
         for (let i = 1; i < 3 && memberList[i]; i++) {
@@ -991,9 +999,12 @@ class RoomMixin extends MixinBase implements Sayable {
       return this.memberList()
     }
 
-    const contactIdList = await this.wechaty.puppet.roomMemberSearch(this.id, query)
-    const contactList   = contactIdList.map(id => this.wechaty.Contact.load(id))
+    const contactIdList   = await this.wechaty.puppet.roomMemberSearch(this.id, query)
+    const contactListAll  = await Promise.all(
+      contactIdList.map(id => this.wechaty.Contact.find({ id })),
+    )
 
+    const contactList = contactListAll.filter(c => !!c) as Contact[]
     return contactList
   }
 
@@ -1013,13 +1024,7 @@ class RoomMixin extends MixinBase implements Sayable {
    * const room = await bot.Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your WeChat
    * if (room) {
    *   const member = await room.member('lijiarui')             // change 'lijiarui' to any room member in your WeChat
-   *   if (member) {
-   *     console.log(`wechaty room got the member: ${member.name()}`)
-   *   } else {
-   *     console.log(`cannot get member in wechaty room!`)
-   *   }
-   * }
-   *
+   *   if (member) {load
    * @example <caption>Find member by MemberQueryFilter</caption>
    * const bot = new Wechaty()
    * await bot.start()
@@ -1079,9 +1084,13 @@ class RoomMixin extends MixinBase implements Sayable {
     //   return []
     // }
 
-    const contactList = memberIdList.map(
-      id => this.wechaty.Contact.load(id),
+    const contactListAll = await Promise.all(
+      memberIdList.map(
+        id => this.wechaty.Contact.find({ id }),
+      ),
     )
+
+    const contactList = contactListAll.filter(c => !!c) as Contact[]
     return contactList
   }
 
@@ -1101,7 +1110,7 @@ class RoomMixin extends MixinBase implements Sayable {
       return undefined
     }
 
-    const owner = this.wechaty.Contact.load(ownerId)
+    const owner = (this.wechaty.Contact as typeof ContactImpl).load(ownerId)
     return owner
   }
 
@@ -1125,16 +1134,18 @@ class RoomImpl extends validationMixin(RoomMixin)<RoomImplInterface>() {}
 interface RoomImplInterface extends RoomImpl {}
 
 type RoomProtectedProperty =
-  'load'
+  | 'ready'
+
 type Room = Omit<RoomImplInterface, RoomProtectedProperty>
 
 type RoomConstructor = Constructor<
   RoomImplInterface,
-  typeof RoomImpl
+  Omit<typeof RoomImpl, 'load'>
 >
 
 export type {
   RoomConstructor,
+  RoomProtectedProperty,
   Room,
 }
 export {
