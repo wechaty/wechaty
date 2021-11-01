@@ -57,9 +57,17 @@ class ContactSelfMixin extends MixinBase {
   static override async find (
     query : string | PUPPET.filter.Contact,
   ): Promise<undefined | ContactSelf> {
-    const contact = await super.find(query)
-    if (contact && contact.id === this.wechaty.puppet.currentUserId) {
-      return contact as ContactSelf
+    if (!this.wechaty.logonoff()) {
+      return undefined
+    }
+
+    try {
+      const contact = await super.find(query)
+      if (contact && contact.id === this.wechaty.puppet.currentUserId) {
+        return contact as ContactSelf
+      }
+    } catch (e) {
+      log.silly('ContactSelf', 'find() exception: %s', (e as Error).message)
     }
     return undefined
   }

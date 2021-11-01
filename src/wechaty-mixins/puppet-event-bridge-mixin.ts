@@ -177,10 +177,14 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
               try {
                 this._readyState.inactive(true)
                 const contact = await this.ContactSelf.find({ id: payload.contactId })
-                if (!contact) {
-                  throw new Error('no self contact for id: ' + payload.contactId)
+                if (contact) {
+                  this.emit('logout', contact, payload.data)
+                } else {
+                  log.verbose('PuppetEventBridgeMixin',
+                    '_setupPuppetEventBridge() logout event contact self not found for id: %s',
+                    payload.contactId,
+                  )
                 }
-                this.emit('logout', contact, payload.data)
               } catch (e) {
                 this.emit('error', GError.from(e))
               }
