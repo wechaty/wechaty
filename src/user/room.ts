@@ -32,7 +32,7 @@ import type {
   SayableMessage,
 }                           from '../interface/mod.js'
 
-import { captureException } from '../raven.js'
+import { wechatyCaptureException } from '../raven.js'
 import {
   guardQrCodeValue,
 }                       from '../helper-functions/pure/guard-qr-code-value.js'
@@ -812,7 +812,7 @@ class RoomMixin extends MixinBase implements Sayable {
         log.warn('Room', 'topic(newTopic=%s) exception: %s',
           newTopic, (e && e.message) || e,
         )
-        captureException(e)
+        wechatyCaptureException(e)
       })
 
     return future

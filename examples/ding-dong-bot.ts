@@ -189,7 +189,7 @@ const welcome = `
 
 =============== Powered by Wechaty ===============
 -------- https://github.com/wechaty/wechaty --------
-          Version: ${bot.version(true)}
+          Version: ${bot.version()}
 
 I'm a bot, my superpower is talk in Wechat.
 
