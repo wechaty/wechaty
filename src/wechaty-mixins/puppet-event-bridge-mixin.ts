@@ -6,7 +6,7 @@ import { StateSwitch } from 'state-switch'
 import type { StateSwitchInterface } from 'state-switch'
 
 import { timestampToDate } from '../helper-functions/pure/timestamp-to-date.js'
-import type { Contact } from '../user/contact.js'
+import type { Contact } from '../user-modules/contact.js'
 import type {
   WechatifyUserModuleMixin,
 }                             from './wechatify-user-module-mixin.js'

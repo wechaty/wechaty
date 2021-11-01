@@ -17,50 +17,53 @@
  *   limitations under the License.
  *
  */
+import { log } from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from './mixins/validation.js'
 
+import type { Contact } from './contact.js'
+import { validationMixin } from '../user-mixins/validation.js'
 import {
   EmptyBase,
   wechatifyMixin,
-}                       from './mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.js'
 
 const MixinBase = wechatifyMixin(
   EmptyBase,
 )
 
-class DelayMixin extends MixinBase {
+class MomentMixin extends MixinBase {
 
-  static create (milliseconds: number): Delay {
-    return new DelayImpl(milliseconds)
+  static post () {
+    // post new moment
   }
 
-  constructor (
-    public milliseconds: number,
-  ) {
+  static timeline (contact: Contact): MomentImpl[] {
+    // list all moment
+    void contact
+    return []
+  }
+
+  /*
+   * @hideconstructor
+   */
+  constructor () {
     super()
-  }
-
-  wait (): Promise<void> {
-    return new Promise<void>(resolve => {
-      setTimeout(resolve, this.milliseconds)
-    })
+    log.verbose('Moment', 'constructor()')
   }
 
 }
 
-class DelayImpl extends validationMixin(DelayMixin)<Delay>() {}
-interface Delay extends DelayImpl {}
-
-type DelayConstructor = Constructor<
-  Delay,
-  typeof DelayImpl
+class MomentImpl extends validationMixin(MomentMixin)<Moment>() {}
+interface Moment extends MomentImpl {}
+type MomentConstructor = Constructor<
+  Moment,
+  typeof MomentImpl
 >
 
 export type {
-  DelayConstructor,
-  Delay,
+  MomentConstructor,
+  Moment,
 }
 export {
-  DelayImpl,
+  MomentImpl,
 }

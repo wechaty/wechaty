@@ -44,12 +44,12 @@ import { RoomEventEmitter } from '../events/room-events.js'
 
 import {
   poolifyMixin,
-}             from './mixins/poolify.js'
+}             from '../user-mixins/poolify.js'
 
 import {
   wechatifyMixin,
-}                       from './mixins/wechatify.js'
-import { validationMixin } from './mixins/validation.js'
+}                       from '../user-mixins/wechatify.js'
+import { validationMixin } from '../user-mixins/validation.js'
 import { deliverSayableConversationPuppet } from '../interface/sayable.js'
 import { isTemplateStringArray } from '../helper-functions/pure/is-template-string-array.js'
 

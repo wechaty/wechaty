@@ -11,7 +11,7 @@ import type {
   RoomInvitation,
   Contact,
   Message,
-}                       from '../user/mod.js'
+}                       from '../user-modules/mod.js'
 
 const WECHATY_EVENT_DICT = {
   ...PUPPET.type.CHAT_EVENT_DICT,

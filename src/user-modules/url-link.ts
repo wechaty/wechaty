@@ -25,11 +25,11 @@ import type { Constructor } from '../deprecated/clone-class.js'
 import {
   openGraph,
 }               from '../helper-functions/impure/open-graph.js'
-import { validationMixin } from './mixins/validation.js'
+import { validationMixin } from '../user-mixins/validation.js'
 import {
   EmptyBase,
   wechatifyMixin,
-}                       from './mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.js'
 import { log } from '../config.js'
 
 const MixinBase = wechatifyMixin(

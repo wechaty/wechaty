@@ -34,8 +34,8 @@ import {
 import {
   ContactImpl,
 }                       from './contact.js'
-import { validationMixin } from './mixins/validation.js'
-import { poolifyMixin } from './mixins/poolify.js'
+import { validationMixin } from '../user-mixins/validation.js'
+import { poolifyMixin } from '../user-mixins/poolify.js'
 
 const MixinBase = poolifyMixin(
   ContactImpl,

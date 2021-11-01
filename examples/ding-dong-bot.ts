@@ -22,7 +22,7 @@ import * as WECHATY from '../src/mods/mod.js' // from 'wechaty'
 import * as qrTerm from 'qrcode-terminal'
 import { FileBox } from 'file-box'
 
-import type { Message } from '../src/user/message.js'
+import type { Message } from '../src/user-modules/message.js'
 
 /**
  *

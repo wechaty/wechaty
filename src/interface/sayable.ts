@@ -30,7 +30,7 @@ import type {
   MiniProgram,
   Delay,
   UrlLink,
-}                           from '../user/mod.js'
+}                           from '../user-modules/mod.js'
 
 import type {
   Wechaty,
@@ -43,7 +43,7 @@ import {
   UrlLinkImpl,
   MiniProgramImpl,
   LocationImpl,
-}                     from '../user/mod.js'
+}                     from '../user-modules/mod.js'
 
 type SayableMessage = never
   | Contact

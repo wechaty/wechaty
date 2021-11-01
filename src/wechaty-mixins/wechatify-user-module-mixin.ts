@@ -28,7 +28,7 @@ import {
   LocationConstructor,
 
   wechatifyUserModule,
-}                       from '../user/mod.js'
+}                       from '../user-modules/mod.js'
 
 import type {
   WechatySkelton,

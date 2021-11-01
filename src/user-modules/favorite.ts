@@ -19,12 +19,12 @@
  */
 import { log }        from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from './mixins/validation.js'
+import { validationMixin } from '../user-mixins/validation.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
-}                       from './mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.js'
 import type { Tag } from './tag.js'
 
 const MixinBase = wechatifyMixin(EmptyBase)

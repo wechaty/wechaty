@@ -68,7 +68,7 @@ import { WechatySkelton } from './wechaty-mixins/wechaty-skelton.js'
 import type {
   ContactSelf,
   ContactSelfImpl,
-}                     from './user/contact-self.js'
+}                     from './user-modules/contact-self.js'
 import { gErrorMixin } from './wechaty-mixins/gerror-mixin.js'
 
 export interface WechatyOptions {

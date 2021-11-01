@@ -28,12 +28,12 @@ import { Favorite, FavoriteImpl } from './favorite.js'
 
 import {
   poolifyMixin,
-}                     from './mixins/poolify.js'
-import { validationMixin } from './mixins/validation.js'
+}                     from '../user-mixins/poolify.js'
+import { validationMixin } from '../user-mixins/validation.js'
 import {
   EmptyBase,
   wechatifyMixin,
-}                     from './mixins/wechatify.js'
+}                     from '../user-mixins/wechatify.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(

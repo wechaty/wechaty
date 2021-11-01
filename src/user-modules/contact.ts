@@ -43,12 +43,12 @@ import type { Tag }     from './tag.js'
 import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
   poolifyMixin,
-}             from './mixins/poolify.js'
+}             from '../user-mixins/poolify.js'
 
 import {
   wechatifyMixin,
-}                       from './mixins/wechatify.js'
-import { validationMixin } from './mixins/validation.js'
+}                       from '../user-mixins/wechatify.js'
+import { validationMixin } from '../user-mixins/validation.js'
 import { deliverSayableConversationPuppet } from '../interface/sayable.js'
 
 const MixinBase = wechatifyMixin(

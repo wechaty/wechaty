@@ -26,7 +26,7 @@ import * as jsonRpcPeer from 'json-rpc-peer'
 
 import type {
   Message,
-}                 from './user/mod.js'
+}                 from './user-modules/mod.js'
 
 import {
   log,

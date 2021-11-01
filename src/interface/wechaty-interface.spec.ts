@@ -17,7 +17,7 @@ import type {
   DelayConstructor,
   TagConstructor,
   UrlLinkConstructor,
-}                             from '../user/mod.js'
+}                             from '../user-modules/mod.js'
 
 import type {
   WechatyConstructor,
