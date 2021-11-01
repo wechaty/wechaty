@@ -26,14 +26,13 @@ import {
  *  @see https://github.com/wechaty/puppet/issues/165
  */
 
-import { GError }       from 'gerror'
-
+import {
+  GError,
+  wrapAsyncError,
+}                     from 'gerror'
 import type {
   WrapAsync,
-}                     from '../helpers/wrap-async-error.js'
-import {
-  wrapAsyncError,
-}                     from '../helpers/wrap-async-error.js'
+}                     from 'gerror'
 
 import type { EventErrorPayload } from '../schemas/event.js'
 

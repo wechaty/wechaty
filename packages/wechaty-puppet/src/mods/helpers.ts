@@ -9,14 +9,12 @@ import {
 }                         from 'state-switch'
 import {
   GError,
+  wrapAsyncError,
 }                         from 'gerror'
 
 import type {
   WrapAsync,
-}                           from '../helpers/wrap-async-error.js'
-import {
-  wrapAsyncError,
-}                           from '../helpers/wrap-async-error.js'
+}                           from 'gerror'
 
 export type {
   WrapAsync,
