@@ -262,7 +262,7 @@ class MessageMixin extends MixinBase implements Sayable {
     if (!talkerId) {
       // Huan(202011): It seems that the fromId will never be null?
       // return null
-      throw new Error('payload.fromId is null?')
+      throw new Error('no payload.fromId found for talker')
     }
 
     let talker

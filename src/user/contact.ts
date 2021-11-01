@@ -174,7 +174,7 @@ class ContactMixin extends MixinBase implements Sayable {
         )
 
         /**
-         * Huan(202110): use a interator with works to control the concurrency of Promise.all.
+         * Huan(202110): use an iterator with works to control the concurrency of Promise.all.
          *  @see https://stackoverflow.com/a/51020535/1123955
          */
 
