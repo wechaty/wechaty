@@ -8,7 +8,7 @@ import {
   poolifyMixin,
 }                       from './poolify.js'
 import {
-  wechatifyUserClass,
+  wechatifyUserModule,
   wechatifyMixin,
 }                       from './wechatify.js'
 
@@ -64,8 +64,8 @@ test('poolifyMixin() pool', async t => {
 
   }
 
-  const UserClass1 = wechatifyUserClass(UserClassTest)({} as any)
-  const UserClass2 = wechatifyUserClass(UserClassTest)({} as any)
+  const UserClass1 = wechatifyUserModule(UserClassTest)({} as any)
+  const UserClass2 = wechatifyUserModule(UserClassTest)({} as any)
 
   t.equal(UserClass1.pool.size, 0, 'should be size 0 for class 1')
   t.equal(UserClass2.pool.size, 0, 'should be size 0 for class 2')

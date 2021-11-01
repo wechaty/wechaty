@@ -40,7 +40,7 @@ import type {
 
 import {
   wechatifyMixin,
-}                       from './mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.js'
 
 import type {
   Contact,
@@ -65,7 +65,7 @@ import {
   LocationImpl,
 }                       from './location.js'
 
-import { validationMixin } from './mixins/validation.js'
+import { validationMixin } from '../user-mixins/validation.js'
 import type { ContactSelfImpl } from './contact-self.js'
 
 const MixinBase = wechatifyMixin(

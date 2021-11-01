@@ -93,7 +93,7 @@ import {
   DelayConstructor,
 }                           from './delay.js'
 
-import { wechatifyUserClass } from './mixins/wechatify.js'
+import { wechatifyUserModule } from '../user-mixins/wechatify.js'
 
 export type {
   Contact,
@@ -132,7 +132,7 @@ export type {
 }
 
 export {
-  wechatifyUserClass,
+  wechatifyUserModule,
   ContactImpl,
   ContactSelfImpl,
   FavoriteImpl,

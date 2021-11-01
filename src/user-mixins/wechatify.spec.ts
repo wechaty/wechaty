@@ -1,11 +1,11 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 import { test } from 'tstest'
-import type { Wechaty } from '../../mods/mod.js'
+import type { Wechaty } from '../mods/mod.js'
 
 import {
   isWechatified,
   wechatifyMixin,
-  wechatifyUserClass,
+  wechatifyUserModule,
 }                       from './wechatify.js'
 
 const wechaty = {
@@ -18,7 +18,7 @@ test('isWechatified()', async t => {
   t.notOk(isWechatified(UserClassTest), 'should not be wechatified')
   t.throws(() => UserClassTest.wechaty, 'should throw before wechatified')
 
-  const WechatifiedUserClass = wechatifyUserClass(UserClassTest)(wechaty)
+  const WechatifiedUserClass = wechatifyUserModule(UserClassTest)(wechaty)
   t.ok(isWechatified(WechatifiedUserClass), 'should be wechatified')
   t.doesNotThrow(() => WechatifiedUserClass.wechaty, 'should not throw after wechatified')
 

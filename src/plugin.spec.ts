@@ -30,8 +30,8 @@ import type { Wechaty } from './mods/mod.js'
 import { WechatyBuilder } from './wechaty-builder.js'
 
 test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
-  const spyPluginInstall  = sinon.spy()
-  const spyPluginUninstall = sinon.spy()
+  const spyPluginInstall    = sinon.spy()
+  const spyPluginUninstall  = sinon.spy()
 
   const bot = new WechatyBuilder().options({ puppet: new PuppetMock() }).build()
 

@@ -1,7 +1,7 @@
 import { log }              from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import type { Wechaty } from '../../interface/wechaty-interface.js'
+import type { Wechaty } from '../interface/wechaty-interface.js'
 
 const WECHATIFIED_PREFIX = 'Wechatified'
 
@@ -12,11 +12,11 @@ interface WechatyMinxin {
   }
 }
 
-const wechatifyUserClass = <T extends WechatyMinxin> (UserClass: T) => {
-  log.verbose('user/mixins/wechatify', 'wechatifyUserClass(%s)', UserClass.name)
+const wechatifyUserModule = <T extends WechatyMinxin> (UserClass: T) => {
+  log.verbose('user/mixins/wechatify', 'wechatifyUserModule(%s)', UserClass.name)
 
   return (wechaty: Wechaty): T => {
-    log.verbose('user/mixins/wechatify', 'wechatifyUserClass(%s)(%s)', UserClass.name, wechaty)
+    log.verbose('user/mixins/wechatify', 'wechatifyUserModule(%s)(%s)', UserClass.name, wechaty)
 
     class WechatifiedUserClass extends UserClass {
 
@@ -68,5 +68,5 @@ export {
   EmptyBase,
   isWechatified,
   wechatifyMixin,
-  wechatifyUserClass,
+  wechatifyUserModule,
 }

@@ -43,10 +43,6 @@ import {
 
 class WechatyTest extends WechatyImpl {
 
-  override wechatifyUserModules (): void {
-    return super.wechatifyUserModules()
-  }
-
 }
 
 test('Export of the Framework', async t => {
@@ -224,8 +220,8 @@ test('use plugin', async t => {
 test('wechatifyUserModules()', async t => {
   const wechatyTest = new WechatyTest()
 
-  t.doesNotThrow(() => wechatyTest.wechatifyUserModules(), 'should not throw for the 1st time init')
-  t.throws(() => wechatyTest.wechatifyUserModules(),       'should throw for the 2nd time init')
+  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 1st time init')
+  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
 })
 
 // TODO: add test for event args

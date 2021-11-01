@@ -5,6 +5,7 @@ import os from 'os'
 import {
   log,
 }           from 'wechaty-puppet'
+import type { GError } from 'gerror'
 
 import {
   VERSION,
@@ -61,7 +62,7 @@ async function init () {
   enableRaven(dsn)
 }
 
-function captureException (e: Error) {
+function wechatyCaptureException (e: GError) {
   if (enabled) {
     raven.captureException(e)
   }
@@ -70,5 +71,5 @@ function captureException (e: Error) {
 init().catch(console.error)
 
 export {
-  captureException,
+  wechatyCaptureException,
 }

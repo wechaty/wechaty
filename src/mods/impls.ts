@@ -48,7 +48,7 @@ export type {
   TagConstructor,
   UrlLink,
   UrlLinkConstructor,
-}                               from '../user/mod.js'
+}                               from '../user-modules/mod.js'
 
 export {
   ContactImpl,
@@ -66,7 +66,7 @@ export {
   DelayImpl,
   TagImpl,
   UrlLinkImpl,
-}                             from '../user/mod.js'
+}                             from '../user-modules/mod.js'
 
 export {
   WechatyImpl,

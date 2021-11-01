@@ -23,7 +23,7 @@ import {
   PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
-import type { Message }      from './user/mod.js'
+import type { Message }      from './user-modules/mod.js'
 
 import {
   log,

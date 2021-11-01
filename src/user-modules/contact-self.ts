@@ -17,6 +17,7 @@
  *   limitations under the License.
  *
  */
+import type * as PUPPET from 'wechaty-puppet'
 import {
   log,
 }                             from 'wechaty-puppet'
@@ -33,8 +34,8 @@ import {
 import {
   ContactImpl,
 }                       from './contact.js'
-import { validationMixin } from './mixins/validation.js'
-import { poolifyMixin } from './mixins/poolify.js'
+import { validationMixin } from '../user-mixins/validation.js'
+import { poolifyMixin } from '../user-mixins/poolify.js'
 
 const MixinBase = poolifyMixin(
   ContactImpl,
@@ -53,11 +54,23 @@ const MixinBase = poolifyMixin(
  */
 class ContactSelfMixin extends MixinBase {
 
-  // constructor (
-  //   id: string,
-  // ) {
-  //   super(id)
-  // }
+  static override async find (
+    query : string | PUPPET.filter.Contact,
+  ): Promise<undefined | ContactSelf> {
+    if (!this.wechaty.logonoff()) {
+      return undefined
+    }
+
+    try {
+      const contact = await super.find(query)
+      if (contact && contact.id === this.wechaty.puppet.currentUserId) {
+        return contact as ContactSelf
+      }
+    } catch (e) {
+      log.silly('ContactSelf', 'find() exception: %s', (e as Error).message)
+    }
+    return undefined
+  }
 
   public override async avatar ()                       : Promise<FileBoxInterface>
   public override async avatar (file: FileBoxInterface) : Promise<void>

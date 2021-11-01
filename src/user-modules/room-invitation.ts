@@ -35,8 +35,8 @@ import type {
 import {
   EmptyBase,
   wechatifyMixin,
-}                     from './mixins/wechatify.js'
-import { validationMixin } from './mixins/validation.js'
+}                     from '../user-mixins/wechatify.js'
+import { validationMixin } from '../user-mixins/validation.js'
 
 const MixinBase = wechatifyMixin(
   EmptyBase,

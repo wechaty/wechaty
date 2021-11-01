@@ -22,13 +22,13 @@ import type {
   FileBoxInterface,
 }                   from 'file-box'
 import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from './mixins/validation.js'
+import { validationMixin } from '../user-mixins/validation.js'
 import { log } from '../config.js'
 
 import {
   EmptyBase,
   wechatifyMixin,
-}                       from './mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.js'
 
 const MixinBase = wechatifyMixin(
   EmptyBase,
