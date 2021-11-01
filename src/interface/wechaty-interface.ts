@@ -6,35 +6,42 @@ import type { WechatyImpl }             from '../wechaty.js'
 import type { WechatyEventListeners } from '../events/wechaty-events.js'
 import type TypedEventEmitter from 'typed-emitter'
 
-type DeprecatedProperties = never
+type DeprecatedProperties =
   | 'userSelf'
 
-type NonInterfaceProperties = never
+type NonInterfaceProperties =
   | 'log'
-  | 'options'
-  | '_pluginUninstallerList'
-  | '_readyState'
+  // | 'options'
+  // | '_pluginUninstallerList'
+  // | '_readyState'
   | 'wechaty'
   | 'onStart'
   | 'onStop'
-  | '_serviceCtlFsmInterpreter'     // from ServiceCtlFsm
+  // | '_serviceCtlFsmInterpreter'     // from ServiceCtlFsm
   | '_serviceCtlLogger'             // from ServiceCtl(&Fsm)
   | '_serviceCtlResettingIndicator' // from ServiceCtl
 
 // https://stackoverflow.com/a/64754408/1123955
-type KeyOfWechaty       = keyof WechatyImpl
-// Huan(202110): remove all EventEmitter first, or will get error
-type KeyOfEventEmitter  = keyof EventEmitter
+// type KeyOfWechaty       = keyof WechatyImpl
 
-type PublicProperties = Exclude<KeyOfWechaty, never
+// type KeyOfEventEmitter  = keyof EventEmitter
+
+type WechatyProtectedProperty =
   | DeprecatedProperties
-  | KeyOfEventEmitter
+  | keyof EventEmitter  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
   | NonInterfaceProperties
-  // | WechatyUserClass
->
+
+// type PublicProperties = Exclude<KeyOfWechaty, never
+//   | DeprecatedProperties
+//   | KeyOfEventEmitter
+//   | NonInterfaceProperties
+// >
 
 // https://stackoverflow.com/questions/41926269/naming-abstract-classes-and-interfaces-in-typescript
-type Wechaty = Pick<WechatyImpl, PublicProperties>
+// type Wechaty2 = Pick<WechatyImpl, PublicProperties>
+//   & TypedEventEmitter<WechatyEventListeners>
+
+type Wechaty = Omit<WechatyImpl, WechatyProtectedProperty>
   & TypedEventEmitter<WechatyEventListeners>
 
 type WechatyConstructor = Constructor<
@@ -45,4 +52,5 @@ type WechatyConstructor = Constructor<
 export type {
   Wechaty,
   WechatyConstructor,
+  WechatyProtectedProperty,
 }

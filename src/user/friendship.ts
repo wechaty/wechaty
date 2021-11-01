@@ -32,6 +32,7 @@ import { log } from '../config.js'
 
 import type {
   Contact,
+  ContactImpl,
 }                       from './contact.js'
 import type {
   Room,
@@ -105,8 +106,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
       return undefined
     }
 
-    const contact = this.wechaty.Contact.load(contactId)
-    await contact.ready()
+    const contact = await this.wechaty.Contact.find({ id: contactId })
     return contact
   }
 
@@ -216,7 +216,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
     //   throw new Error('no payload')
     // }
 
-    await this.contact().ready()
+    await (this.contact() as ContactImpl).ready()
   }
 
   /**
@@ -268,7 +268,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
 
     try {
       const doSync = async () => {
-        await contact.ready()
+        await (contact as ContactImpl).ready()
         if (!contact.isReady()) {
           throw new Error('Friendship.accept() contact.ready() not ready')
         }
@@ -330,7 +330,7 @@ class FriendshipMixin extends MixinBase implements Acceptable {
       throw new Error('no payload')
     }
 
-    const contact = this.wechaty.Contact.load(this._payload.contactId)
+    const contact = (this.wechaty.Contact as typeof ContactImpl).load(this._payload.contactId)
     return contact
   }
 

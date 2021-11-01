@@ -22,8 +22,13 @@ import type {
 import type {
   WechatyConstructor,
   Wechaty,
+  WechatyProtectedProperty,
   // WechatyConstructor,
 }                       from './wechaty-interface.js'
+
+import type {
+  WechatyImpl,
+}                       from '../wechaty.js'
 
 test('Wechaty interface', async t => {
   abstract class WechatyImplementation extends EventEmitter implements Wechaty {
@@ -37,7 +42,7 @@ test('Wechaty interface', async t => {
     MiniProgram    : MiniProgramConstructor
     Room           : RoomConstructor
     RoomInvitation : RoomInvitationConstructor
-    Delay        : DelayConstructor
+    Delay          : DelayConstructor
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
 
@@ -90,4 +95,12 @@ test('Wechaty interface', async t => {
   })
 
   t.ok(typeof WechatyImplementation, 'should no typing error')
+})
+
+test('ProtectedProperties', async t => {
+  type NotExistInWechaty = Exclude<WechatyProtectedProperty, keyof WechatyImpl>
+  type NotExistTest = NotExistInWechaty extends never ? true : false
+
+  const noOneLeft: NotExistTest = true
+  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })

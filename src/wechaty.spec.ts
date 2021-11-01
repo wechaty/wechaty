@@ -320,7 +320,6 @@ test('on/off event listener management', async t => {
 
   wechaty.off('message', onMessage)
   t.equal(wechaty.listenerCount('message'), 0, 'should -1 listener after off(message)')
-
 })
 
 test('wrapAsync() async function', async t => {

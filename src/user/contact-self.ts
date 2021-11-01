@@ -192,7 +192,7 @@ class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelf>() {
 interface ContactSelf extends ContactSelfImpl {}
 type ContactSelfConstructor = Constructor<
   ContactSelf,
-  typeof ContactSelfImpl
+  Omit<typeof ContactSelfImpl, 'load'>
 >
 
 export type {

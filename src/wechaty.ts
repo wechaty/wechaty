@@ -26,6 +26,8 @@ import {
 }                       from 'memory-card'
 import {
   GError,
+  WrapAsync,
+  wrapAsyncError,
 }                       from 'gerror'
 import {
   StateSwitch,
@@ -90,7 +92,7 @@ import {
   UrlLinkConstructor,
   LocationConstructor,
 
-  // Contact,
+  Contact,
   ContactSelf,
   // Friendship,
   // Image,
@@ -326,7 +328,7 @@ class WechatyImpl extends mixinBase implements Sayable {
    *    by catcing any errors and emit them to error event
    *  2. wrap a Promise by catcing any errors and emit them to error event
    */
-  wrapAsync: PUPPET.helper.WrapAsync = PUPPET.helper.wrapAsyncError((e: any) => this.emit('error', e))
+  wrapAsync: WrapAsync = wrapAsyncError((e: any) => this.emit('error', e))
 
   /**
    * Creates an instance of Wechaty.
@@ -525,9 +527,11 @@ class WechatyImpl extends mixinBase implements Sayable {
 
         case 'login':
           puppet.on('login', async payload => {
-            const contact = this.ContactSelf.load(payload.contactId)
             try {
-              await contact.ready()
+              const contact = await this.ContactSelf.find({ id: payload.contactId })
+              if (!contact) {
+                throw new Error('no contact found for id: ' + payload.contactId)
+              }
               this.emit('login', contact)
             } catch (e) {
               this.emit('error', e)
@@ -537,9 +541,11 @@ class WechatyImpl extends mixinBase implements Sayable {
 
         case 'logout':
           puppet.on('logout', async payload => {
-            const contact = this.ContactSelf.load(payload.contactId)
             try {
-              await contact.ready()
+              const contact = await this.ContactSelf.find({ id: payload.contactId })
+              if (!contact) {
+                throw new Error('no self contact for id: ' + payload.contactId)
+              }
               this.emit('logout', contact, payload.data)
             } catch (e) {
               this.emit('error', e)
@@ -549,9 +555,11 @@ class WechatyImpl extends mixinBase implements Sayable {
 
         case 'message':
           puppet.on('message', async payload => {
-            const msg = this.Message.load(payload.messageId)
             try {
-              await msg.ready()
+              const msg = await this.Message.find({ id: payload.messageId })
+              if (!msg) {
+                throw new Error('message not found for id: ' + payload.messageId)
+              }
               this.emit('message', msg)
 
               const room     = msg.room()
@@ -588,15 +596,23 @@ class WechatyImpl extends mixinBase implements Sayable {
 
         case 'room-join':
           puppet.on('room-join', async payload => {
-            const room = this.Room.load(payload.roomId)
             try {
+              const room = await this.Room.find({ id: payload.roomId })
+              if (!room) {
+                throw new Error('no room found for id: ' + payload.roomId)
+              }
               await room.sync()
 
-              const inviteeList = payload.inviteeIdList.map(id => this.Contact.load(id))
-              await Promise.all(inviteeList.map(c => c.ready()))
+              const inviteeListAll = await Promise.all(
+                payload.inviteeIdList.map(id => this.Contact.find({ id })),
+              )
+              const inviteeList = inviteeListAll.filter(c => !!c) as Contact[]
 
-              const inviter = this.Contact.load(payload.inviterId)
-              await inviter.ready()
+              const inviter = await this.Contact.find({ id: payload.inviterId })
+              if (!inviter) {
+                throw new Error('no inviter found for id: ' + payload.inviterId)
+              }
+
               const date = timestampToDate(payload.timestamp)
 
               this.emit('room-join', room, inviteeList, inviter, date)
@@ -610,18 +626,25 @@ class WechatyImpl extends mixinBase implements Sayable {
         case 'room-leave':
           puppet.on('room-leave', async payload => {
             try {
-              const room = this.Room.load(payload.roomId)
+              const room = await this.Room.find({ id: payload.roomId })
+              if (!room) {
+                throw new Error('no room found for id: ' + payload.roomId)
+              }
 
               /**
                * See: https://github.com/wechaty/wechaty/pull/1833
                */
               await room.sync()
 
-              const leaverList = payload.removeeIdList.map(id => this.Contact.load(id))
-              await Promise.all(leaverList.map(c => c.ready()))
+              const leaverListAll = await Promise.all(
+                payload.removeeIdList.map(id => this.Contact.find({ id })),
+              )
+              const leaverList = leaverListAll.filter(c => !!c) as Contact[]
 
-              const remover = this.Contact.load(payload.removerId)
-              await remover.ready()
+              const remover = await this.Contact.find({ id: payload.removerId })
+              if (!remover) {
+                throw new Error('no remover found for id: ' + payload.removerId)
+              }
               const date = timestampToDate(payload.timestamp)
 
               this.emit('room-leave', room, leaverList, remover, date)
@@ -641,11 +664,16 @@ class WechatyImpl extends mixinBase implements Sayable {
         case 'room-topic':
           puppet.on('room-topic', async payload => {
             try {
-              const room = this.Room.load(payload.roomId)
+              const room = await this.Room.find({ id: payload.roomId })
+              if (!room) {
+                throw new Error('no room found for id: ' + payload.roomId)
+              }
               await room.sync()
 
-              const changer = this.Contact.load(payload.changerId)
-              await changer.ready()
+              const changer = await this.Contact.find({ id: payload.changerId })
+              if (!changer) {
+                throw new Error('no changer found for id: ' + payload.changerId)
+              }
               const date = timestampToDate(payload.timestamp)
 
               this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
@@ -675,10 +703,10 @@ class WechatyImpl extends mixinBase implements Sayable {
               switch (payloadType) {
                 case PUPPET.type.Payload.RoomMember:
                 case PUPPET.type.Payload.Contact:
-                  await this.Contact.load(payloadId).sync()
+                  await (await this.Contact.find({ id: payloadId }))?.sync()
                   break
                 case PUPPET.type.Payload.Room:
-                  await this.Room.load(payloadId).sync()
+                  await (await this.Room.find({ id: payloadId }))?.sync()
                   break
 
                 /**
@@ -754,17 +782,20 @@ class WechatyImpl extends mixinBase implements Sayable {
       return super.emit(event, ...args)
     }
 
-    const data = args[0]
-    let gerr: GError
+    /**
+     * Dealing with the `error` event
+     */
+    const arg0 = args[0]
+    let gerror: GError
 
-    if (data instanceof GError) {
-      gerr = data
+    if (arg0 instanceof GError) {
+      gerror = arg0
     } else {
-      gerr = GError.from(data)
+      gerror = GError.from(arg0)
     }
 
-    captureException(gerr)
-    return super.emit('error', gerr)
+    captureException(gerror)
+    return super.emit('error', gerror)
   }
 
   override async onStart (): Promise<void> {
@@ -905,7 +936,7 @@ class WechatyImpl extends mixinBase implements Sayable {
    */
   currentUser (): ContactSelf {
     const userId = this.puppet.currentUserId
-    const user = this.ContactSelf.load(userId)
+    const user = (this.ContactSelf as typeof ContactSelfImpl).load(userId)
     return user
   }
 
