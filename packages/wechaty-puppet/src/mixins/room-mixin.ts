@@ -66,6 +66,24 @@ const roomMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin & RoomM
     ): Promise<string[] /* Room Id List */> {
       log.verbose('PuppetRoomMixin', 'roomSearch(%s)', query ? JSON.stringify(query) : '')
 
+      /**
+       * Huan(202110): optimize for search id
+       */
+      if (query?.id) {
+        try {
+          // make sure the room id has valid payload
+          await this.roomPayload(query.id)
+          return [query.id]
+        } catch (e) {
+          log.verbose('PuppetRoomMixin', 'roomSearch() payload not found for id "%s"', query.id)
+          await this.dirtyPayloadRoom(query.id)
+          return []
+        }
+      }
+
+      /**
+       * Deal with non-id queries
+       */
       const allRoomIdList: string[] = await this.roomList()
       log.silly('PuppetRoomMixin', 'roomSearch() allRoomIdList.length=%d', allRoomIdList.length)
 
@@ -84,18 +102,25 @@ const roomMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin & RoomM
           BATCH_SIZE * (batchIndex + 1),
         )
 
+        /**
+         * Huan(202110): TODO: use an iterator with works to control the concurrency of Promise.all.
+         *  @see https://stackoverflow.com/a/51020535/1123955
+         */
+
         const batchPayloads = (await Promise.all(
           batchRoomIds.map(
             async id => {
               try {
                 return await this.roomPayload(id)
               } catch (e) {
-                // compatible with {} payload
                 // log.silly('PuppetRoomMixin', 'roomSearch() roomPayload exception: %s', (e as Error).message)
                 this.emit('error', e)
+
                 // Remove invalid room id from cache to avoid getting invalid room payload again
                 await this.dirtyPayloadRoom(id)
                 await this.dirtyPayloadRoomMember(id)
+
+                // compatible with {} payload
                 return {} as any
               }
             },

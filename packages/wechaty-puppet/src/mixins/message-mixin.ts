@@ -141,6 +141,23 @@ const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(base
     ): Promise<string[] /* Message Id List */> {
       log.verbose('PuppetMessageMixin', 'messageSearch(%s)', JSON.stringify(query))
 
+      /**
+       * Huan(202110): optimize for search id
+       */
+      if (query?.id) {
+        try {
+          // make sure the room id has valid payload
+          await this.messagePayload(query.id)
+          return [query.id]
+        } catch (e) {
+          log.verbose('PuppetMessageMixin', 'messageSearch() payload not found for id "%s"', query.id)
+          return []
+        }
+      }
+
+      /**
+       * Deal with non-id queries
+       */
       const allMessageIdList: string[] = this.messageList()
       log.silly('PuppetMessageMixin', 'messageSearch() allMessageIdList.length=%d', allMessageIdList.length)
 
@@ -166,7 +183,8 @@ const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(base
     }
 
     /**
-     * Issue #155 - https://github.com/wechaty/puppet/issues/155
+     * Issue #155 - Mixin: Property 'messageRawPayload' of exported class expression may not be private or protected.ts(4094)
+     *  @seehttps://github.com/wechaty/puppet/issues/155
      *
      * @protected
      */
@@ -177,7 +195,7 @@ const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(base
         JSON.stringify(query),
       )
 
-      if (Object.keys(query).length < 1) {
+      if (Object.keys(query).length <= 0) {
         throw new Error('query empty')
       }
 

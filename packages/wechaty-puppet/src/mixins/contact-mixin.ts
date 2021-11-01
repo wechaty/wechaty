@@ -94,6 +94,24 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
           : '',
       )
 
+      /**
+       * Huan(202110): optimize for search id
+       */
+      if (typeof query !== 'string' && query?.id) {
+        try {
+          // make sure the contact id has valid payload
+          await this.contactPayload(query.id)
+          return [query.id]
+        } catch (e) {
+          log.verbose('PuppetContactMixin', 'contactSearch() payload not found for id "%s"', query.id)
+          await this.dirtyPayloadContact(query.id)
+          return []
+        }
+      }
+
+      /**
+       * Deal non-id queries
+       */
       if (!searchIdList) {
         searchIdList = await this.contactList()
       }
@@ -148,6 +166,11 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
           BATCH_SIZE * batchIndex,
           BATCH_SIZE * (batchIndex + 1),
         )
+
+        /**
+         * Huan(202110): TODO: use an iterator with works to control the concurrency of Promise.all.
+         *  @see https://stackoverflow.com/a/51020535/1123955
+         */
 
         const matchBatchIdFutureList = batchSearchIdList.map(matchId)
         const matchBatchIdList       = await Promise.all(matchBatchIdFutureList)
