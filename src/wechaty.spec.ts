@@ -308,7 +308,7 @@ test('ready()', async t => {
   await wechaty.stop()
 })
 
-test('on/off event listener management', async t => {
+test.only('on/off event listener management', async t => {
   const puppet = new PuppetMock()
   const wechaty = new WechatyImpl({ puppet })
 
@@ -317,10 +317,10 @@ test('on/off event listener management', async t => {
 
   wechaty.on('message', onMessage)
   t.equal(wechaty.listenerCount('message'), 1, 'should +1 listener after on(message)')
-
+  await new Promise(setImmediate)
   wechaty.off('message', onMessage)
+  await new Promise(setImmediate)
   t.equal(wechaty.listenerCount('message'), 0, 'should -1 listener after off(message)')
-
 })
 
 test('wrapAsync() async function', async t => {

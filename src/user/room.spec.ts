@@ -69,11 +69,11 @@ test('say()', async () => {
 
   await wechaty.start()
 
-  const EXPECTED_ROOM_ID = 'roomId'
-  const EXPECTED_ROOM_TOPIC = 'test-topic'
-  const EXPECTED_CONTACT_1_ID = 'contact1'
+  const EXPECTED_ROOM_ID         = 'roomId'
+  const EXPECTED_ROOM_TOPIC      = 'test-topic'
+  const EXPECTED_CONTACT_1_ID    = 'contact1'
   const EXPECTED_CONTACT_1_ALIAS = 'little1'
-  const EXPECTED_CONTACT_2_ID = 'contact2'
+  const EXPECTED_CONTACT_2_ID    = 'contact2'
   const EXPECTED_CONTACT_2_ALIAS = 'big2'
   const CONTACT_MAP: { [contactId: string]: string } = {}
   CONTACT_MAP[EXPECTED_CONTACT_1_ID] = EXPECTED_CONTACT_1_ALIAS
@@ -100,6 +100,13 @@ test('say()', async () => {
   })
   // sandbox.spy(puppet, 'messageSendText')
   sandbox.stub(puppet, 'messageSendText').callsFake(callback)
+
+  const fakeIdSearcher = async (...args: any[]) => {
+    await new Promise(setImmediate)
+    return [args[0].id]
+  }
+  sandbox.stub(puppet, 'contactSearch').callsFake(fakeIdSearcher)
+  sandbox.stub(puppet, 'roomSearch').callsFake(fakeIdSearcher)
 
   const room = await wechaty.Room.find({ id: EXPECTED_ROOM_ID })
   const contact1 = await wechaty.Contact.find({ id: EXPECTED_CONTACT_1_ID })

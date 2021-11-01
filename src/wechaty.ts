@@ -26,6 +26,8 @@ import {
 }                       from 'memory-card'
 import {
   GError,
+  WrapAsync,
+  wrapAsyncError,
 }                       from 'gerror'
 import {
   StateSwitch,
@@ -326,7 +328,7 @@ class WechatyImpl extends mixinBase implements Sayable {
    *    by catcing any errors and emit them to error event
    *  2. wrap a Promise by catcing any errors and emit them to error event
    */
-  wrapAsync: PUPPET.helper.WrapAsync = PUPPET.helper.wrapAsyncError((e: any) => this.emit('error', e))
+  wrapAsync: WrapAsync = wrapAsyncError((e: any) => this.emit('error', e))
 
   /**
    * Creates an instance of Wechaty.
@@ -394,7 +396,7 @@ class WechatyImpl extends mixinBase implements Sayable {
       this.listenerCount(event),
     )
 
-    return super.on(event, this.wrapAsync(listener))
+    return super.on(event, listener)
   }
 
   /**

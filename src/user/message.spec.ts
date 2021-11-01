@@ -90,13 +90,20 @@ test('recalled()', async t => {
     } as PUPPET.payload.Contact
   })
 
+  const fakeIdSearcher = async (...args: any[]) => {
+    await new Promise(setImmediate)
+    return [args[0].id]
+  }
+
+  sandbox.stub(puppet, 'messageSearch').callsFake(fakeIdSearcher)
+  sandbox.stub(puppet, 'contactSearch').callsFake(fakeIdSearcher)
+
   await puppet.login(EXPECTED_TO_CONTACT_ID)
 
   const message = await wechaty.Message.find({ id: EXPECTED_RECALL_MESSAGE_ID })
   if (!message) {
-    throw new Error('message not found')
+    throw new Error('no message for id: ' + EXPECTED_RECALL_MESSAGE_ID)
   }
-  // await message.ready()
   const recalledMessage = await message.toRecalled()
   t.ok(recalledMessage, 'recalled message should exist.')
   t.equal(recalledMessage!.id, EXPECTED_RECALLED_MESSAGE_ID, 'Recalled message should have the right id.')
