@@ -1,10 +1,15 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 import { test } from 'tstest'
 
-import {
-  puppetEventBridgeMixin,
-}                           from './puppet-event-bridge-mixin.js'
+import type {
+  PuppetEventBridgeMixin,
+  ProtectedPropertyPuppetEventBridgeMixin,
+}                                             from './puppet-event-bridge-mixin.js'
 
-test('puppetEventBridgeMixin()', async t => {
-  t.ok(puppetEventBridgeMixin, 'tbw')
+test('ProtectedPropertyPuppetEventBridgeMixin', async t => {
+  type NotExistInMixin = Exclude<ProtectedPropertyPuppetEventBridgeMixin, keyof InstanceType<PuppetEventBridgeMixin>>
+  type NotExistTest = NotExistInMixin extends never ? true : false
+
+  const noOneLeft: NotExistTest = true
+  t.ok(noOneLeft, 'should match Mixin properties for every protected property')
 })

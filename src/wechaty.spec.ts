@@ -28,9 +28,12 @@ import {
 }                     from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
+import type {
+  WechatyImplProtectedProperty,
+}                                 from './wechaty.js'
 import {
   WechatyImpl,
-}                             from './wechaty.js'
+}                                 from './wechaty.js'
 
 import * as impl from './mods/impls.js'
 
@@ -358,4 +361,12 @@ test('wrapAsync() promise', async t => {
   t.equal(spy.callCount, 0, 'should have no error before sleep')
   await wechaty.sleep(0)  // wait async event loop task to be executed
   t.equal(spy.callCount, 1, 'should emit error when promise reject with error')
+})
+
+test('WechatyImplProtectedProperty', async t => {
+  type NotExistInMixin = Exclude<WechatyImplProtectedProperty, keyof WechatyImpl>
+  type NotExistTest = NotExistInMixin extends never ? true : false
+
+  const noOneLeft: NotExistTest = true
+  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })

@@ -10,7 +10,7 @@ import { wechatyCaptureException }  from '../raven.js'
 import type { WechatySkelton }      from './wechaty-skelton.js'
 
 const gErrorMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinBase) => {
-  log.verbose('Wechaty', 'gErrorMixin(%s)', mixinBase.name)
+  log.verbose('WechatyGErrorMixin', 'gErrorMixin(%s)', mixinBase.name)
 
   abstract class GErrorMixin extends mixinBase {
 
@@ -67,8 +67,11 @@ const gErrorMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
 
 type GErrorMixin = ReturnType<typeof gErrorMixin>
 
+type ProtectedPropertyGErrorMixin = never
+
 export type {
   GErrorMixin,
+  ProtectedPropertyGErrorMixin,
 }
 export {
   gErrorMixin,

@@ -25,6 +25,7 @@ import type * as PUPPET from 'wechaty-puppet'
 import type { Contact } from './contact.js'
 import type { Constructor } from '../deprecated/clone-class.js'
 import { validationMixin } from '../user-mixins/validation.js'
+import type { Sayable } from '../interface/sayable.js'
 
 import {
   EmptyBase,
@@ -62,7 +63,7 @@ interface PostPayload {
 }
 
 enum PostTapType {
-  Unspecific = 0,
+  Unspecified = 0,
   Like,
 }
 
@@ -77,9 +78,37 @@ type PostTapTypeRecordMap = {
 
 interface PostTapPayload extends PostTapTypeRecordMap {
   postId: string
+  nextPageToken?: string
 }
 
-async function postTap (postId: string): Promise<PostTapPayload>
+class PuppetDemo {
+
+  async postTapList (
+    postId: string,
+    tapperId?: string,
+    tap = PostTapType.Unspecified,  // Unspecified means any Tap type
+    pageToken?: string,
+    pageSize = 10,
+  ): Promise<PostTapPayload> {
+    return {
+      nextPageToken: '',
+      postId,
+      [PostTapType.Like]: [
+        {
+          contactId: 'id_contact_xxx',
+          timestamp: 12341431,
+        },
+      ],
+    }
+  }
+
+  async postDescendantList (
+
+  ) {
+
+  }
+
+}
 
 const MixinBase = wechatifyMixin(
   EmptyBase,

@@ -42,6 +42,7 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkelton> (mixi
   abstract class WechatifyUserModuleMixin extends mixinBase {
 
     constructor (...args: any[]) {
+      log.verbose('WechatifyUserModuleMixin', 'constructor()')
       super(...args)
     }
 
@@ -133,8 +134,12 @@ function guardWechatify<T extends Function> (userModule?: T): T {
 
 type WechatifyUserModuleMixin = ReturnType<typeof wechatifyUserModuleMixin>
 
+type ProtectedPropertyWechatifyUserModuleMixin =
+  | '_wechatifyUserModules'
+
 export type {
   WechatifyUserModuleMixin,
+  ProtectedPropertyWechatifyUserModuleMixin,
 }
 export {
   wechatifyUserModuleMixin,

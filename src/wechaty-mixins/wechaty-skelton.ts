@@ -58,7 +58,7 @@ abstract class WechatySkelton extends WechatyEventEmitter {
       try {
         await this._memory.load()
       } catch (_) {
-        log.silly('Wechaty', 'onStart() memory.load() had already loaded')
+        log.silly('WechatySkelton', 'onStart() memory.load() had already loaded')
       }
     }
 
@@ -71,6 +71,14 @@ abstract class WechatySkelton extends WechatyEventEmitter {
 
 }
 
+type ProtectedPropertyWechatySkelton =
+  | '_memory'
+  | '_options'
+  | 'memory'
+
+export type {
+  ProtectedPropertyWechatySkelton,
+}
 export {
   WechatySkelton,
 }

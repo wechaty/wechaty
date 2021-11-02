@@ -451,6 +451,19 @@ class WechatyImpl extends mixinBase implements SayableSayer {
 
 }
 
+type WechatyImplProtectedProperty =
+  // | '_serviceCtlFsmInterpreter'  // from ServiceCtlFsm
+  | '_serviceCtlLogger'             // from ServiceCtl(&Fsm)
+  | '_serviceCtlResettingIndicator' // from ServiceCtl
+  | 'log'
+  | 'wechaty'
+  | 'onStart'
+  | 'onStop'
+  | 'userSelf'  // deprecated, will be removed after Dec 31, 2022
+
+export type {
+  WechatyImplProtectedProperty,
+}
 export {
   WechatyImpl,
 }

@@ -19,12 +19,12 @@
  */
 import type { Wechaty } from './wechaty-interface.js'
 
-interface Acceptable {
+interface AcceptableAccepter {
   accept  : () => Promise<void>
   id      : string,
   wechaty : Wechaty
 }
 
 export type  {
-  Acceptable,
+  AcceptableAccepter,
 }

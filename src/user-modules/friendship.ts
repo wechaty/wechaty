@@ -26,7 +26,7 @@ import {
 }                   from '../helper-functions/mod.js'
 
 import type {
-  Acceptable,
+  AcceptableAccepter,
 }                   from '../interface/acceptable.js'
 import { log } from '../config.js'
 
@@ -63,7 +63,7 @@ const MixinBase = wechatifyMixin(
  *
  * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
-class FriendshipMixin extends MixinBase implements Acceptable {
+class FriendshipMixin extends MixinBase implements AcceptableAccepter {
 
   static Type = PUPPET.type.Friendship
 

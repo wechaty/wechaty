@@ -3,7 +3,7 @@ import type {
   Sayable,
 }                           from './sayable.js'
 import type {
-  Acceptable,
+  AcceptableAccepter,
 }                           from './acceptable.js'
 import type {
   Wechaty,
@@ -11,7 +11,7 @@ import type {
 }                             from './wechaty-interface.js'
 
 export type {
-  Acceptable,
+  AcceptableAccepter,
   SayableSayer,
   Sayable,
   Wechaty,

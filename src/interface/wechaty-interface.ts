@@ -2,40 +2,24 @@ import type { EventEmitter }  from 'events'
 
 import type { Constructor } from '../deprecated/clone-class.js'
 
-import type { WechatyImpl }             from '../wechaty.js'
+import type {
+  WechatyImpl,
+  WechatyImplProtectedProperty,
+}                                     from '../wechaty.js'
 import type { WechatyEventListeners } from '../events/wechaty-events.js'
 import type TypedEventEmitter from 'typed-emitter'
+import type { WechatyMixinProtectedProperty } from '../wechaty-mixins/mod.js'
 
-type DeprecatedProperty =
-  | 'userSelf'
-
-type WechatyInternalProperty =
-  | 'log'
-  | '_pluginUninstallerList'
-  | 'wechaty'
-  | 'onStart'
-  | 'onStop'
-  // | '_serviceCtlFsmInterpreter'  // from ServiceCtlFsm
-  | '_serviceCtlLogger'             // from ServiceCtl(&Fsm)
-  | '_serviceCtlResettingIndicator' // from ServiceCtl
-  | '_options'
-  | '_readyState'
-  | '_initPuppetInstance'
-  | '_setupPuppetEventBridge'
-  | 'memory'
-  | '_wechatifyUserModules'
-  | '_installGlobalPlugin'
-
-type WechatyProtectedProperty =
-  | DeprecatedProperty
+type AllProtectedProperty =
   | keyof EventEmitter  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
-  | WechatyInternalProperty
+  | WechatyMixinProtectedProperty
+  | WechatyImplProtectedProperty
 
 // https://stackoverflow.com/questions/41926269/naming-abstract-classes-and-interfaces-in-typescript
 // type Wechaty2 = Pick<WechatyImpl, PublicProperties>
 //   & TypedEventEmitter<WechatyEventListeners>
 
-type Wechaty = Omit<WechatyImpl, WechatyProtectedProperty>
+type Wechaty = Omit<WechatyImpl, AllProtectedProperty>
   & TypedEventEmitter<WechatyEventListeners>
 
 type WechatyConstructor = Constructor<
@@ -46,5 +30,5 @@ type WechatyConstructor = Constructor<
 export type {
   Wechaty,
   WechatyConstructor,
-  WechatyProtectedProperty,
+  AllProtectedProperty as WechatyProtectedProperty,
 }

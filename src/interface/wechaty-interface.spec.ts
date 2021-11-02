@@ -12,6 +12,7 @@ import type {
   LocationConstructor,
   MessageConstructor,
   MiniProgramConstructor,
+  PostConstructor,
   RoomInvitationConstructor,
   RoomConstructor,
   DelayConstructor,
@@ -35,14 +36,15 @@ test('Wechaty interface', async t => {
 
     Contact        : ContactConstructor
     ContactSelf    : ContactSelfConstructor
+    Delay          : DelayConstructor
     Friendship     : FriendshipConstructor
     Image          : ImageConstructor
     Location       : LocationConstructor
     Message        : MessageConstructor
     MiniProgram    : MiniProgramConstructor
+    Post           : PostConstructor
     Room           : RoomConstructor
     RoomInvitation : RoomInvitationConstructor
-    Delay          : DelayConstructor
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
 
@@ -55,15 +57,16 @@ test('Wechaty interface', async t => {
       this.id
         = this.Contact
         = this.ContactSelf
+        = this.Delay
         = this.Friendship
         = this.Image
         = this.Location
         = this.Message
         = this.MiniProgram
         = this.puppet
+        = this.Post
         = this.Room
         = this.RoomInvitation
-        = this.Delay
         = this.state
         = this.Tag
         = this.UrlLink

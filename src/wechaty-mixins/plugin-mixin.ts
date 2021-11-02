@@ -16,7 +16,7 @@ import { instanceToClass } from 'clone-class'
 import { WechatyImpl } from '../wechaty.js'
 
 const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinBase) => {
-  log.verbose('Wechaty', 'pluginMixin(%s)', mixinBase.name)
+  log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase {
 
@@ -105,8 +105,13 @@ const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
 
 type PluginMixin = ReturnType<typeof pluginMixin>
 
+type ProtectedPropertyPluginMixin =
+  | '_installGlobalPlugin'
+  | '_pluginUninstallerList'
+
 export type {
   PluginMixin,
+  ProtectedPropertyPluginMixin,
 }
 export {
   pluginMixin,
