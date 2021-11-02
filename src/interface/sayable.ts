@@ -63,7 +63,7 @@ interface SayableSayer {
   id      : string,
   wechaty : Wechaty,
   say (
-    text     : Sayable,
+    sayable  : Sayable,
     replyTo? : Contact | Contact[]
   ): Promise<void | Message>
 }
@@ -145,7 +145,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conver
     await sayable.wait()
   } else if (PostImpl.validInstance(sayable)) {
     /**
-     * VideoPost
+     * 8. Post
      */
     msgId = await puppet.messageSendPost(
       conversationId,

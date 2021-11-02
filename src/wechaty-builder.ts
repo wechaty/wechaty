@@ -60,17 +60,11 @@ class WechatyBuilder {
     return builder.singleton().build()
   }
 
-  static new (): WechatyBuilder {
-    return new WechatyBuilder()
-  }
+  static new (): WechatyBuilder { return new this() }
+  protected constructor () {}
 
-  protected _singleton: boolean
-  protected _options?: WechatyOptions
-
-  constructor () {
-    log.verbose('WechatyBuilder', 'constructor()')
-    this._singleton = false
-  }
+  protected _singleton = false
+  protected _options: WechatyOptions = {}
 
   singleton (): WechatyBuilder {
     log.verbose('WechatyBuilder', 'singleton()')
@@ -80,7 +74,7 @@ class WechatyBuilder {
 
   options (options?: WechatyOptions): WechatyBuilder {
     log.verbose('WechatyBuilder', 'singleton()')
-    if (this._options) {
+    if (Object.keys(this._options).length > 0) {
       throw new Error([
         'WechatyBuilder options() can only be set once',
         'Create a new WechatyBuilder if you need different options',

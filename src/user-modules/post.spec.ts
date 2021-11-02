@@ -18,15 +18,51 @@
  *   limitations under the License.
  *
  */
-
 import {
   test,
   sinon,
 }             from 'tstest'
 
-import { PostImpl } from './post.js'
+import { FileBox } from 'file-box'
+
+import * as WECHATY from '../mods/mod.js'
+
+import { WechatyBuilder } from '../wechaty-builder.js'
+
+import { UrlLinkImpl } from './url-link.js'
+import {
+  PostBuilder,
+}                   from './post.js'
+import { PuppetPost } from './post-puppet-api.js'
 
 test('Post smoke testing', async t => {
   void sinon
-  t.ok(PostImpl, 'tbw')
+
+  const puppet = new PuppetPost()
+  const wechaty = WechatyBuilder.build({ puppet })
+
+  const post = await PostBuilder.new()
+    .add('Hello, world!')
+    .add(FileBox.fromQRCode('qr'))
+    .add(await UrlLinkImpl.create('https://yahoo.com'))
+    .build()
+
+  await wechaty.say(post)
+
+  post.comment('Thanks for sharing!')
+  post.like(true)
+  post.tap(WECHATY.type.Post.Tap.Like, false)
+
+  const pagination = {
+    pageSize: 10,
+    pageToken: '',
+  }
+  for await (const comment of post.comments(pagination)) {
+    t.ok(comment, 'tbw')
+  }
+
+  for await (const like of post.taps(WECHATY.type.Post.Tap.Like, pagination)) {
+    t.ok(like, 'tbw')
+  }
+
 })
