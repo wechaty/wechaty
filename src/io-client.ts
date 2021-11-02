@@ -17,25 +17,19 @@
  *   limitations under the License.
  *
  */
-/**
- * DO NOT use `require('../')` here!
- * because it will cause a LOOP require ERROR
- */
-import {
-  StateSwitch,
-  log,
-}                       from 'wechaty-puppet'
+import { StateSwitch } from 'state-switch'
 import {
   PuppetServer,
   PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
-import type { Message }      from './user/mod.js'
+import type { Message }      from './user-modules/mod.js'
 
 import {
+  log,
 }                       from './config.js'
 import { Io }           from './io.js'
-import type { Wechaty } from './wechaty.js'
+import type { Wechaty } from './interface/mod.js'
 
 export interface IoClientOptions {
   token   : string,
@@ -68,7 +62,7 @@ export class IoClient {
         .map(key => {
           return `${key}:${(options as any)[key]}`
         })
-        .reduce((acc, cur) => `${acc}, ${cur}`)
+        .reduce((acc, cur) => `${acc}, ${cur}`),
     )
 
     const normalizedOptions = {
@@ -90,7 +84,12 @@ export class IoClient {
 
     const options: PuppetServerOptions = {
       endpoint : '0.0.0.0:' + this.options.port,
-      puppet   : this.options.wechaty.puppet,
+      /**
+       * Huan(202110): FIXME: remove the any
+       *  by updating the puppet-service server code
+       *  to use PuppetInterface
+       */
+      puppet   : this.options.wechaty.puppet as any,
       token    : this.options.token,
     }
     this.puppetServer = new PuppetServer(options)
@@ -111,13 +110,13 @@ export class IoClient {
   public async start (): Promise<void> {
     log.verbose('IoClient', 'start()')
 
-    if (this.state.on()) {
+    if (this.state.active()) {
       log.warn('IoClient', 'start() with a on state, wait and return')
-      await this.state.ready('on')
+      await this.state.stable('active')
       return
     }
 
-    this.state.on('pending')
+    this.state.active('pending')
 
     try {
       await this.hookWechaty(this.options.wechaty)
@@ -128,11 +127,11 @@ export class IoClient {
 
       await this.startPuppetServer()
 
-      this.state.on(true)
+      this.state.active(true)
 
     } catch (e) {
       log.error('IoClient', 'start() exception: %s', (e as Error).message)
-      this.state.off(true)
+      this.state.inactive(true)
       throw e
     }
   }
@@ -140,7 +139,7 @@ export class IoClient {
   private async hookWechaty (wechaty: Wechaty): Promise<void> {
     log.verbose('IoClient', 'hookWechaty()')
 
-    if (this.state.off()) {
+    if (this.state.inactive()) {
       const e = new Error('state.off() is true, skipped')
       log.warn('IoClient', 'initWechaty() %s', e.message)
       throw e
@@ -161,7 +160,7 @@ export class IoClient {
   private async startIo (): Promise<void> {
     log.verbose('IoClient', 'startIo() with token %s', this.options.token)
 
-    if (this.state.off()) {
+    if (this.state.inactive()) {
       const e = new Error('startIo() state.off() is true, skipped')
       log.warn('IoClient', e.message)
       throw e
@@ -220,13 +219,13 @@ export class IoClient {
   public async stop (): Promise<void> {
     log.verbose('IoClient', 'stop()')
 
-    this.state.off('pending')
+    this.state.inactive('pending')
 
     await this.stopIo()
     await this.stopPuppetServer()
     await this.options.wechaty.stop()
 
-    this.state.off(true)
+    this.state.inactive(true)
 
     // XXX 20161026
     // this.io = null
@@ -247,18 +246,18 @@ export class IoClient {
   public async quit (): Promise<void> {
     log.verbose('IoClient', 'quit()')
 
-    if (this.state.off() === 'pending') {
+    if (this.state.inactive() === 'pending') {
       log.warn('IoClient', 'quit() with state.off() = `pending`, skipped')
       throw new Error('quit() with state.off() = `pending`')
     }
 
-    this.state.off('pending')
+    this.state.inactive('pending')
 
     try {
-      if (this.options.wechaty) {
-        await this.options.wechaty.stop()
-        // this.wechaty = null
-      } else { log.warn('IoClient', 'quit() no this.wechaty') }
+      // if (this.options.wechaty) {
+      await this.options.wechaty.stop()
+      // this.wechaty = null
+      // } else { log.warn('IoClient', 'quit() no this.wechaty') }
 
       if (this.io) {
         await this.io.stop()
@@ -269,7 +268,7 @@ export class IoClient {
       log.error('IoClient', 'exception: %s', (e as Error).message)
       throw e
     } finally {
-      this.state.off(true)
+      this.state.inactive(true)
     }
   }
 

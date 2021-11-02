@@ -20,30 +20,34 @@
  */
 import {
   Wechaty,
+  WechatyBuilder,
   VERSION,
-}           from 'wechaty'
+}                   from 'wechaty'
+
+import * as USERS from 'wechaty/users'
+import * as IMPLS from 'wechaty/impls'
 
 import assert from 'assert'
 
 function getBotList (): Wechaty[] {
   const botList = [
-    new Wechaty({ puppet: 'wechaty-puppet-mock' }),
+    new WechatyBuilder().options({ puppet: 'wechaty-puppet-mock' }).build(),
     // new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
     // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
   if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
     botList.push(
-      new Wechaty({
+      new WechatyBuilder().options({
         puppet: 'wechaty-puppet-service',
-      })
+      }).build()
     )
   }
   if (process.env.WECHATY_PUPPET_PADLOCAL_TOKEN) {
     botList.push(
-      new Wechaty({
+      new WechatyBuilder().options({
         puppet: 'wechaty-puppet-padlocal',
-      })
+      }).build()
     )
   }
 
@@ -69,6 +73,9 @@ async function main () {
       botList.map(bot => bot.stop()),
     )
   }
+
+  const tag: USERS.Tag = {} as any as IMPLS.TagImpl
+  assert.ok(tag, 'should get valid USERS & IMPLS')
 
   assert.notStrictEqual(VERSION,  '0.0.0', 'VERSION must be set!')
 

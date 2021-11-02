@@ -1,10 +1,23 @@
-export {
-  WechatyEventEmitter,
-}                         from './wechaty-events.js'
-export {
+import {
+  ContactEventEmitter,
+  ContactEventListeners,
+}                           from './contact-events.js'
+import {
   RoomEventEmitter,
-}                         from './room-events.js'
+  RoomEventListeners,
+}                           from './room-events.js'
+import {
+  WechatyEventEmitter,
+  WechatyEventListeners,
+}                           from './wechaty-events.js'
 
+export type {
+  ContactEventListeners,
+  RoomEventListeners,
+  WechatyEventListeners,
+}
 export {
   ContactEventEmitter,
-}                         from './contact-events.js'
+  RoomEventEmitter,
+  WechatyEventEmitter,
+}

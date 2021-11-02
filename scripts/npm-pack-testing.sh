@@ -14,6 +14,8 @@ npm pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
+# trap "rm -fr $TMPDIR" EXIT
+
 mv ./*-*.*.*.tgz "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
@@ -23,15 +25,17 @@ npm init -y
 npm install --production ./*-*.*.*.tgz \
   @types/node \
   typescript@latest \
-  "wechaty-puppet-mock@$NPM_TAG" \
-  "wechaty-puppet-padlocal@$NPM_TAG" \
-  "wechaty-puppet-service@$NPM_TAG" \
+  pkg-jq \
+  file-box@"$NPM_TAG" \
+  wechaty-puppet-mock@"$NPM_TAG" \
+  wechaty-puppet-padlocal@"$NPM_TAG" \
+  wechaty-puppet-service@"$NPM_TAG" \
 
 #
 # CommonJS
 #
-./node_modules/.bin/tsc \
-  --target es6 \
+npx tsc \
+  --target esnext \
   --module CommonJS \
   \
   --moduleResolution node \
@@ -51,9 +55,9 @@ node smoke-testing.js
 #
 npx pkg-jq -i '.type="module"'
 
-./node_modules/.bin/tsc \
-  --target es2020 \
-  --module es2020 \
+npx tsc \
+  --target esnext \
+  --module esnext \
   \
   --moduleResolution node \
   --esModuleInterop \

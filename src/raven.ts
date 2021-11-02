@@ -5,6 +5,7 @@ import os from 'os'
 import {
   log,
 }           from 'wechaty-puppet'
+import type { GError } from 'gerror'
 
 import {
   VERSION,
@@ -12,6 +13,7 @@ import {
 }                   from './config.js'
 
 let raven: typeof Raven
+let enabled = false
 
 function getRavenDsn (): undefined | string {
   // const RAVEN_DSN = 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672'
@@ -37,13 +39,17 @@ function enableRaven (dsn: string):void  {
   raven
     .config(dsn, ravenOptions)
     .install()
+
+  enabled = true
 }
-function init () {
+
+async function init () {
   try {
-    raven = require('raven')
+    raven = await import('raven')
+    log.verbose('Wechaty', 'init() Raven enabled (import("raven") succeed)')
   } catch (e) {
     // It's ok when there's no raven installed
-    log.verbose('Wechaty', 'init() require("raven") not succeed, skipped.')
+    log.verbose('Wechaty', 'init() Raven disabled (import("raven") failed)')
     return
   }
 
@@ -56,14 +62,14 @@ function init () {
   enableRaven(dsn)
 }
 
-function captureException (e: Error) {
-  if (raven) {
+function wechatyCaptureException (e: GError) {
+  if (enabled) {
     raven.captureException(e)
   }
 }
 
-init()
+init().catch(console.error)
 
 export {
-  captureException,
+  wechatyCaptureException,
 }

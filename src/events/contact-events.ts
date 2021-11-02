@@ -5,16 +5,25 @@ import type {
   Contact,
   Friendship,
   Message,
-}                   from '../user/mod.js'
+}                   from '../user-modules/mod.js'
 
-export type ContactMessageEventListener    = (this: Contact, message: Message, date?: Date) => void
-export type ContactFriendshipEventListener = (friendship: Friendship)                       => void
+type ContactEventListenerMessage    = (this: Contact, message: Message, date?: Date) => void | Promise<void>
+type ContactEventListenerFriendship = (friendship: Friendship)                       => void | Promise<void>
 
-interface ContactEvents {
-  friendship : ContactFriendshipEventListener,
-  message    : ContactMessageEventListener,
+interface ContactEventListeners {
+  friendship : ContactEventListenerFriendship,
+  message    : ContactEventListenerMessage,
 }
 
-export const ContactEventEmitter = EventEmitter as new () => TypedEventEmitter<
-  ContactEvents
+const ContactEventEmitter = EventEmitter as new () => TypedEventEmitter<
+  ContactEventListeners
 >
+
+export type {
+  ContactEventListeners,
+  ContactEventListenerMessage,
+  ContactEventListenerFriendship,
+}
+export {
+  ContactEventEmitter,
+}

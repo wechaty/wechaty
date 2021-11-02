@@ -19,16 +19,16 @@
  *
  */
 import { test }  from 'tstest'
+import { WechatyBuilder } from './wechaty-builder.js'
 
 import { Io }       from './io.js'
-import { Wechaty }  from './wechaty.js'
 
 test('Io restart without problem', async t => {
   const io = new Io({
     // token must not contain any white spaces
     servicePort : 8788,
-    token       : 'mock_token_in_wechaty/wechaty/src/io.spec.ts',
-    wechaty     : new Wechaty(),
+    token       : 'mock_00000000-0000-0000-0000-000000000000',
+    wechaty     : new WechatyBuilder().build(),
   })
 
   try {

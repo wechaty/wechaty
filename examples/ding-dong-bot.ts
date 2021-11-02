@@ -17,22 +17,19 @@
  *   limitations under the License.
  *
  */
-import {
-  Contact,
-  FileBox,
-  Message,
-  ScanStatus,
-  Wechaty,
-}               from '../src/mod.js' // from 'wechaty'
+import * as WECHATY from '../src/mods/mod.js' // from 'wechaty'
 
-import { generate } from 'qrcode-terminal'
+import * as qrTerm from 'qrcode-terminal'
+import { FileBox } from 'file-box'
+
+import type { Message } from '../src/user-modules/message.js'
 
 /**
  *
  * 1. Declare your Bot!
  *
  */
-const bot = new Wechaty({
+const options = {
   name : 'ding-dong-bot',
 
   /**
@@ -51,7 +48,11 @@ const bot = new Wechaty({
   // puppetOptions: {
   //   token: 'xxx',
   // }
-})
+}
+
+const bot = new WECHATY.WechatyBuilder()
+  .options(options)
+  .build()
 
 /**
  *
@@ -89,28 +90,28 @@ bot.start()
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
-function onScan (qrcode: string, status: ScanStatus) {
-  if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
-    generate(qrcode)
+function onScan (qrcode: string, status: WECHATY.type.ScanStatus) {
+  if (status === WECHATY.type.ScanStatus.Waiting || status === WECHATY.type.ScanStatus.Timeout) {
+    qrTerm.generate(qrcode)
 
     const qrcodeImageUrl = [
       'https://wechaty.js.org/qrcode/',
       encodeURIComponent(qrcode),
     ].join('')
 
-    console.info('onScan: %s(%s) - %s', ScanStatus[status], status, qrcodeImageUrl)
+    console.info('onScan: %s(%s) - %s', WECHATY.type.ScanStatus[status], status, qrcodeImageUrl)
   } else {
-    console.info('onScan: %s(%s)', ScanStatus[status], status)
+    console.info('onScan: %s(%s)', WECHATY.type.ScanStatus[status], status)
   }
 
   // console.info(`[${ScanStatus[status]}(${status})] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
 }
 
-function onLogin (user: Contact) {
+function onLogin (user: WECHATY.Contact) {
   console.info(`${user.name()} login`)
 }
 
-function onLogout (user: Contact) {
+function onLogout (user: WECHATY.Contact) {
   console.info(`${user.name()} logged out`)
 }
 
@@ -188,7 +189,7 @@ const welcome = `
 
 =============== Powered by Wechaty ===============
 -------- https://github.com/wechaty/wechaty --------
-          Version: ${bot.version(true)}
+          Version: ${bot.version()}
 
 I'm a bot, my superpower is talk in Wechat.
 

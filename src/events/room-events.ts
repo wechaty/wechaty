@@ -6,7 +6,7 @@ import type {
   Message,
   Room,
   RoomInvitation,
-}                   from '../user/mod.js'
+}                   from '../user-modules/mod.js'
 
 export const ROOM_EVENT_DICT = {
   invite  : 'tbw',
@@ -97,20 +97,32 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
  *
  */
 
-export type RoomInviteEventListener  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void
-export type RoomJoinEventListener    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void
-export type RoomLeaveEventListener   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)          => void
-export type RoomMessageEventListener = (this: Room, message: Message, date?: Date)                                  => void
-export type RoomTopicEventListener   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date) => void
+type RoomEventListenerInvite  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void | Promise<void>
+type RoomEventListenerJoin    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void | Promise<void>
+type RoomEventListenerLeave   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)          => void | Promise<void>
+type RoomEventListenerMessage = (this: Room, message: Message, date?: Date)                                  => void | Promise<void>
+type RoomEventListenerTopic   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date) => void | Promise<void>
 
-interface RoomEvents {
-  invite  : RoomInviteEventListener
-  join    : RoomJoinEventListener,
-  leave   : RoomLeaveEventListener,
-  message : RoomMessageEventListener,
-  topic   : RoomTopicEventListener,
+interface RoomEventListeners {
+  invite  : RoomEventListenerInvite
+  join    : RoomEventListenerJoin
+  leave   : RoomEventListenerLeave
+  message : RoomEventListenerMessage
+  topic   : RoomEventListenerTopic
 }
 
-export const RoomEventEmitter = EventEmitter as new () => TypedEventEmitter<
-  RoomEvents
+const RoomEventEmitter = EventEmitter as new () => TypedEventEmitter<
+  RoomEventListeners
 >
+
+export type {
+  RoomEventListeners,
+  RoomEventListenerInvite,
+  RoomEventListenerJoin,
+  RoomEventListenerLeave,
+  RoomEventListenerMessage,
+  RoomEventListenerTopic,
+}
+export {
+  RoomEventEmitter,
+}

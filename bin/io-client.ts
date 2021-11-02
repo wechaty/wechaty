@@ -32,7 +32,7 @@ import {
   IoClient,
   IoClientOptions,
 }                   from '../src/io-client.js'
-import { Wechaty }  from '../src/wechaty.js'
+import { WechatyBuilder }  from '../src/wechaty-builder.js'
 
 const welcome = `
 | __        __        _           _
@@ -61,21 +61,10 @@ async function main () {
   console.info(welcome)
   log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
-  const wechaty = new Wechaty({ name: token })
+  const wechaty = new WechatyBuilder().options({ name: token }).build()
 
   let port
-  if (process.env['WECHATY_HOSTIE_PORT']) {
-    /**
-     * https://github.com/wechaty/wechaty/issues/2122
-     */
-    log.warn('Wechaty', [
-      '',
-      'WECHATY_HOSTIE_PORT is deprecated.',
-      'Use WECHATY_PUPPET_SERVER_PORT instead.',
-      'See: https://github.com/wechaty/wechaty/issues/2122',
-    ].join(' '))
-    port = parseInt(process.env['WECHATY_HOSTIE_PORT'])
-  } else if (process.env['WECHATY_PUPPET_SERVER_PORT']) {
+  if (process.env['WECHATY_PUPPET_SERVER_PORT']) {
     port = parseInt(process.env['WECHATY_PUPPET_SERVER_PORT'])
   }
 

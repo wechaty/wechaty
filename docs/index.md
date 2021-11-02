@@ -170,7 +170,7 @@ Creates an instance of Wechaty.
 
 **Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
 ```js
-const { Wechaty } = require('wechaty')
+import { Wechaty } from 'wechaty'
 const bot = new Wechaty()
 bot.on('scan',    (qrCode, status) => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(qrcode)))
 bot.on('login',   user => console.log(`User ${user} logged in`))

@@ -5,15 +5,18 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build
-    runs-on:
-      - ubuntu-latest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - 16
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node }}
-          cache: 'npm'
+          node-version: ${{ matrix.node-version }}
+          cache: npm
           cache-dependency-path: package.json
 
       - name: Install Dependencies
@@ -28,18 +31,13 @@ jobs:
   pack:
     name: Pack
     needs: build
-    runs-on:
-      - ubuntu-latest
-    strategy:
-      matrix:
-        node:
-          - 16
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node }}
-          cache: 'npm'
+          node-version: 16
+          cache: npm
           cache-dependency-path: package.json
 
       - run: npm install
@@ -60,7 +58,7 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package.json
       - run: npm install
       - name: Generate Package JSON

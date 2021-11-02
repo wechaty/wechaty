@@ -5,7 +5,26 @@
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript%20v4.4+-blue.svg)](https://www.typescriptlang.org/)
+[![ES Modules](https://img.shields.io/badge/ES-Modules-orange)](https://github.com/Chatie/tsconfig/issues/16)
+
+[![TypeScript](https://img.shields.io/badge/--3178C6?logo=typescript&logoColor=ffffff)](https://wechaty.js.org/docs/polyglot/typescript/)
+[![JavaScript](https://img.shields.io/badge/--F7DF1E?logo=javascript&logoColor=000)](https://wechaty.js.org/docs/polyglot/typescript/)
+[![Python](https://img.shields.io/badge/--3670A0?logo=python&logoColor=ffdd54)](https://wechaty.js.org/docs/polyglot/python/)
+[![Go](https://img.shields.io/badge/--00ADD8?logo=go&logoColor=white)](https://wechaty.js.org/docs/polyglot/go/)
+[![Java](https://img.shields.io/badge/--red?logo=java&logoColor=white)](https://wechaty.js.org/docs/polyglot/java/)
+[![.NET](https://img.shields.io/badge/--5C2D91?logo=dotnet&logoColor=white)](https://wechaty.js.org/docs/polyglot/dotnet/)
+[![PHP](https://img.shields.io/badge/--777BB4?logo=php&logoColor=white)](https://wechaty.js.org/docs/polyglot/php/)
+[![Rust](https://img.shields.io/badge/--000000?logo=rust&logoColor=white)](https://wechaty.js.org/docs/polyglot/rust/)
+[![Scala](https://img.shields.io/badge/--DC322F?logo=scala&logoColor=white)](https://wechaty.js.org/docs/polyglot/scala/)
+
+[![WeChat](https://img.shields.io/badge/--07C160?logo=wechat&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/wechat)
+[![Whatsapp](https://img.shields.io/badge/--25D366?logo=whatsapp&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/whatsapp)
+
+<!--
+[![TikTok](https://img.shields.io/badge/--000000?logo=tiktok&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/tiktok)
+[![Line](https://img.shields.io/badge/--00C300?logo=line&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/line)
+[![Telegram](https://img.shields.io/badge/--2CA5E0?logo=telegram&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/telegram)
+-->
 
 [![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
@@ -73,9 +92,9 @@ Wechaty already held lots of talk and got a lot of blogs in the past 4 years, he
 
 ```javascript
 
-const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
+import { WechatyBuilder } from 'wechaty'
 
-Wechaty.instance() // Global Instance
+WechatyBuilder.build()  // get a Wechaty instance
 .on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
 .on('login',            user => console.log(`User ${user} logged in`))
 .on('message',       message => console.log(`Message: ${message}`))
@@ -90,8 +109,9 @@ You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/di
 
 ## :checkered_flag: Requirements
 
-1. Node.js v14+
-1. TypeScript v4.4+
+1. Node.js version 16+
+1. NPM version 7+
+1. TypeScript version 4.4+
 
 ## Getting Started
 
@@ -209,7 +229,7 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://w
 | method | [`stop(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+stop) | stop the bot |
 | method | [`logonoff(): boolean`](https://wechaty.github.io/wechaty/#Wechaty+logonoff) | bot login status |
 | method | [`logout(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+logout) | logout the bot |
-| method | [`userSelf(): ContactSelf`](https://wechaty.github.io/wechaty/#Wechaty+userSelf) | get the login-ed bot contact |
+| method | [`currentUser(): ContactSelf`](https://wechaty.github.io/wechaty/#Wechaty+currentUser) | get the login-ed bot contact |
 | method | [`say(text: string): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+say) | let bot say `text` to itself |
 
 ### 2 Class `Contact`
@@ -490,9 +510,11 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## History
 
-### master v0.69
+### master v1.0 (Sep 2021)
 
-1. Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
+Release v1.0 of Wechaty is the first stable release of Wechaty.
+
+1. v0.69: Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
 
 ### v0.68 (Aug 27, 2021)
 

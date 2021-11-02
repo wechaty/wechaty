@@ -23,30 +23,27 @@
 import childProcess from 'child_process'
 
 import {
-  Puppet,
-  PuppetImplementation,
-  PuppetOptions,
   log,
+  Puppet,
+  impl,
+  PuppetOptions,
 }                         from 'wechaty-puppet'
 
-import {
-  looseInstanceOfPuppet,
-}                           from './helper-functions/mod.js'
 import {
   PUPPET_DEPENDENCIES,
   PuppetModuleName,
 }                         from './puppet-config.js'
 
 export interface ResolveOptions {
-  puppet         : Puppet | PuppetModuleName,
+  puppet         : impl.Puppet | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
 
 export class PuppetManager {
 
   static async resolve (
-    options: ResolveOptions
-  ): Promise<Puppet> {
+    options: ResolveOptions,
+  ): Promise<impl.Puppet> {
     log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
       options.puppet,
       JSON.stringify(options.puppetOptions),
@@ -58,7 +55,7 @@ export class PuppetManager {
      *  then options.puppet will not instanceof Puppet. (looseInstanceOfPuppet)
      *  So I changed here to match not a string as a workaround.
      */
-    if (looseInstanceOfPuppet(options.puppet)) {
+    if (Puppet.valid(options.puppet)) {
       return options.puppet
     }
 
@@ -78,7 +75,7 @@ export class PuppetManager {
      * When we have different puppet with different `constructor()` args.
      * For example: PuppetA allow `constructor()` but PuppetB requires `constructor(options)`
      *
-     * SOLUTION: we enforce all the PuppetImplementation to have `options` and should not allow default parameter.
+     * SOLUTION: we enforce all the PuppetConstructor to have `options` and should not allow default parameter.
      *  Issue: https://github.com/wechaty/wechaty-puppet/issues/2
      */
 
@@ -94,12 +91,12 @@ export class PuppetManager {
 
   protected static async resolveName (
     puppetName: PuppetModuleName,
-  ): Promise<PuppetImplementation> {
+  ): Promise<impl.PuppetConstructor> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
-    if (!puppetName) {
-      throw new Error('must provide a puppet name')
-    }
+    // if (!puppetName) {
+    //   throw new Error('must provide a puppet name')
+    // }
 
     if (!(puppetName in PUPPET_DEPENDENCIES)) {
       throw new Error(
@@ -109,20 +106,41 @@ export class PuppetManager {
           'learn more about supported Wechaty Puppet from our directory at',
           '<https://github.com/wechaty/wechaty-puppet/wiki/Directory>',
           '',
-        ].join('\n')
+        ].join('\n'),
       )
     }
 
     // await this.checkModule(puppetName)
 
-    const puppetModule = await import(puppetName)
+    let puppetModule = await import(puppetName)
 
-    if (!puppetModule.default) {
-      throw new Error(`Puppet(${puppetName}) has not provided the default export`)
+    /**
+     * Huan(202110): Issue wechaty/wechaty-getting-started#203
+     *  TypeError: MyPuppet is not a constructor
+     *  https://github.com/wechaty/wechaty-getting-started/issues/203
+     */
+    let retry = 0
+    while (typeof puppetModule.default !== 'function') {
+      if (!puppetModule || retry++ > 3) {
+        throw new Error(`Puppet(${puppetName}) has not provided the default export`)
+      }
+      /**
+       * CommonJS Module: puppetModule.default.default is the expoerted Puppet
+       */
+      puppetModule = puppetModule.default
+    }
+
+    if (retry === 0) {
+      /**
+       * ES Module: default is the exported Puppet
+       */
+      log.verbose('PuppetManager', 'resolveName(%s): ESM resolved', puppetName)
+    } else {
+      log.verbose('PuppetManager', 'resolveName(%s): CJS resolved, retry times: %s', puppetName, retry)
     }
 
     // console.info(puppetModule)
-    const MyPuppet = puppetModule.default as PuppetImplementation
+    const MyPuppet = puppetModule.default as impl.PuppetConstructor
 
     return MyPuppet
   }
