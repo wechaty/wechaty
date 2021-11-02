@@ -60,6 +60,10 @@ class WechatyBuilder {
     return builder.singleton().build()
   }
 
+  static new (): WechatyBuilder {
+    return new WechatyBuilder()
+  }
+
   protected _singleton: boolean
   protected _options?: WechatyOptions
 

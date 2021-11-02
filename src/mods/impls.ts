@@ -26,42 +26,9 @@
  *  - Interface:    type, the `interface
  *  - Constructor:  type, the `Constructor<interface>`
  *  - Impl:         value, the `class`
+ *
+ *  - no postfix:  value, the `class`
  */
-
-export type {
-  Contact as ContactInterface,
-  ContactConstructor,
-  ContactSelf as ContactSelfInterface,
-  ContactSelfConstructor,
-  Delay as DelayInterface,
-  DelayConstructor,
-  Favorite as FavoriteInterface,
-  FavoriteConstructor,
-  Friendship as FriendshipInterface,
-  FriendshipConstructor,
-  Image as ImageInterface,
-  ImageConstructor,
-  Location as LocationInterface,
-  LocationConstructor,
-  Message as MessageInterface,
-  MessageConstructor,
-  MiniProgram as MiniProgramInterface,
-  MiniProgramConstructor,
-  Moment as MomentInterface,
-  MomentConstructor,
-  Money as MoneyInterface,
-  MoneyConstructor,
-  Post as PostInterface,
-  PostConstructor,
-  Room as RoomInterface,
-  RoomConstructor,
-  RoomInvitation as RoomInvitationInterface,
-  RoomInvitationConstructor,
-  Tag as TagInterface,
-  TagConstructor,
-  UrlLink as UrlLinkInterface,
-  UrlLinkConstructor,
-}                               from '../user-modules/mod.js'
 
 export {
   ContactImpl,
@@ -81,6 +48,63 @@ export {
   TagImpl,
   UrlLinkImpl,
 }                             from '../user-modules/mod.js'
+
+export {
+  ContactImpl         as Contact,
+  ContactSelfImpl     as ContactSelf,
+  FavoriteImpl        as Favorite,
+  FriendshipImpl      as Friendship,
+  ImageImpl           as Image,
+  LocationImpl        as Location,
+  MessageImpl         as Message,
+  MiniProgramImpl     as MiniProgram,
+  MomentImpl          as Moment,
+  MoneyImpl           as Money,
+  PostImpl            as Post,
+  RoomImpl            as Room,
+  RoomInvitationImpl  as RoomInvitation,
+  DelayImpl           as Delay,
+  TagImpl             as Tag,
+  UrlLinkImpl         as UrlLink,
+}                                         from '../user-modules/mod.js'
+
+export type {
+  Contact         as ContactInterface,
+  ContactSelf     as ContactSelfInterface,
+  Delay           as DelayInterface,
+  Favorite        as FavoriteInterface,
+  Friendship      as FriendshipInterface,
+  Image           as ImageInterface,
+  Location        as LocationInterface,
+  Message         as MessageInterface,
+  MiniProgram     as MiniProgramInterface,
+  Moment          as MomentInterface,
+  Money           as MoneyInterface,
+  Post            as PostInterface,
+  Room            as RoomInterface,
+  RoomInvitation  as RoomInvitationInterface,
+  Tag             as TagInterface,
+  UrlLink         as UrlLinkInterface,
+}                               from '../user-modules/mod.js'
+
+export type {
+  ContactConstructor,
+  ContactSelfConstructor,
+  DelayConstructor,
+  FavoriteConstructor,
+  FriendshipConstructor,
+  ImageConstructor,
+  LocationConstructor,
+  MessageConstructor,
+  MiniProgramConstructor,
+  MomentConstructor,
+  MoneyConstructor,
+  PostConstructor,
+  RoomConstructor,
+  RoomInvitationConstructor,
+  TagConstructor,
+  UrlLinkConstructor,
+}                               from '../user-modules/mod.js'
 
 export {
   WechatyImpl,

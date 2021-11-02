@@ -67,45 +67,90 @@ enum PostTapType {
   Like,
 }
 
-interface PostTapRecord {
-  contactId: string
-  timestamp: number
+type PostTapListPayload = {
+  [key in PostTapType]?: {
+    contactId: string[]
+    timestamp: number[]
+  }
 }
 
-type PostTapTypeRecordMap = {
-  [key in PostTapType]?: PostTapRecord[]
+/**
+ * Google Cloud APIs - Common design patterns  - List Pagination
+ * @see https://cloud.google.com/apis/design/design_patterns#list_pagination
+ */
+interface PaginationRequest {
+  pageSize?      : number
+  pageToken?     : string
 }
 
-interface PostTapPayload extends PostTapTypeRecordMap {
-  postId: string
-  nextPageToken?: string
+interface PaginationResponse<T> {
+  nextPageToken? : string
+  response: T
 }
 
-class PuppetDemo {
+interface IdListPayload {
+  idList: string[]
+}
+
+class PuppetApi {
+
+  async postTap (postId: string, type: PostTapType): Promise<boolean>
+  async postTap (postId: string, type: PostTapType, tap: boolean): Promise<void>
+
+  async postTap (
+    postId : string,
+    type   : PostTapType,
+    tap?   : boolean,
+  ): Promise<void | boolean> {
+    return true
+  }
+
+  async postPayload (
+    postId: string,
+  ): Promise<PostPayload> {
+    return {} as any
+  }
 
   async postTapList (
     postId: string,
-    tapperId?: string,
-    tap = PostTapType.Unspecified,  // Unspecified means any Tap type
-    pageToken?: string,
-    pageSize = 10,
-  ): Promise<PostTapPayload> {
+    type?: PostTapType,  // undefined means any Tap type
+    pagination?: PaginationRequest,
+  ): Promise<PaginationResponse<PostTapListPayload>> {
     return {
       nextPageToken: '',
-      postId,
-      [PostTapType.Like]: [
-        {
-          contactId: 'id_contact_xxx',
-          timestamp: 12341431,
+      response: {
+        [PostTapType.Like]: {
+          contactId: ['id_contact_xxx'],
+          timestamp: [12341431],
         },
+      },
+    }
+  }
+
+  async postRootList (
+    rootId: string,
+    pagination?: PaginationRequest,
+  ): Promise<PaginationResponse<string[]>> {
+    return {
+      nextPageToken: '',
+      response: [
+        'id_post_xxx',
+        'id_post_yyy',
       ],
     }
   }
 
-  async postDescendantList (
-
-  ) {
-
+  async postParentList (
+    parentId: string,
+    pagination?: PaginationRequest,
+  ): Promise<PaginationResponse<string[]>> {
+    return {
+      nextPageToken: '',
+      response: [
+        'id_post_xxx',
+        'id_post_yyy',
+      ],
+    }
   }
 
 }
