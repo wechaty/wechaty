@@ -17,36 +17,49 @@
  *   limitations under the License.
  *
  */
+
+/**
+ * Huan(202111): We export all names with specific postfix to make it easier to be recongnized
+ *  with less misunderstandings.
+ *
+ * Postfixes:
+ *  - Interface:    type, the `interface
+ *  - Constructor:  type, the `Constructor<interface>`
+ *  - Impl:         value, the `class`
+ */
+
 export type {
-  Contact,
+  Contact as ContactInterface,
   ContactConstructor,
-  ContactSelf,
+  ContactSelf as ContactSelfInterface,
   ContactSelfConstructor,
-  Delay,
+  Delay as DelayInterface,
   DelayConstructor,
-  Favorite,
+  Favorite as FavoriteInterface,
   FavoriteConstructor,
-  Friendship,
+  Friendship as FriendshipInterface,
   FriendshipConstructor,
-  Image,
+  Image as ImageInterface,
   ImageConstructor,
-  Location,
+  Location as LocationInterface,
   LocationConstructor,
-  Message,
+  Message as MessageInterface,
   MessageConstructor,
-  MiniProgram,
+  MiniProgram as MiniProgramInterface,
   MiniProgramConstructor,
-  Moment,
+  Moment as MomentInterface,
   MomentConstructor,
-  Money,
+  Money as MoneyInterface,
   MoneyConstructor,
-  Room,
+  Post as PostInterface,
+  PostConstructor,
+  Room as RoomInterface,
   RoomConstructor,
-  RoomInvitation,
+  RoomInvitation as RoomInvitationInterface,
   RoomInvitationConstructor,
-  Tag,
+  Tag as TagInterface,
   TagConstructor,
-  UrlLink,
+  UrlLink as UrlLinkInterface,
   UrlLinkConstructor,
 }                               from '../user-modules/mod.js'
 
@@ -61,6 +74,7 @@ export {
   MiniProgramImpl,
   MomentImpl,
   MoneyImpl,
+  PostImpl,
   RoomImpl,
   RoomInvitationImpl,
   DelayImpl,
@@ -72,6 +86,6 @@ export {
   WechatyImpl,
 }                         from '../wechaty.js'
 export type {
-  Wechaty,
+  Wechaty as WechatyInterface,
   WechatyConstructor,
 }                         from '../interface/mod.js'

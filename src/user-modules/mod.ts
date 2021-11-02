@@ -68,6 +68,11 @@ import {
   MoneyConstructor,
 }                           from './money.js'
 import {
+  PostImpl,
+  Post,
+  PostConstructor,
+}                           from './post.js'
+import {
   RoomImpl,
   Room,
   RoomConstructor,
@@ -106,6 +111,7 @@ export type {
   MiniProgram,
   Moment,
   Money,
+  Post,
   Room,
   RoomInvitation,
   Tag,
@@ -124,6 +130,7 @@ export type {
   MiniProgramConstructor,
   MomentConstructor,
   MoneyConstructor,
+  PostConstructor,
   RoomConstructor,
   RoomInvitationConstructor,
   DelayConstructor,
@@ -143,6 +150,7 @@ export {
   MiniProgramImpl,
   MomentImpl,
   MoneyImpl,
+  PostImpl,
   RoomImpl,
   RoomInvitationImpl,
   DelayImpl,

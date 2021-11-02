@@ -1,3 +1,4 @@
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,27 +19,14 @@
  *
  */
 
-/**
- * Huan(202111): we export all `interface` from this file, as the most conience class name.
- *
- *  since they are `interface`s, so they are `type`-only.
- */
+import {
+  test,
+  sinon,
+}             from 'tstest'
 
-export type {
-  Contact,
-  ContactSelf,
-  Favorite,
-  Friendship,
-  Image,
-  Location,
-  Message,
-  MiniProgram,
-  Moment,
-  Money,
-  Post,
-  Room,
-  RoomInvitation,
-  Delay,
-  Tag,
-  UrlLink,
-}                   from '../user-modules/mod.js'
+import { PostImpl } from './post.js'
+
+test('Post smoke testing', async t => {
+  void sinon
+  t.ok(PostImpl, 'tbw')
+})

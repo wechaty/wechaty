@@ -35,8 +35,8 @@ import {
 }                       from './config.js'
 
 import type {
+  SayableSayer,
   Sayable,
-  SayableMessage,
 }                       from './interface/mod.js'
 
 import {
@@ -107,7 +107,7 @@ const mixinBase = serviceCtlMixin('Wechaty', { log })(
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
-class WechatyImpl extends mixinBase implements Sayable {
+class WechatyImpl extends mixinBase implements SayableSayer {
 
   static   override readonly VERSION = VERSION
   static   readonly log: Loggable = log
@@ -358,7 +358,7 @@ class WechatyImpl extends mixinBase implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayable
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    *
@@ -408,10 +408,10 @@ class WechatyImpl extends mixinBase implements Sayable {
    */
 
   async say (
-    sayableMsg: SayableMessage,
+    sayable: Sayable,
   ): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', sayableMsg)
-    await this.currentUser().say(sayableMsg)
+    log.verbose('Wechaty', 'say(%s)', sayable)
+    await this.currentUser().say(sayable)
   }
 
   /**

@@ -26,8 +26,8 @@ export type {
   WechatyOptions,
 }                       from '../wechaty.js'
 export type {
+  SayableSayer,
   Sayable,
-  SayableMessage,
   Wechaty,
 }                   from '../interface/mod.js'
 export {

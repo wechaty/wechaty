@@ -1,6 +1,6 @@
 import type {
+  SayableSayer,
   Sayable,
-  SayableMessage,
 }                           from './sayable.js'
 import type {
   Acceptable,
@@ -12,8 +12,8 @@ import type {
 
 export type {
   Acceptable,
+  SayableSayer,
   Sayable,
-  SayableMessage,
   Wechaty,
   WechatyConstructor,
 }

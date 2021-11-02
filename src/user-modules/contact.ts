@@ -30,8 +30,8 @@ import {
   log,
 }                           from '../config.js'
 import type {
+  SayableSayer,
   Sayable,
-  SayableMessage,
 }                          from '../interface/mod.js'
 // import { captureException } from '../raven.js'
 
@@ -64,7 +64,7 @@ const MixinBase = wechatifyMixin(
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-class ContactMixin extends MixinBase implements Sayable {
+class ContactMixin extends MixinBase implements SayableSayer {
 
   static Type   = PUPPET.type.Contact
   static Gender = PUPPET.type.ContactGender
@@ -266,7 +266,7 @@ class ContactMixin extends MixinBase implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayable
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void | Message>}
@@ -331,11 +331,11 @@ class ContactMixin extends MixinBase implements Sayable {
    * const msg = await contact.say(location)
    */
   async say (
-    sayableMsg: SayableMessage,
+    sayable: Sayable,
   ): Promise<void | Message> {
-    log.verbose('Contact', 'say(%s)', sayableMsg)
+    log.verbose('Contact', 'say(%s)', sayable)
 
-    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
+    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
 
     if (msgId) {
       const msg = await this.wechaty.Message.find({ id: msgId })

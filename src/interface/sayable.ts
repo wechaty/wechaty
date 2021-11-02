@@ -25,10 +25,11 @@ import type * as PUPPET from 'wechaty-puppet'
 
 import type {
   Contact,
+  Delay,
   Location,
   Message,
   MiniProgram,
-  Delay,
+  Post,
   UrlLink,
 }                           from '../user-modules/mod.js'
 
@@ -42,25 +43,27 @@ import {
   DelayImpl,
   UrlLinkImpl,
   MiniProgramImpl,
+  PostImpl,
   LocationImpl,
 }                     from '../user-modules/mod.js'
 
-type SayableMessage = never
+type Sayable =
   | Contact
+  | Delay
   | FileBoxInterface
   | Location
   | Message
   | MiniProgram
   | number
+  | Post
   | string
-  | Delay
   | UrlLink
 
-interface Sayable {
+interface SayableSayer {
   id      : string,
   wechaty : Wechaty,
   say (
-    text     : SayableMessage,
+    text     : Sayable,
     replyTo? : Contact | Contact[]
   ): Promise<void | Message>
 }
@@ -68,17 +71,17 @@ interface Sayable {
 /**
  * TODO: add unit test to ensure the interface validation code works
  */
-const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conversationId: string) => async (sayableMessage: SayableMessage) => {
+const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conversationId: string) => async (sayable: Sayable) => {
   let msgId: string | void
 
-  if (!(sayableMessage instanceof Object)) {
-    if (typeof sayableMessage === 'number') {
-      sayableMessage = String(sayableMessage)
+  if (!(sayable instanceof Object)) {
+    if (typeof sayable === 'number') {
+      sayable = String(sayable)
     }
 
     msgId = await puppet.messageSendText(
       conversationId,
-      sayableMessage,
+      sayable,
     )
     return msgId
   }
@@ -87,69 +90,69 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conver
    * Huan(202110): Checking `looseInstanceOf` is enough for the following types:
    *  so we do not check `interfaceOfClass` anymore because it will consume more resources.
    */
-  if (FileBox.validInstance(sayableMessage)) {
+  if (FileBox.validInstance(sayable)) {
     /**
      * 1. File
      */
     msgId = await puppet.messageSendFile(
       conversationId,
-      sayableMessage,
+      sayable,
     )
-  } else if (MessageImpl.validInstance(sayableMessage)) {
+  } else if (MessageImpl.validInstance(sayable)) {
     /**
      * 2. Message
      */
     msgId = await puppet.messageForward(
       conversationId,
-      sayableMessage.id,
+      sayable.id,
     )
-  } else if (ContactImpl.validInstance(sayableMessage)) {
+  } else if (ContactImpl.validInstance(sayable)) {
     /**
      * 3. Contact
      */
     msgId = await puppet.messageSendContact(
       conversationId,
-      sayableMessage.id,
+      sayable.id,
     )
-  } else if (UrlLinkImpl.validInstance(sayableMessage)) {
+  } else if (UrlLinkImpl.validInstance(sayable)) {
     /**
      * 4. Link Message
      */
     msgId = await puppet.messageSendUrl(
       conversationId,
-      sayableMessage.payload,
+      sayable.payload,
     )
-  } else if (MiniProgramImpl.validInstance(sayableMessage)) {
+  } else if (MiniProgramImpl.validInstance(sayable)) {
     /**
      * 5. Mini Program
      */
     msgId = await puppet.messageSendMiniProgram(
       conversationId,
-      sayableMessage.payload,
+      sayable.payload,
     )
-  } else if (LocationImpl.validInstance(sayableMessage)) {
+  } else if (LocationImpl.validInstance(sayable)) {
     /**
      * 6. Location
      */
     msgId = await puppet.messageSendLocation(
       conversationId,
-      sayableMessage.payload,
+      sayable.payload,
     )
-  } else if (DelayImpl.validInstance(sayableMessage)) {
+  } else if (DelayImpl.validInstance(sayable)) {
     /**
      * 7. Delay for a while
      */
-    await sayableMessage.wait()
-  } else if (PostImpl.validInstance(sayableMessage)) {
+    await sayable.wait()
+  } else if (PostImpl.validInstance(sayable)) {
     /**
      * VideoPost
      */
-    msgId = await wechaty.puppet.messageSendPost(
+    msgId = await puppet.messageSendPost(
       conversationId,
-      sayableMessage.payload,
+      sayable.payload,
     )
   } else {
-    throw new Error('unsupported arg: ' + sayableMessage)
+    throw new Error('unsupported arg: ' + sayable)
   }
 
   return msgId
@@ -159,6 +162,6 @@ export {
   deliverSayableConversationPuppet,
 }
 export type {
+  SayableSayer,
   Sayable,
-  SayableMessage,
 }

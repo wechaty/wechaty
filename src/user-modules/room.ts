@@ -28,8 +28,8 @@ import {
   log,
 }                           from '../config.js'
 import type {
+  SayableSayer,
   Sayable,
-  SayableMessage,
 }                           from '../interface/mod.js'
 
 import { wechatyCaptureException } from '../raven.js'
@@ -65,7 +65,7 @@ const MixinBase = wechatifyMixin(
  * [Examples/Room-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  *
  */
-class RoomMixin extends MixinBase implements Sayable {
+class RoomMixin extends MixinBase implements SayableSayer {
 
   /**
    * Create a new room.
@@ -349,7 +349,7 @@ class RoomMixin extends MixinBase implements Sayable {
     return !!(this._payload)
   }
 
-  say (text:     SayableMessage)                          : Promise<void | Message>
+  say (sayable:  Sayable)                                 : Promise<void | Message>
   say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
   say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
 
@@ -437,24 +437,24 @@ class RoomMixin extends MixinBase implements Sayable {
    * const msg = await room.say(location)
    */
   async say (
-    sayableMsg : SayableMessage | TemplateStringsArray,
+    sayable    : Sayable | TemplateStringsArray,
     ...varList : unknown[]
   ): Promise<void | Message> {
 
     log.verbose('Room', 'say(%s, %s)',
-      sayableMsg,
+      sayable,
       varList.join(', '),
     )
 
     let msgId
     let text: string
 
-    if (isTemplateStringArray(sayableMsg)) {
+    if (isTemplateStringArray(sayable)) {
       msgId = await this.sayTemplateStringsArray(
-        sayableMsg as TemplateStringsArray,
+        sayable as TemplateStringsArray,
         ...varList,
       )
-    } else if (typeof sayableMsg === 'string') {
+    } else if (typeof sayable === 'string') {
       /**
        * 1. string
        */
@@ -474,9 +474,9 @@ class RoomMixin extends MixinBase implements Sayable {
         ))
         const mentionText = mentionAlias.join(AT_SEPARATOR)
 
-        text = mentionText + ' ' + sayableMsg
+        text = mentionText + ' ' + sayable
       } else {
-        text = sayableMsg
+        text = sayable
       }
       // const receiver = {
       //   contactId : (mentionList.length && mentionList[0].id) || undefined,
@@ -488,7 +488,7 @@ class RoomMixin extends MixinBase implements Sayable {
         mentionList.map(c => c.id),
       )
     } else {
-      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
+      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
     }
 
     if (msgId) {

@@ -33,8 +33,8 @@ import {
   AT_SEPARATOR_REGEX,
 }                         from '../config.js'
 import type {
+  SayableSayer,
   Sayable,
-  SayableMessage,
 }                             from '../interface/mod.js'
 // import { captureException }   from '../raven.js'
 
@@ -58,8 +58,14 @@ import {
   MiniProgramImpl,
 }                       from './mini-program.js'
 import type {
+  MiniProgram,
+}                       from './mini-program.js'
+import type {
   Image,
 }                       from './image.js'
+import type {
+  Post,
+}                       from './post.js'
 import {
   Location,
   LocationImpl,
@@ -77,7 +83,7 @@ const MixinBase = wechatifyMixin(
  *
  * [Examples/Ding-Dong-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
-class MessageMixin extends MixinBase implements Sayable {
+class MessageMixin extends MixinBase implements SayableSayer {
 
   /**
    *
@@ -514,17 +520,17 @@ class MessageMixin extends MixinBase implements Sayable {
    * .start()
    */
   async say (
-    sayableMsg: SayableMessage,
+    sayable: Sayable,
   ): Promise<void | Message> {
-    log.verbose('Message', 'say(%s)', sayableMsg)
+    log.verbose('Message', 'say(%s)', sayable)
 
     const talker  = this.talker()
     const room    = this.room()
 
     if (room) {
-      return room.say(sayableMsg)
+      return room.say(sayable)
     } else {
-      return talker.say(sayableMsg)
+      return talker.say(sayable)
     }
   }
 
@@ -974,7 +980,7 @@ class MessageMixin extends MixinBase implements Sayable {
     return new UrlLinkImpl(urlPayload)
   }
 
-  async toMiniProgram (): Promise<MiniProgramImpl> {
+  async toMiniProgram (): Promise<MiniProgram> {
     log.verbose('Message', 'toMiniProgram()')
 
     if (!this._payload) {
@@ -1009,21 +1015,21 @@ class MessageMixin extends MixinBase implements Sayable {
   public async toPost (): Promise<Post> {
     log.verbose('Message', 'toPost()')
 
-    if (!this.payload) {
+    if (!this._payload) {
       throw new Error('no payload')
     }
 
-    if (this.type() !== Message.Type.Post) {
+    if (this.type() !== PUPPET.type.Message.Post) {
       throw new Error('message not a Post')
     }
 
-    const PostPayload = await this.wechaty.puppet.messagePost(this.id)
+    const postPayload = await this.wechaty.puppet.messagePost(this.id)
 
-    if (!PostPayload) {
+    if (!postPayload) {
       throw new Error(`no Post payload for message ${this.id}`)
     }
 
-    return new Post(PostPayload)
+    return new Post(postPayload)
   }
 
 }
