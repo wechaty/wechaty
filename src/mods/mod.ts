@@ -63,7 +63,7 @@ export type {
 
 export type {
   PuppetModuleName,
-}                             from '../puppet-config.js'
+}                             from '../puppet-management/puppet-config.js'
 
 export type {
   IoClientOptions,

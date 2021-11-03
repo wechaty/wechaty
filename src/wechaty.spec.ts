@@ -364,7 +364,7 @@ test('wrapAsync() promise', async t => {
 })
 
 test('WechatyImplProtectedProperty', async t => {
-  type NotExistInMixin = Exclude<WechatyImplProtectedProperty, keyof WechatyImpl>
+  type NotExistInMixin = Exclude<WechatyImplProtectedProperty, keyof WechatyImpl | `_${string}`>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true

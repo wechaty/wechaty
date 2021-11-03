@@ -101,7 +101,7 @@ test('Wechaty interface', async t => {
 })
 
 test('ProtectedProperties', async t => {
-  type NotExistInWechaty = Exclude<WechatyProtectedProperty, keyof WechatyImpl>
+  type NotExistInWechaty = Exclude<WechatyProtectedProperty, keyof WechatyImpl | `_${string}`>
   type NotExistTest = NotExistInWechaty extends never ? true : false
 
   const noOneLeft: NotExistTest = true

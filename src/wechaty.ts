@@ -44,7 +44,7 @@ import {
 }                       from './io.js'
 import type {
   PuppetModuleName,
-}                       from './puppet-config.js'
+}                       from './puppet-management/puppet-config.js'
 
 import type {
   WechatyEventName,
@@ -460,6 +460,7 @@ type WechatyImplProtectedProperty =
   | 'onStart'
   | 'onStop'
   | 'userSelf'  // deprecated, will be removed after Dec 31, 2022
+  | `_${string}`
 
 export type {
   WechatyImplProtectedProperty,

@@ -34,7 +34,7 @@ import type {
 import {
   PuppetModuleName,
   PUPPET_NAME_DEFAULT,
-}                      from './puppet-config.js'
+}                      from './puppet-management/puppet-config.js'
 import {
   packageJson,
   GIT_COMMIT_HASH,

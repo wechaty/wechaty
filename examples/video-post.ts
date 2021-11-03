@@ -1,11 +1,13 @@
-import { Wechaty } from '../src/wechaty'
-import { VideoPost } from '../src/mod'
+import {
+  WechatyBuilder,
+  VideoPostBuilder,
+}                     from '../src/mods/mod.js'
 
-const bot = new Wechaty({
+const bot = WechatyBuilder.build({
   name : 'video-post-bot',
 })
 
-const videoPost = new VideoPost({
+const videoPost = VideoPostBuilder.create({
   authorId: 'todo',
   coverageUrl: 'todo',
   title: 'todo',
@@ -22,60 +24,61 @@ async function testVideoPost () {
 
   bot.on('message', async message => {
 
-    if (message.type() !== message.type.VideoPost) {
-      return
-    }
-
-    /**
-     * Video Post
-     */
-
-    // send video post
-    const msg = await message.say(videoPost)
-    await contact.say(videoPost)
-    await room.say(videoPost)
-
-    if (!msg) {
+    if (message.type() !== message.type.Post) {
+      // send video post
+      await message.say(videoPost)
+      await contact.say(videoPost)
+      await room.say(videoPost)
       return
     }
 
     // forward video post
-    contact && await msg.forward(contact)
+    await message.forward(contact)
+
+    /**
+     * Video Post
+     */
+    const post = await message.toPost()
 
     /**
      * Comment
      */
 
     // post comment
-    const comment = await bot.Comment.comment(msg, 'xxxx')
+    await post.comment('xxxx')
 
     // reply comment
-    await comment.reply('xxxx')
+    await post.reply('xxxx')
+
+    const pagination: PaginationRequest = {}
 
     // revoke comment
-    await comment.revoke()
-
-    // list comments
-    await comment.list(msg, {
-      currentPage: 0,
-      pageSize: 10,
-    })
+    const [commentList, _pagination] = post.commentList({ contact: message.wechaty.ContactSelf() }, pagination)
+    if (commentList.length > 0) {
+      await commentList[0].delete()
+    }
 
     /**
      * Like
      */
 
     // like message
-    await bot.Like.like(msg)
+    await post.like(true)
+    // await post.tap(PostTapType.Like, true)
+
+    // check whether we have liked this post
+    const liked = await post.like()
+    // const liked = await post.tap(PostTapType.Like)
 
     // cancel like
-    await bot.Like.cancel(msg)
+    await post.like(false)
+    // await post.tap(PostTapType.Like, false)
 
     // list all likers
-    await bot.Like.list(msg, {
-      currentPage: 0,
-      pageSize: 10,
-    })
+    const [[liker, _date], _pagination] = await post.tapList(PostTapType.Like, pagination)
+    if (liker.length > 0) {
+      console.info('liker:', liker)
+    }
 
   })
 
