@@ -37,7 +37,7 @@ import {
 import type {
   SayableSayer,
   Sayable,
-}                       from './interface/mod.js'
+}                       from './sayable/mod.js'
 
 import {
   Io,

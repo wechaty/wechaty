@@ -60,6 +60,7 @@ const isPostPayloadServer = (payload: PostPayload): payload is PostPayloadServer
 
 enum PostTapType {
   Unspecified = 0,
+  Any,
   Like,
 }
 
@@ -102,7 +103,7 @@ class PuppetPost extends PuppetMock {
 
   async postPayload (
     id: string,
-  ): Promise<PostPayload> {
+  ): Promise<PostPayloadServer> {
     return {
       id,
       // parentId? : string  // `undefined` means it's not a retweet/repost
@@ -123,12 +124,14 @@ class PuppetPost extends PuppetMock {
   }
 
   async postTapList (
-    postId: string,
-    type?: PostTapType,  // undefined means any Tap type
+    postId     : string,
+    contactId? : string,
+    type?      : PostTapType,
     pagination?: PaginationRequest,
   ): Promise<PaginationResponse<PostTapListPayload>> {
     void postId
     void type
+    void contactId
     void pagination
     return {
       nextPageToken: '',
@@ -142,10 +145,12 @@ class PuppetPost extends PuppetMock {
   }
 
   async postRootList (
-    rootId: string,
-    pagination?: PaginationRequest,
+    rootId      : string,
+    contactId?  : string,
+    pagination? : PaginationRequest,
   ): Promise<PaginationResponse<string[]>> {
     void rootId
+    void contactId
     void pagination
     return {
       nextPageToken: '',
@@ -157,10 +162,12 @@ class PuppetPost extends PuppetMock {
   }
 
   async postParentList (
-    parentId: string,
-    pagination?: PaginationRequest,
+    parentId    : string,
+    contactId?  : string,
+    pagination? : PaginationRequest,
   ): Promise<PaginationResponse<string[]>> {
     void parentId
+    void contactId
     void pagination
     return {
       nextPageToken: '',
@@ -177,6 +184,9 @@ export type {
   PostPayload,
   PostPayloadClient,
   PostPayloadServer,
+  PaginationRequest,
+  PaginationResponse,
+  PostTapListPayload,
 }
 export {
   PuppetPost,

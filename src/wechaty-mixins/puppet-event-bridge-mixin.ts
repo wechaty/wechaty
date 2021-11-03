@@ -12,9 +12,10 @@ import type {
 }                             from './wechatify-user-module-mixin.js'
 import {
   PuppetManager,
-}                       from '../puppet-manager.js'
+}                       from '../puppet-management/mod.js'
 
 import { config } from '../config.js'
+import type { PuppetPost } from '../user-modules/post-puppet-api.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
@@ -26,9 +27,13 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
     /**
      * @protected
      */
-    _puppet?: PUPPET.impl.Puppet
+    // Huan(202111): developing Post
+    // _puppet?: PUPPET.impl.Puppet
+    _puppet?: PuppetPost  // FIXME: use `PUPPET.impl.Puppet`
 
-    get puppet (): PUPPET.impl.Puppet {
+    // Huan(202111): developing Post
+    // get puppet (): PUPPET.impl.Puppet {
+    get puppet (): PuppetPost { // FIXME: use `PUPPET.impl.Puppet`
       if (!this._puppet) {
         throw new Error('NOPUPPET')
       }
@@ -95,7 +100,9 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
        */
       puppetInstance.setMemory(puppetMemory)
 
-      this._puppet = puppetInstance
+      // Huan(202110) for developing Post
+      // this._puppet = puppetInstance
+      this._puppet = puppetInstance as any  // FIXME: remove any
 
       this._setupPuppetEventBridge(puppetInstance)
       // this._wechatifyUserModules()

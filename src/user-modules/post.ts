@@ -47,10 +47,27 @@ import {
   isPostPayloadServer,
   PostPayload,
   PostPayloadClient,
+  PostTapType,
+}                       from './post-puppet-api.js'
+import type {
+  PaginationRequest,
+  PaginationResponse,
+  PostTapListPayload,
 }                       from './post-puppet-api.js'
 import type { SayablePayload } from './post-payload-list.js'
 import { ContactImpl } from './contact.js'
 import type { Contact } from './contact.js'
+
+interface PostTap {
+  contact: Contact
+  type: PostTapType,
+  date: Date
+}
+
+interface PostListOptions {
+  contact?: Contact,
+  tapType?: PostTapType,
+}
 
 class PostBuilder {
 
@@ -189,7 +206,7 @@ class PostMixin extends wechatifyMixinBase() {
       throw new Error('no post id found')
     }
 
-    const newPayload = await this.wechaty.puppet.postPayoad(this.id)
+    const newPayload = await this.wechaty.puppet.postPayload(this.id)
     this._payload = newPayload
   }
 
@@ -231,6 +248,289 @@ class PostMixin extends wechatifyMixinBase() {
       }
 
     }
+  }
+
+  async * children (
+    options: PostListOptions = {},
+  ): AsyncIterableIterator<Post> {
+    log.verbose('Post', '*children(%s)', Object.keys(options).length ? JSON.stringify(options) : '')
+
+    const pagination: PaginationRequest = {}
+
+    let [postList, nextPageToken] = await this.childList(
+      options,
+      pagination,
+    )
+
+    while (true) {
+      while (postList.length) {
+        const post = postList.shift()
+        if (post) {
+          yield post
+        }
+      }
+
+      if (!nextPageToken) {
+        break
+      }
+
+      [postList, nextPageToken] = await this.childList(
+        options,
+        { ...pagination, pageToken: nextPageToken },
+      )
+    }
+  }
+
+  async * descendants (
+    options: PostListOptions = {},
+  ): AsyncIterableIterator<Post> {
+    log.verbose('Post', '*descendants(%s)', Object.keys(options).length ? JSON.stringify(options) : '')
+
+    const pagination: PaginationRequest = {}
+
+    let [postList, nextPageToken] = await this.descendantList(
+      options,
+      pagination,
+    )
+
+    while (true) {
+      while (postList.length) {
+        const post = postList.shift()
+        if (post) {
+          yield post
+        }
+      }
+
+      if (!nextPageToken) {
+        break
+      }
+
+      [postList, nextPageToken] = await this.descendantList(
+        options,
+        { ...pagination, pageToken: nextPageToken },
+      )
+    }
+  }
+
+  async * likes (
+    options: PostListOptions = {},
+  ): AsyncIterableIterator<PostTap> {
+    log.verbose('Post', '*likes(%s)', Object.keys(options).length ? JSON.stringify(options) : '')
+    return this.taps({
+      ...options,
+      tapType: PostTapType.Like,
+    })
+  }
+
+  async * taps (
+    options: PostListOptions = {},
+  ): AsyncIterableIterator<PostTap> {
+    log.verbose('Post', '*taps(%s)', Object.keys(options).length ? JSON.stringify(options) : '')
+
+    const pagination: PaginationRequest = {}
+
+    let [tapList, nextPageToken] = await this.tapList(
+      options,
+      pagination,
+    )
+
+    while (true) {
+      while (tapList.length) {
+        const tap = tapList.shift()
+        if (tap) {
+          yield tap
+        }
+      }
+
+      if (!nextPageToken) {
+        break
+      }
+
+      [tapList, nextPageToken] = await this.tapList(
+        options,
+        { ...pagination, pageToken: nextPageToken },
+      )
+    }
+  }
+
+  async like (status: boolean) : Promise<void>
+  async like ()                : Promise<undefined | Date>
+
+  async like (status?: boolean): Promise<void | undefined | Date> {
+    log.verbose('Post', 'like(%s)', typeof status === 'undefined' ? '' : status)
+
+    if (typeof status === 'undefined') {
+      return this.tap(
+        PostTapType.Like,
+      )
+    } else {
+      return this.tap(
+        PostTapType.Like,
+        status,
+      )
+    }
+  }
+
+  async tap (type: PostTapType)                  : Promise<undefined | Date>
+  async tap (type: PostTapType, status: boolean) : Promise<void>
+
+  async tap (
+    type: PostTapType,
+    status?: boolean,
+  ): Promise<void | undefined | Date> {
+    log.verbose('Post', 'tap(%s%s)',
+      PostTapType[type],
+      typeof status === 'undefined'
+        ? ''
+        : ', ' + status,
+    )
+
+    if (!this.id) {
+      throw new Error('can not tap for post without id')
+    }
+
+    if (typeof status === 'undefined') {
+      try {
+        const [list] = await this.tapList({
+          contact: this.wechaty.currentUser(),
+          tapType: type,
+        })
+
+        return list[0]?.date
+
+      } catch (e) {
+        this.wechaty.emitError(e)
+        return undefined
+      }
+    }
+
+    await this.wechaty.puppet.postTap(this.id, type, status)
+  }
+
+  async tapList (
+    options    : PostListOptions = {},
+    pagination : PaginationRequest = {},
+  ): Promise<[
+    tapList        : PostTap[],
+    nextPageToken? : string,
+  ]> {
+    log.verbose('Post', 'tapList()')
+
+    if (!this.id) {
+      throw new Error('can not get tapList for client created post')
+    }
+
+    const ret = await this.wechaty.puppet.postTapList(
+      this.id,
+      options.contact?.id,
+      options.tapType || PostTapType.Any,
+      pagination,
+    )
+
+    const nextPageToken = ret.nextPageToken
+    const response = ret.response
+
+    const tapList: PostTap[] = []
+    for (const [type, list] of Object.entries(response)) {
+      for (const [i, contactId] of list.contactId.entries()) {
+        const timestamp = list.timestamp[i]
+
+        const contact = await this.wechaty.Contact.find({ id: contactId })
+        if (!contact) {
+          log.warn('Post', 'tapList() contact not found for id: %s', contactId)
+          continue
+        }
+
+        const date = timestamp ? new Date(timestamp) : new Date()
+        tapList.push({
+          contact,
+          date,
+          type: Number(type),
+        })
+      }
+    }
+
+    return [tapList, nextPageToken]
+  }
+
+  async childList (
+    options    : PostListOptions,
+    pagination : PaginationRequest = {},
+  ): Promise<[
+    postList       : Post[],
+    nextPageToken? : string,
+  ]> {
+    log.verbose('Post', 'childList(%s%s)',
+      JSON.stringify(options),
+      Object.keys(pagination).length ? ', ' + JSON.stringify(pagination) : '',
+    )
+
+    if (!this.id) {
+      throw new Error('can not get tapList for client created post')
+    }
+
+    const ret = await this.wechaty.puppet.postParentList(
+      this.id,
+      options.contact?.id,
+      pagination,
+    )
+
+    const nextPageToken = ret.nextPageToken
+    const response = ret.response
+
+    const postList: Post[] = []
+    for (const postId of response) {
+      const post = this.wechaty.Post.load(postId)
+      try {
+        await post.ready()
+      } catch (e) {
+        log.warn('Post', 'childList() post.ready() rejection: %s', (e as Error).message)
+        continue
+      }
+      postList.push(post)
+    }
+
+    return [postList, nextPageToken]
+  }
+
+  async descendantList (
+    options    : PostListOptions,
+    pagination : PaginationRequest = {},
+  ): Promise<[
+    postList       : Post[],
+    nextPageToken? : string,
+  ]> {
+    log.verbose('Post', 'descendantList(%s%s)',
+      JSON.stringify(options),
+      Object.keys(pagination).length ? ', ' + JSON.stringify(pagination) : '',
+    )
+
+    if (!this.id) {
+      throw new Error('can not get tapList for client created post')
+    }
+
+    const ret = await this.wechaty.puppet.postRootList(
+      this.id,
+      options.contact?.id,
+      pagination,
+    )
+
+    const nextPageToken = ret.nextPageToken
+    const response = ret.response
+
+    const postList: Post[] = []
+    for (const postId of response) {
+      const post = this.wechaty.Post.load(postId)
+      try {
+        await post.ready()
+      } catch (e) {
+        log.warn('Post', 'descendantList() post.ready() rejection: %s', (e as Error).message)
+        continue
+      }
+      postList.push(post)
+    }
+
+    return [postList, nextPageToken]
   }
 
 }
