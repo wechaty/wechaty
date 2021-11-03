@@ -33,7 +33,10 @@ import { UrlLinkImpl } from './url-link.js'
 import {
   PostBuilder,
 }                   from './post.js'
-import { PuppetPost } from './post-puppet-api.js'
+import {
+  PuppetPost,
+  PostTapType,
+}                 from './post-puppet-api.js'
 
 test('Post smoke testing', async t => {
   void sinon
@@ -41,7 +44,7 @@ test('Post smoke testing', async t => {
   const puppet = new PuppetPost()
   const wechaty = WechatyBuilder.build({ puppet })
 
-  const post = await PostBuilder.new()
+  const post = PostBuilder.new()
     .add('Hello, world!')
     .add(FileBox.fromQRCode('qr'))
     .add(await UrlLinkImpl.create('https://yahoo.com'))
@@ -51,18 +54,31 @@ test('Post smoke testing', async t => {
 
   post.comment('Thanks for sharing!')
   post.like(true)
-  post.tap(WECHATY.type.Post.Tap.Like, false)
+  post.tap(PostTapType.Like, false)
 
   const pagination = {
     pageSize: 10,
     pageToken: '',
   }
+
+  for await (const sayable of post) {
+    t.ok(sayable, 'tbw')
+  }
+
   for await (const comment of post.comments(pagination)) {
     t.ok(comment, 'tbw')
   }
 
-  for await (const like of post.taps(WECHATY.type.Post.Tap.Like, pagination)) {
-    t.ok(like, 'tbw')
+  for await (const [commentList, nextPageToken] of post.commentList(pagination)) {
+    t.ok(commentList, 'tbw')
+  }
+
+  for await (const liker of post.taps(PostTapType.Like, pagination)) {
+    t.ok(liker, 'tbw')
+  }
+
+  for await (const [taperList, nextPageToken] of post.tapsList(PostTapType.Like, pagination)) {
+    t.ok(taperList, 'tbw')
   }
 
 })

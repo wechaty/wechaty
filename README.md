@@ -95,10 +95,10 @@ Wechaty already held lots of talk and got a lot of blogs in the past 4 years, he
 import { WechatyBuilder } from 'wechaty'
 
 WechatyBuilder.build()  // get a Wechaty instance
-.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
-.on('login',            user => console.log(`User ${user} logged in`))
-.on('message',       message => console.log(`Message: ${message}`))
-.start()
+  .on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
+  .on('login',            user => console.log(`User ${user} logged in`))
+  .on('message',       message => console.log(`Message: ${message}`))
+  .start()
 ```
 
 > **Notice: Wechaty requires Node.js version >= 12**

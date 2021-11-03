@@ -31,23 +31,23 @@ import assert from 'assert'
 
 function getBotList (): Wechaty[] {
   const botList = [
-    new WechatyBuilder().options({ puppet: 'wechaty-puppet-mock' }).build(),
+    WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' }),
     // new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
     // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
   if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
     botList.push(
-      new WechatyBuilder().options({
+      WechatyBuilder.build({
         puppet: 'wechaty-puppet-service',
-      }).build()
+      })
     )
   }
   if (process.env.WECHATY_PUPPET_PADLOCAL_TOKEN) {
     botList.push(
-      new WechatyBuilder().options({
+      WechatyBuilder.build({
         puppet: 'wechaty-puppet-padlocal',
-      }).build()
+      })
     )
   }
 

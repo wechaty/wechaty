@@ -46,7 +46,7 @@ class WechatyBuilder {
    *  .start()
    */
   static build (options?: WechatyOptions): Wechaty {
-    return new WechatyBuilder().options(options).build()
+    return WechatyBuilder.build(options)
   }
 
   /**
@@ -60,19 +60,19 @@ class WechatyBuilder {
     return builder.singleton().build()
   }
 
-  static new (): WechatyBuilder { return new this() }
+  protected static new (): WechatyBuilder { return new this() }
   protected constructor () {}
 
   protected _singleton = false
   protected _options: WechatyOptions = {}
 
-  singleton (): WechatyBuilder {
+  protected singleton (): WechatyBuilder {
     log.verbose('WechatyBuilder', 'singleton()')
     this._singleton = true
     return this
   }
 
-  options (options?: WechatyOptions): WechatyBuilder {
+  protected options (options?: WechatyOptions): WechatyBuilder {
     log.verbose('WechatyBuilder', 'singleton()')
     if (Object.keys(this._options).length > 0) {
       throw new Error([
@@ -88,7 +88,7 @@ class WechatyBuilder {
     return this
   }
 
-  build (): Wechaty {
+  protected build (): Wechaty {
     if (this._singleton) {
       return this.singletonInstance()
     }

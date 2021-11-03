@@ -50,9 +50,7 @@ const options = {
   // }
 }
 
-const bot = new WECHATY.WechatyBuilder()
-  .options(options)
-  .build()
+const bot = WECHATY.WechatyBuilder.build(options)
 
 /**
  *

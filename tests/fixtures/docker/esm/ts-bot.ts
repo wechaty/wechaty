@@ -19,5 +19,5 @@
  */
 import { WechatyBuilder } from 'wechaty'
 
-const bot = new WechatyBuilder().build()
+const bot = WechatyBuilder.build()
 console.info(bot.version())

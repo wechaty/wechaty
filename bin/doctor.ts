@@ -25,7 +25,7 @@ import { config }   from '../src/config.js'
 import { Doctor }   from '../src/doctor.js'
 import { WechatyBuilder }  from '../src/wechaty-builder.js'
 
-const wechaty = new WechatyBuilder().singleton().build()
+const wechaty = WechatyBuilder.singleton()
 const doctor = new Doctor()
 
 async function main () {

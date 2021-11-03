@@ -150,4 +150,7 @@ class PuppetPost extends PuppetMock {
 export type {
   PostPayload,
 }
-export { PuppetPost }
+export {
+  PuppetPost,
+  PostTapType,
+}

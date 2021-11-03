@@ -17,6 +17,14 @@
  *   limitations under the License.
  *
  */
+
+/**
+ * Issue #2245 - New Wechaty User Module (WUM):
+ *  `Post` for supporting Moments, Channel, Tweet, Weibo, Facebook feeds, etc.
+ *
+ *  @see https://github.com/wechaty/wechaty/issues/2245#issuecomment-914886835
+ */
+
 import { ContactImpl } from './contact.js'
 
 import { log }  from 'wechaty-puppet'
@@ -71,7 +79,7 @@ class PostMixin extends MixinBase {
    * Create
    *
    */
-  static async create (payload: PostPayload): Promise<Post> {
+  static create (payload: PostPayload): Post {
     log.verbose('Post', 'create()')
 
     if (payload.id) {
