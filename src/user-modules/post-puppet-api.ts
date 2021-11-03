@@ -1,6 +1,8 @@
 /* eslint-disable sort-keys */
 import { PuppetMock } from 'wechaty-puppet-mock'
+import { MessageType } from 'wechaty-puppet/dist/esm/src/schemas/message'
 import type { Sayable } from '../interface/sayable.js'
+import type { PostContentPayload } from './post-payload-list.js'
 
 /**
  * There have three types of a Post:
@@ -16,21 +18,47 @@ import type { Sayable } from '../interface/sayable.js'
  *  | Repost / ReTweet | n/a      | `parentId` |
  *
  */
-interface PostPayload {
-  id        : string
+interface PostPayloadBase {
   parentId? : string  // `undefined` means it's not a retweet/repost
   rootId?   : string  // `undefined` means itself is ROOT
 
   contactId: string
   timestamp: number
 
-  descendantCounter? : number
-  tapCounter?        : number
+  childCounter? : number
+  tapCounter?   : number
 
   // The liker information need to be fetched from another API
 
-  messageIdList: (Sayable | string)[]  // The message id for this post.
 }
+
+interface PostPayloadClient extends PostPayloadBase {
+  id?        : undefined
+  contentList: PostContentPayload[]
+}
+
+interface PostPayloadServer extends PostPayloadBase {
+  id        : string
+  contentList: string[]  // The message id(s) for this post.
+}
+
+type PostPayload =
+  | PostPayloadClient
+  | PostPayloadServer
+
+const isPostPayloadClient = (payload: PostPayload): payload is PostPayloadClient =>
+  payload instanceof Object
+    && !payload.id
+    && Array.isArray(payload.contentList)
+    && payload.contentList.length > 0
+    && payload.contentList[0] instanceof Object
+
+const isPostPayloadServer = (payload: PostPayload): payload is PostPayloadServer =>
+  payload instanceof Object
+    && !!payload.id
+    && Array.isArray(payload.contentList)
+    && payload.contentList.length > 0
+    && typeof payload.contentList[0] === 'string'
 
 enum PostTapType {
   Unspecified = 0,
@@ -149,8 +177,12 @@ class PuppetPost extends PuppetMock {
 
 export type {
   PostPayload,
+  PostPayloadClient,
+  PostPayloadServer,
 }
 export {
   PuppetPost,
   PostTapType,
+  isPostPayloadClient,
+  isPostPayloadServer,
 }

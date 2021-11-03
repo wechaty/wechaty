@@ -91,7 +91,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conver
    * Huan(202110): Checking `looseInstanceOf` is enough for the following types:
    *  so we do not check `interfaceOfClass` anymore because it will consume more resources.
    */
-  if (FileBox.validInstance(sayable)) {
+  if (FileBox.valid(sayable)) {
     /**
      * 1. File
      */

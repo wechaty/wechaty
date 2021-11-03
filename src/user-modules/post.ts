@@ -28,7 +28,8 @@
 import { ContactImpl } from './contact.js'
 
 import { log }  from 'wechaty-puppet'
-import type * as PUPPET from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
+import { FileBox } from 'file-box'
 
 import type { Contact } from './contact.js'
 import type { Constructor } from '../deprecated/clone-class.js'
@@ -40,59 +41,173 @@ import {
 }                       from '../user-mixins/wechatify.js'
 import type { Sayable } from '../interface/sayable.js'
 
-import type { PostPayload } from './post-puppet-api.js'
+import type {
+  PostPayload,
+  PostPayloadClient,
+  PostPayloadServer,
+}                       from './post-puppet-api.js'
+import {
+  isPostPayloadClient,
+  isPostPayloadServer,
+}                       from './post-puppet-api.js'
+import type { PostContentPayload } from './post-payload-list.js'
+import { DelayImpl } from './delay.js'
+import { LocationImpl } from './location.js'
+import { MessageImpl } from './message.js'
+import { MiniProgramImpl } from './mini-program.js'
+import { UrlLinkImpl } from './url-link.js'
 
 const MixinBase = wechatifyMixin(
   EmptyBase,
 )
 
+function sayableToPostContentPayload (sayable: Sayable): undefined | PostContentPayload | PostContentPayload[] {
+  // | Contact
+  // | Delay
+  // | FileBoxInterface
+  // | Location
+  // | Message
+  // | MiniProgram
+  // | number
+  // | Post
+  // | string
+  // | UrlLink
+  if (typeof sayable === 'string') {
+    return {
+      payload: sayable,
+      type: PUPPET.type.Message.Text,
+    }
+  } else if (typeof sayable === 'number') {
+    return {
+      payload: String(sayable),
+      type: PUPPET.type.Message.Text,
+    }
+  } else if (ContactImpl.validInstance(sayable)) {
+    return {
+      payload: sayable.id,
+      type: PUPPET.type.Message.Contact,
+    }
+  } else if (DelayImpl.validInstance(sayable)) {
+    // Delay is a local sayable
+    return undefined
+  } else if (FileBox.valid(sayable)) {
+    return {
+      payload: sayable,
+      type: PUPPET.type.Message.Attachment,
+    }
+  } else if (LocationImpl.validInstance(sayable)) {
+    return {
+      payload: sayable.payload,
+      type: PUPPET.type.Message.Location,
+    }
+  } else if (MessageImpl.validInstance(sayable)) {
+    // const unwrappedSayable = await sayable.toSayable()
+    // if (!unwrappedSayable) {
+    //   return undefined
+    // }
+    // return sayableToPostContentPayload(unwrappedSayable)
+    console.error('Post:sayableToPostContentPayload() not support Message yet')
+    return undefined
+  } else if (MiniProgramImpl.validInstance(sayable)) {
+    return {
+      payload: sayable.payload,
+      type: PUPPET.type.Message.MiniProgram,
+    }
+  } else if (PostImpl.validInstance(sayable)) {
+    // const unwrappedSayableList = [...sayable]
+    // if (!unwrappedSayableList) {
+    //   return undefined
+    // }
+    // return unwrappedSayableList.map(sayableToPostContentPayload)
+    console.error('not support add Post to Post yet.')
+    return undefined
+  } else if (UrlLinkImpl.validInstance(sayable)) {
+    return {
+      payload: sayable.payload,
+      type: PUPPET.type.Message.Url,
+    }
+  } else {
+    console.error(`sayableToPostContentPayload(): unsupported sayable: ${sayable}`)
+    return undefined
+  }
+}
+
 class PostBuilder {
+
+  rootId?: string
+  parentId?: string
+
+  sayableList: Sayable[] = []
 
   static new () { return new this() }
   protected constructor () {}
 
-  protected payload: Partial<PostPayload> = {
-    messageIdList: [],
-  }
-
   add (sayable: Sayable) {
-    this.payload.messageIdList!.push(sayable)
+    this.sayableList.push(sayable)
     return this
   }
 
   link (post: Post) {
-    this.payload.rootId   = post.payload.rootId
-    this.payload.parentId = post.payload.id
+    this.rootId   = post.root().id
+    this.parentId = post.id
     return this
   }
 
-  build () {
-    return PostImpl.create(this.payload)
+  async build () {
+    const contentPayloadList = this.sayableList
+      .map(sayableToPostContentPayload)
+      .flat()
+      .filter(Boolean) as PostContentPayload[]
+
+    return PostImpl.create({
+      contentList: contentPayloadList,
+      parentId: this.parentId,
+      rootId: this.rootId,
+      timestamp: Date.now(),
+    })
   }
 
 }
 
 class PostMixin extends MixinBase {
 
+  static builder (): PostBuilder { return PostBuilder.new() }
+
   /**
    *
    * Create
    *
    */
-  static create (payload: PostPayload): Post {
+  static create (
+    payload: Omit<PostPayloadClient, 'contactId'>,
+  ): Post {
     log.verbose('Post', 'create()')
 
-    if (payload.id) {
-      throw new Error('newly created Post must keep `id` to be `undefined`')
-    }
-    return new this(payload)
+    return new this({
+      ...payload,
+      contactId: this.wechaty.puppet.currentUserId,
+    })
+  }
+
+  static load (id: string): PostImplInterface {
+    log.verbose('Post', 'static load(%s)', id)
+
+    /**
+     * Must NOT use `Post` at here
+     * MUST use `this` at here
+     *
+     * because the class will be `cloneClass`-ed
+     */
+    const post = new this(id)
+
+    return post
   }
 
   /*
    * @hideconstructor
    */
   constructor (
-    public readonly payload: PUPPET.payload.Post,
+    protected readonly payload: PUPPET.payload.Post,
   ) {
     super()
     log.verbose('Post', 'constructor()')
