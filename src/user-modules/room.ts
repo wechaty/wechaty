@@ -35,7 +35,7 @@ import type {
 import { wechatyCaptureException } from '../raven.js'
 import {
   guardQrCodeValue,
-}                       from '../helper-functions/pure/guard-qr-code-value.js'
+}                       from '../pure-functions/guard-qr-code-value.js'
 
 import { Contact, ContactImpl }        from './contact.js'
 import type { Message }        from './message.js'
@@ -51,7 +51,7 @@ import {
 }                       from '../user-mixins/wechatify.js'
 import { validationMixin } from '../user-mixins/validation.js'
 import { deliverSayableConversationPuppet } from '../interface/sayable.js'
-import { isTemplateStringArray } from '../helper-functions/pure/is-template-string-array.js'
+import { isTemplateStringArray } from '../pure-functions/is-template-string-array.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(

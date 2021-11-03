@@ -23,7 +23,7 @@ import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   retryPolicy,
-}                   from '../helper-functions/mod.js'
+}                   from '../pure-functions/mod.js'
 
 import type {
   AcceptableAccepter,

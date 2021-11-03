@@ -25,8 +25,8 @@ import type {
 
 import type { Constructor } from '../deprecated/clone-class.js'
 
-import { escapeRegExp }           from '../helper-functions/pure/escape-regexp.js'
-import { timestampToDate }        from '../helper-functions/pure/timestamp-to-date.js'
+import { escapeRegExp }           from '../pure-functions/escape-regexp.js'
+import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'
 
 import {
   log,
@@ -35,6 +35,9 @@ import {
 import type {
   SayableSayer,
   Sayable,
+}                             from '../interface/mod.js'
+import {
+  toSayable,
 }                             from '../interface/mod.js'
 // import { captureException }   from '../raven.js'
 
@@ -63,8 +66,8 @@ import type {
 import type {
   Image,
 }                       from './image.js'
-import type {
-  Post,
+import {
+  Post, PostImpl,
 }                       from './post.js'
 import {
   Location,
@@ -1020,7 +1023,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     }
 
     if (this.type() !== PUPPET.type.Message.Post) {
-      throw new Error('message not a Post')
+      throw new Error('message type not a Post')
     }
 
     const postPayload = await this.wechaty.puppet.messagePost(this.id)
@@ -1029,7 +1032,12 @@ class MessageMixin extends MixinBase implements SayableSayer {
       throw new Error(`no Post payload for message ${this.id}`)
     }
 
-    return new Post(postPayload)
+    return PostImpl.create(postPayload)
+  }
+
+  async toSayable (): Promise<undefined | Sayable> {
+    log.verbose('Message', 'toSayable()')
+    return toSayable(this)
   }
 
 }

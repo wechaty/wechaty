@@ -31,6 +31,9 @@ export type {
   Wechaty,
 }                   from '../interface/mod.js'
 export {
+  toSayable,
+}                   from '../interface/mod.js'
+export {
   WechatyBuilder,
 }                       from '../wechaty-builder.js'
 

@@ -27,7 +27,7 @@ import type {
 }                     from '../interface/acceptable.js'
 import {
   timestampToDate,
-}                     from '../helper-functions/pure/timestamp-to-date.js'
+}                     from '../pure-functions/timestamp-to-date.js'
 
 import type {
   Contact,

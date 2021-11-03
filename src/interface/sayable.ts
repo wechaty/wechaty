@@ -21,7 +21,8 @@ import {
   FileBox,
   FileBoxInterface,
 }                       from 'file-box'
-import type * as PUPPET from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
+import { log } from 'wechaty-puppet'
 
 import type {
   Contact,
@@ -158,8 +159,49 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conver
   return msgId
 }
 
+async function toSayable (
+  message: Message,
+): Promise<undefined | Sayable> {
+  log.verbose('Wechaty', 'toSayable()')
+  const type = message.type()
+  switch (type) {
+    case PUPPET.type.Message.Text:
+      return message.text()
+
+    case PUPPET.type.Message.Image:
+    case PUPPET.type.Message.Attachment:
+    case PUPPET.type.Message.Audio:
+    case PUPPET.type.Message.Video:
+    case PUPPET.type.Message.Emoticon:
+      return message.toFileBox()
+
+    case PUPPET.type.Message.Contact:
+      return message.toContact()
+
+    case PUPPET.type.Message.Url:
+      return message.toUrlLink()
+
+    case PUPPET.type.Message.MiniProgram:
+      return message.toMiniProgram()
+
+    case PUPPET.type.Message.Location:
+      return message.toLocation()
+
+    default:
+      log.warn('Wechaty',
+        'toSayable() can not convert not re-sayable type: %s(%s) for %s\n%s',
+        PUPPET.type.Message[type],
+        type,
+        message,
+        new Error().stack,
+      )
+      return undefined
+  }
+}
+
 export {
   deliverSayableConversationPuppet,
+  toSayable,
 }
 export type {
   SayableSayer,

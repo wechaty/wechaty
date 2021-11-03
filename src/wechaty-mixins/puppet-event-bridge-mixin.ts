@@ -5,7 +5,7 @@ import { GError } from 'gerror'
 import { StateSwitch } from 'state-switch'
 import type { StateSwitchInterface } from 'state-switch'
 
-import { timestampToDate } from '../helper-functions/pure/timestamp-to-date.js'
+import { timestampToDate } from '../pure-functions/timestamp-to-date.js'
 import type { Contact } from '../user-modules/contact.js'
 import type {
   WechatifyUserModuleMixin,

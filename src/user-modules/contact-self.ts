@@ -29,7 +29,7 @@ import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   guardQrCodeValue,
-}                       from '../helper-functions/pure/guard-qr-code-value.js'
+}                       from '../pure-functions/guard-qr-code-value.js'
 
 import {
   ContactImpl,

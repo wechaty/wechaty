@@ -24,7 +24,7 @@ import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   openGraph,
-}               from '../helper-functions/impure/open-graph.js'
+}               from '../helper-functions/open-graph.js'
 import { validationMixin } from '../user-mixins/validation.js'
 import {
   EmptyBase,
