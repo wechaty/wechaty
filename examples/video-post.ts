@@ -1,17 +1,11 @@
+import { FileBox } from 'file-box'
+
 import {
   WechatyBuilder,
-  VideoPostBuilder,
 }                     from '../src/mods/mod.js'
 
 const bot = WechatyBuilder.build({
   name : 'video-post-bot',
-})
-
-const videoPost = VideoPostBuilder.create({
-  authorId: 'todo',
-  coverageUrl: 'todo',
-  title: 'todo',
-  videoUrl: 'todo',
 })
 
 async function testVideoPost () {
@@ -22,13 +16,16 @@ async function testVideoPost () {
     return
   }
 
+  const post = bot.Post.builder()
+    .add('hello, world')
+    .add(FileBox.fromQRCode('qr'))
+    .build()
+
+  await bot.say(post)
+
   bot.on('message', async message => {
 
     if (message.type() !== message.type.Post) {
-      // send video post
-      await message.say(videoPost)
-      await contact.say(videoPost)
-      await room.say(videoPost)
       return
     }
 
@@ -38,24 +35,22 @@ async function testVideoPost () {
     /**
      * Video Post
      */
-    const post = await message.toPost()
+    const post2 = await message.toPost()
 
     /**
      * Comment
      */
 
     // post comment
-    await post.comment('xxxx')
+    await post2.comment('xxxx')
 
     // reply comment
-    await post.reply('xxxx')
-
-    const pagination: PaginationRequest = {}
+    await post2.reply('xxxx')
 
     // revoke comment
-    const [commentList, _pagination] = post.commentList({ contact: message.wechaty.ContactSelf() }, pagination)
-    if (commentList.length > 0) {
-      await commentList[0].delete()
+    const [descendantList] = await post.descendantList({ contact: message.wechaty.currentUser() })
+    if (descendantList.length > 0) {
+      console.info(descendantList[0])
     }
 
     /**
@@ -68,6 +63,7 @@ async function testVideoPost () {
 
     // check whether we have liked this post
     const liked = await post.like()
+    console.info('liked date:', liked)
     // const liked = await post.tap(PostTapType.Like)
 
     // cancel like
@@ -75,11 +71,20 @@ async function testVideoPost () {
     // await post.tap(PostTapType.Like, false)
 
     // list all likers
-    const [[liker, _date], _pagination] = await post.tapList(PostTapType.Like, pagination)
-    if (liker.length > 0) {
-      console.info('liker:', liker)
+    const [taperList] = await post.tapList()
+    for (const tap of taperList) {
+      console.info('Taper -------')
+      console.info('taper:', tap.contact)
+      console.info('date:', tap.date)
+      console.info('type:', tap.type)
     }
 
+    for await (const like of post.likes()) {
+      console.info('-------')
+      console.info('liker:', like.contact)
+      console.info('date:', like.date)
+      console.info('type:', like.type)
+    }
   })
 
 }

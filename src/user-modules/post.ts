@@ -25,7 +25,6 @@
  *  @see https://github.com/wechaty/wechaty/issues/2245#issuecomment-914886835
  */
 
-import type * as PUPPET from 'wechaty-puppet'
 import { log }          from 'wechaty-puppet'
 
 import { instanceToClass }  from 'clone-class'
@@ -51,8 +50,6 @@ import {
 }                       from './post-puppet-api.js'
 import type {
   PaginationRequest,
-  PaginationResponse,
-  PostTapListPayload,
 }                       from './post-puppet-api.js'
 import type { SayablePayload } from './post-payload-list.js'
 import { ContactImpl } from './contact.js'
@@ -95,7 +92,7 @@ class PostBuilder {
     return this
   }
 
-  async build () {
+  build () {
     const sayablePayloadList = this.sayableList
       .map(sayableToPayload)
       .flat()
