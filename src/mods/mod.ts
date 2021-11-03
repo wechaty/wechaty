@@ -43,10 +43,14 @@ export * as type        from 'wechaty-puppet/types'
 export * as payload     from 'wechaty-puppet/payloads'
 export * as helper      from 'wechaty-puppet/helpers'
 
-export * as impl        from './impls.js'
-export * as user        from './users.js'
-
 export *                from './users.js'
+/**
+ * Huan(202111): `users` need to be put before `impls`
+ *  because of they have overlap interfaces and
+ *  the VSCode will use the first see name in the IDE intelligence.
+ */
+export * as user        from './users.js'
+export * as impl        from './impls.js'
 
 export {
   ScanStatus,

@@ -25,8 +25,6 @@ import {
 
 import { FileBox } from 'file-box'
 
-import * as WECHATY from '../mods/mod.js'
-
 import { WechatyBuilder } from '../wechaty-builder.js'
 
 import { UrlLinkImpl } from './url-link.js'
@@ -63,8 +61,8 @@ test('Post smoke testing', async t => {
     t.ok(sayable, 'tbw')
   }
 
-  for await (const comment of post.descendants()) {
-    t.ok(comment, 'tbw')
+  for await (const descendantPost of post.descendants()) {
+    t.ok(descendantPost, 'tbw')
   }
 
   const [descendantList, _nextPageToken2] = await post.descendantList({}, pagination)
