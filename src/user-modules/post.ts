@@ -73,15 +73,17 @@ class PostBuilder {
 
   sayableList: Sayable[] = []
 
-  static new () { return new this() }
-  protected constructor () {}
+  static new (Impl: typeof PostMixin) { return new this(Impl) }
+  protected constructor (
+    protected Impl: typeof PostMixin,
+  ) {}
 
   add (sayable: Sayable) {
     this.sayableList.push(sayable)
     return this
   }
 
-  link (post: Post): this {
+  reply (post: Post): this {
     if (!post.id) {
       throw new Error('can not link to a post without id: ' + JSON.stringify(post))
     }
@@ -92,13 +94,13 @@ class PostBuilder {
     return this
   }
 
-  build () {
+  build (): Post {
     const sayablePayloadList = this.sayableList
       .map(sayableToPayload)
       .flat()
       .filter(Boolean) as SayablePayload[]
 
-    return PostImpl.create({
+    return this.Impl.create({
       parentId    : this.parentId,
       rootId      : this.rootId,
       sayableList : sayablePayloadList,
@@ -110,7 +112,7 @@ class PostBuilder {
 
 class PostMixin extends wechatifyMixinBase() {
 
-  static builder (): PostBuilder { return PostBuilder.new() }
+  static builder (): PostBuilder { return PostBuilder.new(this) }
 
   /**
    *
@@ -347,6 +349,36 @@ class PostMixin extends wechatifyMixinBase() {
         options,
         { ...pagination, pageToken: nextPageToken },
       )
+    }
+  }
+
+  async reply (sayable: Sayable | Sayable[]): Promise<void | Post> {
+    log.verbose('Post', 'reply(%s)', sayable)
+
+    if (!this.id) {
+      throw new Error('no post id found')
+    }
+
+    const builder = instanceToClass(this, PostImpl).builder()
+
+    if (Array.isArray(sayable)) {
+      for (const item of sayable) {
+        builder.add(item)
+      }
+    } else {
+      builder.add(sayable)
+    }
+
+    const post = builder
+      .reply(this)
+      .build()
+
+    const postId = await this.wechaty.puppet.postSend(post.payload)
+
+    if (postId) {
+      const newPost = instanceToClass(this, PostImpl).load(postId)
+      await newPost.ready()
+      return newPost
     }
   }
 

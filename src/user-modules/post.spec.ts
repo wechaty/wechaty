@@ -30,9 +30,7 @@ import * as WECHATY from '../mods/mod.js'
 import { WechatyBuilder } from '../wechaty-builder.js'
 
 import { UrlLinkImpl } from './url-link.js'
-import {
-  PostBuilder,
-}                   from './post.js'
+
 import {
   PuppetPost,
   PostTapType,
@@ -44,7 +42,7 @@ test('Post smoke testing', async t => {
   const puppet = new PuppetPost()
   const wechaty = WechatyBuilder.build({ puppet })
 
-  const post = PostBuilder.new()
+  const post = wechaty.Post.builder()
     .add('Hello, world!')
     .add(FileBox.fromQRCode('qr'))
     .add(await UrlLinkImpl.create('https://yahoo.com'))
@@ -52,9 +50,9 @@ test('Post smoke testing', async t => {
 
   await wechaty.say(post)
 
-  post.comment('Thanks for sharing!')
-  post.like(true)
-  post.tap(PostTapType.Like, false)
+  await post.reply('Thanks for sharing!')
+  await post.like(true)
+  await post.tap(PostTapType.Like, false)
 
   const pagination = {
     pageSize: 10,
@@ -65,20 +63,17 @@ test('Post smoke testing', async t => {
     t.ok(sayable, 'tbw')
   }
 
-  for await (const comment of post.comments(pagination)) {
+  for await (const comment of post.descendants()) {
     t.ok(comment, 'tbw')
   }
 
-  for await (const [commentList, nextPageToken] of post.commentList(pagination)) {
-    t.ok(commentList, 'tbw')
-  }
+  const [descendantList, _nextPageToken2] = await post.descendantList({}, pagination)
+  t.ok(descendantList, 'tbw')
 
-  for await (const liker of post.taps(PostTapType.Like, pagination)) {
+  for await (const liker of post.taps({ tapType: PostTapType.Like })) {
     t.ok(liker, 'tbw')
   }
 
-  for await (const [taperList, nextPageToken] of post.tapsList(PostTapType.Like, pagination)) {
-    t.ok(taperList, 'tbw')
-  }
-
+  const [tapList, _nextPageToken3] = await post.tapList({ tapType: PostTapType.Like }, pagination)
+  t.ok(tapList, 'tbw')
 })

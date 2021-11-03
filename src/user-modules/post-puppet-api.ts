@@ -178,6 +178,10 @@ class PuppetPost extends PuppetMock {
     }
   }
 
+  async postSend (payload: PostPayload): Promise<void | string> {
+    void payload
+  }
+
 }
 
 export type {

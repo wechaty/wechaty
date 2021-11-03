@@ -25,9 +25,9 @@ async function testVideoPost () {
 
   bot.on('message', async message => {
 
-    if (message.type() !== message.type.Post) {
-      return
-    }
+    // if (message.type() !== message.type.Post) {
+    //   return
+    // }
 
     // forward video post
     await message.forward(contact)
@@ -40,10 +40,6 @@ async function testVideoPost () {
     /**
      * Comment
      */
-
-    // post comment
-    await post2.comment('xxxx')
-
     // reply comment
     await post2.reply('xxxx')
 

@@ -28,10 +28,12 @@ export type {
 export type {
   SayableSayer,
   Sayable,
-  Wechaty,
-}                   from '../interface/mod.js'
+}                   from '../sayable/mod.js'
 export {
-  toSayable,
+  messageToSayable,
+}                   from '../sayable/mod.js'
+export type {
+  Wechaty,
 }                   from '../interface/mod.js'
 export {
   WechatyBuilder,
