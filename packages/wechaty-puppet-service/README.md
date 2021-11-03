@@ -25,9 +25,9 @@ we have a blog post to explain them in details at
 ## Usage
 
 ```ts
-import { Wechaty } from 'wechaty'
+import { WechatyBuilder } from 'wechaty'
 
-const wechaty = new Wechaty({
+const wechaty = WechatyBuilder.build({
   puppet: 'wechaty-puppet-service',
   puppetOptions: {
     token: `${TOKEN}`
