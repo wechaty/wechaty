@@ -27,16 +27,11 @@ import {
 }               from '../helper-functions/open-graph.js'
 import { validationMixin } from '../user-mixins/validation.js'
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.js'
 import { log } from '../config.js'
 
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
-
-class UrlLinkMixin extends MixinBase {
+class UrlLinkMixin extends wechatifyMixinBase() {
 
   /**
    *

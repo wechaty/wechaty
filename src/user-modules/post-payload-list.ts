@@ -6,48 +6,53 @@ import type {
 import type { FileBoxInterface } from 'file-box'
 
 interface SayablePayloadAttatchment {
-  type: type.Message.Attachment,
-  payload: FileBoxInterface,
+  type: type.Message.Attachment
+  payload: FileBoxInterface
 }
 
 interface SayablePayloadAudio {
-  type: type.Message.Audio,
-  payload: FileBoxInterface,
+  type: type.Message.Audio
+  payload: FileBoxInterface
 }
 
 interface SayablePayloadContact {
-  type: type.Message.Contact,
-  payload: string,
+  type: type.Message.Contact
+  payload: string
 }
 
 interface SayablePayloadEmoticon {
-  type: type.Message.Emoticon,
-  payload: FileBoxInterface,
+  type: type.Message.Emoticon
+  payload: FileBoxInterface
 }
 
 interface SayablePayloadImage {
-  type: type.Message.Image,
-  payload: FileBoxInterface,
+  type: type.Message.Image
+  payload: FileBoxInterface
 }
 
 interface SayablePayloadLocation {
-  type: type.Message.Location,
-  payload: payload.Location,
+  type: type.Message.Location
+  payload: payload.Location
 }
 
 interface SayablePayloadMiniProgram {
-  type: type.Message.MiniProgram,
-  payload: payload.MiniProgram,
+  type: type.Message.MiniProgram
+  payload: payload.MiniProgram
 }
 
 interface SayablePayloadText {
-  type: type.Message.Text,
-  payload: string,
+  type: type.Message.Text
+  payload: string
 }
 
 interface SayablePayloadUrl {
-  type: type.Message.Url,
-  payload: payload.UrlLink,
+  type: type.Message.Url
+  payload: payload.UrlLink
+}
+
+interface SayablePayloadVideo {
+  type: type.Message.Video
+  payload: FileBoxInterface
 }
 
 type SayablePayload =
@@ -60,6 +65,7 @@ type SayablePayload =
   | SayablePayloadMiniProgram
   | SayablePayloadText
   | SayablePayloadUrl
+  | SayablePayloadVideo
 
 // TODO: add an unit test to confirm that all unsupported type are listed here
 type SayablePayloadUnsupportedType =

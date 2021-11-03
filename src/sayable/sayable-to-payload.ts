@@ -20,8 +20,8 @@ import type {
   Sayable,
 }                   from './types.js'
 
-function sayablePayload (sayable: Sayable): undefined | SayablePayload | SayablePayload[] {
-  log.verbose('Wechaty', 'sayablePayload(%s)', sayable)
+function sayableToPayload (sayable: Sayable): undefined | SayablePayload | SayablePayload[] {
+  log.verbose('Wechaty', 'sayableToPayload(%s)', sayable)
 
   if (typeof sayable === 'string') {
     return {
@@ -57,7 +57,7 @@ function sayablePayload (sayable: Sayable): undefined | SayablePayload | Sayable
     //   return undefined
     // }
     // return sayableToSayablePayload(unwrappedSayable)
-    console.error('Post:sayableToSayablePayload() not support Message yet')
+    console.error('Post:sayableToPayload() not support Message yet')
     return undefined
   } else if (MiniProgramImpl.validInstance(sayable)) {
     return {
@@ -78,11 +78,11 @@ function sayablePayload (sayable: Sayable): undefined | SayablePayload | Sayable
       type: PUPPET.type.Message.Url,
     }
   } else {
-    console.error(`sayableToSayablePayload(): unsupported sayable: ${sayable}`)
+    console.error(`sayableToPayload(): unsupported sayable: ${sayable}`)
     return undefined
   }
 }
 
 export {
-  sayablePayload,
+  sayableToPayload,
 }

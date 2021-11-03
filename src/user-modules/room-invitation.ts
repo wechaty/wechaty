@@ -33,20 +33,15 @@ import type {
   Contact,
 }               from './contact.js'
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                     from '../user-mixins/wechatify.js'
 import { validationMixin } from '../user-mixins/validation.js'
-
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
 
 /**
  *
  * accept room invitation
  */
-class RoomInvitationMixin extends MixinBase implements AcceptableAccepter {
+class RoomInvitationMixin extends wechatifyMixinBase() implements AcceptableAccepter {
 
   static load (
     id   : string,

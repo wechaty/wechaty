@@ -35,11 +35,10 @@ import {
 import type {
   SayableSayer,
   Sayable,
-}                             from '../interface/mod.js'
+}                             from '../sayable/mod.js'
 import {
-  toSayable,
-}                             from '../interface/mod.js'
-// import { captureException }   from '../raven.js'
+  messageToSayable,
+}                             from '../sayable/mod.js'
 
 import {
   wechatifyMixin,
@@ -1037,7 +1036,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
   async toSayable (): Promise<undefined | Sayable> {
     log.verbose('Message', 'toSayable()')
-    return toSayable(this)
+    return messageToSayable(this)
   }
 
 }

@@ -7,7 +7,7 @@ import type {
 
 import type { Sayable } from './types.js'
 
-async function toSayable (
+async function messageToSayable (
   message: Message,
 ): Promise<undefined | Sayable> {
   log.verbose('Wechaty', 'toSayable(%s)', message)
@@ -50,5 +50,5 @@ async function toSayable (
 }
 
 export {
-  toSayable,
+  messageToSayable,
 }

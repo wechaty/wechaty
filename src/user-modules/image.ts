@@ -26,15 +26,10 @@ import { validationMixin } from '../user-mixins/validation.js'
 import { log } from '../config.js'
 
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.js'
 
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
-
-class ImageMixin extends MixinBase {
+class ImageMixin extends wechatifyMixinBase() {
 
   static create (id: string): Image {
     log.verbose('Image', 'static create(%s)', id)

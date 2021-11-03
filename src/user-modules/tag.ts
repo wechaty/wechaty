@@ -31,15 +31,12 @@ import {
 }                     from '../user-mixins/poolify.js'
 import { validationMixin } from '../user-mixins/validation.js'
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                     from '../user-mixins/wechatify.js'
 
-const MixinBase = wechatifyMixin(
-  poolifyMixin(
-    EmptyBase,
-  )<Tag>(),
-)
+const MixinBase = poolifyMixin(
+  wechatifyMixinBase(),
+)<Tag>()
 
 class TagMixin extends MixinBase {
 

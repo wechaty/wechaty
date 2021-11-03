@@ -28,7 +28,6 @@
 import type * as PUPPET from 'wechaty-puppet'
 import { log }          from 'wechaty-puppet'
 
-import { FileBox }          from 'file-box'
 import { instanceToClass }  from 'clone-class'
 
 import type { Constructor } from '../deprecated/clone-class.js'
@@ -39,12 +38,15 @@ import {
 }                       from '../user-mixins/mod.js'
 
 import type { Sayable } from '../sayable/mod.js'
-import { sayablePayload } from '../sayable/mod.js'
+import {
+  sayableToPayload,
+  payloadToSayableWechaty,
+}                       from '../sayable/mod.js'
 
-import type {
+import {
+  isPostPayloadServer,
   PostPayload,
   PostPayloadClient,
-  PostPayloadServer,
 }                       from './post-puppet-api.js'
 import type { SayablePayload } from './post-payload-list.js'
 import { ContactImpl } from './contact.js'
@@ -78,7 +80,7 @@ class PostBuilder {
 
   async build () {
     const sayablePayloadList = this.sayableList
-      .map(sayablePayload)
+      .map(sayableToPayload)
       .flat()
       .filter(Boolean) as SayablePayload[]
 
@@ -203,6 +205,32 @@ class PostMixin extends wechatifyMixinBase() {
     }
 
     await this.sync()
+  }
+
+  async * [Symbol.asyncIterator] (): AsyncIterableIterator<Sayable> {
+    log.verbose('Post', '[Symbol.asyncIterator]()')
+
+    if (isPostPayloadServer(this.payload)) {
+      for (const messageId of this.payload.sayableList) {
+        const message = await this.wechaty.Message.find({ id: messageId })
+        if (message) {
+          const sayable = await message.toSayable()
+          if (sayable) {
+            yield sayable
+          }
+        }
+      }
+
+    } else {  // client
+      const payloadToSayable = payloadToSayableWechaty(this.wechaty)
+      for (const sayablePayload of this.payload.sayableList) {
+        const sayable = await payloadToSayable(sayablePayload)
+        if (sayable) {
+          yield sayable
+        }
+      }
+
+    }
   }
 
 }

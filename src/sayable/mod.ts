@@ -3,11 +3,14 @@ import type {
   Sayable,
 }                                     from './types.js'
 import {
-  toSayable,
+  messageToSayable,
 }                                     from './message-to-sayable.js'
 import {
-  sayablePayload,
+  sayableToPayload,
 }                                     from './sayable-to-payload.js'
+import {
+  payloadToSayableWechaty,
+}                                     from './payload-to-sayable.js'
 import {
   deliverSayableConversationPuppet,
 }                                     from './deliver-sayable.js'
@@ -17,7 +20,8 @@ export type {
   SayableSayer,
 }
 export {
-  toSayable,
-  sayablePayload,
+  messageToSayable,
+  sayableToPayload,
+  payloadToSayableWechaty,
   deliverSayableConversationPuppet,
 }
