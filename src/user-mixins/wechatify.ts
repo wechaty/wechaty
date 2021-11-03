@@ -62,11 +62,11 @@ const wechatifyMixin = <TBase extends Constructor> (Base: TBase) => {
   return AbstractWechatifyMixin
 }
 
-class EmptyBase {}
+const wechatifyMixinBase = () => wechatifyMixin(class EmptyBase {})
 
 export {
-  EmptyBase,
   isWechatified,
   wechatifyMixin,
+  wechatifyMixinBase,
   wechatifyUserModule,
 }

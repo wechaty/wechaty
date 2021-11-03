@@ -29,27 +29,26 @@ import type {
 import {
   log,
 }                           from '../config.js'
+
+import { ContactEventEmitter }        from '../events/mod.js'
+
+import {
+  poolifyMixin,
+  wechatifyMixin,
+  validationMixin,
+}                                     from '../user-mixins/mod.js'
+import {
+  deliverSayableConversationPuppet,
+}                                     from '../sayable/mod.js'
 import type {
   SayableSayer,
   Sayable,
-}                          from '../interface/mod.js'
-// import { captureException } from '../raven.js'
+}                                     from '../sayable/mod.js'
 
 import type {
   Message,
 }                   from './message.js'
 import type { Tag }     from './tag.js'
-
-import { ContactEventEmitter }  from '../events/contact-events.js'
-import {
-  poolifyMixin,
-}             from '../user-mixins/poolify.js'
-
-import {
-  wechatifyMixin,
-}                       from '../user-mixins/wechatify.js'
-import { validationMixin } from '../user-mixins/validation.js'
-import { deliverSayableConversationPuppet } from '../interface/sayable.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(

@@ -27,31 +27,31 @@ import {
   FOUR_PER_EM_SPACE,
   log,
 }                           from '../config.js'
-import type {
-  SayableSayer,
-  Sayable,
-}                           from '../interface/mod.js'
 
 import { wechatyCaptureException } from '../raven.js'
 import {
   guardQrCodeValue,
 }                       from '../pure-functions/guard-qr-code-value.js'
 
-import { Contact, ContactImpl }        from './contact.js'
-import type { Message }        from './message.js'
-
-import { RoomEventEmitter } from '../events/room-events.js'
+import { RoomEventEmitter } from '../events/mod.js'
 
 import {
   poolifyMixin,
-}             from '../user-mixins/poolify.js'
-
-import {
   wechatifyMixin,
-}                       from '../user-mixins/wechatify.js'
-import { validationMixin } from '../user-mixins/validation.js'
-import { deliverSayableConversationPuppet } from '../interface/sayable.js'
+  validationMixin,
+}                                       from '../user-mixins/mod.js'
+import {
+  deliverSayableConversationPuppet,
+}                                       from '../sayable/mod.js'
+import type {
+  SayableSayer,
+  Sayable,
+}                                       from '../sayable/mod.js'
+
 import { isTemplateStringArray } from '../pure-functions/is-template-string-array.js'
+
+import { Contact, ContactImpl }        from './contact.js'
+import type { Message }        from './message.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(

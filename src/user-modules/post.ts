@@ -25,112 +25,30 @@
  *  @see https://github.com/wechaty/wechaty/issues/2245#issuecomment-914886835
  */
 
-import { ContactImpl } from './contact.js'
+import type * as PUPPET from 'wechaty-puppet'
+import { log }          from 'wechaty-puppet'
 
-import { log }  from 'wechaty-puppet'
-import * as PUPPET from 'wechaty-puppet'
-import { FileBox } from 'file-box'
+import { FileBox }          from 'file-box'
+import { instanceToClass }  from 'clone-class'
 
-import type { Contact } from './contact.js'
 import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from '../user-mixins/validation.js'
 
 import {
-  EmptyBase,
-  wechatifyMixin,
-}                       from '../user-mixins/wechatify.js'
-import type { Sayable } from '../interface/sayable.js'
+  validationMixin,
+  wechatifyMixinBase,
+}                       from '../user-mixins/mod.js'
+
+import type { Sayable } from '../sayable/mod.js'
+import { sayablePayload } from '../sayable/mod.js'
 
 import type {
   PostPayload,
   PostPayloadClient,
   PostPayloadServer,
 }                       from './post-puppet-api.js'
-import {
-  isPostPayloadClient,
-  isPostPayloadServer,
-}                       from './post-puppet-api.js'
-import type { PostContentPayload } from './post-payload-list.js'
-import { DelayImpl } from './delay.js'
-import { LocationImpl } from './location.js'
-import { MessageImpl } from './message.js'
-import { MiniProgramImpl } from './mini-program.js'
-import { UrlLinkImpl } from './url-link.js'
-
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
-
-function sayableToPostContentPayload (sayable: Sayable): undefined | PostContentPayload | PostContentPayload[] {
-  // | Contact
-  // | Delay
-  // | FileBoxInterface
-  // | Location
-  // | Message
-  // | MiniProgram
-  // | number
-  // | Post
-  // | string
-  // | UrlLink
-  if (typeof sayable === 'string') {
-    return {
-      payload: sayable,
-      type: PUPPET.type.Message.Text,
-    }
-  } else if (typeof sayable === 'number') {
-    return {
-      payload: String(sayable),
-      type: PUPPET.type.Message.Text,
-    }
-  } else if (ContactImpl.validInstance(sayable)) {
-    return {
-      payload: sayable.id,
-      type: PUPPET.type.Message.Contact,
-    }
-  } else if (DelayImpl.validInstance(sayable)) {
-    // Delay is a local sayable
-    return undefined
-  } else if (FileBox.valid(sayable)) {
-    return {
-      payload: sayable,
-      type: PUPPET.type.Message.Attachment,
-    }
-  } else if (LocationImpl.validInstance(sayable)) {
-    return {
-      payload: sayable.payload,
-      type: PUPPET.type.Message.Location,
-    }
-  } else if (MessageImpl.validInstance(sayable)) {
-    // const unwrappedSayable = await sayable.toSayable()
-    // if (!unwrappedSayable) {
-    //   return undefined
-    // }
-    // return sayableToPostContentPayload(unwrappedSayable)
-    console.error('Post:sayableToPostContentPayload() not support Message yet')
-    return undefined
-  } else if (MiniProgramImpl.validInstance(sayable)) {
-    return {
-      payload: sayable.payload,
-      type: PUPPET.type.Message.MiniProgram,
-    }
-  } else if (PostImpl.validInstance(sayable)) {
-    // const unwrappedSayableList = [...sayable]
-    // if (!unwrappedSayableList) {
-    //   return undefined
-    // }
-    // return unwrappedSayableList.map(sayableToPostContentPayload)
-    console.error('not support add Post to Post yet.')
-    return undefined
-  } else if (UrlLinkImpl.validInstance(sayable)) {
-    return {
-      payload: sayable.payload,
-      type: PUPPET.type.Message.Url,
-    }
-  } else {
-    console.error(`sayableToPostContentPayload(): unsupported sayable: ${sayable}`)
-    return undefined
-  }
-}
+import type { SayablePayload } from './post-payload-list.js'
+import { ContactImpl } from './contact.js'
+import type { Contact } from './contact.js'
 
 class PostBuilder {
 
@@ -147,29 +65,34 @@ class PostBuilder {
     return this
   }
 
-  link (post: Post) {
-    this.rootId   = post.root().id
-    this.parentId = post.id
+  link (post: Post): this {
+    if (!post.id) {
+      throw new Error('can not link to a post without id: ' + JSON.stringify(post))
+    }
+
+    this.parentId = post.payload.id
+    this.rootId   = post.payload.rootId
+
     return this
   }
 
   async build () {
-    const contentPayloadList = this.sayableList
-      .map(sayableToPostContentPayload)
+    const sayablePayloadList = this.sayableList
+      .map(sayablePayload)
       .flat()
-      .filter(Boolean) as PostContentPayload[]
+      .filter(Boolean) as SayablePayload[]
 
     return PostImpl.create({
-      contentList: contentPayloadList,
-      parentId: this.parentId,
-      rootId: this.rootId,
-      timestamp: Date.now(),
+      parentId    : this.parentId,
+      rootId      : this.rootId,
+      sayableList : sayablePayloadList,
+      timestamp   : Date.now(),
     })
   }
 
 }
 
-class PostMixin extends MixinBase {
+class PostMixin extends wechatifyMixinBase() {
 
   static builder (): PostBuilder { return PostBuilder.new() }
 
@@ -183,13 +106,16 @@ class PostMixin extends MixinBase {
   ): Post {
     log.verbose('Post', 'create()')
 
-    return new this({
+    const post = new this()
+    post._payload = {
       ...payload,
       contactId: this.wechaty.puppet.currentUserId,
-    })
+    }
+
+    return post
   }
 
-  static load (id: string): PostImplInterface {
+  static load (id: string): Post {
     log.verbose('Post', 'static load(%s)', id)
 
     /**
@@ -203,17 +129,27 @@ class PostMixin extends MixinBase {
     return post
   }
 
+  protected _payload?: PostPayload
+  get payload (): PostPayload {
+    if (!this._payload) {
+      throw new Error('no payload')
+    }
+    return this._payload
+  }
+
   /*
    * @hideconstructor
    */
   constructor (
-    protected readonly payload: PUPPET.payload.Post,
+    public readonly id?: string,
   ) {
     super()
-    log.verbose('Post', 'constructor()')
+    log.verbose('Post', 'constructor(%s)', id ?? '')
   }
 
   async author (): Promise<Contact> {
+    log.silly('Post', 'author()')
+
     const author = await ContactImpl.find(this.payload.contactId)
     if (!author) {
       throw new Error('no author for id: ' + this.payload.contactId)
@@ -221,16 +157,52 @@ class PostMixin extends MixinBase {
     return author
   }
 
-  coverageUrl (): string {
-    return this.payload.coverageUrl
+  async root (): Promise<undefined | Post> {
+    log.silly('Post', 'root()')
+
+    if (!this.payload.rootId) {
+      return undefined
+    }
+
+    const post = instanceToClass(this, PostImpl).load(this.payload.rootId)
+    await post.ready()
+    return post
   }
 
-  videoUrl (): string {
-    return this.payload.videoUrl
+  async parent (): Promise<undefined | Post> {
+    log.silly('Post', 'parent()')
+    if (!this.payload.parentId) {
+      return undefined
+    }
+
+    const post = instanceToClass(this, PostImpl).load(this.payload.parentId)
+    await post.ready()
+    return post
   }
 
-  title (): string {
-    return this.payload.title
+  async sync (): Promise<void> {
+    log.silly('Post', 'sync()')
+
+    if (!this.id) {
+      throw new Error('no post id found')
+    }
+
+    const newPayload = await this.wechaty.puppet.postPayoad(this.id)
+    this._payload = newPayload
+  }
+
+  async ready (): Promise<void> {
+    log.silly('Post', 'ready()')
+
+    if (!this.id) {
+      throw new Error('no post id found')
+    }
+
+    if (this._payload) {
+      return
+    }
+
+    await this.sync()
   }
 
 }

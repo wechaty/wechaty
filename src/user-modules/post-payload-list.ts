@@ -5,69 +5,69 @@ import type {
 
 import type { FileBoxInterface } from 'file-box'
 
-interface PostContentPayloadAttatchment {
+interface SayablePayloadAttatchment {
   type: type.Message.Attachment,
   payload: FileBoxInterface,
 }
 
-interface PostContentPayloadAudio {
+interface SayablePayloadAudio {
   type: type.Message.Audio,
   payload: FileBoxInterface,
 }
 
-interface PostContentPayloadContact {
+interface SayablePayloadContact {
   type: type.Message.Contact,
   payload: string,
 }
 
-interface PostContentPayloadEmoticon {
+interface SayablePayloadEmoticon {
   type: type.Message.Emoticon,
   payload: FileBoxInterface,
 }
 
-interface PostContentPayloadImage {
+interface SayablePayloadImage {
   type: type.Message.Image,
   payload: FileBoxInterface,
 }
 
-interface PostContentPayloadLocation {
+interface SayablePayloadLocation {
   type: type.Message.Location,
   payload: payload.Location,
 }
 
-interface PostContentPayloadMiniProgram {
+interface SayablePayloadMiniProgram {
   type: type.Message.MiniProgram,
   payload: payload.MiniProgram,
 }
 
-interface PostContentPayloadText {
+interface SayablePayloadText {
   type: type.Message.Text,
   payload: string,
 }
 
-interface PostContentPayloadUrl {
+interface SayablePayloadUrl {
   type: type.Message.Url,
   payload: payload.UrlLink,
 }
 
-type PostContentPayload =
-  | PostContentPayloadAttatchment
-  | PostContentPayloadAudio
-  | PostContentPayloadContact
-  | PostContentPayloadEmoticon
-  | PostContentPayloadImage
-  | PostContentPayloadLocation
-  | PostContentPayloadMiniProgram
-  | PostContentPayloadText
-  | PostContentPayloadUrl
+type SayablePayload =
+  | SayablePayloadAttatchment
+  | SayablePayloadAudio
+  | SayablePayloadContact
+  | SayablePayloadEmoticon
+  | SayablePayloadImage
+  | SayablePayloadLocation
+  | SayablePayloadMiniProgram
+  | SayablePayloadText
+  | SayablePayloadUrl
 
 // TODO: add an unit test to confirm that all unsupported type are listed here
-type PostContentPayloadUnsupportedType =
+type SayablePayloadUnsupportedType =
   | 'ChatHistory'
   | 'GroupNote'
   | 'Recalled'
   | 'RedEnvolop'
 
 export type {
-  PostContentPayload,
+  SayablePayload,
 }

@@ -1,8 +1,6 @@
 /* eslint-disable sort-keys */
 import { PuppetMock } from 'wechaty-puppet-mock'
-import { MessageType } from 'wechaty-puppet/dist/esm/src/schemas/message'
-import type { Sayable } from '../interface/sayable.js'
-import type { PostContentPayload } from './post-payload-list.js'
+import type { SayablePayload } from './post-payload-list.js'
 
 /**
  * There have three types of a Post:
@@ -34,12 +32,12 @@ interface PostPayloadBase {
 
 interface PostPayloadClient extends PostPayloadBase {
   id?        : undefined
-  contentList: PostContentPayload[]
+  sayableList: SayablePayload[]
 }
 
 interface PostPayloadServer extends PostPayloadBase {
   id        : string
-  contentList: string[]  // The message id(s) for this post.
+  sayableList: string[]  // The message id(s) for this post.
 }
 
 type PostPayload =
@@ -49,16 +47,16 @@ type PostPayload =
 const isPostPayloadClient = (payload: PostPayload): payload is PostPayloadClient =>
   payload instanceof Object
     && !payload.id
-    && Array.isArray(payload.contentList)
-    && payload.contentList.length > 0
-    && payload.contentList[0] instanceof Object
+    && Array.isArray(payload.sayableList)
+    && payload.sayableList.length > 0
+    && payload.sayableList[0] instanceof Object
 
 const isPostPayloadServer = (payload: PostPayload): payload is PostPayloadServer =>
   payload instanceof Object
     && !!payload.id
-    && Array.isArray(payload.contentList)
-    && payload.contentList.length > 0
-    && typeof payload.contentList[0] === 'string'
+    && Array.isArray(payload.sayableList)
+    && payload.sayableList.length > 0
+    && typeof payload.sayableList[0] === 'string'
 
 enum PostTapType {
   Unspecified = 0,
@@ -118,7 +116,7 @@ class PuppetPost extends PuppetMock {
 
       // The liker information need to be fetched from another API
 
-      messageIdList: [
+      sayableList: [
         'fsdaf',
       ],
     }
