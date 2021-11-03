@@ -892,16 +892,27 @@ export class PuppetService extends PUPPET.Puppet {
   override async messageFile (id: string): Promise<FileBoxInterface> {
     log.verbose('PuppetService', 'messageFile(%s)', id)
 
-    const request = new grpcPuppet.MessageFileRequest()
-    request.setId(id)
-    const response = await util.promisify(
-      this.grpc.client.messageFile
-        .bind(this.grpc.client),
-    )(request)
+    try {
+      const request = new grpcPuppet.MessageFileRequest()
+      request.setId(id)
+      const response = await util.promisify(
+        this.grpc.client.messageFile
+          .bind(this.grpc.client),
+      )(request)
 
-    const jsonText = response.getFileBox()
-    if (jsonText) {
-      return this.FileBoxUuid.fromJSON(jsonText)
+      const jsonText = response.getFileBox()
+      if (jsonText) {
+        return this.FileBoxUuid.fromJSON(jsonText)
+      }
+    } catch (e) {
+      log.warn('PuppetService', 'messageFile() rejection: %s', (e as Error).message)
+      log.warn('PuppetService', [
+        'This might because you are using Wechaty v1.x with a Puppet Service v0.x',
+        'Contact your Wechaty Puppet Service provided to report this problem',
+        'Related issues:',
+        ' - https://github.com/wechaty/puppet-service/issues/179',
+        ' - https://github.com/wechaty/puppet-service/pull/170',
+      ].join('\n'))
     }
 
     {
