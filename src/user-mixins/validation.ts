@@ -7,7 +7,7 @@ import type { Constructor } from 'clone-class'
 import { log }              from 'wechaty-puppet'
 
 const validationMixin = <MixinBase extends Constructor> (mixinBase: MixinBase) => <T>() => {
-  log.verbose('user/mixins/validation', 'validationMixin(%s)', mixinBase.name)
+  log.verbose('ValidationMixin', 'validationMixin(%s)', mixinBase.name)
 
   const instanceOfUserClass   = looseInstanceOfClass(mixinBase)
   const interfaceOfUserClass  = interfaceOfClass(mixinBase)<T>()

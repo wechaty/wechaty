@@ -23,9 +23,9 @@ interface PoolifyMixin<T> {
  * a default turns off inference.
  */
 const poolifyMixin = <MixinBase extends Constructor>(mixinBase: MixinBase) => <T>() => {
-  log.verbose('user/mixins/poolify', 'poolifyMixin(%s)', mixinBase.name)
+  log.verbose('PoolifyMixin', 'poolifyMixin(%s)', mixinBase.name)
 
-  const PoolifiedMixin = class extends mixinBase {
+  abstract class AbstractPoolifyMixin extends mixinBase {
 
     static _pool?     : Map<string, T>
     static get pool (): Map<string, T> {
@@ -33,7 +33,7 @@ const poolifyMixin = <MixinBase extends Constructor>(mixinBase: MixinBase) => <T
        * hasOwnProperty() is important because we are calling this from the child classes
        */
       if (!Object.prototype.hasOwnProperty.call(this, '_pool')) {
-        log.verbose('user/mixins/poolify', 'poolifyMixin() PoolifiedMixin get pool() init pool')
+        log.verbose('PoolifyMixin', 'get pool() init pool')
         this._pool = new Map<string, T>()
       }
 
@@ -61,7 +61,7 @@ const poolifyMixin = <MixinBase extends Constructor>(mixinBase: MixinBase) => <T
 
   }
 
-  return PoolifiedMixin
+  return AbstractPoolifyMixin
 }
 
 export type {
