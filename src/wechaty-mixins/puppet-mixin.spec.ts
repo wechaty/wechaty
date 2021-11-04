@@ -4,7 +4,7 @@ import { test } from 'tstest'
 import type {
   PuppetEventBridgeMixin,
   ProtectedPropertyPuppetEventBridgeMixin,
-}                                             from './puppet-event-bridge-mixin.js'
+}                                             from './puppet-mixin.js'
 
 test('ProtectedPropertyPuppetEventBridgeMixin', async t => {
   type NotExistInMixin = Exclude<ProtectedPropertyPuppetEventBridgeMixin, keyof InstanceType<PuppetEventBridgeMixin>>
