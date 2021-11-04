@@ -23,7 +23,7 @@ import {
   PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
-import type { Message }      from './user-modules/mod.js'
+import type { MessageInterface }      from './user-modules/mod.js'
 
 import {
   log,
@@ -196,7 +196,7 @@ export class IoClient {
     this.io = undefined
   }
 
-  private async onMessage (msg: Message) {
+  private async onMessage (msg: MessageInterface) {
     log.verbose('IoClient', 'onMessage(%s)', msg)
 
     // const from = m.from()

@@ -2,13 +2,13 @@ import * as PUPPET from 'wechaty-puppet'
 import { log } from 'wechaty-puppet'
 
 import type {
-  Message,
+  MessageInterface,
 }                   from '../user-modules/mod.js'
 
 import type { Sayable } from './types.js'
 
 async function messageToSayable (
-  message: Message,
+  message: MessageInterface,
 ): Promise<undefined | Sayable> {
   log.verbose('Wechaty', 'toSayable(%s)', message)
 

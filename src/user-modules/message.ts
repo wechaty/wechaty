@@ -66,7 +66,8 @@ import type {
   ImageInterface,
 }                       from './image.js'
 import {
-  PostInterface, PostImpl,
+  PostInterface,
+  PostImpl,
 }                       from './post.js'
 import {
   LocationInterface,
