@@ -5,21 +5,21 @@ import { GError } from 'gerror'
 import { StateSwitch } from 'state-switch'
 import type { StateSwitchInterface } from 'state-switch'
 
-import { timestampToDate } from '../helper-functions/pure/timestamp-to-date.js'
-import type { Contact } from '../user-modules/contact.js'
+import { timestampToDate } from '../pure-functions/timestamp-to-date.js'
+import type { ContactInterface } from '../user-modules/contact.js'
 import type {
   WechatifyUserModuleMixin,
 }                             from './wechatify-user-module-mixin.js'
 import {
   PuppetManager,
-}                       from '../puppet-manager.js'
+}                       from '../puppet-management/mod.js'
 
 import { config } from '../config.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
 const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: MixinBase) => {
-  log.verbose('PuppetEventBridgeMixin', 'puppetEventBridgeMixin(%s)', mixinBase.name)
+  log.verbose('WechatyPuppetEventBridgeMixin', 'puppetEventBridgeMixin(%s)', mixinBase.name)
 
   abstract class PuppeEventBridgetMixin extends mixinBase {
 
@@ -41,14 +41,14 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
     readonly _readyState : StateSwitchInterface
 
     constructor (...args: any[]) {
-      log.verbose('PuppetEventBridgeMixin', 'construct()')
+      log.verbose('WechatyPuppetEventBridgeMixin', 'construct()')
       super(...args)
 
       this._readyState = new StateSwitch('WechatyReady', { log })
     }
 
     override async start (): Promise<void> {
-      log.verbose('PuppetEventBridgeMixin', 'start()')
+      log.verbose('WechatyPuppetEventBridgeMixin', 'start()')
       await super.start()
 
       /**
@@ -63,23 +63,23 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
     }
 
     async ready (): Promise<void> {
-      log.verbose('PuppetEventBridgeMixin', 'ready()')
+      log.verbose('WechatyPuppetEventBridgeMixin', 'ready()')
       await this._readyState.stable('active')
-      log.silly('PuppetEventBridgeMixin', 'ready() this.readyState.stable(on) resolved')
+      log.silly('WechatyPuppetEventBridgeMixin', 'ready() this.readyState.stable(on) resolved')
     }
 
     /**
      * @protected
      */
     async _initPuppetInstance (): Promise<void> {
-      log.verbose('PuppetEventBridgeMixin', '_initPuppetInstance() %s', this._options.puppet || '')
+      log.verbose('WechatyPuppetEventBridgeMixin', '_initPuppetInstance() %s', this._options.puppet || '')
 
       if (this._puppet) {
-        log.verbose('PuppetEventBridgeMixin', '_initPuppetInstance() initialized already: skip')
+        log.verbose('WechatyPuppetEventBridgeMixin', '_initPuppetInstance() initialized already: skip')
         return
       }
 
-      log.verbose('PuppetEventBridgeMixin', '_initPuppetInstance() instanciating puppet instance ...')
+      log.verbose('WechatyPuppetEventBridgeMixin', '_initPuppetInstance() instanciating puppet instance ...')
       const puppet       = this._options.puppet || config.systemPuppetName()
       const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
@@ -88,14 +88,16 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
         puppetOptions : this._options.puppetOptions,
         // wechaty       : this,
       })
-      log.verbose('PuppetEventBridgeMixin', '_initPuppetInstance() instanciating puppet instance ... done')
+      log.verbose('WechatyPuppetEventBridgeMixin', '_initPuppetInstance() instanciating puppet instance ... done')
 
       /**
        * Plug the Memory Card to Puppet
        */
       puppetInstance.setMemory(puppetMemory)
 
-      this._puppet = puppetInstance
+      // Huan(202110) for developing Post
+      // this._puppet = puppetInstance
+      this._puppet = puppetInstance as any  // FIXME: remove any
 
       this._setupPuppetEventBridge(puppetInstance)
       // this._wechatifyUserModules()
@@ -112,7 +114,7 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
      * @protected
      */
     _setupPuppetEventBridge (puppet: PUPPET.impl.Puppet) {
-      log.verbose('PuppetEventBridgeMixin', '_setupPuppetEventBridge(%s)', puppet)
+      log.verbose('WechatyPuppetEventBridgeMixin', '_setupPuppetEventBridge(%s)', puppet)
 
       const eventNameList: PUPPET.type.PuppetEventName[] = Object.keys(PUPPET.type.PUPPET_EVENT_DICT) as PUPPET.type.PuppetEventName[]
       for (const eventName of eventNameList) {
@@ -218,7 +220,7 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
 
           case 'ready':
             puppet.on('ready', () => {
-              log.silly('PuppetEventBridgeMixin', '_setupPuppetEventBridge() puppet.on(ready)')
+              log.silly('WechatyPuppetEventBridgeMixin', '_setupPuppetEventBridge() puppet.on(ready)')
 
               this.emit('ready')
               this._readyState.active(true)
@@ -244,7 +246,7 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
                 const inviteeListAll = await Promise.all(
                   payload.inviteeIdList.map(id => this.Contact.find({ id })),
                 )
-                const inviteeList = inviteeListAll.filter(c => !!c) as Contact[]
+                const inviteeList = inviteeListAll.filter(c => !!c) as ContactInterface[]
 
                 const inviter = await this.Contact.find({ id: payload.inviterId })
                 if (!inviter) {
@@ -277,7 +279,7 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
                 const leaverListAll = await Promise.all(
                   payload.removeeIdList.map(id => this.Contact.find({ id })),
                 )
-                const leaverList = leaverListAll.filter(c => !!c) as Contact[]
+                const leaverList = leaverListAll.filter(c => !!c) as ContactInterface[]
 
                 const remover = await this.Contact.find({ id: payload.removerId })
                 if (!remover) {
@@ -377,7 +379,7 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
         }
       }
 
-      log.verbose('PuppetEventBridgeMixin', '_setupPuppetEventBridge() ... done')
+      log.verbose('WechatyPuppetEventBridgeMixin', '_setupPuppetEventBridge() ... done')
     }
 
   }
@@ -387,8 +389,15 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
 
 type PuppetEventBridgeMixin = ReturnType<typeof puppetEventBridgeMixin>
 
+type ProtectedPropertyPuppetEventBridgeMixin =
+  | '_initPuppetInstance'
+  | '_puppet'
+  | '_readyState'
+  | '_setupPuppetEventBridge'
+
 export type {
   PuppetEventBridgeMixin,
+  ProtectedPropertyPuppetEventBridgeMixin,
 }
 export {
   puppetEventBridgeMixin,

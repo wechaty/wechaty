@@ -17,38 +17,18 @@
  *   limitations under the License.
  *
  */
-export type {
-  Contact,
-  ContactConstructor,
-  ContactSelf,
-  ContactSelfConstructor,
-  Delay,
-  DelayConstructor,
-  Favorite,
-  FavoriteConstructor,
-  Friendship,
-  FriendshipConstructor,
-  Image,
-  ImageConstructor,
-  Location,
-  LocationConstructor,
-  Message,
-  MessageConstructor,
-  MiniProgram,
-  MiniProgramConstructor,
-  Moment,
-  MomentConstructor,
-  Money,
-  MoneyConstructor,
-  Room,
-  RoomConstructor,
-  RoomInvitation,
-  RoomInvitationConstructor,
-  Tag,
-  TagConstructor,
-  UrlLink,
-  UrlLinkConstructor,
-}                               from '../user-modules/mod.js'
+
+/**
+ * Huan(202111): We export all names with specific postfix to make it easier to be recongnized
+ *  with less misunderstandings.
+ *
+ * Postfixes:
+ *  - Interface:    type, the `interface
+ *  - Constructor:  type, the `Constructor<interface>`
+ *  - Impl:         value, the `class`
+ *
+ *  - no postfix:  value, the `class`
+ */
 
 export {
   ContactImpl,
@@ -68,10 +48,65 @@ export {
   UrlLinkImpl,
 }                             from '../user-modules/mod.js'
 
+// export {
+//   ContactImpl         as Contact,
+//   ContactSelfImpl     as ContactSelf,
+//   FavoriteImpl        as Favorite,
+//   FriendshipImpl      as Friendship,
+//   ImageImpl           as Image,
+//   LocationImpl        as Location,
+//   MessageImpl         as Message,
+//   MiniProgramImpl     as MiniProgram,
+//   MomentImpl          as Moment,
+//   MoneyImpl           as Money,
+//   PostImpl            as Post,
+//   RoomImpl            as Room,
+//   RoomInvitationImpl  as RoomInvitation,
+//   DelayImpl           as Delay,
+//   TagImpl             as Tag,
+//   UrlLinkImpl         as UrlLink,
+// }                                         from '../user-modules/mod.js'
+
+export type {
+  ContactInterface,
+  ContactSelfInterface,
+  DelayInterface,
+  FavoriteInterface,
+  FriendshipInterface,
+  ImageInterface,
+  LocationInterface,
+  MessageInterface,
+  MiniProgramInterface,
+  MomentInterface,
+  MoneyInterface,
+  RoomInterface,
+  RoomInvitationInterface,
+  TagInterface,
+  UrlLinkInterface,
+}                               from '../user-modules/mod.js'
+
+export type {
+  ContactConstructor,
+  ContactSelfConstructor,
+  DelayConstructor,
+  FavoriteConstructor,
+  FriendshipConstructor,
+  ImageConstructor,
+  LocationConstructor,
+  MessageConstructor,
+  MiniProgramConstructor,
+  MomentConstructor,
+  MoneyConstructor,
+  RoomConstructor,
+  RoomInvitationConstructor,
+  TagConstructor,
+  UrlLinkConstructor,
+}                               from '../user-modules/mod.js'
+
 export {
   WechatyImpl,
 }                         from '../wechaty.js'
 export type {
-  Wechaty,
+  WechatyInterface,
   WechatyConstructor,
 }                         from '../interface/mod.js'

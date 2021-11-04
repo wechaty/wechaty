@@ -24,26 +24,21 @@ import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   openGraph,
-}               from '../helper-functions/impure/open-graph.js'
+}               from '../helper-functions/open-graph.js'
 import { validationMixin } from '../user-mixins/validation.js'
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.js'
 import { log } from '../config.js'
 
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
-
-class UrlLinkMixin extends MixinBase {
+class UrlLinkMixin extends wechatifyMixinBase() {
 
   /**
    *
    * Create from URL
    *
    */
-  static async create (url: string): Promise<UrlLink> {
+  static async create (url: string): Promise<UrlLinkInterface> {
     log.verbose('UrlLink', 'create(%s)', url)
 
     const meta = await openGraph(url)
@@ -133,17 +128,17 @@ class UrlLinkMixin extends MixinBase {
 
 }
 
-class UrlLinkImpl extends validationMixin(UrlLinkMixin)<UrlLink>() {}
-interface UrlLink extends UrlLinkImpl {}
+class UrlLinkImpl extends validationMixin(UrlLinkMixin)<UrlLinkInterface>() {}
+interface UrlLinkInterface extends UrlLinkImpl {}
 
 type UrlLinkConstructor = Constructor<
-  UrlLink,
+  UrlLinkInterface,
   typeof UrlLinkImpl
 >
 
 export type {
   UrlLinkConstructor,
-  UrlLink,
+  UrlLinkInterface,
 }
 export {
   UrlLinkImpl,

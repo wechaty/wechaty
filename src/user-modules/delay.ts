@@ -21,17 +21,12 @@ import type { Constructor } from '../deprecated/clone-class.js'
 import { validationMixin } from '../user-mixins/validation.js'
 
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.js'
 
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
+class DelayMixin extends wechatifyMixinBase() {
 
-class DelayMixin extends MixinBase {
-
-  static create (milliseconds: number): Delay {
+  static create (milliseconds: number): DelayInterface {
     return new DelayImpl(milliseconds)
   }
 
@@ -49,17 +44,17 @@ class DelayMixin extends MixinBase {
 
 }
 
-class DelayImpl extends validationMixin(DelayMixin)<Delay>() {}
-interface Delay extends DelayImpl {}
+class DelayImpl extends validationMixin(DelayMixin)<DelayInterface>() {}
+interface DelayInterface extends DelayImpl {}
 
 type DelayConstructor = Constructor<
-  Delay,
+  DelayInterface,
   typeof DelayImpl
 >
 
 export type {
   DelayConstructor,
-  Delay,
+  DelayInterface,
 }
 export {
   DelayImpl,

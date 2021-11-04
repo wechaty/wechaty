@@ -1,19 +1,13 @@
 import type {
-  Sayable,
-  SayableMessage,
-}                           from './sayable.js'
-import type {
-  Acceptable,
+  AcceptableAccepter,
 }                           from './acceptable.js'
 import type {
-  Wechaty,
+  WechatyInterface,
   WechatyConstructor,
 }                             from './wechaty-interface.js'
 
 export type {
-  Acceptable,
-  Sayable,
-  SayableMessage,
-  Wechaty,
+  AcceptableAccepter,
+  WechatyInterface,
   WechatyConstructor,
 }

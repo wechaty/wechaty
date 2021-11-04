@@ -34,12 +34,12 @@ import {
   PuppetModuleName,
 }                         from './puppet-config.js'
 
-export interface ResolveOptions {
+interface ResolveOptions {
   puppet         : impl.Puppet | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
 
-export class PuppetManager {
+class PuppetManager {
 
   static async resolve (
     options: ResolveOptions,
@@ -297,4 +297,11 @@ export class PuppetManager {
     await new Promise(resolve => result.once('exit', resolve))
   }
 
+}
+
+export type {
+  ResolveOptions,
+}
+export {
+  PuppetManager,
 }

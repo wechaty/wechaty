@@ -17,20 +17,27 @@
  *   limitations under the License.
  *
  */
+
+/**
+ * Huan(202111): we export all `interface` from this file, as the most convenience class name.
+ *
+ *  since they are `interface`s, so they are `type`-only.
+ */
+
 export type {
-  Contact,
-  ContactSelf,
-  Favorite,
-  Friendship,
-  Image,
-  Location,
-  Message,
-  MiniProgram,
-  Moment,
-  Money,
-  Room,
-  RoomInvitation,
-  Delay,
-  Tag,
-  UrlLink,
-}                   from '../user-modules/mod.js'
+  ContactInterface        as Contact,
+  ContactSelfInterface    as ContactSelf,
+  DelayInterface          as Delay,
+  FavoriteInterface       as Favorite,
+  FriendshipInterface     as Friendship,
+  ImageInterface          as Image,
+  LocationInterface       as Location,
+  MessageInterface        as Message,
+  MiniProgramInterface    as MiniProgram,
+  MomentInterface         as Moment,
+  MoneyInterface          as Money,
+  RoomInterface           as Room,
+  RoomInvitationInterface as RoomInvitation,
+  TagInterface            as Tag,
+  UrlLinkInterface        as UrlLink,
+}                                               from '../user-modules/mod.js'

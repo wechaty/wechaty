@@ -20,7 +20,7 @@
 import { log } from 'wechaty-puppet'
 
 import type {
-  Wechaty,
+  WechatyInterface,
 }                 from './interface/mod.js'
 import {
   WechatyImpl,
@@ -29,7 +29,7 @@ import {
 
 class WechatyBuilder {
 
-  private static _instance?: Wechaty
+  private static _instance?: WechatyInterface
 
   /**
    * Create an instance of Wechaty
@@ -45,14 +45,14 @@ class WechatyBuilder {
    *  .on('message',  message => console.log(`Message: ${message}`))
    *  .start()
    */
-  static build (options?: WechatyOptions): Wechaty {
-    return new WechatyBuilder().options(options).build()
+  static build (options?: WechatyOptions): WechatyInterface {
+    return WechatyBuilder.new().options(options).build()
   }
 
   /**
    * @param options is a `WechatyOptions` object, it can only be set once
    */
-  static singleton (options?: WechatyOptions): Wechaty {
+  static singleton (options?: WechatyOptions): WechatyInterface {
     const builder = new WechatyBuilder()
     if (options) {
       builder.options(options)
@@ -60,23 +60,21 @@ class WechatyBuilder {
     return builder.singleton().build()
   }
 
-  protected _singleton: boolean
-  protected _options?: WechatyOptions
+  protected static new (): WechatyBuilder { return new this() }
+  protected constructor () {}
 
-  constructor () {
-    log.verbose('WechatyBuilder', 'constructor()')
-    this._singleton = false
-  }
+  protected _singleton = false
+  protected _options: WechatyOptions = {}
 
-  singleton (): WechatyBuilder {
+  protected singleton (): WechatyBuilder {
     log.verbose('WechatyBuilder', 'singleton()')
     this._singleton = true
     return this
   }
 
-  options (options?: WechatyOptions): WechatyBuilder {
+  protected options (options?: WechatyOptions): WechatyBuilder {
     log.verbose('WechatyBuilder', 'singleton()')
-    if (this._options) {
+    if (Object.keys(this._options).length > 0) {
       throw new Error([
         'WechatyBuilder options() can only be set once',
         'Create a new WechatyBuilder if you need different options',
@@ -90,14 +88,14 @@ class WechatyBuilder {
     return this
   }
 
-  build (): Wechaty {
+  protected build (): WechatyInterface {
     if (this._singleton) {
       return this.singletonInstance()
     }
     return this.newInstance()
   }
 
-  protected singletonInstance (): Wechaty {
+  protected singletonInstance (): WechatyInterface {
     log.verbose('WechatyBuilder', 'singletonInstance()')
     if (!WechatyBuilder._instance) {
       WechatyBuilder._instance = this.newInstance()
@@ -105,7 +103,7 @@ class WechatyBuilder {
     return WechatyBuilder._instance
   }
 
-  protected newInstance (): Wechaty {
+  protected newInstance (): WechatyInterface {
     log.verbose('WechatyBuilder', 'newInstance()')
     return new WechatyImpl(this._options)
   }

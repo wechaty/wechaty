@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import { PuppetManager } from '../src/puppet-manager.js'
+import { PuppetManager } from '../src/puppet-management/mod.js'
 
 PuppetManager.installAll()
   .catch(e => {

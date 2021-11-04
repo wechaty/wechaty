@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-export const PUPPET_DEPENDENCIES = {
+const PUPPET_DEPENDENCIES = {
   /**
    * The following puppets were DEPRECATED before 2020
    */
@@ -81,11 +81,19 @@ export const PUPPET_DEPENDENCIES = {
   '@juzibot/wechaty-puppet-wxwork' : '*',   // https://www.npmjs.com/package/wechaty-puppet-wxwork (to be published)
 }
 
-export type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
+type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
 
 /**
  * Updates:
  *  - Huan(202004): we change default puppet from puppet-service -> puppet-wechat (with UOS support)
  *  - Huan(202009): use puppet service as default
  */
-export const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-service'
+const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-service'
+
+export type {
+  PuppetModuleName,
+}
+export {
+  PUPPET_DEPENDENCIES,
+  PUPPET_NAME_DEFAULT,
+}

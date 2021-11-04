@@ -29,27 +29,26 @@ import type {
 import {
   log,
 }                           from '../config.js'
-import type {
-  Sayable,
-  SayableMessage,
-}                          from '../interface/mod.js'
-// import { captureException } from '../raven.js'
 
-import type {
-  Message,
-}                   from './message.js'
-import type { Tag }     from './tag.js'
+import { ContactEventEmitter }        from '../events/mod.js'
 
-import { ContactEventEmitter }  from '../events/contact-events.js'
 import {
   poolifyMixin,
-}             from '../user-mixins/poolify.js'
-
-import {
   wechatifyMixin,
-}                       from '../user-mixins/wechatify.js'
-import { validationMixin } from '../user-mixins/validation.js'
-import { deliverSayableConversationPuppet } from '../interface/sayable.js'
+  validationMixin,
+}                                     from '../user-mixins/mod.js'
+import {
+  deliverSayableConversationPuppet,
+}                                     from '../sayable/mod.js'
+import type {
+  SayableSayer,
+  Sayable,
+}                                     from '../sayable/mod.js'
+
+import type {
+  MessageInterface,
+}                   from './message.js'
+import type { TagInterface }     from './tag.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -64,7 +63,7 @@ const MixinBase = wechatifyMixin(
  * @property {string}  id               - Get Contact id.
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
-class ContactMixin extends MixinBase implements Sayable {
+class ContactMixin extends MixinBase implements SayableSayer {
 
   static Type   = PUPPET.type.Contact
   static Gender = PUPPET.type.ContactGender
@@ -85,7 +84,7 @@ class ContactMixin extends MixinBase implements Sayable {
    *
    * @static
    * @param {ContactQueryFilter} query
-   * @returns {(Promise<undefined | Contact>)} If can find the contact, return Contact, or return null
+   * @returns {(Promise<undefined | ContactInterface>)} If can find the contact, return Contact, or return null
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -94,7 +93,7 @@ class ContactMixin extends MixinBase implements Sayable {
    */
   static async find (
     query : string | PUPPET.filter.Contact,
-  ): Promise<undefined | Contact> {
+  ): Promise<undefined | ContactInterface> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await this.findAll(query)
@@ -145,7 +144,7 @@ class ContactMixin extends MixinBase implements Sayable {
    *
    * @static
    * @param {ContactQueryFilter} [queryArg]
-   * @returns {Promise<Contact[]>}
+   * @returns {Promise<ContactInterface[]>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -155,7 +154,7 @@ class ContactMixin extends MixinBase implements Sayable {
    */
   static async findAll (
     query? : string | PUPPET.filter.Contact,
-  ): Promise<Contact[]> {
+  ): Promise<ContactInterface[]> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
     try {
@@ -202,7 +201,7 @@ class ContactMixin extends MixinBase implements Sayable {
 
   // TODO
   // eslint-disable-next-line no-use-before-define
-  static async delete (contact: Contact): Promise<void> {
+  static async delete (contact: ContactInterface): Promise<void> {
     log.verbose('Contact', 'static delete(%s)', contact.id)
   }
 
@@ -210,11 +209,11 @@ class ContactMixin extends MixinBase implements Sayable {
    * Get tags for all contact
    *
    * @static
-   * @returns {Promise<Tag[]>}
+   * @returns {Promise<TagInterface[]>}
    * @example
    * const tags = await wechaty.Contact.tags()
    */
-  static async tags (): Promise<Tag[]> {
+  static async tags (): Promise<TagInterface[]> {
     log.verbose('Contact', 'static tags() for %s', this)
 
     try {
@@ -266,10 +265,10 @@ class ContactMixin extends MixinBase implements Sayable {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayableMsg
+   * @param {(string | ContactInterface | FileBox | UrlLink | MiniProgram | Location)} sayable
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
-   * @returns {Promise<void | Message>}
+   * @returns {Promise<void | MessageInterface>}
    * @example
    * const bot = new Wechaty()
    * await bot.start()
@@ -331,11 +330,11 @@ class ContactMixin extends MixinBase implements Sayable {
    * const msg = await contact.say(location)
    */
   async say (
-    sayableMsg: SayableMessage,
-  ): Promise<void | Message> {
-    log.verbose('Contact', 'say(%s)', sayableMsg)
+    sayable: Sayable,
+  ): Promise<void | MessageInterface> {
+    log.verbose('Contact', 'say(%s)', sayable)
 
-    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayableMsg)
+    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
 
     if (msgId) {
       const msg = await this.wechaty.Message.find({ id: msgId })
@@ -647,11 +646,11 @@ class ContactMixin extends MixinBase implements Sayable {
   /**
    * Get all tags of contact
    *
-   * @returns {Promise<Tag[]>}
+   * @returns {Promise<TagInterface[]>}
    * @example
    * const tags = await contact.tags()
    */
-  async tags (): Promise<Tag[]> {
+  async tags (): Promise<TagInterface[]> {
     log.verbose('Contact', 'tags() for %s', this)
 
     try {
@@ -774,13 +773,14 @@ class ContactMixin extends MixinBase implements Sayable {
 
 }
 
-class ContactImpl extends validationMixin(ContactMixin)<ContactImplInterface>() {}
-interface ContactImplInterface extends ContactImpl {}
+class ContactImplBase extends validationMixin(ContactMixin)<ContactImplInterface>() {}
+interface ContactImplInterface extends ContactImplBase {}
 
 type ContactProtectedProperty =
   | 'ready'
 
-type Contact = Omit<ContactImplInterface, ContactProtectedProperty>
+type ContactInterface = Omit<ContactImplInterface, ContactProtectedProperty>
+class ContactImpl extends validationMixin(ContactImplBase)<ContactInterface>() {}
 
 type ContactConstructor = Constructor<
   ContactImplInterface,
@@ -790,7 +790,7 @@ type ContactConstructor = Constructor<
 export type {
   ContactConstructor,
   ContactProtectedProperty,
-  Contact,
+  ContactInterface,
 }
 export {
   ContactImpl,

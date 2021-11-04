@@ -28,7 +28,7 @@ test('Io restart without problem', async t => {
     // token must not contain any white spaces
     servicePort : 8788,
     token       : 'mock_00000000-0000-0000-0000-000000000000',
-    wechaty     : new WechatyBuilder().build(),
+    wechaty     : WechatyBuilder.build(),
   })
 
   try {

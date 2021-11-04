@@ -61,7 +61,7 @@ async function main () {
   console.info(welcome)
   log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
-  const wechaty = new WechatyBuilder().options({ name: token }).build()
+  const wechaty = WechatyBuilder.build({ name: token })
 
   let port
   if (process.env['WECHATY_PUPPET_SERVER_PORT']) {

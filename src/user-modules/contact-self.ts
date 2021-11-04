@@ -29,7 +29,7 @@ import type { Constructor } from '../deprecated/clone-class.js'
 
 import {
   guardQrCodeValue,
-}                       from '../helper-functions/pure/guard-qr-code-value.js'
+}                       from '../pure-functions/guard-qr-code-value.js'
 
 import {
   ContactImpl,
@@ -39,7 +39,7 @@ import { poolifyMixin } from '../user-mixins/poolify.js'
 
 const MixinBase = poolifyMixin(
   ContactImpl,
-)<ContactSelf>()
+)<ContactSelfInterface>()
 
 /**
  * Bot itself will be encapsulated as a ContactSelf.
@@ -56,7 +56,7 @@ class ContactSelfMixin extends MixinBase {
 
   static override async find (
     query : string | PUPPET.filter.Contact,
-  ): Promise<undefined | ContactSelf> {
+  ): Promise<undefined | ContactSelfInterface> {
     if (!this.wechaty.logonoff()) {
       return undefined
     }
@@ -64,7 +64,7 @@ class ContactSelfMixin extends MixinBase {
     try {
       const contact = await super.find(query)
       if (contact && contact.id === this.wechaty.puppet.currentUserId) {
-        return contact as ContactSelf
+        return contact as ContactSelfInterface
       }
     } catch (e) {
       log.silly('ContactSelf', 'find() exception: %s', (e as Error).message)
@@ -201,16 +201,16 @@ class ContactSelfMixin extends MixinBase {
 
 }
 
-class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelf>() {}
-interface ContactSelf extends ContactSelfImpl {}
+class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelfInterface>() {}
+interface ContactSelfInterface extends ContactSelfImpl {}
 type ContactSelfConstructor = Constructor<
-  ContactSelf,
+  ContactSelfInterface,
   Omit<typeof ContactSelfImpl, 'load'>
 >
 
 export type {
   ContactSelfConstructor,
-  ContactSelf,
+  ContactSelfInterface,
 }
 export {
   ContactSelfImpl,

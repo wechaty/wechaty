@@ -25,22 +25,17 @@ import { log } from '../config.js'
 import { validationMixin } from '../user-mixins/validation.js'
 
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.js'
 
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
-
-class MiniProgramMixin extends MixinBase {
+class MiniProgramMixin extends wechatifyMixinBase() {
 
   /**
    *
    * Create
    *
    */
-  static async create (): Promise<MiniProgram> {
+  static async create (): Promise<MiniProgramInterface> {
     log.verbose('MiniProgram', 'create()')
 
     // TODO: get appid and username from wechat
@@ -99,17 +94,17 @@ class MiniProgramMixin extends MixinBase {
 
 }
 
-class MiniProgramImpl extends validationMixin(MiniProgramMixin)<MiniProgram>() {}
-interface MiniProgram extends MiniProgramImpl {}
+class MiniProgramImpl extends validationMixin(MiniProgramMixin)<MiniProgramInterface>() {}
+interface MiniProgramInterface extends MiniProgramImpl {}
 
 type MiniProgramConstructor = Constructor<
-  MiniProgram,
+  MiniProgramInterface,
   typeof MiniProgramImpl
 >
 
 export type {
   MiniProgramConstructor,
-  MiniProgram,
+  MiniProgramInterface,
 }
 export {
   MiniProgramImpl,

@@ -17,33 +17,44 @@
  *   limitations under the License.
  *
  */
-import type { Constructor } from '../deprecated/clone-class.js'
-import { validationMixin } from '../user-mixins/validation.js'
+import type {
+  FileBoxInterface,
+}                       from 'file-box'
 
-import {
-  wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+import type {
+  ContactInterface,
+  DelayInterface,
+  LocationInterface,
+  MessageInterface,
+  MiniProgramInterface,
+  UrlLinkInterface,
+}                           from '../user-modules/mod.js'
 
-class MoneyMixin extends wechatifyMixinBase() {
+import type {
+  WechatyInterface,
+}                           from '../interface/mod.js'
 
-  constructor () {
-    super()
-  }
+type Sayable =
+  | ContactInterface
+  | DelayInterface
+  | FileBoxInterface
+  | LocationInterface
+  | MessageInterface
+  | MiniProgramInterface
+  | number
+  | string
+  | UrlLinkInterface
 
+interface SayableSayer {
+  id      : string,
+  wechaty : WechatyInterface,
+  say (
+    sayable  : Sayable,
+    replyTo? : ContactInterface | ContactInterface[]
+  ): Promise<void | MessageInterface>
 }
-
-class MoneyImpl extends validationMixin(MoneyMixin)<MoneyInterface>() {}
-interface MoneyInterface extends MoneyImpl {}
-
-type MoneyConstructor = Constructor<
-  MoneyInterface,
-  typeof MoneyImpl
->
 
 export type {
-  MoneyConstructor,
-  MoneyInterface,
-}
-export {
-  MoneyImpl,
+  SayableSayer,
+  Sayable,
 }

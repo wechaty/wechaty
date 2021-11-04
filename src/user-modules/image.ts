@@ -26,17 +26,12 @@ import { validationMixin } from '../user-mixins/validation.js'
 import { log } from '../config.js'
 
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.js'
 
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
+class ImageMixin extends wechatifyMixinBase() {
 
-class ImageMixin extends MixinBase {
-
-  static create (id: string): Image {
+  static create (id: string): ImageInterface {
     log.verbose('Image', 'static create(%s)', id)
 
     const image = new this(id)
@@ -79,17 +74,17 @@ class ImageMixin extends MixinBase {
 
 }
 
-class ImageImpl extends validationMixin(ImageMixin)<Image>() {}
-interface Image extends ImageImpl { }
+class ImageImpl extends validationMixin(ImageMixin)<ImageInterface>() {}
+interface ImageInterface extends ImageImpl { }
 
 type ImageConstructor = Constructor<
-  Image,
+  ImageInterface,
   typeof ImageImpl
 >
 
 export type {
   ImageConstructor,
-  Image,
+  ImageInterface,
 }
 export {
   ImageImpl,
