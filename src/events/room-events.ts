@@ -2,10 +2,10 @@ import { EventEmitter }   from 'events'
 import type TypedEventEmitter  from 'typed-emitter'
 
 import type {
-  Contact,
-  Message,
-  Room,
-  RoomInvitation,
+  ContactInterface,
+  MessageInterface,
+  RoomInterface,
+  RoomInvitationInterface,
 }                   from '../user-modules/mod.js'
 
 export const ROOM_EVENT_DICT = {
@@ -97,11 +97,11 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
  *
  */
 
-type RoomEventListenerInvite  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void | Promise<void>
-type RoomEventListenerJoin    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void | Promise<void>
-type RoomEventListenerLeave   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)          => void | Promise<void>
-type RoomEventListenerMessage = (this: Room, message: Message, date?: Date)                                  => void | Promise<void>
-type RoomEventListenerTopic   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date) => void | Promise<void>
+type RoomEventListenerInvite  = (this: RoomInterface, inviter: ContactInterface, invitation: RoomInvitationInterface)           => void | Promise<void>
+type RoomEventListenerJoin    = (this: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface,  date?: Date) => void | Promise<void>
+type RoomEventListenerLeave   = (this: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date)  => void | Promise<void>
+type RoomEventListenerMessage = (this: RoomInterface, message: MessageInterface, date?: Date)                                   => void | Promise<void>
+type RoomEventListenerTopic   = (this: RoomInterface, topic: string, oldTopic: string, changer: ContactInterface, date?: Date)  => void | Promise<void>
 
 interface RoomEventListeners {
   invite  : RoomEventListenerInvite

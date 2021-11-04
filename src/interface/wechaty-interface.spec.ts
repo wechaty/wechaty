@@ -4,7 +4,6 @@ import { EventEmitter } from 'events'
 import { test } from 'tstest'
 
 import type {
-  Message,
   ContactSelfConstructor,
   ContactConstructor,
   FriendshipConstructor,
@@ -12,12 +11,12 @@ import type {
   LocationConstructor,
   MessageConstructor,
   MiniProgramConstructor,
-  PostConstructor,
   RoomInvitationConstructor,
   RoomConstructor,
   DelayConstructor,
   TagConstructor,
   UrlLinkConstructor,
+  MessageInterface,
 }                             from '../user-modules/mod.js'
 
 import type {
@@ -42,7 +41,6 @@ test('Wechaty interface', async t => {
     Location       : LocationConstructor
     Message        : MessageConstructor
     MiniProgram    : MiniProgramConstructor
-    Post           : PostConstructor
     Room           : RoomConstructor
     RoomInvitation : RoomInvitationConstructor
     Tag            : TagConstructor
@@ -64,7 +62,6 @@ test('Wechaty interface', async t => {
         = this.Message
         = this.MiniProgram
         = this.puppet
-        = this.Post
         = this.Room
         = this.RoomInvitation
         = this.state
@@ -93,7 +90,7 @@ test('Wechaty interface', async t => {
 
   const WechatyTest = WechatyImplementation as unknown as WechatyConstructor
   const w: WechatyInterface = new WechatyTest()
-  w.on('message', (msg: Message) => {
+  w.on('message', (msg: MessageInterface) => {
     msg.say('ok').catch(console.error)
   })
 

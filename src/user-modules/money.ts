@@ -21,15 +21,10 @@ import type { Constructor } from '../deprecated/clone-class.js'
 import { validationMixin } from '../user-mixins/validation.js'
 
 import {
-  EmptyBase,
-  wechatifyMixin,
+  wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.js'
 
-const MixinBase = wechatifyMixin(
-  EmptyBase,
-)
-
-class MoneyMixin extends MixinBase {
+class MoneyMixin extends wechatifyMixinBase() {
 
   constructor () {
     super()

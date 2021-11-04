@@ -7,7 +7,6 @@ import {
   DelayImpl,
   UrlLinkImpl,
   MiniProgramImpl,
-  PostImpl,
   LocationImpl,
 }                     from '../user-modules/mod.js'
 
@@ -88,14 +87,6 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impl.Puppet) => (conver
      * 7. Delay for a while
      */
     await sayable.wait()
-  } else if (PostImpl.validInstance(sayable)) {
-    /**
-     * 8. Post
-     */
-    msgId = await puppet.messageSendPost(
-      conversationId,
-      sayable.payload,
-    )
   } else {
     throw new Error('unsupported arg: ' + sayable)
   }

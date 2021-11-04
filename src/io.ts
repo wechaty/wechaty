@@ -25,8 +25,8 @@ import { StateSwitch } from 'state-switch'
 import * as jsonRpcPeer from 'json-rpc-peer'
 
 import type {
-  Message,
-}                 from './user-modules/mod.js'
+  MessageInterface,
+}                     from './user-modules/mod.js'
 
 import {
   log,
@@ -549,14 +549,14 @@ export class Io {
    * Prepare to be overwritten by server setting
    *
    */
-  private async ioMessage (m: Message): Promise<void> {
+  private async ioMessage (m: MessageInterface): Promise<void> {
     log.silly('Io', 'ioMessage() is a nop function before be overwritten from cloud')
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)
     }
   }
 
-  protected async syncMessage (m: Message): Promise<void> {
+  protected async syncMessage (m: MessageInterface): Promise<void> {
     log.silly('Io', 'syncMessage(%s)', m)
 
     const messageEvent: IoEvent = {

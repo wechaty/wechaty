@@ -2,13 +2,13 @@ import { EventEmitter }   from 'events'
 import type TypedEventEmitter  from 'typed-emitter'
 
 import type {
-  Contact,
-  Friendship,
-  Message,
+  ContactInterface,
+  FriendshipInterface,
+  MessageInterface,
 }                   from '../user-modules/mod.js'
 
-type ContactEventListenerMessage    = (this: Contact, message: Message, date?: Date) => void | Promise<void>
-type ContactEventListenerFriendship = (friendship: Friendship)                       => void | Promise<void>
+type ContactEventListenerMessage    = (this: ContactInterface, message: MessageInterface, date?: Date)  => void | Promise<void>
+type ContactEventListenerFriendship = (friendship: FriendshipInterface)                                 => void | Promise<void>
 
 interface ContactEventListeners {
   friendship : ContactEventListenerFriendship,

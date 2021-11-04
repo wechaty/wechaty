@@ -66,9 +66,6 @@ import type {
   ImageInterface,
 }                       from './image.js'
 import {
-  PostInterface, PostImpl,
-}                       from './post.js'
-import {
   LocationInterface,
   LocationImpl,
 }                       from './location.js'
@@ -1012,26 +1009,6 @@ class MessageMixin extends MixinBase implements SayableSayer {
     const locationPayload = await this.wechaty.puppet.messageLocation(this.id)
 
     return new LocationImpl(locationPayload)
-  }
-
-  public async toPost (): Promise<PostInterface> {
-    log.verbose('Message', 'toPost()')
-
-    if (!this._payload) {
-      throw new Error('no payload')
-    }
-
-    if (this.type() !== PUPPET.type.Message.Post) {
-      throw new Error('message type not a Post')
-    }
-
-    const postPayload = await this.wechaty.puppet.messagePost(this.id)
-
-    if (!postPayload) {
-      throw new Error(`no Post payload for message ${this.id}`)
-    }
-
-    return PostImpl.create(postPayload)
   }
 
   async toSayable (): Promise<undefined | Sayable> {

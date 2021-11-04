@@ -6,12 +6,6 @@ import {
   messageToSayable,
 }                                     from './message-to-sayable.js'
 import {
-  sayableToPayload,
-}                                     from './sayable-to-payload.js'
-import {
-  payloadToSayableWechaty,
-}                                     from './payload-to-sayable.js'
-import {
   deliverSayableConversationPuppet,
 }                                     from './deliver-sayable.js'
 
@@ -21,7 +15,5 @@ export type {
 }
 export {
   messageToSayable,
-  sayableToPayload,
-  payloadToSayableWechaty,
   deliverSayableConversationPuppet,
 }
