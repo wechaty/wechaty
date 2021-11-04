@@ -20,16 +20,16 @@ type AllProtectedProperty =
 // type Wechaty2 = Pick<WechatyImpl, PublicProperties>
 //   & TypedEventEmitter<WechatyEventListeners>
 
-type Wechaty = Omit<WechatyImpl, AllProtectedProperty>
+type WechatyInterface = Omit<WechatyImpl, AllProtectedProperty>
   & TypedEventEmitter<WechatyEventListeners>
 
 type WechatyConstructor = Constructor<
-  Wechaty,
+  WechatyInterface,
   typeof WechatyImpl
 >
 
 export type {
-  Wechaty,
+  WechatyInterface,
   WechatyConstructor,
-  AllProtectedProperty as WechatyProtectedProperty,
+  AllProtectedProperty,
 }

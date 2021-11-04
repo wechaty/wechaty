@@ -17,12 +17,15 @@
  *   limitations under the License.
  *
  */
-import * as WECHATY from '../src/mods/mod.js' // from 'wechaty'
+import {
+  WechatyBuilder,
+  ScanStatus,
+  Message,
+  Contact,
+}                     from '../src/mods/mod.js' // from 'wechaty'
 
 import * as qrTerm from 'qrcode-terminal'
 import { FileBox } from 'file-box'
-
-import type { Message } from '../src/user-modules/message.js'
 
 /**
  *
@@ -50,7 +53,7 @@ const options = {
   // }
 }
 
-const bot = WECHATY.WechatyBuilder.build(options)
+const bot = WechatyBuilder.build(options)
 
 /**
  *
@@ -88,8 +91,8 @@ bot.start()
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
-function onScan (qrcode: string, status: WECHATY.type.ScanStatus) {
-  if (status === WECHATY.type.ScanStatus.Waiting || status === WECHATY.type.ScanStatus.Timeout) {
+function onScan (qrcode: string, status: ScanStatus) {
+  if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
     qrTerm.generate(qrcode)
 
     const qrcodeImageUrl = [
@@ -97,19 +100,19 @@ function onScan (qrcode: string, status: WECHATY.type.ScanStatus) {
       encodeURIComponent(qrcode),
     ].join('')
 
-    console.info('onScan: %s(%s) - %s', WECHATY.type.ScanStatus[status], status, qrcodeImageUrl)
+    console.info('onScan: %s(%s) - %s', ScanStatus[status], status, qrcodeImageUrl)
   } else {
-    console.info('onScan: %s(%s)', WECHATY.type.ScanStatus[status], status)
+    console.info('onScan: %s(%s)', ScanStatus[status], status)
   }
 
   // console.info(`[${ScanStatus[status]}(${status})] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
 }
 
-function onLogin (user: WECHATY.Contact) {
+function onLogin (user: Contact) {
   console.info(`${user.name()} login`)
 }
 
-function onLogout (user: WECHATY.Contact) {
+function onLogout (user: Contact) {
   console.info(`${user.name()} logged out`)
 }
 

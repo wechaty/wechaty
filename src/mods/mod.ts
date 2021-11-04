@@ -24,7 +24,14 @@
  */
 export type {
   WechatyOptions,
-}                       from '../wechaty.js'
+}                               from '../wechaty.js'
+export {
+  WechatyBuilder,
+}                               from '../wechaty-builder.js'
+export type {
+  WechatyInterface as Wechaty,
+}                               from '../interface/mod.js'
+
 export type {
   SayableSayer,
   Sayable,
@@ -32,12 +39,6 @@ export type {
 export {
   messageToSayable,
 }                   from '../sayable/mod.js'
-export type {
-  Wechaty,
-}                   from '../interface/mod.js'
-export {
-  WechatyBuilder,
-}                       from '../wechaty-builder.js'
 
 export * as type        from 'wechaty-puppet/types'
 export * as payload     from 'wechaty-puppet/payloads'

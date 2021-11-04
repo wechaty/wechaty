@@ -2,12 +2,12 @@ import type {
   AcceptableAccepter,
 }                           from './acceptable.js'
 import type {
-  Wechaty,
+  WechatyInterface,
   WechatyConstructor,
 }                             from './wechaty-interface.js'
 
 export type {
   AcceptableAccepter,
-  Wechaty,
+  WechatyInterface,
   WechatyConstructor,
 }

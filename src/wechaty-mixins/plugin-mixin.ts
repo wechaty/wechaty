@@ -9,7 +9,7 @@ import {
 
 import type { WechatySkelton }      from './wechaty-skelton.js'
 import type {
-  Wechaty,
+  WechatyInterface,
   WechatyConstructor,
 }                             from '../interface/wechaty-interface.js'
 import { instanceToClass } from 'clone-class'
@@ -26,7 +26,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
     /**
      * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
      *
-     * @return  {Wechaty}                      - this for chaining,
+     * @return  {WechatyInterface}                      - this for chaining,
      *
      * @desc
      * For wechaty ecosystem, allow user to define a 3rd party plugin for the all wechaty instances
@@ -61,7 +61,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
     /**
      * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
      *
-     * @return  {Wechaty}                      - this for chaining,
+     * @return  {WechatyInterface}                      - this for chaining,
      *
      * @desc
      * For wechaty ecosystem, allow user to define a 3rd party plugin for the current wechaty instance.
@@ -74,7 +74,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
       ...plugins: (
         WechatyPlugin | WechatyPlugin[]
       )[]
-    ): Wechaty {
+    ): WechatyInterface {
       const pluginList = plugins.flat() as WechatyPlugin[]
       const uninstallerList = pluginList
         .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any

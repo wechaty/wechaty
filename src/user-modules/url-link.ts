@@ -38,7 +38,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
    * Create from URL
    *
    */
-  static async create (url: string): Promise<UrlLink> {
+  static async create (url: string): Promise<UrlLinkInterface> {
     log.verbose('UrlLink', 'create(%s)', url)
 
     const meta = await openGraph(url)
@@ -128,17 +128,17 @@ class UrlLinkMixin extends wechatifyMixinBase() {
 
 }
 
-class UrlLinkImpl extends validationMixin(UrlLinkMixin)<UrlLink>() {}
-interface UrlLink extends UrlLinkImpl {}
+class UrlLinkImpl extends validationMixin(UrlLinkMixin)<UrlLinkInterface>() {}
+interface UrlLinkInterface extends UrlLinkImpl {}
 
 type UrlLinkConstructor = Constructor<
-  UrlLink,
+  UrlLinkInterface,
   typeof UrlLinkImpl
 >
 
 export type {
   UrlLinkConstructor,
-  UrlLink,
+  UrlLinkInterface,
 }
 export {
   UrlLinkImpl,

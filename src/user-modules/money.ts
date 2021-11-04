@@ -37,17 +37,17 @@ class MoneyMixin extends MixinBase {
 
 }
 
-class MoneyImpl extends validationMixin(MoneyMixin)<Money>() {}
-interface Money extends MoneyImpl {}
+class MoneyImpl extends validationMixin(MoneyMixin)<MoneyInterface>() {}
+interface MoneyInterface extends MoneyImpl {}
 
 type MoneyConstructor = Constructor<
-  Money,
+  MoneyInterface,
   typeof MoneyImpl
 >
 
 export type {
   MoneyConstructor,
-  Money,
+  MoneyInterface,
 }
 export {
   MoneyImpl,

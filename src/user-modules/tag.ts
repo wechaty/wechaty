@@ -23,8 +23,8 @@ import {
 
 import type { Constructor }  from '../deprecated/clone-class.js'
 
-import { Contact, ContactImpl }  from './contact.js'
-import { Favorite, FavoriteImpl } from './favorite.js'
+import { ContactInterface, ContactImpl }  from './contact.js'
+import { FavoriteInterface, FavoriteImpl } from './favorite.js'
 
 import {
   poolifyMixin,
@@ -36,7 +36,7 @@ import {
 
 const MixinBase = poolifyMixin(
   wechatifyMixinBase(),
-)<Tag>()
+)<TagInterface>()
 
 class TagMixin extends MixinBase {
 
@@ -65,7 +65,7 @@ class TagMixin extends MixinBase {
    */
   static async get (
     tag: string,
-  ): Promise<Tag> {
+  ): Promise<TagInterface> {
     log.verbose('Tag', 'get(%s)', tag)
     return this.load(tag)
   }
@@ -78,7 +78,7 @@ class TagMixin extends MixinBase {
    * (This is for protecting the tag being deleted by mistake)
    *
    * @static
-   * @returns {Promise<Tag[]>}
+   * @returns {Promise<TagInterface[]>}
    * @example
    * const tag = wechaty.Tag.get('tag')
    * await wechaty.Tag.delete(tag)
@@ -88,7 +88,7 @@ class TagMixin extends MixinBase {
    * TODO: refactoring the target: do not use ContactIml or FavoriteImpl
    */
   static async delete (
-    tag: Tag,
+    tag: TagInterface,
     target?: typeof ContactImpl | typeof FavoriteImpl,
   ): Promise<void> {
     log.verbose('Tag', 'static delete(%s)', tag)
@@ -123,13 +123,13 @@ class TagMixin extends MixinBase {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {Contact} [to] the contact which need to add tag
+   * @param {ContactInterface} [to] the contact which need to add tag
    * @returns {Promise<void>}
    * @example
    * await tag.add(contact)
    */
   async add (
-    to: Contact | Favorite,
+    to: ContactInterface | FavoriteInterface,
   ): Promise<void> {
     log.verbose('Tag', 'add(%s) for %s', to, this.id)
 
@@ -161,7 +161,7 @@ class TagMixin extends MixinBase {
    * @example
    * await tag.remove(contact)
    */
-  async remove (from: Contact | Favorite): Promise<void> {
+  async remove (from: ContactInterface | FavoriteInterface): Promise<void> {
     log.verbose('Tag', 'remove(%s) for %s', from, this.id)
 
     /**
@@ -185,17 +185,17 @@ class TagMixin extends MixinBase {
 
 }
 
-class TagImpl extends validationMixin(TagMixin)<Tag>() {}
-interface Tag extends TagImpl {}
+class TagImpl extends validationMixin(TagMixin)<TagInterface>() {}
+interface TagInterface extends TagImpl {}
 
 type TagConstructor = Constructor<
-  Tag,
+  TagInterface,
   typeof TagImpl
 >
 
 export type {
   TagConstructor,
-  Tag,
+  TagInterface,
 }
 export {
   TagImpl,

@@ -19,104 +19,104 @@
  */
 import {
   ContactImpl,
-  Contact,
+  ContactInterface,
   ContactConstructor,
 }                           from './contact.js'
 import {
   ContactSelfImpl,
-  ContactSelf,
+  ContactSelfInterface,
   ContactSelfConstructor,
 }                           from './contact-self.js'
 import {
   FavoriteImpl,
-  Favorite,
+  FavoriteInterface,
   FavoriteConstructor,
 }                           from './favorite.js'
 import {
   FriendshipImpl,
-  Friendship,
+  FriendshipInterface,
   FriendshipConstructor,
 }                           from './friendship.js'
 import {
   ImageImpl,
-  Image,
+  ImageInterface,
   ImageConstructor,
 }                           from './image.js'
 import {
   LocationImpl,
-  Location,
+  LocationInterface,
   LocationConstructor,
 }                           from './location.js'
 import {
   MessageImpl,
-  Message,
+  MessageInterface,
   MessageConstructor,
 }                           from './message.js'
 import {
   MiniProgramImpl,
-  MiniProgram,
+  MiniProgramInterface,
   MiniProgramConstructor,
 }                           from './mini-program.js'
 import {
   MomentImpl,
-  Moment,
+  MomentInterface,
   MomentConstructor,
 }                           from './moment.js'
 import {
   MoneyImpl,
-  Money,
+  MoneyInterface,
   MoneyConstructor,
 }                           from './money.js'
 import {
   PostImpl,
-  Post,
+  PostInterface,
   PostConstructor,
 }                           from './post.js'
 import {
   RoomImpl,
-  Room,
+  RoomInterface,
   RoomConstructor,
 }                           from './room.js'
 import {
   RoomInvitationImpl,
-  RoomInvitation,
+  RoomInvitationInterface,
   RoomInvitationConstructor,
 }                           from './room-invitation.js'
 import {
   TagImpl,
-  Tag,
+  TagInterface,
   TagConstructor,
 }                           from './tag.js'
 import {
   UrlLinkImpl,
-  UrlLink,
+  UrlLinkInterface,
   UrlLinkConstructor,
 }                           from './url-link.js'
 import {
   DelayImpl,
-  Delay,
+  DelayInterface,
   DelayConstructor,
 }                           from './delay.js'
 
 import { wechatifyUserModule } from '../user-mixins/wechatify.js'
 
 export type {
-  Contact,
-  ContactSelf,
-  Favorite,
-  Friendship,
-  Image,
-  Location,
-  Message,
-  MiniProgram,
-  Moment,
-  Money,
-  Post,
-  Room,
-  RoomInvitation,
-  Tag,
-  Delay,
-  UrlLink,
+  ContactInterface,
+  ContactSelfInterface,
+  FavoriteInterface,
+  FriendshipInterface,
+  ImageInterface,
+  LocationInterface,
+  MessageInterface,
+  MiniProgramInterface,
+  MomentInterface,
+  MoneyInterface,
+  PostInterface,
+  RoomInterface,
+  RoomInvitationInterface,
+  TagInterface,
+  DelayInterface,
+  UrlLinkInterface,
 }
 
 export type {
@@ -140,6 +140,7 @@ export type {
 
 export {
   wechatifyUserModule,
+
   ContactImpl,
   ContactSelfImpl,
   FavoriteImpl,

@@ -22,8 +22,8 @@ import type {
 
 import type {
   WechatyConstructor,
-  Wechaty,
-  WechatyProtectedProperty,
+  WechatyInterface,
+  AllProtectedProperty,
   // WechatyConstructor,
 }                       from './wechaty-interface.js'
 
@@ -32,7 +32,7 @@ import type {
 }                       from '../wechaty.js'
 
 test('Wechaty interface', async t => {
-  abstract class WechatyImplementation extends EventEmitter implements Wechaty {
+  abstract class WechatyImplementation extends EventEmitter implements WechatyInterface {
 
     Contact        : ContactConstructor
     ContactSelf    : ContactSelfConstructor
@@ -48,9 +48,9 @@ test('Wechaty interface', async t => {
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
 
-    id     : Wechaty['id']
-    puppet : Wechaty['puppet']
-    state  : Wechaty['state']
+    id     : WechatyInterface['id']
+    puppet : WechatyInterface['puppet']
+    state  : WechatyInterface['state']
 
     constructor () {
       super()
@@ -73,26 +73,26 @@ test('Wechaty interface', async t => {
         = {} as any
     }
 
-    abstract currentUser : Wechaty['currentUser']
-    abstract ding        : Wechaty['ding']
-    abstract emitError   : Wechaty['emitError']
-    abstract logonoff    : Wechaty['logonoff']
-    abstract logout      : Wechaty['logout']
-    abstract name        : Wechaty['name']
-    abstract ready       : Wechaty['ready']
-    abstract reset       : Wechaty['reset']
-    abstract say         : Wechaty['say']
-    abstract sleep       : Wechaty['sleep']
-    abstract start       : Wechaty['start']
-    abstract stop        : Wechaty['stop']
-    abstract use         : Wechaty['use']
-    abstract version     : Wechaty['version']
-    abstract wrapAsync   : Wechaty['wrapAsync']
+    abstract currentUser : WechatyInterface['currentUser']
+    abstract ding        : WechatyInterface['ding']
+    abstract emitError   : WechatyInterface['emitError']
+    abstract logonoff    : WechatyInterface['logonoff']
+    abstract logout      : WechatyInterface['logout']
+    abstract name        : WechatyInterface['name']
+    abstract ready       : WechatyInterface['ready']
+    abstract reset       : WechatyInterface['reset']
+    abstract say         : WechatyInterface['say']
+    abstract sleep       : WechatyInterface['sleep']
+    abstract start       : WechatyInterface['start']
+    abstract stop        : WechatyInterface['stop']
+    abstract use         : WechatyInterface['use']
+    abstract version     : WechatyInterface['version']
+    abstract wrapAsync   : WechatyInterface['wrapAsync']
 
   }
 
   const WechatyTest = WechatyImplementation as unknown as WechatyConstructor
-  const w: Wechaty = new WechatyTest()
+  const w: WechatyInterface = new WechatyTest()
   w.on('message', (msg: Message) => {
     msg.say('ok').catch(console.error)
   })
@@ -101,7 +101,7 @@ test('Wechaty interface', async t => {
 })
 
 test('ProtectedProperties', async t => {
-  type NotExistInWechaty = Exclude<WechatyProtectedProperty, keyof WechatyImpl | `_${string}`>
+  type NotExistInWechaty = Exclude<AllProtectedProperty, keyof WechatyImpl | `_${string}`>
   type NotExistTest = NotExistInWechaty extends never ? true : false
 
   const noOneLeft: NotExistTest = true

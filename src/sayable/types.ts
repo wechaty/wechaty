@@ -22,38 +22,38 @@ import type {
 }                       from 'file-box'
 
 import type {
-  Contact,
-  Delay,
-  Location,
-  Message,
-  MiniProgram,
-  Post,
-  UrlLink,
+  ContactInterface,
+  DelayInterface,
+  LocationInterface,
+  MessageInterface,
+  MiniProgramInterface,
+  PostInterface,
+  UrlLinkInterface,
 }                           from '../user-modules/mod.js'
 
 import type {
-  Wechaty,
+  WechatyInterface,
 }                           from '../interface/mod.js'
 
 type Sayable =
-  | Contact
-  | Delay
+  | ContactInterface
+  | DelayInterface
   | FileBoxInterface
-  | Location
-  | Message
-  | MiniProgram
+  | LocationInterface
+  | MessageInterface
+  | MiniProgramInterface
   | number
-  | Post
+  | PostInterface
   | string
-  | UrlLink
+  | UrlLinkInterface
 
 interface SayableSayer {
   id      : string,
-  wechaty : Wechaty,
+  wechaty : WechatyInterface,
   say (
     sayable  : Sayable,
-    replyTo? : Contact | Contact[]
-  ): Promise<void | Message>
+    replyTo? : ContactInterface | ContactInterface[]
+  ): Promise<void | MessageInterface>
 }
 
 export type {

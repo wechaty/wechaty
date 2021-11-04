@@ -26,7 +26,7 @@ import {
 
 class DelayMixin extends wechatifyMixinBase() {
 
-  static create (milliseconds: number): Delay {
+  static create (milliseconds: number): DelayInterface {
     return new DelayImpl(milliseconds)
   }
 
@@ -44,17 +44,17 @@ class DelayMixin extends wechatifyMixinBase() {
 
 }
 
-class DelayImpl extends validationMixin(DelayMixin)<Delay>() {}
-interface Delay extends DelayImpl {}
+class DelayImpl extends validationMixin(DelayMixin)<DelayInterface>() {}
+interface DelayInterface extends DelayImpl {}
 
 type DelayConstructor = Constructor<
-  Delay,
+  DelayInterface,
   typeof DelayImpl
 >
 
 export type {
   DelayConstructor,
-  Delay,
+  DelayInterface,
 }
 export {
   DelayImpl,

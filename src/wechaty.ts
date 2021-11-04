@@ -51,13 +51,13 @@ import type {
 }                             from './events/wechaty-events.js'
 
 import type {
-  Wechaty,
+  WechatyInterface,
 }                       from './interface/wechaty-interface.js'
 import { puppetEventBridgeMixin } from './wechaty-mixins/puppet-event-bridge-mixin.js'
 import { wechatifyUserModuleMixin } from './wechaty-mixins/wechatify-user-module-mixin.js'
 import { WechatySkelton } from './wechaty-mixins/wechaty-skelton.js'
 import type {
-  ContactSelf,
+  ContactSelfInterface,
   ContactSelfImpl,
 }                     from './user-modules/contact-self.js'
 import { gErrorMixin } from './wechaty-mixins/gerror-mixin.js'
@@ -113,7 +113,7 @@ class WechatyImpl extends mixinBase implements SayableSayer {
   static   readonly log: Loggable = log
 
   readonly log: Loggable = log
-  readonly wechaty : Wechaty
+  readonly wechaty : WechatyInterface
 
   private _io?: Io
 
@@ -331,12 +331,12 @@ class WechatyImpl extends mixinBase implements SayableSayer {
   /**
    * Get current user
    *
-   * @returns {ContactSelf}
+   * @returns {ContactSelfInterface}
    * @example
    * const contact = bot.currentUser()
    * console.log(`Bot is ${contact.name()}`)
    */
-  currentUser (): ContactSelf {
+  currentUser (): ContactSelfInterface {
     const userId = this.puppet.currentUserId
     const user = (this.ContactSelf as typeof ContactSelfImpl).load(userId)
     return user

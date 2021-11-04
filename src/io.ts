@@ -37,10 +37,10 @@ import {
   getPeer,
   isJsonRpcRequest,
 }                   from './io-peer/io-peer.js'
-import type { Wechaty } from './interface/mod.js'
+import type { WechatyInterface } from './interface/mod.js'
 
 export interface IoOptions {
-  wechaty      : Wechaty,
+  wechaty      : WechatyInterface,
   token        : string,
   apihost?     : string,
   protocol?    : string,

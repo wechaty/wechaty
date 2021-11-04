@@ -51,18 +51,18 @@ import {
 import type {
   PaginationRequest,
 }                       from './post-puppet-api.js'
-import type { SayablePayload } from './post-payload-list.js'
+import type { SayablePayload } from './post-sayable-payload-list.js'
 import { ContactImpl } from './contact.js'
-import type { Contact } from './contact.js'
+import type { ContactInterface } from './contact.js'
 
 interface PostTap {
-  contact: Contact
+  contact: ContactInterface
   type: PostTapType,
   date: Date
 }
 
 interface PostListOptions {
-  contact?: Contact,
+  contact?: ContactInterface,
   tapType?: PostTapType,
 }
 
@@ -83,7 +83,7 @@ class PostBuilder {
     return this
   }
 
-  reply (post: Post): this {
+  reply (post: PostInterface): this {
     if (!post.id) {
       throw new Error('can not link to a post without id: ' + JSON.stringify(post))
     }
@@ -94,17 +94,19 @@ class PostBuilder {
     return this
   }
 
-  build (): Post {
+  build (): PostInterface {
     const sayablePayloadList = this.sayableList
       .map(sayableToPayload)
       .flat()
       .filter(Boolean) as SayablePayload[]
 
     return this.Impl.create({
-      parentId    : this.parentId,
-      rootId      : this.rootId,
-      sayableList : sayablePayloadList,
-      timestamp   : Date.now(),
+      descendantNum : 0,
+      parentId      : this.parentId,
+      rootId        : this.rootId,
+      sayableList   : sayablePayloadList,
+      tapNum        : 0,
+      timestamp     : Date.now(),
     })
   }
 
@@ -121,7 +123,7 @@ class PostMixin extends wechatifyMixinBase() {
    */
   static create (
     payload: Omit<PostPayloadClient, 'contactId'>,
-  ): Post {
+  ): PostInterface {
     log.verbose('Post', 'create()')
 
     const post = new this()
@@ -133,7 +135,7 @@ class PostMixin extends wechatifyMixinBase() {
     return post
   }
 
-  static load (id: string): Post {
+  static load (id: string): PostInterface {
     log.verbose('Post', 'static load(%s)', id)
 
     /**
@@ -150,7 +152,7 @@ class PostMixin extends wechatifyMixinBase() {
   protected _payload?: PostPayload
   get payload (): PostPayload {
     if (!this._payload) {
-      throw new Error('no payload')
+      throw new Error('no payload, need to call `ready()` first.')
     }
     return this._payload
   }
@@ -165,7 +167,15 @@ class PostMixin extends wechatifyMixinBase() {
     log.verbose('Post', 'constructor(%s)', id ?? '')
   }
 
-  async author (): Promise<Contact> {
+  descendantNum (): number {
+    return this.payload.descendantNum
+  }
+
+  tapNum (): number {
+    return this.payload.tapNum
+  }
+
+  async author (): Promise<ContactInterface> {
     log.silly('Post', 'author()')
 
     const author = await ContactImpl.find(this.payload.contactId)
@@ -175,7 +185,7 @@ class PostMixin extends wechatifyMixinBase() {
     return author
   }
 
-  async root (): Promise<undefined | Post> {
+  async root (): Promise<undefined | PostInterface> {
     log.silly('Post', 'root()')
 
     if (!this.payload.rootId) {
@@ -187,7 +197,7 @@ class PostMixin extends wechatifyMixinBase() {
     return post
   }
 
-  async parent (): Promise<undefined | Post> {
+  async parent (): Promise<undefined | PostInterface> {
     log.silly('Post', 'parent()')
     if (!this.payload.parentId) {
       return undefined
@@ -251,7 +261,7 @@ class PostMixin extends wechatifyMixinBase() {
 
   async * children (
     options: PostListOptions = {},
-  ): AsyncIterableIterator<Post> {
+  ): AsyncIterableIterator<PostInterface> {
     log.verbose('Post', '*children(%s)', Object.keys(options).length ? JSON.stringify(options) : '')
 
     const pagination: PaginationRequest = {}
@@ -282,7 +292,7 @@ class PostMixin extends wechatifyMixinBase() {
 
   async * descendants (
     options: PostListOptions = {},
-  ): AsyncIterableIterator<Post> {
+  ): AsyncIterableIterator<PostInterface> {
     log.verbose('Post', '*descendants(%s)', Object.keys(options).length ? JSON.stringify(options) : '')
 
     const pagination: PaginationRequest = {}
@@ -352,7 +362,7 @@ class PostMixin extends wechatifyMixinBase() {
     }
   }
 
-  async reply (sayable: Sayable | Sayable[]): Promise<void | Post> {
+  async reply (sayable: Sayable | Sayable[]): Promise<void | PostInterface> {
     log.verbose('Post', 'reply(%s)', sayable)
 
     if (!this.id) {
@@ -486,7 +496,7 @@ class PostMixin extends wechatifyMixinBase() {
     options    : PostListOptions,
     pagination : PaginationRequest = {},
   ): Promise<[
-    postList       : Post[],
+    postList       : PostInterface[],
     nextPageToken? : string,
   ]> {
     log.verbose('Post', 'childList(%s%s)',
@@ -507,7 +517,7 @@ class PostMixin extends wechatifyMixinBase() {
     const nextPageToken = ret.nextPageToken
     const response = ret.response
 
-    const postList: Post[] = []
+    const postList: PostInterface[] = []
     for (const postId of response) {
       const post = this.wechaty.Post.load(postId)
       try {
@@ -526,7 +536,7 @@ class PostMixin extends wechatifyMixinBase() {
     options    : PostListOptions,
     pagination : PaginationRequest = {},
   ): Promise<[
-    postList       : Post[],
+    postList       : PostInterface[],
     nextPageToken? : string,
   ]> {
     log.verbose('Post', 'descendantList(%s%s)',
@@ -547,7 +557,7 @@ class PostMixin extends wechatifyMixinBase() {
     const nextPageToken = ret.nextPageToken
     const response = ret.response
 
-    const postList: Post[] = []
+    const postList: PostInterface[] = []
     for (const postId of response) {
       const post = this.wechaty.Post.load(postId)
       try {
@@ -564,17 +574,17 @@ class PostMixin extends wechatifyMixinBase() {
 
 }
 
-class PostImpl extends validationMixin(PostMixin)<Post>() {}
-interface Post extends PostImpl {}
+class PostImpl extends validationMixin(PostMixin)<PostInterface>() {}
+interface PostInterface extends PostImpl {}
 
 type PostConstructor = Constructor<
-  Post,
+  PostInterface,
   typeof PostImpl
 >
 
 export type {
   PostConstructor,
-  Post,
+  PostInterface,
 }
 export {
   PostBuilder,

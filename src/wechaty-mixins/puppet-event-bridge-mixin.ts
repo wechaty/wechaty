@@ -6,7 +6,7 @@ import { StateSwitch } from 'state-switch'
 import type { StateSwitchInterface } from 'state-switch'
 
 import { timestampToDate } from '../pure-functions/timestamp-to-date.js'
-import type { Contact } from '../user-modules/contact.js'
+import type { ContactInterface } from '../user-modules/contact.js'
 import type {
   WechatifyUserModuleMixin,
 }                             from './wechatify-user-module-mixin.js'
@@ -251,7 +251,7 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
                 const inviteeListAll = await Promise.all(
                   payload.inviteeIdList.map(id => this.Contact.find({ id })),
                 )
-                const inviteeList = inviteeListAll.filter(c => !!c) as Contact[]
+                const inviteeList = inviteeListAll.filter(c => !!c) as ContactInterface[]
 
                 const inviter = await this.Contact.find({ id: payload.inviterId })
                 if (!inviter) {
@@ -284,7 +284,7 @@ const puppetEventBridgeMixin = <MixinBase extends WechatifyUserModuleMixin> (mix
                 const leaverListAll = await Promise.all(
                   payload.removeeIdList.map(id => this.Contact.find({ id })),
                 )
-                const leaverList = leaverListAll.filter(c => !!c) as Contact[]
+                const leaverList = leaverListAll.filter(c => !!c) as ContactInterface[]
 
                 const remover = await this.Contact.find({ id: payload.removerId })
                 if (!remover) {

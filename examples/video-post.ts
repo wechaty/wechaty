@@ -19,6 +19,7 @@ async function testVideoPost () {
   const post = bot.Post.builder()
     .add('hello, world')
     .add(FileBox.fromQRCode('qr'))
+    .add(await bot.UrlLink.create('https://wechaty.js.org'))
     .build()
 
   await bot.say(post)
@@ -37,13 +38,16 @@ async function testVideoPost () {
      */
     const post2 = await message.toPost()
 
+    console.info('total tap(like) number:', post2.tapNum())
+    console.info('total children number:', post2.descendantNum())
+
     /**
      * Comment
      */
     // reply comment
     await post2.reply('xxxx')
+    await post2.reply(FileBox.fromQRCode('qrimage'))
 
-    // revoke comment
     const [descendantList] = await post.descendantList({ contact: message.wechaty.currentUser() })
     if (descendantList.length > 0) {
       console.info(descendantList[0])

@@ -20,7 +20,7 @@
 import { log } from 'wechaty-puppet'
 import type { Constructor } from '../deprecated/clone-class.js'
 
-import type { Contact } from './contact.js'
+import type { ContactInterface } from './contact.js'
 import { validationMixin } from '../user-mixins/validation.js'
 import {
   EmptyBase,
@@ -37,7 +37,7 @@ class MomentMixin extends MixinBase {
     // post new moment
   }
 
-  static timeline (contact: Contact): MomentImpl[] {
+  static timeline (contact: ContactInterface): MomentImpl[] {
     // list all moment
     void contact
     return []
@@ -53,16 +53,16 @@ class MomentMixin extends MixinBase {
 
 }
 
-class MomentImpl extends validationMixin(MomentMixin)<Moment>() {}
-interface Moment extends MomentImpl {}
+class MomentImpl extends validationMixin(MomentMixin)<MomentInterface>() {}
+interface MomentInterface extends MomentImpl {}
 type MomentConstructor = Constructor<
-  Moment,
+  MomentInterface,
   typeof MomentImpl
 >
 
 export type {
   MomentConstructor,
-  Moment,
+  MomentInterface,
 }
 export {
   MomentImpl,

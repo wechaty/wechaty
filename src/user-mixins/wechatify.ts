@@ -1,21 +1,21 @@
 import { log }              from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import type { Wechaty } from '../interface/wechaty-interface.js'
+import type { WechatyInterface } from '../interface/wechaty-interface.js'
 
 const WECHATIFIED_PREFIX = 'Wechatified'
 
 interface WechatyMinxin {
-  wechaty: Wechaty,
+  wechaty: WechatyInterface,
   new (...args: any[]): {
-    get wechaty (): Wechaty
+    get wechaty (): WechatyInterface
   }
 }
 
 const wechatifyUserModule = <T extends WechatyMinxin> (UserClass: T) => {
   log.verbose('user/mixins/wechatify', 'wechatifyUserModule(%s)', UserClass.name)
 
-  return (wechaty: Wechaty): T => {
+  return (wechaty: WechatyInterface): T => {
     log.verbose('user/mixins/wechatify', 'wechatifyUserModule(%s)(%s)', UserClass.name, wechaty)
 
     class WechatifiedUserClass extends UserClass {
@@ -47,8 +47,8 @@ const wechatifyMixin = <TBase extends Constructor> (Base: TBase) => {
 
   abstract class AbstractWechatifyMixin extends Base {
 
-    static get wechaty  (): Wechaty { return throwWechatifyError(this) }
-    get wechaty         (): Wechaty { return throwWechatifyError(this.constructor) }
+    static get wechaty  (): WechatyInterface { return throwWechatifyError(this) }
+    get wechaty         (): WechatyInterface { return throwWechatifyError(this.constructor) }
 
     constructor (...args: any[]) {
       super(...args)

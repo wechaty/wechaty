@@ -3,14 +3,14 @@ import { log }  from 'wechaty-puppet'
 
 import type {
   SayablePayload,
-}                       from '../user-modules/post-payload-list.js'
-import type { Wechaty } from '../interface/mod.js'
+}                       from '../user-modules/post-sayable-payload-list.js'
+import type { WechatyInterface } from '../interface/mod.js'
 
 import type {
   Sayable,
 }                   from './types.js'
 
-const payloadToSayableWechaty: (w: Wechaty) => (p: SayablePayload) => Promise<undefined | Sayable> = (wechaty: Wechaty) => async (
+const payloadToSayableWechaty: (w: WechatyInterface) => (p: SayablePayload) => Promise<undefined | Sayable> = (wechaty: WechatyInterface) => async (
   payload: SayablePayload,
 ) => {
   log.verbose('Wechaty', 'payloadToSayable({type: %s(%s)})',

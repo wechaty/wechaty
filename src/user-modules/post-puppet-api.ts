@@ -1,6 +1,6 @@
 /* eslint-disable sort-keys */
 import { PuppetMock } from 'wechaty-puppet-mock'
-import type { SayablePayload } from './post-payload-list.js'
+import type { SayablePayload } from './post-sayable-payload-list.js'
 
 /**
  * There have three types of a Post:
@@ -23,8 +23,8 @@ interface PostPayloadBase {
   contactId: string
   timestamp: number
 
-  childCounter? : number
-  tapCounter?   : number
+  descendantNum : number
+  tapNum        : number
 
   // The liker information need to be fetched from another API
 
@@ -50,6 +50,7 @@ const isPostPayloadClient = (payload: PostPayload): payload is PostPayloadClient
     && Array.isArray(payload.sayableList)
     && payload.sayableList.length > 0
     && payload.sayableList[0] instanceof Object
+    && typeof payload.sayableList[0].type !== 'undefined'
 
 const isPostPayloadServer = (payload: PostPayload): payload is PostPayloadServer =>
   payload instanceof Object

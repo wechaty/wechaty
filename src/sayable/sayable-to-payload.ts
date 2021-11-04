@@ -14,7 +14,7 @@ import {
 
 import type {
   SayablePayload,
-}                       from '../user-modules/post-payload-list.js'
+}                       from '../user-modules/post-sayable-payload-list.js'
 
 import type {
   Sayable,
@@ -33,13 +33,13 @@ function sayableToPayload (sayable: Sayable): undefined | SayablePayload | Sayab
       payload: String(sayable),
       type: PUPPET.type.Message.Text,
     }
-  } else if (ContactImpl.validInstance(sayable)) {
+  } else if (ContactImpl.valid(sayable)) {
     return {
       payload: sayable.id,
       type: PUPPET.type.Message.Contact,
     }
   } else if (DelayImpl.validInstance(sayable)) {
-    // Delay is a local sayable
+    // Delay is a local-only sayable
     return undefined
   } else if (FileBox.valid(sayable)) {
     return {
@@ -51,13 +51,13 @@ function sayableToPayload (sayable: Sayable): undefined | SayablePayload | Sayab
       payload: sayable.payload,
       type: PUPPET.type.Message.Location,
     }
-  } else if (MessageImpl.validInstance(sayable)) {
+  } else if (MessageImpl.valid(sayable)) {
     // const unwrappedSayable = await sayable.toSayable()
     // if (!unwrappedSayable) {
     //   return undefined
     // }
     // return sayableToSayablePayload(unwrappedSayable)
-    console.error('Post:sayableToPayload() not support Message yet')
+    log.error('Wechaty', 'sayableToPayload() Huan(202111): Post:sayableToPayload() not support Message yet because it requires `await`')
     return undefined
   } else if (MiniProgramImpl.validInstance(sayable)) {
     return {
@@ -70,7 +70,7 @@ function sayableToPayload (sayable: Sayable): undefined | SayablePayload | Sayab
     //   return undefined
     // }
     // return unwrappedSayableList.map(sayableToSayablePayload)
-    console.error('not support add Post to Post yet.')
+    log.error('Wechaty', 'sayableToPayload() Huan(202111): not support add Post to Post yet because it is complicated for now')
     return undefined
   } else if (UrlLinkImpl.validInstance(sayable)) {
     return {
@@ -78,7 +78,7 @@ function sayableToPayload (sayable: Sayable): undefined | SayablePayload | Sayab
       type: PUPPET.type.Message.Url,
     }
   } else {
-    console.error(`sayableToPayload(): unsupported sayable: ${sayable}`)
+    log.error('Wechaty', 'sayableToPayload() unsupported sayable: %s', sayable)
     return undefined
   }
 }

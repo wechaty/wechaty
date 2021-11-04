@@ -31,11 +31,11 @@ import type {
 import { log } from '../config.js'
 
 import type {
-  Contact,
+  ContactInterface,
   ContactImpl,
 }                       from './contact.js'
 import type {
-  Room,
+  RoomInterface,
 }                       from './room.js'
 import {
   wechatifyMixin,
@@ -43,8 +43,8 @@ import {
 import { validationMixin } from '../user-mixins/validation.js'
 
 interface FriendshipAddOptionsObject {
-  room?: Room,
-  contact?: Contact,
+  room?: RoomInterface,
+  contact?: ContactInterface,
   hello?: string,
 }
 
@@ -72,7 +72,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    */
   static load (
     id   : string,
-  ): Friendship {
+  ): FriendshipInterface {
     const newFriendship = new this(id)
     return newFriendship
   }
@@ -84,7 +84,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    * Remember not to do this too frequently, or your account may be blocked.
    *
    * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
-   * @returns {Promise<Contact>}
+   * @returns {Promise<ContactInterface>}
    *
    * @example
    * const friend_phone = await bot.Friendship.search({phone: '13112341234'})
@@ -96,7 +96,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    */
   static async search (
     queryFilter : PUPPET.filter.Friendship,
-  ): Promise<undefined | Contact> {
+  ): Promise<undefined | ContactInterface> {
     log.verbose('Friendship', 'static search("%s")',
       JSON.stringify(queryFilter),
     )
@@ -116,7 +116,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    * The best practice is to send friend request once per minute.
    * Remeber not to do this too frequently, or your account may be blocked.
    *
-   * @param {Contact} contact - Send friend request to contact
+   * @param {ContactInterface} contact - Send friend request to contact
    * @param {FriendshipAddOptions} options - The friend request content
    * @returns {Promise<void>}
    *
@@ -134,7 +134,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    *
    */
   static async add (
-    contact : Contact,
+    contact : ContactInterface,
     options  : FriendshipAddOptions,
   ): Promise<void> {
     log.verbose('Friendship', 'static add(%s, %s)',
@@ -156,7 +156,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
   }
 
   static async del (
-    contact: Contact,
+    contact: ContactInterface,
   ): Promise<void> {
     log.verbose('Friendship', 'static del(%s)', contact.id)
     throw new Error('to be implemented')
@@ -315,7 +315,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
   /**
    * Get the contact from friendship
    *
-   * @returns {Contact}
+   * @returns {ContactInterface}
    * @example
    * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
@@ -325,7 +325,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    * }
    * .start()
    */
-  contact (): Contact {
+  contact (): ContactInterface {
     if (!this._payload) {
       throw new Error('no payload')
     }
@@ -400,7 +400,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    */
   static async fromJSON (
     payload: string | PUPPET.payload.Friendship,
-  ): Promise<Friendship> {
+  ): Promise<FriendshipInterface> {
     log.verbose('Friendship', 'static fromJSON(%s)',
       typeof payload === 'string'
         ? payload
@@ -424,17 +424,17 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
 
 }
 
-class FriendshipImpl extends validationMixin(FriendshipMixin)<Friendship>() {}
-interface Friendship extends FriendshipImpl {}
+class FriendshipImpl extends validationMixin(FriendshipMixin)<FriendshipInterface>() {}
+interface FriendshipInterface extends FriendshipImpl {}
 
 type FriendshipConstructor = Constructor<
-  Friendship,
+  FriendshipInterface,
   typeof FriendshipImpl
 >
 
 export type {
   FriendshipConstructor,
-  Friendship,
+  FriendshipInterface,
 }
 export {
   FriendshipImpl,
