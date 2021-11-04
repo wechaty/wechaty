@@ -9,12 +9,14 @@ import {
 import {
   WechatyEventEmitter,
   WechatyEventListeners,
+  WechatyEventName,
 }                           from './wechaty-events.js'
 
 export type {
   ContactEventListeners,
   RoomEventListeners,
   WechatyEventListeners,
+  WechatyEventName,
 }
 export {
   ContactEventEmitter,

@@ -17,9 +17,8 @@
  *   limitations under the License.
  *
  */
-import * as uuid  from 'uuid'
-
 import type * as PUPPET from 'wechaty-puppet'
+import * as uuid        from 'uuid'
 import type {
   MemoryCard,
 }                       from 'memory-card'
@@ -34,34 +33,34 @@ import {
   VERSION,
 }                       from './config.js'
 
-import type {
-  SayableSayer,
-  Sayable,
-}                       from './sayable/mod.js'
-
 import {
   Io,
 }                       from './io.js'
+
 import type {
   PuppetModuleName,
-}                       from './puppet-management/puppet-config.js'
-
+}                             from './puppet-management/mod.js'
+import type {
+  SayableSayer,
+  Sayable,
+}                             from './sayable/mod.js'
 import type {
   WechatyEventName,
-}                             from './events/wechaty-events.js'
-
+}                             from './events/mod.js'
 import type {
   WechatyInterface,
-}                       from './interface/wechaty-interface.js'
-import { puppetEventBridgeMixin } from './wechaty-mixins/puppet-event-bridge-mixin.js'
-import { wechatifyUserModuleMixin } from './wechaty-mixins/wechatify-user-module-mixin.js'
-import { WechatySkelton } from './wechaty-mixins/wechaty-skelton.js'
+}                             from './interface/mod.js'
+import {
+  gErrorMixin,
+  pluginMixin,
+  puppetMixin,
+  wechatifyUserModuleMixin,
+  WechatySkelton,
+}                             from './wechaty-mixins/mod.js'
 import type {
   ContactSelfInterface,
   ContactSelfImpl,
-}                     from './user-modules/contact-self.js'
-import { gErrorMixin } from './wechaty-mixins/gerror-mixin.js'
-import { pluginMixin } from './wechaty-mixins/plugin-mixin.js'
+}                             from './user-modules/mod.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -74,7 +73,7 @@ export interface WechatyOptions {
 
 const mixinBase = serviceCtlMixin('Wechaty', { log })(
   pluginMixin(
-    puppetEventBridgeMixin(
+    puppetMixin(
       wechatifyUserModuleMixin(
         gErrorMixin(
           WechatySkelton,
