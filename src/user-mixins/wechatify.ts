@@ -13,10 +13,10 @@ interface WechatyMinxin {
 }
 
 const wechatifyUserModule = <T extends WechatyMinxin> (UserClass: T) => {
-  log.verbose('user/mixins/wechatify', 'wechatifyUserModule(%s)', UserClass.name)
+  log.verbose('WechatifyMixin', 'wechatifyUserModule(%s)', UserClass.name)
 
   return (wechaty: WechatyInterface): T => {
-    log.verbose('user/mixins/wechatify', 'wechatifyUserModule(%s)(%s)', UserClass.name, wechaty)
+    log.verbose('WechatifyMixin', 'wechatifyUserModule(%s)(%s)', UserClass.name, wechaty)
 
     class WechatifiedUserClass extends UserClass {
 
@@ -43,7 +43,7 @@ const throwWechatifyError = (WechatyUserClass: Function) => {
 const isWechatified = (klass: Function) => klass.name.startsWith(WECHATIFIED_PREFIX)
 
 const wechatifyMixin = <TBase extends Constructor> (Base: TBase) => {
-  log.verbose('user/mixins/wechatify', 'wechatifyMixin(%s)', Base.name || '')
+  log.verbose('WechatifyMixin', 'wechatifyMixin(%s)', Base.name || '')
 
   abstract class AbstractWechatifyMixin extends Base {
 
