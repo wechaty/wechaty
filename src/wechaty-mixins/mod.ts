@@ -22,12 +22,12 @@ import {
 }                                   from './plugin-mixin.js'
 
 import type {
-  ProtectedPropertyPuppetEventBridgeMixin,
-  PuppetEventBridgeMixin,
-}                                   from './puppet-event-bridge-mixin.js'
+  ProtectedPropertyPuppetMixin,
+  PuppetMixin,
+}                                   from './puppet-mixin.js'
 import {
-  puppetEventBridgeMixin,
-}                                   from './puppet-event-bridge-mixin.js'
+  puppetMixin,
+}                                   from './puppet-mixin.js'
 
 import type {
   ProtectedPropertyWechatifyUserModuleMixin,
@@ -41,20 +41,20 @@ type WechatyMixinProtectedProperty =
   | ProtectedPropertyWechatySkelton
   | ProtectedPropertyGErrorMixin
   | ProtectedPropertyPluginMixin
-  | ProtectedPropertyPuppetEventBridgeMixin
+  | ProtectedPropertyPuppetMixin
   | ProtectedPropertyWechatifyUserModuleMixin
 
 export type {
   GErrorMixin,
   PluginMixin,
-  PuppetEventBridgeMixin,
+  PuppetMixin,
   WechatifyUserModuleMixin,
   WechatyMixinProtectedProperty,
 }
 export {
   gErrorMixin,
   pluginMixin,
-  puppetEventBridgeMixin,
+  puppetMixin,
   wechatifyUserModuleMixin,
   WechatySkelton,
 }
