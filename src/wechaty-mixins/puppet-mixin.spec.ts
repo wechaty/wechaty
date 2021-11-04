@@ -2,12 +2,12 @@
 import { test } from 'tstest'
 
 import type {
-  PuppetEventBridgeMixin,
-  ProtectedPropertyPuppetEventBridgeMixin,
+  PuppetMixin,
+  ProtectedPropertyPuppetMixin,
 }                                             from './puppet-mixin.js'
 
-test('ProtectedPropertyPuppetEventBridgeMixin', async t => {
-  type NotExistInMixin = Exclude<ProtectedPropertyPuppetEventBridgeMixin, keyof InstanceType<PuppetEventBridgeMixin>>
+test('ProtectedPropertyPuppetMixin', async t => {
+  type NotExistInMixin = Exclude<ProtectedPropertyPuppetMixin, keyof InstanceType<PuppetMixin>>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
