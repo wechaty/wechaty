@@ -8,7 +8,6 @@ import {
 
 export type {
   PuppetConstructor,
-  PuppetInterface as Puppet,
   PuppetInterface,
 }
 export {

@@ -49,19 +49,14 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
 
     abstract contactDescription (contactId: string, description: string | null): Promise<void>
 
-    abstract contactList ()                   : Promise<string[]>
+    abstract contactList (): Promise<string[]>
 
     /**
-     * Issue #155 - https://github.com/wechaty/puppet/issues/155
-     *
-     * @protected
+     * @protected Issue #155 - https://github.com/wechaty/puppet/issues/155
      */
-    abstract contactRawPayload (contactId: string)     : Promise<any>
-
+    abstract contactRawPayload (contactId: string): Promise<any>
     /**
-     * Issue #155 - https://github.com/wechaty/puppet/issues/155
-     *
-     * @protected
+     * @protected Issue #155 - https://github.com/wechaty/puppet/issues/155
      */
     abstract contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
 

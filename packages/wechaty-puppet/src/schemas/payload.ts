@@ -3,10 +3,10 @@
  *  When we are adding new types, just increase the maximum number by +1!
  */
 export enum PayloadType {
-  Unknown    = 0,
-  Message    = 1,
-  Contact    = 2,
-  Room       = 3,
-  RoomMember = 4,
-  Friendship = 5,
+  Unspecified = 0,
+  Message     = 1,
+  Contact     = 2,
+  Room        = 3,
+  RoomMember  = 4,
+  Friendship  = 5,
 }
