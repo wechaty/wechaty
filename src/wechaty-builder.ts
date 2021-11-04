@@ -46,7 +46,7 @@ class WechatyBuilder {
    *  .start()
    */
   static build (options?: WechatyOptions): WechatyInterface {
-    return WechatyBuilder.build(options)
+    return WechatyBuilder.new().options(options).build()
   }
 
   /**
