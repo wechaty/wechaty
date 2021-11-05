@@ -9,6 +9,7 @@ import type {
 import type { WechatyEventListeners } from '../events/wechaty-events.js'
 import type TypedEventEmitter from 'typed-emitter'
 import type { WechatyMixinProtectedProperty } from '../wechaty-mixins/mod.js'
+import type { TypedMiddleWareEventEmitter, WechatyMiddleWares } from '../middlewares/wechaty-middlewares.js'
 
 type AllProtectedProperty =
   | keyof EventEmitter  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
@@ -21,7 +22,7 @@ type AllProtectedProperty =
 //   & TypedEventEmitter<WechatyEventListeners>
 
 type WechatyInterface = Omit<WechatyImpl, AllProtectedProperty>
-  & TypedEventEmitter<WechatyEventListeners>
+  & TypedEventEmitter<WechatyEventListeners> & TypedMiddleWareEventEmitter<WechatyEventListeners, WechatyMiddleWares>
 
 type WechatyConstructor = Constructor<
   WechatyInterface,
