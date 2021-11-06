@@ -459,9 +459,9 @@ class WechatyImpl extends mixinBase implements SayableSayer {
   addEventListener (
     event    : WechatyEventName,
     listener : WechatyEventListeners[WechatyEventName],
-    options? : AddEventListenerOptions,
+    options? : boolean | AddEventListenerOptions,
   ): void {
-    if (options?.once) {
+    if (typeof options !== 'boolean' && options?.once) {
       super.once(event, listener)
     } else {
       super.addListener(event, listener)
@@ -471,7 +471,7 @@ class WechatyImpl extends mixinBase implements SayableSayer {
   removeEventListener (
     event     : WechatyEventName,
     listener  : WechatyEventListeners[WechatyEventName],
-    _options? : AddEventListenerOptions,
+    _options? : boolean | AddEventListenerOptions,
   ): void {
     super.removeListener(event, listener)
   }
