@@ -21,11 +21,11 @@ type AllProtectedProperty =
 //   & TypedEventEmitter<WechatyEventListeners>
 
 interface WechatyEventEmitter {
-  off  : TypedEventEmitter<WechatyEventListeners>['off']
-  on   : TypedEventEmitter<WechatyEventListeners>['on']
-  once : TypedEventEmitter<WechatyEventListeners>['once']
-  addListener: TypedEventEmitter<WechatyEventListeners>['addListener']
-  removeListener : TypedEventEmitter<WechatyEventListeners>['removeListener']
+  on                  : WechatyImpl['on']
+  off                 : WechatyImpl['off']
+  once                : WechatyImpl['once']
+  addEventListener    : WechatyImpl['addEventListener']
+  removeEventListener : WechatyImpl['removeEventListener']
 }
 
 type WechatyInterface = Omit<WechatyImpl, AllProtectedProperty>
