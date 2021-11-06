@@ -151,9 +151,9 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
   addEventListener (
     event    : PuppetEventName,
     listener : PuppetEventListener[PuppetEventName],
-    options? : AddEventListenerOptions,
+    options? : boolean | AddEventListenerOptions,
   ): void {
-    if (options?.once) {
+    if (typeof options !== 'boolean' && options?.once) {
       super.once(event, listener)
     } else {
       super.addListener(event, listener)
@@ -163,7 +163,7 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
   removeEventListener (
     event     : PuppetEventName,
     listener  : PuppetEventListener[PuppetEventName],
-    _options? : EventListenerOptions,
+    _options? : boolean | EventListenerOptions,
   ): void {
     super.removeListener(event, listener)
   }
