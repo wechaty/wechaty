@@ -112,10 +112,8 @@ const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
         [PayloadType.Unspecified]:  (id: string) => { throw new Error('Unspecified type with id: ' + id) },
       }
 
-      /**
-       * Huan(202111) use `!` to force throw exception when there's any unknown `PayloadType`
-       */
-      dirtyMap[payloadType]!(payloadId)
+      const dirtyFunc = dirtyMap[payloadType]
+      dirtyFunc(payloadId)
     }
 
     /**
