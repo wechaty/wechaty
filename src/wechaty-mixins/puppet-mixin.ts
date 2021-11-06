@@ -105,7 +105,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
       /**
         * Private Event
         *   - Huan(202005): emit puppet when set
-        *   - Huan(202110): what's the purpose of this? (who is using this? redux?)
+        *   - Huan(202110): @see https://github.com/wechaty/redux/blob/16af0ae01f72e37f0ee286b49fa5ccf69850323d/src/wechaty-redux.ts#L82-L98
         */
       ;(this.emit as any)('puppet', puppetInstance)
     }
