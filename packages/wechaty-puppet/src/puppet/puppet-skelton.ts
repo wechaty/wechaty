@@ -41,7 +41,9 @@ import type {
 }                                 from '../schemas/puppet.js'
 
 import {
-  PuppetEventEmitter, PuppetEventListener, PuppetEventName,
+  PuppetEventEmitter,
+  PuppetEventListener,
+  PuppetEventName,
 }                                 from './events.js'
 
 abstract class PuppetSkelton extends PuppetEventEmitter {
@@ -141,7 +143,10 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
 
   /**
    * Huan(202105): To make RxJS fromEvent happy: type inferencing
-   *  https://github.com/ReactiveX/rxjs/blob/92fbdda7c06561bc73dae3c14de3fc7aff92bbd4/src/internal/observable/fromEvent.ts#L39-L50
+   *  - addEventListener
+   *  - removeEventListener
+   *
+   * @see https://github.com/ReactiveX/rxjs/blob/92fbdda7c06561bc73dae3c14de3fc7aff92bbd4/src/internal/observable/fromEvent.ts#L39-L50
    */
   addEventListener (
     event    : PuppetEventName,
