@@ -28,7 +28,7 @@ import { grpcError }          from './grpc-error.js'
 import { EventStreamManager } from './event-stream-manager.js'
 
 function puppetImplementation (
-  puppet      : PUPPET.impl.Puppet,
+  puppet      : PUPPET.impl.PuppetInterface,
   FileBoxUuid : typeof FileBox,
 ): grpcPuppet.IPuppetServer {
 
@@ -307,7 +307,7 @@ function puppetImplementation (
         await puppet.dirtyPayload(type, id)
         return callback(null, new grpcPuppet.DirtyPayloadResponse())
       } catch (e) {
-        return grpcError('dirtyPayload', e, callback)
+        return grpcError('puppet.dirtyPayload() rejection: ', e, callback)
       }
     },
 

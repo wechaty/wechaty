@@ -7,7 +7,6 @@ import semverPkg from 'semver'
 import type * as PUPPET from 'wechaty-puppet'
 
 import { FlashStore } from 'flash-store'
-// import LRU            from 'lru-cache'
 
 import {
   VERSION,
@@ -20,12 +19,16 @@ interface PayloadStoreOptions {
   token: string
 }
 
+interface StoreRoomMemberPayload {
+  [roomMemberContactId: string]: PUPPET.payload.RoomMember
+}
+
 class PayloadStore {
 
   // public message?    : LRU<string, MessagePayload>
 
   public contact?    : FlashStore<string, PUPPET.payload.Contact>
-  public roomMember? : FlashStore<string, PUPPET.payload.RoomMember>
+  public roomMember? : FlashStore<string, StoreRoomMemberPayload>
   public room?       : FlashStore<string, PUPPET.payload.Room>
 
   protected storeDir:   string
@@ -124,13 +127,6 @@ class PayloadStore {
       // force: true,
       recursive: true,
     })
-  }
-
-  roomMemberId (
-    roomId: string,
-    memberId: string,
-  ): string {
-    return roomId + '-' + memberId
   }
 
 }

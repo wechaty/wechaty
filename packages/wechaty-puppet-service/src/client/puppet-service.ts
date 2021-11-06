@@ -337,35 +337,15 @@ export class PuppetService extends PUPPET.Puppet {
   }
 
   /**
-   * Huan(202108): consider to use `messagePayloadDirty`, `roomPayloadDirty`
-   *  to replace this `dirtyPayload` method for a clearer design and easy to maintain.
+   *
+   * Huan(202111) Issue #158 - Refactoring the 'dirty' event, dirtyPayload(),
+   *  and XXXPayloadDirty() methods logic & spec
+   *
+   *    @see https://github.com/wechaty/puppet/issues/158
+   *
    */
   override async dirtyPayload (type: PUPPET.type.Payload, id: string) {
     log.verbose('PuppetService', 'dirtyPayload(%s, %s)', type, id)
-
-    await super.dirtyPayload(type, id)
-
-    switch (type) {
-      case PUPPET.type.Payload.Contact:
-        await this.payloadStore.contact?.delete(id)
-        break
-      case PUPPET.type.Payload.Friendship:
-        // TODO
-        break
-      case PUPPET.type.Payload.Message:
-        // await this.payloadStore.message?.del(id)
-        // TODO
-        break
-      case PUPPET.type.Payload.Room:
-        await this.payloadStore.room?.delete(id)
-        break
-      case PUPPET.type.Payload.RoomMember:
-        await this.payloadStore.roomMember?.delete(id)
-        break
-      default:
-        log.error('PuppetService', 'dirtyPayload(%s) unknown type', type)
-        break
-    }
 
     const request = new grpcPuppet.DirtyPayloadRequest()
     request.setId(id)
@@ -380,6 +360,31 @@ export class PuppetService extends PUPPET.Puppet {
       log.error('PuppetService', 'dirtyPayload() rejection: %s', e && (e as Error).message)
       throw e
     }
+  }
+
+  /**
+   * `onDirty()` is called when the puppet emit `dirty` event.
+   *  the event listener will be registered in `start()` from the `PuppetAbstract` class
+   */
+  override onDirty (
+    {
+      payloadType,
+      payloadId,
+    }: PUPPET.payload.EventDirty,
+  ): void {
+    log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.type.Payload[payloadType], payloadType, payloadId)
+
+    const dirtyMap = {
+      [PUPPET.type.Payload.Contact]:      async (id: string) => this.payloadStore.contact?.delete(id),
+      [PUPPET.type.Payload.Friendship]:   async (_: string) => {},
+      [PUPPET.type.Payload.Message]:      async (_: string) => {},
+      [PUPPET.type.Payload.Room]:         async (id: string) => this.payloadStore.room?.delete(id),
+      [PUPPET.type.Payload.RoomMember]:   async (id: string) => this.payloadStore.roomMember?.delete(id),
+      [PUPPET.type.Payload.Unspecified]:  async (id: string) => { throw new Error('Unspecified type with id: ' + id) },
+    }
+
+    const dirtyFuncSync = this.wrapAsync(dirtyMap[payloadType])
+    dirtyFuncSync(payloadId)
   }
 
   /**
@@ -1417,14 +1422,15 @@ export class PuppetService extends PUPPET.Puppet {
     return response.getMemberIdsList()
   }
 
-  override async roomMemberRawPayload (roomId: string, contactId: string): Promise<any>  {
+  override async roomMemberRawPayload (roomId: string, contactId: string): Promise<PUPPET.payload.RoomMember>  {
     log.verbose('PuppetService', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
 
-    const id = this.payloadStore.roomMemberId(roomId, contactId)
-    const cachedPayload = await this.payloadStore.roomMember?.get(id)
-    if (cachedPayload) {
-      log.silly('PuppetService', 'roomMemberRawPayload(%s) cache HIT', id)
-      return cachedPayload
+    const cachedPayload           = await this.payloadStore.roomMember?.get(roomId)
+    const cachedRoomMemberPayload = cachedPayload && cachedPayload[contactId]
+
+    if (cachedRoomMemberPayload) {
+      log.silly('PuppetService', 'roomMemberRawPayload(%s, %s) cache HIT', roomId, contactId)
+      return cachedRoomMemberPayload
     }
 
     const request = new grpcPuppet.RoomMemberPayloadRequest()
@@ -1444,13 +1450,16 @@ export class PuppetService extends PUPPET.Puppet {
       roomAlias : response.getRoomAlias(),
     }
 
-    await this.payloadStore.roomMember?.set(id, payload)
-    log.silly('PuppetService', 'roomMemberRawPayload(%s) cache SET', id)
+    await this.payloadStore.roomMember?.set(roomId, {
+      ...cachedPayload,
+      contactId: payload,
+    })
+    log.silly('PuppetService', 'roomMemberRawPayload(%s, %s) cache SET', roomId, contactId)
 
     return payload
   }
 
-  override async roomMemberRawPayloadParser (payload: any): Promise<PUPPET.payload.RoomMember>  {
+  override async roomMemberRawPayloadParser (payload: PUPPET.payload.RoomMember): Promise<PUPPET.payload.RoomMember>  {
     // log.silly('PuppetService', 'roomMemberRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload

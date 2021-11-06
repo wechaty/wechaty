@@ -17,7 +17,7 @@ class EventStreamManager {
   private puppetListening = false
 
   constructor (
-    public puppet: PUPPET.impl.Puppet,
+    public puppet: PUPPET.impl.PuppetInterface,
   ) {
     log.verbose('EventStreamManager', 'constructor(%s)', puppet)
   }
