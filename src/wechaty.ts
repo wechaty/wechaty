@@ -486,7 +486,7 @@ type WechatyImplProtectedProperty =
   | 'wechaty'
   | 'onStart'
   | 'onStop'
-  | 'userSelf'  // deprecated, will be removed after Dec 31, 2022
+  | 'userSelf'  // deprecated: use `currentUser()` instead. (will be removed after Dec 31, 2022)
   | `_${string}`
 
 export type {

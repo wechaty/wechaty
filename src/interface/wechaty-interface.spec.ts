@@ -70,21 +70,23 @@ test('Wechaty interface', async t => {
         = {} as any
     }
 
-    abstract currentUser : WechatyInterface['currentUser']
-    abstract ding        : WechatyInterface['ding']
-    abstract emitError   : WechatyInterface['emitError']
-    abstract logonoff    : WechatyInterface['logonoff']
-    abstract logout      : WechatyInterface['logout']
-    abstract name        : WechatyInterface['name']
-    abstract ready       : WechatyInterface['ready']
-    abstract reset       : WechatyInterface['reset']
-    abstract say         : WechatyInterface['say']
-    abstract sleep       : WechatyInterface['sleep']
-    abstract start       : WechatyInterface['start']
-    abstract stop        : WechatyInterface['stop']
-    abstract use         : WechatyInterface['use']
-    abstract version     : WechatyInterface['version']
-    abstract wrapAsync   : WechatyInterface['wrapAsync']
+    abstract addEventListener    : WechatyInterface['addEventListener']
+    abstract currentUser         : WechatyInterface['currentUser']
+    abstract ding                : WechatyInterface['ding']
+    abstract emitError           : WechatyInterface['emitError']
+    abstract logonoff            : WechatyInterface['logonoff']
+    abstract logout              : WechatyInterface['logout']
+    abstract name                : WechatyInterface['name']
+    abstract ready               : WechatyInterface['ready']
+    abstract removeEventListener : WechatyInterface['removeEventListener']
+    abstract reset               : WechatyInterface['reset']
+    abstract say                 : WechatyInterface['say']
+    abstract sleep               : WechatyInterface['sleep']
+    abstract start               : WechatyInterface['start']
+    abstract stop                : WechatyInterface['stop']
+    abstract use                 : WechatyInterface['use']
+    abstract version             : WechatyInterface['version']
+    abstract wrapAsync           : WechatyInterface['wrapAsync']
 
   }
 
