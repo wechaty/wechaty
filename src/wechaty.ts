@@ -64,11 +64,11 @@ import type {
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
-  name?          : string,                                // Wechaty Name
+  name?          : string,                                          // Wechaty Name
 
-  puppet?        : PuppetModuleName | PUPPET.impl.Puppet, // Puppet name or instance
-  puppetOptions? : PUPPET.PuppetOptions,                  // Puppet TOKEN
-  ioToken?       : string,                                // Io TOKEN
+  puppet?        : PuppetModuleName | PUPPET.impl.PuppetInterface,  // Puppet name or instance
+  puppetOptions? : PUPPET.PuppetOptions,                            // Puppet TOKEN
+  ioToken?       : string,                                          // Io TOKEN
 }
 
 const mixinBase = serviceCtlMixin('Wechaty', { log })(

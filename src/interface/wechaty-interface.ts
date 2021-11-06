@@ -20,8 +20,14 @@ type AllProtectedProperty =
 // type Wechaty2 = Pick<WechatyImpl, PublicProperties>
 //   & TypedEventEmitter<WechatyEventListeners>
 
+interface WechatyEventEmitter {
+  off  : TypedEventEmitter<WechatyEventListeners>['off']
+  on   : TypedEventEmitter<WechatyEventListeners>['on']
+  once : TypedEventEmitter<WechatyEventListeners>['once']
+}
+
 type WechatyInterface = Omit<WechatyImpl, AllProtectedProperty>
-  & TypedEventEmitter<WechatyEventListeners>
+  & WechatyEventEmitter
 
 type WechatyConstructor = Constructor<
   WechatyInterface,

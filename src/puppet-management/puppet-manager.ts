@@ -35,7 +35,7 @@ import {
 }                         from './puppet-config.js'
 
 interface ResolveOptions {
-  puppet         : impl.Puppet | PuppetModuleName,
+  puppet         : impl.PuppetInterface | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
 
@@ -43,7 +43,7 @@ class PuppetManager {
 
   static async resolve (
     options: ResolveOptions,
-  ): Promise<impl.Puppet> {
+  ): Promise<impl.PuppetInterface> {
     log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
       options.puppet,
       JSON.stringify(options.puppetOptions),

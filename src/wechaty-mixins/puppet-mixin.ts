@@ -26,9 +26,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
     /**
      * @protected
      */
-    _puppet?: PUPPET.impl.Puppet
+    _puppet?: PUPPET.impl.PuppetInterface
 
-    get puppet (): PUPPET.impl.Puppet {
+    get puppet (): PUPPET.impl.PuppetInterface {
       if (!this._puppet) {
         throw new Error('NOPUPPET')
       }
@@ -113,7 +113,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
     /**
      * @protected
      */
-    _setupPuppetEvents (puppet: PUPPET.impl.Puppet) {
+    _setupPuppetEvents (puppet: PUPPET.impl.PuppetInterface): void {
       log.verbose('WechatyPuppetMixin', '_setupPuppetEvents(%s)', puppet)
 
       const eventNameList: PUPPET.type.PuppetEventName[] = Object.keys(PUPPET.type.PUPPET_EVENT_DICT) as PUPPET.type.PuppetEventName[]
@@ -360,7 +360,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
                     // Message does not need to dirty (?)
                     break
 
-                  case PUPPET.type.Payload.Unknown:
+                  case PUPPET.type.Payload.Unspecified:
                   default:
                     throw new Error('unknown payload type: ' + payloadType)
                 }
