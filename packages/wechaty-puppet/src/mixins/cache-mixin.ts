@@ -85,10 +85,14 @@ const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
       id   : string,
     ): void {
       log.verbose('PuppetCacheMixin', 'dirtyPayload(%s<%s>, %s)', PayloadType[type], type, id)
-      this.emit('dirty', {
+
+      /**
+       * Huan(202111): we return first before emit the `dirty` event?
+       */
+      setImmediate(() => this.emit('dirty', {
         payloadId   : id,
         payloadType : type,
-      })
+      }))
     }
 
     /**
@@ -156,6 +160,12 @@ const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
       try {
         await timeoutPromise(future, 5 * 1000)
           .finally(() => this.off('dirty', onDirty))
+
+        /**
+         * Huan(202111): wait for all the taks in the event loop queue to be executed
+         *  before we return, because there might be other `onDirty` listeners
+         */
+        await new Promise(setImmediate)
 
       } catch (e) {
         // timeout, log warning & ignore it
