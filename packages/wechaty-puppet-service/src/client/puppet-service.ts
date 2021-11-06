@@ -385,6 +385,11 @@ export class PuppetService extends PUPPET.Puppet {
 
     const dirtyFuncSync = this.wrapAsync(dirtyMap[payloadType])
     dirtyFuncSync(payloadId)
+
+    /**
+     * We need to call `super.onDirty()` to clean the `PuppetAbstract` LRUCache
+     */
+    super.onDirty({ payloadId, payloadType })
   }
 
   /**
