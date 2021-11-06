@@ -77,7 +77,22 @@ const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
     ): WechatyInterface {
       const pluginList = plugins.flat() as WechatyPlugin[]
       const uninstallerList = pluginList
-        .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
+        .map(plugin => {
+          const onFunc = this.on as any
+
+          // Temporarily overwite the on event before install plugin
+          this.on = (event: any, listener: any) =>
+          // All plugins should run after middlewares.
+            onFunc.bind(this)(
+              event,
+              (WechatyImpl._globalMiddleWares as any)[event] || [],
+              listener,
+            )
+          const rst = plugin(this as any)
+          // Restore
+          this.on = onFunc
+          return rst
+        }) // <- Huan(202110): TODO: remove any
         .filter(isWechatyPluginUninstaller)
 
       this._pluginUninstallerList.push(

@@ -61,6 +61,8 @@ import type {
   ContactSelfInterface,
   ContactSelfImpl,
 }                             from './user-modules/mod.js'
+import { compose } from './middlewares/compose.js'
+import { middleWareMixin } from './wechaty-mixins/middleware-mixin.js'
 
 export interface WechatyOptions {
   memory?        : MemoryCard,
@@ -72,11 +74,13 @@ export interface WechatyOptions {
 }
 
 const mixinBase = serviceCtlMixin('Wechaty', { log })(
-  pluginMixin(
-    puppetMixin(
-      wechatifyUserModuleMixin(
-        gErrorMixin(
-          WechatySkelton,
+  middleWareMixin(
+    pluginMixin(
+      puppetMixin(
+        wechatifyUserModuleMixin(
+          gErrorMixin(
+            WechatySkelton,
+          ),
         ),
       ),
     ),
@@ -215,13 +219,28 @@ class WechatyImpl extends mixinBase implements SayableSayer {
     return this._options.name || 'wechaty'
   }
 
-  override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
+  override on (event: WechatyEventName, listener: (...args: any[]) => any): this
+  override on (event: WechatyEventName, middleware: any[], listener: (...args: any[]) => any): this
+  override on (event: WechatyEventName, middlewareOrListener: any[] | ((...args: any[]) => any), listener?: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'on(%s, listener) registering... listenerCount: %s',
       event,
       this.listenerCount(event),
     )
-
-    return super.on(event, listener)
+    if (typeof middlewareOrListener === 'function') {
+      listener = middlewareOrListener
+      middlewareOrListener = []
+    }
+    if (listener && typeof listener === 'function') {
+      const listenerWithMiddleWare = compose(
+        // global middlewares -> event middlewares -> listener
+        (WechatyImpl._globalMiddleWares[event] as any || [])
+          .concat(middlewareOrListener as any)
+          .concat(listener as any),
+      )
+      return super.on(event, listenerWithMiddleWare)
+    }
+    // TODO: Do we need check the params not match issue? e.g. if they are not using ts(or use any) and give some invalid params.
+    throw new Error('Paramters does not match')
   }
 
   override async onStart (): Promise<void> {
