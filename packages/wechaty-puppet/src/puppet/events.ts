@@ -35,7 +35,7 @@ export type PuppetRoomLeaveListener  = (payload: EventRoomLeavePayload)   => voi
 export type PuppetRoomTopicListener  = (payload: EventRoomTopicPayload)   => void | Promise<void>
 export type PuppetScanListener       = (payload: EventScanPayload)        => void | Promise<void>
 
-interface PuppetEvents {
+interface PuppetEventListener {
   dirty         : PuppetDirtyListener
   dong          : PuppetDongListener
   error         : PuppetErrorListener
@@ -54,11 +54,14 @@ interface PuppetEvents {
 }
 
 const PuppetEventEmitter = EventEmitter as new () => TypedEventEmitter<
-  PuppetEvents
+  PuppetEventListener
 >
 
+type PuppetEventName = keyof PuppetEventListener
+
 export type {
-  PuppetEvents,
+  PuppetEventListener,
+  PuppetEventName,
 }
 export {
   PuppetEventEmitter,
