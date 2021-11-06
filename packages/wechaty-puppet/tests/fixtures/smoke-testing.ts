@@ -172,7 +172,7 @@ async function main () {
   const type: TYPES.ContactGender        = TYPES.ContactGender.Male
   const filter: FILTERS.Contact          = { id: 'id' }
   const fileBox                          = HELPERS.FileBox.fromQRCode('qrcode')
-  const puppet: IMPLS.Puppet             = puppetInstance
+  const puppet: IMPLS.PuppetAbstract     = puppetInstance
 
   assert.ok(payload,  'should get valid PAYLOADS')
   assert.ok(type,     'should get valid TYPES')

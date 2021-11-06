@@ -21,6 +21,10 @@ const memoryMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBas
     constructor (...args: any[]) {
       super(...args)
       log.verbose('PuppetMemoryMixin', 'constructor()')
+      /**
+       * Huan(202110): we init a un-named MemoryCard by default
+       *  it can be replaced by `setMemory()` later.
+       */
       this._memory = new MemoryCard()
     }
 

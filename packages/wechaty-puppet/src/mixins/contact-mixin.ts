@@ -11,6 +11,7 @@ import type {
   ContactPayloadFilterFunction,
   ContactQueryFilter,
 }                                 from '../schemas/contact.js'
+import { PayloadType } from '../schemas/payload.js'
 
 import type { CacheMixin }    from './cache-mixin.js'
 
@@ -99,7 +100,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
           return [query.id]
         } catch (e) {
           log.verbose('PuppetContactMixin', 'contactSearch() payload not found for id "%s"', query.id)
-          await this.dirtyPayloadContact(query.id)
+          await this.contactPayloadDirty(query.id)
           return []
         }
       }
@@ -151,7 +152,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
 
         } catch (e) {
           this.emit('error', e)
-          await this.dirtyPayloadContact(id)
+          await this.contactPayloadDirty(id)
         }
         return undefined
       }
@@ -180,15 +181,6 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
       log.silly('PuppetContactMixin', 'contactSearch() searchContactPayloadList.length = %d', resultIdList.length)
 
       return resultIdList
-    }
-
-    /**
-     * Huan(202110): add the private back, or
-     *  TODO: redesign dirtyPayloadContact
-     */
-    async dirtyPayloadContact (contactId: string): Promise<void> {
-      log.verbose('PuppetContactMixin', 'dirtyPayloadContact(%s)', contactId)
-      this.cache.contact.delete(contactId)
     }
 
     /**
@@ -307,6 +299,17 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixin
       log.silly('PuppetContactMixin', 'contactPayload(%s) cache SET', contactId)
 
       return payload
+    }
+
+    async contactPayloadDirty (
+      id: string,
+    ): Promise<void> {
+      log.verbose('PuppetContactMixin', 'contactPayloadDirty(%s)', id)
+
+      await this.dirtyPayloadAwait(
+        PayloadType.Contact,
+        id,
+      )
     }
 
   }

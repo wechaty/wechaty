@@ -9,6 +9,7 @@ import type {
 
 import type { PuppetSkelton }        from '../puppet/puppet-skelton.js'
 import type { CacheMixin } from './cache-mixin.js'
+import { PayloadType } from '../schemas/payload.js'
 
 const friendshipMixin = <MixinBase extends typeof PuppetSkelton & CacheMixin>(mixinBase: MixinBase) => {
 
@@ -123,6 +124,17 @@ const friendshipMixin = <MixinBase extends typeof PuppetSkelton & CacheMixin>(mi
       this.cache.friendship.set(friendshipId, payload)
 
       return payload
+    }
+
+    async friendshipPayloadDirty (
+      id: string,
+    ): Promise<void> {
+      log.verbose('PuppetFriendshipMixin', 'friendshipPayloadDirty(%s)', id)
+
+      await this.dirtyPayloadAwait(
+        PayloadType.Friendship,
+        id,
+      )
     }
 
   }

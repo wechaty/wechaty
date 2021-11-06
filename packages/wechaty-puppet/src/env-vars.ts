@@ -3,7 +3,7 @@ const DEFAULT_LRU_CACHE_SIZE_FRIENDSHIP      = 100
 const DEFAULT_LRU_CACHE_SIZE_MESSAGE         = 500
 const DEFAULT_LRU_CACHE_SIZE_ROOM            = 100
 const DEFAULT_LRU_CACHE_SIZE_ROOM_INVITATION = 100
-const DEFAULT_LRU_CACHE_SIZE_ROOM_MEMBER     = 500
+const DEFAULT_LRU_CACHE_SIZE_ROOM_MEMBER     = 50
 
 const getNumberEnv = (env: typeof process.env) => (
   varName      : string,

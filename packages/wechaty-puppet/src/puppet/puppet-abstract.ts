@@ -16,8 +16,6 @@
  *   limitations under the License.
  *
  */
-import { GError }       from 'gerror'
-
 import {
   log,
   VERSION,
@@ -25,9 +23,6 @@ import {
 
 import type {
   PuppetOptions,
-}                       from '../schemas/mod.js'
-import {
-  PayloadType,
 }                       from '../schemas/mod.js'
 
 import {
@@ -51,8 +46,16 @@ import { PuppetSkelton } from './puppet-skelton.js'
 /**
  * Huan(202110): use compose() to compose mixins
  */
-const MixinBase = serviceMixin(
-  miscMixin(
+
+// const MixinBase = compose(
+//   messageMixin,
+//   roomInvitationMixin,
+//   ...,
+//   PuppetSkelton,
+// )
+
+const MixinBase = miscMixin(
+  serviceMixin(
     validateMixin(
       messageMixin(
         roomInvitationMixin(
@@ -90,6 +93,9 @@ abstract class Puppet extends MixinBase {
 
   /**
    * Must overwrite by child class to identify their version
+   *
+   * Huan(202111): we must put the `VERSION` in the outter side of all the Mixins
+   *  because we do not know which Mixin will override the `VERSION`
    */
   static override readonly VERSION = VERSION
 
@@ -98,19 +104,6 @@ abstract class Puppet extends MixinBase {
   ) {
     super(options)
     log.verbose('Puppet', 'constructor(%s)', JSON.stringify(options))
-  }
-
-  override toString () {
-    return [
-      'Puppet#',
-      this.counter,
-      '<',
-      this.constructor.name,
-      '>',
-      '(',
-      this.memory.name || 'NONAME',
-      ')',
-    ].join('')
   }
 
   /**
@@ -124,48 +117,6 @@ abstract class Puppet extends MixinBase {
    */
   abstract override onStart (): Promise<void>
   abstract override onStop  (): Promise<void>
-
-  /**
-   *
-   * dirty payload methods
-   *  See: https://github.com/Chatie/grpc/pull/79
-   *
-   */
-
-  async dirtyPayload (type: PayloadType, id: string): Promise<void> {
-    log.verbose('Puppet', 'dirtyPayload(%s<%s>, %s)', PayloadType[type], type, id)
-
-    switch (type) {
-      case PayloadType.Message:
-        return this.dirtyPayloadMessage(id)
-      case PayloadType.Contact:
-        return this.dirtyPayloadContact(id)
-      case PayloadType.Room:
-        return this.dirtyPayloadRoom(id)
-      case PayloadType.RoomMember:
-        return this.dirtyPayloadRoomMember(id)
-      case PayloadType.Friendship:
-        return this.dirtyPayloadFriendship(id)
-
-      default:
-        throw GError.from('unknown payload type: ' + type)
-    }
-  }
-
-  // private async dirtyPayloadContact (contactId: string): Promise<void> {
-  //   log.verbose('Puppet', 'dirtyPayloadContact(%s)', contactId)
-  //   this.payloadCache.contact.delete(contactId)
-  // }
-
-  private async dirtyPayloadFriendship (friendshipId: string): Promise<void> {
-    log.verbose('Puppet', 'dirtyPayloadFriendship(%s)', friendshipId)
-    this.cache.friendship.delete(friendshipId)
-  }
-
-  private async dirtyPayloadMessage (messageId: string): Promise<void> {
-    log.verbose('Puppet', 'dirtyPayloadMessage(%s)', messageId)
-    this.cache.message.delete(messageId)
-  }
 
 }
 

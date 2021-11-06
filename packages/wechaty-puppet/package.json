@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "1.2.12",
+  "version": "1.3.2",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
@@ -100,7 +100,7 @@
     "brolog": "^1.13.6",
     "clone-class": "^1.0.2",
     "file-box": "^1.2.3",
-    "gerror": "^1.0.2",
+    "gerror": "^1.0.6",
     "memory-card": "^0.12.2",
     "state-switch": "^1.1.14",
     "typed-emitter": "^1.4.0",

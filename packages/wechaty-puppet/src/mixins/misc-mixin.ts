@@ -4,15 +4,36 @@ import {
   VERSION,
 }                       from '../config.js'
 
-import type { PuppetSkelton }   from '../puppet/puppet-skelton.js'
+import type { PuppetSkelton }   from '../puppet/mod.js'
 
-const miscMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+import type { MemoryMixin } from './memory-mixin.js'
+
+const miscMixin = <MixinBase extends typeof PuppetSkelton & MemoryMixin>(mixinBase: MixinBase) => {
 
   abstract class MiscMixin extends mixinBase {
 
     constructor (...args: any[]) {
       super(...args)
       log.verbose('PuppetMiscMixin', 'constructor()')
+    }
+
+    override toString () {
+      let memoryName
+      try {
+        memoryName = this.memory.name || 'NONAME'
+      } catch (_) {
+        memoryName = 'NOMEMORY'
+      }
+
+      return [
+        'Puppet',
+        '<',
+        this.constructor.name,
+        '>',
+        '(',
+        memoryName,
+        ')',
+      ].join('')
     }
 
     /**

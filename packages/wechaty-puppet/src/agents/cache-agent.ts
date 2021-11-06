@@ -29,6 +29,10 @@ import type {
 
 type PayloadCacheOptions = Required<PuppetOptions>['cache']
 
+interface LruRoomMemberPayload {
+  [memberContactId: string]: RoomMemberPayload
+}
+
 class CacheAgent {
 
   readonly contact        : QuickLru<string, ContactPayload>
@@ -36,12 +40,12 @@ class CacheAgent {
   readonly message        : QuickLru<string, MessagePayload>
   readonly room           : QuickLru<string, RoomPayload>
   readonly roomInvitation : QuickLru<string, RoomInvitationPayload>
-  readonly roomMember     : QuickLru<string, RoomMemberPayload>
+  readonly roomMember     : QuickLru<string, LruRoomMemberPayload>
 
   constructor (
     protected options?: PayloadCacheOptions,
   ) {
-    log.verbose('CacheAgent', 'constructor(%s)',
+    log.verbose('PuppetCacheAgent', 'constructor(%s)',
       options
         ? JSON.stringify(options)
         : '',
@@ -67,7 +71,7 @@ class CacheAgent {
     this.roomInvitation = new QuickLru<string, RoomInvitationPayload>(lruOptions(
       envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_INVITATION(options?.roomInvitation)),
     )
-    this.roomMember = new QuickLru<string, RoomMemberPayload>(lruOptions(
+    this.roomMember = new QuickLru<string, LruRoomMemberPayload>(lruOptions(
       envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM_MEMBER(options?.roomMember)),
     )
     this.room = new QuickLru<string, RoomPayload>(lruOptions(
@@ -77,12 +81,12 @@ class CacheAgent {
   }
 
   start (): void {
-    log.verbose('CacheAgent', 'start()')
+    log.verbose('PuppetCacheAgent', 'start()')
     this.clear()
   }
 
   stop (): void {
-    log.verbose('CacheAgent', 'stop()')
+    log.verbose('PuppetCacheAgent', 'stop()')
     this.clear()
   }
 
@@ -97,7 +101,7 @@ class CacheAgent {
    *  Huan(2021-08-28): clear the cache when stop
    */
   clear (): void {
-    log.verbose('CacheAgent', 'clear()')
+    log.verbose('PuppetCacheAgent', 'clear()')
 
     this.contact.clear()
     this.friendship.clear()
@@ -105,16 +109,6 @@ class CacheAgent {
     this.room.clear()
     this.roomInvitation.clear()
     this.roomMember.clear()
-  }
-
-  /**
-   * Concat roomId & contactId to one string
-   */
-  roomMemberId (
-    roomId   : string,
-    memberId : string,
-  ): string {
-    return roomId + '-' + memberId
   }
 
 }

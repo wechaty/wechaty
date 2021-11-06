@@ -29,6 +29,7 @@ import type {
 
 import type { PuppetSkelton }        from '../puppet/puppet-skelton.js'
 import type { CacheMixin } from './cache-mixin.js'
+import { PayloadType } from '../schemas/payload.js'
 
 const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(baseMixin: MinxinBase) => {
 
@@ -224,6 +225,17 @@ const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(base
       const allFilterFunction: MessagePayloadFilterFunction = payload => filterFunctionList.every(func => func(payload))
 
       return allFilterFunction
+    }
+
+    async messagePayloadDirty (
+      id: string,
+    ): Promise<void> {
+      log.verbose('PuppetMessageMixin', 'messagePayloadDirty(%s)', id)
+
+      await this.dirtyPayloadAwait(
+        PayloadType.Message,
+        id,
+      )
     }
 
   }

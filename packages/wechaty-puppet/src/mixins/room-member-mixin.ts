@@ -15,6 +15,7 @@ import {
 
 import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
 import type { ContactMixin }  from './contact-mixin.js'
+import { PayloadType } from '../schemas/payload.js'
 
 const roomMemberMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin>(mixinBase: MixinBase) => {
 
@@ -128,11 +129,11 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin>(
       /**
         * 1. Try to get from cache
         */
-      const CACHE_KEY     = this.cache.roomMemberId(roomId, memberId)
-      const cachedPayload = this.cache.roomMember.get(CACHE_KEY)
+      const cachedPayload = this.cache.roomMember.get(roomId)
+      const memberPayload = cachedPayload && cachedPayload[memberId]
 
-      if (cachedPayload) {
-        return cachedPayload
+      if (memberPayload) {
+        return memberPayload
       }
 
       /**
@@ -142,24 +143,26 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin>(
       if (!rawPayload) {
         throw new Error('contact(' + memberId + ') is not in the Room(' + roomId + ')')
       }
-      const payload    = await this.roomMemberRawPayloadParser(rawPayload)
+      const payload = await this.roomMemberRawPayloadParser(rawPayload)
 
-      this.cache.roomMember.set(CACHE_KEY, payload)
+      this.cache.roomMember.set(roomId, {
+        ...cachedPayload,
+        memberId: payload,
+      })
       log.silly('PuppetRoomMemberMixin', 'roomMemberPayload(%s) cache SET', roomId)
 
       return payload
     }
 
-    async dirtyPayloadRoomMember (roomId: string): Promise<void> {
-      log.verbose('PuppetRoomMemberMixin', 'dirtyPayloadRoomMember(%s)', roomId)
+    async roomMemberPayloadDirty (
+      id: string,
+    ): Promise<void> {
+      log.verbose('PuppetRoomMemberMixin', 'roomMemberPayloadDirty(%s)', id)
 
-      const contactIdList = await this.roomMemberList(roomId)
-
-      let cacheKey
-      contactIdList.forEach(contactId => {
-        cacheKey = this.cache.roomMemberId(roomId, contactId)
-        this.cache.roomMember.delete(cacheKey)
-      })
+      await this.dirtyPayloadAwait(
+        PayloadType.RoomMember,
+        id,
+      )
     }
 
   }
