@@ -24,6 +24,8 @@ interface WechatyEventEmitter {
   off  : TypedEventEmitter<WechatyEventListeners>['off']
   on   : TypedEventEmitter<WechatyEventListeners>['on']
   once : TypedEventEmitter<WechatyEventListeners>['once']
+  addListener: TypedEventEmitter<WechatyEventListeners>['addListener']
+  removeListener : TypedEventEmitter<WechatyEventListeners>['removeListener']
 }
 
 type WechatyInterface = Omit<WechatyImpl, AllProtectedProperty>
