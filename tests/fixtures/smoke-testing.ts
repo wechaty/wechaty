@@ -62,7 +62,6 @@ async function main () {
     )
     for (const bot of botList) {
       console.info(`Wechaty v${bot.version()} smoking test passed.`)
-      console.info('listenerCount(message) is', bot.listenerCount('message'))
     }
   } catch (e) {
     console.error(e)
