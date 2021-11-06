@@ -95,7 +95,12 @@ const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase
      * OnDirty will be registered as a `dirty` event listener,
      *  and it is in charge of invalidating the cache.
      */
-    async onDirty ({ payloadType, payloadId }: EventDirtyPayload) {
+    onDirty (
+      {
+        payloadType,
+        payloadId,
+      }: EventDirtyPayload,
+    ): void {
       log.verbose('PuppetCacheMixin', 'onDirty(%s<%s>, %s)', PayloadType[payloadType], payloadType, payloadId)
 
       const dirtyMap = {
