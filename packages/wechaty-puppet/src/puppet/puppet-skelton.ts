@@ -42,8 +42,6 @@ import type {
 
 import {
   PuppetEventEmitter,
-  PuppetEventListener,
-  PuppetEventName,
 }                                 from './events.js'
 
 abstract class PuppetSkelton extends PuppetEventEmitter {
