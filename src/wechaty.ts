@@ -46,7 +46,6 @@ import type {
 }                             from './sayable/mod.js'
 import type {
   WechatyEventName,
-  WechatyEventListeners,
 }                             from './events/mod.js'
 import type {
   WechatyInterface,
@@ -447,33 +446,6 @@ class WechatyImpl extends mixinBase implements SayableSayer {
     } catch (e) {
       this.emit('error', e)
     }
-  }
-
-  /**
-   * Huan(202111): To make RxJS fromEvent happy: type inferencing
-   *  - addEventListener
-   *  - removeEventListener
-   *
-   * @see https://github.com/ReactiveX/rxjs/blob/92fbdda7c06561bc73dae3c14de3fc7aff92bbd4/src/internal/observable/fromEvent.ts#L39-L50
-   */
-  addEventListener (
-    event    : WechatyEventName,
-    listener : WechatyEventListeners[WechatyEventName],
-    options? : boolean | AddEventListenerOptions,
-  ): void {
-    if (typeof options !== 'boolean' && options?.once) {
-      super.once(event, listener)
-    } else {
-      super.addListener(event, listener)
-    }
-  }
-
-  removeEventListener (
-    event     : WechatyEventName,
-    listener  : WechatyEventListeners[WechatyEventName],
-    _options? : boolean | AddEventListenerOptions,
-  ): void {
-    super.removeListener(event, listener)
   }
 
 }
