@@ -70,7 +70,6 @@ test('Wechaty interface', async t => {
         = {} as any
     }
 
-    abstract addEventListener    : WechatyInterface['addEventListener']
     abstract currentUser         : WechatyInterface['currentUser']
     abstract ding                : WechatyInterface['ding']
     abstract emitError           : WechatyInterface['emitError']
@@ -78,7 +77,6 @@ test('Wechaty interface', async t => {
     abstract logout              : WechatyInterface['logout']
     abstract name                : WechatyInterface['name']
     abstract ready               : WechatyInterface['ready']
-    abstract removeEventListener : WechatyInterface['removeEventListener']
     abstract reset               : WechatyInterface['reset']
     abstract say                 : WechatyInterface['say']
     abstract sleep               : WechatyInterface['sleep']
