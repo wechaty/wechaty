@@ -90,7 +90,7 @@
     "@chatie/eslint-config": "^1.0.2",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^1.0.2",
+    "@chatie/tsconfig": "^1.0.3",
     "@types/uuid": "^8.3.1",
     "rxjs": "^7.4.0",
     "tstest": "^1.0.1"
@@ -99,10 +99,11 @@
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.13.6",
     "clone-class": "^1.0.2",
-    "file-box": "^1.2.3",
+    "file-box": "^1.2.7",
     "gerror": "^1.0.6",
     "memory-card": "^0.12.2",
     "state-switch": "^1.1.14",
+    "type-fest": "^2.5.2",
     "typed-emitter": "^1.4.0",
     "uuid": "^8.3.2",
     "watchdog": "^0.9.2"

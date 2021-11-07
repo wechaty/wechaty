@@ -4,7 +4,7 @@ import type {
 import {
   log,
 }                       from '../config.js'
-import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
 
 import type {
   ContactPayload,
@@ -15,7 +15,7 @@ import { PayloadType } from '../schemas/payload.js'
 
 import type { CacheMixin }    from './cache-mixin.js'
 
-const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 
   abstract class ContactMixin extends mixinBase {
 

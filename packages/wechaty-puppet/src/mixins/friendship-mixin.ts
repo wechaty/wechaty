@@ -7,11 +7,11 @@ import type {
   FriendshipSearchQueryFilter,
 }                                 from '../schemas/friendship.js'
 
-import type { PuppetSkelton }        from '../puppet/puppet-skelton.js'
+import type { PuppetSkeleton }        from '../puppet/puppet-skeleton.js'
 import type { CacheMixin } from './cache-mixin.js'
 import { PayloadType } from '../schemas/payload.js'
 
-const friendshipMixin = <MixinBase extends typeof PuppetSkelton & CacheMixin>(mixinBase: MixinBase) => {
+const friendshipMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(mixinBase: MixinBase) => {
 
   abstract class FriendshipMixin extends mixinBase {
 

@@ -5,9 +5,9 @@ import {
 
 import type { Puppet }          from '../puppet/puppet-abstract.js'
 import type { PuppetInterface } from '../puppet/interface.js'
-import type { PuppetSkelton }   from '../puppet/puppet-skelton.js'
+import type { PuppetSkeleton }   from '../puppet/puppet-skeleton.js'
 
-const validateMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const validateMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 
   abstract class ValidateMixin extends mixinBase {
 

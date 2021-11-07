@@ -6,10 +6,10 @@ import type {
   RoomInvitationPayload,
 }                                 from '../schemas/room-invitation.js'
 
-import type { PuppetSkelton }        from '../puppet/puppet-skelton.js'
+import type { PuppetSkeleton }        from '../puppet/puppet-skeleton.js'
 import type { CacheMixin } from './cache-mixin.js'
 
-const roomInvitationMixin = <MixinBase extends typeof PuppetSkelton & CacheMixin>(mixinBase: MixinBase) => {
+const roomInvitationMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(mixinBase: MixinBase) => {
 
   abstract class RoomInvitationMixin extends mixinBase {
 

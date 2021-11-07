@@ -13,11 +13,11 @@ import {
   YOU,
 }                                 from '../schemas/puppet.js'
 
-import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
 import type { ContactMixin }  from './contact-mixin.js'
 import { PayloadType } from '../schemas/payload.js'
 
-const roomMemberMixin = <MixinBase extends typeof PuppetSkelton & ContactMixin>(mixinBase: MixinBase) => {
+const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>(mixinBase: MixinBase) => {
 
   abstract class RoomMemberMixin extends mixinBase {
 

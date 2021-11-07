@@ -4,11 +4,11 @@ import {
   VERSION,
 }                       from '../config.js'
 
-import type { PuppetSkelton }   from '../puppet/mod.js'
+import type { PuppetSkeleton }   from '../puppet/mod.js'
 
 import type { MemoryMixin } from './memory-mixin.js'
 
-const miscMixin = <MixinBase extends typeof PuppetSkelton & MemoryMixin>(mixinBase: MixinBase) => {
+const miscMixin = <MixinBase extends typeof PuppetSkeleton & MemoryMixin>(mixinBase: MixinBase) => {
 
   abstract class MiscMixin extends mixinBase {
 
