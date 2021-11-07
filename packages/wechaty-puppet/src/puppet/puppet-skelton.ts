@@ -141,33 +141,6 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
     return super.emit('error', payload)
   }
 
-  /**
-   * Huan(202105): To make RxJS fromEvent happy: type inferencing
-   *  - addEventListener
-   *  - removeEventListener
-   *
-   * @see https://github.com/ReactiveX/rxjs/blob/92fbdda7c06561bc73dae3c14de3fc7aff92bbd4/src/internal/observable/fromEvent.ts#L39-L50
-   */
-  addEventListener (
-    event    : PuppetEventName,
-    listener : PuppetEventListener[PuppetEventName],
-    options? : boolean | AddEventListenerOptions,
-  ): void {
-    if (typeof options !== 'boolean' && options?.once) {
-      super.once(event, listener)
-    } else {
-      super.addListener(event, listener)
-    }
-  }
-
-  removeEventListener (
-    event     : PuppetEventName,
-    listener  : PuppetEventListener[PuppetEventName],
-    _options? : boolean | EventListenerOptions,
-  ): void {
-    super.removeListener(event, listener)
-  }
-
 }
 
 type PuppetSkeltonProtectedProperty =
