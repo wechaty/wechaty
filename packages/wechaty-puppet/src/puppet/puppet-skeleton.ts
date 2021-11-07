@@ -22,7 +22,7 @@ import {
   log,
 }                       from '../config.js'
 /**
- * Issue #165 - ReferenceError: Cannot access 'PuppetSkelton' before initialization
+ * Issue #165 - ReferenceError: Cannot access 'PuppetSkeleton' before initialization
  *  @see https://github.com/wechaty/puppet/issues/165
  */
 
@@ -44,7 +44,7 @@ import {
   PuppetEventEmitter,
 }                                 from './events.js'
 
-abstract class PuppetSkelton extends PuppetEventEmitter {
+abstract class PuppetSkeleton extends PuppetEventEmitter {
 
   /**
    * Puppet ID (UUID)
@@ -56,8 +56,8 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
    */
   readonly id: string
 
-  _flagSkeltonStartCalled : boolean
-  _flagSkeltonStopCalled  : boolean
+  _flagSkeletonStartCalled : boolean
+  _flagSkeletonStopCalled  : boolean
 
   readonly options: PuppetOptions
 
@@ -80,7 +80,7 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
     ...args: any[]
   ) {
     super()
-    log.verbose('PuppetSkelton', 'constructor(%s)',
+    log.verbose('PuppetSkeleton', 'constructor(%s)',
       args.length
         ? JSON.stringify(args[0])
         : '',
@@ -89,8 +89,8 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
     this.id       = UUID.v4()
     this.options  = args[0] || {}
 
-    this._flagSkeltonStartCalled = false
-    this._flagSkeltonStopCalled  = false
+    this._flagSkeletonStartCalled = false
+    this._flagSkeletonStopCalled  = false
   }
 
   /**
@@ -101,13 +101,13 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
    *  so that all start()/stop() calls can be chained through all mixins.
    */
   async start (): Promise<void> {
-    log.verbose('PuppetSkelton', 'start()')
-    this._flagSkeltonStartCalled = true
+    log.verbose('PuppetSkeleton', 'start()')
+    this._flagSkeletonStartCalled = true
   }
 
   async stop (): Promise<void> {
-    log.verbose('PuppetSkelton', 'stop()')
-    this._flagSkeltonStopCalled  = true
+    log.verbose('PuppetSkeleton', 'stop()')
+    this._flagSkeletonStopCalled  = true
   }
 
   /**
@@ -141,11 +141,11 @@ abstract class PuppetSkelton extends PuppetEventEmitter {
 
 }
 
-type PuppetSkeltonProtectedProperty =
-  | '_flagSkeltonStartCalled'
-  | '_flagSkeltonStopCalled'
+type PuppetSkeletonProtectedProperty =
+  | '_flagSkeletonStartCalled'
+  | '_flagSkeletonStopCalled'
 
 export type {
-  PuppetSkeltonProtectedProperty,
+  PuppetSkeletonProtectedProperty,
 }
-export { PuppetSkelton }
+export { PuppetSkeleton }

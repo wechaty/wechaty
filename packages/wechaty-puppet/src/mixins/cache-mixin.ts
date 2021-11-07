@@ -8,7 +8,7 @@ import { PayloadType }          from '../schemas/mod.js'
 
 import { CacheAgent }           from '../agents/mod.js'
 
-import type { PuppetSkelton }   from '../puppet/mod.js'
+import type { PuppetSkeleton }   from '../puppet/mod.js'
 import { timeoutPromise } from 'gerror'
 
 /**
@@ -19,7 +19,7 @@ import { timeoutPromise } from 'gerror'
  *    @see https://github.com/wechaty/puppet/issues/158
  *
  */
-const cacheMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const cacheMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 
   abstract class CacheMixin extends mixinBase {
 

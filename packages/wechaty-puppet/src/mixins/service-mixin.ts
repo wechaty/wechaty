@@ -6,10 +6,10 @@ import {
   log,
 }           from '../config.js'
 
-import type { PuppetSkelton } from '../puppet/puppet-skelton.js'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
 import { WatchdogAgent }      from '../agents/watchdog-agent.js'
 
-const serviceMixin = <MixinBase extends typeof PuppetSkelton>(mixinBase: MixinBase) => {
+const serviceMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 
   const serviceBase = serviceCtlMixin('PuppetServiceMixin', { log })(mixinBase)
 

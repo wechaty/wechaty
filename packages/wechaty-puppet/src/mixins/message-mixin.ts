@@ -27,11 +27,11 @@ import type {
   LocationPayload,
 }                                 from '../schemas/location.js'
 
-import type { PuppetSkelton }        from '../puppet/puppet-skelton.js'
+import type { PuppetSkeleton }        from '../puppet/puppet-skeleton.js'
 import type { CacheMixin } from './cache-mixin.js'
 import { PayloadType } from '../schemas/payload.js'
 
-const messageMixin = <MinxinBase extends typeof PuppetSkelton & CacheMixin>(baseMixin: MinxinBase) => {
+const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(baseMixin: MinxinBase) => {
 
   abstract class MessageMixin extends baseMixin {
 

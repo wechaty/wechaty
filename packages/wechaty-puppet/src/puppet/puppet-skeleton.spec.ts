@@ -7,14 +7,14 @@ import {
 import { GError }       from 'gerror'
 
 import type {
-  PuppetSkeltonProtectedProperty,
-}                             from './puppet-skelton.js'
+  PuppetSkeletonProtectedProperty,
+}                             from './puppet-skeleton.js'
 import {
-  PuppetSkelton,
-}                             from './puppet-skelton.js'
+  PuppetSkeleton,
+}                             from './puppet-skeleton.js'
 
-test('ProtectedPropertySkelton', async t => {
-  type NotExistInMixin = Exclude<PuppetSkeltonProtectedProperty, keyof PuppetSkelton>
+test('ProtectedPropertySkeleton', async t => {
+  type NotExistInMixin = Exclude<PuppetSkeletonProtectedProperty, keyof PuppetSkeleton>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
@@ -22,9 +22,9 @@ test('ProtectedPropertySkelton', async t => {
 })
 
 test('emit(error, ...) with GError', async t => {
-  class PuppetSkeltonImpl extends PuppetSkelton {}
+  class PuppetSkeletonImpl extends PuppetSkeleton {}
 
-  const puppet = new PuppetSkeltonImpl()
+  const puppet = new PuppetSkeletonImpl()
 
   const FIXTURES = [
     undefined,
@@ -58,8 +58,8 @@ test('emit(error, ...) with GError', async t => {
 })
 
 test('wrapAsync() promise', async t => {
-  class PuppetSkeltonImpl extends PuppetSkelton {}
-  const puppet = new PuppetSkeltonImpl()
+  class PuppetSkeletonImpl extends PuppetSkeleton {}
+  const puppet = new PuppetSkeletonImpl()
 
   const spy = sinon.spy()
   puppet.on('error', spy)

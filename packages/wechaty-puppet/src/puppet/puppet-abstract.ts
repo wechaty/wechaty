@@ -41,7 +41,7 @@ import {
   validateMixin,
 }                        from '../mixins/mod.js'
 
-import { PuppetSkelton } from './puppet-skelton.js'
+import { PuppetSkeleton } from './puppet-skeleton.js'
 
 /**
  * Huan(202110): use compose() to compose mixins
@@ -51,7 +51,7 @@ import { PuppetSkelton } from './puppet-skelton.js'
 //   messageMixin,
 //   roomInvitationMixin,
 //   ...,
-//   PuppetSkelton,
+//   PuppetSkeleton,
 // )
 
 const MixinBase = miscMixin(
@@ -67,7 +67,7 @@ const MixinBase = miscMixin(
                     loginMixin(
                       cacheMixin(
                         memoryMixin(
-                          PuppetSkelton,
+                          PuppetSkeleton,
                         ),
                       ),
                     ),

@@ -15,7 +15,7 @@
  */
 import './interface-of.js'
 
-import { PuppetSkelton } from './puppet-skelton.js'
+import { PuppetSkeleton } from './puppet-skeleton.js'
 import {
   Puppet,
 }                         from './puppet-abstract.js'
@@ -30,5 +30,5 @@ export type {
 }
 export {
   Puppet,
-  PuppetSkelton,
+  PuppetSkeleton,
 }
