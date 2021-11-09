@@ -1,9 +1,9 @@
 import type {
-  ProtectedPropertyWechatySkelton,
-}                                   from './wechaty-skelton.js'
+  ProtectedPropertyWechatySkeleton,
+}                                   from './wechaty-skeleton.js'
 import {
-  WechatySkelton,
-}                                   from './wechaty-skelton.js'
+  WechatySkeleton,
+}                                   from './wechaty-skeleton.js'
 
 import type {
   ProtectedPropertyGErrorMixin,
@@ -38,7 +38,7 @@ import {
 }                                   from './wechatify-user-module-mixin.js'
 
 type WechatyMixinProtectedProperty =
-  | ProtectedPropertyWechatySkelton
+  | ProtectedPropertyWechatySkeleton
   | ProtectedPropertyGErrorMixin
   | ProtectedPropertyPluginMixin
   | ProtectedPropertyPuppetMixin
@@ -56,5 +56,5 @@ export {
   pluginMixin,
   puppetMixin,
   wechatifyUserModuleMixin,
-  WechatySkelton,
+  WechatySkeleton,
 }

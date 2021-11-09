@@ -7,7 +7,7 @@ import {
   isWechatyPluginUninstaller,
 }                             from '../plugin.js'
 
-import type { WechatySkelton }      from './wechaty-skelton.js'
+import type { WechatySkeleton }      from './wechaty-skeleton.js'
 import type {
   WechatyInterface,
   WechatyConstructor,
@@ -15,7 +15,7 @@ import type {
 import { instanceToClass } from 'clone-class'
 import { WechatyImpl } from '../wechaty.js'
 
-const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinBase) => {
+const pluginMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase {

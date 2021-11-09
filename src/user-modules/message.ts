@@ -127,6 +127,8 @@ class MessageMixin extends MixinBase implements SayableSayer {
   ): Promise<MessageInterface[]> {
     log.verbose('Message', 'findAll(%s)', JSON.stringify(query) || '')
 
+    // Huan(202111): { id } query has been optimized in the PuppetAbstract class
+
     const invalidDict: { [id: string]: true } = {}
 
     try {

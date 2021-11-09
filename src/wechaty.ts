@@ -26,6 +26,7 @@ import {
   serviceCtlMixin,
 }                       from 'state-switch'
 import type { Loggable } from 'brolog'
+import { function as FP } from 'fp-ts'
 
 import {
   config,
@@ -55,7 +56,7 @@ import {
   pluginMixin,
   puppetMixin,
   wechatifyUserModuleMixin,
-  WechatySkelton,
+  WechatySkeleton,
 }                             from './wechaty-mixins/mod.js'
 import type {
   ContactSelfInterface,
@@ -71,17 +72,28 @@ export interface WechatyOptions {
   ioToken?       : string,                                          // Io TOKEN
 }
 
-const mixinBase = serviceCtlMixin('Wechaty', { log })(
-  pluginMixin(
-    puppetMixin(
-      wechatifyUserModuleMixin(
-        gErrorMixin(
-          WechatySkelton,
-        ),
-      ),
-    ),
-  ),
+const pipedBase = FP.pipe(
+  WechatySkeleton,
+  gErrorMixin,
+  wechatifyUserModuleMixin,
+  puppetMixin,
+  serviceCtlMixin('Wechaty', { log }),
 )
+
+// Huan(2022111) `pluginMixin` is not compatible with `pipe`: will get `unknown`
+const mixinBase = pluginMixin(pipedBase)
+
+// const mixinBase = serviceCtlMixin('Wechaty', { log })(
+//   pluginMixin(
+//     puppetMixin(
+//       wechatifyUserModuleMixin(
+//         gErrorMixin(
+//           WechatySkeleton,
+//         ),
+//       ),
+//     ),
+//   ),
+// )
 
 /**
  * Main bot class.

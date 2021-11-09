@@ -31,10 +31,10 @@ import {
 }                       from '../user-modules/mod.js'
 
 import type {
-  WechatySkelton,
-}                             from './wechaty-skelton.js'
+  WechatySkeleton,
+}                             from './wechaty-skeleton.js'
 
-const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinBase) => {
+const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatifyUserModuleMixin', 'wechatifyUserModuleMixin(%s)', mixinBase.name)
 
   abstract class WechatifyUserModuleMixin extends mixinBase {

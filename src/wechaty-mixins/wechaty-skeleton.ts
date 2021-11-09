@@ -25,7 +25,7 @@ import {
 }                             from '../events/wechaty-events.js'
 import type { WechatyOptions } from '../wechaty.js'
 
-abstract class WechatySkelton extends WechatyEventEmitter {
+abstract class WechatySkeleton extends WechatyEventEmitter {
 
   /**
    * @protected
@@ -44,13 +44,13 @@ abstract class WechatySkelton extends WechatyEventEmitter {
   _options: WechatyOptions
 
   constructor (...args: any[]) {
-    log.verbose('WechatySkelton', 'constructor()')
+    log.verbose('WechatySkeleton', 'constructor()')
     super()
     this._options = args[0] || {} as WechatyOptions
   }
 
   async start (): Promise<void> {
-    log.verbose('WechatySkelton', 'start()')
+    log.verbose('WechatySkeleton', 'start()')
     // no super.start()
 
     if (!this._memory) {
@@ -58,27 +58,27 @@ abstract class WechatySkelton extends WechatyEventEmitter {
       try {
         await this._memory.load()
       } catch (_) {
-        log.silly('WechatySkelton', 'onStart() memory.load() had already loaded')
+        log.silly('WechatySkeleton', 'onStart() memory.load() had already loaded')
       }
     }
 
   }
 
   async stop  (): Promise<void> {
-    log.verbose('WechatySkelton', 'stop()')
+    log.verbose('WechatySkeleton', 'stop()')
     // no super.stop()
   }
 
 }
 
-type ProtectedPropertyWechatySkelton =
+type ProtectedPropertyWechatySkeleton =
   | '_memory'
   | '_options'
   | 'memory'
 
 export type {
-  ProtectedPropertyWechatySkelton,
+  ProtectedPropertyWechatySkeleton,
 }
 export {
-  WechatySkelton,
+  WechatySkeleton,
 }

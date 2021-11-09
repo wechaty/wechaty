@@ -5,12 +5,12 @@ import {
 }           from 'tstest'
 
 import type {
-  WechatySkelton,
-  ProtectedPropertyWechatySkelton,
-}                                         from './wechaty-skelton.js'
+  WechatySkeleton,
+  ProtectedPropertyWechatySkeleton,
+}                                         from './wechaty-skeleton.js'
 
-test('ProtectedPropertyWechatySkelton', async t => {
-  type NotExistInMixin = Exclude<ProtectedPropertyWechatySkelton, keyof WechatySkelton>
+test('ProtectedPropertyWechatySkeleton', async t => {
+  type NotExistInMixin = Exclude<ProtectedPropertyWechatySkeleton, keyof WechatySkeleton>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
