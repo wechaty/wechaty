@@ -83,7 +83,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * Find contact by name or alias, if the result more than one, return the first one.
    *
    * @static
-   * @param {ContactQueryFilter} query
+   * @param {string | ContactQueryFilter} query `string` will search `name` & `alias`
    * @returns {(Promise<undefined | ContactInterface>)} If can find the contact, return Contact, or return null
    * @example
    * const bot = new Wechaty()
@@ -143,7 +143,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * - `alias`  the name-string set by bot for others, should be called alias
    *
    * @static
-   * @param {ContactQueryFilter} [queryArg]
+   * @param {string | ContactQueryFilter} [queryArg] `string` will search `name` & `alias`
    * @returns {Promise<ContactInterface[]>}
    * @example
    * const bot = new Wechaty()
