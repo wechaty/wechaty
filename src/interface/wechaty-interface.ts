@@ -24,9 +24,9 @@ type AllProtectedProperty =
  *    or will run into error: cyclic dependency?
  */
 interface WechatyEventEmitter {
-  on                  : TypedEventEmitter<WechatyEventListeners>['on']
-  off                 : TypedEventEmitter<WechatyEventListeners>['off']
-  once                : TypedEventEmitter<WechatyEventListeners>['once']
+  on   : TypedEventEmitter<WechatyEventListeners>['on']
+  off  : TypedEventEmitter<WechatyEventListeners>['off']
+  once : TypedEventEmitter<WechatyEventListeners>['once']
 }
 
 type WechatyInterface = Omit<WechatyImpl, AllProtectedProperty>
