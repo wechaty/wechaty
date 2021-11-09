@@ -16,6 +16,8 @@
  *   limitations under the License.
  *
  */
+import { function as FP } from 'fp-ts'
+
 import {
   log,
   VERSION,
@@ -47,40 +49,23 @@ import { PuppetSkeleton } from './puppet-skeleton.js'
  * Huan(202110): use compose() to compose mixins
  */
 
-// const MixinBase = compose(
-//   messageMixin,
-//   roomInvitationMixin,
-//   ...,
-//   PuppetSkeleton,
-// )
-
-const MixinBase = miscMixin(
-  serviceMixin(
-    validateMixin(
-      messageMixin(
-        roomInvitationMixin(
-          tagMixin(
-            friendshipMixin(
-              roomMixin(
-                roomMemberMixin(
-                  contactMixin(
-                    loginMixin(
-                      cacheMixin(
-                        memoryMixin(
-                          PuppetSkeleton,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  ),
+const PipedBase = FP.pipe(
+  PuppetSkeleton,
+  memoryMixin,
+  cacheMixin,
+  loginMixin,
+  contactMixin,
+  roomMemberMixin,
+  roomMixin,
+  friendshipMixin,
+  tagMixin,
+  roomInvitationMixin,
+  messageMixin,
+  serviceMixin,
+  miscMixin,
 )
+
+const MixinBase = validateMixin(PipedBase)
 
 /**
  *
