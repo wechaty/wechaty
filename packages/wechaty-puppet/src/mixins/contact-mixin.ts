@@ -79,6 +79,9 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkeleton>(mixi
     //   return resultRoomIdList
     // }
 
+    /**
+     * @param query {string | Object} if string, then search `name` & `alias`
+     */
     async contactSearch (
       query?        : string | ContactQueryFilter,
       searchIdList? : string[],

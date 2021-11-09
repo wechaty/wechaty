@@ -53,9 +53,8 @@ interface PuppetEventListener {
   scan          : PuppetScanListener
 }
 
-const PuppetEventEmitter = EventEmitter as new () => TypedEventEmitter<
-  PuppetEventListener
->
+const PuppetEventEmitter = EventEmitter as new () =>
+  TypedEventEmitter<PuppetEventListener>
 
 type PuppetEventName = keyof PuppetEventListener
 
