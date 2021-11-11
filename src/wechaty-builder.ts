@@ -31,6 +31,10 @@ class WechatyBuilder {
 
   private static _instance?: WechatyInterface
 
+  static valid (target: any): target is WechatyInterface {
+    return WechatyImpl.valid(target)
+  }
+
   /**
    * Create an instance of Wechaty
    *
