@@ -24,7 +24,7 @@ import type { Constructor } from '../deprecated/clone-class.js'
 
 import type {
   AcceptableAccepter,
-}                     from '../interface/acceptable.js'
+}                     from '../schema/acceptable.js'
 import {
   timestampToDate,
 }                     from '../pure-functions/timestamp-to-date.js'

@@ -7,7 +7,7 @@ import {
 
 import { wechatyCaptureException }  from '../raven.js'
 
-import type { WechatySkeleton }      from './wechaty-skeleton.js'
+import type { WechatySkeleton }      from '../wechaty/mod.js'
 
 const gErrorMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatyGErrorMixin', 'gErrorMixin(%s)', mixinBase.name)

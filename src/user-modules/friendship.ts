@@ -27,7 +27,7 @@ import {
 
 import type {
   AcceptableAccepter,
-}                   from '../interface/acceptable.js'
+}                   from '../schema/acceptable.js'
 import { log } from '../config.js'
 
 import type {

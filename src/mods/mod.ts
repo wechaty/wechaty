@@ -24,13 +24,11 @@
  */
 export type {
   WechatyOptions,
-}                               from '../wechaty.js'
+  WechatyInterface as Wechaty,
+}                               from '../wechaty/mod.js'
 export {
   WechatyBuilder,
 }                               from '../wechaty-builder.js'
-export type {
-  WechatyInterface as Wechaty,
-}                               from '../interface/mod.js'
 
 export type {
   SayableSayer,

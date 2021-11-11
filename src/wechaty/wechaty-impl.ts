@@ -3,19 +3,44 @@ import type TypedEventEmitter from 'typed-emitter'
 
 import type { Constructor } from '../deprecated/clone-class.js'
 
-import type {
-  WechatyImpl,
-  WechatyImplProtectedProperty,
-}                                     from '../wechaty.js'
+import {
+  WechatyBase,
+  WechatyBaseProtectedProperty,
+}                                     from './wechaty-base.js'
+
 import type {
   WechatyMixinProtectedProperty,
 }                                     from '../wechaty-mixins/mod.js'
 import type { WechatyEventListeners } from '../events/mod.js'
 
+import { validationMixin }            from '../user-mixins/mod.js'
+import type {
+  WechatySkeletonProtectedProperty,
+}                                     from './wechaty-skeleton.js'
+
+/**
+ * Huan(202111): this is for solving the circyle dependency problem
+ *
+ *  Construct a `WechatyImpl` based the `WechatyImplBase` with `validationMixin`
+ *
+ */
+const WechatyBaseX = () => class extends WechatyBase {}
+
+class WechatyImplBase extends validationMixin(WechatyBaseX())<WechatyImplInterface>() {}
+interface WechatyImplInterface extends WechatyImplBase {}
+
+class WechatyImpl extends validationMixin(WechatyImplBase)<WechatyInterface>() {}
+
+/**
+ * ^ The above code will make a ready-to-use class: `WechatyImpl`
+ *  without any cyclic dependency problem.
+ */
+
 type AllProtectedProperty =
   | keyof EventEmitter  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
   | WechatyMixinProtectedProperty
-  | WechatyImplProtectedProperty
+  | WechatyBaseProtectedProperty
+  | WechatySkeletonProtectedProperty
   | `_${string}`// remove all property from interface which is start with `_`
 
 /**
@@ -29,7 +54,7 @@ interface WechatyEventEmitter {
   once : TypedEventEmitter<WechatyEventListeners>['once']
 }
 
-type WechatyInterface = Omit<WechatyImpl, AllProtectedProperty>
+type WechatyInterface = Omit<WechatyImplInterface, AllProtectedProperty>
   & WechatyEventEmitter
 
 type WechatyConstructor = Constructor<
@@ -41,4 +66,7 @@ export type {
   WechatyInterface,
   WechatyConstructor,
   AllProtectedProperty,
+}
+export {
+  WechatyImpl,
 }

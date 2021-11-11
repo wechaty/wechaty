@@ -17,7 +17,7 @@
  *   limitations under the License.
  *
  */
-import type { WechatyInterface } from './wechaty-interface.js'
+import type { WechatyInterface } from '../wechaty/mod.js'
 
 interface AcceptableAccepter {
   accept  : () => Promise<void>

@@ -21,11 +21,11 @@ import { log } from 'wechaty-puppet'
 
 import type {
   WechatyInterface,
-}                 from './interface/mod.js'
+}                 from './wechaty/mod.js'
 import {
   WechatyImpl,
   WechatyOptions,
-}                 from './wechaty.js'
+}                 from './wechaty/mod.js'
 
 class WechatyBuilder {
 

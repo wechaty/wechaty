@@ -6,11 +6,11 @@ import {
 
 import type {
   WechatySkeleton,
-  ProtectedPropertyWechatySkeleton,
+  WechatySkeletonProtectedProperty,
 }                                         from './wechaty-skeleton.js'
 
 test('ProtectedPropertyWechatySkeleton', async t => {
-  type NotExistInMixin = Exclude<ProtectedPropertyWechatySkeleton, keyof WechatySkeleton>
+  type NotExistInMixin = Exclude<WechatySkeletonProtectedProperty, keyof WechatySkeleton>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
