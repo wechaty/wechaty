@@ -1,7 +1,7 @@
 import type {
-  AcceptableAccepter,
+  Accepter,
 }                           from './acceptable.js'
 
 export type {
-  AcceptableAccepter,
+  Accepter,
 }
