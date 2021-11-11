@@ -39,11 +39,11 @@ export {
   VERSION,
 }
 
-export * as filter  from './filters.js'
-export * as helper  from './helpers.js'
-export * as impl    from './impls.js'
-export * as payload from './payloads.js'
-export * as type    from './types.js'
+export * as filter  from './filter.js'
+export * as helper  from './helper.js'
+export * as impl    from './impl.js'
+export * as payload from './payload.js'
+export * as type    from './type.js'
 
 /**
  * @deprecated use above exports instead
