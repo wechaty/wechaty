@@ -25,6 +25,19 @@ import {
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
+/**
+ * Huan(202111): must import `./wechaty-impl.js`
+ *  before import `./wechaty-base.js`
+ *
+ * Or will throw error:
+ *
+ *    ReferenceError: Cannot access 'WechatyBase' before initialization
+ *    at file:///home/huan/git/wechaty/wechaty/src/wechaty/wechaty-impl.ts:25:47
+ *
+ * TODO: find out why
+ */
+import './wechaty-impl.js'
+
 import type {
   WechatyBaseProtectedProperty,
 }                                 from './wechaty-base.js'

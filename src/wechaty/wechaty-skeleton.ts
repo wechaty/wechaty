@@ -17,16 +17,17 @@
  *   limitations under the License.
  *
  */
-import { MemoryCard } from 'memory-card'
-import { log } from 'wechaty-puppet'
-import * as UUID from 'uuid'
-import type { Loggable } from 'brolog'
+import { MemoryCard }     from 'memory-card'
+import { log }            from 'wechaty-puppet'
+import * as UUID          from 'uuid'
+import type { Loggable }  from 'brolog'
 
 import {
   WechatyEventEmitter,
   WechatyEventName,
 }                               from '../events/wechaty-events.js'
-import type { WechatyOptions }  from './wechaty-base.js'
+
+import type { WechatyOptions }  from './schema.js'
 
 abstract class WechatySkeleton extends WechatyEventEmitter {
 

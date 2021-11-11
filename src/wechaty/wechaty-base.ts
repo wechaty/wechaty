@@ -17,10 +17,6 @@
  *   limitations under the License.
  *
  */
-import type * as PUPPET from 'wechaty-puppet'
-import type {
-  MemoryCard,
-}                       from 'memory-card'
 import {
   serviceCtlMixin,
 }                       from 'state-switch'
@@ -32,9 +28,6 @@ import {
   VERSION,
 }                       from '../config.js'
 
-import type {
-  PuppetModuleName,
-}                             from '../puppet-management/mod.js'
 import type {
   SayableSayer,
   Sayable,
@@ -55,15 +48,9 @@ import {
 import type {
   WechatyInterface,
 }                             from './wechaty-impl.js'
-
-export interface WechatyOptions {
-  memory?        : MemoryCard,
-  name?          : string,                                          // Wechaty Name
-
-  puppet?        : PuppetModuleName | PUPPET.impl.PuppetInterface,  // Puppet name or instance
-  puppetOptions? : PUPPET.PuppetOptions,                            // Puppet TOKEN
-  ioToken?       : string,                                          // Io TOKEN
-}
+import type {
+  WechatyOptions,
+}                             from './schema.js'
 
 /**
  * Huan(2022111) `pluginMixin` is not compatible with `pipe`: will get `unknown`
