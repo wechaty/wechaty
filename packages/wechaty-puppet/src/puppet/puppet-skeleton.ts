@@ -133,7 +133,7 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
      *  as EventErrorPayload
      */
     const payload: EventErrorPayload = {
-      data: JSON.stringify(gerr),
+      gerror: JSON.stringify(gerr),
     }
 
     return super.emit('error', payload)
