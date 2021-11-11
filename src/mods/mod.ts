@@ -38,9 +38,9 @@ export {
   messageToSayable,
 }                   from '../sayable/mod.js'
 
-export * as type        from 'wechaty-puppet/types'
-export * as payload     from 'wechaty-puppet/payloads'
-export * as helper      from 'wechaty-puppet/helpers'
+export * as type        from 'wechaty-puppet/type'
+export * as payload     from 'wechaty-puppet/payload'
+export * as helper      from 'wechaty-puppet/helper'
 
 export *                from './user.js'
 /**
