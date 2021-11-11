@@ -23,8 +23,8 @@ import { log } from '../config.js'
 import type { Constructor } from '../deprecated/clone-class.js'
 
 import type {
-  AcceptableAccepter,
-}                     from '../interface/acceptable.js'
+  Accepter,
+}                     from '../schema/acceptable.js'
 import {
   timestampToDate,
 }                     from '../pure-functions/timestamp-to-date.js'
@@ -41,7 +41,7 @@ import { validationMixin } from '../user-mixins/validation.js'
  *
  * accept room invitation
  */
-class RoomInvitationMixin extends wechatifyMixinBase() implements AcceptableAccepter {
+class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
 
   static load (
     id   : string,

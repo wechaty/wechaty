@@ -1,4 +1,6 @@
 import { log }        from 'wechaty-puppet'
+import { instanceToClass } from 'clone-class'
+
 import type {
   WechatyPlugin,
   WechatyPluginUninstaller,
@@ -7,15 +9,17 @@ import {
   isWechatyPluginUninstaller,
 }                             from '../plugin.js'
 
-import type { WechatySkeleton }      from './wechaty-skeleton.js'
 import type {
   WechatyInterface,
   WechatyConstructor,
-}                             from '../interface/wechaty-interface.js'
-import { instanceToClass } from 'clone-class'
-import { WechatyImpl } from '../wechaty.js'
+}                       from '../wechaty/mod.js'
+import {
+  WechatyImpl,
+  WechatySkeleton,
+}                       from '../wechaty/mod.js'
+import type { GErrorMixin } from './gerror-mixin.js'
 
-const pluginMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
+const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase {
@@ -59,15 +63,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: Mixin
     }
 
     /**
-     * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
-     *
-     * @return  {WechatyInterface}                      - this for chaining,
-     *
-     * @desc
-     * For wechaty ecosystem, allow user to define a 3rd party plugin for the current wechaty instance.
-     *
-     * @example
-     * // The same usage with Wechaty.use().
+     * @param   {WechatyPlugin[]}Interfacehaty.use().
      *
      */
     use (
@@ -96,6 +92,32 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: Mixin
       this._pluginUninstallerList.push(
         ...uninstallerList,
       )
+    }
+
+    override async stop (): Promise<void> {
+      log.verbose('WechatyPluginMixin', 'stop()')
+
+      try {
+        /**
+         * Uninstall Plugins
+         *  no matter the state is `ON` or `OFF`.
+         */
+
+        // Huan(202111): it seems that once the plugin has been install,
+        //  we should not remove it inside the stop()?
+        //  FIXME: to be confirmed
+
+        // while (this._pluginUninstallerList.length > 0) {
+        //   const uninstaller = this._pluginUninstallerList.pop()
+        //   log.verbose('WechatyPluginMixin', 'stop() uninstalling plugin #%s ...', this._pluginUninstallerList.length)
+        //   if (uninstaller) uninstaller()
+        //   log.verbose('WechatyPluginMixin', 'stop() uninstalling plugin #%s ... done', this._pluginUninstallerList.length)
+        // }
+      } catch (e) {
+        this.emitError(e)
+      }
+
+      await super.stop()
     }
 
   }

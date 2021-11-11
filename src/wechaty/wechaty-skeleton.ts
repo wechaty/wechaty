@@ -17,19 +17,29 @@
  *   limitations under the License.
  *
  */
-import { MemoryCard } from 'memory-card'
-import { log } from 'wechaty-puppet'
+import { MemoryCard }     from 'memory-card'
+import { log }            from 'wechaty-puppet'
+import * as UUID          from 'uuid'
+import type { Loggable }  from 'brolog'
 
 import {
   WechatyEventEmitter,
-}                             from '../events/wechaty-events.js'
-import type { WechatyOptions } from '../wechaty.js'
+  WechatyEventName,
+}                               from '../events/wechaty-events.js'
+
+import type { WechatyOptions }  from './schema.js'
 
 abstract class WechatySkeleton extends WechatyEventEmitter {
 
+  static readonly log: Loggable = log
+  readonly log: Loggable = log
+
   /**
-   * @protected
+   * the UUID of the Wechaty
+   * @ignore
    */
+  readonly id: string
+
   _memory?: MemoryCard
   get memory (): MemoryCard {
     if (!this._memory) {
@@ -38,15 +48,25 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     return this._memory
   }
 
-  /**
-   * @protected
-   */
   _options: WechatyOptions
 
   constructor (...args: any[]) {
     log.verbose('WechatySkeleton', 'constructor()')
     super()
+
+    this.id = UUID.v4()
     this._options = args[0] || {} as WechatyOptions
+
+    /**
+     * Huan(202008):
+     *
+     * Set max listeners to 1K, so that we can add lots of listeners without the warning message.
+     * The listeners might be one of the following functionilities:
+     *  1. Plugins
+     *  2. Redux Observables
+     *  3. etc...
+     */
+    super.setMaxListeners(1024)
   }
 
   async start (): Promise<void> {
@@ -69,15 +89,25 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     // no super.stop()
   }
 
+  override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
+    log.verbose('WechatySkeleton', 'on(%s, listener) registering... listenerCount: %s',
+      event,
+      this.listenerCount(event),
+    )
+
+    return super.on(event, listener)
+  }
+
 }
 
-type ProtectedPropertyWechatySkeleton =
+type WechatySkeletonProtectedProperty =
   | '_memory'
   | '_options'
+  | 'log'
   | 'memory'
 
 export type {
-  ProtectedPropertyWechatySkeleton,
+  WechatySkeletonProtectedProperty,
 }
 export {
   WechatySkeleton,

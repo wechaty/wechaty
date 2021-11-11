@@ -1,11 +1,4 @@
 import type {
-  ProtectedPropertyWechatySkeleton,
-}                                   from './wechaty-skeleton.js'
-import {
-  WechatySkeleton,
-}                                   from './wechaty-skeleton.js'
-
-import type {
   ProtectedPropertyGErrorMixin,
   GErrorMixin,
 }                                   from './gerror-mixin.js'
@@ -37,15 +30,44 @@ import {
   wechatifyUserModuleMixin,
 }                                   from './wechatify-user-module-mixin.js'
 
+import type {
+  ProtectedPropertyIoMixin,
+  IoMixin,
+}                                   from './io-mixin.js'
+import {
+  ioMixin,
+}                                   from './io-mixin.js'
+
+import type {
+  ProtectedPropertyMiscMixin,
+  MiscMixin,
+}                                   from './misc-mixin.js'
+import {
+  miscMixin,
+}                                   from './misc-mixin.js'
+
+import type {
+  ProtectedPropertyLoginMixin,
+  LoginMixin,
+}                                   from './login-mixin.js'
+import {
+  loginMixin,
+}                                   from './login-mixin.js'
+
 type WechatyMixinProtectedProperty =
-  | ProtectedPropertyWechatySkeleton
   | ProtectedPropertyGErrorMixin
+  | ProtectedPropertyIoMixin
+  | ProtectedPropertyLoginMixin
+  | ProtectedPropertyMiscMixin
   | ProtectedPropertyPluginMixin
   | ProtectedPropertyPuppetMixin
   | ProtectedPropertyWechatifyUserModuleMixin
 
 export type {
   GErrorMixin,
+  IoMixin,
+  LoginMixin,
+  MiscMixin,
   PluginMixin,
   PuppetMixin,
   WechatifyUserModuleMixin,
@@ -53,8 +75,10 @@ export type {
 }
 export {
   gErrorMixin,
+  ioMixin,
+  loginMixin,
+  miscMixin,
   pluginMixin,
   puppetMixin,
   wechatifyUserModuleMixin,
-  WechatySkeleton,
 }

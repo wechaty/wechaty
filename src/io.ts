@@ -27,6 +27,7 @@ import * as jsonRpcPeer from 'json-rpc-peer'
 import type {
   MessageInterface,
 }                     from './user-modules/mod.js'
+import type { WechatyInterface } from './wechaty/mod.js'
 
 import {
   log,
@@ -37,7 +38,6 @@ import {
   getPeer,
   isJsonRpcRequest,
 }                   from './io-peer/io-peer.js'
-import type { WechatyInterface } from './interface/mod.js'
 
 export interface IoOptions {
   wechaty      : WechatyInterface,

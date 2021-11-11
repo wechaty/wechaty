@@ -1,7 +1,7 @@
 import { log }              from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import type { WechatyInterface } from '../interface/wechaty-interface.js'
+import type { WechatyInterface } from '../wechaty/mod.js'
 
 const WECHATIFIED_PREFIX = 'Wechatified'
 

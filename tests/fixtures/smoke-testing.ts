@@ -24,8 +24,8 @@ import {
   VERSION,
 }                   from 'wechaty'
 
-import * as USERS from 'wechaty/users'
-import * as IMPLS from 'wechaty/impls'
+import * as USER from 'wechaty/user'
+import * as IMPL from 'wechaty/impl'
 
 import assert from 'assert'
 
@@ -73,8 +73,8 @@ async function main () {
     )
   }
 
-  const tag: USERS.Tag = {} as any as IMPLS.TagImpl
-  assert.ok(tag, 'should get valid USERS & IMPLS')
+  const tag: USER.Tag = {} as any as IMPL.TagImpl
+  assert.ok(tag, 'should get valid USER & IMPL')
 
   assert.notStrictEqual(VERSION,  '0.0.0', 'VERSION must be set!')
 

@@ -23,12 +23,9 @@ import type {
   WechatyConstructor,
   WechatyInterface,
   AllProtectedProperty,
-  // WechatyConstructor,
-}                       from './wechaty-interface.js'
-
-import type {
   WechatyImpl,
-}                       from '../wechaty.js'
+  // WechatyConstructor,
+}                       from './wechaty-impl.js'
 
 test('Wechaty interface', async t => {
   abstract class WechatyImplementation extends EventEmitter implements WechatyInterface {

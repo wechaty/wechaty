@@ -105,8 +105,8 @@ export type {
 
 export {
   WechatyImpl,
-}                         from '../wechaty.js'
+}                         from '../wechaty/mod.js'
 export type {
   WechatyInterface,
   WechatyConstructor,
-}                         from '../interface/mod.js'
+}                         from '../wechaty/mod.js'

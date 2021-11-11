@@ -24,13 +24,11 @@
  */
 export type {
   WechatyOptions,
-}                               from '../wechaty.js'
+  WechatyInterface as Wechaty,
+}                               from '../wechaty/mod.js'
 export {
   WechatyBuilder,
 }                               from '../wechaty-builder.js'
-export type {
-  WechatyInterface as Wechaty,
-}                               from '../interface/mod.js'
 
 export type {
   SayableSayer,
@@ -40,22 +38,22 @@ export {
   messageToSayable,
 }                   from '../sayable/mod.js'
 
-export * as type        from 'wechaty-puppet/types'
-export * as payload     from 'wechaty-puppet/payloads'
-export * as helper      from 'wechaty-puppet/helpers'
+export * as type        from 'wechaty-puppet/type'
+export * as payload     from 'wechaty-puppet/payload'
+export * as helper      from 'wechaty-puppet/helper'
 
-export *                from './users.js'
+export *                from './user.js'
 /**
  * Huan(202111): `users` need to be put before `impls`
  *  because of they have overlap interfaces and
  *  the VSCode will use the first see name in the IDE intelligence.
  */
-export * as user        from './users.js'
-export * as impl        from './impls.js'
+export * as user        from './user.js'
+export * as impl        from './impl.js'
 
 export {
   ScanStatus,
-}                       from 'wechaty-puppet/types'
+}                       from 'wechaty-puppet/type'
 export {
   log,
   config,

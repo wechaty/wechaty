@@ -29,7 +29,15 @@ import type { WechatyPlugin }  from './plugin.js'
 import type { Wechaty } from './mods/mod.js'
 import { WechatyBuilder } from './wechaty-builder.js'
 
-test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
+/**
+ *
+ * Huan(202111): we are not remove plugins in the `stop()` method.
+ *  @see https://github.com/wechaty/wechaty/issues/2282#issuecomment-966008175
+ *
+ * TODO: make sure to not remove or remote, then remove this comment
+ *
+ */
+test.skip('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
   const spyPluginInstall    = sinon.spy()
   const spyPluginUninstall  = sinon.spy()
 

@@ -15,17 +15,15 @@ import {
 }                       from '../puppet-management/mod.js'
 
 import { config } from '../config.js'
+import type { GErrorMixin } from './gerror-mixin.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
-const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: MixinBase) => {
+const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPuppetMixin', 'puppetMixin(%s)', mixinBase.name)
 
   abstract class PuppetMixin extends mixinBase {
 
-    /**
-     * @protected
-     */
     _puppet?: PUPPET.impl.PuppetInterface
 
     get puppet (): PUPPET.impl.PuppetInterface {
@@ -35,9 +33,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
       return this._puppet
     }
 
-    /**
-     * @protected
-     */
     readonly _readyState : StateSwitchInterface
 
     constructor (...args: any[]) {
@@ -51,15 +46,39 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
       log.verbose('WechatyPuppetMixin', 'start()')
       await super.start()
 
-      /**
-       * reset the `wechaty.ready()` state
-       *  if it was previous set to `active`
-       */
-      if (this._readyState.active()) {
-        this._readyState.inactive(true)
+      try {
+        /**
+         * reset the `wechaty.ready()` state
+         *  if it was previous set to `active`
+         */
+        if (this._readyState.active()) {
+          this._readyState.inactive(true)
+        }
+
+        await this._initPuppetInstance()
+
+        log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
+        await this.puppet.start()
+        log.verbose('WechatyPuppetMixin', 'start() starting puppet ... done')
+
+      } catch (e) {
+        this.emitError(e)
+      }
+    }
+
+    override async stop (): Promise<void> {
+      log.verbose('WechatyPuppetMixin', 'stop()')
+
+      try {
+        log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ...')
+        await this.puppet.stop()
+        log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ... done')
+
+      } catch (e) {
+        this.emitError(e)
       }
 
-      await this._initPuppetInstance()
+      await super.stop()
     }
 
     async ready (): Promise<void> {
@@ -68,9 +87,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
       log.silly('WechatyPuppetMixin', 'ready() this.readyState.stable(on) resolved')
     }
 
-    /**
-     * @protected
-     */
     async _initPuppetInstance (): Promise<void> {
       log.verbose('WechatyPuppetMixin', '_initPuppetInstance() %s', this._options.puppet || '')
 
@@ -110,9 +126,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
       ;(this.emit as any)('puppet', puppetInstance)
     }
 
-    /**
-     * @protected
-     */
     _setupPuppetEvents (puppet: PUPPET.impl.PuppetInterface): void {
       log.verbose('WechatyPuppetMixin', '_setupPuppetEvents(%s)', puppet)
 

@@ -32,7 +32,7 @@ import {
 
 import type {
   WechatySkeleton,
-}                             from './wechaty-skeleton.js'
+}                             from '../wechaty/mod.js'
 
 const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatifyUserModuleMixin', 'wechatifyUserModuleMixin(%s)', mixinBase.name)
