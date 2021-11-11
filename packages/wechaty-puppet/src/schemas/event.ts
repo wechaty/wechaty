@@ -66,8 +66,14 @@ export interface EventDongPayload {
   data: string,
 }
 
+/**
+ * GError.stringify-ed string
+ *  @see https://github.com/huan/gerror
+ *
+ * TODO: remove `?` after Dec 31, 2022
+ */
 export type EventErrorPayload = {
-  data?: string,
+  gerror?: string,
 }
 
 export interface EventReadyPayload {
