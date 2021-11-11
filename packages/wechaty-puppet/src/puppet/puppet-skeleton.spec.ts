@@ -52,8 +52,8 @@ test('emit(error, ...) with GError', async t => {
   for (const data of FIXTURES) {
     puppet.emit('error', data)
     await Promise.resolve()
-    t.equal(typeof payload.data, 'string', `should be an error payload for ${typeof data} "${JSON.stringify(data)}"`)
-    t.doesNotThrow(() => GError.fromJSON(payload.data), 'should be successfully deserialized to GError')
+    t.equal(typeof payload.gerror, 'string', `should be an error payload for ${typeof data} "${JSON.stringify(data)}"`)
+    t.doesNotThrow(() => GError.fromJSON(payload.gerror), 'should be successfully deserialized to GError')
   }
 })
 
