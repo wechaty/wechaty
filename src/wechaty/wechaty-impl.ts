@@ -24,6 +24,7 @@ import type {
  *  Construct a `WechatyImpl` based the `WechatyImplBase` with `validationMixin`
  *
  */
+// FIXME: this is a temporary solution and it does not work at all
 const WechatyBaseX = () => class extends WechatyBase {}
 
 class WechatyImplBase extends validationMixin(WechatyBaseX())<WechatyImplInterface>() {}
