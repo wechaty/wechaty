@@ -35,7 +35,7 @@ import {
   WechatyBase,
 }                                 from './wechaty-base.js'
 
-import * as impl from '../mods/impls.js'
+import * as impl from '../mods/impl.js'
 
 import {
   config,

@@ -27,12 +27,7 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
      */
     async logout (): Promise<void>  {
       log.verbose('WechatyLoginMixin', 'logout()')
-
-      try {
-        await this.puppet.logout()
-      } catch (e) {
-        this.emit('error', e)
-      }
+      await this.puppet.logout()
     }
 
     /**

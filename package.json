@@ -8,22 +8,22 @@
       "import": "./dist/esm/src/mods/mod.js",
       "require": "./dist/cjs/src/mods/mod.js"
     },
-    "./impls": {
-      "import": "./dist/esm/src/mods/impls.js",
-      "require": "./dist/cjs/src/mods/impls.js"
+    "./impl": {
+      "import": "./dist/esm/src/mods/impl.js",
+      "require": "./dist/cjs/src/mods/impl.js"
     },
-    "./users": {
-      "import": "./dist/esm/src/mods/users.js",
-      "require": "./dist/cjs/src/mods/uses.js"
+    "./user": {
+      "import": "./dist/esm/src/mods/user.js",
+      "require": "./dist/cjs/src/mods/user.js"
     }
   },
   "typesVersions": {
     "*": {
-      "users": [
-        "./dist/esm/src/mods/users.d.ts"
+      "user": [
+        "./dist/esm/src/mods/user.d.ts"
       ],
-      "impls": [
-        "./dist/esm/src/mods/impls.d.ts"
+      "impl": [
+        "./dist/esm/src/mods/impl.d.ts"
       ]
     }
   },

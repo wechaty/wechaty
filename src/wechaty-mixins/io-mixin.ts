@@ -32,6 +32,9 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
         return
       }
 
+      /**
+       * Clean the memory leak-ed io (?)
+       */
       if (this._io) {
         log.error('WechatyIoMixin', 'start() found existing io instance: stopping...')
         try {
@@ -43,37 +46,38 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
         this._io = undefined
       }
 
+      /**
+       * Initialize IO instance
+       */
       this._io = new Io({
         token   : this._ioToken,
         wechaty : this as any,  // <- FIXME: remove any, Huan(202111)
       })
 
-      try {
-        log.verbose('WechatyIoMixin', 'start() starting io ...')
-        await this._io.start()
-        log.verbose('WechatyIoMixin', 'start() starting io ... done')
-      } catch (e) {
-        this.emitError(e)
-      }
+      log.verbose('WechatyIoMixin', 'start() starting io ...')
+      await this._io.start()
+      log.verbose('WechatyIoMixin', 'start() starting io ... done')
     }
 
     override async stop (): Promise<void> {
       log.verbose('WechatyIoMixin', 'stop()')
 
-      try {
-        if (this._io) {
-          const io = this._io
-          this._io = undefined
+      if (!this._io) {
+        return
+      }
 
-          log.verbose('WechatyIoMixin', 'stop() starting io ...')
-          await io.stop()
-          log.verbose('WechatyIoMixin', 'stop() starting io ... done')
-        }
+      const io = this._io
+      this._io = undefined
+
+      try {
+        log.verbose('WechatyIoMixin', 'stop() starting io ...')
+        await io.stop()
+        log.verbose('WechatyIoMixin', 'stop() starting io ... done')
       } catch (e) {
         this.emitError(e)
-      } finally {
-        await super.stop()
       }
+
+      await super.stop()
     }
 
   }
@@ -83,7 +87,9 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
 
 type IoMixin = ReturnType<typeof ioMixin>
 
-type ProtectedPropertyIoMixin = never
+type ProtectedPropertyIoMixin =
+  | '_io'
+  | '_ioToken'
 
 export type {
   IoMixin,

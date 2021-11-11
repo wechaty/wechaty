@@ -23,9 +23,10 @@ import * as UUID from 'uuid'
 import type { Loggable } from 'brolog'
 
 import {
-  WechatyEventEmitter, WechatyEventName,
-}                             from '../events/wechaty-events.js'
-import type { WechatyOptions } from './wechaty-base.js'
+  WechatyEventEmitter,
+  WechatyEventName,
+}                               from '../events/wechaty-events.js'
+import type { WechatyOptions }  from './wechaty-base.js'
 
 abstract class WechatySkeleton extends WechatyEventEmitter {
 
