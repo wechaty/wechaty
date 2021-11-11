@@ -53,7 +53,7 @@ export * as impl        from './impl.js'
 
 export {
   ScanStatus,
-}                       from 'wechaty-puppet/types'
+}                       from 'wechaty-puppet/type'
 export {
   log,
   config,
