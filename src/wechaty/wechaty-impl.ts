@@ -1,22 +1,20 @@
 import type { EventEmitter }  from 'events'
 import type TypedEventEmitter from 'typed-emitter'
 
-import type { Constructor } from '../deprecated/clone-class.js'
-
-import {
-  WechatyBase,
-  WechatyBaseProtectedProperty,
-}                                     from './wechaty-base.js'
-
+import type { Constructor }           from '../deprecated/clone-class.js'
 import type {
   WechatyMixinProtectedProperty,
 }                                     from '../wechaty-mixins/mod.js'
 import type { WechatyEventListeners } from '../events/mod.js'
-
 import { validationMixin }            from '../user-mixins/mod.js'
+
 import type {
   WechatySkeletonProtectedProperty,
 }                                     from './wechaty-skeleton.js'
+import {
+  WechatyBase,
+  WechatyBaseProtectedProperty,
+}                                     from './wechaty-base.js'
 
 /**
  * Huan(202111): this is for solving the circyle dependency problem
@@ -24,10 +22,7 @@ import type {
  *  Construct a `WechatyImpl` based the `WechatyImplBase` with `validationMixin`
  *
  */
-// FIXME: this is a temporary solution and it does not work at all
-const WechatyBaseX = () => class extends WechatyBase {}
-
-class WechatyImplBase extends validationMixin(WechatyBaseX())<WechatyImplInterface>() {}
+class WechatyImplBase extends validationMixin(WechatyBase)<WechatyImplInterface>() {}
 interface WechatyImplInterface extends WechatyImplBase {}
 
 class WechatyImpl extends validationMixin(WechatyImplBase)<WechatyInterface>() {}

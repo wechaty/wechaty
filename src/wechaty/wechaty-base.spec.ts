@@ -23,9 +23,6 @@ import {
   sinon,
 }              from 'tstest'
 
-import {
-  Puppet,
-}                     from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import type {
@@ -35,37 +32,15 @@ import {
   WechatyBase,
 }                                 from './wechaty-base.js'
 
-import * as impl from '../mods/impl.js'
-
-import {
-  config,
-  IoClient,
-  log,
-  Wechaty,
-}                 from '../mods/mod.js'
+import type {
+  WechatyInterface,
+}                 from '../wechaty/wechaty-impl.js'
 
 class WechatyTest extends WechatyBase {
-
 }
-
-test('Export of the Framework', async t => {
-  t.ok(impl.ContactImpl,     'should export Contact')
-  t.ok(impl.FriendshipImpl,  'should export Friendship')
-  t.ok(IoClient,    'should export IoClient')
-  t.ok(impl.MessageImpl,     'should export Message')
-  t.ok(Puppet,      'should export Puppet')
-  t.ok(impl.RoomImpl,        'should export Room')
-  t.ok(impl.WechatyImpl,     'should export Wechaty')
-  t.ok(log,         'should export log')
-})
 
 test('static VERSION', async t => {
   t.ok('VERSION' in WechatyBase, 'Wechaty should has a static VERSION property')
-})
-
-test('Config setting', async t => {
-  t.ok(config, 'should export Config')
-  // t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
 })
 
 test('event:start/stop', async t => {
@@ -191,13 +166,13 @@ test('use plugin', async t => {
   let result = ''
 
   const myGlobalPlugin = function () {
-    return function (bot: Wechaty) {
+    return function (bot: WechatyInterface) {
       bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
     }
   }
 
   const myPlugin = function () {
-    return function (bot: Wechaty) {
+    return function (bot: WechatyInterface) {
       bot.on('message', () => { result += 'FROM_MY_PLUGIN:' })
     }
   }
