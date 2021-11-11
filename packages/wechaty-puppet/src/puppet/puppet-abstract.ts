@@ -46,9 +46,9 @@ import {
 import { PuppetSkeleton } from './puppet-skeleton.js'
 
 /**
- * Huan(202110): use compose() to compose mixins
+ * Mixins with Functional Programming: compose / pipe
+ *  related discussion: https://github.com/wechaty/puppet/pull/173
  */
-
 const PipedBase = FP.pipe(
   PuppetSkeleton,
   memoryMixin,
@@ -63,8 +63,16 @@ const PipedBase = FP.pipe(
   messageMixin,
   serviceMixin,
   miscMixin,
+  // TODO: validateMixin,
 )
 
+/**
+ * Huan(202111): validateMixin can not put in the piped list,
+ *  because it import-ed the `PuppetInterface` which is depended on `PuppetImpl`
+ *  which caused circle-dependency.
+ *
+ * TODO: put `validateMixin` back in to piped list
+ */
 const MixinBase = validateMixin(PipedBase)
 
 /**
@@ -95,9 +103,11 @@ abstract class Puppet extends MixinBase {
    * The child puppet provider should put all start code inside `onStart()`
    *  becasue the `start()` will call `onStart()` with the state management.
    *
-   * The `try {} catch () {}` is not necessary because it will be handled by the framework.
+   * The `try {} catch () {}` is not necessary inside `onStart()`
+   *  because it will be handled by the framework.
    *
    * `onStop()` is the same as the `onStart()`
+   *
    *  @see https://github.com/wechaty/puppet/issues/163
    */
   abstract override onStart (): Promise<void>
