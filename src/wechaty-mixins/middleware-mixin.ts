@@ -16,6 +16,7 @@ import type {
   WechatyMiddleWareRoomJoin,
   WechatyMiddleWareRoomLeave,
   WechatyMiddleWareRoomTopic,
+  WechatyMiddleWares,
   WechatyMiddleWareScan,
   WechatyMiddleWareStartStop,
 } from '../middlewares/wechaty-middlewares.js'
@@ -79,9 +80,19 @@ const middleWareMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: Mi
 
     // TODO: I prefer `use` for middlewares, and `install` for plugins. But it's an incompatible API change. so that we can use middleware instead.
     static middleware (
-      middleware: WechatyGlobalMiddleWares,
+      middleware: WechatyGlobalMiddleWares | WechatyMiddleWares[keyof WechatyMiddleWares],
     ): WechatyConstructor {
-      this._globalMiddleWares = middleware
+      if (typeof middleware === 'function') {
+        middleware = middleware as WechatyMiddleWares[keyof WechatyMiddleWares]
+        if (!middleware.eventType) {
+          throw new Error('middleware eventType is not defined')
+        }
+        this._globalMiddleWares[middleware.eventType] = middleware
+      } else {
+        Object.keys(middleware).forEach(item => {
+          this._globalMiddleWares[item] = middleware[item]
+        })
+      }
       // Huan(202110): TODO: remove any
       return this as any
     }

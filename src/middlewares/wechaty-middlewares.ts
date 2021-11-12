@@ -16,6 +16,7 @@ import type {
   WechatyEventListenerRoomJoin,
   WechatyEventListenerRoomLeave,
   WechatyEventListenerRoomTopic,
+  WechatyEventListeners,
   WechatyEventListenerScan,
   WechatyEventListenerStartStop,
 } from '../events/wechaty-events.js'
@@ -27,21 +28,21 @@ type AddFunctionParameters<
   ...args: [...Parameters<TFunction>, ...TParameters]
 ) => ReturnType<TFunction>;
 
-type WechatyMiddleWareDong       = AddFunctionParameters<WechatyEventListenerDong, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareError      = AddFunctionParameters<WechatyEventListenerError, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareFriendship = AddFunctionParameters<WechatyEventListenerFriendship, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareHeartbeat  = AddFunctionParameters<WechatyEventListenerHeartbeat, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareLogin      = AddFunctionParameters<WechatyEventListenerLogin, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareLogout     = AddFunctionParameters<WechatyEventListenerLogout, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareMessage    = AddFunctionParameters<WechatyEventListenerMessage, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWarePuppet     = AddFunctionParameters<WechatyEventListenerPuppet, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareReady      = AddFunctionParameters<WechatyEventListenerReady, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareRoomInvite = AddFunctionParameters<WechatyEventListenerRoomInvite, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareRoomJoin   = AddFunctionParameters<WechatyEventListenerRoomJoin, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareRoomLeave  = AddFunctionParameters<WechatyEventListenerRoomLeave, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareRoomTopic  = AddFunctionParameters<WechatyEventListenerRoomTopic, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareScan       = AddFunctionParameters<WechatyEventListenerScan, [ next: () => void | Promise<void> ]>;
-type WechatyMiddleWareStartStop  = AddFunctionParameters<WechatyEventListenerStartStop, [ next: () => void | Promise<void> ]>;
+type WechatyMiddleWareDong       = AddFunctionParameters<WechatyEventListenerDong, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareError      = AddFunctionParameters<WechatyEventListenerError, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareFriendship = AddFunctionParameters<WechatyEventListenerFriendship, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareHeartbeat  = AddFunctionParameters<WechatyEventListenerHeartbeat, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareLogin      = AddFunctionParameters<WechatyEventListenerLogin, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareLogout     = AddFunctionParameters<WechatyEventListenerLogout, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareMessage    = AddFunctionParameters<WechatyEventListenerMessage, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWarePuppet     = AddFunctionParameters<WechatyEventListenerPuppet, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareReady      = AddFunctionParameters<WechatyEventListenerReady, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareRoomInvite = AddFunctionParameters<WechatyEventListenerRoomInvite, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareRoomJoin   = AddFunctionParameters<WechatyEventListenerRoomJoin, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareRoomLeave  = AddFunctionParameters<WechatyEventListenerRoomLeave, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareRoomTopic  = AddFunctionParameters<WechatyEventListenerRoomTopic, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareScan       = AddFunctionParameters<WechatyEventListenerScan, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
+type WechatyMiddleWareStartStop  = AddFunctionParameters<WechatyEventListenerStartStop, [ next: () => void | Promise<void> ]> & { eventType?: keyof WechatyEventListeners};
 
 interface WechatyMiddleWares {
   'room-invite' : WechatyMiddleWareRoomInvite
