@@ -10,7 +10,7 @@ import {
 }                     from './puppet-abstract.js'
 import type {
   PuppetInterface,
-}                     from './interface.js'
+}                     from './puppet-interface.js'
 
 /**
  * @deprecated will be remove after Dec 31, 2022

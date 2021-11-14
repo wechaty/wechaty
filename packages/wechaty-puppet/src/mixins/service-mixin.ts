@@ -50,6 +50,8 @@ type ServiceMixin = ReturnType<typeof serviceMixin>
 
 type ProtectedPropertyServiceMixin =
   | 'counter'
+  | '_serviceCtlResettingIndicator'
+  | '_serviceCtlLogger'
 
 export type {
   ProtectedPropertyServiceMixin,

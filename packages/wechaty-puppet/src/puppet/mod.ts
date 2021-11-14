@@ -22,7 +22,7 @@ import {
 import type {
   PuppetConstructor,
   PuppetInterface,
-}                         from './interface.js'
+}                         from './puppet-interface.js'
 
 export type {
   PuppetConstructor,

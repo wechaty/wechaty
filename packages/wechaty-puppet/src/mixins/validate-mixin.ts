@@ -4,7 +4,7 @@ import {
 }                             from '../puppet/interface-of.js'
 
 import type { Puppet }          from '../puppet/puppet-abstract.js'
-import type { PuppetInterface } from '../puppet/interface.js'
+import type { PuppetInterface } from '../puppet/puppet-interface.js'
 import type { PuppetSkeleton }   from '../puppet/puppet-skeleton.js'
 
 const validateMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {

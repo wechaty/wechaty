@@ -9,7 +9,10 @@ type PuppetProtectedProperty =
   | PuppetSkeletonProtectedProperty
 
 // https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
-type PuppetInterface = Omit<Puppet, PuppetProtectedProperty>
+type PuppetInterface = Omit<
+  Puppet,
+  PuppetProtectedProperty | `_${string}`
+>
 
 type PuppetConstructor = Constructor<PuppetInterface>
 
