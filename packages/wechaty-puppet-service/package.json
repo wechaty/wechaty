@@ -60,7 +60,6 @@
     "@types/ws": "^8.2.0",
     "get-port": "^6.0.0",
     "typed-emitter": "^1.5.0-from-event",
-    "wechaty": "^1.7.10",
     "wechaty-puppet-mock": "^1.0",
     "why-is-node-running": "^2.2.0"
   },

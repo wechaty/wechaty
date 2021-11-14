@@ -144,12 +144,12 @@ class GrpcManager extends EventEmitter {
     /**
      * 3. Start the puppet
      */
-    log.verbose('GrpcManager', 'start() grpc -> start() ...')
+    log.verbose('GrpcManager', 'start() calling grpc server: start() ...')
     await util.promisify(
       this.client.start
         .bind(this.client),
     )(new puppet.StartRequest())
-    log.verbose('GrpcManager', 'start() grpc -> start() ... done')
+    log.verbose('GrpcManager', 'start() calling grpc server: start() ... done')
 
     log.verbose('GrpcManager', 'start() ... done')
   }

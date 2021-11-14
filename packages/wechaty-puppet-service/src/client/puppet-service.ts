@@ -120,9 +120,9 @@ export class PuppetService extends PUPPET.Puppet {
       this._grpcManager = undefined
     }
 
-    log.verbose('PuppetService', 'start() instanciating GrpcClient ...')
+    log.verbose('PuppetService', 'start() instanciating GrpcManager ...')
     const grpcManager = new GrpcManager(this.options)
-    log.verbose('PuppetService', 'start() instanciating GrpcClient ... done')
+    log.verbose('PuppetService', 'start() instanciating GrpcManager ... done')
 
     /**
      * Huan(202108): when we started the event stream,
@@ -130,7 +130,9 @@ export class PuppetService extends PUPPET.Puppet {
      */
     this._grpcManager = grpcManager
 
+    log.verbose('PuppetService', 'start() setting up bridge grpc event stream ...')
     this.bridgeGrpcEventStream(grpcManager)
+    log.verbose('PuppetService', 'start() setting up bridge grpc event stream ... done')
 
     log.verbose('PuppetService', 'start() starting grpc manager...')
     await grpcManager.start()
