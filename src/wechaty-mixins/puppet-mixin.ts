@@ -44,7 +44,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
 
     override async start (): Promise<void> {
       log.verbose('WechatyPuppetMixin', 'start()')
+
+      log.verbose('WechatyPuppetMixin', 'start() super.start() ...')
       await super.start()
+      log.verbose('WechatyPuppetMixin', 'start() super.start() ... done')
 
       try {
         /**
@@ -55,7 +58,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
           this._readyState.inactive(true)
         }
 
+        log.verbose('WechatyPuppetMixin', 'start() initializing puppet instance ...')
         await this._initPuppetInstance()
+        log.verbose('WechatyPuppetMixin', 'start() initializing puppet instance ... done')
 
         log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
         await this.puppet.start()
@@ -78,7 +83,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
         this.emitError(e)
       }
 
+      log.verbose('WechatyPuppetMixin', 'start() super.stop() ...')
       await super.stop()
+      log.verbose('WechatyPuppetMixin', 'start() super.stop() ... done')
     }
 
     async ready (): Promise<void> {
@@ -109,13 +116,17 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
       /**
        * Plug the Memory Card to Puppet
        */
+      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting memory ...')
       puppetInstance.setMemory(puppetMemory)
+      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting memory ... done')
 
       // Huan(202110) for developing Post
       // this._puppet = puppetInstance
       this._puppet = puppetInstance as any  // FIXME: remove any
 
+      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting up events ...')
       this._setupPuppetEvents(puppetInstance)
+      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting up events ... done')
       // this._wechatifyUserModules()
 
       /**
@@ -123,7 +134,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
         *   - Huan(202005): emit puppet when set
         *   - Huan(202110): @see https://github.com/wechaty/redux/blob/16af0ae01f72e37f0ee286b49fa5ccf69850323d/src/wechaty-redux.ts#L82-L98
         */
+      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() emitting "puppet" event ...')
       ;(this.emit as any)('puppet', puppetInstance)
+      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() emitting "puppet" event ... done')
     }
 
     _setupPuppetEvents (puppet: PUPPET.impl.PuppetInterface): void {
