@@ -252,7 +252,7 @@ const roomMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin & Room
     ): Promise<void> {
       log.verbose('PuppetRoomMixin', 'roomPayloadDirty(%s)', id)
 
-      await this.dirtyPayloadAwait(
+      await this._dirtyPayloadAwait(
         PayloadType.Room,
         id,
       )

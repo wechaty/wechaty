@@ -124,7 +124,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
      * When we are using PuppetService, the `dirty` event will be emitted from the server,
      *  and we need to wait for the `dirty` event so we can make sure the cache has been invalidated.
      */
-    async dirtyPayloadAwait (
+    async _dirtyPayloadAwait (
       type : PayloadType,
       id   : string,
     ): Promise<void> {
@@ -161,12 +161,6 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
         await timeoutPromise(future, 5 * 1000)
           .finally(() => this.off('dirty', onDirty))
 
-        /**
-         * Huan(202111): wait for all the taks in the event loop queue to be executed
-         *  before we return, because there might be other `onDirty` listeners
-         */
-        await new Promise(setImmediate)
-
       } catch (e) {
         // timeout, log warning & ignore it
         log.warn('PuppetCacheMixin',
@@ -186,6 +180,13 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
           (e as Error).stack,
         )
       }
+
+      /**
+       * Huan(202111): wait for all the taks in the event loop queue to be executed
+       *  before we return, because there might be other `onDirty` listeners
+       */
+      await new Promise(setImmediate)
+
     }
 
   }
@@ -199,7 +200,7 @@ type ProtectedPropertyCacheMixin =
   | 'cache'
   | 'onDirty'
   | '_cacheMixinCleanCallbackList'
-  | 'dirtyPayloadAwait'
+  | '_dirtyPayloadAwait'
 
 export type {
   CacheMixin,

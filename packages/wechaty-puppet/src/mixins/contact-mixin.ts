@@ -309,7 +309,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkeleton>(mixi
     ): Promise<void> {
       log.verbose('PuppetContactMixin', 'contactPayloadDirty(%s)', id)
 
-      await this.dirtyPayloadAwait(
+      await this._dirtyPayloadAwait(
         PayloadType.Contact,
         id,
       )
