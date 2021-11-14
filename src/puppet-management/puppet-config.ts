@@ -53,7 +53,7 @@ const PUPPET_DEPENDENCIES = {
    *    because the `bin/puppet-install.ts` will use those version
    *    to install all them inside the Docker
    */
-  'wechaty-puppet-service' : '>=1.1.1',  // https://www.npmjs.com/package/wechaty-puppet-service
+  'wechaty-puppet-service' : '>=1.1.2',  // https://www.npmjs.com/package/wechaty-puppet-service
   'wechaty-puppet-mock'    : '>=1.0.3',  // https://www.npmjs.com/package/wechaty-puppet-mock
 
   /**
@@ -64,7 +64,7 @@ const PUPPET_DEPENDENCIES = {
   'wechaty-puppet-padlocal'         : '>=0.4.1',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
   'wechaty-puppet-xp'               : '>=0.10.1',  // https://www.npmjs.com/package/wechaty-puppet-xp
   'wechaty-puppet-oicq'             : '>=1.0.1',  // https://www.npmjs.com/package/wechaty-puppet-oicq
-  'wechaty-puppet-official-account' : '>=1.0.1',    // https://www.npmjs.com/package/wechaty-puppet-official-account
+  'wechaty-puppet-official-account' : '>=1.7.1',    // https://www.npmjs.com/package/wechaty-puppet-official-account
 
   /**
    * Non-WeChat External Puppets
