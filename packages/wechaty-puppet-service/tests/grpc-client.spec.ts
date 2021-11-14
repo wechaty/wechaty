@@ -8,7 +8,7 @@ import {
 import PuppetMock from 'wechaty-puppet-mock'
 import getPort from 'get-port'
 
-import { GrpcClient }   from '../src/client/grpc-client.js'
+import { GrpcManager }   from '../src/client/grpc-manager.js'
 import {
   PuppetServer,
   PuppetServerOptions,
@@ -41,7 +41,7 @@ test('GrpcClient with TLS and valid token', async t => {
     token    : TOKEN,
   } as PuppetOptions
 
-  const validTokenPuppet = new GrpcClient(puppetOptions)
+  const validTokenPuppet = new GrpcManager(puppetOptions)
 
   try {
     await validTokenPuppet.start()
@@ -84,7 +84,7 @@ test('GrpcClient with invalid TLS options', async t => {
     token       : TOKEN,
   }
 
-  const grpcClient = new GrpcClient(puppetOptions)
+  const grpcClient = new GrpcManager(puppetOptions)
   grpcClient.on('error', e => console.info('###noTlsPuppet.on(error):', e))
 
   // Disable error log
@@ -132,7 +132,7 @@ test('GrpcClient with invalid token', async t => {
     token: 'insecure_' + Math.random().toString(36),
   } as PuppetOptions
 
-  const invalidTokenPuppet = new GrpcClient(puppetOptions)
+  const invalidTokenPuppet = new GrpcManager(puppetOptions)
 
   try {
     await invalidTokenPuppet.start()

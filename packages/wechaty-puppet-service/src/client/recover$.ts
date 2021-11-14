@@ -3,15 +3,18 @@ import {
   log,
 }                   from 'wechaty-puppet'
 
+import type {
+  FromEvent,
+}                               from 'typed-emitter/rxjs'
 import {
-  fromEvent,
+  fromEvent as rxFromEvent,
   interval,
   merge,
   // Subscription,
   // pipe,
   // of,
   // forkJoin,
-}                 from 'rxjs'
+}                               from 'rxjs'
 import {
   debounce,
   filter,
@@ -20,8 +23,9 @@ import {
   switchMap,
   takeUntil,
   tap,
-  // eslint-disable-next-line import/extensions
 }             from 'rxjs/operators'
+
+const fromEvent: FromEvent = rxFromEvent
 
 /**
  * Filters
@@ -37,9 +41,9 @@ const dingHeartbeat = (puppet: Puppet) => (n: number) => puppet.ding(`recover$()
 /**
  * Observables
  */
-const switchOn$  = (puppet: Puppet) => fromEvent(puppet.state, 'on')
-const switchOff$ = (puppet: Puppet) => fromEvent(puppet.state, 'off')
-void switchOff$
+const switchActive$   = (puppet: Puppet) => fromEvent<true | 'pending'>(puppet.state as any, 'active')
+const switchInactive$ = (puppet: Puppet) => fromEvent<true | 'pending'>(puppet.state as any, 'inactive')
+void switchInactive$
 
 const heartbeat$ = (puppet: Puppet) => fromEvent(puppet, 'heartbeat')
 
@@ -48,7 +52,7 @@ const heartbeat$ = (puppet: Puppet) => fromEvent(puppet, 'heartbeat')
  */
 
 // Heartbeat stream is like ECG (ElectroCardioGraphy)
-const switchOnHeartbeat$ = (puppet: Puppet) => switchOn$(puppet).pipe(
+const switchOnHeartbeat$ = (puppet: Puppet) => switchActive$(puppet).pipe(
   filter(switchSuccess),
   tap(_ => log.verbose('PuppetService', 'recover$() switchOn$ fired')),
   switchMap(_ => heartbeat$(puppet).pipe(

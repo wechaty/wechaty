@@ -73,12 +73,12 @@ test('gRPC client breaks', async t => {
   /**
    * mock grpcClient break
    */
-  await puppetService.grpc.client.close()
+  await puppetService.grpcManager.client.close()
 
   await puppetService.stop()
 
   // get eventStream status
-  t.throws(() => puppetService.grpc, 'should clean grpc after stop()')
+  t.throws(() => puppetService.grpcManager, 'should clean grpc after stop()')
 
   // setTimeout(() => whyIsNodeRunning(), 1000)
   await puppetServer.stop()

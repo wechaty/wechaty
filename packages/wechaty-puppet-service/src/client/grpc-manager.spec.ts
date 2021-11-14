@@ -2,19 +2,19 @@
 
 import { test }  from 'tstest'
 
-import { GrpcClient } from './grpc-client.js'
+import { GrpcManager } from './grpc-manager.js'
 
 /**
  * Huan(202108):
  *  the Server Name Identifier (SNI) in the token
  *    is required by the gRPC client.
  */
-test('GrpcClient smoke testing', async t => {
-  t.throws(() => new GrpcClient({
+test('GrpcManager smoke testing', async t => {
+  t.throws(() => new GrpcManager({
     token: 'UUIDv4',
   }), 'should throw if there is no SNI prefix in token')
 
-  t.doesNotThrow(() => new GrpcClient({
+  t.doesNotThrow(() => new GrpcManager({
     token: 'SNI_UUIDv4',
   }), 'should not throw if there is SNI prefix in token')
 })
