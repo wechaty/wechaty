@@ -7,15 +7,17 @@ import {
 
 import {
   Observable,
-  fromEvent,
   firstValueFrom,
-}                 from 'rxjs'
+  fromEvent as rxFromEvent,
+}                             from 'rxjs'
 import type {
-  JQueryStyleEventEmitter,
-} from 'rxjs/internal/observable/fromEvent.js'
+  FromEvent,
+}                             from 'typed-emitter/rxjs'
+// import type {
+//   JQueryStyleEventEmitter,
+// } from 'rxjs/internal/observable/fromEvent.js'
 
 import type {
-  EventLoginPayload,
   EventScanPayload,
 }                         from '../src/schemas/mod.js'
 import {
@@ -24,26 +26,32 @@ import {
 
 import { PuppetTest } from './fixtures/puppet-test/puppet-test.js'
 
-test('Puppet satisfy DOM EventTarget: HasEventTargetAddRemove', async t => {
-  const puppet = new PuppetTest()
+/**
+ * Huan(202111): fromEvent + typed-emitter/rxjs
+ * @see https://github.com/andywer/typed-emitter/pull/19
+ */
+const fromEvent: FromEvent = rxFromEvent
 
-  // Huan(202110): do not use `tsd` module because the TypeScript version conflict
-  //  - https://github.com/SamVerschueren/tsd/issues/122
-  //
-  // expectAssignable<
-  //   JQueryStyleEventEmitter<
-  //     any,
-  //     EventScanPayload | EventLoginPayload
-  //   >
-  // >(puppet)
+// test('Puppet satisfy DOM EventTarget: HasEventTargetAddRemove', async t => {
+//   const puppet = new PuppetTest()
 
-  const target: JQueryStyleEventEmitter<
-    any,
-    EventScanPayload | EventLoginPayload
-  > = puppet
-  void target
-  t.pass('expectAssignable match listener argument typings')
-})
+//   // Huan(202110): do not use `tsd` module because the TypeScript version conflict
+//   //  - https://github.com/SamVerschueren/tsd/issues/122
+//   //
+//   // expectAssignable<
+//   //   JQueryStyleEventEmitter<
+//   //     any,
+//   //     EventScanPayload | EventLoginPayload
+//   //   >
+//   // >(puppet)
+
+//   const target: JQueryStyleEventEmitter<
+//     any,
+//     EventScanPayload | EventLoginPayload
+//   > = puppet
+//   void target
+//   t.pass('expectAssignable match listener argument typings')
+// })
 
 test('RxJS: fromEvent type inference', async t => {
   const puppet = new PuppetTest()
@@ -52,9 +60,8 @@ test('RxJS: fromEvent type inference', async t => {
    * Issue #96: Add Typing support for RxJS fromEvent
    *  - https://github.com/wechaty/wechaty-puppet/issues/96
    *
-   * FIXME(202106): get inference from on/off typings
    */
-  const event$ = fromEvent<EventScanPayload>(puppet, 'scan')
+  const event$ = fromEvent(puppet, 'scan')
 
   const typeTest: AssertEqual<Observable<EventScanPayload>, typeof event$> = true
   t.ok(typeTest, 'should be equal type')
