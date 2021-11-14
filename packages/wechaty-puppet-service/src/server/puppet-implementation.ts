@@ -5,12 +5,13 @@ import {
   StringValue,
   grpc,
   puppet as grpcPuppet,
-}                               from 'wechaty-grpc'
+}                           from 'wechaty-grpc'
 import type {
   FileBoxInterface,
   FileBox,
-}                               from 'file-box'
-import * as PUPPET from 'wechaty-puppet'
+}                           from 'file-box'
+import * as PUPPET          from 'wechaty-puppet'
+import { timeoutPromise }   from 'gerror'
 
 import {
   packFileBoxToPb,
@@ -1308,7 +1309,10 @@ function puppetImplementation (
       void call
 
       try {
-        await puppet.start()
+        await timeoutPromise(
+          puppet.start(),
+          15 * 1000,  // 15 seconds timeout
+        )
 
         return callback(null, new grpcPuppet.StartResponse())
 
@@ -1329,8 +1333,12 @@ function puppetImplementation (
           log.error('PuppetServiceImpl', 'stop() eventStreamManager is not busy?')
         }
 
-        await puppet.stop()
         readyPayload = undefined
+
+        await timeoutPromise(
+          puppet.stop(),
+          15 * 1000, // 15 seconds timeout
+        )
 
         return callback(null, new grpcPuppet.StopResponse())
 
