@@ -1,10 +1,10 @@
 import { log }        from 'wechaty-puppet'
 
-import { VERSION } from '../config.js'
+import { VERSION }  from '../config.js'
 
-import type { WechatySkeleton }      from '../wechaty/mod.js'
-import type { GErrorMixin } from './gerror-mixin.js'
-import type { PuppetMixin } from './puppet-mixin.js'
+import type { WechatySkeleton }   from '../wechaty/mod.js'
+import type { GErrorMixin }       from './gerror-mixin.js'
+import type { PuppetMixin }       from './puppet-mixin.js'
 
 const miscMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GErrorMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyMiscMixin', 'miscMixin(%s)', mixinBase.name)

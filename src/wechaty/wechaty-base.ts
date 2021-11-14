@@ -176,6 +176,8 @@ class WechatyBase extends mixinBase implements SayableSayer {
   }
 
   override async onStart (): Promise<void> {
+    log.verbose('Wechaty', 'onStart()')
+
     log.verbose('Wechaty', '<%s>(%s) onStart() v%s is starting...',
       this._options.puppet || config.systemPuppetName(),
       this._options.name   || '',
@@ -189,9 +191,12 @@ class WechatyBase extends mixinBase implements SayableSayer {
     this._cleanCallbackList.push(() => clearInterval(lifeTimer))
 
     this.emit('start')
+    log.verbose('Wechaty', 'onStart() ... done')
   }
 
   override async onStop (): Promise<void> {
+    log.verbose('Wechaty', 'onStop()')
+
     log.verbose('Wechaty', '<%s> onStop() v%s is stopping ...',
       this._options.puppet || config.systemPuppetName(),
       this.version(),
@@ -203,6 +208,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     }
 
     this.emit('stop')
+    log.verbose('Wechaty', 'onStop() ... done')
   }
 
   /**
