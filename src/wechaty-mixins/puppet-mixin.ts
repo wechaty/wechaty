@@ -120,9 +120,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
       puppetInstance.setMemory(puppetMemory)
       log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting memory ... done')
 
-      // Huan(202110) for developing Post
-      // this._puppet = puppetInstance
-      this.__puppet = puppetInstance as any  // FIXME: remove any
+      this.__puppet = puppetInstance
 
       log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting up events ...')
       this.__setupPuppetEvents(puppetInstance)
