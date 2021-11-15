@@ -163,12 +163,12 @@ class WechatyBase extends mixinBase implements SayableSayer {
    *
    */
   constructor (
-    override _options: WechatyOptions = {},
+    override __options: WechatyOptions = {},
   ) {
     super()
     log.verbose('Wechaty', 'constructor()')
 
-    this.__memory = this._options.memory
+    this.__memory = this.__options.memory
 
     this._cleanCallbackList = []
 
@@ -179,8 +179,8 @@ class WechatyBase extends mixinBase implements SayableSayer {
     log.verbose('Wechaty', 'onStart()')
 
     log.verbose('Wechaty', '<%s>(%s) onStart() v%s is starting...',
-      this._options.puppet || config.systemPuppetName(),
-      this._options.name   || '',
+      this.__options.puppet || config.systemPuppetName(),
+      this.__options.name   || '',
       this.version(),
     )
     log.verbose('Wechaty', 'id: %s', this.id)
@@ -198,7 +198,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     log.verbose('Wechaty', 'onStop()')
 
     log.verbose('Wechaty', '<%s> onStop() v%s is stopping ...',
-      this._options.puppet || config.systemPuppetName(),
+      this.__options.puppet || config.systemPuppetName(),
       this.version(),
     )
 
@@ -276,8 +276,8 @@ class WechatyBase extends mixinBase implements SayableSayer {
 
 type WechatyBaseProtectedProperty =
   // | '_serviceCtlFsmInterpreter'  // from ServiceCtlFsm
-  | '_serviceCtlLogger'             // from ServiceCtl(&Fsm)
-  | '_serviceCtlResettingIndicator' // from ServiceCtl
+  | '__serviceCtlLogger'             // from ServiceCtl(&Fsm)
+  | '__serviceCtlResettingIndicator' // from ServiceCtl
   | 'wechaty'
   | 'onStart'
   | 'onStop'

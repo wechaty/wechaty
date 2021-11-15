@@ -114,7 +114,7 @@
     "gerror": "^1.0.9",
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
-    "state-switch": "^1.5.1",
+    "state-switch": "^1.6.1",
     "uuid": "^8.3.2",
     "wechaty-puppet": "^1.7.10",
     "wechaty-puppet-service": "^1.1.1",

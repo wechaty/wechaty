@@ -40,7 +40,12 @@ export {
 
 export * as type        from 'wechaty-puppet/type'
 export * as payload     from 'wechaty-puppet/payload'
-export * as helper      from 'wechaty-puppet/helper'
+
+/**
+ * Huan(202111) We should not re-export other NPM modules
+ *  because this will cause problems by adding more couple between them.
+ */
+// export * as helper      from 'wechaty-puppet/helper'
 
 export *                from './user.js'
 /**
