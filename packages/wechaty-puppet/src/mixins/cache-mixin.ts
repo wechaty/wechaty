@@ -172,7 +172,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
             'payloadId: %s',
             'error: %s',
             'stack: %s',
-          ].join('\n,'),
+          ].join('\n  '),
           PayloadType[type],
           type,
           id,
