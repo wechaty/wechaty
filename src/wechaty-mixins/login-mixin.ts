@@ -34,8 +34,6 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
     override async start (): Promise<void> {
       log.verbose('WechatyLoginMixin', 'start()')
 
-      await super.start()
-
       const cleanAuthQrCode = () => {
         this.__authQrCode = undefined
       }
@@ -70,6 +68,14 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
           this.removeListener('stop',   cleanAuthQrCode)
         },
       )
+
+      /**
+       * Huan(202111): in this case, we put the `super.start()` at the end of the child `start()`
+       *  because we need to register all the listeners before the puppet starts
+       *  so that we will not miss any event.
+       */
+      await super.start()
+
     }
 
     override async stop (): Promise<void> {
