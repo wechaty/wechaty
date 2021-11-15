@@ -6,7 +6,7 @@ import { WechatyImpl }    from './wechaty-impl.js'
 
 import type {
   WechatyOptions,
-}                           from './schema.js'
+}                           from '../schema/wechaty-options.js'
 import { WechatySkeleton } from './wechaty-skeleton.js'
 
 export type {

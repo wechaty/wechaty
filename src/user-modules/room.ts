@@ -17,8 +17,9 @@
  *   limitations under the License.
  *
  */
-import * as PUPPET          from 'wechaty-puppet'
-import type { FileBoxInterface } from 'file-box'
+import * as PUPPET                from 'wechaty-puppet'
+import type { FileBoxInterface }  from 'file-box'
+
 import type {
   Constructor,
 }                           from '../deprecated/clone-class.js'
@@ -27,14 +28,18 @@ import {
   FOUR_PER_EM_SPACE,
   log,
 }                           from '../config.js'
+import {
+  wechatyCaptureException,
+}                           from '../raven.js'
 
-import { wechatyCaptureException } from '../raven.js'
 import {
   guardQrCodeValue,
-}                       from '../pure-functions/guard-qr-code-value.js'
+}                           from '../pure-functions/guard-qr-code-value.js'
+import {
+  isTemplateStringArray,
+}                           from '../pure-functions/is-template-string-array.js'
 
-import { RoomEventEmitter } from '../events/mod.js'
-
+import { RoomEventEmitter }             from '../schema/mod.js'
 import {
   poolifyMixin,
   wechatifyMixin,
@@ -48,10 +53,13 @@ import type {
   Sayable,
 }                                       from '../sayable/mod.js'
 
-import { isTemplateStringArray } from '../pure-functions/is-template-string-array.js'
-
-import { ContactInterface, ContactImpl }        from './contact.js'
-import type { MessageInterface }        from './message.js'
+import {
+  ContactInterface,
+  ContactImpl,
+}                       from './contact.js'
+import type {
+  MessageInterface,
+}                       from './message.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(

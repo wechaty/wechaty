@@ -1,11 +1,15 @@
-import { log }        from 'wechaty-puppet'
+import * as PUPPET  from 'wechaty-puppet'
+import { log }      from 'wechaty-puppet'
 
+import type {
+  WechatyEventListeners,
+}                               from '../schema/mod.js'
 import type {
   ContactSelfImpl,
   ContactSelfInterface,
 }                               from '../user-modules/mod.js'
-
 import type { WechatySkeleton } from '../wechaty/mod.js'
+
 import type { GErrorMixin }     from './gerror-mixin.js'
 import type { PuppetMixin }     from './puppet-mixin.js'
 
@@ -14,8 +18,71 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
 
   abstract class LoginMixin extends mixinBase {
 
+    __authQrCode?: string
+    get authQrCode (): undefined | string {
+      return this.__authQrCode
+    }
+
+    __loginMixinCleanCallbackList: (() => void)[]
+
     constructor (...args: any[]) {
+      log.verbose('WechatyLoginMixin', 'constructor()')
       super(...args)
+      this.__loginMixinCleanCallbackList = []
+    }
+
+    override async start (): Promise<void> {
+      log.verbose('WechatyLoginMixin', 'start()')
+
+      await super.start()
+
+      const cleanAuthQrCode = () => {
+        this.__authQrCode = undefined
+      }
+
+      const onScan: WechatyEventListeners['scan'] = (qrcode, status) => {
+        switch (status) {
+          case PUPPET.type.ScanStatus.Cancel:
+          case PUPPET.type.ScanStatus.Confirmed:
+          case PUPPET.type.ScanStatus.Scanned:
+            cleanAuthQrCode()
+            break
+
+          case PUPPET.type.ScanStatus.Timeout:  // TODO: confirm the `Timeout` spec (define it if it is not defined)
+          case PUPPET.type.ScanStatus.Waiting:
+            this.__authQrCode = qrcode
+            break
+
+          case PUPPET.type.ScanStatus.Unknown:
+          default:
+            break
+        }
+      }
+
+      this.addListener('scan',  onScan)
+      this.addListener('login', cleanAuthQrCode)
+      this.addListener('stop',  cleanAuthQrCode)
+
+      this.__loginMixinCleanCallbackList.push(
+        () => {
+          this.removeListener('scan',   onScan)
+          this.removeListener('login',  cleanAuthQrCode)
+          this.removeListener('stop',   cleanAuthQrCode)
+        },
+      )
+    }
+
+    override async stop (): Promise<void> {
+      log.verbose('WechatyLoginMixin', 'stop()')
+
+      while (this.__loginMixinCleanCallbackList.length) {
+        const callback = this.__loginMixinCleanCallbackList.shift()
+        if (callback) {
+          setImmediate(callback)  // put callback to then end of event queue in case of it has not been called yet.
+        }
+      }
+
+      await super.stop()
     }
 
     /**
@@ -85,6 +152,8 @@ type LoginMixin = ReturnType<typeof loginMixin>
 
 type ProtectedPropertyLoginMixin =
   | 'userSelf'  // deprecated: use `currentUser()` instead. (will be removed after Dec 31, 2022)
+  | '__authQrCode'
+  | '__loginMixinCleanCallbackList'
 
 export type {
   LoginMixin,

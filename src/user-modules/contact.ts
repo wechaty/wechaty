@@ -30,7 +30,7 @@ import {
   log,
 }                           from '../config.js'
 
-import { ContactEventEmitter }        from '../events/mod.js'
+import { ContactEventEmitter }        from '../schema/mod.js'
 
 import {
   poolifyMixin,

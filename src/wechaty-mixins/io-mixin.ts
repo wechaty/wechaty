@@ -10,8 +10,8 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
 
   abstract class IoMixin extends mixinBase {
 
-    _io?: Io
-    _ioToken?: string
+    __io?: Io
+    __ioToken?: string
 
     constructor (...args: any[]) {
       log.verbose('WechatyIoMixin', 'constructor()')
@@ -19,7 +19,7 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
 
       const options = args[0] || {} as WechatyOptions
       if (options.ioToken) {
-        this._ioToken = options.ioToken
+        this.__ioToken = options.ioToken
       }
     }
 
@@ -28,46 +28,46 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
 
       await super.start()
 
-      if (!this._ioToken) {
+      if (!this.__ioToken) {
         return
       }
 
       /**
        * Clean the memory leak-ed io (?)
        */
-      if (this._io) {
+      if (this.__io) {
         log.error('WechatyIoMixin', 'start() found existing io instance: stopping...')
         try {
-          await this._io.stop()
+          await this.__io.stop()
         } catch (e) {
           this.emitError(e)
         }
         log.error('WechatyIoMixin', 'start() found existing io instance: stopping... done')
-        this._io = undefined
+        this.__io = undefined
       }
 
       /**
        * Initialize IO instance
        */
-      this._io = new Io({
-        token   : this._ioToken,
+      this.__io = new Io({
+        token   : this.__ioToken,
         wechaty : this as any,  // <- FIXME: remove any, Huan(202111)
       })
 
       log.verbose('WechatyIoMixin', 'start() starting io ...')
-      await this._io.start()
+      await this.__io.start()
       log.verbose('WechatyIoMixin', 'start() starting io ... done')
     }
 
     override async stop (): Promise<void> {
       log.verbose('WechatyIoMixin', 'stop()')
 
-      if (!this._io) {
+      if (!this.__io) {
         return
       }
 
-      const io = this._io
-      this._io = undefined
+      const io = this.__io
+      this.__io = undefined
 
       try {
         log.verbose('WechatyIoMixin', 'stop() starting io ...')
@@ -88,8 +88,8 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
 type IoMixin = ReturnType<typeof ioMixin>
 
 type ProtectedPropertyIoMixin =
-  | '_io'
-  | '_ioToken'
+  | '__io'
+  | '__ioToken'
 
 export type {
   IoMixin,

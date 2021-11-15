@@ -211,8 +211,8 @@ test('use plugin', async t => {
 test('wechatifyUserModules()', async t => {
   const wechatyTest = new WechatyTest()
 
-  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 1st time init')
-  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
+  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 1st time init')
+  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
 })
 
 // TODO: add test for event args

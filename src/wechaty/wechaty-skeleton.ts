@@ -25,9 +25,9 @@ import type { Loggable }  from 'brolog'
 import {
   WechatyEventEmitter,
   WechatyEventName,
-}                               from '../events/wechaty-events.js'
+}                               from '../schema/mod.js'
 
-import type { WechatyOptions }  from './schema.js'
+import type { WechatyOptions }  from '../schema/wechaty-options.js'
 
 abstract class WechatySkeleton extends WechatyEventEmitter {
 
@@ -103,7 +103,6 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
 type WechatySkeletonProtectedProperty =
   | '_memory'
   | '_options'
-  | 'log'
   | 'memory'
 
 export type {

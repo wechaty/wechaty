@@ -54,6 +54,7 @@ export * as impl        from './impl.js'
 export {
   ScanStatus,
 }                       from 'wechaty-puppet/type'
+
 export {
   log,
   config,
@@ -62,20 +63,19 @@ export {
 }                         from '../config.js'
 
 export type {
+  PuppetModuleName,
+}                             from '../puppet-management/mod.js'
+export type {
+  WechatyEventName,
+}                             from '../schema/mod.js'
+
+export type {
   WechatyPlugin,
   WechatyPluginUninstaller,
 }                             from '../plugin.js'
-
-export type {
-  PuppetModuleName,
-}                             from '../puppet-management/puppet-config.js'
-
 export type {
   IoClientOptions,
-}                         from '../io-client.js'
+}                             from '../io-client.js'
 export {
   IoClient,
-}                         from '../io-client.js'
-export type {
-  WechatyEventName,
-}                             from '../events/wechaty-events.js'
+}                             from '../io-client.js'

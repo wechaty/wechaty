@@ -44,6 +44,7 @@ test('Wechaty interface', async t => {
     UrlLink        : UrlLinkConstructor
 
     id     : WechatyInterface['id']
+    log    : WechatyInterface['log']
     puppet : WechatyInterface['puppet']
     state  : WechatyInterface['state']
 
@@ -56,6 +57,7 @@ test('Wechaty interface', async t => {
         = this.Friendship
         = this.Image
         = this.Location
+        = this.log
         = this.Message
         = this.MiniProgram
         = this.puppet
@@ -67,6 +69,7 @@ test('Wechaty interface', async t => {
         = {} as any
     }
 
+    abstract authQrCode          : WechatyInterface['authQrCode']
     abstract currentUser         : WechatyInterface['currentUser']
     abstract ding                : WechatyInterface['ding']
     abstract emitError           : WechatyInterface['emitError']

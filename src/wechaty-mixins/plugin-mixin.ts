@@ -17,6 +17,7 @@ import {
   WechatyImpl,
   WechatySkeleton,
 }                       from '../wechaty/mod.js'
+
 import type { GErrorMixin } from './gerror-mixin.js'
 
 const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinBase: MixinBase) => {
@@ -24,8 +25,8 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
 
   abstract class PluginMixin extends mixinBase {
 
-    static _globalPluginList: WechatyPlugin[] = []
-    _pluginUninstallerList: WechatyPluginUninstaller[]
+    static __globalPluginList: WechatyPlugin[] = []
+    __pluginUninstallerList: WechatyPluginUninstaller[]
 
     /**
      * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
@@ -50,7 +51,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
       ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
     ): WechatyConstructor {
       const pluginList = plugins.flat()
-      this._globalPluginList = this._globalPluginList.concat(pluginList)
+      this.__globalPluginList = this.__globalPluginList.concat(pluginList)
       // Huan(202110): TODO: remove any
       return this as any
     }
@@ -58,8 +59,8 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
     constructor (...args: any[]) {
       super(...args)
 
-      this._pluginUninstallerList = []
-      this._installGlobalPlugin()
+      this.__pluginUninstallerList = []
+      this.__installGlobalPlugin()
     }
 
     /**
@@ -76,20 +77,20 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
         .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
         .filter(isWechatyPluginUninstaller)
 
-      this._pluginUninstallerList.push(
+      this.__pluginUninstallerList.push(
         ...uninstallerList,
       )
       // Huan(202110): TODO: remove any
       return this as any
     }
 
-    _installGlobalPlugin () {
+    __installGlobalPlugin () {
       const uninstallerList = instanceToClass(this, WechatyImpl)
-        ._globalPluginList
+        .__globalPluginList
         .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
         .filter(isWechatyPluginUninstaller)
 
-      this._pluginUninstallerList.push(
+      this.__pluginUninstallerList.push(
         ...uninstallerList,
       )
     }
@@ -128,8 +129,8 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
 type PluginMixin = ReturnType<typeof pluginMixin>
 
 type ProtectedPropertyPluginMixin =
-  | '_installGlobalPlugin'
-  | '_pluginUninstallerList'
+  | '__installGlobalPlugin'
+  | '__pluginUninstallerList'
 
 export type {
   PluginMixin,
