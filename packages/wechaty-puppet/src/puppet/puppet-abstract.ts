@@ -52,8 +52,8 @@ import { PuppetSkeleton } from './puppet-skeleton.js'
 const PipedBase = FP.pipe(
   PuppetSkeleton,
   memoryMixin,
-  cacheMixin,
   loginMixin,
+  cacheMixin,
   contactMixin,
   roomMemberMixin,
   roomMixin,

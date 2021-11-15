@@ -232,7 +232,7 @@ const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(bas
     ): Promise<void> {
       log.verbose('PuppetMessageMixin', 'messagePayloadDirty(%s)', id)
 
-      await this._dirtyPayloadAwait(
+      await this.__dirtyPayloadAwait(
         PayloadType.Message,
         id,
       )

@@ -131,7 +131,7 @@ const friendshipMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(m
     ): Promise<void> {
       log.verbose('PuppetFriendshipMixin', 'friendshipPayloadDirty(%s)', id)
 
-      await this._dirtyPayloadAwait(
+      await this.__dirtyPayloadAwait(
         PayloadType.Friendship,
         id,
       )

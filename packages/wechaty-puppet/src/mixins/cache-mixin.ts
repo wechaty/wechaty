@@ -28,7 +28,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
 
     cache: CacheAgent
 
-    _cacheMixinCleanCallbackList: Function[]
+    __cacheMixinCleanCallbackList: (() => void)[]
 
     constructor (...args: any[]) {
       super(...args)
@@ -40,7 +40,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
 
       const options: PuppetOptions = args[0] || {}
 
-      this._cacheMixinCleanCallbackList = []
+      this.__cacheMixinCleanCallbackList = []
       this.cache = new CacheAgent(options.cache)
     }
 
@@ -58,19 +58,15 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
         this.off('dirty', onDirty)
         log.verbose('PuppetCacheMixin', 'start() "dirty" event listener removed')
       }
-      this._cacheMixinCleanCallbackList.push(cleanFn)
+      this.__cacheMixinCleanCallbackList.push(cleanFn)
     }
 
     override async stop (): Promise<void> {
       log.verbose('PuppetCacheMixin', 'stop()')
       this.cache.stop()
 
-      while (this._cacheMixinCleanCallbackList.length) {
-        const fn = this._cacheMixinCleanCallbackList.shift()
-        if (fn) {
-          fn()
-        }
-      }
+      this.__cacheMixinCleanCallbackList.map(setImmediate)
+      this.__cacheMixinCleanCallbackList.length = 0
 
       await super.stop()
     }
@@ -127,14 +123,14 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
      * When we are using PuppetService, the `dirty` event will be emitted from the server,
      *  and we need to wait for the `dirty` event so we can make sure the cache has been invalidated.
      */
-    async _dirtyPayloadAwait (
+    async __dirtyPayloadAwait (
       type : PayloadType,
       id   : string,
     ): Promise<void> {
-      log.verbose('PuppetCacheMixin', 'dirtyPayloadAwait(%s<%s>, %s)', PayloadType[type], type, id)
+      log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait(%s<%s>, %s)', PayloadType[type], type, id)
 
       if (!this._currentUserId) {
-        log.warn('PuppetCacheMixin', 'dirtyPayloadAwait() can not dirty any payload when the puppet is not logged in:\n%s', new Error().stack)
+        log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait() will not dirty any payload when the puppet is not logged in')
         return
       }
 
@@ -173,7 +169,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
         // timeout, log warning & ignore it
         log.warn('PuppetCacheMixin',
           [
-            'dirtyPayloadAwait() timeout.',
+            '__dirtyPayloadAwait() timeout.',
             'The `dirty` event should be received but no one found.',
             'Learn more from https://github.com/wechaty/puppet/issues/158',
             'payloadType: %s(%s)',
@@ -207,8 +203,8 @@ type CacheMixin = ReturnType<typeof cacheMixin>
 type ProtectedPropertyCacheMixin =
   | 'cache'
   | 'onDirty'
-  | '_cacheMixinCleanCallbackList'
-  | '_dirtyPayloadAwait'
+  | '__cacheMixinCleanCallbackList'
+  | '__dirtyPayloadAwait'
 
 export type {
   CacheMixin,
