@@ -1,3 +1,5 @@
+import { timeoutPromise } from 'gerror'
+
 import { log }  from '../config.js'
 
 import type {
@@ -9,7 +11,8 @@ import { PayloadType }          from '../schemas/mod.js'
 import { CacheAgent }           from '../agents/mod.js'
 
 import type { PuppetSkeleton }   from '../puppet/mod.js'
-import { timeoutPromise } from 'gerror'
+
+import type { LoginMixin } from './login-mixin.js'
 
 /**
  *
@@ -19,7 +22,7 @@ import { timeoutPromise } from 'gerror'
  *    @see https://github.com/wechaty/puppet/issues/158
  *
  */
-const cacheMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
+const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinBase: MixinBase) => {
 
   abstract class CacheMixin extends mixinBase {
 
@@ -129,6 +132,11 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
       id   : string,
     ): Promise<void> {
       log.verbose('PuppetCacheMixin', 'dirtyPayloadAwait(%s<%s>, %s)', PayloadType[type], type, id)
+
+      if (!this._currentUserId) {
+        log.warn('PuppetCacheMixin', 'dirtyPayloadAwait() can not dirty any payload when the puppet is not logged in:\n%s', new Error().stack)
+        return
+      }
 
       const isCurrentDirtyEvent = (event: EventDirtyPayload) =>
         event.payloadId === id && event.payloadType === type
