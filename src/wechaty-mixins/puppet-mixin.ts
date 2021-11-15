@@ -131,14 +131,14 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
     }
 
     async __initPuppetInstance (): Promise<void> {
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() %s', this.__options.puppet || '')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() %s', this.__options.puppet || '')
 
       if (this.__puppet) {
-        log.verbose('WechatyPuppetMixin', '_initPuppetInstance() initialized already: skip')
+        log.verbose('WechatyPuppetMixin', '__initPuppetInstance() initialized already: skip')
         return
       }
 
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() instanciating puppet instance ...')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ...')
       const puppet       = this.__options.puppet || config.systemPuppetName()
       const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
@@ -147,20 +147,20 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
         puppetOptions : this.__options.puppetOptions,
         // wechaty       : this,
       })
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() instanciating puppet instance ... done')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ... done')
 
       /**
        * Plug the Memory Card to Puppet
        */
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting memory ...')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting memory ...')
       puppetInstance.setMemory(puppetMemory)
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting memory ... done')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting memory ... done')
 
       this.__puppet = puppetInstance
 
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting up events ...')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting up events ...')
       this.__setupPuppetEvents(puppetInstance)
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() setting up events ... done')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting up events ... done')
       // this._wechatifyUserModules()
 
       /**
@@ -168,18 +168,18 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
         *   - Huan(202005): emit puppet when set
         *   - Huan(202110): @see https://github.com/wechaty/redux/blob/16af0ae01f72e37f0ee286b49fa5ccf69850323d/src/wechaty-redux.ts#L82-L98
         */
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() emitting "puppet" event ...')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() emitting "puppet" event ...')
       ;(this.emit as any)('puppet', puppetInstance)
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() emitting "puppet" event ... done')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() emitting "puppet" event ... done')
     }
 
     __setupPuppetEvents (puppet: PUPPET.impl.PuppetInterface): void {
-      log.verbose('WechatyPuppetMixin', '_setupPuppetEvents(%s)', puppet)
+      log.verbose('WechatyPuppetMixin', '__setupPuppetEvents(%s)', puppet)
 
       const eventNameList: PUPPET.type.PuppetEventName[] = Object.keys(PUPPET.type.PUPPET_EVENT_DICT) as PUPPET.type.PuppetEventName[]
       for (const eventName of eventNameList) {
         log.verbose('PuppetMixin',
-          '_setupPuppetEvents() puppet.on(%s) (listenerCount:%s) registering...',
+          '__setupPuppetEvents() puppet.on(%s) (listenerCount:%s) registering...',
           eventName,
           puppet.listenerCount(eventName),
         )
@@ -243,7 +243,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
                   this.emit('logout', contact, payload.data)
                 } else {
                   log.verbose('PuppetMixin',
-                    '_setupPuppetEvents() logout event contact self not found for id: %s',
+                    '__setupPuppetEvents() logout event contact self not found for id: %s',
                     payload.contactId,
                   )
                 }
@@ -280,7 +280,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
 
           case 'ready':
             puppet.on('ready', () => {
-              log.silly('WechatyPuppetMixin', '_setupPuppetEvents() puppet.on(ready)')
+              log.silly('WechatyPuppetMixin', '__setupPuppetEvents() puppet.on(ready)')
 
               this.emit('ready')
               this.__readyState.active(true)
@@ -439,7 +439,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
         }
       }
 
-      log.verbose('WechatyPuppetMixin', '_setupPuppetEvents() ... done')
+      log.verbose('WechatyPuppetMixin', '__setupPuppetEvents() ... done')
     }
 
   }
