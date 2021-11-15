@@ -1,20 +1,27 @@
-import { log }              from 'wechaty-puppet'
 import * as PUPPET      from 'wechaty-puppet'
-import { GError } from 'gerror'
+import { log }          from 'wechaty-puppet'
+import {
+  GError,
+  timeoutPromise,
+  TimeoutPromiseGError,
+}                       from 'gerror'
 
-import { StateSwitch } from 'state-switch'
-import type { StateSwitchInterface } from 'state-switch'
-
-import { timestampToDate } from '../pure-functions/timestamp-to-date.js'
-import type { ContactInterface } from '../user-modules/contact.js'
+import { StateSwitch }  from 'state-switch'
 import type {
-  WechatifyUserModuleMixin,
-}                             from './wechatify-user-module-mixin.js'
+  StateSwitchInterface,
+}                       from 'state-switch'
+
+import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'
+import type { ContactInterface }  from '../user-modules/contact.js'
 import {
   PuppetManager,
-}                       from '../puppet-management/mod.js'
+}                                 from '../puppet-management/mod.js'
 
-import { config } from '../config.js'
+import type {
+  WechatifyUserModuleMixin,
+}                                 from './wechatify-user-module-mixin.js'
+
+import { config }           from '../config.js'
 import type { GErrorMixin } from './gerror-mixin.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
@@ -62,9 +69,32 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
         await this.__initPuppetInstance()
         log.verbose('WechatyPuppetMixin', 'start() initializing puppet instance ... done')
 
-        log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
-        await this.puppet.start()
-        log.verbose('WechatyPuppetMixin', 'start() starting puppet ... done')
+        try {
+          log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
+          await timeoutPromise(
+            this.puppet.start(),
+            15 * 1000,  // 15 seconds timeout
+            () => GError.from('TIMEOUT'),
+          )
+          log.verbose('WechatyPuppetMixin', 'start() starting puppet ... done')
+        } catch (e) {
+          if (e instanceof TimeoutPromiseGError) {
+            /**
+             * Huan(202111):
+             *
+             *  We should throw the Timeout error when the puppet.start() can not be finished in time.
+             *  However, we need to compatible with some buggy puppet implementations which will not resolve the promise.
+             *
+             * TODO: throw the Timeout error when the puppet.start() can not be finished in time.
+             *
+             * e.g. after resolve @issue https://github.com/padlocal/wechaty-puppet-padlocal/issues/116
+             */
+            log.warn('WechatyPuppetMixin', 'start() starting puppet ... timeout')
+            log.warn('WechatyPuppetMixin', 'start() puppet info: %s', this.puppet)
+          } else {
+            throw e
+          }
+        }
 
       } catch (e) {
         this.emitError(e)
@@ -76,16 +106,22 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
 
       try {
         log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ...')
-        await this.puppet.stop()
+        await timeoutPromise(
+          this.puppet.stop(),
+          15 * 1000,  // 15 seconds timeout
+        )
         log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ... done')
-
       } catch (e) {
+        if (e instanceof TimeoutPromiseGError) {
+          log.warn('WechatyPuppetMixin', 'stop() stopping puppet ... timeout')
+          log.warn('WechatyPuppetMixin', 'stop() puppet info: %s', this.puppet)
+        }
         this.emitError(e)
       }
 
-      log.verbose('WechatyPuppetMixin', 'start() super.stop() ...')
+      log.verbose('WechatyPuppetMixin', 'stop() super.stop() ...')
       await super.stop()
-      log.verbose('WechatyPuppetMixin', 'start() super.stop() ... done')
+      log.verbose('WechatyPuppetMixin', 'stop() super.stop() ... done')
     }
 
     async ready (): Promise<void> {
