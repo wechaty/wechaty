@@ -131,7 +131,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
     }
 
     async __initPuppetInstance (): Promise<void> {
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() %s', this._options.puppet || '')
+      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() %s', this.__options.puppet || '')
 
       if (this.__puppet) {
         log.verbose('WechatyPuppetMixin', '_initPuppetInstance() initialized already: skip')
@@ -139,12 +139,12 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
       }
 
       log.verbose('WechatyPuppetMixin', '_initPuppetInstance() instanciating puppet instance ...')
-      const puppet       = this._options.puppet || config.systemPuppetName()
+      const puppet       = this.__options.puppet || config.systemPuppetName()
       const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
       const puppetInstance = await PuppetManager.resolve({
         puppet,
-        puppetOptions : this._options.puppetOptions,
+        puppetOptions : this.__options.puppetOptions,
         // wechaty       : this,
       })
       log.verbose('WechatyPuppetMixin', '_initPuppetInstance() instanciating puppet instance ... done')

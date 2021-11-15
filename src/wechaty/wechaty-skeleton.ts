@@ -40,22 +40,22 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
    */
   readonly id: string
 
-  _memory?: MemoryCard
+  __memory?: MemoryCard
   get memory (): MemoryCard {
-    if (!this._memory) {
+    if (!this.__memory) {
       throw new Error('NOMEMORY')
     }
-    return this._memory
+    return this.__memory
   }
 
-  _options: WechatyOptions
+  __options: WechatyOptions
 
   constructor (...args: any[]) {
     log.verbose('WechatySkeleton', 'constructor()')
     super()
 
     this.id = UUID.v4()
-    this._options = args[0] || {} as WechatyOptions
+    this.__options = args[0] || {} as WechatyOptions
 
     /**
      * Huan(202008):
@@ -73,10 +73,10 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     log.verbose('WechatySkeleton', 'start()')
     // no super.start()
 
-    if (!this._memory) {
-      this._memory = new MemoryCard(this._options.name)
+    if (!this.__memory) {
+      this.__memory = new MemoryCard(this.__options.name)
       try {
-        await this._memory.load()
+        await this.__memory.load()
       } catch (_) {
         log.silly('WechatySkeleton', 'onStart() memory.load() had already loaded')
       }
@@ -101,8 +101,8 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
 }
 
 type WechatySkeletonProtectedProperty =
-  | '_memory'
-  | '_options'
+  | '__memory'
+  | '__options'
   | 'memory'
 
 export type {

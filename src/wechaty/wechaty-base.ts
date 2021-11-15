@@ -168,7 +168,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     super()
     log.verbose('Wechaty', 'constructor()')
 
-    this._memory = this._options.memory
+    this.__memory = this._options.memory
 
     this._cleanCallbackList = []
 

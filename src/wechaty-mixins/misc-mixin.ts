@@ -19,15 +19,15 @@ const miscMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GErr
      * @ignore
      */
     override toString () {
-      if (Object.keys(this._options).length <= 0) {
+      if (Object.keys(this.__options).length <= 0) {
         return this.constructor.name
       }
 
       return [
         'Wechaty#',
         this.id,
-        `<${(this._options.puppet) || ''}>`,
-        `(${(this._memory && this._memory.name) || ''})`,
+        `<${(this.__options.puppet) || ''}>`,
+        `(${(this.__memory && this.__memory.name) || ''})`,
       ].join('')
     }
 
@@ -36,7 +36,7 @@ const miscMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GErr
      * default: `wechaty`
      */
     name () {
-      return this._options.name || 'wechaty'
+      return this.__options.name || 'wechaty'
     }
 
     /**
