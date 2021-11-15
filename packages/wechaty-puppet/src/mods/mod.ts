@@ -39,8 +39,15 @@ export {
   VERSION,
 }
 
-export * as filter  from './filter.js'
+/**
+ * Huan(202111) We should not re-export other NPM modules
+ *  because this will cause problems by adding more couple between them.
+ *
+ * TODO: remove it (helper) after Dec 31, 2021
+ */
 export * as helper  from './helper.js'
+
+export * as filter  from './filter.js'
 export * as impl    from './impl.js'
 export * as payload from './payload.js'
 export * as type    from './type.js'
