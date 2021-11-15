@@ -35,7 +35,7 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
 
     async roomMemberSearch (
       roomId : string,
-      query  : (YOU | string) | RoomMemberQueryFilter,
+      query  : (symbol | string) | RoomMemberQueryFilter,
     ): Promise<string[]> {
       log.verbose('PuppetRoomMemberMixin', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
 
@@ -49,8 +49,19 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
       /**
         * 0. for YOU: 'You', '你' in sys message
         */
-      if (query === YOU) {
-        return [this.id]
+      if (typeof query === 'symbol') {
+        if (query === YOU) {
+          return [this.id]
+        }
+        /**
+         * Huan(202111): We use `symbol` instead of `uniq symbol` in the method argument
+         *  so that the interface code can be compatible with different npm modules.
+         *
+         * i.e. in Wechaty docker, sometimes there will be `/wechaty/node_modules/wechaty-puppet`
+         *  and the `/bot/node_modules/wechaty-puppet` two different npm modules installed together,
+         *  and cause conflict if we use `uniq symbol` to check the symbol type.
+         */
+        throw new Error('unknown symbol found: ' + String(query))
       }
 
       /**
