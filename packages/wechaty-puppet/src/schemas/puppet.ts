@@ -10,9 +10,8 @@
  *  `YOU` is only for the wechaty-puppet-XXX internal usage only.
  *  because it might be transported via the GRPC interface,
  *  which can not serialize the `YOU` Symbol correctly.
- *
  */
-export const YOU = Symbol('You')
+export const YOU = Symbol.for('YOU@wechaty-puppet')
 
 /** @hidden */
 export const CHAT_EVENT_DICT = {
