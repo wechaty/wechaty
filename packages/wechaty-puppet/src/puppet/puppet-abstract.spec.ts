@@ -465,14 +465,14 @@ test('version()', async t => {
 
 test('PuppetSkeleton: super.start()', async t => {
   const puppet = new PuppetTest()
-  t.notOk(puppet._flagSkeletonStartCalled, 'should init start flag with false')
-  t.notOk(puppet._flagSkeletonStopCalled, 'should init stop flag with false')
+  t.notOk(puppet.__flagSkeletonStartCalled, 'should init start flag with false')
+  t.notOk(puppet.__flagSkeletonStopCalled, 'should init stop flag with false')
 
   await puppet.start()
-  t.ok(puppet._flagSkeletonStartCalled, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
-  t.notOk(puppet._flagSkeletonStopCalled, 'should keep stop flag with false')
+  t.ok(puppet.__flagSkeletonStartCalled, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
+  t.notOk(puppet.__flagSkeletonStopCalled, 'should keep stop flag with false')
 
   await puppet.stop()
-  t.ok(puppet._flagSkeletonStartCalled, 'should keep start flag with true')
-  t.ok(puppet._flagSkeletonStopCalled, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
+  t.ok(puppet.__flagSkeletonStartCalled, 'should keep start flag with true')
+  t.ok(puppet.__flagSkeletonStopCalled, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
 })

@@ -56,8 +56,8 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
    */
   readonly id: string
 
-  _flagSkeletonStartCalled : boolean
-  _flagSkeletonStopCalled  : boolean
+  __flagSkeletonStartCalled : boolean
+  __flagSkeletonStopCalled  : boolean
 
   readonly options: PuppetOptions
 
@@ -89,8 +89,14 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
     this.id       = UUID.v4()
     this.options  = args[0] || {}
 
-    this._flagSkeletonStartCalled = false
-    this._flagSkeletonStopCalled  = false
+    this.__flagSkeletonStartCalled = false
+    this.__flagSkeletonStopCalled  = false
+
+    /**
+     * We will use RxJS & Redux to handle the state of the puppet
+     *  which means there will be lots of listeners will be registered later.
+     */
+    this.setMaxListeners(1024)
   }
 
   /**
@@ -102,12 +108,12 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
    */
   async start (): Promise<void> {
     log.verbose('PuppetSkeleton', 'start()')
-    this._flagSkeletonStartCalled = true
+    this.__flagSkeletonStartCalled = true
   }
 
   async stop (): Promise<void> {
     log.verbose('PuppetSkeleton', 'stop()')
-    this._flagSkeletonStopCalled  = true
+    this.__flagSkeletonStopCalled  = true
   }
 
   /**
@@ -142,8 +148,8 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
 }
 
 type PuppetSkeletonProtectedProperty =
-  | '_flagSkeletonStartCalled'
-  | '_flagSkeletonStopCalled'
+  | '__flagSkeletonStartCalled'
+  | '__flagSkeletonStopCalled'
 
 export type {
   PuppetSkeletonProtectedProperty,

@@ -7,7 +7,7 @@ import {
 import type {
   ServiceMixin,
   ProtectedPropertyServiceMixin,
-}                                         from './service-mixin.js'
+}                                 from './service-mixin.js'
 
 test('ProtectedPropertyServiceMixin', async t => {
   type NotExistInMixin = Exclude<ProtectedPropertyServiceMixin, keyof InstanceType<ServiceMixin>>

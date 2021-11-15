@@ -17,27 +17,27 @@ const serviceMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinB
 
   abstract class ServiceMixin extends serviceBase {
 
-    readonly _counter  : number
-    readonly _watchdog : WatchdogAgent
+    readonly __counter  : number
+    readonly __watchdog : WatchdogAgent
 
     constructor (...args: any[]) {
       super(...args)
 
-      this._counter = PUPPET_COUNTER++
-      log.verbose('PuppetServiceMixin', 'constructor() #%s', this._counter)
+      this.__counter = PUPPET_COUNTER++
+      log.verbose('PuppetServiceMixin', 'constructor() #%s', this.__counter)
 
-      this._watchdog = new WatchdogAgent(this)
+      this.__watchdog = new WatchdogAgent(this)
     }
 
     override async start (): Promise<void> {
       log.verbose('PuppetServiceMixin', 'start()')
       await super.start()
-      this._watchdog.start()
+      this.__watchdog.start()
     }
 
     override async stop (): Promise<void> {
       log.verbose('PuppetServiceMixin', 'stop()')
-      this._watchdog.stop()
+      this.__watchdog.stop()
       await super.stop()
     }
 
@@ -49,10 +49,10 @@ const serviceMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinB
 type ServiceMixin = ReturnType<typeof serviceMixin>
 
 type ProtectedPropertyServiceMixin =
-  | '_counter'
-  | '_watchdog'
-  | '_serviceCtlResettingIndicator'
-  | '_serviceCtlLogger'
+  | '__counter'
+  | '__watchdog'
+  | '__serviceCtlResettingIndicator'
+  | '__serviceCtlLogger'
 
 export type {
   ProtectedPropertyServiceMixin,
