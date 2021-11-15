@@ -81,12 +81,9 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
     override async stop (): Promise<void> {
       log.verbose('WechatyLoginMixin', 'stop()')
 
-      while (this.__loginMixinCleanCallbackList.length) {
-        const callback = this.__loginMixinCleanCallbackList.shift()
-        if (callback) {
-          setImmediate(callback)  // put callback to then end of event queue in case of it has not been called yet.
-        }
-      }
+      // put callback to then end of event queue in case of it has not been called yet.
+      this.__loginMixinCleanCallbackList.map(setImmediate)
+      this.__loginMixinCleanCallbackList.length = 0
 
       await super.stop()
     }

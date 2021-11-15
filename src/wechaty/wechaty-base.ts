@@ -202,10 +202,9 @@ class WechatyBase extends mixinBase implements SayableSayer {
       this.version(),
     )
 
-    while (this._cleanCallbackList.length > 0) {
-      const cleaner = this._cleanCallbackList.pop()
-      if (cleaner) setImmediate(cleaner)  // put to the end of the event loop in case of it need to be executed while stopping
-    }
+    // put to the end of the event loop in case of it need to be executed while stopping
+    this._cleanCallbackList.map(setImmediate)
+    this._cleanCallbackList.length = 0
 
     this.emit('stop')
     log.verbose('Wechaty', 'onStop() ... done')
