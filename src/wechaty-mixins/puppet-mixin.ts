@@ -352,8 +352,8 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin> (
 
                 // issue #254
                 if (payload.removeeIdList.includes(puppet.currentUserId)) {
-                  await puppet.dirtyPayload(PUPPET.type.Payload.Room, payload.roomId)
-                  await puppet.dirtyPayload(PUPPET.type.Payload.RoomMember, payload.roomId)
+                  await puppet.roomPayloadDirty(payload.roomId)
+                  await puppet.roomMemberPayloadDirty(payload.roomId)
                 }
               } catch (e) {
                 this.emit('error', GError.from(e))
