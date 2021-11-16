@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "1.7.19",
+  "version": "1.7.20",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
