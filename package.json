@@ -117,7 +117,7 @@
     "open-graph": "^0.2.6",
     "state-switch": "~1.6.1",
     "uuid": "^8.3.2",
-    "wechaty-puppet": "~1.7.16",
+    "wechaty-puppet": "~1.7.17",
     "wechaty-puppet-service": "~1.7.3",
     "ws": "^8.2.3"
   },
