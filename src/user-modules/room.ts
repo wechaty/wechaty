@@ -309,7 +309,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   async ready (
     forceSync = false,
   ): Promise<void> {
-    log.verbose('Room', 'ready()')
+    log.silly('Room', 'ready()')
 
     if (!forceSync && this.isReady()) {
       return
