@@ -268,7 +268,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     sayable: Sayable,
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', sayable)
-    await this.currentUser().say(sayable)
+    await this.currentUser.say(sayable)
   }
 
 }
