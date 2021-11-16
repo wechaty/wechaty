@@ -14,7 +14,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     __currentUserId?: string
 
     get currentUserId (): string {
-      log.verbose('PuppetLoginMixin', 'get currentUserId()')
+      log.silly('PuppetLoginMixin', 'get currentUserId()')
 
       if (!this.__currentUserId) {
         throw new Error('not logged in, no this.__currentUserId yet.')
