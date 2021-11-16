@@ -112,6 +112,7 @@
     "dotenv": "^10.0.0",
     "fp-ts": "^2.11.5",
     "gerror": "^1.0.9",
+    "ix": "^4.5.2",
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
     "state-switch": "~1.6.1",

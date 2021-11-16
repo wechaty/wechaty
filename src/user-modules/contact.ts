@@ -50,6 +50,8 @@ import type {
 }                   from './message.js'
 import type { TagInterface }     from './tag.js'
 
+import { concurrencyTaskExecuter } from '../ix-concurrency-executer.js'
+
 const MixinBase = wechatifyMixin(
   poolifyMixin(
     ContactEventEmitter,
@@ -96,40 +98,43 @@ class ContactMixin extends MixinBase implements SayableSayer {
   ): Promise<undefined | ContactInterface> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
+    if (typeof query === 'object' && query.id) {
+      const contact = (this.wechaty.Contact as any as typeof ContactImpl).load(query.id)
+      try {
+        await contact.ready()
+      } catch (e) {
+        this.wechaty.emitError(e)
+        return undefined
+      }
+
+      return contact
+    }
+
     const contactList = await this.findAll(query)
 
-    // if (!contactList) {
-    //   return null
-    // }
     if (contactList.length <= 0) {
       return
     }
 
     if (contactList.length > 1) {
-      log.warn('Contact', 'find() got more than one(%d) result', contactList.length)
+      log.warn('Contact', 'find() got more than 1 result: %d total', contactList.length)
     }
 
-    let n = 0
-    for (n = 0; n < contactList.length; n++) {
-      const contact = contactList[n]!
+    for (const [idx, contact] of contactList.entries()) {
       // use puppet.contactValidate() to confirm double confirm that this contactId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
       const valid = await this.wechaty.puppet.contactValidate(contact.id)
       if (valid) {
-        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is valid result, return it.',
-          n,
-          contact.id,
-        )
+        log.silly('Contact', 'find() contact<id=%s> is valid, return it', idx, contact.id)
         return contact
       } else {
-        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is INVALID result, try next',
-          n,
-          contact.id,
-        )
+        log.silly('Contact', 'find() contact<id=%s> is invalid, skip it', idx, contact.id)
       }
+
     }
-    log.warn('Contact', 'find() got %d contacts but no one is valid.', contactList.length)
+
+    log.warn('Contact', 'find() all of %d contacts are invalid', contactList.length)
     return undefined
   }
 
@@ -159,38 +164,24 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
     try {
       const contactIdList: string[] = await this.wechaty.puppet.contactSearch(query)
-      const contactList = contactIdList.map(id => this.load(id))
 
-      const BATCH_SIZE = 16
-      let   batchIndex = 0
+      const idToContact = async (id: string) => this.wechaty.Contact.find({ id }).catch(e => this.wechaty.emitError(e))
 
-      const invalidDict: { [id: string]: true } = {}
+      /**
+       * we need to use concurrencyTaskExecuter to reduce the parallel number of the requests
+       */
+      const CONCURRENCY = 17
+      const contactIterator = concurrencyTaskExecuter(CONCURRENCY)(idToContact)(contactIdList)
 
-      while (batchIndex * BATCH_SIZE < contactList.length) {
-        const batchContactList = contactList.slice(
-          BATCH_SIZE * batchIndex,
-          BATCH_SIZE * (batchIndex + 1),
-        )
+      const contactList: ContactInterface[] = []
 
-        /**
-         * Huan(202110): use an iterator with works to control the concurrency of Promise.all.
-         *  @see https://stackoverflow.com/a/51020535/1123955
-         */
-
-        await Promise.all(
-          batchContactList.map(
-            c => c.ready()
-              .catch(e => {
-                log.error('Contact', 'findAll() contact.ready() exception: %s', e.message)
-                invalidDict[c.id] = true
-              }),
-          ),
-        )
-
-        batchIndex++
+      for await (const contact of contactIterator) {
+        if (contact) {
+          contactList.push(contact)
+        }
       }
 
-      return contactList.filter(contact => !invalidDict[contact.id])
+      return contactList
 
     } catch (e) {
       this.wechaty.emitError(e)
@@ -407,7 +398,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
     try {
       await this.wechaty.puppet.contactAlias(this.id, newAlias)
-      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
       if (newAlias && newAlias !== this._payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
@@ -459,7 +450,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
     try {
       await this.wechaty.puppet.contactPhone(this.id, phoneList)
-      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
@@ -486,7 +477,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
     try {
       await this.wechaty.puppet.contactCorporationRemark(this.id, remark)
-      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
@@ -509,7 +500,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
     try {
       await this.wechaty.puppet.contactDescription(this.id, newDescription)
-      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Contact, this.id)
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
@@ -695,10 +686,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
     try {
       if (forceSync) {
-        await this.wechaty.puppet.dirtyPayload(
-          PUPPET.type.Payload.Contact,
-          this.id,
-        )
+        await this.wechaty.puppet.contactPayloadDirty(this.id)
       }
       this._payload = await this.wechaty.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
