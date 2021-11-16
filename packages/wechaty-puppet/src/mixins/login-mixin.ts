@@ -61,7 +61,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
      *
      * Note: must set `this.currentUserId = undefined` in this function.
      */
-    logout (reason = 'logout()'): void {
+    async logout (reason = 'logout()'): Promise<void> {
       log.verbose('PuppetLoginMixin', 'logout(%s)', reason)
 
       if (!this.logonoff()) {
@@ -78,7 +78,10 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
        * Huan(202111): We postpone the `this._currentUserId = undefined` to here,
        *  in case of the `logout` event listener need to check the `this.currentUserId`
        */
-      setImmediate(() => { this.__currentUserId = undefined })
+      await new Promise<void>(resolve => setImmediate(() => {
+        this.__currentUserId = undefined
+        resolve()
+      }))
     }
 
     /**
