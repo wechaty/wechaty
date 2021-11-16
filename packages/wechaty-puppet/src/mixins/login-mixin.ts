@@ -13,6 +13,9 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
      */
     __currentUserId?: string
 
+    /**
+     * The current logged in user id.
+     */
     get currentUserId (): string {
       log.silly('PuppetLoginMixin', 'get currentUserId()')
 
@@ -21,6 +24,13 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
       }
 
       return this.__currentUserId
+    }
+
+    /**
+     * Boolean value indicates whether the user is logged in or not.
+     */
+    get isLoggedIn (): boolean {
+      return !!this.__currentUserId
     }
 
     constructor (...args: any[]) {
@@ -96,11 +106,11 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     }
 
     logonoff (): boolean {
-      if (this.__currentUserId) {
-        return true
-      } else {
-        return false
-      }
+      log.warn('PuppetLoginMixin',
+        'logonoff() is deprecated, use `isLoggedIn` instead:\n%s',
+        new Error().stack,
+      )
+      return this.isLoggedIn
     }
 
   }
@@ -113,6 +123,7 @@ type LoginMixin = ReturnType<typeof loginMixin>
 type ProtectedPropertyLoginMixin =
   | 'login'
   | '__currentUserId'
+  | 'logonoff'
 
 export type {
   LoginMixin,
