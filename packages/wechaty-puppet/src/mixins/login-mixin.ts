@@ -105,6 +105,9 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
       return this.currentUserId
     }
 
+    /**
+     * @deprecated use isLoggedIn instead. will be removed after Dec 31, 2022
+     */
     logonoff (): boolean {
       log.warn('PuppetLoginMixin',
         'logonoff() is deprecated, use `isLoggedIn` instead:\n%s',
