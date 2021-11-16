@@ -35,7 +35,6 @@ import {
   Mocker,
   // ContactMock,
 }                     from './mock/mod.js'
-// import { UrlLink, MiniProgram } from 'wechaty'
 
 export type PuppetMockOptions = PUPPET.PuppetOptions & {
   mocker?: Mocker,

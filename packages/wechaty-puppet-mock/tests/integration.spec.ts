@@ -97,12 +97,13 @@ test('Contact.load() mocker.createContact()', async t => {
       id: FILE_HELPER_ID,
     })
 
-    const contact = await wechaty.Contact.load(FILE_HELPER_ID)
-
+    const contact = await wechaty.Contact.find({ id: FILE_HELPER_ID })
+    if (!contact) {
+      throw new Error('no contact')
+    }
     t.ok(contact, 'should load contact by id')
     t.equal(contact!.id, filehelper.id, 'should load contact with id the same as filehelper')
 
-    await contact.ready()
     t.same(contact.name(), filehelper.payload.name, 'should match the payload name between wechaty contact & mock contact')
   }
 })
@@ -118,12 +119,14 @@ test('Room.load() mocker.createRoom()', async t => {
 
     const starbucks = mocker.createRoom()
 
-    const room = await wechaty.Room.load(starbucks.id)
+    const room = await wechaty.Room.find({ id: starbucks.id })
+    if (!room) {
+      throw new Error('no room')
+    }
 
     t.ok(room, 'should load room by id')
     t.equal(room!.id, starbucks.id, 'should load room with id the same as starbucks')
 
-    await room.ready()
     t.same(await room.topic(), starbucks.payload.topic, 'should match the payload topic between wechaty room & mock room')
   }
 })

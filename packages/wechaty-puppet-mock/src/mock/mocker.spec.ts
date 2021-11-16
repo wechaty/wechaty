@@ -23,7 +23,7 @@ import type { ContactMock }        from './user/contact-mock.js'
 import { Mocker }             from './mocker.js'
 import { SimpleEnvironment }  from './environment.js'
 
-const sleep = () => new Promise(resolve => setImmediate(resolve))
+const sleep = () => new Promise(setImmediate)
 
 class MockerTest extends Mocker {
 }
@@ -55,18 +55,21 @@ test('Mocker restart without problem', async t => {
   const mocker = new MockerTest()
   mocker.use(SimpleEnvironment())
   const puppet = new PuppetMock({ mocker })
-  void puppet
 
   try {
     for (let i = 0; i < 3; i++) {
       await mocker.start()
-      await mocker.puppet.logout()
       await mocker.stop()
+
+      await puppet.logout()
+      await sleep()
+
       t.pass('start/stop-ed at #' + i)
     }
     t.pass('Mocker() start/restart succeed.')
   } catch (e) {
-    t.fail(e as any)
+    console.error(e)
+    t.fail('rejection')
   }
 })
 
@@ -232,7 +235,7 @@ test('Multiple Mockers with their MockContact(s)', async t => {
   const contact1 = mocker1.createContact({ id: ID })
   const contact2 = mocker2.createContact({ id: ID })
 
-  t.notEqual(contact1, contact2, 'should have separate MockContact classes')
+  t.not(contact1, contact2, 'should have separate MockContact classes')
   t.equal(contact1.id, contact2.id, 'should have the same id from different mocker instances')
 })
 

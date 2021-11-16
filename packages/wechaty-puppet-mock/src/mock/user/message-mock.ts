@@ -10,7 +10,6 @@ import type { Mocker }        from '../mocker.js'
 
 import type { RoomMock }         from './room-mock.js'
 import type { ContactMock } from './contact-mock.js'
-// import { UrlLink, MiniProgram } from 'wechaty'
 
 const POOL = Symbol('pool')
 // const ATTACHMENT = Symbol('attachment')

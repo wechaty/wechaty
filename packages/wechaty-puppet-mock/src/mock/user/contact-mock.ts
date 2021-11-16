@@ -14,7 +14,6 @@ import {
 import type { Mocker }    from '../mocker.js'
 
 import { RoomMock }    from './room-mock.js'
-// import { MiniProgram, UrlLink } from 'wechaty'
 import { generateSentence } from '../generator.js'
 
 import { ContactEventEmitter } from '../events/contact-events.js'
