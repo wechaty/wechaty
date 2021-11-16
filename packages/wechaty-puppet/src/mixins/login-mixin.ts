@@ -11,16 +11,16 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     /**
      * @internal used by public API `currentUserId`
      */
-    _currentUserId?: string
+    __currentUserId?: string
 
     get currentUserId (): string {
       log.verbose('PuppetLoginMixin', 'get currentUserId()')
 
-      if (!this._currentUserId) {
-        throw new Error('not logged in, no this.currentUserId yet.')
+      if (!this.__currentUserId) {
+        throw new Error('not logged in, no this.__currentUserId yet.')
       }
 
-      return this._currentUserId
+      return this.__currentUserId
     }
 
     constructor (...args: any[]) {
@@ -47,10 +47,10 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     login (userId: string): void {
       log.verbose('PuppetLoginMixin', 'login(%s)', userId)
 
-      if (this._currentUserId) {
+      if (this.__currentUserId) {
         throw new Error('must logout first before login again!')
       }
-      this._currentUserId = userId
+      this.__currentUserId = userId
 
       this.emit('login', { contactId: userId })
     }
@@ -78,7 +78,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
        * Huan(202111): We postpone the `this._currentUserId = undefined` to here,
        *  in case of the `logout` event listener need to check the `this.currentUserId`
        */
-      setImmediate(() => { this._currentUserId = undefined })
+      setImmediate(() => { this.__currentUserId = undefined })
     }
 
     /**
@@ -93,7 +93,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     }
 
     logonoff (): boolean {
-      if (this._currentUserId) {
+      if (this.__currentUserId) {
         return true
       } else {
         return false
@@ -109,7 +109,7 @@ type LoginMixin = ReturnType<typeof loginMixin>
 
 type ProtectedPropertyLoginMixin =
   | 'login'
-  | '_currentUserId'
+  | '__currentUserId'
 
 export type {
   LoginMixin,

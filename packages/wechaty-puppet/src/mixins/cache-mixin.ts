@@ -1,4 +1,6 @@
-import { timeoutPromise } from 'gerror'
+import {
+  timeoutPromise,
+}                           from 'gerror'
 
 import { log }  from '../config.js'
 
@@ -96,7 +98,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
 
     /**
      * OnDirty will be registered as a `dirty` event listener,
-     *  and it is in charge of invalidating the cache.
+     *  and it will invalidate the cache.
      */
     onDirty (
       {
@@ -106,7 +108,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
     ): void {
       log.verbose('PuppetCacheMixin', 'onDirty(%s<%s>, %s)', PayloadType[payloadType], payloadType, payloadId)
 
-      const dirtyMap = {
+      const dirtyFuncMap = {
         [PayloadType.Contact]:      (id: string) => this.cache.contact.delete(id),
         [PayloadType.Friendship]:   (id: string) => this.cache.friendship.delete(id),
         [PayloadType.Message]:      (id: string) => this.cache.message.delete(id),
@@ -115,7 +117,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
         [PayloadType.Unspecified]:  (id: string) => { throw new Error('Unspecified type with id: ' + id) },
       }
 
-      const dirtyFunc = dirtyMap[payloadType]
+      const dirtyFunc = dirtyFuncMap[payloadType]
       dirtyFunc(payloadId)
     }
 
@@ -129,7 +131,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
     ): Promise<void> {
       log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait(%s<%s>, %s)', PayloadType[type], type, id)
 
-      if (!this._currentUserId) {
+      if (!this.__currentUserId) {
         log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait() will not dirty any payload when the puppet is not logged in')
         return
       }

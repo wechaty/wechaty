@@ -132,7 +132,7 @@
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
-    "brolog": "^1.13.6",
+    "brolog": "^1.14.2",
     "clone-class": "^1.0.3",
     "file-box": "^1.3.2",
     "fp-ts": "^2.11.5",
