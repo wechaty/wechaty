@@ -23,6 +23,19 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       return this.__authQrCode
     }
 
+    /**
+     * The current user
+     *
+     * @returns {ContactSelfInterface}
+     * @example
+     * const contact = bot.currentUser
+     * console.log(`Bot is ${contact.name()}`)
+     */
+    get currentUser (): ContactSelfInterface {
+      return (this.ContactSelf as typeof ContactSelfImpl)
+        .load(this.puppet.currentUserId)
+    }
+
     __loginMixinCleanCallbackList: (() => void)[]
 
     constructor (...args: any[]) {
@@ -124,28 +137,14 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
     }
 
     /**
-     * Get current user
-     *
-     * @returns {ContactSelfInterface}
-     * @example
-     * const contact = bot.currentUser()
-     * console.log(`Bot is ${contact.name()}`)
-     */
-    currentUser (): ContactSelfInterface {
-      const userId = this.puppet.currentUserId
-      const user = (this.ContactSelf as typeof ContactSelfImpl).load(userId)
-      return user
-    }
-
-    /**
      * Will be removed after Dec 31, 2022
      * @deprecated use {@link Wechaty#currentUser} instead
      */
     userSelf () {
-      log.warn('WechatyLoginMixin', 'userSelf() deprecated: use currentUser() instead.\n%s',
+      log.warn('WechatyLoginMixin', 'userSelf() deprecated: use currentUser instead.\n%s',
         new Error().stack,
       )
-      return this.currentUser()
+      return this.currentUser
     }
 
   }
