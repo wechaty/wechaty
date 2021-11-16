@@ -43,48 +43,44 @@ test('Wechaty interface', async t => {
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
 
-    id     : WechatyInterface['id']
-    log    : WechatyInterface['log']
-    puppet : WechatyInterface['puppet']
-    state  : WechatyInterface['state']
-
     constructor () {
       super()
-      this.id
-        = this.Contact
+      this.Contact
         = this.ContactSelf
         = this.Delay
         = this.Friendship
         = this.Image
         = this.Location
-        = this.log
         = this.Message
         = this.MiniProgram
-        = this.puppet
         = this.Room
         = this.RoomInvitation
-        = this.state
         = this.Tag
         = this.UrlLink
         = {} as any
     }
 
-    abstract authQrCode          : WechatyInterface['authQrCode']
-    abstract currentUser         : WechatyInterface['currentUser']
-    abstract ding                : WechatyInterface['ding']
-    abstract emitError           : WechatyInterface['emitError']
-    abstract logonoff            : WechatyInterface['logonoff']
-    abstract logout              : WechatyInterface['logout']
-    abstract name                : WechatyInterface['name']
-    abstract ready               : WechatyInterface['ready']
-    abstract reset               : WechatyInterface['reset']
-    abstract say                 : WechatyInterface['say']
-    abstract sleep               : WechatyInterface['sleep']
-    abstract start               : WechatyInterface['start']
-    abstract stop                : WechatyInterface['stop']
-    abstract use                 : WechatyInterface['use']
-    abstract version             : WechatyInterface['version']
-    abstract wrapAsync           : WechatyInterface['wrapAsync']
+    abstract authQrCode  : WechatyInterface['authQrCode']
+    abstract currentUser : WechatyInterface['currentUser']
+    abstract ding        : WechatyInterface['ding']
+    abstract emitError   : WechatyInterface['emitError']
+    abstract id          : WechatyInterface['id']
+    abstract isLoggedIn  : WechatyInterface['isLoggedIn']
+    abstract log         : WechatyInterface['log']
+    abstract logonoff    : WechatyInterface['logonoff']
+    abstract logout      : WechatyInterface['logout']
+    abstract name        : WechatyInterface['name']
+    abstract puppet      : WechatyInterface['puppet']
+    abstract ready       : WechatyInterface['ready']
+    abstract reset       : WechatyInterface['reset']
+    abstract say         : WechatyInterface['say']
+    abstract sleep       : WechatyInterface['sleep']
+    abstract start       : WechatyInterface['start']
+    abstract state       : WechatyInterface['state']
+    abstract stop        : WechatyInterface['stop']
+    abstract use         : WechatyInterface['use']
+    abstract version     : WechatyInterface['version']
+    abstract wrapAsync   : WechatyInterface['wrapAsync']
 
   }
 
