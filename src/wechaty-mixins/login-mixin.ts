@@ -36,6 +36,30 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
         .load(this.puppet.currentUserId)
     }
 
+    /**
+     * Get the logon / logoff state
+     *
+     * @returns {boolean}
+     * @example
+     * if (bot.isLoggedin) {
+     *   console.log('Bot logged in')
+     * } else {
+     *   console.log('Bot not logged in')
+     * }
+     */
+    get isLoggedIn (): boolean {
+      try {
+        // the `this.puppet` might not be initialized yet
+        return this.puppet.isLoggedIn
+      } catch (e) {
+        this.emit('error', e)
+
+        log.warn('WechatyLoginMixin', 'isLoggedIn() puppet instance is not ready yet')
+        // https://github.com/wechaty/wechaty/issues/1878
+        return false
+      }
+    }
+
     __loginMixinCleanCallbackList: (() => void)[]
 
     constructor (...args: any[]) {
@@ -114,26 +138,11 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
     }
 
     /**
-     * Get the logon / logoff state
-     *
-     * @returns {boolean}
-     * @example
-     * if (bot.logonoff()) {
-     *   console.log('Bot logged in')
-     * } else {
-     *   console.log('Bot not logged in')
-     * }
+     * @deprecated: use isLoggedIn() instead. will be removed after Dec 31, 2022
      */
     logonoff (): boolean {
-      try {
-        return this.puppet.logonoff()
-      } catch (e) {
-        this.emit('error', e)
-
-        log.warn('WechatyLoginMixin', 'logonoff() puppet instance is not ready yet')
-        // https://github.com/wechaty/wechaty/issues/1878
-        return false
-      }
+      log.warn('WechatyLoginMixin', 'logonoff() is deprecated: use isLoggedIn() instead.\n%s', new Error().stack)
+      return this.isLoggedIn
     }
 
     /**
