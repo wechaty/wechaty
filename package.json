@@ -40,7 +40,6 @@
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && node --no-warnings --loader=ts-node/esm scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
-    "check-node-version": "check-node-version --node \">= 16\"",
     "clean": "shx rm -fr dist/*",
     "coverage": "nyc report --reporter=lcov",
     "demo": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
@@ -54,6 +53,7 @@
     "lint:sh": "bash -n bin/*.sh",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint": "npm-run-all check-node-version lint:es lint:ts lint:sh lint:md",
+    "postinstall": "check-node-version --node \">=16\" --npm \">=7\"",
     "puppet-install": "node --no-warnings --loader=ts-node/esm bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "start": "npm run demo",
