@@ -74,8 +74,8 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     async logout (reason = 'logout()'): Promise<void> {
       log.verbose('PuppetLoginMixin', 'logout(%s)', reason)
 
-      if (!this.logonoff()) {
-        log.verbose('PuppetLoginMixin', 'logout() no currentUserId, do nothing')
+      if (!this.isLoggedIn) {
+        log.verbose('PuppetLoginMixin', 'logout() isLoggedIn === false, do nothing')
         return
       }
 
