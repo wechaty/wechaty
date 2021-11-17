@@ -284,7 +284,7 @@ class PuppetMock extends PUPPET.Puppet {
     something: string | FileBox, // | Attachment
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, something)
-    if (!this.logonoff()) {
+    if (!this.isLoggedIn) {
       throw new Error('not logged in')
     }
 
