@@ -195,7 +195,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   static async find (
     query : string | PUPPET.filter.Room,
   ): Promise<undefined | RoomInterface> {
-    log.verbose('Room', 'find(%s)', JSON.stringify(query))
+    log.silly('Room', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'string') {
       query = { topic: query }

@@ -96,7 +96,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
   static async find (
     query : string | PUPPET.filter.Contact,
   ): Promise<undefined | ContactInterface> {
-    log.verbose('Contact', 'find(%s)', JSON.stringify(query))
+    log.silly('Contact', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'object' && query.id) {
       const contact = (this.wechaty.Contact as any as typeof ContactImpl).load(query.id)
