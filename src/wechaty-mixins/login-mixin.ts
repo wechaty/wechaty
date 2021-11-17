@@ -54,7 +54,7 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       } catch (e) {
         this.emit('error', e)
 
-        log.warn('WechatyLoginMixin', 'isLoggedIn() puppet instance is not ready yet')
+        log.warn('WechatyLoginMixin', 'get isLoggedIn puppet instance is not ready yet')
         // https://github.com/wechaty/wechaty/issues/1878
         return false
       }
@@ -138,10 +138,10 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
     }
 
     /**
-     * @deprecated: use isLoggedIn() instead. will be removed after Dec 31, 2022
+     * @deprecated: use `isLoggedIn` property instead. will be removed after Dec 31, 2022
      */
     logonoff (): boolean {
-      log.warn('WechatyLoginMixin', 'logonoff() is deprecated: use isLoggedIn() instead.\n%s', new Error().stack)
+      log.warn('WechatyLoginMixin', 'logonoff() is deprecated: use `isLoggedIn` property instead.\n%s', new Error().stack)
       return this.isLoggedIn
     }
 
@@ -164,7 +164,8 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
 type LoginMixin = ReturnType<typeof loginMixin>
 
 type ProtectedPropertyLoginMixin =
-  | 'userSelf'  // deprecated: use `currentUser()` instead. (will be removed after Dec 31, 2022)
+  | 'userSelf'  // deprecated: use `currentUser` instead. (will be removed after Dec 31, 2022)
+  | 'logonoff'  // deprecated: use `isLoggedIn` instead. ((will be removed after Dec 31, 2022)
   | '__authQrCode'
   | '__loginMixinCleanCallbackList'
 

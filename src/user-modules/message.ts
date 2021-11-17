@@ -273,7 +273,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     }
 
     let talker
-    if (this.wechaty.logonoff() && talkerId === this.wechaty.puppet.currentUserId) {
+    if (this.wechaty.isLoggedIn && talkerId === this.wechaty.puppet.currentUserId) {
       talker = (this.wechaty.ContactSelf as typeof ContactSelfImpl).load(talkerId)
     } else {
       talker = (this.wechaty.Contact as typeof ContactImpl).load(talkerId)
