@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Puppet Mocker for Wechaty",
   "type": "module",
   "exports": {
