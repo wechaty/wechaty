@@ -142,7 +142,7 @@ test('Wechaty bot can receive message sent from mocker', async t => {
     const player = mocker.createContact({ name: 'Player' })
 
     mocker.login(bot)
-    const wechatyUserSelf = wechaty.currentUser()
+    const wechatyUserSelf = wechaty.currentUser
 
     const directMessage = await new Promise<Message>(resolve => {
       wechatyUserSelf.once('message', resolve)
