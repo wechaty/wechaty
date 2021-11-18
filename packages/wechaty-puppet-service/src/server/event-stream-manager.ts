@@ -62,7 +62,7 @@ class EventStreamManager {
     /**
       * We emit the login event if current the puppet is logged in.
       */
-    if (this.puppet.logonoff()) {
+    if (this.puppet.isLoggedIn) {
       log.verbose('EventStreamManager', 'start() puppet is logged in, emit a login event for downstream')
 
       const payload = {
