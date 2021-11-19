@@ -1,18 +1,44 @@
+/**
+ *   Wechaty Open Source Software - https://github.com/wechaty
+ *
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 import util from 'util'
 
-import * as PUPPET    from 'wechaty-puppet'
+import * as PUPPET            from 'wechaty-puppet'
 
 import type {
   FileBoxInterface,
   FileBox,
-}                     from 'file-box'
-
+}                             from 'file-box'
 import {
   StringValue,
   puppet as grpcPuppet,
-}                           from 'wechaty-grpc'
-
-import type { Subscription } from 'rxjs'
+}                             from 'wechaty-grpc'
+import {
+  puppet$,
+  Duck as PuppetDuck,
+}                             from 'wechaty-redux'
+import {
+  Ducks,
+  // Bundle,
+}                             from 'ducks'
+import type { Store }         from 'redux'
+// import type { Subscription }  from 'rxjs'
 
 /**
  * Deprecated. Will be removed after Dec 31, 2022
@@ -29,7 +55,6 @@ import {
   uuidifyFileBoxGrpc,
   normalizeFileBoxUuid,
 }                       from '../file-box-helper/mod.js'
-
 import {
   envVars,
   log,
@@ -40,8 +65,7 @@ import {
 }                       from '../event-type-rev.js'
 import { packageJson }  from '../package-json.js'
 
-import { recover$ }     from './recover$.js'
-import { GrpcManager }   from './grpc-manager.js'
+import { GrpcManager }  from './grpc-manager.js'
 import { PayloadStore } from './payload-store.js'
 
 export type PuppetServiceOptions = PUPPET.PuppetOptions & {
@@ -57,12 +81,18 @@ export type PuppetServiceOptions = PUPPET.PuppetOptions & {
   }
 }
 
-export class PuppetService extends PUPPET.Puppet {
+class PuppetService extends PUPPET.Puppet {
 
   static override readonly VERSION = VERSION
 
-  protected recoverSubscription?: Subscription
-  protected payloadStore: PayloadStore
+  protected _cleanupCallbackList: (() => void)[]
+  protected _payloadStore: PayloadStore
+
+  /**
+   * Wechaty Redux
+   */
+  protected _ducks: Ducks<{ puppet: typeof PuppetDuck }>
+  protected _store: Store
 
   protected _grpcManager?: GrpcManager
   get grpcManager (): GrpcManager {
@@ -83,11 +113,16 @@ export class PuppetService extends PUPPET.Puppet {
     public override options: PuppetServiceOptions = {},
   ) {
     super(options)
-    this.payloadStore = new PayloadStore({
+    this._payloadStore = new PayloadStore({
       token: envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token),
     })
 
     this.hookPayloadStore()
+
+    this._ducks = new Ducks({ puppet: PuppetDuck })
+    this._store = this._ducks.configureStore()
+
+    this._cleanupCallbackList = []
 
     this.FileBoxUuid = uuidifyFileBoxGrpc(() => this.grpcManager.client)
   }
@@ -138,11 +173,15 @@ export class PuppetService extends PUPPET.Puppet {
     await grpcManager.start()
     log.verbose('PuppetService', 'start() starting grpc manager... done')
 
-    this.recoverSubscription = recover$(this).subscribe({
-      complete : () => log.verbose('PuppetService', 'onStart() recover$().subscribe() complete()'),
-      error    : e  => log.error('PuppetService', 'onStart() recover$().subscribe() error(%s)', e),
-      next     : x  => log.verbose('PuppetService', 'onStart() recover$().subscribe() next(%s)', JSON.stringify(x)),
-    })
+    /**
+     * Ducks management
+     */
+    const subscription = puppet$(this)
+      .subscribe(this._store.dispatch)
+
+    this._cleanupCallbackList.push(
+      () => subscription.unsubscribe(),
+    )
 
     log.verbose('PuppetService', 'onStart() ... done')
   }
@@ -150,11 +189,8 @@ export class PuppetService extends PUPPET.Puppet {
   override async onStop (): Promise<void> {
     log.verbose('PuppetService', 'onStop()')
 
-    if (this.recoverSubscription) {
-      const recoverSubscription = this.recoverSubscription
-      this.recoverSubscription = undefined
-      recoverSubscription.unsubscribe()
-    }
+    this._cleanupCallbackList.map(setImmediate)
+    this._cleanupCallbackList.length = 0
 
     if (this._grpcManager) {
       log.verbose('PuppetService', 'onStop() stopping grpc manager ...')
@@ -173,7 +209,7 @@ export class PuppetService extends PUPPET.Puppet {
     this.on('login',  async ({ contactId }) => {
       try {
         log.verbose('PuppetService', 'hookPayloadStore() this.on(login) contactId: "%s"', contactId)
-        await this.payloadStore.start(contactId)
+        await this._payloadStore.start(contactId)
       } catch (e) {
         log.verbose('PuppetService', 'hookPayloadStore() this.on(login) rejection "%s"', (e as Error).message)
       }
@@ -182,7 +218,7 @@ export class PuppetService extends PUPPET.Puppet {
     this.on('logout', async ({ contactId }) => {
       log.verbose('PuppetService', 'hookPayloadStore() this.on(logout) contactId: "%s"', contactId)
       try {
-        await this.payloadStore.stop()
+        await this._payloadStore.stop()
       } catch (e) {
         log.verbose('PuppetService', 'hookPayloadStore() this.on(logout) rejection "%s"', (e as Error).message)
       }
@@ -389,11 +425,11 @@ export class PuppetService extends PUPPET.Puppet {
     log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.type.Payload[payloadType], payloadType, payloadId)
 
     const dirtyMap = {
-      [PUPPET.type.Payload.Contact]:      async (id: string) => this.payloadStore.contact?.delete(id),
+      [PUPPET.type.Payload.Contact]:      async (id: string) => this._payloadStore.contact?.delete(id),
       [PUPPET.type.Payload.Friendship]:   async (_: string) => {},
       [PUPPET.type.Payload.Message]:      async (_: string) => {},
-      [PUPPET.type.Payload.Room]:         async (id: string) => this.payloadStore.room?.delete(id),
-      [PUPPET.type.Payload.RoomMember]:   async (id: string) => this.payloadStore.roomMember?.delete(id),
+      [PUPPET.type.Payload.Room]:         async (id: string) => this._payloadStore.room?.delete(id),
+      [PUPPET.type.Payload.RoomMember]:   async (id: string) => this._payloadStore.roomMember?.delete(id),
       [PUPPET.type.Payload.Unspecified]:  async (id: string) => { throw new Error('Unspecified type with id: ' + id) },
     }
 
@@ -603,7 +639,7 @@ export class PuppetService extends PUPPET.Puppet {
   override async contactRawPayload (id: string): Promise<PUPPET.payload.Contact> {
     log.verbose('PuppetService', 'contactRawPayload(%s)', id)
 
-    const cachedPayload = await this.payloadStore.contact?.get(id)
+    const cachedPayload = await this._payloadStore.contact?.get(id)
     if (cachedPayload) {
       log.silly('PuppetService', 'contactRawPayload(%s) cache HIT', id)
       return cachedPayload
@@ -638,7 +674,7 @@ export class PuppetService extends PUPPET.Puppet {
       weixin      : response.getWeixin(),
     }
 
-    await this.payloadStore.contact?.set(id, payload)
+    await this._payloadStore.contact?.set(id, payload)
     log.silly('PuppetService', 'contactRawPayload(%s) cache SET', id)
 
     return payload
@@ -1230,7 +1266,7 @@ export class PuppetService extends PUPPET.Puppet {
   ): Promise<PUPPET.payload.Room> {
     log.verbose('PuppetService', 'roomRawPayload(%s)', id)
 
-    const cachedPayload = await this.payloadStore.room?.get(id)
+    const cachedPayload = await this._payloadStore.room?.get(id)
     if (cachedPayload) {
       log.silly('PuppetService', 'roomRawPayload(%s) cache HIT', id)
       return cachedPayload
@@ -1253,7 +1289,7 @@ export class PuppetService extends PUPPET.Puppet {
       topic        : response.getTopic(),
     }
 
-    await this.payloadStore.room?.set(id, payload)
+    await this._payloadStore.room?.set(id, payload)
     log.silly('PuppetService', 'roomRawPayload(%s) cache SET', id)
 
     return payload
@@ -1444,7 +1480,7 @@ export class PuppetService extends PUPPET.Puppet {
   override async roomMemberRawPayload (roomId: string, contactId: string): Promise<PUPPET.payload.RoomMember>  {
     log.verbose('PuppetService', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
 
-    const cachedPayload           = await this.payloadStore.roomMember?.get(roomId)
+    const cachedPayload           = await this._payloadStore.roomMember?.get(roomId)
     const cachedRoomMemberPayload = cachedPayload && cachedPayload[contactId]
 
     if (cachedRoomMemberPayload) {
@@ -1469,7 +1505,7 @@ export class PuppetService extends PUPPET.Puppet {
       roomAlias : response.getRoomAlias(),
     }
 
-    await this.payloadStore.roomMember?.set(roomId, {
+    await this._payloadStore.roomMember?.set(roomId, {
       ...cachedPayload,
       contactId: payload,
     })
@@ -1878,4 +1914,7 @@ export class PuppetService extends PUPPET.Puppet {
 
 }
 
+export {
+  PuppetService,
+}
 export default PuppetService
