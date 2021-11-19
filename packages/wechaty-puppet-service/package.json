@@ -12,8 +12,7 @@
   "typings": "./dist/esm/src/mod.d.ts",
   "engines": {
     "node": ">=16",
-    "npm": ">=7",
-    "wechaty": ">=1.0.4"
+    "npm": ">=7"
   },
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cjs.json",
