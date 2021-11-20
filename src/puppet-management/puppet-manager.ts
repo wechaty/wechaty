@@ -66,7 +66,10 @@ class PuppetManager {
       throw new Error('Wechaty Framework only accept Puppet instance, but you provided is: ' + options.puppet)
     }
 
+    log.verbose('PuppetManager', 'resolve() resolving name "%s" ...', options.puppet)
     const MyPuppet = await this.resolveName(options.puppet)
+    log.verbose('PuppetManager', 'resolve() resolving name "%s" ... done', options.puppet)
+
     /**
      * We will meet the following error:
      *
@@ -85,7 +88,10 @@ class PuppetManager {
      *
      * Huan(20210530): workaround by "as any"
      */
+    log.verbose('PuppetManager', 'resolve() instanciating puppet ...')
     const puppetInstance = new (MyPuppet as any)(options.puppetOptions)
+    log.verbose('PuppetManager', 'resolve() instanciating puppet ... done')
+
     return puppetInstance
   }
 

@@ -10,5 +10,6 @@ ONBUILD RUN jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
     && npm install \
     && sudo rm -fr /tmp/* ~/.npm
 ONBUILD COPY . .
+ONBUILD RUN npm run build --if-present
 
 CMD [ "npm", "start" ]

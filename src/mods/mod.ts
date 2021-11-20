@@ -40,7 +40,12 @@ export {
 
 export * as type        from 'wechaty-puppet/type'
 export * as payload     from 'wechaty-puppet/payload'
-export * as helper      from 'wechaty-puppet/helper'
+
+/**
+ * Huan(202111) We should not re-export other NPM modules
+ *  because this will cause problems by adding more couple between them.
+ */
+// export * as helper      from 'wechaty-puppet/helper'
 
 export *                from './user.js'
 /**
@@ -54,6 +59,7 @@ export * as impl        from './impl.js'
 export {
   ScanStatus,
 }                       from 'wechaty-puppet/type'
+
 export {
   log,
   config,
@@ -62,20 +68,19 @@ export {
 }                         from '../config.js'
 
 export type {
+  PuppetModuleName,
+}                             from '../puppet-management/mod.js'
+export type {
+  WechatyEventName,
+}                             from '../schema/mod.js'
+
+export type {
   WechatyPlugin,
   WechatyPluginUninstaller,
 }                             from '../plugin.js'
-
-export type {
-  PuppetModuleName,
-}                             from '../puppet-management/puppet-config.js'
-
 export type {
   IoClientOptions,
-}                         from '../io-client.js'
+}                             from '../io-client.js'
 export {
   IoClient,
-}                         from '../io-client.js'
-export type {
-  WechatyEventName,
-}                             from '../events/wechaty-events.js'
+}                             from '../io-client.js'

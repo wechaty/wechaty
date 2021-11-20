@@ -57,7 +57,7 @@ class ContactSelfMixin extends MixinBase {
   static override async find (
     query : string | PUPPET.filter.Contact,
   ): Promise<undefined | ContactSelfInterface> {
-    if (!this.wechaty.logonoff()) {
+    if (!this.wechaty.isLoggedIn) {
       return undefined
     }
 

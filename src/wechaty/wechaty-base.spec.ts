@@ -198,21 +198,23 @@ test('use plugin', async t => {
 
   bot.use(myPlugin())
 
+  await bot.start()
+
   bot.on('message', () => (result += 'FROM_BOT'))
 
   bot.emit('message', {} as any)
 
   await bot.stop()
 
-  t.ok(result === 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT')
+  t.equal(result, 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
 
 })
 
 test('wechatifyUserModules()', async t => {
   const wechatyTest = new WechatyTest()
 
-  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 1st time init')
-  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
+  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 1st time init')
+  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
 })
 
 // TODO: add test for event args

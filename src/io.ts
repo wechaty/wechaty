@@ -336,7 +336,7 @@ export class Io {
         log.verbose('Io', 'on(update): %s', ioEvent.payload)
         {
           const wechaty = this.options.wechaty
-          if (wechaty.logonoff()) {
+          if (wechaty.isLoggedIn) {
             const loginEvent: IoEvent = {
               name    : 'login',
               payload : await wechaty.puppet.contactPayload(

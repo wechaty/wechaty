@@ -17,8 +17,9 @@
  *   limitations under the License.
  *
  */
-import * as PUPPET          from 'wechaty-puppet'
-import type { FileBoxInterface } from 'file-box'
+import type * as PUPPET           from 'wechaty-puppet'
+import type { FileBoxInterface }  from 'file-box'
+
 import type {
   Constructor,
 }                           from '../deprecated/clone-class.js'
@@ -27,14 +28,18 @@ import {
   FOUR_PER_EM_SPACE,
   log,
 }                           from '../config.js'
+import {
+  wechatyCaptureException,
+}                           from '../raven.js'
 
-import { wechatyCaptureException } from '../raven.js'
 import {
   guardQrCodeValue,
-}                       from '../pure-functions/guard-qr-code-value.js'
+}                           from '../pure-functions/guard-qr-code-value.js'
+import {
+  isTemplateStringArray,
+}                           from '../pure-functions/is-template-string-array.js'
 
-import { RoomEventEmitter } from '../events/mod.js'
-
+import { RoomEventEmitter }             from '../schema/mod.js'
 import {
   poolifyMixin,
   wechatifyMixin,
@@ -48,10 +53,15 @@ import type {
   Sayable,
 }                                       from '../sayable/mod.js'
 
-import { isTemplateStringArray } from '../pure-functions/is-template-string-array.js'
+import {
+  ContactInterface,
+  ContactImpl,
+}                       from './contact.js'
+import type {
+  MessageInterface,
+}                       from './message.js'
 
-import { ContactInterface, ContactImpl }        from './contact.js'
-import type { MessageInterface }        from './message.js'
+import { concurrencyTaskExecuter } from '../ix-concurrency-executer.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -138,37 +148,24 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
     try {
       const roomIdList = await this.wechaty.puppet.roomSearch(query)
-      const roomList = roomIdList.map(id => this.load(id))
 
-      const BATCH_SIZE = 10
-      let   batchIndex = 0
+      const idToRoom = async (id: string) => this.wechaty.Room.find({ id }).catch(e => this.wechaty.emitError(e))
 
-      const invalidSet: Set<string> = new Set()
-      while (batchIndex * BATCH_SIZE < roomList.length) {
-        const batchRoomList = roomList.slice(
-          BATCH_SIZE * batchIndex,
-          BATCH_SIZE * (batchIndex + 1),
-        )
+      /**
+       * we need to use concurrencyTaskExecuter to reduce the parallel number of the requests
+       */
+      const CONCURRENCY = 17
+      const roomIterator = concurrencyTaskExecuter(CONCURRENCY)(idToRoom)(roomIdList)
 
-        /**
-         * Huan(202110): TODO: use an iterator with works to control the concurrency of Promise.all.
-         *  @see https://stackoverflow.com/a/51020535/1123955
-         */
+      const roomList: RoomInterface[] = []
 
-        await Promise.all(
-          batchRoomList.map(
-            room => room.ready()
-              .catch(e => {
-                log.warn('Room', 'findAll() room.ready() rejection:\n%s', e.stack)
-                invalidSet.add(room.id)
-              }),
-          ),
-        )
-
-        batchIndex++
+      for await (const room of roomIterator) {
+        if (room) {
+          roomList.push(room)
+        }
       }
 
-      return roomList.filter(room => !invalidSet.has(room.id))
+      return roomList
 
     } catch (e) {
       this.wechaty.emitError(e)
@@ -198,10 +195,22 @@ class RoomMixin extends MixinBase implements SayableSayer {
   static async find (
     query : string | PUPPET.filter.Room,
   ): Promise<undefined | RoomInterface> {
-    log.verbose('Room', 'find(%s)', JSON.stringify(query))
+    log.silly('Room', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'string') {
       query = { topic: query }
+    }
+
+    if (query.id) {
+      const room = (this.wechaty.Room as any as typeof RoomImpl).load(query.id)
+      try {
+        await room.ready()
+      } catch (e) {
+        this.wechaty.emitError(e)
+        return undefined
+      }
+
+      return room
     }
 
     const roomList = await this.findAll(query)
@@ -216,31 +225,24 @@ class RoomMixin extends MixinBase implements SayableSayer {
       log.warn('Room', 'find() got more than one(%d) result', roomList.length)
     }
 
-    let n = 0
-    for (n = 0; n < roomList.length; n++) {
-      const room = roomList[n]!
+    for (const [idx, room] of roomList.entries()) {
       // use puppet.roomValidate() to confirm double confirm that this roomId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
       const valid = await this.wechaty.puppet.roomValidate(room.id)
       if (valid) {
-        log.verbose('Room', 'find() confirm room[#%d] with id=%d is valid result, return it.',
-          n,
-          room.id,
-        )
+        log.verbose('Room', 'find() room<id=%s> is valid: return it', idx, room.id)
         return room
       } else {
-        log.verbose('Room', 'find() confirm room[#%d] with id=%d is INVALID result, try next',
-          n,
-          room.id,
-        )
+        log.verbose('Room', 'find() room<id=%s> is invalid: skip it', idx, room.id)
       }
     }
-    log.warn('Room', 'find() got %d rooms but no one is valid.', roomList.length)
+    log.warn('Room', 'find() all %d rooms are invalid', roomList.length)
     return undefined
   }
 
-  /**
+  /**      const roomList: RoomInterface[] = []
+
    * @ignore
    *
    * Instance Properties
@@ -307,39 +309,41 @@ class RoomMixin extends MixinBase implements SayableSayer {
   async ready (
     forceSync = false,
   ): Promise<void> {
-    log.verbose('Room', 'ready()')
+    log.silly('Room', 'ready()')
 
     if (!forceSync && this.isReady()) {
       return
     }
 
     if (forceSync) {
-      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.Room, this.id)
-      await this.wechaty.puppet.dirtyPayload(PUPPET.type.Payload.RoomMember, this.id)
+      await this.wechaty.puppet.roomPayloadDirty(this.id)
+      await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
     }
     this._payload = await this.wechaty.puppet.roomPayload(this.id)
 
+    /**
+     * Sync all room member contacts
+     */
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
-    const BATCH_SIZE = 16
-    let   batchIndex = 0
-
-    while (batchIndex * BATCH_SIZE < memberIdList.length) {
-      const batchMemberIdList = memberIdList.slice(
-        BATCH_SIZE * batchIndex,
-        BATCH_SIZE * (batchIndex + 1),
-      )
-
-      /**
-       * Huan(202110): use a interator with works to control the concurrency of Promise.all.
-       *  @see https://stackoverflow.com/a/51020535/1123955
-       */
-      await Promise.all(
-        batchMemberIdList.map(id => this.wechaty.Contact.find({ id })),
-      )
-
-      batchIndex++
+    const doReady = async (id: string): Promise<void> => {
+      try {
+        await this.wechaty.Contact.find({ id })
+      } catch (e) {
+        this.wechaty.emitError(e)
+      }
     }
+
+    /**
+     * we need to use concurrencyTaskExecuter to reduce the parallel number of the requests
+     */
+    const CONCURRENCY = 17
+    const contactIterator = concurrencyTaskExecuter(CONCURRENCY)(doReady)(memberIdList)
+
+    for await (const contact of contactIterator) {
+      void contact  // just a empty loop to wait all iterator finished
+    }
+
   }
 
   /**

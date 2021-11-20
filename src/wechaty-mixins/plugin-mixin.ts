@@ -1,5 +1,8 @@
-import { log }        from 'wechaty-puppet'
-import { instanceToClass } from 'clone-class'
+import { log }              from 'wechaty-puppet'
+import { instanceToClass }  from 'clone-class'
+import type {
+  ServiceCtl,
+}                           from 'state-switch'
 
 import type {
   WechatyPlugin,
@@ -17,15 +20,17 @@ import {
   WechatyImpl,
   WechatySkeleton,
 }                       from '../wechaty/mod.js'
+
 import type { GErrorMixin } from './gerror-mixin.js'
 
-const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinBase: MixinBase) => {
+const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase {
 
-    static _globalPluginList: WechatyPlugin[] = []
-    _pluginUninstallerList: WechatyPluginUninstaller[]
+    static __pluginList: WechatyPlugin[] = []
+    __pluginList:        WechatyPlugin[] = []
+    __pluginUninstallerList: WechatyPluginUninstaller[] = []
 
     /**
      * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
@@ -50,20 +55,18 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
       ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
     ): WechatyConstructor {
       const pluginList = plugins.flat()
-      this._globalPluginList = this._globalPluginList.concat(pluginList)
+      this.__pluginList.push(...pluginList)
+
       // Huan(202110): TODO: remove any
       return this as any
     }
 
     constructor (...args: any[]) {
       super(...args)
-
-      this._pluginUninstallerList = []
-      this._installGlobalPlugin()
     }
 
     /**
-     * @param   {WechatyPlugin[]}Interfacehaty.use().
+     * @param {WechatyPlugin[]}Interfacehaty.use().
      *
      */
     use (
@@ -71,51 +74,64 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
         WechatyPlugin | WechatyPlugin[]
       )[]
     ): WechatyInterface {
-      const pluginList = plugins.flat() as WechatyPlugin[]
-      const uninstallerList = pluginList
-        .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
-        .filter(isWechatyPluginUninstaller)
+      const pluginList = plugins.flat()
+      log.verbose('WechatyPluginMixin', 'use() total %d plugins', pluginList.length)
 
-      this._pluginUninstallerList.push(
-        ...uninstallerList,
-      )
+      this.__pluginList.push(...pluginList)
+
+      if (this.state.active() === true) {
+        log.verbose('WechatyPluginMixin', 'use() this.state is active, install plugins ...')
+
+        const uninstallerList = pluginList
+          .map(plugin => plugin(this as any))
+          .filter(isWechatyPluginUninstaller)
+
+        this.__pluginUninstallerList.push(
+          ...uninstallerList,
+        )
+
+        log.verbose('WechatyPluginMixin', 'use() this.state is active, install plugins ... done')
+      }
+
       // Huan(202110): TODO: remove any
       return this as any
     }
 
-    _installGlobalPlugin () {
-      const uninstallerList = instanceToClass(this, WechatyImpl)
-        ._globalPluginList
+    override async start (): Promise<void> {
+      log.verbose('WechatyPluginMixin', 'start()')
+      await super.start()
+
+      const pluginList = [
+        ...instanceToClass(this, WechatyImpl).__pluginList,
+        ...this.__pluginList,
+      ]
+
+      log.verbose('WechatyPluginMixin', 'start() installing plugins(global:%d, instance: %d) ...',
+        instanceToClass(this, WechatyImpl).__pluginList.length,
+        this.__pluginList.length,
+      )
+
+      const uninstallerList = pluginList
         .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
         .filter(isWechatyPluginUninstaller)
 
-      this._pluginUninstallerList.push(
+      this.__pluginUninstallerList.push(
         ...uninstallerList,
+      )
+
+      log.verbose('WechatyPluginMixin', 'start() installing plugins(global:%d, instance: %d) ... done',
+        instanceToClass(this, WechatyImpl).__pluginList.length,
+        this.__pluginList.length,
       )
     }
 
     override async stop (): Promise<void> {
-      log.verbose('WechatyPluginMixin', 'stop()')
+      log.verbose('WechatyPluginMixin', 'stop() uninstall %d plugins ...', this.__pluginUninstallerList.length)
 
-      try {
-        /**
-         * Uninstall Plugins
-         *  no matter the state is `ON` or `OFF`.
-         */
+      this.__pluginUninstallerList.forEach(setImmediate)
+      this.__pluginUninstallerList.length = 0
 
-        // Huan(202111): it seems that once the plugin has been install,
-        //  we should not remove it inside the stop()?
-        //  FIXME: to be confirmed
-
-        // while (this._pluginUninstallerList.length > 0) {
-        //   const uninstaller = this._pluginUninstallerList.pop()
-        //   log.verbose('WechatyPluginMixin', 'stop() uninstalling plugin #%s ...', this._pluginUninstallerList.length)
-        //   if (uninstaller) uninstaller()
-        //   log.verbose('WechatyPluginMixin', 'stop() uninstalling plugin #%s ... done', this._pluginUninstallerList.length)
-        // }
-      } catch (e) {
-        this.emitError(e)
-      }
+      log.verbose('WechatyPluginMixin', 'stop() uninstall %d plugins ... done', this.__pluginUninstallerList.length)
 
       await super.stop()
     }
@@ -128,8 +144,8 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
 type PluginMixin = ReturnType<typeof pluginMixin>
 
 type ProtectedPropertyPluginMixin =
-  | '_installGlobalPlugin'
-  | '_pluginUninstallerList'
+  | '__pluginList'
+  | '__pluginUninstallerList'
 
 export type {
   PluginMixin,

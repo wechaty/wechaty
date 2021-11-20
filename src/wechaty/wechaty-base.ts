@@ -50,7 +50,7 @@ import type {
 }                             from './wechaty-impl.js'
 import type {
   WechatyOptions,
-}                             from './schema.js'
+}                             from '../schema/wechaty-options.js'
 
 /**
  * Huan(2022111) `pluginMixin` is not compatible with `pipe`: will get `unknown`
@@ -118,7 +118,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
   static   override readonly VERSION = VERSION
   readonly wechaty : WechatyInterface
 
-  readonly _cleanCallbackList: Function[] = []
+  readonly _cleanCallbackList: (() => void)[] = []
 
   /**
    * The term [Puppet](https://github.com/wechaty/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
@@ -163,12 +163,12 @@ class WechatyBase extends mixinBase implements SayableSayer {
    *
    */
   constructor (
-    override _options: WechatyOptions = {},
+    override __options: WechatyOptions = {},
   ) {
     super()
     log.verbose('Wechaty', 'constructor()')
 
-    this._memory = this._options.memory
+    this.__memory = this.__options.memory
 
     this._cleanCallbackList = []
 
@@ -176,9 +176,11 @@ class WechatyBase extends mixinBase implements SayableSayer {
   }
 
   override async onStart (): Promise<void> {
+    log.verbose('Wechaty', 'onStart()')
+
     log.verbose('Wechaty', '<%s>(%s) onStart() v%s is starting...',
-      this._options.puppet || config.systemPuppetName(),
-      this._options.name   || '',
+      this.__options.puppet || config.systemPuppetName(),
+      this.__options.name   || '',
       this.version(),
     )
     log.verbose('Wechaty', 'id: %s', this.id)
@@ -189,20 +191,23 @@ class WechatyBase extends mixinBase implements SayableSayer {
     this._cleanCallbackList.push(() => clearInterval(lifeTimer))
 
     this.emit('start')
+    log.verbose('Wechaty', 'onStart() ... done')
   }
 
   override async onStop (): Promise<void> {
+    log.verbose('Wechaty', 'onStop()')
+
     log.verbose('Wechaty', '<%s> onStop() v%s is stopping ...',
-      this._options.puppet || config.systemPuppetName(),
+      this.__options.puppet || config.systemPuppetName(),
       this.version(),
     )
 
-    while (this._cleanCallbackList.length > 0) {
-      const cleaner = this._cleanCallbackList.pop()
-      if (cleaner) cleaner()
-    }
+    // put to the end of the event loop in case of it need to be executed while stopping
+    this._cleanCallbackList.map(setImmediate)
+    this._cleanCallbackList.length = 0
 
     this.emit('stop')
+    log.verbose('Wechaty', 'onStop() ... done')
   }
 
   /**
@@ -263,15 +268,15 @@ class WechatyBase extends mixinBase implements SayableSayer {
     sayable: Sayable,
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', sayable)
-    await this.currentUser().say(sayable)
+    await this.currentUser.say(sayable)
   }
 
 }
 
 type WechatyBaseProtectedProperty =
   // | '_serviceCtlFsmInterpreter'  // from ServiceCtlFsm
-  | '_serviceCtlLogger'             // from ServiceCtl(&Fsm)
-  | '_serviceCtlResettingIndicator' // from ServiceCtl
+  | '__serviceCtlLogger'             // from ServiceCtl(&Fsm)
+  | '__serviceCtlResettingIndicator' // from ServiceCtl
   | 'wechaty'
   | 'onStart'
   | 'onStop'

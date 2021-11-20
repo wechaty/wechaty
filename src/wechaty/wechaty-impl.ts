@@ -5,7 +5,7 @@ import type { Constructor }           from '../deprecated/clone-class.js'
 import type {
   WechatyMixinProtectedProperty,
 }                                     from '../wechaty-mixins/mod.js'
-import type { WechatyEventListeners } from '../events/mod.js'
+import type { WechatyEventListeners } from '../schema/mod.js'
 import { validationMixin }            from '../user-mixins/mod.js'
 
 import type {
