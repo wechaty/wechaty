@@ -102,8 +102,8 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
       await super.start()
 
       const pluginList = [
-        ...this.__pluginList,
         ...instanceToClass(this, WechatyImpl).__pluginList,
+        ...this.__pluginList,
       ]
 
       log.verbose('WechatyPluginMixin', 'start() installing plugins(global:%d, instance: %d) ...',

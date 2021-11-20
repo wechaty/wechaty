@@ -198,13 +198,15 @@ test('use plugin', async t => {
 
   bot.use(myPlugin())
 
+  await bot.start()
+
   bot.on('message', () => (result += 'FROM_BOT'))
 
   bot.emit('message', {} as any)
 
   await bot.stop()
 
-  t.ok(result === 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT')
+  t.equal(result, 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
 
 })
 
