@@ -61,7 +61,7 @@ class PuppetTest extends PUPPET.Puppet {
   override async contactDescription (contactId: string, description: string | null): Promise<void> { return { contactId, description } as any }
 
   override async contactRawPayload (id: string)            : Promise<any> { return { id } as any }
-  override async contactRawPayloadParser (rawPayload: any) : Promise<PUPPET.payload.Contact> { return { rawPayload } as any }
+  override async contactRawPayloadParser (rawPayload: any) : Promise<PUPPET.payloads.Contact> { return { rawPayload } as any }
 
   /**
    *
@@ -69,7 +69,7 @@ class PuppetTest extends PUPPET.Puppet {
    *
    */
   override async friendshipRawPayload (id: string)            : Promise<any> { return { id } as any }
-  override async friendshipRawPayloadParser (rawPayload: any) : Promise<PUPPET.payload.Friendship> { return rawPayload }
+  override async friendshipRawPayloadParser (rawPayload: any) : Promise<PUPPET.payloads.Friendship> { return rawPayload }
 
   override async friendshipSearchPhone (phone: string)             : Promise<string | null> { return phone }
   override async friendshipSearchWeixin (weixin: string)           : Promise<string | null> { return weixin }
@@ -82,24 +82,24 @@ class PuppetTest extends PUPPET.Puppet {
    *
    */
   override async messageFile (messageId: string)                        : Promise<FileBoxInterface> { return { messageId } as any }
-  override async messageUrl (messageId: string)                         : Promise<PUPPET.payload.UrlLink> { return { messageId } as any }
-  override async messageImage (messageId: string, imageType: PUPPET.type.Image) : Promise<FileBoxInterface> { return { imageType, messageId } as any }
+  override async messageUrl (messageId: string)                         : Promise<PUPPET.payloads.UrlLink> { return { messageId } as any }
+  override async messageImage (messageId: string, imageType: PUPPET.types.Image) : Promise<FileBoxInterface> { return { imageType, messageId } as any }
   override async messageContact (messageId: string)                     : Promise<string> { return { messageId } as any }
-  override async messageMiniProgram (messageId: string)                 : Promise<PUPPET.payload.MiniProgram> { return { messageId } as any }
-  override async messageLocation (messageId: string)                    : Promise<PUPPET.payload.Location> { return { messageId } as any }
+  override async messageMiniProgram (messageId: string)                 : Promise<PUPPET.payloads.MiniProgram> { return { messageId } as any }
+  override async messageLocation (messageId: string)                    : Promise<PUPPET.payloads.Location> { return { messageId } as any }
 
   override async messageForward (to: string, messageId: string)                                 : Promise<void | string> { return { messageId, to } as any }
   override async messageSendContact (receiver: string, contactId: string)                       : Promise<void | string> { return { contactId, receiver } as any }
   override async messageSendFile (to: string, file: FileBoxInterface)                           : Promise<void | string> { return { file, to } as any }
   override async messageSendText (to: string, text: string)                                     : Promise<void | string> { return { text, to } as any }
-  override async messageSendUrl (to: string, urlLinkPayload: PUPPET.payload.UrlLink)                    : Promise<void | string> { return { to, urlLinkPayload } as any }
-  override async messageSendMiniProgram (to: string, miniProgramPayload: PUPPET.payload.MiniProgram)    : Promise<void> { return { miniProgramPayload, to } as any }
-  override async messageSendLocation (conversationId: string, locationPayload: PUPPET.payload.Location) : Promise<void | string> { return { conversationId, locationPayload } as any }
+  override async messageSendUrl (to: string, urlLinkPayload: PUPPET.payloads.UrlLink)                    : Promise<void | string> { return { to, urlLinkPayload } as any }
+  override async messageSendMiniProgram (to: string, miniProgramPayload: PUPPET.payloads.MiniProgram)    : Promise<void> { return { miniProgramPayload, to } as any }
+  override async messageSendLocation (conversationId: string, locationPayload: PUPPET.payloads.Location) : Promise<void | string> { return { conversationId, locationPayload } as any }
 
   override async messageRecall (messageId: string) : Promise<boolean> { void messageId; return true }
 
   override async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
-  override async messageRawPayloadParser (rawPayload: any) : Promise<PUPPET.payload.Message> { return { rawPayload } as any }
+  override async messageRawPayloadParser (rawPayload: any) : Promise<PUPPET.payloads.Message> { return { rawPayload } as any }
 
   /**
    *
@@ -116,7 +116,7 @@ class PuppetTest extends PUPPET.Puppet {
   override async roomInvitationAccept (roomInvitationId: string): Promise<void> { void roomInvitationId }
 
   override async roomInvitationRawPayload (roomInvitationId: string) : Promise<any> { return { roomInvitationId } as any }
-  override async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<PUPPET.payload.RoomInvitation> { return rawPayload }
+  override async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<PUPPET.payloads.RoomInvitation> { return rawPayload }
 
   /**
    *
@@ -142,22 +142,22 @@ class PuppetTest extends PUPPET.Puppet {
   override async roomMemberList (roomId: string) : Promise<string[]> { return { roomId } as any }
 
   override async roomRawPayload (id: string)            : Promise<any> { return { id } as any }
-  override async roomRawPayloadParser (rawPayload: any) : Promise<PUPPET.payload.Room> { return { rawPayload } as any }
+  override async roomRawPayloadParser (rawPayload: any) : Promise<PUPPET.payloads.Room> { return { rawPayload } as any }
 
   override async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any> { return { contactId, roomId } as any }
-  override async roomMemberRawPayloadParser (rawPayload: any)             : Promise<PUPPET.payload.RoomMember> { return rawPayload }
+  override async roomMemberRawPayloadParser (rawPayload: any)             : Promise<PUPPET.payloads.RoomMember> { return rawPayload }
 
   /**
    * expose to public for internal methods:
    */
   public override roomQueryFilterFactory (
-    query: PUPPET.filter.Room,
+    query: PUPPET.filters.Room,
   ): any {
     return super.roomQueryFilterFactory(query)
   }
 
   public override contactQueryFilterFactory (
-    query: PUPPET.filter.Contact,
+    query: PUPPET.filters.Contact,
   ): any {
     return super.contactQueryFilterFactory(query)
   }
