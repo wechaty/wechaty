@@ -84,7 +84,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
       imageUrl = resolvedUrl.toString()
     }
 
-    const payload: PUPPET.payload.UrlLink = {
+    const payload: PUPPET.payloads.UrlLink = {
       description,
       thumbnailUrl: imageUrl,
       title,
@@ -98,7 +98,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: PUPPET.payload.UrlLink,
+    public readonly payload: PUPPET.payloads.UrlLink,
   ) {
     super()
     log.verbose('UrlLink', 'constructor()')

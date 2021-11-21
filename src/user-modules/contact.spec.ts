@@ -50,7 +50,7 @@ test('findAll()', async t => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       name: EXPECTED_CONTACT_NAME,
-    } as PUPPET.payload.Contact
+    } as PUPPET.payloads.Contact
   })
 
   const contactList = await wechaty.Contact.findAll()

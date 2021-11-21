@@ -11,7 +11,7 @@ interface WechatyOptions {
   memory?        : MemoryCard,
   name?          : string,                                          // Wechaty Name
 
-  puppet?        : PuppetModuleName | PUPPET.impl.PuppetInterface,  // Puppet name or instance
+  puppet?        : PuppetModuleName | PUPPET.impls.PuppetInterface,  // Puppet name or instance
   puppetOptions? : PUPPET.PuppetOptions,                            // Puppet TOKEN
   ioToken?       : string,                                          // Io TOKEN
 }

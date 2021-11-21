@@ -39,7 +39,7 @@ import {
   isTemplateStringArray,
 }                           from '../pure-functions/is-template-string-array.js'
 
-import { RoomEventEmitter }             from '../schema/mod.js'
+import { RoomEventEmitter }             from '../schemas/mod.js'
 import {
   poolifyMixin,
   wechatifyMixin,
@@ -142,7 +142,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
    */
   static async findAll (
-    query? : PUPPET.filter.Room,
+    query? : PUPPET.filters.Room,
   ): Promise<RoomInterface[]> {
     log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
 
@@ -193,7 +193,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    */
 
   static async find (
-    query : string | PUPPET.filter.Room,
+    query : string | PUPPET.filters.Room,
   ): Promise<undefined | RoomInterface> {
     log.silly('Room', 'find(%s)', JSON.stringify(query))
 
@@ -249,7 +249,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *
    *
    */
-  protected _payload?: PUPPET.payload.Room
+  protected _payload?: PUPPET.payloads.Room
   get payload () {
     if (this._payload) {
       return this._payload
@@ -964,7 +964,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
   async memberAll ()                                : Promise<ContactInterface[]>
   async memberAll (name: string)                    : Promise<ContactInterface[]>
-  async memberAll (filter: PUPPET.filter.RoomMember) : Promise<ContactInterface[]>
+  async memberAll (filter: PUPPET.filters.RoomMember) : Promise<ContactInterface[]>
 
   /**
    * The way to search member by Room.member()
@@ -993,7 +993,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * console.log(`contact list with all name, room alias, alias are abc:`, memberContactList)
    */
   async memberAll (
-    query?: string | PUPPET.filter.RoomMember,
+    query?: string | PUPPET.filters.RoomMember,
   ): Promise<ContactInterface[]> {
     log.silly('Room', 'memberAll(%s)',
       JSON.stringify(query) || '',
@@ -1013,7 +1013,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   }
 
   async member (name  : string)                 : Promise<undefined | ContactInterface>
-  async member (filter: PUPPET.filter.RoomMember): Promise<undefined | ContactInterface>
+  async member (filter: PUPPET.filters.RoomMember): Promise<undefined | ContactInterface>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
@@ -1044,7 +1044,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    */
   async member (
-    queryArg: string | PUPPET.filter.RoomMember,
+    queryArg: string | PUPPET.filters.RoomMember,
   ): Promise<undefined | ContactInterface> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 

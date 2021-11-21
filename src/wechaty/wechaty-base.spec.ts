@@ -23,6 +23,7 @@ import {
   sinon,
 }              from 'tstest'
 
+import { MemoryCard } from 'memory-card'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 /**
@@ -47,9 +48,8 @@ import {
 
 import type {
   WechatyInterface,
-}                 from '../wechaty/wechaty-impl.js'
-import { WechatySkeleton } from './wechaty-skeleton.js'
-import { MemoryCard } from 'wechaty-puppet/helper'
+}                           from '../wechaty/wechaty-impl.js'
+import { WechatySkeleton }  from './wechaty-skeleton.js'
 
 class WechatyTest extends WechatyBase {
 }

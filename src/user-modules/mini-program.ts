@@ -39,7 +39,7 @@ class MiniProgramMixin extends wechatifyMixinBase() {
     log.verbose('MiniProgram', 'create()')
 
     // TODO: get appid and username from wechat
-    const payload: PUPPET.payload.MiniProgram = {
+    const payload: PUPPET.payloads.MiniProgram = {
       appid              : 'todo',
       description        : 'todo',
       pagePath           : 'todo',
@@ -56,7 +56,7 @@ class MiniProgramMixin extends wechatifyMixinBase() {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: PUPPET.payload.MiniProgram,
+    public readonly payload: PUPPET.payloads.MiniProgram,
   ) {
     super()
     log.verbose('MiniProgram', 'constructor()')

@@ -24,7 +24,7 @@ import type { Constructor } from '../deprecated/clone-class.js'
 
 import type {
   Accepter,
-}                     from '../schema/acceptable.js'
+}                     from '../schemas/acceptable.js'
 import {
   timestampToDate,
 }                     from '../pure-functions/timestamp-to-date.js'
@@ -236,7 +236,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    * await roomInvitation.accept()
    */
   static async fromJSON (
-    payload: string | PUPPET.payload.RoomInvitation,
+    payload: string | PUPPET.payloads.RoomInvitation,
   ): Promise<RoomInvitationInterface> {
     log.verbose('RoomInvitation', 'fromJSON(%s)',
       typeof payload === 'string'
@@ -245,7 +245,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
     )
 
     if (typeof payload === 'string') {
-      payload = JSON.parse(payload) as PUPPET.payload.RoomInvitation
+      payload = JSON.parse(payload) as PUPPET.payloads.RoomInvitation
     }
 
     await this.wechaty.puppet.roomInvitationPayload(payload.id, payload)
