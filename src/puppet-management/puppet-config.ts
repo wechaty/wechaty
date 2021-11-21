@@ -37,14 +37,6 @@ const PUPPET_DEPENDENCIES = {
   //    'wechaty-puppet-hostie'    : '*',       // https://www.npmjs.com/package/wechaty-puppet-hostie
 
   /**
-   * Deprecated on Jan 2021: rename to wechaty-puppet-service
-   *  https://github.com/wechaty/wechaty-puppet-service/issues/118
-   *
-   * TODO: Huan(202101): will be removed after Dec 31, 2021
-   */
-  'wechaty-puppet-puppeteer' : '>=0.24',  // https://www.npmjs.com/package/wechaty-puppet-puppeteer
-
-  /**
    * Wechaty Internal Puppets: dependency by package.json
    *
    *  Huan(202108): DO NOT REMOVE THE SPECIFIC VERSIONS BELOW

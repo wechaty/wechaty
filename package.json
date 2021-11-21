@@ -5,8 +5,8 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/esm/src/mods/mods.js",
-      "require": "./dist/cjs/src/mods/mods.js"
+      "import": "./dist/esm/src/mods/mod.js",
+      "require": "./dist/cjs/src/mods/mod.js"
     },
     "./impls": {
       "import": "./dist/esm/src/mods/impls.js",
