@@ -56,8 +56,8 @@ test('recalled()', async t => {
         id: EXPECTED_RECALL_MESSAGE_ID,
         text: EXPECTED_RECALLED_MESSAGE_ID,
         timestamp: EXPECTED_MESSAGE_TIMESTAMP,
-        type: PUPPET.type.Message.Recalled,
-      } as PUPPET.payload.Message
+        type: PUPPET.types.Message.Recalled,
+      } as PUPPET.payloads.Message
     } else {
       return {
         fromId: EXPECTED_FROM_CONTACT_ID,
@@ -66,15 +66,15 @@ test('recalled()', async t => {
         text: '',
         timestamp: EXPECTED_MESSAGE_TIMESTAMP,
         toId: EXPECTED_TO_CONTACT_ID,
-        type: PUPPET.type.Message.Text,
-      } as PUPPET.payload.Message
+        type: PUPPET.types.Message.Text,
+      } as PUPPET.payloads.Message
     }
   })
   sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
-    } as PUPPET.payload.Room
+    } as PUPPET.payloads.Room
   })
 
   sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
@@ -87,7 +87,7 @@ test('recalled()', async t => {
     return {
       id,
       name: id,
-    } as PUPPET.payload.Contact
+    } as PUPPET.payloads.Contact
   })
 
   const fakeIdSearcher = async (...args: any[]) => {

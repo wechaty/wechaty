@@ -49,7 +49,7 @@ class ImageMixin extends wechatifyMixinBase() {
     log.verbose('Image', 'thumbnail() for id: "%s"', this.id)
     const fileBox = await this.wechaty.puppet.messageImage(
       this.id,
-      PUPPET.type.Image.Thumbnail,
+      PUPPET.types.Image.Thumbnail,
     )
     return fileBox
   }
@@ -58,7 +58,7 @@ class ImageMixin extends wechatifyMixinBase() {
     log.verbose('Image', 'hd() for id: "%s"', this.id)
     const fileBox = await this.wechaty.puppet.messageImage(
       this.id,
-      PUPPET.type.Image.HD,
+      PUPPET.types.Image.HD,
     )
     return fileBox
   }
@@ -67,7 +67,7 @@ class ImageMixin extends wechatifyMixinBase() {
     log.verbose('Image', 'artwork() for id: "%s"', this.id)
     const fileBox = await this.wechaty.puppet.messageImage(
       this.id,
-      PUPPET.type.Image.Artwork,
+      PUPPET.types.Image.Artwork,
     )
     return fileBox
   }

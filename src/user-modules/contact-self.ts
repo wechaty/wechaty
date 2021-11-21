@@ -55,7 +55,7 @@ const MixinBase = poolifyMixin(
 class ContactSelfMixin extends MixinBase {
 
   static override async find (
-    query : string | PUPPET.filter.Contact,
+    query : string | PUPPET.filters.Contact,
   ): Promise<undefined | ContactSelfInterface> {
     if (!this.wechaty.isLoggedIn) {
       return undefined

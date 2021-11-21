@@ -67,8 +67,8 @@ const MixinBase = wechatifyMixin(
  */
 class ContactMixin extends MixinBase implements SayableSayer {
 
-  static Type   = PUPPET.type.Contact
-  static Gender = PUPPET.type.ContactGender
+  static Type   = PUPPET.types.Contact
+  static Gender = PUPPET.types.ContactGender
 
   /**
    * The way to search Contact
@@ -94,7 +94,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
   static async find (
-    query : string | PUPPET.filter.Contact,
+    query : string | PUPPET.filters.Contact,
   ): Promise<undefined | ContactInterface> {
     log.silly('Contact', 'find(%s)', JSON.stringify(query))
 
@@ -158,7 +158,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const contactList = await bot.Contact.findAll({ alias: 'lijiarui' }) // find all of the contacts whose alias is 'lijiarui'
    */
   static async findAll (
-    query? : string | PUPPET.filter.Contact,
+    query? : string | PUPPET.filters.Contact,
   ): Promise<ContactInterface[]> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
 
@@ -224,7 +224,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @ignore
    *
    */
-  protected _payload?: PUPPET.payload.Contact
+  protected _payload?: PUPPET.payloads.Contact
 
   /**
    * @hideconstructor
@@ -471,7 +471,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
       return this._payload.corporation
     }
 
-    if (this._payload.type !== PUPPET.type.Contact.Individual) {
+    if (this._payload.type !== PUPPET.types.Contact.Individual) {
       throw new Error('Can not set corporation remark on non individual contact.')
     }
 
@@ -560,7 +560,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * await bot.start()
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
-  type (): PUPPET.type.Contact {
+  type (): PUPPET.types.Contact {
     if (!this._payload) {
       throw new Error('no payload')
     }
@@ -587,10 +587,10 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @example
    * const gender = contact.gender() === bot.Contact.Gender.Male
    */
-  gender (): PUPPET.type.ContactGender {
+  gender (): PUPPET.types.ContactGender {
     return this._payload
       ? this._payload.gender
-      : PUPPET.type.ContactGender.Unknown
+      : PUPPET.types.ContactGender.Unknown
   }
 
   /**

@@ -114,10 +114,10 @@
     "ix": "^4.5.2",
     "json-rpc-peer": "^0.17.0",
     "open-graph": "^0.2.6",
-    "state-switch": "~1.6.1",
+    "state-switch": "~1.6.2",
     "uuid": "^8.3.2",
-    "wechaty-puppet": "~1.10.1",
-    "wechaty-puppet-service": "~1.10.1",
+    "wechaty-puppet": "~1.10.2",
+    "wechaty-puppet-service": "~1.10.2",
     "ws": "^8.2.3"
   },
   "devDependencies": {
@@ -140,7 +140,7 @@
     "sloc": "^0.2.1",
     "typed-emitter": "^1.4.0",
     "typedoc": "^1.0.0-dev.4 ",
-    "wechaty-puppet-mock": "^1.0.3",
+    "wechaty-puppet-mock": "^1.10.2",
     "wechaty-puppet-padlocal": "^0.4.2"
   },
   "files": [

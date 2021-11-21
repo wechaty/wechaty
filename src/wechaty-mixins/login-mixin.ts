@@ -77,18 +77,18 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
 
       const onScan: WechatyEventListeners['scan'] = (qrcode, status) => {
         switch (status) {
-          case PUPPET.type.ScanStatus.Cancel:
-          case PUPPET.type.ScanStatus.Confirmed:
-          case PUPPET.type.ScanStatus.Scanned:
+          case PUPPET.types.ScanStatus.Cancel:
+          case PUPPET.types.ScanStatus.Confirmed:
+          case PUPPET.types.ScanStatus.Scanned:
             cleanAuthQrCode()
             break
 
-          case PUPPET.type.ScanStatus.Timeout:  // TODO: confirm the `Timeout` spec (define it if it is not defined)
-          case PUPPET.type.ScanStatus.Waiting:
+          case PUPPET.types.ScanStatus.Timeout:  // TODO: confirm the `Timeout` spec (define it if it is not defined)
+          case PUPPET.types.ScanStatus.Waiting:
             this.__authQrCode = qrcode
             break
 
-          case PUPPET.type.ScanStatus.Unknown:
+          case PUPPET.types.ScanStatus.Unknown:
           default:
             break
         }

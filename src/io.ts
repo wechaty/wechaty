@@ -67,7 +67,7 @@ type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
   name    : 'scan',
-  payload : PUPPET.payload.EventScan,
+  payload : PUPPET.payloads.EventScan,
 }
 
 interface IoEventJsonRpc {
@@ -112,7 +112,7 @@ export class Io {
 
   protected onMessage: undefined | Function
 
-  protected scanPayload?: PUPPET.payload.EventScan
+  protected scanPayload?: PUPPET.payloads.EventScan
 
   protected jsonRpc?: jsonRpcPeer.Peer
 

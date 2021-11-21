@@ -49,7 +49,7 @@ test('findAll()', async t => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
-    } as PUPPET.payload.Room
+    } as PUPPET.payloads.Room
   })
 
   const roomList = await wechaty.Room.findAll()
@@ -84,19 +84,19 @@ test('say()', async () => {
     return {
       id: contactId,
       roomAlias: CONTACT_MAP[contactId],
-    } as PUPPET.payload.RoomMember
+    } as PUPPET.payloads.RoomMember
   })
   sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
-    } as PUPPET.payload.Room
+    } as PUPPET.payloads.Room
   })
   sandbox.stub(puppet, 'contactPayload').callsFake(async (contactId) => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       id: contactId,
-    } as PUPPET.payload.Contact
+    } as PUPPET.payloads.Contact
   })
   // sandbox.spy(puppet, 'messageSendText')
   sandbox.stub(puppet, 'messageSendText').callsFake(callback)

@@ -38,9 +38,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
   abstract class PuppetMixin extends mixinBase {
 
-    __puppet?: PUPPET.impl.PuppetInterface
+    __puppet?: PUPPET.impls.PuppetInterface
 
-    get puppet (): PUPPET.impl.PuppetInterface {
+    get puppet (): PUPPET.impls.PuppetInterface {
       if (!this.__puppet) {
         throw new Error('NOPUPPET')
       }
@@ -180,10 +180,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.verbose('WechatyPuppetMixin', '__initPuppetInstance() emitting "puppet" event ... done')
     }
 
-    __setupPuppetEvents (puppet: PUPPET.impl.PuppetInterface): void {
+    __setupPuppetEvents (puppet: PUPPET.impls.PuppetInterface): void {
       log.verbose('WechatyPuppetMixin', '__setupPuppetEvents(%s)', puppet)
 
-      const eventNameList: PUPPET.type.PuppetEventName[] = Object.keys(PUPPET.type.PUPPET_EVENT_DICT) as PUPPET.type.PuppetEventName[]
+      const eventNameList: PUPPET.types.PuppetEventName[] = Object.keys(PUPPET.types.PUPPET_EVENT_DICT) as PUPPET.types.PuppetEventName[]
       for (const eventName of eventNameList) {
         log.verbose('PuppetMixin',
           '__setupPuppetEvents() puppet.on(%s) (listenerCount:%s) registering...',
@@ -409,25 +409,25 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
             puppet.on('dirty', async ({ payloadType, payloadId }) => {
               try {
                 switch (payloadType) {
-                  case PUPPET.type.Payload.RoomMember:
-                  case PUPPET.type.Payload.Contact:
+                  case PUPPET.types.Payload.RoomMember:
+                  case PUPPET.types.Payload.Contact:
                     await (await this.Contact.find({ id: payloadId }))?.sync()
                     break
-                  case PUPPET.type.Payload.Room:
+                  case PUPPET.types.Payload.Room:
                     await (await this.Room.find({ id: payloadId }))?.sync()
                     break
 
                   /**
                    * Huan(202008): noop for the following
                    */
-                  case PUPPET.type.Payload.Friendship:
+                  case PUPPET.types.Payload.Friendship:
                     // Friendship has no payload
                     break
-                  case PUPPET.type.Payload.Message:
+                  case PUPPET.types.Payload.Message:
                     // Message does not need to dirty (?)
                     break
 
-                  case PUPPET.type.Payload.Unspecified:
+                  case PUPPET.types.Payload.Unspecified:
                   default:
                     throw new Error('unknown payload type: ' + payloadType)
                 }
