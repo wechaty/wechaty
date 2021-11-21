@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "1.9.3",
+  "version": "1.10.0",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -51,7 +51,7 @@
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^4.5.1",
+    "@chatie/tsconfig": "^4.5.3",
     "@types/google-protobuf": "^3.15.5",
     "@types/lru-cache": "^5.1.1",
     "@types/semver": "^7.3.9",
@@ -64,7 +64,7 @@
     "why-is-node-running": "^2.2.0"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^1.7.18"
+    "wechaty-puppet": "^1.10.1"
   },
   "dependencies": {
     "clone-class": "^1.0.3",
