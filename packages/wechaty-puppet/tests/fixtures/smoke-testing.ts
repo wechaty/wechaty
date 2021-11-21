@@ -7,11 +7,10 @@ import type {
   FileBoxInterface,
 }                     from 'file-box'
 
-import * as FILTER   from 'wechaty-puppet/filter'
-import * as HELPER   from 'wechaty-puppet/helper'
-import * as IMPL     from 'wechaty-puppet/impl'
-import * as PAYLOAD  from 'wechaty-puppet/payload'
-import * as TYPE     from 'wechaty-puppet/type'
+import * as FILTERS   from 'wechaty-puppet/filters'
+import * as IMPLS     from 'wechaty-puppet/impls'
+import * as PAYLOADS  from 'wechaty-puppet/payloads'
+import * as TYPES     from 'wechaty-puppet/types'
 
 class PuppetTest extends PUPPET.Puppet {
 
@@ -168,17 +167,15 @@ class PuppetTest extends PUPPET.Puppet {
 async function main () {
   const puppetInstance: PUPPET.Puppet = new PuppetTest()
 
-  const payload: PAYLOAD.EventHeartbeat = { data: 'payload' }
-  const type: TYPE.ContactGender        = TYPE.ContactGender.Male
-  const filter: FILTER.Contact          = { id: 'id' }
-  const fileBox                         = HELPER.FileBox.fromQRCode('qrcode')
-  const puppet: IMPL.PuppetAbstract     = puppetInstance
+  const payload: PAYLOADS.EventHeartbeat = { data: 'payload' }
+  const type: TYPES.ContactGender        = TYPES.ContactGender.Male
+  const filter: FILTERS.Contact          = { id: 'id' }
+  const puppet: IMPLS.PuppetAbstract     = puppetInstance
 
-  assert.ok(payload,  'should get valid PAYLOAD')
-  assert.ok(type,     'should get valid TYPE')
+  assert.ok(payload,  'should get valid PAYLOADS')
+  assert.ok(type,     'should get valid TYPES')
   assert.ok(filter,   'should get valid FilTERS')
-  assert.ok(fileBox,  'should get valid FileBox')
-  assert.ok(puppet,   'should get valid IMPL')
+  assert.ok(puppet,   'should get valid IMPLS')
 
   if (PUPPET.VERSION === '0.0.0' || puppetInstance.name() === 'NONAME') {
     throw new Error('the `src/package-json.ts` has not been generated correctly.')
