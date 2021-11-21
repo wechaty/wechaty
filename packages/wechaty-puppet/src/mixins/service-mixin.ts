@@ -33,12 +33,14 @@ const serviceMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinB
       log.verbose('PuppetServiceMixin', 'start()')
       await super.start()
       this.__watchdog.start()
+      this.emit('start')
     }
 
     override async stop (): Promise<void> {
       log.verbose('PuppetServiceMixin', 'stop()')
       this.__watchdog.stop()
       await super.stop()
+      this.emit('stop')
     }
 
   }

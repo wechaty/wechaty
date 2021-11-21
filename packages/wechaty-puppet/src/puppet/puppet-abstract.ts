@@ -61,8 +61,8 @@ const PipedBase = FP.pipe(
   tagMixin,
   roomInvitationMixin,
   messageMixin,
-  serviceMixin,
   miscMixin,
+  serviceMixin,
   // TODO: validateMixin,
 )
 
