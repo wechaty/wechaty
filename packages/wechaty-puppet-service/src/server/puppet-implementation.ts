@@ -48,7 +48,7 @@ import { grpcError }          from './grpc-error.js'
 import { EventStreamManager } from './event-stream-manager.js'
 
 function puppetImplementation (
-  puppet      : PUPPET.impl.PuppetInterface,
+  puppet      : PUPPET.impls.PuppetInterface,
   FileBoxUuid : typeof FileBox,
 ): grpcPuppet.IPuppetServer {
 
@@ -57,8 +57,8 @@ function puppetImplementation (
    *
    * TODO: clean the listeners if necessary
    */
-  let scanPayload: undefined  | PUPPET.payload.EventScan
-  let readyPayload: undefined | PUPPET.payload.EventReady
+  let scanPayload: undefined  | PUPPET.payloads.EventScan
+  let readyPayload: undefined | PUPPET.payloads.EventReady
   let readyTimeout: undefined | ReturnType<typeof setTimeout>
 
   puppet.on('scan', payload  => { scanPayload = payload    })
@@ -322,7 +322,7 @@ function puppetImplementation (
 
       try {
         const id = call.request.getId()
-        const type: PUPPET.type.Payload = call.request.getType()
+        const type: PUPPET.types.Payload = call.request.getType()
 
         await puppet.dirtyPayload(type, id)
         return callback(null, new grpcPuppet.DirtyPayloadResponse())
@@ -393,7 +393,7 @@ function puppetImplementation (
         const hello = call.request.getHello()
 
         const referrer = call.request.getReferrer()
-        const friendshipAddOptions: PUPPET.type.FriendshipAddOptions = {
+        const friendshipAddOptions: PUPPET.types.FriendshipAddOptions = {
           hello,
           ...referrer,
         }
@@ -420,14 +420,14 @@ function puppetImplementation (
       try {
         const id = call.request.getId()
         const payload = await puppet.friendshipPayload(id)
-        const payloadReceive = payload as PUPPET.payload.FriendshipReceive
+        const payloadReceive = payload as PUPPET.payloads.FriendshipReceive
 
         const response = new grpcPuppet.FriendshipPayloadResponse()
 
         response.setContactId(payload.contactId)
         response.setHello(payload.hello || '')
         response.setId(payload.id)
-        response.setScene(payloadReceive.scene || PUPPET.type.FriendshipScene.Unknown)
+        response.setScene(payloadReceive.scene || PUPPET.types.FriendshipScene.Unknown)
         response.setStranger(payloadReceive.stranger || '')
         response.setTicket(payloadReceive.ticket)
         response.setType(payload.type)
@@ -610,7 +610,7 @@ function puppetImplementation (
         const id    = call.request.getId()
         const type  = call.request.getType()
 
-        const fileBox  = await puppet.messageImage(id, type) //  as number as PUPPET.type.Image
+        const fileBox  = await puppet.messageImage(id, type) //  as number as PUPPET.types.Image
         const response = await packFileBoxToPb(grpcPuppet.MessageImageStreamResponse)(fileBox)
 
         response.on('error', e => call.destroy(e as Error))
@@ -834,7 +834,7 @@ function puppetImplementation (
         const conversationId    = call.request.getConversationId()
         const pbLocationPayload = call.request.getLocation()
 
-        const payload: PUPPET.payload.Location = {
+        const payload: PUPPET.payloads.Location = {
           accuracy  : 0,
           address   : 'NOADDRESS',
           latitude  : 0,
@@ -870,7 +870,7 @@ function puppetImplementation (
           pbMiniProgramPayload = JSON.parse(jsonText)
         }
 
-        const payload: PUPPET.payload.MiniProgram = {
+        const payload: PUPPET.payloads.MiniProgram = {
           ...pbMiniProgramPayload,
         }
 
@@ -941,7 +941,7 @@ function puppetImplementation (
           pbUrlLinkPayload = JSON.parse(jsonText)
         }
 
-        const payload: PUPPET.payload.UrlLink = {
+        const payload: PUPPET.payloads.UrlLink = {
           title : 'NOTITLE',
           url   : 'NOURL',
           ...pbUrlLinkPayload,
@@ -1123,7 +1123,7 @@ function puppetImplementation (
           const jsonText = call.request.getPayload()
 
           if (jsonText) {
-            const payload = JSON.parse(jsonText) as PUPPET.payload.RoomInvitation
+            const payload = JSON.parse(jsonText) as PUPPET.payloads.RoomInvitation
             await puppet.roomInvitationPayload(roomInvitationId, payload)
 
             return callback(null, new grpcPuppet.RoomInvitationPayloadResponse())
@@ -1137,7 +1137,7 @@ function puppetImplementation (
 
             if (payloadWrapper) {
               const jsonText = payloadWrapper.getValue()
-              const payload = JSON.parse(jsonText) as PUPPET.payload.RoomInvitation
+              const payload = JSON.parse(jsonText) as PUPPET.payloads.RoomInvitation
               await puppet.roomInvitationPayload(roomInvitationId, payload)
 
               return callback(null, new grpcPuppet.RoomInvitationPayloadResponse())

@@ -41,15 +41,15 @@ class PuppetTest extends PuppetMock {
     super(...args)
   }
 
-  override async contactRawPayload (id: string): Promise<PUPPET.payload.Contact> {
+  override async contactRawPayload (id: string): Promise<PUPPET.payloads.Contact> {
     log.verbose('PuppetTest', 'contactRawPayload(%s)', id)
-    const rawPayload: PUPPET.payload.Contact = {
+    const rawPayload: PUPPET.payloads.Contact = {
       avatar : '',
-      gender : PUPPET.type.ContactGender.Male,
+      gender : PUPPET.types.ContactGender.Male,
       id,
       name : idToName(id),
       phone: [],
-      type   : PUPPET.type.Contact.Individual,
+      type   : PUPPET.types.Contact.Individual,
     }
 
     await new Promise<void>(resolve => {

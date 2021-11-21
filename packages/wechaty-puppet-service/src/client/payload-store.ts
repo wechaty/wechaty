@@ -39,16 +39,16 @@ interface PayloadStoreOptions {
 }
 
 interface StoreRoomMemberPayload {
-  [roomMemberContactId: string]: PUPPET.payload.RoomMember
+  [roomMemberContactId: string]: PUPPET.payloads.RoomMember
 }
 
 class PayloadStore {
 
   // public message?    : LRU<string, MessagePayload>
 
-  public contact?    : FlashStore<string, PUPPET.payload.Contact>
+  public contact?    : FlashStore<string, PUPPET.payloads.Contact>
   public roomMember? : FlashStore<string, StoreRoomMemberPayload>
-  public room?       : FlashStore<string, PUPPET.payload.Room>
+  public room?       : FlashStore<string, PUPPET.payloads.Room>
 
   protected storeDir:   string
   protected accountId?: string

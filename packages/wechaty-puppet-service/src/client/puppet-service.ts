@@ -280,20 +280,20 @@ class PuppetService extends PUPPET.Puppet {
 
     switch (type) {
       case grpcPuppet.EventType.EVENT_TYPE_DONG:
-        this.emit('dong', JSON.parse(payload) as PUPPET.payload.EventDong)
+        this.emit('dong', JSON.parse(payload) as PUPPET.payloads.EventDong)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ERROR:
-        this.emit('error', JSON.parse(payload) as PUPPET.payload.EventError)
+        this.emit('error', JSON.parse(payload) as PUPPET.payloads.EventError)
         break
       case grpcPuppet.EventType.EVENT_TYPE_HEARTBEAT:
-        this.emit('heartbeat', JSON.parse(payload) as PUPPET.payload.EventHeartbeat)
+        this.emit('heartbeat', JSON.parse(payload) as PUPPET.payloads.EventHeartbeat)
         break
       case grpcPuppet.EventType.EVENT_TYPE_FRIENDSHIP:
-        this.emit('friendship', JSON.parse(payload) as PUPPET.payload.EventFriendship)
+        this.emit('friendship', JSON.parse(payload) as PUPPET.payloads.EventFriendship)
         break
       case grpcPuppet.EventType.EVENT_TYPE_LOGIN:
         {
-          const loginPayload = JSON.parse(payload) as PUPPET.payload.EventLogin
+          const loginPayload = JSON.parse(payload) as PUPPET.payloads.EventLogin
           ;(
             async () => this.login(loginPayload.contactId)
           )().catch(e =>
@@ -305,7 +305,7 @@ class PuppetService extends PUPPET.Puppet {
         break
       case grpcPuppet.EventType.EVENT_TYPE_LOGOUT:
         {
-          const logoutPayload = JSON.parse(payload) as PUPPET.payload.EventLogout
+          const logoutPayload = JSON.parse(payload) as PUPPET.payloads.EventLogout
           ;(
             async () => this.logout(logoutPayload.data)
           )().catch(e =>
@@ -316,28 +316,28 @@ class PuppetService extends PUPPET.Puppet {
         }
         break
       case grpcPuppet.EventType.EVENT_TYPE_DIRTY:
-        this.emit('dirty', JSON.parse(payload) as PUPPET.payload.EventDirty)
+        this.emit('dirty', JSON.parse(payload) as PUPPET.payloads.EventDirty)
         break
       case grpcPuppet.EventType.EVENT_TYPE_MESSAGE:
-        this.emit('message', JSON.parse(payload) as PUPPET.payload.EventMessage)
+        this.emit('message', JSON.parse(payload) as PUPPET.payloads.EventMessage)
         break
       case grpcPuppet.EventType.EVENT_TYPE_READY:
-        this.emit('ready', JSON.parse(payload) as PUPPET.payload.EventReady)
+        this.emit('ready', JSON.parse(payload) as PUPPET.payloads.EventReady)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_INVITE:
-        this.emit('room-invite', JSON.parse(payload) as PUPPET.payload.EventRoomInvite)
+        this.emit('room-invite', JSON.parse(payload) as PUPPET.payloads.EventRoomInvite)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_JOIN:
-        this.emit('room-join', JSON.parse(payload) as PUPPET.payload.EventRoomJoin)
+        this.emit('room-join', JSON.parse(payload) as PUPPET.payloads.EventRoomJoin)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_LEAVE:
-        this.emit('room-leave', JSON.parse(payload) as PUPPET.payload.EventRoomLeave)
+        this.emit('room-leave', JSON.parse(payload) as PUPPET.payloads.EventRoomLeave)
         break
       case grpcPuppet.EventType.EVENT_TYPE_ROOM_TOPIC:
-        this.emit('room-topic', JSON.parse(payload) as PUPPET.payload.EventRoomTopic)
+        this.emit('room-topic', JSON.parse(payload) as PUPPET.payloads.EventRoomTopic)
         break
       case grpcPuppet.EventType.EVENT_TYPE_SCAN:
-        this.emit('scan', JSON.parse(payload) as PUPPET.payload.EventScan)
+        this.emit('scan', JSON.parse(payload) as PUPPET.payloads.EventScan)
         break
       case grpcPuppet.EventType.EVENT_TYPE_RESET:
         log.warn('PuppetService', 'onGrpcStreamEvent() got an EventType.EVENT_TYPE_RESET ?')
@@ -394,7 +394,7 @@ class PuppetService extends PUPPET.Puppet {
    *    @see https://github.com/wechaty/puppet/issues/158
    *
    */
-  override async dirtyPayload (type: PUPPET.type.Payload, id: string) {
+  override async dirtyPayload (type: PUPPET.types.Payload, id: string) {
     log.verbose('PuppetService', 'dirtyPayload(%s, %s)', type, id)
 
     const request = new grpcPuppet.DirtyPayloadRequest()
@@ -420,17 +420,17 @@ class PuppetService extends PUPPET.Puppet {
     {
       payloadType,
       payloadId,
-    }: PUPPET.payload.EventDirty,
+    }: PUPPET.payloads.EventDirty,
   ): void {
-    log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.type.Payload[payloadType], payloadType, payloadId)
+    log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.types.Payload[payloadType], payloadType, payloadId)
 
     const dirtyMap = {
-      [PUPPET.type.Payload.Contact]:      async (id: string) => this._payloadStore.contact?.delete(id),
-      [PUPPET.type.Payload.Friendship]:   async (_: string) => {},
-      [PUPPET.type.Payload.Message]:      async (_: string) => {},
-      [PUPPET.type.Payload.Room]:         async (id: string) => this._payloadStore.room?.delete(id),
-      [PUPPET.type.Payload.RoomMember]:   async (id: string) => this._payloadStore.roomMember?.delete(id),
-      [PUPPET.type.Payload.Unspecified]:  async (id: string) => { throw new Error('Unspecified type with id: ' + id) },
+      [PUPPET.types.Payload.Contact]:      async (id: string) => this._payloadStore.contact?.delete(id),
+      [PUPPET.types.Payload.Friendship]:   async (_: string) => {},
+      [PUPPET.types.Payload.Message]:      async (_: string) => {},
+      [PUPPET.types.Payload.Room]:         async (id: string) => this._payloadStore.room?.delete(id),
+      [PUPPET.types.Payload.RoomMember]:   async (id: string) => this._payloadStore.roomMember?.delete(id),
+      [PUPPET.types.Payload.Unspecified]:  async (id: string) => { throw new Error('Unspecified type with id: ' + id) },
     }
 
     const dirtyFuncSync = this.wrapAsync(dirtyMap[payloadType])
@@ -636,7 +636,7 @@ class PuppetService extends PUPPET.Puppet {
     return this.FileBoxUuid.fromJSON(jsonText)
   }
 
-  override async contactRawPayload (id: string): Promise<PUPPET.payload.Contact> {
+  override async contactRawPayload (id: string): Promise<PUPPET.payloads.Contact> {
     log.verbose('PuppetService', 'contactRawPayload(%s)', id)
 
     const cachedPayload = await this._payloadStore.contact?.get(id)
@@ -653,7 +653,7 @@ class PuppetService extends PUPPET.Puppet {
         .bind(this.grpcManager.client),
     )(request)
 
-    const payload: PUPPET.payload.Contact = {
+    const payload: PUPPET.payloads.Contact = {
       address     : response.getAddress(),
       alias       : response.getAlias(),
       avatar      : response.getAvatar(),
@@ -680,7 +680,7 @@ class PuppetService extends PUPPET.Puppet {
     return payload
   }
 
-  override async contactRawPayloadParser (payload: PUPPET.payload.Contact): Promise<PUPPET.payload.Contact> {
+  override async contactRawPayloadParser (payload: PUPPET.payloads.Contact): Promise<PUPPET.payloads.Contact> {
     // log.silly('PuppetService', 'contactRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -741,7 +741,7 @@ class PuppetService extends PUPPET.Puppet {
    */
   override async messageMiniProgram (
     messageId: string,
-  ): Promise<PUPPET.payload.MiniProgram> {
+  ): Promise<PUPPET.payloads.MiniProgram> {
     log.verbose('PuppetService', 'messageMiniProgram(%s)', messageId)
 
     const request = new grpcPuppet.MessageMiniProgramRequest()
@@ -761,7 +761,7 @@ class PuppetService extends PUPPET.Puppet {
       miniProgramPayload = JSON.parse(jsonText)
     }
 
-    const payload: PUPPET.payload.MiniProgram = {
+    const payload: PUPPET.payloads.MiniProgram = {
       ...miniProgramPayload,
     }
 
@@ -770,7 +770,7 @@ class PuppetService extends PUPPET.Puppet {
 
   override async messageLocation (
     messageId: string,
-  ): Promise<PUPPET.payload.Location> {
+  ): Promise<PUPPET.payloads.Location> {
     log.verbose('PuppetService', 'messageLocation(%s)', messageId)
 
     const request = new grpcPuppet.MessageLocationRequest()
@@ -782,7 +782,7 @@ class PuppetService extends PUPPET.Puppet {
     )(request)
 
     const locationPayload = response.getLocation()
-    const payload: PUPPET.payload.Location = {
+    const payload: PUPPET.payloads.Location = {
       accuracy  : 0,
       address   : 'NOADDRESS',
       latitude  : 0,
@@ -796,12 +796,12 @@ class PuppetService extends PUPPET.Puppet {
 
   override async messageImage (
     messageId: string,
-    imageType: PUPPET.type.Image,
+    imageType: PUPPET.types.Image,
   ): Promise<FileBoxInterface> {
     log.verbose('PuppetService', 'messageImage(%s, %s[%s])',
       messageId,
       imageType,
-      PUPPET.type.Image[imageType],
+      PUPPET.types.Image[imageType],
     )
 
     try {
@@ -857,7 +857,7 @@ class PuppetService extends PUPPET.Puppet {
 
   override async messageSendMiniProgram (
     conversationId     : string,
-    miniProgramPayload : PUPPET.payload.MiniProgram,
+    miniProgramPayload : PUPPET.payloads.MiniProgram,
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendMiniProgram(%s, "%s")', conversationId, JSON.stringify(miniProgramPayload))
 
@@ -906,7 +906,7 @@ class PuppetService extends PUPPET.Puppet {
 
   override async messageSendLocation (
     conversationId: string,
-    locationPayload: PUPPET.payload.Location,
+    locationPayload: PUPPET.payloads.Location,
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendLocation(%s)', conversationId, JSON.stringify(locationPayload))
 
@@ -1021,7 +1021,7 @@ class PuppetService extends PUPPET.Puppet {
     }
   }
 
-  override async messageRawPayload (id: string): Promise<PUPPET.payload.Message> {
+  override async messageRawPayload (id: string): Promise<PUPPET.payloads.Message> {
     log.verbose('PuppetService', 'messageRawPayload(%s)', id)
 
     // const cachedPayload = await this.payloadStore.message?.get(id)
@@ -1047,7 +1047,7 @@ class PuppetService extends PUPPET.Puppet {
       timestamp = response.getTimestampDeprecated()
     }
 
-    const payload: PUPPET.payload.Message = {
+    const payload: PUPPET.payloads.Message = {
       filename      : response.getFilename(),
       fromId        : response.getFromId(),
       id            : response.getId(),
@@ -1065,7 +1065,7 @@ class PuppetService extends PUPPET.Puppet {
     return payload
   }
 
-  override async messageRawPayloadParser (payload: PUPPET.payload.Message): Promise<PUPPET.payload.Message> {
+  override async messageRawPayloadParser (payload: PUPPET.payloads.Message): Promise<PUPPET.payloads.Message> {
     // log.silly('PuppetService', 'messagePayload({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1190,7 +1190,7 @@ class PuppetService extends PUPPET.Puppet {
 
   override async messageSendUrl (
     conversationId: string,
-    urlLinkPayload: PUPPET.payload.UrlLink,
+    urlLinkPayload: PUPPET.payloads.UrlLink,
   ): Promise<void | string> {
     log.verbose('PuppetService', 'messageSendUrl("%s", %s)', conversationId, JSON.stringify(urlLinkPayload))
 
@@ -1230,7 +1230,7 @@ class PuppetService extends PUPPET.Puppet {
     }
   }
 
-  override async messageUrl (messageId: string): Promise<PUPPET.payload.UrlLink> {
+  override async messageUrl (messageId: string): Promise<PUPPET.payloads.UrlLink> {
     log.verbose('PuppetService', 'messageUrl(%s)', messageId)
 
     const request = new grpcPuppet.MessageUrlRequest()
@@ -1248,7 +1248,7 @@ class PuppetService extends PUPPET.Puppet {
       pbUrlLinkPayload = JSON.parse(jsonText)
     }
 
-    const payload: PUPPET.payload.UrlLink = {
+    const payload: PUPPET.payloads.UrlLink = {
       title : 'NOTITLE',
       url   : 'NOURL',
       ...pbUrlLinkPayload,
@@ -1263,7 +1263,7 @@ class PuppetService extends PUPPET.Puppet {
    */
   override async roomRawPayload (
     id: string,
-  ): Promise<PUPPET.payload.Room> {
+  ): Promise<PUPPET.payloads.Room> {
     log.verbose('PuppetService', 'roomRawPayload(%s)', id)
 
     const cachedPayload = await this._payloadStore.room?.get(id)
@@ -1280,7 +1280,7 @@ class PuppetService extends PUPPET.Puppet {
         .bind(this.grpcManager.client),
     )(request)
 
-    const payload: PUPPET.payload.Room = {
+    const payload: PUPPET.payloads.Room = {
       adminIdList  : response.getAdminIdsList(),
       avatar       : response.getAvatar(),
       id           : response.getId(),
@@ -1295,7 +1295,7 @@ class PuppetService extends PUPPET.Puppet {
     return payload
   }
 
-  override async roomRawPayloadParser (payload: PUPPET.payload.Room): Promise<PUPPET.payload.Room> {
+  override async roomRawPayloadParser (payload: PUPPET.payloads.Room): Promise<PUPPET.payloads.Room> {
     // log.silly('PuppetService', 'roomRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1477,7 +1477,7 @@ class PuppetService extends PUPPET.Puppet {
     return response.getMemberIdsList()
   }
 
-  override async roomMemberRawPayload (roomId: string, contactId: string): Promise<PUPPET.payload.RoomMember>  {
+  override async roomMemberRawPayload (roomId: string, contactId: string): Promise<PUPPET.payloads.RoomMember>  {
     log.verbose('PuppetService', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
 
     const cachedPayload           = await this._payloadStore.roomMember?.get(roomId)
@@ -1497,7 +1497,7 @@ class PuppetService extends PUPPET.Puppet {
         .bind(this.grpcManager.client),
     )(request)
 
-    const payload: PUPPET.payload.RoomMember = {
+    const payload: PUPPET.payloads.RoomMember = {
       avatar    : response.getAvatar(),
       id        : response.getId(),
       inviterId : response.getInviterId(),
@@ -1514,7 +1514,7 @@ class PuppetService extends PUPPET.Puppet {
     return payload
   }
 
-  override async roomMemberRawPayloadParser (payload: PUPPET.payload.RoomMember): Promise<PUPPET.payload.RoomMember>  {
+  override async roomMemberRawPayloadParser (payload: PUPPET.payloads.RoomMember): Promise<PUPPET.payloads.RoomMember>  {
     // log.silly('PuppetService', 'roomMemberRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1597,7 +1597,7 @@ class PuppetService extends PUPPET.Puppet {
 
   override async roomInvitationRawPayload (
     id: string,
-  ): Promise<PUPPET.payload.RoomInvitation> {
+  ): Promise<PUPPET.payloads.RoomInvitation> {
     log.verbose('PuppetService', 'roomInvitationRawPayload(%s)', id)
 
     const request = new grpcPuppet.RoomInvitationPayloadRequest()
@@ -1627,7 +1627,7 @@ class PuppetService extends PUPPET.Puppet {
     // FIXME: how to set it better?
     timestamp ??= 0
 
-    const payload: PUPPET.payload.RoomInvitation = {
+    const payload: PUPPET.payloads.RoomInvitation = {
       avatar       : response.getAvatar(),
       id           : response.getId(),
       invitation   : response.getInvitation(),
@@ -1642,7 +1642,7 @@ class PuppetService extends PUPPET.Puppet {
     return payload
   }
 
-  override async roomInvitationRawPayloadParser (payload: PUPPET.payload.RoomInvitation): Promise<PUPPET.payload.RoomInvitation> {
+  override async roomInvitationRawPayloadParser (payload: PUPPET.payloads.RoomInvitation): Promise<PUPPET.payloads.RoomInvitation> {
     // log.silly('PuppetService', 'roomInvitationRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1711,7 +1711,7 @@ class PuppetService extends PUPPET.Puppet {
     return null
   }
 
-  override async friendshipRawPayload (id: string): Promise<PUPPET.payload.Friendship> {
+  override async friendshipRawPayload (id: string): Promise<PUPPET.payloads.Friendship> {
     log.verbose('PuppetService', 'friendshipRawPayload(%s)', id)
 
     const request = new grpcPuppet.FriendshipPayloadRequest()
@@ -1722,7 +1722,7 @@ class PuppetService extends PUPPET.Puppet {
         .bind(this.grpcManager.client),
     )(request)
 
-    const payload: PUPPET.payload.Friendship = {
+    const payload: PUPPET.payloads.Friendship = {
       contactId : response.getContactId(),
       hello: response.getHello(),
       id,
@@ -1735,7 +1735,7 @@ class PuppetService extends PUPPET.Puppet {
     return payload
   }
 
-  override async friendshipRawPayloadParser (payload: PUPPET.payload.Friendship) : Promise<PUPPET.payload.Friendship> {
+  override async friendshipRawPayloadParser (payload: PUPPET.payloads.Friendship) : Promise<PUPPET.payloads.Friendship> {
     // log.silly('PuppetService', 'friendshipRawPayloadParser({id:%s})', payload.id)
     // passthrough
     return payload
@@ -1743,7 +1743,7 @@ class PuppetService extends PUPPET.Puppet {
 
   override async friendshipAdd (
     contactId : string,
-    options   : PUPPET.type.FriendshipAddOptions,
+    options   : PUPPET.types.FriendshipAddOptions,
   ): Promise<void> {
     log.verbose('PuppetService', 'friendshipAdd(%s, %s)', contactId, JSON.stringify(options))
 

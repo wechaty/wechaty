@@ -46,7 +46,7 @@ puppet.start()
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
-function onScan (payload: PUPPET.payload.EventScan) {
+function onScan (payload: PUPPET.payloads.EventScan) {
   if (payload.qrcode) {
     const qrcodeImageUrl = [
       'https://wechaty.js.org/qrcode/',
@@ -55,11 +55,11 @@ function onScan (payload: PUPPET.payload.EventScan) {
 
     console.info(`[${payload.status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
   } else {
-    console.info(`[${payload.status}] `, PUPPET.type.ScanStatus[payload.status])
+    console.info(`[${payload.status}] `, PUPPET.types.ScanStatus[payload.status])
   }
 }
 
-async function onLogin (payload: PUPPET.payload.EventLogin) {
+async function onLogin (payload: PUPPET.payloads.EventLogin) {
   console.info(`${payload.contactId} login`)
 
   const contactPayload = await puppet.contactPayload(payload.contactId)
@@ -68,11 +68,11 @@ async function onLogin (payload: PUPPET.payload.EventLogin) {
   puppet.messageSendText(payload.contactId, 'Wechaty login').catch(console.error)
 }
 
-function onLogout (payload: PUPPET.payload.EventLogout) {
+function onLogout (payload: PUPPET.payloads.EventLogout) {
   console.info(`${payload.contactId} logouted`)
 }
 
-function onError (payload: PUPPET.payload.EventError) {
+function onError (payload: PUPPET.payloads.EventError) {
   console.error('Bot error:', payload.data)
   /*
   if (bot.isLoggedIn) {
@@ -87,7 +87,7 @@ function onError (payload: PUPPET.payload.EventError) {
  *    dealing with Messages.
  *
  */
-async function onMessage (payload: PUPPET.payload.EventMessage) {
+async function onMessage (payload: PUPPET.payloads.EventMessage) {
   console.info(`onMessage(${payload.messageId})`)
 
   // const DEBUG: boolean = true
@@ -118,7 +118,7 @@ async function onMessage (payload: PUPPET.payload.EventMessage) {
     return
   }
 
-  if (messagePayload.type === PUPPET.type.Message.Text
+  if (messagePayload.type === PUPPET.types.Message.Text
       && /^ding$/i.test(messagePayload.text || '')
   ) {
     const conversationId = messagePayload.roomId || messagePayload.fromId
