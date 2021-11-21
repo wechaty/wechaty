@@ -23,6 +23,8 @@ import type {
   RoomPayload,
 }                                 from '../schemas/room.js'
 
+import { PuppetSkeleton } from './puppet-skeleton.js'
+
 /**
  * The Fixture
  */
@@ -463,16 +465,23 @@ test('version()', async t => {
   t.equal(version, EXPECTED_VERSION, 'should get the child class package version')
 })
 
-test('PuppetSkeleton: super.start()', async t => {
+test('PuppetSkeleton: super.{start,stop}()', async t => {
+  const sandbox = sinon.createSandbox()
+
+  const startStub = sandbox.stub(PuppetSkeleton.prototype, 'start').resolves()
+  const stopStub  = sandbox.stub(PuppetSkeleton.prototype, 'stop').resolves()
+
   const puppet = new PuppetTest()
-  t.notOk(puppet.__flagSkeletonStartCalled, 'should init start flag with false')
-  t.notOk(puppet.__flagSkeletonStopCalled, 'should init stop flag with false')
+  t.notOk(startStub.called, 'should init start flag with false')
+  t.notOk(stopStub.called, 'should init stop flag with false')
 
   await puppet.start()
-  t.ok(puppet.__flagSkeletonStartCalled, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
-  t.notOk(puppet.__flagSkeletonStopCalled, 'should keep stop flag with false')
+  t.ok(startStub.called, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
+  t.notOk(stopStub.called, 'should keep stop flag with false')
 
   await puppet.stop()
-  t.ok(puppet.__flagSkeletonStartCalled, 'should keep start flag with true')
-  t.ok(puppet.__flagSkeletonStopCalled, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
+  t.ok(startStub.called, 'should keep start flag with true')
+  t.ok(stopStub.called, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
+
+  sandbox.restore()
 })
