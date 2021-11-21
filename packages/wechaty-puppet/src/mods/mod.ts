@@ -1,4 +1,23 @@
 /**
+ *   Wechaty - https://github.com/wechaty/wechaty
+ *
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+/**
  * Huan(202110): Issue #168 - ReferenceError: Cannot access 'Puppet' before initialization
  *  @see https://github.com/wechaty/puppet/issues/168
  *
@@ -39,35 +58,7 @@ export {
   VERSION,
 }
 
-/**
- * Huan(202111) We should not re-export other NPM modules
- *  because this will cause problems by adding more couple between them.
- *
- * TODO: remove it (helper) after Dec 31, 2021
- */
-export * as helper  from './helpers.js'
-
-export * as filter  from './filters.js'
-export * as impl    from './impls.js'
-export * as payload from './payloads.js'
-export * as type    from './types.js'
-
-export * as helpers  from './helpers.js'
-
 export * as filters  from './filters.js'
 export * as impls    from './impls.js'
 export * as payloads from './payloads.js'
 export * as types    from './types.js'
-
-/**
- * @deprecated use above exports instead
- *
- * The below exports are deprecated
- *  for compatible with old version (Puppet API < v1.0)
- */
-// export * from '../schemas/mod.js'
-// export * from '../puppet/mod.js'
-
-// export { FileBox } from 'file-box'
-// export { MemoryCard } from 'memory-card'
-// export { StateSwitch } from 'state-switch'
