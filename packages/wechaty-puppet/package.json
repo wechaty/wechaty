@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "1.7.25",
+  "version": "1.10.0",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
@@ -9,77 +9,77 @@
       "require": "./dist/cjs/src/mods/mod.js"
     },
     "./impl": {
-      "import": "./dist/esm/src/mods/impl.js",
-      "require": "./dist/cjs/src/mods/impl.js"
+      "import": "./dist/esm/src/mods/impls.js",
+      "require": "./dist/cjs/src/mods/impls.js"
     },
     "./impls": {
-      "import": "./dist/esm/src/mods/impl.js",
-      "require": "./dist/cjs/src/mods/impl.js"
+      "import": "./dist/esm/src/mods/impls.js",
+      "require": "./dist/cjs/src/mods/impls.js"
     },
     "./payload": {
-      "import": "./dist/esm/src/mods/payload.js",
-      "require": "./dist/cjs/src/mods/payload.js"
+      "import": "./dist/esm/src/mods/payloads.js",
+      "require": "./dist/cjs/src/mods/payloads.js"
     },
     "./payloads": {
-      "import": "./dist/esm/src/mods/payload.js",
-      "require": "./dist/cjs/src/mods/payload.js"
+      "import": "./dist/esm/src/mods/payloads.js",
+      "require": "./dist/cjs/src/mods/payloads.js"
     },
     "./type": {
-      "import": "./dist/esm/src/mods/type.js",
-      "require": "./dist/cjs/src/mods/type.js"
+      "import": "./dist/esm/src/mods/types.js",
+      "require": "./dist/cjs/src/mods/types.js"
     },
     "./types": {
-      "import": "./dist/esm/src/mods/type.js",
-      "require": "./dist/cjs/src/mods/type.js"
+      "import": "./dist/esm/src/mods/types.js",
+      "require": "./dist/cjs/src/mods/types.js"
     },
     "./filter": {
-      "import": "./dist/esm/src/mods/filter.js",
-      "require": "./dist/cjs/src/mods/filter.js"
+      "import": "./dist/esm/src/mods/filters.js",
+      "require": "./dist/cjs/src/mods/filters.js"
     },
     "./filters": {
-      "import": "./dist/esm/src/mods/filter.js",
-      "require": "./dist/cjs/src/mods/filter.js"
+      "import": "./dist/esm/src/mods/filters.js",
+      "require": "./dist/cjs/src/mods/filters.js"
     },
     "./helper": {
-      "import": "./dist/esm/src/mods/helper.js",
-      "require": "./dist/cjs/src/mods/helper.js"
+      "import": "./dist/esm/src/mods/helpers.js",
+      "require": "./dist/cjs/src/mods/helpers.js"
     },
     "./helpers": {
-      "import": "./dist/esm/src/mods/helper.js",
-      "require": "./dist/cjs/src/mods/helper.js"
+      "import": "./dist/esm/src/mods/helpers.js",
+      "require": "./dist/cjs/src/mods/helpers.js"
     }
   },
   "typesVersions": {
     "*": {
       "filter": [
-        "./dist/esm/src/mods/filter.d.ts"
+        "./dist/esm/src/mods/filters.d.ts"
       ],
       "filters": [
-        "./dist/esm/src/mods/filter.d.ts"
+        "./dist/esm/src/mods/filters.d.ts"
       ],
       "helper": [
-        "./dist/esm/src/mods/helper.d.ts"
+        "./dist/esm/src/mods/helpers.d.ts"
       ],
       "helpers": [
-        "./dist/esm/src/mods/helper.d.ts"
+        "./dist/esm/src/mods/helpers.d.ts"
       ],
       "impl": [
-        "./dist/esm/src/mods/impl.d.ts"
+        "./dist/esm/src/mods/impls.d.ts"
       ],
       "impls": [
-        "./dist/esm/src/mods/impl.d.ts"
+        "./dist/esm/src/mods/impls.d.ts"
       ],
       "payload": [
-        "./dist/esm/src/mods/payload.d.ts"
+        "./dist/esm/src/mods/payloads.d.ts"
       ],
       "payloads": [
-        "./dist/esm/src/mods/payload.d.ts"
+        "./dist/esm/src/mods/payloads.d.ts"
       ],
       "type": [
-        "./dist/esm/src/mods/type.d.ts"
+        "./dist/esm/src/mods/types.d.ts"
       ],
       "types": [
-        "./dist/esm/src/mods/type.d.ts"
+        "./dist/esm/src/mods/types.d.ts"
       ]
     }
   },

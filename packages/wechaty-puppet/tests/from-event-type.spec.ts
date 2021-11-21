@@ -22,7 +22,7 @@ import type {
 }                         from '../src/schemas/mod.js'
 import {
   ScanStatus,
-}                         from '../src/mods/type.js'
+}                         from '../src/mods/types.js'
 
 import { PuppetTest } from './fixtures/puppet-test/puppet-test.js'
 

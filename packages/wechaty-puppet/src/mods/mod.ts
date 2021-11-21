@@ -45,12 +45,19 @@ export {
  *
  * TODO: remove it (helper) after Dec 31, 2021
  */
-export * as helper  from './helper.js'
+export * as helper  from './helpers.js'
 
-export * as filter  from './filter.js'
-export * as impl    from './impl.js'
-export * as payload from './payload.js'
-export * as type    from './type.js'
+export * as filter  from './filters.js'
+export * as impl    from './impls.js'
+export * as payload from './payloads.js'
+export * as type    from './types.js'
+
+export * as helpers  from './helpers.js'
+
+export * as filters  from './filters.js'
+export * as impls    from './impls.js'
+export * as payloads from './payloads.js'
+export * as types    from './types.js'
 
 /**
  * @deprecated use above exports instead
