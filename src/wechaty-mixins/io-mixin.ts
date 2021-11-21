@@ -62,22 +62,26 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
     override async stop (): Promise<void> {
       log.verbose('WechatyIoMixin', 'stop()')
 
-      if (!this.__io) {
-        return
-      }
-
-      const io = this.__io
-      this.__io = undefined
-
       try {
-        log.verbose('WechatyIoMixin', 'stop() starting io ...')
-        await io.stop()
-        log.verbose('WechatyIoMixin', 'stop() starting io ... done')
-      } catch (e) {
-        this.emitError(e)
+        if (!this.__io) {
+          return
+        }
+
+        const io = this.__io
+        this.__io = undefined
+
+        try {
+          log.verbose('WechatyIoMixin', 'stop() starting io ...')
+          await io.stop()
+          log.verbose('WechatyIoMixin', 'stop() starting io ... done')
+        } catch (e) {
+          this.emitError(e)
+        }
+
+      } finally {
+        await super.stop()
       }
 
-      await super.stop()
     }
 
   }
