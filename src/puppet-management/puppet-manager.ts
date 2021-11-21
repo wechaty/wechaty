@@ -25,7 +25,7 @@ import childProcess from 'child_process'
 import {
   log,
   Puppet,
-  impl,
+  impls,
   PuppetOptions,
 }                         from 'wechaty-puppet'
 
@@ -35,7 +35,7 @@ import {
 }                         from './puppet-config.js'
 
 interface ResolveOptions {
-  puppet         : impl.PuppetInterface | PuppetModuleName,
+  puppet         : impls.PuppetInterface | PuppetModuleName,
   puppetOptions? : PuppetOptions,
 }
 
@@ -43,7 +43,7 @@ class PuppetManager {
 
   static async resolve (
     options: ResolveOptions,
-  ): Promise<impl.PuppetInterface> {
+  ): Promise<impls.PuppetInterface> {
     log.verbose('PuppetManager', 'resolve({puppet: %s, puppetOptions: %s})',
       options.puppet,
       JSON.stringify(options.puppetOptions),
@@ -97,7 +97,7 @@ class PuppetManager {
 
   protected static async resolveName (
     puppetName: PuppetModuleName,
-  ): Promise<impl.PuppetConstructor> {
+  ): Promise<impls.PuppetConstructor> {
     log.verbose('PuppetManager', 'resolveName(%s)', puppetName)
 
     // if (!puppetName) {
@@ -146,7 +146,7 @@ class PuppetManager {
     }
 
     // console.info(puppetModule)
-    const MyPuppet = puppetModule.default as impl.PuppetConstructor
+    const MyPuppet = puppetModule.default as impls.PuppetConstructor
 
     return MyPuppet
   }
