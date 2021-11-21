@@ -72,7 +72,7 @@ export type {
 }                             from '../puppet-management/mod.js'
 export type {
   WechatyEventName,
-}                             from '../schema/mod.js'
+}                             from '../schemas/mod.js'
 
 export type {
   WechatyPlugin,

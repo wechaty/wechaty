@@ -39,7 +39,7 @@ import {
   isTemplateStringArray,
 }                           from '../pure-functions/is-template-string-array.js'
 
-import { RoomEventEmitter }             from '../schema/mod.js'
+import { RoomEventEmitter }             from '../schemas/mod.js'
 import {
   poolifyMixin,
   wechatifyMixin,

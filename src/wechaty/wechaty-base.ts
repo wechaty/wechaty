@@ -50,7 +50,7 @@ import type {
 }                             from './wechaty-impl.js'
 import type {
   WechatyOptions,
-}                             from '../schema/wechaty-options.js'
+}                             from '../schemas/wechaty-options.js'
 
 const mixinBase = FP.pipe(
   WechatySkeleton,

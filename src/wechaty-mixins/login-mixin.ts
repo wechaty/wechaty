@@ -3,7 +3,7 @@ import { log }      from 'wechaty-puppet'
 
 import type {
   WechatyEventListeners,
-}                               from '../schema/mod.js'
+}                               from '../schemas/mod.js'
 import type {
   ContactSelfImpl,
   ContactSelfInterface,
