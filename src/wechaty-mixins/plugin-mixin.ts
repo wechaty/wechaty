@@ -1,8 +1,5 @@
 import { log }              from 'wechaty-puppet'
 import { instanceToClass }  from 'clone-class'
-import type {
-  ServiceCtl,
-}                           from 'state-switch'
 
 import type {
   WechatyPlugin,
@@ -12,10 +9,6 @@ import {
   isWechatyPluginUninstaller,
 }                             from '../plugin.js'
 
-import type {
-  WechatyInterface,
-  WechatyConstructor,
-}                       from '../wechaty/mod.js'
 import {
   WechatyImpl,
   WechatySkeleton,
@@ -23,7 +16,16 @@ import {
 
 import type { GErrorMixin } from './gerror-mixin.js'
 
-const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
+interface Plugable {
+  use (
+    ...plugins: (
+      | WechatyPlugin
+      | WechatyPlugin[]
+    )[]
+  ): Plugable
+}
+
+const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase {
@@ -53,7 +55,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
      */
     static use (
       ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
-    ): WechatyConstructor {
+    ): Plugable {
       const pluginList = plugins.flat()
       this.__pluginList.push(...pluginList)
 
@@ -73,28 +75,13 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
       ...plugins: (
         WechatyPlugin | WechatyPlugin[]
       )[]
-    ): WechatyInterface {
+    ): Plugable {
       const pluginList = plugins.flat()
       log.verbose('WechatyPluginMixin', 'use() total %d plugins', pluginList.length)
 
       this.__pluginList.push(...pluginList)
 
-      if (this.state.active() === true) {
-        log.verbose('WechatyPluginMixin', 'use() this.state is active, install plugins ...')
-
-        const uninstallerList = pluginList
-          .map(plugin => plugin(this as any))
-          .filter(isWechatyPluginUninstaller)
-
-        this.__pluginUninstallerList.push(
-          ...uninstallerList,
-        )
-
-        log.verbose('WechatyPluginMixin', 'use() this.state is active, install plugins ... done')
-      }
-
-      // Huan(202110): TODO: remove any
-      return this as any
+      return this
     }
 
     override async start (): Promise<void> {
@@ -106,7 +93,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
         ...this.__pluginList,
       ]
 
-      log.verbose('WechatyPluginMixin', 'start() installing plugins(global:%d, instance: %d) ...',
+      log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ...',
         instanceToClass(this, WechatyImpl).__pluginList.length,
         this.__pluginList.length,
       )
@@ -119,7 +106,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
         ...uninstallerList,
       )
 
-      log.verbose('WechatyPluginMixin', 'start() installing plugins(global:%d, instance: %d) ... done',
+      log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ... done',
         instanceToClass(this, WechatyImpl).__pluginList.length,
         this.__pluginList.length,
       )
@@ -147,10 +134,9 @@ type ProtectedPropertyPluginMixin =
   | '__pluginList'
   | '__pluginUninstallerList'
 
-export type {
-  PluginMixin,
-  ProtectedPropertyPluginMixin,
-}
 export {
+  type Plugable,
+  type PluginMixin,
+  type ProtectedPropertyPluginMixin,
   pluginMixin,
 }
