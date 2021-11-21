@@ -48,6 +48,8 @@ import {
 import type {
   WechatyInterface,
 }                 from '../wechaty/wechaty-impl.js'
+import { WechatySkeleton } from './wechaty-skeleton.js'
+import { MemoryCard } from 'wechaty-puppet/helper'
 
 class WechatyTest extends WechatyBase {
 }
@@ -359,4 +361,30 @@ test('WechatyBaseProtectedProperty', async t => {
 
   const noOneLeft: NotExistTest = true
   t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
+})
+
+test('WechatySkeleton: super.{start,stop}()', async t => {
+  const sandbox = sinon.createSandbox()
+
+  const puppet = new PuppetMock()
+  const memory = new MemoryCard()
+
+  const wechaty = new WechatyTest({
+    memory,
+    puppet,
+  })
+
+  const startStub = sandbox.stub(WechatySkeleton.prototype, 'start').resolves()
+  const stopStub  = sandbox.stub(WechatySkeleton.prototype, 'stop').resolves()
+
+  t.ok(startStub.notCalled, 'should not called before start')
+  t.ok(stopStub.notCalled, 'should not called before stop')
+
+  await wechaty.start()
+  t.ok(startStub.calledOnce, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
+  t.ok(stopStub.notCalled, 'should not call stop yet')
+
+  await wechaty.stop()
+  t.ok(startStub.calledOnce, 'should only call start once')
+  t.ok(stopStub.calledOnce, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
 })

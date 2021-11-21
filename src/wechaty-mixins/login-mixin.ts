@@ -119,7 +119,7 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       log.verbose('WechatyLoginMixin', 'stop()')
 
       // put callback to then end of event queue in case of it has not been called yet.
-      this.__loginMixinCleanCallbackList.map(setImmediate)
+      this.__loginMixinCleanCallbackList.forEach(setImmediate)
       this.__loginMixinCleanCallbackList.length = 0
 
       await super.stop()
