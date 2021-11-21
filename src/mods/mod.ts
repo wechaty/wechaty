@@ -38,8 +38,17 @@ export {
   messageToSayable,
 }                   from '../sayable/mod.js'
 
-export * as type        from 'wechaty-puppet/type'
-export * as payload     from 'wechaty-puppet/payload'
+/**
+ * @deprecated use `types` instead
+ */
+export * as type        from 'wechaty-puppet/types'
+/**
+ * @deprecated use `payloads` instead
+ */
+export * as payload     from 'wechaty-puppet/payloads'
+
+export * as types        from 'wechaty-puppet/types'
+export * as payloads     from 'wechaty-puppet/payloads'
 
 /**
  * Huan(202111) We should not re-export other NPM modules
@@ -47,18 +56,25 @@ export * as payload     from 'wechaty-puppet/payload'
  */
 // export * as helper      from 'wechaty-puppet/helper'
 
-export *                from './user.js'
+export *                from './users.js'
 /**
  * Huan(202111): `users` need to be put before `impls`
  *  because of they have overlap interfaces and
- *  the VSCode will use the first see name in the IDE intelligence.
+ *  the VSCode will use the first see name in the IDE intelligence.\
+ * @deprecated use `users` instead
  */
-export * as user        from './user.js'
-export * as impl        from './impl.js'
+export * as user        from './users.js'
+/**
+ * @deprecated use `impls` instead
+ */
+export * as impl        from './impls.js'
+
+export * as users        from './users.js'
+export * as impls        from './impls.js'
 
 export {
   ScanStatus,
-}                       from 'wechaty-puppet/type'
+}                       from 'wechaty-puppet/types'
 
 export {
   log,
