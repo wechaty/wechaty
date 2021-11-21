@@ -24,9 +24,9 @@ class Mocker {
 
   id: string
 
-  cacheContactPayload : Map<string, PUPPET.payload.Contact>
-  cacheRoomPayload    : Map<string, PUPPET.payload.Room>
-  cacheMessagePayload : Map<string, PUPPET.payload.Message>
+  cacheContactPayload : Map<string, PUPPET.payloads.Contact>
+  cacheRoomPayload    : Map<string, PUPPET.payloads.Room>
+  cacheMessagePayload : Map<string, PUPPET.payloads.Message>
 
   protected mockerifiedContactMock? : typeof ContactMock
   protected mockerifiedMessageMock? : typeof MessageMock
@@ -174,7 +174,7 @@ class Mocker {
    * Events
    *
    */
-  scan (qrcode: string, status: PUPPET.type.ScanStatus = PUPPET.type.ScanStatus.Waiting) {
+  scan (qrcode: string, status: PUPPET.types.ScanStatus = PUPPET.types.ScanStatus.Waiting) {
     log.verbose('Mocker', 'scan(%s, %s)', qrcode, status)
     this.puppet.emit('scan', { qrcode, status })
   }
@@ -189,11 +189,11 @@ class Mocker {
    * Creators for MockContacts / MockRooms
    *
    */
-  createContact (payload?: Partial<PUPPET.payload.Contact>): ContactMock {
+  createContact (payload?: Partial<PUPPET.payloads.Contact>): ContactMock {
     log.verbose('Mocker', 'createContact(%s)', payload ? JSON.stringify(payload) : '')
 
     const defaultPayload = generateContactPayload()
-    const normalizedPayload: PUPPET.payload.Contact = {
+    const normalizedPayload: PUPPET.payloads.Contact = {
       ...defaultPayload,
       ...payload,
     }
@@ -213,12 +213,12 @@ class Mocker {
     return contactList
   }
 
-  createRoom (payload?: Partial<PUPPET.payload.Room>): RoomMock {
+  createRoom (payload?: Partial<PUPPET.payloads.Room>): RoomMock {
     log.verbose('Mocker', 'createRoom(%s)', payload ? JSON.stringify(payload) : '')
 
     const defaultPayload = generateRoomPayload(...this.cacheContactPayload.keys())
 
-    const normalizedPayload: PUPPET.payload.Room = {
+    const normalizedPayload: PUPPET.payloads.Room = {
       ...defaultPayload,
       ...payload,
     }
@@ -243,10 +243,10 @@ class Mocker {
    * Setters & Getters for Payloads
    *
    */
-  contactPayload (id: string, payload: PUPPET.payload.Contact): void
-  contactPayload (id: string): PUPPET.payload.Contact
+  contactPayload (id: string, payload: PUPPET.payloads.Contact): void
+  contactPayload (id: string): PUPPET.payloads.Contact
 
-  contactPayload (id: string, payload?: PUPPET.payload.Contact): void | PUPPET.payload.Contact {
+  contactPayload (id: string, payload?: PUPPET.payloads.Contact): void | PUPPET.payloads.Contact {
     log.silly('Mocker', 'contactPayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
 
     if (payload) {
@@ -261,10 +261,10 @@ class Mocker {
     return payload
   }
 
-  roomPayload (id: string, payload: PUPPET.payload.Room): void
-  roomPayload (id: string): PUPPET.payload.Room
+  roomPayload (id: string, payload: PUPPET.payloads.Room): void
+  roomPayload (id: string): PUPPET.payloads.Room
 
-  roomPayload (id: string, payload?: PUPPET.payload.Room): void | PUPPET.payload.Room {
+  roomPayload (id: string, payload?: PUPPET.payloads.Room): void | PUPPET.payloads.Room {
     log.silly('Mocker', 'roomPayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
 
     if (payload) {
@@ -279,10 +279,10 @@ class Mocker {
     return payload
   }
 
-  messagePayload (id: string, payload: PUPPET.payload.Message): void
-  messagePayload (id: string): PUPPET.payload.Message
+  messagePayload (id: string, payload: PUPPET.payloads.Message): void
+  messagePayload (id: string): PUPPET.payloads.Message
 
-  messagePayload (id: string, payload?: PUPPET.payload.Message): void | PUPPET.payload.Message {
+  messagePayload (id: string, payload?: PUPPET.payloads.Message): void | PUPPET.payloads.Message {
     log.silly('Mocker', 'messagePayload(%s%s)', id, payload ? ',' + JSON.stringify(payload) : '')
 
     if (payload) {

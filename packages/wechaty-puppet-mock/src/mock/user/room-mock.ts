@@ -55,7 +55,7 @@ class RoomMock extends RoomEventEmitter {
   }
 
   static create<T extends typeof RoomMock> (
-    payload: PUPPET.payload.Room,
+    payload: PUPPET.payloads.Room,
   ): T['prototype'] {
     log.verbose('MockRoom', 'static create(%s)', JSON.stringify(payload))
 
@@ -74,7 +74,7 @@ class RoomMock extends RoomEventEmitter {
   get id () { return this.payload.id }
 
   constructor (
-    public payload: PUPPET.payload.Room,
+    public payload: PUPPET.payloads.Room,
   ) {
     super()
     log.silly('MockRoom', 'constructor(%s)', JSON.stringify(payload))
@@ -97,7 +97,7 @@ class RoomMock extends RoomEventEmitter {
         }
       }
 
-      const payload: PUPPET.payload.EventRoomTopic = {
+      const payload: PUPPET.payloads.EventRoomTopic = {
         changerId : contact.id,
         newTopic  : text,
         oldTopic  : that.payload.topic,
@@ -126,7 +126,7 @@ class RoomMock extends RoomEventEmitter {
       }
 
       that.payload.memberIdList.push(...inviteeList.map(i => i.id))
-      const payload: PUPPET.payload.EventRoomJoin = {
+      const payload: PUPPET.payloads.EventRoomJoin = {
         inviteeIdList : inviteeList.map(i => i.id),
         inviterId     : inviter.id,
         roomId        : that.id,
@@ -160,7 +160,7 @@ class RoomMock extends RoomEventEmitter {
         }
       }
 
-      const payload: PUPPET.payload.EventRoomLeave = {
+      const payload: PUPPET.payloads.EventRoomLeave = {
         removeeIdList : removeeList.map(r => r.id),
         removerId     : remover.id,
         roomId        : that.id,

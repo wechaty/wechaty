@@ -80,9 +80,9 @@ test('Mocker.scan()', async t => {
   }         = createFixture()
 
   const QR_CODE = 'https://github.com/wechaty'
-  const EXPECTED_PAYLOAD: PUPPET.payload.EventScan = {
+  const EXPECTED_PAYLOAD: PUPPET.payloads.EventScan = {
     qrcode: QR_CODE,
-    status: PUPPET.type.ScanStatus.Waiting,
+    status: PUPPET.types.ScanStatus.Waiting,
   }
 
   const sandbox = sinon.createSandbox()
@@ -90,7 +90,7 @@ test('Mocker.scan()', async t => {
   puppet.on('scan', spy)
 
   await puppet.start()
-  mocker.scan(QR_CODE, PUPPET.type.ScanStatus.Waiting)
+  mocker.scan(QR_CODE, PUPPET.types.ScanStatus.Waiting)
 
   t.ok(spy.calledOnce, 'should received the scan event')
   t.ok(spy.calledWith(EXPECTED_PAYLOAD), 'should received expected QR CODE')
@@ -105,7 +105,7 @@ test('Mocker.login()', async t => {
     puppet,
   }         = createFixture()
 
-  const EXPECTED_PAYLOAD: PUPPET.payload.EventLogin = {
+  const EXPECTED_PAYLOAD: PUPPET.payloads.EventLogin = {
     contactId: user.id,
   }
 
@@ -131,20 +131,20 @@ test('MockContact.say().to(contact)', async t => {
 
   const TEXT = 'Hello, contact!'
 
-  const future = new Promise<PUPPET.payload.EventMessage>(resolve => puppet.once('message', resolve))
+  const future = new Promise<PUPPET.payloads.EventMessage>(resolve => puppet.once('message', resolve))
 
   await puppet.start()
   user.say(TEXT).to(mary)
 
   const { messageId } = await future
 
-  const EXPECTED_PAYLOAD: PUPPET.payload.Message = {
+  const EXPECTED_PAYLOAD: PUPPET.payloads.Message = {
     fromId    : user.id,
     id        : messageId,
     text      : TEXT,
     timestamp : Date.now(),
     toId      : mary.id,
-    type      : PUPPET.type.Message.Text,
+    type      : PUPPET.types.Message.Text,
   }
 
   const payload = await puppet.messagePayload(messageId)
@@ -165,21 +165,21 @@ test('MockContact.say().to(room)', async t => {
 
   const TEXT = 'Hello, room!'
 
-  const future = new Promise<PUPPET.payload.EventMessage>(resolve => puppet.once('message', resolve))
+  const future = new Promise<PUPPET.payloads.EventMessage>(resolve => puppet.once('message', resolve))
 
   await puppet.start()
   user.say(TEXT).to(room)
 
   const { messageId } = await future
 
-  const EXPECTED_PAYLOAD: PUPPET.payload.Message = {
+  const EXPECTED_PAYLOAD: PUPPET.payloads.Message = {
     fromId        : user.id,
     id            : messageId,
     mentionIdList : [],
     roomId        : room.id,
     text          : TEXT,
     timestamp     : Date.now(),
-    type          : PUPPET.type.Message.Text,
+    type          : PUPPET.types.Message.Text,
   }
 
   const payload = await puppet.messagePayload(messageId)
@@ -350,7 +350,7 @@ test.skip('wechaty.reply(contact)', async t => {
 
   let receive
   mary.on('message', async message => {
-    if (message.type() === PUPPET.type.Message.Text) {
+    if (message.type() === PUPPET.types.Message.Text) {
       return
     }
     receive = await message.toContact()
@@ -412,7 +412,7 @@ test.skip('wechaty.reply(fileBox)', async t => {
 
   let receive
   mary.on('message', async message => {
-    if (message.type() === PUPPET.type.Message.Text) {
+    if (message.type() === PUPPET.types.Message.Text) {
       return
     }
     receive = await message.toFileBox()

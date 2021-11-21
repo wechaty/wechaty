@@ -90,7 +90,7 @@ class MessageMock {
   // }
 
   static create<T extends typeof MessageMock> (
-    payload: PUPPET.payload.Message,
+    payload: PUPPET.payloads.Message,
   ): T['prototype'] {
     log.verbose('MockMessage', 'static create(%s)', JSON.stringify(payload))
 
@@ -111,7 +111,7 @@ class MessageMock {
   get id () { return this.payload.id }
 
   constructor (
-    public payload: PUPPET.payload.Message,
+    public payload: PUPPET.payloads.Message,
   ) {
     log.silly('MockMessage', 'constructor(%s)', JSON.stringify(payload))
   }
@@ -151,7 +151,7 @@ class MessageMock {
     return this.payload.text
   }
 
-  type (): PUPPET.type.Message {
+  type (): PUPPET.types.Message {
     log.silly('MockMessage', 'text()')
     return this.payload.type
   }
@@ -159,7 +159,7 @@ class MessageMock {
   async toContact (): Promise<ContactMock> {
     log.verbose('MockMessage', 'toContact()')
 
-    if (this.type() !== PUPPET.type.Message.Contact) {
+    if (this.type() !== PUPPET.types.Message.Contact) {
       throw new Error('message not a ShareCard')
     }
 
@@ -194,7 +194,7 @@ class MessageMock {
 
   async toFileBox (): Promise<FileBoxInterface> {
     log.verbose('MockMessage', 'toFileBox()')
-    if (this.type() === PUPPET.type.Message.Text) {
+    if (this.type() === PUPPET.types.Message.Text) {
       throw new Error('message is a Text')
     }
     return this.mocker.puppet.messageFile(this.id)

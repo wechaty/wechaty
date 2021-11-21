@@ -68,7 +68,7 @@ class ContactMock extends ContactEventEmitter {
   }
 
   static create<T extends typeof ContactMock> (
-    payload: PUPPET.payload.Contact,
+    payload: PUPPET.payloads.Contact,
   ): T['prototype'] {
     log.verbose('MockContact', 'static create(%s)', JSON.stringify(payload))
 
@@ -87,7 +87,7 @@ class ContactMock extends ContactEventEmitter {
   get id () { return this.payload.id }
 
   constructor (
-    public payload: PUPPET.payload.Contact,
+    public payload: PUPPET.payloads.Contact,
   ) {
     super()
     log.silly('MockContact', 'constructor(%s)', JSON.stringify(payload))
@@ -119,13 +119,13 @@ class ContactMock extends ContactEventEmitter {
         conversation = that.mocker.randomConversation()
       }
 
-      const basePayload: PUPPET.payload.MessageBase = {
+      const basePayload: PUPPET.payloads.MessageBase = {
         id        : cuid(),
         timestamp : Date.now(),
-        type      : PUPPET.type.Message.Text,
+        type      : PUPPET.types.Message.Text,
       }
 
-      let payload: PUPPET.payload.Message
+      let payload: PUPPET.payloads.Message
 
       if (something instanceof FileBox) {
       //   basePayload.type = MessageType.Contact
@@ -139,14 +139,14 @@ class ContactMock extends ContactEventEmitter {
           case '.jpg':
           case '.jpeg':
           case '.png':
-            basePayload.type = PUPPET.type.Message.Image
+            basePayload.type = PUPPET.types.Message.Image
             break
           case 'video/mp4':
           case '.mp4':
-            basePayload.type = PUPPET.type.Message.Audio
+            basePayload.type = PUPPET.types.Message.Audio
             break
           default:
-            basePayload.type = PUPPET.type.Message.Unknown
+            basePayload.type = PUPPET.types.Message.Unknown
             break
         }
       // } else if (something instanceof MiniProgram) {
@@ -162,14 +162,14 @@ class ContactMock extends ContactEventEmitter {
           ...basePayload,
           fromId        : that.id,
           toId          : conversation.id,
-        } as PUPPET.payload.MessageBase & PUPPET.payload.MessageTo
+        } as PUPPET.payloads.MessageBase & PUPPET.payloads.MessageTo
       } else if (conversation instanceof RoomMock) {
         payload = {
           ...basePayload,
           fromId        : that.id,
           mentionIdList : mentions.map(c => c.id),
           roomId        : conversation.id,
-        } as PUPPET.payload.MessageBase & PUPPET.payload.MessageRoom
+        } as PUPPET.payloads.MessageBase & PUPPET.payloads.MessageRoom
       } else {
         throw new Error('unknown conversation type: ' + typeof conversation)
       }
