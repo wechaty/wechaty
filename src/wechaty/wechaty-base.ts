@@ -52,25 +52,16 @@ import type {
   WechatyOptions,
 }                             from '../schema/wechaty-options.js'
 
-/**
- * Huan(2022111) `pluginMixin` is not compatible with `pipe`: will get `unknown`
- *  because it import-ed the `WechatyInterface` which is depended on the WechatyImpl
- *  caused circle dependency.
- *
- * TODO: put `pluginMixin` back into the `pipe()` argument list
- */
-const mixinBase = pluginMixin(
-  FP.pipe(
-    WechatySkeleton,
-    gErrorMixin,
-    wechatifyUserModuleMixin,
-    puppetMixin,
-    loginMixin,
-    miscMixin,
-    ioMixin,
-    serviceCtlMixin('Wechaty', { log }),
-    // TODO: move it back to here -> pluginMixin,
-  ),
+const mixinBase = FP.pipe(
+  WechatySkeleton,
+  gErrorMixin,
+  wechatifyUserModuleMixin,
+  pluginMixin,
+  puppetMixin,
+  loginMixin,
+  miscMixin,
+  ioMixin,
+  serviceCtlMixin('Wechaty', { log }),
 )
 
 /**

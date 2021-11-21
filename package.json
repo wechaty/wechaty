@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "1.9.7",
+  "version": "1.9.11",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "type": "module",
   "exports": {
@@ -59,7 +59,7 @@
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
     "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=180 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "test": "npm run lint && nyc npm run test:unit && npm run sloc",
+    "test": "npm run lint && nyc npm run test:unit",
     "typedoc": "bash scripts/typedoc.sh"
   },
   "repository": {
@@ -116,7 +116,7 @@
     "open-graph": "^0.2.6",
     "state-switch": "~1.6.1",
     "uuid": "^8.3.2",
-    "wechaty-puppet": "~1.7.21",
+    "wechaty-puppet": "~1.7.24",
     "wechaty-puppet-service": "~1.7.3",
     "ws": "^8.2.3"
   },
