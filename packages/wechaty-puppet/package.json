@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "1.10.2",
+  "version": "1.11.0",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
@@ -8,75 +8,33 @@
       "import": "./dist/esm/src/mods/mod.js",
       "require": "./dist/cjs/src/mods/mod.js"
     },
-    "./impl": {
-      "import": "./dist/esm/src/mods/impls.js",
-      "require": "./dist/cjs/src/mods/impls.js"
-    },
     "./impls": {
       "import": "./dist/esm/src/mods/impls.js",
       "require": "./dist/cjs/src/mods/impls.js"
-    },
-    "./payload": {
-      "import": "./dist/esm/src/mods/payloads.js",
-      "require": "./dist/cjs/src/mods/payloads.js"
     },
     "./payloads": {
       "import": "./dist/esm/src/mods/payloads.js",
       "require": "./dist/cjs/src/mods/payloads.js"
     },
-    "./type": {
-      "import": "./dist/esm/src/mods/types.js",
-      "require": "./dist/cjs/src/mods/types.js"
-    },
     "./types": {
       "import": "./dist/esm/src/mods/types.js",
       "require": "./dist/cjs/src/mods/types.js"
     },
-    "./filter": {
-      "import": "./dist/esm/src/mods/filters.js",
-      "require": "./dist/cjs/src/mods/filters.js"
-    },
     "./filters": {
       "import": "./dist/esm/src/mods/filters.js",
       "require": "./dist/cjs/src/mods/filters.js"
-    },
-    "./helper": {
-      "import": "./dist/esm/src/mods/helpers.js",
-      "require": "./dist/cjs/src/mods/helpers.js"
-    },
-    "./helpers": {
-      "import": "./dist/esm/src/mods/helpers.js",
-      "require": "./dist/cjs/src/mods/helpers.js"
     }
   },
   "typesVersions": {
     "*": {
-      "filter": [
-        "./dist/esm/src/mods/filters.d.ts"
-      ],
       "filters": [
         "./dist/esm/src/mods/filters.d.ts"
-      ],
-      "helper": [
-        "./dist/esm/src/mods/helpers.d.ts"
-      ],
-      "helpers": [
-        "./dist/esm/src/mods/helpers.d.ts"
-      ],
-      "impl": [
-        "./dist/esm/src/mods/impls.d.ts"
       ],
       "impls": [
         "./dist/esm/src/mods/impls.d.ts"
       ],
-      "payload": [
-        "./dist/esm/src/mods/payloads.d.ts"
-      ],
       "payloads": [
         "./dist/esm/src/mods/payloads.d.ts"
-      ],
-      "type": [
-        "./dist/esm/src/mods/types.d.ts"
       ],
       "types": [
         "./dist/esm/src/mods/types.d.ts"
@@ -86,26 +44,25 @@
   "types": "./dist/esm/src/mods/mod.d.ts",
   "engines": {
     "node": ">=16",
-    "npm": ">=7",
-    "wechaty": ">=0.79"
+    "npm": ">=7"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
     "dist": "npm-run-all clean build dist:commonjs",
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
-    "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
+    "lint": "npm-run-all lint:es lint:ts lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
-    "test": "npm run lint && npm run test:unit",
+    "test": "npm-run-all lint test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "typedoc": "bash scripts/typedoc.sh"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wechaty/wechaty-puppet.git"
+    "url": "git+https://github.com/wechaty/puppet.git"
   },
   "keywords": [
     "chatie",
@@ -118,15 +75,15 @@
   "author": "Huan LI <zixia@zixia.net>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/wechaty/wechaty-puppet/issues"
+    "url": "https://github.com/wechaty/puppet/issues"
   },
-  "homepage": "https://github.com/wechaty/wechaty-puppet#readme",
+  "homepage": "https://github.com/wechaty/puppet#readme",
   "devDependencies": {
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^1.0.3",
-    "@types/uuid": "^8.3.1",
+    "@chatie/tsconfig": "^4.5.3",
+    "@types/uuid": "^8.3.3",
     "rxjs": "^7.4.0",
     "tstest": "^1.0.1"
   },
@@ -136,9 +93,9 @@
     "clone-class": "^1.0.3",
     "file-box": "^1.4.1",
     "fp-ts": "^2.11.5",
-    "gerror": "^1.0.13",
+    "gerror": "^1.0.14",
     "memory-card": "^1.0.3",
-    "state-switch": "^1.6.1",
+    "state-switch": "^1.6.2",
     "typed-emitter": "^1.5.0-from-event",
     "uuid": "^8.3.2",
     "watchdog": "^0.9.2"
