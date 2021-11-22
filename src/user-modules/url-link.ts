@@ -19,16 +19,12 @@
  */
 import Url from 'url'
 
-import type * as PUPPET          from 'wechaty-puppet'
+import type * as PUPPET     from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import {
-  openGraph,
-}               from '../helper-functions/open-graph.js'
-import { validationMixin } from '../user-mixins/validation.js'
-import {
-  wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+import { openGraph }          from '../helper-functions/open-graph.js'
+import { validationMixin }    from '../user-mixins/validation.js'
+import { wechatifyMixinBase } from '../user-mixins/wechatify.js'
 import { log } from '../config.js'
 
 class UrlLinkMixin extends wechatifyMixinBase() {
