@@ -30,21 +30,19 @@ export {
   WechatyBuilder,
 }                               from '../wechaty-builder.js'
 
-export type {
-  SayableSayer,
-  Sayable,
-}                   from '../sayable/mod.js'
 export {
+  type SayableSayer,
+  type Sayable,
   messageToSayable,
-}                   from '../sayable/mod.js'
+}                       from '../sayable/mod.js'
 
-export * as types        from 'wechaty-puppet/types'
-export * as payloads     from 'wechaty-puppet/payloads'
+export * as types       from 'wechaty-puppet/types'
+export * as payloads    from 'wechaty-puppet/payloads'
 
-export *                 from './users.js'
-export * as users        from './users.js'
-export * as impls        from './impls.js'
-
+export *                from './users.js'
+export * as users       from './users.js'
+export * as impls       from './impls.js'
+export * as helpers     from './helpers.js'
 export {
   ScanStatus,
 }                       from 'wechaty-puppet/types'

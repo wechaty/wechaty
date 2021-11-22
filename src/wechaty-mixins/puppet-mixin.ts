@@ -14,7 +14,7 @@ import type {
 import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'
 import type { ContactInterface }  from '../user-modules/contact.js'
 import {
-  PuppetManager,
+  resolvePuppet,
 }                                 from '../puppet-management/mod.js'
 
 import type {
@@ -149,10 +149,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       const puppet       = this.__options.puppet || config.systemPuppetName()
       const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
-      const puppetInstance = await PuppetManager.resolve({
+      const puppetInstance = await resolvePuppet({
         puppet,
-        puppetOptions : this.__options.puppetOptions,
-        // wechaty       : this,
+        puppetOptions: this.__options.puppetOptions,
       })
       log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ... done')
 
