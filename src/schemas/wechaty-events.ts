@@ -218,7 +218,7 @@ interface WechatyEventListeners {
   stop          : WechatyEventListenerStartStop
 }
 
-const WechatyEventEmitter = EventEmitter as new () => TypedEventEmitter<
+const WechatyEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
   WechatyEventListeners
 >
 
