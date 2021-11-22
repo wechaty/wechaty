@@ -91,7 +91,7 @@
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.14.2",
     "clone-class": "^1.0.3",
-    "file-box": "^1.4.2",
+    "file-box": "^1.4.3",
     "fp-ts": "^2.11.5",
     "gerror": "^1.0.14",
     "memory-card": "^1.0.3",
