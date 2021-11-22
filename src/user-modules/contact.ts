@@ -24,7 +24,7 @@ import type {
 
 import type {
   Constructor,
-}                             from '../deprecated/clone-class.js'
+}                             from 'clone-class'
 
 import {
   log,

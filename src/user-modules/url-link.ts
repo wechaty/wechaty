@@ -20,7 +20,7 @@
 import Url from 'url'
 
 import type * as PUPPET          from 'wechaty-puppet'
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 
 import {
   openGraph,

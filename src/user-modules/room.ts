@@ -22,7 +22,7 @@ import type { FileBoxInterface }  from 'file-box'
 
 import type {
   Constructor,
-}                           from '../deprecated/clone-class.js'
+}                           from 'clone-class'
 
 import {
   FOUR_PER_EM_SPACE,

@@ -107,7 +107,7 @@
   },
   "homepage": "https://github.com/wechaty/",
   "dependencies": {
-    "clone-class": "~1.0.3",
+    "clone-class": "~1.1.1",
     "cockatiel": "^2.0.2",
     "dotenv": "^10.0.0",
     "fp-ts": "^2.11.5",

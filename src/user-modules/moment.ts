@@ -18,7 +18,7 @@
  *
  */
 import { log } from 'wechaty-puppet'
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 
 import type { ContactInterface } from './contact.js'
 import { validationMixin } from '../user-mixins/validation.js'

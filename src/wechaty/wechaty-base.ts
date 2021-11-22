@@ -109,23 +109,24 @@ class WechatyBase extends mixinBase implements SayableSayer {
   static   override readonly VERSION = VERSION
   readonly wechaty : WechatyInterface
 
-  readonly _cleanCallbackList: (() => void)[] = []
+  readonly _stopCallbackList: (() => void)[] = []
 
   /**
-   * The term [Puppet](https://github.com/wechaty/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
+   * The term [Puppet](https://wechaty.js.org/docs/specs/puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
    * The plugins are the component that helps Wechaty to control the WeChat(that's the reason we call it puppet).
    * The plugins are named XXXPuppet, for example:
-   * - [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer):
-   * - [PuppetPadchat](https://github.com/wechaty/wechaty-puppet-padchat)
+   * - [PuppetWeChat](https://github.com/wechaty/puppet-wechat):
+   * - [PuppetWeChat](https://github.com/wechaty/puppet-service):
+   * - [PuppetXP](https://github.com/wechaty/puppet-xp)
    *
    * @typedef    PuppetModuleName
    * @property   {string}  PUPPET_DEFAULT
    * The default puppet.
    * @property   {string}  wechaty-puppet-wechat4u
    * The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
-   * @property   {string}  wechaty-puppet-padchat
-   * - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad WeChat program.
-   * @property   {string}  wechaty-puppet-puppeteer
+   * @property   {string}  wechaty-puppet-service
+   * - Using the gRPC protocol to connect with a Protocol Server for controlling the any protocol of any IM  program.
+   * @property   {string}  wechaty-puppet-wechat
    * - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
    * @property   {string}  wechaty-puppet-mock
    * - Using the mock data to mock wechat operation, just for test.
@@ -160,10 +161,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     log.verbose('Wechaty', 'constructor()')
 
     this.__memory = this.__options.memory
-
-    this._cleanCallbackList = []
-
-    this.wechaty = this
+    this.wechaty  = this
   }
 
   override async onStart (): Promise<void> {
@@ -179,7 +177,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     const lifeTimer = setInterval(() => {
       log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
     }, 1000 * 60 * 60)
-    this._cleanCallbackList.push(() => clearInterval(lifeTimer))
+    this._stopCallbackList.push(() => clearInterval(lifeTimer))
 
     this.emit('start')
     log.verbose('Wechaty', 'onStart() ... done')
@@ -194,8 +192,8 @@ class WechatyBase extends mixinBase implements SayableSayer {
     )
 
     // put to the end of the event loop in case of it need to be executed while stopping
-    this._cleanCallbackList.map(setImmediate)
-    this._cleanCallbackList.length = 0
+    this._stopCallbackList.map(setImmediate)
+    this._stopCallbackList.length = 0
 
     this.emit('stop')
     log.verbose('Wechaty', 'onStop() ... done')
