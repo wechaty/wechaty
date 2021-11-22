@@ -45,7 +45,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
         PUPPET.payloads.UrlLink,
         'url'
       >
-    >
+    >,
   ): Promise<UrlLinkInterface> {
     log.verbose('UrlLink', 'create(%s)', url)
 
