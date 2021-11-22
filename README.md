@@ -510,7 +510,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## History
 
-### master v1.11 (Nov 22, 2021)
+### main v1.11 (Nov 22, 2021)
 
 Working on reduxify the Wechaty ecosystem for applying the CQRS pattern.
 
