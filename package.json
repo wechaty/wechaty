@@ -30,7 +30,7 @@
     "puppet-install": "ts-node bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "ts-node": "ts-node",
-    "test": "npm run lint && nyc npm run test:unit && npm run sloc",
+    "test": "npm run lint && nyc npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
     "test:unit": "tap --node-arg=--require=ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
@@ -128,7 +128,7 @@
     "tstest": "^0.5.15",
     "typed-emitter": "^1.3.1",
     "typedoc": "^1.0.0-dev.4 ",
-    "typescript": "^4.3.2",
+    "typescript": "~4.3.2",
     "wechaty-puppet-mock": "^0.29.6"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
