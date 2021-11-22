@@ -24,7 +24,7 @@ import {
 }              from 'tstest'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
-
+import { MemoryCard } from 'memory-card'
 /**
  * Huan(202111): must import `./wechaty-impl.js`
  *  before import `./wechaty-base.js`
@@ -49,7 +49,6 @@ import type {
   WechatyInterface,
 }                 from '../wechaty/wechaty-impl.js'
 import { WechatySkeleton } from './wechaty-skeleton.js'
-import { MemoryCard } from 'wechaty-puppet/helper'
 
 class WechatyTest extends WechatyBase {
 }
