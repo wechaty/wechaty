@@ -31,9 +31,11 @@ const executeTask = <S, T> (task: ExecuterTask<S, T>) => async function * (
  * Execute task with the concurrency on an iterator
  * The order will not be guaranteed. (mostly will be different)
  */
-const concurrencyTaskExecuter = (concurrency = 1) =>
-  <S, T> (task : ExecuterTask<S, T>) =>
-    async function * (iterator: Array<S> | IterableIterator<S>): AsyncIterableIterator<T> {
+const concurrencyTaskExecuter = (concurrency = 1) => <S, T>
+  (task : ExecuterTask<S, T>) =>
+    async function * (
+      iterator: Array<S> | IterableIterator<S>,
+    ): AsyncIterableIterator<T> {
       if (Array.isArray(iterator)) {
         iterator = iterator.values()
       }
