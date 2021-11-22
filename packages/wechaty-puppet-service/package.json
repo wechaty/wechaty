@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "1.10.2",
+  "version": "1.11.0",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -64,7 +64,7 @@
     "why-is-node-running": "^2.2.0"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^1.10.1"
+    "wechaty-puppet": "^1.11.3"
   },
   "dependencies": {
     "clone-class": "^1.0.3",
