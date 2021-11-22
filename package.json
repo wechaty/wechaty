@@ -1,11 +1,11 @@
 {
   "name": "wechaty",
-  "version": "0.68.4",
+  "version": "0.68.5",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "main": "dist/src/mod.js",
   "typings": "dist/src/mod.d.ts",
   "engines": {
-    "node": ">= 12"
+    "node": ">= 14"
   },
   "wechaty": {
     "DEFAULT_PORT": 8080,
