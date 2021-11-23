@@ -2,14 +2,8 @@
 
 import { test }  from 'tstest'
 
-import {
-  FileBox,
-  MemoryCard,
-  StateSwitch,
-}                 from '../src/mods/helpers.js'
+import * as helpers from '../src/mods/helpers.js'
 
 test('Re-export helper modules', async t => {
-  t.ok(FileBox,     'should re-export FileBox')
-  t.ok(MemoryCard,  'should re-export MemoryCard')
-  t.ok(StateSwitch, 'should re-export StateSwitch')
+  t.equal(typeof helpers.resolvePuppet, 'function', 'should export resolvePuppet()')
 })
