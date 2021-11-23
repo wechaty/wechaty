@@ -32,7 +32,9 @@ import type {
   PuppetConstructor,
 }                     from './puppet-interface.js'
 
-type PuppetNpmName = `wechaty-puppet-${string}`
+// i.e. @juzibot/wechaty-puppet-donut
+type PuppetNpmScope = `@${string}/` | ''
+type PuppetNpmName  = `${PuppetNpmScope}wechaty-puppet-${string}`
 
 interface ResolveOptions {
   puppet: PuppetNpmName | PuppetInterface,
