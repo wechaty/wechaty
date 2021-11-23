@@ -23,6 +23,9 @@ import type {
   PuppetConstructor,
   PuppetInterface,
 }                         from './puppet-interface.js'
+import {
+  resolvePuppet,
+}                         from './puppet-resolver.js'
 
 export type {
   PuppetConstructor,
@@ -31,4 +34,5 @@ export type {
 export {
   Puppet,
   PuppetSkeleton,
+  resolvePuppet,
 }
