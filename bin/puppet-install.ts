@@ -25,7 +25,7 @@ import { log } from 'wechaty-puppet'
 import {
   PUPPET_DEPENDENCIES,
   PuppetModuleName,
-}                         from '../src/puppet-management/puppet-config.js'
+}                         from '../src/puppet-config.js'
 
 /**
  * Install all `wechaty-puppet-*` modules from `puppet-config.ts`

@@ -19,10 +19,10 @@
  */
 import type * as PUPPET           from 'wechaty-puppet'
 import type { FileBoxInterface }  from 'file-box'
-
+import { concurrencyExecuter }    from 'rx-queue'
 import type {
   Constructor,
-}                           from 'clone-class'
+}                                 from 'clone-class'
 
 import {
   FOUR_PER_EM_SPACE,
@@ -60,8 +60,6 @@ import {
 import type {
   MessageInterface,
 }                       from './message.js'
-
-import { concurrencyTaskExecuter } from '../ix-concurrency-executer.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -152,10 +150,10 @@ class RoomMixin extends MixinBase implements SayableSayer {
       const idToRoom = async (id: string) => this.wechaty.Room.find({ id }).catch(e => this.wechaty.emitError(e))
 
       /**
-       * we need to use concurrencyTaskExecuter to reduce the parallel number of the requests
+       * we need to use concurrencyExecuter to reduce the parallel number of the requests
        */
       const CONCURRENCY = 17
-      const roomIterator = concurrencyTaskExecuter(CONCURRENCY)(idToRoom)(roomIdList)
+      const roomIterator = concurrencyExecuter(CONCURRENCY)(idToRoom)(roomIdList)
 
       const roomList: RoomInterface[] = []
 
@@ -335,10 +333,10 @@ class RoomMixin extends MixinBase implements SayableSayer {
     }
 
     /**
-     * we need to use concurrencyTaskExecuter to reduce the parallel number of the requests
+     * we need to use concurrencyExecuter to reduce the parallel number of the requests
      */
     const CONCURRENCY = 17
-    const contactIterator = concurrencyTaskExecuter(CONCURRENCY)(doReady)(memberIdList)
+    const contactIterator = concurrencyExecuter(CONCURRENCY)(doReady)(memberIdList)
 
     for await (const contact of contactIterator) {
       void contact  // just a empty loop to wait all iterator finished

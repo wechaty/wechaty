@@ -5,8 +5,7 @@ import type {
 
 import type {
   PuppetModuleName,
-}                             from '../puppet-management/mod.js'
-
+}                             from '../puppet-config.js'
 interface WechatyOptions {
   memory?        : MemoryCard,
   name?          : string,                                          // Wechaty Name

@@ -55,12 +55,12 @@ export {
 }                         from '../config.js'
 
 export type {
-  PuppetModuleName,
-}                             from '../puppet-management/mod.js'
-export type {
   WechatyEventName,
 }                             from '../schemas/mod.js'
 
+export type {
+  PuppetModuleName,
+}                             from '../puppet-config.js'
 export type {
   WechatyPlugin,
   WechatyPluginUninstaller,
