@@ -1,3 +1,6 @@
+/**
+ * Wechaty Puppet Unified Schema for Message
+ */
 export enum MessageType {
   Unknown = 0,
 
@@ -46,6 +49,9 @@ export enum WechatAppMessageType {
 /**
  * Wechat Server Message Type Value (to be confirmed)
  *  Huan(202001): The Windows(PC) DLL match the following numbers.
+ *
+ * Huan(202111): 17(RealTimeLocation) & 6 (File) ?
+ *  @see https://zhuanlan.zhihu.com/p/22474033
  */
 export enum WechatMessageType {
   Text              = 1,
