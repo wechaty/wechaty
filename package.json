@@ -58,7 +58,7 @@
     "start": "npm run demo",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
-    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=180 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=600 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test": "npm run lint && nyc npm run test:unit",
     "typedoc": "bash scripts/typedoc.sh"
   },
