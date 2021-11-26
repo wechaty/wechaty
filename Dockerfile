@@ -7,8 +7,7 @@ ENV LC_ALL              C.UTF-8
 ENV NODE_ENV            $NODE_ENV
 ENV NPM_CONFIG_LOGLEVEL warn
 
-# Installing the 'apt-utils' package gets rid of the 'debconf: delaying package configuration, since apt-utils is not installed'
-# error message when installing any other package with the apt-get package manager.
+# Instal the 'apt-utils' package to solve the error 'debconf: delaying package configuration, since apt-utils is not installed'
 # https://peteris.rocks/blog/quiet-and-unattended-installation-with-apt-get/
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -18,8 +17,9 @@ RUN apt-get update \
     bash \
     build-essential \
     ca-certificates \
-    curl \
+    chromium \
     coreutils \
+    curl \
     ffmpeg \
     figlet \
     git \
@@ -27,6 +27,7 @@ RUN apt-get update \
     jq \
     libgconf-2-4 \
     libtool \
+    libxtst6 \
     moreutils \
     python-dev \
     shellcheck \
@@ -34,7 +35,6 @@ RUN apt-get update \
     tzdata \
     vim \
     wget \
-    libxtst6 \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
@@ -42,19 +42,6 @@ RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && apt-get purge --auto-remove \
     && rm -rf /tmp/* /var/lib/apt/lists/*
-
-# https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md
-# https://github.com/ebidel/try-puppeteer/blob/master/backend/Dockerfile
-# Install latest chrome dev package.
-# Note: this also installs the necessary libs so we don't need the previous RUN command.
-RUN  wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends \
-    chromium \
-  && apt-get purge --auto-remove \
-  && rm -rf /tmp/* /var/lib/apt/lists/* \
-  && rm -rf /usr/bin/chromium
 
 WORKDIR /wechaty
 
