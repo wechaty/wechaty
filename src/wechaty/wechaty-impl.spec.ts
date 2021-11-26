@@ -1,7 +1,7 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
-import { EventEmitter } from 'events'
-
 import { test } from 'tstest'
+
+import { WechatyEventEmitter } from '../schemas/wechaty-events.js'
 
 import type {
   ContactSelfConstructor,
@@ -28,7 +28,7 @@ import type {
 }                       from './wechaty-impl.js'
 
 test('Wechaty interface', async t => {
-  abstract class WechatyImplementation extends EventEmitter implements WechatyInterface {
+  abstract class WechatyImplementation extends WechatyEventEmitter implements WechatyInterface {
 
     Contact        : ContactConstructor
     ContactSelf    : ContactSelfConstructor

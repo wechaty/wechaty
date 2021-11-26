@@ -20,7 +20,7 @@
 import type * as PUPPET          from 'wechaty-puppet'
 
 import { log } from '../config.js'
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 
 import type {
   Accepter,

@@ -15,7 +15,7 @@ interface ContactEventListeners {
   message    : ContactEventListenerMessage,
 }
 
-const ContactEventEmitter = EventEmitter as new () => TypedEventEmitter<
+const ContactEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
   ContactEventListeners
 >
 

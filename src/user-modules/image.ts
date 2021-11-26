@@ -21,7 +21,7 @@ import * as PUPPET          from 'wechaty-puppet'
 import type {
   FileBoxInterface,
 }                   from 'file-box'
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 import { validationMixin } from '../user-mixins/validation.js'
 import { log } from '../config.js'
 

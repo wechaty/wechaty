@@ -510,9 +510,19 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## History
 
-### master v1.0 (Sep 2021)
+### main v1.11 (Nov 22, 2021)
 
-Release v1.0 of Wechaty is the first stable release of Wechaty.
+Working on reduxify the Wechaty ecosystem for applying the CQRS pattern.
+
+### v1.10 (Nov 21, 2021)
+
+Second beta release of Wechaty, with all ecosystem npm modules with version v1.10 (wechaty-puppet, wechaty-puppet-service, etc)
+
+### v1.0 (Sep 2021)
+
+- Release v1.0 of Wechaty is the first beta release of Wechaty.
+
+### v0.69
 
 1. v0.69: Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
 

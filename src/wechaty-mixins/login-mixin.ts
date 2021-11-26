@@ -60,12 +60,11 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       }
     }
 
-    __loginMixinCleanCallbackList: (() => void)[]
+    __loginMixinStopCallbackList: (() => void)[] = []
 
     constructor (...args: any[]) {
       log.verbose('WechatyLoginMixin', 'constructor()')
       super(...args)
-      this.__loginMixinCleanCallbackList = []
     }
 
     override async start (): Promise<void> {
@@ -98,7 +97,7 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       this.addListener('login', cleanAuthQrCode)
       this.addListener('stop',  cleanAuthQrCode)
 
-      this.__loginMixinCleanCallbackList.push(
+      this.__loginMixinStopCallbackList.push(
         () => {
           this.removeListener('scan',   onScan)
           this.removeListener('login',  cleanAuthQrCode)
@@ -119,8 +118,8 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       log.verbose('WechatyLoginMixin', 'stop()')
 
       // put callback to then end of event queue in case of it has not been called yet.
-      this.__loginMixinCleanCallbackList.forEach(setImmediate)
-      this.__loginMixinCleanCallbackList.length = 0
+      this.__loginMixinStopCallbackList.forEach(setImmediate)
+      this.__loginMixinStopCallbackList.length = 0
 
       await super.stop()
     }
@@ -167,7 +166,7 @@ type ProtectedPropertyLoginMixin =
   | 'userSelf'  // deprecated: use `currentUser` instead. (will be removed after Dec 31, 2022)
   | 'logonoff'  // deprecated: use `isLoggedIn` instead. ((will be removed after Dec 31, 2022)
   | '__authQrCode'
-  | '__loginMixinCleanCallbackList'
+  | '__loginMixinStopCallbackList'
 
 export type {
   LoginMixin,
