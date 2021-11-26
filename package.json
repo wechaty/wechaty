@@ -120,7 +120,7 @@
     "rx-queue": "^1.0.4",
     "state-switch": "~1.6.2",
     "uuid": "^8.3.2",
-    "wechaty-puppet-service": "~1.11.1",
+    "wechaty-puppet-service": "~1.11.2",
     "ws": "^8.2.3"
   },
   "devDependencies": {
