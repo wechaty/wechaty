@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "1.11.1",
+  "version": "1.11.15",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "type": "module",
   "exports": {
@@ -79,6 +79,7 @@
     "chatie",
     "conversational",
     "framework",
+    "robotics",
     "robot",
     "rpa",
     "sdk",
@@ -106,18 +107,20 @@
   },
   "homepage": "https://github.com/wechaty/",
   "dependencies": {
-    "clone-class": "~1.0.3",
+    "clone-class": "~1.1.1",
     "cockatiel": "^2.0.2",
     "dotenv": "^10.0.0",
+    "file-box": "^1.4.5",
     "fp-ts": "^2.11.5",
     "gerror": "^1.0.14",
     "ix": "^4.5.2",
     "json-rpc-peer": "^0.17.0",
+    "memory-card": "^1.0.3",
     "open-graph": "^0.2.6",
+    "rx-queue": "^1.0.4",
     "state-switch": "~1.6.2",
     "uuid": "^8.3.2",
-    "wechaty-puppet": "~1.11.2",
-    "wechaty-puppet-service": "~1.10.2",
+    "wechaty-puppet-service": "~1.11.2",
     "ws": "^8.2.3"
   },
   "devDependencies": {
@@ -138,7 +141,7 @@
     "qrcode-terminal": "^0.12.0",
     "raven": "^2.6.4",
     "sloc": "^0.2.1",
-    "typed-emitter": "^1.4.0",
+    "typed-emitter": "^1.5.0-from-event",
     "typedoc": "^1.0.0-dev.4 ",
     "wechaty-puppet-mock": "^1.10.2",
     "wechaty-puppet-padlocal": "^0.4.2"

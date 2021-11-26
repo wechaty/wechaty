@@ -101,6 +101,7 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
 }
 
 type WechatySkeletonProtectedProperty =
+  | '__events'
   | '__memory'
   | '__options'
   | 'memory'

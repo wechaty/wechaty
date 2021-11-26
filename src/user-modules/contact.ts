@@ -21,10 +21,12 @@ import * as PUPPET      from 'wechaty-puppet'
 import type {
   FileBoxInterface,
 }                       from 'file-box'
-
+import {
+  concurrencyExecuter,
+}                       from 'rx-queue'
 import type {
   Constructor,
-}                             from '../deprecated/clone-class.js'
+}                       from 'clone-class'
 
 import {
   log,
@@ -49,8 +51,6 @@ import type {
   MessageInterface,
 }                   from './message.js'
 import type { TagInterface }     from './tag.js'
-
-import { concurrencyTaskExecuter } from '../ix-concurrency-executer.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -168,10 +168,10 @@ class ContactMixin extends MixinBase implements SayableSayer {
       const idToContact = async (id: string) => this.wechaty.Contact.find({ id }).catch(e => this.wechaty.emitError(e))
 
       /**
-       * we need to use concurrencyTaskExecuter to reduce the parallel number of the requests
+       * we need to use concurrencyExecuter to reduce the parallel number of the requests
        */
       const CONCURRENCY = 17
-      const contactIterator = concurrencyTaskExecuter(CONCURRENCY)(idToContact)(contactIdList)
+      const contactIterator = concurrencyExecuter(CONCURRENCY)(idToContact)(contactIdList)
 
       const contactList: ContactInterface[] = []
 

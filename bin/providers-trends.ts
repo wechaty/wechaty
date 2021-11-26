@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { PUPPET_DEPENDENCIES } from '../src/puppet-management/puppet-config.js'
+import { PUPPET_DEPENDENCIES } from '../src/puppet-config.js'
 
 async function main () {
   const puppetNameList = Object.keys(PUPPET_DEPENDENCIES)

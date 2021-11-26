@@ -23,7 +23,7 @@ import type {
   FileBoxInterface,
 }                         from 'file-box'
 
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 
 import { escapeRegExp }           from '../pure-functions/escape-regexp.js'
 import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'

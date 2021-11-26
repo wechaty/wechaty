@@ -1,7 +1,7 @@
 import type { EventEmitter }  from 'events'
 import type TypedEventEmitter from 'typed-emitter'
 
-import type { Constructor }           from '../deprecated/clone-class.js'
+import type { Constructor }           from 'clone-class'
 import type {
   WechatyMixinProtectedProperty,
 }                                     from '../wechaty-mixins/mod.js'

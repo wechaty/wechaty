@@ -17,7 +17,7 @@
  *   limitations under the License.
  *
  */
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 import { validationMixin } from '../user-mixins/validation.js'
 
 import {
