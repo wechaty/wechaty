@@ -22,6 +22,7 @@ import { config }           from '../config.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
 import type { PluginMixin } from './plugin-mixin.js'
+import type { IoMixin }     from './io-mixin.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
@@ -30,7 +31,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  *  because the `wechaty-redux` plugin need to be installed before
  *  the puppet started
  */
-const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & PluginMixin> (mixinBase: MixinBase) => {
+const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & PluginMixin & IoMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPuppetMixin', 'puppetMixin(%s)', mixinBase.name)
 
   abstract class PuppetMixin extends mixinBase {

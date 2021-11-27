@@ -5,12 +5,24 @@ import type { WechatyOptions } from '../wechaty-builder.js'
 import type { WechatySkeleton }      from '../wechaty/mod.js'
 import type { GErrorMixin } from './gerror-mixin.js'
 
+/**
+ * Huan(202111): we should not include the IO logic internally
+ *
+ * TODO: remove all IO related logics from Wechaty internal
+ */
 const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyIoMixin', 'ioMixin(%s)', mixinBase.name)
 
   abstract class IoMixin extends mixinBase {
 
     __io?: Io
+    get io (): Io {
+      if (!this.__io) {
+        throw new Error('NO IO')
+      }
+      return this.__io
+    }
+
     __ioToken?: string
 
     constructor (...args: any[]) {
@@ -94,6 +106,7 @@ type IoMixin = ReturnType<typeof ioMixin>
 type ProtectedPropertyIoMixin =
   | '__io'
   | '__ioToken'
+  | 'io'
 
 export type {
   IoMixin,
