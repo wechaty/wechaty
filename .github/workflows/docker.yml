@@ -18,8 +18,10 @@ jobs:
           curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
           tar -xf /tmp/bats_v0.4.0.tar.gz
           sudo bats-0.4.0/install.sh /usr/local
-      - run: ./scripts/docker.sh build
-      - run: ./scripts/docker.sh test
+      - name: Build the Docker image
+        run: ./scripts/docker.sh build
+      - name: Test the Docker image
+        run: ./scripts/docker.sh test
 
   # https://www.prestonlamb.com/blog/creating-a-docker-image-with-github-actions
   publish:
@@ -47,8 +49,6 @@ jobs:
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
-      - name: Build the Docker image
-        run: ./scripts/docker.sh build
       - name: Login to DockerHub Registry
         run: echo ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }} | docker login -u zixia --password-stdin
       - name: Deploy to Docker Hub
