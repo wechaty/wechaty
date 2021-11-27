@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-ARTIFACT_IMAGE='wechaty-artifact'
+export ARTIFACT_IMAGE='wechaty/wechaty:artifact'
 
 function dockerBuild () {
   platform=$1     # `all` for all platforms, `linux/amd64`, `linux/arm64`, etc.
@@ -34,9 +34,9 @@ _CMD_
 function deployOnbuild () {
   export tag=$1
 
-  echo "Building & Deploying 'wechaty/onbuild:$tag' based on 'wechaty/wechaty:build'"
+  echo "Building & Deploying 'wechaty/onbuild:$tag' based on 'wechaty/wechaty:$tag'"
 
-  sed "s#FROM wechaty/wechaty:next#FROM: wechaty/wechaty:build #" < Dockerfile.onbuild \
+  sed "s#FROM wechaty/wechaty:next#FROM: wechaty/wechaty:$tag #" < Dockerfile.onbuild \
     | docker xbuild build \
       --platform 'linux/amd64,linux/arm64,linux/arm/v7' \
       --tag "wechaty/onbuild:$tag" \
@@ -49,7 +49,10 @@ declare -i ret=0
 
   case "$1" in
     build | '')
-      dockerBuild 'linux/amd64' build
+      docker build \
+        --rm \
+        --tag "$ARTIFACT_IMAGE" \
+        .
 
       ret=$?
       ;;
