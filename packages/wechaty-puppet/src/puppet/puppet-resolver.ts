@@ -46,7 +46,7 @@ async function resolvePuppet (
 ): Promise<PuppetInterface> {
   log.verbose('Puppet', 'resolvePuppet({puppet: %s, puppetOptions: %s})',
     options.puppet,
-    JSON.stringify(options.puppetOptions),
+    JSON.stringify(options.puppetOptions || {}),
   )
 
   if (Puppet.valid(options.puppet)) {
@@ -57,7 +57,7 @@ async function resolvePuppet (
     /**
      * If user provide a class instance that not instance of Puppet:
      */
-    throw new Error('puppetResolver accepts string(puppet npm name) or Puppet instance, but you provided is: "' + typeof options.puppet + '"')
+    throw new Error('puppetResolver accepts string(the puppet npm name) or Puppet instance, but you provided is: "' + typeof options.puppet + '"')
   }
 
   log.verbose('Puppet', 'resolvePuppet() resolving name "%s" ...', options.puppet)
@@ -102,8 +102,12 @@ async function resolvePuppetName (
   } catch (e) {
     log.error('Puppet', 'resolvePuppetName %s', [
       '',
-      'puppet npm module not supported: "' + puppetName + '"',
-      'learn more about supported Wechaty Puppet from our official website',
+      'Failed to import Wechaty Puppet Provider (WPP) NPM module: "' + puppetName + '"',
+      'Please make sure:',
+      ' 1. it has been installed correctly. (run `npm install ' + puppetName + "` if it doesn't)",
+      ' 2. "' + puppetName + '" is a valid Wechaty Puppet Provider (WPP).',
+      '',
+      'learn more about Wechaty Puppet Providers (WPP) from the official website:',
       '<https://wechaty.js.org/docs/puppet-providers>',
       '',
     ].join('\n'))
