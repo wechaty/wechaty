@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-import childProcess from 'child_process'
+import spawn from 'cross-spawn'
 
 import { log } from 'wechaty-puppet'
 
@@ -57,7 +57,7 @@ async function main (): Promise<void> {
   ]
   log.info('PuppetInstall', `installing ... Shell: "npm install ${args.join(' ')}"\n`)
 
-  const result = childProcess.spawn('npm', args, { stdio: 'inherit' })
+  const result = spawn('npm', args, { stdio: 'inherit' })
   await new Promise(resolve => result.once('exit', resolve))
 
   log.info('PuppetInstall', 'main() installing ... done')
