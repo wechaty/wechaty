@@ -9,9 +9,7 @@
     "tests/fixtures/smoke-testing.ts"
   ],
   "include": [
-    "app/**/*.ts",
     "bin/*.ts",
-    "bot/**/*.ts",
     "examples/**/*.ts",
     "scripts/**/*.ts",
     "src/**/*.ts",
