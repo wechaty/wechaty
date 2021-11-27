@@ -4,6 +4,12 @@
     "outDir": "dist/esm",
     "lib": ["DOM", "ESNext"],
   },
+  "ts-node": {
+    // It is faster to skip typechecking.
+    // Remove if you want ts-node to do typechecking.
+    "transpileOnly": true,
+    "transpiler": "ts-node/transpilers/swc-experimental"
+  },
   "exclude": [
     "node_modules/",
     "dist/",

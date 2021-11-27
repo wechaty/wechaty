@@ -90,8 +90,11 @@
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^4.5.3",
+    "@swc/core": "^1.2.112",
+    "@swc/helpers": "^0.2.14",
     "@types/uuid": "^8.3.3",
     "nop": "^1.0.0",
+    "regenerator-runtime": "^0.13.9",
     "rxjs": "^7.4.0",
     "tstest": "^1.0.1",
     "yocto-queue": "^1.0.0"
