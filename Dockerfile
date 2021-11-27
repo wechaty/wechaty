@@ -70,8 +70,10 @@ RUN echo '{"type": "module"}' > /package.json
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN  mkdir /node_modules \
-  && ln -sfv /wechaty/node_modules/*       /node_modules/ \
-  && /wechaty/bin/clean-json.js /wechaty/tsconfig.json | jq 'del(."ts-node")' > /tsconfig.json \
+  && ln -sfv /usr/lib/node_modules/*  /node_modules/ \
+  && ln -sfv /wechaty/node_modules/*  /node_modules/ \
+  && /wechaty/bin/clean-json.js /wechaty/tsconfig.json \
+    | jq 'del(."ts-node")' > /tsconfig.json \
   && echo 'Linked Wechaty & tsconfig.json to Global'
 
 WORKDIR /bot
