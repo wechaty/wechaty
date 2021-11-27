@@ -58,7 +58,7 @@
     "start": "npm run demo",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
-    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=60 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=600 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test": "npm run lint && nyc npm run test:unit",
     "typedoc": "bash scripts/typedoc.sh"
   },
@@ -120,6 +120,7 @@
     "rx-queue": "^1.0.4",
     "state-switch": "~1.6.2",
     "uuid": "^8.3.2",
+    "wechaty-puppet": "~1.11.9",
     "wechaty-puppet-service": "~1.11.2",
     "ws": "^8.3.0"
   },
@@ -128,6 +129,8 @@
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^4.5.3",
+    "@swc/core": "^1.2.112",
+    "@swc/helpers": "^0.2.14",
     "@types/dotenv": "^8.2.0",
     "@types/glob": "^7.2.0",
     "@types/open-graph": "^0.2.2",
@@ -140,6 +143,7 @@
     "nyc": "^15.1.0",
     "qrcode-terminal": "^0.12.0",
     "raven": "^2.6.4",
+    "regenerator-runtime": "^0.13.9",
     "sloc": "^0.2.1",
     "typed-emitter": "^1.5.0-from-event",
     "typedoc": "^1.0.0-dev.4 ",

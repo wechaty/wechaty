@@ -18,8 +18,10 @@ jobs:
           curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
           tar -xf /tmp/bats_v0.4.0.tar.gz
           sudo bats-0.4.0/install.sh /usr/local
-      - run: ./scripts/docker.sh build
-      - run: ./scripts/docker.sh test
+      - name: Build the Docker image
+        run: ./scripts/docker.sh build
+      - name: Test the Docker image
+        run: ./scripts/docker.sh test
 
   # https://www.prestonlamb.com/blog/creating-a-docker-image-with-github-actions
   publish:
@@ -29,8 +31,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build the Docker image
-        run: ./scripts/docker.sh build
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
+      # https://github.com/docker/setup-buildx-action
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+          version: latest
+
+      - name: Builder instance name
+        run: echo ${{ steps.buildx.outputs.name }}
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
       - name: Login to DockerHub Registry
         run: echo ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }} | docker login -u zixia --password-stdin
       - name: Deploy to Docker Hub
