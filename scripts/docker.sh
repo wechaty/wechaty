@@ -36,8 +36,8 @@ function deployOnbuild () {
 
   echo "Building & Deploying 'wechaty/onbuild:$tag' based on 'wechaty/wechaty:$tag'"
 
-  sed "s#FROM wechaty/wechaty:next#FROM: wechaty/wechaty:$tag #" < Dockerfile.onbuild \
-    | docker xbuild build \
+  sed "s#FROM wechaty/wechaty:next#FROM wechaty/wechaty:$tag#" < Dockerfile.onbuild \
+    | docker buildx build \
       --platform 'linux/amd64,linux/arm64,linux/arm/v7' \
       --tag "wechaty/onbuild:$tag" \
       --push \
