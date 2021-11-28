@@ -1,6 +1,6 @@
 {
   "name": "wechaty-token",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Wechaty Token Based Authentication Manager",
   "type": "module",
   "exports": {
