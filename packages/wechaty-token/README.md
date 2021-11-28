@@ -50,13 +50,13 @@ Example:
 
 ```sh
 # Discover a valid token (in-service)
-$ wechaty-token discover puppet_IN_SERVICE_TOKEN
+$ wechaty-token discover puppet_IN-SERVICE-TOKEN
 { host: '1.2.3.4', port: 5678 }
 $ echo $?
 0
 
 # Discover a unvalid token (out-of-service)
-$ wechaty-token discover puppet_OUT_OF_SERVICE_TOKEN
+$ wechaty-token discover puppet_OUT-OF-SERVICE-TOKEN
 NotFound
 $ echo $?
 1
