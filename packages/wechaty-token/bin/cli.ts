@@ -1,6 +1,6 @@
-#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
+#!/usr/bin/env node
 /**
- * https://github.com/huan/sidecar
+ * https://github.com/wechaty/token
  *
  * Author: Huan <zixia@zixia.net>
  * License: Apache-2.0
