@@ -30,6 +30,9 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * Huan(202111): `puppetMixin` must extend `pluginMixin`
  *  because the `wechaty-redux` plugin need to be installed before
  *  the puppet started
+ *
+ * Huan(20211128): `puppetMixin` must extend `IoMixin`
+ *  because the Io need the puppet instance to be ready when it starts
  */
 const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & PluginMixin & IoMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPuppetMixin', 'puppetMixin(%s)', mixinBase.name)
