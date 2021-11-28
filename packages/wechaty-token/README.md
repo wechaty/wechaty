@@ -51,7 +51,10 @@ Example:
 ```sh
 # Discover a valid token (in-service)
 $ wechaty-token discover puppet_IN-SERVICE-TOKEN
-{ host: '1.2.3.4', port: 5678 }
+{
+  "host": "1.2.3.4",
+  "port": 5678
+}
 $ echo $?
 0
 
@@ -80,13 +83,13 @@ FLAGS:
 Example:
 
 ```sh
-# Generate a UUID token
+# Generate a UUID token (`uuid` will be the default type)
 $ wechaty-token generate
-1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
+uuid_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
 
 # Generate token with type `foo`
 $ wechaty-token generate --type foo
-puppet_foo_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
+foo_1fab726b-e3d3-40ce-8b7b-d3bd8c9fd280
 ```
 
 ## gRPC Resolver Usage
