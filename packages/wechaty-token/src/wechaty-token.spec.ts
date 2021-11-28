@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 
 import {
   test,
@@ -6,7 +6,7 @@ import {
 
 import nock from 'nock'
 
-import { WechatyToken } from './wechaty-token'
+import { WechatyToken } from './wechaty-token.js'
 
 test('WechatyToken sni() & toString()', async t  => {
   /**

@@ -1,7 +1,7 @@
 import {
   log,
   DEFAULT_AUTHORITY,
-}                     from './config'
+}                     from './config.js'
 
 import {
   ChannelOptions,
@@ -11,9 +11,9 @@ import {
   resolverManager,
   TcpSubchannelAddress,
   uriToString,
-}                         from './grpc-js'
+}                         from './grpc-js.js'
 
-import { WechatyToken } from './wechaty-token'
+import { WechatyToken } from './wechaty-token.js'
 
 class WechatyResolver implements resolverManager.Resolver {
 
@@ -32,7 +32,7 @@ class WechatyResolver implements resolverManager.Resolver {
   constructor (
     public target: GrpcUri,
     public listener: resolverManager.ResolverListener,
-    public channelOptions: ChannelOptions
+    public channelOptions: ChannelOptions,
   ) {
     log.verbose('WechatyResolver', 'constructor("%s",)', JSON.stringify(target))
     log.silly('WechatyResolver', 'constructor(,,"%s")', JSON.stringify(channelOptions))
@@ -44,7 +44,7 @@ class WechatyResolver implements resolverManager.Resolver {
     this.listener.onError({
       code: GrpcStatus.UNAVAILABLE,
       details: `Wechaty service discovery / resolution failed for target ${uriToString(
-        this.target
+        this.target,
       )}: ${reason}`,
       metadata: new Metadata(),
     })
@@ -61,9 +61,9 @@ class WechatyResolver implements resolverManager.Resolver {
         token     : this.target.path,       // `__token__` in `wechaty://api.chatie.io/__token__`
       }).discover()
     } catch (e) {
-      log.warn('WechatyResolver', 'updateResolution() wechatyToken.discover() error for target ' + uriToString(this.target) + ' due to error ' + e.message)
+      log.warn('WechatyResolver', 'updateResolution() wechatyToken.discover() error for target ' + uriToString(this.target) + ' due to error ' + (e as Error).message)
       console.error(e)
-      this.reportResolutionError(e.message)
+      this.reportResolutionError((e as Error).message)
     }
 
     if (!address || !address.port) {
@@ -83,7 +83,7 @@ class WechatyResolver implements resolverManager.Resolver {
       null,
       null,
       null,
-      {}
+      {},
     )
   }
 

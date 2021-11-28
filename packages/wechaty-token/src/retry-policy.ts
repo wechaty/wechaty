@@ -5,7 +5,7 @@ import {
 
 import {
   log,
-}           from './config'
+}           from './config.js'
 
 /**
  * Create a retry policy that'll try whatever function we execute 3

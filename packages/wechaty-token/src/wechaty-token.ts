@@ -6,13 +6,13 @@ import { v4 } from 'uuid'
 import {
   DEFAULT_AUTHORITY,
   log,
-}                     from './config'
+}                     from './config.js'
 import {
   VERSION,
-}                     from './version'
+}                     from './version.js'
 import {
   retryPolicy,
-}                     from './retry-policy'
+}                     from './retry-policy.js'
 
 interface PuppetServiceAddress {
   host: string,
@@ -129,10 +129,10 @@ class WechatyToken {
 
     try {
       jsonStr = await retryPolicy.execute(
-        () => this.discoverApi(url)
+        () => this.discoverApi(url),
       )
     } catch (e) {
-      log.warn('WechatyToken', 'discover() retry.execute(discoverApi) fail: %s', e.message)
+      log.warn('WechatyToken', 'discover() retry.execute(discoverApi) fail: %s', (e as Error).message)
       // console.error(e)
       return undefined
     }

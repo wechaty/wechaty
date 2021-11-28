@@ -5,7 +5,7 @@ import {
   string,
 }                 from 'cmd-ts'
 
-import { WechatyToken } from '../wechaty-token'
+import { WechatyToken } from '../wechaty-token.js'
 
 async function handler (args: any) {
   let address

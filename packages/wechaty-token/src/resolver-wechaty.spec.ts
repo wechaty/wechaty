@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 
 import {
   test,
@@ -11,12 +11,12 @@ import {
   TcpSubchannelAddress,
   parseUri,
   resolverManager,
-}                           from './grpc-js'
+}                           from './grpc-js.js'
 
-import { WechatyToken } from './wechaty-token'
+import { WechatyToken } from './wechaty-token.js'
 import {
   WechatyResolver,
-}                   from './resolver-wechaty'
+}                   from './resolver-wechaty.js'
 
 test('wechaty resolver smoke testing', async t  => {
   const TOKEN = '__token__'
@@ -33,12 +33,12 @@ test('wechaty resolver smoke testing', async t  => {
 
   WechatyResolver.setup()
   const target = resolverManager.mapUriDefaultScheme(
-    parseUri(`wechaty:///${TOKEN}`)!
+    parseUri(`wechaty:///${TOKEN}`)!,
   )!
 
-  t.equal(target.authority, '',  'should get empty authority')
-  t.equal(target.scheme,    'wechaty',        'should get schema')
-  t.equal(target.path,      TOKEN,            'should get token')
+  t.equal(target.authority, '',         'should get empty authority')
+  t.equal(target.scheme,    'wechaty',  'should get schema')
+  t.equal(target.path,      TOKEN,      'should get token')
 
   const rr = {} as any
   const future = new Promise<TcpSubchannelAddress[]>((resolve, reject) => {
@@ -53,7 +53,7 @@ test('wechaty resolver smoke testing', async t  => {
     onSuccessfulResolution: (
       addressList         : TcpSubchannelAddress[],
       _serviceConfig      : ServiceConfig | null,
-      _serviceConfigError : StatusObject | null
+      _serviceConfigError : StatusObject | null,
     ) => {
       // Only handle the first resolution result
       listener.onSuccessfulResolution = () => {}
@@ -65,8 +65,8 @@ test('wechaty resolver smoke testing', async t  => {
 
   const result = await future
 
-  t.same(result[0].host, HOST, 'should get puppet server host')
-  t.same(result[0].port, PORT, 'should get puppet server port')
+  t.same(result[0]!.host, HOST, 'should get puppet server host')
+  t.same(result[0]!.port, PORT, 'should get puppet server port')
 
   sandbox.restore()
 })
@@ -96,7 +96,7 @@ test('wechaty resolver with custom authority', async t  => {
 
   WechatyResolver.setup()
   const target = resolverManager.mapUriDefaultScheme(
-    parseUri(`wechaty://${AUTHORITY}/token`)!
+    parseUri(`wechaty://${AUTHORITY}/token`)!,
   )!
 
   const listener: resolverManager.ResolverListener = {

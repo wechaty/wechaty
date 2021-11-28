@@ -112,7 +112,13 @@ See:
 
 ## History
 
-### master v0.5
+### master v1.0 (Nov 28, 2021)
+
+1. ES Module support
+1. TypeScript 4.5
+1. Wechaty Token Discovery output `JSON.stringify` format
+
+### v0.5 (Sep 8, 2021)
 
 1. Wechaty Token format standard released: `SNI_UUID`
     1. `SNI` will be used as Server Indicator Name (SNI) when we are using TLS

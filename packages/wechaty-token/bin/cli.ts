@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  * https://github.com/huan/sidecar
  *
