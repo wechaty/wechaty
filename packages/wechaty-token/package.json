@@ -15,7 +15,7 @@
     "npm": ">=7"
   },
   "bin": {
-    "wechaty-token": "dist/bin/cli.js"
+    "wechaty-token": "dist/esm/bin/cli.js"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
