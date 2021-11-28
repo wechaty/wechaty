@@ -21,6 +21,6 @@ interface RoomEvents {
   // topic   : RoomTopicEventListener,
 }
 
-export const RoomEventEmitter = EventEmitter as new () => TypedEventEmitter<
+export const RoomEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
   RoomEvents
 >

@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "1.10.2",
+  "version": "1.11.0",
   "description": "Puppet Mocker for Wechaty",
   "type": "module",
   "exports": {
@@ -52,18 +52,18 @@
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^4.5.3",
+    "@chatie/tsconfig": "^4.6.2",
     "@types/cuid": "^1.3.1",
     "@types/faker": "^5.5.9",
-    "wechaty": "^1.9.3"
+    "wechaty": "^1.11.20"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^1.10.2"
+    "wechaty-puppet": "^1.11.11"
   },
   "dependencies": {
     "cuid": "^2.1.8",
     "faker": "^5.5.3",
-    "typed-emitter": "^1.4.0"
+    "typed-emitter": "^1.5.0-from-event"
   },
   "files": [
     "bin/",

@@ -12,6 +12,6 @@ interface ContactEvents {
   message    : ContactMessageEventListener,
 }
 
-export const ContactEventEmitter = EventEmitter as new () => TypedEventEmitter<
+export const ContactEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
   ContactEvents
 >
