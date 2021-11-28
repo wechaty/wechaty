@@ -25,10 +25,11 @@
     "lint": "npm-run-all lint:es lint:ts lint:md",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:md": "markdownlint README.md",
-    "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
+    "lint:es": "eslint \"bin/**/*.ts\" \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
     "test": "npm-run-all lint test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\""
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "cli": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node bin/cli.ts"
   },
   "repository": {
     "type": "git",

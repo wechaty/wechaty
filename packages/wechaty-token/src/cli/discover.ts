@@ -24,8 +24,11 @@ async function handler (args: any) {
       */
     delete (address as any)['ip']
 
-    // print the result
-    console.info(address)
+    /**
+     * Print the result as JSON.stringify format
+     */
+    console.info(JSON.stringify(address, null, '  '))
+
   } else {
     console.info('NotFound')
     process.exit(1)

@@ -17,10 +17,10 @@ import {
   subcommands,
 }                     from 'cmd-ts'
 
-import { VERSION } from '../src/version'
+import { VERSION } from '../src/version.js'
 
-import { generate } from '../src/cli/generate'
-import { discover } from '../src/cli/discover'
+import { generate } from '../src/cli/generate.js'
+import { discover } from '../src/cli/discover.js'
 
 const wechatyToken = subcommands({
   name: 'wechaty-token',
