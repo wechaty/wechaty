@@ -58,7 +58,7 @@
     "wechaty": "^1.11.20"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^1.11.11"
+    "wechaty-puppet": "^1.11.12"
   },
   "dependencies": {
     "cuid": "^2.1.8",
