@@ -14,13 +14,13 @@ npm pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-mv *-*.*.*.tgz "$TMPDIR"
+mv ./*-*.*.*.tgz "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
 cd $TMPDIR
 
 npm init -y
-npm install --production *-*.*.*.tgz \
+npm install --production ./*-*.*.*.tgz \
   @types/node \
   @chatie/tsconfig@$NPM_TAG \
   "wechaty-puppet@$NPM_TAG" \
