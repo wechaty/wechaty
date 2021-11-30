@@ -77,6 +77,11 @@ gRPC is a modern open-source high-performance Remote Procedure Call (RPC) framew
 
 [wechaty-grpc@NPM](https://www.npmjs.com/package/wechaty-grpc)
 
+**Docs:**
+  
+- <https://paka.dev/npm/wechaty-grpc>
+- <https://wechaty.github.io/grpc/>
+
 **Maintainer:**
 
 - [@huan](https://github.com/huan) - Huan LI (李卓桓)
