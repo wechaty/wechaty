@@ -19,6 +19,7 @@
  */
 import { EventEmitter }     from 'events'
 import * as PUPPET          from 'wechaty-puppet'
+import { log }              from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
 import {
@@ -28,7 +29,6 @@ import {
 import type {
   Accepter,
 }                   from '../schemas/acceptable.js'
-import { log } from '../config.js'
 
 import type {
   ContactInterface,

@@ -199,7 +199,12 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
           case 'error':
             puppet.on('error', payload => {
-              this.emit('error', GError.from(payload))
+              /**
+               * Huan(202112):
+               *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
+               *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
+               */
+              this.emit('error', GError.from(payload.gerror || payload.data || payload))
             })
             break
 
