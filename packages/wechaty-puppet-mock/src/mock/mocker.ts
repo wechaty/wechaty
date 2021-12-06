@@ -189,6 +189,10 @@ class Mocker {
    * Creators for MockContacts / MockRooms
    *
    */
+
+  /**
+   * create an contact by specifying the payload
+   */
   createContact (payload?: Partial<PUPPET.payloads.Contact>): ContactMock {
     log.verbose('Mocker', 'createContact(%s)', payload ? JSON.stringify(payload) : '')
 
@@ -200,6 +204,9 @@ class Mocker {
     return this.ContactMock.create(normalizedPayload)
   }
 
+  /**
+   * create `num` contacts randomly
+   */
   createContacts (num: number): ContactMock[] {
     log.verbose('Mocker', 'createContacts(%s)', num)
 
@@ -213,6 +220,9 @@ class Mocker {
     return contactList
   }
 
+  /**
+   * create a room by specifying the payload
+   */
   createRoom (payload?: Partial<PUPPET.payloads.Room>): RoomMock {
     log.verbose('Mocker', 'createRoom(%s)', payload ? JSON.stringify(payload) : '')
 
@@ -226,6 +236,9 @@ class Mocker {
     return this.RoomMock.create(normalizedPayload)
   }
 
+  /**
+   * create `num` rooms randomly
+   */
   createRooms (num: number): RoomMock[] {
     log.verbose('Mocker', 'createRooms(%s)', num)
     const roomList = [] as RoomMock[]
