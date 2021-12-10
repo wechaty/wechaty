@@ -190,10 +190,9 @@ class ContactMock extends ContactEventEmitter {
 
       if (FileBox.valid(something)) {
         this.mocker.puppet.wrapAsync((async () => {
-          const stream = await something.toStream()
-          const uuidFileBox = UUIDFileBox.fromStream(stream)
-          const uuid = await uuidFileBox.toUuid()
-          payload.id = uuid
+          payload.id = await UUIDFileBox
+            .fromStream(await something.toStream())
+            .toUuid()
 
           createAndEmit()
         })())
