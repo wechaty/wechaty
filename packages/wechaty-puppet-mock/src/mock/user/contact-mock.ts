@@ -6,7 +6,7 @@ import * as PUPPET from 'wechaty-puppet'
 import {
   FileBox,
   FileBoxInterface,
-}                   from 'file-box'
+}                                 from 'file-box'
 
 import {
   log,
@@ -18,6 +18,8 @@ import { RoomMock }    from './room-mock.js'
 import { generateSentence } from '../generator.js'
 
 import { ContactEventEmitter } from '../events/contact-events.js'
+
+import { UUIDFileBox } from '../uuid-file-box.js'
 
 const POOL = Symbol('pool')
 
@@ -111,9 +113,8 @@ class ContactMock extends ContactEventEmitter {
     )
 
     const that = this
-    return { to }
 
-    function to (conversation?: ContactMock | RoomMock) {
+    const to = (conversation?: ContactMock | RoomMock) => {
       log.verbose('MockContact', 'say(%s).to(%s)', something || '', conversation?.id || '')
 
       if (!conversation) {
@@ -182,9 +183,26 @@ class ContactMock extends ContactEventEmitter {
       // if (payload.type !== MessageType.Text && typeof something !== 'string' && something) {
       //   that.mocker.MockMessage.setAttachment(payload.id, something)
       // }
-      const msg = that.mocker.MessageMock.create(payload)
-      that.mocker.puppet.emit('message', { messageId: msg.id })
+      const createAndEmit = () => {
+        const msg = that.mocker.MessageMock.create(payload)
+        that.mocker.puppet.emit('message', { messageId: msg.id })
+      }
+
+      if (FileBox.valid(something)) {
+        this.mocker.puppet.wrapAsync((async () => {
+          const stream = await something.toStream()
+          const uuidFileBox = UUIDFileBox.fromStream(stream)
+          const uuid = await uuidFileBox.toUuid()
+          payload.id = uuid
+
+          createAndEmit()
+        })())
+      } else {
+        createAndEmit()
+      }
     }
+
+    return { to }
 
   }
 
