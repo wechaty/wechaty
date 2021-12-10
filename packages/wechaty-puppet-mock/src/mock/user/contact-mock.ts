@@ -144,6 +144,8 @@ class ContactMock extends ContactEventEmitter {
             break
           case 'video/mp4':
           case '.mp4':
+            basePayload.type = PUPPET.types.Message.Video
+            break
           case '.silk':
           case '.sil':
             basePayload.type = PUPPET.types.Message.Audio
