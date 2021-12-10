@@ -39,8 +39,6 @@ import {
   // ContactMock,
 }                     from './mock/mod.js'
 
-import { UUIDFileBox } from './mock/uuid-file-box.js'
-
 export type PuppetMockOptions = PUPPET.PuppetOptions & {
   mocker?: Mocker,
 }
@@ -230,7 +228,11 @@ class PuppetMock extends PUPPET.Puppet {
   }
 
   override async messageFile (id: string): Promise<FileBoxInterface> {
-    return UUIDFileBox.fromUuid(id)
+    const json = this.mocker.cacheFileBoxPayload.get(id)
+    if (!json) {
+      throw new Error('no filebox cache')
+    }
+    return FileBox.fromJSON(json)
   }
 
   override async messageUrl (messageId: string)  : Promise<PUPPET.payloads.UrlLink> {

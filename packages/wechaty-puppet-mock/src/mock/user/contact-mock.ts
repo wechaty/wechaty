@@ -19,8 +19,6 @@ import { generateSentence } from '../generator.js'
 
 import { ContactEventEmitter } from '../events/contact-events.js'
 
-import { UUIDFileBox } from '../uuid-file-box.js'
-
 const POOL = Symbol('pool')
 
 /* eslint no-use-before-define: 0 */
@@ -130,8 +128,11 @@ class ContactMock extends ContactEventEmitter {
       let payload: PUPPET.payloads.Message
 
       if (FileBox.valid(something)) {
-      //   basePayload.type = MessageType.Contact
-      // } else if (something instanceof FileBox) {
+        this.mocker.cacheFileBoxPayload.set(
+          basePayload.id,
+          something.toJSON(),
+        )
+
         const type = (something.mediaType && something.mediaType !== 'application/octet-stream')
           ? something.mediaType
           : path.extname(something.name)
@@ -183,22 +184,9 @@ class ContactMock extends ContactEventEmitter {
       // if (payload.type !== MessageType.Text && typeof something !== 'string' && something) {
       //   that.mocker.MockMessage.setAttachment(payload.id, something)
       // }
-      const createAndEmit = () => {
-        const msg = that.mocker.MessageMock.create(payload)
-        that.mocker.puppet.emit('message', { messageId: msg.id })
-      }
 
-      if (FileBox.valid(something)) {
-        this.mocker.puppet.wrapAsync((async () => {
-          payload.id = await UUIDFileBox
-            .fromStream(await something.toStream())
-            .toUuid()
-
-          createAndEmit()
-        })())
-      } else {
-        createAndEmit()
-      }
+      const msg = that.mocker.MessageMock.create(payload)
+      that.mocker.puppet.emit('message', { messageId: msg.id })
     }
 
     return { to }

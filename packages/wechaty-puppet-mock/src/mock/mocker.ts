@@ -14,12 +14,12 @@ import {
   mockerifyRoomMock,
 }                         from './user/mod.js'
 
-import { urnRegistry } from './uuid-file-box.js'
 import {
   generateContactPayload,
   generateRoomPayload,
 }                           from './generator.js'
 import type { EnvironmentMock } from './environment.js'
+import type { FileBoxJsonObject } from 'file-box/dist/esm/src/file-box.type.js'
 
 class Mocker {
 
@@ -28,6 +28,7 @@ class Mocker {
   cacheContactPayload : Map<string, PUPPET.payloads.Contact>
   cacheRoomPayload    : Map<string, PUPPET.payloads.Room>
   cacheMessagePayload : Map<string, PUPPET.payloads.Message>
+  cacheFileBoxPayload : Map<string, FileBoxJsonObject>
 
   protected mockerifiedContactMock? : typeof ContactMock
   protected mockerifiedMessageMock? : typeof MessageMock
@@ -67,6 +68,7 @@ class Mocker {
     this.cacheContactPayload = new Map()
     this.cacheMessagePayload = new Map()
     this.cacheRoomPayload    = new Map()
+    this.cacheFileBoxPayload = new Map()
 
     this.mockerifiedContactMock = mockerifyContactMock(this)
     this.mockerifiedMessageMock = mockerifyMessageMock(this)
@@ -87,9 +89,6 @@ class Mocker {
 
   start () {
     log.verbose('Mocker', 'start()')
-
-    urnRegistry.init()
-    this.cleanupFns.push(() => urnRegistry.destroy())
 
     this.environmentList.forEach(behavior => {
       log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
