@@ -13,12 +13,10 @@ test('PuppetMock perfect restart testing', async t => {
 
     for (let i = 0; i < 3; i++) {
       await puppet.start()
-      t.ok(puppet.state.active(), 'should be turned on after start()')
+      t.ok(puppet.state.active(), 'should be turned on after start() #' + i)
 
       await puppet.stop()
-      t.ok(puppet.state.inactive(), 'should be turned off after stop()')
-
-      t.pass('start/stop-ed at #' + i)
+      t.ok(puppet.state.inactive(), 'should be turned off after stop() #' + i)
     }
 
     t.pass('PuppetMock() perfect restart pass.')

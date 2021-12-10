@@ -38,7 +38,7 @@ class Mocker {
   get RoomMock    () : typeof RoomMock    { return this.mockerifiedRoomMock!    }
 
   protected environmentList          : EnvironmentMock[]
-  protected environmentCleanupFnList : (() => void)[]
+  protected cleanupFns : (() => void)[]
 
   protected _puppet?: PuppetMock
 
@@ -62,7 +62,7 @@ class Mocker {
     this.id = cuid()
 
     this.environmentList          = []
-    this.environmentCleanupFnList = []
+    this.cleanupFns = []
 
     this.cacheContactPayload = new Map()
     this.cacheMessagePayload = new Map()
@@ -89,23 +89,20 @@ class Mocker {
     log.verbose('Mocker', 'start()')
 
     urnRegistry.init()
-    this.environmentCleanupFnList.push(() => urnRegistry.destroy())
+    this.cleanupFns.push(() => urnRegistry.destroy())
 
     this.environmentList.forEach(behavior => {
       log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
       const stop = behavior(this)
-      this.environmentCleanupFnList.push(stop)
+      this.cleanupFns.push(stop)
     })
   }
 
   stop () {
     log.verbose('Mocker', 'stop()')
-    let n = 0
-    this.environmentCleanupFnList.forEach(fn => {
-      log.verbose('Mocker', 'stop() cleaning behavior #%s', n++)
-      fn()
-    })
-    this.environmentCleanupFnList.length = 0
+
+    this.cleanupFns.forEach(setImmediate)
+    this.cleanupFns.length = 0
   }
 
   randomContact (): undefined | ContactMock {
