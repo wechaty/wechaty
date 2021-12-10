@@ -89,7 +89,7 @@ class PuppetMock extends PUPPET.Puppet {
       clearInterval(this.loopTimer)
     }
 
-    this.mocker.stop()
+    setImmediate(() => this.mocker.stop())
   }
 
   override ding (data?: string): void {
