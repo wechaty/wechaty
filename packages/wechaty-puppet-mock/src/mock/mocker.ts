@@ -14,6 +14,7 @@ import {
   mockerifyRoomMock,
 }                         from './user/mod.js'
 
+import { urnRegistry } from './uuid-file-box.js'
 import {
   generateContactPayload,
   generateRoomPayload,
@@ -86,6 +87,9 @@ class Mocker {
 
   start () {
     log.verbose('Mocker', 'start()')
+
+    urnRegistry.init()
+    this.environmentCleanupFnList.push(() => urnRegistry.destroy())
 
     this.environmentList.forEach(behavior => {
       log.verbose('Mocker', 'start() enabling behavior %s', behavior.name)
