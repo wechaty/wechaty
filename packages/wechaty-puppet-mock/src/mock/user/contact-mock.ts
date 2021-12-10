@@ -5,7 +5,8 @@ import * as path from 'path'
 import * as PUPPET from 'wechaty-puppet'
 import {
   FileBox,
-}             from 'file-box'
+  FileBoxInterface,
+}                   from 'file-box'
 
 import {
   log,
@@ -99,7 +100,7 @@ class ContactMock extends ContactEventEmitter {
   }
 
   say (
-    something?: string | FileBox, // | ContactMock, // | Attachment,
+    something?: string | FileBoxInterface, // | ContactMock, // | Attachment,
     mentions: ContactMock[] = [],
   ): To {
     log.verbose('MockContact', 'say(%s%s)',
@@ -127,11 +128,11 @@ class ContactMock extends ContactEventEmitter {
 
       let payload: PUPPET.payloads.Message
 
-      if (something instanceof FileBox) {
+      if (FileBox.valid(something)) {
       //   basePayload.type = MessageType.Contact
       // } else if (something instanceof FileBox) {
-        const type = (something.mimeType && something.mimeType !== 'application/octet-stream')
-          ? something.mimeType
+        const type = (something.mediaType && something.mediaType !== 'application/octet-stream')
+          ? something.mediaType
           : path.extname(something.name)
         switch (type) {
           case 'image/jpeg':
@@ -143,6 +144,8 @@ class ContactMock extends ContactEventEmitter {
             break
           case 'video/mp4':
           case '.mp4':
+          case '.silk':
+          case '.sil':
             basePayload.type = PUPPET.types.Message.Audio
             break
           default:

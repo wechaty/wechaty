@@ -19,7 +19,10 @@
 import path from 'path'
 
 import * as PUPPET  from 'wechaty-puppet'
-import { FileBox }  from 'file-box'
+import {
+  FileBox,
+  FileBoxInterface,
+}                     from 'file-box'
 
 import {
   CHATIE_OFFICIAL_ACCOUNT_QRCODE,
@@ -150,10 +153,10 @@ class PuppetMock extends PUPPET.Puppet {
     return [...this.mocker.cacheContactPayload.keys()]
   }
 
-  override async contactAvatar (contactId: string)                : Promise<FileBox>
-  override async contactAvatar (contactId: string, file: FileBox) : Promise<void>
+  override async contactAvatar (contactId: string)                : Promise<FileBoxInterface>
+  override async contactAvatar (contactId: string, file: FileBoxInterface) : Promise<void>
 
-  override async contactAvatar (contactId: string, file?: FileBox): Promise<void | FileBox> {
+  override async contactAvatar (contactId: string, file?: FileBoxInterface): Promise<void | FileBoxInterface> {
     log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
 
     /**
@@ -204,7 +207,7 @@ class PuppetMock extends PUPPET.Puppet {
   override async messageImage (
     messageId: string,
     imageType: PUPPET.types.Image,
-  ) : Promise<FileBox> {
+  ) : Promise<FileBoxInterface> {
     log.verbose('PuppetMock', 'messageImage(%s, %s[%s])',
       messageId,
       imageType,
@@ -224,7 +227,7 @@ class PuppetMock extends PUPPET.Puppet {
     return false
   }
 
-  override async messageFile (id: string): Promise<FileBox> {
+  override async messageFile (id: string): Promise<FileBoxInterface> {
     // const attachment = this.mocker.MockMessage.loadAttachment(id)
     // if (attachment instanceof FileBox) {
     //   return attachment
@@ -281,7 +284,7 @@ class PuppetMock extends PUPPET.Puppet {
 
   async #messageSend (
     conversationId: string,
-    something: string | FileBox, // | Attachment
+    something: string | FileBoxInterface, // | Attachment
   ): Promise<void> {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', conversationId, something)
     if (!this.isLoggedIn) {
@@ -309,7 +312,7 @@ class PuppetMock extends PUPPET.Puppet {
 
   override async messageSendFile (
     conversationId: string,
-    file     : FileBox,
+    file     : FileBoxInterface,
   ): Promise<void> {
     return this.#messageSend(conversationId, file)
   }
@@ -386,7 +389,7 @@ class PuppetMock extends PUPPET.Puppet {
     log.verbose('PuppetMock', 'roomDel(%s, %s)', roomId, contactId)
   }
 
-  override async roomAvatar (roomId: string): Promise<FileBox> {
+  override async roomAvatar (roomId: string): Promise<FileBoxInterface> {
     log.verbose('PuppetMock', 'roomAvatar(%s)', roomId)
 
     const payload = await this.roomPayload(roomId)
@@ -446,11 +449,14 @@ class PuppetMock extends PUPPET.Puppet {
 
   override async roomMemberRawPayload (roomId: string, contactId: string): Promise<PUPPET.payloads.RoomMember>  {
     log.verbose('PuppetMock', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
+
+    const contactPayload = await this.contactPayload(contactId)
+
     return {
-      avatar    : 'mock-avatar-data',
-      id        : 'xx',
-      name      : 'mock-name',
-      roomAlias : 'yy',
+      avatar    : contactPayload.avatar,
+      id        : contactId,
+      name      : contactPayload.name,
+      // roomAlias : 'yy',
     }
   }
 
