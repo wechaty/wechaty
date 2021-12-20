@@ -24,7 +24,7 @@ import {
   Contact,
 }                     from '../src/mods/mod.js' // from 'wechaty'
 
-import * as qrTerm from 'qrcode-terminal'
+import qrTerm from 'qrcode-terminal'
 import { FileBox } from 'file-box'
 
 /**
