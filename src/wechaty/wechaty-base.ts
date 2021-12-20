@@ -91,7 +91,7 @@ const mixinBase = FP.pipe(
  * - ios-WeChat, when you use: puppet-ioscat
  *
  * See more:
- * - [What is a Puppet in Wechaty](https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
+ * - [What is a Puppet in Wechaty](https://github.com/wechaty/getting-started/wiki/FAQ#31-what-is-a-puppet-in-wechaty)
  *
  * > If you want to know how to send message, see [Message](#Message) <br>
  * > If you want to know how to get contact, see [Contact](#Contact)

@@ -98,7 +98,7 @@ type WechatyEventListenerStartStop  = ()                                        
  * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
  *
  * @return  {Wechaty}                          - this for chaining,
- * see advanced {@link https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
+ * see advanced {@link https://github.com/wechaty/getting-started/wiki/FAQ#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
  *
  * @desc
  * When the bot get message, it will emit the following Event.
