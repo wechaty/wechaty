@@ -1,5 +1,8 @@
 import { log }              from 'wechaty-puppet'
 import { instanceToClass }  from 'clone-class'
+import type {
+  ServiceCtl,
+}                           from 'state-switch'
 
 import type {
   WechatyPlugin,
@@ -25,7 +28,7 @@ interface Plugable {
   ): Plugable
 }
 
-const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinBase: MixinBase) => {
+const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase {
@@ -81,7 +84,21 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
 
       this.__pluginList.push(...pluginList)
 
+      if (this.state.active()) {
+        this.__enablePlugin(pluginList)
+      }
+
       return this
+    }
+
+    __enablePlugin (pluginList: WechatyPlugin[]): void {
+      const uninstallerList = pluginList
+        .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
+        .filter(isWechatyPluginUninstaller)
+
+      this.__pluginUninstallerList.push(
+        ...uninstallerList,
+      )
     }
 
     override async start (): Promise<void> {
@@ -98,13 +115,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
         this.__pluginList.length,
       )
 
-      const uninstallerList = pluginList
-        .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
-        .filter(isWechatyPluginUninstaller)
-
-      this.__pluginUninstallerList.push(
-        ...uninstallerList,
-      )
+      this.__enablePlugin(pluginList)
 
       log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ... done',
         instanceToClass(this, WechatyImpl).__pluginList.length,
@@ -131,6 +142,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mi
 type PluginMixin = ReturnType<typeof pluginMixin>
 
 type ProtectedPropertyPluginMixin =
+  | '__enablePlugin'
   | '__pluginList'
   | '__pluginUninstallerList'
 
