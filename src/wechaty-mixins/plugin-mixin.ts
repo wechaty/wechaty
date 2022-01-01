@@ -31,10 +31,11 @@ interface Plugable {
 const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
-  abstract class PluginMixin extends mixinBase {
+  abstract class PluginMixin extends mixinBase implements Plugable {
 
     static __pluginList: WechatyPlugin[] = []
     __pluginList:        WechatyPlugin[] = []
+
     __pluginUninstallerList: WechatyPluginUninstaller[] = []
 
     /**
@@ -102,8 +103,11 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
       return this
     }
 
+    /**
+     * @protected active the plugins
+     */
     __activePlugin (pluginList: WechatyPlugin[]): void {
-      log.verbose('WechatyPluginMixin', '__activePlugin()')
+      log.verbose('WechatyPluginMixin', '__activePlugin() %s', pluginList.map(p => p.name).join(', '))
 
       const uninstallerList = pluginList
         .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any

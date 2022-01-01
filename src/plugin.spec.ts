@@ -25,9 +25,13 @@ import {
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import type { WechatyPlugin }  from './plugin.js'
 import type { Wechaty } from './mods/mod.js'
 import { WechatyBuilder } from './wechaty-builder.js'
+
+import {
+  WechatyPlugin,
+  isWechatyPluginUninstaller,
+}                               from './plugin.js'
 
 /**
  *
@@ -66,4 +70,15 @@ test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t
   t.ok(spyPluginInstall.notCalled, 'should not called with stop()')
   await new Promise(setImmediate) // clean the event loop
   t.ok(spyPluginUninstall.calledOnce, 'should called uninstall spy with stop()')
+})
+
+test('isWechatyPluginUninstaller()', async t => {
+  const FIXTURES = [
+    [undefined, false],
+    [() => {}, true],
+  ] as const
+
+  for (const [uninstaller, expected] of FIXTURES) {
+    t.equal(isWechatyPluginUninstaller(uninstaller), expected, `isWechatyPluginUninstaller(${uninstaller}) === ${expected}`)
+  }
 })

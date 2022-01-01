@@ -11,7 +11,7 @@ export interface WechatyPlugin {
 function isWechatyPluginUninstaller (
   pluginReturn: WechatyPluginReturn,
 ): pluginReturn is WechatyPluginUninstaller {
-  return !!pluginReturn
+  return typeof pluginReturn === 'function'
 }
 
 export {
