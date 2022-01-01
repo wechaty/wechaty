@@ -84,14 +84,27 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
 
       this.__pluginList.push(...pluginList)
 
+      /**
+       * If the wechaty has already been started
+       */
       if (this.state.active()) {
-        this.__enablePlugin(pluginList)
+        if (this.state.pending()) {
+          log.warn('WechatyPluginMixin', 'use() called during bot is starting: the plugins might not be able to activate correctly.')
+          /**
+           * We do not active plugin when starting to prevent install one plugin twice
+           *  because the plugin might be installed inside the start() method too.
+           */
+        } else {
+          this.__activePlugin(pluginList)
+        }
       }
 
       return this
     }
 
-    __enablePlugin (pluginList: WechatyPlugin[]): void {
+    __activePlugin (pluginList: WechatyPlugin[]): void {
+      log.verbose('WechatyPluginMixin', '__activePlugin()')
+
       const uninstallerList = pluginList
         .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
         .filter(isWechatyPluginUninstaller)
@@ -115,7 +128,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
         this.__pluginList.length,
       )
 
-      this.__enablePlugin(pluginList)
+      this.__activePlugin(pluginList)
 
       log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ... done',
         instanceToClass(this, WechatyImpl).__pluginList.length,
@@ -142,7 +155,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
 type PluginMixin = ReturnType<typeof pluginMixin>
 
 type ProtectedPropertyPluginMixin =
-  | '__enablePlugin'
+  | '__activePlugin'
   | '__pluginList'
   | '__pluginUninstallerList'
 
