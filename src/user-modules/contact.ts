@@ -47,10 +47,9 @@ import type {
   Sayable,
 }                                     from '../sayable/mod.js'
 
-import type {
-  MessageInterface,
-}                   from './message.js'
-import type { TagInterface }     from './tag.js'
+import type { MessageInterface }  from './message.js'
+import type { TagInterface }      from './tag.js'
+import type { ContactSelfImpl }   from './contact-self.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -99,7 +98,17 @@ class ContactMixin extends MixinBase implements SayableSayer {
     log.silly('Contact', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'object' && query.id) {
-      const contact = (this.wechaty.Contact as any as typeof ContactImpl).load(query.id)
+      let contact: ContactImpl
+      if (this.wechaty.puppet.currentUserId === query.id) {
+        /**
+         * When the contact id is the currentUserId, return a ContactSelfImpl as the Contact
+         */
+        contact = (this.wechaty.ContactSelf as any as typeof ContactSelfImpl).load(query.id)
+      } else {
+        contact = (this.wechaty.Contact as any as typeof ContactImpl).load(query.id)
+      }
+
+      // const contact = (this.wechaty.Contact as any as typeof ContactImpl).load(query.id)
       try {
         await contact.ready()
       } catch (e) {
