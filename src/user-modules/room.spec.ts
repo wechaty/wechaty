@@ -59,13 +59,16 @@ test('findAll()', async t => {
   await wechaty.stop()
 })
 
-test('say()', async () => {
+test('room.say() smoke testing', async () => {
 
   const sandbox = sinon.createSandbox()
   const callback = sinon.spy()
 
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
+
+  const bot = puppet.mocker.createContact()
+  puppet.mocker.login(bot)
 
   await wechaty.start()
 
