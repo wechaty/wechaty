@@ -20,10 +20,8 @@
  */
 import {
   test,
-  sinon,
 }           from 'tstest'
 
-import type * as PUPPET from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 import { WechatyBuilder } from '../wechaty-builder.js'
 
