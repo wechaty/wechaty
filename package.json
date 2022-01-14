@@ -42,6 +42,7 @@
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && node --no-warnings --loader=ts-node/esm scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "clean": "shx rm -fr dist/*",
     "coverage": "nyc report --reporter=lcov",
+    "cli": "node --no-warnings --loader ts-node/esm bin/cli.ts",
     "demo": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
     "dist": "npm-run-all clean build dist:commonjs",
     "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
@@ -67,6 +68,7 @@
     "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
+    "wechaty": "dist/esm/bin/cli.js",
     "wechaty-doctor": "dist/esm/bin/doctor.js",
     "wechaty-io-client": "dist/esm/bin/io-client.js",
     "wechaty-puppet-install": "dist/esm/bin/puppet-install.js",
@@ -108,12 +110,14 @@
   "homepage": "https://github.com/wechaty/",
   "dependencies": {
     "clone-class": "^1.1.1",
+    "cmd-ts": "^0.9.0",
     "cockatiel": "^2.0.2",
     "cross-spawn": "^7.0.3",
     "dotenv": "^10.0.0",
     "file-box": "^1.4.12",
     "fp-ts": "^2.11.5",
     "gerror": "^1.0.16",
+    "get-port": "^6.0.0",
     "json-rpc-peer": "^0.17.0",
     "memory-card": "^1.1.2",
     "open-graph": "^0.2.6",
@@ -122,6 +126,8 @@
     "uuid": "^8.3.2",
     "wechaty-puppet": "~1.11.14",
     "wechaty-puppet-service": "~1.11.2",
+    "wechaty-puppet-wechat4u": "^1.10.2",
+    "wechaty-token": "^1.0.6",
     "ws": "^8.4.0"
   },
   "devDependencies": {

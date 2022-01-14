@@ -75,12 +75,15 @@ const PUPPET_DEPENDENCIES = {
 
 type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
 
+const isPuppetModuleName = (name: string): name is PuppetModuleName => name in PUPPET_DEPENDENCIES
+
 /**
  * Updates:
  *  - Huan(202004): we change default puppet from puppet-service -> puppet-wechat (with UOS support)
  *  - Huan(202009): use puppet service as default
+ *  - Huan(202201): use puppet-wechat4u as default
  */
-const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-service'
+const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-wechat4u'
 
 export type {
   PuppetModuleName,
@@ -88,4 +91,5 @@ export type {
 export {
   PUPPET_DEPENDENCIES,
   PUPPET_NAME_DEFAULT,
+  isPuppetModuleName,
 }
