@@ -135,6 +135,7 @@ const gateway = command({
     })
 
     const options: IoClientOptions = {
+      port,
       token,
       wechaty,
     }
