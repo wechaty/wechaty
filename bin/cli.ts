@@ -27,12 +27,7 @@ const wechatyCli = subcommands({
   name: 'wechaty',
   description: 'Wechaty CLI Utility',
   version: VERSION,
-  cmds: {
-    'token-gateway'   : cmds.tokenGateway,
-    'friday-bot'      : cmds.fridayBot,
-    'puppet-provider' : cmds.puppetProvider,
-    'puppet-service'  : cmds.puppetService,
-  },
+  cmds,
 })
 
 run(

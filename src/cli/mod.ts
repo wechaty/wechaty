@@ -1,4 +1,4 @@
-export { fridayBot }      from './friday-bot.js'
-export { puppetProvider } from './puppet-provider.js'
-export { puppetService }  from './puppet-service.js'
-export { tokenGateway }   from './token-gateway.js'
+export { friday }     from './friday.js'
+export { provider }   from './provider.js'
+export { service }    from './service.js'
+export { gateway }    from './gateway.js'
