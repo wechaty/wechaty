@@ -122,6 +122,11 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
 
     if (arg0 instanceof GError) {
       gerr = arg0
+    } else if (arg0 && typeof arg0 === 'object' && 'gerror' in arg0) {
+      /**
+       * in case of the `args` is an `EventErrorPayload`
+       */
+      gerr = GError.from(arg0.gerror)
     } else {
       gerr = GError.from(arg0)
     }
