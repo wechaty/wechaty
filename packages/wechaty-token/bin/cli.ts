@@ -19,17 +19,13 @@ import {
 
 import { VERSION } from '../src/version.js'
 
-import { generate } from '../src/cli/generate.js'
-import { discover } from '../src/cli/discover.js'
+import { cmds } from '../src/cli/mod.js'
 
 const wechatyToken = subcommands({
   name: 'wechaty-token',
   description: 'Wechaty utility for discovering and generating tokens',
   version: VERSION,
-  cmds: {
-    generate,
-    discover,
-  },
+  cmds,
 })
 
 run(
