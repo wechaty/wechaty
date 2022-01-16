@@ -38,7 +38,7 @@ async function onError (
 
 const gateway = command({
   name: 'gateway',
-  description: 'Create a gateway for publishing a DIY token as Wechaty Puppet Service, based on a existing puppet provider/service',
+  description: 'Publish your DIY token as a Wechaty Puppet Service. (you can generate a token by running `wechaty token generate`)',
   args: {
     token: option({
       description: 'Specify a TOKEN for your DIY Wechaty Puppet Service (WPS). It is the standard token service for TypeScript and Polyglot Wechaty (like Python, Rust, Go, etc.). If it not specified, it will be generated automatically.',
