@@ -44,6 +44,7 @@ test('findAll()', async t => {
   const contactList = await wechaty.Contact.findAll()
   t.equal(contactList.length, 1, 'should find 1 contact')
   t.equal(contactList[0]!.name(), EXPECTED_NAME, 'should get name from payload')
+  t.same(contactList[0]!.payload, mockContact.payload, 'should get payload from mockContact')
 
   await wechaty.stop()
 })

@@ -233,7 +233,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @ignore
    *
    */
-  protected _payload?: PUPPET.payloads.Contact
+  payload?: PUPPET.payloads.Contact
 
   /**
    * @hideconstructor
@@ -249,12 +249,12 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @ignore
    */
   override toString (): string {
-    if (!this._payload) {
+    if (!this.payload) {
       return this.constructor.name
     }
 
-    const identity = this._payload.alias
-                    || this._payload.name
+    const identity = this.payload.alias
+                    || this.payload.name
                     || this.id
                     || 'loading...'
 
@@ -352,7 +352,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const name = contact.name()
    */
   name (): string {
-    return (this._payload && this._payload.name) || ''
+    return (this.payload && this.payload.name) || ''
   }
 
   async alias ()                  : Promise<undefined | string>
@@ -397,23 +397,23 @@ class ContactMixin extends MixinBase implements SayableSayer {
         : newAlias,
     )
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
     if (typeof newAlias === 'undefined') {
-      return this._payload.alias
+      return this.payload.alias
     }
 
     try {
       await this.wechaty.puppet.contactAlias(this.id, newAlias)
       await this.wechaty.puppet.contactPayloadDirty(this.id)
-      this._payload = await this.wechaty.puppet.contactPayload(this.id)
-      if (newAlias && newAlias !== this._payload.alias) {
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+      if (newAlias && newAlias !== this.payload.alias) {
         log.warn('Contact', 'alias(%s) sync with server fail: set(%s) is not equal to get(%s)',
           newAlias,
           newAlias,
-          this._payload.alias,
+          this.payload.alias,
         )
       }
     } catch (e) {
@@ -449,18 +449,18 @@ class ContactMixin extends MixinBase implements SayableSayer {
   async phone (phoneList?: string[]): Promise<string[] | void> {
     log.silly('Contact', 'phone(%s)', phoneList === undefined ? '' : JSON.stringify(phoneList))
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
     if (typeof phoneList === 'undefined') {
-      return this._payload.phone
+      return this.payload.phone
     }
 
     try {
       await this.wechaty.puppet.contactPhone(this.id, phoneList)
       await this.wechaty.puppet.contactPayloadDirty(this.id)
-      this._payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
       log.error('Contact', 'phone(%s) rejected: %s', JSON.stringify(phoneList), (e as Error).message)
@@ -472,22 +472,22 @@ class ContactMixin extends MixinBase implements SayableSayer {
   async corporation (remark?: string | null): Promise<void | undefined | string> {
     log.silly('Contact', 'corporation(%s)', remark)
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
     if (typeof remark === 'undefined') {
-      return this._payload.corporation
+      return this.payload.corporation
     }
 
-    if (this._payload.type !== PUPPET.types.Contact.Individual) {
+    if (this.payload.type !== PUPPET.types.Contact.Individual) {
       throw new Error('Can not set corporation remark on non individual contact.')
     }
 
     try {
       await this.wechaty.puppet.contactCorporationRemark(this.id, remark)
       await this.wechaty.puppet.contactPayloadDirty(this.id)
-      this._payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
       log.error('Contact', 'corporation(%s) rejected: %s', remark, (e as Error).message)
@@ -499,18 +499,18 @@ class ContactMixin extends MixinBase implements SayableSayer {
   async description (newDescription?: string | null): Promise<void | undefined | string> {
     log.silly('Contact', 'description(%s)', newDescription)
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
     if (typeof newDescription === 'undefined') {
-      return this._payload.description
+      return this.payload.description
     }
 
     try {
       await this.wechaty.puppet.contactDescription(this.id, newDescription)
       await this.wechaty.puppet.contactPayloadDirty(this.id)
-      this._payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
     } catch (e) {
       this.wechaty.emitError(e)
       log.error('Contact', 'description(%s) rejected: %s', newDescription, (e as Error).message)
@@ -518,19 +518,19 @@ class ContactMixin extends MixinBase implements SayableSayer {
   }
 
   title (): string | null {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    return this._payload.title || null
+    return this.payload.title || null
   }
 
   coworker (): boolean {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    return !!this._payload.coworker
+    return !!this.payload.coworker
   }
 
   /**
@@ -548,7 +548,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    */
   friend (): undefined | boolean {
     log.verbose('Contact', 'friend()')
-    return this._payload?.friend
+    return this.payload?.friend
   }
 
   /**
@@ -570,10 +570,10 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
   type (): PUPPET.types.Contact {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
-    return this._payload.type
+    return this.payload.type
   }
 
   /**
@@ -585,7 +585,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const isStar = contact.star()
    */
   star (): undefined | boolean {
-    return this._payload?.star
+    return this.payload?.star
   }
 
   /**
@@ -597,8 +597,8 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const gender = contact.gender() === bot.Contact.Gender.Male
    */
   gender (): PUPPET.types.ContactGender {
-    return this._payload
-      ? this._payload.gender
+    return this.payload
+      ? this.payload.gender
       : PUPPET.types.ContactGender.Unknown
   }
 
@@ -610,7 +610,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const province = contact.province()
    */
   province (): undefined | string {
-    return this._payload?.province
+    return this.payload?.province
   }
 
   /**
@@ -621,7 +621,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const city = contact.city()
    */
   city (): undefined | string {
-    return this._payload?.city
+    return this.payload?.city
   }
 
   /**
@@ -697,7 +697,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
       if (forceSync) {
         await this.wechaty.puppet.contactPayloadDirty(this.id)
       }
-      this._payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
@@ -740,7 +740,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @ignore
    */
   isReady (): boolean {
-    return !!(this._payload && this._payload.name)
+    return !!(this.payload && this.payload.name)
   }
 
   /**
@@ -765,7 +765,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const weixin = contact.weixin()
    */
   weixin (): undefined | string {
-    return this._payload?.weixin
+    return this.payload?.weixin
   }
 
 }

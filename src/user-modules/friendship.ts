@@ -171,7 +171,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
   /**
     * @ignore
    */
-  protected _payload?: PUPPET.payloads.Friendship
+  payload?: PUPPET.payloads.Friendship
 
   /*
    * @hideconstructor
@@ -184,21 +184,21 @@ class FriendshipMixin extends MixinBase implements Accepter {
   }
 
   override toString () {
-    if (!this._payload) {
+    if (!this.payload) {
       return this.constructor.name
     }
 
     return [
       'Friendship#',
-      PUPPET.types.Friendship[this._payload.type],
+      PUPPET.types.Friendship[this.payload.type],
       '<',
-      this._payload.contactId,
+      this.payload.contactId,
       '>',
     ].join('')
   }
 
   isReady (): boolean {
-    return !!this._payload && (Object.keys(this._payload).length > 0)
+    return !!this.payload && (Object.keys(this.payload).length > 0)
   }
 
   /**
@@ -210,7 +210,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
       return
     }
 
-    this._payload = await this.wechaty.puppet.friendshipPayload(this.id)
+    this.payload = await this.wechaty.puppet.friendshipPayload(this.id)
 
     // if (!this.#payload) {
     //   throw new Error('no payload')
@@ -252,15 +252,15 @@ class FriendshipMixin extends MixinBase implements Accepter {
   async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    if (this._payload.type !== PUPPET.types.Friendship.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this._payload.type])
+    if (this.payload.type !== PUPPET.types.Friendship.Receive) {
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this.payload.type])
     }
 
-    log.silly('Friendship', 'accept() to %s', this._payload.contactId)
+    log.silly('Friendship', 'accept() to %s', this.payload.contactId)
 
     await this.wechaty.puppet.friendshipAccept(this.id)
 
@@ -306,10 +306,10 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * .start()
    */
   hello (): string {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
-    return this._payload.hello || ''
+    return this.payload.hello || ''
   }
 
   /**
@@ -326,11 +326,11 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * .start()
    */
   contact (): ContactInterface {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    const contact = (this.wechaty.Contact as typeof ContactImpl).load(this._payload.contactId)
+    const contact = (this.wechaty.Contact as typeof ContactImpl).load(this.payload.contactId)
     return contact
   }
 
@@ -358,8 +358,8 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * .start()
    */
   type (): PUPPET.types.Friendship {
-    return this._payload
-      ? this._payload.type
+    return this.payload
+      ? this.payload.type
       : PUPPET.types.Friendship.Unknown
   }
 
@@ -385,7 +385,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
     if (!this.isReady()) {
       throw new Error(`Friendship<${this.id}> needs to be ready. Please call ready() before toJSON()`)
     }
-    return JSON.stringify(this._payload)
+    return JSON.stringify(this.payload)
   }
 
   /**

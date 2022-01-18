@@ -247,13 +247,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *
    *
    */
-  protected _payload?: PUPPET.payloads.Room
-  get payload () {
-    if (this._payload) {
-      return this._payload
-    }
-    throw new Error('no payload')
-  }
+  payload?: PUPPET.payloads.Room
 
   /**
    * @hideconstructor
@@ -271,11 +265,11 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @ignore
    */
   override toString () {
-    if (!this._payload) {
+    if (!this.payload) {
       return this.constructor.name
     }
 
-    return `Room<${this._payload.topic || 'loading...'}>`
+    return `Room<${this.payload.topic || 'loading...'}>`
   }
 
   async * [Symbol.asyncIterator] (): AsyncIterableIterator<ContactInterface> {
@@ -317,7 +311,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       await this.wechaty.puppet.roomPayloadDirty(this.id)
       await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
     }
-    this._payload = await this.wechaty.puppet.roomPayload(this.id)
+    this.payload = await this.wechaty.puppet.roomPayload(this.id)
 
     /**
      * Sync all room member contacts
@@ -348,7 +342,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @ignore
    */
   isReady (): boolean {
-    return !!(this._payload)
+    return !!(this.payload)
   }
 
   say (sayable:  Sayable)                                 : Promise<void | MessageInterface>
@@ -789,8 +783,8 @@ class RoomMixin extends MixinBase implements SayableSayer {
     }
 
     if (typeof newTopic === 'undefined') {
-      if (this._payload && this._payload.topic) {
-        return this._payload.topic
+      if (this.payload && this.payload.topic) {
+        return this.payload.topic
       } else {
         const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
         const memberListFuture = memberIdList
@@ -1107,7 +1101,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   owner (): undefined | ContactInterface {
     log.verbose('Room', 'owner()')
 
-    const ownerId = this._payload && this._payload.ownerId
+    const ownerId = this.payload && this.payload.ownerId
     if (!ownerId) {
       return undefined
     }
