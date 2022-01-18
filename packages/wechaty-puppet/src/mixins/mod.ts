@@ -24,6 +24,9 @@ import {
 }                                     from './message-mixin.js'
 import { miscMixin }                  from './misc-mixin.js'
 import {
+  readyMixin,
+}                                     from './ready-mixin.js'
+import {
   roomInvitationMixin,
   ProtectedPropertyRoomInvitationMixin,
 }                                     from './room-invitation-mixin.js'
@@ -89,4 +92,5 @@ export {
   serviceMixin,
   tagMixin,
   validateMixin,
+  readyMixin,
 }
