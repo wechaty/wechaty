@@ -30,7 +30,14 @@ async function handler (args: any) {
     console.info(JSON.stringify(address, null, '  '))
 
   } else {
-    console.info('NotFound')
+    console.error([
+      `NotFound: ${args.token}`,
+      '',
+      'Please contact your Wechaty Puppet Service Provider to get a valid token.',
+      '',
+      'Learn more from Wechaty official website at https://wechaty.js.org/docs/puppet-services/',
+      '',
+    ].join('\n'))
     process.exit(1)
   }
 
