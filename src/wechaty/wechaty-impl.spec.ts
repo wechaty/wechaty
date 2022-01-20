@@ -47,6 +47,7 @@ test('Wechaty interface', async t => {
 
     constructor () {
       super()
+      // this.puppet
       this.Contact
         = this.ContactSelf
         = this.Delay
@@ -55,7 +56,6 @@ test('Wechaty interface', async t => {
         = this.Location
         = this.Message
         = this.MiniProgram
-        = this.puppet
         = this.Post
         = this.Room
         = this.RoomInvitation

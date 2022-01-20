@@ -44,17 +44,17 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
      * @protected
      */
     // Huan(202111): developing Post
-    // _puppet?: PUPPET.impl.Puppet
-    __puppet?: PuppetPost  // FIXME: use `PUPPET.impl.Puppet`
+    __puppet?: PUPPET.impls.PuppetInterface
 
     // Huan(202111): developing Post
-    // get puppet (): PUPPET.impl.Puppet {
+    // get puppet (): PUPPET.Puppet {
     get puppet (): PuppetPost { // FIXME: use `PUPPET.impl.Puppet`
       if (!this.__puppet) {
 
         throw new Error('NOPUPPET')
       }
-      return this.__puppet
+      // Huan(202201): developing Post, remove `as PuppetPost` before publish
+      return this.__puppet as PuppetPost
     }
 
     readonly __readyState : StateSwitchInterface

@@ -1020,11 +1020,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
   public async toPost (): Promise<PostInterface> {
     log.verbose('Message', 'toPost()')
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    if (this.type() !== PUPPET.type.Message.Post) {
+    if (this.type() !== PUPPET.types.Message.Post) {
       throw new Error('message type not a Post')
     }
 
