@@ -103,7 +103,7 @@ abstract class Puppet extends MixinBase {
 
   /**
    * The child puppet provider should put all start code inside `onStart()`
-   *  becasue the `start()` will call `onStart()` with the state management.
+   *  becasue the `onStart()` with be called by `start()` inside state management.
    *
    * The `try {} catch () {}` is not necessary inside `onStart()`
    *  because it will be handled by the framework.
