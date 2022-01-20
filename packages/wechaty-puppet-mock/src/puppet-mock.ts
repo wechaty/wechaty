@@ -356,7 +356,7 @@ class PuppetMock extends PUPPET.Puppet {
   override async messageForward (
     conversationId: string,
     messageId : string,
-  ): Promise<void> {
+  ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageForward(%s, %s)',
       conversationId,
       messageId,
