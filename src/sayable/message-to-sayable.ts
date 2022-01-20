@@ -15,32 +15,32 @@ async function messageToSayable (
   const type = message.type()
 
   switch (type) {
-    case PUPPET.type.Message.Text:
+    case PUPPET.types.Message.Text:
       return message.text()
 
-    case PUPPET.type.Message.Image:
-    case PUPPET.type.Message.Attachment:
-    case PUPPET.type.Message.Audio:
-    case PUPPET.type.Message.Video:
-    case PUPPET.type.Message.Emoticon:
+    case PUPPET.types.Message.Image:
+    case PUPPET.types.Message.Attachment:
+    case PUPPET.types.Message.Audio:
+    case PUPPET.types.Message.Video:
+    case PUPPET.types.Message.Emoticon:
       return message.toFileBox()
 
-    case PUPPET.type.Message.Contact:
+    case PUPPET.types.Message.Contact:
       return message.toContact()
 
-    case PUPPET.type.Message.Url:
+    case PUPPET.types.Message.Url:
       return message.toUrlLink()
 
-    case PUPPET.type.Message.MiniProgram:
+    case PUPPET.types.Message.MiniProgram:
       return message.toMiniProgram()
 
-    case PUPPET.type.Message.Location:
+    case PUPPET.types.Message.Location:
       return message.toLocation()
 
     default:
       log.warn('Wechaty',
         'toSayable() can not convert not re-sayable type: %s(%s) for %s\n%s',
-        PUPPET.type.Message[type],
+        PUPPET.types.Message[type],
         type,
         message,
         new Error().stack,

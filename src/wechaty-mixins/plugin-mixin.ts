@@ -1,4 +1,9 @@
-import { log }        from 'wechaty-puppet'
+import { log }              from 'wechaty-puppet'
+import { instanceToClass }  from 'clone-class'
+import type {
+  ServiceCtl,
+}                           from 'state-switch'
+
 import type {
   WechatyPlugin,
   WechatyPluginUninstaller,
@@ -7,21 +12,31 @@ import {
   isWechatyPluginUninstaller,
 }                             from '../plugin.js'
 
-import type { WechatySkelton }      from './wechaty-skelton.js'
-import type {
-  WechatyInterface,
-  WechatyConstructor,
-}                             from '../interface/wechaty-interface.js'
-import { instanceToClass } from 'clone-class'
-import { WechatyImpl } from '../wechaty.js'
+import {
+  WechatyImpl,
+  WechatySkeleton,
+}                       from '../wechaty/mod.js'
 
-const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinBase) => {
+import type { GErrorMixin } from './gerror-mixin.js'
+
+interface Plugable {
+  use (
+    ...plugins: (
+      | WechatyPlugin
+      | WechatyPlugin[]
+    )[]
+  ): Plugable
+}
+
+const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
-  abstract class PluginMixin extends mixinBase {
+  abstract class PluginMixin extends mixinBase implements Plugable {
 
-    static _globalPluginList: WechatyPlugin[] = []
-    _pluginUninstallerList: WechatyPluginUninstaller[]
+    static __pluginList: WechatyPlugin[] = []
+    __pluginList:        WechatyPlugin[] = []
+
+    __pluginUninstallerList: WechatyPluginUninstaller[] = []
 
     /**
      * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
@@ -44,58 +59,96 @@ const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
      */
     static use (
       ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
-    ): WechatyConstructor {
+    ): Plugable {
       const pluginList = plugins.flat()
-      this._globalPluginList = this._globalPluginList.concat(pluginList)
+      this.__pluginList.push(...pluginList)
+
       // Huan(202110): TODO: remove any
       return this as any
     }
 
     constructor (...args: any[]) {
       super(...args)
-
-      this._pluginUninstallerList = []
-      this._installGlobalPlugin()
     }
 
     /**
-     * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
-     *
-     * @return  {WechatyInterface}                      - this for chaining,
-     *
-     * @desc
-     * For wechaty ecosystem, allow user to define a 3rd party plugin for the current wechaty instance.
-     *
-     * @example
-     * // The same usage with Wechaty.use().
+     * @param {WechatyPlugin[]}Interfacehaty.use().
      *
      */
     use (
       ...plugins: (
         WechatyPlugin | WechatyPlugin[]
       )[]
-    ): WechatyInterface {
-      const pluginList = plugins.flat() as WechatyPlugin[]
+    ): Plugable {
+      const pluginList = plugins.flat()
+      log.verbose('WechatyPluginMixin', 'use() total %d plugins', pluginList.length)
+
+      this.__pluginList.push(...pluginList)
+
+      /**
+       * If the wechaty has already been started
+       */
+      if (this.state.active()) {
+        if (this.state.pending()) {
+          log.warn('WechatyPluginMixin', 'use() called during bot is starting: the plugins might not be able to activate correctly.')
+          /**
+           * We do not active plugin when starting to prevent install one plugin twice
+           *  because the plugin might be installed inside the start() method too.
+           */
+        } else {
+          this.__activePlugin(pluginList)
+        }
+      }
+
+      return this
+    }
+
+    /**
+     * @protected active the plugins
+     */
+    __activePlugin (pluginList: WechatyPlugin[]): void {
+      log.verbose('WechatyPluginMixin', '__activePlugin() %s', pluginList.map(p => p.name).join(', '))
+
       const uninstallerList = pluginList
         .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
         .filter(isWechatyPluginUninstaller)
 
-      this._pluginUninstallerList.push(
+      this.__pluginUninstallerList.push(
         ...uninstallerList,
       )
-      // Huan(202110): TODO: remove any
-      return this as any
     }
 
-    _installGlobalPlugin () {
-      const uninstallerList = instanceToClass(this, WechatyImpl)
-        ._globalPluginList
-        .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
-        .filter(isWechatyPluginUninstaller)
+    override async start (): Promise<void> {
+      log.verbose('WechatyPluginMixin', 'start()')
+      await super.start()
 
-      this._pluginUninstallerList.push(
-        ...uninstallerList,
+      const pluginList = [
+        ...instanceToClass(this, WechatyImpl).__pluginList,
+        ...this.__pluginList,
+      ]
+
+      log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ...',
+        instanceToClass(this, WechatyImpl).__pluginList.length,
+        this.__pluginList.length,
       )
+
+      this.__activePlugin(pluginList)
+
+      log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ... done',
+        instanceToClass(this, WechatyImpl).__pluginList.length,
+        this.__pluginList.length,
+      )
+    }
+
+    override async stop (): Promise<void> {
+      log.verbose('WechatyPluginMixin', 'stop() uninstall %d plugins ...', this.__pluginUninstallerList.length)
+
+      this.__pluginUninstallerList.forEach(setImmediate)
+      this.__pluginUninstallerList.length = 0
+
+      log.verbose('WechatyPluginMixin', 'stop() uninstall %d plugins ... done', this.__pluginUninstallerList.length)
+
+      await super.stop()
     }
 
   }
@@ -106,13 +159,13 @@ const pluginMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinB
 type PluginMixin = ReturnType<typeof pluginMixin>
 
 type ProtectedPropertyPluginMixin =
-  | '_installGlobalPlugin'
-  | '_pluginUninstallerList'
+  | '__activePlugin'
+  | '__pluginList'
+  | '__pluginUninstallerList'
 
-export type {
-  PluginMixin,
-  ProtectedPropertyPluginMixin,
-}
 export {
+  type Plugable,
+  type PluginMixin,
+  type ProtectedPropertyPluginMixin,
   pluginMixin,
 }

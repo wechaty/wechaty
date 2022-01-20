@@ -1,25 +1,41 @@
-import { log }              from 'wechaty-puppet'
 import * as PUPPET      from 'wechaty-puppet'
-import { GError } from 'gerror'
+import { log }          from 'wechaty-puppet'
+import {
+  GError,
+  timeoutPromise,
+  TimeoutPromiseGError,
+}                       from 'gerror'
 
-import { StateSwitch } from 'state-switch'
-import type { StateSwitchInterface } from 'state-switch'
+import { StateSwitch }  from 'state-switch'
+import type {
+  StateSwitchInterface,
+}                       from 'state-switch'
 
-import { timestampToDate } from '../pure-functions/timestamp-to-date.js'
-import type { ContactInterface } from '../user-modules/contact.js'
+import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'
+import type { ContactInterface }  from '../user-modules/contact.js'
+
 import type {
   WechatifyUserModuleMixin,
-}                             from './wechatify-user-module-mixin.js'
-import {
-  PuppetManager,
-}                       from '../puppet-management/mod.js'
+}                                 from './wechatify-user-module-mixin.js'
 
-import { config } from '../config.js'
+import { config }           from '../config.js'
 import type { PuppetPost } from '../user-modules/post-puppet-api.js'
+
+import type { GErrorMixin } from './gerror-mixin.js'
+import type { PluginMixin } from './plugin-mixin.js'
+import type { IoMixin }     from './io-mixin.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
-const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: MixinBase) => {
+/**
+ * Huan(202111): `puppetMixin` must extend `pluginMixin`
+ *  because the `wechaty-redux` plugin need to be installed before
+ *  the puppet started
+ *
+ * Huan(20211128): `puppetMixin` must extend `IoMixin`
+ *  because the Io need the puppet instance to be ready when it starts
+ */
+const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & PluginMixin & IoMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPuppetMixin', 'puppetMixin(%s)', mixinBase.name)
 
   abstract class PuppetMixin extends mixinBase {
@@ -29,102 +45,156 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
      */
     // Huan(202111): developing Post
     // _puppet?: PUPPET.impl.Puppet
-    _puppet?: PuppetPost  // FIXME: use `PUPPET.impl.Puppet`
+    __puppet?: PuppetPost  // FIXME: use `PUPPET.impl.Puppet`
 
     // Huan(202111): developing Post
     // get puppet (): PUPPET.impl.Puppet {
     get puppet (): PuppetPost { // FIXME: use `PUPPET.impl.Puppet`
-      if (!this._puppet) {
+      if (!this.__puppet) {
+
         throw new Error('NOPUPPET')
       }
-      return this._puppet
+      return this.__puppet
     }
 
-    /**
-     * @protected
-     */
-    readonly _readyState : StateSwitchInterface
+    readonly __readyState : StateSwitchInterface
 
     constructor (...args: any[]) {
       log.verbose('WechatyPuppetMixin', 'construct()')
       super(...args)
 
-      this._readyState = new StateSwitch('WechatyReady', { log })
+      this.__readyState = new StateSwitch('WechatyReady', { log })
     }
 
     override async start (): Promise<void> {
       log.verbose('WechatyPuppetMixin', 'start()')
-      await super.start()
 
-      /**
-       * reset the `wechaty.ready()` state
-       *  if it was previous set to `active`
-       */
-      if (this._readyState.active()) {
-        this._readyState.inactive(true)
+      log.verbose('WechatyPuppetMixin', 'start() super.start() ...')
+      await super.start()
+      log.verbose('WechatyPuppetMixin', 'start() super.start() ... done')
+
+      try {
+        /**
+         * reset the `wechaty.ready()` state
+         *  if it was previous set to `active`
+         */
+        if (this.__readyState.active()) {
+          this.__readyState.inactive(true)
+        }
+
+        log.verbose('WechatyPuppetMixin', 'start() initializing puppet instance ...')
+        await this.__initPuppetInstance()
+        log.verbose('WechatyPuppetMixin', 'start() initializing puppet instance ... done')
+
+        try {
+          log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
+          await timeoutPromise(
+            this.puppet.start(),
+            15 * 1000,  // 15 seconds timeout
+          )
+          log.verbose('WechatyPuppetMixin', 'start() starting puppet ... done')
+        } catch (e) {
+          if (e instanceof TimeoutPromiseGError) {
+            /**
+             * Huan(202111):
+             *
+             *  We should throw the Timeout error when the puppet.start() can not be finished in time.
+             *  However, we need to compatible with some buggy puppet implementations which will not resolve the promise.
+             *
+             * TODO: throw the Timeout error when the puppet.start() can not be finished in time.
+             *
+             * e.g. after resolve @issue https://github.com/padlocal/wechaty-puppet-padlocal/issues/116
+             */
+            log.warn('WechatyPuppetMixin', 'start() starting puppet ... timeout')
+            log.warn('WechatyPuppetMixin', 'start() puppet info: %s', this.puppet)
+          } else {
+            throw e
+          }
+        }
+
+      } catch (e) {
+        this.emitError(e)
+      }
+    }
+
+    override async stop (): Promise<void> {
+      log.verbose('WechatyPuppetMixin', 'stop()')
+
+      try {
+        log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ...')
+        await timeoutPromise(
+          this.puppet.stop(),
+          15 * 1000,  // 15 seconds timeout
+        )
+        log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ... done')
+      } catch (e) {
+        if (e instanceof TimeoutPromiseGError) {
+          log.warn('WechatyPuppetMixin', 'stop() stopping puppet ... timeout')
+          log.warn('WechatyPuppetMixin', 'stop() puppet info: %s', this.puppet)
+        }
+        this.emitError(e)
       }
 
-      await this._initPuppetInstance()
+      log.verbose('WechatyPuppetMixin', 'stop() super.stop() ...')
+      await super.stop()
+      log.verbose('WechatyPuppetMixin', 'stop() super.stop() ... done')
     }
 
     async ready (): Promise<void> {
       log.verbose('WechatyPuppetMixin', 'ready()')
-      await this._readyState.stable('active')
+      await this.__readyState.stable('active')
       log.silly('WechatyPuppetMixin', 'ready() this.readyState.stable(on) resolved')
     }
 
-    /**
-     * @protected
-     */
-    async _initPuppetInstance (): Promise<void> {
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() %s', this._options.puppet || '')
+    async __initPuppetInstance (): Promise<void> {
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() %s', this.__options.puppet || '')
 
-      if (this._puppet) {
-        log.verbose('WechatyPuppetMixin', '_initPuppetInstance() initialized already: skip')
+      if (this.__puppet) {
+        log.verbose('WechatyPuppetMixin', '__initPuppetInstance() initialized already: skip')
         return
       }
 
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() instanciating puppet instance ...')
-      const puppet       = this._options.puppet || config.systemPuppetName()
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ...')
+      const puppet       = this.__options.puppet || config.systemPuppetName()
       const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
-      const puppetInstance = await PuppetManager.resolve({
+      const puppetInstance = await PUPPET.helpers.resolvePuppet({
         puppet,
-        puppetOptions : this._options.puppetOptions,
-        // wechaty       : this,
+        puppetOptions: this.__options.puppetOptions,
       })
-      log.verbose('WechatyPuppetMixin', '_initPuppetInstance() instanciating puppet instance ... done')
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ... done')
 
       /**
        * Plug the Memory Card to Puppet
        */
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting memory ...')
       puppetInstance.setMemory(puppetMemory)
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting memory ... done')
 
-      // Huan(202110) for developing Post
-      // this._puppet = puppetInstance
-      this._puppet = puppetInstance as any  // FIXME: remove any
+      this.__puppet = puppetInstance
 
-      this._setupPuppetEvents(puppetInstance)
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting up events ...')
+      this.__setupPuppetEvents(puppetInstance)
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting up events ... done')
       // this._wechatifyUserModules()
 
       /**
         * Private Event
         *   - Huan(202005): emit puppet when set
-        *   - Huan(202110): what's the purpose of this? (who is using this? redux?)
+        *   - Huan(202110): @see https://github.com/wechaty/redux/blob/16af0ae01f72e37f0ee286b49fa5ccf69850323d/src/wechaty-redux.ts#L82-L98
         */
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() emitting "puppet" event ...')
       ;(this.emit as any)('puppet', puppetInstance)
+      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() emitting "puppet" event ... done')
     }
 
-    /**
-     * @protected
-     */
-    _setupPuppetEvents (puppet: PUPPET.impl.Puppet) {
-      log.verbose('WechatyPuppetMixin', '_setupPuppetEvents(%s)', puppet)
+    __setupPuppetEvents (puppet: PUPPET.impls.PuppetInterface): void {
+      log.verbose('WechatyPuppetMixin', '__setupPuppetEvents(%s)', puppet)
 
-      const eventNameList: PUPPET.type.PuppetEventName[] = Object.keys(PUPPET.type.PUPPET_EVENT_DICT) as PUPPET.type.PuppetEventName[]
+      const eventNameList: PUPPET.types.PuppetEventName[] = Object.keys(PUPPET.types.PUPPET_EVENT_DICT) as PUPPET.types.PuppetEventName[]
       for (const eventName of eventNameList) {
         log.verbose('PuppetMixin',
-          '_setupPuppetEvents() puppet.on(%s) (listenerCount:%s) registering...',
+          '__setupPuppetEvents() puppet.on(%s) (listenerCount:%s) registering...',
           eventName,
           puppet.listenerCount(eventName),
         )
@@ -138,7 +208,12 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
 
           case 'error':
             puppet.on('error', payload => {
-              this.emit('error', GError.from(payload))
+              /**
+               * Huan(202112):
+               *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
+               *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
+               */
+              this.emit('error', GError.from(payload.gerror || payload.data || payload))
             })
             break
 
@@ -182,13 +257,13 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
           case 'logout':
             puppet.on('logout', async payload => {
               try {
-                this._readyState.inactive(true)
+                this.__readyState.inactive(true)
                 const contact = await this.ContactSelf.find({ id: payload.contactId })
                 if (contact) {
                   this.emit('logout', contact, payload.data)
                 } else {
                   log.verbose('PuppetMixin',
-                    '_setupPuppetEvents() logout event contact self not found for id: %s',
+                    '__setupPuppetEvents() logout event contact self not found for id: %s',
                     payload.contactId,
                   )
                 }
@@ -225,10 +300,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
 
           case 'ready':
             puppet.on('ready', () => {
-              log.silly('WechatyPuppetMixin', '_setupPuppetEvents() puppet.on(ready)')
+              log.silly('WechatyPuppetMixin', '__setupPuppetEvents() puppet.on(ready)')
 
               this.emit('ready')
-              this._readyState.active(true)
+              this.__readyState.active(true)
             })
             break
 
@@ -297,8 +372,8 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
 
                 // issue #254
                 if (payload.removeeIdList.includes(puppet.currentUserId)) {
-                  await puppet.dirtyPayload(PUPPET.type.Payload.Room, payload.roomId)
-                  await puppet.dirtyPayload(PUPPET.type.Payload.RoomMember, payload.roomId)
+                  await puppet.roomPayloadDirty(payload.roomId)
+                  await puppet.roomMemberPayloadDirty(payload.roomId)
                 }
               } catch (e) {
                 this.emit('error', GError.from(e))
@@ -331,7 +406,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
 
           case 'scan':
             puppet.on('scan', async payload => {
-              this._readyState.inactive(true)
+              this.__readyState.inactive(true)
               this.emit('scan', payload.qrcode || '', payload.status, payload.data)
             })
             break
@@ -347,25 +422,25 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
             puppet.on('dirty', async ({ payloadType, payloadId }) => {
               try {
                 switch (payloadType) {
-                  case PUPPET.type.Payload.RoomMember:
-                  case PUPPET.type.Payload.Contact:
+                  case PUPPET.types.Payload.RoomMember:
+                  case PUPPET.types.Payload.Contact:
                     await (await this.Contact.find({ id: payloadId }))?.sync()
                     break
-                  case PUPPET.type.Payload.Room:
+                  case PUPPET.types.Payload.Room:
                     await (await this.Room.find({ id: payloadId }))?.sync()
                     break
 
                   /**
                    * Huan(202008): noop for the following
                    */
-                  case PUPPET.type.Payload.Friendship:
+                  case PUPPET.types.Payload.Friendship:
                     // Friendship has no payload
                     break
-                  case PUPPET.type.Payload.Message:
+                  case PUPPET.types.Payload.Message:
                     // Message does not need to dirty (?)
                     break
 
-                  case PUPPET.type.Payload.Unknown:
+                  case PUPPET.types.Payload.Unspecified:
                   default:
                     throw new Error('unknown payload type: ' + payloadType)
                 }
@@ -384,7 +459,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
         }
       }
 
-      log.verbose('WechatyPuppetMixin', '_setupPuppetEvents() ... done')
+      log.verbose('WechatyPuppetMixin', '__setupPuppetEvents() ... done')
     }
 
   }
@@ -395,10 +470,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin> (mixinBase: Mix
 type PuppetMixin = ReturnType<typeof puppetMixin>
 
 type ProtectedPropertyPuppetMixin =
-  | '_initPuppetInstance'
-  | '_puppet'
-  | '_readyState'
-  | '_setupPuppetEvents'
+  | '__initPuppetInstance'
+  | '__puppet'
+  | '__readyState'
+  | '__setupPuppetEvents'
 
 export type {
   PuppetMixin,

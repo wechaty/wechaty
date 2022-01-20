@@ -24,38 +24,29 @@
  */
 export type {
   WechatyOptions,
-}                               from '../wechaty.js'
+  WechatyInterface as Wechaty,
+}                               from '../wechaty/mod.js'
 export {
   WechatyBuilder,
 }                               from '../wechaty-builder.js'
-export type {
-  WechatyInterface as Wechaty,
-}                               from '../interface/mod.js'
 
-export type {
-  SayableSayer,
-  Sayable,
-}                   from '../sayable/mod.js'
 export {
+  type SayableSayer,
+  type Sayable,
   messageToSayable,
-}                   from '../sayable/mod.js'
+}                       from '../sayable/mod.js'
 
-export * as type        from 'wechaty-puppet/types'
-export * as payload     from 'wechaty-puppet/payloads'
-export * as helper      from 'wechaty-puppet/helpers'
+export * as types       from 'wechaty-puppet/types'
+export * as payloads    from 'wechaty-puppet/payloads'
 
 export *                from './users.js'
-/**
- * Huan(202111): `users` need to be put before `impls`
- *  because of they have overlap interfaces and
- *  the VSCode will use the first see name in the IDE intelligence.
- */
-export * as user        from './users.js'
-export * as impl        from './impls.js'
-
+export * as users       from './users.js'
+export * as impls       from './impls.js'
+export * as helpers     from './helpers.js'
 export {
   ScanStatus,
 }                       from 'wechaty-puppet/types'
+
 export {
   log,
   config,
@@ -64,20 +55,19 @@ export {
 }                         from '../config.js'
 
 export type {
-  WechatyPlugin,
-  WechatyPluginUninstaller,
-}                             from '../plugin.js'
+  WechatyEventName,
+}                             from '../schemas/mod.js'
 
 export type {
   PuppetModuleName,
-}                             from '../puppet-management/puppet-config.js'
-
+}                             from '../puppet-config.js'
+export type {
+  WechatyPlugin,
+  WechatyPluginUninstaller,
+}                             from '../plugin.js'
 export type {
   IoClientOptions,
-}                         from '../io-client.js'
+}                             from '../io-client.js'
 export {
   IoClient,
-}                         from '../io-client.js'
-export type {
-  WechatyEventName,
-}                             from '../events/wechaty-events.js'
+}                             from '../io-client.js'

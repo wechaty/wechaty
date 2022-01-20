@@ -63,7 +63,7 @@ Steps to reproduce the behavior:
 
 ## 5. Actual behavior
 
-> If applicable, add screenshots to help explain your problem. But do not paste log screenshots here.
+> If applicable, add screenshots to help explain your problem. But the log message must be in plain text instead of screenshot.
 
 ## 6. Full Output Logs
 
@@ -79,7 +79,7 @@ Show Logs
 ```shell
 $ WECHATY_LOG=silly node yourbot.js
 
--> PASTE YOUR FULL(DO NOT ONLY PROVIDE FRAGMENTS) LOG MESSAGES HERE
+-> Make sure to copy/paste the full (instead of only fragments) log message in text format (instead of image/screenshot) at here
 
 ```
 

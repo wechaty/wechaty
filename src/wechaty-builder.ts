@@ -21,15 +21,19 @@ import { log } from 'wechaty-puppet'
 
 import type {
   WechatyInterface,
-}                 from './interface/mod.js'
+}                 from './wechaty/mod.js'
 import {
   WechatyImpl,
   WechatyOptions,
-}                 from './wechaty.js'
+}                 from './wechaty/mod.js'
 
 class WechatyBuilder {
 
   private static _instance?: WechatyInterface
+
+  static valid (target: any): target is WechatyInterface {
+    return WechatyImpl.valid(target)
+  }
 
   /**
    * Create an instance of Wechaty

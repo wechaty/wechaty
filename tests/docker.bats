@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 function dockerRun() {
-  docker run --rm -v "$(pwd)":/bot ${IMAGE_NAME:-'wechaty:test'} $@
+  docker run --rm -v "$(pwd)":/bot ${IMAGE_NAME:-'wechaty/wechaty:artifact'} $@
 }
 
 fixtures=tests/fixtures/docker
@@ -36,10 +36,10 @@ fixtures=tests/fixtures/docker
   [ "$status" -eq 0 ]
 }
 
-@test "should fail with unmatch types in typescript" {
+@test "should not fail with unmatch types in typescript (with `ts-node.transpileOnly=true`)" {
   cd "$fixtures"
   run dockerRun type-error.ts
-  [ "$status" -ne 0 ]
+  [ "$status" -eq 0 ]
 }
 
 @test "should succ when using require with javascript" {

@@ -17,7 +17,6 @@
  *   limitations under the License.
  *
  */
-/// <reference path="./typings.d.ts" />
 /// <reference path="./io-peer/json-rpc-peer.d.ts" />
 
 import {
@@ -34,7 +33,7 @@ import type {
 import {
   PuppetModuleName,
   PUPPET_NAME_DEFAULT,
-}                      from './puppet-management/puppet-config.js'
+}                      from './puppet-config.js'
 import {
   packageJson,
   GIT_COMMIT_HASH,

@@ -23,7 +23,7 @@ import type {
   FileBoxInterface,
 }                         from 'file-box'
 
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 
 import { escapeRegExp }           from '../pure-functions/escape-regexp.js'
 import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'
@@ -97,13 +97,13 @@ class MessageMixin extends MixinBase implements SayableSayer {
   /**
    * @ignore
    */
-  static readonly Type = PUPPET.type.Message
+  static readonly Type = PUPPET.types.Message
 
   /**
    * Find message in cache
    */
   static async find (
-    query : string | PUPPET.filter.Message,
+    query : string | PUPPET.filters.Message,
   ): Promise<undefined | MessageInterface> {
     log.verbose('Message', 'find(%s)', JSON.stringify(query))
 
@@ -127,9 +127,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Find messages in cache
    */
   static async findAll (
-    query? : PUPPET.filter.Message,
+    query? : PUPPET.filters.Message,
   ): Promise<MessageInterface[]> {
     log.verbose('Message', 'findAll(%s)', JSON.stringify(query) || '')
+
+    // Huan(202111): { id } query has been optimized in the PuppetAbstract class
 
     const invalidDict: { [id: string]: true } = {}
 
@@ -181,7 +183,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @hidden
    *
    */
-  protected _payload?: PUPPET.payload.Message
+  payload?: PUPPET.payloads.Message
 
   /**
    * @hideconstructor
@@ -200,13 +202,13 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @ignore
    */
   override toString () {
-    if (!this._payload) {
+    if (!this.payload) {
       return this.constructor.name
     }
 
     const msgStrList = [
       'Message',
-      `#${PUPPET.type.Message[this.type()]}`,
+      `#${PUPPET.types.Message[this.type()]}`,
       '[',
       '🗣',
       this.talker(),
@@ -216,12 +218,12 @@ class MessageMixin extends MixinBase implements SayableSayer {
       ']',
     ]
 
-    if (this.type() === PUPPET.type.Message.Text
-     || this.type() === PUPPET.type.Message.Unknown
+    if (this.type() === PUPPET.types.Message.Text
+     || this.type() === PUPPET.types.Message.Unknown
     ) {
       msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
-      log.silly('Message', 'toString() for message type: %s(%s)', PUPPET.type.Message[this.type()], this.type())
+      log.silly('Message', 'toString() for message type: %s(%s)', PUPPET.types.Message[this.type()], this.type())
       // if (!this.#payload) {
       //   throw new Error('no payload')
       // }
@@ -258,7 +260,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * .start()
    */
   talker (): ContactInterface {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
@@ -267,7 +269,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     //   return
     // }
 
-    const talkerId = this._payload.fromId
+    const talkerId = this.payload.fromId
     if (!talkerId) {
       // Huan(202011): It seems that the fromId will never be null?
       // return null
@@ -275,7 +277,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     }
 
     let talker
-    if (this.wechaty.logonoff() && talkerId === this.wechaty.puppet.currentUserId) {
+    if (this.wechaty.isLoggedIn && talkerId === this.wechaty.puppet.currentUserId) {
       talker = (this.wechaty.ContactSelf as typeof ContactSelfImpl).load(talkerId)
     } else {
       talker = (this.wechaty.Contact as typeof ContactImpl).load(talkerId)
@@ -318,11 +320,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @returns {(undefined | ContactInterface)}
    */
   listener (): undefined | ContactInterface {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    const listenerId = this._payload.toId
+    const listenerId = this.payload.toId
     if (!listenerId) {
       return undefined
     }
@@ -358,10 +360,10 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * .start()
    */
   room (): undefined | RoomInterface {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
-    const roomId = this._payload.roomId
+    const roomId = this.payload.roomId
     if (!roomId) {
       return undefined
     }
@@ -391,11 +393,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * .start()
    */
   text (): string {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    return this._payload.text || ''
+    return this.payload.text || ''
   }
 
   /**
@@ -405,7 +407,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
-   *   if (m.type() === PUPPET.type.Message.Recalled) {
+   *   if (m.type() === PUPPET.types.Message.Recalled) {
    *     const recalledMessage = await m.toRecalled()
    *     console.log(`Message: ${recalledMessage} has been recalled.`)
    *   }
@@ -413,7 +415,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * .start()
    */
   async toRecalled (): Promise<undefined | MessageInterface> {
-    if (this.type() !== PUPPET.type.Message.Recalled) {
+    if (this.type() !== PUPPET.types.Message.Recalled) {
       throw new Error('Can not call toRecalled() on message which is not recalled type.')
     }
     const originalMessageId = this.text()
@@ -561,17 +563,17 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
   /**
    * Get the type from the message.
-   * > Tips: PUPPET.type.Message is Enum here. </br>
-   * - PUPPET.type.Message.Unknown     </br>
-   * - PUPPET.type.Message.Attachment  </br>
-   * - PUPPET.type.Message.Audio       </br>
-   * - PUPPET.type.Message.Contact     </br>
-   * - PUPPET.type.Message.Emoticon    </br>
-   * - PUPPET.type.Message.Image       </br>
-   * - PUPPET.type.Message.Text        </br>
-   * - PUPPET.type.Message.Video       </br>
-   * - PUPPET.type.Message.Url         </br>
-   * @returns {PUPPET.type.Message}
+   * > Tips: PUPPET.types.Message is Enum here. </br>
+   * - PUPPET.types.Message.Unknown     </br>
+   * - PUPPET.types.Message.Attachment  </br>
+   * - PUPPET.types.Message.Audio       </br>
+   * - PUPPET.types.Message.Contact     </br>
+   * - PUPPET.types.Message.Emoticon    </br>
+   * - PUPPET.types.Message.Image       </br>
+   * - PUPPET.types.Message.Text        </br>
+   * - PUPPET.types.Message.Video       </br>
+   * - PUPPET.types.Message.Url         </br>
+   * @returns {PUPPET.types.Message}
    *
    * @example
    * const bot = new Wechaty()
@@ -579,11 +581,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
    *   console.log('This is a text message')
    * }
    */
-  type (): PUPPET.type.Message {
-    if (!this._payload) {
+  type (): PUPPET.types.Message {
+    if (!this.payload) {
       throw new Error('no payload')
     }
-    return this._payload.type || PUPPET.type.Message.Unknown
+    return this.payload.type || PUPPET.types.Message.Unknown
   }
 
   /**
@@ -630,20 +632,20 @@ class MessageMixin extends MixinBase implements SayableSayer {
     log.verbose('Message', 'mentionList()')
 
     const room = this.room()
-    if (this.type() !== PUPPET.type.Message.Text || !room) {
+    if (this.type() !== PUPPET.types.Message.Text || !room) {
       return []
     }
 
     /**
      * 1. Use mention list if mention list is available
      */
-    if (this._payload
-        && 'mentionIdList' in this._payload
-        && Array.isArray(this._payload.mentionIdList)
+    if (this.payload
+        && 'mentionIdList' in this.payload
+        && Array.isArray(this.payload.mentionIdList)
     ) {
       const idToContact = (id: string) => this.wechaty.Contact.find({ id })
       const allContact = await Promise.all(
-        this._payload.mentionIdList
+        this.payload.mentionIdList
           .map(idToContact),
       )
       // remove `undefined` types because we use a `filter(Boolean)`
@@ -766,7 +768,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @ignore
    */
   isReady (): boolean {
-    return !!this._payload
+    return !!this.payload
   }
 
   /**
@@ -779,11 +781,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
       return
     }
 
-    this._payload = await this.wechaty.puppet.messagePayload(this.id)
+    this.payload = await this.wechaty.puppet.messagePayload(this.id)
 
-    const fromId = this._payload.fromId
-    const roomId = this._payload.roomId
-    const toId   = this._payload.toId
+    const fromId = this.payload.fromId
+    const roomId = this.payload.roomId
+    const toId   = this.payload.toId
 
     if (roomId) {
       await this.wechaty.Room.find({ id: roomId })
@@ -874,11 +876,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Message sent date
    */
   date (): Date {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    const timestamp = this._payload.timestamp
+    const timestamp = this.payload.timestamp
     return timestampToDate(timestamp)
   }
 
@@ -911,7 +913,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   async toFileBox (): Promise<FileBoxInterface> {
     log.verbose('Message', 'toFileBox()')
-    if (this.type() === PUPPET.type.Message.Text) {
+    if (this.type() === PUPPET.types.Message.Text) {
       throw new Error('text message no file')
     }
     const fileBox = await this.wechaty.puppet.messageFile(this.id)
@@ -933,7 +935,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   toImage (): ImageInterface {
     log.verbose('Message', 'toImage() for message id: %s', this.id)
-    if (this.type() !== PUPPET.type.Message.Image) {
+    if (this.type() !== PUPPET.types.Message.Image) {
       throw new Error(`not a image type message. type: ${this.type()}`)
     }
     return this.wechaty.Image.create(this.id)
@@ -949,7 +951,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
   async toContact (): Promise<ContactInterface> {
     log.verbose('Message', 'toContact()')
 
-    if (this.type() !== PUPPET.type.Message.Contact) {
+    if (this.type() !== PUPPET.types.Message.Contact) {
       throw new Error('message not a ShareCard')
     }
 
@@ -970,11 +972,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
   async toUrlLink (): Promise<UrlLinkInterface> {
     log.verbose('Message', 'toUrlLink()')
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    if (this.type() !== PUPPET.type.Message.Url) {
+    if (this.type() !== PUPPET.types.Message.Url) {
       throw new Error('message not a Url Link')
     }
 
@@ -986,11 +988,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
   async toMiniProgram (): Promise<MiniProgramInterface> {
     log.verbose('Message', 'toMiniProgram()')
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    if (this.type() !== PUPPET.type.Message.MiniProgram) {
+    if (this.type() !== PUPPET.types.Message.MiniProgram) {
       throw new Error('message not a MiniProgram')
     }
 
@@ -1002,11 +1004,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
   async toLocation (): Promise<LocationInterface> {
     log.verbose('Message', 'toLocation()')
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    if (this.type() !== PUPPET.type.Message.Location) {
+    if (this.type() !== PUPPET.types.Message.Location) {
       throw new Error('message not a Location')
     }
 

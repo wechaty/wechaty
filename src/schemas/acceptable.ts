@@ -17,4 +17,14 @@
  *   limitations under the License.
  *
  */
-declare module 'qrcode-terminal'
+import type { WechatyInterface } from '../wechaty/mod.js'
+
+interface Accepter {
+  accept  : () => Promise<void>
+  id      : string,
+  wechaty : WechatyInterface
+}
+
+export type  {
+  Accepter,
+}

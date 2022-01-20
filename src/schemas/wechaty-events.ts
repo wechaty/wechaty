@@ -1,8 +1,8 @@
-import { EventEmitter } from 'events'
+import { EventEmitter }         from 'events'
+import type TypedEventEmitter   from 'typed-emitter'
 
-import type TypedEventEmitter  from 'typed-emitter'
-
-import * as PUPPET from 'wechaty-puppet'
+import type { GError }  from 'gerror'
+import * as PUPPET      from 'wechaty-puppet'
 
 import type {
   FriendshipInterface,
@@ -14,7 +14,7 @@ import type {
 }                       from '../user-modules/mod.js'
 
 const WECHATY_EVENT_DICT = {
-  ...PUPPET.type.CHAT_EVENT_DICT,
+  ...PUPPET.types.CHAT_EVENT_DICT,
   dong      : 'Should be emitted after we call `Wechaty.ding()`',
   error     : "Will be emitted when there's an Error occurred.",
   heartbeat : 'Will be emitted periodically after the Wechaty started. If not, means that the Wechaty had died.',
@@ -30,19 +30,19 @@ type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
  * Wechaty Event Listener Interfaces
  */
 type WechatyEventListenerDong       = (data?: string)                                                                                   => void | Promise<void>
-type WechatyEventListenerError      = (error: PUPPET.helper.GError)                                                                     => void | Promise<void>
+type WechatyEventListenerError      = (error: GError)                                                                     => void | Promise<void>
 type WechatyEventListenerFriendship = (friendship: FriendshipInterface)                                                                 => void | Promise<void>
 type WechatyEventListenerHeartbeat  = (data: any)                                                                                       => void | Promise<void>
 type WechatyEventListenerLogin      = (user: ContactSelfInterface)                                                                      => void | Promise<void>
 type WechatyEventListenerLogout     = (user: ContactSelfInterface, reason?: string)                                                     => void | Promise<void>
 type WechatyEventListenerMessage    = (message: MessageInterface)                                                                       => void | Promise<void>
-type WechatyEventListenerPuppet     = (puppet: PUPPET.impl.PuppetInterface)                                                             => void | Promise<void>
+type WechatyEventListenerPuppet     = (puppet: PUPPET.impls.PuppetInterface)                                                             => void | Promise<void>
 type WechatyEventListenerReady      = ()                                                                                                => void | Promise<void>
 type WechatyEventListenerRoomInvite = (roomInvitation: RoomInvitationInterface)                                                         => void | Promise<void>
 type WechatyEventListenerRoomJoin   = (room: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface,  date?: Date)   => void | Promise<void>
 type WechatyEventListenerRoomLeave  = (room: RoomInterface, leaverList: ContactInterface[],  remover?: ContactInterface, date?: Date)   => void | Promise<void>
 type WechatyEventListenerRoomTopic  = (room: RoomInterface, newTopic: string, oldTopic: string, changer: ContactInterface, date?: Date) => void | Promise<void>
-type WechatyEventListenerScan       = (qrcode: string, status: PUPPET.type.ScanStatus, data?: string)                                   => void | Promise<void>
+type WechatyEventListenerScan       = (qrcode: string, status: PUPPET.types.ScanStatus, data?: string)                                   => void | Promise<void>
 type WechatyEventListenerStartStop  = ()                                                                                                => void | Promise<void>
 
 /**
@@ -98,7 +98,7 @@ type WechatyEventListenerStartStop  = ()                                        
  * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
  *
  * @return  {Wechaty}                          - this for chaining,
- * see advanced {@link https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
+ * see advanced {@link https://github.com/wechaty/getting-started/wiki/FAQ#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
  *
  * @desc
  * When the bot get message, it will emit the following Event.
@@ -218,7 +218,7 @@ interface WechatyEventListeners {
   stop          : WechatyEventListenerStartStop
 }
 
-const WechatyEventEmitter = EventEmitter as new () => TypedEventEmitter<
+const WechatyEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
   WechatyEventListeners
 >
 

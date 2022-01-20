@@ -33,7 +33,7 @@ import type {
 
 import type {
   WechatyInterface,
-}                           from '../interface/mod.js'
+}                           from '../wechaty/mod.js'
 
 type Sayable =
   | ContactInterface

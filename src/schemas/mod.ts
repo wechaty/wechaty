@@ -11,8 +11,12 @@ import {
   WechatyEventListeners,
   WechatyEventName,
 }                           from './wechaty-events.js'
+import type {
+  Accepter,
+}                           from './acceptable.js'
 
 export type {
+  Accepter,
   ContactEventListeners,
   RoomEventListeners,
   WechatyEventListeners,

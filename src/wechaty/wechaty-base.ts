@@ -17,71 +17,69 @@
  *   limitations under the License.
  *
  */
-import type * as PUPPET from 'wechaty-puppet'
-import * as uuid        from 'uuid'
-import type {
-  MemoryCard,
-}                       from 'memory-card'
 import {
   serviceCtlMixin,
 }                       from 'state-switch'
-import type { Loggable } from 'brolog'
+import { function as FP } from 'fp-ts'
 
 import {
   config,
   log,
   VERSION,
-}                       from './config.js'
+}                       from '../config.js'
 
-import {
-  Io,
-}                       from './io.js'
-
-import type {
-  PuppetModuleName,
-}                             from './puppet-management/mod.js'
 import type {
   SayableSayer,
   Sayable,
-}                             from './sayable/mod.js'
-import type {
-  WechatyEventName,
-}                             from './events/mod.js'
-import type {
-  WechatyInterface,
-}                             from './interface/mod.js'
+}                             from '../sayable/mod.js'
 import {
   gErrorMixin,
+  ioMixin,
+  loginMixin,
+  miscMixin,
   pluginMixin,
   puppetMixin,
   wechatifyUserModuleMixin,
-  WechatySkelton,
-}                             from './wechaty-mixins/mod.js'
+}                             from '../wechaty-mixins/mod.js'
+
+import {
+  WechatySkeleton,
+}                             from './wechaty-skeleton.js'
 import type {
-  ContactSelfInterface,
-  ContactSelfImpl,
-}                             from './user-modules/mod.js'
+  WechatyInterface,
+}                             from './wechaty-impl.js'
+import type {
+  WechatyOptions,
+}                             from '../schemas/wechaty-options.js'
 
-export interface WechatyOptions {
-  memory?        : MemoryCard,
-  name?          : string,                                // Wechaty Name
-
-  puppet?        : PuppetModuleName | PUPPET.impl.Puppet, // Puppet name or instance
-  puppetOptions? : PUPPET.PuppetOptions,                  // Puppet TOKEN
-  ioToken?       : string,                                // Io TOKEN
-}
-
-const mixinBase = serviceCtlMixin('Wechaty', { log })(
-  pluginMixin(
-    puppetMixin(
-      wechatifyUserModuleMixin(
-        gErrorMixin(
-          WechatySkelton,
-        ),
-      ),
-    ),
-  ),
+const mixinBase = FP.pipe(
+  WechatySkeleton,
+  gErrorMixin,
+  wechatifyUserModuleMixin,
+  ioMixin,
+  serviceCtlMixin('Wechaty', { log }),
+  pluginMixin,
+  puppetMixin,
+  loginMixin,
+  miscMixin,
 )
+
+/**
+ * Huan(2021211): Keep the below call back hell
+ *  because it's easy for testing
+ *  especially when there's some typing mismatch and we need to figure it out.
+ */
+// const mixinTest = serviceCtlMixin('Wechaty', { log })(
+//   pluginMixin(
+//     puppetMixin(
+//       wechatifyUserModuleMixin(
+//         gErrorMixin(
+//           WechatySkeleton,
+//         ),
+//       ),
+//     ),
+//   ),
+// )
 
 /**
  * Main bot class.
@@ -93,7 +91,7 @@ const mixinBase = serviceCtlMixin('Wechaty', { log })(
  * - ios-WeChat, when you use: puppet-ioscat
  *
  * See more:
- * - [What is a Puppet in Wechaty](https://github.com/wechaty/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
+ * - [What is a Puppet in Wechaty](https://github.com/wechaty/getting-started/wiki/FAQ#31-what-is-a-puppet-in-wechaty)
  *
  * > If you want to know how to send message, see [Message](#Message) <br>
  * > If you want to know how to get contact, see [Contact](#Contact)
@@ -106,39 +104,29 @@ const mixinBase = serviceCtlMixin('Wechaty', { log })(
  * bot.on('message', message => console.log(`Message: ${message}`))
  * bot.start()
  */
-class WechatyImpl extends mixinBase implements SayableSayer {
+class WechatyBase extends mixinBase implements SayableSayer {
 
   static   override readonly VERSION = VERSION
-  static   readonly log: Loggable = log
-
-  readonly log: Loggable = log
   readonly wechaty : WechatyInterface
 
-  private _io?: Io
-
-  protected readonly _cleanCallbackList: Function[] = []
+  readonly _stopCallbackList: (() => void)[] = []
 
   /**
-   * the UUID of the bot
-   * @ignore
-   */
-  readonly id : string
-
-  /**
-   * The term [Puppet](https://github.com/wechaty/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
+   * The term [Puppet](https://wechaty.js.org/docs/specs/puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
    * The plugins are the component that helps Wechaty to control the WeChat(that's the reason we call it puppet).
    * The plugins are named XXXPuppet, for example:
-   * - [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer):
-   * - [PuppetPadchat](https://github.com/wechaty/wechaty-puppet-padchat)
+   * - [PuppetWeChat](https://github.com/wechaty/puppet-wechat):
+   * - [PuppetWeChat](https://github.com/wechaty/puppet-service):
+   * - [PuppetXP](https://github.com/wechaty/puppet-xp)
    *
    * @typedef    PuppetModuleName
    * @property   {string}  PUPPET_DEFAULT
    * The default puppet.
    * @property   {string}  wechaty-puppet-wechat4u
    * The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
-   * @property   {string}  wechaty-puppet-padchat
-   * - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad WeChat program.
-   * @property   {string}  wechaty-puppet-puppeteer
+   * @property   {string}  wechaty-puppet-service
+   * - Using the gRPC protocol to connect with a Protocol Server for controlling the any protocol of any IM  program.
+   * @property   {string}  wechaty-puppet-wechat
    * - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
    * @property   {string}  wechaty-puppet-mock
    * - Using the mock data to mock wechat operation, just for test.
@@ -167,189 +155,48 @@ class WechatyImpl extends mixinBase implements SayableSayer {
    *
    */
   constructor (
-    override _options: WechatyOptions = {},
+    override __options: WechatyOptions = {},
   ) {
     super()
     log.verbose('Wechaty', 'constructor()')
 
-    this._memory = this._options.memory
-
-    this.id = uuid.v4()
-    this._cleanCallbackList = []
-
-    this.wechaty = this
-
-    /**
-     * Huan(202008):
-     *
-     * Set max listeners to 1K, so that we can add lots of listeners without the warning message.
-     * The listeners might be one of the following functionilities:
-     *  1. Plugins
-     *  2. Redux Observables
-     *  3. etc...
-     */
-    super.setMaxListeners(1024)
-  }
-
-  /**
-   * @ignore
-   */
-  override toString () {
-    if (Object.keys(this._options).length <= 0) {
-      return this.constructor.name
-    }
-
-    return [
-      'Wechaty#',
-      this.id,
-      `<${(this._options.puppet) || ''}>`,
-      `(${(this._memory && this._memory.name) || ''})`,
-    ].join('')
-  }
-
-  /**
-   * Wechaty bot name set by `options.name`
-   * default: `wechaty`
-   */
-  name () {
-    return this._options.name || 'wechaty'
-  }
-
-  override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
-    log.verbose('Wechaty', 'on(%s, listener) registering... listenerCount: %s',
-      event,
-      this.listenerCount(event),
-    )
-
-    return super.on(event, listener)
+    this.__memory = this.__options.memory
+    this.wechaty  = this
   }
 
   override async onStart (): Promise<void> {
+    log.verbose('Wechaty', 'onStart()')
+
     log.verbose('Wechaty', '<%s>(%s) onStart() v%s is starting...',
-      this._options.puppet || config.systemPuppetName(),
-      this._options.name   || '',
+      this.__options.puppet || config.systemPuppetName(),
+      this.__options.name   || '',
       this.version(),
     )
     log.verbose('Wechaty', 'id: %s', this.id)
 
-    await this.puppet.start()
-
-    if (this._options.ioToken) {
-      this._io = new Io({
-        token   : this._options.ioToken,
-        wechaty : this,
-      })
-      await this._io.start()
-    }
-
     const lifeTimer = setInterval(() => {
       log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
     }, 1000 * 60 * 60)
-    this._cleanCallbackList.push(() => clearInterval(lifeTimer))
+    this._stopCallbackList.push(() => clearInterval(lifeTimer))
 
     this.emit('start')
+    log.verbose('Wechaty', 'onStart() ... done')
   }
 
   override async onStop (): Promise<void> {
+    log.verbose('Wechaty', 'onStop()')
+
     log.verbose('Wechaty', '<%s> onStop() v%s is stopping ...',
-      this._options.puppet || config.systemPuppetName(),
+      this.__options.puppet || config.systemPuppetName(),
       this.version(),
     )
 
-    /**
-     * Uninstall Plugins
-     *  no matter the state is `ON` or `OFF`.
-     */
-    while (this._pluginUninstallerList.length > 0) {
-      const uninstaller = this._pluginUninstallerList.pop()
-      if (uninstaller) uninstaller()
-    }
-
-    while (this._cleanCallbackList.length > 0) {
-      const cleaner = this._cleanCallbackList.pop()
-      if (cleaner) cleaner()
-    }
-
-    try {
-      await this.puppet.stop()
-    } catch (e) {
-      this.emit('error', e)
-    }
-
-    try {
-      if (this._io) {
-        await this._io.stop()
-        this._io = undefined
-      }
-
-    } catch (e) {
-      this.emit('error', e)
-    }
+    // put to the end of the event loop in case of it need to be executed while stopping
+    this._stopCallbackList.map(setImmediate)
+    this._stopCallbackList.length = 0
 
     this.emit('stop')
-  }
-
-  /**
-   * Logout the bot
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await bot.logout()
-   */
-  async logout (): Promise<void>  {
-    log.verbose('Wechaty', 'logout()')
-
-    try {
-      await this.puppet.logout()
-    } catch (e) {
-      this.emit('error', e)
-    }
-  }
-
-  /**
-   * Get the logon / logoff state
-   *
-   * @returns {boolean}
-   * @example
-   * if (bot.logonoff()) {
-   *   console.log('Bot logged in')
-   * } else {
-   *   console.log('Bot not logged in')
-   * }
-   */
-  logonoff (): boolean {
-    try {
-      return this.puppet.logonoff()
-    } catch (e) {
-      this.emit('error', e)
-      // https://github.com/wechaty/wechaty/issues/1878
-      return false
-    }
-  }
-
-  /**
-   * Get current user
-   *
-   * @returns {ContactSelfInterface}
-   * @example
-   * const contact = bot.currentUser()
-   * console.log(`Bot is ${contact.name()}`)
-   */
-  currentUser (): ContactSelfInterface {
-    const userId = this.puppet.currentUserId
-    const user = (this.ContactSelf as typeof ContactSelfImpl).load(userId)
-    return user
-  }
-
-  /**
-   * Will be removed after Dec 31, 2022
-   * @deprecated use {@link Wechaty#currentUser} instead
-   */
-  userSelf () {
-    log.warn('Wechaty', 'userSelf() deprecated: use currentUser() instead.\n%s',
-      new Error().stack,
-    )
-    return this.currentUser()
+    log.verbose('Wechaty', 'onStop() ... done')
   }
 
   /**
@@ -410,60 +257,22 @@ class WechatyImpl extends mixinBase implements SayableSayer {
     sayable: Sayable,
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', sayable)
-    await this.currentUser().say(sayable)
-  }
-
-  /**
-   * @ignore
-   * Return version of Wechaty
-   *
-   * @returns {string}                  - the version number
-   * @example
-   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
-   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
-   */
-  version (): string {
-    return VERSION
-  }
-
-  /**
-   * @ignore
-   */
-  async sleep (milliseconds: number): Promise<void> {
-    await new Promise<void>(resolve =>
-      setTimeout(resolve, milliseconds),
-    )
-  }
-
-  /**
-   * @private
-   */
-  ding (data?: string): void {
-    log.silly('Wechaty', 'ding(%s)', data || '')
-
-    try {
-      this.puppet.ding(data)
-    } catch (e) {
-      this.emit('error', e)
-    }
+    await this.currentUser.say(sayable)
   }
 
 }
 
-type WechatyImplProtectedProperty =
+type WechatyBaseProtectedProperty =
   // | '_serviceCtlFsmInterpreter'  // from ServiceCtlFsm
-  | '_serviceCtlLogger'             // from ServiceCtl(&Fsm)
-  | '_serviceCtlResettingIndicator' // from ServiceCtl
-  | 'log'
+  | '__serviceCtlLogger'             // from ServiceCtl(&Fsm)
+  | '__serviceCtlResettingIndicator' // from ServiceCtl
   | 'wechaty'
   | 'onStart'
   | 'onStop'
-  | 'userSelf'  // deprecated, will be removed after Dec 31, 2022
-  | `_${string}`
 
 export type {
-  WechatyImplProtectedProperty,
+  WechatyBaseProtectedProperty,
 }
 export {
-  WechatyImpl,
+  WechatyBase,
 }

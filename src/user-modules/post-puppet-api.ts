@@ -113,8 +113,8 @@ class PuppetPost extends PuppetMock {
       contactId: 'string',
       timestamp: 3412343214,
 
-      // descendantCounter? : 0
-      // tapCounter?        : number
+      descendantNum : 0,
+      tapNum        : 0,
 
       // The liker information need to be fetched from another API
 

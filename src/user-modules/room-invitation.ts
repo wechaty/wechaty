@@ -20,11 +20,11 @@
 import type * as PUPPET          from 'wechaty-puppet'
 
 import { log } from '../config.js'
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor } from 'clone-class'
 
 import type {
-  AcceptableAccepter,
-}                     from '../interface/acceptable.js'
+  Accepter,
+}                     from '../schemas/acceptable.js'
 import {
   timestampToDate,
 }                     from '../pure-functions/timestamp-to-date.js'
@@ -41,7 +41,7 @@ import { validationMixin } from '../user-mixins/validation.js'
  *
  * accept room invitation
  */
-class RoomInvitationMixin extends wechatifyMixinBase() implements AcceptableAccepter {
+class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
 
   static load (
     id   : string,
@@ -236,7 +236,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements AcceptableAcce
    * await roomInvitation.accept()
    */
   static async fromJSON (
-    payload: string | PUPPET.payload.RoomInvitation,
+    payload: string | PUPPET.payloads.RoomInvitation,
   ): Promise<RoomInvitationInterface> {
     log.verbose('RoomInvitation', 'fromJSON(%s)',
       typeof payload === 'string'
@@ -245,7 +245,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements AcceptableAcce
     )
 
     if (typeof payload === 'string') {
-      payload = JSON.parse(payload) as PUPPET.payload.RoomInvitation
+      payload = JSON.parse(payload) as PUPPET.payloads.RoomInvitation
     }
 
     await this.wechaty.puppet.roomInvitationPayload(payload.id, payload)

@@ -19,16 +19,16 @@
  */
 import { EventEmitter }     from 'events'
 import * as PUPPET          from 'wechaty-puppet'
-import type { Constructor } from '../deprecated/clone-class.js'
+import { log }              from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
 import {
   retryPolicy,
 }                   from '../pure-functions/mod.js'
 
 import type {
-  AcceptableAccepter,
-}                   from '../interface/acceptable.js'
-import { log } from '../config.js'
+  Accepter,
+}                   from '../schemas/acceptable.js'
 
 import type {
   ContactInterface,
@@ -63,9 +63,9 @@ const MixinBase = wechatifyMixin(
  *
  * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
-class FriendshipMixin extends MixinBase implements AcceptableAccepter {
+class FriendshipMixin extends MixinBase implements Accepter {
 
-  static Type = PUPPET.type.Friendship
+  static Type = PUPPET.types.Friendship
 
   /**
    * @ignore
@@ -95,7 +95,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    *
    */
   static async search (
-    queryFilter : PUPPET.filter.Friendship,
+    queryFilter : PUPPET.filters.Friendship,
   ): Promise<undefined | ContactInterface> {
     log.verbose('Friendship', 'static search("%s")',
       JSON.stringify(queryFilter),
@@ -146,7 +146,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
       log.warn('Friendship', 'the params hello is deprecated in the next version, please put the attr hello into options object, e.g. { hello: "xxxx" }')
       await this.wechaty.puppet.friendshipAdd(contact.id, { hello: options })
     } else {
-      const friendOption: PUPPET.type.FriendshipAddOptions = {
+      const friendOption: PUPPET.types.FriendshipAddOptions = {
         contactId: options.contact?.id,
         hello: options.hello,
         roomId: options.room && options.room.id,
@@ -171,7 +171,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
   /**
     * @ignore
    */
-  protected _payload?: PUPPET.payload.Friendship
+  payload?: PUPPET.payloads.Friendship
 
   /*
    * @hideconstructor
@@ -184,21 +184,21 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
   }
 
   override toString () {
-    if (!this._payload) {
+    if (!this.payload) {
       return this.constructor.name
     }
 
     return [
       'Friendship#',
-      PUPPET.type.Friendship[this._payload.type],
+      PUPPET.types.Friendship[this.payload.type],
       '<',
-      this._payload.contactId,
+      this.payload.contactId,
       '>',
     ].join('')
   }
 
   isReady (): boolean {
-    return !!this._payload && (Object.keys(this._payload).length > 0)
+    return !!this.payload && (Object.keys(this.payload).length > 0)
   }
 
   /**
@@ -210,7 +210,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
       return
     }
 
-    this._payload = await this.wechaty.puppet.friendshipPayload(this.id)
+    this.payload = await this.wechaty.puppet.friendshipPayload(this.id)
 
     // if (!this.#payload) {
     //   throw new Error('no payload')
@@ -252,15 +252,15 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
   async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    if (this._payload.type !== PUPPET.type.Friendship.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this._payload.type])
+    if (this.payload.type !== PUPPET.types.Friendship.Receive) {
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this.payload.type])
     }
 
-    log.silly('Friendship', 'accept() to %s', this._payload.contactId)
+    log.silly('Friendship', 'accept() to %s', this.payload.contactId)
 
     await this.wechaty.puppet.friendshipAccept(this.id)
 
@@ -306,10 +306,10 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    * .start()
    */
   hello (): string {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
-    return this._payload.hello || ''
+    return this.payload.hello || ''
   }
 
   /**
@@ -326,11 +326,11 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    * .start()
    */
   contact (): ContactInterface {
-    if (!this._payload) {
+    if (!this.payload) {
       throw new Error('no payload')
     }
 
-    const contact = (this.wechaty.Contact as typeof ContactImpl).load(this._payload.contactId)
+    const contact = (this.wechaty.Contact as typeof ContactImpl).load(this.payload.contactId)
     return contact
   }
 
@@ -357,10 +357,10 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    * }
    * .start()
    */
-  type (): PUPPET.type.Friendship {
-    return this._payload
-      ? this._payload.type
-      : PUPPET.type.Friendship.Unknown
+  type (): PUPPET.types.Friendship {
+    return this.payload
+      ? this.payload.type
+      : PUPPET.types.Friendship.Unknown
   }
 
   /**
@@ -385,7 +385,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
     if (!this.isReady()) {
       throw new Error(`Friendship<${this.id}> needs to be ready. Please call ready() before toJSON()`)
     }
-    return JSON.stringify(this._payload)
+    return JSON.stringify(this.payload)
   }
 
   /**
@@ -399,7 +399,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
    * await friendship.accept()
    */
   static async fromJSON (
-    payload: string | PUPPET.payload.Friendship,
+    payload: string | PUPPET.payloads.Friendship,
   ): Promise<FriendshipInterface> {
     log.verbose('Friendship', 'static fromJSON(%s)',
       typeof payload === 'string'
@@ -408,7 +408,7 @@ class FriendshipMixin extends MixinBase implements AcceptableAccepter {
     )
 
     if (typeof payload === 'string') {
-      payload = JSON.parse(payload) as PUPPET.payload.Friendship
+      payload = JSON.parse(payload) as PUPPET.payloads.Friendship
     }
 
     /**

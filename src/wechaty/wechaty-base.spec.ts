@@ -23,53 +23,43 @@ import {
   sinon,
 }              from 'tstest'
 
-import {
-  Puppet,
-}                     from 'wechaty-puppet'
+import { MemoryCard } from 'memory-card'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
+/**
+ * Huan(202111): must import `./wechaty-impl.js`
+ *  before import `./wechaty-base.js`
+ *
+ * Or will throw error:
+ *
+ *    ReferenceError: Cannot access 'WechatyBase' before initialization
+ *    at file:///home/huan/git/wechaty/wechaty/src/wechaty/wechaty-impl.ts:25:47
+ *
+ * TODO: find out why
+ */
+import './wechaty-impl.js'
+
 import type {
-  WechatyImplProtectedProperty,
-}                                 from './wechaty.js'
+  WechatyBaseProtectedProperty,
+}                                 from './wechaty-base.js'
 import {
-  WechatyImpl,
-}                                 from './wechaty.js'
+  WechatyBase,
+}                                 from './wechaty-base.js'
 
-import * as impl from './mods/impls.js'
+import type {
+  WechatyInterface,
+}                           from '../wechaty/wechaty-impl.js'
+import { WechatySkeleton }  from './wechaty-skeleton.js'
 
-import {
-  config,
-  IoClient,
-  log,
-  Wechaty,
-}                 from './mods/mod.js'
-
-class WechatyTest extends WechatyImpl {
-
+class WechatyTest extends WechatyBase {
 }
 
-test('Export of the Framework', async t => {
-  t.ok(impl.ContactImpl,     'should export Contact')
-  t.ok(impl.FriendshipImpl,  'should export Friendship')
-  t.ok(IoClient,    'should export IoClient')
-  t.ok(impl.MessageImpl,     'should export Message')
-  t.ok(Puppet,      'should export Puppet')
-  t.ok(impl.RoomImpl,        'should export Room')
-  t.ok(impl.WechatyImpl,     'should export Wechaty')
-  t.ok(log,         'should export log')
-})
-
 test('static VERSION', async t => {
-  t.ok('VERSION' in WechatyImpl, 'Wechaty should has a static VERSION property')
-})
-
-test('Config setting', async t => {
-  t.ok(config, 'should export Config')
-  // t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
+  t.ok('VERSION' in WechatyBase, 'Wechaty should has a static VERSION property')
 })
 
 test('event:start/stop', async t => {
-  const wechaty = new WechatyImpl({ puppet: 'wechaty-puppet-mock' })
+  const wechaty = new WechatyBase({ puppet: 'wechaty-puppet-mock' })
 
   const startSpy = sinon.spy()
   const stopSpy  = sinon.spy()
@@ -129,7 +119,7 @@ test('event:start/stop', async t => {
 
 test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
   const spy     = sinon.spy()
-  const wechaty = new WechatyImpl()
+  const wechaty = new WechatyBase()
 
   const EXPECTED_ERROR = new Error('testing123')
   wechaty.on('message', () => { throw EXPECTED_ERROR })
@@ -150,7 +140,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
 test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t => {
 
   // Do not modify the global Wechaty instance
-  class MyWechatyTest extends WechatyImpl {}
+  class MyWechatyTest extends WechatyBase {}
 
   const EXPECTED_ERROR = new Error('test')
 
@@ -186,18 +176,18 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t
 test('use plugin', async t => {
 
   // Do not modify the gloabl Wechaty instance
-  class MyWechatyTest extends WechatyImpl {}
+  class MyWechatyTest extends WechatyBase {}
 
   let result = ''
 
   const myGlobalPlugin = function () {
-    return function (bot: Wechaty) {
+    return function (bot: WechatyInterface) {
       bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
     }
   }
 
   const myPlugin = function () {
-    return function (bot: Wechaty) {
+    return function (bot: WechatyInterface) {
       bot.on('message', () => { result += 'FROM_MY_PLUGIN:' })
     }
   }
@@ -210,27 +200,29 @@ test('use plugin', async t => {
 
   bot.use(myPlugin())
 
+  await bot.start()
+
   bot.on('message', () => (result += 'FROM_BOT'))
 
   bot.emit('message', {} as any)
 
   await bot.stop()
 
-  t.ok(result === 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT')
+  t.equal(result, 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
 
 })
 
 test('wechatifyUserModules()', async t => {
   const wechatyTest = new WechatyTest()
 
-  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 1st time init')
-  t.doesNotThrow(() => wechatyTest._wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
+  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 1st time init')
+  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
 })
 
 // TODO: add test for event args
 
 test('Perfect restart', async t => {
-  const wechaty = new WechatyImpl({
+  const wechaty = new WechatyBase({
     puppet: new PuppetMock(),
   })
 
@@ -249,7 +241,7 @@ test('Perfect restart', async t => {
 
 test('@event ready', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new WechatyImpl({ puppet })
+  const wechaty = new WechatyBase({ puppet })
 
   const sandbox = sinon.createSandbox()
   const spy     = sandbox.spy()
@@ -274,7 +266,7 @@ test('@event ready', async t => {
 
 test('ready()', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new WechatyImpl({ puppet })
+  const wechaty = new WechatyBase({ puppet })
 
   const sandbox = sinon.createSandbox()
 
@@ -309,7 +301,7 @@ test('ready()', async t => {
 
 test('on/off event listener management', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new WechatyImpl({ puppet })
+  const wechaty = new WechatyBase({ puppet })
 
   const onMessage = (_: any) => {}
   t.equal(wechaty.listenerCount('message'), 0, 'should no listener after initializing')
@@ -323,7 +315,7 @@ test('on/off event listener management', async t => {
 
 test('wrapAsync() async function', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new WechatyImpl({ puppet })
+  const wechaty = new WechatyBase({ puppet })
 
   const spy = sinon.spy()
   wechaty.on('error', spy)
@@ -344,7 +336,7 @@ test('wrapAsync() async function', async t => {
 
 test('wrapAsync() promise', async t => {
   const puppet = new PuppetMock()
-  const wechaty = new WechatyImpl({ puppet })
+  const wechaty = new WechatyBase({ puppet })
 
   const spy = sinon.spy()
   wechaty.on('error', spy)
@@ -363,10 +355,36 @@ test('wrapAsync() promise', async t => {
   t.equal(spy.callCount, 1, 'should emit error when promise reject with error')
 })
 
-test('WechatyImplProtectedProperty', async t => {
-  type NotExistInMixin = Exclude<WechatyImplProtectedProperty, keyof WechatyImpl | `_${string}`>
+test('WechatyBaseProtectedProperty', async t => {
+  type NotExistInMixin = Exclude<WechatyBaseProtectedProperty, keyof WechatyBase | `_${string}`>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
   t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
+})
+
+test('WechatySkeleton: super.{start,stop}()', async t => {
+  const sandbox = sinon.createSandbox()
+
+  const puppet = new PuppetMock()
+  const memory = new MemoryCard()
+
+  const wechaty = new WechatyTest({
+    memory,
+    puppet,
+  })
+
+  const startStub = sandbox.stub(WechatySkeleton.prototype, 'start').resolves()
+  const stopStub  = sandbox.stub(WechatySkeleton.prototype, 'stop').resolves()
+
+  t.ok(startStub.notCalled, 'should not called before start')
+  t.ok(stopStub.notCalled, 'should not called before stop')
+
+  await wechaty.start()
+  t.ok(startStub.calledOnce, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
+  t.ok(stopStub.notCalled, 'should not call stop yet')
+
+  await wechaty.stop()
+  t.ok(startStub.calledOnce, 'should only call start once')
+  t.ok(stopStub.calledOnce, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
 })

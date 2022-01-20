@@ -25,7 +25,7 @@ import type {
   FileBoxInterface,
 }                             from 'file-box'
 
-import type { Constructor } from '../deprecated/clone-class.js'
+import type { Constructor }   from 'clone-class'
 
 import {
   guardQrCodeValue,
@@ -55,9 +55,9 @@ const MixinBase = poolifyMixin(
 class ContactSelfMixin extends MixinBase {
 
   static override async find (
-    query : string | PUPPET.filter.Contact,
+    query : string | PUPPET.filters.Contact,
   ): Promise<undefined | ContactSelfInterface> {
-    if (!this.wechaty.logonoff()) {
+    if (!this.wechaty.isLoggedIn) {
       return undefined
     }
 

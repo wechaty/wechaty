@@ -33,10 +33,10 @@ import {
 }                       from '../user-modules/mod.js'
 
 import type {
-  WechatySkelton,
-}                             from './wechaty-skelton.js'
+  WechatySkeleton,
+}                             from '../wechaty/mod.js'
 
-const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkelton> (mixinBase: MixinBase) => {
+const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatifyUserModuleMixin', 'wechatifyUserModuleMixin(%s)', mixinBase.name)
 
   abstract class WechatifyUserModuleMixin extends mixinBase {
@@ -46,48 +46,48 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkelton> (mixi
       super(...args)
     }
 
-    _wechatifiedContact?        : ContactConstructor
-    _wechatifiedContactSelf?    : ContactSelfConstructor
-    _wechatifiedDelay?          : DelayConstructor
-    _wechatifiedFriendship?     : FriendshipConstructor
-    _wechatifiedImage?          : ImageConstructor
-    _wechatifiedLocation?       : LocationConstructor
-    _wechatifiedMessage?        : MessageConstructor
-    _wechatifiedMiniProgram?    : MiniProgramConstructor
-    _wechatifiedPost?           : PostConstructor
-    _wechatifiedRoom?           : RoomConstructor
-    _wechatifiedRoomInvitation? : RoomInvitationConstructor
-    _wechatifiedTag?            : TagConstructor
-    _wechatifiedUrlLink?        : UrlLinkConstructor
+    __wechatifiedContact?        : ContactConstructor
+    __wechatifiedContactSelf?    : ContactSelfConstructor
+    __wechatifiedDelay?          : DelayConstructor
+    __wechatifiedFriendship?     : FriendshipConstructor
+    __wechatifiedImage?          : ImageConstructor
+    __wechatifiedLocation?       : LocationConstructor
+    __wechatifiedMessage?        : MessageConstructor
+    __wechatifiedMiniProgram?    : MiniProgramConstructor
+    __wechatifiedPost?           : PostConstructor
+    __wechatifiedRoom?           : RoomConstructor
+    __wechatifiedRoomInvitation? : RoomInvitationConstructor
+    __wechatifiedTag?            : TagConstructor
+    __wechatifiedUrlLink?        : UrlLinkConstructor
 
-    get Contact ()        : ContactConstructor        { return guardWechatify(this._wechatifiedContact)        }
-    get ContactSelf ()    : ContactSelfConstructor    { return guardWechatify(this._wechatifiedContactSelf)    }
-    get Delay ()          : DelayConstructor          { return guardWechatify(this._wechatifiedDelay)          }
-    get Friendship ()     : FriendshipConstructor     { return guardWechatify(this._wechatifiedFriendship)     }
-    get Image ()          : ImageConstructor          { return guardWechatify(this._wechatifiedImage)          }
-    get Location ()       : LocationConstructor       { return guardWechatify(this._wechatifiedLocation)       }
-    get Message ()        : MessageConstructor        { return guardWechatify(this._wechatifiedMessage)        }
-    get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this._wechatifiedMiniProgram)    }
-    get Post ()           : PostConstructor           { return guardWechatify(this._wechatifiedPost)           }
-    get Room ()           : RoomConstructor           { return guardWechatify(this._wechatifiedRoom)           }
-    get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this._wechatifiedRoomInvitation) }
-    get Tag ()            : TagConstructor            { return guardWechatify(this._wechatifiedTag)            }
-    get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this._wechatifiedUrlLink)        }
+    get Contact ()        : ContactConstructor        { return guardWechatify(this.__wechatifiedContact)        }
+    get ContactSelf ()    : ContactSelfConstructor    { return guardWechatify(this.__wechatifiedContactSelf)    }
+    get Delay ()          : DelayConstructor          { return guardWechatify(this.__wechatifiedDelay)          }
+    get Friendship ()     : FriendshipConstructor     { return guardWechatify(this.__wechatifiedFriendship)     }
+    get Image ()          : ImageConstructor          { return guardWechatify(this.__wechatifiedImage)          }
+    get Location ()       : LocationConstructor       { return guardWechatify(this.__wechatifiedLocation)       }
+    get Message ()        : MessageConstructor        { return guardWechatify(this.__wechatifiedMessage)        }
+    get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this.__wechatifiedMiniProgram)    }
+    get Post ()           : PostConstructor           { return guardWechatify(this.__wechatifiedPost)           }
+    get Room ()           : RoomConstructor           { return guardWechatify(this.__wechatifiedRoom)           }
+    get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this.__wechatifiedRoomInvitation) }
+    get Tag ()            : TagConstructor            { return guardWechatify(this.__wechatifiedTag)            }
+    get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this.__wechatifiedUrlLink)        }
 
     override async start (): Promise<void> {
       log.verbose('WechatifyUserModuleMixin', 'start()')
 
       await super.start()
-      this._wechatifyUserModules()
+      this.__wechatifyUserModules()
     }
 
-    _wechatifyUserModules (): void {
+    __wechatifyUserModules (): void {
       log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules()')
 
       /**
        * Skip if already wechatified
        */
-      if (this._wechatifiedMessage) {
+      if (this.__wechatifiedMessage) {
         log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() Wechaty User Module (WUM)s have already wechatified: skip')
         return
       }
@@ -100,19 +100,19 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkelton> (mixi
        *
        * Huan(202110): FIXME: remove any
        */
-      this._wechatifiedContact        = wechatifyUserModule(ContactImpl)(this as any)
-      this._wechatifiedContactSelf    = wechatifyUserModule(ContactSelfImpl)(this as any)
-      this._wechatifiedDelay          = wechatifyUserModule(DelayImpl)(this as any)
-      this._wechatifiedFriendship     = wechatifyUserModule(FriendshipImpl)(this as any)
-      this._wechatifiedImage          = wechatifyUserModule(ImageImpl)(this as any)
-      this._wechatifiedLocation       = wechatifyUserModule(LocationImpl)(this as any)
-      this._wechatifiedMessage        = wechatifyUserModule(MessageImpl)(this as any)
-      this._wechatifiedMiniProgram    = wechatifyUserModule(MiniProgramImpl)(this as any)
-      this._wechatifiedPost           = wechatifyUserModule(PostImpl)(this as any)
-      this._wechatifiedRoom           = wechatifyUserModule(RoomImpl)(this as any)
-      this._wechatifiedRoomInvitation = wechatifyUserModule(RoomInvitationImpl)(this as any)
-      this._wechatifiedTag            = wechatifyUserModule(TagImpl)(this as any)
-      this._wechatifiedUrlLink        = wechatifyUserModule(UrlLinkImpl)(this as any)
+      this.__wechatifiedContact        = wechatifyUserModule(ContactImpl)(this as any)
+      this.__wechatifiedContactSelf    = wechatifyUserModule(ContactSelfImpl)(this as any)
+      this.__wechatifiedDelay          = wechatifyUserModule(DelayImpl)(this as any)
+      this.__wechatifiedFriendship     = wechatifyUserModule(FriendshipImpl)(this as any)
+      this.__wechatifiedImage          = wechatifyUserModule(ImageImpl)(this as any)
+      this.__wechatifiedLocation       = wechatifyUserModule(LocationImpl)(this as any)
+      this.__wechatifiedMessage        = wechatifyUserModule(MessageImpl)(this as any)
+      this.__wechatifiedMiniProgram    = wechatifyUserModule(MiniProgramImpl)(this as any)
+      this.__wechatifiedPost           = wechatifyUserModule(PostImpl)(this as any)
+      this.__wechatifiedRoom           = wechatifyUserModule(RoomImpl)(this as any)
+      this.__wechatifiedRoomInvitation = wechatifyUserModule(RoomInvitationImpl)(this as any)
+      this.__wechatifiedTag            = wechatifyUserModule(TagImpl)(this as any)
+      this.__wechatifiedUrlLink        = wechatifyUserModule(UrlLinkImpl)(this as any)
 
       log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() initializing Wechaty User Module (WUM) ... done')
     }
@@ -135,7 +135,19 @@ function guardWechatify<T extends Function> (userModule?: T): T {
 type WechatifyUserModuleMixin = ReturnType<typeof wechatifyUserModuleMixin>
 
 type ProtectedPropertyWechatifyUserModuleMixin =
-  | '_wechatifyUserModules'
+  | '__wechatifyUserModules'
+  | '__wechatifiedContact'
+  | '__wechatifiedContactSelf'
+  | '__wechatifiedDelay'
+  | '__wechatifiedFriendship'
+  | '__wechatifiedImage'
+  | '__wechatifiedLocation'
+  | '__wechatifiedMessage'
+  | '__wechatifiedMiniProgram'
+  | '__wechatifiedRoom'
+  | '__wechatifiedRoomInvitation'
+  | '__wechatifiedTag'
+  | '__wechatifiedUrlLink'
 
 export type {
   WechatifyUserModuleMixin,

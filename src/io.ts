@@ -27,6 +27,7 @@ import * as jsonRpcPeer from 'json-rpc-peer'
 import type {
   MessageInterface,
 }                     from './user-modules/mod.js'
+import type { WechatyInterface } from './wechaty/mod.js'
 
 import {
   log,
@@ -37,7 +38,6 @@ import {
   getPeer,
   isJsonRpcRequest,
 }                   from './io-peer/io-peer.js'
-import type { WechatyInterface } from './interface/mod.js'
 
 export interface IoOptions {
   wechaty      : WechatyInterface,
@@ -67,7 +67,7 @@ type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
   name    : 'scan',
-  payload : PUPPET.payload.EventScan,
+  payload : PUPPET.payloads.EventScan,
 }
 
 interface IoEventJsonRpc {
@@ -112,7 +112,7 @@ export class Io {
 
   protected onMessage: undefined | Function
 
-  protected scanPayload?: PUPPET.payload.EventScan
+  protected scanPayload?: PUPPET.payloads.EventScan
 
   protected jsonRpc?: jsonRpcPeer.Peer
 
@@ -336,7 +336,7 @@ export class Io {
         log.verbose('Io', 'on(update): %s', ioEvent.payload)
         {
           const wechaty = this.options.wechaty
-          if (wechaty.logonoff()) {
+          if (wechaty.isLoggedIn) {
             const loginEvent: IoEvent = {
               name    : 'login',
               payload : await wechaty.puppet.contactPayload(

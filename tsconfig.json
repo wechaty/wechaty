@@ -2,6 +2,7 @@
   "extends": "@chatie/tsconfig",
   "compilerOptions": {
     "outDir": "dist/esm",
+    "lib": ["ESNext", "DOM"],
   },
   "exclude": [
     "node_modules/",

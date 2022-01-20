@@ -18,10 +18,52 @@
  *   limitations under the License.
  *
  */
-import { PuppetManager } from '../src/puppet-management/mod.js'
+import spawn from 'cross-spawn'
 
-PuppetManager.installAll()
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
+import { log } from 'wechaty-puppet'
+
+import {
+  PUPPET_DEPENDENCIES,
+  PuppetModuleName,
+}                         from '../src/puppet-config.js'
+
+/**
+ * Install all `wechaty-puppet-*` modules from `puppet-config.ts`
+ */
+async function main (): Promise<void> {
+  log.info('PuppetInstall', 'main() installing ...')
+
+  const skipList = [
+    '@juzibot/wechaty-puppet-donut',  // windows puppet
+    '@juzibot/wechaty-puppet-wxwork', // wxwork puppet
+  ]
+
+  const moduleList: string[] = []
+
+  for (const puppetModuleName of Object.keys(PUPPET_DEPENDENCIES)) {
+    const version = PUPPET_DEPENDENCIES[puppetModuleName as PuppetModuleName]
+
+    if (version === '0.0.0' || skipList.includes(puppetModuleName)) {
+      continue
+    }
+
+    moduleList.push(`${puppetModuleName}@${version}`)
+  }
+
+  const args = [
+    'install',
+    '--no-save',
+    ...moduleList,
+  ]
+  log.info('PuppetInstall', `installing ... Shell: "npm install ${args.join(' ')}"\n`)
+
+  const result = spawn('npm', args, { stdio: 'inherit' })
+  await new Promise(resolve => result.once('exit', resolve))
+
+  log.info('PuppetInstall', 'main() installing ... done')
+}
+
+main().catch(e => {
+  console.error(e)
+  process.exit(1)
+})

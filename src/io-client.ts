@@ -23,13 +23,13 @@ import {
   PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
-import type { MessageInterface }      from './user-modules/mod.js'
+import type { MessageInterface }  from './user-modules/mod.js'
+import type { WechatyInterface }  from './wechaty/mod.js'
 
 import {
   log,
 }                       from './config.js'
 import { Io }           from './io.js'
-import type { WechatyInterface } from './interface/mod.js'
 
 export interface IoClientOptions {
   token   : string,

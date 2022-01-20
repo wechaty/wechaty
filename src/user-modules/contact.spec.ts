@@ -20,10 +20,8 @@
  */
 import {
   test,
-  sinon,
 }           from 'tstest'
 
-import type * as PUPPET from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 import { WechatyBuilder } from '../wechaty-builder.js'
 
@@ -33,29 +31,20 @@ import {
 }                             from './contact.js'
 
 test('findAll()', async t => {
-  const EXPECTED_CONTACT_ID      = 'test-id'
-  const EXPECTED_CONTACT_NAME    = 'test-name'
-  const EXPECTED_CONTACT_ID_LIST = [EXPECTED_CONTACT_ID]
-
-  const sandbox = sinon.createSandbox()
+  const EXPECTED_NAME = 'TestingBot'
 
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
 
-  await wechaty.start()
-  // await puppet.login('__login_id__')
+  const mockContact = puppet.mocker.createContact({ name: EXPECTED_NAME })
 
-  sandbox.stub(puppet, 'contactSearch').resolves(EXPECTED_CONTACT_ID_LIST)
-  sandbox.stub(puppet, 'contactPayload').callsFake(async () => {
-    await new Promise(resolve => setImmediate(resolve))
-    return {
-      name: EXPECTED_CONTACT_NAME,
-    } as PUPPET.payload.Contact
-  })
+  await wechaty.start()
+  await puppet.mocker.login(mockContact)
 
   const contactList = await wechaty.Contact.findAll()
   t.equal(contactList.length, 1, 'should find 1 contact')
-  t.equal(contactList[0]!.name(), EXPECTED_CONTACT_NAME, 'should get name from payload')
+  t.equal(contactList[0]!.name(), EXPECTED_NAME, 'should get name from payload')
+  t.same(contactList[0]!.payload, mockContact.payload, 'should get payload from mockContact')
 
   await wechaty.stop()
 })

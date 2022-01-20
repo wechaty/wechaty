@@ -25,10 +25,22 @@ import {
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import type { WechatyPlugin }  from './plugin.js'
 import type { Wechaty } from './mods/mod.js'
 import { WechatyBuilder } from './wechaty-builder.js'
 
+import {
+  WechatyPlugin,
+  isWechatyPluginUninstaller,
+}                               from './plugin.js'
+
+/**
+ *
+ * Huan(202111): we are not remove plugins in the `stop()` method.
+ *  @see https://github.com/wechaty/wechaty/issues/2282#issuecomment-966008175
+ *
+ * TODO: make sure to not remove or remote, then remove this comment
+ *
+ */
 test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
   const spyPluginInstall    = sinon.spy()
   const spyPluginUninstall  = sinon.spy()
@@ -46,11 +58,27 @@ test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t
   t.ok(spyPluginUninstall.notCalled, 'should be clean for uninstall spy')
 
   bot.use(plugin)
-  t.ok(spyPluginInstall.called, 'should called install spy after use()')
+  t.ok(spyPluginInstall.notCalled, 'should not called install spy after use() before start()')
   t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after use()')
 
   await bot.start()
-  await bot.stop()
+  t.ok(spyPluginInstall.calledOnce, 'should called install spy after start()')
+  t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after start()')
 
-  t.ok(spyPluginUninstall.called, 'should called uninstall spy after stop()')
+  spyPluginInstall.resetHistory()
+  await bot.stop()
+  t.ok(spyPluginInstall.notCalled, 'should not called with stop()')
+  await new Promise(setImmediate) // clean the event loop
+  t.ok(spyPluginUninstall.calledOnce, 'should called uninstall spy with stop()')
+})
+
+test('isWechatyPluginUninstaller()', async t => {
+  const FIXTURES = [
+    [undefined, false],
+    [() => {}, true],
+  ] as const
+
+  for (const [uninstaller, expected] of FIXTURES) {
+    t.equal(isWechatyPluginUninstaller(uninstaller), expected, `isWechatyPluginUninstaller(${uninstaller}) === ${expected}`)
+  }
 })

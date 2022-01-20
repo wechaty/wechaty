@@ -19,16 +19,12 @@
  */
 import Url from 'url'
 
-import type * as PUPPET          from 'wechaty-puppet'
-import type { Constructor } from '../deprecated/clone-class.js'
+import type * as PUPPET     from 'wechaty-puppet'
+import type { Constructor } from 'clone-class'
 
-import {
-  openGraph,
-}               from '../helper-functions/open-graph.js'
-import { validationMixin } from '../user-mixins/validation.js'
-import {
-  wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+import { openGraph }          from '../helper-functions/open-graph.js'
+import { validationMixin }    from '../user-mixins/validation.js'
+import { wechatifyMixinBase } from '../user-mixins/wechatify.js'
 import { log } from '../config.js'
 
 class UrlLinkMixin extends wechatifyMixinBase() {
@@ -38,25 +34,33 @@ class UrlLinkMixin extends wechatifyMixinBase() {
    * Create from URL
    *
    */
-  static async create (url: string): Promise<UrlLinkInterface> {
+  static async create (
+    url: string,
+    fallback?: Partial<
+      Omit<
+        PUPPET.payloads.UrlLink,
+        'url'
+      >
+    >,
+  ): Promise<UrlLinkInterface> {
     log.verbose('UrlLink', 'create(%s)', url)
 
     const meta = await openGraph(url)
 
-    let description: string | undefined
-    let imageUrl: string | undefined
-    let title: string
+    let description  : undefined | string
+    let thumbnailUrl : undefined | string
+    let title        : string
 
     if (meta.image) {
       if (typeof meta.image === 'string') {
-        imageUrl = meta.image
+        thumbnailUrl = meta.image
       } else if (Array.isArray(meta.image)) {
-        imageUrl = meta.image[0]
+        thumbnailUrl = meta.image[0]
       } else {
         if (Array.isArray(meta.image.url)) {
-          imageUrl = meta.image.url[0]
+          thumbnailUrl = meta.image.url[0]
         } else if (meta.image.url) {
-          imageUrl = meta.image.url
+          thumbnailUrl = meta.image.url
         }
       }
     }
@@ -75,19 +79,15 @@ class UrlLinkMixin extends wechatifyMixinBase() {
       description = title
     }
 
-    if (!imageUrl || !description) {
-      throw new Error(`imageUrl(${imageUrl}) or description(${description}) not found!`)
+    if (thumbnailUrl && !thumbnailUrl.startsWith('http')) {
+      const resolvedUrl = new Url.URL(thumbnailUrl, url)
+      thumbnailUrl = resolvedUrl.toString()
     }
 
-    if (!imageUrl.startsWith('http')) {
-      const resolvedUrl = new Url.URL(imageUrl, url)
-      imageUrl = resolvedUrl.toString()
-    }
-
-    const payload: PUPPET.payload.UrlLink = {
-      description,
-      thumbnailUrl: imageUrl,
-      title,
+    const payload: PUPPET.payloads.UrlLink = {
+      description  : description  || fallback?.description  || '',
+      thumbnailUrl : thumbnailUrl || fallback?.thumbnailUrl || '',
+      title        : title        || fallback?.title        || '',
       url,
     }
 
@@ -98,7 +98,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: PUPPET.payload.UrlLink,
+    public readonly payload: PUPPET.payloads.UrlLink,
   ) {
     super()
     log.verbose('UrlLink', 'constructor()')

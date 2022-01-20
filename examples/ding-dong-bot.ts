@@ -24,7 +24,7 @@ import {
   Contact,
 }                     from '../src/mods/mod.js' // from 'wechaty'
 
-import * as qrTerm from 'qrcode-terminal'
+import qrTerm from 'qrcode-terminal'
 import { FileBox } from 'file-box'
 
 /**
@@ -119,7 +119,7 @@ function onLogout (user: Contact) {
 function onError (e: Error) {
   console.error('Bot error:', e)
   /*
-  if (bot.logonoff()) {
+  if (bot.isLoggedIn) {
     bot.say('Wechaty error: ' + e.message).catch(console.error)
   }
   */
