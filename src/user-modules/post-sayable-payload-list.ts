@@ -1,57 +1,57 @@
 import type {
-  type,
-  payload,
+  types,
+  payloads,
 }           from 'wechaty-puppet'
 
 import type { FileBoxInterface } from 'file-box'
 
 interface SayablePayloadAttatchment {
-  type: type.Message.Attachment
+  type: types.Message.Attachment
   payload: FileBoxInterface
 }
 
 interface SayablePayloadAudio {
-  type: type.Message.Audio
+  type: types.Message.Audio
   payload: FileBoxInterface
 }
 
 interface SayablePayloadContact {
-  type: type.Message.Contact
+  type: types.Message.Contact
   payload: string
 }
 
 interface SayablePayloadEmoticon {
-  type: type.Message.Emoticon
+  type: types.Message.Emoticon
   payload: FileBoxInterface
 }
 
 interface SayablePayloadImage {
-  type: type.Message.Image
+  type: types.Message.Image
   payload: FileBoxInterface
 }
 
 interface SayablePayloadLocation {
-  type: type.Message.Location
-  payload: payload.Location
+  type: types.Message.Location
+  payload: payloads.Location
 }
 
 interface SayablePayloadMiniProgram {
-  type: type.Message.MiniProgram
-  payload: payload.MiniProgram
+  type: types.Message.MiniProgram
+  payload: payloads.MiniProgram
 }
 
 interface SayablePayloadText {
-  type: type.Message.Text
+  type: types.Message.Text
   payload: string
 }
 
 interface SayablePayloadUrl {
-  type: type.Message.Url
-  payload: payload.UrlLink
+  type: types.Message.Url
+  payload: payloads.UrlLink
 }
 
 interface SayablePayloadVideo {
-  type: type.Message.Video
+  type: types.Message.Video
   payload: FileBoxInterface
 }
 

@@ -27,9 +27,10 @@
 
 import { log }          from 'wechaty-puppet'
 
-import { instanceToClass }  from 'clone-class'
-
-import type { Constructor } from '../deprecated/clone-class.js'
+import {
+  instanceToClass,
+  Constructor,
+}                     from 'clone-class'
 
 import {
   validationMixin,
@@ -101,12 +102,9 @@ class PostBuilder {
       .filter(Boolean) as SayablePayload[]
 
     return this.Impl.create({
-      descendantNum : 0,
       parentId      : this.parentId,
       rootId        : this.rootId,
       sayableList   : sayablePayloadList,
-      tapNum        : 0,
-      timestamp     : Date.now(),
     })
   }
 
@@ -168,15 +166,19 @@ class PostMixin extends wechatifyMixinBase() {
   }
 
   descendantNum (): number {
-    return this.payload.descendantNum
+    return isServerPostPayload(this.payload) ? this.payload.descendantNum : 0
   }
 
   tapNum (): number {
-    return this.payload.tapNum
+    return isServerPosPayload(this.payload) ? this.payload.tapNum : 0
   }
 
   async author (): Promise<ContactInterface> {
     log.silly('Post', 'author()')
+
+    if (isClientPostPayload(this.payload)) {
+      return this.wechaty.currentUser
+    }
 
     const author = await ContactImpl.find(this.payload.contactId)
     if (!author) {
@@ -366,6 +368,7 @@ class PostMixin extends wechatifyMixinBase() {
     log.verbose('Post', 'reply(%s)', sayable)
 
     if (!this.id) {
+      console.error('You can only call `reply()` on received posts, but it seems that you are trying to call reply on a post created from local.')
       throw new Error('no post id found')
     }
 
@@ -431,7 +434,7 @@ class PostMixin extends wechatifyMixinBase() {
     if (typeof status === 'undefined') {
       try {
         const [list] = await this.tapList({
-          contact: this.wechaty.currentUser(),
+          contact: this.wechaty.currentUser,
           tapType: type,
         })
 

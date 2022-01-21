@@ -268,7 +268,6 @@ class MessageMixin extends MixinBase implements SayableSayer {
     //   this.payload.from = contact
     //   return
     // }
-
     const talkerId = this.payload.fromId
     if (!talkerId) {
       // Huan(202011): It seems that the fromId will never be null?

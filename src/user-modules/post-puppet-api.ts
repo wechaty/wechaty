@@ -6,28 +6,19 @@ import type { SayablePayload } from './post-sayable-payload-list.js'
  * There have three types of a Post:
  *
  *  1. Original (原创)
- *  2. Comment (评论)
- *  3. ReTweet / RePost (转发)
+ *  2. Reply (评论, comment)
+ *  3. RePost (转发, retweet)
  *
- *  | Type             | Root ID  | Parent ID  |
- *  | ---------------- | -------- | ---------- |
- *  | Original         | n/a      | n/a        |
- *  | Comment          | `rootId` | `parentId` |
- *  | Repost / ReTweet | n/a      | `parentId` |
+ *  | Type     | Root ID  | Parent ID  |
+ *  | ---------| -------- | ---------- |
+ *  | Original | n/a      | n/a        |
+ *  | Reply    | `rootId` | `parentId` |
+ *  | Repost   | n/a      | `parentId` |
  *
  */
 interface PostPayloadBase {
-  parentId? : string  // `undefined` means it's not a retweet/repost
-  rootId?   : string  // `undefined` means itself is ROOT
-
-  contactId: string
-  timestamp: number
-
-  descendantNum : number
-  tapNum        : number
-
-  // The liker information need to be fetched from another API
-
+  parentId? : string  // `undefined` means it's original
+  rootId?   : string  // `undefined` means it's not a reply (original or repost)
 }
 
 interface PostPayloadClient extends PostPayloadBase {
@@ -36,8 +27,16 @@ interface PostPayloadClient extends PostPayloadBase {
 }
 
 interface PostPayloadServer extends PostPayloadBase {
-  id        : string
+  id         : string
   sayableList: string[]  // The message id(s) for this post.
+
+  contactId: string
+  timestamp: number
+
+  descendantNum : number
+  tapNum        : number
+
+  // The tap(i.e., liker) information need to be fetched from another API
 }
 
 type PostPayload =
@@ -59,10 +58,13 @@ const isPostPayloadServer = (payload: PostPayload): payload is PostPayloadServer
     && payload.sayableList.length > 0
     && typeof payload.sayableList[0] === 'string'
 
+/**
+ * Huan(202201): This enum type value MUST be keep unchanged across versions
+ *  because the puppet service client/server might has different versions of the puppet
+ */
 enum PostTapType {
   Unspecified = 0,
-  Any,
-  Like,
+  Like        = 1,
 }
 
 type PostTapListPayload = {
@@ -107,15 +109,14 @@ class PuppetPost extends PuppetMock {
   ): Promise<PostPayloadServer> {
     return {
       id,
-      // parentId? : string  // `undefined` means it's not a retweet/repost
-      // rootId?   : string  // `undefined` means itself is ROOT
+      parentId : undefined,
+      rootId   : undefined,
 
-      contactId: 'string',
+      contactId: 'string_contact_id',
       timestamp: 3412343214,
 
       descendantNum : 0,
       tapNum        : 0,
-
       // The liker information need to be fetched from another API
 
       sayableList: [
