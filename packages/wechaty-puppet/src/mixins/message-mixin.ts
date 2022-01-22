@@ -277,7 +277,7 @@ const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(bas
         case sayableTypes.Url:
           return this.messageSendUrl(conversationId, sayable.payload)
         case sayableTypes.Text:
-          return this.messageSendText(conversationId, sayable.payload.text)
+          return this.messageSendText(conversationId, sayable.payload.text, sayable.payload.mentions)
         case sayableTypes.Post:
           return this.messageSendPost(conversationId, sayable.payload)
         default:

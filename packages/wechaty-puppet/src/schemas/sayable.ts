@@ -13,7 +13,7 @@ import type {
 
 const payloadContact     = (contactId: string)                  => ({ contactId })
 const payloadFilebox     = (filebox: string | FileBoxInterface) => ({ filebox })
-const payloadText        = (text: string)                       => ({ text })
+const payloadText        = (text: string, mentions: string[])   => ({ text, mentions })
 /**
  * expand/merge the payload altogether
  */
