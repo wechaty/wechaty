@@ -71,7 +71,7 @@ interface PostPayloadServer extends PostPayloadBase {
   counter: {
     children?: number
     descendant?: number
-    tap?: {
+    taps?: {
       [key in TapType]?: number
     }
   }
