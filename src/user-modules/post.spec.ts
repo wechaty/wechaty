@@ -23,16 +23,12 @@ import {
   sinon,
 }             from 'tstest'
 
+import * as PUPPET from 'wechaty-puppet'
 import { FileBox } from 'file-box'
 
 import { WechatyBuilder } from '../wechaty-builder.js'
 
 import { UrlLinkImpl } from './url-link.js'
-
-import {
-  PuppetPost,
-  PostTapType,
-}                 from './post-puppet-api.js'
 
 test('Post smoke testing', async t => {
   void sinon
@@ -50,7 +46,7 @@ test('Post smoke testing', async t => {
 
   await post.reply('Thanks for sharing!')
   await post.like(true)
-  await post.tap(PostTapType.Like, false)
+  await post.tap(PUPPET.types.Tap.Like, false)
 
   const pagination = {
     pageSize: 10,
@@ -65,13 +61,13 @@ test('Post smoke testing', async t => {
     t.ok(descendantPost, 'tbw')
   }
 
-  const [descendantList, _nextPageToken2] = await post.descendantList({}, pagination)
+  const [descendantList, _nextPageToken2] = await wechaty.Post.findAll({}, pagination)
   t.ok(descendantList, 'tbw')
 
-  for await (const liker of post.taps({ tapType: PostTapType.Like })) {
+  for await (const liker of post.taps({ type: PUPPET.types.Tap.Like })) {
     t.ok(liker, 'tbw')
   }
 
-  const [tapList, _nextPageToken3] = await post.tapList({ tapType: PostTapType.Like }, pagination)
+  const [tapList, _nextPageToken3] = await post.tapFind({ type: PUPPET.types.Tap.Like }, pagination)
   t.ok(tapList, 'tbw')
 })

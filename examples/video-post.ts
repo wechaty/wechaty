@@ -48,9 +48,8 @@ async function testVideoPost () {
     await post2.reply('xxxx')
     await post2.reply(FileBox.fromQRCode('qrimage'))
 
-    const [descendantList] = await post.descendantList({ contact: message.wechaty.currentUser() })
-    if (descendantList.length > 0) {
-      console.info(descendantList[0])
+    for await (const descendant of post.descendants({ contactId: message.wechaty.currentUser.id })) {
+      console.info(descendant)
     }
 
     /**
@@ -71,8 +70,7 @@ async function testVideoPost () {
     // await post.tap(PostTapType.Like, false)
 
     // list all likers
-    const [taperList] = await post.tapList()
-    for (const tap of taperList) {
+    for await (const tap of post.taps()) {
       console.info('Taper -------')
       console.info('taper:', tap.contact)
       console.info('date:', tap.date)

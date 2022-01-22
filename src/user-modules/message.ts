@@ -1027,13 +1027,9 @@ class MessageMixin extends MixinBase implements SayableSayer {
       throw new Error('message type not a Post')
     }
 
-    const postPayload = await this.wechaty.puppet.messagePost(this.id)
-
-    if (!postPayload) {
-      throw new Error(`no Post payload for message ${this.id}`)
-    }
-
-    return PostImpl.create(postPayload)
+    const post = PostImpl.load(this.id)
+    await post.ready()
+    return post
   }
 
   async toSayable (): Promise<undefined | Sayable> {
