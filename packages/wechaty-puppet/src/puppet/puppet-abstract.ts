@@ -42,6 +42,8 @@ import {
   tagMixin,
   validateMixin,
   readyMixin,
+  postMixin,
+  tapMixin,
 }                        from '../mixins/mod.js'
 
 import { PuppetSkeleton } from './puppet-skeleton.js'
@@ -65,6 +67,8 @@ const PipedBase = FP.pipe(
   miscMixin,
   serviceMixin,
   readyMixin,
+  postMixin,
+  tapMixin,
   // TODO: validateMixin,
 )
 

@@ -7,9 +7,10 @@ import type {
   FriendshipSearchQueryFilter,
 }                                 from '../schemas/friendship.js'
 
-import type { PuppetSkeleton }        from '../puppet/puppet-skeleton.js'
-import type { CacheMixin } from './cache-mixin.js'
-import { PayloadType } from '../schemas/payload.js'
+import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
+import { DirtyType }              from '../schemas/dirty.js'
+
+import type { CacheMixin }  from './cache-mixin.js'
 
 const friendshipMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(mixinBase: MixinBase) => {
 
@@ -132,7 +133,7 @@ const friendshipMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(m
       log.verbose('PuppetFriendshipMixin', 'friendshipPayloadDirty(%s)', id)
 
       await this.__dirtyPayloadAwait(
-        PayloadType.Friendship,
+        DirtyType.Friendship,
         id,
       )
     }

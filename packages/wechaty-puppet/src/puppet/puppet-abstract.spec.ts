@@ -11,7 +11,7 @@ import {
 
 import {
   ContactGender,
-  ContactPayload,
+  type ContactPayload,
   ContactType,
 }                                 from '../schemas/contact.js'
 import {

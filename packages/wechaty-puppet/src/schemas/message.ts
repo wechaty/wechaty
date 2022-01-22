@@ -19,6 +19,7 @@ export enum MessageType {
   Recalled    = 13,   // Recalled(10002)
   Url         = 14,   // Url(5)
   Video       = 15,   // Video(4), Video(43)
+  Post        = 16,   // Moment, Channel, Tweet, etc
 }
 
 /**

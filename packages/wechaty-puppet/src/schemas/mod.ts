@@ -1,19 +1,19 @@
 import {
   ContactGender,
   ContactType,
-  ContactPayload,
-  ContactQueryFilter,
+  type ContactPayload,
+  type ContactQueryFilter,
 }                             from './contact.js'
 import {
   ScanStatus,
 }                             from './event.js'
 import {
-  FriendshipAddOptions,
-  FriendshipPayload,
-  FriendshipPayloadConfirm,
-  FriendshipPayloadReceive,
-  FriendshipPayloadVerify,
-  FriendshipSearchQueryFilter,
+  type FriendshipAddOptions,
+  type FriendshipPayload,
+  type FriendshipPayloadConfirm,
+  type FriendshipPayloadReceive,
+  type FriendshipPayloadVerify,
+  type FriendshipSearchQueryFilter,
   FriendshipType,
   FriendshipSceneType,
 }                             from './friendship.js'
@@ -21,27 +21,34 @@ import {
   ImageType,
 }                             from './image.js'
 import {
-  MessagePayload,
-  MessagePayloadBase,
-  MessagePayloadRoom,
-  MessagePayloadTo,
-  MessageQueryFilter,
+  type MessagePayload,
+  type MessagePayloadBase,
+  type MessagePayloadRoom,
+  type MessagePayloadTo,
+  type MessageQueryFilter,
   MessageType,
 }                             from './message.js'
-
-import { PayloadType }         from './payload.js'
+import { DirtyType }         from './dirty.js'
 import {
   CHAT_EVENT_DICT,
   PUPPET_EVENT_DICT,
-
   YOU,
 }                       from './puppet.js'
+import {
+  type TapPayload,
+  TapType,
+  type TapQueryFilter,
+}                       from './tap.js'
+import {
+  type PostPayload,
+  PostType,
+  isPostPayloadClient,
+  isPostPayloadServer,
+  type PostQueryFilter,
+  type PostPayloadClient,
+  type PostPayloadServer,
+}                         from './post.js'
 
-/********************
- *
- * Import Typings
- *
- ********************/
 import type {
   EventDirtyPayload,
   EventDongPayload,
@@ -84,58 +91,80 @@ import type {
   ChatEventName,
 }                         from './puppet.js'
 
-export type {
-  ChatEventName,
-  ContactPayload,
-  ContactQueryFilter,
-  EventDirtyPayload,
-  EventDongPayload,
-  EventErrorPayload,
-  EventFriendshipPayload,
-  EventHeartbeatPayload,
-  EventLoginPayload,
-  EventLogoutPayload,
-  EventMessagePayload,
-  EventReadyPayload,
-  EventResetPayload,
-  EventRoomInvitePayload,
-  EventRoomJoinPayload,
-  EventRoomLeavePayload,
-  EventRoomTopicPayload,
-  EventScanPayload,
-  FriendshipAddOptions,
-  FriendshipPayload,
-  FriendshipPayloadConfirm,
-  FriendshipPayloadReceive,
-  FriendshipPayloadVerify,
-  FriendshipSearchQueryFilter,
-  LocationPayload,
-  MessagePayload,
-  MessagePayloadBase,
-  MessagePayloadRoom,
-  MessagePayloadTo,
-  MessageQueryFilter,
-  MiniProgramPayload,
-  PuppetEventName,
-  PuppetOptions,
-  RoomInvitationPayload,
-  RoomMemberPayload,
-  RoomMemberQueryFilter,
-  RoomPayload,
-  RoomQueryFilter,
-  UrlLinkPayload,
-}
+import {
+  sayablePayloads,
+  sayableTypes,
+  type SayablePayload,
+}                         from './sayable.js'
+import type {
+  PaginationRequest,
+  PaginationResponse,
+}                         from './pagination.js'
 
 export {
   CHAT_EVENT_DICT,
   ContactGender,
   ContactType,
+  DirtyType,
   FriendshipSceneType,
   FriendshipType,
   ImageType,
+  isPostPayloadClient,
+  isPostPayloadServer,
   MessageType,
-  PayloadType,
+  PaginationRequest,
+  PaginationResponse,
+  PostType,
   PUPPET_EVENT_DICT,
+  sayablePayloads,
+  sayableTypes,
   ScanStatus,
+  TapType,
+  type ChatEventName,
+  type ContactPayload,
+  type ContactQueryFilter,
+  type EventDirtyPayload,
+  type EventDongPayload,
+  type EventErrorPayload,
+  type EventFriendshipPayload,
+  type EventHeartbeatPayload,
+  type EventLoginPayload,
+  type EventLogoutPayload,
+  type EventMessagePayload,
+  type EventReadyPayload,
+  type EventResetPayload,
+  type EventRoomInvitePayload,
+  type EventRoomJoinPayload,
+  type EventRoomLeavePayload,
+  type EventRoomTopicPayload,
+  type EventScanPayload,
+  type FriendshipAddOptions,
+  type FriendshipPayload,
+  type FriendshipPayloadConfirm,
+  type FriendshipPayloadReceive,
+  type FriendshipPayloadVerify,
+  type FriendshipSearchQueryFilter,
+  type LocationPayload,
+  type MessagePayload,
+  type MessagePayloadBase,
+  type MessagePayloadRoom,
+  type MessagePayloadTo,
+  type MessageQueryFilter,
+  type MiniProgramPayload,
+  type PostPayload,
+  type PostPayloadClient,
+  type PostPayloadServer,
+  type PostQueryFilter,
+  type PuppetEventName,
+  type PuppetOptions,
+  type RoomInvitationPayload,
+  type RoomMemberPayload,
+  type RoomMemberQueryFilter,
+  type RoomPayload,
+  type RoomQueryFilter,
+  type SayablePayload,
+  type TapPayload,
+  type TapQueryFilter,
+  type UrlLinkPayload,
   YOU,
 }

@@ -1,9 +1,8 @@
-// import {
-//   FileBox,
-// } from 'file-box'
-import type {
-  FileBoxInterface,
+import {
+  type FileBoxInterface,
+  FileBox,
 }                     from 'file-box'
+
 import {
   log,
 }                       from '../config.js'
@@ -26,11 +25,20 @@ import type {
 import type {
   LocationPayload,
 }                                 from '../schemas/location.js'
+import type {
+  PostPayload,
+}                                 from '../schemas/post.js'
 
 import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
-import { PayloadType }            from '../schemas/payload.js'
+import { DirtyType }              from '../schemas/dirty.js'
 
 import type { CacheMixin }        from './cache-mixin.js'
+import {
+  type SayablePayload,
+  sayableTypes,
+}                                 from '../schemas/sayable.js'
+
+const filebox = (filebox: string | FileBoxInterface) => typeof filebox === 'string' ? FileBox.fromJSON(filebox) : filebox
 
 const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(baseMixin: MinxinBase) => {
 
@@ -63,10 +71,11 @@ const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(bas
     abstract messageForward         (conversationId: string, messageId: string,)                     : Promise<void | string>
     abstract messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string>
     abstract messageSendFile        (conversationId: string, file: FileBoxInterface)                 : Promise<void | string>
+    abstract messageSendLocation    (conversationId: string, locationPayload: LocationPayload)       : Promise<void | string>
     abstract messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
+    abstract messageSendPost        (conversationId: string, postPayload: PostPayload)               : Promise<void | string>
     abstract messageSendText        (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
     abstract messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string>
-    abstract messageSendLocation    (conversationId: string, locationPayload: LocationPayload)       : Promise<void | string>
 
     abstract messageRecall (messageId: string) : Promise<boolean>
 
@@ -234,9 +243,46 @@ const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(bas
       log.verbose('PuppetMessageMixin', 'messagePayloadDirty(%s)', id)
 
       await this.__dirtyPayloadAwait(
-        PayloadType.Message,
+        DirtyType.Message,
         id,
       )
+    }
+
+    /**
+     * send a sayable payload for event driven API and convenience
+     *
+     * @param conversationId
+     * @param sayable
+     * @returns
+     */
+    messageSend (
+      conversationId: string,
+      sayable: SayablePayload,
+    ): Promise<void | string> {
+      log.verbose('PuppetMessageMixin', 'messageSend(%s, {type:%s})', conversationId, sayable.type)
+
+      switch (sayable.type) {
+        case sayableTypes.Attachment:
+        case sayableTypes.Audio:
+        case sayableTypes.Emoticon:
+        case sayableTypes.Image:
+        case sayableTypes.Video:
+          return this.messageSendFile(conversationId, filebox(sayable.payload.filebox))
+        case sayableTypes.Contact:
+          return this.messageSendContact(conversationId, sayable.payload.contactId)
+        case sayableTypes.Location:
+          return this.messageSendLocation(conversationId, sayable.payload)
+        case sayableTypes.MiniProgram:
+          return this.messageSendMiniProgram(conversationId, sayable.payload)
+        case sayableTypes.Url:
+          return this.messageSendUrl(conversationId, sayable.payload)
+        case sayableTypes.Text:
+          return this.messageSendText(conversationId, sayable.payload.text)
+        case sayableTypes.Post:
+          return this.messageSendPost(conversationId, sayable.payload)
+        default:
+          throw new Error('unsupported sayable payload: ' + JSON.stringify(sayable))
+      }
     }
 
   }

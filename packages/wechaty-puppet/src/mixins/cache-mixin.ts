@@ -8,7 +8,7 @@ import type {
   PuppetOptions,
   EventDirtyPayload,
 }                               from '../schemas/mod.js'
-import { PayloadType }          from '../schemas/mod.js'
+import { DirtyType }          from '../schemas/mod.js'
 
 import { CacheAgent }           from '../agents/mod.js'
 
@@ -82,10 +82,10 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
      * Call this method when you want to notify the server that the data cache need to be invalidated.
      */
     dirtyPayload (
-      type : PayloadType,
+      type : DirtyType,
       id   : string,
     ): void {
-      log.verbose('PuppetCacheMixin', 'dirtyPayload(%s<%s>, %s)', PayloadType[type], type, id)
+      log.verbose('PuppetCacheMixin', 'dirtyPayload(%s<%s>, %s)', DirtyType[type], type, id)
 
       /**
        * Huan(202111): we return first before emit the `dirty` event?
@@ -106,15 +106,16 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
         payloadId,
       }: EventDirtyPayload,
     ): void {
-      log.verbose('PuppetCacheMixin', 'onDirty(%s<%s>, %s)', PayloadType[payloadType], payloadType, payloadId)
+      log.verbose('PuppetCacheMixin', 'onDirty(%s<%s>, %s)', DirtyType[payloadType], payloadType, payloadId)
 
       const dirtyFuncMap = {
-        [PayloadType.Contact]:      (id: string) => this.cache.contact.delete(id),
-        [PayloadType.Friendship]:   (id: string) => this.cache.friendship.delete(id),
-        [PayloadType.Message]:      (id: string) => this.cache.message.delete(id),
-        [PayloadType.Room]:         (id: string) => this.cache.room.delete(id),
-        [PayloadType.RoomMember]:   (id: string) => this.cache.roomMember.delete(id),
-        [PayloadType.Unspecified]:  (id: string) => { throw new Error('Unspecified type with id: ' + id) },
+        [DirtyType.Contact]:      (id: string) => this.cache.contact.delete(id),
+        [DirtyType.Friendship]:   (id: string) => this.cache.friendship.delete(id),
+        [DirtyType.Message]:      (id: string) => this.cache.message.delete(id),
+        [DirtyType.Post]:         (id: string) => this.cache.post.delete(id),
+        [DirtyType.Room]:         (id: string) => this.cache.room.delete(id),
+        [DirtyType.RoomMember]:   (id: string) => this.cache.roomMember.delete(id),
+        [DirtyType.Unspecified]:  (id: string) => { throw new Error('Unspecified type with id: ' + id) },
       }
 
       const dirtyFunc = dirtyFuncMap[payloadType]
@@ -126,10 +127,10 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
      *  and we need to wait for the `dirty` event so we can make sure the cache has been invalidated.
      */
     async __dirtyPayloadAwait (
-      type : PayloadType,
+      type : DirtyType,
       id   : string,
     ): Promise<void> {
-      log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait(%s<%s>, %s)', PayloadType[type], type, id)
+      log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait(%s<%s>, %s)', DirtyType[type], type, id)
 
       if (!this.__currentUserId) {
         log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait() will not dirty any payload when the puppet is not logged in')
@@ -179,7 +180,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
             'error: %s',
             'stack: %s',
           ].join('\n  '),
-          PayloadType[type],
+          DirtyType[type],
           type,
           id,
           (e as Error).message,

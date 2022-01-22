@@ -15,7 +15,7 @@ import {
 
 import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
 import type { ContactMixin }  from './contact-mixin.js'
-import { PayloadType } from '../schemas/payload.js'
+import { DirtyType } from '../schemas/dirty.js'
 
 const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>(mixinBase: MixinBase) => {
 
@@ -171,7 +171,7 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
       log.verbose('PuppetRoomMemberMixin', 'roomMemberPayloadDirty(%s)', id)
 
       await this.__dirtyPayloadAwait(
-        PayloadType.RoomMember,
+        DirtyType.RoomMember,
         id,
       )
     }

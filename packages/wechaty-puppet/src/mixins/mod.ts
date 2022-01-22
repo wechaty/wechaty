@@ -47,6 +47,14 @@ import {
   ProtectedPropertyTagMixin,
 }                                     from './tag-mixin.js'
 import {
+  tapMixin,
+  ProtectedPropertyTapMixin,
+}                                     from './tap-mixin.js'
+import {
+  postMixin,
+  ProtectedPropertyPostMixin,
+}                                     from './post-mixin.js'
+import {
   validateMixin,
   ProtectedPropertyValidateMixin,
 }                                     from './validate-mixin.js'
@@ -68,11 +76,13 @@ type MixinProtectedProperty =
   | ProtectedPropertyLoginMixin
   | ProtectedPropertyMemoryMixin
   | ProtectedPropertyMessageMixin
+  | ProtectedPropertyPostMixin
   | ProtectedPropertyRoomInvitationMixin
   | ProtectedPropertyRoomMemberMixin
   | ProtectedPropertyRoomMixin
   | ProtectedPropertyServiceMixin
   | ProtectedPropertyTagMixin
+  | ProtectedPropertyTapMixin
   | ProtectedPropertyValidateMixin
 
 export type {
@@ -86,11 +96,13 @@ export {
   memoryMixin,
   messageMixin,
   miscMixin,
+  postMixin,
+  readyMixin,
   roomInvitationMixin,
   roomMemberMixin,
   roomMixin,
   serviceMixin,
   tagMixin,
+  tapMixin,
   validateMixin,
-  readyMixin,
 }

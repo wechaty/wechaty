@@ -1,4 +1,4 @@
-export enum ContactGender {
+enum ContactGender {
   Unknown = 0,
   Male    = 1,
   Female  = 2,
@@ -7,21 +7,21 @@ export enum ContactGender {
 /**
  * Huan(202004) TODO: Lock the ENUM number (like protobuf) ?
  */
-export enum ContactType {
+enum ContactType {
   Unknown     = 0,
   Individual  = 1,
   Official    = 2,
   Corporation = 3,
 }
 
-export interface ContactQueryFilter {
+interface ContactQueryFilter {
   alias?:  string | RegExp,
   id?:     string,
   name?:   string | RegExp,
   weixin?:  string,
 }
 
-export interface ContactPayload {
+interface ContactPayload {
   id     : string,
   gender : ContactGender,
   type   : ContactType,
@@ -45,7 +45,16 @@ export interface ContactPayload {
 }
 
 /** @hidden */
-export type ContactPayloadFilterFunction = (payload: ContactPayload) => boolean
+type ContactPayloadFilterFunction = (payload: ContactPayload) => boolean
 
 /** @hidden */
-export type ContactPayloadFilterFactory  = (query: ContactQueryFilter) => ContactPayloadFilterFunction
+type ContactPayloadFilterFactory  = (query: ContactQueryFilter) => ContactPayloadFilterFunction
+
+export {
+  ContactGender,
+  ContactType,
+  type ContactPayload,
+  type ContactPayloadFilterFactory,
+  type ContactPayloadFilterFunction,
+  type ContactQueryFilter,
+}

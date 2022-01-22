@@ -26,6 +26,9 @@ import type {
 import type {
   PuppetOptions,
 }                         from '../schemas/puppet.js'
+import type {
+  PostPayload,
+}                         from '../schemas/post.js'
 
 type PayloadCacheOptions = Required<PuppetOptions>['cache']
 
@@ -38,6 +41,7 @@ class CacheAgent {
   readonly contact        : QuickLru<string, ContactPayload>
   readonly friendship     : QuickLru<string, FriendshipPayload>
   readonly message        : QuickLru<string, MessagePayload>
+  readonly post           : QuickLru<string, PostPayload>
   readonly room           : QuickLru<string, RoomPayload>
   readonly roomInvitation : QuickLru<string, RoomInvitationPayload>
   readonly roomMember     : QuickLru<string, LruRoomMemberPayload>
@@ -77,12 +81,13 @@ class CacheAgent {
     this.room = new QuickLru<string, RoomPayload>(lruOptions(
       envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_ROOM(options?.room)),
     )
-
+    this.post = new QuickLru<string, PostPayload>(lruOptions(
+      envVars.WECHATY_PUPPET_LRU_CACHE_SIZE_POST(options?.post)),
+    )
   }
 
   start (): void {
     log.verbose('PuppetCacheAgent', 'start()')
-    this.clear()
   }
 
   stop (): void {
@@ -106,6 +111,7 @@ class CacheAgent {
     this.contact.clear()
     this.friendship.clear()
     this.message.clear()
+    this.post.clear()
     this.room.clear()
     this.roomInvitation.clear()
     this.roomMember.clear()

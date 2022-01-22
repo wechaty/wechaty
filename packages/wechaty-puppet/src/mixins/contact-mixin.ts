@@ -11,7 +11,7 @@ import type {
   ContactPayloadFilterFunction,
   ContactQueryFilter,
 }                                 from '../schemas/contact.js'
-import { PayloadType } from '../schemas/payload.js'
+import { DirtyType } from '../schemas/dirty.js'
 
 import type { CacheMixin }    from './cache-mixin.js'
 
@@ -310,7 +310,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkeleton>(mixi
       log.verbose('PuppetContactMixin', 'contactPayloadDirty(%s)', id)
 
       await this.__dirtyPayloadAwait(
-        PayloadType.Contact,
+        DirtyType.Contact,
         id,
       )
     }

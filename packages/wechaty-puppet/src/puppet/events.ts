@@ -9,6 +9,7 @@ import type {
   EventLoginPayload,
   EventLogoutPayload,
   EventMessagePayload,
+  EventPostPayload,
   EventResetPayload,
   EventRoomJoinPayload,
   EventRoomLeavePayload,
@@ -27,6 +28,7 @@ export type PuppetHeartbeatListener  = (payload: EventHeartbeatPayload)   => voi
 export type PuppetLoginListener      = (payload: EventLoginPayload)       => void | Promise<void>
 export type PuppetLogoutListener     = (payload: EventLogoutPayload)      => void | Promise<void>
 export type PuppetMessageListener    = (payload: EventMessagePayload)     => void | Promise<void>
+export type PuppetPostListener       = (payload: EventPostPayload)        => void | Promise<void>
 export type PuppetReadyListener      = (payload: EventReadyPayload)       => void | Promise<void>
 export type PuppetResetListener      = (payload: EventResetPayload)       => void | Promise<void>
 export type PuppetRoomInviteListener = (payload: EventRoomInvitePayload)  => void | Promise<void>
@@ -47,6 +49,7 @@ interface PuppetEventListener {
   login         : PuppetLoginListener
   logout        : PuppetLogoutListener
   message       : PuppetMessageListener
+  post          : PuppetPostListener
   ready         : PuppetReadyListener
   reset         : PuppetResetListener
   'room-invite' : PuppetRoomInviteListener
