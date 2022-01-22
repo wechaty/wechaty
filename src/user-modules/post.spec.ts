@@ -24,6 +24,7 @@ import {
 }             from 'tstest'
 
 import * as PUPPET from 'wechaty-puppet'
+import PuppetMock from 'wechaty-puppet-mock'
 import { FileBox } from 'file-box'
 
 import { WechatyBuilder } from '../wechaty-builder.js'
@@ -33,10 +34,10 @@ import { UrlLinkImpl } from './url-link.js'
 test('Post smoke testing', async t => {
   void sinon
 
-  const puppet = new PuppetPost()
+  const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
 
-  const post = wechaty.Post.builder()
+  const post = await wechaty.Post.builder()
     .add('Hello, world!')
     .add(FileBox.fromQRCode('qr'))
     .add(await UrlLinkImpl.create('https://yahoo.com'))

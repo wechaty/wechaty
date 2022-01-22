@@ -1,3 +1,4 @@
+import PUPPET from 'wechaty-puppet'
 import { FileBox } from 'file-box'
 
 import {
@@ -16,7 +17,7 @@ async function testVideoPost () {
     return
   }
 
-  const post = bot.Post.builder()
+  const post = await bot.Post.builder()
     .add('hello, world')
     .add(FileBox.fromQRCode('qr'))
     .add(await bot.UrlLink.create('https://wechaty.js.org'))
@@ -38,8 +39,9 @@ async function testVideoPost () {
      */
     const post2 = await message.toPost()
 
-    console.info('total tap(like) number:', post2.tapNum())
-    console.info('total children number:', post2.descendantNum())
+    const counter = post2.counter()
+    console.info('total tap(like) number:', counter.taps && counter.taps[PUPPET.types.Tap.Like])
+    console.info('total children number:', counter.descendant)
 
     /**
      * Comment

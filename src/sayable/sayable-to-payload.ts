@@ -16,7 +16,7 @@ import type {
   Sayable,
 }                   from './types.js'
 
-function sayableToPayload (sayable: Sayable): PUPPET.payloads.Sayable | PUPPET.payloads.Sayable[] {
+async function sayableToPayload (sayable: Sayable): Promise<PUPPET.payloads.Sayable | PUPPET.payloads.Sayable[]> {
   log.verbose('Wechaty', 'sayableToPayload(%s)', sayable)
 
   if (typeof sayable === 'string') {
@@ -32,21 +32,14 @@ function sayableToPayload (sayable: Sayable): PUPPET.payloads.Sayable | PUPPET.p
   } else if (LocationImpl.validInstance(sayable)) {
     return PUPPET.payloads.sayable.location(sayable.payload)
   } else if (MessageImpl.valid(sayable)) {
-    // const unwrappedSayable = await sayable.toSayable()
-    // if (!unwrappedSayable) {
-    //   return undefined
-    // }
-    // return sayableToSayablePayload(unwrappedSayable)
-    log.error('Wechaty', 'sayableToPayload() Huan(202111): Post:sayableToPayload() not support Message yet because it requires `await`')
-    return []
+    const messageSayable = await sayable.toSayable()
+    if (!messageSayable) {
+      return []
+    }
+    return sayableToPayload(messageSayable)
   } else if (MiniProgramImpl.validInstance(sayable)) {
     return PUPPET.payloads.sayable.miniProgram(sayable.payload)
   } else if (PostImpl.validInstance(sayable)) {
-    // const unwrappedSayableList = [...sayable]
-    // if (!unwrappedSayableList) {
-    //   return undefined
-    // }
-    // return unwrappedSayableList.map(sayableToSayablePayload)
     return PUPPET.payloads.sayable.post(sayable.payload)
   } else if (UrlLinkImpl.validInstance(sayable)) {
     return PUPPET.payloads.sayable.url(sayable.payload)

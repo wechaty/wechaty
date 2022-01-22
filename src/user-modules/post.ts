@@ -27,8 +27,7 @@
 import * as PUPPET      from 'wechaty-puppet'
 import { log }          from 'wechaty-puppet'
 
-import {
-  instanceToClass,
+import type {
   Constructor,
 }                     from 'clone-class'
 
@@ -85,10 +84,11 @@ class PostBuilder {
     return this
   }
 
-  build (): PostInterface {
-    const sayablePayloadList = this.sayableList
-      .map(sayableToPayload)
-      .flat()
+  async build (): Promise<PostInterface> {
+    const sayablePayloadListNested = await Promise.all(
+      this.sayableList.map(sayableToPayload),
+    )
+    const sayablePayloadList = sayablePayloadListNested.flat()
 
     return this.Impl.create({
       parentId      : this.parentId,
@@ -217,15 +217,17 @@ class PostMixin extends wechatifyMixinBase() {
       this.id = idOrPayload
     } else {
       this._payload = idOrPayload
+      this.id = idOrPayload.id
     }
   }
 
-  descendantNum (): number {
-    return PUPPET.payloads.isPostServer(this.payload) ? this.payload.descendantNum : 0
-  }
-
-  tapNum (): number {
-    return PUPPET.payloads.isPostServer(this.payload) ? this.payload.tapNum : 0
+  counter (): PUPPET.payloads.PostServer['counter'] {
+    return {
+      children   : 0,
+      descendant : 0,
+      taps       : {},
+      ...(PUPPET.payloads.isPostServer(this.payload) && this.payload.counter),
+    }
   }
 
   async author (): Promise<ContactInterface> {
@@ -249,7 +251,7 @@ class PostMixin extends wechatifyMixinBase() {
       return undefined
     }
 
-    const post = instanceToClass(this, PostImpl).load(this.payload.rootId)
+    const post = this.wechaty.Post.load(this.payload.rootId)
     await post.ready()
     return post
   }
@@ -260,7 +262,7 @@ class PostMixin extends wechatifyMixinBase() {
       return undefined
     }
 
-    const post = instanceToClass(this, PostImpl).load(this.payload.parentId)
+    const post = this.wechaty.Post.load(this.payload.parentId)
     await post.ready()
     return post
   }
@@ -272,8 +274,7 @@ class PostMixin extends wechatifyMixinBase() {
       throw new Error('no post id found')
     }
 
-    const newPayload = await this.wechaty.puppet.postPayload(this.id)
-    this._payload = newPayload
+    this._payload = await this.wechaty.puppet.postPayload(this.id)
   }
 
   async ready (): Promise<void> {
@@ -336,11 +337,7 @@ class PostMixin extends wechatifyMixinBase() {
     )
 
     while (true) {
-      for (let i = 0; i < postList.length; i++) {
-        if (postList[i]) {
-          yield postList[i]!
-        }
-      }
+      yield * postList
       postList.length = 0
 
       if (!nextPageToken) {
@@ -391,11 +388,7 @@ class PostMixin extends wechatifyMixinBase() {
     )
 
     while (true) {
-      for (let i = 0; i < tapList.length; i++) {
-        if (tapList[i]) {
-          yield tapList[i]!
-        }
-      }
+      yield * tapList
       tapList.length = 0
 
       if (!nextPageToken) {
@@ -421,7 +414,7 @@ class PostMixin extends wechatifyMixinBase() {
       throw new Error('no post id found')
     }
 
-    const builder = instanceToClass(this, PostImpl).builder()
+    const builder = this.wechaty.Post.builder()
 
     if (Array.isArray(sayable)) {
       sayable.forEach(s => builder.add(s))
@@ -429,23 +422,23 @@ class PostMixin extends wechatifyMixinBase() {
       builder.add(sayable)
     }
 
-    const post = builder
+    const post = await builder
       .reply(this)
       .build()
 
-    const newPostId = await this.wechaty.puppet.postCreate(post.payload)
+    const postId = await this.wechaty.puppet.postPublish(post.payload)
 
-    if (newPostId) {
-      const newPost = instanceToClass(this, PostImpl).load(newPostId)
+    if (postId) {
+      const newPost = this.wechaty.Post.load(postId)
       await newPost.ready()
       return newPost
     }
   }
 
   async like (status: boolean) : Promise<void>
-  async like ()                : Promise<undefined | Date>
+  async like ()                : Promise<boolean>
 
-  async like (status?: boolean): Promise<void | undefined | Date> {
+  async like (status?: boolean): Promise<void | boolean> {
     log.verbose('Post', 'like(%s)', typeof status === 'undefined' ? '' : status)
 
     if (typeof status === 'undefined') {
@@ -463,13 +456,13 @@ class PostMixin extends wechatifyMixinBase() {
   /**
    * Return Date if the bot has tapped the post, otherwise return undefined
    */
-  async tap (type: PUPPET.types.Tap)                  : Promise<undefined | Date>
+  async tap (type: PUPPET.types.Tap)                  : Promise<boolean>
   async tap (type: PUPPET.types.Tap, status: boolean) : Promise<void>
 
   async tap (
     type    : PUPPET.types.Tap,
     status? : boolean,
-  ): Promise<void | undefined | Date> {
+  ): Promise<void | boolean> {
     log.verbose('Post', 'tap(%s%s)',
       PUPPET.types.Tap[type],
       typeof status === 'undefined'
@@ -481,27 +474,7 @@ class PostMixin extends wechatifyMixinBase() {
       throw new Error('can not tap for post without id')
     }
 
-    if (typeof status !== 'undefined') {
-      await this.wechaty.puppet.tap(this.id, type, status)
-      return
-    }
-
-    try {
-      const contactFilter = {
-        contactId: this.wechaty.currentUser.id,
-        type,
-      }
-      const [tapList] = await this.tapFind(
-        contactFilter,
-        { pageSize: 1 },
-      )
-
-      return tapList[0]?.date
-
-    } catch (e) {
-      this.wechaty.emitError(e)
-      return undefined
-    }
+    return this.wechaty.puppet.tap(this.id, type, status)
   }
 
   async tapFind (
@@ -527,16 +500,16 @@ class PostMixin extends wechatifyMixinBase() {
     )
 
     const tapList: Tap[] = []
-    for (const [type, list] of Object.entries(response)) {
-      for (const [i, contactId] of list.contactId.entries()) {
-        const timestamp = list.timestamp[i]
-        const date = timestamp ? new Date(timestamp) : new Date()
-
+    for (const [type, data] of Object.entries(response)) {
+      for (const [i, contactId] of data.contactId.entries()) {
         const contact = await this.wechaty.Contact.find({ id: contactId })
         if (!contact) {
           log.warn('Post', 'tapFind() contact not found for id: %s', contactId)
           continue
         }
+
+        const timestamp = data.timestamp[i]
+        const date = timestamp ? new Date(timestamp) : new Date()
 
         tapList.push({
           contact,
