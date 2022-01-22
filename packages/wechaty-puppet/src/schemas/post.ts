@@ -2,6 +2,7 @@ import type {
   SayablePayload,
   sayableTypes,
 }                             from './sayable.js'
+import type { TapType } from './tap.js'
 
 /**
  * Huan(202201): numbers must be keep unchanged across versions
@@ -67,8 +68,13 @@ interface PostPayloadServer extends PostPayloadBase {
   contactId: string
   timestamp: number
 
-  descendantNum : number
-  tapNum        : number
+  counter: {
+    children?: number
+    descendant?: number
+    tap?: {
+      [key in TapType]?: number
+    }
+  }
 
   // The tap(i.e., liker) information need to be fetched from another API
 }
