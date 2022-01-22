@@ -13,44 +13,24 @@ import {
 }                       from '../user-modules/mod.js'
 
 import type {
-  SayablePayload,
-}                       from '../user-modules/post-sayable-payload-list.js'
-
-import type {
   Sayable,
 }                   from './types.js'
 
-function sayableToPayload (sayable: Sayable): undefined | SayablePayload | SayablePayload[] {
+function sayableToPayload (sayable: Sayable): PUPPET.payloads.Sayable | PUPPET.payloads.Sayable[] {
   log.verbose('Wechaty', 'sayableToPayload(%s)', sayable)
 
   if (typeof sayable === 'string') {
-    return {
-      payload: sayable,
-      type: PUPPET.type.Message.Text,
-    }
+    return PUPPET.payloads.sayable.text(sayable)
   } else if (typeof sayable === 'number') {
-    return {
-      payload: String(sayable),
-      type: PUPPET.type.Message.Text,
-    }
+    return PUPPET.payloads.sayable.text(String(sayable))
   } else if (ContactImpl.valid(sayable)) {
-    return {
-      payload: sayable.id,
-      type: PUPPET.type.Message.Contact,
-    }
+    return PUPPET.payloads.sayable.contact(sayable.id)
   } else if (DelayImpl.validInstance(sayable)) {
-    // Delay is a local-only sayable
-    return undefined
+    return []
   } else if (FileBox.valid(sayable)) {
-    return {
-      payload: sayable,
-      type: PUPPET.type.Message.Attachment,
-    }
+    return PUPPET.payloads.sayable.attatchment(sayable)
   } else if (LocationImpl.validInstance(sayable)) {
-    return {
-      payload: sayable.payload,
-      type: PUPPET.type.Message.Location,
-    }
+    return PUPPET.payloads.sayable.location(sayable.payload)
   } else if (MessageImpl.valid(sayable)) {
     // const unwrappedSayable = await sayable.toSayable()
     // if (!unwrappedSayable) {
@@ -58,28 +38,21 @@ function sayableToPayload (sayable: Sayable): undefined | SayablePayload | Sayab
     // }
     // return sayableToSayablePayload(unwrappedSayable)
     log.error('Wechaty', 'sayableToPayload() Huan(202111): Post:sayableToPayload() not support Message yet because it requires `await`')
-    return undefined
+    return []
   } else if (MiniProgramImpl.validInstance(sayable)) {
-    return {
-      payload: sayable.payload,
-      type: PUPPET.type.Message.MiniProgram,
-    }
+    return PUPPET.payloads.sayable.miniProgram(sayable.payload)
   } else if (PostImpl.validInstance(sayable)) {
     // const unwrappedSayableList = [...sayable]
     // if (!unwrappedSayableList) {
     //   return undefined
     // }
     // return unwrappedSayableList.map(sayableToSayablePayload)
-    log.error('Wechaty', 'sayableToPayload() Huan(202111): not support add Post to Post yet because it is complicated for now')
-    return undefined
+    return PUPPET.payloads.sayable.post(sayable.payload)
   } else if (UrlLinkImpl.validInstance(sayable)) {
-    return {
-      payload: sayable.payload,
-      type: PUPPET.type.Message.Url,
-    }
+    return PUPPET.payloads.sayable.url(sayable.payload)
   } else {
     log.error('Wechaty', 'sayableToPayload() unsupported sayable: %s', sayable)
-    return undefined
+    return []
   }
 }
 

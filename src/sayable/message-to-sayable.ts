@@ -37,6 +37,9 @@ async function messageToSayable (
     case PUPPET.types.Message.Location:
       return message.toLocation()
 
+    case PUPPET.types.Message.Post:
+      return message.toPost()
+
     default:
       log.warn('Wechaty',
         'toSayable() can not convert not re-sayable type: %s(%s) for %s\n%s',

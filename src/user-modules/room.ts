@@ -147,7 +147,9 @@ class RoomMixin extends MixinBase implements SayableSayer {
     try {
       const roomIdList = await this.wechaty.puppet.roomSearch(query)
 
-      const idToRoom = async (id: string) => this.wechaty.Room.find({ id }).catch(e => this.wechaty.emitError(e))
+      const idToRoom = async (id: string) =>
+        this.wechaty.Room.find({ id })
+          .catch(e => this.wechaty.emitError(e))
 
       /**
        * we need to use concurrencyExecuter to reduce the parallel number of the requests

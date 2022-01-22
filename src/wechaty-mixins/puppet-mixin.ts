@@ -19,7 +19,6 @@ import type {
 }                                 from './wechatify-user-module-mixin.js'
 
 import { config }           from '../config.js'
-import type { PuppetPost } from '../user-modules/post-puppet-api.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
 import type { PluginMixin } from './plugin-mixin.js'
@@ -46,15 +45,12 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
     // Huan(202111): developing Post
     __puppet?: PUPPET.impls.PuppetInterface
 
-    // Huan(202111): developing Post
-    // get puppet (): PUPPET.Puppet {
-    get puppet (): PuppetPost { // FIXME: use `PUPPET.impl.Puppet`
+    get puppet (): PUPPET.impls.PuppetInterface {
       if (!this.__puppet) {
 
         throw new Error('NOPUPPET')
       }
-      // Huan(202201): developing Post, remove `as PuppetPost` before publish
-      return this.__puppet as PuppetPost
+      return this.__puppet
     }
 
     readonly __readyState : StateSwitchInterface

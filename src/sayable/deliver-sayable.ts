@@ -19,16 +19,15 @@ import type { Sayable } from './types.js'
 const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) => (conversationId: string) => async (sayable: Sayable) => {
   let msgId: string | void
 
-  if (!(sayable instanceof Object)) {
-    if (typeof sayable === 'number') {
-      sayable = String(sayable)
-    }
+  if (typeof sayable === 'number') {
+    sayable = String(sayable)
+  }
 
-    msgId = await puppet.messageSendText(
+  if (typeof sayable === 'string') {
+    return puppet.messageSendText(
       conversationId,
       sayable,
     )
-    return msgId
   }
 
   /**

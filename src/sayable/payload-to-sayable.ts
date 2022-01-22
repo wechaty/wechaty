@@ -1,48 +1,48 @@
 import * as PUPPET from 'wechaty-puppet'
 import { log }  from 'wechaty-puppet'
 
-import type {
-  SayablePayload,
-}                       from '../user-modules/post-sayable-payload-list.js'
-import type { WechatyInterface } from '../interface/mod.js'
+import type { WechatyInterface } from '../wechaty/wechaty-impl.js'
 
 import type {
   Sayable,
 }                   from './types.js'
 
-const payloadToSayableWechaty: (w: WechatyInterface) => (p: SayablePayload) => Promise<undefined | Sayable> = (wechaty: WechatyInterface) => async (
-  payload: SayablePayload,
+const payloadToSayableWechaty: (w: WechatyInterface) => (p: PUPPET.payloads.Sayable) => Promise<undefined | Sayable> = (wechaty: WechatyInterface) => async (
+  sayable: PUPPET.payloads.Sayable,
 ) => {
   log.verbose('Wechaty', 'payloadToSayable({type: %s(%s)})',
-    PUPPET.type.Message[payload.type],
-    payload.type,
+    PUPPET.types.Message[sayable.type],
+    sayable.type,
   )
 
-  switch (payload.type) {
-    case PUPPET.type.Message.Text:
-      return wechaty.Message.find({ id: payload.payload })
+  switch (sayable.type) {
+    case PUPPET.types.Sayable.Text:
+      return sayable.payload.text
 
-    case PUPPET.type.Message.Emoticon:
-    case PUPPET.type.Message.Image:
-    case PUPPET.type.Message.Video:
-    case PUPPET.type.Message.Audio:
-    case PUPPET.type.Message.Attachment:
-      return payload.payload
+    case PUPPET.types.Sayable.Emoticon:
+    case PUPPET.types.Sayable.Image:
+    case PUPPET.types.Sayable.Video:
+    case PUPPET.types.Sayable.Audio:
+    case PUPPET.types.Sayable.Attachment:
+      return sayable.payload.filebox
 
-    case PUPPET.type.Message.Contact:
-      return wechaty.Contact.find({ id: payload.payload })
+    case PUPPET.types.Sayable.Contact:
+      return wechaty.Contact.find({ id: sayable.payload.contactId })
 
-    case PUPPET.type.Message.Location:
-      return new wechaty.Location(payload.payload)
+    case PUPPET.types.Sayable.Location:
+      return new wechaty.Location(sayable.payload)
 
-    case PUPPET.type.Message.MiniProgram:
-      return new wechaty.MiniProgram(payload.payload)
+    case PUPPET.types.Sayable.MiniProgram:
+      return new wechaty.MiniProgram(sayable.payload)
 
-    case PUPPET.type.Message.Url:
-      return new wechaty.UrlLink(payload.payload)
+    case PUPPET.types.Sayable.Url:
+      return new wechaty.UrlLink(sayable.payload)
+
+    case PUPPET.types.Sayable.Post:
+      return new wechaty.Post(sayable.payload)
 
     default:
-      throw new Error('payloadToSayable() not support payload: ' + JSON.stringify(payload))
+      throw new Error('payloadToSayable() not support payload: ' + JSON.stringify(sayable))
   }
 }
 
