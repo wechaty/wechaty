@@ -294,6 +294,20 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
             })
             break
 
+          case 'post':
+            puppet.on('post', async payload => {
+              try {
+                const post = await this.Post.find({ id: payload.postId })
+                if (!post) {
+                  throw new Error('post not found for id: ' + payload.postId)
+                }
+                this.emit('post', post)
+              } catch (e) {
+                this.emit('error', GError.from(e))
+              }
+            })
+            break
+
           case 'ready':
             puppet.on('ready', () => {
               log.silly('WechatyPuppetMixin', '__setupPuppetEvents() puppet.on(ready)')
