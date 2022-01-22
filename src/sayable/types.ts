@@ -27,6 +27,7 @@ import type {
   LocationInterface,
   MessageInterface,
   MiniProgramInterface,
+  PostInterface,
   UrlLinkInterface,
 }                           from '../user-modules/mod.js'
 
@@ -42,6 +43,7 @@ type Sayable =
   | MessageInterface
   | MiniProgramInterface
   | number
+  | PostInterface
   | string
   | UrlLinkInterface
 

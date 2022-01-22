@@ -9,6 +9,7 @@ import {
   LocationImpl,
   MessageImpl,
   MiniProgramImpl,
+  PostImpl,
   RoomImpl,
   RoomInvitationImpl,
   TagImpl,
@@ -22,6 +23,7 @@ import {
   LocationConstructor,
   MessageConstructor,
   MiniProgramConstructor,
+  PostConstructor,
   RoomConstructor,
   RoomInvitationConstructor,
   TagConstructor,
@@ -52,6 +54,7 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mix
     __wechatifiedLocation?       : LocationConstructor
     __wechatifiedMessage?        : MessageConstructor
     __wechatifiedMiniProgram?    : MiniProgramConstructor
+    __wechatifiedPost?           : PostConstructor
     __wechatifiedRoom?           : RoomConstructor
     __wechatifiedRoomInvitation? : RoomInvitationConstructor
     __wechatifiedTag?            : TagConstructor
@@ -65,6 +68,7 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mix
     get Location ()       : LocationConstructor       { return guardWechatify(this.__wechatifiedLocation)       }
     get Message ()        : MessageConstructor        { return guardWechatify(this.__wechatifiedMessage)        }
     get MiniProgram ()    : MiniProgramConstructor    { return guardWechatify(this.__wechatifiedMiniProgram)    }
+    get Post ()           : PostConstructor           { return guardWechatify(this.__wechatifiedPost)           }
     get Room ()           : RoomConstructor           { return guardWechatify(this.__wechatifiedRoom)           }
     get RoomInvitation () : RoomInvitationConstructor { return guardWechatify(this.__wechatifiedRoomInvitation) }
     get Tag ()            : TagConstructor            { return guardWechatify(this.__wechatifiedTag)            }
@@ -104,6 +108,7 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mix
       this.__wechatifiedLocation       = wechatifyUserModule(LocationImpl)(this as any)
       this.__wechatifiedMessage        = wechatifyUserModule(MessageImpl)(this as any)
       this.__wechatifiedMiniProgram    = wechatifyUserModule(MiniProgramImpl)(this as any)
+      this.__wechatifiedPost           = wechatifyUserModule(PostImpl)(this as any)
       this.__wechatifiedRoom           = wechatifyUserModule(RoomImpl)(this as any)
       this.__wechatifiedRoomInvitation = wechatifyUserModule(RoomInvitationImpl)(this as any)
       this.__wechatifiedTag            = wechatifyUserModule(TagImpl)(this as any)

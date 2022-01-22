@@ -36,6 +36,7 @@ export type {
   MiniProgramInterface    as MiniProgram,
   MomentInterface         as Moment,
   MoneyInterface          as Money,
+  PostInterface           as Post,
   RoomInterface           as Room,
   RoomInvitationInterface as RoomInvitation,
   TagInterface            as Tag,

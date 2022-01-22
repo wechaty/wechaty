@@ -11,6 +11,7 @@ import type {
   LocationConstructor,
   MessageConstructor,
   MiniProgramConstructor,
+  PostConstructor,
   RoomInvitationConstructor,
   RoomConstructor,
   DelayConstructor,
@@ -38,6 +39,7 @@ test('Wechaty interface', async t => {
     Location       : LocationConstructor
     Message        : MessageConstructor
     MiniProgram    : MiniProgramConstructor
+    Post           : PostConstructor
     Room           : RoomConstructor
     RoomInvitation : RoomInvitationConstructor
     Tag            : TagConstructor
@@ -45,6 +47,7 @@ test('Wechaty interface', async t => {
 
     constructor () {
       super()
+      // this.puppet
       this.Contact
         = this.ContactSelf
         = this.Delay
@@ -53,6 +56,7 @@ test('Wechaty interface', async t => {
         = this.Location
         = this.Message
         = this.MiniProgram
+        = this.Post
         = this.Room
         = this.RoomInvitation
         = this.Tag

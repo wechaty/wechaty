@@ -11,6 +11,7 @@ import type {
   RoomInvitationInterface,
   ContactInterface,
   MessageInterface,
+  PostInterface,
 }                       from '../user-modules/mod.js'
 
 const WECHATY_EVENT_DICT = {
@@ -36,6 +37,7 @@ type WechatyEventListenerHeartbeat  = (data: any)                               
 type WechatyEventListenerLogin      = (user: ContactSelfInterface)                                                                      => void | Promise<void>
 type WechatyEventListenerLogout     = (user: ContactSelfInterface, reason?: string)                                                     => void | Promise<void>
 type WechatyEventListenerMessage    = (message: MessageInterface)                                                                       => void | Promise<void>
+type WechatyEventListenerPost       = (post: PostInterface)                                                                       => void | Promise<void>
 type WechatyEventListenerPuppet     = (puppet: PUPPET.impls.PuppetInterface)                                                             => void | Promise<void>
 type WechatyEventListenerReady      = ()                                                                                                => void | Promise<void>
 type WechatyEventListenerRoomInvite = (roomInvitation: RoomInvitationInterface)                                                         => void | Promise<void>
@@ -211,6 +213,7 @@ interface WechatyEventListeners {
   login         : WechatyEventListenerLogin
   logout        : WechatyEventListenerLogout
   message       : WechatyEventListenerMessage
+  post          : WechatyEventListenerPost
   puppet        : WechatyEventListenerPuppet
   ready         : WechatyEventListenerReady
   scan          : WechatyEventListenerScan
@@ -233,6 +236,7 @@ export type {
   WechatyEventListenerLogin,
   WechatyEventListenerLogout,
   WechatyEventListenerMessage,
+  WechatyEventListenerPost,
   WechatyEventListenerPuppet,
   WechatyEventListenerReady,
   WechatyEventListenerRoomInvite,

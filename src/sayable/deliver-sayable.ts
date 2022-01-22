@@ -7,6 +7,7 @@ import {
   DelayImpl,
   UrlLinkImpl,
   MiniProgramImpl,
+  PostImpl,
   LocationImpl,
 }                     from '../user-modules/mod.js'
 
@@ -18,16 +19,15 @@ import type { Sayable } from './types.js'
 const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) => (conversationId: string) => async (sayable: Sayable) => {
   let msgId: string | void
 
-  if (!(sayable instanceof Object)) {
-    if (typeof sayable === 'number') {
-      sayable = String(sayable)
-    }
+  if (typeof sayable === 'number') {
+    sayable = String(sayable)
+  }
 
-    msgId = await puppet.messageSendText(
+  if (typeof sayable === 'string') {
+    return puppet.messageSendText(
       conversationId,
       sayable,
     )
-    return msgId
   }
 
   /**
@@ -87,6 +87,14 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
      * 7. Delay for a while
      */
     await sayable.wait()
+  } else if (PostImpl.validInstance(sayable)) {
+    /**
+     * 8. Post
+     */
+    msgId = await puppet.messageSendPost(
+      conversationId,
+      sayable.payload,
+    )
   } else {
     throw new Error('unsupported arg: ' + sayable)
   }

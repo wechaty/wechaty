@@ -66,6 +66,10 @@ import type {
   ImageInterface,
 }                       from './image.js'
 import {
+  PostInterface,
+  PostImpl,
+}                       from './post.js'
+import {
   LocationInterface,
   LocationImpl,
 }                       from './location.js'
@@ -264,7 +268,6 @@ class MessageMixin extends MixinBase implements SayableSayer {
     //   this.payload.from = contact
     //   return
     // }
-
     const talkerId = this.payload.fromId
     if (!talkerId) {
       // Huan(202011): It seems that the fromId will never be null?
@@ -1011,6 +1014,22 @@ class MessageMixin extends MixinBase implements SayableSayer {
     const locationPayload = await this.wechaty.puppet.messageLocation(this.id)
 
     return new LocationImpl(locationPayload)
+  }
+
+  public async toPost (): Promise<PostInterface> {
+    log.verbose('Message', 'toPost()')
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (this.type() !== PUPPET.types.Message.Post) {
+      throw new Error('message type not a Post')
+    }
+
+    const post = PostImpl.load(this.id)
+    await post.ready()
+    return post
   }
 
   async toSayable (): Promise<undefined | Sayable> {

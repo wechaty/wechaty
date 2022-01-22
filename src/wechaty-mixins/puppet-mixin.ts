@@ -43,6 +43,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
     get puppet (): PUPPET.impls.PuppetInterface {
       if (!this.__puppet) {
+
         throw new Error('NOPUPPET')
       }
       return this.__puppet
@@ -269,8 +270,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
               try {
                 const msg = await this.Message.find({ id: payload.messageId })
                 if (!msg) {
-                  throw new Error('message not found for id: ' + payload.messageId)
+                  this.emit('error', GError.from('message not found for id: ' + payload.messageId))
+                  return
                 }
+
                 this.emit('message', msg)
 
                 const room     = msg.room()
@@ -283,6 +286,22 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
                 } else {
                   this.emit('error', GError.from('message without room and listener'))
                 }
+              } catch (e) {
+                this.emit('error', GError.from(e))
+              }
+            })
+            break
+
+          case 'post':
+            puppet.on('post', async payload => {
+              try {
+                const post = await this.Post.find({ id: payload.postId })
+                if (!post) {
+                  this.emit('error', GError.from('post not found for id: ' + payload.postId))
+                  return
+                }
+
+                this.emit('post', post)
               } catch (e) {
                 this.emit('error', GError.from(e))
               }
