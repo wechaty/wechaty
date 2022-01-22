@@ -113,10 +113,7 @@ class PostMixin extends wechatifyMixinBase() {
   ): PostInterface {
     log.verbose('Post', 'create()')
 
-    const post = new this()
-    post._payload = payload
-
-    return post
+    return new this(payload)
   }
 
   static load (id: string): PostInterface {
@@ -201,14 +198,26 @@ class PostMixin extends wechatifyMixinBase() {
     return this._payload
   }
 
+  readonly id?: string
+
   /*
    * @hideconstructor
    */
   constructor (
-    public readonly id?: string,
+    idOrPayload: string | PUPPET.payloads.Post,
   ) {
     super()
-    log.verbose('Post', 'constructor(%s)', id ?? '')
+    log.verbose('Post', 'constructor(%s)',
+      typeof idOrPayload === 'string'
+        ? idOrPayload
+        : JSON.stringify(idOrPayload.id),
+    )
+
+    if (typeof idOrPayload === 'string') {
+      this.id = idOrPayload
+    } else {
+      this._payload = idOrPayload
+    }
   }
 
   descendantNum (): number {
@@ -424,7 +433,7 @@ class PostMixin extends wechatifyMixinBase() {
       .reply(this)
       .build()
 
-    const newPostId = await this.wechaty.puppet.postSend(post.payload)
+    const newPostId = await this.wechaty.puppet.postCreate(post.payload)
 
     if (newPostId) {
       const newPost = instanceToClass(this, PostImpl).load(newPostId)
