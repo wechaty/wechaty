@@ -85,7 +85,7 @@ type PostPayload =
 
 const isPostPayloadClient = (payload: PostPayload): payload is PostPayloadClient =>
   payload instanceof Object
-    && !payload.id
+    && !payload.id  // <- Huan(202201): here is enough to check if it's a PostPayloadClient
     && Array.isArray(payload.sayableList)
     && payload.sayableList.length > 0
     && payload.sayableList[0] instanceof Object
@@ -93,7 +93,7 @@ const isPostPayloadClient = (payload: PostPayload): payload is PostPayloadClient
 
 const isPostPayloadServer = (payload: PostPayload): payload is PostPayloadServer =>
   payload instanceof Object
-    && !!payload.id
+    && !!payload.id // <- Huan(202201): here is enough to check if it's a PostPayloadServer
     && Array.isArray(payload.sayableList)
     && payload.sayableList.length > 0
     && typeof payload.sayableList[0] === 'string'
