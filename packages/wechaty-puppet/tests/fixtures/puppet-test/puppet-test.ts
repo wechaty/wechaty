@@ -6,10 +6,10 @@ import type {
 /**
  * expose to public for internal methods:
  */
-import type { MessagePayloadFilterFunction } from '../../../src/schemas/message.js'
-import type { RoomPayloadFilterFunction }    from '../../../src/schemas/room.js'
-import type { ContactPayloadFilterFunction } from '../../../src/schemas/contact.js'
-import type { FriendshipAddOptions } from '../../../src/schemas/friendship.js'
+import type { MessagePayloadFilterFunction }  from '../../../src/schemas/message.js'
+import type { RoomPayloadFilterFunction }     from '../../../src/schemas/room.js'
+import type { ContactPayloadFilterFunction }  from '../../../src/schemas/contact.js'
+import type { FriendshipAddOptions }          from '../../../src/schemas/friendship.js'
 
 class PuppetTest extends PUPPET.Puppet {
 
