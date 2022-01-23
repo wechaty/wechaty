@@ -562,6 +562,79 @@ class PuppetMock extends PUPPET.Puppet {
     return []
   }
 
+  /**
+   *
+   * Post
+   *
+   */
+  override async postRawPayload (postId: string): Promise<any> {
+    log.verbose('PuppetMock', 'postRawPayload(%s)', postId)
+    return { postId } as any
+  }
+
+  override async postRawPayloadParser (rawPayload: any): Promise<PUPPET.payloads.Post> {
+    log.verbose('PuppetMock', 'postRawPayloadParser(%s)', rawPayload.id)
+    return rawPayload
+  }
+
+  override async postPublish (payload: PUPPET.payloads.Post): Promise<void | string> {
+    log.verbose('PuppetMock', 'postPublish({type: %s})',
+      PUPPET.types.Post[
+        payload.type || PUPPET.types.Post.Unspecified
+      ],
+    )
+  }
+
+  override async postSearch (
+    filter      : PUPPET.filters.Post,
+    pagination? : PUPPET.filters.PaginationRequest,
+  ): Promise<PUPPET.filters.PaginationResponse<string[]>> {
+    log.verbose('PuppetMock', 'postSearch(%s, %s)',
+      JSON.stringify(filter),
+      JSON.stringify(pagination),
+    )
+    return {
+      nextPageToken: undefined,
+      response: [],
+    }
+  }
+
+  /**
+   *
+   * Tap
+   *
+   */
+  override async tap (
+    postId : string,
+    type?  : PUPPET.types.Tap,
+    tap?   : boolean,
+  ): Promise<void | boolean> {
+    log.verbose('PuppetMock', 'tap(%s, %s%s)',
+      postId,
+      PUPPET.types.Tap[
+        type || PUPPET.types.Tap.Unspecified
+      ],
+      typeof tap === 'undefined' ? '' : `, ${tap}`,
+    )
+  }
+
+  override async tapSearch (
+    postId      : string,
+    query?      : PUPPET.filters.Tap,
+    pagination? : PUPPET.filters.PaginationRequest,
+  ): Promise<PUPPET.filters.PaginationResponse<PUPPET.payloads.Tap>> {
+    log.verbose('PuppetMock', 'tapSearch(%s%s%s)',
+      postId,
+      typeof query === 'undefined' ? '' : `, ${JSON.stringify(query)}`,
+      typeof pagination === 'undefined' ? '' : `, ${JSON.stringify(pagination)}`,
+    )
+
+    return {
+      nextPageToken: undefined,
+      response: {},
+    }
+  }
+
 }
 
 export { PuppetMock }
