@@ -63,7 +63,7 @@
   "dependencies": {
     "cuid": "^2.1.8",
     "faker": "^5.5.3",
-    "file-box": "^1.4.12",
+    "file-box": "^1.4.15",
     "typed-emitter": "^1.5.0-from-event"
   },
   "files": [

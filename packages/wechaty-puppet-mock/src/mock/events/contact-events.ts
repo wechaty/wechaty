@@ -9,7 +9,7 @@ import type {
 export type ContactMessageEventListener = (this: ContactMock, message: MessageMock, date?: Date) => void | Promise<void>
 
 interface ContactEvents {
-  message    : ContactMessageEventListener,
+  message: ContactMessageEventListener,
 }
 
 export const ContactEventEmitter = EventEmitter as any as new () => TypedEventEmitter<

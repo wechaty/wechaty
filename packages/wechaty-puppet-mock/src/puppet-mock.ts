@@ -279,7 +279,7 @@ class PuppetMock extends PUPPET.Puppet {
     return this.mocker.messagePayload(id)
   }
 
-  async #messageSend (
+  protected async _messageSend (
     conversationId: string,
     something: string | FileBoxInterface, // | Attachment
   ): Promise<void> {
@@ -304,14 +304,14 @@ class PuppetMock extends PUPPET.Puppet {
     conversationId: string,
     text     : string,
   ): Promise<void> {
-    return this.#messageSend(conversationId, text)
+    return this._messageSend(conversationId, text)
   }
 
   override async messageSendFile (
     conversationId: string,
     file     : FileBoxInterface,
   ): Promise<void> {
-    return this.#messageSend(conversationId, file)
+    return this._messageSend(conversationId, file)
   }
 
   override async messageSendContact (
