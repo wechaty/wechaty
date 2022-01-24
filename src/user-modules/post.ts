@@ -54,10 +54,11 @@ interface Tap {
 
 class PostBuilder {
 
-  parentId? : string
-  rootId?   : string
-  type?     : PUPPET.types.Tap
+  payload: PUPPET.payloads.PostClient
 
+  /**
+   * Wechaty Sayable List
+   */
   sayableList: Sayable[] = []
 
   /**
@@ -66,10 +67,20 @@ class PostBuilder {
   static new (Impl: typeof PostMixin) { return new this(Impl) }
   protected constructor (
     protected Impl: typeof PostMixin,
-  ) {}
+  ) {
+    this.payload = {
+      sayableList: [],  // Puppet Sayable Payload List
+      type: PUPPET.types.Post.Unspecified,
+    }
+  }
 
   add (sayable: Sayable): this {
     this.sayableList.push(sayable)
+    return this
+  }
+
+  type (type: PUPPET.types.Post): this {
+    this.payload.type = type
     return this
   }
 
@@ -78,8 +89,8 @@ class PostBuilder {
       throw new Error('can not link to a post without id: ' + JSON.stringify(post))
     }
 
-    this.parentId = post.payload.id
-    this.rootId   = post.payload.rootId
+    this.payload.parentId = post.payload.id
+    this.payload.rootId   = post.payload.rootId
 
     return this
   }
@@ -88,13 +99,9 @@ class PostBuilder {
     const sayablePayloadListNested = await Promise.all(
       this.sayableList.map(sayableToPayload),
     )
-    const sayablePayloadList = sayablePayloadListNested.flat()
+    this.payload.sayableList = sayablePayloadListNested.flat()
 
-    return this.Impl.create({
-      parentId      : this.parentId,
-      rootId        : this.rootId,
-      sayableList   : sayablePayloadList,
-    })
+    return this.Impl.create(this.payload)
   }
 
 }
