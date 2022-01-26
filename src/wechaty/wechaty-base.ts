@@ -21,6 +21,7 @@ import {
   serviceCtlMixin,
 }                       from 'state-switch'
 import { function as FP } from 'fp-ts'
+import type * as PUPPET from 'wechaty-puppet'
 
 import {
   config,
@@ -51,6 +52,7 @@ import type {
 import type {
   WechatyOptions,
 }                             from '../schemas/wechaty-options.js'
+import type { PostInterface } from '../user-modules/post.js'
 
 const mixinBase = FP.pipe(
   WechatySkeleton,
@@ -258,6 +260,20 @@ class WechatyBase extends mixinBase implements SayableSayer {
   ): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', sayable)
     await this.currentUser.say(sayable)
+  }
+
+  async publish (
+    post: PostInterface,
+  ): Promise<void | PostInterface> {
+    log.verbose('Wechaty', 'publish(%s)',
+      (post.payload.sayableList as PUPPET.payloads.Sayable[])
+        .map(s => s.type).join(','),
+    )
+    const postId = await this.puppet.postPublish(post.payload)
+
+    if (postId) {
+      return this.Post.find({ id: postId })
+    }
   }
 
 }
