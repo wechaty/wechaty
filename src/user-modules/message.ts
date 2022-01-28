@@ -52,13 +52,9 @@ import type {
   RoomInterface,
   RoomImpl,
 }                       from './room.js'
-import {
+import type {
   UrlLinkInterface,
-  UrlLinkImpl,
 }                       from './url-link.js'
-import {
-  MiniProgramImpl,
-}                       from './mini-program.js'
 import type {
   MiniProgramInterface,
 }                       from './mini-program.js'
@@ -981,7 +977,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
     const urlPayload = await this.wechaty.puppet.messageUrl(this.id)
 
-    return new UrlLinkImpl(urlPayload)
+    return new this.wechaty.UrlLink(urlPayload)
   }
 
   async toMiniProgram (): Promise<MiniProgramInterface> {
@@ -997,7 +993,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
     const miniProgramPayload = await this.wechaty.puppet.messageMiniProgram(this.id)
 
-    return new MiniProgramImpl(miniProgramPayload)
+    return new this.wechaty.MiniProgram(miniProgramPayload)
   }
 
   async toLocation (): Promise<LocationInterface> {
