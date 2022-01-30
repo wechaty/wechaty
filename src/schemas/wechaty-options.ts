@@ -15,6 +15,6 @@ interface WechatyOptions {
   ioToken?       : string,                                          // Io TOKEN
 }
 
-export type {
-  WechatyOptions,
+export {
+  type WechatyOptions,
 }

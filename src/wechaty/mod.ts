@@ -9,12 +9,10 @@ import type {
 }                           from '../schemas/wechaty-options.js'
 import { WechatySkeleton }  from './wechaty-skeleton.js'
 
-export type {
-  WechatyInterface,
-  WechatyConstructor,
-  WechatyOptions,
-}
 export {
+  type WechatyInterface,
+  type WechatyConstructor,
+  type WechatyOptions,
   WechatySkeleton,
   WechatyImpl,
 }

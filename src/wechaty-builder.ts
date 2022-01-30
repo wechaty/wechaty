@@ -19,13 +19,11 @@
  */
 import { log } from 'wechaty-puppet'
 
-import type {
-  WechatyInterface,
-}                 from './wechaty/mod.js'
 import {
+  WechatyInterface,
   WechatyImpl,
-  WechatyOptions,
-}                 from './wechaty/mod.js'
+  type WechatyOptions,
+}                     from './wechaty/mod.js'
 
 interface BuilderInterface {
   build (options?: WechatyOptions): WechatyInterface

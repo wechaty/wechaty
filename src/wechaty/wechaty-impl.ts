@@ -58,11 +58,9 @@ type WechatyConstructor = Constructor<
   typeof WechatyImpl
 >
 
-export type {
-  WechatyInterface,
-  WechatyConstructor,
-  AllProtectedProperty,
-}
-export {
+export  {
+  type WechatyInterface,
+  type WechatyConstructor,
+  type AllProtectedProperty,
   WechatyImpl,
 }
