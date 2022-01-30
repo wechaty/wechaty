@@ -1880,7 +1880,7 @@ bot.on('room-invite', async roomInvitation => {
   } catch (e) {
     console.error(e)
   }
-}
+})
 .start()
 ```
 <a name="RoomInvitation+inviter"></a>
