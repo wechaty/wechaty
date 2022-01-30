@@ -28,6 +28,7 @@ export type {
 }                               from '../wechaty/mod.js'
 export {
   WechatyBuilder,
+  type BuilderInterface,
 }                               from '../wechaty-builder.js'
 
 export {

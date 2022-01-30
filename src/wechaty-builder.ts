@@ -27,7 +27,11 @@ import {
   WechatyOptions,
 }                 from './wechaty/mod.js'
 
-class WechatyBuilder {
+interface BuilderInterface {
+  build (options?: WechatyOptions): WechatyInterface
+}
+
+class WechatyBuilder implements BuilderInterface {
 
   private static _instance?: WechatyInterface
 
@@ -92,7 +96,7 @@ class WechatyBuilder {
     return this
   }
 
-  protected build (): WechatyInterface {
+  build (): WechatyInterface {
     if (this._singleton) {
       return this.singletonInstance()
     }
@@ -114,9 +118,8 @@ class WechatyBuilder {
 
 }
 
-export type {
-  WechatyOptions,
-}
 export {
+  type WechatyOptions,
+  type BuilderInterface,
   WechatyBuilder,
 }
