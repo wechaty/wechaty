@@ -21,7 +21,6 @@ import type {
 import { config }           from '../config.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
-import type { PluginMixin } from './plugin-mixin.js'
 import type { IoMixin }     from './io-mixin.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
@@ -34,7 +33,7 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * Huan(20211128): `puppetMixin` must extend `IoMixin`
  *  because the Io need the puppet instance to be ready when it starts
  */
-const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & PluginMixin & IoMixin> (mixinBase: MixinBase) => {
+const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & IoMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPuppetMixin', 'puppetMixin(%s)', mixinBase.name)
 
   abstract class PuppetMixin extends mixinBase {

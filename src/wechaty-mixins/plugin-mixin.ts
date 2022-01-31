@@ -18,6 +18,7 @@ import {
 }                       from '../wechaty/mod.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
+import type { MiscMixin } from './misc-mixin.js'
 
 interface Plugable {
   use (
@@ -28,7 +29,7 @@ interface Plugable {
   ): Plugable
 }
 
-const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
+const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & MiscMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase implements Plugable {
@@ -107,15 +108,18 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
      * @protected active the plugins
      */
     __activePlugin (pluginList: WechatyPlugin[]): void {
-      log.verbose('WechatyPluginMixin', '__activePlugin() %s', pluginList.map(p => p.name).join(', '))
+      log.verbose('WechatyPluginMixin', '__activePlugin(%d plugins)', pluginList.length)
 
-      const uninstallerList = pluginList
-        .map(plugin => plugin(this as any)) // <- Huan(202110): TODO: remove any
-        .filter(isWechatyPluginUninstaller)
+      for (const plugin of pluginList) {
+        log.verbose('WechatyPluginMixin', '__activePlugin() installing Plugin %s on Wechaty %s ...', plugin.name, this.name())
 
-      this.__pluginUninstallerList.push(
-        ...uninstallerList,
-      )
+        const uninstaller = plugin(this as any) // <- Huan(202110): TODO: remove any
+        if (isWechatyPluginUninstaller(uninstaller)) {
+          log.verbose('WechatyPluginMixin', '__activePlugin() saving uninstaller for Plugin %s on Wechat %s ...', plugin.name, this.name())
+          this.__pluginUninstallerList.push(uninstaller)
+        }
+      }
+
     }
 
     override async start (): Promise<void> {
@@ -141,12 +145,12 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & ty
     }
 
     override async stop (): Promise<void> {
-      log.verbose('WechatyPluginMixin', 'stop() uninstall %d plugins ...', this.__pluginUninstallerList.length)
+      log.verbose('WechatyPluginMixin', 'stop() uninstall plugins (total: %d) ...', this.__pluginUninstallerList.length)
 
       this.__pluginUninstallerList.forEach(setImmediate)
       this.__pluginUninstallerList.length = 0
 
-      log.verbose('WechatyPluginMixin', 'stop() uninstall %d plugins ... done', this.__pluginUninstallerList.length)
+      log.verbose('WechatyPluginMixin', 'stop() uninstall plugins ... done', this.__pluginUninstallerList.length)
 
       await super.stop()
     }

@@ -60,10 +60,10 @@ const mixinBase = FP.pipe(
   wechatifyUserModuleMixin,
   ioMixin,
   serviceCtlMixin('Wechaty', { log }),
-  pluginMixin,
   puppetMixin,
   loginMixin,
   miscMixin,
+  pluginMixin,
 )
 
 /**
