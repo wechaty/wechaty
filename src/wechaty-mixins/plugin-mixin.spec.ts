@@ -38,6 +38,10 @@ import {
   PluginMixin,
   ProtectedPropertyPluginMixin,
 }                                             from './plugin-mixin.js'
+import { miscMixin } from './misc-mixin.js'
+import { puppetMixin } from './puppet-mixin.js'
+import { ioMixin } from './io-mixin.js'
+import { wechatifyUserModuleMixin } from './wechatify-user-module-mixin.js'
 
 test('ProtectedPropertyPluginMixin', async t => {
   type NotExistInMixin = Exclude<ProtectedPropertyPluginMixin, keyof InstanceType<PluginMixin>>
@@ -56,6 +60,10 @@ test('PluginMixin smoke testing', async t => {
     WechatySkeleton,
     serviceCtlMixin('Wechaty', { log }),
     gErrorMixin,
+    ioMixin,
+    wechatifyUserModuleMixin,
+    puppetMixin,
+    miscMixin,
     pluginMixin,
   )
 
@@ -74,7 +82,7 @@ test('PluginMixin smoke testing', async t => {
     return () => wechaty.counter--
   }
 
-  const pluginMixinTest = new PluginMixinTest()
+  const pluginMixinTest = new PluginMixinTest({ puppet: 'wechaty-puppet-mock' })
   let future
 
   pluginMixinTest.use(Plugin)
