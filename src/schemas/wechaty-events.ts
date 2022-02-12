@@ -192,7 +192,7 @@ type WechatyEventListenerStartStop  = ()                                        
  *   } catch (e) {
  *     console.error(e)
  *   }
- * }
+ * })
  *
  * @example <caption>Event:error </caption>
  * // error Event will emit when there's an error occurred.
