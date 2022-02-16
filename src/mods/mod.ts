@@ -34,7 +34,6 @@ export {
 export {
   type SayableSayer,
   type Sayable,
-  messageToSayable,
 }                       from '../sayable/mod.js'
 
 export * as types       from 'wechaty-puppet/types'
