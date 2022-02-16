@@ -41,7 +41,7 @@ async function sayableToPayloads (sayable: Sayable): Promise<PUPPET.payloads.Say
     if (!messageSayable) {
       return []
     }
-    return sayableToPayload(messageSayable)
+    return sayableToPayloads(messageSayable)
   } else if (MiniProgramImpl.validInstance(sayable)) {
     return [PUPPET.payloads.sayable.miniProgram(sayable.payload)]
   } else if (PostImpl.validInstance(sayable)) {
@@ -49,7 +49,7 @@ async function sayableToPayloads (sayable: Sayable): Promise<PUPPET.payloads.Say
   } else if (UrlLinkImpl.validInstance(sayable)) {
     return [PUPPET.payloads.sayable.url(sayable.payload)]
   } else {
-    log.error('Wechaty', 'sayableToPayload() unsupported sayable: %s', sayable)
+    log.error('Wechaty', 'sayableToPayloads() unsupported sayable: %s', sayable)
     return []
   }
 }
