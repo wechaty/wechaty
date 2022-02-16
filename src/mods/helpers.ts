@@ -1,5 +1,6 @@
 export {
   messageToSayable,
   payloadToSayableWechaty,
-  sayableToPayload,
+  sayableToPayload, // <- deprecated
+  sayableToPayloads,
 }                           from '../sayable/mod.js'

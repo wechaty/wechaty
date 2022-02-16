@@ -7,6 +7,7 @@ import {
 }                                     from './message-to-sayable.js'
 import {
   sayableToPayload,
+  sayableToPayloads,
 }                                     from './sayable-to-payload.js'
 import {
   payloadToSayableWechaty,
@@ -22,6 +23,7 @@ export type {
 export {
   messageToSayable,
   sayableToPayload,
+  sayableToPayloads,
   payloadToSayableWechaty,
   deliverSayableConversationPuppet,
 }
