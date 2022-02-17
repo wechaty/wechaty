@@ -99,7 +99,7 @@ class PostBuilder {
     const sayablePayloadListNested = await Promise.all(
       this.sayableList.map(sayableToPayload),
     )
-    this.payload.sayableList = sayablePayloadListNested.flat()
+    this.payload.sayableList = sayablePayloadListNested.filter(Boolean) as PUPPET.payloads.Sayable[]
 
     return this.Impl.create(this.payload)
   }
