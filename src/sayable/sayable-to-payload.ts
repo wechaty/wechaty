@@ -26,7 +26,7 @@ async function sayableToPayload (sayable: Sayable): Promise<undefined | PUPPET.p
   } else if (ContactImpl.valid(sayable)) {
     return PUPPET.payloads.sayable.contact(sayable.id)
   } else if (DelayImpl.validInstance(sayable)) {
-    return
+    return undefined
   } else if (FileBox.valid(sayable)) {
     return PUPPET.payloads.sayable.attatchment(sayable)
   } else if (LocationImpl.validInstance(sayable)) {
