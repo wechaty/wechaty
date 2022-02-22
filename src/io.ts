@@ -414,7 +414,12 @@ export class Io {
     if (!e) {
       return
     }
-    this.options.wechaty.emitError(e)
+
+    if (this.ws && this.ws.readyState !== WebSocket.CLOSING) {
+      this.options.wechaty.emitError(e)
+    } else {
+      log.error('Io', 'initWebSocket() ws.on(error) but ws is closing: %s', e.message)
+    }
 
     // when `error`, there must have already a `close` event
     // we should not call this.reconnect() again
@@ -531,21 +536,15 @@ export class Io {
       this.lifeTimer = undefined
     }
 
-    try {
-      this.ws.close()
-      await new Promise<void>(resolve => {
-        if (this.ws) {
-          this.ws.once('close', resolve)
-        } else {
-          resolve()
-        }
-      })
-    } catch (e) {
-      log.warn('Io', 'stop() wx.close() exception: %s', (e as Error).message)
-      console.error((e as Error).stack)
-    } finally {
-      this.ws = undefined
-    }
+    this.ws.close()
+    await new Promise<void>(resolve => {
+      if (this.ws) {
+        this.ws.once('close', resolve)
+      } else {
+        resolve()
+      }
+    })
+    this.ws = undefined
 
     this.state.inactive(true)
   }
