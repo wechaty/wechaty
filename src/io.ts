@@ -531,15 +531,21 @@ export class Io {
       this.lifeTimer = undefined
     }
 
-    this.ws.close()
-    await new Promise<void>(resolve => {
-      if (this.ws) {
-        this.ws.once('close', resolve)
-      } else {
-        resolve()
-      }
-    })
-    this.ws = undefined
+    try {
+      this.ws.close()
+      await new Promise<void>(resolve => {
+        if (this.ws) {
+          this.ws.once('close', resolve)
+        } else {
+          resolve()
+        }
+      })
+    } catch (e) {
+      log.warn('Io', 'stop() wx.close() exception: %s', (e as Error).message)
+      console.error((e as Error).stack)
+    } finally {
+      this.ws = undefined
+    }
 
     this.state.inactive(true)
   }
