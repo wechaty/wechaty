@@ -1,8 +1,5 @@
 import { log }              from 'wechaty-puppet'
 import { instanceToClass }  from 'clone-class'
-import type {
-  ServiceCtl,
-}                           from 'state-switch'
 
 import type {
   WechatyPlugin,
@@ -12,8 +9,7 @@ import {
   isWechatyPluginUninstaller,
 }                             from '../plugin.js'
 
-import {
-  WechatyImpl,
+import type {
   WechatySkeleton,
 }                       from '../wechaty/mod.js'
 
@@ -29,7 +25,7 @@ interface Plugable {
   ): Plugable
 }
 
-const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & MiscMixin & typeof ServiceCtl> (mixinBase: MixinBase) => {
+const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & MiscMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyPluginMixin', 'pluginMixin(%s)', mixinBase.name)
 
   abstract class PluginMixin extends mixinBase implements Plugable {
@@ -88,18 +84,21 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
 
       /**
        * If the wechaty has already been started
+       *
+       * @deprecated: we do not support add plugin to a started wechaty any more
+       *  because it will require the state checking which is complicated.
        */
-      if (this.state.active()) {
-        if (this.state.pending()) {
-          log.warn('WechatyPluginMixin', 'use() called during bot is starting: the plugins might not be able to activate correctly.')
-          /**
-           * We do not active plugin when starting to prevent install one plugin twice
-           *  because the plugin might be installed inside the start() method too.
-           */
-        } else {
-          this.__activePlugin(pluginList)
-        }
-      }
+      // if (this.state.active()) {
+      //   if (this.state.pending()) {
+      //     log.warn('WechatyPluginMixin', 'use() called during bot is starting: the plugins might not be able to activate correctly.')
+      //     /**
+      //      * We do not active plugin when starting to prevent install one plugin twice
+      //      *  because the plugin might be installed inside the start() method too.
+      //      */
+      //   } else {
+      //     this.__activePlugin(pluginList)
+      //   }
+      // }
 
       return this
     }
@@ -127,19 +126,19 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
       await super.start()
 
       const pluginList = [
-        ...instanceToClass(this, WechatyImpl).__pluginList,
+        ...instanceToClass(this, PluginMixin).__pluginList,
         ...this.__pluginList,
       ]
 
       log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ...',
-        instanceToClass(this, WechatyImpl).__pluginList.length,
+        instanceToClass(this, PluginMixin).__pluginList.length,
         this.__pluginList.length,
       )
 
       this.__activePlugin(pluginList)
 
       log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ... done',
-        instanceToClass(this, WechatyImpl).__pluginList.length,
+        instanceToClass(this, PluginMixin).__pluginList.length,
         this.__pluginList.length,
       )
     }

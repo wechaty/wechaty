@@ -5,9 +5,6 @@ import {
 }             from 'tstest'
 
 import { function as FP } from 'fp-ts'
-import {
-  serviceCtlMixin,
-}                         from 'state-switch'
 
 /**
  * Huan(202201): must import `./wechaty-impl.js` first
@@ -20,10 +17,6 @@ import {
  * TODO: find out why
  */
 import '../wechaty/wechaty-impl.js'
-
-import {
-  log,
-}                       from '../config.js'
 
 import {
   gErrorMixin,
@@ -58,7 +51,6 @@ test('PluginMixin smoke testing', async t => {
 
   const mixinBase = FP.pipe(
     WechatySkeleton,
-    serviceCtlMixin('Wechaty', { log }),
     gErrorMixin,
     ioMixin,
     wechatifyUserModuleMixin,
@@ -67,13 +59,9 @@ test('PluginMixin smoke testing', async t => {
     pluginMixin,
   )
 
-  const sleep = () => new Promise(resolve => setTimeout(resolve, 10))
-
   class PluginMixinTest extends mixinBase {
 
     counter = 0
-    override async onStart  ()  { await sleep() }
-    override async onStop   ()  { await sleep() }
 
   }
 

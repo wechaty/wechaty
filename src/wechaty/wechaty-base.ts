@@ -59,11 +59,18 @@ const mixinBase = FP.pipe(
   gErrorMixin,
   wechatifyUserModuleMixin,
   ioMixin,
-  serviceCtlMixin('Wechaty', { log }),
   puppetMixin,
   loginMixin,
   miscMixin,
   pluginMixin,
+  /**
+   * Huan(202002):
+   *
+   * The `serviceCtlMixin` must be the most outer mixin
+   *  because the `wechaty.start/stop()` should first entry `serviceCtlMixin.start/stop()`
+   *  which can be managed correctly by the `serviceCtlMixin`
+   */
+  serviceCtlMixin('Wechaty', { log }),
 )
 
 /**
