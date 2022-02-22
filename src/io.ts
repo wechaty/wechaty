@@ -415,7 +415,7 @@ export class Io {
       return
     }
 
-    if (this.ws && this.ws.readyState !== WebSocket.CLOSING) {
+    if (this.ws && this.ws.readyState !== WebSocket.CONNECTING) {
       this.options.wechaty.emitError(e)
     } else {
       log.error('Io', 'initWebSocket() ws.on(error) but ws is closing: %s', e.message)
