@@ -415,10 +415,15 @@ export class Io {
       return
     }
 
-    if (this.ws && this.ws.readyState !== WebSocket.CONNECTING) {
+    if (this.ws &&
+      (
+            this.ws.readyState !== WebSocket.CONNECTING
+        &&  this.ws.readyState !== WebSocket.CLOSING
+      )
+    ) {
       this.options.wechaty.emitError(e)
     } else {
-      log.error('Io', 'initWebSocket() ws.on(error) but ws is closing: %s', e.message)
+      log.error('Io', 'initWebSocket() ws.on(error) but ws is connecting/closing: %s', e.message)
     }
 
     // when `error`, there must have already a `close` event
