@@ -415,10 +415,10 @@ export class Io {
       return
     }
 
-    if (this.ws &&
-      (
-            this.ws.readyState !== WebSocket.CONNECTING
-        &&  this.ws.readyState !== WebSocket.CLOSING
+    if (this.ws
+      && (
+        this.ws.readyState      !== WebSocket.CONNECTING
+        &&  this.ws.readyState  !== WebSocket.CLOSING
       )
     ) {
       this.options.wechaty.emitError(e)
