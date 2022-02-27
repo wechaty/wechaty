@@ -97,10 +97,11 @@ export class IoClient {
   }
 
   private async stopPuppetServer () {
-    log.verbose('IoClient', 'stopPuppetService()')
+    log.verbose('IoClient', 'stopPuppetServer()')
 
     if (!this.puppetServer) {
-      throw new Error('puppet server does not exist')
+      log.error('IoClient', 'stopPuppetServer() this.puppetServer is `undefined`')
+      return
     }
 
     await this.puppetServer.stop()

@@ -415,16 +415,22 @@ export class Io {
       return
     }
 
-    if (this.ws
-      && (
-        this.ws.readyState      !== WebSocket.CONNECTING
-        &&  this.ws.readyState  !== WebSocket.CLOSING
-      )
-    ) {
-      this.options.wechaty.emitError(e)
-    } else {
-      log.error('Io', 'initWebSocket() ws.on(error) but ws is connecting/closing: %s', e.message)
+    if (!this.ws) {
+      log.error('Io', 'initWebSocket() ws.on(error) this.ws is `undefined`', e.message)
+      return
     }
+
+    if (this.ws.readyState === WebSocket.CONNECTING) {
+      log.error('Io', 'initWebSocket() ws.on(error) ws.readyState is CONNECTING: %s', e.message)
+      return
+    }
+
+    if (this.ws.readyState  === WebSocket.CLOSING) {
+      log.error('Io', 'initWebSocket() ws.on(error) ws.readyState is CLOSING: %s', e.message)
+      return
+    }
+
+    this.options.wechaty.emitError(e)
 
     // when `error`, there must have already a `close` event
     // we should not call this.reconnect() again
