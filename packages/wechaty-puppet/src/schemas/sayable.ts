@@ -11,9 +11,9 @@ import type {
   SayablePayloadPost,
 }                                     from './post.js'
 
-const payloadContact     = (contactId: string)                  => ({ contactId })
-const payloadFilebox     = (filebox: string | FileBoxInterface) => ({ filebox })
-const payloadText        = (text: string, mentions?: string[])  => ({ text, mentions })
+const payloadContact     = (contactId: string)                      => ({ contactId })
+const payloadFilebox     = (filebox: string | FileBoxInterface)     => ({ filebox })
+const payloadText        = (text: string, mentions: string[] = [])  => ({ text, mentions })
 /**
  * expand/merge the payload altogether
  */
