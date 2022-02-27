@@ -52,6 +52,7 @@ import type {
   SayableSayer,
   Sayable,
 }                                       from '../sayable/mod.js'
+import { stringifyFilter }              from '../helper-functions/stringify-filter.js'
 
 import {
   ContactInterface,
@@ -142,7 +143,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   static async findAll (
     query? : PUPPET.filters.Room,
   ): Promise<RoomInterface[]> {
-    log.verbose('Room', 'findAll(%s)', JSON.stringify(query) || '')
+    log.verbose('Room', 'findAll(%s)', JSON.stringify(query, stringifyFilter) || '')
 
     try {
       const roomIdList = await this.wechaty.puppet.roomSearch(query)
@@ -195,7 +196,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   static async find (
     query : string | PUPPET.filters.Room,
   ): Promise<undefined | RoomInterface> {
-    log.silly('Room', 'find(%s)', JSON.stringify(query))
+    log.silly('Room', 'find(%s)', JSON.stringify(query, stringifyFilter))
 
     if (typeof query === 'string') {
       query = { topic: query }

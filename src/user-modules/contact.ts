@@ -46,6 +46,7 @@ import type {
   SayableSayer,
   Sayable,
 }                                     from '../sayable/mod.js'
+import { stringifyFilter }            from '../helper-functions/stringify-filter.js'
 
 import type { MessageInterface }  from './message.js'
 import type { TagInterface }      from './tag.js'
@@ -95,7 +96,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
   static async find (
     query : string | PUPPET.filters.Contact,
   ): Promise<undefined | ContactInterface> {
-    log.silly('Contact', 'find(%s)', JSON.stringify(query))
+    log.silly('Contact', 'find(%s)', JSON.stringify(query, stringifyFilter))
 
     if (typeof query === 'object' && query.id) {
       let contact: ContactImpl
@@ -169,7 +170,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
   static async findAll (
     query? : string | PUPPET.filters.Contact,
   ): Promise<ContactInterface[]> {
-    log.verbose('Contact', 'findAll(%s)', JSON.stringify(query) || '')
+    log.verbose('Contact', 'findAll(%s)', JSON.stringify(query, stringifyFilter) || '')
 
     try {
       const contactIdList: string[] = await this.wechaty.puppet.contactSearch(query)
