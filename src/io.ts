@@ -240,10 +240,10 @@ export class Io {
 
   private wsOnOpen (ws: WebSocket): void {
     if (this.protocol !== ws.protocol) {
-      log.error('Io', 'initWebSocket() require protocol[%s] failed', this.protocol)
+      log.error('Io', 'wsOnOpen() require protocol[%s] failed', this.protocol)
       // XXX deal with error?
     }
-    log.verbose('Io', 'initWebSocket() connected with protocol [%s]', ws.protocol)
+    log.verbose('Io', 'wsOnOpen() connected with protocol [%s]', ws.protocol)
     // this.currentState('connected')
     // this.state.current('on')
 
@@ -263,12 +263,12 @@ export class Io {
   }
 
   private wsOnMessage (data: WebSocket.Data): void {
-    log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
+    log.silly('Io', 'wsOnMessage() ws.on(message): %s', data)
     this.wsOnMessageAsync(data).catch(console.error)
   }
 
   private async wsOnMessageAsync (data: WebSocket.Data): Promise<void> {
-    log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
+    log.silly('Io', 'wsOnMessageAsync() ws.on(message): %s', data)
 
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
@@ -410,23 +410,23 @@ export class Io {
   // FIXME: it seems the parameter `e` might be `undefined`.
   // @types/ws might has bug for `ws.on('error',    e => this.wsOnError(e))`
   private wsOnError (e?: Error) {
-    log.warn('Io', 'initWebSocket() error event[%s]', e && e.message)
+    log.warn('Io', 'wsOnError() error event[%s]', e && e.message)
     if (!e) {
       return
     }
 
     if (!this.ws) {
-      log.error('Io', 'initWebSocket() ws.on(error) this.ws is `undefined`', e.message)
+      log.error('Io', 'wsOnError() ws.on(error) this.ws is `undefined`', e.message)
       return
     }
 
     if (this.ws.readyState === WebSocket.CONNECTING) {
-      log.error('Io', 'initWebSocket() ws.on(error) ws.readyState is CONNECTING: %s', e.message)
+      log.error('Io', 'wsOnError() ws.on(error) ws.readyState is CONNECTING: %s', e.message)
       return
     }
 
     if (this.ws.readyState  === WebSocket.CLOSING) {
-      log.error('Io', 'initWebSocket() ws.on(error) ws.readyState is CLOSING: %s', e.message)
+      log.error('Io', 'wsOnError() ws.on(error) ws.readyState is CLOSING: %s', e.message)
       return
     }
 
@@ -445,7 +445,7 @@ export class Io {
     message : string,
   ): void {
     if (this.state.active()) {
-      log.warn('Io', 'initWebSocket() close event[%d: %s]', code, message)
+      log.warn('Io', 'wsOnClose() close event[%d: %s]', code, message)
       ws.close()
       this.reconnect()
     }
