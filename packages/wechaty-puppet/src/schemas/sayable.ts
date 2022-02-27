@@ -4,7 +4,7 @@ import type { FileBoxInterface } from 'file-box'
 
 import { MessageType }              from './message.js'
 import type { LocationPayload }     from './location.js'
-import type { UrlLinkPayload }      from './url-link'
+import type { UrlLinkPayload }      from './url-link.js'
 import type { MiniProgramPayload }  from './mini-program.js'
 import type {
   PostPayload,
