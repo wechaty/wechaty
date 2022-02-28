@@ -462,7 +462,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       if (varList.length > 0) {
         const allIsContact = varList.every(c => ContactImpl.valid(c))
         if (!allIsContact) {
-          throw new Error('mentionList must be contact when not using TemplateStringArray function call.')
+          throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
         }
 
         mentionList = [...varList as any]
