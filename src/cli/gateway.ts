@@ -23,8 +23,8 @@ import {
 import { WechatyBuilder }   from '../wechaty-builder.js'
 import {
   isPuppetModuleName,
-  PUPPET_DEPENDENCIES,
-  PUPPET_NAME_DEFAULT,
+  OFFICIAL_PUPPET_DEPENDENCIES,
+  OFFICIAL_PUPPET_DEFAULT,
 }                           from '../puppet-config.js'
 
 async function onError (
@@ -103,13 +103,13 @@ const gateway = command({
       log.info('Gateway', 'no `--puppet` specified, reading from environment variable `WECHATY_PUPPET` for Wechaty Puppet Provider ...')
       puppet = process.env['WECHATY_PUPPET']
       if (!puppet) {
-        log.info('Gateway', `environment variable "WECHATY_PUPPET" is not available. Using system default puppet "${PUPPET_NAME_DEFAULT}"`)
-        puppet = PUPPET_NAME_DEFAULT
+        log.info('Gateway', `environment variable "WECHATY_PUPPET" is not available. Using system default puppet "${OFFICIAL_PUPPET_DEFAULT}"`)
+        puppet = OFFICIAL_PUPPET_DEFAULT
       }
     }
     if (!isPuppetModuleName(puppet)) {
       console.error(`The puppet name "${puppet}" is not a valid puppet name.`)
-      console.error(`Valid puppet names are: ${Object.keys(PUPPET_DEPENDENCIES).join(', ')}`)
+      console.error(`Valid puppet names are: ${Object.keys(OFFICIAL_PUPPET_DEPENDENCIES).join(', ')}`)
       return 1
     }
     log.info('Gateway', 'Wechaty Puppet Provider: %s', puppet)

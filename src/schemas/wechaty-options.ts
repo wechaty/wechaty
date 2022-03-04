@@ -4,33 +4,37 @@ import type {
 }                       from 'memory-card'
 
 import type {
-  PuppetModuleName,
+  OfficialPuppetNpmName,
 }                             from '../puppet-config.js'
 
-interface WechatyPuppetOptionsName {
-  puppet?        : PuppetModuleName
-  puppetOptions? : PUPPET.PuppetOptions
-}
-
-interface WechatyPuppetOptionsInstance {
+interface OptionsPuppetInstance {
   puppet?: PUPPET.impls.PuppetInterface,
 }
 
-type WechatyPuppetOptions =
-  | WechatyPuppetOptionsName
-  | WechatyPuppetOptionsInstance
+interface OptionsPuppetName {
+  puppet?        : OfficialPuppetNpmName
+  puppetOptions? : PUPPET.PuppetOptions
+}
 
 interface WechatyOptionsBase {
   memory?        : MemoryCard,
-  name?          : string,                                          // Wechaty Name
-
-  ioToken?       : string,                                          // Io TOKEN
+  name?          : string,
+  ioToken?       : string,
 }
 
-type WechatyOptions =
+type WechatyOptionsPuppetInstance =
   & WechatyOptionsBase
-  & WechatyPuppetOptions
+  & OptionsPuppetInstance
+
+type WechatyOptionsPuppetName =
+  & WechatyOptionsBase
+  & OptionsPuppetName
+
+type WechatyOptions =
+  | WechatyOptionsPuppetInstance
+  | WechatyOptionsPuppetName
 
 export {
   type WechatyOptions,
+  type WechatyOptionsPuppetName,
 }

@@ -22,6 +22,7 @@ import { config }           from '../config.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
 import type { IoMixin }     from './io-mixin.js'
+import type { WechatyOptionsPuppetName } from '../schemas/wechaty-options.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
@@ -149,11 +150,17 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       const puppet       = this.__options.puppet || config.systemPuppetName()
       const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
 
-      const puppetInstance = await PUPPET.helpers.resolvePuppet({
-        puppet,
-        puppetOptions: this.__options.puppetOptions,
-      })
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ... done')
+      let puppetInstance: PUPPET.impls.PuppetInterface
+
+      if (PUPPET.impls.PuppetAbstract.validInterface(puppet)) {
+        puppetInstance = puppet
+      } else {
+        puppetInstance = await PUPPET.helpers.resolvePuppet({
+          puppet,
+          puppetOptions: (this.__options as WechatyOptionsPuppetName).puppetOptions,
+        })
+        log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ... done')
+      }
 
       /**
        * Plug the Memory Card to Puppet

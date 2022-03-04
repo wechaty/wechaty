@@ -31,8 +31,8 @@ import type {
 }                   from 'type-fest'
 
 import {
-  PuppetModuleName,
-  PUPPET_NAME_DEFAULT,
+  OfficialPuppetNpmName,
+  OFFICIAL_PUPPET_DEFAULT,
 }                      from './puppet-config.js'
 import {
   packageJson,
@@ -94,10 +94,10 @@ export class Config {
 
   serviceIp = process.env['WECHATY_PUPPET_SERVICE_IP'] || ''
 
-  systemPuppetName (): PuppetModuleName {
+  systemPuppetName (): OfficialPuppetNpmName {
     return (
-      process.env['WECHATY_PUPPET'] || PUPPET_NAME_DEFAULT
-    ).toLowerCase() as PuppetModuleName
+      process.env['WECHATY_PUPPET'] || OFFICIAL_PUPPET_DEFAULT
+    ).toLowerCase() as OfficialPuppetNpmName
   }
 
   name = process.env['WECHATY_NAME']

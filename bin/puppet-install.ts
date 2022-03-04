@@ -23,8 +23,8 @@ import spawn from 'cross-spawn'
 import { log } from 'wechaty-puppet'
 
 import {
-  PUPPET_DEPENDENCIES,
-  PuppetModuleName,
+  OFFICIAL_PUPPET_DEPENDENCIES,
+  OfficialPuppetNpmName,
 }                         from '../src/puppet-config.js'
 
 /**
@@ -40,8 +40,8 @@ async function main (): Promise<void> {
 
   const moduleList: string[] = []
 
-  for (const puppetModuleName of Object.keys(PUPPET_DEPENDENCIES)) {
-    const version = PUPPET_DEPENDENCIES[puppetModuleName as PuppetModuleName]
+  for (const puppetModuleName of Object.keys(OFFICIAL_PUPPET_DEPENDENCIES)) {
+    const version = OFFICIAL_PUPPET_DEPENDENCIES[puppetModuleName as OfficialPuppetNpmName]
 
     if (version === '0.0.0' || skipList.includes(puppetModuleName)) {
       continue

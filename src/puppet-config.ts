@@ -18,7 +18,7 @@
  *   limitations under the License.
  *
  */
-const PUPPET_DEPENDENCIES = {
+const OFFICIAL_PUPPET_DEPENDENCIES = {
   /**
    * The following puppets were DEPRECATED before 2020
    */
@@ -73,9 +73,9 @@ const PUPPET_DEPENDENCIES = {
   '@juzibot/wechaty-puppet-wxwork' : '*',   // https://www.npmjs.com/package/wechaty-puppet-wxwork (to be published)
 }
 
-type PuppetModuleName = keyof typeof PUPPET_DEPENDENCIES
+type OfficialPuppetNpmName = keyof typeof OFFICIAL_PUPPET_DEPENDENCIES
 
-const isPuppetModuleName = (name: string): name is PuppetModuleName => name in PUPPET_DEPENDENCIES
+const isPuppetModuleName = (name: string): name is OfficialPuppetNpmName => name in OFFICIAL_PUPPET_DEPENDENCIES
 
 /**
  * Updates:
@@ -83,13 +83,22 @@ const isPuppetModuleName = (name: string): name is PuppetModuleName => name in P
  *  - Huan(202009): use puppet service as default
  *  - Huan(202201): use puppet-wechat4u as default
  */
-const PUPPET_NAME_DEFAULT: PuppetModuleName = 'wechaty-puppet-wechat4u'
+const OFFICIAL_PUPPET_DEFAULT: OfficialPuppetNpmName = 'wechaty-puppet-wechat4u'
 
-export type {
-  PuppetModuleName,
-}
+// i.e. @juzibot/wechaty-puppet-donut
+type PuppetNpmScope = `@${string}/` | ''
+type PuppetNpmName  = `${PuppetNpmScope}wechaty-puppet-${string}`
+
+/**
+ * @deprecated: use `OfficialPuppetNpmName` instead. will be removed after Dec 31, 2022
+ */
+type PuppetModuleName = OfficialPuppetNpmName
+
 export {
-  PUPPET_DEPENDENCIES,
-  PUPPET_NAME_DEFAULT,
+  type OfficialPuppetNpmName,
+  type PuppetNpmName,
+  type PuppetModuleName, // DEPRECATED
+  OFFICIAL_PUPPET_DEPENDENCIES,
+  OFFICIAL_PUPPET_DEFAULT,
   isPuppetModuleName,
 }

@@ -59,7 +59,8 @@ export type {
 }                             from '../schemas/mod.js'
 
 export type {
-  PuppetModuleName,
+  OfficialPuppetNpmName,
+  PuppetModuleName, // DEPRECATED
 }                             from '../puppet-config.js'
 export type {
   WechatyPlugin,
