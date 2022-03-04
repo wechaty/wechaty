@@ -6,14 +6,30 @@ import type {
 import type {
   PuppetModuleName,
 }                             from '../puppet-config.js'
-interface WechatyOptions {
+
+interface WechatyPuppetOptionsName {
+  puppet?        : PuppetModuleName
+  puppetOptions? : PUPPET.PuppetOptions
+}
+
+interface WechatyPuppetOptionsInstance {
+  puppet?: PUPPET.impls.PuppetInterface,
+}
+
+type WechatyPuppetOptions =
+  | WechatyPuppetOptionsName
+  | WechatyPuppetOptionsInstance
+
+interface WechatyOptionsBase {
   memory?        : MemoryCard,
   name?          : string,                                          // Wechaty Name
 
-  puppet?        : PuppetModuleName | PUPPET.impls.PuppetInterface,  // Puppet name or instance
-  puppetOptions? : PUPPET.PuppetOptions,                            // Puppet TOKEN
   ioToken?       : string,                                          // Io TOKEN
 }
+
+type WechatyOptions =
+  & WechatyOptionsBase
+  & WechatyPuppetOptions
 
 export {
   type WechatyOptions,
