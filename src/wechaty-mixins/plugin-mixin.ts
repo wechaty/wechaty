@@ -123,8 +123,9 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
 
     override async start (): Promise<void> {
       log.verbose('WechatyPluginMixin', 'start()')
-      await super.start()
-
+      /**
+       * Huan(202203): super.start() need to be at the end of this method
+       */
       const pluginList = [
         ...instanceToClass(this, PluginMixin).__pluginList,
         ...this.__pluginList,
@@ -141,17 +142,32 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
         instanceToClass(this, PluginMixin).__pluginList.length,
         this.__pluginList.length,
       )
+
+      /**
+       * Huan(202203): we need to initialize the plugins before super.start()
+       *  because super.start() will initialize the puppet,
+       *  if super initialized first, then the plugins will lost events.
+       */
+      await super.start()
     }
 
     override async stop (): Promise<void> {
       log.verbose('WechatyPluginMixin', 'stop() uninstall plugins (total: %d) ...', this.__pluginUninstallerList.length)
+      /**
+       * Huan(202203): super.stop() need to be called before we unstall the plugins
+       *  because the plugins might need to receive the stop event from the puppet
+       *  which is required by the life cycle of the puppet.
+       */
+      await super.stop()
 
       this.__pluginUninstallerList.forEach(setImmediate)
       this.__pluginUninstallerList.length = 0
 
       log.verbose('WechatyPluginMixin', 'stop() uninstall plugins ... done', this.__pluginUninstallerList.length)
 
-      await super.stop()
+      /**
+       * Huan(202203): we need to move super.stop() to the beginning of this method
+       */
     }
 
   }
