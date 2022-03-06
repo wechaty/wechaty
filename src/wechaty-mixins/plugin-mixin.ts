@@ -14,7 +14,7 @@ import type {
 }                       from '../wechaty/mod.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
-import type { MiscMixin } from './misc-mixin.js'
+import type { MiscMixin }   from './misc-mixin.js'
 
 interface Plugable {
   use (
