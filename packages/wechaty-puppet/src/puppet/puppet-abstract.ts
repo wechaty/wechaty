@@ -43,6 +43,7 @@ import {
   validateMixin,
   readyMixin,
   postMixin,
+  sayableMixin,
   tapMixin,
 }                        from '../mixins/mod.js'
 
@@ -68,6 +69,7 @@ const PipedBase = FP.pipe(
   serviceMixin,
   readyMixin,
   postMixin,
+  sayableMixin,
   tapMixin,
   // TODO: validateMixin,
 )

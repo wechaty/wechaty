@@ -10,11 +10,12 @@ import type {
 import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
 import { DirtyType }              from '../schemas/dirty.js'
 
-import type { CacheMixin }        from './cache-mixin.js'
 import type {
   PaginationRequest,
   PaginationResponse,
-}                           from '../schemas/pagination.js'
+}                                 from '../schemas/pagination.js'
+
+import type { CacheMixin }        from './cache-mixin.js'
 
 const postMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(baseMixin: MinxinBase) => {
 

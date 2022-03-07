@@ -55,6 +55,10 @@ import {
   ProtectedPropertyPostMixin,
 }                                     from './post-mixin.js'
 import {
+  sayableMixin,
+  ProtectedPropertySayableMixin,
+}                                     from '../mixins/sayable-mixin.js'
+import {
   validateMixin,
   ProtectedPropertyValidateMixin,
 }                                     from './validate-mixin.js'
@@ -83,12 +87,11 @@ type MixinProtectedProperty =
   | ProtectedPropertyServiceMixin
   | ProtectedPropertyTagMixin
   | ProtectedPropertyTapMixin
+  | ProtectedPropertySayableMixin
   | ProtectedPropertyValidateMixin
 
-export type {
-  MixinProtectedProperty,
-}
 export {
+  type MixinProtectedProperty,
   cacheMixin,
   contactMixin,
   friendshipMixin,
@@ -104,5 +107,6 @@ export {
   serviceMixin,
   tagMixin,
   tapMixin,
+  sayableMixin,
   validateMixin,
 }
