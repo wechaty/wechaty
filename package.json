@@ -124,9 +124,9 @@
     "rx-queue": "^1.0.4",
     "state-switch": "^1.6.3",
     "uuid": "^8.3.2",
-    "wechaty-puppet": "~1.13.8",
-    "wechaty-puppet-service": "~1.11.2",
-    "wechaty-puppet-wechat4u": "~1.11.1",
+    "wechaty-puppet": "^1.13.13",
+    "wechaty-puppet-service": "^1.11.2",
+    "wechaty-puppet-wechat4u": "^1.11.1",
     "wechaty-token": "^1.1.1",
     "ws": "^8.4.0"
   },
