@@ -22,7 +22,7 @@ export interface EventLoginPayload {
 
 export interface EventLogoutPayload {
   contactId : string,
-  data      : string,
+  data?     : string,
 }
 
 export interface EventMessagePayload {
@@ -67,7 +67,7 @@ export interface EventScanPayload {
 }
 
 export interface EventDongPayload {
-  data: string,
+  data?: string,
 }
 
 /**
@@ -83,15 +83,15 @@ export type EventErrorPayload = {
 }
 
 export interface EventReadyPayload {
-  data: string,
+  data?: string,
 }
 
 export interface EventResetPayload {
-  data: string,
+  data?: string,
 }
 
 export interface EventHeartbeatPayload {
-  data: string,
+  data?: string,
 }
 
 export interface EventDirtyPayload {
