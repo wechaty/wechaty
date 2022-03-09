@@ -56,6 +56,17 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       super(...args)
 
       this.__readyState = new StateSwitch('WechatyReady', { log })
+
+      /**
+       * Huan(202203): set `get puppet ()` eagerly
+       *  for those plugins who need to acceess the `wechaty.puppet`
+       *  before the `PuppetMixin` started.
+       *
+       * For example: Wechaty Redux & CQRS plugins
+       */
+      if (PUPPET.Puppet.valid(this.__options.puppet)) {
+        this.__puppet = this.__options.puppet
+      }
     }
 
     override async start (): Promise<void> {
