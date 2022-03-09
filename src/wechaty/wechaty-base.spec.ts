@@ -180,11 +180,11 @@ test('use plugin', async t => {
 
   let result = ''
 
-  const myGlobalPlugin = function () {
-    return function (bot: WechatyInterface) {
-      bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
-    }
-  }
+  // const myGlobalPlugin = function () {
+  //   return function (bot: WechatyInterface) {
+  //     bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
+  //   }
+  // }
 
   const myPlugin = function () {
     return function (bot: WechatyInterface) {
@@ -192,7 +192,7 @@ test('use plugin', async t => {
     }
   }
 
-  MyWechatyTest.use(myGlobalPlugin())
+  // MyWechatyTest.use(myGlobalPlugin())
 
   const bot = new MyWechatyTest({
     puppet: new PuppetMock(),
@@ -208,7 +208,7 @@ test('use plugin', async t => {
 
   await bot.stop()
 
-  t.equal(result, 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
+  t.equal(result, 'FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
 
 })
 

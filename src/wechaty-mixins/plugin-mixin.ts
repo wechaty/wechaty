@@ -1,5 +1,4 @@
 import { log }              from 'wechaty-puppet'
-import { instanceToClass }  from 'clone-class'
 
 import type {
   WechatyPlugin,
@@ -22,7 +21,7 @@ interface Plugable {
       | WechatyPlugin
       | WechatyPlugin[]
     )[]
-  ): Plugable
+  ): WechatyPluginUninstaller
 }
 
 const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & MiscMixin> (mixinBase: MixinBase) => {
@@ -30,10 +29,9 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
 
   abstract class PluginMixin extends mixinBase implements Plugable {
 
-    static __pluginList: WechatyPlugin[] = []
-    __pluginList:        WechatyPlugin[] = []
-
-    __pluginUninstallerList: WechatyPluginUninstaller[] = []
+    constructor (...args: any[]) {
+      super(...args)
+    }
 
     /**
      * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
@@ -54,120 +52,34 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
      *
      * bot.use(WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' })
      */
-    static use (
-      ...plugins:  (WechatyPlugin | WechatyPlugin[])[]
-    ): Plugable {
-      const pluginList = plugins.flat()
-      this.__pluginList.push(...pluginList)
-
-      // Huan(202110): TODO: remove any
-      return this as any
-    }
-
-    constructor (...args: any[]) {
-      super(...args)
-    }
-
-    /**
-     * @param {WechatyPlugin[]}Interfacehaty.use().
-     *
-     */
     use (
       ...plugins: (
         WechatyPlugin | WechatyPlugin[]
       )[]
-    ): Plugable {
+    ): WechatyPluginUninstaller {
       const pluginList = plugins.flat()
       log.verbose('WechatyPluginMixin', 'use() total %d plugins', pluginList.length)
 
-      this.__pluginList.push(...pluginList)
-
-      /**
-       * If the wechaty has already been started
-       *
-       * @deprecated: we do not support add plugin to a started wechaty any more
-       *  because it will require the state checking which is complicated.
-       */
-      // if (this.state.active()) {
-      //   if (this.state.pending()) {
-      //     log.warn('WechatyPluginMixin', 'use() called during bot is starting: the plugins might not be able to activate correctly.')
-      //     /**
-      //      * We do not active plugin when starting to prevent install one plugin twice
-      //      *  because the plugin might be installed inside the start() method too.
-      //      */
-      //   } else {
-      //     this.__activePlugin(pluginList)
-      //   }
-      // }
-
-      return this
-    }
-
-    /**
-     * @protected active the plugins
-     */
-    __activePlugin (pluginList: WechatyPlugin[]): void {
-      log.verbose('WechatyPluginMixin', '__activePlugin(%d plugins)', pluginList.length)
+      const uninstallerList: WechatyPluginUninstaller[] = []
 
       for (const plugin of pluginList) {
-        log.verbose('WechatyPluginMixin', '__activePlugin() installing Plugin %s on Wechaty %s ...', plugin.name, this.name())
+        log.verbose('WechatyPluginMixin', 'use() installing Plugin %s on Wechaty %s ...', plugin.name, this.name())
 
         const uninstaller = plugin(this as any) // <- Huan(202110): TODO: remove any
         if (isWechatyPluginUninstaller(uninstaller)) {
-          log.verbose('WechatyPluginMixin', '__activePlugin() saving uninstaller for Plugin %s on Wechat %s ...', plugin.name, this.name())
-          this.__pluginUninstallerList.push(uninstaller)
+          log.verbose('WechatyPluginMixin', 'use() saving uninstaller for Plugin %s on Wechaty %s ...', plugin.name, this.name())
+          uninstallerList.push(uninstaller)
         }
       }
 
-    }
-
-    override async start (): Promise<void> {
-      log.verbose('WechatyPluginMixin', 'start()')
       /**
-       * Huan(202203): super.start() need to be at the end of this method
+       * Return the function to uninstall all plugins
        */
-      const pluginList = [
-        ...instanceToClass(this, PluginMixin).__pluginList,
-        ...this.__pluginList,
-      ]
-
-      log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ...',
-        instanceToClass(this, PluginMixin).__pluginList.length,
-        this.__pluginList.length,
-      )
-
-      this.__activePlugin(pluginList)
-
-      log.verbose('WechatyPluginMixin', 'start() installing plugins(global/%d, instance/%d) ... done',
-        instanceToClass(this, PluginMixin).__pluginList.length,
-        this.__pluginList.length,
-      )
-
-      /**
-       * Huan(202203): we need to initialize the plugins before super.start()
-       *  because super.start() will initialize the puppet,
-       *  if super initialized first, then the plugins will lost events.
-       */
-      await super.start()
-    }
-
-    override async stop (): Promise<void> {
-      log.verbose('WechatyPluginMixin', 'stop() uninstall plugins (total: %d) ...', this.__pluginUninstallerList.length)
-      /**
-       * Huan(202203): super.stop() need to be called before we unstall the plugins
-       *  because the plugins might need to receive the stop event from the puppet
-       *  which is required by the life cycle of the puppet.
-       */
-      await super.stop()
-
-      this.__pluginUninstallerList.forEach(setImmediate)
-      this.__pluginUninstallerList.length = 0
-
-      log.verbose('WechatyPluginMixin', 'stop() uninstall plugins ... done', this.__pluginUninstallerList.length)
-
-      /**
-       * Huan(202203): we need to move super.stop() to the beginning of this method
-       */
+      return () => uninstallerList.forEach(uninstaller => {
+        log.verbose('WechatyPluginMixin', 'use() uninstalling Plugin %s on Wechaty %s ...', uninstaller.name, this.name())
+        uninstaller()
+        log.verbose('WechatyPluginMixin', 'use() uninstalling Plugin %s on Wechaty %s ... done', uninstaller.name, this.name())
+      })
     }
 
   }
@@ -177,10 +89,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
 
 type PluginMixin = ReturnType<typeof pluginMixin>
 
-type ProtectedPropertyPluginMixin =
-  | '__activePlugin'
-  | '__pluginList'
-  | '__pluginUninstallerList'
+type ProtectedPropertyPluginMixin = never
 
 export {
   type Plugable,
