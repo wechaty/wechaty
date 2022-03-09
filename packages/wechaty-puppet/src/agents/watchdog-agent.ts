@@ -49,11 +49,11 @@ class WatchdogAgent {
      * puppet event `heartbeat` to feed() watchdog
      */
     const feed = (food: WatchdogFood) => { this.watchdog.feed(food) }
-    this.puppet.on('heartbeat', feed)
+    this.puppet.on('heartbeat', e => feed({ data: e.data }))
     log.verbose('PuppetWatchdogAgent', 'start() "heartbeat" event listener added')
 
     this.cleanCallbackList.push(() => {
-      this.puppet.off('heartbeat', feed)
+      this.puppet.off('heartbeat', e => feed({ data: e.data }))
       log.verbose('PuppetWatchdogAgent', 'start() "heartbeat" event listener removed')
     })
 
@@ -71,7 +71,7 @@ class WatchdogAgent {
     log.verbose('PuppetWatchdogAgent', 'start() "reset" event listener added')
 
     this.cleanCallbackList.push(() => {
-      this.puppet.off('reset', reset)
+      this.puppet.off('reset', e => reset({ data: e.data }))
       log.verbose('PuppetWatchdogAgent', 'start() "reset" event listener removed')
     })
 
