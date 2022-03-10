@@ -60,15 +60,21 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       }
     }
 
-    __loginMixinStopCallbackList: (() => void)[] = []
+    __loginMixinInited = false
 
     constructor (...args: any[]) {
       log.verbose('WechatyLoginMixin', 'constructor()')
       super(...args)
     }
 
-    override async start (): Promise<void> {
-      log.verbose('WechatyLoginMixin', 'start()')
+    override async init (): Promise<void> {
+      log.verbose('WechatyLoginMixin', 'init()')
+      await super.init()
+
+      if (this.__loginMixinInited) {
+        return
+      }
+      this.__loginMixinInited = true
 
       const cleanAuthQrCode = () => {
         this.__authQrCode = undefined
@@ -96,32 +102,6 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
       this.addListener('scan',  onScan)
       this.addListener('login', cleanAuthQrCode)
       this.addListener('stop',  cleanAuthQrCode)
-
-      this.__loginMixinStopCallbackList.push(
-        () => {
-          this.removeListener('scan',   onScan)
-          this.removeListener('login',  cleanAuthQrCode)
-          this.removeListener('stop',   cleanAuthQrCode)
-        },
-      )
-
-      /**
-       * Huan(202111): in this case, we put the `super.start()` at the end of the child `start()`
-       *  because we need to register all the listeners before the puppet starts
-       *  so that we will not miss any event.
-       */
-      await super.start()
-
-    }
-
-    override async stop (): Promise<void> {
-      log.verbose('WechatyLoginMixin', 'stop()')
-
-      // put callback to then end of event queue in case of it has not been called yet.
-      this.__loginMixinStopCallbackList.forEach(setImmediate)
-      this.__loginMixinStopCallbackList.length = 0
-
-      await super.stop()
     }
 
     /**
@@ -166,7 +146,7 @@ type ProtectedPropertyLoginMixin =
   | 'userSelf'  // deprecated: use `currentUser` instead. (will be removed after Dec 31, 2022)
   | 'logonoff'  // deprecated: use `isLoggedIn` instead. ((will be removed after Dec 31, 2022)
   | '__authQrCode'
-  | '__loginMixinStopCallbackList'
+  | '__loginMixinInited'
 
 export type {
   LoginMixin,

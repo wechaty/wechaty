@@ -69,9 +69,15 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     super.setMaxListeners(1024)
   }
 
-  async start (): Promise<void> {
-    log.verbose('WechatySkeleton', 'start()')
-    // no super.start()
+  /**
+   * Initialize the Wechaty instance for ready to be started.
+   *
+   *  1. It will be called automatically by the start()
+   *  2. It should be allowed for being called multiple times in the same instance,
+   *    by skipping the second time initialization.
+   */
+  async init (): Promise<void> {
+    log.verbose('WechatySkeleton', 'init()')
 
     if (!this.__memory) {
       this.__memory = new MemoryCard(this.__options.name)
@@ -81,7 +87,16 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
         log.silly('WechatySkeleton', 'onStart() memory.load() had already loaded')
       }
     }
+  }
 
+  async start (): Promise<void> {
+    log.verbose('WechatySkeleton', 'start()')
+    // no super.start()
+
+    /**
+     * Huan(202203): Call the init() functions (with super.init() inside them for chaining)
+     */
+    await this.init()
   }
 
   async stop  (): Promise<void> {

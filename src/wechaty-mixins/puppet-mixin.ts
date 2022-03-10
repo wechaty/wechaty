@@ -22,7 +22,6 @@ import { config }           from '../config.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
 import type { IoMixin }     from './io-mixin.js'
-import type { WechatyOptionsPuppetName } from '../schemas/wechaty-options.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
@@ -51,22 +50,13 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
     readonly __readyState : StateSwitchInterface
 
+    __puppetMixinInited = false
+
     constructor (...args: any[]) {
       log.verbose('WechatyPuppetMixin', 'construct()')
       super(...args)
 
       this.__readyState = new StateSwitch('WechatyReady', { log })
-
-      /**
-       * Huan(202203): set `get puppet ()` eagerly
-       *  for those plugins who need to acceess the `wechaty.puppet`
-       *  before the `PuppetMixin` started.
-       *
-       * For example: Wechaty Redux & CQRS plugins
-       */
-      if (PUPPET.Puppet.valid(this.__options.puppet)) {
-        this.__puppet = this.__options.puppet
-      }
     }
 
     override async start (): Promise<void> {
@@ -84,10 +74,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         if (this.__readyState.active()) {
           this.__readyState.inactive(true)
         }
-
-        log.verbose('WechatyPuppetMixin', 'start() initializing puppet instance ...')
-        await this.__initPuppetInstance()
-        log.verbose('WechatyPuppetMixin', 'start() initializing puppet instance ... done')
 
         try {
           log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
@@ -149,52 +135,50 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.silly('WechatyPuppetMixin', 'ready() this.readyState.stable(on) resolved')
     }
 
-    async __initPuppetInstance (): Promise<void> {
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() %s', this.__options.puppet || '')
+    override async init (): Promise<void> {
+      log.verbose('WechatyPuppetMixin', 'init()')
+      await super.init()
 
-      if (this.__puppet) {
-        log.verbose('WechatyPuppetMixin', '__initPuppetInstance() initialized already: skip')
+      if (this.__puppetMixinInited) {
+        log.verbose('WechatyPuppetMixin', 'init() skipped because this puppet has already been inited before.')
         return
       }
+      this.__puppetMixinInited = true
 
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ...')
-      const puppet       = this.__options.puppet || config.systemPuppetName()
-      const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
-
-      let puppetInstance: PUPPET.impls.PuppetInterface
-
-      if (PUPPET.impls.PuppetAbstract.validInterface(puppet)) {
-        puppetInstance = puppet
-      } else {
-        puppetInstance = await PUPPET.helpers.resolvePuppet({
-          puppet,
-          puppetOptions: (this.__options as WechatyOptionsPuppetName).puppetOptions,
-        })
-        log.verbose('WechatyPuppetMixin', '__initPuppetInstance() instanciating puppet instance ... done')
-      }
+      log.verbose('WechatyPuppetMixin', 'init() instanciating puppet instance ...')
+      const puppetInstance = await PUPPET.helpers.resolvePuppet({
+        puppet: this.__options.puppet || config.systemPuppetName(),
+        puppetOptions: 'puppetOptions' in this.__options
+          ? this.__options.puppetOptions
+          : undefined,
+      })
+      log.verbose('WechatyPuppetMixin', 'init() instanciating puppet instance ... done')
 
       /**
        * Plug the Memory Card to Puppet
        */
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting memory ...')
+      log.verbose('WechatyPuppetMixin', 'init() setting memory ...')
+      const puppetMemory = this.memory.multiplex(PUPPET_MEMORY_NAME)
       puppetInstance.setMemory(puppetMemory)
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting memory ... done')
+      log.verbose('WechatyPuppetMixin', 'init() setting memory ... done')
 
-      this.__puppet = puppetInstance
-
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting up events ...')
+      /**
+       * Propagate Puppet Events to Wechaty
+       */
+      log.verbose('WechatyPuppetMixin', 'init() setting up events ...')
       this.__setupPuppetEvents(puppetInstance)
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() setting up events ... done')
-      // this._wechatifyUserModules()
+      log.verbose('WechatyPuppetMixin', 'init() setting up events ... done')
 
       /**
         * Private Event
         *   - Huan(202005): emit puppet when set
         *   - Huan(202110): @see https://github.com/wechaty/redux/blob/16af0ae01f72e37f0ee286b49fa5ccf69850323d/src/wechaty-redux.ts#L82-L98
         */
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() emitting "puppet" event ...')
+      log.verbose('WechatyPuppetMixin', 'init() emitting "puppet" event ...')
       ;(this.emit as any)('puppet', puppetInstance)
-      log.verbose('WechatyPuppetMixin', '__initPuppetInstance() emitting "puppet" event ... done')
+      log.verbose('WechatyPuppetMixin', 'init() emitting "puppet" event ... done')
+
+      this.__puppet = puppetInstance
     }
 
     __setupPuppetEvents (puppet: PUPPET.impls.PuppetInterface): void {
@@ -497,7 +481,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 type PuppetMixin = ReturnType<typeof puppetMixin>
 
 type ProtectedPropertyPuppetMixin =
-  | '__initPuppetInstance'
   | '__puppet'
   | '__readyState'
   | '__setupPuppetEvents'
