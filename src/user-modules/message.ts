@@ -202,12 +202,19 @@ class MessageMixin extends MixinBase implements SayableSayer {
       return this.constructor.name
     }
 
+    let talker
+    try {
+      talker = this.talker()
+    } catch (e) {
+      talker = (e as Error).message
+    }
+
     const msgStrList = [
       'Message',
       `#${PUPPET.types.Message[this.type()]}`,
       '[',
       '🗣',
-      this.talker(),
+      talker,
       this.room()
         ? '@👥' + this.room()
         : '',
