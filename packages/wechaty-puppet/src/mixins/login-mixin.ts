@@ -2,7 +2,9 @@ import {
   log,
 }           from '../config.js'
 
-import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
+import type { PuppetScanListener }  from '../puppet/events.js'
+import type { PuppetSkeleton }      from '../puppet/puppet-skeleton.js'
+import { ScanStatus }               from '../schemas/event.js'
 
 const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 
@@ -33,6 +35,11 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
       return !!this.__currentUserId
     }
 
+    __authQrCode?: string
+    get authQrCode (): undefined | string {
+      return this.__authQrCode
+    }
+
     constructor (...args: any[]) {
       super(...args)
       log.verbose('PuppetLoginMixin', 'constructor()')
@@ -40,6 +47,34 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
 
     override async start (): Promise<void> {
       log.verbose('PuppetLoginMixin', 'start()')
+
+      const cleanAuthQrCode = () => {
+        this.__authQrCode = undefined
+      }
+
+      const onScan: PuppetScanListener = ({ qrcode, status }) => {
+        switch (status) {
+          case ScanStatus.Cancel:
+          case ScanStatus.Confirmed:
+          case ScanStatus.Scanned:
+            cleanAuthQrCode()
+            break
+
+          case ScanStatus.Timeout:  // TODO: confirm the `Timeout` spec (define it if it is not defined)
+          case ScanStatus.Waiting:
+            this.__authQrCode = qrcode
+            break
+
+          case ScanStatus.Unknown:
+          default:
+            break
+        }
+      }
+
+      this.addListener('scan',  onScan)
+      this.addListener('login', cleanAuthQrCode)
+      this.addListener('stop',  cleanAuthQrCode)
+
       await super.start()
     }
 
@@ -95,7 +130,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     }
 
     /**
-     * @deprecated use `currentUserId` instead. (will be removed after Dec 31, 2022)
+     * @deprecated use `currentUserId` instead. (will be removed in v2.0)
      */
     selfId (): string {
       log.warn('PuppetLoginMixin',
@@ -106,7 +141,7 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     }
 
     /**
-     * @deprecated use isLoggedIn instead. will be removed after Dec 31, 2022
+     * @deprecated use isLoggedIn instead. will be removed in v2.0
      */
     logonoff (): boolean {
       log.warn('PuppetLoginMixin',
@@ -124,8 +159,9 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
 type LoginMixin = ReturnType<typeof loginMixin>
 
 type ProtectedPropertyLoginMixin =
-  | 'login'
+  | '__authQrCode'
   | '__currentUserId'
+  | 'login'
   | 'logonoff'
 
 export type {
