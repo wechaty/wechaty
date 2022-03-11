@@ -113,7 +113,6 @@ type LoginMixin = ReturnType<typeof loginMixin>
 type ProtectedPropertyLoginMixin =
   | 'userSelf'  // deprecated: use `currentUser` instead. (will be removed after Dec 31, 2022)
   | 'logonoff'  // deprecated: use `isLoggedIn` instead. ((will be removed after Dec 31, 2022)
-  | '__authQrCode'
   | '__loginMixinInited'
 
 export type {
