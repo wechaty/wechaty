@@ -1,9 +1,5 @@
-import * as PUPPET  from 'wechaty-puppet'
 import { log }      from 'wechaty-puppet'
 
-import type {
-  WechatyEventListeners,
-}                               from '../schemas/mod.js'
 import type {
   ContactSelfImpl,
   ContactSelfInterface,
@@ -18,9 +14,8 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
 
   abstract class LoginMixin extends mixinBase {
 
-    __authQrCode?: string
     get authQrCode (): undefined | string {
-      return this.__authQrCode
+      return this.puppet.authQrCode
     }
 
     /**
@@ -75,33 +70,6 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
         return
       }
       this.__loginMixinInited = true
-
-      const cleanAuthQrCode = () => {
-        this.__authQrCode = undefined
-      }
-
-      const onScan: WechatyEventListeners['scan'] = (qrcode, status) => {
-        switch (status) {
-          case PUPPET.types.ScanStatus.Cancel:
-          case PUPPET.types.ScanStatus.Confirmed:
-          case PUPPET.types.ScanStatus.Scanned:
-            cleanAuthQrCode()
-            break
-
-          case PUPPET.types.ScanStatus.Timeout:  // TODO: confirm the `Timeout` spec (define it if it is not defined)
-          case PUPPET.types.ScanStatus.Waiting:
-            this.__authQrCode = qrcode
-            break
-
-          case PUPPET.types.ScanStatus.Unknown:
-          default:
-            break
-        }
-      }
-
-      this.addListener('scan',  onScan)
-      this.addListener('login', cleanAuthQrCode)
-      this.addListener('stop',  cleanAuthQrCode)
     }
 
     /**
