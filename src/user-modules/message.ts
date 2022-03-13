@@ -267,15 +267,20 @@ class MessageMixin extends MixinBase implements SayableSayer {
       throw new Error('no payload')
     }
 
-    // if (contact) {
-    //   this.payload.from = contact
-    //   return
-    // }
-    const talkerId = this.payload.fromId
+    let talkerId = this.payload.talkerId
     if (!talkerId) {
-      // Huan(202011): It seems that the fromId will never be null?
-      // return null
-      throw new Error('no payload.fromId found for talker')
+      /**
+       * `fromId` is deprecated, this code block will be removed in v2.0
+       */
+      if (this.payload.fromId) {
+        talkerId = this.payload.fromId
+      } else {
+        throw new Error('no talkerId found for talker')
+      }
+
+      log.warn('Message', 'talker() payload.talkerId not exist! See: https://github.com/wechaty/puppet/issues/187')
+      console.error('Puppet: %s@%s', this.wechaty.puppet.name(), this.wechaty.puppet.version())
+      console.error(new Error().stack)
     }
 
     let talker
@@ -326,7 +331,19 @@ class MessageMixin extends MixinBase implements SayableSayer {
       throw new Error('no payload')
     }
 
-    const listenerId = this.payload.toId
+    let listenerId = this.payload.listenerId
+
+    if (!listenerId && this.payload.toId) {
+      /**
+       * `toId` is deprecated, this code block will be removed in v2.0
+       */
+      listenerId = this.payload.toId
+
+      log.warn('Message', 'listener() payload.listenerId should be set! See: https://github.com/wechaty/puppet/issues/187')
+      console.error('Puppet: %s@%s', this.wechaty.puppet.name(), this.wechaty.puppet.version())
+      console.error(new Error().stack)
+    }
+
     if (!listenerId) {
       return undefined
     }
@@ -785,18 +802,44 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
     this.payload = await this.wechaty.puppet.messagePayload(this.id)
 
-    const fromId = this.payload.fromId
+    let talkerId = this.payload.talkerId
+    if (!talkerId) {
+      /**
+       * `fromId` is deprecated: this code block will be removed in v2.0
+       */
+      if (this.payload.fromId) {
+        talkerId = this.payload.fromId
+      } else {
+        throw new Error('no talkerId found for talker')
+      }
+
+      log.warn('Message', 'ready() payload.talkerId not exist! See: https://github.com/wechaty/puppet/issues/187')
+      console.error('Puppet: %s@%s', this.wechaty.puppet.name(), this.wechaty.puppet.version())
+      console.error(new Error().stack)
+    }
+
     const roomId = this.payload.roomId
-    const toId   = this.payload.toId
+
+    let listenerId = this.payload.listenerId
+    if (!listenerId && this.payload.toId) {
+      /**
+       * `fromId` is deprecated: this code block will be removed in v2.0
+       */
+      listenerId = this.payload.toId
+
+      log.warn('Message', 'ready() payload.listenerId should be set! See: https://github.com/wechaty/puppet/issues/187')
+      console.error('Puppet: %s@%s', this.wechaty.puppet.name(), this.wechaty.puppet.version())
+      console.error(new Error().stack)
+    }
 
     if (roomId) {
       await this.wechaty.Room.find({ id: roomId })
     }
-    if (fromId) {
-      await this.wechaty.Contact.find({ id: fromId })
+    if (talkerId) {
+      await this.wechaty.Contact.find({ id: talkerId })
     }
-    if (toId) {
-      await this.wechaty.Contact.find({ id: toId })
+    if (listenerId) {
+      await this.wechaty.Contact.find({ id: listenerId })
     }
   }
 
