@@ -11,14 +11,17 @@ import type {
   StateSwitchInterface,
 }                       from 'state-switch'
 
-import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'
-import type { ContactInterface }  from '../user-modules/contact.js'
+import { config }               from '../config.js'
+import { timestampToDate }      from '../pure-functions/timestamp-to-date.js'
+import type {
+  ContactImpl,
+  ContactInterface,
+  RoomImpl,
+}                               from '../user-modules/mod.js'
 
 import type {
   WechatifyUserModuleMixin,
-}                                 from './wechatify-user-module-mixin.js'
-
-import { config }           from '../config.js'
+}                               from './wechatify-user-module-mixin.js'
 
 import type { GErrorMixin } from './gerror-mixin.js'
 import type { IoMixin }     from './io-mixin.js'
@@ -434,12 +437,16 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
               try {
                 switch (payloadType) {
                   case PUPPET.types.Payload.RoomMember:
-                  case PUPPET.types.Payload.Contact:
-                    await (await this.Contact.find({ id: payloadId }))?.sync()
+                  case PUPPET.types.Payload.Contact: {
+                    const contact = await this.Contact.find({ id: payloadId }) as unknown as undefined | ContactImpl
+                    await contact?.ready(true)
                     break
-                  case PUPPET.types.Payload.Room:
-                    await (await this.Room.find({ id: payloadId }))?.sync()
+                  }
+                  case PUPPET.types.Payload.Room: {
+                    const room = await this.Room.find({ id: payloadId })  as unknown as undefined | RoomImpl
+                    await room?.ready(true)
                     break
+                  }
 
                   /**
                    * Huan(202008): noop for the following
