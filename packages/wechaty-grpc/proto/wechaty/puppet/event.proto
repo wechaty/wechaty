@@ -11,8 +11,9 @@ enum EventType {
   EVENT_TYPE_HEARTBEAT = 1;
   EVENT_TYPE_MESSAGE   = 2;
   EVENT_TYPE_DONG      = 3;
+  EVENT_TYPE_POST      = 4;
 
-  reserved 4 to 15;
+  reserved 5 to 15;
 
   EVENT_TYPE_ERROR       = 16;
   EVENT_TYPE_FRIENDSHIP  = 17;

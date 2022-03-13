@@ -275,12 +275,17 @@ Check out [RESOURCES.md](RESOURCES.md) file for learning resources.
 
 ## Changelog
 
-### master v0.29
+### master v1.0 (Mar 14, 2022)
+
+1. v1.0 release
+1. add `post` event
+
+### v0.33 (Oct 18, 2021)
 
 - ~~[ ] Rename `ENUM` from `CONTACT_GENDER_MALE` to `MALE` ([#110](https://github.com/wechaty/grpc/issues/110))~~
 - [ ] Fix typos
 
-### master v0.27
+### v0.27
 
 1. ES Modules support
 1. Export generated protocol buffers class as `puppet`
