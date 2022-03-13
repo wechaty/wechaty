@@ -112,7 +112,11 @@ console.log(config)
 
 ## HISTORY
 
-### master v1.0 (Oct 29, 2021)
+### master v1.18 (Mar 14, 2022)
+
+Upgrade to Wechaty Puppet v1.18
+
+### v1.0 (Oct 29, 2021)
 
 Release v1.0 of Puppet Mock
 

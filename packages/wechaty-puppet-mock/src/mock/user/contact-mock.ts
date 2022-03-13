@@ -121,6 +121,7 @@ class ContactMock extends ContactEventEmitter {
 
       const basePayload: PUPPET.payloads.MessageBase = {
         id        : cuid(),
+        talkerId  : that.id,
         timestamp : Date.now(),
         type      : PUPPET.types.Message.Text,
       }
@@ -168,13 +169,11 @@ class ContactMock extends ContactEventEmitter {
       if (conversation instanceof ContactMock) {
         payload = {
           ...basePayload,
-          fromId        : that.id,
-          toId          : conversation.id,
+          listenerId : conversation.id,
         } as PUPPET.payloads.MessageBase & PUPPET.payloads.MessageTo
       } else if (conversation instanceof RoomMock) {
         payload = {
           ...basePayload,
-          fromId        : that.id,
           mentionIdList : mentions.map(c => c.id),
           roomId        : conversation.id,
         } as PUPPET.payloads.MessageBase & PUPPET.payloads.MessageRoom

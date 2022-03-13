@@ -119,10 +119,10 @@ class MessageMock {
   talker (): ContactMock {
     log.verbose('MockMessage', 'talker()')
 
-    if (!this.payload.fromId) {
-      throw new Error('no fromId')
+    if (!this.payload.talkerId) {
+      throw new Error('no talkerId')
     }
-    const contact = this.mocker.ContactMock.load(this.payload.fromId)
+    const contact = this.mocker.ContactMock.load(this.payload.talkerId)
     return contact
   }
 
@@ -139,10 +139,10 @@ class MessageMock {
   listener (): undefined | ContactMock {
     log.verbose('MockMessage', 'listener()')
 
-    if (!this.payload.toId) {
+    if (!this.payload.listenerId) {
       return undefined
     }
-    const contact = this.mocker.ContactMock.load(this.payload.toId)
+    const contact = this.mocker.ContactMock.load(this.payload.listenerId)
     return contact
   }
 

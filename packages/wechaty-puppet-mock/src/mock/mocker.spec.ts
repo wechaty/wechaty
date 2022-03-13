@@ -139,12 +139,12 @@ test('MockContact.say().to(contact)', async t => {
   const { messageId } = await future
 
   const EXPECTED_PAYLOAD: PUPPET.payloads.Message = {
-    fromId    : user.id,
-    id        : messageId,
-    text      : TEXT,
-    timestamp : Date.now(),
-    toId      : mary.id,
-    type      : PUPPET.types.Message.Text,
+    id         : messageId,
+    listenerId : mary.id,
+    talkerId   : user.id,
+    text       : TEXT,
+    timestamp  : Date.now(),
+    type       : PUPPET.types.Message.Text,
   }
 
   const payload = await puppet.messagePayload(messageId)
@@ -173,10 +173,10 @@ test('MockContact.say().to(room)', async t => {
   const { messageId } = await future
 
   const EXPECTED_PAYLOAD: PUPPET.payloads.Message = {
-    fromId        : user.id,
     id            : messageId,
     mentionIdList : [],
     roomId        : room.id,
+    talkerId      : user.id,
     text          : TEXT,
     timestamp     : Date.now(),
     type          : PUPPET.types.Message.Text,
