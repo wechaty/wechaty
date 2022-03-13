@@ -283,6 +283,14 @@ class RoomMixin extends MixinBase implements SayableSayer {
   }
 
   /**
+   * Proposal: add a handle field to RoomPayload #181
+   *  @link https://github.com/wechaty/puppet/issues/181
+   */
+  handle (): undefined | string {
+    return this.payload?.handle
+  }
+
+  /**
    * Force reload data for Room, Sync data from puppet API again.
    *
    * @returns {Promise<void>}
@@ -296,7 +304,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   }
 
   /**
-   * `ready()` is For FrameWork ONLY!
+   * Warning: `ready()` is for the framework internally use ONLY!
    *
    * Please not to use `ready()` at the user land.
    * If you want to sync data, use `sync()` instead.
