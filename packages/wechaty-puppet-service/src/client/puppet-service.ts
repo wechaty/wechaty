@@ -17,27 +17,27 @@
  *   limitations under the License.
  *
  */
-import util from 'util'
-
-import * as PUPPET            from 'wechaty-puppet'
+import util               from 'util'
+import type { Writable }  from 'stream'
+import * as PUPPET        from 'wechaty-puppet'
 
 import type {
   FileBoxInterface,
   FileBox,
-}                             from 'file-box'
+}                         from 'file-box'
 import {
   StringValue,
   puppet as grpcPuppet,
-}                             from 'wechaty-grpc'
+}                         from 'wechaty-grpc'
 import {
   puppet$,
   Duck as PuppetDuck,
-}                             from 'wechaty-redux'
+}                         from 'wechaty-redux'
 import {
   Ducks,
   // Bundle,
-}                             from 'ducks'
-import type { Store }         from 'redux'
+}                         from 'ducks'
+import type { Store }     from 'redux'
 // import type { Subscription }  from 'rxjs'
 
 /**
@@ -321,6 +321,9 @@ class PuppetService extends PUPPET.Puppet {
       case grpcPuppet.EventType.EVENT_TYPE_MESSAGE:
         this.emit('message', JSON.parse(payload) as PUPPET.payloads.EventMessage)
         break
+      case grpcPuppet.EventType.EVENT_TYPE_POST:
+        this.emit('post', JSON.parse(payload) as PUPPET.payloads.EventPost)
+        break
       case grpcPuppet.EventType.EVENT_TYPE_READY:
         this.emit('ready', JSON.parse(payload) as PUPPET.payloads.EventReady)
         break
@@ -394,12 +397,12 @@ class PuppetService extends PUPPET.Puppet {
    *    @see https://github.com/wechaty/puppet/issues/158
    *
    */
-  override async dirtyPayload (type: PUPPET.types.Payload, id: string) {
+  override async dirtyPayload (type: PUPPET.types.Dirty, id: string) {
     log.verbose('PuppetService', 'dirtyPayload(%s, %s)', type, id)
 
     const request = new grpcPuppet.DirtyPayloadRequest()
     request.setId(id)
-    request.setType(type)
+    request.setType(type as Parameters<typeof request.setType>[0])
     try {
       await util.promisify(
         this.grpcManager.client.dirtyPayload
@@ -422,15 +425,16 @@ class PuppetService extends PUPPET.Puppet {
       payloadId,
     }: PUPPET.payloads.EventDirty,
   ): void {
-    log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.types.Payload[payloadType], payloadType, payloadId)
+    log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.types.Dirty[payloadType], payloadType, payloadId)
 
     const dirtyMap = {
-      [PUPPET.types.Payload.Contact]:      async (id: string) => this._payloadStore.contact?.delete(id),
-      [PUPPET.types.Payload.Friendship]:   async (_: string) => {},
-      [PUPPET.types.Payload.Message]:      async (_: string) => {},
-      [PUPPET.types.Payload.Room]:         async (id: string) => this._payloadStore.room?.delete(id),
-      [PUPPET.types.Payload.RoomMember]:   async (id: string) => this._payloadStore.roomMember?.delete(id),
-      [PUPPET.types.Payload.Unspecified]:  async (id: string) => { throw new Error('Unspecified type with id: ' + id) },
+      [PUPPET.types.Dirty.Contact]:      async (id: string) => this._payloadStore.contact?.delete(id),
+      [PUPPET.types.Dirty.Friendship]:   async (_: string) => {},
+      [PUPPET.types.Dirty.Message]:      async (_: string) => {},
+      [PUPPET.types.Dirty.Post]:         async (_: string) => {},
+      [PUPPET.types.Dirty.Room]:         async (id: string) => this._payloadStore.room?.delete(id),
+      [PUPPET.types.Dirty.RoomMember]:   async (id: string) => this._payloadStore.roomMember?.delete(id),
+      [PUPPET.types.Dirty.Unspecified]:  async (id: string) => { throw new Error('Unspecified type with id: ' + id) },
     }
 
     const dirtyFuncSync = this.wrapAsync(dirtyMap[payloadType])
@@ -1049,13 +1053,13 @@ class PuppetService extends PUPPET.Puppet {
 
     const payload: PUPPET.payloads.Message = {
       filename      : response.getFilename(),
-      fromId        : response.getFromId(),
       id            : response.getId(),
+      listenerId    : response.getToId(),
       mentionIdList : response.getMentionIdsList(),
       roomId        : response.getRoomId(),
+      talkerId      : response.getFromId(),
       text          : response.getText(),
       timestamp,
-      toId          : response.getToId(),
       type          : response.getType() as number,
     }
 
@@ -1876,7 +1880,7 @@ class PuppetService extends PUPPET.Puppet {
   }
 
   /**
-   * @deprecated Will be removed after Dec 31, 2022
+   * @deprecated Will be removed in v2.0
    */
   private async messageSendFileStream (
     conversationId : string,
@@ -1892,7 +1896,7 @@ class PuppetService extends PUPPET.Puppet {
           resolve(response)
         }
       })
-      request.pipe(stream)
+      request.pipe(stream as unknown as Writable) // Huan(202203): FIXME: as unknown as
     })
 
     const messageId = response.getId()

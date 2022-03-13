@@ -102,7 +102,7 @@ test.skip('stress testing', async t => {
   let COUNTER = 0
   const dongList: string[] = []
   puppetService.on('dong', payload => {
-    dongList.push(payload.data)
+    dongList.push(payload.data || '')
   })
 
   const timer = setInterval(() => {

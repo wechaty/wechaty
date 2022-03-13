@@ -221,6 +221,13 @@ class EventStreamManager {
           offCallbackList.push(off)
           break
         }
+        case 'post': {
+          const listener = (payload: PUPPET.payloads.EventPost) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_POST, payload)
+          this.puppet.on('post', listener)
+          const off = () => this.puppet.off('post', listener)
+          offCallbackList.push(off)
+          break
+        }
         case 'ready': {
           const listener = (payload: PUPPET.payloads.EventReady) => this.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_READY, payload)
           this.puppet.on('ready', listener)

@@ -18,6 +18,7 @@
  *
  */
 /* eslint-disable sort-keys */
+import type { Writable }    from 'stream'
 import {
   chunkDecoder,
   chunkEncoder,
@@ -322,7 +323,7 @@ function puppetImplementation (
 
       try {
         const id = call.request.getId()
-        const type: PUPPET.types.Payload = call.request.getType()
+        const type: PUPPET.types.Dirty = call.request.getType()
 
         await puppet.dirtyPayload(type, id)
         return callback(null, new grpcPuppet.DirtyPayloadResponse())
@@ -543,7 +544,7 @@ function puppetImplementation (
         const response = await packFileBoxToPb(grpcPuppet.MessageFileStreamResponse)(fileBox)
 
         response.on('error', e => call.destroy(e as Error))
-        response.pipe(call)
+        response.pipe(call as unknown as Writable) // Huan(202203): FIXME: as unknown as
 
       } catch (e) {
         log.error('PuppetServiceImpl', 'grpcError() messageFileStream() rejection: %s', e && (e as Error).message)
@@ -614,7 +615,7 @@ function puppetImplementation (
         const response = await packFileBoxToPb(grpcPuppet.MessageImageStreamResponse)(fileBox)
 
         response.on('error', e => call.destroy(e as Error))
-        response.pipe(call)
+        response.pipe(call as unknown as Writable)  // Huan(202203) FIXME: as unknown as
 
       } catch (e) {
         log.error('PuppetServiceImpl', 'grpcError() messageImageStream() rejection: %s', (e as Error).message)
@@ -693,7 +694,10 @@ function puppetImplementation (
 
         const response = new grpcPuppet.MessagePayloadResponse()
         response.setFilename(payload.filename || '')
-        response.setFromId(payload.fromId || '')
+        /**
+         * Huan(202203):`payload.fromId` is deprecated, will be removed in v2.0
+         */
+        response.setFromId(payload.talkerId || payload.fromId || '')
         response.setId(payload.id)
         response.setMentionIdsList(mentionIdList)
         response.setRoomId(payload.roomId || '')
@@ -703,7 +707,10 @@ function puppetImplementation (
         // Deprecated: will be removed after Dec 31, 2022
         response.setTimestampDeprecated(Math.floor(payload.timestamp))
 
-        response.setToId(payload.toId || '')
+        /**
+         * Huan(202203):`payload.toId` is deprecated, will be removed in v2.0
+         */
+        response.setToId(payload.listenerId || payload.toId || '')
         response.setType(payload.type as grpcPuppet.MessageTypeMap[keyof grpcPuppet.MessageTypeMap])
 
         return callback(null, response)
@@ -1485,11 +1492,11 @@ function puppetImplementation (
       log.verbose('PuppetServiceImpl', 'download()')
 
       const uuid    = call.request.getId()
-      const fileBox = FileBoxUuid.fromUuid(uuid, 'uuid.dat')
+      const fileBox = FileBoxUuid.fromUuid(uuid, { name: 'uuid.dat' })
 
       fileBox
         .pipe(chunkEncoder(grpcPuppet.DownloadResponse))
-        .pipe(call)
+        .pipe(call as unknown as Writable)  // Huan(202203) FIXME: as unknown as
     },
 
     upload: async (call, callback) => {

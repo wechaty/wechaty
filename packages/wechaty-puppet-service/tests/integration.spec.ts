@@ -65,7 +65,7 @@ test('Integration testing', async t => {
     const offError = () => puppetService.off('error', reject)
 
     puppetService.once('dong', payload => {
-      resolve(payload.data)
+      resolve(payload.data || '')
       offError()
     })
     puppetService.once('error', e => {

@@ -98,9 +98,9 @@ async function onMessage (payload: PUPPET.payloads.EventMessage) {
   const messagePayload = await puppet.messagePayload(payload.messageId)
   console.info('messagePayload:', JSON.stringify(messagePayload))
 
-  if (messagePayload.fromId) {
-    const contactPayload = await puppet.contactPayload(messagePayload.fromId)
-    console.info(`contactPayload(fromId:${messagePayload.fromId}):`, JSON.stringify(contactPayload))
+  if (messagePayload.talkerId) {
+    const contactPayload = await puppet.contactPayload(messagePayload.talkerId)
+    console.info(`contactPayload(talkerId:${messagePayload.talkerId}):`, JSON.stringify(contactPayload))
   }
 
   if (messagePayload.roomId) {
@@ -108,12 +108,12 @@ async function onMessage (payload: PUPPET.payloads.EventMessage) {
     console.info('roomPayload:', JSON.stringify(roomPayload))
   }
 
-  if (messagePayload.toId) {
-    const contactPayload = await puppet.contactPayload(messagePayload.toId)
-    console.info(`contactPayload(toId:${messagePayload.toId}):`, JSON.stringify(contactPayload))
+  if (messagePayload.listenerId) {
+    const contactPayload = await puppet.contactPayload(messagePayload.listenerId)
+    console.info(`contactPayload(listenerId:${messagePayload.listenerId}):`, JSON.stringify(contactPayload))
   }
 
-  if (messagePayload.fromId === puppet.currentUserId) {
+  if (messagePayload.talkerId === puppet.currentUserId) {
     console.info('skip self message')
     return
   }
@@ -121,7 +121,7 @@ async function onMessage (payload: PUPPET.payloads.EventMessage) {
   if (messagePayload.type === PUPPET.types.Message.Text
       && /^ding$/i.test(messagePayload.text || '')
   ) {
-    const conversationId = messagePayload.roomId || messagePayload.fromId
+    const conversationId = messagePayload.roomId || messagePayload.talkerId
 
     if (!conversationId) {
       throw new Error('no conversation id')
