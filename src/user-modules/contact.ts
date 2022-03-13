@@ -673,6 +673,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * await contact.sync()
    */
   async sync (): Promise<void> {
+    await this.wechaty.puppet.contactPayloadDirty(this.id)
     await this.ready(true)
   }
 
@@ -695,9 +696,6 @@ class ContactMixin extends MixinBase implements SayableSayer {
     }
 
     try {
-      if (forceSync) {
-        await this.wechaty.puppet.contactPayloadDirty(this.id)
-      }
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 

@@ -298,6 +298,8 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * await room.sync()
    */
   async sync (): Promise<void> {
+    await this.wechaty.puppet.roomPayloadDirty(this.id)
+    await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
     await this.ready(true)
   }
 
@@ -318,10 +320,6 @@ class RoomMixin extends MixinBase implements SayableSayer {
       return
     }
 
-    if (forceSync) {
-      await this.wechaty.puppet.roomPayloadDirty(this.id)
-      await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
-    }
     this.payload = await this.wechaty.puppet.roomPayload(this.id)
 
     /**
