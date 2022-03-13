@@ -697,7 +697,7 @@ function puppetImplementation (
         /**
          * Huan(202203):`payload.fromId` is deprecated, will be removed in v2.0
          */
-        response.setFromId(payload.talkerId || payload.fromId || '')
+        response.setTalkerId(payload.talkerId || payload.fromId || '')
         response.setId(payload.id)
         response.setMentionIdsList(mentionIdList)
         response.setRoomId(payload.roomId || '')
@@ -710,7 +710,7 @@ function puppetImplementation (
         /**
          * Huan(202203):`payload.toId` is deprecated, will be removed in v2.0
          */
-        response.setToId(payload.listenerId || payload.toId || '')
+        response.setListenerId(payload.listenerId || payload.toId || '')
         response.setType(payload.type as grpcPuppet.MessageTypeMap[keyof grpcPuppet.MessageTypeMap])
 
         return callback(null, response)
