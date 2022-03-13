@@ -22,26 +22,37 @@ interface ContactQueryFilter {
 }
 
 interface ContactPayload {
-  id     : string,
-  gender : ContactGender,
-  type   : ContactType,
-  name   : string,
-  avatar : string,
+  id     : string
+  gender : ContactGender
+  type   : ContactType
+  name   : string
+  avatar : string
 
-  address?   : string,  // Huan(202001): what's this for?
-  alias?     : string,
-  city?      : string,
-  friend?    : boolean,
-  province?  : string,
-  signature? : string,
-  star?      : boolean,
-  weixin?    : string,
+  address?   : string  // Huan(202001): what's this for?
+  alias?     : string
+  city?      : string
+  friend?    : boolean
+  province?  : string
+  signature? : string
+  star?      : boolean
 
-  phone        : string[],
-  corporation? : string,
-  title?       : string,
-  description? : string,
-  coworker?    : boolean,
+  /**
+   * @deprecated use `handle` instead
+   *  @see https://github.com/wechaty/puppet/issues/181
+   */
+  weixin? : string
+  /**
+   * "A Twitter handle is the username that appears at the end of your unique Twitter URL."
+   *  - Twitter: @handle (https://twitter.com/handle)
+   *  - Facebook: https://facebook.com/handle
+   */
+  handle? : string
+
+  phone        : string[]
+  corporation? : string
+  title?       : string
+  description? : string
+  coworker?    : boolean
 }
 
 /** @hidden */

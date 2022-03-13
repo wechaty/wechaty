@@ -56,7 +56,12 @@ export type FriendshipPayload = FriendshipPayloadConfirm
 
 export interface FriendshipSearchCondition {
   phone: string,
-  weixin: string,
+  /**
+   * @deprecated: use `handle` instead.
+   *  @see https://github.com/wechaty/puppet/issues/181
+   */
+  weixin?: string,
+  handle: string
 }
 
 interface FriendshipAddOptionsObject {

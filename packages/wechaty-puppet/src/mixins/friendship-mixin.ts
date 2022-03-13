@@ -30,7 +30,17 @@ const friendshipMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(m
     abstract friendshipAdd (contactId: string, option?: FriendshipAddOptions) : Promise<void>
 
     abstract friendshipSearchPhone (phone: string)   : Promise<null | string>
-    abstract friendshipSearchWeixin (weixin: string) : Promise<null | string>
+    abstract friendshipSearchHandle (handle: string) : Promise<null | string>
+
+    /**
+     * Huan(202203): `friendshipSearchWeixin()` will be removed in Puppet v2.0
+     * @deprecated use `friendshipSearchHandle()` instead.
+     */
+    friendshipSearchWeixin (weixin: string) : Promise<null | string> {
+      log.warn('Puppet', 'friendshipSearchWeixin() is deprecated. use `friendshipSearchHandle()` instead.')
+      console.error(new Error().stack)
+      return this.friendshipSearchHandle(weixin)
+    }
 
     /**
      * Issue #155 - https://github.com/wechaty/puppet/issues/155
@@ -58,7 +68,15 @@ const friendshipMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(m
       if (searchQueryFilter.phone) {
         return this.friendshipSearchPhone(searchQueryFilter.phone)
       } else if (searchQueryFilter.weixin) {
-        return this.friendshipSearchWeixin(searchQueryFilter.weixin)
+        /**
+         * Huan(202203): `weixin` will be removed in Puppet v2.0
+         * @deprecate use `handle` instead
+         */
+        log.warn('Puppet', 'friendshipSearch() `{ weixin: ... }` is deprecated. use `{ handle: ... }` instead.')
+        console.error(new Error().stack)
+        return this.friendshipSearchHandle(searchQueryFilter.weixin)
+      } else if (searchQueryFilter.handle) {
+        return this.friendshipSearchHandle(searchQueryFilter.handle)
       }
 
       throw new Error(`unknown key from searchQueryFilter: ${Object.keys(searchQueryFilter).join('')}`)

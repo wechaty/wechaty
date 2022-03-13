@@ -79,10 +79,10 @@ class PuppetTest extends PUPPET.Puppet {
   override async friendshipRawPayload (id: string)            : Promise<any> { return { id } as any }
   override async friendshipRawPayloadParser (rawPayload: any) : Promise<PUPPET.payloads.Friendship> { return rawPayload }
 
-  override async friendshipSearchPhone (phone: string) : Promise<null | string> { return phone }
-  override async friendshipSearchWeixin (weixin: string) : Promise<null | string> { return weixin }
+  override async friendshipSearchPhone (phone: string)                            : Promise<null | string> { return phone }
+  override async friendshipSearchHandle (handle: string)                          : Promise<null | string> { return handle }
   override async friendshipAdd (contactId: string, option?: FriendshipAddOptions) : Promise<void> { return { contactId, option } as any }
-  override async friendshipAccept (friendshipId: string)           : Promise<void> { return { friendshipId } as any }
+  override async friendshipAccept (friendshipId: string)                          : Promise<void> { return { friendshipId } as any }
 
   /**
    *

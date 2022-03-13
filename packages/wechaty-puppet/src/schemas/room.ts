@@ -10,14 +10,22 @@ export interface RoomQueryFilter {
 }
 
 export interface RoomPayload {
-  id : string,
+  id : string
 
-  topic        : string,
-  avatar?      : string,
-  memberIdList : string[],
-  ownerId?     : string,
-  adminIdList  : string[],
-  external?    : boolean,
+  topic        : string
+  avatar?      : string
+
+  /**
+   * Proposal: add a handle field to RoomPayload #181
+   *  "A Twitter handle is the username that appears at the end of your unique Twitter URL."
+   *  @link https://github.com/wechaty/puppet/issues/181
+   */
+  handle?      : string
+
+  memberIdList : string[]
+  ownerId?     : string
+  adminIdList  : string[]
+  external?    : boolean
 }
 
 export interface RoomMemberPayload {
