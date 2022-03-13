@@ -51,9 +51,9 @@ message MessagePayloadResponse {
    */
   uint64      timestamp_deprecated = 4 [deprecated = true];
   MessageType type               = 5;
-  string      from_id            = 6;
+  string      talker_id          = 6;
   string      room_id            = 7;
-  string      to_id              = 8;
+  string      listener_id        = 8;
   repeated    string mention_ids = 9;
   google.protobuf.Timestamp receive_time = 10;
 }
