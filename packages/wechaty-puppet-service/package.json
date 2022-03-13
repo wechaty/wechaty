@@ -76,7 +76,7 @@
     "semver": "^7.3.5",
     "stronger-typed-streams": "^0.2.0",
     "uuid": "^8.3.2",
-    "wechaty-grpc": "^1.0.0",
+    "wechaty-grpc": "^1.1.1",
     "wechaty-redux": "^1.10.2",
     "wechaty-token": "^1.0.6"
   },

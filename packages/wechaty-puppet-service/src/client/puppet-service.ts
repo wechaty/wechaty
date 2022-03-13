@@ -1054,10 +1054,10 @@ class PuppetService extends PUPPET.Puppet {
     const payload: PUPPET.payloads.Message = {
       filename      : response.getFilename(),
       id            : response.getId(),
-      listenerId    : response.getToId(),
+      listenerId    : response.getListenerId(),
       mentionIdList : response.getMentionIdsList(),
       roomId        : response.getRoomId(),
-      talkerId      : response.getFromId(),
+      talkerId      : response.getTalkerId(),
       text          : response.getText(),
       timestamp,
       type          : response.getType() as number,
