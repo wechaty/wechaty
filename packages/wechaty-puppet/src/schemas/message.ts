@@ -84,8 +84,11 @@ export enum WechatMessageType {
 export interface MessagePayloadBase {
   id            : string,
 
-  // use message id to get rawPayload to get those information when needed
-  // contactId?    : string,        // Contact ShareCard
+  /**
+   * Huan(202203): replace `fromId` by `talkerId`, `toId` by `listenerId` #187
+   *  @link https://github.com/wechaty/puppet/issues/187
+   */
+  talkerId: string,
 
   filename?     : string,
   text?         : string,
@@ -95,16 +98,49 @@ export interface MessagePayloadBase {
 
 /** @hidden */
 export interface MessagePayloadRoom {
+  /**
+   * Huan(202203): `toId` will be removed with v2.0
+   *  replace `fromId` by `talkerId`
+   *  @link https://github.com/wechaty/puppet/issues/187
+   *
+   * @deprecated use `talkerId` instead
+   */
   fromId?       : string,
   mentionIdList?: string[],   // Mentioned Contacts' Ids
   roomId        : string,
-  toId?         : string,     // if to is not set, then room must be set
+
+  /**
+   * Huan(202203): `toId` will be removed with v2.0
+   *  replace `toId` by `listenerId`
+   *  @link https://github.com/wechaty/puppet/issues/187
+   *
+   * @deprecated use `listenerId` instead
+   */
+  toId?: string,
+  listenerId?: string
 }
+
 /** @hidden */
 export interface MessagePayloadTo {
-  fromId        : string,
-  roomId?       : string,
-  toId          : string,   // if to is not set, then room must be set
+  /**
+   * Huan(202203): `fromId` will be removed with v2.0
+   *  replace `fromId` by `talkerId`
+   *  @link https://github.com/wechaty/puppet/issues/187
+   *
+   * @deprecated use `talkerId` instead
+   */
+  fromId?: string
+
+  roomId?: string
+  /**
+   * Huan(202203): `toId` will be removed with v2.0
+   *  replace `toId` by `listenerId`
+   *  @link https://github.com/wechaty/puppet/issues/187
+   *
+   * @deprecated use `listenerId` instead
+   */
+  toId?: string
+  listenerId: string  // if to is not set, then room must be set
 }
 
 export type MessagePayload = MessagePayloadBase
