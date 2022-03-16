@@ -45,10 +45,13 @@ type AllProtectedProperty =
  *    or will run into error: cyclic dependency?
  */
 interface WechatyEventEmitter {
-  on   : TypedEventEmitter<WechatyEventListeners>['on']
-  off  : TypedEventEmitter<WechatyEventListeners>['off']
-  once : TypedEventEmitter<WechatyEventListeners>['once']
+  on: AlterReturnType<TypedEventEmitter<WechatyEventListeners>['on'], WechatyInterface>
+  off: AlterReturnType<TypedEventEmitter<WechatyEventListeners>['off'], WechatyInterface>
+  once: AlterReturnType<TypedEventEmitter<WechatyEventListeners>['once'], WechatyInterface>
 }
+
+type AlterReturnType<Func extends Function, ReturnType> =
+  Func extends (...args: infer Args) => any ? (...args: Args) => ReturnType : never
 
 type WechatyInterface = Omit<WechatyImplInterface, AllProtectedProperty>
   & WechatyEventEmitter
