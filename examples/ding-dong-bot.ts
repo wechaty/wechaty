@@ -66,6 +66,11 @@ bot
   .on('scan',   onScan)
   .on('error',  onError)
   .on('message', onMessage)
+/**
+ *
+ * 3. Start the bot!
+ *
+ */
   .start()
   .catch(async e => {
     console.error('Bot start() fail:', e)
