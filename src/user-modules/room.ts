@@ -61,6 +61,7 @@ import {
 import type {
   MessageInterface,
 }                       from './message.js'
+import type { SayOptions, SayOptionsObject } from '../sayable/types.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -354,9 +355,8 @@ class RoomMixin extends MixinBase implements SayableSayer {
     return !!(this.payload)
   }
 
-  say (sayable:  Sayable)                                 : Promise<void | MessageInterface>
-  say (text:     string, ...mentionList: ContactInterface[])       : Promise<void | MessageInterface>
-  say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | MessageInterface>
+  say (sayable: Sayable, options?: SayOptions)             : Promise<void | MessageInterface>
+  say (textList: TemplateStringsArray, ...varList: any[])  : Promise<void | MessageInterface>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -453,26 +453,37 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
     let msgId
     let text: string
+    let options: SayOptionsObject = {}
+
+    /**
+     * format all overloads into SayOptionsObject
+     */
+    if (varList.length > 0) {
+      if (ContactImpl.valid(varList[0])) {
+        options.replyTo = [varList[0]]
+      } else if (varList.length > 1) {
+        const allIsContact = varList.every(c => ContactImpl.valid(c))
+        if (!allIsContact) {
+          throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
+        }
+        options.replyTo = [...varList as any]
+      } else {
+        options = (varList[0] || {}) as SayOptionsObject
+      }
+    }
 
     if (isTemplateStringArray(sayable)) {
       msgId = await this.sayTemplateStringsArray(
         sayable as TemplateStringsArray,
-        ...varList,
+        options,
       )
     } else if (typeof sayable === 'string') {
       /**
        * 1. string
        */
-      let mentionList: ContactInterface[] = []
 
-      if (varList.length > 0) {
-        const allIsContact = varList.every(c => ContactImpl.valid(c))
-        if (!allIsContact) {
-          throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
-        }
-
-        mentionList = [...varList as any]
-
+      const mentionList = options.replyTo as ContactInterface[]
+      if (mentionList.length > 0) {
         const AT_SEPARATOR = FOUR_PER_EM_SPACE
         const mentionAlias = await Promise.all(mentionList.map(async contact =>
           '@' + (await this.alias(contact) || contact.name()),
@@ -490,10 +501,13 @@ class RoomMixin extends MixinBase implements SayableSayer {
       msgId = await this.wechaty.puppet.messageSendText(
         this.id,
         text,
-        mentionList.map(c => c.id),
+        {
+          quoteId: options.quoteMessage.id,
+          mentionIdList: mentionList.map(c => c.id),
+        },
       )
     } else {
-      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
+      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable, options)
     }
 
     if (msgId) {
@@ -504,21 +518,25 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
   private async sayTemplateStringsArray (
     textList: TemplateStringsArray,
-    ...varList: unknown[]
+    options: SayOptionsObject,
   ) {
-    const mentionList = varList.filter(c => ContactImpl.valid(c)) as ContactInterface[]
+    const rawMentionList = Array.isArray(options.replyTo) ? options.replyTo : [options.replyTo]
+    const mentionList = rawMentionList.filter(c => ContactImpl.valid(c)) as ContactInterface[]
 
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
     //   roomId    : this.id,
     // }
-    if (varList.length === 0) {
+    if (mentionList.length === 0) {
       /**
        * No mention in the string
        */
       return this.wechaty.puppet.messageSendText(
         this.id,
         textList[0]!,
+        {
+          quoteId: options.quoteMessage?.id,
+        },
       )
     // TODO(huan) 20191222 it seems the following code will not happen,
     //            because it's equal the mentionList.length === 0 situation?
@@ -540,7 +558,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
        * Mention in the string
        */
       const textListLength = textList.length
-      const varListLength  = varList.length
+      const varListLength = mentionList.length
       if (textListLength - varListLength !== 1) {
         throw new Error('Can not say message, invalid Template String Array.')
       }
@@ -548,12 +566,12 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
       let i = 0
       for (; i < varListLength; i++) {
-        if (ContactImpl.valid(varList[i])) {
-          const mentionContact: ContactInterface = varList[i] as any
+        if (ContactImpl.valid(mentionList[i])) {
+          const mentionContact: ContactInterface = mentionList[i] as any
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
         } else {
-          finalText += textList[i]! + varList[i]!
+          finalText += textList[i]! + mentionList[i]!
         }
       }
       finalText += textList[i]
@@ -561,7 +579,10 @@ class RoomMixin extends MixinBase implements SayableSayer {
       return this.wechaty.puppet.messageSendText(
         this.id,
         finalText,
-        mentionList.map(c => c.id),
+        {
+          quoteId: options.quoteMessage?.id,
+          mentionIdList: mentionList.map(c => c.id),
+        },
       )
     }
   }

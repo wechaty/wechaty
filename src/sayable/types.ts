@@ -56,13 +56,16 @@ interface SayableSayer {
   ): Promise<void | MessageInterface>
 }
 
-interface SayOptions {
+interface SayOptionsObject {
   replyTo?: ContactInterface | ContactInterface[],
   quoteMessage?: MessageInterface,
 }
+
+type SayOptions = ContactInterface | ContactInterface[] | SayOptionsObject
 
 export type {
   SayableSayer,
   Sayable,
   SayOptions,
+  SayOptionsObject,
 }

@@ -51,6 +51,7 @@ import { stringifyFilter }            from '../helper-functions/stringify-filter
 import type { MessageInterface }  from './message.js'
 import type { TagInterface }      from './tag.js'
 import type { ContactSelfImpl }   from './contact-self.js'
+import type { SayOptionsObject } from '../sayable/types.js'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -332,10 +333,11 @@ class ContactMixin extends MixinBase implements SayableSayer {
    */
   async say (
     sayable: Sayable,
+    options?: SayOptionsObject,
   ): Promise<void | MessageInterface> {
     log.verbose('Contact', 'say(%s)', sayable)
 
-    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
+    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable, options)
 
     if (msgId) {
       const msg = await this.wechaty.Message.find({ id: msgId })

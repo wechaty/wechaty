@@ -11,13 +11,21 @@ import {
   LocationImpl,
 }                     from '../user-modules/mod.js'
 
-import type { Sayable } from './types.js'
+import type { Sayable, SayOptionsObject } from './types.js'
 
 /**
  * TODO: add unit test to ensure the interface validation code works
  */
-const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) => (conversationId: string) => async (sayable: Sayable) => {
+const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) => (conversationId: string) => async (sayable: Sayable, options?: SayOptionsObject) => {
   let msgId: string | void
+  const messageSendOptions: PUPPET.types.MessageSendOptions = {}
+  if (options?.replyTo) {
+    const replyTo = Array.isArray(options.replyTo) ? options.replyTo : [options.replyTo]
+    messageSendOptions.mentionIdList = replyTo.map(c => c.id)
+  }
+  if (options?.quoteMessage) {
+    messageSendOptions.quoteId = options.quoteMessage.id
+  }
 
   if (typeof sayable === 'number') {
     sayable = String(sayable)
@@ -27,6 +35,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     return puppet.messageSendText(
       conversationId,
       sayable,
+      messageSendOption,
     )
   }
 
@@ -41,6 +50,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendFile(
       conversationId,
       sayable,
+      messageSendOption,
     )
   } else if (MessageImpl.validInstance(sayable)) {
     /**
@@ -49,6 +59,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageForward(
       conversationId,
       sayable.id,
+      messageSendOption,
     )
   } else if (ContactImpl.validInstance(sayable)) {
     /**
@@ -57,6 +68,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendContact(
       conversationId,
       sayable.id,
+      messageSendOption,
     )
   } else if (UrlLinkImpl.validInstance(sayable)) {
     /**
@@ -73,6 +85,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendMiniProgram(
       conversationId,
       sayable.payload,
+      messageSendOption,
     )
   } else if (LocationImpl.validInstance(sayable)) {
     /**
@@ -81,6 +94,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendLocation(
       conversationId,
       sayable.payload,
+      messageSendOption,
     )
   } else if (DelayImpl.validInstance(sayable)) {
     /**
@@ -94,6 +108,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendPost(
       conversationId,
       sayable.payload,
+      messageSendOption,
     )
   } else {
     throw new Error('unsupported arg: ' + sayable)

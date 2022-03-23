@@ -35,6 +35,7 @@ import {
 import type {
   SayableSayer,
   Sayable,
+  SayOptions,
 }                             from '../sayable/mod.js'
 import {
   messageToSayable,
@@ -545,16 +546,17 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   async say (
     sayable: Sayable,
+    options?: SayOptions,
   ): Promise<void | MessageInterface> {
-    log.verbose('Message', 'say(%s)', sayable)
+    log.verbose('Message', 'say(%s, %s)', sayable, JSON.stringify(options))
 
     const talker  = this.talker()
     const room    = this.room()
 
     if (room) {
-      return room.say(sayable)
+      return room.say(sayable, options)
     } else {
-      return talker.say(sayable)
+      return talker.say(sayable, options)
     }
   }
 
