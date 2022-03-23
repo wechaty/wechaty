@@ -769,6 +769,28 @@ class MessageMixin extends MixinBase implements SayableSayer {
   }
 
   /**
+ * get the quoted message of the current message if exists
+ *
+ * @returns {Promise<MessageImplInterface | undefined>}
+ *
+ */
+
+  quote (): MessageInterface | undefined {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    const quoteMessageId = this.payload.quoteId
+    if (!quoteMessageId) {
+      return undefined // no quote is acceptable
+    }
+
+    const quoteMessage = (this.wechaty.Message as typeof MessageImpl).load(quoteMessageId)
+
+    return quoteMessage
+  }
+
+  /**
    * Check if a message is mention self.
    *
    * @returns {Promise<boolean>} - Return `true` for mention me.
