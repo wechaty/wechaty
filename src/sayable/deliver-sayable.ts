@@ -35,7 +35,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     return puppet.messageSendText(
       conversationId,
       sayable,
-      messageSendOption,
+      messageSendOptions,
     )
   }
 
@@ -50,7 +50,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendFile(
       conversationId,
       sayable,
-      messageSendOption,
+      messageSendOptions,
     )
   } else if (MessageImpl.validInstance(sayable)) {
     /**
@@ -59,7 +59,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageForward(
       conversationId,
       sayable.id,
-      messageSendOption,
+      messageSendOptions,
     )
   } else if (ContactImpl.validInstance(sayable)) {
     /**
@@ -68,7 +68,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendContact(
       conversationId,
       sayable.id,
-      messageSendOption,
+      messageSendOptions,
     )
   } else if (UrlLinkImpl.validInstance(sayable)) {
     /**
@@ -85,7 +85,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendMiniProgram(
       conversationId,
       sayable.payload,
-      messageSendOption,
+      messageSendOptions,
     )
   } else if (LocationImpl.validInstance(sayable)) {
     /**
@@ -94,7 +94,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendLocation(
       conversationId,
       sayable.payload,
-      messageSendOption,
+      messageSendOptions,
     )
   } else if (DelayImpl.validInstance(sayable)) {
     /**
@@ -108,7 +108,7 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
     msgId = await puppet.messageSendPost(
       conversationId,
       sayable.payload,
-      messageSendOption,
+      messageSendOptions,
     )
   } else {
     throw new Error('unsupported arg: ' + sayable)
