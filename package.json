@@ -121,7 +121,7 @@
     "json-rpc-peer": "^0.17.0",
     "memory-card": "^1.1.2",
     "open-graph": "^0.2.6",
-    "rx-queue": "^1.0.4",
+    "rx-queue": "^1.0.5",
     "state-switch": "^1.6.3",
     "uuid": "^8.3.2",
     "wechaty-puppet": "^1.19.1",
