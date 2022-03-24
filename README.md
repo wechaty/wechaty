@@ -52,6 +52,9 @@ Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can h
 > "太好用，好用的想哭"  
 > &mdash; <cite>@xinbenlv, Google Engineer, Founder of HaoShiYou.org</cite>
 >
+> “在这里，还是要向**@wechaty社群**致敬！”好用到哭“——你们对得起这个评价！”
+> &mdash; <cite>[@bigbrother666sh](https://github.com/bigbrother666sh/shezhangbujianle#%E8%87%B4%E6%95%AC)</cite>
+>
 > "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
 > &mdash; <cite>@Jarvis, Baidu Engineer</cite>
 >
