@@ -1,5 +1,4 @@
 import type { EventEmitter }  from 'events'
-import type TypedEventEmitter from 'typed-emitter'
 
 import type { Constructor }           from 'clone-class'
 import type {
@@ -45,9 +44,9 @@ type AllProtectedProperty =
  *    or will run into error: cyclic dependency?
  */
 interface WechatyEventEmitter {
-  on   : TypedEventEmitter<WechatyEventListeners>['on']
-  off  : TypedEventEmitter<WechatyEventListeners>['off']
-  once : TypedEventEmitter<WechatyEventListeners>['once']
+  on:   <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+  off:  <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+  once: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
 }
 
 type WechatyInterface = Omit<WechatyImplInterface, AllProtectedProperty>
