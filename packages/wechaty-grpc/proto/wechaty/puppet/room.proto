@@ -22,6 +22,7 @@ message RoomPayloadResponse {
   string   owner_id         = 4;
   repeated string admin_ids  = 5;
   repeated string member_ids = 6;
+  string   handle           = 7;
 }
 
 message RoomAddRequest {

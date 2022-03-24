@@ -118,6 +118,12 @@ export const puppetServerImpl: IPuppetServer = {
     throw new Error('not implemented.')
   },
 
+  friendshipSearchHandle: (call, callback) => {
+    void call
+    void callback
+    throw new Error('not implemented.')
+  },
+
   logout: (call, callback) => {
     void call
     void callback
