@@ -17,8 +17,4 @@
  *   limitations under the License.
  *
  */
-const NOOP = 'wechaty/NOOP'
-
-export {
-  NOOP,
-}
+export const NOP = 'wechaty-puppet-service/NOP'

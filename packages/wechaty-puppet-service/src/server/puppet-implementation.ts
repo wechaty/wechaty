@@ -231,7 +231,10 @@ function puppetImplementation (
         response.setSignature(payload.signature || '')
         response.setStar(payload.star || false)
         response.setType(payload.type)
-        response.setWeixin(payload.weixin || '')
+        /**
+         * @deprecated `payload.weixin` will be removed in v2.0
+         */
+        response.setHandle(payload.handle || payload.weixin || '')
         response.setPhonesList(payload.phone)
         response.setCoworker(payload.coworker || false)
         response.setCorporation(payload.corporation || '')
@@ -459,15 +462,22 @@ function puppetImplementation (
         return grpcError('friendshipSearchPhone', e, callback)
       }
     },
-
+    /**
+     * @deprecated use `friendshipSearchHandle()` instead, will be removed in v3.0
+     */
     friendshipSearchWeixin: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipSearchWeixin()')
+      log.warn('PuppetServiceImpl', 'friendshipSearchWeixin() is deprecated, use friendshipSearchHandle() instead. %s', new Error().stack)
+      return puppetServerImpl.friendshipSearchHandle(call, callback)
+    },
+
+    friendshipSearchHandle: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'friendshipSearchHandle()')
 
       try {
-        const weixin = call.request.getWeixin()
-        const contactId = await puppet.friendshipSearchWeixin(weixin)
+        const weixin = call.request.getHandle()
+        const contactId = await puppet.friendshipSearchHandle(weixin)
 
-        const response = new grpcPuppet.FriendshipSearchWeixinResponse()
+        const response = new grpcPuppet.FriendshipSearchHandleResponse()
 
         if (contactId) {
           response.setContactId(contactId)
@@ -476,7 +486,7 @@ function puppetImplementation (
         return callback(null, response)
 
       } catch (e) {
-        return grpcError('friendshipSearchWeixin', e, callback)
+        return grpcError('friendshipSearchHandle', e, callback)
       }
     },
 

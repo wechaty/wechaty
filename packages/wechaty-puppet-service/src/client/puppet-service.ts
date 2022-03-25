@@ -667,6 +667,7 @@ class PuppetService extends PUPPET.Puppet {
       description : response.getDescription(),
       friend      : response.getFriend(),
       gender      : response.getGender() as number,
+      handle      : response.getHandle(),
       id          : response.getId(),
       name        : response.getName(),
       phone       : response.getPhonesList(),
@@ -675,7 +676,11 @@ class PuppetService extends PUPPET.Puppet {
       star        : response.getStar(),
       title       : response.getTitle(),
       type        : response.getType() as number,
-      weixin      : response.getWeixin(),
+      /**
+       * `weixin` is deprecated, will be removed after Dec 31, 2022
+       * use `handle` instead.
+       */
+      weixin      : response.getHandle(),
     }
 
     await this._payloadStore.contact?.set(id, payload)
@@ -1686,16 +1691,16 @@ class PuppetService extends PUPPET.Puppet {
     return null
   }
 
-  override async friendshipSearchWeixin (
-    weixin: string,
+  override async friendshipSearchHandle (
+    handle: string,
   ): Promise<string | null> {
-    log.verbose('PuppetService', 'friendshipSearchWeixin(%s)', weixin)
+    log.verbose('PuppetService', 'friendshipSearchHandle(%s)', handle)
 
-    const request = new grpcPuppet.FriendshipSearchWeixinRequest()
-    request.setWeixin(weixin)
+    const request = new grpcPuppet.FriendshipSearchHandleRequest()
+    request.setHandle(handle)
 
     const response = await util.promisify(
-      this.grpcManager.client.friendshipSearchWeixin
+      this.grpcManager.client.friendshipSearchHandle
         .bind(this.grpcManager.client),
     )(request)
 

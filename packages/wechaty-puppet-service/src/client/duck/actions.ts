@@ -28,8 +28,4 @@ import * as types   from './types.js'
  * Bug compatible & workaround for Ducks API
  *  https://github.com/huan/ducks/issues/2
  */
-const noop = createAction(types.NOOP)()
-
-export {
-  noop,
-}
+export const nop = createAction(types.NOP)()

@@ -21,8 +21,8 @@ import type { Dispatch } from 'redux'
 
 import * as actions from './actions.js'
 
-const noop = (dispatch: Dispatch) => () => dispatch(actions.noop())
+const nop = (dispatch: Dispatch) => () => dispatch(actions.nop())
 
 export {
-  noop,
+  nop,
 }
