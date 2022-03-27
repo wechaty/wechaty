@@ -673,6 +673,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * await contact.sync()
    */
   async sync (): Promise<void> {
+    await this.wechaty.puppet.contactPayloadDirty(this.id)
     await this.ready(true)
   }
 
@@ -695,9 +696,6 @@ class ContactMixin extends MixinBase implements SayableSayer {
     }
 
     try {
-      if (forceSync) {
-        await this.wechaty.puppet.contactPayloadDirty(this.id)
-      }
       this.payload = await this.wechaty.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 
@@ -756,16 +754,29 @@ class ContactMixin extends MixinBase implements SayableSayer {
   }
 
   /**
-   * Get the weixin number from a contact.
+   * Get the handle from a contact.
    *
-   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
+   * > A Twitter handle is the username that appears at the end of your unique Twitter URL.
+   *
+   * Sometimes cannot get handle due to the puppet implementation.
    *
    * @ignore
    * @returns {string | null}
    * @example
-   * const weixin = contact.weixin()
+   * const handle = contact.handle()
+   */
+  handle (): undefined | string {
+    return this.payload?.handle
+  }
+
+  /**
+   * Huan(202203): `weixin()` will be removed in v2.0
+   *  @link https://github.com/wechaty/puppet/issues/181
+   * @deprecated use `handle()` instead
    */
   weixin (): undefined | string {
+    log.warn('Contact', 'weixin() is deprecated, use `handle()` instead.')
+    console.error(new Error().stack)
     return this.payload?.weixin
   }
 

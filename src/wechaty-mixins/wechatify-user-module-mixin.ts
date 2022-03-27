@@ -74,25 +74,19 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mix
     get Tag ()            : TagConstructor            { return guardWechatify(this.__wechatifiedTag)            }
     get UrlLink ()        : UrlLinkConstructor        { return guardWechatify(this.__wechatifiedUrlLink)        }
 
-    override async start (): Promise<void> {
-      log.verbose('WechatifyUserModuleMixin', 'start()')
-
-      await super.start()
-      this.__wechatifyUserModules()
-    }
-
-    __wechatifyUserModules (): void {
-      log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules()')
+    override async init (): Promise<void> {
+      log.verbose('WechatifyUserModuleMixin', 'init()')
+      await super.init()
 
       /**
        * Skip if already wechatified
        */
       if (this.__wechatifiedMessage) {
-        log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() Wechaty User Module (WUM)s have already wechatified: skip')
+        log.verbose('WechatifyUserModuleMixin', 'init() Wechaty User Module (WUM)s have already wechatified: skip')
         return
       }
 
-      log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() initializing Wechaty User Module (WUM) ...')
+      log.verbose('WechatifyUserModuleMixin', 'init() initializing Wechaty User Module (WUM) ...')
 
       /**
        * Wechatify User Classes
@@ -114,7 +108,7 @@ const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mix
       this.__wechatifiedTag            = wechatifyUserModule(TagImpl)(this as any)
       this.__wechatifiedUrlLink        = wechatifyUserModule(UrlLinkImpl)(this as any)
 
-      log.verbose('WechatifyUserModuleMixin', '_wechatifyUserModules() initializing Wechaty User Module (WUM) ... done')
+      log.verbose('WechatifyUserModuleMixin', 'init() initializing Wechaty User Module (WUM) ... done')
     }
 
   }
@@ -135,7 +129,6 @@ function guardWechatify<T extends Function> (userModule?: T): T {
 type WechatifyUserModuleMixin = ReturnType<typeof wechatifyUserModuleMixin>
 
 type ProtectedPropertyWechatifyUserModuleMixin =
-  | '__wechatifyUserModules'
   | '__wechatifiedContact'
   | '__wechatifiedContactSelf'
   | '__wechatifiedDelay'

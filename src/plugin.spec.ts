@@ -57,8 +57,8 @@ test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t
   t.ok(spyPluginInstall.notCalled, 'should be clean for install spy')
   t.ok(spyPluginUninstall.notCalled, 'should be clean for uninstall spy')
 
-  bot.use(plugin)
-  t.ok(spyPluginInstall.notCalled, 'should not called install spy after use() before start()')
+  const uninstaller = bot.use(plugin)
+  t.ok(spyPluginInstall.calledOnce, 'should called install spy right after use() before start()')
   t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after use()')
 
   await bot.start()
@@ -69,7 +69,10 @@ test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t
   await bot.stop()
   t.ok(spyPluginInstall.notCalled, 'should not called with stop()')
   await new Promise(setImmediate) // clean the event loop
-  t.ok(spyPluginUninstall.calledOnce, 'should called uninstall spy with stop()')
+  t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after stop()')
+
+  uninstaller()
+  t.ok(spyPluginUninstall.calledOnce, 'should called uninstall spy after call uninstaller()')
 })
 
 test('isWechatyPluginUninstaller()', async t => {

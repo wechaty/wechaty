@@ -73,20 +73,26 @@ test('PluginMixin smoke testing', async t => {
   const pluginMixinTest = new PluginMixinTest({ puppet: 'wechaty-puppet-mock' })
   let future
 
-  pluginMixinTest.use(Plugin)
+  const unuse = pluginMixinTest.use(Plugin)
 
-  t.equal(pluginMixinTest.counter, 0, 'should not call plugin function before start')
+  t.equal(pluginMixinTest.counter, 1, 'should call plugin function right after use before start')
   future = pluginMixinTest.start()
-  t.equal(pluginMixinTest.counter, 0, 'should not call plugin function right after start')
+  t.equal(pluginMixinTest.counter, 1, 'should call plugin function right after start')
 
+  /**
+   * finish initializing the system
+   */
   await sandbox.clock.runAllAsync()
   await future
-  t.equal(pluginMixinTest.counter, 1, 'should call plugin function after start')
+  // t.equal(pluginMixinTest.counter, 1, 'should call plugin function after start')
 
   future = pluginMixinTest.stop()
   await sandbox.clock.runAllAsync()
   await future
-  t.equal(pluginMixinTest.counter, 0, 'should clean plugin context after stop')
+  t.equal(pluginMixinTest.counter, 1, 'should not clean plugin context after stop')
+
+  unuse()
+  t.equal(pluginMixinTest.counter, 0, 'should clean plugin context after call unuse()')
 
   sandbox.restore()
 })

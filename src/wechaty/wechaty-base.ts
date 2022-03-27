@@ -166,11 +166,17 @@ class WechatyBase extends mixinBase implements SayableSayer {
   constructor (
     override __options: WechatyOptions = {},
   ) {
-    super()
+    super(__options)
     log.verbose('Wechaty', 'constructor()')
 
     this.__memory = this.__options.memory
     this.wechaty  = this
+  }
+
+  override async start (): Promise<void> {
+    log.verbose('Wechaty', 'start()')
+    await this.init()
+    return super.start()
   }
 
   override async onStart (): Promise<void> {

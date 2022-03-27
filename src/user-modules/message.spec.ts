@@ -34,13 +34,13 @@ import type {
 
 test('recalled()', async t => {
 
-  const EXPECTED_RECALL_MESSAGE_ID = '1'
-  const EXPECTED_RECALLED_MESSAGE_ID = '2'
+  const EXPECTED_RECALL_MESSAGE_ID = 'message-id-1'
+  const EXPECTED_RECALLED_MESSAGE_ID = 'message-id-2'
   const EXPECTED_MESSAGE_TIMESTAMP = new Date().getTime()
   const EXPECTED_ROOM_TOPIC = 'topic'
-  const EXPECTED_ROOM_ID = 'room1'
-  const EXPECTED_FROM_CONTACT_ID = 'contact1'
-  const EXPECTED_TO_CONTACT_ID = 'contact1'
+  const EXPECTED_ROOM_ID = 'room-id'
+  const EXPECTED_TALKER_CONTACT_ID = 'talker-contact-id'
+  const EXPECTED_LISTENER_CONTACT_ID = 'listener-contact-id'
 
   const sandbox = sinon.createSandbox()
 
@@ -54,18 +54,19 @@ test('recalled()', async t => {
     if (id === EXPECTED_RECALL_MESSAGE_ID) {
       return {
         id: EXPECTED_RECALL_MESSAGE_ID,
+        talkerId: EXPECTED_TALKER_CONTACT_ID,
         text: EXPECTED_RECALLED_MESSAGE_ID,
         timestamp: EXPECTED_MESSAGE_TIMESTAMP,
         type: PUPPET.types.Message.Recalled,
       } as PUPPET.payloads.Message
     } else {
       return {
-        fromId: EXPECTED_FROM_CONTACT_ID,
         id: EXPECTED_RECALLED_MESSAGE_ID,
+        listenerId: EXPECTED_LISTENER_CONTACT_ID,
         roomId: EXPECTED_ROOM_ID,
+        talkerId: EXPECTED_TALKER_CONTACT_ID,
         text: '',
         timestamp: EXPECTED_MESSAGE_TIMESTAMP,
-        toId: EXPECTED_TO_CONTACT_ID,
         type: PUPPET.types.Message.Text,
       } as PUPPET.payloads.Message
     }
@@ -79,7 +80,7 @@ test('recalled()', async t => {
 
   sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
     await new Promise((resolve) => setImmediate(resolve))
-    return [EXPECTED_FROM_CONTACT_ID, EXPECTED_TO_CONTACT_ID]
+    return [EXPECTED_TALKER_CONTACT_ID, EXPECTED_LISTENER_CONTACT_ID]
   })
 
   sandbox.stub(puppet, 'contactPayload').callsFake(async (id: string) => {
@@ -98,7 +99,7 @@ test('recalled()', async t => {
   sandbox.stub(puppet, 'messageSearch').callsFake(fakeIdSearcher)
   sandbox.stub(puppet, 'contactSearch').callsFake(fakeIdSearcher)
 
-  await puppet.login(EXPECTED_TO_CONTACT_ID)
+  await puppet.login(EXPECTED_LISTENER_CONTACT_ID)
 
   const message = await wechaty.Message.find({ id: EXPECTED_RECALL_MESSAGE_ID })
   if (!message) {
@@ -107,8 +108,8 @@ test('recalled()', async t => {
   const recalledMessage = await message.toRecalled()
   t.ok(recalledMessage, 'recalled message should exist.')
   t.equal(recalledMessage!.id, EXPECTED_RECALLED_MESSAGE_ID, 'Recalled message should have the right id.')
-  t.equal(recalledMessage!.talker().id, EXPECTED_FROM_CONTACT_ID, 'Recalled message should have the right from contact id.')
-  t.equal(recalledMessage!.listener()!.id, EXPECTED_TO_CONTACT_ID, 'Recalled message should have the right to contact id.')
+  t.equal(recalledMessage!.talker().id, EXPECTED_TALKER_CONTACT_ID, 'Recalled message should have the right from contact id.')
+  t.equal(recalledMessage!.listener()!.id, EXPECTED_LISTENER_CONTACT_ID, 'Recalled message should have the right to contact id.')
   t.equal(recalledMessage!.room()!.id, EXPECTED_ROOM_ID, 'Recalled message should have the right room id.')
 
   await wechaty.stop()

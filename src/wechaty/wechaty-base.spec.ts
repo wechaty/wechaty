@@ -180,11 +180,11 @@ test('use plugin', async t => {
 
   let result = ''
 
-  const myGlobalPlugin = function () {
-    return function (bot: WechatyInterface) {
-      bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
-    }
-  }
+  // const myGlobalPlugin = function () {
+  //   return function (bot: WechatyInterface) {
+  //     bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
+  //   }
+  // }
 
   const myPlugin = function () {
     return function (bot: WechatyInterface) {
@@ -192,7 +192,7 @@ test('use plugin', async t => {
     }
   }
 
-  MyWechatyTest.use(myGlobalPlugin())
+  // MyWechatyTest.use(myGlobalPlugin())
 
   const bot = new MyWechatyTest({
     puppet: new PuppetMock(),
@@ -208,15 +208,15 @@ test('use plugin', async t => {
 
   await bot.stop()
 
-  t.equal(result, 'FROM_GLOBAL_PLUGIN:FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
+  t.equal(result, 'FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
 
 })
 
-test('wechatifyUserModules()', async t => {
+test('wechatifyUserModules init()', async t => {
   const wechatyTest = new WechatyTest()
 
-  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 1st time init')
-  t.doesNotThrow(() => wechatyTest.__wechatifyUserModules(), 'should not throw for the 2nd time init (silence skip)')
+  t.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 1st time init')
+  t.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 2nd time init (silence skip)')
 })
 
 // TODO: add test for event args
@@ -240,7 +240,7 @@ test('Perfect restart', async t => {
 })
 
 test('@event ready', async t => {
-  const puppet = new PuppetMock()
+  const puppet  = new PuppetMock()
   const wechaty = new WechatyBase({ puppet })
 
   const sandbox = sinon.createSandbox()
@@ -253,13 +253,15 @@ test('@event ready', async t => {
   t.ok(spy.notCalled, 'should no ready event right start wechaty started')
 
   puppet.emit('ready', { data: 'test' })
-  t.ok(spy.calledOnce, 'should fire ready event after puppet ready')
+  t.equal(spy.callCount, 1, 'should fire ready event after puppet ready')
 
   await wechaty.stop()
   await wechaty.start()
+  t.equal(spy.callCount, 1, 'should fire ready event second time after stop/start wechaty')
+
   puppet.emit('ready', { data: 'test' })
 
-  t.ok(spy.calledTwice, 'should fire ready event second time after stop/start wechaty')
+  t.equal(spy.callCount, 2, 'should fire ready event third time after stop/start wechaty')
 
   await wechaty.stop()
 })

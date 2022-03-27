@@ -1,5 +1,6 @@
 #!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 import { test } from 'tstest'
+import PuppetMock from 'wechaty-puppet-mock'
 
 import { WechatyEventEmitter } from '../schemas/wechaty-events.js'
 
@@ -20,10 +21,10 @@ import type {
   MessageInterface,
 }                             from '../user-modules/mod.js'
 
-import type {
-  WechatyConstructor,
-  WechatyInterface,
-  AllProtectedProperty,
+import {
+  type WechatyConstructor,
+  type WechatyInterface,
+  type AllProtectedProperty,
   WechatyImpl,
   // WechatyConstructor,
 }                       from './wechaty-impl.js'
@@ -69,6 +70,7 @@ test('Wechaty interface', async t => {
     abstract ding        : WechatyInterface['ding']
     abstract emitError   : WechatyInterface['emitError']
     abstract id          : WechatyInterface['id']
+    abstract init        : WechatyInterface['init']
     abstract isLoggedIn  : WechatyInterface['isLoggedIn']
     abstract log         : WechatyInterface['log']
     abstract logout      : WechatyInterface['logout']
@@ -103,4 +105,14 @@ test('ProtectedProperties', async t => {
 
   const noOneLeft: NotExistTest = true
   t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
+})
+
+test('options.puppet initialization', async t => {
+  const puppet  = new PuppetMock()
+  const wechaty = new WechatyImpl({ puppet })
+  t.throws(() => wechaty.puppet, 'should throw when access puppet getter before init()')
+
+  await wechaty.init()
+  t.doesNotThrow(() => wechaty.puppet, 'should not throw when access puppet getter after init()')
+  t.ok(wechaty.puppet, 'should exist puppet instance by setting the options.puppet')
 })

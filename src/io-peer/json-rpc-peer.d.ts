@@ -17,56 +17,52 @@ declare module 'json-rpc-peer' {
 
   export * from 'json-rpc-protocol'
 
-  module 'json-rpc-peer' {
-    export class Peer extends EventEmitter implements Writable {
+  export class Peer extends EventEmitter implements Writable {
 
-      constructor(onmessage?: (message: JsonRpcPayload, data: any) => Promise<any>)
+    constructor(onmessage?: (message: JsonRpcPayload, data: any) => Promise<any>)
 
-      public exec(
-        message: string | object,
-        data?: any
-      ): Promise<undefined | string | JsonRpcPayload | JsonRpcPayload[]>
+    public exec(
+      message: string | object,
+      data?: any
+    ): Promise<undefined | string | JsonRpcPayload | JsonRpcPayload[]>
 
-      /**
-       * Fails all pending requests.
-       */
-      public failPendingRequests(reason?: string)
+    /**
+     * Fails all pending requests.
+     */
+    public failPendingRequests(reason?: string)
 
-      /**
-       * This function should be called to send a request to the other end.
-       */
-      public request(method: string, params?: JsonRpcParamsSchema): Promise<any>
+    /**
+     * This function should be called to send a request to the other end.
+     */
+    public request(method: string, params?: JsonRpcParamsSchema): Promise<any>
 
-      /**
-       * This function should be called to send a notification to the other end.
-       */
-      public notify(method: string, params?: JsonRpcParamsSchema)
+    /**
+     * This function should be called to send a notification to the other end.
+     */
+    public notify(method: string, params?: JsonRpcParamsSchema)
 
-      public push(chunk: any, encoding?: string)
+    public push(chunk: any, encoding?: string)
 
-      public pipe<T extends Writable>(writable: T): T
+    public pipe<T extends Writable>(writable: T): T
 
-      // NodeJS.WritableStream
+    // NodeJS.WritableStream
 
-      writable: boolean
-      write(
-        buffer: Uint8Array | string,
-        cb?: (err?: Error | null) => void
-      ): boolean
+    writable: boolean
+    write(
+      buffer: Uint8Array | string,
+      cb?: (err?: Error | null) => void
+    ): boolean
 
-      write(
-        str: string,
-        encoding?: string,
-        cb?: (err?: Error | null) => void
-      ): boolean
+    write(
+      str: string,
+      encoding?: string,
+      cb?: (err?: Error | null) => void
+    ): boolean
 
-      end(cb?: () => void): void
-      end(data: string | Uint8Array, cb?: () => void): void
-      end(str: string, encoding?: string, cb?: () => void): void
+    end(cb?: () => void): void
+    end(data: string | Uint8Array, cb?: () => void): void
+    end(str: string, encoding?: string, cb?: () => void): void
 
-    }
-
-//     export default Peer
   }
 
 }
