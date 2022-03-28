@@ -96,14 +96,14 @@ class PuppetTest extends PUPPET.Puppet {
   override async messageUrl         (messageId: string)                       : Promise<PUPPET.payloads.UrlLink> { return { messageId } as any }
   override async messageLocation    (messageId: string)                       : Promise<PUPPET.payloads.Location> { return { messageId } as any }
 
-  override async messageForward         (conversationId: string, messageId: string)                      : Promise<void | string> { return { conversationId, messageId } as any }
-  override async messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string> { return { contactId, conversationId } as any }
-  override async messageSendFile        (conversationId: string, file: FileBoxInterface)                 : Promise<void | string> { return { conversationId, file } as any }
-  override async messageSendText        (conversationId: string, text: string)                           : Promise<void | string> { return { conversationId, text } as any }
-  override async messageSendUrl         (conversationId: string, urlLinkPayload: PUPPET.payloads.UrlLink)         : Promise<void | string> { return { conversationId, urlLinkPayload } as any }
-  override async messageSendMiniProgram (conversationId: string, miniProgramPayload: PUPPET.payloads.MiniProgram) : Promise<void | string> { return { conversationId, miniProgramPayload } as any }
-  override async messageSendLocation    (conversationId: string, locationPayload: PUPPET.payloads.Location)       : Promise<void | string> { return { conversationId, locationPayload } as any }
-  override async messageSendPost        (conversationId: string, postPayload: PUPPET.payloads.Post)               : Promise<void | string> { return { conversationId, postPayload } as any }
+  override async messageForward         (conversationId: string, messageId: string)                               : Promise<undefined | string> { return { conversationId, messageId }          as any }
+  override async messageSendContact     (conversationId: string, contactId: string)                               : Promise<undefined | string> { return { contactId, conversationId }          as any }
+  override async messageSendFile        (conversationId: string, file: FileBoxInterface)                          : Promise<undefined | string> { return { conversationId, file }               as any }
+  override async messageSendText        (conversationId: string, text: string)                                    : Promise<undefined | string> { return { conversationId, text }               as any }
+  override async messageSendUrl         (conversationId: string, urlLinkPayload: PUPPET.payloads.UrlLink)         : Promise<undefined | string> { return { conversationId, urlLinkPayload }     as any }
+  override async messageSendMiniProgram (conversationId: string, miniProgramPayload: PUPPET.payloads.MiniProgram) : Promise<undefined | string> { return { conversationId, miniProgramPayload } as any }
+  override async messageSendLocation    (conversationId: string, locationPayload: PUPPET.payloads.Location)       : Promise<undefined | string> { return { conversationId, locationPayload }    as any }
+  override async messageSendPost        (conversationId: string, postPayload: PUPPET.payloads.Post)               : Promise<undefined | string> { return { conversationId, postPayload }        as any }
 
   override async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   override async messageRawPayloadParser (rawPayload: any) : Promise<PUPPET.payloads.Message> { return { rawPayload } as any }
