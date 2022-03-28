@@ -68,14 +68,14 @@ const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(bas
     abstract messageUrl          (messageId: string)                       : Promise<UrlLinkPayload>
     abstract messageLocation     (messageId: string)                       : Promise<LocationPayload>
 
-    abstract messageForward         (conversationId: string, messageId: string,)                     : Promise<void | string>
-    abstract messageSendContact     (conversationId: string, contactId: string)                      : Promise<void | string>
-    abstract messageSendFile        (conversationId: string, file: FileBoxInterface)                 : Promise<void | string>
-    abstract messageSendLocation    (conversationId: string, locationPayload: LocationPayload)       : Promise<void | string>
-    abstract messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<void | string>
-    abstract messageSendPost        (conversationId: string, postPayload: PostPayload)               : Promise<void | string>
-    abstract messageSendText        (conversationId: string, text: string, mentionIdList?: string[]) : Promise<void | string>
-    abstract messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<void | string>
+    abstract messageForward         (conversationId: string, messageId: string,)                     : Promise<undefined | string>
+    abstract messageSendContact     (conversationId: string, contactId: string)                      : Promise<undefined | string>
+    abstract messageSendFile        (conversationId: string, file: FileBoxInterface)                 : Promise<undefined | string>
+    abstract messageSendLocation    (conversationId: string, locationPayload: LocationPayload)       : Promise<undefined | string>
+    abstract messageSendMiniProgram (conversationId: string, miniProgramPayload: MiniProgramPayload) : Promise<undefined | string>
+    abstract messageSendPost        (conversationId: string, postPayload: PostPayload)               : Promise<undefined | string>
+    abstract messageSendText        (conversationId: string, text: string, mentionIdList?: string[]) : Promise<undefined | string>
+    abstract messageSendUrl         (conversationId: string, urlLinkPayload: UrlLinkPayload)         : Promise<undefined | string>
 
     abstract messageRecall (messageId: string) : Promise<boolean>
 
@@ -258,7 +258,7 @@ const messageMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(bas
     messageSend (
       conversationId: string,
       sayable: SayablePayload,
-    ): Promise<void | string> {
+    ): Promise<undefined | string> {
       log.verbose('PuppetMessageMixin', 'messageSend(%s, {type:%s})', conversationId, sayable.type)
 
       switch (sayable.type) {
