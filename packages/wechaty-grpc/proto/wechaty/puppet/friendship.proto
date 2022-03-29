@@ -60,8 +60,30 @@ message FriendshipSearchPhoneResponse {
   string contact_id = 2;
 }
 
-message FriendshipSearchWeixinRequest {
+/**
+ * Huan(202003): we just rename the payload message because gRPC only care about the message structure
+ *  (and as long as we keep consistent with the old structure).
+ *
+ *  @link https://github.com/wechaty/grpc/pull/173
+ *
+ * Rename:
+ *  1. `FriendshipSearchWeixinRequest`    -> `FriendshipSearchHandleRequest`
+ *  2. `FriendshipSearchWeixinReqsponse`  -> `FriendshipSearchHandleResponse`
+ */
+message FriendshipSearchHandleRequest {
+  /**
+   * Huan(20220329): keep `weixin` for compatible with old version of wechaty-puppet-service
+   *  @link https://github.com/wechaty/getting-started/issues/254
+   *
+   * Set `weixi` as the same number with `handler` as an alias to the same field
+   * @deprecated `weixin` will be removed in v2.0.0
+   */
   string weixin = 1;
+  /**
+   * Huan(202203): in gRPC, we can freely rename the field name as long as the number keep consistent
+   *  so we can just rename `weixin` to `handle` here.
+   */
+  string handle = 1;
 }
 message FriendshipSearchWeixinResponse {
   // nullable
