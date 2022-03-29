@@ -85,7 +85,7 @@ message FriendshipSearchHandleRequest {
    */
   string handle = 1;
 }
-message FriendshipSearchWeixinResponse {
+message FriendshipSearchHandleResponse {
   // nullable
   google.protobuf.StringValue contact_id_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
   string contact_id = 2;

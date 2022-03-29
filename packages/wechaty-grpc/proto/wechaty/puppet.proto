@@ -241,9 +241,14 @@ service Puppet {
       get: "/friendship/search/phone/{phone}"
     };
   }
-  rpc FriendshipSearchWeixin (puppet.FriendshipSearchWeixinRequest) returns (puppet.FriendshipSearchWeixinResponse) {
+  /**
+   * Huan(202203): https://github.com/wechaty/puppet/issues/181
+   * @deprecated use FriendshipSearchHandle instead, will be removed in v3.0
+   */
+  rpc FriendshipSearchWeixin (puppet.FriendshipSearchHandleRequest) returns (puppet.FriendshipSearchHandleResponse) {}
+  rpc FriendshipSearchHandle (puppet.FriendshipSearchHandleRequest) returns (puppet.FriendshipSearchHandleResponse) {
     option (google.api.http) = {
-      get: "/friendship/search/weixin/{weixin}"
+      get: "/friendship/search/handle/{handle}"
     };
   }
 
