@@ -248,7 +248,15 @@ service Puppet {
   rpc FriendshipSearchWeixin (puppet.FriendshipSearchHandleRequest) returns (puppet.FriendshipSearchHandleResponse) {}
   rpc FriendshipSearchHandle (puppet.FriendshipSearchHandleRequest) returns (puppet.FriendshipSearchHandleResponse) {
     option (google.api.http) = {
-      get: "/friendship/search/handle/{handle}"
+      /**
+       * (Huan(20220329): use `weixin` for now, until we upgrade to v2.0
+       *  the `wechaty-grpc@1.0.0` will use the latest v1.x automatically when running `npm install`
+       *    which will causing a breaking change.
+       *  @link https://github.com/wechaty/getting-started/issues/254
+       *
+       * TODO: rename `weixin` to `handle` in v2.0.0
+       */
+      get: "/friendship/search/handle/{weixin}"
     };
   }
 
