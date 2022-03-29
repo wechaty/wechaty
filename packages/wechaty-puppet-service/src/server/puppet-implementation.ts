@@ -233,8 +233,9 @@ function puppetImplementation (
         response.setType(payload.type)
         /**
          * @deprecated `payload.weixin` will be removed in v2.0
+         *  @link https://github.com/wechaty/grpc/issues/174
          */
-        response.setHandle(payload.handle || payload.weixin || '')
+        response.setWeixin(payload.handle || payload.weixin || '')
         response.setPhonesList(payload.phone)
         response.setCoworker(payload.coworker || false)
         response.setCorporation(payload.corporation || '')
@@ -474,8 +475,12 @@ function puppetImplementation (
       log.verbose('PuppetServiceImpl', 'friendshipSearchHandle()')
 
       try {
-        const weixin = call.request.getHandle()
-        const contactId = await puppet.friendshipSearchHandle(weixin)
+        /**
+         * Huan(202203): rename `getWeixin()` to `getHandle()` in v2.0.0
+         *  @link https://github.com/wechaty/grpc/issues/174
+         */
+        const handle = call.request.getWeixin()
+        const contactId = await puppet.friendshipSearchHandle(handle)
 
         const response = new grpcPuppet.FriendshipSearchHandleResponse()
 

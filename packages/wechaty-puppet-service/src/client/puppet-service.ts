@@ -667,7 +667,11 @@ class PuppetService extends PUPPET.Puppet {
       description : response.getDescription(),
       friend      : response.getFriend(),
       gender      : response.getGender() as number,
-      handle      : response.getHandle(),
+      /**
+       * Huan(202203): rename `getWeixin()` to `getHandle()` in v2.0.0
+       *  @link https://github.com/wechaty/grpc/issues/174
+       */
+      handle      : response.getWeixin(),
       id          : response.getId(),
       name        : response.getName(),
       phone       : response.getPhonesList(),
@@ -680,7 +684,7 @@ class PuppetService extends PUPPET.Puppet {
        * `weixin` is deprecated, will be removed after Dec 31, 2022
        * use `handle` instead.
        */
-      weixin      : response.getHandle(),
+      weixin      : response.getWeixin(),
     }
 
     await this._payloadStore.contact?.set(id, payload)
@@ -1697,7 +1701,11 @@ class PuppetService extends PUPPET.Puppet {
     log.verbose('PuppetService', 'friendshipSearchHandle(%s)', handle)
 
     const request = new grpcPuppet.FriendshipSearchHandleRequest()
-    request.setHandle(handle)
+    /**
+     * TODO: use `setHandle()` in v2.0.0
+     *  @link https://github.com/wechaty/grpc/issues/174
+     */
+    request.setWeixin(handle)
 
     const response = await util.promisify(
       this.grpcManager.client.friendshipSearchHandle
