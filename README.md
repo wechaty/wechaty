@@ -106,7 +106,7 @@ wechaty
 wechaty.start()
 ```
 
-> **Notice: Wechaty requires Node.js version >= 12**
+> **Notice: Wechaty requires Node.js version >= 16**
 
 This bot can log all messages to the console after login by scan.
 
