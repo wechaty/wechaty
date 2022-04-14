@@ -330,6 +330,14 @@ See [CONTRIBUTING.md](http://github.com/wechaty/grpc/blob/master/CONTRIBUTING.md
 
 Since its creation in 2016, a number of Wechaty versions have been released. For more information about the release history and the current stable version, you can read the [Wechaty release notes](https://github.com/Wechaty/wechaty/releases) on Github.
 
+## Contributors
+  
+<a href="https://github.com/wechaty/grpc/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=wechaty/grpc" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
 ## Maintainer
 
 Wechaty is maintained by [Huan](https://github.com/huan), [Rui](https://github.com/lijiarui), and a community of Open Source Contributors. We are always looking for people to join the Wechaty community to maintain the Wechaty codebase and documentation. You necessarily don't have to be a programmer to contribute to Wechaty. To get started contributing, you can read the [CONTRIBUTING.md](http://github.com/wechaty/grpc/blob/master/CONTRIBUTING.md).
