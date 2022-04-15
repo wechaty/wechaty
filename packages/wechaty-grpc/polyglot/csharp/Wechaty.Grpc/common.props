@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>0.17.8</Version>
+    <Version>0.20.4</Version>
     <authors>Wechaty</authors>
     <owners>Wechaty</owners>
     <description>.NET Wechaty Grpc</description>
@@ -15,7 +15,8 @@
   </PropertyGroup>
   <!--set  grpc proto only client-->
   <ItemGroup>
-    <Protobuf Include="proto\wechaty\**\*.proto" GrpcServices="Client" />
+    <Protobuf Include="proto\wechaty\**\*.proto" GrpcServices="Client" ProtoRoot="proto\" />
+    <!--<Protobuf Include="proto\google\**\*.proto" GrpcServices="Client" ProtoRoot="proto\" />-->
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="All" />

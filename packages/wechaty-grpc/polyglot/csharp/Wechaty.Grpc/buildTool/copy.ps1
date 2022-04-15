@@ -5,17 +5,15 @@
 
 Set-Location $buildFolder
 
-# csharp wechaty proto folder
-$csharpProtoFolder=Join-Path $solutionFolder "proto"
-
 # if csharp proto folder is exists, delete if exists
-if(Test-Path $csharpProtoFolder)
+
+if(Test-Path $csharpWechatyProtoFolder)
 {
-  Remove-Item -Path $csharpProtoFolder -Recurse -Force
+  Remove-Item -Path $csharpWechatyProtoFolder -Recurse -Force
 }
 
 # copy wechaty proto folder to  csharp proto folder
-Copy-Item $wechatyProtoFolder $solutionFolder -Recurse
+Copy-Item $wechatyProtoFolder $csharpWechatyProtoFolder -Recurse
 
 $puppetFilePath = Join-Path $csharpProtoFolder "wechaty/puppet.proto"
 # get puppet.proto content
@@ -34,8 +32,6 @@ Get-ChildItem $puppetChildPath| ForEach-Object -Process{
      $childfile.Replace("import `"puppet/","import `"proto/wechaty/puppet/")  | set-Content $_.fullname
   }
 }
-
-
 
 # update common.props version as package.json version
 $commonPropPath = Join-Path $solutionFolder "common.props"
