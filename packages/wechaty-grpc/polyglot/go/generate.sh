@@ -24,3 +24,6 @@ protoc \
   --go-grpc_opt=paths=source_relative \
   "$REPO_DIR/proto/wechaty"/**/*.proto \
   "$REPO_DIR/third-party"/**/*.proto
+
+cp $OUT_DIR/wechaty/deprecated/* $OUT_DIR/wechaty/puppet/
+rm -rf $OUT_DIR/wechaty/deprecated/* 
