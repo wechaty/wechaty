@@ -355,7 +355,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   }
 
   say (sayable:  Sayable)                                 : Promise<void | MessageInterface>
-  say (text:     string, ...mentionList: ContactInterface[])       : Promise<void | MessageInterface>
+  say (text:     string, ...mentionList: (ContactInterface | '@all')[])       : Promise<void | MessageInterface>
   say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | MessageInterface>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
@@ -463,11 +463,11 @@ class RoomMixin extends MixinBase implements SayableSayer {
       /**
        * 1. string
        */
-      let mentionList: ContactInterface[] = []
+      let mentionList: (ContactInterface | '@all')[] = []
 
       if (varList.length > 0) {
-        const allIsContact = varList.every(c => ContactImpl.valid(c))
-        if (!allIsContact) {
+        const allIsContactOrAtAll = varList.every(c => c === '@all' || ContactImpl.valid(c))
+        if (!allIsContactOrAtAll) {
           throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
         }
 
@@ -475,7 +475,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
         const AT_SEPARATOR = FOUR_PER_EM_SPACE
         const mentionAlias = await Promise.all(mentionList.map(async contact =>
-          '@' + (await this.alias(contact) || contact.name()),
+          '@' + (contact === '@all' ? 'all' : await this.alias(contact) || contact.name()),
         ))
         const mentionText = mentionAlias.join(AT_SEPARATOR)
 
@@ -490,7 +490,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       msgId = await this.wechaty.puppet.messageSendText(
         this.id,
         text,
-        mentionList.map(c => c.id),
+        mentionList.map(c => c === '@all' ? '@all' : c.id),
       )
     } else {
       msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
@@ -506,7 +506,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
     textList: TemplateStringsArray,
     ...varList: unknown[]
   ) {
-    const mentionList = varList.filter(c => ContactImpl.valid(c)) as ContactInterface[]
+    const mentionList = varList.filter(c => c === '@all' || ContactImpl.valid(c)) as (ContactInterface | '@all')[]
 
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
@@ -561,7 +561,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       return this.wechaty.puppet.messageSendText(
         this.id,
         finalText,
-        mentionList.map(c => c.id),
+        mentionList.map(c => c === '@all' ? '@all' : c.id),
       )
     }
   }
