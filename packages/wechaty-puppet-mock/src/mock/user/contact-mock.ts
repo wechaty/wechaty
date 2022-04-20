@@ -113,7 +113,7 @@ class ContactMock extends ContactEventEmitter {
 
       const basePayload: PUPPET.payloads.MessageBase = {
         id        : cuid(),
-        talkerId  : this.id,
+        talkerId  : that.id,
         timestamp : Date.now(),
         type      : PUPPET.types.Message.Text,
       }
@@ -167,7 +167,6 @@ class ContactMock extends ContactEventEmitter {
         payload = {
           ...basePayload,
           listenerId : conversation.id,
-          talkerId   : that.id,
         } as PUPPET.payloads.MessageBase & PUPPET.payloads.MessageTo
       } else if (conversation instanceof RoomMock) {
         payload = {
