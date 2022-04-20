@@ -15,6 +15,9 @@ clean:
 install:
 	pip3 install -r requirements.txt
 	pip3 install -r requirements-dev.txt
+
+	# TODO: to be removed, refer to: https://github.com/danielgtaylor/python-betterproto/issues/373
+	pip3 install --upgrade jinja2
 	../../scripts/install-protoc.sh
 
 .PHONY: test

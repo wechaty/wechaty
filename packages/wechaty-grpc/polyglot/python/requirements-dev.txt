@@ -1,7 +1,9 @@
-betterproto[compiler]>=2.0.0b3
+betterproto[compiler]>=2.0.0b4
 grpcio-tools
 pyee
 pylint_quotes
 pytest
 pytype
 semver
+black
+jinja2
