@@ -46,19 +46,19 @@ const generateRoomPayload = (...contactIdList: string[]): PUPPET.payloads.Room =
 }
 
 const generateMessagePayloadTo = (): PUPPET.payloads.MessageBase & PUPPET.payloads.MessageTo => ({
-  fromId        : cuid(),
-  id            : cuid(),
-  text          : faker.lorem.sentence(),
-  timestamp     : Date.now(),
-  toId          : cuid(),
-  type          : PUPPET.types.Message.Text,
+  id         : cuid(),
+  listenerId : cuid(),
+  talkerId   : cuid(),
+  text       : faker.lorem.sentence(),
+  timestamp  : Date.now(),
+  type       : PUPPET.types.Message.Text,
 })
 
 const generateMessagePayloadRoom = (): PUPPET.payloads.MessageBase & PUPPET.payloads.MessageRoom => ({
-  fromId        : cuid(),
   id            : cuid(),
   mentionIdList : [],
   roomId        : cuid() + '@chatroom',
+  talkerId      : cuid(),
   text          : faker.lorem.sentence(),
   timestamp     : Date.now(),
   type          : PUPPET.types.Message.Text,

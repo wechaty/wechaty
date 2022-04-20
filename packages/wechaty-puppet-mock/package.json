@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "1.13.4",
+  "version": "1.19.0",
   "description": "Puppet Mocker for Wechaty",
   "type": "module",
   "exports": {
@@ -58,7 +58,7 @@
     "wechaty": "^1.13.2"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^1.13.10"
+    "wechaty-puppet": "^1.19.4"
   },
   "dependencies": {
     "cuid": "^2.1.8",

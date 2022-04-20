@@ -1,23 +1,15 @@
-// import { Attachment } from './types'
-import cuid from 'cuid'
-import * as path from 'path'
+import cuid                             from 'cuid'
+import * as path                        from 'path'
+import * as PUPPET                      from 'wechaty-puppet'
+import { FileBox, FileBoxInterface }    from 'file-box'
 
-import * as PUPPET from 'wechaty-puppet'
-import {
-  FileBox,
-  FileBoxInterface,
-}                                 from 'file-box'
+import { log }    from '../../config.js'
 
-import {
-  log,
-}         from '../../config.js'
-
-import type { Mocker }    from '../mocker.js'
+import { ContactEventEmitter }  from '../events/contact-events.js'
+import type { Mocker }          from '../mocker.js'
+import { generateSentence }     from '../generator.js'
 
 import { RoomMock }    from './room-mock.js'
-import { generateSentence } from '../generator.js'
-
-import { ContactEventEmitter } from '../events/contact-events.js'
 
 const POOL = Symbol('pool')
 
@@ -121,6 +113,7 @@ class ContactMock extends ContactEventEmitter {
 
       const basePayload: PUPPET.payloads.MessageBase = {
         id        : cuid(),
+        talkerId  : this.id,
         timestamp : Date.now(),
         type      : PUPPET.types.Message.Text,
       }
@@ -173,15 +166,15 @@ class ContactMock extends ContactEventEmitter {
       if (conversation instanceof ContactMock) {
         payload = {
           ...basePayload,
-          fromId        : that.id,
-          toId          : conversation.id,
+          listenerId : conversation.id,
+          talkerId   : that.id,
         } as PUPPET.payloads.MessageBase & PUPPET.payloads.MessageTo
       } else if (conversation instanceof RoomMock) {
         payload = {
           ...basePayload,
-          fromId        : that.id,
           mentionIdList : mentions.map(c => c.id),
           roomId        : conversation.id,
+          talkerId      : that.id,
         } as PUPPET.payloads.MessageBase & PUPPET.payloads.MessageRoom
       } else {
         throw new Error('unknown conversation type: ' + typeof conversation)
@@ -204,7 +197,7 @@ function mockerifyContactMock (mocker: Mocker): typeof ContactMock {
 
   class MockerifiedContactMock extends ContactMock {
 
-    static override get mocker  () { return mocker }
+    static override get mocker () { return mocker }
     override get mocker        () { return mocker }
 
   }
