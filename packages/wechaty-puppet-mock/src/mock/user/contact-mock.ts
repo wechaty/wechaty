@@ -153,6 +153,11 @@ class ContactMock extends ContactEventEmitter {
           case '.sil':
             basePayload.type = PUPPET.types.Message.Audio
             break
+          case '.txt':
+          case '.doc':
+          case '.pdf':
+            basePayload.type = PUPPET.types.Message.Attachment
+            break
           default:
             basePayload.type = PUPPET.types.Message.Unknown
             break
