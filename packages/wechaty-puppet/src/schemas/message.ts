@@ -100,24 +100,25 @@ export interface MessagePayloadBase {
 export interface MessagePayloadRoom {
   /**
    * Huan(202203): `toId` will be removed with v2.0
+   *  replace `toId` by `listenerId`
+   *  @link https://github.com/wechaty/puppet/issues/187
+   *
+   * @deprecated use `listenerId` instead
+   */
+   toId?: string,
+   listenerId?: string
+
+   /**
+   * Huan(202203): `fromId` will be removed with v2.0
    *  replace `fromId` by `talkerId`
    *  @link https://github.com/wechaty/puppet/issues/187
    *
    * @deprecated use `talkerId` instead
    */
   fromId?       : string,
+
   mentionIdList?: string[],   // Mentioned Contacts' Ids
   roomId        : string,
-
-  /**
-   * Huan(202203): `toId` will be removed with v2.0
-   *  replace `toId` by `listenerId`
-   *  @link https://github.com/wechaty/puppet/issues/187
-   *
-   * @deprecated use `listenerId` instead
-   */
-  toId?: string,
-  listenerId?: string
 }
 
 /** @hidden */
