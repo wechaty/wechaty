@@ -11,6 +11,7 @@ enum PostType {
   Unspecified = 0,
   Moment  = 1,  // <- WeChat Moments (朋友圈)
   Channel = 2,  // <- WeChat Channel (视频号)
+  Message = 3,  // Quoted Message or Muitiplepart Message
 }
 
 /**
