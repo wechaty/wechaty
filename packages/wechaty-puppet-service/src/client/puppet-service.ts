@@ -1520,7 +1520,7 @@ class PuppetService extends PUPPET.Puppet {
 
     await this._payloadStore.roomMember?.set(roomId, {
       ...cachedPayload,
-      contactId: payload,
+      [contactId]: payload,
     })
     log.silly('PuppetService', 'roomMemberRawPayload(%s, %s) cache SET', roomId, contactId)
 

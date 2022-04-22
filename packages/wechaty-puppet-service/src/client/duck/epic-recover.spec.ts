@@ -103,10 +103,10 @@ test('monitorHeartbeat$() emit once after lost heartbeat', async t => {
     const { hot, expectObservable, expectSubscriptions } = helpers
 
     const marble = {
-      a: PuppetDuck.actions.stateActivatedEvent   (puppet.id, true),
-      d: PuppetDuck.actions.dongReceivedEvent     (puppet.id, { data: 'dong' }),
-      e: PuppetDuck.actions.errorReceivedEvent    (puppet.id, { gerror: `monitorHeartbeat$() TIMEOUT(${TIMEOUT})` }),
-      h: PuppetDuck.actions.heartbeatReceivedEvent(puppet.id, { data: 'heartbeat' }),
+      a: PuppetDuck.actions.STATE_ACTIVATED_EVENT   (puppet.id, true),
+      d: PuppetDuck.actions.DONG_RECEIVED_EVENT     (puppet.id, { data: 'dong' }),
+      e: PuppetDuck.actions.ERROR_RECEIVED_EVENT    (puppet.id, { gerror: `monitorHeartbeat$() TIMEOUT(${TIMEOUT})` }),
+      h: PuppetDuck.actions.HEARTBEAT_RECEIVED_EVENT(puppet.id, { data: 'heartbeat' }),
     }
 
     const puppet$ = hot(` -a----h----h ${TIMEOUT}ms       ${TIMEOUT}ms ${TIMEOUT}ms ${TIMEOUT - 1}ms h ${TIMEOUT}ms       ${TIMEOUT - 1}ms d ${TIMEOUT}ms       ------`, marble)
@@ -134,10 +134,10 @@ test('epicRecoverDing$() emit periodly', async t => {
     const { hot, expectObservable } = helpers
 
     const marble = {
-      a: PuppetDuck.actions.stateActivatedEvent   (puppet.id, true),
-      d: PuppetDuck.actions.dongReceivedEvent     (puppet.id, { data: 'dong' }),
-      h: PuppetDuck.actions.heartbeatReceivedEvent(puppet.id, { data: 'heartbeat' }),
-      i: PuppetDuck.actions.dingCommand           (puppet.id, 'epicRecoverDing$'),
+      a: PuppetDuck.actions.STATE_ACTIVATED_EVENT   (puppet.id, true),
+      d: PuppetDuck.actions.DONG_RECEIVED_EVENT     (puppet.id, { data: 'dong' }),
+      h: PuppetDuck.actions.HEARTBEAT_RECEIVED_EVENT(puppet.id, { data: 'heartbeat' }),
+      i: PuppetDuck.actions.DING_COMMAND           (puppet.id, 'epicRecoverDing$'),
     }
 
     const puppet$ = hot(` -a----h----h ${TIMEOUT}ms       ${TIMEOUT}ms       ${TIMEOUT}ms       ${TIMEOUT - 1}ms h ${TIMEOUT - 1}ms h ${TIMEOUT - 1}ms d ${TIMEOUT - 1}ms d ------`, marble)
@@ -162,10 +162,10 @@ test('epicRecoverReset$() emit periodly', async t => {
     const { hot, expectObservable } = helpers
 
     const marble = {
-      a: PuppetDuck.actions.stateActivatedEvent   (puppet.id, true),
-      d: PuppetDuck.actions.dongReceivedEvent     (puppet.id, { data: 'dong' }),
-      h: PuppetDuck.actions.heartbeatReceivedEvent(puppet.id, { data: 'heartbeat' }),
-      r: PuppetDuck.actions.resetCommand          (puppet.id, 'epicRecoverReset$'),
+      a: PuppetDuck.actions.STATE_ACTIVATED_EVENT   (puppet.id, true),
+      d: PuppetDuck.actions.DONG_RECEIVED_EVENT     (puppet.id, { data: 'dong' }),
+      h: PuppetDuck.actions.HEARTBEAT_RECEIVED_EVENT(puppet.id, { data: 'heartbeat' }),
+      r: PuppetDuck.actions.RESET_COMMAND          (puppet.id, 'epicRecoverReset$'),
     }
 
     const puppet$ = hot(` -a----h----h ${TIMEOUT}ms       ${TIMEOUT * 2}ms       ${TIMEOUT * 2}ms       ${TIMEOUT * 2 - 1}ms h ${TIMEOUT - 1}ms h ${TIMEOUT - 1}ms d ${TIMEOUT - 1}ms d ------`, marble)
