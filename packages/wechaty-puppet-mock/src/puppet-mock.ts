@@ -426,7 +426,6 @@ class PuppetMock extends PUPPET.Puppet {
     topic         : string,
   ): Promise<string> {
     log.verbose('PuppetMock', 'roomCreate(%s, %s)', contactIdList, topic)
-
     return 'mock_room_id'
   }
 
@@ -441,7 +440,7 @@ class PuppetMock extends PUPPET.Puppet {
 
   override async roomMemberList (roomId: string) : Promise<string[]> {
     log.verbose('PuppetMock', 'roomMemberList(%s)', roomId)
-    return []
+    return this.mocker.roomPayload(roomId).memberIdList
   }
 
   override async roomMemberRawPayload (roomId: string, contactId: string): Promise<PUPPET.payloads.RoomMember>  {
