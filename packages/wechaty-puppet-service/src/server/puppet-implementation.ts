@@ -1269,6 +1269,7 @@ function puppetImplementation (
         const response = new grpcPuppet.RoomPayloadResponse()
         response.setAdminIdsList(payload.adminIdList)
         response.setAvatar(payload.avatar || '')
+        response.setHandle(payload.handle || '')
         response.setId(payload.id)
         response.setMemberIdsList(payload.memberIdList)
         response.setOwnerId(payload.ownerId || '')

@@ -1296,6 +1296,7 @@ class PuppetService extends PUPPET.Puppet {
     const payload: PUPPET.payloads.Room = {
       adminIdList  : response.getAdminIdsList(),
       avatar       : response.getAvatar(),
+      handle       : response.getHandle(),
       id           : response.getId(),
       memberIdList : response.getMemberIdsList(),
       ownerId      : response.getOwnerId(),
