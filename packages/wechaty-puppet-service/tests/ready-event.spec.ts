@@ -62,7 +62,8 @@ test('ready event test', async t => {
   await t.resolves(login, 'should resolve')
   await t.resolves(ready, 'should resolve')
 
-  t.ok((readyTime - loginTime) > 80 && (readyTime - loginTime) < 120, 'time delta between login and ready event should be around 100')
+  const delta = readyTime - loginTime
+  t.ok(delta > 80 && delta < 120, `time delta between login and ready event should be around 100, actual delta is ${delta}ms`)
 
   await puppetService.stop()
   await puppetServer.stop()
