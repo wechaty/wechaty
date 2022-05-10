@@ -26,6 +26,7 @@ test('ready event test', async t => {
 
   // set ready to true before service starts
   puppet.readyIndicator.value(true)
+  ;(puppet as any).__currentUserId = 'logged in'
   const serverOptions = {
     endpoint: ENDPOINT,
     puppet: puppet,
@@ -47,9 +48,21 @@ test('ready event test', async t => {
   // check if ready event is emited on this ready-ed puppet
   const puppetService = new PuppetService(puppetOptions)
 
-  const future = new Promise(resolve => puppetService.once('ready', resolve))
+  let loginTime = 0
+  let readyTime = 0
+  const login = new Promise<void>(resolve => puppetService.once('login', () => {
+    loginTime = Date.now()
+    resolve()
+  }))
+  const ready = new Promise<void>(resolve => puppetService.once('ready', () => {
+    readyTime = Date.now()
+    resolve()
+  }))
   await puppetService.start()
-  await t.resolves(future, 'should resolve')
+  await t.resolves(login, 'should resolve')
+  await t.resolves(ready, 'should resolve')
+
+  t.ok((readyTime - loginTime) > 80 && (readyTime - loginTime) < 120, 'time delta between login and ready event should be around 100')
 
   await puppetService.stop()
   await puppetServer.stop()
