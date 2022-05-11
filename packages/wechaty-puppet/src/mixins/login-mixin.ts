@@ -78,9 +78,19 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
       await super.start()
     }
 
+    /**
+     * ref: https://github.com/wechaty/puppet/issues/184
+     */
     override async stop (): Promise<void> {
       log.verbose('PuppetLoginMixin', 'stop()')
-      await this.logout()
+      // await this.logout()
+      if (this.isLoggedIn) {
+        this.emit('logout', {
+          contactId: this.currentUserId,
+          data: 'puppet stop()',
+        })
+      }
+
       await super.stop()
     }
 
