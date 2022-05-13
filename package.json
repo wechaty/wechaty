@@ -156,7 +156,7 @@
     "typed-emitter": "^1.5.0-from-event",
     "typedoc": "^1.0.0-dev.4 ",
     "wechaty-puppet-mock": "^1.18.2",
-    "wechaty-puppet-padlocal": "^0.4.2"
+    "wechaty-puppet-padlocal": "^1.11.13"
   },
   "files": [
     "bin/",
