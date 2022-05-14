@@ -48,22 +48,20 @@ test('ready event test', async t => {
   // check if ready event is emited on this ready-ed puppet
   const puppetService = new PuppetService(puppetOptions)
 
-  let loginTime = 0
-  let readyTime = 0
+  const eventList: any[] = []
   const login = new Promise<void>(resolve => puppetService.once('login', () => {
-    loginTime = Date.now()
+    eventList.push('login')
     resolve()
   }))
   const ready = new Promise<void>(resolve => puppetService.once('ready', () => {
-    readyTime = Date.now()
+    eventList.push('ready')
     resolve()
   }))
   await puppetService.start()
   await t.resolves(login, 'should resolve')
   await t.resolves(ready, 'should resolve')
 
-  const delta = readyTime - loginTime
-  t.ok(delta > 80 && delta < 120, `time delta between login and ready event should be around 100, actual delta is ${delta}ms`)
+  t.same(eventList, ['login', 'ready'], 'should have `login` event first then `ready`')
 
   await puppetService.stop()
   await puppetServer.stop()
