@@ -53,7 +53,7 @@ const OFFICIAL_PUPPET_DEPENDENCIES = {
    */
   'wechaty-puppet-wechat'           : '>=1.11.8', // https://www.npmjs.com/package/wechaty-puppet-wechat
   'wechaty-puppet-wechat4u'         : '>=1.11.1', // https://www.npmjs.com/package/wechaty-puppet-wechat4u
-  'wechaty-puppet-padlocal'         : '>=0.4.1',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
+  'wechaty-puppet-padlocal'         : '>=1.11.13',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
   'wechaty-puppet-xp'               : '>=1.10.2',  // https://www.npmjs.com/package/wechaty-puppet-xp
   'wechaty-puppet-oicq'             : '>=1.10.2',  // https://www.npmjs.com/package/wechaty-puppet-oicq
   'wechaty-puppet-official-account' : '>=1.10.2',    // https://www.npmjs.com/package/wechaty-puppet-official-account
