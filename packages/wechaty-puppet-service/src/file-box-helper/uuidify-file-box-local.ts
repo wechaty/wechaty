@@ -20,7 +20,7 @@ const uuidifyFileBoxLocal: UuidifyFileBoxLocalFactory = (
    */
   const FileBoxUuid: typeof FileBox = cloneClass(FileBox as any as Constructor<FileBox>) as any
 
-  FileBoxUuid.setUuidLoader(uuid    => urnRegistry.load(uuid))
+  FileBoxUuid.setUuidLoader(uuid   => urnRegistry.load(uuid))
   FileBoxUuid.setUuidSaver(stream  => urnRegistry.save(stream))
 
   return FileBoxUuid

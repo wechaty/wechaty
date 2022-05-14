@@ -75,7 +75,12 @@ const normalizeFileBoxUuid = (FileBoxUuid: typeof FileBox) => async (fileBox: Fi
     .fromStream(stream, fileBox.name)
     .toUuid()
 
-  const uuidFileBox = FileBoxUuid.fromUuid(uuid, fileBox.name)
+  const uuidFileBox = FileBoxUuid.fromUuid(uuid, {
+    md5  : fileBox.md5,
+    name : fileBox.name,
+    size : fileBox.size,
+  })
+
   return uuidFileBox
 }
 
