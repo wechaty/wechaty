@@ -47,19 +47,22 @@ test('ready event test', async t => {
 
   // check if ready event is emited on this ready-ed puppet
   const puppetService = new PuppetService(puppetOptions)
-
   const eventList: any[] = []
-  const login = new Promise<void>(resolve => puppetService.once('login', () => {
+
+  const loginFuture = new Promise<void>(resolve => puppetService.once('login', () => {
     eventList.push('login')
     resolve()
   }))
-  const ready = new Promise<void>(resolve => puppetService.once('ready', () => {
+  const readyFuture = new Promise<void>(resolve => puppetService.once('ready', () => {
     eventList.push('ready')
     resolve()
   }))
-  await puppetService.start()
-  await t.resolves(login, 'should resolve')
-  await t.resolves(ready, 'should resolve')
+
+  await Promise.all([
+    puppetService.start(),
+    loginFuture,
+    readyFuture,
+  ])
 
   t.same(eventList, ['login', 'ready'], 'should have `login` event first then `ready`')
 
