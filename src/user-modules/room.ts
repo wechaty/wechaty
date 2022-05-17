@@ -539,24 +539,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       /**
        * Mention in the string
        */
-      const textListLength = textList.length
-      const varListLength  = varList.length
-      if (textListLength - varListLength !== 1) {
-        throw new Error('Can not say message, invalid Template String Array.')
-      }
-      let finalText = ''
-
-      let i = 0
-      for (; i < varListLength; i++) {
-        if (ContactImpl.valid(varList[i])) {
-          const mentionContact: ContactInterface = varList[i] as any
-          const mentionName = await this.alias(mentionContact) || mentionContact.name()
-          finalText += textList[i] + '@' + mentionName
-        } else {
-          finalText += textList[i]! + varList[i]!
-        }
-      }
-      finalText += textList[i]
+      const finalText = await this.generateTextFromTemplateStringsArray(textList, varList)
 
       return this.wechaty.puppet.messageSendText(
         this.id,
@@ -865,6 +848,32 @@ class RoomMixin extends MixinBase implements SayableSayer {
     } else {
       await this.wechaty.puppet.roomAnnounce(this.id, text)
     }
+  }
+
+  private async generateTextFromTemplateStringsArray(
+    textList: TemplateStringsArray,
+    ...varList: unknown[]
+  ) {
+    const textListLength = textList.length
+    const varListLength = varList.length
+    if (textListLength - varListLength !== 1) {
+      throw new Error('Can not say message, invalid Template String Array.')
+    }
+    let finalText = ''
+
+    let i = 0
+    for (; i < varListLength; i++) {
+      if (ContactImpl.valid(varList[i])) {
+        const mentionContact: ContactInterface = varList[i] as any
+        const mentionName = await this.alias(mentionContact) || mentionContact.name()
+        finalText += textList[i] + '@' + mentionName
+      } else {
+        finalText += textList[i]! + varList[i]!
+      }
+    }
+    finalText += textList[i]
+
+    return finalText
   }
 
   /**
