@@ -39,7 +39,7 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
     ): Promise<string[]> {
       log.verbose('PuppetRoomMemberMixin', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
 
-      if (!this.id) {
+      if (!this.isLoggedIn) {
         throw new Error('no puppet.id. need puppet to be login-ed for a search')
       }
       if (!query) {
@@ -51,7 +51,7 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
         */
       if (typeof query === 'symbol') {
         if (query === YOU) {
-          return [this.id]
+          return [this.currentUserId]
         }
         /**
          * Huan(202111): We use `symbol` instead of `uniq symbol` in the method argument
