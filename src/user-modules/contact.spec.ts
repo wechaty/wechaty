@@ -33,7 +33,7 @@ import {
 test('findAll()', async t => {
   const EXPECTED_NAME = 'TestingBot'
 
-  const puppet = new PuppetMock()
+  const puppet = new PuppetMock() as any
   const wechaty = WechatyBuilder.build({ puppet })
 
   const mockContact = puppet.mocker.createContact({ name: EXPECTED_NAME })

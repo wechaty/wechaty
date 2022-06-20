@@ -29,6 +29,7 @@ import type {
   MiniProgramInterface,
   PostInterface,
   UrlLinkInterface,
+  ChannelInterface,
 }                           from '../user-modules/mod.js'
 
 import type {
@@ -46,6 +47,7 @@ type Sayable =
   | PostInterface
   | string
   | UrlLinkInterface
+  | ChannelInterface
 
 interface SayableSayer {
   id      : string,

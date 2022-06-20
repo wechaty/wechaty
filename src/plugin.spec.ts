@@ -77,11 +77,11 @@ test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t
 
 test('isWechatyPluginUninstaller()', async t => {
   const FIXTURES = [
-    [undefined, false],
-    [() => {}, true],
+    [ undefined, false ],
+    [ () => {}, true ],
   ] as const
 
-  for (const [uninstaller, expected] of FIXTURES) {
+  for (const [ uninstaller, expected ] of FIXTURES) {
     t.equal(isWechatyPluginUninstaller(uninstaller), expected, `isWechatyPluginUninstaller(${uninstaller}) === ${expected}`)
   }
 })
