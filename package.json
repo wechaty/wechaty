@@ -127,6 +127,7 @@
     "wechaty-puppet": "^1.20.1",
     "wechaty-puppet-service": "^1.19.8",
     "wechaty-puppet-wechat4u": "^1.11.1",
+    "wechaty-puppet-wechat": "^1.18.4",
     "wechaty-token": "^1.1.1",
     "ws": "^8.5.0"
   },

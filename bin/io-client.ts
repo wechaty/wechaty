@@ -61,7 +61,16 @@ async function main () {
   console.info(welcome)
   log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
-  const wechaty = WechatyBuilder.build({ name: token })
+  const uosEnabled = process.env['WECHATY_PUPPET_WECHAT_UOS_ENABLE'] === 'true'
+  if (uosEnabled) {
+    log.info('Client', 'Enable UOS support for WECHATY_PUPPET_WECHAT')
+  }
+  const wechaty = WechatyBuilder.build({
+    name: token,
+    puppetOptions: {
+      uos: uosEnabled,
+    },
+  })
 
   let port
   if (process.env['WECHATY_PUPPET_SERVER_PORT']) {
