@@ -160,7 +160,7 @@ class ContactMock extends ContactEventEmitter {
       // } else if (something instanceof UrlLink) {
       //   basePayload.type = MessageType.Url
       } else {
-        basePayload.text = something || generateSentence()
+        basePayload.text = something ?? generateSentence()
       }
 
       if (conversation instanceof ContactMock) {
