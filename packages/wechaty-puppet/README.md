@@ -7,7 +7,7 @@
 [![Linux/Mac Build Status](https://travis-ci.com/wechaty/wechaty-puppet.svg?branch=master)](https://travis-ci.com/wechaty/wechaty-puppet)
 [![ES Modules](https://img.shields.io/badge/ES-Modules-brightgreen)](https://github.com/Chatie/tsconfig/issues/16)
 
-![chatie puppet](https://wechaty.github.io/wechaty-puppet/images/puppet-logo.jpg)
+![chatie puppet](./docs/images/puppet-logo.jpg)
 
 > Picture Credit: [https://www.shareicon.net](https://www.shareicon.net/puppet-marionette-puppeteer-puppet-variant-marionette-variant-665400)
 

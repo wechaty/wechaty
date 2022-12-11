@@ -36,6 +36,7 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
     async roomMemberSearch (
       roomId : string,
       query  : (symbol | string) | RoomMemberQueryFilter,
+      memberIdList?: string[],
     ): Promise<string[]> {
       log.verbose('PuppetRoomMemberMixin', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
 
@@ -65,15 +66,24 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
       }
 
       /**
+       * Prevent repeated requests when query is string
+       * https://github.com/wechaty/puppet/issues/203
+       */
+      if (!memberIdList) {
+        memberIdList = await this.roomMemberList(roomId)
+      }
+
+      /**
         * 1. for Text Query
         */
       if (typeof query === 'string') {
         let contactIdList: string[] = []
-        contactIdList = contactIdList.concat(
-          await this.roomMemberSearch(roomId, { roomAlias:     query }),
-          await this.roomMemberSearch(roomId, { name:          query }),
-          await this.roomMemberSearch(roomId, { contactAlias:  query }),
-        )
+        const contactIds = await Promise.all([
+          this.roomMemberSearch(roomId, { roomAlias:     query }, memberIdList),
+          this.roomMemberSearch(roomId, { name:          query }, memberIdList),
+          this.roomMemberSearch(roomId, { contactAlias:  query }, memberIdList),
+        ])
+        contactIdList = contactIdList.concat(...contactIds)
         // Keep the unique id only
         // https://stackoverflow.com/a/14438954/1123955
         // return [...new Set(contactIdList)]
@@ -85,7 +95,6 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
       /**
         * 2. for RoomMemberQueryFilter
         */
-      const memberIdList = await this.roomMemberList(roomId)
 
       let idList: string[] = []
 
@@ -107,13 +116,12 @@ const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>
         )
       }
 
-      const memberPayloadList = await Promise.all(
-        memberIdList.map(
-          contactId => this.roomMemberPayload(roomId, contactId),
-        ),
-      )
-
       if (query.roomAlias) {
+        const memberPayloadList = await Promise.all(
+          memberIdList.map(
+            contactId => this.roomMemberPayload(roomId, contactId),
+          ),
+        )
         idList = idList.concat(
           memberPayloadList.filter(
             payload => payload.roomAlias === query.roomAlias,
