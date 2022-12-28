@@ -183,7 +183,7 @@ Currently we support the following [puppet providers](https://wechaty.js.org/doc
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
 | Web | [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer) | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
-| Windows | [PuppetWxwork](https://github.com/juzibot/wxwork-tester) | `export WECHATY_PUPPET=wechaty-puppet-service` |
+| Windows | [PuppetWorkPro](https://github.com/RPAChat/workpro-getting-started) | `export WECHATY_PUPPET=wechaty-puppet-service` |
 | Mock | [PuppetMock](https://github.com/wechaty/wechaty-puppet-mock) | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | Web | [PuppetWechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u) | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
 | iPad | [PuppetRock](https://github.com/wechaty/puppet-service-providers) | `export WECHATY_PUPPET=wechaty-puppet-service` |
@@ -193,6 +193,7 @@ Currently we support the following [puppet providers](https://wechaty.js.org/doc
 | iPad | ~~PuppetPadchat~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padchat` |
 | iPad | ~~PuppetPadplus~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-padplus` |
 | Mac | ~~PuppetMacpro~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-macpro` |
+| Windows | ~~PuppetWxwork~~ **DEPRECATED** | `export WECHATY_PUPPET=wechaty-puppet-service` |
 
 Learn more about Wechaty Puppet from the Puppet Wiki:
 
