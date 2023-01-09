@@ -53,7 +53,7 @@ jobs:
       - name: Pack Testing
         run: ./scripts/npm-pack-testing.sh
         env:
-          WECHATY_PUPPET_SERVICE_TOKEN: ${{ secrets.WECHATY_PUPPET_SERVICE_TOKEN }}
+          WECHATY_PUPPET_SERVICE_TOKEN: ${{ secrets.WECHATY_PUPPET_SERVICE_TOKEN || 'puppet_test_testtoken' }}
 
   publish:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))

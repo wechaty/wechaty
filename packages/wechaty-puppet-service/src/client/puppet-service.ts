@@ -353,7 +353,12 @@ class PuppetService extends PUPPET.Puppet {
 
       default:
         // Huan(202003): in default, the `type` type should be `never`, please check.
-        throw new Error('eventType ' + type + ' unsupported! (code should not reach here)')
+        log.warn('PuppetService', [
+          'onGrpcStreamEvent() got unknown event',
+          'this may be caused by puppet-server using later version of wechaty-puppet-service',
+          'Related issues:',
+          ' - https://github.com/wechaty/puppet-service/issues/216',
+        ].join('\n'))
     }
   }
 
