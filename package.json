@@ -111,7 +111,7 @@
   "dependencies": {
     "clone-class": "^1.1.1",
     "cmd-ts": "^0.10.0",
-    "cockatiel": "^2.0.2",
+    "cockatiel": "^3.0.0",
     "cross-spawn": "^7.0.3",
     "dotenv": "^16.0.0",
     "file-box": "^1.4.15",
