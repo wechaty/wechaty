@@ -38,7 +38,7 @@ RUN apt-get update \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && apt-get purge --auto-remove \
     && rm -rf /tmp/* /var/lib/apt/lists/*
@@ -91,7 +91,7 @@ LABEL \
   org.label-schema.version="$DOCKER_TAG" \
   org.label-schema.schema-version="$(wechaty-version)" \
   org.label-schema.name="Wechaty" \
-  org.label-schema.description="Wechat for Bot" \
+  org.label-schema.description="Conversational RPA SDK" \
   org.label-schema.usage="https://github.com/wechaty/wechaty/wiki/Docker" \
   org.label-schema.url="https://www.chatie.io" \
   org.label-schema.vendor="Chatie" \
