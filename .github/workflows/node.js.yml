@@ -18,7 +18,7 @@ jobs:
           - windows-latest
           - ubuntu-latest
         node-version:
-          - 16
+          - 18
     runs-on: ${{ matrix.os }}
 
     steps:

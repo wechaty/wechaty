@@ -86,7 +86,7 @@ test('unifyEmoji()', async t => {
     ],
   ]
 
-  ORIGNAL_XML_LIST.forEach(([xmlList, expectedEmojiXml]) => {
+  ORIGNAL_XML_LIST.forEach(([ xmlList, expectedEmojiXml ]) => {
     xmlList.forEach(xml => {
       const unifiedXml = unifyEmoji(xml)
       t.equal(unifiedXml, expectedEmojiXml, 'should convert the emoji xml to the expected unified xml')
@@ -106,7 +106,7 @@ test('stripEmoji()', async t => {
     ],
   ]
 
-  EMOJI_STR.forEach(([emojiStr, expectResult]) => {
+  EMOJI_STR.forEach(([ emojiStr, expectResult ]) => {
     const result = stripEmoji(emojiStr)
     t.equal(result, expectResult, 'should strip to the expected str')
   })

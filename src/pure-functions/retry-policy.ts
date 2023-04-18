@@ -1,5 +1,7 @@
 import {
-  Policy,
+  ExponentialBackoff,
+  handleAll,
+  retry,
   RetryPolicy,
 }                 from 'cockatiel'
 import {
@@ -15,19 +17,18 @@ import {
 const retryPolicy = getRetryPolicy()
 
 function getRetryPolicy (): RetryPolicy {
-  const policy = Policy
-    .handleAll()
-    .retry()
-    .attempts(3)
-    .exponential({
-      /**
-       * ExponentialBackoff
-       *  https://github.com/connor4312/cockatiel#exponentialbackoff
-       */
+  const policy = retry(handleAll, {
+    /**
+     * ExponentialBackoff
+     *  https://github.com/connor4312/cockatiel#exponentialbackoff
+     */
+    backoff: new ExponentialBackoff({
       initialDelay : 1000,
-      maxAttempts  : 5,
+      // maxAttempts  : 5,
       maxDelay     : 10 * 1000,
-    })
+    }),
+    maxAttempts: 3,
+  })
 
   policy.onRetry(reason => log.silly('wechaty',
     'retry-policy getRetryPolicy policy.onRetry() reason: "%s"',
