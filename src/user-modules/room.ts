@@ -226,7 +226,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       log.warn('Room', 'find() got more than one(%d) result', roomList.length)
     }
 
-    for (const [idx, room] of roomList.entries()) {
+    for (const [ idx, room ] of roomList.entries()) {
       // use puppet.roomValidate() to confirm double confirm that this roomId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
@@ -471,7 +471,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
           throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
         }
 
-        mentionList = [...varList as any]
+        mentionList = [ ...varList as any ]
 
         const AT_SEPARATOR = FOUR_PER_EM_SPACE
         const mentionAlias = await Promise.all(mentionList.map(async contact =>
@@ -676,9 +676,15 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   }
    * }
    */
-  async add (contact: ContactInterface): Promise<void> {
-    log.verbose('Room', 'add(%s)', contact)
-    await this.wechaty.puppet.roomAdd(this.id, contact.id)
+  async add (contacts: ContactInterface | ContactInterface[]): Promise<void> {
+    log.verbose('Room', 'add(%s)', contacts)
+    let contactIds: string[]
+    if (Array.isArray(contacts)) {
+      contactIds = contacts.map(c => c.id)
+    } else {
+      contactIds = [ contacts.id ]
+    }
+    await this.wechaty.puppet.roomAdd(this.id, contactIds)
   }
 
   /**
@@ -713,7 +719,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
     if (Array.isArray(contacts)) {
       contactIds = contacts.map(c => c.id)
     } else {
-      contactIds = [contacts.id]
+      contactIds = [ contacts.id ]
     }
     await this.wechaty.puppet.roomDel(this.id, contactIds)
     // this.delLocal(contact)
