@@ -453,6 +453,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
     let msgId
     let text: string
+    let textV2: string
 
     if (isTemplateStringArray(sayable)) {
       msgId = await this.sayTemplateStringsArray(
@@ -485,20 +486,31 @@ class RoomMixin extends MixinBase implements SayableSayer {
           return mentionStr
         }))
         const mentionText = mentionAlias.join(AT_SEPARATOR)
+        const mentionTextV2 = mentionList.map(contactOrRoom => contactOrRoom.id).join(AT_SEPARATOR)
 
         text = mentionText + ' ' + sayable
+        textV2 = mentionTextV2 + ' ' + sayable
       } else {
         text = sayable
+        textV2 = sayable
       }
       // const receiver = {
       //   contactId : (mentionList.length && mentionList[0].id) || undefined,
       //   roomId    : this.id,
       // }
-      msgId = await this.wechaty.puppet.messageSendText(
-        this.id,
-        text,
-        mentionList.map(c => c.id),
-      )
+      if (typeof this.wechaty.puppet.messageSendTextV2 === 'function') {
+        msgId = await this.wechaty.puppet.messageSendTextV2(
+          this.id,
+          textV2,
+          mentionList.map(c => c.id),
+        )
+      } else {
+        msgId = await this.wechaty.puppet.messageSendText(
+          this.id,
+          text,
+          mentionList.map(c => c.id),
+        )
+      }
     } else {
       msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
     }
@@ -569,11 +581,19 @@ class RoomMixin extends MixinBase implements SayableSayer {
       }
       finalText += textList[i]
 
-      return this.wechaty.puppet.messageSendText(
-        this.id,
-        finalText,
-        mentionList.map(c => c.id),
-      )
+      if (typeof this.wechaty.puppet.messageSendTextV2 === 'function') {
+        return this.wechaty.puppet.messageSendTextV2(
+          this.id,
+          textList,
+          mentionList.map(c => c.id),
+        )
+      } else {
+        return this.wechaty.puppet.messageSendText(
+          this.id,
+          finalText,
+          mentionList.map(c => c.id),
+        )
+      }
     }
   }
 
