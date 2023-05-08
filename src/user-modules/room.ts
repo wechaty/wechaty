@@ -226,7 +226,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       log.warn('Room', 'find() got more than one(%d) result', roomList.length)
     }
 
-    for (const [idx, room] of roomList.entries()) {
+    for (const [ idx, room ] of roomList.entries()) {
       // use puppet.roomValidate() to confirm double confirm that this roomId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345
@@ -463,20 +463,27 @@ class RoomMixin extends MixinBase implements SayableSayer {
       /**
        * 1. string
        */
-      let mentionList: ContactInterface[] = []
+      let mentionList: (ContactInterface | RoomInterface) [] = []
 
       if (varList.length > 0) {
-        const allIsContact = varList.every(c => ContactImpl.valid(c))
-        if (!allIsContact) {
+        const allIsContactOrRoom = varList.every(c => ContactImpl.valid(c) || RoomImpl.valid(c))
+        if (!allIsContactOrRoom) {
           throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
         }
 
-        mentionList = [...varList as any]
+        mentionList = [ ...varList as any ]
 
         const AT_SEPARATOR = FOUR_PER_EM_SPACE
-        const mentionAlias = await Promise.all(mentionList.map(async contact =>
-          '@' + (await this.alias(contact) || contact.name()),
-        ))
+        const mentionAlias = await Promise.all(mentionList.map(async contactOrRoom => {
+          let mentionStr = '@'
+          if (RoomImpl.valid(contactOrRoom)) {
+            mentionStr += await contactOrRoom.topic()
+          }
+          if (ContactImpl.valid(contactOrRoom)) {
+            mentionStr += await this.alias(contactOrRoom) || contactOrRoom.name()
+          }
+          return mentionStr
+        }))
         const mentionText = mentionAlias.join(AT_SEPARATOR)
 
         text = mentionText + ' ' + sayable
@@ -506,7 +513,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
     textList: TemplateStringsArray,
     ...varList: unknown[]
   ) {
-    const mentionList = varList.filter(c => ContactImpl.valid(c)) as ContactInterface[]
+    const mentionList = varList.filter(c => ContactImpl.valid(c) || RoomImpl.valid(c)) as (ContactInterface | RoomInterface)[]
 
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
@@ -551,6 +558,10 @@ class RoomMixin extends MixinBase implements SayableSayer {
         if (ContactImpl.valid(varList[i])) {
           const mentionContact: ContactInterface = varList[i] as any
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
+          finalText += textList[i] + '@' + mentionName
+        } else if (RoomImpl.valid(varList[i])) {
+          const mentionRoom: RoomInterface = varList[i] as any
+          const mentionName = mentionRoom.topic()
           finalText += textList[i] + '@' + mentionName
         } else {
           finalText += textList[i]! + varList[i]!
