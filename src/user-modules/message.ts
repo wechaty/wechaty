@@ -72,6 +72,7 @@ import {
 
 import { validationMixin } from '../user-mixins/validation.js'
 import type { ContactSelfImpl } from './contact-self.js'
+import { Post } from 'wechaty-puppet/types'
 
 const MixinBase = wechatifyMixin(
   EventEmitter,
@@ -1081,6 +1082,27 @@ class MessageMixin extends MixinBase implements SayableSayer {
   async toSayable (): Promise<undefined | Sayable> {
     log.verbose('Message', 'toSayable()')
     return messageToSayable(this)
+  }
+
+  async reply (
+    sayable: Sayable,
+  ): Promise<void | MessageInterface> {
+    log.verbose('Message', 'reply(%s)', sayable)
+
+    const builder = this.wechaty.Post.builder()
+    builder.type(Post.Message)
+    builder.reply(await this.toPost())
+    builder.add(sayable)
+    const post = await builder.build()
+
+    const talker  = this.talker()
+    const room    = this.room()
+
+    if (room) {
+      return room.say(post)
+    } else {
+      return talker.say(post)
+    }
   }
 
 }
