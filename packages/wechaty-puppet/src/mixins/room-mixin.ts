@@ -74,7 +74,7 @@ const roomMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin & Room
         try {
           // make sure the room id has valid payload
           await this.roomPayload(query.id)
-          return [query.id]
+          return [ query.id ]
         } catch (e) {
           log.verbose('PuppetRoomMixin', 'roomSearch() payload not found for id "%s"', query.id)
           await this.roomPayloadDirty(query.id)

@@ -60,7 +60,7 @@ class CacheAgent {
      */
     const lruOptions = (maxSize = 100): QuickLruOptions<any, any> => ({
       maxAge: 15 * 60 * 1000 * 1000, // 15 minutes
-      maxSize: maxSize,
+      maxSize,
     })
 
     this.contact = new QuickLru<string, ContactPayload>(lruOptions(

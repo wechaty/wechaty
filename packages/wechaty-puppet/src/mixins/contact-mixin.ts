@@ -100,7 +100,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkeleton>(mixi
         try {
           // make sure the contact id has valid payload
           await this.contactPayload(query.id)
-          return [query.id]
+          return [ query.id ]
         } catch (e) {
           log.verbose('PuppetContactMixin', 'contactSearch() payload not found for id "%s"', query.id)
           await this.contactPayloadDirty(query.id)

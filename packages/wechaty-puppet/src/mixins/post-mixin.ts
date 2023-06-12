@@ -95,7 +95,7 @@ const postMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(baseMi
      */
     postList (): string[] {
       log.verbose('PuppetPostMixin', 'postList()')
-      return [...this.cache.post.keys()]
+      return [ ...this.cache.post.keys() ]
     }
 
     async postPayloadDirty (

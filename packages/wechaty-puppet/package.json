@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "1.21.1",
+  "version": "1.21.2",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
@@ -90,7 +90,7 @@
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^4.6.2",
-    "@swc/core": "^1.2.113",
+    "@swc/core": "1.3.44",
     "@swc/helpers": "^0.2.14",
     "@types/uuid": "^8.3.3",
     "nop": "^1.0.0",

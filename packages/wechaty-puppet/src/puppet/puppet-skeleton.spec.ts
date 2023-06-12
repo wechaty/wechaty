@@ -36,7 +36,7 @@ test('emit(error, ...) with GError', async t => {
     '',
     'foo',
     [],
-    [1],
+    [ 1 ],
     {},
     { foo: 'bar' },
     new Error(),

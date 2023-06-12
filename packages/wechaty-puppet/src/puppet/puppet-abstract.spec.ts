@@ -83,7 +83,7 @@ test('contactQueryFilterFunction()', async t => {
 
   void t.test('filter name by regex', async t => {
     const QUERY   = { name: REGEX_VALUE }
-    const ID_LIST = ['id1', 'id3']
+    const ID_LIST = [ 'id1', 'id3' ]
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
@@ -92,7 +92,7 @@ test('contactQueryFilterFunction()', async t => {
 
   void t.test('filter name by text', async t => {
     const QUERY = { name: TEXT_VALUE }
-    const ID_LIST = ['id2', 'id4']
+    const ID_LIST = [ 'id2', 'id4' ]
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
@@ -101,7 +101,7 @@ test('contactQueryFilterFunction()', async t => {
 
   void t.test('filter alias by regex', async t => {
     const QUERY = { alias: REGEX_VALUE }
-    const ID_LIST = ['id2', 'id4']
+    const ID_LIST = [ 'id2', 'id4' ]
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
@@ -110,7 +110,7 @@ test('contactQueryFilterFunction()', async t => {
 
   void t.test('filter alias by text', async t => {
     const QUERY = { alias: TEXT_VALUE }
-    const ID_LIST = ['id1', 'id3']
+    const ID_LIST = [ 'id1', 'id3' ]
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
@@ -119,7 +119,7 @@ test('contactQueryFilterFunction()', async t => {
 
   void t.test('filter contact existing id', async t => {
     const QUERY = { id: 'id1' }
-    const ID_LIST = ['id1']
+    const ID_LIST = [ 'id1' ]
 
     const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
@@ -186,7 +186,7 @@ test('roomQueryFilterFunction()', async t => {
 
   void t.test('filter name by regex', async t => {
     const QUERY   = { topic: REGEX_VALUE }
-    const ID_LIST = ['id2', 'id4']
+    const ID_LIST = [ 'id2', 'id4' ]
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
@@ -195,7 +195,7 @@ test('roomQueryFilterFunction()', async t => {
 
   void t.test('filter name by text', async t => {
     const QUERY = { topic: TEXT_VALUE }
-    const ID_LIST = ['id1', 'id3']
+    const ID_LIST = [ 'id1', 'id3' ]
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
@@ -204,7 +204,7 @@ test('roomQueryFilterFunction()', async t => {
 
   void t.test('filter name by existing id', async t => {
     const QUERY = { id: 'id4' }
-    const ID_LIST = ['id4']
+    const ID_LIST = [ 'id4' ]
 
     const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
