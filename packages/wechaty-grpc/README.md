@@ -128,7 +128,7 @@ compile 'io.github.wechaty:grpc:0.11.25'
 
 ### PHP
 
-[github.com/wechaty/php-grpc](https://github.comwechaty/php-grpc)
+[github.com/wechaty/php-grpc](https://github.com/wechaty/php-grpc)
 
 **Maintainer:**
 
