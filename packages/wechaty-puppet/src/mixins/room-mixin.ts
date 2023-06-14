@@ -30,15 +30,15 @@ const roomMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin & Room
      * Room
      *
      */
-    abstract roomAdd (roomId: string, contactId: string, inviteOnly?: boolean) : Promise<void>
-    abstract roomAvatar (roomId: string)                                       : Promise<FileBoxInterface>
-    abstract roomCreate (contactIdList: string[], topic?: string)              : Promise<string>
-    abstract roomDel (roomId: string, contactId: string)                       : Promise<void>
-    abstract roomList ()                                                       : Promise<string[]>
-    abstract roomQRCode (roomId: string)                                       : Promise<string>
-    abstract roomQuit (roomId: string)                                         : Promise<void>
-    abstract roomTopic (roomId: string)                                        : Promise<string>
-    abstract roomTopic (roomId: string, topic: string)                         : Promise<void>
+    abstract roomAdd (roomId: string, contactId: string | string[], inviteOnly?: boolean): Promise<void>
+    abstract roomAvatar (roomId: string)                                                 : Promise<FileBoxInterface>
+    abstract roomCreate (contactIdList: string[], topic?: string)                        : Promise<string>
+    abstract roomDel (roomId: string, contactId: string | string[])                      : Promise<void>
+    abstract roomList ()                                                                 : Promise<string[]>
+    abstract roomQRCode (roomId: string)                                                 : Promise<string>
+    abstract roomQuit (roomId: string)                                                   : Promise<void>
+    abstract roomTopic (roomId: string)                                                  : Promise<string>
+    abstract roomTopic (roomId: string, topic: string)                                   : Promise<void>
 
     /**
      * Issue #155 - https://github.com/wechaty/puppet/issues/155
