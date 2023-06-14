@@ -89,6 +89,10 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
           contactId: this.currentUserId,
           data: 'puppet stop()',
         })
+        await new Promise<void>(resolve => setImmediate(() => {
+          this.__currentUserId = undefined
+          resolve()
+        }))
       }
 
       await super.stop()
