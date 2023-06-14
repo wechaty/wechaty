@@ -101,6 +101,7 @@ type SayablePayloadUnsupportedType =
   | 'RedEnvelope'
   | 'Transfer'
   | 'Unknown'
+  | 'System'
 
 export {
   sayablePayloads,

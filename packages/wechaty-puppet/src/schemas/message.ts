@@ -20,6 +20,8 @@ export enum MessageType {
   Url         = 14,   // Url(5)
   Video       = 15,   // Video(4), Video(43)
   Post        = 16,   // Moment, Channel, Tweet, etc
+
+  System      = 18,   // System Message
 }
 
 /**
