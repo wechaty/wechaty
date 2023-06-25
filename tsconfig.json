@@ -3,6 +3,8 @@
   "compilerOptions": {
     "outDir": "dist/esm",
     "lib": ["ESNext", "DOM"],
+    "verbatimModuleSyntax": false,
+    "ignoreDeprecations": "5.0"
   },
   "exclude": [
     "node_modules/",
