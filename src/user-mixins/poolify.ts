@@ -40,7 +40,7 @@ const poolifyMixin = <MixinBase extends Constructor>(mixinBase: MixinBase) => <T
       return this._pool!  // FIXME: why we need "!" at here?
     }
 
-    public static load<L extends Constructor<T> & PoolifyMixin<T>> (
+    public static load<L extends Constructor<T & {}> & PoolifyMixin<T>> (
       this : L,
       id   : string,
     ): T {

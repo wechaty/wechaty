@@ -17,7 +17,7 @@ import type { Sayable } from './types.js'
  * TODO: add unit test to ensure the interface validation code works
  */
 const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) => (conversationId: string) => async (sayable: Sayable) => {
-  let msgId: string | void
+  let msgId: string | void = undefined
 
   if (typeof sayable === 'number') {
     sayable = String(sayable)
