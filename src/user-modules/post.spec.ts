@@ -63,14 +63,14 @@ test.skip('Post smoke testing', async t => {
     t.ok(descendantPost, 'tbw')
   }
 
-  const [descendantList, _nextPageToken2] = await wechaty.Post.findAll({}, pagination)
+  const [ descendantList, _nextPageToken2 ] = await wechaty.Post.findAll({}, pagination)
   t.ok(descendantList, 'tbw')
 
   for await (const liker of post.taps({ type: PUPPET.types.Tap.Like })) {
     t.ok(liker, 'tbw')
   }
 
-  const [tapList, _nextPageToken3] = await post.tapFind({ type: PUPPET.types.Tap.Like }, pagination)
+  const [ tapList, _nextPageToken3 ] = await post.tapFind({ type: PUPPET.types.Tap.Like }, pagination)
   t.ok(tapList, 'tbw')
 
   await wechaty.stop()

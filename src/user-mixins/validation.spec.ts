@@ -25,18 +25,18 @@ test('validationMixin() valid()', async t => {
   interface UserClass extends UserClassImpl {}
 
   const FIXTURES = [
-    [new UserClassImpl(),       true],
+    [ new UserClassImpl(),       true ],
     // Invalid things
-    [{},                        false],
-    [[],                        false],
-    [new Map(),                 false],
+    [ {},                        false ],
+    [ [],                        false ],
+    [ new Map(),                 false ],
     // Object interface
-    [{ bar: true, foo: true },  true],
-    [{ bar: true },             false],
-    [{ foo: true },             false],
+    [ { bar: true, foo: true },  true ],
+    [ { bar: true },             false ],
+    [ { foo: true },             false ],
   ]
 
-  for (const [input, expected] of FIXTURES) {
+  for (const [ input, expected ] of FIXTURES) {
     const valid = expected ? 'valid' : 'invalid'
     /* eslint-disable multiline-ternary */
     const type = typeof input !== 'object' ? typeof input
