@@ -28,6 +28,7 @@ import "wechaty/puppet/room-invitation.proto";
 import "wechaty/puppet/room-member.proto";
 import "wechaty/puppet/room.proto";
 import "wechaty/puppet/tag.proto";
+import "wechaty/puppet/conversation.proto";
 
 option java_package="io.github.wechaty.grpc";
 option go_package="github.com/wechaty/go-grpc/wechaty";
@@ -354,6 +355,18 @@ service Puppet {
   rpc MessageSendLocation (puppet.MessageSendLocationRequest) returns (puppet.MessageSendLocationResponse) {
     option (google.api.http) = {
       post: "/conversations/{conversation_id}/location"
+      body: "*"
+    };
+  }
+
+  /**
+   *
+   * Conversation
+   *
+   */
+  rpc ConversationRead (puppet.ConversationReadRequest) returns (puppet.ConversationReadResponse) {
+    option (google.api.http) = {
+      put: "/conversation/{conversation_id}/read"
       body: "*"
     };
   }
