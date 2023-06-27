@@ -27,6 +27,8 @@ enum EventType {
   EVENT_TYPE_LOGIN       = 25;
   EVENT_TYPE_LOGOUT      = 26;
   EVENT_TYPE_DIRTY       = 27;
+
+  EVENT_TYPE_ROOM_ANNOUNCE = 32;
 }
 
 message EventRequest {}
