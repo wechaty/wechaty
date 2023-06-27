@@ -36,6 +36,10 @@ enum MessageType {
   MESSAGE_TYPE_RED_ENVELOPE = 12;
   MESSAGE_TYPE_RECALLED     = 13;
   MESSAGE_TYPE_URL          = 14;
+  MESSAGE_TYPE_GROUP_NOTE   = 15;
+  MESSAGE_TYPE_POST         = 16;
+
+  MESSAGE_TYPE_SYSTEM       = 18;
 }
 
 message MessagePayloadRequest {
