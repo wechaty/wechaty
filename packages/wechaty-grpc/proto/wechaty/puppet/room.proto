@@ -27,8 +27,9 @@ message RoomPayloadResponse {
 
 message RoomAddRequest {
   string id = 1;
-  string contact_id = 2;
+  string contact_id = 2 [deprecated = true];
   bool   invite_only = 3;
+  repeated string contact_ids = 4;
 }
 message RoomAddResponse {}
 
@@ -49,7 +50,8 @@ message RoomCreateResponse {
 
 message RoomDelRequest {
   string id = 1;
-  string contact_id = 2;
+  string contact_id = 2 [deprecated = true];
+  repeated string contact_ids = 3;
 }
 message RoomDelResponse {}
 
