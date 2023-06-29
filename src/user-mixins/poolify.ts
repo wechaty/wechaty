@@ -40,6 +40,11 @@ const poolifyMixin = <MixinBase extends Constructor>(mixinBase: MixinBase) => <T
       return this._pool!  // FIXME: why we need "!" at here?
     }
 
+    /**
+     * Nan(202111): We use it as a workaround to meet the requirement of Constructor parameters
+     *
+     * See: https://github.com/wechaty/wechaty/issues/2553
+     */
     public static load<L extends Constructor<T & {}> & PoolifyMixin<T>> (
       this : L,
       id   : string,
