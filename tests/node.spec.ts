@@ -39,15 +39,15 @@ test('Node.js function params destructuring behaviour test', async t => {
 
   paramSpy.resetHistory()
   paramTest()
-  t.same(paramSpy.args[0], [DEFAULT_N, DEFAULT_S], 'should be equal to default args')
+  t.same(paramSpy.args[0], [ DEFAULT_N, DEFAULT_S ], 'should be equal to default args')
 
   paramSpy.resetHistory()
   paramTest({ n: 42 })
-  t.same(paramSpy.args[0], [42, DEFAULT_S], 'should be equal to default s args')
+  t.same(paramSpy.args[0], [ 42, DEFAULT_S ], 'should be equal to default s args')
 
   paramSpy.resetHistory()
   paramTest({ s: 'life' })
-  t.same(paramSpy.args[0], [DEFAULT_N, 'life'], 'should be equal to default n args')
+  t.same(paramSpy.args[0], [ DEFAULT_N, 'life' ], 'should be equal to default n args')
 
   sandbox.restore()
 })

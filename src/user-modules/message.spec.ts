@@ -80,7 +80,7 @@ test('recalled()', async t => {
 
   sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
     await new Promise((resolve) => setImmediate(resolve))
-    return [EXPECTED_TALKER_CONTACT_ID, EXPECTED_LISTENER_CONTACT_ID]
+    return [ EXPECTED_TALKER_CONTACT_ID, EXPECTED_LISTENER_CONTACT_ID ]
   })
 
   sandbox.stub(puppet, 'contactPayload').callsFake(async (id: string) => {
@@ -93,7 +93,7 @@ test('recalled()', async t => {
 
   const fakeIdSearcher = async (...args: any[]) => {
     await new Promise(setImmediate)
-    return [args[0].id]
+    return [ args[0].id ]
   }
 
   sandbox.stub(puppet, 'messageSearch').callsFake(fakeIdSearcher)

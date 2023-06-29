@@ -10,7 +10,7 @@ const validationMixin = <MixinBase extends Constructor> (mixinBase: MixinBase) =
   log.verbose('ValidationMixin', 'validationMixin(%s)', mixinBase.name)
 
   const instanceOfUserClass   = looseInstanceOfClass(mixinBase)
-  const interfaceOfUserClass  = interfaceOfClass(mixinBase)<T>()
+  const interfaceOfUserClass  = interfaceOfClass(mixinBase)<T & {}>()
 
   const validUserClass = (o: any): o is T => {
     if (instanceOfUserClass(o)) {
