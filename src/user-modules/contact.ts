@@ -130,7 +130,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
       log.warn('Contact', 'find() got more than 1 result: %d total', contactList.length)
     }
 
-    for (const [idx, contact] of contactList.entries()) {
+    for (const [ idx, contact ] of contactList.entries()) {
       // use puppet.contactValidate() to confirm double confirm that this contactId is valid.
       // https://github.com/wechaty/wechaty-puppet-padchat/issues/64
       // https://github.com/wechaty/wechaty/issues/1345

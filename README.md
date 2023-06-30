@@ -482,7 +482,7 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 
 ## :sunglasses: Backers
 
-[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#backers)
+[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#sunglasses-backers)
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
 
@@ -490,7 +490,7 @@ Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com
 
 ## :smirk: Sponsors
 
-[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors)
+[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#smirk-sponsors)
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
 
