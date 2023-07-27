@@ -29,7 +29,7 @@ test('ready event test', async t => {
   ;(puppet as any).__currentUserId = 'logged in'
   const serverOptions = {
     endpoint: ENDPOINT,
-    puppet: puppet,
+    puppet,
     token: TOKEN,
   } as PuppetServerOptions
 
@@ -64,7 +64,7 @@ test('ready event test', async t => {
     readyFuture,
   ])
 
-  t.same(eventList, ['login', 'ready'], 'should have `login` event first then `ready`')
+  t.same(eventList, [ 'login', 'ready' ], 'should have `login` event first then `ready`')
 
   await puppetService.stop()
   await puppetServer.stop()

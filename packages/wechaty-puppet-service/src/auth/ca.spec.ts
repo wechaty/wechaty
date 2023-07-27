@@ -87,7 +87,7 @@ test('CA SNI tests', async t => {
     ],
   ] as const
 
-  for (const [SNI, EXPECT, MSG] of SNI_TEST_LIST) {
+  for (const [ SNI, EXPECT, MSG ] of SNI_TEST_LIST) {
     const result = await new Promise((resolve, reject) => {
       https.request({
         ca,

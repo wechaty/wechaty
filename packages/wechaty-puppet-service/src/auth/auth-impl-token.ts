@@ -96,7 +96,7 @@ const authImplToken = <T extends UntypedServiceImplementation>(validToken: strin
 ) => {
   log.verbose('wechaty-puppet-service', 'authImplToken()')
 
-  for (const [key, val] of Object.entries(serviceImpl)) {
+  for (const [ key, val ] of Object.entries(serviceImpl)) {
     // any: https://stackoverflow.com/q/59572522/1123955
     (serviceImpl as any)[key] = authWrapHandlerToken(validToken)(val)
   }

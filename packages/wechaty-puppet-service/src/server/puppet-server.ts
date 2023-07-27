@@ -151,10 +151,10 @@ export class PuppetServer {
     )
     log.verbose('PuppetServer', 'start() initializing TLS CA ... done')
 
-    const keyCertPairs: grpc.KeyCertPair[] = [{
+    const keyCertPairs: grpc.KeyCertPair[] = [ {
       cert_chain  : certChain,
       private_key : privateKey,
-    }]
+    } ]
 
     /**
      * Huan(202108): for maximum compatible with the non-tls community servers/clients,

@@ -49,7 +49,7 @@ test('gRPC client breaks', async t => {
    */
   const serverOptions = {
     endpoint: ENDPOINT,
-    puppet: puppet,
+    puppet,
     token: TOKEN,
   } as PuppetServerOptions
 

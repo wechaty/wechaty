@@ -27,7 +27,7 @@ test('PuppetService restart without problem', async t => {
   const puppet = new PuppetMock()
   const serverOptions = {
     endpoint: ENDPOINT,
-    puppet: puppet,
+    puppet,
     token: TOKEN,
   } as const
 
