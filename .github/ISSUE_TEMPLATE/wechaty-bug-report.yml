@@ -1,0 +1,104 @@
+name: 🐛 Wechaty Bug Report
+description: Create a bug report for a bug, you found in wechaty. 
+title: "[Bug]: "
+labels: bug
+body: 
+  - type: checkboxes
+    attributes:
+      label: Report Issue Guide
+      description: |
+        * Please run the following command and check whether the problem has been fixed：
+            ```sh
+            rm -rf package-lock.json
+            rm -rf node_modules
+            npm install
+            ```
+        * Please search in [FAQ List](https://wechaty.js.org/faq) first, and make sure your problem has not been solved before.
+        * Please search in the issue first, and make sure your problem had not been reported before.
+      options:
+      - label: I have searched the existing issues
+        required: true
+      render: markdown
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        Questions:
+          - Your wechaty version?
+          - Puppet, you are using for wechaty?
+              - **puppeteer**
+              - **padlocal**
+              - **service...**
+          - Your wechaty-puppet-XXX (padchat/puppeteer/） version?
+          - Your node version?
+          - Os you are using?
+      value: |
+          - wechaty-version:
+          - puppet: 
+          - wechaty-puppet-XXX: 
+          - Node-version: 
+          - OS: 
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: |
+        Give a clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: |
+        Steps to reproduce the behavior.
+        This part is very important: if you can not provide any reproduce steps,then the problem will be very hard to be recognized.
+        [How to create a Minimal, Reproducible Example](https://stackoverflow.com/help/minimal-reproducible-example)
+        Steps to reproduce the behavior:
+        1. run '...'
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: |
+        Give a clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: |
+       If applicable, add screenshots to help explain your problem. 
+       But the log message must be in plain text instead of screenshot.
+    validations:
+      required: false
+  - type: textarea
+    id: output-logs
+    attributes:
+      label: Full Output Logs
+      description: |
+        Set env `WECHATY_LOG=silly` in order to set log level to silly, then we can get the full log (If you dosen't set log env, log level is info as default, we cannot get the full log)
+        **We need full log instead of log screenshot or log fragments!**
+        <details>
+        <summary>
+        Show Logs
+        </summary>
+
+        ```shell
+        $ WECHATY_LOG=silly node yourbot.js
+        -> Make sure to copy/paste the full (instead of only fragments) log message in text format (instead of image/screenshot) at here
+        ```
+
+        </details>
+  - type: textarea
+    id: addition
+    attributes:
+      label: Additional context
+      placeholder: Add any other context about the problem here.
