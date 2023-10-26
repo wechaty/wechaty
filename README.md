@@ -72,13 +72,13 @@ See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Vo
 
 ### Join Us on Discord
 
-[![Wechaty Discord Community](https://discord.io/wechaty/badge)](https://discord.io/wechaty)
+[![Discord](https://img.shields.io/discord/916984413944967180)](https://discord.gg/7q8NBZbQzt)
 
-Wechaty is used in many ChatBot projects by thousands of developers. If you want to talk with other developers, scan the QR Code below, and join our **Wechaty Developer Community**.
+Wechaty is used in many ChatBot projects by thousands of developers. To talk with other developers, scan the QR Code below and join our **Wechaty Developer Community**.
 
 ![Wechaty Discord Community QR Code](https://wechaty.js.org/img/discord-qrcode.svg)
 
-Scan now because other Wechaty developers want to talk with you too!
+Scan now because other Wechaty developers want to talk with you, too!
 
 ### Resource
 
