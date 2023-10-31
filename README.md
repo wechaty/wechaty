@@ -1,4 +1,4 @@
-# Wechaty [![Discord](https://img.shields.io/discord/916984413944967180)](https://discord.gg/7q8NBZbQzt) [![NPM Version](https://img.shields.io/npm/v/wechaty?color=brightgreen)](https://www.npmjs.com/package/wechaty) [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM) [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
+# Wechaty [![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt) [![NPM Version](https://img.shields.io/npm/v/wechaty?color=brightgreen)](https://www.npmjs.com/package/wechaty) [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM) [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
 
 [![Wechaty](https://wechaty.js.org/img/wechaty-logo.svg)](https://wechaty.js.org)
 
@@ -68,7 +68,7 @@ Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can 
 
 See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
 
-### Join Us on Discord [![Discord](https://img.shields.io/discord/916984413944967180)](https://discord.gg/7q8NBZbQzt)
+### Join Us on Discord [![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt)
 
 Wechaty is used in many ChatBot projects by thousands of developers. To talk with other developers, scan the QR Code below and join our **Wechaty Developer Community**.
 
