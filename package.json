@@ -126,7 +126,7 @@
     "uuid": "^8.3.2",
     "wechaty-puppet": "^1.20.1",
     "wechaty-puppet-service": "^1.19.8",
-    "wechaty-puppet-wechat4u": "^1.11.1",
+    "wechaty-puppet-wechat4u": "^1.13.15",
     "wechaty-token": "^1.1.1",
     "ws": "^8.5.0"
   },
@@ -135,8 +135,6 @@
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.4.7",
     "@chatie/tsconfig": "^4.6.3",
-    "@swc/core": "^1.2.155",
-    "@swc/helpers": "^0.3.6",
     "@types/cross-spawn": "^6.0.2",
     "@types/dotenv": "^8.2.0",
     "@types/glob": "^7.2.0",

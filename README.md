@@ -1,4 +1,4 @@
-# Wechaty [![NPM Version](https://img.shields.io/npm/v/wechaty?color=brightgreen)](https://www.npmjs.com/package/wechaty) [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM) [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
+# Wechaty [![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt) [![NPM Version](https://img.shields.io/npm/v/wechaty?color=brightgreen)](https://www.npmjs.com/package/wechaty) [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM) [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
 
 [![Wechaty](https://wechaty.js.org/img/wechaty-logo.svg)](https://wechaty.js.org)
 
@@ -24,15 +24,14 @@
 [![TikTok](https://img.shields.io/badge/--000000?logo=tiktok&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/tiktok)
 [![Line](https://img.shields.io/badge/--00C300?logo=line&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/line)
 [![Telegram](https://img.shields.io/badge/--2CA5E0?logo=telegram&logoColor=white)](https://wechaty.js.org/docs/puppet-providers/telegram)
--->
-
 [![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Gitter room](https://badgen.net/gitter/members/wechaty/wechaty)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
+-->
 
 ## Connecting Chatbots
 
-Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
+Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
 
 :spider_web: <https://wechaty.js.org>  
 :octocat: <https://github.com/Wechaty/wechaty>  
@@ -46,7 +45,7 @@ Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can h
 
 ## Voice of Developers
 
-> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472)  
+> "Wechaty is a great solution; I believe there would be much more users who recognize it." [link](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472)  
 > &mdash; <cite>@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)</cite>
 >
 > "太好用，好用的想哭"  
@@ -61,33 +60,29 @@ Wechaty is a RPA (Robotic Process Automation) SDK for Chatbot Makers which can h
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
 > &mdash; <cite>@lijiarui, Founder & CEO of Juzi.BOT.</cite>
 >
-> "If you know js ... try Wechaty, it's easy to use."  
+> "If you know js ... try Wechaty. It's easy to use."  
 > &mdash; <cite>@Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)</cite>
 >
-> "Wechaty is a good project, I hope it can continue! Therefore, I became a contributors in open collective."  
+> "Wechaty is a good project; I hope it can continue! Therefore, I became a contributor in open collective."  
 > &mdash; <cite>[@Simple](https://github.com/mrwhh)</cite>
 
 See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
 
-### Join Us
+### Join Us on Discord [![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt)
 
-[![Gitter](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+Wechaty is used in many ChatBot projects by thousands of developers. To talk with other developers, scan the QR Code below and join our **Wechaty Developer Community**.
 
-Wechaty is used in many ChatBot projects by thousands of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
+![Wechaty Discord Community QR Code](https://wechaty.js.org/img/discord-qrcode.svg)
 
-![Wechaty Friday.BOT QR Code](https://wechaty.js.org/img/friday-qrcode.svg)
-
-Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
-
-> You are also welcome to join our Gitter channel at <https://gitter.im/wechaty/wechaty> with your GitHub account!
+Scan now because other Wechaty developers want to talk with you, too!
 
 ### Resource
 
-Wechaty already held lots of talk and got a lot of blogs in the past 4 years, here is all of the wechaty resources:
+Wechaty has already held lots of talks and got a lot of blogs in the past years; here are all of the wechaty resources:
 
-- :video_camera: [Youtube Playlist: Watch all of talk video related with Wechaty](https://www.youtube.com/playlist?list=PL8hd9KDTdarDXf_Rxtr8meKhxtgcXMInh)
+- :video_camera: [Youtube Playlist: Watch all of the talk videos related with Wechaty](https://www.youtube.com/playlist?list=PL8hd9KDTdarDXf_Rxtr8meKhxtgcXMInh)
 - :page_with_curl: [Full Docs](https://wechaty.js.org/)
-- :bulb: [Blog: See how developers use wechaty building fantastic project!](https://wechaty.github.io/)
+- :bulb: [Blog: See how developers use wechaty to build fantastic projects!](https://wechaty.github.io/)
 - :beginner: [Wechaty-Getting-Started:Wechaty Starter Project Template that Works Out-of-the-Box](https://github.com/wechaty/wechaty-getting-started)
 - :tada: [Wechaty Contributor List: Thanks for their contribution!](https://github.com/wechaty/wechaty/wiki/Contributors)
 - :gift: [Juzibot Support Wechaty: Know everything about Wechaty](https://github.com/juzibot/Welcome/wiki/Everything-about-Wechaty)
@@ -108,9 +103,9 @@ wechaty.start()
 
 > **Notice: Wechaty requires Node.js version >= 16**
 
-This bot can log all messages to the console after login by scan.
+This bot can log all messages to the console after login by the scan.
 
-You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts), and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
+You can find Wechaty's Official Examples at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts) and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
 
 ## :checkered_flag: Requirements
 
@@ -124,7 +119,7 @@ You can find Wechaty Official Example at [examples/ding-dong-bot.ts](examples/di
 
 - Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
 
-We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
+We have a Wechaty starter repository for beginners with the simplest setting. It will be **work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
 If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
 
@@ -483,7 +478,7 @@ This project exists thanks to all the people who contribute. [[Contribute](CONTR
 
 ## :sunglasses: Backers
 
-[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#backers)
+[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#sunglasses-backers)
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
 
@@ -491,7 +486,7 @@ Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com
 
 ## :smirk: Sponsors
 
-[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#sponsors)
+[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#smirk-sponsors)
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
 
