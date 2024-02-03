@@ -492,6 +492,10 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 [![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
 
+[![Capsolver](https://i.imgur.com/YaRmSt4.gif)](https://capsolver.com/?utm_source=github&utm_medium=banner_github&utm_campaign=asarmor)
+
+[Capsolver.com](https://capsolver.com/?utm_source=github&utm_medium=banner_github&utm_campaign=asarmor) is an AI-powered service that provides automatic captcha solving capabilities. It supports a range of captcha types, including reCAPTCHA, hCaptcha, and FunCaptcha, AWS Captcha, Geetest, Akamai Web, BMP, Imperva / Incapsula, image captcha among others.
+
 ## Multi-language Wechaty
 
 [![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
