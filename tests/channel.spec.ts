@@ -1,3 +1,4 @@
+#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -17,7 +18,16 @@
  *   limitations under the License.
  *
  */
-import { WechatyBuilder } from 'wechaty'
+import {
+  test,
+} from 'tstest'
 
-const bot = WechatyBuilder.build()
-console.info(bot.version())
+import {
+  WechatyBuilder,
+} from '../src/wechaty-builder'
+
+test('channel test', async t => {
+  const bot = WechatyBuilder.build()
+
+  const channel = new bot.Channel()
+})
