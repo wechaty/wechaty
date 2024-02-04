@@ -418,6 +418,28 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
             })
             break
 
+          case 'room-announce':
+            puppet.on('room-announce', async payload => {
+              try {
+                const room = await this.Room.find({ id: payload.roomId })
+                if (!room) {
+                  throw new Error('no room found for id: ' + payload.roomId)
+                }
+
+                await room.sync()
+                const changer = await this.Contact.find({ id: payload.changerId })
+                if (!changer) {
+                  throw new Error('no changer found for id: ' + payload.changerId)
+                }
+                const date = timestampToDate(payload.timestamp)
+                this.emit('room-announce', room, payload.newAnnounce, changer, payload.oldAnnounce, date)
+                room.emit('announce', payload.newAnnounce, changer, payload.oldAnnounce, date)
+              }  catch (e) {
+                this.emit('error', GError.from(e))
+              }
+            })
+            break
+
           case 'scan':
             puppet.on('scan', async payload => {
               this.__readyState.inactive(true)
