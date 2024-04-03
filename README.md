@@ -537,7 +537,7 @@ Second beta release of Wechaty, with all ecosystem npm modules with version v1.1
 1. [Huan](https://github.com/huan) [(LinkedIn)](http://linkedin.com/in/huan42), 🐧 Tencent TVP of Chatbot・🤖 Chatie Architect・⭐️ GitHub Star・🚀 YC W19・🌐 Microsoft RD & AI MVP・🦾 Google ML GDE ・🤠 Serial Entrepreneur・🔥 Burner
 1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP & RD, Co-founder & CEO of [Juzi.BOT](https://www.juzibot.com/) (YC W19 Alumni)
 
-[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
+[![Profile of Huan Li on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
 
 ## Cite Wechaty
 
