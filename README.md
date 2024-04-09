@@ -29,6 +29,8 @@
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
 -->
 
+## Elevator Pitch
+
 Wechaty is a conversational RPA SDK that simplifies the process of building chatbots. It's like a Swiss Army knife for chatbot development, providing a universal interface to various messaging platforms such as WhatsApp, WeChat, and more. With Wechaty, you write your bot code once, and it runs on any of the supported platforms. This means you can focus on creating engaging conversational experiences without worrying about the underlying complexities of each platform's API. It's open-source, easy to use, and backed by a vibrant community that's ready to help you bring your chatbot ideas to life.
 
 ## Connecting Chatbots
