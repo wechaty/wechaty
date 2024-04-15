@@ -346,14 +346,14 @@ class ContactMixin extends MixinBase implements SayableSayer {
   }
 
   /**
-   * Get the name from a contact
+   * Get the name from a chat contact
    *
-   * @returns {string}
+   * @returns {Promise<string>}
    * @example
-   * const name = contact.name()
+   * const name = await contact.name()
    */
-  name (): string {
-    return (this.payload && this.payload.name) || ''
+  async name (): Promise<string> {
+    return Promise.resolve((this.payload && this.payload.name) || '')
   }
 
   async alias ()                  : Promise<undefined | string>
@@ -518,20 +518,20 @@ class ContactMixin extends MixinBase implements SayableSayer {
     }
   }
 
-  title (): string | null {
+  async title (): Promise<string | null> {
     if (!this.payload) {
       throw new Error('no payload')
     }
 
-    return this.payload.title || null
+    return Promise.resolve(this.payload.title || null)
   }
 
-  coworker (): boolean {
+  async coworker (): Promise<boolean> {
     if (!this.payload) {
       throw new Error('no payload')
     }
 
-    return !!this.payload.coworker
+    return Promise.resolve(!!this.payload.coworker)
   }
 
   /**
