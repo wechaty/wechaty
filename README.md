@@ -76,9 +76,10 @@ Scan now because other Wechaty developers want to talk with you, too!
 * [Creating Wechaty Plugin](#creatingwechatyplugin)
 * [The Story](#thestory)
 * [Release Notes](#releasenotes)
+* [Release History](#history)
 * [Servers, Badges, Citations, Projects](#serversetc)
 * [Contributors, Sponsors and Backers](#backers)
-* [History](#history)
+* [Creators](#creators)
 * [Copyright & License](#copyright)
 
 <a name="voiceofdevelopers"></a>
@@ -453,6 +454,30 @@ At last, It's built for huan's personal study purpose of Automatically Testing.
 
 [![HitCount](http://hits.dwyl.io/wechaty/wechaty.svg)](http://hits.dwyl.io/wechaty/wechaty)
 
+<a name="history"></a>
+## History
+
+### main v1.11 (Nov 22, 2021)
+
+Working on reduxify the Wechaty ecosystem for applying the CQRS pattern.
+
+### v1.10 (Nov 21, 2021)
+
+Second beta release of Wechaty, with all ecosystem npm modules with version v1.10 (wechaty-puppet, wechaty-puppet-service, etc)
+
+### v1.0 (Sep 2021)
+
+- Release v1.0 of Wechaty is the first beta release of Wechaty.
+
+### v0.69
+
+1. v0.69: Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
+
+### v0.68 (Aug 27, 2021)
+
+1. TLS support ([#2231](https://github.com/wechaty/wechaty/issues/2231))
+1. The latest CommonJS version
+
 <a name="serversetc"></a>
 ## Servers, Badges, Citations, Projects
 
@@ -577,30 +602,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 - [PHP Wechaty](https://github.com/wechaty/php-wechaty) - RPA SDK for Chatbot Makers written in PHP
 - [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - RPA SDK for Chatbot Makers written in .NET(C#)
 
-<a name="history"></a>
-## History
-
-### main v1.11 (Nov 22, 2021)
-
-Working on reduxify the Wechaty ecosystem for applying the CQRS pattern.
-
-### v1.10 (Nov 21, 2021)
-
-Second beta release of Wechaty, with all ecosystem npm modules with version v1.10 (wechaty-puppet, wechaty-puppet-service, etc)
-
-### v1.0 (Sep 2021)
-
-- Release v1.0 of Wechaty is the first beta release of Wechaty.
-
-### v0.69
-
-1. v0.69: Supports ES Modules (with CJS dual support) ([#2232](https://github.com/wechaty/wechaty/issues/2232))
-
-### v0.68 (Aug 27, 2021)
-
-1. TLS support ([#2231](https://github.com/wechaty/wechaty/issues/2231))
-1. The latest CommonJS version
-
+<a name="creators"></a>
 ## Creators
 
 1. [Huan](https://github.com/huan) [(LinkedIn)](http://linkedin.com/in/huan42), 🐧 Tencent TVP of Chatbot・🤖 Chatie Architect・⭐️ GitHub Star・🚀 YC W19・🌐 Microsoft RD & AI MVP・🦾 Google ML GDE ・🤠 Serial Entrepreneur・🔥 Burner
