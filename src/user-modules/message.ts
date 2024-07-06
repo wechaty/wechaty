@@ -437,7 +437,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     if (this.type() !== PUPPET.types.Message.Recalled) {
       throw new Error('Can not call toRecalled() on message which is not recalled type.')
     }
-    const originalMessageId = this.text()
+    const originalMessageId = this.id
     if (!originalMessageId) {
       throw new Error('Can not find recalled message')
     }
