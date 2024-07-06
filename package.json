@@ -65,7 +65,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wechaty/wechaty.git"
+    "url": "git+https://github.com/chentrace/wechaty.git"
   },
   "bin": {
     "wechaty": "dist/esm/bin/cli.js",
