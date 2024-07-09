@@ -29,6 +29,10 @@
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
 -->
 
+## Elevator Pitch
+
+Wechaty is a conversational RPA SDK that simplifies the process of building chatbots. It's like a Swiss Army knife for chatbot development, providing a universal interface to various messaging platforms such as WhatsApp, WeChat, and more. With Wechaty, you write your bot code once, and it runs on any of the supported platforms. This means you can focus on creating engaging conversational experiences without worrying about the underlying complexities of each platform's API. It's open-source, easy to use, and backed by a vibrant community that's ready to help you bring your chatbot ideas to life.
+
 ## Connecting Chatbots
 
 Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
@@ -68,7 +72,10 @@ Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can 
 
 See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
 
-### Join Us on Discord [![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt)
+### Join Us on Discord
+
+[![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt)
+[![Wechaty Discord](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscord.com%2Fapi%2Finvites%2F7q8NBZbQzt%3Fwith_counts%3Dtrue&query=%24.approximate_member_count&logo=discord&logoColor=white&label=Users%20Total&color=green&style=flat)](https://discord.gg/7q8NBZbQzt)
 
 Wechaty is used in many ChatBot projects by thousands of developers. To talk with other developers, scan the QR Code below and join our **Wechaty Developer Community**.
 
@@ -491,10 +498,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 [![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
 
-[![Capsolver](https://i.imgur.com/YaRmSt4.gif)](https://www.capsolver.com/?utm_source=github&utm_medium=banner_github&utm_campaign=wechaty)
-
-[Capsolver.com](https://www.capsolver.com/?utm_source=github&utm_medium=banner_github&utm_campaign=wechaty) is an AI-powered service that provides automatic captcha solving capabilities. It supports a range of captcha types, including reCAPTCHA, hCaptcha, FunCaptcha, AWS Captcha, Geetest, Akamai Web, BMP, Imperva / Incapsula, and image captcha, among others.
-
 ## Multi-language Wechaty
 
 [![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
@@ -537,18 +540,18 @@ Second beta release of Wechaty, with all ecosystem npm modules with version v1.1
 
 ## Creators
 
-1. [Huan](https://github.com/huan) [(李卓桓)](http://linkedin.com/in/zixia), Tencent TVP of Chatbot
-1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP, Founder & CEO of [Juzi.BOT](https://www.juzibot.com/) (YC W19 Alumni)
+1. [Huan](https://github.com/huan) [(LinkedIn)](http://linkedin.com/in/huan42), 🐧 Tencent TVP of Chatbot・🤖 Chatie Architect・⭐️ GitHub Star・🚀 YC W19・🌐 Microsoft RD & AI MVP・🦾 Google ML GDE ・🤠 Serial Entrepreneur・🔥 Burner
+1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP & RD, Co-founder & CEO of [Juzi.BOT](https://www.juzibot.com/) (YC W19 Alumni)
 
-[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
+[![Profile of Huan Li on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
 
 ## Cite Wechaty
 
 To cite this project in publications:
 
 ```bibtex
-@misc{wechaty,
-  author = {Huan LI, Jiarui LI},
+@misc{Wechaty,
+  author = {Huan Li, Rui Li},
   title = {Wechaty: Conversational SDK for Chatbot Makers},
   year = {2016},
   publisher = {GitHub},
