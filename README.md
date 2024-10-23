@@ -178,7 +178,7 @@ docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.ts
 
 Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
 
-If you cannot use Web protocol, you can apply other protocal following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
+If you cannot use Web protocol, you can apply other protocols following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
 
 Currently we support the following [puppet providers](https://wechaty.js.org/docs/puppet-services/) :
 
@@ -360,7 +360,7 @@ Accept room invitation
 
 [![Known Vulnerabilities](https://snyk.io/test/github/Wechaty/wechaty/badge.svg)](https://snyk.io/test/github/Wechaty/wechaty)
 
-Wechaty is fully automatically tested by unit and integration tests, with Continious Integration & Continious Deliver(CI/CD) support powered by CI like Travis, Shippable and Appveyor.
+Wechaty is fully automatically tested by unit and integration tests, with Continuous Integration & Continuous Delivery (CI/CD) support powered by CI like Travis, Shippable and Appveyor.
 
 To test Wechaty, run:
 
