@@ -676,9 +676,15 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   }
    * }
    */
-  async add (contact: ContactInterface): Promise<void> {
-    log.verbose('Room', 'add(%s)', contact)
-    await this.wechaty.puppet.roomAdd(this.id, contact.id)
+  async add (contacts: ContactInterface | ContactInterface[]): Promise<void> {
+    log.verbose('Room', 'add(%s)', contacts)
+    let contactIds: string[]
+    if (Array.isArray(contacts)) {
+      contactIds = contacts.map(c => c.id)
+    } else {
+      contactIds = [ contacts.id ]
+    }
+    await this.wechaty.puppet.roomAdd(this.id, contactIds)
   }
 
   /**
@@ -706,9 +712,16 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   }
    * }
    */
-  async remove (contact: ContactInterface): Promise<void> {
-    log.verbose('Room', 'del(%s)', contact)
-    await this.wechaty.puppet.roomDel(this.id, contact.id)
+  async remove (contacts: ContactInterface | ContactInterface[]): Promise<void> {
+    log.verbose('Room', 'del(%s)', contacts)
+
+    let contactIds: string[]
+    if (Array.isArray(contacts)) {
+      contactIds = contacts.map(c => c.id)
+    } else {
+      contactIds = [ contacts.id ]
+    }
+    await this.wechaty.puppet.roomDel(this.id, contactIds)
     // this.delLocal(contact)
   }
 
