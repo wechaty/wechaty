@@ -69,6 +69,9 @@ import {
   LocationInterface,
   LocationImpl,
 }                       from './location.js'
+import type {
+  ChannelInterface,
+}                       from './channel.js'
 
 import { validationMixin } from '../user-mixins/validation.js'
 import type { ContactSelfImpl } from './contact-self.js'
@@ -1076,6 +1079,21 @@ class MessageMixin extends MixinBase implements SayableSayer {
     const post = PostImpl.load(this.id)
     await post.ready()
     return post
+  }
+
+  public async toChannel (): Promise<ChannelInterface> {
+    log.verbose('Message', 'toChannel()')
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    if (this.type() !== PUPPET.types.Message.Channel) {
+      throw new Error('message not a Channel')
+    }
+
+    const channelPayload = await this.wechaty.puppet.messageChannel(this.id)
+    return new this.wechaty.Channel(channelPayload)
   }
 
   async toSayable (): Promise<undefined | Sayable> {
