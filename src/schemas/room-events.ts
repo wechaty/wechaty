@@ -102,6 +102,7 @@ type RoomEventListenerJoin    = (this: RoomInterface, inviteeList: ContactInterf
 type RoomEventListenerLeave   = (this: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date)  => void | Promise<void>
 type RoomEventListenerMessage = (this: RoomInterface, message: MessageInterface, date?: Date)                                   => void | Promise<void>
 type RoomEventListenerTopic   = (this: RoomInterface, topic: string, oldTopic: string, changer: ContactInterface, date?: Date)  => void | Promise<void>
+type RoomEventListenerAnnounce= (this: RoomInterface, announce: string, changer: ContactInterface, oldAnnounce?: string, date?: Date)  => void | Promise<void>
 
 interface RoomEventListeners {
   invite  : RoomEventListenerInvite
@@ -109,6 +110,7 @@ interface RoomEventListeners {
   leave   : RoomEventListenerLeave
   message : RoomEventListenerMessage
   topic   : RoomEventListenerTopic
+  announce: RoomEventListenerAnnounce
 }
 
 const RoomEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
@@ -122,6 +124,7 @@ export type {
   RoomEventListenerLeave,
   RoomEventListenerMessage,
   RoomEventListenerTopic,
+  RoomEventListenerAnnounce,
 }
 export {
   RoomEventEmitter,
