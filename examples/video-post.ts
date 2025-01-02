@@ -1,4 +1,4 @@
-import PUPPET from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
 import { FileBox } from 'file-box'
 
 import {
