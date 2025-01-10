@@ -423,7 +423,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Get the recalled message
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   if (m.type() === PUPPET.types.Message.Recalled) {
@@ -437,6 +437,10 @@ class MessageMixin extends MixinBase implements SayableSayer {
     if (this.type() !== PUPPET.types.Message.Recalled) {
       throw new Error('Can not call toRecalled() on message which is not recalled type.')
     }
+    /**
+     * Huan(202501): cannot recall why using `this.text()` as `messageId` here... 
+     *               however there should be a reason...
+     */
     const originalMessageId = this.text()
     if (!originalMessageId) {
       throw new Error('Can not find recalled message')
