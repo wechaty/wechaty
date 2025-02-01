@@ -9,6 +9,7 @@ import {
   MiniProgramImpl,
   PostImpl,
   LocationImpl,
+  ChannelImpl,
 }                     from '../user-modules/mod.js'
 
 import type { Sayable } from './types.js'
@@ -95,6 +96,11 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) 
      * 8. Post
      */
     msgId = await puppet.messageSendPost(
+      conversationId,
+      sayable.payload,
+    )
+  } else if (ChannelImpl.validInstance(sayable)) {
+    msgId = await puppet.messageSendChannel(
       conversationId,
       sayable.payload,
     )
