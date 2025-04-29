@@ -19,6 +19,7 @@ import type {
   TagConstructor,
   UrlLinkConstructor,
   MessageInterface,
+  ChannelConstructor,
 }                             from '../user-modules/mod.js'
 
 import {
@@ -45,6 +46,7 @@ test('Wechaty interface', async t => {
     RoomInvitation : RoomInvitationConstructor
     Tag            : TagConstructor
     UrlLink        : UrlLinkConstructor
+    Channel        : ChannelConstructor
 
     constructor () {
       super()
@@ -62,6 +64,7 @@ test('Wechaty interface', async t => {
         = this.RoomInvitation
         = this.Tag
         = this.UrlLink
+        = this.Channel
         = {} as any
     }
 
@@ -108,7 +111,7 @@ test('ProtectedProperties', async t => {
 })
 
 test('options.puppet initialization', async t => {
-  const puppet  = new PuppetMock()
+  const puppet  = new PuppetMock() as any
   const wechaty = new WechatyImpl({ puppet })
   t.throws(() => wechaty.puppet, 'should throw when access puppet getter before init()')
 
