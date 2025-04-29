@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "1.20.2",
+  "version": "2.0.0-alpha.1",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "type": "module",
   "exports": {
@@ -133,7 +133,7 @@
   "devDependencies": {
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",
-    "@chatie/semver": "^0.4.7",
+    "@chatie/semver": "^0.6.0",
     "@chatie/tsconfig": "^4.6.3",
     "@types/cross-spawn": "^6.0.2",
     "@types/dotenv": "^8.2.0",
