@@ -414,12 +414,11 @@ Get more embed html/markdown code from [Wiki:Badge](https://github.com/wechaty/w
 
 1. [一个用CNN深度神经网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
 2. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
-3. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
-4. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
-5. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
-6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
-7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
-8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
+3. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
+4. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
+5. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
+6. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
+7. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
 
 Pull Request is welcome to add yours!
 
