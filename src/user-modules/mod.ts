@@ -97,6 +97,11 @@ import {
   DelayInterface,
   DelayConstructor,
 }                           from './delay.js'
+import {
+  ChannelImpl,
+  ChannelInterface,
+  ChannelConstructor,
+}                           from './channel.js'
 
 import { wechatifyUserModule } from '../user-mixins/wechatify.js'
 
@@ -117,6 +122,7 @@ export type {
   TagInterface,
   DelayInterface,
   UrlLinkInterface,
+  ChannelInterface,
 }
 
 export type {
@@ -136,6 +142,7 @@ export type {
   DelayConstructor,
   TagConstructor,
   UrlLinkConstructor,
+  ChannelConstructor,
 }
 
 export {
@@ -157,4 +164,5 @@ export {
   DelayImpl,
   TagImpl,
   UrlLinkImpl,
+  ChannelImpl,
 }
