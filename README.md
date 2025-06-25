@@ -47,31 +47,6 @@ Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can 
 
 - [重磅：绕过登录限制，wechaty免费版web协议重放荣光, @gengchen528, Apr 13, 2021](https://wechaty.js.org/2021/04/13/wechaty-uos-web/)
 
-## Voice of Developers
-
-> "Wechaty is a great solution; I believe there would be much more users who recognize it." [link](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472)  
-> &mdash; <cite>@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)</cite>
->
-> "太好用，好用的想哭"  
-> &mdash; <cite>@xinbenlv, Google Engineer, Founder of HaoShiYou.org</cite>
->
-> ”好用到哭“——你们对得起这个评价！ [link](https://github.com/bigbrother666sh/shezhangbujianle#%E8%87%B4%E6%95%AC)  
-> &mdash; <cite>[@bigbrother666sh](https://github.com/bigbrother666sh), creator of《社长不见了》剧本杀 NPC DM</cite>
->
-> "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
-> &mdash; <cite>@Jarvis, Baidu Engineer</cite>
->
-> "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
-> &mdash; <cite>@lijiarui, Founder & CEO of Juzi.BOT.</cite>
->
-> "If you know js ... try Wechaty. It's easy to use."  
-> &mdash; <cite>@Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)</cite>
->
-> "Wechaty is a good project; I hope it can continue! Therefore, I became a contributor in open collective."  
-> &mdash; <cite>[@Simple](https://github.com/mrwhh)</cite>
-
-See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
-
 ### Join Us on Discord
 
 [![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt)
@@ -83,7 +58,58 @@ Wechaty is used in many ChatBot projects by thousands of developers. To talk wit
 
 Scan now because other Wechaty developers want to talk with you, too!
 
-### Resource
+# TABLE OF CONTENT
+* [Voice of Developers](#voiceofdevelopers)
+* [Resources](#resources)
+* [The World's Shortest ChatBot Code: 6 lines of JavaScript](#shortestchatbotcode)
+* [Requirements](#requirements)
+* [Getting Started](#gettingstarted)
+  - [1. Npm](#npm)
+  - [2. Docker](#docker)
+  - [3. Switch Protocol (Puppet)](#switchprotocol)
+* [API](#api)
+  - [1. Class `Wechaty`](#classwechaty)
+  - [2. Class `Contact`](#classcontact)
+  - [3. Class `Message`](#classmessage)
+  - [4. Class `Room`](#classroom)
+* [Testing](#test)
+* [Creating Wechaty Plugin](#creatingwechatyplugin)
+* [The Story](#thestory)
+* [Release Notes](#releasenotes)
+* [Release History](#history)
+* [Servers, Badges, Citations, Projects](#serversetc)
+* [Contributors, Sponsors and Backers](#backers)
+* [Creators](#creators)
+* [Copyright & License](#copyright)
+
+<a name="voiceofdevelopers"></a>
+## Voice of Developers
+
+> "Wechaty is a great solution; I believe there would be much more users who recognize it."  
+(@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy), find quote [here!](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472))
+  
+> "太好用，好用的想哭"  
+(@xinbenlv, Google Engineer, Founder of HaoShiYou.org)
+
+> ”好用到哭“——你们对得起这个评价  
+([@bigbrother666sh](https://github.com/bigbrother666sh), creator of《社长不见了》剧本杀 NPC DM, find qoute [here!](https://github.com/bigbrother666sh/shezhangbujianle#%E8%87%B4%E6%95%AC))
+
+> "最好的微信开发库"  
+(@Jarvis, Baidu Engineer, find quote [here!](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment))
+
+> "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现"  
+(@lijiarui, Founder & CEO of Juzi.BOT., find quote [here!](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g))
+
+> "If you know js ... try Wechaty. It's easy to use."  
+(@Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot))
+
+> "Wechaty is a good project; I hope it can continue! Therefore, I became a contributor in open collective."  
+([@Simple](https://github.com/mrwhh))
+
+See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
+
+<a name="resources"></a>
+## Resources
 
 Wechaty has already held lots of talks and got a lot of blogs in the past years; here are all of the wechaty resources:
 
@@ -94,7 +120,8 @@ Wechaty has already held lots of talks and got a lot of blogs in the past years;
 - :tada: [Wechaty Contributor List: Thanks for their contribution!](https://github.com/wechaty/wechaty/wiki/Contributors)
 - :gift: [Juzibot Support Wechaty: Know everything about Wechaty](https://github.com/juzibot/Welcome/wiki/Everything-about-Wechaty)
 
-## :rocket: The World's Shortest ChatBot Code: 6 lines of JavaScript
+<a name="shortestchatbotcode"></a>
+## The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
 
@@ -114,12 +141,14 @@ This bot can log all messages to the console after login by the scan.
 
 You can find Wechaty's Official Examples at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts) and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
 
-## :checkered_flag: Requirements
+<a name="requirements"></a>
+## Requirements
 
 1. Node.js version 16+
 1. NPM version 7+
 1. TypeScript version 4.4+
 
+<a name="gettingstarted"></a>
 ## Getting Started
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
@@ -132,6 +161,7 @@ If you are new to Wechaty and want to try it the first time, we'd like to strong
 
 Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `bot.js` before you can use either NPM or Docker to run it.
 
+<a name="npm"></a>
 ### 1. Npm
 
 [![NPM Version](https://img.shields.io/npm/v/wechaty?color=brightgreen&label=wechaty%40latest)](https://www.npmjs.com/package/wechaty)
@@ -149,6 +179,7 @@ npm install wechaty
 node bot.js
 ```
 
+<a name="docker"></a>
 ### 2. Docker
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
@@ -158,14 +189,14 @@ node bot.js
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
-2.1. Run JavaScript
+#### 2.1. Run JavaScript
 
 ```shell
 # for JavaScript
 docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.js
 ```
 
-2.2. Run TypeScript
+#### 2.2. Run TypeScript
 
 ```shell
 # for TypeScript
@@ -174,7 +205,8 @@ docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.ts
 
 > Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/Wechaty/wechaty/wiki/Docker).
 
-### 3. Switch Protocol(Puppet)
+<a name="switchprotocol"></a>
+### 3. Switch Protocol (Puppet)
 
 Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
 
@@ -202,11 +234,13 @@ Learn more about Wechaty Puppet from the Puppet Wiki:
 1. Puppet Directory: <https://github.com/Wechaty/wechaty-puppet/wiki/Directory>
 1. Puppet Compatibility: <https://github.com/Wechaty/wechaty-puppet/wiki/Compatibility>
 
-## :guitar: API
+<a name="api"></a>
+## API
 
 Read the Full Documentation at [Wechaty Official API Reference](https://wechaty.github.io/wechaty/)
 
-### 1 Class `Wechaty`
+<a name="classwechaty"></a>
+### 1. Class `Wechaty`
 
 Main bot class.
 
@@ -240,7 +274,8 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://w
 | method | [`currentUser(): ContactSelf`](https://wechaty.github.io/wechaty/#Wechaty+currentUser) | get the login-ed bot contact |
 | method | [`say(text: string): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+say) | let bot say `text` to itself |
 
-### 2 Class `Contact`
+<a name="classcontact"></a>
+### 2. Class `Contact`
 
 All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 
@@ -285,7 +320,8 @@ Send, receive friend request, and friend confirmation events.
 | method | [`contact(): Contact`](https://wechaty.github.io/wechaty/#Friendship+contact) | get the contact from friendship |
 | method | [`type(): FriendshipType`](https://wechaty.github.io/wechaty/#Friendship+type) | return the Friendship Type(unknown, confirm, receive, verify) |
 
-### 3 Class `Message`
+<a name="classmessage"></a>
+### 3. Class `Message`
 
 All wechat messages will be encapsulated as a Message.
 
@@ -308,7 +344,8 @@ All wechat messages will be encapsulated as a Message.
 | method | [`toFileBox(): Promise<FileBox>`](https://wechaty.github.io/wechaty/#Message+toFileBox) | extract the Media File from the Message, and put it into the FileBox. |
 | method | [`toContact(): Promise<Contact>`](https://wechaty.github.io/wechaty/#Message+toContact) | get Share Card of the Message |
 
-### 4 Class `Room`
+<a name="classroom"></a>
+### 4. Class `Room`
 
 All wechat rooms(groups) will be encapsulated as a Room.
 
@@ -352,7 +389,8 @@ Accept room invitation
 | method | [`date(): Promise<Date>`](https://wechaty.github.io/wechaty/#RoomInvitation+date) | the time it was created |
 | method | [`age(): Promise<number>`](https://wechaty.github.io/wechaty/#RoomInvitation+age) | the number of seconds since it has been created |
 
-## TEST
+<a name="test"></a>
+## Testing
 
 [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM)
 [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
@@ -370,7 +408,8 @@ npm test
 
 Get to know more about the tests from [Wiki:Tests](https://github.com/Wechaty/wechaty/wiki/Tests)
 
-## CREATING WECHATY PLUGIN
+<a name="creatingwechatyplugin"></a>
+## Creating Wechaty Plugin
 
 Creating and publishing a Wechaty Plugin is simple. Simply expose your module as a function that takes 1 parameter: wechaty. When your plugin is imported by Wechaty, it will pass itself in as the argument, and so you are free to add any configuration that Wechaty supports.
 
@@ -389,60 +428,8 @@ See:
 1. [Wechaty Plugin Support with KickOut Example #1939](https://github.com/wechaty/wechaty/issues/1939)
 1. [Wechaty Plugins Contrib](https://github.com/wechaty/wechaty-plugin-contrib)
 
-## :pencil: RELEASE NOTES
-
-- [Latest Release](https://github.com/Wechaty/wechaty/releases/latest)(All releases [here](https://github.com/Wechaty/wechaty/releases))
-- [Changelog](https://github.com/Wechaty/wechaty/blob/main/CHANGELOG.md)
-
-### :saxophone: Views Since Feb 15, 2019
-
-[![HitCount](http://hits.dwyl.io/wechaty/wechaty.svg)](http://hits.dwyl.io/wechaty/wechaty)
-
-## :sparkling_heart: POWERED BY WECHATY
-
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://wechaty.js.org)
-
-### :sparkles: Wechaty Badge
-
-```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://wechaty.js.org)
-```
-
-Get more embed html/markdown code from [Wiki:Badge](https://github.com/wechaty/wechaty/wiki/Badge)
-
-### :star2: Projects Using Wechaty
-
-1. [一个用CNN深度神经网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
-2. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
-3. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
-4. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
-5. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
-6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
-7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
-8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
-
-Pull Request is welcome to add yours!
-
-Learn more about Projects Using Wechaty at [Wiki:Projects Using Wechaty](https://github.com/wechaty/wechaty/wiki/Projects-Using-Wechaty)
-
-## :innocent: Find a Good Server
-
-The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem.
-
-The following VPS providers are used by the Wechaty team, and they worked perfectly in production. You can use the following link to get one in minutes. Also, doing this can support Wechaty because you are referred by us.
-
-| Location  | Price | Ram     | Payment           | Provider |
-| ---       | ---   | ---     | ---               | ---      |
-| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
-| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
-| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
-| Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
-
-## :notes: See Also
-
-- [RelatedProject](https://github.com/Wechaty/wechaty/wiki/RelatedProject)
-
-## :poop: The Story
+<a name="thestory"></a>
+## The Story
 
 In 2017 ...
 
@@ -457,65 +444,17 @@ So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most i
 
 At last, It's built for huan's personal study purpose of Automatically Testing.
 
-## Stargazers over time
+<a name="releasenotes"></a>
+## Release Notes
 
-[![Stargazers over time](https://starchart.cc/wechaty/wechaty.svg)](https://starchart.cc/wechaty/wechaty)
+- [Latest Release](https://github.com/Wechaty/wechaty/releases/latest)(All releases [here](https://github.com/Wechaty/wechaty/releases))
+- [Changelog](https://github.com/Wechaty/wechaty/blob/main/CHANGELOG.md)
 
-## :two_hearts: Contributors
+### Views Since Feb 15, 2019
 
-[![GitHub issues](https://img.shields.io/github/issues/wechaty/wechaty.svg)](https://github.com/Wechaty/wechaty/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/wechaty/wechaty.svg)](https://github.com/Wechaty/wechaty/pulls)
-[![Open Collective Backers](https://opencollective.com/wechaty/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
-[![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
+[![HitCount](http://hits.dwyl.io/wechaty/wechaty.svg)](http://hits.dwyl.io/wechaty/wechaty)
 
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/0)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/0)
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/1)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/1)
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/2)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/2)
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/3)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/3)
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/4)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/4)
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/5)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/5)
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/6)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/6)
-[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/7)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/7)
-
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-
------
-
-[![Contribute](https://opencollective.com/wechaty/contributors.svg?width=890&button=false)](https://github.com/Wechaty/wechaty/graphs/contributors)
-
-## :sunglasses: Backers
-
-[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#sunglasses-backers)
-
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
-
-[![Open Collective Wechaty](https://opencollective.com/wechaty/backers.svg?width=890)](https://opencollective.com/wechaty#backers)
-
-## :smirk: Sponsors
-
-[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#smirk-sponsors)
-
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
-
-[![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
-
-## Multi-language Wechaty
-
-[![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
-[![Go Wechaty](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
-[![Java(Kotlin) Wechaty](https://img.shields.io/badge/Wechaty-Java-f80)](https://github.com/wechaty/java-wechaty)
-[![Scala Wechaty](https://img.shields.io/badge/Wechaty-Scala-890)](https://github.com/wechaty/scala-wechaty)
-[![PHP Wechaty](https://img.shields.io/badge/Wechaty-PHP-99c)](https://github.com/wechaty/php-wechaty)
-[![.NET(C#) Wechatyin](https://img.shields.io/badge/Wechaty-.NET-629)](https://github.com/wechaty/dotnet-wechaty)
-
-- [Wechaty](https://github.com/wechaty/wechaty) - RPA SDK for Chatot Makers (TypeScript)
-- [Python Wechaty](https://github.com/wechaty/python-wechaty) - RPA SDK for Chatbot Makers written in Python
-- [Go Wechaty](https://github.com/wechaty/go-wechaty) - RPA SDK for Chatbot Makers written in Go
-- [Java Wechaty](https://github.com/wechaty/java-wechaty) - RPA SDK for Chatbot Makers written in Java(Kotlin)
-- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - RPA SDK for Chatbot Makers written in Scala
-- [PHP Wechaty](https://github.com/wechaty/php-wechaty) - RPA SDK for Chatbot Makers written in PHP
-- [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - RPA SDK for Chatbot Makers written in .NET(C#)
-
+<a name="history"></a>
 ## History
 
 ### main v1.11 (Nov 22, 2021)
@@ -539,14 +478,22 @@ Second beta release of Wechaty, with all ecosystem npm modules with version v1.1
 1. TLS support ([#2231](https://github.com/wechaty/wechaty/issues/2231))
 1. The latest CommonJS version
 
-## Creators
+<a name="serversetc"></a>
+## Servers, Badges, Citations, Projects
 
-1. [Huan](https://github.com/huan) [(LinkedIn)](http://linkedin.com/in/huan42), 🐧 Tencent TVP of Chatbot・🤖 Chatie Architect・⭐️ GitHub Star・🚀 YC W19・🌐 Microsoft RD & AI MVP・🦾 Google ML GDE ・🤠 Serial Entrepreneur・🔥 Burner
-1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP & RD, Co-founder & CEO of [Juzi.BOT](https://www.juzibot.com/) (YC W19 Alumni)
+### Powered by Wechaty
 
-[![Profile of Huan Li on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://wechaty.js.org)
 
-## Cite Wechaty
+### Wechaty Badge
+
+```markdown
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://wechaty.js.org)
+```
+
+Get more embed html/markdown code from [Wiki:Badge](https://github.com/wechaty/wechaty/wiki/Badge)
+
+### Cite Wechaty
 
 To cite this project in publications:
 
@@ -561,6 +508,109 @@ To cite this project in publications:
 }
 ```
 
+### Projects Using Wechaty
+
+1. [一个用CNN深度神经网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
+2. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
+3. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
+4. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
+5. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
+6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
+7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
+8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
+
+Pull Request is welcome to add yours!
+
+Learn more about Projects Using Wechaty at [Wiki:Projects Using Wechaty](https://github.com/wechaty/wechaty/wiki/Projects-Using-Wechaty)
+
+### Find a Good Server
+
+The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem.
+
+The following VPS providers are used by the Wechaty team, and they worked perfectly in production. You can use the following link to get one in minutes. Also, doing this can support Wechaty because you are referred by us.
+
+| Location  | Price | Ram     | Payment           | Provider |
+| ---       | ---   | ---     | ---               | ---      |
+| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
+| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
+| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+| Singapore | $3.5  | 512MB   | Alipay, Wechat    | [Vultr](https://www.vultr.com/?ref=6986613) |
+
+### See Also
+
+- [RelatedProject](https://github.com/Wechaty/wechaty/wiki/RelatedProject)
+
+
+### Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/wechaty/wechaty.svg)](https://starchart.cc/wechaty/wechaty)
+
+## Contributors, Sponsors and Backers
+
+### Contributors
+
+[![GitHub issues](https://img.shields.io/github/issues/wechaty/wechaty.svg)](https://github.com/Wechaty/wechaty/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/wechaty/wechaty.svg)](https://github.com/Wechaty/wechaty/pulls)
+[![Open Collective Backers](https://opencollective.com/wechaty/backer/badge.svg?label=open%20collective%20backers&color=blue)](https://opencollective.com/wechaty/)
+[![Open Collective Sponsors](https://opencollective.com/wechaty/sponsors/badge.svg?label=open%20collective%20sponsors&color=blue)](https://opencollective.com/wechaty/)
+
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/0)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/0)
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/1)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/1)
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/2)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/2)
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/3)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/3)
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/4)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/4)
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/5)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/5)
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/6)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/6)
+[![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/7)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/7)
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+
+-----
+
+[![Contribute](https://opencollective.com/wechaty/contributors.svg?width=890&button=false)](https://github.com/Wechaty/wechaty/graphs/contributors)
+
+### Backers
+
+[![Backers on Open Collective](https://opencollective.com/wechaty/backers/badge.svg)](#sunglasses-backers)
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/wechaty#backer)]
+
+[![Open Collective Wechaty](https://opencollective.com/wechaty/backers.svg?width=890)](https://opencollective.com/wechaty#backers)
+
+### Sponsors
+
+[![Sponsors on Open Collective](https://opencollective.com/wechaty/sponsors/badge.svg)](#smirk-sponsors)
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/wechaty#sponsor)]
+
+[![Wechaty Sponsor](https://opencollective.com/wechaty/sponsor.svg?width=890)](https://opencollective.com/wechaty/#sponsor)
+
+### Multi-language Wechaty
+
+[![Python Wechaty](https://img.shields.io/badge/Wechaty-Python-blue)](https://github.com/wechaty/python-wechaty)
+[![Go Wechaty](https://img.shields.io/badge/Wechaty-Go-7de)](https://github.com/wechaty/go-wechaty)
+[![Java(Kotlin) Wechaty](https://img.shields.io/badge/Wechaty-Java-f80)](https://github.com/wechaty/java-wechaty)
+[![Scala Wechaty](https://img.shields.io/badge/Wechaty-Scala-890)](https://github.com/wechaty/scala-wechaty)
+[![PHP Wechaty](https://img.shields.io/badge/Wechaty-PHP-99c)](https://github.com/wechaty/php-wechaty)
+[![.NET(C#) Wechatyin](https://img.shields.io/badge/Wechaty-.NET-629)](https://github.com/wechaty/dotnet-wechaty)
+
+- [Wechaty](https://github.com/wechaty/wechaty) - RPA SDK for Chatot Makers (TypeScript)
+- [Python Wechaty](https://github.com/wechaty/python-wechaty) - RPA SDK for Chatbot Makers written in Python
+- [Go Wechaty](https://github.com/wechaty/go-wechaty) - RPA SDK for Chatbot Makers written in Go
+- [Java Wechaty](https://github.com/wechaty/java-wechaty) - RPA SDK for Chatbot Makers written in Java(Kotlin)
+- [Scala Wechaty](https://github.com/wechaty/scala-wechaty) - RPA SDK for Chatbot Makers written in Scala
+- [PHP Wechaty](https://github.com/wechaty/php-wechaty) - RPA SDK for Chatbot Makers written in PHP
+- [.Net(C#) Wechaty](https://github.com/wechaty/dotnet-wechaty) - RPA SDK for Chatbot Makers written in .NET(C#)
+
+<a name="creators"></a>
+## Creators
+
+1. [Huan](https://github.com/huan) [(LinkedIn)](http://linkedin.com/in/huan42), 🐧 Tencent TVP of Chatbot・🤖 Chatie Architect・⭐️ GitHub Star・🚀 YC W19・🌐 Microsoft RD & AI MVP・🦾 Google ML GDE ・🤠 Serial Entrepreneur・🔥 Burner
+1. [Rui (李佳芮)](https://pre-angel.com/peoples/jiarui-li/), Microsoft AI MVP & RD, Co-founder & CEO of [Juzi.BOT](https://www.juzibot.com/) (YC W19 Alumni)
+
+[![Profile of Huan Li on StackOverflow](https://stackoverflow.com/users/flair/1123955.png)](https://stackoverflow.com/users/1123955/huan)
+
+<a name="copyright"></a>
 ## Copyright & License
 
 - Code & Docs © 2016-now Huan, Rui, and Wechaty Community Contributors
