@@ -44,7 +44,7 @@ test('recalled()', async t => {
 
   const sandbox = sinon.createSandbox()
 
-  const puppet = new PuppetMock()
+  const puppet = new PuppetMock() as any
   const wechaty = WechatyBuilder.build({ puppet })
 
   await wechaty.start()

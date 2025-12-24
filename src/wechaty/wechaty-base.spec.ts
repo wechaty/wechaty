@@ -145,7 +145,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t
   const EXPECTED_ERROR = new Error('test')
 
   const bot = new MyWechatyTest({
-    puppet: new PuppetMock(),
+    puppet: new PuppetMock() as any,
   })
 
   const asyncErrorFunction = function () {
@@ -195,7 +195,7 @@ test('use plugin', async t => {
   // MyWechatyTest.use(myGlobalPlugin())
 
   const bot = new MyWechatyTest({
-    puppet: new PuppetMock(),
+    puppet: new PuppetMock() as any,
   })
 
   bot.use(myPlugin())
@@ -223,7 +223,7 @@ test('wechatifyUserModules init()', async t => {
 
 test('Perfect restart', async t => {
   const wechaty = new WechatyBase({
-    puppet: new PuppetMock(),
+    puppet: new PuppetMock() as any,
   })
 
   try {
@@ -240,7 +240,7 @@ test('Perfect restart', async t => {
 })
 
 test('@event ready', async t => {
-  const puppet  = new PuppetMock()
+  const puppet  = new PuppetMock() as any
   const wechaty = new WechatyBase({ puppet })
 
   const sandbox = sinon.createSandbox()
@@ -267,7 +267,7 @@ test('@event ready', async t => {
 })
 
 test('ready()', async t => {
-  const puppet = new PuppetMock()
+  const puppet = new PuppetMock() as any
   const wechaty = new WechatyBase({ puppet })
 
   const sandbox = sinon.createSandbox()
@@ -302,7 +302,7 @@ test('ready()', async t => {
 })
 
 test('on/off event listener management', async t => {
-  const puppet = new PuppetMock()
+  const puppet = new PuppetMock() as any
   const wechaty = new WechatyBase({ puppet })
 
   const onMessage = (_: any) => {}
@@ -316,7 +316,7 @@ test('on/off event listener management', async t => {
 })
 
 test('wrapAsync() async function', async t => {
-  const puppet = new PuppetMock()
+  const puppet = new PuppetMock() as any
   const wechaty = new WechatyBase({ puppet })
 
   const spy = sinon.spy()
@@ -337,7 +337,7 @@ test('wrapAsync() async function', async t => {
 })
 
 test('wrapAsync() promise', async t => {
-  const puppet = new PuppetMock()
+  const puppet = new PuppetMock() as any
   const wechaty = new WechatyBase({ puppet })
 
   const spy = sinon.spy()
@@ -368,7 +368,7 @@ test('WechatyBaseProtectedProperty', async t => {
 test('WechatySkeleton: super.{start,stop}()', async t => {
   const sandbox = sinon.createSandbox()
 
-  const puppet = new PuppetMock()
+  const puppet = new PuppetMock() as any
   const memory = new MemoryCard()
 
   const wechaty = new WechatyTest({
