@@ -824,7 +824,8 @@ class RoomMixin extends MixinBase implements SayableSayer {
   }
 
   async announce ()             : Promise<string>
-  async announce (text: string) : Promise<void>
+  async announce (text: string, isAnnounce?: boolean) : Promise<void | MessageInterface>
+  async announce (textList: TemplateStringsArray, ...varList: any[]) : Promise<MessageInterface>
 
   /**
    * SET/GET announce from the room
@@ -852,19 +853,81 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * await room.announce('change announce to wechaty!')
    * console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
    */
-  async announce (text?: string): Promise<void | string> {
+  async announce (text?: string | TemplateStringsArray, ...varList: unknown[]): Promise<void | string> {
     log.verbose('Room', 'announce(%s)',
       typeof text === 'undefined'
         ? ''
-        : `"${text || ''}"`,
+        : `"${text || ''}", ${varList.join(', ')},`,
     )
 
     if (typeof text === 'undefined') {
       const announcement = await this.wechaty.puppet.roomAnnounce(this.id)
       return announcement
     } else {
-      await this.wechaty.puppet.roomAnnounce(this.id, text)
+      if (isTemplateStringArray(text)) {
+        const msgId = this.announceTemplateStringsArray(
+          text as TemplateStringsArray,
+          ...varList
+        )
+        if (msgId) {
+          const msg = await this.wechaty.Message.find({ id: msgId })
+          return msg
+        }
+      } else {
+        // should be announce when not passed to be compatible with old versions
+        let isAnnounce = !!varList[0]
+        const msgId = await this.wechaty.puppet.roomAnnounce(this.id, text, isAnnounce)
+        if (!isAnnounce && msgId) {
+          const msg = await this.wechaty.Message.find({ id: msgId })
+          return msg
+        }
+      }
     }
+  }
+
+  private async announceTemplateStringsArray(
+    textList: TemplateStringsArray,
+    ...varList: unknown[]
+  ) {
+    const mentionList = varList.filter(c => ContactImpl.valid(c)) as ContactInterface[]
+
+    if (varList.length === 0) {
+      return this.wechaty.puppet.roomAnnounce(this.id, textList[0]!, false)
+    } else {
+      const finalText = this.generateTextFromTemplateStringsArray(textList, varList)
+      return this.wechaty.puppet.roomAnnounce(
+        this.id,
+        finalText,
+        false,
+        mentionList.map(c => c.id),
+      )
+    }
+  }
+
+  private async generateTextFromTemplateStringsArray(
+    textList: TemplateStringsArray,
+    ...varList: unknown[]
+  ) {
+    const textListLength = textList.length
+    const varListLength = varList.length
+    if (textListLength - varListLength !== 1) {
+      throw new Error('Can not say message, invalid Template String Array.')
+    }
+    let finalText = ''
+
+    let i = 0
+    for (; i < varListLength; i++) {
+      if (ContactImpl.valid(varList[i])) {
+        const mentionContact: ContactInterface = varList[i] as any
+        const mentionName = await this.alias(mentionContact) || mentionContact.name()
+        finalText += textList[i] + '@' + mentionName
+      } else {
+        finalText += textList[i]! + varList[i]!
+      }
+    }
+    finalText += textList[i]
+
+    return finalText
   }
 
   /**
