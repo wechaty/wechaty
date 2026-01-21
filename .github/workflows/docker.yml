@@ -32,24 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+      # https://github.com/marketplace/actions/docker-publish
+      - uses: manusa/actions-publish-docker@v1.1.2
         with:
-          platforms: all
-
-      # https://github.com/docker/setup-buildx-action
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          install: true
-          version: latest
-
-      - name: Builder instance name
-        run: echo ${{ steps.buildx.outputs.name }}
-      - name: Available platforms
-        run: echo ${{ steps.buildx.outputs.platforms }}
-
-      - name: Login to DockerHub Registry
-        run: echo ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }} | docker login -u zixia --password-stdin
-      - name: Deploy to Docker Hub
-        run: ./scripts/docker.sh deploy
+          name: wechaty/wechaty
+          username: zixia
+          password: ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }}
