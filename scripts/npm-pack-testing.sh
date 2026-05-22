@@ -24,7 +24,7 @@ cd $TMPDIR
 npm init -y
 npm install --production ./*-*.*.*.tgz \
   @types/node \
-  typescript@latest \
+  typescript@~5.4.5 \
   pkg-jq \
   file-box@"$NPM_TAG" \
   wechaty-puppet-mock@"$NPM_TAG" \
