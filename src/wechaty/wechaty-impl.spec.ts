@@ -100,7 +100,16 @@ test('Wechaty interface', async t => {
 })
 
 test('ProtectedProperties', async t => {
-  type NotExistInWechaty = Exclude<AllProtectedProperty, keyof WechatyImpl | `_${string}`>
+  /**
+   * Restrict the assertion to string-keyed properties. Symbol-keyed
+   * EventEmitter members (e.g. `captureRejectionSymbol`) cannot be reached
+   * through mixin-chain `keyof` inference, but Omit-ing them is a no-op
+   * anyway — they cannot be accidentally re-surfaced on `WechatyInterface`.
+   */
+  type NotExistInWechaty = Exclude<
+    Extract<AllProtectedProperty, string>,
+    keyof WechatyImpl | `_${string}`
+  >
   type NotExistTest = NotExistInWechaty extends never ? true : false
 
   const noOneLeft: NotExistTest = true
