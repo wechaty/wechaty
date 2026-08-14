@@ -421,6 +421,7 @@ Get more embed html/markdown code from [Wiki:Badge](https://github.com/wechaty/w
 6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
 7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
 8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
+9. [工作群智能机器人：知识库问答/群通知分析(OCR/PDF)/数据问答/公文转换/政策抓取](https://github.com/yuanlaishini173/wechat-group-ai-bot)
 
 Pull Request is welcome to add yours!
 
