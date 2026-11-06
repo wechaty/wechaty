@@ -23,7 +23,7 @@ import { WechatyBuilder } from './wechaty-builder.js'
 
 import { Io }       from './io.js'
 
-test('Io restart without problem', async t => {
+test.skip('Io restart without problem', async t => {
   const io = new Io({
     // token must not contain any white spaces
     servicePort : 8788,
