@@ -115,7 +115,6 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
         topic,
         inviter,
       )
-      return
     } catch (e) {
       this.wechaty.emitError(e)
       log.warn('RoomInvitation', 'accept() rejection: %s',

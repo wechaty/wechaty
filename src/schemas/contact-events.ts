@@ -1,5 +1,5 @@
 import { EventEmitter }   from 'events'
-import type TypedEventEmitter  from 'typed-emitter'
+import type * as TypedEventEmitter from 'typed-emitter'
 
 import type {
   ContactInterface,
@@ -15,7 +15,7 @@ interface ContactEventListeners {
   message    : ContactEventListenerMessage,
 }
 
-const ContactEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
+const ContactEventEmitter = EventEmitter as any as new () => TypedEventEmitter.default<
   ContactEventListeners
 >
 

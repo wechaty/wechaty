@@ -1,0 +1,73 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+
+  "name": "🤖 Wechaty 💬",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  "initializeCommand": "mkdir -p '${localEnv:HOME}/.claude' '${localEnv:HOME}/.codex' '${localEnv:HOME}/.gemini' && touch '${localEnv:HOME}/.claude.json' '${localEnv:HOME}/.gitconfig'",
+
+  "mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.gemini,target=/home/vscode/.gemini,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached"
+  ],
+
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1":            { "version": "latest" },
+    "ghcr.io/devcontainers-community/features/deno:1":  { "version": "latest" },
+    "ghcr.io/devcontainers/features/ruby:1":            { "version": "latest" },
+    "ghcr.io/dhoeric/features/google-cloud-cli:1.0.1":  { "version": "latest" },
+    "ghcr.io/devcontainers/features/node:1":            { "version": "26" },
+    "ghcr.io/devcontainers/features/rust:1":            {
+      "version": "1.93.1",
+      "profile": "minimal",
+      "components": "rustfmt,clippy"
+    },
+    "ghcr.io/devcontainers/features/java:1":            { "version": "17" },
+
+    "ghcr.io/devcontainers/features/common-utils:2":    {},
+    "ghcr.io/devcontainers/features/github-cli:1":      {},
+
+    "./features/gh-auto-auth": {},
+
+    "./features/any-packages": {
+      "packages": [
+        "build-essential",
+        "perl",
+        "ffmpeg",
+        "imagemagick",
+        "librsvg2-bin",
+        "libvips",
+        "pandoc",
+        "ripgrep",
+        "shellcheck",
+        "texlive-fonts-recommended",
+        "texlive-latex-recommended",
+        "texlive-xetex",
+        "webp",
+
+        "npm:firebase-tools",
+        "npm:tsx",
+        "npm:npm-check-updates",
+        "npm:@anthropic-ai/claude-code",
+        "npm:@github/copilot",
+        "npm:@google/gemini-cli",
+        "npm:@openai/codex"
+      ]
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "denoland.vscode-deno"
+      ]
+    }
+  },
+
+  "onCreateCommand": "true",
+  // `post` means after mounting `workspace`
+  "postCreateCommand": "npm install"
+}

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
+#!/usr/bin/env -S node --import=tsx/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
