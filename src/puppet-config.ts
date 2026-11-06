@@ -51,7 +51,7 @@ const OFFICIAL_PUPPET_DEPENDENCIES = {
   /**
    * WeChat Puppets
    */
-  'wechaty-puppet-wechat'           : '>=1.11.8', // https://www.npmjs.com/package/wechaty-puppet-wechat
+  'wechaty-puppet-wechat'           : '>=1.18.4', // https://www.npmjs.com/package/wechaty-puppet-wechat
   'wechaty-puppet-wechat4u'         : '>=1.11.1', // https://www.npmjs.com/package/wechaty-puppet-wechat4u
   'wechaty-puppet-padlocal'         : '>=1.11.13',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
   'wechaty-puppet-xp'               : '>=1.10.2',  // https://www.npmjs.com/package/wechaty-puppet-xp
