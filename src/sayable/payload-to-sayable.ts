@@ -41,6 +41,9 @@ const payloadToSayableWechaty: (w: WechatyInterface) => (p: PUPPET.payloads.Saya
     case PUPPET.types.Sayable.Post:
       return new wechaty.Post(sayable.payload)
 
+    case PUPPET.types.Sayable.Channel:
+      return new wechaty.Channel(sayable.payload)
+
     default:
       throw new Error('payloadToSayable() not support payload: ' + JSON.stringify(sayable))
   }

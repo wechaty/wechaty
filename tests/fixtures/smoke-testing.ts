@@ -22,7 +22,7 @@ import {
   Wechaty,
   WechatyBuilder,
   VERSION,
-}                   from 'wechaty'
+}                   from '@juzi/wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'
