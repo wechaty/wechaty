@@ -31,10 +31,6 @@
     "lib": ["ESNext", "DOM"],
     "verbatimModuleSyntax": false
   },
-  "ts-node": {
-    "transpileOnly": true,
-    "transpiler": "ts-node/transpilers/swc"
-  },
   "exclude": [
     "node_modules/",
     "dist/",

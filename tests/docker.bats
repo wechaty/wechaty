@@ -37,7 +37,7 @@ fixtures=tests/fixtures/docker
   [ "$status" -eq 0 ]
 }
 
-@test "should not fail with unmatch types in typescript (with `ts-node.transpileOnly=true`)" {
+@test "should not fail with unmatch types in TypeScript (transpile-only execution)" {
   cd "$fixtures"
   run dockerRun type-error.ts
   [ "$status" -eq 0 ]

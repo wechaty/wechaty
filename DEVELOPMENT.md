@@ -11,11 +11,11 @@ Tips:
 Wechaty is ESM-only. Use `import` instead of `require('wechaty')`; CommonJS
 builds and package entry points are no longer provided.
 
-`npm run build` uses TypeScript 7 via the `@typescript/native` npm alias.
-The `typescript` dependency aliases the TypeScript 6 compatibility API required
-by ts-node and other existing development tools; it does not supply the build
-compiler. `npm run lint:ts` type-checks with TypeScript 7, and
-`npm run test:unit` runs the unit tests using ts-node and SWC.
+The project requires Node.js 26 and npm 10 or newer. `npm run build` and
+`npm run lint:ts` use TypeScript 7 via the `@typescript/native` npm alias.
+`tsx` runs TypeScript scripts and unit tests without a separate TypeScript 6
+runtime compiler. `npm run lint:biome` runs TypeScript lint rules without
+depending on the TypeScript compiler API.
 
 ## FiraCode
 
