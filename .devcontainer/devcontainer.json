@@ -42,6 +42,7 @@
         "libvips",
         "pandoc",
         "ripgrep",
+        "shellcheck",
         "texlive-fonts-recommended",
         "texlive-latex-recommended",
         "texlive-xetex",
