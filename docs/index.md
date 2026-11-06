@@ -332,7 +332,7 @@ Get the global instance of Wechaty
 
 **Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
 ```js
-const { Wechaty } = require('wechaty')
+import { Wechaty } from 'wechaty'
 
 Wechaty.instance() // Global instance
 .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
