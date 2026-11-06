@@ -20,7 +20,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
   USERNAME=""
   POSSIBLE_USERS=("vscode" "node" "codespace" "$(awk -v val=1000 -F ":" '$3==val{print $1}' /etc/passwd)")
   for CURRENT_USER in "${POSSIBLE_USERS[@]}"; do
-    if id -u ${CURRENT_USER} > /dev/null 2>&1; then
+    if id -u "${CURRENT_USER}" > /dev/null 2>&1; then
       USERNAME=${CURRENT_USER}
       break
     fi
@@ -28,7 +28,7 @@ if [ "${USERNAME}" = "auto" ] || [ "${USERNAME}" = "automatic" ]; then
   if [ "${USERNAME}" = "" ]; then
     USERNAME=root
   fi
-elif [ "${USERNAME}" = "none" ] || ! id -u ${USERNAME} > /dev/null 2>&1; then
+elif [ "${USERNAME}" = "none" ] || ! id -u "${USERNAME}" > /dev/null 2>&1; then
   USERNAME=root
 fi
 
@@ -49,29 +49,30 @@ if [ -z "${NORMALIZED}" ]; then
   exit 0
 fi
 
-APT_PACKAGES=""
+APT_PACKAGES=()
 NPM_PACKAGES=""
-PIP_PACKAGES=""
+PIP_PACKAGES=()
 
 # Split by space and categorize
-for pkg in ${NORMALIZED}; do
+read -r -a NORMALIZED_PACKAGES <<< "${NORMALIZED}"
+for pkg in "${NORMALIZED_PACKAGES[@]}"; do
   if [[ "${pkg}" == npm:* ]]; then
     NPM_PACKAGES="${NPM_PACKAGES} ${pkg#npm:}"
   elif [[ "${pkg}" == pip:* ]]; then
-    PIP_PACKAGES="${PIP_PACKAGES} ${pkg#pip:}"
+    PIP_PACKAGES+=("${pkg#pip:}")
   else
     # Default to apt if no prefix (or explicit apt: prefix if we wanted to support it)
     if [[ "${pkg}" == apt:* ]]; then
-        APT_PACKAGES="${APT_PACKAGES} ${pkg#apt:}"
+        APT_PACKAGES+=("${pkg#apt:}")
     else
-        APT_PACKAGES="${APT_PACKAGES} ${pkg}"
+        APT_PACKAGES+=("${pkg}")
     fi
   fi
 done
 
 # --- Install APT Packages ---
-if [ -n "${APT_PACKAGES}" ]; then
-    echo "📦 Installing APT packages: ${APT_PACKAGES}"
+if [ "${#APT_PACKAGES[@]}" -gt 0 ]; then
+    echo "📦 Installing APT packages: ${APT_PACKAGES[*]}"
 
     # Update if we haven't recently (simple check)
     if [ "$(find /var/lib/apt/lists/* | wc -l)" = "0" ]; then
@@ -79,7 +80,7 @@ if [ -n "${APT_PACKAGES}" ]; then
     fi
 
     # Install
-    apt-get -y install --no-install-recommends ${APT_PACKAGES}
+    apt-get -y install --no-install-recommends "${APT_PACKAGES[@]}"
 
     # Cleanup
     rm -rf /var/lib/apt/lists/*
@@ -108,8 +109,8 @@ if [ -n "${NPM_PACKAGES}" ]; then
 fi
 
 # --- Install PIP Packages ---
-if [ -n "${PIP_PACKAGES}" ]; then
-    echo "📦 Installing PIP packages: ${PIP_PACKAGES}"
+if [ "${#PIP_PACKAGES[@]}" -gt 0 ]; then
+    echo "📦 Installing PIP packages: ${PIP_PACKAGES[*]}"
 
     # Check if pip is available
     if ! command -v pip3 &> /dev/null && ! command -v pip &> /dev/null; then
@@ -131,7 +132,7 @@ if [ -n "${PIP_PACKAGES}" ]; then
     # Ubuntu 24.04 definitely needs --break-system-packages for system python.
 
     # We'll run as root to install globally for everyone
-    $PIP_CMD install --break-system-packages ${PIP_PACKAGES} || $PIP_CMD install ${PIP_PACKAGES}
+    "$PIP_CMD" install --break-system-packages "${PIP_PACKAGES[@]}" || "$PIP_CMD" install "${PIP_PACKAGES[@]}"
 fi
 
 echo "✅ Feature 'any-packages': Finished."
