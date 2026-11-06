@@ -32,34 +32,15 @@ npm install --production ./*-*.*.*.tgz \
   wechaty-puppet-service@"$NPM_TAG" \
 
 #
-# CommonJS
-#
-npx tsc \
-  --target esnext \
-  --module CommonJS \
-  \
-  --moduleResolution node \
-  --esModuleInterop \
-  --lib esnext \
-  --noEmitOnError \
-  --noImplicitAny \
-  --skipLibCheck \
-  smoke-testing.ts
-
-echo
-echo "CommonJS: pack testing..."
-node smoke-testing.js
-
-#
 # ES Modules
 #
 npx pkg-jq -i '.type="module"'
 
 npx tsc \
   --target esnext \
-  --module esnext \
+  --module nodenext \
   \
-  --moduleResolution node \
+  --moduleResolution nodenext \
   --esModuleInterop \
   --lib esnext \
   --noEmitOnError \

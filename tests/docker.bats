@@ -6,10 +6,11 @@ function dockerRun() {
 
 fixtures=tests/fixtures/docker
 
-@test "should succ with a simple javascript" {
+@test "should fail when using require to load ESM-only Wechaty" {
   cd "$fixtures"
   run dockerRun cjs/js-bot.js
-  [ "$status" -eq 0 ]
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"ERR_PACKAGE_PATH_NOT_EXPORTED"* ]]
 }
 
 @test "should fail when javascript syntax error" {

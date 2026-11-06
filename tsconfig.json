@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "isolatedModules": true,
     "traceResolution": false,
     "noLib": false,
@@ -29,13 +29,11 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist/esm",
     "lib": ["ESNext", "DOM"],
-    "verbatimModuleSyntax": false,
-    // See: https://github.com/wechaty/wechaty/issues/2551
-    "ignoreDeprecations": "6.0"
+    "verbatimModuleSyntax": false
   },
   "ts-node": {
     "transpileOnly": true,
-    "transpiler": "ts-node/transpilers/swc-experimental"
+    "transpiler": "ts-node/transpilers/swc"
   },
   "exclude": [
     "node_modules/",

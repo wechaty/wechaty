@@ -5,16 +5,13 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/esm/src/mods/mod.js",
-      "require": "./dist/cjs/src/mods/mod.js"
+      "import": "./dist/esm/src/mods/mod.js"
     },
     "./impls": {
-      "import": "./dist/esm/src/mods/impls.js",
-      "require": "./dist/cjs/src/mods/impls.js"
+      "import": "./dist/esm/src/mods/impls.js"
     },
     "./users": {
-      "import": "./dist/esm/src/mods/users.js",
-      "require": "./dist/cjs/src/mods/users.js"
+      "import": "./dist/esm/src/mods/users.js"
     }
   },
   "typesVersions": {
@@ -38,14 +35,13 @@
     "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
-    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "build": "tsc",
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && node --no-warnings --loader=ts-node/esm scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "clean": "shx rm -fr dist/*",
     "coverage": "nyc report --reporter=lcov",
     "cli": "node --no-warnings --loader ts-node/esm bin/cli.ts",
     "demo": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
-    "dist": "npm-run-all clean build dist:commonjs",
-    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
+    "dist": "npm-run-all clean build",
     "docs": "bash -x scripts/generate-docs.sh",
     "doctor": "node --no-warnings --loader=ts-node/esm bin/doctor.ts",
     "io-client": "node --no-warnings --loader=ts-node/esm bin/io-client.ts",
@@ -123,6 +119,8 @@
     "open-graph": "^0.2.6",
     "rx-queue": "^1.0.5",
     "state-switch": "^1.6.3",
+    "type-fest": "^3.13.1",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "uuid": "^8.3.2",
     "wechaty-puppet": "^1.20.1",
     "wechaty-puppet-service": "^1.19.8",
@@ -134,6 +132,8 @@
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.6.0",
+    "@swc/core": "^1.16.22",
+    "@swc/helpers": "^0.5.24",
     "@types/cross-spawn": "^6.0.2",
     "@types/dotenv": "^8.2.0",
     "@types/glob": "^7.2.0",
@@ -142,14 +142,21 @@
     "@types/raven": "^2.5.4",
     "@types/uuid": "^8.3.4",
     "@types/ws": "^8.5.3",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "coveralls": "^3.1.1",
+    "cross-env": "^7.0.3",
     "glob": "^7.2.0",
     "jsdoc-to-markdown": "^7.1.1",
+    "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
     "qrcode-terminal": "^0.12.0",
     "raven": "^2.6.4",
     "regenerator-runtime": "^0.13.9",
+    "shx": "^0.3.4",
     "sloc": "^0.2.1",
+    "tap": "^16.3.10",
+    "ts-node": "^10.9.2",
+    "tstest": "^1.2.8",
     "typed-emitter": "^1.5.0-from-event",
     "typedoc": "^1.0.0-dev.4 ",
     "wechaty-puppet-mock": "^1.18.2",
