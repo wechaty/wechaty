@@ -1,5 +1,5 @@
 import { EventEmitter }         from 'events'
-import type TypedEventEmitter   from 'typed-emitter'
+import type * as TypedEventEmitter from 'typed-emitter'
 
 import type { GError }  from 'gerror'
 import * as PUPPET      from 'wechaty-puppet'
@@ -221,7 +221,7 @@ interface WechatyEventListeners {
   stop          : WechatyEventListenerStartStop
 }
 
-const WechatyEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
+const WechatyEventEmitter = EventEmitter as any as new () => TypedEventEmitter.default<
   WechatyEventListeners
 >
 

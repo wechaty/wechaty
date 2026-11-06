@@ -337,8 +337,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
                 }
                 await room.sync()
 
+                const validInviteeIdList = payload.inviteeIdList.filter((m) => m)
                 const inviteeListAll = await Promise.all(
-                  payload.inviteeIdList.map(id => this.Contact.find({ id })),
+                  validInviteeIdList.map(id => this.Contact.find({ id })),
                 )
                 const inviteeList = inviteeListAll.filter(c => !!c) as ContactInterface[]
 
