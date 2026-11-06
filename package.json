@@ -134,7 +134,6 @@
     "@chatie/eslint-config": "^1.0.4",
     "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.6.0",
-    "@chatie/tsconfig": "^4.6.3",
     "@types/cross-spawn": "^6.0.2",
     "@types/dotenv": "^8.2.0",
     "@types/glob": "^7.2.0",
