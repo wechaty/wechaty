@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:bookworm
 LABEL maintainer="Huan LI (李卓桓) <zixia@zixia.net>"
 
 ENV DEBIAN_FRONTEND     noninteractive
@@ -29,7 +29,7 @@ RUN apt-get update \
     libtool \
     libxtst6 \
     moreutils \
-    python-dev \
+    python3-dev \
     shellcheck \
     sudo \
     tzdata \
@@ -100,4 +100,3 @@ LABEL \
   org.label-schema.docker.cmd.test="docker run -ti --rm wechaty/wechaty test" \
   org.label-schema.docker.cmd.help="docker run -ti --rm wechaty/wechaty help" \
   org.label-schema.docker.params="WECHATY_TOKEN=token token from https://www.chatie.io, WECHATY_LOG=verbose Set Verbose Log, TZ='Asia/Shanghai' TimeZone"
-
