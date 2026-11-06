@@ -1,5 +1,5 @@
 FROM debian:bookworm
-LABEL maintainer="Huan LI (李卓桓) <zixia@zixia.net>"
+LABEL maintainer="Huan Li <huan@chatie.io>"
 
 ENV DEBIAN_FRONTEND     noninteractive
 ENV WECHATY_DOCKER      1
@@ -92,7 +92,7 @@ LABEL \
   org.label-schema.schema-version="$(wechaty-version)" \
   org.label-schema.name="Wechaty" \
   org.label-schema.description="Wechat for Bot" \
-  org.label-schema.usage="https://github.com/wechaty/wechaty/wiki/Docker" \
+  org.label-schema.usage="https://wechaty.js.org/docs/tutorials/docker" \
   org.label-schema.url="https://www.chatie.io" \
   org.label-schema.vendor="Chatie" \
   org.label-schema.vcs-ref="$SOURCE_COMMIT" \
