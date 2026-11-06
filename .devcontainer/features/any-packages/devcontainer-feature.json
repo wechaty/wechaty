@@ -1,0 +1,17 @@
+{
+  "name": "Any Packages (apt, npm, pip)",
+  "id": "any-packages",
+  "version": "1.0.0",
+  "description": "Install any packages for multiple package managers (apt, npm, pip) in one go.",
+  "options": {
+    "packages": {
+      "type": "string",
+      "description": "List of packages to install. Use prefixes 'npm:' or 'pip:' for specific managers. Default is apt."
+    }
+  },
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/node",
+    "ghcr.io/devcontainers/features/python",
+    "ghcr.io/devcontainers/features/common-utils"
+  ]
+}
