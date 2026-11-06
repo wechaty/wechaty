@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "2.0.0",
+  "version": "2.0.0-alpha.3",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "type": "module",
   "exports": {
@@ -36,6 +36,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepare": "node scripts/install-git-hooks.ts",
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && tsx scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "clean": "shx rm -fr dist/*",
     "coverage": "nyc report --reporter=lcov",
@@ -127,7 +128,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.5",
-    "@chatie/git-scripts": "^0.6.2",
     "@chatie/semver": "^0.6.0",
     "@types/cross-spawn": "^6.0.2",
     "@types/glob": "^7.2.0",
@@ -164,10 +164,5 @@
   "collective": {
     "type": "opencollective",
     "url": "https://opencollective.com/wechaty"
-  },
-  "git": {
-    "scripts": {
-      "pre-push": "npx git-scripts-pre-push"
-    }
   }
 }
