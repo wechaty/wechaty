@@ -26,10 +26,6 @@ import { FileBox } from 'file-box'
 import type {
   FileBoxInterface,
 }                   from 'file-box'
-import type {
-  PackageJson,
-}                   from 'type-fest'
-
 import {
   OfficialPuppetNpmName,
   OFFICIAL_PUPPET_DEFAULT,
@@ -39,7 +35,8 @@ import {
   GIT_COMMIT_HASH,
 }                       from './package-json.js'
 
-type PackageJsonWechaty = PackageJson & {
+type PackageJsonWechaty = {
+  version?: string
   wechaty: {
     DEFAULT_PORT: number
     DEFAULT_PROTOCOL: string

@@ -38,7 +38,7 @@ RUN apt-get update \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_26.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && apt-get purge --auto-remove \
     && rm -rf /tmp/* /var/lib/apt/lists/*
@@ -72,8 +72,7 @@ RUN echo '{"type": "module"}' > /package.json
 RUN  mkdir /node_modules \
   && ln -sfv /usr/lib/node_modules/*  /node_modules/ \
   && ln -sfv /wechaty/node_modules/*  /node_modules/ \
-  && /wechaty/bin/clean-json.js /wechaty/tsconfig.json \
-    | jq 'del(."ts-node")' > /tsconfig.json \
+  && /wechaty/bin/clean-json.js /wechaty/tsconfig.json > /tsconfig.json \
   && echo 'Linked Wechaty & tsconfig.json to Global'
 
 WORKDIR /bot

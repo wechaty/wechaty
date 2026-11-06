@@ -8,7 +8,7 @@ typedoc \
   --excludeProtected \
   --externalPattern ./**/lib/** \
   --mode modules \
-  --module commonjs \
+  --module nodenext \
   --target ES6 \
   --name "Wechaty Documentation" \
   --out dist/docs/ \

@@ -17,9 +17,9 @@
  *   limitations under the License.
  *
  */
+import { randomUUID }     from 'node:crypto'
 import { MemoryCard }     from 'memory-card'
 import { log }            from 'wechaty-puppet'
-import * as UUID          from 'uuid'
 import type { Loggable }  from 'brolog'
 
 import {
@@ -54,7 +54,7 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     log.verbose('WechatySkeleton', 'constructor()')
     super()
 
-    this.id = UUID.v4()
+    this.id = randomUUID()
     this.__options = args[0] || {} as WechatyOptions
 
     /**

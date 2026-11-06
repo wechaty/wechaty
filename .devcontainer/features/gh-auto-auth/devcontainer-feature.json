@@ -1,0 +1,11 @@
+{
+  "name": "GitHub CLI Auto-Authentication",
+  "id": "gh-auto-auth",
+  "version": "1.0.0",
+  "description": "Automatically authenticates the GitHub CLI using the host's Git credentials.",
+  "options": {},
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/github-cli"
+  ],
+  "postStartCommand": "/usr/local/bin/gh-auto-auth"
+}

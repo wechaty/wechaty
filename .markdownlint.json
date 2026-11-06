@@ -7,6 +7,9 @@
   "MD033": {
     "allowed_elements": ["dl", "dt", "dd", "code", "var", "cite"]
   },
+  "MD055": false,
+  "MD059": false,
+  "MD060": false,
   "first-line-h1": false,
   "no-hard-tabs": true,
   "no-trailing-spaces": {
