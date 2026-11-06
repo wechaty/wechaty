@@ -1,0 +1,46 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.6.5/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"includes": ["**/*.ts", "!!**/dist", "!!**/fixtures/**"]
+	},
+	"formatter": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "none",
+			"correctness": {
+				"noConstantCondition": "error",
+				"noGlobalObjectCalls": "error",
+				"noUndeclaredVariables": "error",
+				"noUnreachable": "error",
+				"useParseIntRadix": "error",
+				"useValidTypeof": "error"
+			},
+			"suspicious": {
+				"noAsyncPromiseExecutor": "error",
+				"noCatchAssign": "error",
+				"noCompareNegZero": "error",
+				"noDuplicateClassMembers": "error",
+				"noDuplicateObjectKeys": "error",
+				"noDuplicateParameters": "error",
+				"noFallthroughSwitchClause": "error",
+				"noFunctionAssign": "error",
+				"noImportAssign": "error",
+				"noPrototypeBuiltins": "error",
+				"noShadowRestrictedNames": "error",
+				"noSparseArray": "error",
+				"noUnsafeNegation": "error"
+			}
+		}
+	},
+	"assist": {
+		"enabled": false
+	}
+}

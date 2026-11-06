@@ -2,6 +2,7 @@
 
 [![Wechaty](https://wechaty.js.org/img/wechaty-logo.svg)](https://wechaty.js.org)
 
+[Ship.Fail](https://ship.fail) [PreAngel](https://PreAngel.AI)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
@@ -156,7 +157,7 @@ node bot.js
 
 - Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
-> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
+> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `tsx` to run it.
 
 2.1. Run JavaScript
 
@@ -420,6 +421,7 @@ Get more embed html/markdown code from [Wiki:Badge](https://github.com/wechaty/w
 6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
 7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
 8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
+9. [微信群聊总结 AI 助手](https://github.com/aoao-eth/wechat-ai-summarize-bot)
 
 Pull Request is welcome to add yours!
 

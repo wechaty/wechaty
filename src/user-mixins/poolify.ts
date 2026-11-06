@@ -30,9 +30,9 @@ const poolifyMixin = <MixinBase extends Constructor>(mixinBase: MixinBase) => <T
     static _pool?     : Map<string, T>
     static get pool (): Map<string, T> {
       /**
-       * hasOwnProperty() is important because we are calling this from the child classes
+       * Check own properties so child classes don't inherit the parent's pool.
        */
-      if (!Object.prototype.hasOwnProperty.call(this, '_pool')) {
+      if (!Object.hasOwn(this, '_pool')) {
         log.verbose('PoolifyMixin', 'get pool() init pool')
         this._pool = new Map<string, T>()
       }
