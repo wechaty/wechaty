@@ -357,11 +357,10 @@ Accept room invitation
 
 [![NPM](https://github.com/wechaty/wechaty/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM)
 [![Docker](https://github.com/wechaty/wechaty/workflows/Docker/badge.svg)](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker)
-[![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=main)](https://coveralls.io/github/wechaty/wechaty?branch=main)
 
 [![Known Vulnerabilities](https://snyk.io/test/github/Wechaty/wechaty/badge.svg)](https://snyk.io/test/github/Wechaty/wechaty)
 
-Wechaty is fully automatically tested by unit and integration tests, with Continuous Integration & Continuous Delivery (CI/CD) support powered by CI like Travis, Shippable and Appveyor.
+Wechaty is fully automatically tested by unit and integration tests, with Continuous Integration & Continuous Delivery (CI/CD) support powered by GitHub Actions and AppVeyor.
 
 To test Wechaty, run:
 
