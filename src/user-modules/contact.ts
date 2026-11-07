@@ -88,7 +88,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @param {string | ContactQueryFilter} query `string` will search `name` & `alias`
    * @returns {(Promise<undefined | ContactInterface>)} If can find the contact, return Contact, or return null
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
@@ -161,7 +161,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @param {string | ContactQueryFilter} [queryArg] `string` will search `name` & `alias`
    * @returns {Promise<ContactInterface[]>}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * const contactList = await bot.Contact.findAll()                      // get the contact list of the bot
    * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
@@ -271,7 +271,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void | MessageInterface>}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * const contact = await bot.Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
    *
@@ -282,7 +282,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    *
    * // 2. send media file to contact
    *
-   * import { FileBox }  from 'wechaty'
+   * import { FileBox }  from 'file-box'
    * const fileBox1 = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromFile('/tmp/text.txt')
    * await contact.say(fileBox1)
@@ -566,7 +566,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @returns {ContactType.Unknown | ContactType.Personal | ContactType.Official}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
@@ -717,7 +717,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @param { undefined | boolean } hasRead
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * const contact = await bot.Contact.find({name: 'xxx'})
    * await contact.readMark()
    */

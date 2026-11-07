@@ -147,7 +147,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
    * @typedef    WechatyOptions
    * @property   {string}                 name            -Wechaty Name. </br>
    *          When you set this: </br>
-   *          `new Wechaty({name: 'wechaty-name'}) ` </br>
+   *          `WechatyBuilder.build({name: 'wechaty-name'}) ` </br>
    *          it will generate a file called `wechaty-name.memory-card.json`. </br>
    *          This file stores the login information for bot. </br>
    *          If the file is valid, the bot can auto login so you don't need to scan the qrCode to login again. </br>
@@ -226,7 +226,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
    * @returns {Promise<void>}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in
    *
@@ -238,12 +238,12 @@ class WechatyBase extends mixinBase implements SayableSayer {
    * await bot.say(contact)
    *
    * // 3. send Image to bot itself from remote url
-   * import { FileBox }  from 'wechaty'
+   * import { FileBox }  from 'file-box'
    * const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    * await bot.say(fileBox)
    *
    * // 4. send Image to bot itself from local file
-   * import { FileBox }  from 'wechaty'
+   * import { FileBox }  from 'file-box'
    * const fileBox = FileBox.fromFile('/tmp/text.jpg')
    * await bot.say(fileBox)
    *
