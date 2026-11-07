@@ -17,6 +17,9 @@ The project requires Node.js 26 and npm 10 or newer. `npm run build` and
 runtime compiler. `npm run lint:biome` runs TypeScript lint rules without
 depending on the TypeScript compiler API.
 
+Commit `package-lock.json` alongside dependency changes. Use `npm ci` for a
+clean installation from the lockfile.
+
 ## Git hooks
 
 `npm install` links `scripts/pre-push.ts` into a Git metadata directory using
@@ -24,7 +27,15 @@ Git's required `pre-push` hook name. Node.js 26 runs the TypeScript hook
 directly. The hook runs lint, bumps alpha prereleases to the next alpha
 version, and bumps stable versions by patch. It pushes the version commit and
 tag from an inner push, then cancels the original push because that push was
-prepared before the version commit existed. Set `NO_HOOK=1` to skip the hook.
+prepared before the version commit existed. The version bump also updates
+`package-lock.json`. Set `NO_HOOK=1` to skip the hook.
+
+## npm publishing
+
+The npm workflow publishes the same tarball that passes the package smoke
+test. It uses npm Trusted Publishing with GitHub OIDC instead of an npm
+publish token; the trusted publisher must allow direct publishing from
+`npm.yml`. Publishing requires npm 11.5.1 or newer.
 
 ## FiraCode
 

@@ -96,8 +96,8 @@ if (remoteTag.status !== 2) {
 }
 
 const versionArgs = isAlphaPrerelease
-  ? [ 'version', 'prerelease', '--preid=alpha', '--no-package-lock' ]
-  : [ 'version', 'patch', '--no-package-lock' ]
+  ? [ 'version', 'prerelease', '--preid=alpha' ]
+  : [ 'version', 'patch' ]
 
 runOrExit('npm', versionArgs)
 
