@@ -1,4 +1,4 @@
-name: Test and publish Wechaty Docker images
+name: Docker
 
 on: [push, pull_request]
 
@@ -109,10 +109,9 @@ jobs:
           username: zixia
           password: ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }}
 
-      - name: Choose candidate, rolling version, and channel tags
+      - name: Choose rolling version and channel tags
         id: image-tags
         run: |
-          echo "candidate_tag=ci-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           node --experimental-strip-types --input-type=module <<'NODE'
           import { appendFileSync, readFileSync } from 'node:fs'
           import { dockerTags } from './scripts/docker-tags.ts'
@@ -125,15 +124,14 @@ jobs:
           appendFileSync(output, `channel=${channel}\n`)
           NODE
 
-      # Upload candidates before testing; update rolling release tags only after tests pass.
+      # Upload candidates without tags; assign release tags only after tests pass.
       - name: Build and upload the Wechaty candidate image
         id: wechaty-candidate
         uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: wechaty/wechaty:${{ steps.image-tags.outputs.candidate_tag }}
+          outputs: type=image,name=wechaty/wechaty,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=wechaty
           cache-to: type=gha,mode=max,scope=wechaty
           sbom: true
@@ -149,8 +147,7 @@ jobs:
           build-args: |
             WECHATY_BASE=wechaty/wechaty@${{ steps.wechaty-candidate.outputs.digest }}
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: wechaty/onbuild:${{ steps.image-tags.outputs.candidate_tag }}
+          outputs: type=image,name=wechaty/onbuild,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=wechaty-onbuild
           cache-to: type=gha,mode=max,scope=wechaty-onbuild
           sbom: true

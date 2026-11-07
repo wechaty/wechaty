@@ -47,8 +47,8 @@ publish token; the trusted publisher must allow direct publishing from
 ## Docker image publishing
 
 The Docker workflow tests pushes and pull requests, but publishes only pushes
-to `main` or a branch beginning with `v` followed by a digit. It builds and
-tests commit-specific candidate images by digest, then promotes those digests to the
+to `main` or a branch beginning with `v` followed by a digit. It uploads untagged
+candidate images and tests them by digest, then promotes those digests to the
 rolling version tag and the `latest` (stable) or `next` (development) tag. The
 same process publishes both `wechaty/wechaty` and `wechaty/onbuild`.
 
@@ -76,8 +76,9 @@ with read/write permission and no delete permission. Leave
 `DOCKERHUB_OIDC_CONNECTIONID` unset to use this fallback; a configured OIDC
 connection that fails authentication does not fall back to the personal token.
 
-Candidate tags use the `ci-<commit>` form and remain in Docker Hub after
-promotion; remove them only through a separately authorized retention process.
+Candidates are pushed by digest without creating `ci-*` tags. Only tested
+images receive rolling version and channel tags. Existing `ci-*` tags require
+a one-time tag cleanup in Docker Hub; the workflow does not need delete permission.
 
 ## FiraCode
 
