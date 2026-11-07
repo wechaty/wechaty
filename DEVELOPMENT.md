@@ -17,14 +17,68 @@ The project requires Node.js 26 and npm 10 or newer. `npm run build` and
 runtime compiler. `npm run lint:biome` runs TypeScript lint rules without
 depending on the TypeScript compiler API.
 
+Relative imports may use `.ts` extensions for native TypeScript execution.
+`rewriteRelativeImportExtensions` rewrites those paths to `.js` in the
+compiled output. Existing `.js` imports remain supported; a repository-wide
+import migration is not required.
+
+Commit `package-lock.json` alongside dependency changes. Use `npm ci` for a
+clean installation from the lockfile.
+
 ## Git hooks
 
 `npm install` links `scripts/pre-push.ts` into a Git metadata directory using
 Git's required `pre-push` hook name. Node.js 26 runs the TypeScript hook
 directly. The hook runs lint, bumps alpha prereleases to the next alpha
-version, and bumps stable versions by patch. It pushes the version commit and
-tag from an inner push, then cancels the original push because that push was
-prepared before the version commit existed. Set `NO_HOOK=1` to skip the hook.
+version, and bumps stable versions by patch. It pushes the version commit
+from an inner push, then cancels the original push because that push was
+prepared before the version commit existed. The version bump also updates
+`package-lock.json` and creates a local tag; push that tag separately with
+`git push --no-follow-tags origin <tag>`. Tag-only pushes bypass the version
+bump. Set `NO_HOOK=1` to skip the hook.
+
+## npm publishing
+
+The npm workflow publishes the same tarball that passes the package smoke
+test. It uses npm Trusted Publishing with GitHub OIDC instead of an npm
+publish token; the trusted publisher must allow direct publishing from
+`npm.yml`. Publishing requires npm 11.5.1 or newer.
+
+## Docker image publishing
+
+The Docker workflow tests pushes and pull requests, but publishes only pushes
+to `main` or a branch beginning with `v` followed by a digit. It uploads untagged
+candidate images and tests them by digest, then promotes those digests to the
+rolling version tag and the `latest` (stable) or `next` (development) tag. The
+same process publishes both `wechaty/wechaty` and `wechaty/onbuild`.
+
+Both the workflow and `scripts/docker.sh deploy` use the same rolling-tag
+conversion: keep `major.minor`, append the first prerelease identifier when
+present, and drop the patch version and prerelease counter. For example,
+`2.0.1` becomes `2.0`, `2.0.1-alpha.10` becomes `2.0-alpha`,
+`2.0.1-beta.3` becomes `2.0-beta`, and `2.0.1-rc.2` becomes `2.0-rc`.
+Prereleases never update the stable `2.0` tag. Build metadata is ignored.
+
+The channel follows Wechaty's even/odd minor-version convention: releases
+without a prerelease suffix and with an even minor version use `latest`.
+Odd minor versions and all prereleases use `next`. For example, `2.1.9`
+publishes `2.1` and `next`, while `2.2.9` publishes `2.2` and `latest`.
+
+Prefer Docker Hub OIDC when the `wechaty` Docker organization is eligible.
+Create a connection that permits this repository and the publishing branches,
+then set the GitHub Actions repository variable
+`DOCKERHUB_OIDC_CONNECTIONID` to its connection ID. OIDC requires an eligible
+Docker organization plan/program; it does not work with a personal namespace.
+When OIDC is not configured, the workflow signs in as `zixia` using the
+existing `DOCKER_PERSONAL_ACCESS_TOKEN` Actions secret. That account must
+have push access to both image repositories. Use an expiring personal token
+with read/write permission and no delete permission. Leave
+`DOCKERHUB_OIDC_CONNECTIONID` unset to use this fallback; a configured OIDC
+connection that fails authentication does not fall back to the personal token.
+
+Candidates are pushed by digest without creating `ci-*` tags. Only tested
+images receive rolling version and channel tags. Existing `ci-*` tags require
+a one-time tag cleanup in Docker Hub; the workflow does not need delete permission.
 
 ## FiraCode
 

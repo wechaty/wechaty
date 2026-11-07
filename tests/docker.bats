@@ -93,3 +93,23 @@ fixtures=tests/fixtures/docker
   run dockerRun fdasfadsfasdfasdfasdfasd
   [ "$status" -ne 0 ]
 }
+
+@test "should execute ONBUILD instructions" {
+  [ -n "${ONBUILD_IMAGE:-}" ] || skip "ONBUILD_IMAGE is only set for publish candidates"
+
+  local smoke_image="wechaty/onbuild-smoke:${RANDOM}"
+  local fixture="${BATS_TEST_DIRNAME}/fixtures/docker/onbuild-app"
+
+  run docker build \
+    --build-arg "WECHATY_BASE=$ONBUILD_IMAGE" \
+    --tag "$smoke_image" \
+    -f "$fixture/Dockerfile" \
+    "$fixture"
+  [ "$status" -eq 0 ]
+
+  run docker run --rm "$smoke_image"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"onbuild-smoke-ok"* ]]
+
+  docker image rm "$smoke_image" >/dev/null
+}
