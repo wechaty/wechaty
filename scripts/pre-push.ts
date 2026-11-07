@@ -45,6 +45,45 @@ function fail (message: string): never {
   process.exit(1)
 }
 
+function readGit (args: string[]): string | undefined {
+  const result = spawnSync('git', args, { encoding: 'utf8' })
+  if (result.error) {
+    throw result.error
+  }
+  return result.status === 0 ? result.stdout.trim() : undefined
+}
+
+// The nested push targets the remote URL, so Git does not update the named
+// remote's tracking ref itself. Map the pushed ref through that remote's fetch
+// refspecs, as a push to the named remote would.
+function updateTrackingRef (name: string | undefined, remoteRef: string, sha: string): void {
+  if (!name || !readGit([ 'config', '--get', `remote.${name}.url` ])) {
+    return
+  }
+  const fetchSpecs = (readGit([ 'config', '--get-all', `remote.${name}.fetch` ]) ?? '')
+    .split('\n')
+    .filter(Boolean)
+  for (const spec of fetchSpecs) {
+    const [ source, destination ] = spec.replace(/^\+/, '').split(':')
+    if (!source || !destination) {
+      continue
+    }
+    let trackingRef: string | undefined
+    if (source.endsWith('/*') && destination.endsWith('/*')) {
+      const prefix = source.slice(0, -1)
+      if (remoteRef.startsWith(prefix)) {
+        trackingRef = destination.slice(0, -1) + remoteRef.slice(prefix.length)
+      }
+    } else if (source === remoteRef) {
+      trackingRef = destination
+    }
+    if (trackingRef) {
+      runOrExit('git', [ 'update-ref', trackingRef, sha ])
+      return
+    }
+  }
+}
+
 type RefUpdate = {
   localRef: string
   localSha: string
@@ -238,6 +277,11 @@ runOrExit('git', [
     [INTERNAL_HOOK]: '1',
   },
 })
+
+const publishedSha = readGit([ 'rev-parse', sourceRef ])
+if (publishedSha) {
+  updateTrackingRef(remoteName, releaseUpdate.remoteRef, publishedSha)
+}
 
 if (tagUpdates.length > 0) {
   console.error('Push tags separately; tag updates in the original push were not forwarded.')

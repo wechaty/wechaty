@@ -162,6 +162,7 @@ testPrePush('pre-push keeps version tags local until manually pushed', async t =
     t.match(branchPush.stderr ?? '', /tag remains local/, 'reports that the version tag remains local')
     t.match(branchPush.stderr ?? '', /Push tags separately/, 'warns that tag updates were not forwarded')
     t.equal(git(repo.repository, 'rev-parse', 'HEAD'), remoteRev(repo, 'refs/heads/main'), 'remote branch has the version commit')
+    t.equal(git(repo.repository, 'rev-parse', 'refs/remotes/origin/main'), remoteRev(repo, 'refs/heads/main'), 'origin/main tracks the published version commit')
     t.equal(readVersion(repo.repository), '2.0.0-alpha.3', 'alpha version is incremented')
     t.same(git(repo.repository, 'tag', '--list').split('\n'), [ 'v2.0.0-alpha.1', 'v2.0.0-alpha.3' ], 'both tags remain local')
     t.equal(git(repo.temporaryDirectory, '--git-dir', repo.remote, 'tag', '--list'), '', 'no tags are pushed, even with push.followTags enabled')
