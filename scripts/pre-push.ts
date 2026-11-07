@@ -42,6 +42,22 @@ function fail (message: string): never {
   process.exit(1)
 }
 
+const pushUpdates = process.stdin.isTTY
+  ? []
+  : readFileSync(0, 'utf8').split('\n').filter(Boolean)
+
+const tagUpdates = pushUpdates.filter(update => {
+  const fields = update.split(/\s+/)
+  if (fields.length !== 4) {
+    fail(`Invalid pre-push update: ${update}`)
+  }
+  return fields[2]?.startsWith('refs/tags/')
+})
+
+if (tagUpdates.length > 0 && tagUpdates.length === pushUpdates.length) {
+  process.exit(0)
+}
+
 runOrExit('npm', [ 'run', 'lint' ])
 
 const { version }: { version: string } = JSON.parse(readFileSync(resolve(repositoryRoot, 'package.json'), 'utf8'))
@@ -101,7 +117,7 @@ const versionArgs = isAlphaPrerelease
 
 runOrExit('npm', versionArgs)
 
-const pushArgs = [ 'push', '--follow-tags' ]
+const pushArgs = [ 'push', '--no-follow-tags' ]
 if (remoteName) {
   pushArgs.push(remoteName)
 }
@@ -113,4 +129,8 @@ runOrExit('git', pushArgs, {
   },
 })
 
-fail('The version commit and tag were pushed; the original push is cancelled because it was prepared before the version commit existed.')
+if (tagUpdates.length > 0) {
+  console.error('Push tags separately; tag updates in the original push were not forwarded.')
+}
+
+fail('The version commit was pushed; the tag remains local. The original push is cancelled because it was prepared before the version commit existed.')

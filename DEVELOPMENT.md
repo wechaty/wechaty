@@ -25,10 +25,12 @@ clean installation from the lockfile.
 `npm install` links `scripts/pre-push.ts` into a Git metadata directory using
 Git's required `pre-push` hook name. Node.js 26 runs the TypeScript hook
 directly. The hook runs lint, bumps alpha prereleases to the next alpha
-version, and bumps stable versions by patch. It pushes the version commit and
-tag from an inner push, then cancels the original push because that push was
+version, and bumps stable versions by patch. It pushes the version commit
+from an inner push, then cancels the original push because that push was
 prepared before the version commit existed. The version bump also updates
-`package-lock.json`. Set `NO_HOOK=1` to skip the hook.
+`package-lock.json` and creates a local tag; push that tag separately with
+`git push --no-follow-tags origin <tag>`. Tag-only pushes bypass the version
+bump. Set `NO_HOOK=1` to skip the hook.
 
 ## npm publishing
 
