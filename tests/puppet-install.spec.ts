@@ -35,3 +35,21 @@ for (const npmExitCode of [ 42, 0 ]) {
     }
   })
 }
+
+test('puppet installer rejects when npm cannot be spawned', async t => {
+  const directory = mkdtempSync(join(tmpdir(), 'wechaty-puppet-install-'))
+  try {
+    const env: NodeJS.ProcessEnv = { ...process.env, PATH: directory }
+    delete env['NODE_V8_COVERAGE']
+    const result = spawnSync(process.execPath, [ '--import=tsx/esm', 'bin/puppet-install.ts' ], {
+      encoding: 'utf8',
+      env,
+      timeout: 20_000,
+    })
+    t.equal(result.status, 1, 'missing npm exits unsuccessfully')
+    t.notMatch(result.stdout, /installing \.\.\. done/, 'missing npm must not report completion')
+    t.match(result.stderr, /ENOENT/, 'reports the spawn error')
+  } finally {
+    rmSync(directory, { force: true, recursive: true })
+  }
+})
