@@ -1,13 +1,17 @@
-FROM wechaty/wechaty:next
+ARG WECHATY_BASE=wechaty/wechaty:next
+FROM ${WECHATY_BASE}
 
 ONBUILD ARG NODE_ENV
 ONBUILD ENV NODE_ENV $NODE_ENV
 
 ONBUILD WORKDIR /bot
 
-ONBUILD COPY package.json .
+ONBUILD COPY package*.json ./
 ONBUILD RUN jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
-    && npm install \
+    && if [ -f package-lock.json ]; then \
+         jq 'del(.dependencies.wechaty) | del(.packages[""].dependencies.wechaty)' package-lock.json | sponge package-lock.json; \
+       fi \
+    && if [ -f package-lock.json ]; then npm ci; else npm install; fi \
     && sudo rm -fr /tmp/* ~/.npm
 ONBUILD COPY . .
 ONBUILD RUN npm run build --if-present

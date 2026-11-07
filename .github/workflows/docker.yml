@@ -1,55 +1,188 @@
-name: Docker
+name: Test and publish Wechaty Docker images
 
 on: [push, pull_request]
-#   push:
-#     branches:
-#       - main
-#       - 'v[0-9]+*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build
+  validate-image:
+    name: Check the image before publishing
     runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.publish-policy.outputs.should_publish }}
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: reviewdog/action-shellcheck@v1
-      - name: Install Bats
+      - name: Get the project source
+        uses: actions/checkout@v6
+
+      - name: Check whether this branch can publish
+        id: publish-policy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
-          curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
-          tar -xf /tmp/bats_v0.4.0.tar.gz
-          sudo bats-0.4.0/install.sh /usr/local
-      - name: Build the Docker image
-        run: ./scripts/docker.sh build
-      - name: Test the Docker image
+          should_publish=false
+          if [[ "$EVENT_NAME" == "push" && ( "$REF" == "refs/heads/main" || "$REF" =~ ^refs/heads/v[0-9][A-Za-z0-9._/-]*$ ) ]]; then
+            should_publish=true
+          fi
+          echo "should_publish=$should_publish" >> "$GITHUB_OUTPUT"
+
+      - name: Check shell scripts for problems
+        uses: reviewdog/action-shellcheck@v1.34.1
+
+      - name: Install the shell test runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes bats
+
+      - name: Prepare the Docker image builder
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and load the image for local tests
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: wechaty/wechaty:artifact
+          cache-from: type=gha,scope=wechaty
+          cache-to: type=gha,mode=max,scope=wechaty
+
+      - name: Run the container behavior and unit tests
         run: ./scripts/docker.sh test
 
-  # https://www.prestonlamb.com/blog/creating-a-docker-image-with-github-actions
-  publish:
-    name: Publish
-    needs: [build]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
+  release-images:
+    name: Publish and verify both images, then update release tags
+    needs: [validate-image]
+    if: needs.validate-image.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
+      - name: Get the project source
+        uses: actions/checkout@v6
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+      - name: Install the shell test runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes bats
+
+      - name: Enable ARM64 containers on this runner
+        uses: docker/setup-qemu-action@v4
         with:
-          platforms: all
+          platforms: amd64,arm64
 
-      # https://github.com/docker/setup-buildx-action
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: Prepare the Docker image builder
+        uses: docker/setup-buildx-action@v4
+
+      - name: Check that Docker Hub sign-in is configured
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
+          DOCKER_PERSONAL_ACCESS_TOKEN: ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$DOCKERHUB_OIDC_CONNECTIONID" ] && [ -z "$DOCKER_PERSONAL_ACCESS_TOKEN" ]; then
+            echo "Configure Docker Hub OIDC or set the DOCKER_PERSONAL_ACCESS_TOKEN secret." >&2
+            exit 1
+          fi
+
+      - name: Sign in to Docker Hub using GitHub identity
+        if: vars.DOCKERHUB_OIDC_CONNECTIONID != ''
+        uses: docker/login-action@v4.5.1
         with:
-          install: true
-          version: latest
+          username: wechaty
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
 
-      - name: Builder instance name
-        run: echo ${{ steps.buildx.outputs.name }}
-      - name: Available platforms
-        run: echo ${{ steps.buildx.outputs.platforms }}
+      - name: Sign in to Docker Hub using a personal token
+        if: vars.DOCKERHUB_OIDC_CONNECTIONID == ''
+        uses: docker/login-action@v4.5.1
+        with:
+          username: zixia
+          password: ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }}
 
-      - name: Login to DockerHub Registry
-        run: echo ${{ secrets.DOCKER_PERSONAL_ACCESS_TOKEN }} | docker login -u zixia --password-stdin
-      - name: Deploy to Docker Hub
-        run: ./scripts/docker.sh deploy
+      - name: Choose candidate, rolling version, and channel tags
+        id: image-tags
+        run: |
+          echo "candidate_tag=ci-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs'
+          import { dockerTags } from './scripts/docker-tags.ts'
+
+          const { version } = JSON.parse(readFileSync('package.json', 'utf8'))
+          const { versionTag, channel } = dockerTags(version)
+
+          const output = process.env.GITHUB_OUTPUT
+          appendFileSync(output, `rolling_version_tag=${versionTag}\n`)
+          appendFileSync(output, `channel=${channel}\n`)
+          NODE
+
+      # Upload candidates before testing; update rolling release tags only after tests pass.
+      - name: Build and upload the Wechaty candidate image
+        id: wechaty-candidate
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: wechaty/wechaty:${{ steps.image-tags.outputs.candidate_tag }}
+          cache-from: type=gha,scope=wechaty
+          cache-to: type=gha,mode=max,scope=wechaty
+          sbom: true
+          provenance: mode=max
+
+      # The bot parent image runs ONBUILD instructions when a downstream app uses it.
+      - name: Build and upload the bot parent candidate image
+        id: bot-parent-candidate
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.onbuild
+          build-args: |
+            WECHATY_BASE=wechaty/wechaty@${{ steps.wechaty-candidate.outputs.digest }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: wechaty/onbuild:${{ steps.image-tags.outputs.candidate_tag }}
+          cache-from: type=gha,scope=wechaty-onbuild
+          cache-to: type=gha,mode=max,scope=wechaty-onbuild
+          sbom: true
+          provenance: mode=max
+
+      - name: Test the uploaded images and check ARM64 startup
+        env:
+          ARTIFACT_IMAGE: wechaty/wechaty@${{ steps.wechaty-candidate.outputs.digest }}
+          ONBUILD_IMAGE: wechaty/onbuild@${{ steps.bot-parent-candidate.outputs.digest }}
+        run: |
+          docker pull --platform linux/amd64 "$ARTIFACT_IMAGE"
+          ./scripts/docker.sh test
+          docker run --rm --platform linux/arm64 \
+            --entrypoint node "$ARTIFACT_IMAGE" --version
+
+      # Assign release tags to existing digests without rebuilding images.
+      - name: Update release tags to the tested image digests
+        env:
+          WECHATY_DIGEST: ${{ steps.wechaty-candidate.outputs.digest }}
+          ONBUILD_DIGEST: ${{ steps.bot-parent-candidate.outputs.digest }}
+          VERSION_TAG: ${{ steps.image-tags.outputs.rolling_version_tag }}
+          CHANNEL: ${{ steps.image-tags.outputs.channel }}
+        run: |
+          promote() {
+            image=$1
+            digest=$2
+            for tag in "$VERSION_TAG" "$CHANNEL"; do
+              docker buildx imagetools create \
+                --tag "$image:$tag" \
+                "$image@$digest"
+            done
+          }
+
+          promote wechaty/wechaty "$WECHATY_DIGEST"
+          promote wechaty/onbuild "$ONBUILD_DIGEST"

@@ -45,9 +45,9 @@ RUN curl -sL https://deb.nodesource.com/setup_26.x | bash - \
 
 WORKDIR /wechaty
 
-COPY package.json .
+COPY package.json package-lock.json ./
 COPY scripts/install-git-hooks.ts ./scripts/
-RUN  npm install \
+RUN  npm ci \
   && rm -fr /tmp/* ~/.npm
 
 COPY . .
