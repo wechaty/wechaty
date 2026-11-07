@@ -3,6 +3,7 @@
     "target": "esnext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "rewriteRelativeImportExtensions": true,
     "isolatedModules": true,
     "traceResolution": false,
     "noLib": false,

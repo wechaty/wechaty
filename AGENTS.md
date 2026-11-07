@@ -122,8 +122,11 @@ outermost.
 
 ## TypeScript and style
 
+- Reference GitHub Actions by version tags (for example, `@v6`), not commit hashes.
 - The package is ESM-only and needs the Node.js and npm versions in `engines`.
-  Use `import` and explicit `.js` extensions for relative imports.
+  Use `import` and explicit extensions for relative imports. `.ts` imports are
+  supported by `rewriteRelativeImportExtensions`, which emits `.js` paths in
+  compiled output. Existing `.js` imports remain supported.
 - Compiler flags to expect: use `override`, `process.env['NAME']`, and `import type`
   for types. Indexed access may be `undefined`.
 - Avoid new `any` and unsafe casts. Existing ones sit mostly at mixin boundaries.
