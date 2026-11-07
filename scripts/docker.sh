@@ -13,7 +13,7 @@ function dockerBuild () {
   options=('--rm')
   [ -n "$NO_CACHE" ] && options+=('--no-cache')
 
-  [ "$platform" == "all" ]  && platform='linux/amd64,linux/arm64,linux/arm/v7'
+  [ "$platform" == "all" ]  && platform='linux/amd64,linux/arm64'
   [ -n "$deploy" ]          && options+=('--push')
 
   cat <<_CMD_
@@ -38,7 +38,7 @@ function deployOnbuild () {
 
   sed "s#FROM wechaty/wechaty:next#FROM wechaty/wechaty:$tag#" < Dockerfile.onbuild \
     | docker buildx build \
-      --platform 'linux/amd64,linux/arm64,linux/arm/v7' \
+      --platform 'linux/amd64,linux/arm64' \
       --tag "wechaty/onbuild:$tag" \
       --push \
       -
