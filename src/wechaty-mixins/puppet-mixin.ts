@@ -32,10 +32,10 @@ const PUPPET_MEMORY_NAME = 'puppet'
  * Huan(202111): the `wechaty-redux` plugin need to be installed before
  *  the puppet started
  *
- * It listens to the `puppet` event emitted by `init()`, so `use()` must be
- *  called before `init()`, which `start()` runs. `pluginMixin` is composed
- *  outside `puppetMixin` and has no lifecycle hooks, so the mixin order
- *  does not affect this.
+ * Plugins that subscribe to the `puppet` event must register their listeners
+ *  before the first `init()` emits it. `pluginMixin` is composed outside
+ *  `puppetMixin` and has no lifecycle hooks, so the mixin order does not
+ *  affect this.
  *
  * Huan(20211128): `puppetMixin` must extend `IoMixin`
  *  because the Io need the puppet instance to be ready when it starts
