@@ -73,6 +73,7 @@ RUN echo '{"type": "module"}' > /package.json
 RUN  mkdir /node_modules \
   && ln -sfv /usr/lib/node_modules/*  /node_modules/ \
   && ln -sfv /wechaty/node_modules/*  /node_modules/ \
+  && ln -sfnv /wechaty /node_modules/wechaty \
   && /wechaty/bin/clean-json.js /wechaty/tsconfig.json > /tsconfig.json \
   && echo 'Linked Wechaty & tsconfig.json to Global'
 
