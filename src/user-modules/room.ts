@@ -134,7 +134,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {RoomQueryFilter} [query]
    * @returns {Promise<RoomInterface[]>}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in
    * const roomList = await bot.Room.findAll()                    // get the room list of the bot
@@ -186,7 +186,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {RoomQueryFilter} query
    * @returns {Promise<undefined | RoomInterface>} If can find the room, return Room, or return null
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const roomList = await bot.Room.find()
@@ -372,7 +372,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<void | MessageInterface>}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'wechaty'})
@@ -383,7 +383,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * const msg = await room.say('Hello world!') // only supported by puppet-padplus
    *
    * // 2. Send media file inside Room
-   * import { FileBox }  from 'wechaty'
+   * import { FileBox }  from 'file-box'
    * const fileBox1 = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
    * await room.say(fileBox1)
@@ -590,7 +590,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @return  {this}                          - this for chain
    *
    * @example <caption>Event:join </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -602,7 +602,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:leave </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -614,7 +614,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:message </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -625,7 +625,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:topic </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -636,7 +636,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:invite </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -663,7 +663,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {ContactInterface} contact
    * @returns {Promise<void>}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your WeChat
@@ -693,7 +693,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {ContactInterface} contact
    * @returns {Promise<void>}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'WeChat'})          // change 'WeChat' to any room topic in your WeChat
@@ -760,7 +760,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<string | void>}
    *
    * @example <caption>When you say anything in a room, it will get room topic. </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const room = m.room()
@@ -772,7 +772,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * .start()
    *
    * @example <caption>When you say anything in a room, it will change room topic. </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const room = m.room()
@@ -836,7 +836,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {(Promise<void | string>)}
    *
    * @example <caption>When you say anything in a room, it will get room announce. </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'your room'})
@@ -844,7 +844,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * console.log(`room announce is : ${announce}`)
    *
    * @example <caption>When you say anything in a room, it will change room announce. </caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'your room'})
@@ -885,7 +885,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {ContactInterface} contact
    * @returns {Promise<string | null>} - If a contact has an alias in room, return string, otherwise return null
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const room = m.room()
@@ -915,7 +915,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param { undefined | boolean } hasRead
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * const room = await bot.Room.find({topic: 'xxx'})
    * await room.readMark()
    */
@@ -938,7 +938,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {ContactInterface} contact
    * @returns {Promise<boolean>} Return `true` if has contact, else return `false`.
    * @example <caption>Check whether 'lijiarui' is in the room 'wechaty'</caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your WeChat
@@ -1023,7 +1023,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<undefined | ContactInterface>}
    *
    * @example <caption>Find member by name</caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your WeChat
@@ -1031,7 +1031,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   const member = await room.member('lijiarui')             // change 'lijiarui' to any room member in your WeChat
    *   if (member) {load
    * @example <caption>Find member by MemberQueryFilter</caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your WeChat

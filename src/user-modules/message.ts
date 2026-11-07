@@ -247,7 +247,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Get the talker of a message.
    * @returns {ContactInterface}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const talker = msg.talker()
@@ -363,7 +363,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    *
    * @returns {(RoomInterface | null)}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const contact = msg.from()
@@ -396,7 +396,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    *
    * @returns {string}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const contact = msg.from()
@@ -472,8 +472,8 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<void | MessageInterface>}
    *
    * @example
-   * import { FileBox }  from 'wechaty'
-   * const bot = new Wechaty()
+   * import { FileBox }  from 'file-box'
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *
@@ -568,7 +568,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<boolean>}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const recallMessage = await msg.say('123')
@@ -599,7 +599,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @returns {PUPPET.types.Message}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * if (message.type() === bot.Message.Type.Text) {
    *   console.log('This is a text message')
    * }
@@ -889,7 +889,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * The recipient of the message, the room, or the contact
    * @returns {Promise<void>}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot
    * .on('message', async m => {
    *   const room = await bot.Room.find({topic: 'wechaty'})
