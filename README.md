@@ -205,15 +205,15 @@ Learn more about Wechaty Puppet from the Puppet Wiki:
 
 ## :guitar: API
 
-Read the Full Documentation at [Wechaty Official API Reference](https://wechaty.github.io/wechaty/)
+The [Wechaty API Reference](https://wechaty.github.io/wechaty/) was generated for v0.62.1 and is archived. The TypeScript sources in [`src/`](https://github.com/wechaty/wechaty/tree/main/src) are authoritative for the current API.
 
 ### 1 Class `Wechaty`
 
 Main bot class.
 
-A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://wechaty.js.org/docs/specifications/puppet/).
+A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://wechaty.js.org/docs/specs/puppet).
 
-- `new Wechaty(options?: WechatyOptions)`
+- `WechatyBuilder.build(options?: WechatyOptions)`
     1. `options.name?: string` the name of this bot(optional)
     2. `options.puppet?: string` select which puppet provider we want to use. must be one of the:
         1. [wechaty-puppet-wechat](https://github.com/Wechaty/wechaty-puppet-wechat) - Angular Hook for Web Wechat
@@ -236,9 +236,9 @@ A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://w
 | event | [`scan`](https://wechaty.github.io/wechaty/#Wechaty+on) | emit when the bot needs to show you a QR Code for scanning |
 | method | [`start(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+start) | start the bot |
 | method | [`stop(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+stop) | stop the bot |
-| method | [`logonoff(): boolean`](https://wechaty.github.io/wechaty/#Wechaty+logonoff) | bot login status |
+| property | `isLoggedIn: boolean` | bot login status |
 | method | [`logout(): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+logout) | logout the bot |
-| method | [`currentUser(): ContactSelf`](https://wechaty.github.io/wechaty/#Wechaty+currentUser) | get the login-ed bot contact |
+| property | `currentUser: ContactSelf` | get the login-ed bot contact |
 | method | [`say(text: string): Promise<void>`](https://wechaty.github.io/wechaty/#Wechaty+say) | let bot say `text` to itself |
 
 ### 2 Class `Contact`
