@@ -58,7 +58,16 @@ async function main (): Promise<void> {
   log.info('PuppetInstall', `installing ... Shell: "npm install ${args.join(' ')}"\n`)
 
   const result = spawn('npm', args, { stdio: 'inherit' })
-  await new Promise(resolve => result.once('exit', resolve))
+  await new Promise<void>((resolve, reject) => {
+    result.once('error', reject)
+    result.once('exit', (code, signal) => {
+      if (code === 0) {
+        resolve()
+      } else {
+        reject(new Error(`npm install failed (exit code ${code}, signal ${signal})`))
+      }
+    })
+  })
 
   log.info('PuppetInstall', 'main() installing ... done')
 }
