@@ -15,7 +15,7 @@ for (const fail of [ false, true ]) {
     const directory = mkdtempSync(join(tmpdir(), 'wechaty-puppet-install-'))
     const calls = join(directory, 'calls.jsonl')
     const providers = Object.entries(OFFICIAL_PUPPET_DEPENDENCIES)
-      .filter(([ name, version ]) => version !== '0.0.0' && !name.startsWith('@juzibot/'))
+      .filter(([ name, version ]) => version !== '0.0.0' && !name.startsWith('@juzibot/') && name !== 'wechaty-puppet-xp')
       .map(([ name, version ]) => `${name}@${version}`)
     const failedProvider = providers[1]!
 
@@ -23,7 +23,7 @@ for (const fail of [ false, true ]) {
       writeFileSync(join(directory, 'npm'), `#!${process.execPath}
 const { appendFileSync } = require('node:fs')
 appendFileSync(process.env.INSTALL_CALLS, JSON.stringify(process.argv.slice(2)) + '\\n')
-if (process.argv[4] === process.env.FAIL_PROVIDER) process.exit(7)
+if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
 `, { mode: 0o755 })
 
       const result = spawnSync(process.execPath, [
@@ -45,8 +45,8 @@ if (process.argv[4] === process.env.FAIL_PROVIDER) process.exit(7)
       t.equal(result.status, fail ? 1 : 0, 'installation failures propagate')
       t.same(
         readFileSync(calls, 'utf8').trim().split('\n').map(line => JSON.parse(line)),
-        expected.map(provider => [ 'install', '--no-save', provider ]),
-        'installs one provider at a time and stops on failure',
+        expected.map((_, index) => [ 'install', '--no-save', ...providers.slice(0, index + 1) ]),
+        'adds one provider at a time, retaining earlier providers, and stops on failure',
       )
       for (const provider of expected) {
         t.ok(output.includes(`installing ${provider}`), `logs ${provider}`)

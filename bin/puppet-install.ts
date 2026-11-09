@@ -36,7 +36,10 @@ async function main (): Promise<void> {
   const skipList = [
     '@juzibot/wechaty-puppet-donut',  // windows puppet
     '@juzibot/wechaty-puppet-wxwork', // wxwork puppet
+    'wechaty-puppet-xp',             // Frida 15 does not build on Node.js 26
   ]
+
+  const moduleList: string[] = []
 
   for (const puppetModuleName of Object.keys(OFFICIAL_PUPPET_DEPENDENCIES)) {
     const version = OFFICIAL_PUPPET_DEPENDENCIES[puppetModuleName as OfficialPuppetNpmName]
@@ -46,7 +49,8 @@ async function main (): Promise<void> {
     }
 
     const module = `${puppetModuleName}@${version}`
-    const args = [ 'install', '--no-save', module ]
+    moduleList.push(module)
+    const args = [ 'install', '--no-save', ...moduleList ]
     log.info('PuppetInstall', 'installing %s', module)
 
     await new Promise<void>((resolve, reject) => {
