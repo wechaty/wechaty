@@ -38,8 +38,6 @@ async function main (): Promise<void> {
     '@juzibot/wechaty-puppet-wxwork', // wxwork puppet
   ]
 
-  const moduleList: string[] = []
-
   for (const puppetModuleName of Object.keys(OFFICIAL_PUPPET_DEPENDENCIES)) {
     const version = OFFICIAL_PUPPET_DEPENDENCIES[puppetModuleName as OfficialPuppetNpmName]
 
@@ -47,18 +45,22 @@ async function main (): Promise<void> {
       continue
     }
 
-    moduleList.push(`${puppetModuleName}@${version}`)
+    const module = `${puppetModuleName}@${version}`
+    const args = [ 'install', '--no-save', module ]
+    log.info('PuppetInstall', 'installing %s', module)
+
+    await new Promise<void>((resolve, reject) => {
+      const result = spawn('npm', args, { stdio: 'inherit' })
+      result.once('error', reject)
+      result.once('exit', (code, signal) => {
+        if (code === 0) {
+          resolve()
+        } else {
+          reject(new Error(`npm install ${module} failed (exit code ${code}, signal ${signal})`))
+        }
+      })
+    })
   }
-
-  const args = [
-    'install',
-    '--no-save',
-    ...moduleList,
-  ]
-  log.info('PuppetInstall', `installing ... Shell: "npm install ${args.join(' ')}"\n`)
-
-  const result = spawn('npm', args, { stdio: 'inherit' })
-  await new Promise(resolve => result.once('exit', resolve))
 
   log.info('PuppetInstall', 'main() installing ... done')
 }
