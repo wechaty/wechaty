@@ -6,8 +6,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Validate source code
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,8 +33,8 @@ jobs:
         run: npm test
 
   pack:
-    name: Build and verify npm package
-    needs: build
+    name: Pack
+    needs: validate
     runs-on: ubuntu-latest
     outputs:
       is_publish_branch: ${{ steps.package_metadata.outputs.is_publish_branch }}
@@ -86,8 +86,8 @@ jobs:
 
   publish:
     if: github.event_name == 'push' && needs.pack.outputs.is_publish_branch == 'true'
-    name: Publish verified package to npm
-    needs: [build, pack]
+    name: Publish
+    needs: [validate, pack]
     runs-on: ubuntu-latest
     permissions:
       contents: read
