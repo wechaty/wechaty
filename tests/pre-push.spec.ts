@@ -309,6 +309,24 @@ testPrePush('pre-push honors one eligible release destination and rejects other 
     t.equal(remoteHasRef(repo, 'refs/heads/main'), false)
     t.equal(remoteHasRef(repo, 'refs/heads/feat/example'), false)
   })
+
+  await withRepository({}, repo => {
+    const mirror = join(repo.temporaryDirectory, 'mirror.git')
+    git(repo.temporaryDirectory, 'init', '--bare', '--initial-branch=main', mirror)
+    git(repo.repository, 'remote', 'set-url', '--add', '--push', 'origin', repo.remote)
+    git(repo.repository, 'remote', 'set-url', '--add', '--push', 'origin', mirror)
+    installHook(repo.repository)
+    const original = git(repo.repository, 'rev-parse', 'HEAD')
+    const multiUrl = push(repo.repository, [ 'origin', 'main' ])
+
+    t.equal(multiUrl.status, 1, 'a release push to a remote with several push URLs is rejected')
+    t.match(multiUrl.stderr ?? '', /2 push URLs/)
+    t.equal(git(repo.repository, 'rev-parse', 'HEAD'), original, 'rejection happens before npm version')
+    t.equal(readVersion(repo.repository), '2.0.0-alpha.2')
+    t.equal(git(repo.repository, 'tag', '--list'), '')
+    t.equal(remoteHasRef(repo, 'refs/heads/main'), false)
+    t.equal(spawnSync('git', [ '--git-dir', mirror, 'show-ref', '--verify', '--quiet', 'refs/heads/main' ]).status, 1, 'the second push URL is not updated')
+  })
 })
 
 testPrePush('pre-push ignores deletions and feature updates while a release branch is checked out', async t => {

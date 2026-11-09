@@ -201,6 +201,15 @@ if (sideUpdates.length > 0) {
   fail('Refusing to version this push: a release update cannot be combined with branch deletions or other non-tag updates.')
 }
 
+// Git runs this hook once per push URL. Each run would bump the version again
+// and leave the endpoints on different release commits, so refuse instead.
+const pushUrls = remoteName
+  ? (readGit([ 'remote', 'get-url', '--push', '--all', remoteName ]) ?? '').split('\n').filter(Boolean)
+  : []
+if (pushUrls.length > 1) {
+  fail(`Refusing to version this push: ${remoteName} has ${pushUrls.length} push URLs. Push the release to one URL at a time.`)
+}
+
 runOrExit('npm', [ 'run', 'lint' ])
 
 if (!checkedOut) {

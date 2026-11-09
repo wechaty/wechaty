@@ -32,8 +32,9 @@ Read this before running `git push`.
   refs unchanged. After that commit is pushed, the original push **exits 1 by
   design**. Check `git status -sb` and the remote before retrying.
 - The hook rejects, before `npm version`, multiple live branch updates that
-  include a release branch, and any release update whose source is not the
-  checked-out release branch.
+  include a release branch, any release update whose source is not the
+  checked-out release branch, and release pushes to a remote with more than
+  one push URL.
   Those pushes leave the version, `HEAD`, and tags unchanged. Tag-only and
   deletion-only pushes skip versioning. `NO_HOOK=1` skips the hook.
 - Never edit the version by hand. Never push tags, `main`, or `v*` branches

@@ -51,9 +51,9 @@ version commit existed. Push the local tag separately with
 `git push --no-follow-tags origin <tag>`.
 
 The hook rejects a release push before `npm version` when more than one live
-branch update includes a release branch, or when a release update's source is
-not the checked-out release branch. The repository is left unchanged in those
-cases.
+branch update includes a release branch, when a release update's source is
+not the checked-out release branch, or when the remote has more than one push
+URL. The repository is left unchanged in those cases.
 
 ## npm publishing
 
