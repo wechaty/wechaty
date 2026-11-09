@@ -20,6 +20,7 @@ for (const fail of [ false, true ]) {
     const failedProvider = providers[1]!
 
     try {
+      writeFileSync(join(directory, 'package.json'), JSON.stringify({ type: 'commonjs' }))
       writeFileSync(join(directory, 'npm'), `#!${process.execPath}
 const { appendFileSync } = require('node:fs')
 appendFileSync(process.env.INSTALL_CALLS, JSON.stringify(process.argv.slice(2)) + '\\n')
@@ -42,7 +43,7 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
       const output = result.stdout + result.stderr
       const expected = fail ? providers.slice(0, 2) : providers
       t.error(result.error, 'installer process starts')
-      t.equal(result.status, fail ? 1 : 0, 'installation failures propagate')
+      t.equal(result.status, fail ? 1 : 0, 'installation failures propagate', { output })
       t.same(
         readFileSync(calls, 'utf8').trim().split('\n').map(line => JSON.parse(line)),
         expected.map((_, index) => [ 'install', '--no-save', ...providers.slice(0, index + 1) ]),
