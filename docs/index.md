@@ -1,4 +1,11 @@
-# Wechaty v0.62.1 Documentation
+# Wechaty v0.62.1 API Reference (archived)
+
+> This reference was generated from Wechaty v0.62.1 and has not been updated
+> since. It predates Wechaty v1 and v2, so parts of it no longer match the
+> current API. For example, a bot is now created with `WechatyBuilder.build()`
+> instead of `new Wechaty()`, and `logonoff()` is deprecated in favour of the
+> `isLoggedIn` property. Check the TypeScript sources in
+> [`src/`](https://github.com/wechaty/wechaty/tree/main/src) before relying on it.
 
 - Website - <https://wechaty.js.org>
 - Docs Site - <https://wechaty.js.org/docs/>
