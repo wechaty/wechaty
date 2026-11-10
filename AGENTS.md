@@ -19,17 +19,24 @@ When sources disagree, trust them in this order:
 Read this before running `git push`.
 
 - `npm install` and `npm ci` install [scripts/pre-push.ts](scripts/pre-push.ts)
-  through `core.hooksPath`. The hook has no branch check.
-- With an upstream set, `git push` runs lint, creates a version commit and local
-  tag, pushes the commit, then **exits 1 by design**. Check
-  `git status -sb` and the remote before retrying, because the push may have
-  worked.
-- Without an upstream, `git push -u origin <branch>` creates the version commit
-  and tag, then fails with nothing pushed. Each retry adds another bump, and the
-  leftover tags can make pushes from other branches refuse to run.
-- For a review branch, run `npm run lint`, then
-  `NO_HOOK=1 git push -u origin <branch>`. This keeps version bumps out of pull
-  requests.
+  through `core.hooksPath`.
+- Ordinary feature pushes, including the first `git push -u origin <branch>`,
+  run lint and leave the version, `HEAD`, and tags unchanged. A lint failure
+  blocks that push and leaves the repository unchanged.
+- Versioning is limited to a checked-out release branch (`main` or
+  `v<major>.<minor>…`, the npm publish pattern in `.github/workflows/npm.yml`).
+  The live update must name that source and one eligible release destination.
+  The nested push is
+  `git push --no-follow-tags <remote-url> <source>:<destination>`, so the first
+  push publishes that destination before an upstream exists and leaves other
+  refs unchanged. After that commit is pushed, the original push **exits 1 by
+  design**. Check `git status -sb` and the remote before retrying.
+- The hook rejects, before `npm version`, multiple live branch updates that
+  include a release branch, any release update whose source is not the
+  checked-out release branch, and release pushes to a remote with more than
+  one push URL.
+  Those pushes leave the version, `HEAD`, and tags unchanged. Tag-only and
+  deletion-only pushes skip versioning. `NO_HOOK=1` skips the hook.
 - Never edit the version by hand. Never push tags, `main`, or `v*` branches
   unless asked. Pushes to `main` and `v*` branches can publish to npm and Docker.
 - Use [Conventional Commits](https://conventionalcommits.org/) and complete
@@ -145,6 +152,14 @@ Run the narrowest test first:
 
 ```sh
 NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage src/plugin.spec.ts
+```
+
+For the pre-push integration test, configure the runner timeout explicitly.
+Its synchronous Git/npm fixtures can exceed the default 30 seconds and delay
+in-test timeout announcements:
+
+```sh
+NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage --timeout=180 tests/pre-push.spec.ts
 ```
 
 - Specs sit beside the source as `*.spec.ts`, or under `tests/`, and import `test`
