@@ -29,13 +29,31 @@ clean installation from the lockfile.
 
 `npm install` links `scripts/pre-push.ts` into a Git metadata directory using
 Git's required `pre-push` hook name. Node.js 26 runs the TypeScript hook
-directly. The hook runs lint, bumps alpha prereleases to the next alpha
-version, and bumps stable versions by patch. It pushes the version commit
-from an inner push, then cancels the original push because that push was
-prepared before the version commit existed. The version bump also updates
-`package-lock.json` and creates a local tag; push that tag separately with
-`git push --no-follow-tags origin <tag>`. Tag-only pushes bypass the version
-bump. Set `NO_HOOK=1` to skip the hook.
+directly.
+
+Ordinary feature-branch pushes run lint, then succeed with the same version,
+`HEAD`, and tags. Tag-only pushes and deletion-only pushes skip versioning.
+Set `NO_HOOK=1` to skip the hook.
+
+Versioning runs only when the checked-out branch is a release branch and the
+push contains one live update from that branch to an eligible release
+destination. Eligible refs use the npm publish pattern from
+`.github/workflows/npm.yml`: `^refs/heads/(main|v[0-9]+\.[0-9]+.*)$`
+(`main` and branches such as `v1.10`). Alpha prereleases bump to the next
+alpha version, and stable versions bump by patch. The bump updates
+`package-lock.json` when it is present and creates a local tag.
+
+The nested push is `git push --no-follow-tags <remote-url> <source>:<destination>`.
+The remote URL and explicit refspec publish that destination on the first
+push, before an upstream is configured, and leave every other ref unchanged.
+The original release push then exits 1 because it was prepared before the
+version commit existed. Push the local tag separately with
+`git push --no-follow-tags origin <tag>`.
+
+The hook rejects a release push before `npm version` when more than one live
+branch update includes a release branch, when a release update's source is
+not the checked-out release branch, or when the remote has more than one push
+URL. The repository is left unchanged in those cases.
 
 ## npm publishing
 

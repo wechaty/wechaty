@@ -6,6 +6,13 @@ function dockerRun() {
 
 fixtures=tests/fixtures/docker
 
+@test "should resolve Wechaty to the image's built package" {
+  run docker run --rm --entrypoint node "${IMAGE_NAME:-wechaty/wechaty:artifact}" \
+    --input-type=module -e "console.log(import.meta.resolve('wechaty'))"
+  [ "$status" -eq 0 ]
+  [ "$output" = "file:///wechaty/dist/esm/src/mods/mod.js" ]
+}
+
 @test "should fail when using require to load ESM-only Wechaty" {
   cd "$fixtures"
   run dockerRun cjs/js-bot.js
@@ -106,4 +113,3 @@ fixtures=tests/fixtures/docker
 
   docker image rm "$smoke_image" >/dev/null
 }
-

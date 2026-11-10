@@ -36,6 +36,7 @@ async function main (): Promise<void> {
   const skipList = [
     '@juzibot/wechaty-puppet-donut',  // windows puppet
     '@juzibot/wechaty-puppet-wxwork', // wxwork puppet
+    'wechaty-puppet-xp',             // Frida 15 does not build on Node.js 26
   ]
 
   const moduleList: string[] = []
@@ -47,27 +48,23 @@ async function main (): Promise<void> {
       continue
     }
 
-    moduleList.push(`${puppetModuleName}@${version}`)
-  }
+    const module = `${puppetModuleName}@${version}`
+    moduleList.push(module)
+    const args = [ 'install', '--no-save', ...moduleList ]
+    log.info('PuppetInstall', 'installing %s', module)
 
-  const args = [
-    'install',
-    '--no-save',
-    ...moduleList,
-  ]
-  log.info('PuppetInstall', `installing ... Shell: "npm install ${args.join(' ')}"\n`)
-
-  const result = spawn('npm', args, { stdio: 'inherit' })
-  await new Promise<void>((resolve, reject) => {
-    result.once('error', reject)
-    result.once('exit', (code, signal) => {
-      if (code === 0) {
-        resolve()
-      } else {
-        reject(new Error(`npm install failed (exit code ${code}, signal ${signal})`))
-      }
+    const result = spawn('npm', args, { stdio: 'inherit' })
+    await new Promise<void>((resolve, reject) => {
+      result.once('error', reject)
+      result.once('exit', (code, signal) => {
+        if (code === 0) {
+          resolve()
+        } else {
+          reject(new Error(`npm install ${module} failed (exit code ${code}, signal ${signal})`))
+        }
+      })
     })
-  })
+  }
 
   log.info('PuppetInstall', 'main() installing ... done')
 }
