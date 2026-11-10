@@ -191,9 +191,8 @@ dependency changes.
 
 Check these against the code before relying on them:
 
-- In this repo: `tests/README.md` (v0.17 output), `docs/index.md`,
-  `shippable.yml`, the no-op `.github/workflows/coverage.yml`, README API tables,
-  and JSDoc using `new Wechaty()` or `this: Wechaty`.
+- In this repo: `docs/index.md` (the archived v0.62.1 API reference), README API
+  tables, and JSDoc using `new Wechaty()` or `this: Wechaty`.
 - [Getting started](https://github.com/wechaty/getting-started): targets Wechaty
   v1 and Node.js 16.
 - [Breaking changes](https://wechaty.js.org/docs/references/breaking-changes):
