@@ -91,7 +91,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    * @returns {Promise<void>}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('room-invite', async roomInvitation => {
    *   try {
    *     console.log(`received room-invite event.`)
@@ -128,7 +128,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    *
    * @returns {ContactInterface}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('room-invite', async roomInvitation => {
    *   const inviter = await roomInvitation.inviter()
    *   const name = inviter.name()
@@ -153,7 +153,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    *
    * @returns {string}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('room-invite', async roomInvitation => {
    *   const topic = await roomInvitation.topic()
    *   console.log(`received room invitation event from room ${topic}`)
@@ -229,7 +229,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    *
    * @returns {RoomInvitationInterface}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * const dataFromDisk // get the room invitation info data from disk
    * const roomInvitation = await bot.RoomInvitation.fromJSON(dataFromDisk)
    * await roomInvitation.accept()
@@ -257,7 +257,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    *
    * @returns {string}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('room-invite', async roomInvitation => {
    *  const roomInvitation = bot.RoomInvitation.load(roomInvitation.id)
    *  const jsonData = await roomInvitation.toJSON(roomInvitation.id)
