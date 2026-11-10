@@ -69,10 +69,16 @@ function updateTrackingRef (name: string | undefined, remoteRef: string, sha: st
       continue
     }
     let trackingRef: string | undefined
-    if (source.endsWith('/*') && destination.endsWith('/*')) {
-      const prefix = source.slice(0, -1)
-      if (remoteRef.startsWith(prefix)) {
-        trackingRef = destination.slice(0, -1) + remoteRef.slice(prefix.length)
+    const wildcard = source.indexOf('*')
+    if (wildcard >= 0 && destination.includes('*')) {
+      const prefix = source.slice(0, wildcard)
+      const suffix = source.slice(wildcard + 1)
+      if (remoteRef.startsWith(prefix)
+        && remoteRef.endsWith(suffix)
+        && remoteRef.length >= prefix.length + suffix.length
+      ) {
+        const matched = remoteRef.slice(prefix.length, remoteRef.length - suffix.length)
+        trackingRef = destination.replace('*', () => matched)
       }
     } else if (source === remoteRef) {
       trackingRef = destination
