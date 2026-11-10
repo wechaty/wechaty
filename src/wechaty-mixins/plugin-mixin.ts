@@ -45,12 +45,12 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
      * // Report all chat message to my server.
      *
      * function WechatyReportPlugin(options: { url: string }) {
-     *   return function (this: Wechaty) {
-     *     this.on('message', message => http.post(options.url, { data: message }))
+     *   return function (bot: Wechaty) {
+     *     bot.on('message', message => http.post(options.url, { data: message }))
      *   }
      * }
      *
-     * bot.use(WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' })
+     * bot.use(WechatyReportPlugin({ url: 'http://somewhere.to.report.your.data.com' }))
      */
     use (
       ...plugins: (
