@@ -225,7 +225,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * @returns {Promise<void>}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('friendship', async friendship => {
    *   try {
    *     console.log(`received friend event.`)
@@ -292,7 +292,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    *
    * @returns {string}
    * @example <caption>If request content is `ding`, then accept the friendship</caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('friendship', async friendship => {
    *   try {
    *     console.log(`received friend event from ${friendship.contact().name()}`)
@@ -317,7 +317,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    *
    * @returns {ContactInterface}
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('friendship', async friendship => {
    *   const contact = friendship.contact()
    *   const name = contact.name()
@@ -345,7 +345,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * @returns {FriendshipType}
    *
    * @example <caption>If request content is `ding`, then accept the friendship</caption>
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('friendship', async friendship => {
    *   try {
    *     if (friendship.type() === Friendship.Type.Receive && friendship.hello() === 'ding') {
@@ -368,7 +368,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * @returns {FriendshipPayload}
    *
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.on('friendship', async friendship => {
    *   try {
    *     // JSON.stringify(friendship) as well.
@@ -391,7 +391,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
   /**
    * create friendShip by friendshipJson
    * @example
-   * const bot = new Wechaty()
+   * const bot = WechatyBuilder.build()
    * bot.start()
    *
    * const payload = '{...}'  // your saved JSON payload
