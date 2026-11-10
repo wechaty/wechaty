@@ -53,8 +53,8 @@ async function main (): Promise<void> {
     const args = [ 'install', '--no-save', ...moduleList ]
     log.info('PuppetInstall', 'installing %s', module)
 
+    const result = spawn('npm', args, { stdio: 'inherit' })
     await new Promise<void>((resolve, reject) => {
-      const result = spawn('npm', args, { stdio: 'inherit' })
       result.once('error', reject)
       result.once('exit', (code, signal) => {
         if (code === 0) {

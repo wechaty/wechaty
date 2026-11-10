@@ -8,6 +8,7 @@ import { test } from 'tstest'
 
 import { OFFICIAL_PUPPET_DEPENDENCIES } from '../src/puppet-config.js'
 
+const installerPath = fileURLToPath(new URL('../bin/puppet-install.ts', import.meta.url))
 const testInstaller = process.platform === 'win32' ? test.skip : test
 
 for (const fail of [ false, true ]) {
@@ -27,21 +28,26 @@ appendFileSync(process.env.INSTALL_CALLS, JSON.stringify(process.argv.slice(2)) 
 if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
 `, { mode: 0o755 })
 
+      const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        FAIL_PROVIDER: fail ? failedProvider : '',
+        INSTALL_CALLS: calls,
+        PATH: `${directory}${delimiter}${process.env['PATH'] ?? ''}`,
+        WECHATY_LOG: 'info',
+      }
+      delete env['NODE_V8_COVERAGE']
+
       const result = spawnSync(process.execPath, [
         '--import=tsx/esm',
-        fileURLToPath(new URL('../bin/puppet-install.ts', import.meta.url)),
+        installerPath,
       ], {
         encoding: 'utf8',
-        env: {
-          ...process.env,
-          FAIL_PROVIDER: fail ? failedProvider : '',
-          INSTALL_CALLS: calls,
-          PATH: `${directory}${delimiter}${process.env['PATH'] ?? ''}`,
-          WECHATY_LOG: 'info',
-        },
+        env,
+        timeout: 20_000,
       })
       const output = result.stdout + result.stderr
       const expected = fail ? providers.slice(0, 2) : providers
+
       t.error(result.error, 'installer process starts')
       t.equal(result.status, fail ? 1 : 0, 'installation failures propagate', { output })
       t.same(
@@ -63,3 +69,27 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
     }
   })
 }
+
+test('puppet installer rejects when npm cannot be spawned', async t => {
+  const directory = mkdtempSync(join(tmpdir(), 'wechaty-puppet-install-'))
+  try {
+    const env: NodeJS.ProcessEnv = { ...process.env, PATH: directory }
+    delete env['NODE_V8_COVERAGE']
+
+    const result = spawnSync(process.execPath, [
+      '--import=tsx/esm',
+      installerPath,
+    ], {
+      encoding: 'utf8',
+      env,
+      timeout: 20_000,
+    })
+
+    t.error(result.error, 'installer process starts')
+    t.equal(result.status, 1, 'missing npm exits unsuccessfully')
+    t.notMatch(result.stdout + result.stderr, /installing \.\.\. done/, 'missing npm must not report completion')
+    t.match(result.stderr, /ENOENT/, 'reports the spawn error')
+  } finally {
+    rmSync(directory, { force: true, recursive: true })
+  }
+})
