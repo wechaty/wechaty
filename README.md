@@ -154,7 +154,7 @@ We have a Wechaty starter repository for beginners with the simplest setup. It w
 
 If you are new to Wechaty and want to try it for the first time, we strongly recommend starting with this repository and using it as your project template.
 
-Otherwise, please save the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `bot.js` before running it with NPM or Docker.
+Otherwise, please save the above *The World's Shortest ChatBot Code: 6 lines of JavaScript* example to a file named `bot.js` before running it with NPM or Docker.
 
 ### 1. Npm
 
