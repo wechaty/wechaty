@@ -2,87 +2,142 @@ name: NPM
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
-  build:
-    name: Build
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
-          - 16
+          - 26
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js 16
-        uses: actions/setup-node@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js 26 for tests
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-          cache-dependency-path: package.json
 
-      - name: Install Dependencies
+      - name: Install dependencies from lockfile
         run: |
           node --version
           npm --version
-          npm install
+          npm ci
 
-      - name: Test
+      - name: Run lint and unit tests
         run: npm test
 
   pack:
     name: Pack
-    needs: build
+    needs: validate
     runs-on: ubuntu-latest
+    outputs:
+      is_publish_branch: ${{ steps.package_metadata.outputs.is_publish_branch }}
+      package_name: ${{ steps.package_metadata.outputs.package_name }}
+      package_version: ${{ steps.package_metadata.outputs.package_version }}
+      npm_dist_tag: ${{ steps.package_metadata.outputs.npm_dist_tag }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          node-version: 16
-          cache: npm
-          cache-dependency-path: package.json
+          persist-credentials: false
+      - name: Set up Node.js 26 for packaging
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
 
-      - run: npm install
-      - name: Generate Package JSON
+      - name: Install dependencies from lockfile
+        run: npm ci
+      - name: Generate embedded package and commit metadata
         run: ./scripts/generate-package-json.sh
-      - run: ./scripts/npm-pack-testing.sh
+      - name: Determine publish branch and npm dist-tag
+        id: package_metadata
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs')
+          const { SemVer } = require('@chatie/semver')
+          const { name: packageName, version: packageVersion } = require('./package.json')
+          // Project policy: prereleases and odd-minor versions use next.
+          const npmDistTag = new SemVer(packageVersion).isProd ? 'latest' : 'next'
+          // Publish from main or version branches such as v1.10.
+          const isPublishBranch = /^refs\/heads\/(main|v[0-9]+\.[0-9]+.*)$/.test(process.env.GITHUB_REF)
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `package_name=${packageName}\npackage_version=${packageVersion}\nnpm_dist_tag=${npmDistTag}\nis_publish_branch=${isPublishBranch}\n`)
+          NODE
+      - name: Set package manifest's npm dist-tag
+        run: npm pkg set "publishConfig.tag=$NPM_DIST_TAG"
         env:
-          WECHATY_PUPPET_PADPLUS_TOKEN: ${{ secrets.WECHATY_PUPPET_PADPLUS_TOKEN }}
+          NPM_DIST_TAG: ${{ steps.package_metadata.outputs.npm_dist_tag }}
+      - name: Build and smoke-test npm tarball
+        run: ./scripts/npm-pack-testing.sh
+        env:
+          TESTED_PACKAGE_OUTPUT_PATH: ${{ runner.temp }}/wechaty-package.tgz
+      - name: Upload tested npm tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/wechaty-package.tgz
+          if-no-files-found: error
+          retention-days: 1
 
   publish:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
+    if: github.event_name == 'push' && needs.pack.outputs.is_publish_branch == 'true'
     name: Publish
-    needs: [build, pack]
+    needs: [validate, pack]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Set up Node.js 26 and npm registry
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 26
           registry-url: https://registry.npmjs.org/
-          cache: npm
-          cache-dependency-path: package.json
-      - run: npm install
-      - name: Generate Package JSON
-        run: ./scripts/generate-package-json.sh
-      - run: ./scripts/package-publish-config-tag.sh
-      - run: npm run dist
-
-      - name: Check Branch
-        id: check-branch
+      - name: Verify npm supports Trusted Publishing
         run: |
-          if [[ ${{ github.ref }} =~ ^refs/heads/(main|v[0-9]+\.[0-9]+.*)$ ]]; then
-              echo ::set-output name=match::true
-          fi  # See: https://stackoverflow.com/a/58869470/1123955
-      - name: Is A Publish Branch
-        if: steps.check-branch.outputs.match == 'true'
+          NPM_VERSION=$(npm --version)
+          echo "npm $NPM_VERSION"
+          node --input-type=commonjs - "$NPM_VERSION" <<'NODE'
+          const npmVersion = process.argv[2]
+          const versionMatch = /^(\d+)\.(\d+)\.(\d+)(?:\+[\w.-]+)?$/.exec(npmVersion)
+          if (!versionMatch) throw new Error(`Unsupported npm version: ${npmVersion}`)
+          const [ major, minor, patch ] = versionMatch.slice(1).map(Number)
+          if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) {
+            throw new Error('npm Trusted Publishing requires npm 11.5.1 or newer.')
+          }
+          NODE
+      - name: Download verified npm tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/npm-package
+      - name: Check whether package version exists on npm
+        id: version_lookup
         run: |
-          NAME=$(npx pkg-jq -r .name)
-          VERSION=$(npx pkg-jq -r .version)
-          if npx version-exists "$NAME" "$VERSION"
-          then echo "$NAME@$VERSION exists on NPM, skipped."
-          else echo "Publishing..." && npm publish
-          fi
+          npm view "$PACKAGE_NAME" versions --json > "$RUNNER_TEMP/npm-versions.json"
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs')
+          const versions = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/npm-versions.json`, 'utf8'))
+          const alreadyPublished = (Array.isArray(versions) ? versions : [versions]).includes(process.env.PACKAGE_VERSION)
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `already_published=${alreadyPublished}\n`)
+          NODE
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Is Not A Publish Branch
-        if: steps.check-branch.outputs.match != 'true'
-        run: echo 'Not A Publish Branch'
+          PACKAGE_NAME: ${{ needs.pack.outputs.package_name }}
+          PACKAGE_VERSION: ${{ needs.pack.outputs.package_version }}
+      # Publish the same tarball that passed the package smoke test.
+      - name: Publish tested tarball to npm
+        if: steps.version_lookup.outputs.already_published == 'false'
+        run: npm publish "$RUNNER_TEMP/npm-package/wechaty-package.tgz" --tag "$NPM_DIST_TAG"
+        env:
+          NPM_DIST_TAG: ${{ needs.pack.outputs.npm_dist_tag }}
+      - name: Report already-published version
+        if: steps.version_lookup.outputs.already_published == 'true'
+        run: echo "$PACKAGE_NAME@$PACKAGE_VERSION already exists on npm; skipping."
+        env:
+          PACKAGE_NAME: ${{ needs.pack.outputs.package_name }}
+          PACKAGE_VERSION: ${{ needs.pack.outputs.package_version }}

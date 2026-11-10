@@ -46,7 +46,7 @@ const MixinBase = poolifyMixin(
  *
  * > Tips: this class is extends Contact
  * @example
- * const bot = new Wechaty()
+ * const bot = WechatyBuilder.build()
  * await bot.start()
  * bot.on('login', (user: ContactSelf) => {
  *   console.log(`user ${user} login`)
@@ -93,7 +93,7 @@ class ContactSelfMixin extends MixinBase {
    * })
    *
    * @example <caption>SET the avatar for a bot</caption>
-   * import { FileBox }  from 'wechaty'
+   * import { FileBox }  from 'file-box'
    * bot.on('login', (user: ContactSelf) => {
    *   console.log(`user ${user} login`)
    *   const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')

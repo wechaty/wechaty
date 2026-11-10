@@ -29,9 +29,13 @@ import type { IoMixin }     from './io-mixin.js'
 const PUPPET_MEMORY_NAME = 'puppet'
 
 /**
- * Huan(202111): `puppetMixin` must extend `pluginMixin`
- *  because the `wechaty-redux` plugin need to be installed before
+ * Huan(202111): the `wechaty-redux` plugin need to be installed before
  *  the puppet started
+ *
+ * Plugins that subscribe to the `puppet` event must register their listeners
+ *  before the first `init()` emits it. `pluginMixin` is composed outside
+ *  `puppetMixin` and has no lifecycle hooks, so the mixin order does not
+ *  affect this.
  *
  * Huan(20211128): `puppetMixin` must extend `IoMixin`
  *  because the Io need the puppet instance to be ready when it starts
@@ -337,8 +341,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
                 }
                 await room.sync()
 
+                const validInviteeIdList = payload.inviteeIdList.filter((m) => m)
                 const inviteeListAll = await Promise.all(
-                  payload.inviteeIdList.map(id => this.Contact.find({ id })),
+                  validInviteeIdList.map(id => this.Contact.find({ id })),
                 )
                 const inviteeList = inviteeListAll.filter(c => !!c) as ContactInterface[]
 

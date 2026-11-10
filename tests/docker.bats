@@ -6,10 +6,18 @@ function dockerRun() {
 
 fixtures=tests/fixtures/docker
 
-@test "should succ with a simple javascript" {
+@test "should resolve Wechaty to the image's built package" {
+  run docker run --rm --entrypoint node "${IMAGE_NAME:-wechaty/wechaty:artifact}" \
+    --input-type=module -e "console.log(import.meta.resolve('wechaty'))"
+  [ "$status" -eq 0 ]
+  [ "$output" = "file:///wechaty/dist/esm/src/mods/mod.js" ]
+}
+
+@test "should fail when using require to load ESM-only Wechaty" {
   cd "$fixtures"
   run dockerRun cjs/js-bot.js
-  [ "$status" -eq 0 ]
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"ERR_PACKAGE_PATH_NOT_EXPORTED"* ]]
 }
 
 @test "should fail when javascript syntax error" {
@@ -36,7 +44,7 @@ fixtures=tests/fixtures/docker
   [ "$status" -eq 0 ]
 }
 
-@test "should not fail with unmatch types in typescript (with `ts-node.transpileOnly=true`)" {
+@test "should not fail with unmatch types in TypeScript (transpile-only execution)" {
   cd "$fixtures"
   run dockerRun type-error.ts
   [ "$status" -eq 0 ]
@@ -86,3 +94,22 @@ fixtures=tests/fixtures/docker
   [ "$status" -ne 0 ]
 }
 
+@test "should execute ONBUILD instructions" {
+  [ -n "${ONBUILD_IMAGE:-}" ] || skip "ONBUILD_IMAGE is only set for publish candidates"
+
+  local smoke_image="wechaty/onbuild-smoke:${RANDOM}"
+  local fixture="${BATS_TEST_DIRNAME}/fixtures/docker/onbuild-app"
+
+  run docker build \
+    --build-arg "WECHATY_BASE=$ONBUILD_IMAGE" \
+    --tag "$smoke_image" \
+    -f "$fixture/Dockerfile" \
+    "$fixture"
+  [ "$status" -eq 0 ]
+
+  run docker run --rm "$smoke_image"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"onbuild-smoke-ok"* ]]
+
+  docker image rm "$smoke_image" >/dev/null
+}

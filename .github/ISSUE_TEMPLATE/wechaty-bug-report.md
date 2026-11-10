@@ -10,7 +10,6 @@ about: Create a bug report for a bug you found in wechaty
 1. Please run the following command and check whether the problem has been fixed：
 
     ```sh
-    rm -rf package-lock.json
     rm -rf node_modules
     npm install
     ```

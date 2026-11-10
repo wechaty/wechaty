@@ -1,5 +1,5 @@
-FROM debian:bullseye
-LABEL maintainer="Huan LI (李卓桓) <zixia@zixia.net>"
+FROM debian:bookworm
+LABEL maintainer="Huan Li <huan@chatie.io>"
 
 ENV DEBIAN_FRONTEND     noninteractive
 ENV WECHATY_DOCKER      1
@@ -29,7 +29,7 @@ RUN apt-get update \
     libtool \
     libxtst6 \
     moreutils \
-    python-dev \
+    python3-dev \
     shellcheck \
     sudo \
     tzdata \
@@ -38,15 +38,16 @@ RUN apt-get update \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_26.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && apt-get purge --auto-remove \
     && rm -rf /tmp/* /var/lib/apt/lists/*
 
 WORKDIR /wechaty
 
-COPY package.json .
-RUN  npm install \
+COPY package.json package-lock.json ./
+COPY scripts/install-git-hooks.ts ./scripts/
+RUN  npm ci \
   && rm -fr /tmp/* ~/.npm
 
 COPY . .
@@ -72,8 +73,8 @@ RUN echo '{"type": "module"}' > /package.json
 RUN  mkdir /node_modules \
   && ln -sfv /usr/lib/node_modules/*  /node_modules/ \
   && ln -sfv /wechaty/node_modules/*  /node_modules/ \
-  && /wechaty/bin/clean-json.js /wechaty/tsconfig.json \
-    | jq 'del(."ts-node")' > /tsconfig.json \
+  && ln -sfnv /wechaty /node_modules/wechaty \
+  && /wechaty/bin/clean-json.js /wechaty/tsconfig.json > /tsconfig.json \
   && echo 'Linked Wechaty & tsconfig.json to Global'
 
 WORKDIR /bot
@@ -92,7 +93,7 @@ LABEL \
   org.label-schema.schema-version="$(wechaty-version)" \
   org.label-schema.name="Wechaty" \
   org.label-schema.description="Wechat for Bot" \
-  org.label-schema.usage="https://github.com/wechaty/wechaty/wiki/Docker" \
+  org.label-schema.usage="https://wechaty.js.org/docs/tutorials/docker" \
   org.label-schema.url="https://www.chatie.io" \
   org.label-schema.vendor="Chatie" \
   org.label-schema.vcs-ref="$SOURCE_COMMIT" \
@@ -101,4 +102,3 @@ LABEL \
   org.label-schema.docker.cmd.test="docker run -ti --rm wechaty/wechaty test" \
   org.label-schema.docker.cmd.help="docker run -ti --rm wechaty/wechaty help" \
   org.label-schema.docker.params="WECHATY_TOKEN=token token from https://www.chatie.io, WECHATY_LOG=verbose Set Verbose Log, TZ='Asia/Shanghai' TimeZone"
-

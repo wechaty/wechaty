@@ -2,9 +2,9 @@
 
 /**
  * This file will be overwrite when we publish NPM module
- * by scripts/generate_version.ts
+ * by scripts/generate-package-json.sh
  */
-import type { PackageJsonWechaty } from './config'
+import type { PackageJsonWechaty } from './config.js'
 
 /**
  * Huan(202108):

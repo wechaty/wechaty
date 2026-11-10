@@ -2,6 +2,7 @@
 
 [![Wechaty](https://wechaty.js.org/img/wechaty-logo.svg)](https://wechaty.js.org)
 
+[Ship.Fail](https://ship.fail) [PreAngel](https://PreAngel.AI)
 [![Downloads](https://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 [![GitHub stars](https://img.shields.io/github/stars/wechaty/wechaty.svg?label=github%20stars)](https://github.com/wechaty/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
@@ -72,7 +73,10 @@ Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can 
 
 See more at [Wiki:Voice Of Developer](https://github.com/Wechaty/wechaty/wiki/Voice%20Of%20Developer)
 
-### Join Us on Discord [![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt)
+### Join Us on Discord
+
+[![Join Wechaty Discord Developer Community](https://img.shields.io/discord/916984413944967180?logo=discord&style=flat)](https://discord.gg/7q8NBZbQzt)
+[![Wechaty Discord](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscord.com%2Fapi%2Finvites%2F7q8NBZbQzt%3Fwith_counts%3Dtrue&query=%24.approximate_member_count&logo=discord&logoColor=white&label=Users%20Total&color=green&style=flat)](https://discord.gg/7q8NBZbQzt)
 
 Wechaty is used in many ChatBot projects by thousands of developers. To talk with other developers, scan the QR Code below and join our **Wechaty Developer Community**.
 
@@ -153,7 +157,7 @@ node bot.js
 
 - Wechaty Starter Repository for Docker - <https://github.com/wechaty/docker-wechaty-getting-started>
 
-> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
+> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `tsx` to run it.
 
 2.1. Run JavaScript
 
@@ -175,7 +179,7 @@ docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.ts
 
 Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
 
-If you cannot use Web protocol, you can apply other protocal following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
+If you cannot use Web protocol, you can apply other protocols following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
 
 Currently we support the following [puppet providers](https://wechaty.js.org/docs/puppet-services/) :
 
@@ -357,7 +361,7 @@ Accept room invitation
 
 [![Known Vulnerabilities](https://snyk.io/test/github/Wechaty/wechaty/badge.svg)](https://snyk.io/test/github/Wechaty/wechaty)
 
-Wechaty is fully automatically tested by unit and integration tests, with Continious Integration & Continious Deliver(CI/CD) support powered by CI like Travis, Shippable and Appveyor.
+Wechaty is fully automatically tested by unit and integration tests, with Continuous Integration & Continuous Delivery (CI/CD) support powered by CI like Travis, Shippable and Appveyor.
 
 To test Wechaty, run:
 
@@ -417,6 +421,7 @@ Get more embed html/markdown code from [Wiki:Badge](https://github.com/wechaty/w
 6. [koa与wechaty实现的微信小助手，可定时提醒与发消息设定定时任务](https://github.com/gengchen528/wechat-assistant)
 7. [Wechaty Pay - 让线上没有难做的生意](https://github.com/coderwhocode/wechaty-pay)
 8. [开源社的微信机器人项目](https://github.com/kaiyuanshe/wechat-robot)
+9. [微信群聊总结 AI 助手](https://github.com/aoao-eth/wechat-ai-summarize-bot)
 
 Pull Request is welcome to add yours!
 

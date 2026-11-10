@@ -1,65 +1,50 @@
 #!/usr/bin/env bash
 set -e
 
-VERSION=$(npx pkg-jq -r .version)
+VERSION=$(node --input-type=commonjs -p "require('./package.json').version")
 
-if npx --package @chatie/semver semver-is-prod "$VERSION"; then
-  NPM_TAG=latest
+if ./node_modules/.bin/semver-is-prod "$VERSION"; then
+  NPM_DIST_TAG=latest
 else
-  NPM_TAG=next
+  NPM_DIST_TAG=next
 fi
-
-npm run dist
-npm pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-# trap "rm -fr $TMPDIR" EXIT
+trap 'rm -rf "$TMPDIR"' EXIT
 
-mv ./*-*.*.*.tgz "$TMPDIR"
+npm run dist
+npm pack --pack-destination "$TMPDIR"
+shopt -s nullglob
+PACK_FILES=("$TMPDIR"/*.tgz)
+if [ "${#PACK_FILES[@]}" -ne 1 ]; then
+  echo "Expected exactly one package tarball, found ${#PACK_FILES[@]}." >&2
+  exit 1
+fi
+PACK_FILE="${PACK_FILES[0]##*/}"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
-cd $TMPDIR
+cd "$TMPDIR"
 
 npm init -y
-npm install --production ./*-*.*.*.tgz \
+npm install --production "./$PACK_FILE" \
   @types/node \
-  typescript@latest \
-  pkg-jq \
-  file-box@"$NPM_TAG" \
-  wechaty-puppet-mock@"$NPM_TAG" \
-  wechaty-puppet-padlocal@"$NPM_TAG" \
-  wechaty-puppet-service@"$NPM_TAG" \
-
-#
-# CommonJS
-#
-npx tsc \
-  --target esnext \
-  --module CommonJS \
-  \
-  --moduleResolution node \
-  --esModuleInterop \
-  --lib esnext \
-  --noEmitOnError \
-  --noImplicitAny \
-  --skipLibCheck \
-  smoke-testing.ts
-
-echo
-echo "CommonJS: pack testing..."
-node smoke-testing.js
+  @typescript/native@npm:typescript@^7.0.2 \
+  file-box@"$NPM_DIST_TAG" \
+  wechaty-puppet-mock@"$NPM_DIST_TAG" \
+  wechaty-puppet-padlocal@"$NPM_DIST_TAG" \
+  wechaty-puppet-service@"$NPM_DIST_TAG" \
 
 #
 # ES Modules
 #
-npx pkg-jq -i '.type="module"'
+node --input-type=commonjs -e "const fs = require('node:fs'); const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')); packageJson.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2))"
 
 npx tsc \
   --target esnext \
-  --module esnext \
+  --module nodenext \
   \
-  --moduleResolution node \
+  --moduleResolution nodenext \
   --esModuleInterop \
   --lib esnext \
   --noEmitOnError \
@@ -70,3 +55,7 @@ npx tsc \
 echo
 echo "ES Module: pack testing..."
 node smoke-testing.js
+
+if [ -n "${TESTED_PACKAGE_OUTPUT_PATH:-}" ]; then
+  cp "$PACK_FILE" "$TESTED_PACKAGE_OUTPUT_PATH"
+fi

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
+#!/usr/bin/env -S node --import=tsx/esm
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -65,7 +65,7 @@ async function main () {
 
   let port
   if (process.env['WECHATY_PUPPET_SERVER_PORT']) {
-    port = parseInt(process.env['WECHATY_PUPPET_SERVER_PORT'])
+    port = parseInt(process.env['WECHATY_PUPPET_SERVER_PORT'], 10)
   }
 
   const options: IoClientOptions = {
