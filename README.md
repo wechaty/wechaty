@@ -30,13 +30,32 @@
 [![Telegram Wechaty Channel](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/wechaty)
 -->
 
+## Contents
+
+- [Elevator Pitch](#elevator-pitch)
+- [Connecting Chatbots](#connecting-chatbots)
+- [Voice of Developers](#voice-of-developers)
+- [Getting Started](#getting-started)
+- [API](#guitar-api)
+- [Tests](#test)
+- [Creating a Wechaty Plugin](#creating-wechaty-plugin)
+- [Projects Using Wechaty](#star2-projects-using-wechaty)
+- [Find a Good Server](#innocent-find-a-good-server)
+- [See Also](#notes-see-also)
+- [The Story](#poop-the-story)
+- [Multi-language Wechaty](#multi-language-wechaty)
+- [History](#history)
+- [Creators](#creators)
+- [Cite Wechaty](#cite-wechaty)
+- [Copyright & License](#copyright--license)
+
 ## Elevator Pitch
 
 Wechaty is a conversational RPA SDK that simplifies the process of building chatbots. It's like a Swiss Army knife for chatbot development, providing a universal interface to various messaging platforms such as WhatsApp, WeChat, and more. With Wechaty, you write your bot code once, and it runs on any of the supported platforms. This means you can focus on creating engaging conversational experiences without worrying about the underlying complexities of each platform's API. It's open-source, easy to use, and backed by a vibrant community that's ready to help you bring your chatbot ideas to life.
 
 ## Connecting Chatbots
 
-Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can help you create a bot in 6 lines of [JavaScript](https://GitHub.com/Wechaty/wechaty), [Python](https://GitHub.com/Wechaty/python-wechaty/), [Go](https://GitHub.com/Wechaty/go-wechaty/), and [Java](https://GitHub.com/Wechaty/java-wechaty/), with cross-platform support including [Linux, Windows, MacOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM), and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
+Wechaty is an RPA (Robotic Process Automation) SDK for chatbot makers that helps you create a bot in 6 lines of [JavaScript](https://github.com/wechaty/wechaty), [Python](https://github.com/wechaty/python-wechaty/), [Go](https://github.com/wechaty/go-wechaty/), or [Java](https://github.com/wechaty/java-wechaty/), with cross-platform support for [Linux, Windows, and macOS](https://github.com/wechaty/wechaty/actions?query=workflow%3ANPM) and [Docker](https://github.com/wechaty/wechaty/actions?query=workflow%3ADocker).
 
 :spider_web: <https://wechaty.js.org>  
 :octocat: <https://github.com/Wechaty/wechaty>  
@@ -53,16 +72,20 @@ Wechaty is an RPA (Robotic Process Automation) SDK for Chatbot Makers which can 
 > "Wechaty is a great solution; I believe there would be much more users who recognize it." [link](https://github.com/Wechaty/wechaty/pull/310#issuecomment-285574472)  
 > &mdash; <cite>@Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)</cite>
 >
-> "太好用，好用的想哭"  
+> "So useful—it makes me want to cry!" ("太好用，好用的想哭")
+>
 > &mdash; <cite>@xinbenlv, Google Engineer, Founder of HaoShiYou.org</cite>
 >
-> ”好用到哭“——你们对得起这个评价！ [link](https://github.com/bigbrother666sh/shezhangbujianle#%E8%87%B4%E6%95%AC)  
-> &mdash; <cite>[@bigbrother666sh](https://github.com/bigbrother666sh), creator of《社长不见了》剧本杀 NPC DM</cite>
+> "So good it makes you cry"—you deserve this praise! ("好用到哭"——你们对得起这个评价！) [link](https://github.com/bigbrother666sh/shezhangbujianle#%E8%87%B4%E6%95%AC)
 >
-> "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
+> &mdash; <cite>[@bigbrother666sh](https://github.com/bigbrother666sh), creator of the *The Chairman Is Missing* murder mystery game</cite>
+>
+> "The best WeChat development library" ("最好的微信开发库") [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
+>
 > &mdash; <cite>@Jarvis, Baidu Engineer</cite>
 >
-> "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
+> "Wechaty gives operations teams more time to plan campaigns, retain users, and monetize their work." ("Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现") [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)
+>
 > &mdash; <cite>@lijiarui, Founder & CEO of Juzi.BOT.</cite>
 >
 > "If you know js ... try Wechaty. It's easy to use."  
@@ -86,7 +109,7 @@ Scan now because other Wechaty developers want to talk with you, too!
 
 ### Resource
 
-Wechaty has already held lots of talks and got a lot of blogs in the past years; here are all of the wechaty resources:
+Wechaty has hosted many talks and inspired many blog posts over the years. Here are some Wechaty resources:
 
 - :video_camera: [Youtube Playlist: Watch all of the talk videos related with Wechaty](https://www.youtube.com/playlist?list=PL8hd9KDTdarDXf_Rxtr8meKhxtgcXMInh)
 - :page_with_curl: [Full Docs](https://wechaty.js.org/)
@@ -111,7 +134,7 @@ wechaty.start()
 
 > **Notice: Wechaty requires Node.js version >= 16**
 
-This bot can log all messages to the console after login by the scan.
+After you scan the QR code and log in, this bot logs all messages to the console.
 
 You can find Wechaty's Official Examples at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts) and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
 
@@ -127,11 +150,11 @@ You can find Wechaty's Official Examples at [examples/ding-dong-bot.ts](examples
 
 - Wechaty Starter Repository - <https://github.com/wechaty/wechaty-getting-started>
 
-We have a Wechaty starter repository for beginners with the simplest setting. It will be **work** out-of-the-box after you `clone` & `npm install` & `npm start`.
+We have a Wechaty starter repository for beginners with the simplest setup. It works out of the box after you run `git clone`, `npm install`, and `npm start`.
 
-If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
+If you are new to Wechaty and want to try it for the first time, we strongly recommend starting with this repository and using it as your project template.
 
-Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `bot.js` before you can use either NPM or Docker to run it.
+Otherwise, please save the above *The World's Shortest ChatBot Code: 6 lines of JavaScript* example to a file named `bot.js` before running it with NPM or Docker.
 
 ### 1. Npm
 
@@ -211,7 +234,7 @@ The [Wechaty API Reference](https://wechaty.github.io/wechaty/) was generated fo
 
 Main bot class.
 
-A `Bot` is a Wechaty instance that control a specific [wechaty-puppet](https://wechaty.js.org/docs/specs/puppet).
+A `Bot` is a Wechaty instance that controls a specific [wechaty-puppet](https://wechaty.js.org/docs/specs/puppet).
 
 - `WechatyBuilder.build(options?: WechatyOptions)`
     1. `options.name?: string` the name of this bot(optional)
@@ -324,7 +347,7 @@ All wechat rooms(groups) will be encapsulated as a Room.
 | event | [`topic`](https://wechaty.github.io/wechaty/#Room+on) | emit when someone change room topic |
 | event | [`leave`](https://wechaty.github.io/wechaty/#Room+on) | emit when anyone leave the room |
 | event | [`invite`](https://wechaty.github.io/wechaty/#Room+on) | emit when receive a room invitation |
-| method | [`sync(): <Promise<void>`](https://wechaty.github.io/wechaty/#Room+sync) | force reload data for room, sync data from lowlevel API again.
+| method | [`sync(): Promise<void>`](https://wechaty.github.io/wechaty/#Room+sync) | force reload data for room, sync data from lowlevel API again.
 | method | [`say(text: string): Promise<void \| Message>`](https://wechaty.github.io/wechaty/#Room+say) | Send text,media file, contact card, or text with mention @mention contact inside Room, return the message which the bot sent (only `puppet-padplus` supported). |
 | method | [`add(contact: Contact): Promise<void>`](https://wechaty.github.io/wechaty/#Room+add) | Add contact in a room |
 | method | [`del(contact: Contact): Promise<void>`](https://wechaty.github.io/wechaty/#Room+del) | Delete a contact from the room |
@@ -375,14 +398,16 @@ Get to know more about the tests from [Wiki:Tests](https://github.com/Wechaty/we
 Creating and publishing a Wechaty Plugin is simple. Simply expose your module as a function that takes 1 parameter: wechaty. When your plugin is imported by Wechaty, it will pass itself in as the argument, and so you are free to add any configuration that Wechaty supports.
 
 ```ts
-import { WechatyPlugin } from 'wechaty'
+import type { WechatyPlugin } from 'wechaty'
 
-export default const MyPlugin: WechatyPlugin = (wechaty: Wechaty) => {
+const MyPlugin: WechatyPlugin = (bot) => {
   // ...
 }
+
+export default MyPlugin
 ```
 
-The `config` exist so the user can pass in customizations to your Plugin. In documenting your Wechaty Plugin, you would lay out your supported config for the user.
+A plugin factory can accept configuration options from users. In your plugin documentation, describe the options it supports.
 
 See:
 
@@ -509,7 +534,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 [![PHP Wechaty](https://img.shields.io/badge/Wechaty-PHP-99c)](https://github.com/wechaty/php-wechaty)
 [![.NET(C#) Wechatyin](https://img.shields.io/badge/Wechaty-.NET-629)](https://github.com/wechaty/dotnet-wechaty)
 
-- [Wechaty](https://github.com/wechaty/wechaty) - RPA SDK for Chatot Makers (TypeScript)
+- [Wechaty](https://github.com/wechaty/wechaty) - RPA SDK for Chatbot Makers (TypeScript)
 - [Python Wechaty](https://github.com/wechaty/python-wechaty) - RPA SDK for Chatbot Makers written in Python
 - [Go Wechaty](https://github.com/wechaty/go-wechaty) - RPA SDK for Chatbot Makers written in Go
 - [Java Wechaty](https://github.com/wechaty/java-wechaty) - RPA SDK for Chatbot Makers written in Java(Kotlin)
