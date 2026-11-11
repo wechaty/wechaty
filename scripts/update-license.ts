@@ -29,9 +29,11 @@ import {
   Transform,
   // TransformOptions,
 }                            from 'stream'
-import { promisify }          from 'util'
 
-import globCallback           from 'glob'
+import globCallback          from 'glob'
+
+import { resolve }           from 'node:path'
+import { fileURLToPath }      from 'node:url'
 
 const LICENSE = `/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -158,22 +160,36 @@ async function updateLicense (file: string): Promise<void> {
   await fsPromises.unlink(tmpFile)
 }
 
-async function glob (pattern: string): Promise<string[]> {
-  return promisify<string, string[]>(globCallback as any)(pattern)
+export async function findLicenseFiles (cwd: string): Promise<string[]> {
+  const cwdStats = await fsPromises.stat(cwd)
+  if (!cwdStats.isDirectory()) {
+    throw new Error(`License search path is not a directory: ${cwd}`)
+  }
+
+  const pattern = '{bin/**/*.ts,examples/**/*.{js,ts},scripts/**/*.{ts,js},src/**/*.{ts,js},tests/**/*.ts}'
+  return new Promise((resolve, reject) => {
+    globCallback(pattern, { cwd }, (error, files) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(files)
+      }
+    })
+  })
 }
 
 async function main (): Promise<number> {
-  const pattern = '{bin/**/*.ts,examples/**/*.{js,ts},scripts/**/*.{ts,js},src/**/*.{ts,js},tests/**/*.ts}'
-  // const pattern = 't.ts'
-  const srcFileList = await glob(pattern)
+  const srcFileList = await findLicenseFiles(process.cwd())
   const promiseList = srcFileList.map(updateLicense)
   await Promise.all(promiseList)
   return 0
 }
 
-main()
-  .then(process.exit)
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main()
+    .then(process.exit)
+    .catch(e => {
+      console.error(e)
+      process.exit(1)
+    })
+}
