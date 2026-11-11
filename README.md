@@ -467,6 +467,7 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 ## :notes: See Also
 
 - [RelatedProject](https://github.com/Wechaty/wechaty/wiki/RelatedProject)
+- [Lifecycle diagnostics](docs/diagnostics.md)
 
 ## :poop: The Story
 

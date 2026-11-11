@@ -52,6 +52,7 @@ import type {
 import type {
   WechatyOptions,
 }                             from '../schemas/wechaty-options.js'
+import { diagnose }           from '../diagnostics.js'
 import type { PostInterface } from '../user-modules/post.js'
 
 const mixinBase = FP.pipe(
@@ -175,8 +176,14 @@ class WechatyBase extends mixinBase implements SayableSayer {
 
   override async start (): Promise<void> {
     log.verbose('Wechaty', 'start()')
-    await this.init()
-    return super.start()
+    return diagnose('start', async () => {
+      await this.init()
+      return super.start()
+    }, this.__options.puppet ? 'configured' : 'default')
+  }
+
+  override async stop (): Promise<void> {
+    return diagnose('stop', () => super.stop(), this.__options.puppet ? 'configured' : 'default')
   }
 
   override async onStart (): Promise<void> {

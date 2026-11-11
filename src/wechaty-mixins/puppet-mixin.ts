@@ -25,6 +25,10 @@ import type {
 
 import type { GErrorMixin } from './gerror-mixin.js'
 import type { IoMixin }     from './io-mixin.js'
+import {
+  diagnose,
+  diagnoseEvent,
+} from '../diagnostics.js'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
@@ -84,10 +88,11 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
         try {
           log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
-          await timeoutPromise(
+          await diagnose('provider.start', () => timeoutPromise(
             this.puppet.start(),
             15 * 1000,  // 15 seconds timeout
-          )
+          ), this.__options.puppet ? 'configured' : 'default', e =>
+            e instanceof TimeoutPromiseGError ? 'timed-out' : 'rejected')
           log.verbose('WechatyPuppetMixin', 'start() starting puppet ... done')
         } catch (e) {
           if (e instanceof TimeoutPromiseGError) {
@@ -153,12 +158,12 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       this.__puppetMixinInited = true
 
       log.verbose('WechatyPuppetMixin', 'init() instanciating puppet instance ...')
-      const puppetInstance = await PUPPET.helpers.resolvePuppet({
+      const puppetInstance = await diagnose('provider.resolve', () => PUPPET.helpers.resolvePuppet({
         puppet: this.__options.puppet || config.systemPuppetName(),
         puppetOptions: 'puppetOptions' in this.__options
           ? this.__options.puppetOptions
           : undefined,
-      })
+      }), this.__options.puppet ? 'configured' : 'default')
       log.verbose('WechatyPuppetMixin', 'init() instanciating puppet instance ... done')
 
       /**
@@ -322,6 +327,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
               this.emit('ready')
               this.__readyState.active(true)
+              diagnoseEvent('provider.ready', this.__options.puppet ? 'configured' : 'default')
             })
             break
 
