@@ -46,6 +46,8 @@ jobs:
   deno:
     name: Deno test (2.9.8)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
     - uses: actions/checkout@v4
