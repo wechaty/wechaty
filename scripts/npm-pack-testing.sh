@@ -45,6 +45,7 @@ npx tsc \
   --module nodenext \
   \
   --moduleResolution nodenext \
+  --verbatimModuleSyntax \
   --esModuleInterop \
   --lib esnext \
   --noEmitOnError \

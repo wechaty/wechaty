@@ -26,8 +26,8 @@ import {
 
 import {
   pluginMixin,
-  PluginMixin,
-  ProtectedPropertyPluginMixin,
+  type PluginMixin,
+  type ProtectedPropertyPluginMixin,
 }                                             from './plugin-mixin.js'
 import { miscMixin } from './misc-mixin.js'
 import { puppetMixin } from './puppet-mixin.js'

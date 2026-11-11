@@ -24,7 +24,7 @@ import type { Loggable }  from 'brolog'
 
 import {
   WechatyEventEmitter,
-  WechatyEventName,
+  type WechatyEventName,
 }                               from '../schemas/mod.js'
 
 import type { WechatyOptions }  from '../schemas/wechaty-options.js'

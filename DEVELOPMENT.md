@@ -13,8 +13,17 @@ builds and package entry points are no longer provided.
 
 The project requires Node.js 26 and npm 10 or newer. `npm run build` and
 `npm run lint:ts` use TypeScript 7 via the `@typescript/native` npm alias.
-`tsx` runs TypeScript scripts. `npm run lint:biome` runs TypeScript lint rules
-without depending on the TypeScript compiler API.
+Type-only dependencies must use `import type` or inline `type` modifiers;
+`verbatimModuleSyntax` is enabled for both the build and semantic check.
+No decorator syntax or emitted decorator metadata is used, so the legacy
+decorator compiler options are omitted.
+`tsx` runs TypeScript scripts and unit tests. `npm run lint:biome` runs TypeScript
+lint rules without depending on the TypeScript compiler API.
+
+TypeScript's semantic check remains required: native TypeScript execution
+transpiles code but does not replace `npm run lint:ts`. Other runtimes may use
+different type checkers, so their execution success is not a substitute for
+the canonical TypeScript check.
 
 Relative imports may use `.ts` extensions for native TypeScript execution.
 `rewriteRelativeImportExtensions` rewrites those paths to `.js` in the

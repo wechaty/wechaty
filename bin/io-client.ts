@@ -30,7 +30,7 @@ import {
 
 import {
   IoClient,
-  IoClientOptions,
+  type IoClientOptions,
 }                   from '../src/io-client.js'
 import { WechatyBuilder }  from '../src/wechaty-builder.js'
 

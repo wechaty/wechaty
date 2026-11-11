@@ -18,7 +18,7 @@ import {
 }                           from '../config.js'
 import {
   IoClient,
-  IoClientOptions,
+  type IoClientOptions,
 }                           from '../io-client.js'
 import { WechatyBuilder }   from '../wechaty-builder.js'
 import {

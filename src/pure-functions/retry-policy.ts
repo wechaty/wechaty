@@ -1,6 +1,6 @@
 import {
   Policy,
-  RetryPolicy,
+  type RetryPolicy,
 }                 from 'cockatiel'
 import {
   log,
