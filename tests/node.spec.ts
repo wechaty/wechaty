@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,18 +18,15 @@
  *   limitations under the License.
  *
  */
-import {
-  test,
-  sinon,
-}           from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 test('Node.js function params destructuring behaviour test', async t => {
-  const sandbox = sinon.createSandbox()
 
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 
-  const paramSpy = sandbox.spy()
+  const paramSpy = t.mock.fn()
   function paramTest ({
     n = DEFAULT_N,
     s = DEFAULT_S,
@@ -37,17 +34,12 @@ test('Node.js function params destructuring behaviour test', async t => {
     paramSpy(n, s)
   }
 
-  paramSpy.resetHistory()
   paramTest()
-  t.same(paramSpy.args[0], [ DEFAULT_N, DEFAULT_S ], 'should be equal to default args')
+  assert.deepStrictEqual(paramSpy.mock.calls[0]?.arguments, [ DEFAULT_N, DEFAULT_S ], 'should be equal to default args')
 
-  paramSpy.resetHistory()
   paramTest({ n: 42 })
-  t.same(paramSpy.args[0], [ 42, DEFAULT_S ], 'should be equal to default s args')
+  assert.deepStrictEqual(paramSpy.mock.calls[1]?.arguments, [ 42, DEFAULT_S ], 'should be equal to default s args')
 
-  paramSpy.resetHistory()
   paramTest({ s: 'life' })
-  t.same(paramSpy.args[0], [ DEFAULT_N, 'life' ], 'should be equal to default n args')
-
-  sandbox.restore()
+  assert.deepStrictEqual(paramSpy.mock.calls[2]?.arguments, [ DEFAULT_N, 'life' ], 'should be equal to default n args')
 })

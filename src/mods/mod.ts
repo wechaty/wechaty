@@ -25,24 +25,24 @@
 export type {
   WechatyOptions,
   WechatyInterface as Wechaty,
-}                               from '../wechaty/mod.js'
+}                               from '../wechaty/mod.ts'
 export {
   WechatyBuilder,
   type BuilderInterface,
-}                               from '../wechaty-builder.js'
+}                               from '../wechaty-builder.ts'
 
 export type {
   SayableSayer,
   Sayable,
-}                       from '../sayable/mod.js'
+}                       from '../sayable/mod.ts'
 
 export * as types       from 'wechaty-puppet/types'
 export * as payloads    from 'wechaty-puppet/payloads'
 
-export *                from './users.js'
-export * as users       from './users.js'
-export * as impls       from './impls.js'
-export * as helpers     from './helpers.js'
+export *                from './users.ts'
+export * as users       from './users.ts'
+export * as impls       from './impls.ts'
+export * as helpers     from './helpers.ts'
 export {
   ScanStatus,
 }                       from 'wechaty-puppet/types'
@@ -52,23 +52,23 @@ export {
   config,
   qrcodeValueToImageUrl,
   VERSION,
-}                         from '../config.js'
+}                         from '../config.ts'
 
 export type {
   WechatyEventName,
-}                             from '../schemas/mod.js'
+}                             from '../schemas/mod.ts'
 
 export type {
   OfficialPuppetNpmName,
   PuppetModuleName, // DEPRECATED
-}                             from '../puppet-config.js'
+}                             from '../puppet-config.ts'
 export type {
   WechatyPlugin,
   WechatyPluginUninstaller,
-}                             from '../plugin.js'
+}                             from '../plugin.ts'
 export type {
   IoClientOptions,
-}                             from '../io-client.js'
+}                             from '../io-client.ts'
 export {
   IoClient,
-}                             from '../io-client.js'
+}                             from '../io-client.ts'

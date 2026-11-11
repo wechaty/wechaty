@@ -1,16 +1,16 @@
 import {
   poolifyMixin,
-}                   from './poolify.js'
+}                   from './poolify.ts'
 import type {
   PoolifyMixin,
-}                   from './poolify.js'
+}                   from './poolify.ts'
 import {
   validationMixin,
-}                   from './validation.js'
+}                   from './validation.ts'
 import {
   wechatifyMixin,
   wechatifyMixinBase,
-}                   from './wechatify.js'
+}                   from './wechatify.ts'
 
 export type {
   PoolifyMixin,

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,12 +18,13 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tstest'
-import { WechatyBuilder } from './wechaty-builder.js'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { WechatyBuilder } from './wechaty-builder.ts'
 
-import { Io }       from './io.js'
+import { Io }       from './io.ts'
 
-test.skip('Io restart without problem', async t => {
+test.skip('Io restart without problem', async _t => {
   const io = new Io({
     // token must not contain any white spaces
     servicePort : 8788,
@@ -35,10 +36,8 @@ test.skip('Io restart without problem', async t => {
     for (let i = 0; i < 2; i++) {
       await io.start()
       await io.stop()
-      t.pass('start/stop-ed at #' + i)
     }
-    t.pass('start/restart successed.')
   } catch (e) {
-    t.fail(e as any)
+    assert.fail(e as any)
   }
 })

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,28 +19,37 @@
  *
  */
 
-import { test }  from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import { WechatyBuilder } from './wechaty-builder.js'
+import { WechatyBuilder } from './wechaty-builder.ts'
 
 test('WechatyBuilder class', async t => {
   const wechaty1 = WechatyBuilder.build()
   const wechaty2 = WechatyBuilder.build()
-  t.not(wechaty1, wechaty2, 'should build two different Wechaty instance')
+  assert.notStrictEqual(wechaty1, wechaty2, 'should build two different Wechaty instance')
 
   const singleton1 = WechatyBuilder.singleton()
   const singleton2 = WechatyBuilder.singleton()
-  t.equal(singleton1, singleton2, 'should get the same singleton instance')
+  assert.equal(singleton1, singleton2, 'should get the same singleton instance')
 
-  const wechaty = WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' })
+  const wechaty = WechatyBuilder.build({ puppet: new PuppetMock() })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
+  started = true
   await wechaty.start()
-  t.ok(PuppetMock.validInstance(wechaty.puppet), 'should set options.puppet to mock')
+  assert.ok(PuppetMock.validInstance(wechaty.puppet), 'should set options.puppet to mock')
   await wechaty.stop()
+  started = false
 })
 
-test('throw when set options twice', async t => {
+test('throw when set options twice', async _t => {
   class WechatyBuilderTest extends WechatyBuilder {
 
     constructor () { super() }
@@ -55,25 +64,33 @@ test('throw when set options twice', async t => {
   }
 
   const builder = WechatyBuilderTest.new()
-  t.doesNotThrow(() => builder.options({}), 'should not throw for the first time')
-  t.doesNotThrow(() => builder.options({}), 'should not throw as long as the `options` is an empty object')
+  assert.doesNotThrow(() => builder.options({}), 'should not throw for the first time')
+  assert.doesNotThrow(() => builder.options({}), 'should not throw as long as the `options` is an empty object')
 
   const options = { name: 'bot' }
-  t.doesNotThrow(() => builder.options(options), 'should not throw for setting non-empty `options` for the first time')
-  t.throws(() => builder.options(options), 'should throw for setting non-empty `options` again')
+  assert.doesNotThrow(() => builder.options(options), 'should not throw for setting non-empty `options` for the first time')
+  assert.throws(() => builder.options(options), 'should throw for setting non-empty `options` again')
 })
 
 test('WechatyBuilder class static', async t => {
   const wechaty1 = WechatyBuilder.build()
   const wechaty2 = WechatyBuilder.build()
-  t.not(wechaty1, wechaty2, 'should build two different Wechaty instance')
+  assert.notStrictEqual(wechaty1, wechaty2, 'should build two different Wechaty instance')
 
   const singleton1 = WechatyBuilder.singleton()
   const singleton2 = WechatyBuilder.singleton()
-  t.equal(singleton1, singleton2, 'should get the same singleton instance')
+  assert.equal(singleton1, singleton2, 'should get the same singleton instance')
 
-  const wechaty = WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' })
+  const wechaty = WechatyBuilder.build({ puppet: new PuppetMock() })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
+  started = true
   await wechaty.start()
-  t.ok(PuppetMock.validInstance(wechaty.puppet), 'should set options.puppet to mock')
+  assert.ok(PuppetMock.validInstance(wechaty.puppet), 'should set options.puppet to mock')
   await wechaty.stop()
+  started = false
 })

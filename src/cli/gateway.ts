@@ -15,17 +15,17 @@ import getPort from 'get-port'
 
 import {
   VERSION,
-}                           from '../config.js'
+}                           from '../config.ts'
 import {
   IoClient,
   type IoClientOptions,
-}                           from '../io-client.js'
-import { WechatyBuilder }   from '../wechaty-builder.js'
+}                           from '../io-client.ts'
+import { WechatyBuilder }   from '../wechaty-builder.ts'
 import {
   isPuppetModuleName,
   OFFICIAL_PUPPET_DEPENDENCIES,
   OFFICIAL_PUPPET_DEFAULT,
-}                           from '../puppet-config.js'
+}                           from '../puppet-config.ts'
 
 async function onError (
   this : IoClient,

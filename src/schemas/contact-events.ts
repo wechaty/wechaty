@@ -5,7 +5,7 @@ import type {
   ContactInterface,
   FriendshipInterface,
   MessageInterface,
-}                   from '../user-modules/mod.js'
+}                   from '../user-modules/mod.ts'
 
 type ContactEventListenerMessage    = (this: ContactInterface, message: MessageInterface, date?: Date)  => void | Promise<void>
 type ContactEventListenerFriendship = (friendship: FriendshipInterface)                                 => void | Promise<void>

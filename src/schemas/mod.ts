@@ -1,19 +1,19 @@
 import {
   ContactEventEmitter,
   type ContactEventListeners,
-}                           from './contact-events.js'
+}                           from './contact-events.ts'
 import {
   RoomEventEmitter,
   type RoomEventListeners,
-}                           from './room-events.js'
+}                           from './room-events.ts'
 import {
   WechatyEventEmitter,
   type WechatyEventListeners,
   type WechatyEventName,
-}                           from './wechaty-events.js'
+}                           from './wechaty-events.ts'
 import type {
   Accepter,
-}                           from './acceptable.js'
+}                           from './acceptable.ts'
 
 export type {
   Accepter,

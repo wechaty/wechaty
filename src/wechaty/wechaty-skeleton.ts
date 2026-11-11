@@ -25,9 +25,9 @@ import type { Loggable }  from 'brolog'
 import {
   WechatyEventEmitter,
   type WechatyEventName,
-}                               from '../schemas/mod.js'
+}                               from '../schemas/mod.ts'
 
-import type { WechatyOptions }  from '../schemas/wechaty-options.js'
+import type { WechatyOptions }  from '../schemas/wechaty-options.ts'
 
 abstract class WechatySkeleton extends WechatyEventEmitter {
 

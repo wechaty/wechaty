@@ -1,14 +1,16 @@
-#!/usr/bin/env -S node --import=tsx/esm
-import {
-  test,
-}           from 'tstest'
-import type { AssertEqual } from 'tstest'
+#!/usr/bin/env node
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import {
   validationMixin,
-}                       from './validation.js'
+}                       from './validation.ts'
 
-test('validationMixin() valid()', async t => {
+type AssertEqual<Actual, Expected> =
+  (<Value>() => Value extends Actual ? 1 : 2) extends
+  (<Value>() => Value extends Expected ? 1 : 2) ? true : false
+
+test('validationMixin() valid()', async _t => {
   class Parent {
 
     foo () { return 'foo' }
@@ -43,7 +45,7 @@ test('validationMixin() valid()', async t => {
       : typeof input.constructor === 'function' ? input.constructor.name
         : 'object'
 
-    t.equal(
+    assert.equal(
       UserClassImpl.valid(input),
       expected,
       `should be ${valid} for ${type} "${JSON.stringify(input)}"`,
@@ -51,7 +53,7 @@ test('validationMixin() valid()', async t => {
   }
 })
 
-test('validationMixin() type guard', async t => {
+test('validationMixin() type guard', async _t => {
   class Parent {
 
     foo () { return 'foo' }
@@ -76,12 +78,12 @@ test('validationMixin() type guard', async t => {
       typeof obj,
       UserClass
     > = true
-    t.ok(validType, 'should be type `UserClass`')
+    assert.ok(validType, 'should be type `UserClass`')
   } else {
     const stringType: AssertEqual<
       typeof obj,
       string
     > = true
-    t.ok(stringType, 'should be type `string`')
+    assert.ok(stringType, 'should be type `string`')
   }
 })

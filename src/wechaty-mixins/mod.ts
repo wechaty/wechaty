@@ -1,58 +1,58 @@
 import type {
   ProtectedPropertyGErrorMixin,
   GErrorMixin,
-}                                   from './gerror-mixin.js'
+}                                   from './gerror-mixin.ts'
 import {
   gErrorMixin,
-}                                   from './gerror-mixin.js'
+}                                   from './gerror-mixin.ts'
 
 import type {
   ProtectedPropertyPluginMixin,
   PluginMixin,
-}                                   from './plugin-mixin.js'
+}                                   from './plugin-mixin.ts'
 import {
   pluginMixin,
-}                                   from './plugin-mixin.js'
+}                                   from './plugin-mixin.ts'
 
 import type {
   ProtectedPropertyPuppetMixin,
   PuppetMixin,
-}                                   from './puppet-mixin.js'
+}                                   from './puppet-mixin.ts'
 import {
   puppetMixin,
-}                                   from './puppet-mixin.js'
+}                                   from './puppet-mixin.ts'
 
 import type {
   ProtectedPropertyWechatifyUserModuleMixin,
   WechatifyUserModuleMixin,
-}                                   from './wechatify-user-module-mixin.js'
+}                                   from './wechatify-user-module-mixin.ts'
 import {
   wechatifyUserModuleMixin,
-}                                   from './wechatify-user-module-mixin.js'
+}                                   from './wechatify-user-module-mixin.ts'
 
 import type {
   ProtectedPropertyIoMixin,
   IoMixin,
-}                                   from './io-mixin.js'
+}                                   from './io-mixin.ts'
 import {
   ioMixin,
-}                                   from './io-mixin.js'
+}                                   from './io-mixin.ts'
 
 import type {
   ProtectedPropertyMiscMixin,
   MiscMixin,
-}                                   from './misc-mixin.js'
+}                                   from './misc-mixin.ts'
 import {
   miscMixin,
-}                                   from './misc-mixin.js'
+}                                   from './misc-mixin.ts'
 
 import type {
   ProtectedPropertyLoginMixin,
   LoginMixin,
-}                                   from './login-mixin.js'
+}                                   from './login-mixin.ts'
 import {
   loginMixin,
-}                                   from './login-mixin.js'
+}                                   from './login-mixin.ts'
 
 type WechatyMixinProtectedProperty =
   | ProtectedPropertyGErrorMixin

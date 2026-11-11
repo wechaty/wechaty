@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -22,10 +22,8 @@ import { spawnSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 import { resolve } from 'node:path'
 
-import {
-  test,
-  sinon,
-}              from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { MemoryCard } from 'memory-card'
 import { PuppetMock } from 'wechaty-puppet-mock'
@@ -41,48 +39,55 @@ import { PuppetMock } from 'wechaty-puppet-mock'
  *
  * TODO: find out why
  */
-import './wechaty-impl.js'
+import './wechaty-impl.ts'
 
 import type {
   WechatyBaseProtectedProperty,
-}                                 from './wechaty-base.js'
+}                                 from './wechaty-base.ts'
 import {
   WechatyBase,
-}                                 from './wechaty-base.js'
+}                                 from './wechaty-base.ts'
 
 import type {
   WechatyInterface,
-}                           from '../wechaty/wechaty-impl.js'
-import { WechatySkeleton }  from './wechaty-skeleton.js'
+}                           from '../wechaty/wechaty-impl.ts'
+import { WechatySkeleton }  from './wechaty-skeleton.ts'
 
 class WechatyTest extends WechatyBase {
 }
 
-test('static VERSION', async t => {
-  t.ok('VERSION' in WechatyBase, 'Wechaty should has a static VERSION property')
+test('static VERSION', async _t => {
+  assert.ok('VERSION' in WechatyBase, 'Wechaty should has a static VERSION property')
 })
 
 test('event:start/stop', async t => {
-  const wechaty = new WechatyBase({ puppet: 'wechaty-puppet-mock' })
+  const wechaty = new WechatyBase({ puppet: new PuppetMock() })
 
-  const startSpy = sinon.spy()
-  const stopSpy  = sinon.spy()
+  const startSpy = t.mock.fn()
+  const stopSpy  = t.mock.fn()
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
 
   wechaty.on('start', startSpy)
   wechaty.on('stop',  stopSpy)
 
+  started = true
   await wechaty.start()
   await wechaty.stop()
+  started = false
 
-  // console.log(startSpy.callCount)
-  t.ok(startSpy.calledOnce, 'should get event:start once')
-  t.ok(stopSpy.calledOnce,  'should get event:stop once')
+  assert.equal(startSpy.mock.callCount(), 1, 'should get event:start once')
+  assert.equal(stopSpy.mock.callCount(), 1,  'should get event:stop once')
 })
 
 //
 // FIXME: restore this unit test !!!
 //
-// test.only('event:scan', async t => {
+// test.only('event:scan', async _t => {
 //   const m = {} as any
 
 //   const asyncHook = asyncHooks.createHook({
@@ -115,14 +120,14 @@ test('event:start/stop', async t => {
 //   // await new Promise(r => setTimeout(r, 1000))
 //   await wechaty.stop()
 
-//   t.ok(spy.calledOnce, 'should get event:scan')
+//   assert.ok(spy.calledOnce, 'should get event:scan')
 //   asyncHook.disable()
 
 //   console.log(m)
 // })
 
 test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', async t => {
-  const spy     = sinon.spy()
+  const spy     = t.mock.fn()
   const wechaty = new WechatyBase()
 
   const EXPECTED_ERROR = new Error('testing123')
@@ -136,8 +141,8 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
   await messageFuture
   await wechaty.stop()
 
-  t.ok(spy.calledOnce, 'should get event:error once')
-  t.equal(spy.firstCall.args[0], EXPECTED_ERROR, 'should get error from message listener')
+  assert.equal(spy.mock.callCount(), 1, 'should get event:error once')
+  assert.equal(spy.mock.calls[0]?.arguments[0], EXPECTED_ERROR, 'should get error from message listener')
 
 })
 
@@ -150,6 +155,12 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t
 
   const bot = new MyWechatyTest({
     puppet: new PuppetMock(),
+  })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await bot.stop()
+    }
   })
 
   const asyncErrorFunction = function () {
@@ -169,7 +180,7 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t
     await asyncErrorFunction()
   })
   bot.on('error', (e) => {
-    t.ok(e.message === EXPECTED_ERROR.message)
+    assert.ok(e.message === EXPECTED_ERROR.message)
   })
 
   bot.emit('message', {} as any)
@@ -201,9 +212,16 @@ test('use plugin', async t => {
   const bot = new MyWechatyTest({
     puppet: new PuppetMock(),
   })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await bot.stop()
+    }
+  })
 
   bot.use(myPlugin())
 
+  started = true
   await bot.start()
 
   bot.on('message', () => (result += 'FROM_BOT'))
@@ -211,16 +229,17 @@ test('use plugin', async t => {
   bot.emit('message', {} as any)
 
   await bot.stop()
+  started = false
 
-  t.equal(result, 'FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
+  assert.equal(result, 'FROM_MY_PLUGIN:FROM_BOT', 'should get plugin works')
 
 })
 
-test('wechatifyUserModules init()', async t => {
+test('wechatifyUserModules init()', async _t => {
   const wechatyTest = new WechatyTest()
 
-  t.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 1st time init')
-  t.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 2nd time init (silence skip)')
+  assert.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 1st time init')
+  assert.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 2nd time init (silence skip)')
 })
 
 test('lifecycle order and restart', async t => {
@@ -243,8 +262,8 @@ test('lifecycle order and restart', async t => {
   }
 
   const puppet = new PuppetMock()
-  const startPuppet = sinon.stub(puppet, 'start').callsFake(async () => { trace.push('puppet.start') })
-  const stopPuppet = sinon.stub(puppet, 'stop').callsFake(async () => { trace.push('puppet.stop') })
+  const startPuppet = t.mock.method(puppet, 'start', async () => { trace.push('puppet.start') })
+  const stopPuppet = t.mock.method(puppet, 'stop', async () => { trace.push('puppet.stop') })
   const bot = new LifecycleWechaty({ puppet })
   bot.on('start', () => trace.push('start'))
   bot.on('stop', () => trace.push('stop'))
@@ -258,25 +277,25 @@ test('lifecycle order and restart', async t => {
     await bot.stop()
   }
 
-  t.same(trace, [
+  assert.deepEqual(trace, [
     'init', 'init', 'puppet.start', 'onStart', 'start', 'onStop', 'stop', 'puppet.stop',
     'init', 'init', 'puppet.start', 'onStart', 'start', 'onStop', 'stop', 'puppet.stop',
   ], 'should preserve lifecycle ordering across restarts')
-  t.equal(startPuppet.callCount, 2, 'should start the puppet once per lifecycle')
-  t.equal(stopPuppet.callCount, 2, 'should stop the puppet once per lifecycle')
+  assert.equal(startPuppet.mock.callCount(), 2, 'should start the puppet once per lifecycle')
+  assert.equal(stopPuppet.mock.callCount(), 2, 'should stop the puppet once per lifecycle')
 })
 
-test('puppet and user modules initialize once', async t => {
+test('puppet and user modules initialize once', async () => {
   const puppet = new PuppetMock()
   const bot = new WechatyBase({ puppet })
 
   let puppetEvents = 0
-  t.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'puppet getter should be guarded before init')
-  t.throws(() => bot.Contact, /can not be used before wechaty\.start\(\)/, 'user module getter should be guarded before init')
+  assert.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'puppet getter should be guarded before init')
+  assert.throws(() => bot.Contact, /can not be used before wechaty\.start\(\)/, 'user module getter should be guarded before init')
   bot.on('puppet', candidate => {
     puppetEvents++
-    t.equal(candidate, puppet, 'should emit the resolved puppet')
-    t.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'puppet getter should not be assigned during the event')
+    assert.equal(candidate, puppet, 'should emit the resolved puppet')
+    assert.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'should not assign the puppet during the event')
   })
 
   try {
@@ -285,16 +304,16 @@ test('puppet and user modules initialize once', async t => {
     const puppetMessageListeners = puppet.listenerCount('message')
     await bot.init()
 
-    t.equal(bot.Contact, Contact, 'should retain the bot-bound user module')
-    t.equal(bot.puppet, puppet, 'should assign the puppet after its event')
-    t.equal(puppetEvents, 1, 'should emit the puppet event only once')
-    t.equal(puppet.listenerCount('message'), puppetMessageListeners, 'should not register duplicate puppet listeners')
+    assert.equal(bot.Contact, Contact, 'should retain the bot-bound user module')
+    assert.equal(bot.puppet, puppet, 'should assign the puppet after its event')
+    assert.equal(puppetEvents, 1, 'should emit the puppet event only once')
+    assert.equal(puppet.listenerCount('message'), puppetMessageListeners, 'should not register duplicate puppet listeners')
   } finally {
     await bot.stop()
   }
 })
 
-test('bot-bound Contact classes and pools are isolated', async t => {
+test('bot-bound Contact classes and pools are isolated', async () => {
   const puppet1 = new PuppetMock()
   const puppet2 = new PuppetMock()
   const bot1 = new WechatyBase({ puppet: puppet1 })
@@ -313,12 +332,12 @@ test('bot-bound Contact classes and pools are isolated', async t => {
     const contact1 = await Contact1.find({ id: 'shared-id' })
     const contact2 = await Contact2.find({ id: 'shared-id' })
 
-    t.not(Contact1, Contact2, 'should bind a distinct Contact class to each bot')
-    t.equal(Contact1.wechaty, bot1, 'should bind the first Contact class to its bot')
-    t.equal(Contact2.wechaty, bot2, 'should bind the second Contact class to its bot')
-    t.not(contact1, contact2, 'should keep pooled Contact instances separate')
-    t.equal(Contact1.pool.size, 1, 'should keep the first bot pool independent')
-    t.equal(Contact2.pool.size, 1, 'should keep the second bot pool independent')
+    assert.notEqual(Contact1, Contact2, 'should bind a distinct Contact class to each bot')
+    assert.equal(Contact1.wechaty, bot1, 'should bind the first Contact class to its bot')
+    assert.equal(Contact2.wechaty, bot2, 'should bind the second Contact class to its bot')
+    assert.notEqual(contact1, contact2, 'should keep pooled Contact instances separate')
+    assert.equal(Contact1.pool.size, 1, 'should keep the first bot pool independent')
+    assert.equal(Contact2.pool.size, 1, 'should keep the second bot pool independent')
   } finally {
     await Promise.all([ bot1.stop(), bot2.stop() ])
   }
@@ -328,14 +347,14 @@ test('startup puppet failure depends on error listener (#2855)', async t => {
   const handledPuppet = new PuppetMock()
   const handledBot = new WechatyBase({ puppet: handledPuppet })
   const expectedError = new Error('puppet start failed')
-  sinon.stub(handledPuppet, 'start').rejects(expectedError)
+  t.mock.method(handledPuppet, 'start', async () => { throw expectedError })
 
   const errors: Error[] = []
   handledBot.on('error', error => errors.push(error))
   try {
     await handledBot.start()
-    t.equal(errors.length, 1, 'should emit the startup failure to an error listener')
-    t.equal(errors[0]?.message, expectedError.message, 'should preserve the startup failure message')
+    assert.equal(errors.length, 1, 'should emit the startup failure to an error listener')
+    assert.equal(errors[0]?.message, expectedError.message, 'should preserve the startup failure message')
   } finally {
     await handledBot.stop()
   }
@@ -351,25 +370,24 @@ test('startup puppet failure depends on error listener (#2855)', async t => {
     `const bot = new WechatyBase({ puppet })`,
     `try { await bot.start(); process.exitCode = 1 } catch { process.exit(0) }`,
   ].join(';')
-  const result = spawnSync(process.execPath, [ '--import=tsx/esm', '--input-type=module', '-e', script ], {
+  const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
+  const result = spawnSync(nodeExecutable, [ '--input-type=module', '-e', script ], {
     encoding: 'utf8',
     timeout: 10_000,
   })
-  t.equal(result.status, 0, 'should reject startup without an error listener in an isolated process')
+  assert.equal(result.status, 0, 'should reject startup without an error listener in an isolated process')
 })
 
 test('puppet startup timeout is tolerated', async t => {
-  const clock = sinon.useFakeTimers({ toFake: [ 'setTimeout', 'clearTimeout', 'Date' ] })
-
   const puppet = new PuppetMock()
   const puppetStarted = new Promise<void>(resolveStarted => {
-    sinon.stub(puppet, 'start').callsFake(() => {
+    t.mock.method(puppet, 'start', () => {
       resolveStarted()
       return new Promise<void>(() => {})
     })
   })
   const bot = new WechatyBase({ puppet })
-  bot.on('error', error => t.fail('timeout should not emit error: ' + error))
+  bot.on('error', error => assert.fail('timeout should not emit error: ' + error))
 
   try {
     const start = bot.start()
@@ -377,13 +395,9 @@ test('puppet startup timeout is tolerated', async t => {
       puppetStarted,
       start.then(() => { throw new Error('startup completed before puppet.start') }),
     ])
-    await clock.tickAsync(15 * 1000)
-    await start
-
-    t.pass('should continue startup after the puppet start timeout')
+    assert.equal(await start, undefined, 'should continue startup after the puppet start timeout')
   } finally {
     await bot.stop()
-    clock.restore()
   }
 })
 
@@ -393,16 +407,22 @@ test('Perfect restart', async t => {
   const wechaty = new WechatyBase({
     puppet: new PuppetMock(),
   })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
 
   try {
     for (let i = 0; i < 3; i++) {
+      started = true
       await wechaty.start()
       await wechaty.stop()
-      t.pass('start/stop-ed at #' + i)
+      started = false
     }
-    t.pass('Wechaty start/restart successed.')
   } catch (e) {
-    t.fail(e as any)
+    assert.fail(e as any)
   }
 
 })
@@ -411,130 +431,145 @@ test('@event ready', async t => {
   const puppet  = new PuppetMock()
   const wechaty = new WechatyBase({ puppet })
 
-  const sandbox = sinon.createSandbox()
-  const spy     = sandbox.spy()
+  const spy = t.mock.fn()
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
 
   wechaty.on('ready', spy)
-  t.ok(spy.notCalled, 'should no ready event with new wechaty instance')
+  assert.equal(spy.mock.callCount(), 0, 'should no ready event with new wechaty instance')
 
+  started = true
   await wechaty.start()
-  t.ok(spy.notCalled, 'should no ready event right start wechaty started')
+  assert.equal(spy.mock.callCount(), 0, 'should no ready event right start wechaty started')
 
   puppet.emit('ready', { data: 'test' })
-  t.equal(spy.callCount, 1, 'should fire ready event after puppet ready')
+  assert.equal(spy.mock.callCount(), 1, 'should fire ready event after puppet ready')
 
   await wechaty.stop()
+  started = false
+  started = true
   await wechaty.start()
-  t.equal(spy.callCount, 1, 'should fire ready event second time after stop/start wechaty')
+  assert.equal(spy.mock.callCount(), 1, 'should fire ready event second time after stop/start wechaty')
 
   puppet.emit('ready', { data: 'test' })
 
-  t.equal(spy.callCount, 2, 'should fire ready event third time after stop/start wechaty')
+  assert.equal(spy.mock.callCount(), 2, 'should fire ready event third time after stop/start wechaty')
 
   await wechaty.stop()
+  started = false
 })
 
 test('ready()', async t => {
   const puppet = new PuppetMock()
   const wechaty = new WechatyBase({ puppet })
-
-  const sandbox = sinon.createSandbox()
-
-  const spy = sandbox.spy()
+  const spy = t.mock.fn()
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
 
   wechaty.ready()
     .then(spy)
-    .catch(e => t.fail('rejection: ' + e))
+    .catch(e => assert.fail('rejection: ' + e))
 
-  t.ok(spy.notCalled, 'should not ready with new wechaty instance')
+  assert.equal(spy.mock.callCount(), 0, 'should not ready with new wechaty instance')
 
+  started = true
   await wechaty.start()
 
-  t.ok(spy.notCalled, 'should not ready after right start wechaty')
+  assert.equal(spy.mock.callCount(), 0, 'should not ready after right start wechaty')
 
   puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
-  t.ok(spy.calledOnce, 'should ready after puppet ready')
+  assert.equal(spy.mock.callCount(), 1, 'should ready after puppet ready')
 
   await wechaty.stop()
+  started = false
+  started = true
   await wechaty.start()
   wechaty.ready()
     .then(spy)
-    .catch(e => t.fail('rejection: ' + e))
+    .catch(e => assert.fail('rejection: ' + e))
 
   puppet.emit('ready', { data: 'test' })
   await new Promise(resolve => setImmediate(resolve))
-  t.ok(spy.calledTwice, 'should ready again after stop/start wechaty')
+  assert.equal(spy.mock.callCount(), 2, 'should ready again after stop/start wechaty')
 
   await wechaty.stop()
+  started = false
 })
 
-test('on/off event listener management', async t => {
+test('on/off event listener management', async _t => {
   const puppet = new PuppetMock()
   const wechaty = new WechatyBase({ puppet })
 
   const onMessage = (_: any) => {}
-  t.equal(wechaty.listenerCount('message'), 0, 'should no listener after initializing')
+  assert.equal(wechaty.listenerCount('message'), 0, 'should no listener after initializing')
 
   wechaty.on('message', onMessage)
-  t.equal(wechaty.listenerCount('message'), 1, 'should +1 listener after on(message)')
+  assert.equal(wechaty.listenerCount('message'), 1, 'should +1 listener after on(message)')
 
   wechaty.off('message', onMessage)
-  t.equal(wechaty.listenerCount('message'), 0, 'should -1 listener after off(message)')
+  assert.equal(wechaty.listenerCount('message'), 0, 'should -1 listener after off(message)')
 })
 
 test('wrapAsync() async function', async t => {
   const puppet = new PuppetMock()
   const wechaty = new WechatyBase({ puppet })
 
-  const spy = sinon.spy()
+  const spy = t.mock.fn()
   wechaty.on('error', spy)
 
   const DATA = 'test'
   const asyncFunc = async () => DATA
   const syncFunc = wechaty.wrapAsync(asyncFunc)
 
-  t.notOk(syncFunc(), 'should get sync function return void')
-  t.ok(spy.notCalled, 'should not emit error when sync function return value')
+  assert.equal(syncFunc(), undefined, 'should get sync function return void')
+  assert.equal(spy.mock.callCount(), 0, 'should not emit error when sync function return value')
 
   const asyncFunc2 = async () => { throw new Error('test') }
   const syncFunc2 = wechaty.wrapAsync(asyncFunc2)
-  t.doesNotThrow(() => syncFunc2(), 'should not throw when async function throw error')
+  assert.doesNotThrow(() => syncFunc2(), 'should not throw when async function throw error')
   await wechaty.sleep(0)  // wait async event loop task to be executed
-  t.ok(spy.calledOnce, 'should emit error when async function throw error')
+  assert.equal(spy.mock.callCount(), 1, 'should emit error when async function throw error')
 })
 
 test('wrapAsync() promise', async t => {
   const puppet = new PuppetMock()
   const wechaty = new WechatyBase({ puppet })
 
-  const spy = sinon.spy()
+  const spy = t.mock.fn()
   wechaty.on('error', spy)
 
   const DATA = 'test'
   const promise = Promise.resolve(DATA)
   const wrappedPromise = wechaty.wrapAsync(promise)
-  t.equal(await wrappedPromise, undefined, 'should resolve Promise<any> to void')
+  assert.equal(await wrappedPromise, undefined, 'should resolve Promise<any> to void')
 
   const rejection = Promise.reject(new Error('test'))
   const wrappedRejection = wechaty.wrapAsync(rejection)
-  t.equal(wrappedRejection, undefined, 'should be void and not to reject')
+  assert.equal(wrappedRejection, undefined, 'should be void and not to reject')
 
-  t.equal(spy.callCount, 0, 'should have no error before sleep')
+  assert.equal(spy.mock.callCount(), 0, 'should have no error before sleep')
   await wechaty.sleep(0)  // wait async event loop task to be executed
-  t.equal(spy.callCount, 1, 'should emit error when promise reject with error')
+  assert.equal(spy.mock.callCount(), 1, 'should emit error when promise reject with error')
 })
 
-test('WechatyBaseProtectedProperty', async t => {
+test('WechatyBaseProtectedProperty', async _t => {
   type NotExistInMixin = Exclude<WechatyBaseProtectedProperty, keyof WechatyBase | `_${string}`>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
-  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
+  assert.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })
 
 test('WechatySkeleton: super.{start,stop}()', async t => {
-  const sandbox = sinon.createSandbox()
 
   const puppet = new PuppetMock()
   const memory = new MemoryCard()
@@ -543,18 +578,26 @@ test('WechatySkeleton: super.{start,stop}()', async t => {
     memory,
     puppet,
   })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
 
-  const startStub = sandbox.stub(WechatySkeleton.prototype, 'start').resolves()
-  const stopStub  = sandbox.stub(WechatySkeleton.prototype, 'stop').resolves()
+  const startStub = t.mock.method(WechatySkeleton.prototype, 'start', async () => {})
+  const stopStub  = t.mock.method(WechatySkeleton.prototype, 'stop', async () => {})
 
-  t.ok(startStub.notCalled, 'should not called before start')
-  t.ok(stopStub.notCalled, 'should not called before stop')
+  assert.equal(startStub.mock.callCount(), 0, 'should not called before start')
+  assert.equal(stopStub.mock.callCount(), 0, 'should not called before stop')
 
+  started = true
   await wechaty.start()
-  t.ok(startStub.calledOnce, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
-  t.ok(stopStub.notCalled, 'should not call stop yet')
+  assert.equal(startStub.mock.callCount(), 1, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
+  assert.equal(stopStub.mock.callCount(), 0, 'should not call stop yet')
 
   await wechaty.stop()
-  t.ok(startStub.calledOnce, 'should only call start once')
-  t.ok(stopStub.calledOnce, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
+  started = false
+  assert.equal(startStub.mock.callCount(), 1, 'should only call start once')
+  assert.equal(stopStub.mock.callCount(), 1, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
 })

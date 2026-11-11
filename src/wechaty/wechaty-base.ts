@@ -27,12 +27,12 @@ import {
   config,
   log,
   VERSION,
-}                       from '../config.js'
+}                       from '../config.ts'
 
 import type {
   SayableSayer,
   Sayable,
-}                             from '../sayable/mod.js'
+}                             from '../sayable/mod.ts'
 import {
   gErrorMixin,
   ioMixin,
@@ -41,18 +41,18 @@ import {
   pluginMixin,
   puppetMixin,
   wechatifyUserModuleMixin,
-}                             from "../wechaty-mixins/mod.ts"
+}                             from '../wechaty-mixins/mod.ts'
 
 import {
   WechatySkeleton,
-}                             from "./wechaty-skeleton.ts"
+}                             from './wechaty-skeleton.ts'
 import type {
   WechatyInterface,
-}                             from "./wechaty-impl.ts"
+}                             from './wechaty-impl.ts'
 import type {
   WechatyOptions,
-}                             from "../schemas/wechaty-options.ts"
-import type { PostInterface } from "../user-modules/post.ts"
+}                             from '../schemas/wechaty-options.ts'
+import type { PostInterface } from '../user-modules/post.ts'
 
 const mixinBase = FP.pipe(
   WechatySkeleton,
@@ -115,6 +115,8 @@ const mixinBase = FP.pipe(
  */
 class WechatyBase extends mixinBase implements SayableSayer {
 
+  override __options: WechatyOptions
+
   static   override readonly VERSION = VERSION
   readonly wechaty : WechatyInterface
 
@@ -164,9 +166,10 @@ class WechatyBase extends mixinBase implements SayableSayer {
    *
    */
   constructor (
-    override __options: WechatyOptions = {},
+    __options: WechatyOptions = {},
   ) {
     super(__options)
+    this.__options = __options
     log.verbose('Wechaty', 'constructor()')
 
     this.__memory = this.__options.memory

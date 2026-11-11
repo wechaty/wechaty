@@ -29,11 +29,11 @@ import type {
 import {
   type OfficialPuppetNpmName,
   OFFICIAL_PUPPET_DEFAULT,
-}                      from './puppet-config.js'
+}                      from './puppet-config.ts'
 import {
   packageJson,
   GIT_COMMIT_HASH,
-}                       from './package-json.js'
+}                       from './package-json.ts'
 
 type PackageJsonWechaty = {
   version?: string
