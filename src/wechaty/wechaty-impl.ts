@@ -12,7 +12,7 @@ import type {
 }                                     from './wechaty-skeleton.js'
 import {
   WechatyBase,
-  WechatyBaseProtectedProperty,
+  type WechatyBaseProtectedProperty,
 }                                     from './wechaty-base.js'
 
 /**

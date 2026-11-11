@@ -23,8 +23,8 @@ import {
 
 import type { Constructor }  from 'clone-class'
 
-import { ContactInterface, ContactImpl }  from './contact.js'
-import { FavoriteInterface, FavoriteImpl } from './favorite.js'
+import { type ContactInterface, ContactImpl }  from './contact.js'
+import { type FavoriteInterface, FavoriteImpl } from './favorite.js'
 
 import {
   poolifyMixin,

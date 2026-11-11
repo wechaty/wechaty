@@ -1,15 +1,15 @@
 import {
   ContactEventEmitter,
-  ContactEventListeners,
+  type ContactEventListeners,
 }                           from './contact-events.js'
 import {
   RoomEventEmitter,
-  RoomEventListeners,
+  type RoomEventListeners,
 }                           from './room-events.js'
 import {
   WechatyEventEmitter,
-  WechatyEventListeners,
-  WechatyEventName,
+  type WechatyEventListeners,
+  type WechatyEventName,
 }                           from './wechaty-events.js'
 import type {
   Accepter,

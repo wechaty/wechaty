@@ -27,7 +27,7 @@ import type {
   FileBoxInterface,
 }                   from 'file-box'
 import {
-  OfficialPuppetNpmName,
+  type OfficialPuppetNpmName,
   OFFICIAL_PUPPET_DEFAULT,
 }                      from './puppet-config.js'
 import {

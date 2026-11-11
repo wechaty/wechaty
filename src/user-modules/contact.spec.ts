@@ -27,7 +27,7 @@ import { WechatyBuilder } from '../wechaty-builder.js'
 
 import {
   ContactImpl,
-  ContactProtectedProperty,
+  type ContactProtectedProperty,
 }                             from './contact.js'
 
 test('findAll()', async t => {

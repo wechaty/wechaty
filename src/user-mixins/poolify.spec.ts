@@ -1,8 +1,8 @@
 #!/usr/bin/env -S node --import=tsx/esm
 import {
   test,
-  AssertEqual,
-}               from 'tstest'
+}           from 'tstest'
+import type { AssertEqual } from 'tstest'
 
 import {
   poolifyMixin,

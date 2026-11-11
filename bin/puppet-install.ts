@@ -24,7 +24,7 @@ import { log } from 'wechaty-puppet'
 
 import {
   OFFICIAL_PUPPET_DEPENDENCIES,
-  OfficialPuppetNpmName,
+  type OfficialPuppetNpmName,
 }                         from '../src/puppet-config.js'
 
 /**

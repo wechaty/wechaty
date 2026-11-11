@@ -55,7 +55,7 @@ import type {
 import { stringifyFilter }              from '../helper-functions/stringify-filter.js'
 
 import {
-  ContactInterface,
+  type ContactInterface,
   ContactImpl,
 }                       from './contact.js'
 import type {
