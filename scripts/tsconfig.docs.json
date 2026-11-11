@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "include": [
+    "../dist/esm/src/mods/mod.d.ts",
+    "../dist/esm/src/mods/users.d.ts",
+    "../dist/esm/src/mods/impls.d.ts"
+  ],
+  "exclude": []
+}

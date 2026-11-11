@@ -30,7 +30,7 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
     - run: npm ci
-    - run: npm run build --if-present
+    - run: npm run docs
     - run: npm test
       env:
         CI: true

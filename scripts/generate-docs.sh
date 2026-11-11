@@ -1,47 +1,25 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-VERSION=$(npx pkg-jq -r .version)
-echo "Version $VERSION"
-
-if ! npx --package @chatie/semver semver-is-prod "$VERSION"; then
-  echo "Current release is a development release, please only update the docs when there's a stable release."
-
-  if [ "$1" != "-f" ]; then
-    echo "Or use -f to force generating."
-    exit 1
-  else
-    echo "-f found. Forcing generating ..."
-  fi
-fi
-
-echo "Generating docs ..."
 npm run dist
 
-DOCS_INDEX_MD=docs/index.md
+typedoc \
+  --tsconfig scripts/tsconfig.docs.json \
+  --entryPoints \
+    dist/esm/src/mods/mod.d.ts \
+    dist/esm/src/mods/users.d.ts \
+    dist/esm/src/mods/impls.d.ts \
+  --entryPointStrategy resolve \
+  --excludeExternals \
+  --excludeInternal \
+  --excludePrivate \
+  --excludeProtected \
+  --cleanOutputDir \
+  --out dist/docs \
+  --name "Wechaty API" \
+  --readme none
 
-cat <<_EOF_ > "$DOCS_INDEX_MD"
-# Wechaty v$(jq -r .version package.json) Documentation
-
-- Website - <https://wechaty.js.org>
-- Docs Site - <https://wechaty.js.org/docs/>
-- API References - <https://wechaty.github.io/wechaty/>
-
-_EOF_
-
-jsdoc2md \
-  dist/src/wechaty.js \
-  dist/src/user/{room,contact,contact-self,friendship,message,room-invitation}.js \
-  >> "$DOCS_INDEX_MD"
-
-#
-# https://sidecar.gitter.im/
-#
-cat <<_EOF_ >> "$DOCS_INDEX_MD"
-<script>
-  ((window.gitter = {}).chat = {}).options = {
-    room: 'chatie/wechaty'
-  };
-</script>
-<script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
-_EOF_
+test -s dist/docs/classes/mod.WechatyBuilder.html
+test -s dist/docs/types/mod.WechatyEventName.html
+test -s dist/docs/types/mod.Contact.html
+test -s dist/docs/types/mod.Room.html

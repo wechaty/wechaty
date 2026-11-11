@@ -35,7 +35,7 @@
     "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node node_modules/@typescript/native/bin/tsc",
     "prepare": "node scripts/install-git-hooks.ts",
     "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && tsx scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "clean": "shx rm -fr dist/*",
@@ -43,13 +43,13 @@
     "cli": "tsx bin/cli.ts",
     "demo": "tsx examples/ding-dong-bot.ts",
     "dist": "npm run clean && npm run build",
-    "docs": "bash -x scripts/generate-docs.sh",
+    "docs": "bash scripts/generate-docs.sh",
     "doctor": "tsx bin/doctor.ts",
     "io-client": "tsx bin/io-client.ts",
     "lint:biome": "biome lint bin examples src scripts tests",
-    "lint:md": "markdownlint README.md",
+    "lint:md": "markdownlint README.md DEVELOPMENT.md AGENTS.md",
     "lint:sh": "bash -n bin/*.sh",
-    "lint:ts": "tsc --isolatedModules --noEmit",
+    "lint:ts": "node node_modules/@typescript/native/bin/tsc --isolatedModules --noEmit",
     "lint": "npm run lint:biome && npm run lint:ts && npm run lint:sh && npm run lint:md",
     "puppet-install": "tsx bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
@@ -57,8 +57,7 @@
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
     "test:unit": "cross-env NODE_OPTIONS=\"--import=tsx/esm\" TAP_TIMEOUT=600 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "test": "npm run lint && nyc npm run test:unit",
-    "typedoc": "bash scripts/typedoc.sh"
+    "test": "npm run lint && nyc npm run test:unit"
   },
   "repository": {
     "type": "git",
@@ -139,7 +138,6 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "cross-env": "^7.0.3",
     "glob": "^7.2.0",
-    "jsdoc-to-markdown": "^7.1.1",
     "markdownlint-cli": "^0.50.0",
     "nyc": "^15.1.0",
     "qrcode-terminal": "^0.12.0",

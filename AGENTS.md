@@ -100,6 +100,9 @@ outermost.
 
 - The package exports `.`, `./impls`, and `./users`. Keep `exports`,
   `typesVersions`, and `src/mods/` consistent, then run `npm run test:pack`.
+- Generate current API references with `npm run docs`. This documents only
+  emitted declarations for those public entry points in `dist/docs/`; do not
+  overwrite the archived [`docs/index.md`](docs/index.md).
 - `WechatyInterface` omits `_`-prefixed members automatically. Add any other
   internal member to the relevant `*ProtectedProperty` union.
 - To add an event, update `src/schemas/wechaty-events.ts`, the entity event schema
@@ -124,6 +127,9 @@ outermost.
 - When changing provider lists or versions, check `src/puppet-config.ts`,
   `package.json`, `bin/puppet-install.ts`, and `scripts/npm-pack-testing.sh`
   together.
+- Ecosystem/provider v2 compatibility policy belongs to
+  [wechaty/wechaty#2862](https://github.com/wechaty/wechaty/issues/2862), not
+  this repository's contributor guidance.
 - Never commit or log tokens, `*.memory-card.json`, or `*.wechaty.json` session
   files. Do not use real accounts or tokens in tests.
 
@@ -134,6 +140,9 @@ outermost.
   Use `import` and explicit extensions for relative imports. `.ts` imports are
   supported by `rewriteRelativeImportExtensions`, which emits `.js` paths in
   compiled output. Existing `.js` imports remain supported.
+- `npm run build` and `npm run lint:ts` use the TypeScript 7 checker. The
+  separate TypeScript 5.9 dependency is only for TypeDoc's compiler API; see
+  [DEVELOPMENT.md](DEVELOPMENT.md).
 - Compiler flags to expect: use `override`, `process.env['NAME']`, and `import type`
   for types. Indexed access may be `undefined`.
 - Avoid new `any` and unsafe casts. Existing ones sit mostly at mixin boundaries.
@@ -153,6 +162,12 @@ Run the narrowest test first:
 ```sh
 NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage src/plugin.spec.ts
 ```
+
+- `npm test` is the current full TAP suite under NYC; its current report is
+  `Unknown%` with `0/0` files. Native Node.js/Deno test and
+  coverage commands remain pending [#2877](https://github.com/wechaty/wechaty/issues/2877)
+  and [#2884](https://github.com/wechaty/wechaty/issues/2884); see
+  [DEVELOPMENT.md](DEVELOPMENT.md).
 
 For the pre-push integration test, configure the runner timeout explicitly.
 Its synchronous Git/npm fixtures can exceed the default 30 seconds and delay
@@ -177,7 +192,7 @@ NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage --timeout=180 tests/pre-push
 | Exports, packaging, or binaries | `npm run test:pack` (uses network) |
 | Shell scripts | `npm run test:shell` (not part of `npm test`) |
 | Dockerfiles or entrypoint | `./scripts/docker.sh build` and `./scripts/docker.sh test` |
-| Markdown | `npx markdownlint <file>` (`npm run lint:md` only checks the README) |
+| Markdown | `npm run lint:md` checks README, DEVELOPMENT, and AGENTS |
 | Before handoff | `npm run build` and `npm test` |
 
 Before handing off, report the commands you ran and anything you could not run.
@@ -191,8 +206,8 @@ dependency changes.
 
 Check these against the code before relying on them:
 
-- In this repo: `docs/index.md` (the archived v0.62.1 API reference), README API
-  tables, and JSDoc using `new Wechaty()` or `this: Wechaty`.
+- In this repo: `docs/index.md` and the detailed README API tables are archived
+  v0.62.1 material; JSDoc may also use `new Wechaty()` or `this: Wechaty`.
 - [Getting started](https://github.com/wechaty/getting-started): targets Wechaty
   v1 and Node.js 16.
 - [Breaking changes](https://wechaty.js.org/docs/references/breaking-changes):

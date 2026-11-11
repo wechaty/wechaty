@@ -132,7 +132,7 @@ wechaty
 wechaty.start()
 ```
 
-> **Notice: Wechaty requires Node.js version >= 16**
+> **Notice: This Wechaty release requires Node.js version >= 26**
 
 After you scan the QR code and log in, this bot logs all messages to the console.
 
@@ -140,9 +140,11 @@ You can find Wechaty's Official Examples at [examples/ding-dong-bot.ts](examples
 
 ## :checkered_flag: Requirements
 
-1. Node.js version 16+
-1. NPM version 7+
-1. TypeScript version 4.4+
+1. Node.js version >=26 (the minimum declared in `package.json`)
+1. npm version >=10 for npm-based installation
+
+JavaScript users do not need a separate TypeScript compiler. TypeScript 7 is the
+canonical checker for this repository; see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Getting Started
 
@@ -204,7 +206,9 @@ Wechaty is very powerful that it can run over different protocols. You can speci
 
 If you cannot use Web protocol, you can apply other protocols following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
 
-Currently we support the following [puppet providers](https://wechaty.js.org/docs/puppet-services/) :
+The following legacy provider list is not a v2 compatibility guarantee. See
+[wechaty/wechaty#2862](https://github.com/wechaty/wechaty/issues/2862) for the
+provider compatibility decisions.
 
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
@@ -228,7 +232,13 @@ Learn more about Wechaty Puppet from the Puppet Wiki:
 
 ## :guitar: API
 
-The [Wechaty API Reference](https://wechaty.github.io/wechaty/) was generated for v0.62.1 and is archived. The TypeScript sources in [`src/`](https://github.com/wechaty/wechaty/tree/main/src) are authoritative for the current API.
+The [Wechaty API Reference](https://wechaty.github.io/wechaty/) and the detailed
+API tables below are archived v0.62.1 material, not the current v2 API. The
+TypeScript sources in [`src/`](https://github.com/wechaty/wechaty/tree/main/src)
+are authoritative. Generate a current reference from the public package exports
+with `npm run docs`; the HTML output is written to `dist/docs/` without
+overwriting the archived reference. See [DEVELOPMENT.md](DEVELOPMENT.md) for the
+toolchain and generation details.
 
 ### 1 Class `Wechaty`
 
@@ -391,7 +401,10 @@ To test Wechaty, run:
 npm test
 ```
 
-Get to know more about the tests from [Wiki:Tests](https://github.com/Wechaty/wechaty/wiki/Tests)
+This currently runs repository lint and the TAP suite on Node.js under the
+existing NYC wrapper. See
+[DEVELOPMENT.md](DEVELOPMENT.md) for focused test commands and the status of the
+planned native Node.js/Deno runners and coverage work.
 
 ## CREATING WECHATY PLUGIN
 

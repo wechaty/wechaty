@@ -11,11 +11,11 @@ Tips:
 Wechaty is ESM-only. Use `import` instead of `require('wechaty')`; CommonJS
 builds and package entry points are no longer provided.
 
-The project requires Node.js 26 and npm 10 or newer. `npm run build` and
-`npm run lint:ts` use TypeScript 7 via the `@typescript/native` npm alias.
-`tsx` runs TypeScript scripts and unit tests without a separate TypeScript 6
-runtime compiler. `npm run lint:biome` runs TypeScript lint rules without
-depending on the TypeScript compiler API.
+The project requires Node.js 26 and npm 10 or newer, as declared in
+`package.json` and used by CI. `npm run build` and `npm run lint:ts` invoke
+TypeScript 7 through the `@typescript/native` npm alias. `tsx` runs TypeScript
+scripts and the current unit tests. `npm run lint:biome` runs TypeScript lint
+rules without depending on the TypeScript compiler API.
 
 Relative imports may use `.ts` extensions for native TypeScript execution.
 `rewriteRelativeImportExtensions` rewrites those paths to `.js` in the
@@ -24,6 +24,51 @@ import migration is not required.
 
 Commit `package-lock.json` alongside dependency changes. Use `npm ci` for a
 clean installation from the lockfile.
+
+## API reference
+
+Run `npm run docs` after `npm ci` to build the declarations and generate the
+current API reference under `dist/docs/`. The generator reads only the emitted
+declarations for the package entry points `.`, `./users`, and `./impls`; it
+documents their exported API and excludes private, protected, internal, and
+external members. It does not publish anything or modify `docs/index.md`, which
+remains the archived v0.62.1 reference.
+
+TypeDoc is the installed generator. Its compiler-API parser is the explicit
+TypeScript 5.9.3 development dependency; it reads declarations emitted by the
+canonical TypeScript 7 checker. Keep those roles separate: `npm run build` and
+`npm run lint:ts` use TypeScript 7, and generation never downloads a compiler or
+executable implicitly.
+
+## Tests and coverage
+
+`npm test` runs lint and the current TAP-based unit suite on Node.js under the
+existing NYC wrapper. Run one focused spec with:
+
+```sh
+NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage src/plugin.spec.ts
+```
+
+The shared native Node.js/Deno suite and its focused/full-suite commands are
+being implemented in [#2877](https://github.com/wechaty/wechaty/issues/2877)
+([PR #2893](https://github.com/wechaty/wechaty/pull/2893)). Until that change
+lands, do not treat native runner commands as supported repository commands.
+The same applies to native coverage and report commands in
+[#2884](https://github.com/wechaty/wechaty/issues/2884): `npm run coverage`
+renders the existing NYC LCOV report. The current test run reports `Unknown%`
+with `0/0` files, so it does not provide useful coverage measurements yet. Use
+the current commands rather than the future native coverage proposal, and do
+not treat the existing report as a measured baseline.
+
+## Lifecycle invariants
+
+`init()` may run more than once during a restart, so mixin initialization must
+be idempotent. The [base lifecycle spec](src/wechaty/wechaty-base.spec.ts)
+checks repeated initialization. During initialization, the `puppet` event is
+emitted with the new instance before `this.__puppet` is assigned; use the event
+argument in a listener rather than reading `bot.puppet`. The
+[puppet initialization spec](src/wechaty/wechaty-impl.spec.ts) verifies that
+the getter throws before `init()` and works afterward.
 
 ## Git hooks
 
