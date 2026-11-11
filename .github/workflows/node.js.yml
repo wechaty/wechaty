@@ -34,3 +34,37 @@ jobs:
     - run: npm test
       env:
         CI: true
+
+    - name: Verify native test failure exit
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        if node --test tests/fixtures/native-test-failure.js; then
+          echo "The native test runner accepted a deliberately failing test."
+          exit 1
+        fi
+
+  deno:
+    name: Deno test (2.9.8)
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 26
+      uses: actions/setup-node@v4
+      with:
+        node-version: 26
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - uses: denoland/setup-deno@v2.0.5
+      with:
+        deno-version: 2.9.8
+    - run: npm ci
+    - name: Export Node executable for subprocess fixtures
+      run: echo "NODE_BINARY=$(command -v node)" >> "$GITHUB_ENV"
+    - run: npm run test:unit:deno
+    - name: Verify native test failure exit
+      run: |
+        if deno test tests/fixtures/native-test-failure.js; then
+          echo "The native test runner accepted a deliberately failing test."
+          exit 1
+        fi

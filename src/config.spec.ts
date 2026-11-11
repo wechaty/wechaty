@@ -19,23 +19,24 @@
  *
  */
 
-import { test }  from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { config } from './config.js'
 // import { Puppet } from './puppet'
 
-test('important variables', async t => {
-  // t.ok('puppet'   in config, 'should exist `puppet` in Config')
-  t.ok('apihost'  in config, 'should exist `apihost` in Config')
-  t.ok('token'    in config, 'should exist `token` in Config')
+test('important variables', async _t => {
+  // assert.ok('puppet'   in config, 'should exist `puppet` in Config')
+  assert.ok('apihost'  in config, 'should exist `apihost` in Config')
+  assert.ok('token'    in config, 'should exist `token` in Config')
 
-  // t.ok(config.default.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
-  // t.ok(config.default.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
-  t.ok(config.default.DEFAULT_PROTOCOL, 'should export DEFAULT_PROTOCOL')
-  t.ok(config.default.DEFAULT_APIHOST,  'should export DEFAULT_APIHOST')
+  // assert.ok(config.default.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
+  // assert.ok(config.default.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
+  assert.ok(config.default.DEFAULT_PROTOCOL, 'should export DEFAULT_PROTOCOL')
+  assert.ok(config.default.DEFAULT_APIHOST,  'should export DEFAULT_APIHOST')
 })
 
-test('validApiHost()', async t => {
+test('validApiHost()', async _t => {
   const OK_APIHOSTS = [
     'api.chatie.io',
     'chatie.io:8080',
@@ -45,25 +46,25 @@ test('validApiHost()', async t => {
     'chatie.io/',
   ]
   OK_APIHOSTS.forEach(apihost => {
-    t.doesNotThrow(() => {
+    assert.doesNotThrow(() => {
       config.validApiHost(apihost)
     })
   }, 'should not row for right apihost')
   ERR_APIHOSTS.forEach(apihost => {
-    t.throws(() => {
+    assert.throws(() => {
       config.validApiHost(apihost)
     })
   }, 'should throw for error apihost')
 
 })
 
-// test('puppetInstance()', async t => {
+// test('puppetInstance()', async _t => {
 //   // BUG Compitable with Win32 CI
 //   // global instance infected across unit tests... :(
 //   const bak = config.puppetInstance()
 
 //   config.puppetInstance(null)
-//   t.throws(() => {
+//   assert.throws(() => {
 //     config.puppetInstance()
 //   }, Error, 'should throw when not initialized')
 //   config.puppetInstance(bak)
@@ -73,24 +74,24 @@ test('validApiHost()', async t => {
 
 //   config.puppetInstance(mockPuppet)
 //   const instance = config.puppetInstance()
-//   t.same(instance, EXPECTED, 'should equal with initialized data')
+//   assert.deepStrictEqual(instance, EXPECTED, 'should equal with initialized data')
 
 //   config.puppetInstance(null)
-//   t.throws(() => {
+//   assert.throws(() => {
 //     config.puppetInstance()
 //   }, Error, 'should throw after set to null')
 
 //   config.puppetInstance(bak)
 // })
 
-test('systemPuppetName ()', async t => {
+test('systemPuppetName ()', async _t => {
   const WECHATY_PUPPET_ORIG = process.env['WECHATY_PUPPET']
 
   delete process.env['WECHATY_PUPPET']
-  t.equal(config.systemPuppetName(), 'wechaty-puppet-wechat4u', 'should get wechaty-puppet-wechat4u as default puppet name')
+  assert.equal(config.systemPuppetName(), 'wechaty-puppet-wechat4u', 'should get wechaty-puppet-wechat4u as default puppet name')
 
   process.env['WECHATY_PUPPET'] = 'wechaty-puppet-mock'
-  t.equal(config.systemPuppetName(), 'wechaty-puppet-mock', 'should get puppet name from process.env')
+  assert.equal(config.systemPuppetName(), 'wechaty-puppet-mock', 'should get puppet name from process.env')
 
   // restore the original value
   process.env['WECHATY_PUPPET'] = WECHATY_PUPPET_ORIG

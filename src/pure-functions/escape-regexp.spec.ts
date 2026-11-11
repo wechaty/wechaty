@@ -14,19 +14,20 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-import { test } from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { escapeRegExp } from './escape-regexp.js'
 
-test('escapeRegExp() with typical string', async t => {
+test('escapeRegExp() with typical string', async _t => {
   const input = 'hello world'
   const output = escapeRegExp(input)
-  t.equal(output, input, 'should keep typical strings unchanged')
+  assert.equal(output, input, 'should keep typical strings unchanged')
 })
 
-test('escapeRegExp() escapes regex characters', async t => {
+test('escapeRegExp() escapes regex characters', async _t => {
   const input = '.*+?^${}()|[]\\'
   const expected = '\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\'
   const output = escapeRegExp(input)
-  t.equal(output, expected, 'should escape regex special characters with backslashes')
+  assert.equal(output, expected, 'should escape regex special characters with backslashes')
 })

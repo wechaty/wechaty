@@ -1,10 +1,11 @@
 #!/usr/bin/env -S node --import=tsx/esm
 
-import { test } from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { packageJson } from './package-json.js'
 
-test('Make sure the packageJson is fresh in source code', async t => {
+test('Make sure the packageJson is fresh in source code', async _t => {
   const json = JSON.parse(JSON.stringify(packageJson))
   /**
    * Delete test data (keys), which will
@@ -14,5 +15,5 @@ test('Make sure the packageJson is fresh in source code', async t => {
   delete json['wechaty']
 
   const keyNum = Object.keys(json).length
-  t.equal(keyNum, 0, 'packageJson should be empty in source code, only updated before publish to NPM')
+  assert.equal(keyNum, 0, 'packageJson should be empty in source code, only updated before publish to NPM')
 })

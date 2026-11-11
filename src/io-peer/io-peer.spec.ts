@@ -18,7 +18,8 @@
  *   limitations under the License.
  *
  */
-import { test }  from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import jsonRpcPeer from 'json-rpc-peer'
 
@@ -26,7 +27,7 @@ import {
   getPeer,
 }                   from './io-peer.js'
 
-test('getPeer()', async t => {
+test('getPeer()', async _t => {
   const EXPECTED_PORT = 8788
   const server = getPeer({
     serviceGrpcPort: EXPECTED_PORT,
@@ -42,10 +43,10 @@ test('getPeer()', async t => {
    *  See: https://github.com/wechaty/wechaty-puppet-service/issues/118
    */
   const port = await client.request('getHostieGrpcPort')
-  t.equal(port, EXPECTED_PORT, 'should get the right port')
+  assert.equal(port, EXPECTED_PORT, 'should get the right port')
 })
 
-test('exec()', async t => {
+test('exec()', async _t => {
   const EXPECTED_PORT = 8788
   const server = getPeer({
     serviceGrpcPort: EXPECTED_PORT,
@@ -60,5 +61,5 @@ test('exec()', async t => {
   // console.info('response: ', response)
 
   const obj = jsonRpcPeer.parse(response) as jsonRpcPeer.JsonRpcPayloadResponse
-  t.equal(obj.result, EXPECTED_PORT, 'should get the right port from payload')
+  assert.equal(obj.result, EXPECTED_PORT, 'should get the right port from payload')
 })

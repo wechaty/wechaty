@@ -1,18 +1,17 @@
 #!/usr/bin/env -S node --import=tsx/esm
 
-import {
-  test,
-}           from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import type {
   WechatySkeleton,
   WechatySkeletonProtectedProperty,
 }                                         from './wechaty-skeleton.js'
 
-test('ProtectedPropertyWechatySkeleton', async t => {
+test('ProtectedPropertyWechatySkeleton', async _t => {
   type NotExistInMixin = Exclude<WechatySkeletonProtectedProperty, keyof WechatySkeleton>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
-  t.ok(noOneLeft, 'should match Mixin properties for every protected property')
+  assert.ok(noOneLeft, 'should match Mixin properties for every protected property')
 })

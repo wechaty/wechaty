@@ -148,28 +148,36 @@ outermost.
 
 ## Tests and validation
 
-Run the narrowest test first:
+Test sources use `node:test` and `node:assert/strict`. `npm test` runs the full
+suite on Node.js after linting. The shared compiled suite can also run under
+Deno; provide the Node executable for subprocess fixtures:
 
 ```sh
-NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage src/plugin.spec.ts
+NODE_BINARY="$(command -v node)" npm run test:unit:deno
 ```
 
-For the pre-push integration test, configure the runner timeout explicitly.
-Its synchronous Git/npm fixtures can exceed the default 30 seconds and delay
-in-test timeout announcements:
+Run a focused Node test file with:
 
 ```sh
-NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage --timeout=180 tests/pre-push.spec.ts
+npm run test:unit:file -- dist/esm/src/plugin.spec.js
 ```
 
-- Specs sit beside the source as `*.spec.ts`, or under `tests/`, and import `test`
-  and `sinon` from `tstest`.
+Run one Deno test file with:
+
+```sh
+NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- dist/esm/src/plugin.spec.js
+```
+
+- Specs sit beside the source as `*.spec.ts`, or under `tests/`, and import
+  `test` from `node:test` and assertions from `node:assert/strict`.
 - Always set the puppet explicitly, usually `new PuppetMock()`, and use
   `puppet.mocker` for data. The default puppet is a real protocol.
-- Call `await wechaty.stop()` in each test that starts a bot, or timers can keep
-  the test process alive.
+- Register `t.after()` cleanup before starting a bot, and stop it before the test
+  completes, or timers can keep the test process alive.
 - Register an `error` listener when a test exercises failure paths.
 - CI runs on Linux, macOS, and Windows, so keep tests portable.
+- The pre-push integration tests use a 180-second test timeout and per-command
+  subprocess timeouts.
 
 | Change | Check |
 | --- | --- |

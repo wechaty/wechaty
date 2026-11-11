@@ -18,14 +18,13 @@
  *   limitations under the License.
  *
  */
-import {
-  test,
-}  from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
-test('Electron smoke testing', async t => {
-  t.ok(true, 'test')
+test('Electron smoke testing', async _t => {
+  assert.ok(true, 'test')
 })
 
-test.skip('Electron open wx', async t => {
-  t.ok('ok')
+test.skip('Electron open wx', async _t => {
+  assert.ok('ok')
 })

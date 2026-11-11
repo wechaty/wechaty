@@ -1,8 +1,6 @@
 #!/usr/bin/env -S node --import=tsx/esm
-import {
-  test,
-  sinon,
-}             from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { function as FP } from 'fp-ts'
 
@@ -36,19 +34,15 @@ import { puppetMixin } from './puppet-mixin.js'
 import { ioMixin } from './io-mixin.js'
 import { wechatifyUserModuleMixin } from './wechatify-user-module-mixin.js'
 
-test('ProtectedPropertyPluginMixin', async t => {
+test('ProtectedPropertyPluginMixin', async _t => {
   type NotExistInMixin = Exclude<ProtectedPropertyPluginMixin, keyof InstanceType<PluginMixin>>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
-  t.ok(noOneLeft, 'should match Mixin properties for every protected property')
+  assert.ok(noOneLeft, 'should match Mixin properties for every protected property')
 })
 
 test('PluginMixin smoke testing', async t => {
-  const sandbox = sinon.createSandbox({
-    useFakeTimers: true,
-  })
-
   const mixinBase = FP.pipe(
     WechatySkeleton,
     gErrorMixin,
@@ -71,28 +65,28 @@ test('PluginMixin smoke testing', async t => {
   }
 
   const pluginMixinTest = new PluginMixinTest({ puppet: 'wechaty-puppet-mock' })
-  let future
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await pluginMixinTest.stop()
+    }
+  })
 
   const unuse = pluginMixinTest.use(Plugin)
 
-  t.equal(pluginMixinTest.counter, 1, 'should call plugin function right after use before start')
-  future = pluginMixinTest.start()
-  t.equal(pluginMixinTest.counter, 1, 'should call plugin function right after start')
+  assert.equal(pluginMixinTest.counter, 1, 'should call plugin function right after use before start')
+  started = true
+  const future = pluginMixinTest.start()
+  assert.equal(pluginMixinTest.counter, 1, 'should call plugin function right after start')
 
-  /**
-   * finish initializing the system
-   */
-  await sandbox.clock.runAllAsync()
   await future
-  // t.equal(pluginMixinTest.counter, 1, 'should call plugin function after start')
+  // assert.equal(pluginMixinTest.counter, 1, 'should call plugin function after start')
 
-  future = pluginMixinTest.stop()
-  await sandbox.clock.runAllAsync()
-  await future
-  t.equal(pluginMixinTest.counter, 1, 'should not clean plugin context after stop')
+  await pluginMixinTest.stop()
+  started = false
+  assert.equal(pluginMixinTest.counter, 1, 'should not clean plugin context after stop')
 
   unuse()
-  t.equal(pluginMixinTest.counter, 0, 'should clean plugin context after call unuse()')
+  assert.equal(pluginMixinTest.counter, 0, 'should clean plugin context after call unuse()')
 
-  sandbox.restore()
 })

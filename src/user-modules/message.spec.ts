@@ -19,10 +19,8 @@
  *
  */
 
-import {
-  test,
-  sinon,
-}             from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import * as PUPPET        from 'wechaty-puppet'
 import { PuppetMock }     from 'wechaty-puppet-mock'
@@ -42,14 +40,20 @@ test('recalled()', async t => {
   const EXPECTED_TALKER_CONTACT_ID = 'talker-contact-id'
   const EXPECTED_LISTENER_CONTACT_ID = 'listener-contact-id'
 
-  const sandbox = sinon.createSandbox()
-
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
 
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
+
+  started = true
   await wechaty.start()
 
-  sandbox.stub(puppet, 'messagePayload').callsFake(async (id) => {
+  t.mock.method(puppet, 'messagePayload', async (id: string) => {
     await new Promise(resolve => setImmediate(resolve))
     if (id === EXPECTED_RECALL_MESSAGE_ID) {
       return {
@@ -71,19 +75,19 @@ test('recalled()', async t => {
       } as PUPPET.payloads.Message
     }
   })
-  sandbox.stub(puppet, 'roomPayload').callsFake(async () => {
+  t.mock.method(puppet, 'roomPayload', async () => {
     await new Promise(resolve => setImmediate(resolve))
     return {
       topic: EXPECTED_ROOM_TOPIC,
     } as PUPPET.payloads.Room
   })
 
-  sandbox.stub(puppet, 'roomMemberList').callsFake(async () => {
+  t.mock.method(puppet, 'roomMemberList', async () => {
     await new Promise((resolve) => setImmediate(resolve))
     return [ EXPECTED_TALKER_CONTACT_ID, EXPECTED_LISTENER_CONTACT_ID ]
   })
 
-  sandbox.stub(puppet, 'contactPayload').callsFake(async (id: string) => {
+  t.mock.method(puppet, 'contactPayload', async (id: string) => {
     await new Promise(setImmediate)
     return {
       id,
@@ -96,8 +100,8 @@ test('recalled()', async t => {
     return [ args[0].id ]
   }
 
-  sandbox.stub(puppet, 'messageSearch').callsFake(fakeIdSearcher)
-  sandbox.stub(puppet, 'contactSearch').callsFake(fakeIdSearcher)
+  t.mock.method(puppet, 'messageSearch', fakeIdSearcher)
+  t.mock.method(puppet, 'contactSearch', fakeIdSearcher)
 
   await puppet.login(EXPECTED_LISTENER_CONTACT_ID)
 
@@ -106,19 +110,20 @@ test('recalled()', async t => {
     throw new Error('no message for id: ' + EXPECTED_RECALL_MESSAGE_ID)
   }
   const recalledMessage = await message.toRecalled()
-  t.ok(recalledMessage, 'recalled message should exist.')
-  t.equal(recalledMessage!.id, EXPECTED_RECALLED_MESSAGE_ID, 'Recalled message should have the right id.')
-  t.equal(recalledMessage!.talker().id, EXPECTED_TALKER_CONTACT_ID, 'Recalled message should have the right from contact id.')
-  t.equal(recalledMessage!.listener()!.id, EXPECTED_LISTENER_CONTACT_ID, 'Recalled message should have the right to contact id.')
-  t.equal(recalledMessage!.room()!.id, EXPECTED_ROOM_ID, 'Recalled message should have the right room id.')
+  assert.ok(recalledMessage, 'recalled message should exist.')
+  assert.equal(recalledMessage!.id, EXPECTED_RECALLED_MESSAGE_ID, 'Recalled message should have the right id.')
+  assert.equal(recalledMessage!.talker().id, EXPECTED_TALKER_CONTACT_ID, 'Recalled message should have the right from contact id.')
+  assert.equal(recalledMessage!.listener()!.id, EXPECTED_LISTENER_CONTACT_ID, 'Recalled message should have the right to contact id.')
+  assert.equal(recalledMessage!.room()!.id, EXPECTED_ROOM_ID, 'Recalled message should have the right room id.')
 
   await wechaty.stop()
+  started = false
 })
 
-test('ProtectedProperties', async t => {
+test('ProtectedProperties', async _t => {
   type NotExistInWechaty = Exclude<MessageProtectedProperty, keyof MessageImpl>
   type NotExistTest = NotExistInWechaty extends never ? true : false
 
   const noOneLeft: NotExistTest = true
-  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
+  assert.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })

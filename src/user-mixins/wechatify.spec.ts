@@ -1,5 +1,6 @@
 #!/usr/bin/env -S node --import=tsx/esm
-import { test } from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 import type { Wechaty } from '../mods/mod.js'
 
 import {
@@ -12,16 +13,16 @@ const wechaty = {
   puppet: {} as any,
 } as any as Wechaty
 
-test('isWechatified()', async t => {
+test('isWechatified()', async _t => {
 
   class UserClassTest extends wechatifyMixin(Object) {}
-  t.notOk(isWechatified(UserClassTest), 'should not be wechatified')
-  t.throws(() => UserClassTest.wechaty, 'should throw before wechatified')
+  assert.ok(!isWechatified(UserClassTest), 'should not be wechatified')
+  assert.throws(() => UserClassTest.wechaty, 'should throw before wechatified')
 
   const WechatifiedUserClass = wechatifyUserModule(UserClassTest)(wechaty)
-  t.ok(isWechatified(WechatifiedUserClass), 'should be wechatified')
-  t.doesNotThrow(() => WechatifiedUserClass.wechaty, 'should not throw after wechatified')
+  assert.ok(isWechatified(WechatifiedUserClass), 'should be wechatified')
+  assert.doesNotThrow(() => WechatifiedUserClass.wechaty, 'should not throw after wechatified')
 
   const user: UserClassTest = new WechatifiedUserClass()
-  t.ok(user, 'should be able to assign with the correct typing')
+  assert.ok(user, 'should be able to assign with the correct typing')
 })

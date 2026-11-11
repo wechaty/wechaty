@@ -13,9 +13,8 @@ builds and package entry points are no longer provided.
 
 The project requires Node.js 26 and npm 10 or newer. `npm run build` and
 `npm run lint:ts` use TypeScript 7 via the `@typescript/native` npm alias.
-`tsx` runs TypeScript scripts and unit tests without a separate TypeScript 6
-runtime compiler. `npm run lint:biome` runs TypeScript lint rules without
-depending on the TypeScript compiler API.
+`tsx` runs TypeScript scripts. `npm run lint:biome` runs TypeScript lint rules
+without depending on the TypeScript compiler API.
 
 Relative imports may use `.ts` extensions for native TypeScript execution.
 `rewriteRelativeImportExtensions` rewrites those paths to `.js` in the
@@ -24,6 +23,33 @@ import migration is not required.
 
 Commit `package-lock.json` alongside dependency changes. Use `npm ci` for a
 clean installation from the lockfile.
+
+## Tests
+
+Specs use `node:test` and `node:assert/strict`. `npm test` lints and runs the
+complete compiled suite with Node.js. The test command builds the TypeScript
+sources and explicitly discovers emitted `*.spec.js` files. Run one Node test
+file with `npm run test:unit:file -- dist/esm/src/plugin.spec.js`.
+For Deno, use
+`NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- dist/esm/src/plugin.spec.js`.
+
+The same emitted suite runs under Deno 2.9.8 with
+`NODE_BINARY="$(command -v node)" npm run test:unit:deno`. This grants access to
+the repository and `/tmp`, only the Git and Node subprocesses used by the
+fixtures, and the hostname system query required by `cuid`. The command starts
+Deno with a sanitized environment containing only `PATH`, `HOME`, `CI`, and
+`NODE_BINARY`; the broad env permission is needed by a dependency that
+enumerates `process.env`. It also allows the `leveldown` glibc native module
+required by the package's memory-card dependency. Node is needed separately
+because the puppet-installer fixture launches Node-specific CLI arguments.
+Deno uses `--no-check` because its checker cannot resolve a generated
+declaration import; the TypeScript build and `npm run lint:ts` remain mandatory
+canonical checks.
+
+`npm run lint:ts` remains the canonical TypeScript check; the test runner does
+not replace it. Lifecycle tests register `t.after()` cleanup before starting
+bots. Windows-specific pre-push and puppet-installer exclusions remain limited
+to the existing symlink/shebang fixtures.
 
 ## Git hooks
 
