@@ -44,7 +44,7 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
       const output = result.stdout + result.stderr
       const expected = fail ? providers.slice(0, 2) : providers
       assert.ifError(result.error)
-      assert.equal(result.status, fail ? 1 : 0, 'installation failures propagate', { output })
+      assert.equal(result.status, fail ? 1 : 0, `installation failures propagate: ${output}`)
       assert.deepStrictEqual(
         readFileSync(calls, 'utf8').trim().split('\n').map(line => JSON.parse(line)),
         expected.map((_, index) => [ 'install', '--no-save', ...providers.slice(0, index + 1) ]),
