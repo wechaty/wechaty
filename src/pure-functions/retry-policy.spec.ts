@@ -11,6 +11,7 @@ async function withImmediateTimers<T> (
   callback: (delays: number[]) => Promise<T>,
 ): Promise<T> {
   const originalSetTimeout = globalThis.setTimeout
+  const originalRandom = Math.random
   const delays: number[] = []
   const fakeSetTimeout = (
     handler: Parameters<typeof globalThis.setTimeout>[0],
@@ -24,10 +25,12 @@ async function withImmediateTimers<T> (
   }
 
   Reflect.set(globalThis, 'setTimeout', fakeSetTimeout)
+  Math.random = () => 0.5
   try {
     return await callback(delays)
   } finally {
     Reflect.set(globalThis, 'setTimeout', originalSetTimeout)
+    Math.random = originalRandom
   }
 }
 
@@ -71,6 +74,7 @@ test('retry policy preserves Cockatiel 2.0.2 behavior contract', async t => {
     t.equal(delays.length, 2, 'waits once for each retry')
     t.equal(retryDelays.length, 2, 'emits one event for each retry')
     t.ok(delays.every(delay => delay >= 0 && delay <= 10_000), 'keeps jittered delays within the configured maximum')
+    t.ok(delays[0]! > 0 && delays[0]! < 1000, 'jitter can make the first delay shorter than the initial delay')
     t.ok(retryDelays.every(delay => delay >= 0 && delay <= 10_000), 'reports jittered delays within the configured maximum')
     t.equal(successDurations.length, 1, 'emits one success event after recovery')
   })
