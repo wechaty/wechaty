@@ -29,11 +29,11 @@ import {
   type TagConstructor,
   type UrlLinkConstructor,
   wechatifyUserModule,
-}                       from '../user-modules/mod.js'
+}                       from '../user-modules/mod.ts'
 
 import type {
   WechatySkeleton,
-}                             from '../wechaty/mod.js'
+}                             from '../wechaty/mod.ts'
 
 const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatifyUserModuleMixin', 'wechatifyUserModuleMixin(%s)', mixinBase.name)

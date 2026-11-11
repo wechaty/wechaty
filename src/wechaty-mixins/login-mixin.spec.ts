@@ -1,11 +1,11 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import type {
   LoginMixin,
   ProtectedPropertyLoginMixin,
-}                                             from './login-mixin.js'
+}                                             from './login-mixin.ts'
 
 test('ProtectedPropertyLoginMixin', async _t => {
   type NotExistInMixin = Exclude<ProtectedPropertyLoginMixin, keyof InstanceType<LoginMixin>>

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import type {
   WechatifyUserModuleMixin,
   ProtectedPropertyWechatifyUserModuleMixin,
-}                                               from './wechatify-user-module-mixin.js'
+}                                               from './wechatify-user-module-mixin.ts'
 
 test('ProtectedPropertyWechatifyUserModuleMixin', async _t => {
   type NotExistInMixin = Exclude<ProtectedPropertyWechatifyUserModuleMixin, keyof InstanceType<WechatifyUserModuleMixin>>

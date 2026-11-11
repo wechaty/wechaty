@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -39,19 +39,19 @@ import { PuppetMock } from 'wechaty-puppet-mock'
  *
  * TODO: find out why
  */
-import './wechaty-impl.js'
+import './wechaty-impl.ts'
 
 import type {
   WechatyBaseProtectedProperty,
-}                                 from './wechaty-base.js'
+}                                 from './wechaty-base.ts'
 import {
   WechatyBase,
-}                                 from './wechaty-base.js'
+}                                 from './wechaty-base.ts'
 
 import type {
   WechatyInterface,
-}                           from '../wechaty/wechaty-impl.js'
-import { WechatySkeleton }  from './wechaty-skeleton.js'
+}                           from '../wechaty/wechaty-impl.ts'
+import { WechatySkeleton }  from './wechaty-skeleton.ts'
 
 class WechatyTest extends WechatyBase {
 }
@@ -370,7 +370,8 @@ test('startup puppet failure depends on error listener (#2855)', async t => {
     `const bot = new WechatyBase({ puppet })`,
     `try { await bot.start(); process.exitCode = 1 } catch { process.exit(0) }`,
   ].join(';')
-  const result = spawnSync(process.execPath, [ '--import=tsx/esm', '--input-type=module', '-e', script ], {
+  const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
+  const result = spawnSync(nodeExecutable, [ '--input-type=module', '-e', script ], {
     encoding: 'utf8',
     timeout: 10_000,
   })

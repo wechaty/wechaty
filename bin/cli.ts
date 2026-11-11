@@ -19,9 +19,9 @@ import {
   subcommands,
 }                     from 'cmd-ts'
 
-import { VERSION } from '../src/config.js'
+import { VERSION } from '../src/config.ts'
 
-import * as cmds     from '../src/cli/mod.js'
+import * as cmds     from '../src/cli/mod.ts'
 
 const wechatyCli = subcommands({
   name: 'wechaty',

@@ -3,12 +3,12 @@ import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { OFFICIAL_PUPPET_DEPENDENCIES } from './puppet-config.js'
+import { OFFICIAL_PUPPET_DEPENDENCIES } from './puppet-config.ts'
 
 const packageJson: {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
-} = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8'))
+} = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
 
 test('configured puppet dependency ranges match package.json', async _t => {
   const packagePuppets = [

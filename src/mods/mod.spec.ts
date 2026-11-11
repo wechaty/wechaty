@@ -1,13 +1,13 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import * as WECHATY from './mod.js'
-import type { Sayable } from './mod.js'
-import type { Contact } from './users.js'
-import type { ContactImpl } from './impls.js'
-import type { WechatyImpl } from './impls.js'
+import * as WECHATY from './mod.ts'
+import type { Sayable } from './mod.ts'
+import type { Contact } from './users.ts'
+import type { ContactImpl } from './impls.ts'
+import type { WechatyImpl } from './impls.ts'
 
 function publicTypeContract (bot: WECHATY.Wechaty, contact: Contact) {
   bot.on('message', message => {

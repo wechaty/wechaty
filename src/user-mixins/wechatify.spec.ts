@@ -1,13 +1,13 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import type { Wechaty } from '../mods/mod.js'
+import type { Wechaty } from '../mods/mod.ts'
 
 import {
   isWechatified,
   wechatifyMixin,
   wechatifyUserModule,
-}                       from './wechatify.js'
+}                       from './wechatify.ts'
 
 const wechaty = {
   puppet: {} as any,

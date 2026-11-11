@@ -21,84 +21,84 @@ import {
   ContactImpl,
   type ContactInterface,
   type ContactConstructor,
-}                           from './contact.js'
+}                           from './contact.ts'
 import {
   ContactSelfImpl,
   type ContactSelfInterface,
   type ContactSelfConstructor,
-}                           from './contact-self.js'
+}                           from './contact-self.ts'
 import {
   FavoriteImpl,
   type FavoriteInterface,
   type FavoriteConstructor,
-}                           from './favorite.js'
+}                           from './favorite.ts'
 import {
   FriendshipImpl,
   type FriendshipInterface,
   type FriendshipConstructor,
-}                           from './friendship.js'
+}                           from './friendship.ts'
 import {
   ImageImpl,
   type ImageInterface,
   type ImageConstructor,
-}                           from './image.js'
+}                           from './image.ts'
 import {
   LocationImpl,
   type LocationInterface,
   type LocationConstructor,
-}                           from './location.js'
+}                           from './location.ts'
 import {
   MessageImpl,
   type MessageInterface,
   type MessageConstructor,
-}                           from './message.js'
+}                           from './message.ts'
 import {
   MiniProgramImpl,
   type MiniProgramInterface,
   type MiniProgramConstructor,
-}                           from './mini-program.js'
+}                           from './mini-program.ts'
 import {
   MomentImpl,
   type MomentInterface,
   type MomentConstructor,
-}                           from './moment.js'
+}                           from './moment.ts'
 import {
   MoneyImpl,
   type MoneyInterface,
   type MoneyConstructor,
-}                           from './money.js'
+}                           from './money.ts'
 import {
   PostImpl,
   type PostInterface,
   type PostConstructor,
-}                           from './post.js'
+}                           from './post.ts'
 import {
   RoomImpl,
   type RoomInterface,
   type RoomConstructor,
-}                           from './room.js'
+}                           from './room.ts'
 import {
   RoomInvitationImpl,
   type RoomInvitationInterface,
   type RoomInvitationConstructor,
-}                           from './room-invitation.js'
+}                           from './room-invitation.ts'
 import {
   TagImpl,
   type TagInterface,
   type TagConstructor,
-}                           from './tag.js'
+}                           from './tag.ts'
 import {
   UrlLinkImpl,
   type UrlLinkInterface,
   type UrlLinkConstructor,
-}                           from './url-link.js'
+}                           from './url-link.ts'
 import {
   DelayImpl,
   type DelayInterface,
   type DelayConstructor,
-}                           from './delay.js'
+}                           from './delay.ts'
 
-import { wechatifyUserModule } from '../user-mixins/wechatify.js'
+import { wechatifyUserModule } from '../user-mixins/wechatify.ts'
 
 export type {
   ContactInterface,

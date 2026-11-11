@@ -18,22 +18,25 @@
  *
  */
 import type { Constructor } from 'clone-class'
-import { validationMixin } from '../user-mixins/validation.js'
+import { validationMixin } from '../user-mixins/validation.ts'
 
 import {
   wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.ts'
 
 class DelayMixin extends wechatifyMixinBase() {
+
+  public milliseconds: number
 
   static create (milliseconds: number): DelayInterface {
     return new DelayImpl(milliseconds)
   }
 
   constructor (
-    public milliseconds: number,
+    milliseconds: number,
   ) {
     super()
+    this.milliseconds = milliseconds
   }
 
   wait (): Promise<void> {

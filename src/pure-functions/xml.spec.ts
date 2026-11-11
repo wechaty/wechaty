@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -28,7 +28,7 @@ import {
   stripHtml,
   unescapeHtml,
   unifyEmoji,
-}                   from './xml.js'
+}                   from './xml.ts'
 
 test('stripHtml()', async _t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'

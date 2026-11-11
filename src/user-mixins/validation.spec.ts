@@ -1,10 +1,10 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
   validationMixin,
-}                       from './validation.js'
+}                       from './validation.ts'
 
 type AssertEqual<Actual, Expected> =
   (<Value>() => Value extends Actual ? 1 : 2) extends

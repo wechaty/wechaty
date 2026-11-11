@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -20,7 +20,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { isTemplateStringArray } from './is-template-string-array.js'
+import { isTemplateStringArray } from './is-template-string-array.ts'
 
 test('isTemplateStringArray', async _t => {
   function test (

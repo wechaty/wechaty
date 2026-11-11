@@ -22,7 +22,7 @@ import {
   ScanStatus,
   type Message,
   type Contact,
-}                     from '../src/mods/mod.js' // from 'wechaty'
+}                     from '../src/mods/mod.ts' // from 'wechaty'
 
 import qrTerm from 'qrcode-terminal'
 import { FileBox } from 'file-box'

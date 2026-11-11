@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
@@ -14,25 +14,25 @@ import { function as FP } from 'fp-ts'
  *
  * TODO: find out why
  */
-import '../wechaty/wechaty-impl.js'
+import '../wechaty/wechaty-impl.ts'
 
 import {
   gErrorMixin,
-}                             from '../wechaty-mixins/mod.js'
+}                             from '../wechaty-mixins/mod.ts'
 
 import {
   WechatySkeleton,
-}                             from '../wechaty/wechaty-skeleton.js'
+}                             from '../wechaty/wechaty-skeleton.ts'
 
 import {
   pluginMixin,
   type PluginMixin,
   type ProtectedPropertyPluginMixin,
-}                                             from './plugin-mixin.js'
-import { miscMixin } from './misc-mixin.js'
-import { puppetMixin } from './puppet-mixin.js'
-import { ioMixin } from './io-mixin.js'
-import { wechatifyUserModuleMixin } from './wechatify-user-module-mixin.js'
+}                                             from './plugin-mixin.ts'
+import { miscMixin } from './misc-mixin.ts'
+import { puppetMixin } from './puppet-mixin.ts'
+import { ioMixin } from './io-mixin.ts'
+import { wechatifyUserModuleMixin } from './wechatify-user-module-mixin.ts'
 
 test('ProtectedPropertyPluginMixin', async _t => {
   type NotExistInMixin = Exclude<ProtectedPropertyPluginMixin, keyof InstanceType<PluginMixin>>

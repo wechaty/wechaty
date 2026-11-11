@@ -5,9 +5,9 @@ import {
   wrapAsyncError,
 }                     from 'gerror'
 
-import { wechatyCaptureException }  from '../raven.js'
+import { wechatyCaptureException }  from '../raven.ts'
 
-import type { WechatySkeleton }      from '../wechaty/mod.js'
+import type { WechatySkeleton }      from '../wechaty/mod.ts'
 
 const gErrorMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatyGErrorMixin', 'gErrorMixin(%s)', mixinBase.name)

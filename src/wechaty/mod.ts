@@ -1,13 +1,13 @@
 import type {
   WechatyInterface,
   WechatyConstructor,
-}                         from './wechaty-impl.js'
-import { WechatyImpl }    from './wechaty-impl.js'
+}                         from './wechaty-impl.ts'
+import { WechatyImpl }    from './wechaty-impl.ts'
 
 import type {
   WechatyOptions,
-}                           from '../schemas/wechaty-options.js'
-import { WechatySkeleton }  from './wechaty-skeleton.js'
+}                           from '../schemas/wechaty-options.ts'
+import { WechatySkeleton }  from './wechaty-skeleton.ts'
 
 export {
   type WechatyInterface,

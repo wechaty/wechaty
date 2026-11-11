@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -17,7 +17,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { escapeRegExp } from './escape-regexp.js'
+import { escapeRegExp } from './escape-regexp.ts'
 
 test('escapeRegExp() with typical string', async _t => {
   const input = 'hello world'

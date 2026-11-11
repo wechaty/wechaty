@@ -1,9 +1,9 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { packageJson } from './package-json.js'
+import { packageJson } from './package-json.ts'
 
 test('Make sure the packageJson is fresh in source code', async _t => {
   const json = JSON.parse(JSON.stringify(packageJson))

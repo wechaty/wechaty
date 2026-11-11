@@ -26,18 +26,18 @@ import * as jsonRpcPeer from 'json-rpc-peer'
 
 import type {
   MessageInterface,
-}                     from './user-modules/mod.js'
-import type { WechatyInterface } from './wechaty/mod.js'
+}                     from './user-modules/mod.ts'
+import type { WechatyInterface } from './wechaty/mod.ts'
 
 import {
   log,
   config,
-}                 from './config.js'
+}                 from './config.ts'
 
 import {
   getPeer,
   isJsonRpcRequest,
-}                   from './io-peer/io-peer.js'
+}                   from './io-peer/io-peer.ts'
 
 export interface IoOptions {
   wechaty      : WechatyInterface,
@@ -98,6 +98,8 @@ const AsyncFunction = Object.getPrototypeOf(async () => null).constructor
 
 export class Io {
 
+  protected options: IoOptions
+
   protected readonly id       : string
   protected readonly protocol : string
   protected eventBuffer       : IoEvent[] = []
@@ -117,8 +119,9 @@ export class Io {
   protected jsonRpc?: jsonRpcPeer.Peer
 
   constructor (
-    protected options: IoOptions,
+    options: IoOptions,
   ) {
+    this.options = options
     options.apihost   = options.apihost   || config.apihost
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 

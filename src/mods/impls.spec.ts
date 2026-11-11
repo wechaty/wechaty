@@ -1,9 +1,9 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import * as impls  from './impls.js'
+import * as impls  from './impls.ts'
 
 test('Export of the Framework', async _t => {
   assert.ok(impls.ContactImpl,    'should export Contact')

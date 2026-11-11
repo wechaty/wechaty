@@ -17,18 +17,32 @@ Type-only dependencies must use `import type` or inline `type` modifiers;
 `verbatimModuleSyntax` is enabled for both the build and semantic check.
 No decorator syntax or emitted decorator metadata is used, so the legacy
 decorator compiler options are omitted.
-`tsx` runs TypeScript scripts and unit tests. `npm run lint:biome` runs TypeScript
-lint rules without depending on the TypeScript compiler API.
+`npm run lint:biome` runs TypeScript lint rules without depending on the
+TypeScript compiler API.
 
-TypeScript's semantic check remains required: native TypeScript execution
-transpiles code but does not replace `npm run lint:ts`. Other runtimes may use
+Node.js runs the TypeScript sources directly with its built-in type stripping:
+tests, scripts, examples, and the `cli`, `doctor`, `io-client`, and
+`puppet-install` npm scripts need no build step. Compilation to `dist/` happens
+only when packaging, in `scripts/npm-pack-testing.sh` and the Dockerfiles, which
+run on every push and pull request through the npm and Docker workflows.
+
+Type stripping imposes two rules, both enforced by `npm run lint:ts`:
+
+- Relative imports use `.ts` extensions. `rewriteRelativeImportExtensions`
+  rewrites them to `.js` in the compiled JavaScript. Generated `.d.ts` files
+  keep `.ts` specifiers, which TypeScript 5.0 and later resolve, so
+  downstream TypeScript users need TypeScript 5.0 or later.
+- Only erasable syntax is allowed (`erasableSyntaxOnly`): no enums,
+  namespaces with values, or constructor parameter properties. Declare a class
+  field and assign it in the constructor instead of `constructor (public id)`.
+
+TypeScript's semantic check remains required: type stripping does not check
+types, so it does not replace `npm run lint:ts`. Other runtimes may use
 different type checkers, so their execution success is not a substitute for
 the canonical TypeScript check.
 
-Relative imports may use `.ts` extensions for native TypeScript execution.
-`rewriteRelativeImportExtensions` rewrites those paths to `.js` in the
-compiled output. Existing `.js` imports remain supported; a repository-wide
-import migration is not required.
+The Docker entrypoint still runs user bot files with `tsx`, because user code
+may use syntax that Node.js cannot strip.
 
 Commit `package-lock.json` alongside dependency changes. Use `npm ci` for a
 clean installation from the lockfile.
@@ -36,24 +50,28 @@ clean installation from the lockfile.
 ## Tests
 
 Specs use `node:test` and `node:assert/strict`. `npm test` lints and runs the
-complete compiled suite with Node.js. The test command builds the TypeScript
-sources and explicitly discovers emitted `*.spec.js` files. Run one Node test
-file with `npm run test:unit:file -- dist/esm/src/plugin.spec.js`.
+complete suite with Node.js directly from the `*.spec.ts` sources, without a
+build. Run one Node test file with
+`npm run test:unit:file -- src/plugin.spec.ts`.
 For Deno, use
-`NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- dist/esm/src/plugin.spec.js`.
+`NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.spec.ts`.
+`npm run coverage` runs the suite with Node.js's built-in coverage and writes
+`coverage/lcov.info`.
 
-The same emitted suite runs under Deno 2.9.8 with
-`NODE_BINARY="$(command -v node)" npm run test:unit:deno`. This grants access to
+The same suite runs under Deno 2.9.8 with
+`NODE_BINARY="$(command -v node)" npm run test:unit:deno`. Deno is not a
+supported runtime yet; its CI job is experimental and does not fail the
+workflow. The command grants access to
 the repository and `/tmp`, only the Git and Node subprocesses used by the
 fixtures, and the hostname system query required by `cuid`. The command starts
 Deno with a sanitized environment containing only `PATH`, `HOME`, `CI`, and
 `NODE_BINARY`; the broad env permission is needed by a dependency that
-enumerates `process.env`. It also allows the `leveldown` glibc native module
-required by the package's memory-card dependency. Node is needed separately
-because the puppet-installer fixture launches Node-specific CLI arguments.
-Deno uses `--no-check` because its checker cannot resolve a generated
-declaration import; the TypeScript build and `npm run lint:ts` remain mandatory
-canonical checks.
+enumerates `process.env`. It also allows loading the `leveldown` prebuilt native
+modules required by the package's memory-card dependency. Node is needed
+separately because some fixtures launch Node-specific CLI arguments.
+Deno uses `--no-check` because its checker cannot resolve a declaration import
+inside the `json-rpc-peer` dependency; `npm run lint:ts` remains the mandatory
+canonical check.
 
 `npm run lint:ts` remains the canonical TypeScript check; the test runner does
 not replace it. Lifecycle tests register `t.after()` cleanup before starting

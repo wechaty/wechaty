@@ -10,7 +10,7 @@ import type { GError } from 'gerror'
 import {
   VERSION,
   GIT_COMMIT_HASH,
-}                   from './config.js'
+}                   from './config.ts'
 
 let raven: typeof Raven
 let enabled = false

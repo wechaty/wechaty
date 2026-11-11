@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'

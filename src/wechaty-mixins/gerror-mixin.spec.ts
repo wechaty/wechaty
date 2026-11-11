@@ -1,11 +1,11 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import type {
   GErrorMixin,
   ProtectedPropertyGErrorMixin,
-}                                             from './gerror-mixin.js'
+}                                             from './gerror-mixin.ts'
 
 test('ProtectedPropertyGErrorMixin', async _t => {
   type NotExistInMixin = Exclude<ProtectedPropertyGErrorMixin, keyof InstanceType<GErrorMixin>>

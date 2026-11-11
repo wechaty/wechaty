@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
+const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const coauthor = 'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>'
 
 // The POSIX Git hook fixture is not portable to Windows.

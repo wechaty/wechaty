@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import type {
   WechatySkeleton,
   WechatySkeletonProtectedProperty,
-}                                         from './wechaty-skeleton.js'
+}                                         from './wechaty-skeleton.ts'
 
 test('ProtectedPropertyWechatySkeleton', async _t => {
   type NotExistInMixin = Exclude<WechatySkeletonProtectedProperty, keyof WechatySkeleton>

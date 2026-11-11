@@ -3,11 +3,11 @@ import { log }      from 'wechaty-puppet'
 import type {
   ContactSelfImpl,
   ContactSelfInterface,
-}                               from '../user-modules/mod.js'
-import type { WechatySkeleton } from '../wechaty/mod.js'
+}                               from '../user-modules/mod.ts'
+import type { WechatySkeleton } from '../wechaty/mod.ts'
 
-import type { GErrorMixin }     from './gerror-mixin.js'
-import type { PuppetMixin }     from './puppet-mixin.js'
+import type { GErrorMixin }     from './gerror-mixin.ts'
+import type { PuppetMixin }     from './puppet-mixin.ts'
 
 const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GErrorMixin> (mixinBase: MixinBase) => {
   log.verbose('WechatyLoginMixin', 'loginMixin(%s)', mixinBase.name)

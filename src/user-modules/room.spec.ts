@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -24,11 +24,11 @@ import assert from 'node:assert/strict'
 import type * as PUPPET from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
-import { WechatyBuilder } from '../wechaty-builder.js'
+import { WechatyBuilder } from '../wechaty-builder.ts'
 import type {
   RoomImpl,
   RoomProtectedProperty,
-}                         from './room.js'
+}                         from './room.ts'
 
 test('findAll()', async t => {
   const EXPECTED_ROOM_ID      = 'test-id'

@@ -1,12 +1,12 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import openGraph from 'open-graph'
-import type { Wechaty } from '../mods/mod.js'
-import { MessageImpl } from './message.js'
+import type { Wechaty } from '../mods/mod.ts'
+import { MessageImpl } from './message.ts'
 
-import { wechatifyUserModule } from './mod.js'
-import { UrlLinkImpl } from './url-link.js'
+import { wechatifyUserModule } from './mod.ts'
+import { UrlLinkImpl } from './url-link.ts'
 
 const wechaty = {
   puppet: {} as any,

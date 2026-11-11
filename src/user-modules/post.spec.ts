@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -25,7 +25,7 @@ import * as PUPPET from 'wechaty-puppet'
 import PuppetMock from 'wechaty-puppet-mock'
 import { FileBox } from 'file-box'
 
-import { WechatyBuilder } from '../wechaty-builder.js'
+import { WechatyBuilder } from '../wechaty-builder.ts'
 
 test.skip('Post smoke testing', async t => {
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -22,12 +22,12 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
-import { WechatyBuilder } from '../wechaty-builder.js'
+import { WechatyBuilder } from '../wechaty-builder.ts'
 
 import {
   ContactImpl,
   type ContactProtectedProperty,
-}                             from './contact.js'
+}                             from './contact.ts'
 
 test('findAll()', async t => {
   const EXPECTED_NAME = 'TestingBot'

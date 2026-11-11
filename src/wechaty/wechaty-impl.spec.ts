@@ -1,9 +1,9 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import PuppetMock from 'wechaty-puppet-mock'
 
-import { WechatyEventEmitter } from '../schemas/wechaty-events.js'
+import { WechatyEventEmitter } from '../schemas/wechaty-events.ts'
 
 import type {
   ContactSelfConstructor,
@@ -20,7 +20,7 @@ import type {
   TagConstructor,
   UrlLinkConstructor,
   MessageInterface,
-}                             from '../user-modules/mod.js'
+}                             from '../user-modules/mod.ts'
 
 import {
   type WechatyConstructor,
@@ -28,7 +28,7 @@ import {
   type AllProtectedProperty,
   WechatyImpl,
   // WechatyConstructor,
-}                       from './wechaty-impl.js'
+}                       from './wechaty-impl.ts'
 
 test('Wechaty interface', async _t => {
   abstract class WechatyImplementation extends WechatyEventEmitter implements WechatyInterface {

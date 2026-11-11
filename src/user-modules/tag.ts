@@ -23,16 +23,16 @@ import {
 
 import type { Constructor }  from 'clone-class'
 
-import { type ContactInterface, ContactImpl }  from './contact.js'
-import { type FavoriteInterface, FavoriteImpl } from './favorite.js'
+import { type ContactInterface, ContactImpl }  from './contact.ts'
+import { type FavoriteInterface, FavoriteImpl } from './favorite.ts'
 
 import {
   poolifyMixin,
-}                     from '../user-mixins/poolify.js'
-import { validationMixin } from '../user-mixins/validation.js'
+}                     from '../user-mixins/poolify.ts'
+import { validationMixin } from '../user-mixins/validation.ts'
 import {
   wechatifyMixinBase,
-}                     from '../user-mixins/wechatify.js'
+}                     from '../user-mixins/wechatify.ts'
 
 const MixinBase = poolifyMixin(
   wechatifyMixinBase(),
@@ -40,13 +40,16 @@ const MixinBase = poolifyMixin(
 
 class TagMixin extends MixinBase {
 
+  public readonly id: string
+
   /**
    * @hideconstructor
    */
   constructor (
-    public readonly id: string,
+    id: string,
   ) {
     super()
+    this.id = id
     log.silly('Tag', `constructor(${id})`)
   }
 

@@ -57,7 +57,7 @@ Read this before running `git push`.
 | `src/cli/`, `bin/` | CLI commands and package binaries |
 | `src/io*.ts`, `src/io-peer/` | Legacy Io service; avoid adding to it |
 
-Avoid `dist/`, `coverage/`, `.nyc_output/`, and `node_modules/`, except when
+Avoid `dist/`, `coverage/`, and `node_modules/`, except when
 reading dependency contracts.
 
 ## Lifecycle invariants
@@ -131,9 +131,11 @@ outermost.
 
 - Reference GitHub Actions by version tags (for example, `@v6`), not commit hashes.
 - The package is ESM-only and needs the Node.js and npm versions in `engines`.
-  Use `import` and explicit extensions for relative imports. `.ts` imports are
-  supported by `rewriteRelativeImportExtensions`, which emits `.js` paths in
-  compiled output. Existing `.js` imports remain supported.
+  Node.js runs the `.ts` sources directly; only packaging compiles to `dist/`.
+  Relative imports must end in `.ts`; `rewriteRelativeImportExtensions` emits
+  `.js` paths in compiled JavaScript.
+- `erasableSyntaxOnly` is enabled: no enums, namespaces with values, or
+  constructor parameter properties. Declare a field and assign it instead.
 - Compiler flags to expect: use `override`, `process.env['NAME']`, and `import type`
   for types. Indexed access may be `undefined`.
 - `verbatimModuleSyntax` is enabled; mark type-only imports with `import type` or
@@ -151,8 +153,9 @@ outermost.
 ## Tests and validation
 
 Test sources use `node:test` and `node:assert/strict`. `npm test` runs the full
-suite on Node.js after linting. The shared compiled suite can also run under
-Deno; provide the Node executable for subprocess fixtures:
+suite on Node.js from the TypeScript sources after linting, with no build step.
+The same suite also runs under Deno, which is experimental and not a supported
+runtime; provide the Node executable for subprocess fixtures:
 
 ```sh
 NODE_BINARY="$(command -v node)" npm run test:unit:deno
@@ -161,13 +164,13 @@ NODE_BINARY="$(command -v node)" npm run test:unit:deno
 Run a focused Node test file with:
 
 ```sh
-npm run test:unit:file -- dist/esm/src/plugin.spec.js
+npm run test:unit:file -- src/plugin.spec.ts
 ```
 
 Run one Deno test file with:
 
 ```sh
-NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- dist/esm/src/plugin.spec.js
+NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.spec.ts
 ```
 
 - Specs sit beside the source as `*.spec.ts`, or under `tests/`, and import
@@ -188,7 +191,7 @@ NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- dist/esm/src/plu
 | Shell scripts | `npm run test:shell` (not part of `npm test`) |
 | Dockerfiles or entrypoint | `./scripts/docker.sh build` and `./scripts/docker.sh test` |
 | Markdown | `npx markdownlint <file>` (`npm run lint:md` only checks the README) |
-| Before handoff | `npm run build` and `npm test` |
+| Before handoff | `npm test`, plus `npm run build` if the change could affect emitted output |
 
 Before handing off, report the commands you ran and anything you could not run.
 

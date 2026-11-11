@@ -19,12 +19,12 @@
  */
 import { log }        from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
-import { validationMixin } from '../user-mixins/validation.js'
+import { validationMixin } from '../user-mixins/validation.ts'
 
 import {
   wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
-import type { TagInterface } from './tag.js'
+}                       from '../user-mixins/wechatify.ts'
+import type { TagInterface } from './tag.ts'
 
 class FavoriteMixin extends wechatifyMixinBase() {
 

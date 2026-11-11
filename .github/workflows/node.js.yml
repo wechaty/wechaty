@@ -1,4 +1,5 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# This workflow does a clean install of node dependencies and runs the TypeScript
+# tests directly. Compilation happens only in the npm and Docker publish workflows.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Node.js CI
@@ -30,7 +31,6 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
     - run: npm ci
-    - run: npm run build --if-present
     - run: npm test
       env:
         CI: true
@@ -44,8 +44,11 @@ jobs:
         fi
 
   deno:
-    name: Deno test (2.9.8)
+    name: Deno test (2.9.8, experimental)
     runs-on: ubuntu-latest
+    # Deno is not a supported runtime yet; this job tracks compatibility without
+    # failing the workflow.
+    continue-on-error: true
     permissions:
       contents: read
 

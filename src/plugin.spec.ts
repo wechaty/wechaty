@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -23,13 +23,13 @@ import assert from 'node:assert/strict'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import type { Wechaty } from './mods/mod.js'
-import { WechatyBuilder } from './wechaty-builder.js'
+import type { Wechaty } from './mods/mod.ts'
+import { WechatyBuilder } from './wechaty-builder.ts'
 
 import {
   type WechatyPlugin,
   isWechatyPluginUninstaller,
-}                               from './plugin.js'
+}                               from './plugin.ts'
 
 /**
  *

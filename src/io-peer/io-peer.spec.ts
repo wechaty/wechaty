@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -25,7 +25,7 @@ import jsonRpcPeer from 'json-rpc-peer'
 
 import {
   getPeer,
-}                   from './io-peer.js'
+}                   from './io-peer.ts'
 
 test('getPeer()', async _t => {
   const EXPECTED_PORT = 8788
