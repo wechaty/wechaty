@@ -19,10 +19,10 @@
  *
  */
 import {
-  Wechaty,
   WechatyBuilder,
   VERSION,
 }                   from 'wechaty'
+import type { Wechaty } from 'wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'

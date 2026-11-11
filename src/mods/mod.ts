@@ -31,9 +31,9 @@ export {
   type BuilderInterface,
 }                               from '../wechaty-builder.js'
 
-export {
-  type SayableSayer,
-  type Sayable,
+export type {
+  SayableSayer,
+  Sayable,
 }                       from '../sayable/mod.js'
 
 export * as types       from 'wechaty-puppet/types'

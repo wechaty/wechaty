@@ -136,6 +136,8 @@ outermost.
   compiled output. Existing `.js` imports remain supported.
 - Compiler flags to expect: use `override`, `process.env['NAME']`, and `import type`
   for types. Indexed access may be `undefined`.
+- `verbatimModuleSyntax` is enabled; mark type-only imports with `import type` or
+  inline `type` modifiers, and keep runtime side-effect imports explicit.
 - Avoid new `any` and unsafe casts. Existing ones sit mostly at mixin boundaries.
 - Biome's formatter is off, so match nearby style by hand: two spaces, no
   semicolons, and a space before method parentheses.

@@ -20,7 +20,7 @@
 import { log } from 'wechaty-puppet'
 
 import {
-  WechatyInterface,
+  type WechatyInterface,
   WechatyImpl,
   type WechatyOptions,
 }                     from './wechaty/mod.js'

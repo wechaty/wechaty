@@ -20,7 +20,7 @@
 import { StateSwitch } from 'state-switch'
 import {
   PuppetServer,
-  PuppetServerOptions,
+  type PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
 import type { MessageInterface }  from './user-modules/mod.js'

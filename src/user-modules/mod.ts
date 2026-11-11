@@ -19,83 +19,83 @@
  */
 import {
   ContactImpl,
-  ContactInterface,
-  ContactConstructor,
+  type ContactInterface,
+  type ContactConstructor,
 }                           from './contact.js'
 import {
   ContactSelfImpl,
-  ContactSelfInterface,
-  ContactSelfConstructor,
+  type ContactSelfInterface,
+  type ContactSelfConstructor,
 }                           from './contact-self.js'
 import {
   FavoriteImpl,
-  FavoriteInterface,
-  FavoriteConstructor,
+  type FavoriteInterface,
+  type FavoriteConstructor,
 }                           from './favorite.js'
 import {
   FriendshipImpl,
-  FriendshipInterface,
-  FriendshipConstructor,
+  type FriendshipInterface,
+  type FriendshipConstructor,
 }                           from './friendship.js'
 import {
   ImageImpl,
-  ImageInterface,
-  ImageConstructor,
+  type ImageInterface,
+  type ImageConstructor,
 }                           from './image.js'
 import {
   LocationImpl,
-  LocationInterface,
-  LocationConstructor,
+  type LocationInterface,
+  type LocationConstructor,
 }                           from './location.js'
 import {
   MessageImpl,
-  MessageInterface,
-  MessageConstructor,
+  type MessageInterface,
+  type MessageConstructor,
 }                           from './message.js'
 import {
   MiniProgramImpl,
-  MiniProgramInterface,
-  MiniProgramConstructor,
+  type MiniProgramInterface,
+  type MiniProgramConstructor,
 }                           from './mini-program.js'
 import {
   MomentImpl,
-  MomentInterface,
-  MomentConstructor,
+  type MomentInterface,
+  type MomentConstructor,
 }                           from './moment.js'
 import {
   MoneyImpl,
-  MoneyInterface,
-  MoneyConstructor,
+  type MoneyInterface,
+  type MoneyConstructor,
 }                           from './money.js'
 import {
   PostImpl,
-  PostInterface,
-  PostConstructor,
+  type PostInterface,
+  type PostConstructor,
 }                           from './post.js'
 import {
   RoomImpl,
-  RoomInterface,
-  RoomConstructor,
+  type RoomInterface,
+  type RoomConstructor,
 }                           from './room.js'
 import {
   RoomInvitationImpl,
-  RoomInvitationInterface,
-  RoomInvitationConstructor,
+  type RoomInvitationInterface,
+  type RoomInvitationConstructor,
 }                           from './room-invitation.js'
 import {
   TagImpl,
-  TagInterface,
-  TagConstructor,
+  type TagInterface,
+  type TagConstructor,
 }                           from './tag.js'
 import {
   UrlLinkImpl,
-  UrlLinkInterface,
-  UrlLinkConstructor,
+  type UrlLinkInterface,
+  type UrlLinkConstructor,
 }                           from './url-link.js'
 import {
   DelayImpl,
-  DelayInterface,
-  DelayConstructor,
+  type DelayInterface,
+  type DelayConstructor,
 }                           from './delay.js'
 
 import { wechatifyUserModule } from '../user-mixins/wechatify.js'

@@ -29,7 +29,7 @@ import type { Wechaty } from './mods/mod.js'
 import { WechatyBuilder } from './wechaty-builder.js'
 
 import {
-  WechatyPlugin,
+  type WechatyPlugin,
   isWechatyPluginUninstaller,
 }                               from './plugin.js'
 

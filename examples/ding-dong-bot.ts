@@ -20,8 +20,8 @@
 import {
   WechatyBuilder,
   ScanStatus,
-  Message,
-  Contact,
+  type Message,
+  type Contact,
 }                     from '../src/mods/mod.js' // from 'wechaty'
 
 import qrTerm from 'qrcode-terminal'

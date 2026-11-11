@@ -1,7 +1,7 @@
 import { log }        from 'wechaty-puppet'
 import {
   GError,
-  WrapAsync,
+  type WrapAsync,
   wrapAsyncError,
 }                     from 'gerror'
 
