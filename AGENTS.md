@@ -1,5 +1,7 @@
 # Instructions for coding agents
 
+- Use node:test for a shared Node.js/Deno test suite; collect coverage natively in both runtimes, publish LCOV and HTML reports as GitHub Actions artifacts, and enforce independent, measured coverage regression baselines without third-party coverage services.
+
 ## Project
 
 Wechaty is a TypeScript SDK for building chatbots across messaging platforms.

@@ -28,9 +28,6 @@ import {
   FOUR_PER_EM_SPACE,
   log,
 }                           from '../config.ts'
-import {
-  wechatyCaptureException,
-}                           from '../raven.ts'
 
 import {
   guardQrCodeValue,
@@ -820,7 +817,6 @@ class RoomMixin extends MixinBase implements SayableSayer {
         log.warn('Room', 'topic(newTopic=%s) exception: %s',
           newTopic, (e && e.message) || e,
         )
-        wechatyCaptureException(e)
       })
 
     return future
