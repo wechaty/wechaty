@@ -362,15 +362,21 @@ test('puppet startup timeout is tolerated', async t => {
   const clock = sinon.useFakeTimers({ toFake: [ 'setTimeout', 'clearTimeout', 'Date' ] })
 
   const puppet = new PuppetMock()
-  const startPuppet = sinon.stub(puppet, 'start').returns(new Promise<void>(() => {}))
+  const puppetStarted = new Promise<void>(resolveStarted => {
+    sinon.stub(puppet, 'start').callsFake(() => {
+      resolveStarted()
+      return new Promise<void>(() => {})
+    })
+  })
   const bot = new WechatyBase({ puppet })
   bot.on('error', error => t.fail('timeout should not emit error: ' + error))
 
   try {
     const start = bot.start()
-    while (startPuppet.notCalled) {
-      await new Promise(resolve => setImmediate(resolve))
-    }
+    await Promise.race([
+      puppetStarted,
+      start.then(() => { throw new Error('startup completed before puppet.start') }),
+    ])
     await clock.tickAsync(15 * 1000)
     await start
 
