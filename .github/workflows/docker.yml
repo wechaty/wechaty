@@ -37,6 +37,8 @@ jobs:
 
       - name: Check shell scripts for problems
         uses: reviewdog/action-shellcheck@v1.34.1
+        with:
+          reporter: github-pr-review
 
       - name: Install the shell test runner
         run: |
