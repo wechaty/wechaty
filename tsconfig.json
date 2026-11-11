@@ -17,6 +17,7 @@
     "experimentalDecorators": true,
     "strict": true,
     "noEmitOnError": true,
+    "noEmit": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noImplicitOverride": true,
