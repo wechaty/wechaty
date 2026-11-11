@@ -18,6 +18,10 @@
  *   limitations under the License.
  *
  */
+import { spawnSync } from 'node:child_process'
+import { pathToFileURL } from 'node:url'
+import { resolve } from 'node:path'
+
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
@@ -236,6 +240,164 @@ test('wechatifyUserModules init()', async _t => {
 
   assert.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 1st time init')
   assert.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 2nd time init (silence skip)')
+})
+
+test('lifecycle order and restart', async t => {
+  const trace: string[] = []
+  class LifecycleWechaty extends WechatyBase {
+    override async init () {
+      trace.push('init')
+      await super.init()
+    }
+
+    override async onStart () {
+      trace.push('onStart')
+      await super.onStart()
+    }
+
+    override async onStop () {
+      trace.push('onStop')
+      await super.onStop()
+    }
+  }
+
+  const puppet = new PuppetMock()
+  const startPuppet = t.mock.method(puppet, 'start', async () => { trace.push('puppet.start') })
+  const stopPuppet = t.mock.method(puppet, 'stop', async () => { trace.push('puppet.stop') })
+  const bot = new LifecycleWechaty({ puppet })
+  bot.on('start', () => trace.push('start'))
+  bot.on('stop', () => trace.push('stop'))
+
+  try {
+    await bot.start()
+    await bot.stop()
+    await bot.start()
+    await bot.stop()
+  } finally {
+    await bot.stop()
+  }
+
+  assert.deepEqual(trace, [
+    'init', 'init', 'puppet.start', 'onStart', 'start', 'onStop', 'stop', 'puppet.stop',
+    'init', 'init', 'puppet.start', 'onStart', 'start', 'onStop', 'stop', 'puppet.stop',
+  ], 'should preserve lifecycle ordering across restarts')
+  assert.equal(startPuppet.mock.callCount(), 2, 'should start the puppet once per lifecycle')
+  assert.equal(stopPuppet.mock.callCount(), 2, 'should stop the puppet once per lifecycle')
+})
+
+test('puppet and user modules initialize once', async () => {
+  const puppet = new PuppetMock()
+  const bot = new WechatyBase({ puppet })
+
+  let puppetEvents = 0
+  assert.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'puppet getter should be guarded before init')
+  assert.throws(() => bot.Contact, /can not be used before wechaty\.start\(\)/, 'user module getter should be guarded before init')
+  bot.on('puppet', candidate => {
+    puppetEvents++
+    assert.equal(candidate, puppet, 'should emit the resolved puppet')
+    assert.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'should not assign the puppet during the event')
+  })
+
+  try {
+    await bot.init()
+    const Contact = bot.Contact
+    const puppetMessageListeners = puppet.listenerCount('message')
+    await bot.init()
+
+    assert.equal(bot.Contact, Contact, 'should retain the bot-bound user module')
+    assert.equal(bot.puppet, puppet, 'should assign the puppet after its event')
+    assert.equal(puppetEvents, 1, 'should emit the puppet event only once')
+    assert.equal(puppet.listenerCount('message'), puppetMessageListeners, 'should not register duplicate puppet listeners')
+  } finally {
+    await bot.stop()
+  }
+})
+
+test('bot-bound Contact classes and pools are isolated', async () => {
+  const puppet1 = new PuppetMock()
+  const puppet2 = new PuppetMock()
+  const bot1 = new WechatyBase({ puppet: puppet1 })
+  const bot2 = new WechatyBase({ puppet: puppet2 })
+
+  try {
+    const user1 = puppet1.mocker.createContact({ id: 'user-id' })
+    const user2 = puppet2.mocker.createContact({ id: 'user-id' })
+    puppet1.mocker.createContact({ id: 'shared-id' })
+    puppet2.mocker.createContact({ id: 'shared-id' })
+    await Promise.all([ bot1.start(), bot2.start() ])
+    await Promise.all([ puppet1.mocker.login(user1), puppet2.mocker.login(user2) ])
+
+    const Contact1 = bot1.Contact
+    const Contact2 = bot2.Contact
+    const contact1 = await Contact1.find({ id: 'shared-id' })
+    const contact2 = await Contact2.find({ id: 'shared-id' })
+
+    assert.notEqual(Contact1, Contact2, 'should bind a distinct Contact class to each bot')
+    assert.equal(Contact1.wechaty, bot1, 'should bind the first Contact class to its bot')
+    assert.equal(Contact2.wechaty, bot2, 'should bind the second Contact class to its bot')
+    assert.notEqual(contact1, contact2, 'should keep pooled Contact instances separate')
+    assert.equal(Contact1.pool.size, 1, 'should keep the first bot pool independent')
+    assert.equal(Contact2.pool.size, 1, 'should keep the second bot pool independent')
+  } finally {
+    await Promise.all([ bot1.stop(), bot2.stop() ])
+  }
+})
+
+test('startup puppet failure depends on error listener (#2855)', async t => {
+  const handledPuppet = new PuppetMock()
+  const handledBot = new WechatyBase({ puppet: handledPuppet })
+  const expectedError = new Error('puppet start failed')
+  t.mock.method(handledPuppet, 'start', async () => { throw expectedError })
+
+  const errors: Error[] = []
+  handledBot.on('error', error => errors.push(error))
+  try {
+    await handledBot.start()
+    assert.equal(errors.length, 1, 'should emit the startup failure to an error listener')
+    assert.equal(errors[0]?.message, expectedError.message, 'should preserve the startup failure message')
+  } finally {
+    await handledBot.stop()
+  }
+
+  const baseUrl = pathToFileURL(resolve('src/wechaty/wechaty-base.ts')).href
+  const implUrl = pathToFileURL(resolve('src/wechaty/wechaty-impl.ts')).href
+  const script = [
+    `await import(${JSON.stringify(implUrl)})`,
+    `const { WechatyBase } = await import(${JSON.stringify(baseUrl)})`,
+    `const { PuppetMock } = await import('wechaty-puppet-mock')`,
+    `const puppet = new PuppetMock()`,
+    `puppet.start = async () => { throw new Error('puppet start failed') }`,
+    `const bot = new WechatyBase({ puppet })`,
+    `try { await bot.start(); process.exitCode = 1 } catch { process.exit(0) }`,
+  ].join(';')
+  const result = spawnSync(process.execPath, [ '--import=tsx/esm', '--input-type=module', '-e', script ], {
+    encoding: 'utf8',
+    timeout: 10_000,
+  })
+  assert.equal(result.status, 0, 'should reject startup without an error listener in an isolated process')
+})
+
+test('puppet startup timeout is tolerated', async t => {
+  const puppet = new PuppetMock()
+  const puppetStarted = new Promise<void>(resolveStarted => {
+    t.mock.method(puppet, 'start', () => {
+      resolveStarted()
+      return new Promise<void>(() => {})
+    })
+  })
+  const bot = new WechatyBase({ puppet })
+  bot.on('error', error => assert.fail('timeout should not emit error: ' + error))
+
+  try {
+    const start = bot.start()
+    await Promise.race([
+      puppetStarted,
+      start.then(() => { throw new Error('startup completed before puppet.start') }),
+    ])
+    assert.equal(await start, undefined, 'should continue startup after the puppet start timeout')
+  } finally {
+    await bot.stop()
+  }
 })
 
 // TODO: add test for event args
