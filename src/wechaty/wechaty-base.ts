@@ -41,18 +41,18 @@ import {
   pluginMixin,
   puppetMixin,
   wechatifyUserModuleMixin,
-}                             from '../wechaty-mixins/mod.js'
+}                             from "../wechaty-mixins/mod.ts"
 
 import {
   WechatySkeleton,
-}                             from './wechaty-skeleton.js'
+}                             from "./wechaty-skeleton.ts"
 import type {
   WechatyInterface,
-}                             from './wechaty-impl.js'
+}                             from "./wechaty-impl.ts"
 import type {
   WechatyOptions,
-}                             from '../schemas/wechaty-options.js'
-import type { PostInterface } from '../user-modules/post.js'
+}                             from "../schemas/wechaty-options.ts"
+import type { PostInterface } from "../user-modules/post.ts"
 
 const mixinBase = FP.pipe(
   WechatySkeleton,
