@@ -36,6 +36,7 @@
     "node_modules/",
     "dist/",
     "tests/fixtures/",
+    "examples/canonical/",
   ],
   "include": [
     "app/**/*.ts",

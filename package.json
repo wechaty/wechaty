@@ -55,6 +55,9 @@
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "start": "npm run demo",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "test:examples": "node scripts/test-examples.ts",
+    "test:examples:node": "node scripts/test-examples.ts node",
+    "test:examples:deno": "node scripts/test-examples.ts deno",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
     "test:unit": "cross-env NODE_OPTIONS=\"--import=tsx/esm\" TAP_TIMEOUT=600 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test": "npm run lint && nyc npm run test:unit",
@@ -156,7 +159,10 @@
   "files": [
     "bin/",
     "dist/",
-    "src/"
+    "src/",
+    "!dist/esm/examples/canonical/",
+    "!dist/esm/tests/fixtures/canonical-examples.test.*",
+    "!dist/esm/scripts/test-examples.*"
   ],
   "publishConfig": {
     "access": "public",

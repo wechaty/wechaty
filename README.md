@@ -136,7 +136,11 @@ wechaty.start()
 
 After you scan the QR code and log in, this bot logs all messages to the console.
 
-You can find Wechaty's Official Examples at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts) and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
+Start with the [canonical executable examples](examples/README.md), tested against
+the packed public package on Node.js and Deno without real accounts or tokens.
+The [interactive ding-dong demo](examples/ding-dong-bot.ts) uses a real provider
+and is not run as a default CI example. More demos are in our
+[Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
 
 ## :checkered_flag: Requirements
 
