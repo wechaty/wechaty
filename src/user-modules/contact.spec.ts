@@ -57,36 +57,20 @@ test('findAll()', async t => {
 })
 
 test('Should not be able to instanciate directly', async _t => {
-  assert.throws(() => {
-    const c = ContactImpl.load('xxx')
-    assert.fail(c.name())
-  }, 'should throw when `Contact.load()`')
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `Contact.load()`')
 
-  assert.throws(() => {
-    const c = ContactImpl.load('xxx')
-    assert.fail(c.name())
-  }, 'should throw when `Contact.load()`')
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `Contact.load()`')
 })
 
 test('Should not be able to instanciate through cloneClass without puppet', async _t => {
-  assert.throws(() => {
-    const c = ContactImpl.load('xxx')
-    assert.fail(c.name())
-  }, 'should throw when `MyContact.load()` without puppet')
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `MyContact.load()` without puppet')
 
-  assert.throws(() => {
-    const c = ContactImpl.load('xxx')
-    assert.fail(c.name())
-  }, 'should throw when `MyContact.load()` without puppet')
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `MyContact.load()` without puppet')
 
 })
 
 test('should throw when instanciate the global class', async _t => {
-  assert.throws(() => {
-    const c = ContactImpl.load('xxx')
-    assert.fail('should not run to here')
-    assert.fail(c.toString())
-  }, 'should throw when we instanciate a global class')
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when we instanciate a global class')
 })
 
 test('ProtectedProperties', async _t => {
