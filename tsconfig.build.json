@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": ".",
+    "outDir": "dist/esm"
+  },
+  "exclude": [
+    "node_modules/",
+    "dist/",
+    "tests/",
+    "**/*.spec.ts"
+  ],
+  "include": [
+    "bin/cli.ts",
+    "bin/doctor.ts",
+    "bin/io-client.ts",
+    "bin/puppet-install.ts",
+    "bin/version.ts",
+    "src/**/*.ts"
+  ]
+}
