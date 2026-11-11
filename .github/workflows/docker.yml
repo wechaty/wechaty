@@ -15,10 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_publish: ${{ steps.publish-policy.outputs.should_publish }}
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
     steps:
       - name: Get the project source
         uses: actions/checkout@v6
@@ -35,13 +31,13 @@ jobs:
           fi
           echo "should_publish=$should_publish" >> "$GITHUB_OUTPUT"
 
-      - name: Check shell scripts for problems
-        uses: reviewdog/action-shellcheck@v1.34.1
-
-      - name: Install the shell test runner
+      - name: Install shell validation tools
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends --yes bats
+          sudo apt-get install --no-install-recommends --yes bats shellcheck
+
+      - name: Check shell scripts for problems
+        run: find . -not -path '*/.git/*' -type f -name '*.sh' -print0 | xargs -0 -r shellcheck --external-sources
 
       - name: Prepare the Docker image builder
         uses: docker/setup-buildx-action@v4
