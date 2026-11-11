@@ -60,12 +60,21 @@ function registerPuppetEventBridge (
 
       case 'error':
         puppet.on('error', payload => {
+          /**
+           * Huan(202112):
+           *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
+           *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
+           */
           dependencies.emitError(GError.from(payload.gerror || payload.data || payload))
         })
         break
 
       case 'heartbeat':
         puppet.on('heartbeat', payload => {
+          /**
+           * Use `watchdog` event from Puppet to `heartbeat` Wechaty.
+           */
+          // TODO: use a throttle queue to prevent beat too fast.
           dependencies.emit('heartbeat', payload.data)
         })
         break
@@ -213,6 +222,9 @@ function registerPuppetEventBridge (
               throw new Error('no room found for id: ' + payload.roomId)
             }
 
+            /**
+             * See: https://github.com/wechaty/wechaty/pull/1833
+             */
             await room.sync()
 
             const leaverListAll = await Promise.all(
@@ -229,6 +241,7 @@ function registerPuppetEventBridge (
             dependencies.emit('room-leave', room, leaverList, remover, date)
             room.emit('leave', leaverList, remover, date)
 
+            // issue #254
             if (payload.removeeIdList.includes(puppet.currentUserId)) {
               await puppet.roomPayloadDirty(payload.roomId)
               await puppet.roomMemberPayloadDirty(payload.roomId)
@@ -270,9 +283,13 @@ function registerPuppetEventBridge (
         break
 
       case 'reset':
+        // Do not propagation `reset` event from puppet
         break
 
       case 'dirty':
+        /**
+         * https://github.com/wechaty/wechaty-puppet-service/issues/43
+         */
         puppet.on('dirty', async ({ payloadType, payloadId }) => {
           try {
             switch (payloadType) {
@@ -285,6 +302,9 @@ function registerPuppetEventBridge (
                 await dependencies.roomReady(payloadId)
                 break
 
+              /**
+               * Huan(202008): noop for the following
+               */
               case PUPPET.types.Payload.Friendship:
                 break
 

@@ -10,6 +10,7 @@ import type {
   ContactSelfInterface,
   FriendshipInterface,
   MessageInterface,
+  RoomInvitationInterface,
   RoomInterface,
 } from '../user-modules/mod.js'
 import type {
@@ -37,7 +38,7 @@ function createBridgeTestContext (
     messageFind: async () => undefined,
     postFind: async () => undefined,
     roomFind: async () => undefined,
-    roomInvitationLoad: () => ({} as unknown as Parameters<Dependencies['emit']>[1]),
+    roomInvitationLoad: () => ({} as unknown as RoomInvitationInterface),
     roomReady: async () => {},
     setReady: state => trace.push(`ready:${state}`),
     emit: function <EventName extends WechatyEventName> (
@@ -110,6 +111,35 @@ test('message event hydrates then forwards the same object in order', async t =>
 
   t.same(trace, ['bot:message', 'room:message'], 'should emit to the bot before forwarding to the room')
   t.equal(context.eventList[0]?.args[0], message, 'should forward the hydrated message object')
+})
+
+test('message event forwards to a listener contact when it has no room', async t => {
+  const puppet = new PuppetMock()
+  const trace: string[] = []
+  const listener = {
+    emit: (event: string) => trace.push(`contact:${event}`),
+  } as unknown as ContactInterface
+  const message = {
+    room: () => undefined,
+    listener: () => listener,
+  } as unknown as MessageInterface
+  const context = createBridgeTestContext()
+  context.dependencies.messageFind = async () => message
+  context.dependencies.emit = function <EventName extends WechatyEventName> (
+    event: EventName,
+    ...args: Parameters<WechatyEventListeners[EventName]>
+  ) {
+    trace.push(`bot:${event}`)
+    context.eventList.push({ event, args })
+    return true
+  }
+
+  registerPuppetEventBridge(puppet, context.dependencies)
+  puppet.emit('message', { messageId: 'message-id' })
+  await flushEvents()
+
+  t.same(trace, ['bot:message', 'contact:message'], 'should forward to the listener contact after the bot event')
+  t.equal(context.eventList[0]?.args[0], message, 'should forward the same hydrated message object')
 })
 
 test('message hydration failures are forwarded as errors without emitting messages', async t => {
