@@ -102,6 +102,7 @@ export class ResourceScope {
   readonly #controller = new AbortController()
   readonly #entries: ScopeEntry<any>[] = []
   readonly #inFlightCreations = new Set<Promise<void>>()
+  readonly #unsettledExternal = new Set<Promise<void>>()
   readonly #tasks = new Set<Promise<void>>()
   readonly #lateCleanupPromises = new Set<Promise<void>>()
   #pendingTaskErrors: unknown[] = []
@@ -253,6 +254,20 @@ export class ResourceScope {
   }
 
   /**
+   * Records an uncooperative async operation whose deadline already expired.
+   * `close()` does not block waiting for `operation`, but keeps
+   * `cleanupComplete: false` until `operation` actually settles.
+   */
+  trackUnsettled (operation: Promise<unknown>): void {
+    const tracked = Promise.resolve(operation)
+      .then(() => undefined, () => undefined)
+      .finally(() => {
+        this.#unsettledExternal.delete(tracked)
+      })
+    this.#unsettledExternal.add(tracked)
+  }
+
+  /**
    * Spawns a background task owned by this scope. Non-abort task rejections are
    * captured and surfaced during `close()` so no unhandled rejections escape.
    */
@@ -341,6 +356,7 @@ export class ResourceScope {
       errors.length === 0
       && allDisposed
       && this.#inFlightCreations.size === 0
+      && this.#unsettledExternal.size === 0
       && this.#tasks.size === 0
       && this.#lateCleanupPromises.size === 0
 

@@ -47,6 +47,10 @@ import type {
 import {
   WechatyBase,
 }                                 from './wechaty-base.ts'
+import {
+  LifecycleTimeoutError,
+  LifecycleUnsafeStateError,
+}                                 from '../lifecycle/mod.ts'
 
 import type {
   WechatyInterface,
@@ -278,9 +282,9 @@ test('lifecycle order and restart', async t => {
   }
 
   assert.deepEqual(trace, [
-    'init', 'init', 'puppet.start', 'onStart', 'start', 'onStop', 'stop', 'puppet.stop',
-    'init', 'init', 'puppet.start', 'onStart', 'start', 'onStop', 'stop', 'puppet.stop',
-  ], 'should preserve lifecycle ordering across restarts')
+    'init', 'puppet.start', 'onStart', 'start', 'onStop', 'puppet.stop', 'stop',
+    'init', 'puppet.start', 'onStart', 'start', 'onStop', 'puppet.stop', 'stop',
+  ], 'should execute single init, puppet before onStart/start, and puppet.stop before stop across restarts')
   assert.equal(startPuppet.mock.callCount(), 2, 'should start the puppet once per lifecycle')
   assert.equal(stopPuppet.mock.callCount(), 2, 'should stop the puppet once per lifecycle')
 })
@@ -357,12 +361,22 @@ test('startup puppet failure rejects consistently (#2855)', async t => {
       /puppet start failed/,
       'should reject start() when the puppet fails to start, even with an error listener',
     )
-    assert.equal(handledBot.state.active(), false, 'should not report active after a failed puppet start')
+    assert.equal(handledBot.state.kind, 'failed', 'should report failed state after a failed puppet start')
     assert.ok(errors.length >= 1, 'should emit the startup failure to an error listener')
     assert.equal(errors[0]?.message, expectedError.message, 'should preserve the startup failure message')
   } finally {
     await handledBot.stop()
   }
+  assert.equal(handledBot.state.kind, 'stopped', 'should transition cleanly to stopped after stop()')
+
+  // In-process verification without an error listener: same outcome, no pending hang!
+  const unhandledPuppet = new PuppetMock()
+  t.mock.method(unhandledPuppet, 'start', async () => { throw expectedError })
+  const unhandledBot = new WechatyBase({ puppet: unhandledPuppet })
+  await assert.rejects(unhandledBot.start(), /puppet start failed/)
+  assert.equal(unhandledBot.state.kind, 'failed')
+  await unhandledBot.stop()
+  assert.equal(unhandledBot.state.kind, 'stopped')
 
   const baseUrl = pathToFileURL(resolve('src/wechaty/wechaty-base.ts')).href
   const implUrl = pathToFileURL(resolve('src/wechaty/wechaty-impl.ts')).href
@@ -373,7 +387,7 @@ test('startup puppet failure rejects consistently (#2855)', async t => {
     `const puppet = new PuppetMock()`,
     `puppet.start = async () => { throw new Error('puppet start failed') }`,
     `const bot = new WechatyBase({ puppet })`,
-    `try { await bot.start(); process.exitCode = 1 } catch { process.exit(0) }`,
+    `try { await bot.start(); process.exitCode = 1 } catch { await bot.stop(); process.exit(0) }`,
   ].join(';')
   const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
   const result = spawnSync(nodeExecutable, [ '--input-type=module', '-e', script ], {
@@ -383,27 +397,84 @@ test('startup puppet failure rejects consistently (#2855)', async t => {
   assert.equal(result.status, 0, 'should reject startup without an error listener in an isolated process')
 })
 
-test('puppet startup timeout is tolerated', async t => {
+test('puppet startup timeout rejects with LifecycleTimeoutError and blocks unsafe overlap until hung start settles', async t => {
   const puppet = new PuppetMock()
-  const puppetStarted = new Promise<void>(resolveStarted => {
-    t.mock.method(puppet, 'start', () => {
-      resolveStarted()
-      return new Promise<void>(() => {})
-    })
+  let resolveHungStart!: () => void
+  const hungStartPromise = new Promise<void>(res => {
+    resolveHungStart = res
   })
-  const bot = new WechatyBase({ puppet })
-  bot.on('error', error => assert.fail('timeout should not emit error: ' + error))
 
-  try {
-    const start = bot.start()
-    await Promise.race([
-      puppetStarted,
-      start.then(() => { throw new Error('startup completed before puppet.start') }),
-    ])
-    assert.equal(await start, undefined, 'should continue startup after the puppet start timeout')
-  } finally {
-    await bot.stop()
+  t.mock.method(puppet, 'start', () => hungStartPromise)
+  const stopSpy = t.mock.method(puppet, 'stop', async () => {})
+
+  const bot = new WechatyBase({
+    puppet,
+    puppetStartTimeoutMs: 25,
+  })
+
+  await assert.rejects(
+    bot.start(),
+    LifecycleTimeoutError,
+    'should reject start() instead of falsely reporting running on puppet startup timeout',
+  )
+  assert.equal(bot.state.kind, 'failed')
+  if (bot.state.kind === 'failed') {
+    assert.equal(bot.state.phase, 'start')
+    assert.equal(bot.state.cleanupComplete, false, 'cleanup remains unproven while puppet.start() is still hung')
   }
+  assert.equal(stopSpy.mock.callCount(), 1, 'should invoke puppet.stop() during timeout rollback')
+
+  await assert.rejects(
+    bot.start(),
+    LifecycleUnsafeStateError,
+    'should block overlapping start() while hung puppet.start() has not settled',
+  )
+
+  resolveHungStart()
+  await new Promise<void>(res => setImmediate(res))
+  await bot.stop()
+  assert.equal(bot.state.kind, 'stopped')
+})
+
+test('Wechaty detaches puppet listeners on stop, awaits stop callbacks before stop event, and fences reset against user stop', async t => {
+  const puppet = new PuppetMock()
+  t.mock.method(puppet, 'start', async () => {})
+  t.mock.method(puppet, 'stop', async () => {})
+
+  const bot = new WechatyBase({ puppet })
+  const stopOrder: string[] = []
+  bot.on('stop', () => stopOrder.push('event:stop'))
+
+  for (let cycle = 1; cycle <= 3; cycle++) {
+    await bot.start()
+    assert.equal(puppet.listenerCount('message'), 1, `cycle ${cycle}: exactly one message listener while running`)
+    bot._stopCallbackList.push(async () => {
+      stopOrder.push(`callback:${cycle}`)
+    })
+    await bot.stop()
+    assert.equal(puppet.listenerCount('message'), 0, `cycle ${cycle}: message listener detached on stop`)
+  }
+
+  assert.deepEqual(stopOrder, [
+    'callback:1', 'event:stop',
+    'callback:2', 'event:stop',
+    'callback:3', 'event:stop',
+  ], 'stop callbacks must complete before stop event without setImmediate deferral')
+
+  // Calling reset() while stopped is a safe no-op and never starts a stopped bot.
+  await bot.reset('watchdog')
+  assert.equal(bot.state.kind, 'stopped')
+
+  // Unexpected puppet `stop` event transitions running Wechaty to `failed(phase=run)`.
+  await bot.start()
+  assert.equal(bot.state.kind, 'running')
+  puppet.emit('stop')
+  const failedState = await bot.whenState(s => s.kind === 'failed')
+  assert.equal(failedState.kind, 'failed')
+  if (failedState.kind === 'failed') {
+    assert.equal(failedState.phase, 'run')
+  }
+  await bot.stop()
 })
 
 // TODO: add test for event args

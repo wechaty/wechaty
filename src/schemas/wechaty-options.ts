@@ -17,9 +17,11 @@ interface OptionsPuppetName {
 }
 
 interface WechatyOptionsBase {
-  memory?        : MemoryCard,
-  name?          : string,
-  ioToken?       : string,
+  memory?               : MemoryCard,
+  name?                 : string,
+  ioToken?              : string,
+  puppetStartTimeoutMs? : number,
+  puppetStopTimeoutMs?  : number,
 }
 
 type WechatyOptionsPuppetInstance =
