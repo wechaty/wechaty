@@ -72,3 +72,28 @@ export type {
 export {
   IoClient,
 }                             from '../io-client.ts'
+export {
+  LIFECYCLE_DIAGNOSTICS_CHANNEL,
+  LifecycleAggregateCleanupError,
+  type LifecycleCallOptions,
+  LifecycleController,
+  type LifecycleControllerOptions,
+  type LifecycleDiagnosticRecord,
+  type LifecycleFailurePhase,
+  type LifecycleHookContext,
+  type LifecycleHooks,
+  type LifecycleState,
+  type LifecycleStateKind,
+  type LifecycleStopContext,
+  LifecycleSupersededError,
+  LifecycleTimeoutError,
+  LifecycleUnsafeStateError,
+  ReadinessGate,
+  type RecoveryOutcome,
+  type RecoveryToken,
+  type ResourceContext,
+  type ResourceDescriptor,
+  ResourceScope,
+  type ScopeCloseOptions,
+  type ScopeCloseResult,
+}                             from '../lifecycle/mod.ts'

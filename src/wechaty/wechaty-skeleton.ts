@@ -41,6 +41,8 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
   readonly id: string
 
   __memory?: MemoryCard
+  __skeletonInitialized = false
+
   get memory (): MemoryCard {
     if (!this.__memory) {
       throw new Error('NOMEMORY')
@@ -87,16 +89,16 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
         log.silly('WechatySkeleton', 'onStart() memory.load() had already loaded')
       }
     }
+    this.__skeletonInitialized = true
   }
 
   async start (): Promise<void> {
     log.verbose('WechatySkeleton', 'start()')
-    // no super.start()
-
-    /**
-     * Huan(202203): Call the init() functions (with super.init() inside them for chaining)
-     */
-    await this.init()
+    // Avoid redundant double `init()` when an outer orchestrator (`WechatyBase`)
+    // already initialized the instance for this startup attempt.
+    if (!this.__skeletonInitialized) {
+      await this.init()
+    }
   }
 
   async stop  (): Promise<void> {
@@ -119,6 +121,7 @@ type WechatySkeletonProtectedProperty =
   | '__events'
   | '__memory'
   | '__options'
+  | '__skeletonInitialized'
   | 'memory'
 
 export type {

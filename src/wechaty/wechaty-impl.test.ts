@@ -80,6 +80,7 @@ test('Wechaty interface', async _t => {
     abstract puppet      : WechatyInterface['puppet']
     abstract ready       : WechatyInterface['ready']
     abstract reset       : WechatyInterface['reset']
+    abstract restart     : WechatyInterface['restart']
     abstract say         : WechatyInterface['say']
     abstract sleep       : WechatyInterface['sleep']
     abstract start       : WechatyInterface['start']
@@ -87,6 +88,7 @@ test('Wechaty interface', async _t => {
     abstract stop        : WechatyInterface['stop']
     abstract use         : WechatyInterface['use']
     abstract version     : WechatyInterface['version']
+    abstract whenState   : WechatyInterface['whenState']
     abstract wrapAsync   : WechatyInterface['wrapAsync']
 
   }

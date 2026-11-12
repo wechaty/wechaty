@@ -17,13 +17,33 @@
  *   limitations under the License.
  *
  */
+
+/**
+ * Cloud WebSocket bridge (`Io`) connecting a `Wechaty` instance to a remote
+ * Chatie/Wechaty IO endpoint.
+ *
+ * Owns its WebSocket connection, keep-alive ping timer, exponential-backoff
+ * reconnect timer, and per-run `Wechaty` event subscriptions through
+ * `LifecycleController` and `ResourceScope` without `state-switch`:
+ *   - Detaches all 8 `Wechaty` listeners on `stop()` or failed `start()`
+ *   - Reconnects on socket close only while genuinely `running` (never during
+ *     an uncompleted `starting` handshake)
+ *   - Settles `stop()` immediately if the WebSocket is already `CLOSED`
+ *   - Routes remote `reset` and `shutdown` commands through `Wechaty` lifecycle
+ *     methods instead of bypassing authority or calling `process.exit(0)`
+ */
 import WebSocket        from 'ws'
 
 import type * as PUPPET from 'wechaty-puppet'
-import { StateSwitch } from 'state-switch'
 
 import * as jsonRpcPeer from 'json-rpc-peer'
 
+import {
+  type LifecycleCallOptions,
+  LifecycleController,
+  type LifecycleState,
+  toAbortError,
+}                           from './lifecycle/mod.ts'
 import type {
   MessageInterface,
 }                     from './user-modules/mod.ts'
@@ -39,12 +59,29 @@ import {
   isJsonRpcRequest,
 }                   from './io-peer/io-peer.ts'
 
+export interface WebSocketLike {
+  readonly protocol: string
+  readonly readyState: number
+  on (event: string, listener: (...args: any[]) => void): unknown
+  once (event: string, listener: (...args: any[]) => void): unknown
+  off? (event: string, listener: (...args: any[]) => void): unknown
+  ping (): void
+  send (data: string, cb: (err?: Error) => void): void
+  close (): void
+  terminate? (): void
+}
+
 export interface IoOptions {
-  wechaty      : WechatyInterface,
-  token        : string,
-  apihost?     : string,
-  protocol?    : string,
-  servicePort? : number,
+  wechaty          : WechatyInterface,
+  token            : string,
+  apihost?         : string,
+  protocol?        : string,
+  servicePort?     : number,
+  createWebSocket? : (
+    endpoint: string,
+    protocol: string,
+    options: { headers: { Authorization: string } },
+  ) => WebSocketLike,
 }
 
 export const IO_EVENT_DICT = {
@@ -103,14 +140,14 @@ export class Io {
   protected readonly id       : string
   protected readonly protocol : string
   protected eventBuffer       : IoEvent[] = []
-  protected ws                : undefined | WebSocket
+  protected ws                : undefined | WebSocketLike
 
-  protected readonly state = new StateSwitch('Io', { log })
+  readonly #lifecycle         : LifecycleController
 
   protected reconnectTimer?   : ReturnType<typeof setTimeout>
   protected reconnectTimeout? : number
 
-  protected lifeTimer? : ReturnType<typeof setTimeout>
+  protected lifeTimer? : ReturnType<typeof setInterval>
 
   protected onMessage: undefined | Function
 
@@ -141,6 +178,61 @@ export class Io {
       })
     }
 
+    this.#lifecycle = new LifecycleController({
+      hooks: {
+        start: async ({ scope, signal }) => {
+          if (this.lifeTimer) {
+            throw new Error('lifeTimer exist')
+          }
+
+          this.registerEventHooks(scope)
+
+          const ws = await scope.acquire({
+            create: ({ signal: wsSignal }) => this.initWebSocket(wsSignal),
+            dispose: async () => {
+              this.clearTimers()
+              if (this.connected()) {
+                try {
+                  await this.send()
+                } catch (e) {
+                  log.warn('Io', 'stop() buffer flush failed: %s', (e as Error).message)
+                }
+              }
+              this.eventBuffer = []
+              await this.closeWebSocket()
+            },
+            interrupt: () => {
+              this.clearTimers()
+            },
+            name: 'ioWebSocket',
+          })
+
+          this.ws = ws
+          if (signal.aborted) {
+            throw toAbortError(signal.reason)
+          }
+
+          this.lifeTimer = setInterval(() => {
+            if (this.ws && this.connected()) {
+              log.silly('Io', 'start() setInterval() ws.ping()')
+              this.ws.ping()
+            }
+          }, 1000 * 10)
+          scope.onDispose(
+            () => this.clearTimers(),
+            () => this.clearTimers(),
+          )
+        },
+      },
+      name: 'Io',
+    })
+  }
+
+  /**
+   * Read-only lifecycle state snapshot of this `Io` instance.
+   */
+  public get state (): LifecycleState {
+    return this.#lifecycle.state
   }
 
   public toString () {
@@ -148,69 +240,86 @@ export class Io {
   }
 
   private connected () {
-    return this.ws && this.ws.readyState === WebSocket.OPEN
+    return Boolean(this.ws && this.ws.readyState === WebSocket.OPEN)
   }
 
-  public async start (): Promise<void> {
-    log.verbose('Io', 'start()')
-
+  private clearTimers (): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = undefined
+    }
     if (this.lifeTimer) {
-      throw new Error('lifeTimer exist')
-    }
-
-    this.state.active('pending')
-
-    try {
-      this.initEventHook()
-
-      this.ws = await this.initWebSocket()
-
-      this.options.wechaty.on('login', () => { this.scanPayload = undefined })
-      this.options.wechaty.on('scan', (qrcode, status) => {
-        this.scanPayload = {
-          ...this.scanPayload,
-          qrcode,
-          status,
-        }
-      })
-
-      this.lifeTimer = setInterval(() => {
-        if (this.ws && this.connected()) {
-          log.silly('Io', 'start() setInterval() ws.ping()')
-          // TODO: check 'pong' event on ws
-          this.ws.ping()
-        }
-      }, 1000 * 10)
-
-      this.state.active(true)
-
-    } catch (e) {
-      log.warn('Io', 'start() exception: %s', (e as Error).message)
-      this.state.inactive(true)
-      throw e
+      clearInterval(this.lifeTimer)
+      this.lifeTimer = undefined
     }
   }
 
-  private initEventHook () {
-    log.verbose('Io', 'initEventHook()')
+  private async closeWebSocket (): Promise<void> {
+    const ws = this.ws
+    this.ws = undefined
+    if (!ws || ws.readyState === WebSocket.CLOSED) {
+      return
+    }
+
+    await new Promise<void>(resolve => {
+      let settled = false
+      const finish = () => {
+        if (settled) {
+          return
+        }
+        settled = true
+        resolve()
+      }
+      ws.once('close', finish)
+      ws.close()
+      if (ws.readyState === WebSocket.CLOSED) {
+        finish()
+      }
+    })
+  }
+
+  public async start (options?: LifecycleCallOptions): Promise<void> {
+    log.verbose('Io', 'start()')
+    return this.#lifecycle.start(options)
+  }
+
+  private registerEventHooks (scope: { listen: (target: any, event: string, listener: (...args: any[]) => any) => void }) {
+    log.verbose('Io', 'registerEventHooks()')
     const wechaty = this.options.wechaty
+    const safeSend = (ioEvent: IoEvent) => {
+      void this.send(ioEvent).catch(e => {
+        log.warn('Io', 'event forward failed (%s): %s', ioEvent.name, (e as Error).message)
+      })
+    }
 
-    wechaty.on('error',     error =>        this.send({ name: 'error',      payload: error }))
-    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: wechaty.puppet.contactPayload(user.id) }))
-    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: wechaty.puppet.contactPayload(user.id) }))
-    wechaty.on('message',   message =>      this.ioMessage(message))
-
-    // FIXME: payload schema need to be defined universal
-    // wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
-    wechaty.on('scan',      (qrcode, status) =>  this.send({ name: 'scan',  payload: { qrcode, status } } as IoEventScan))
+    scope.listen(wechaty, 'error',     error => safeSend({ name: 'error',     payload: error }))
+    scope.listen(wechaty, 'heartbeat', data  => safeSend({ name: 'heartbeat', payload: { cuid: this.id, data } }))
+    scope.listen(wechaty, 'login',     user  => {
+      this.scanPayload = undefined
+      safeSend({ name: 'login', payload: wechaty.puppet.contactPayload(user.id) })
+    })
+    scope.listen(wechaty, 'logout',    user  => safeSend({ name: 'logout',    payload: wechaty.puppet.contactPayload(user.id) }))
+    scope.listen(wechaty, 'message',   message => {
+      void this.ioMessage(message).catch(e => {
+        log.warn('Io', 'ioMessage() exception: %s', (e as Error).message)
+      })
+    })
+    scope.listen(wechaty, 'scan',      (qrcode, status) => {
+      this.scanPayload = {
+        ...this.scanPayload,
+        qrcode,
+        status,
+      }
+      safeSend({ name: 'scan', payload: { qrcode, status } } as IoEventScan)
+    })
   }
 
-  private async initWebSocket (): Promise<WebSocket> {
+  private async initWebSocket (signal?: AbortSignal): Promise<WebSocketLike> {
     log.verbose('Io', 'initWebSocket()')
-    // this.state.current('on', false)
+    if (signal?.aborted) {
+      throw toAbortError(signal.reason)
+    }
 
-    // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
     const auth = 'Token ' + this.options.token
     const headers = { Authorization: auth }
 
@@ -219,39 +328,58 @@ export class Io {
     }
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
-    // XXX quick and dirty: use no ssl for API_HOST other than official
-    // FIXME: use a configurable VARIABLE for the domain name at here:
     if (!/api\.chatie\.io/.test(this.options.apihost)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
     }
 
-    const ws = this.ws = new WebSocket(endpoint, this.protocol, { headers })
+    const ws: WebSocketLike = this.options.createWebSocket
+      ? this.options.createWebSocket(endpoint, this.protocol, { headers })
+      : new WebSocket(endpoint, this.protocol, { headers })
+    this.ws = ws
 
     ws.on('open',     () => this.wsOnOpen(ws))
     ws.on('message',  data => this.wsOnMessage(data))
     ws.on('error',    e => this.wsOnError(e))
-    ws.on('close',    (code, reason) => this.wsOnClose(ws, code, reason.toString()))
+    ws.on('close',    (code: number, reason?: Buffer | string) => {
+      this.wsOnClose(ws, code, reason ? reason.toString() : '')
+    })
 
-    await new Promise((resolve, reject) => {
-      ws.once('open', resolve)
-      ws.once('error', reject)
-      ws.once('close', reject)
+    await new Promise<void>((resolve, reject) => {
+      let onAbort: (() => void) | undefined
+      const cleanupAbort = () => {
+        if (onAbort && signal) {
+          signal.removeEventListener('abort', onAbort)
+        }
+      }
+      if (signal) {
+        onAbort = () => {
+          ws.close()
+          reject(toAbortError(signal.reason))
+        }
+        signal.addEventListener('abort', onAbort, { once: true })
+      }
+      ws.once('open', () => {
+        cleanupAbort()
+        resolve()
+      })
+      ws.once('error', (err: unknown) => {
+        cleanupAbort()
+        reject(err)
+      })
+      ws.once('close', (code: number, reason?: Buffer | string) => {
+        cleanupAbort()
+        reject(new Error(`WebSocket closed before open (${code}): ${reason ? reason.toString() : ''}`))
+      })
     })
 
     return ws
   }
 
-  private wsOnOpen (ws: WebSocket): void {
+  private wsOnOpen (ws: WebSocketLike): void {
     if (this.protocol !== ws.protocol) {
       log.error('Io', 'wsOnOpen() require protocol[%s] failed', this.protocol)
-      // XXX deal with error?
     }
     log.verbose('Io', 'wsOnOpen() connected with protocol [%s]', ws.protocol)
-    // this.currentState('connected')
-    // this.state.current('on')
-
-    // FIXME: how to keep alive???
-    // ws._socket.setKeepAlive(true, 100)
 
     this.reconnectTimeout = undefined
 
@@ -331,8 +459,9 @@ export class Io {
 
       case 'shutdown':
         log.info('Io', 'on(shutdown): %s', ioEvent.payload)
-        process.exit(0)
-        // eslint-disable-next-line
+        // Route remote shutdown through authoritative bot shutdown; never terminate
+        // the host process unilaterally inside a library resource component.
+        await this.options.wechaty.stop()
         break
 
       case 'update':
@@ -443,11 +572,13 @@ export class Io {
   }
 
   private wsOnClose (
-    ws      : WebSocket,
+    ws      : WebSocketLike,
     code    : number,
     message : string,
   ): void {
-    if (this.state.active()) {
+    // Reconnect only when `Io` is genuinely `running` (never during a failed
+    // initial `starting` handshake or an active `stopping` teardown).
+    if (this.#lifecycle.state.kind === 'running') {
       log.warn('Io', 'wsOnClose() close event[%d: %s]', code, message)
       ws.close()
       this.reconnect()
@@ -457,8 +588,8 @@ export class Io {
   private reconnect () {
     log.verbose('Io', 'reconnect()')
 
-    if (this.state.inactive()) {
-      log.warn('Io', 'reconnect() canceled because state.target() === offline')
+    if (this.#lifecycle.state.kind !== 'running') {
+      log.warn('Io', 'reconnect() canceled because state is %s', this.#lifecycle.state.kind)
       return
     }
 
@@ -480,8 +611,10 @@ export class Io {
     log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout / 1000))
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined
-      this.initWebSocket().catch(console.error)
-    }, this.reconnectTimeout)// as any as NodeJS.Timer
+      if (this.#lifecycle.state.kind === 'running') {
+        this.initWebSocket().catch(console.error)
+      }
+    }, this.reconnectTimeout)
   }
 
   private async send (ioEvent?: IoEvent): Promise<void> {
@@ -527,40 +660,9 @@ export class Io {
     }
   }
 
-  public async stop (): Promise<void> {
+  public async stop (options?: LifecycleCallOptions): Promise<void> {
     log.verbose('Io', 'stop()')
-
-    if (!this.ws) {
-      throw new Error('no ws')
-    }
-
-    this.state.inactive('pending')
-
-    // try to send IoEvents in buffer
-    await this.send()
-    this.eventBuffer = []
-
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-      this.reconnectTimer = undefined
-    }
-
-    if (this.lifeTimer) {
-      clearInterval(this.lifeTimer)
-      this.lifeTimer = undefined
-    }
-
-    this.ws.close()
-    await new Promise<void>(resolve => {
-      if (this.ws) {
-        this.ws.once('close', resolve)
-      } else {
-        resolve()
-      }
-    })
-    this.ws = undefined
-
-    this.state.inactive(true)
+    return this.#lifecycle.stop(options)
   }
 
   /**

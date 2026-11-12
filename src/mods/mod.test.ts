@@ -24,6 +24,11 @@ function publicTypeContract (bot: WECHATY.Wechaty, contact: Contact) {
   void bot.say(sayableText)
   void bot.say(contact)
 
+  const currentLifecycleState: WECHATY.LifecycleState = bot.state
+  void currentLifecycleState
+  void bot.restart()
+  void bot.whenState(s => s.kind === 'running')
+
   type BoundContactImplementation = ContactImpl
   type ImplementationConstructor = typeof WechatyImpl
   const implementationConstructor: ImplementationConstructor = WECHATY.impls.WechatyImpl
@@ -38,10 +43,13 @@ function publicTypeContract (bot: WECHATY.Wechaty, contact: Contact) {
 void publicTypeContract
 
 test('Export of the Framework', async _t => {
-  assert.ok(WECHATY.impls,     'should export impls.*')
-  assert.ok(WECHATY.types,     'should export types.*')
-  assert.ok(WECHATY.IoClient,  'should export IoClient')
-  assert.ok(WECHATY.log,       'should export log')
+  assert.ok(WECHATY.impls,               'should export impls.*')
+  assert.ok(WECHATY.types,               'should export types.*')
+  assert.ok(WECHATY.IoClient,            'should export IoClient')
+  assert.ok(WECHATY.LifecycleController, 'should export LifecycleController')
+  assert.ok(WECHATY.ResourceScope,       'should export ResourceScope')
+  assert.ok(WECHATY.ReadinessGate,       'should export ReadinessGate')
+  assert.ok(WECHATY.log,                 'should export log')
 })
 
 test('Config setting', async _t => {
