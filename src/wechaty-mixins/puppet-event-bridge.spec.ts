@@ -196,7 +196,7 @@ test('login, friendship, and room-join handlers preserve their event forwarding'
   t.ok(context.eventList.some(({ event, args }) => event === 'login' && args[0] === contactSelf), 'should emit login contact')
   t.ok(context.eventList.some(({ event, args }) => event === 'friendship' && args[0] === friendship), 'should emit loaded friendship')
   t.ok(context.trace.indexOf('bot:friendship') < context.trace.indexOf('contact:friendship'), 'should emit friendship before contact forwarding')
-  t.ok(context.trace.indexOf('bot:room-join') < context.trace.indexOf('room:join'), 'should emit room-join before room forwarding')
+  t.same(context.trace.filter(event => event === 'bot:room-join' || event === 'room:join'), ['bot:room-join', 'room:join'], 'should emit room-join before room forwarding')
 })
 
 test('ready and scan events update readiness and emit in order', async t => {
