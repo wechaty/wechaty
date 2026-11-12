@@ -358,7 +358,9 @@ function registerPuppetEventBridge (
   log.verbose('PuppetEventBridge', 'registerPuppetEventBridge() ... done')
 }
 
-export {
+export type {
   PuppetEventBridgeDependencies,
+}
+export {
   registerPuppetEventBridge,
 }
