@@ -22,12 +22,14 @@ import Url from 'url'
 import type * as PUPPET     from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import { openGraph }          from '../helper-functions/open-graph.js'
-import { validationMixin }    from '../user-mixins/validation.js'
-import { wechatifyMixinBase } from '../user-mixins/wechatify.js'
-import { log } from '../config.js'
+import { openGraph }          from '../helper-functions/open-graph.ts'
+import { validationMixin }    from '../user-mixins/validation.ts'
+import { wechatifyMixinBase } from '../user-mixins/wechatify.ts'
+import { log } from '../config.ts'
 
 class UrlLinkMixin extends wechatifyMixinBase() {
+
+  public readonly payload: PUPPET.payloads.UrlLink
 
   /**
    *
@@ -98,9 +100,10 @@ class UrlLinkMixin extends wechatifyMixinBase() {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: PUPPET.payloads.UrlLink,
+    payload: PUPPET.payloads.UrlLink,
   ) {
     super()
+    this.payload = payload
     log.verbose('UrlLink', 'constructor()')
     // Huan(202110): it is ok to create a raw one without wechaty instance
     // guardWechatifyClass.call(this, UrlLink)

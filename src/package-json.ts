@@ -4,7 +4,7 @@
  * This file will be overwrite when we publish NPM module
  * by scripts/generate-package-json.sh
  */
-import type { PackageJsonWechaty } from './config.js'
+import type { PackageJsonWechaty } from './config.ts'
 
 /**
  * Huan(202108):

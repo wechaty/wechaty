@@ -29,11 +29,11 @@ import type {
   MiniProgramInterface,
   PostInterface,
   UrlLinkInterface,
-}                           from '../user-modules/mod.js'
+}                           from '../user-modules/mod.ts'
 
 import type {
   WechatyInterface,
-}                           from '../wechaty/mod.js'
+}                           from '../wechaty/mod.ts'
 
 type Sayable =
   | ContactInterface

@@ -6,7 +6,7 @@ import type {
   MessageInterface,
   RoomInterface,
   RoomInvitationInterface,
-}                   from '../user-modules/mod.js'
+}                   from '../user-modules/mod.ts'
 
 export const ROOM_EVENT_DICT = {
   invite  : 'tbw',

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,74 +18,65 @@
  *   limitations under the License.
  *
  */
-import {
-  test,
-}           from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
-import { WechatyBuilder } from '../wechaty-builder.js'
+import { WechatyBuilder } from '../wechaty-builder.ts'
 
 import {
   ContactImpl,
-  ContactProtectedProperty,
-}                             from './contact.js'
+  type ContactProtectedProperty,
+}                             from './contact.ts'
 
 test('findAll()', async t => {
   const EXPECTED_NAME = 'TestingBot'
 
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
 
   const mockContact = puppet.mocker.createContact({ name: EXPECTED_NAME })
 
+  started = true
   await wechaty.start()
   await puppet.mocker.login(mockContact)
 
   const contactList = await wechaty.Contact.findAll()
-  t.equal(contactList.length, 1, 'should find 1 contact')
-  t.equal(contactList[0]!.name(), EXPECTED_NAME, 'should get name from payload')
-  t.same(contactList[0]!.payload, mockContact.payload, 'should get payload from mockContact')
+  assert.equal(contactList.length, 1, 'should find 1 contact')
+  assert.equal(contactList[0]!.name(), EXPECTED_NAME, 'should get name from payload')
+  assert.deepStrictEqual(contactList[0]!.payload, mockContact.payload, 'should get payload from mockContact')
 
   await wechaty.stop()
+  started = false
 })
 
-test('Should not be able to instanciate directly', async t => {
-  t.throws(() => {
-    const c = ContactImpl.load('xxx')
-    t.fail(c.name())
-  }, 'should throw when `Contact.load()`')
+test('Should not be able to instanciate directly', async _t => {
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `Contact.load()`')
 
-  t.throws(() => {
-    const c = ContactImpl.load('xxx')
-    t.fail(c.name())
-  }, 'should throw when `Contact.load()`')
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `Contact.load()`')
 })
 
-test('Should not be able to instanciate through cloneClass without puppet', async t => {
-  t.throws(() => {
-    const c = ContactImpl.load('xxx')
-    t.fail(c.name())
-  }, 'should throw when `MyContact.load()` without puppet')
+test('Should not be able to instanciate through cloneClass without puppet', async _t => {
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `MyContact.load()` without puppet')
 
-  t.throws(() => {
-    const c = ContactImpl.load('xxx')
-    t.fail(c.name())
-  }, 'should throw when `MyContact.load()` without puppet')
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when `MyContact.load()` without puppet')
 
 })
 
-test('should throw when instanciate the global class', async t => {
-  t.throws(() => {
-    const c = ContactImpl.load('xxx')
-    t.fail('should not run to here')
-    t.fail(c.toString())
-  }, 'should throw when we instanciate a global class')
+test('should throw when instanciate the global class', async _t => {
+  assert.throws(() => ContactImpl.load('xxx'), 'should throw when we instanciate a global class')
 })
 
-test('ProtectedProperties', async t => {
+test('ProtectedProperties', async _t => {
   type NotExistInWechaty = Exclude<ContactProtectedProperty, keyof ContactImpl>
   type NotExistTest = NotExistInWechaty extends never ? true : false
 
   const noOneLeft: NotExistTest = true
-  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
+  assert.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })

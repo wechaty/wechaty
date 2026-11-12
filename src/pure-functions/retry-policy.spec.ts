@@ -1,11 +1,12 @@
 #!/usr/bin/env -S node --import=tsx/esm
+import assert from 'node:assert/strict'
 import {
   test,
-}           from 'tstest'
+}           from 'node:test'
 
 import {
   retryPolicy,
-}           from './retry-policy.js'
+}           from './retry-policy.ts'
 
 async function withImmediateTimers<T> (
   callback: (delays: number[]) => Promise<T>,
@@ -42,7 +43,7 @@ test('retry policy preserves Cockatiel 2.0.2 behavior contract', async t => {
     retryPolicy.onRetry(({ delay }) => retryDelays.push(delay)),
     retryPolicy.onSuccess(({ duration }) => successDurations.push(duration)),
   ]
-  t.teardown(() => disposables.forEach(disposable => disposable.dispose()))
+  t.after(() => disposables.forEach(disposable => disposable.dispose()))
 
   let successCalls = 0
   retryDelays.length = 0
@@ -53,11 +54,11 @@ test('retry policy preserves Cockatiel 2.0.2 behavior contract', async t => {
       return 'success'
     })
 
-    t.equal(result, 'success', 'returns the initial successful result')
-    t.equal(successCalls, 1, 'does not repeat a successful call')
-    t.equal(delays.length, 0, 'does not wait when the initial call succeeds')
-    t.equal(retryDelays.length, 0, 'does not emit retry events')
-    t.equal(successDurations.length, 1, 'emits one success event')
+    assert.equal(result, 'success', 'returns the initial successful result')
+    assert.equal(successCalls, 1, 'does not repeat a successful call')
+    assert.equal(delays.length, 0, 'does not wait when the initial call succeeds')
+    assert.equal(retryDelays.length, 0, 'does not emit retry events')
+    assert.equal(successDurations.length, 1, 'emits one success event')
   })
 
   let recoveryCalls = 0
@@ -72,14 +73,14 @@ test('retry policy preserves Cockatiel 2.0.2 behavior contract', async t => {
       return 'recovered'
     })
 
-    t.equal(result, 'recovered', 'returns the result after transient failures')
-    t.equal(recoveryCalls, 3, 'retries twice before recovering')
-    t.equal(delays.length, 2, 'waits once for each retry')
-    t.equal(retryDelays.length, 2, 'emits one event for each retry')
-    t.ok(delays.every(delay => delay >= 0 && delay <= 10_000), 'keeps jittered delays within the configured maximum')
-    t.ok(delays[0]! >= 0, 'has a non-negative first delay')
-    t.ok(retryDelays.every(delay => delay >= 0 && delay <= 10_000), 'reports jittered delays within the configured maximum')
-    t.equal(successDurations.length, 1, 'emits one success event after recovery')
+    assert.equal(result, 'recovered', 'returns the result after transient failures')
+    assert.equal(recoveryCalls, 3, 'retries twice before recovering')
+    assert.equal(delays.length, 2, 'waits once for each retry')
+    assert.equal(retryDelays.length, 2, 'emits one event for each retry')
+    assert.ok(delays.every(delay => delay >= 0 && delay <= 10_000), 'keeps jittered delays within the configured maximum')
+    assert.ok(delays[0]! >= 0, 'has a non-negative first delay')
+    assert.ok(retryDelays.every(delay => delay >= 0 && delay <= 10_000), 'reports jittered delays within the configured maximum')
+    assert.equal(successDurations.length, 1, 'emits one success event after recovery')
   })
 
   const finalError = new Error('exhausted')
@@ -97,11 +98,11 @@ test('retry policy preserves Cockatiel 2.0.2 behavior contract', async t => {
       caughtError = error
     }
 
-    t.equal(caughtError, finalError, 'propagates the final error unchanged')
-    t.equal(exhaustedCalls, 4, 'makes the initial call plus three retries')
-    t.equal(delays.length, 3, 'waits for each of the three retries')
-    t.equal(retryDelays.length, 3, 'emits one event for each retry')
-    t.ok(delays.every(delay => delay >= 0 && delay <= 10_000), 'caps all exhausted-retry delays at ten seconds')
-    t.equal(successDurations.length, 0, 'does not emit a success event')
+    assert.equal(caughtError, finalError, 'propagates the final error unchanged')
+    assert.equal(exhaustedCalls, 4, 'makes the initial call plus three retries')
+    assert.equal(delays.length, 3, 'waits for each of the three retries')
+    assert.equal(retryDelays.length, 3, 'emits one event for each retry')
+    assert.ok(delays.every(delay => delay >= 0 && delay <= 10_000), 'caps all exhausted-retry delays at ten seconds')
+    assert.equal(successDurations.length, 0, 'does not emit a success event')
   })
 })

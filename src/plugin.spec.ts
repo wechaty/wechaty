@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,20 +18,18 @@
  *   limitations under the License.
  *
  */
-import {
-  test,
-  sinon,
-}           from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import type { Wechaty } from './mods/mod.js'
-import { WechatyBuilder } from './wechaty-builder.js'
+import type { Wechaty } from './mods/mod.ts'
+import { WechatyBuilder } from './wechaty-builder.ts'
 
 import {
-  WechatyPlugin,
+  type WechatyPlugin,
   isWechatyPluginUninstaller,
-}                               from './plugin.js'
+}                               from './plugin.ts'
 
 /**
  *
@@ -42,10 +40,16 @@ import {
  *
  */
 test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t => {
-  const spyPluginInstall    = sinon.spy()
-  const spyPluginUninstall  = sinon.spy()
+  const spyPluginInstall    = t.mock.fn()
+  const spyPluginUninstall  = t.mock.fn()
 
   const bot = WechatyBuilder.build({ puppet: new PuppetMock() })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await bot.stop()
+    }
+  })
 
   const plugin: WechatyPlugin = (_bot: Wechaty) => {
     spyPluginInstall()
@@ -54,34 +58,36 @@ test('Wechaty Plugin uninstaller should be called after wechaty.stop()', async t
     }
   }
 
-  t.ok(spyPluginInstall.notCalled, 'should be clean for install spy')
-  t.ok(spyPluginUninstall.notCalled, 'should be clean for uninstall spy')
+  assert.equal(spyPluginInstall.mock.callCount(), 0, 'should be clean for install spy')
+  assert.equal(spyPluginUninstall.mock.callCount(), 0, 'should be clean for uninstall spy')
 
   const uninstaller = bot.use(plugin)
-  t.ok(spyPluginInstall.calledOnce, 'should called install spy right after use() before start()')
-  t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after use()')
+  assert.equal(spyPluginInstall.mock.callCount(), 1, 'should called install spy right after use() before start()')
+  assert.equal(spyPluginUninstall.mock.callCount(), 0, 'should not call uninstall spy after use()')
 
+  started = true
   await bot.start()
-  t.ok(spyPluginInstall.calledOnce, 'should called install spy after start()')
-  t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after start()')
+  assert.equal(spyPluginInstall.mock.callCount(), 1, 'should called install spy after start()')
+  assert.equal(spyPluginUninstall.mock.callCount(), 0, 'should not call uninstall spy after start()')
 
-  spyPluginInstall.resetHistory()
+  spyPluginInstall.mock.resetCalls()
   await bot.stop()
-  t.ok(spyPluginInstall.notCalled, 'should not called with stop()')
+  started = false
+  assert.equal(spyPluginInstall.mock.callCount(), 0, 'should not called with stop()')
   await new Promise(setImmediate) // clean the event loop
-  t.ok(spyPluginUninstall.notCalled, 'should not call uninstall spy after stop()')
+  assert.equal(spyPluginUninstall.mock.callCount(), 0, 'should not call uninstall spy after stop()')
 
   uninstaller()
-  t.ok(spyPluginUninstall.calledOnce, 'should called uninstall spy after call uninstaller()')
+  assert.equal(spyPluginUninstall.mock.callCount(), 1, 'should called uninstall spy after call uninstaller()')
 })
 
-test('isWechatyPluginUninstaller()', async t => {
+test('isWechatyPluginUninstaller()', async _t => {
   const FIXTURES = [
     [ undefined, false ],
     [ () => {}, true ],
   ] as const
 
   for (const [ uninstaller, expected ] of FIXTURES) {
-    t.equal(isWechatyPluginUninstaller(uninstaller), expected, `isWechatyPluginUninstaller(${uninstaller}) === ${expected}`)
+    assert.equal(isWechatyPluginUninstaller(uninstaller), expected, `isWechatyPluginUninstaller(${uninstaller}) === ${expected}`)
   }
 })

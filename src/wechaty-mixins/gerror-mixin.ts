@@ -1,13 +1,11 @@
 import { log }        from 'wechaty-puppet'
 import {
   GError,
-  WrapAsync,
+  type WrapAsync,
   wrapAsyncError,
 }                     from 'gerror'
 
-import { wechatyCaptureException }  from '../raven.js'
-
-import type { WechatySkeleton }      from '../wechaty/mod.js'
+import type { WechatySkeleton }      from '../wechaty/mod.ts'
 
 const gErrorMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatyGErrorMixin', 'gErrorMixin(%s)', mixinBase.name)
@@ -56,7 +54,6 @@ const gErrorMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: Mixin
         gerror = GError.from(arg0)
       }
 
-      wechatyCaptureException(gerror)
       return super.emit('error', gerror)
     }
 

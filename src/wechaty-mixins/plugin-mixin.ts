@@ -3,17 +3,17 @@ import { log }              from 'wechaty-puppet'
 import type {
   WechatyPlugin,
   WechatyPluginUninstaller,
-}                             from '../plugin.js'
+}                             from '../plugin.ts'
 import {
   isWechatyPluginUninstaller,
-}                             from '../plugin.js'
+}                             from '../plugin.ts'
 
 import type {
   WechatySkeleton,
-}                       from '../wechaty/mod.js'
+}                       from '../wechaty/mod.ts'
 
-import type { GErrorMixin } from './gerror-mixin.js'
-import type { MiscMixin }   from './misc-mixin.js'
+import type { GErrorMixin } from './gerror-mixin.ts'
+import type { MiscMixin }   from './misc-mixin.ts'
 
 interface Plugable {
   use (

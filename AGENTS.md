@@ -1,5 +1,7 @@
 # Instructions for coding agents
 
+- Use node:test for a shared Node.js/Deno test suite; collect coverage natively in both runtimes, publish LCOV and HTML reports as GitHub Actions artifacts, and enforce independent, measured coverage regression baselines without third-party coverage services.
+
 ## Project
 
 Wechaty is a TypeScript SDK for building chatbots across messaging platforms.
@@ -57,7 +59,7 @@ Read this before running `git push`.
 | `src/cli/`, `bin/` | CLI commands and package binaries |
 | `src/io*.ts`, `src/io-peer/` | Legacy Io service; avoid adding to it |
 
-Avoid `dist/`, `coverage/`, `.nyc_output/`, and `node_modules/`, except when
+Avoid `dist/`, `coverage/`, and `node_modules/`, except when
 reading dependency contracts.
 
 ## Lifecycle invariants
@@ -131,11 +133,15 @@ outermost.
 
 - Reference GitHub Actions by version tags (for example, `@v6`), not commit hashes.
 - The package is ESM-only and needs the Node.js and npm versions in `engines`.
-  Use `import` and explicit extensions for relative imports. `.ts` imports are
-  supported by `rewriteRelativeImportExtensions`, which emits `.js` paths in
-  compiled output. Existing `.js` imports remain supported.
+  Node.js runs the `.ts` sources directly; only packaging compiles to `dist/`.
+  Relative imports must end in `.ts`; `rewriteRelativeImportExtensions` emits
+  `.js` paths in compiled JavaScript.
+- `erasableSyntaxOnly` is enabled: no enums, namespaces with values, or
+  constructor parameter properties. Declare a field and assign it instead.
 - Compiler flags to expect: use `override`, `process.env['NAME']`, and `import type`
   for types. Indexed access may be `undefined`.
+- `verbatimModuleSyntax` is enabled; mark type-only imports with `import type` or
+  inline `type` modifiers, and keep runtime side-effect imports explicit.
 - Avoid new `any` and unsafe casts. Existing ones sit mostly at mixin boundaries.
 - Biome's formatter is off, so match nearby style by hand: two spaces, no
   semicolons, and a space before method parentheses.
@@ -148,28 +154,37 @@ outermost.
 
 ## Tests and validation
 
-Run the narrowest test first:
+Test sources use `node:test` and `node:assert/strict`. `npm test` runs the full
+suite on Node.js from the TypeScript sources after linting, with no build step.
+The same suite also runs under Deno, which is experimental and not a supported
+runtime; provide the Node executable for subprocess fixtures:
 
 ```sh
-NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage src/plugin.spec.ts
+NODE_BINARY="$(command -v node)" npm run test:unit:deno
 ```
 
-For the pre-push integration test, configure the runner timeout explicitly.
-Its synchronous Git/npm fixtures can exceed the default 30 seconds and delay
-in-test timeout announcements:
+Run a focused Node test file with:
 
 ```sh
-NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage --timeout=180 tests/pre-push.spec.ts
+npm run test:unit:file -- src/plugin.spec.ts
 ```
 
-- Specs sit beside the source as `*.spec.ts`, or under `tests/`, and import `test`
-  and `sinon` from `tstest`.
+Run one Deno test file with:
+
+```sh
+NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.spec.ts
+```
+
+- Specs sit beside the source as `*.spec.ts`, or under `tests/`, and import
+  `test` from `node:test` and assertions from `node:assert/strict`.
 - Always set the puppet explicitly, usually `new PuppetMock()`, and use
   `puppet.mocker` for data. The default puppet is a real protocol.
-- Call `await wechaty.stop()` in each test that starts a bot, or timers can keep
-  the test process alive.
+- Register `t.after()` cleanup before starting a bot, and stop it before the test
+  completes, or timers can keep the test process alive.
 - Register an `error` listener when a test exercises failure paths.
 - CI runs on Linux, macOS, and Windows, so keep tests portable.
+- The pre-push integration tests use a 180-second test timeout and per-command
+  subprocess timeouts.
 
 | Change | Check |
 | --- | --- |
@@ -178,7 +193,7 @@ NODE_OPTIONS=--import=tsx/esm npx tap --no-coverage --timeout=180 tests/pre-push
 | Shell scripts | `npm run test:shell` (not part of `npm test`) |
 | Dockerfiles or entrypoint | `./scripts/docker.sh build` and `./scripts/docker.sh test` |
 | Markdown | `npx markdownlint <file>` (`npm run lint:md` only checks the README) |
-| Before handoff | `npm run build` and `npm test` |
+| Before handoff | `npm test`, plus `npm run build` if the change could affect emitted output |
 
 Before handing off, report the commands you ran and anything you could not run.
 

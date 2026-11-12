@@ -22,14 +22,16 @@ import type {
   FileBoxInterface,
 }                   from 'file-box'
 import type { Constructor } from 'clone-class'
-import { validationMixin } from '../user-mixins/validation.js'
-import { log } from '../config.js'
+import { validationMixin } from '../user-mixins/validation.ts'
+import { log } from '../config.ts'
 
 import {
   wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.ts'
 
 class ImageMixin extends wechatifyMixinBase() {
+
+  public id: string
 
   static create (id: string): ImageInterface {
     log.verbose('Image', 'static create(%s)', id)
@@ -39,9 +41,10 @@ class ImageMixin extends wechatifyMixinBase() {
   }
 
   constructor (
-    public id: string,
+    id: string,
   ) {
     super()
+    this.id = id
     log.verbose('Image', 'constructor(%s)', id)
   }
 

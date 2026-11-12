@@ -1,7 +1,8 @@
 #!/usr/bin/env -S node --import=tsx/esm
+import assert from 'node:assert/strict'
 import {
   test,
-}           from 'tstest'
+}           from 'node:test'
 
 import * as PUPPET from 'wechaty-puppet'
 import {
@@ -10,7 +11,7 @@ import {
 
 import {
   WechatyBuilder,
-}           from '../wechaty-builder.js'
+}           from '../wechaty-builder.ts'
 
 async function withImmediateTimers<T> (
   callback: () => Promise<T>,
@@ -33,7 +34,7 @@ async function withImmediateTimers<T> (
   }
 }
 
-test('accept retries contact synchronization without repeating provider acceptance', async t => {
+test('accept retries contact synchronization without repeating provider acceptance', async () => {
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
   wechaty.on('error', () => {})
@@ -74,16 +75,16 @@ test('accept retries contact synchronization without repeating provider acceptan
 
     await withImmediateTimers(() => friendship.accept())
 
-    t.equal(acceptCalls, 1, 'accepts the friendship once before synchronization')
-    t.equal(contactPayloadCalls, 3, 'retries contact synchronization until it succeeds')
-    t.ok(contact.isReady(), 'leaves the contact ready after synchronization')
-    t.equal(syncCalls, 1, 'runs the final contact sync once')
+    assert.equal(acceptCalls, 1, 'accepts the friendship once before synchronization')
+    assert.equal(contactPayloadCalls, 3, 'retries contact synchronization until it succeeds')
+    assert.ok(contact.isReady(), 'leaves the contact ready after synchronization')
+    assert.equal(syncCalls, 1, 'runs the final contact sync once')
   } finally {
     await wechaty.stop()
   }
 })
 
-test('accept emits the final synchronization error and still syncs the contact', async t => {
+test('accept emits the final synchronization error and still syncs the contact', async () => {
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
   const emittedErrors: unknown[] = []
@@ -124,11 +125,11 @@ test('accept emits the final synchronization error and still syncs the contact',
 
     await withImmediateTimers(() => friendship.accept())
 
-    t.equal(acceptCalls, 1, 'does not repeat the provider acceptance')
-    t.equal(contactPayloadCalls, 4, 'makes the initial synchronization call plus three retries')
-    t.equal(emittedErrors.length, 5, 'emits each contact error and the final acceptance error')
-    t.ok(emittedErrors.every(error => error instanceof Error && error.message === finalError.message), 'preserves the final error message')
-    t.equal(syncCalls, 1, 'runs the final contact sync after retries are exhausted')
+    assert.equal(acceptCalls, 1, 'does not repeat the provider acceptance')
+    assert.equal(contactPayloadCalls, 4, 'makes the initial synchronization call plus three retries')
+    assert.equal(emittedErrors.length, 5, 'emits each contact error and the final acceptance error')
+    assert.ok(emittedErrors.every(error => error instanceof Error && error.message === finalError.message), 'preserves the final error message')
+    assert.equal(syncCalls, 1, 'runs the final contact sync after retries are exhausted')
   } finally {
     await wechaty.stop()
   }

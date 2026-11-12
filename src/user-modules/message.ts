@@ -25,53 +25,53 @@ import type {
 
 import type { Constructor } from 'clone-class'
 
-import { escapeRegExp }           from '../pure-functions/escape-regexp.js'
-import { timestampToDate }        from '../pure-functions/timestamp-to-date.js'
+import { escapeRegExp }           from '../pure-functions/escape-regexp.ts'
+import { timestampToDate }        from '../pure-functions/timestamp-to-date.ts'
 
 import {
   log,
   AT_SEPARATOR_REGEX,
-}                         from '../config.js'
+}                         from '../config.ts'
 import type {
   SayableSayer,
   Sayable,
-}                             from '../sayable/mod.js'
+}                             from '../sayable/mod.ts'
 import {
   messageToSayable,
-}                             from '../sayable/mod.js'
+}                             from '../sayable/mod.ts'
 
 import {
   wechatifyMixin,
-}                       from '../user-mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.ts'
 
 import type {
   ContactInterface,
   ContactImpl,
-}                       from './contact.js'
+}                       from './contact.ts'
 import type {
   RoomInterface,
   RoomImpl,
-}                       from './room.js'
+}                       from './room.ts'
 import type {
   UrlLinkInterface,
-}                       from './url-link.js'
+}                       from './url-link.ts'
 import type {
   MiniProgramInterface,
-}                       from './mini-program.js'
+}                       from './mini-program.ts'
 import type {
   ImageInterface,
-}                       from './image.js'
+}                       from './image.ts'
 import {
-  PostInterface,
+  type PostInterface,
   PostImpl,
-}                       from './post.js'
+}                       from './post.ts'
 import {
-  LocationInterface,
+  type LocationInterface,
   LocationImpl,
-}                       from './location.js'
+}                       from './location.ts'
 
-import { validationMixin } from '../user-mixins/validation.js'
-import type { ContactSelfImpl } from './contact-self.js'
+import { validationMixin } from '../user-mixins/validation.ts'
+import type { ContactSelfImpl } from './contact-self.ts'
 
 const MixinBase = wechatifyMixin(
   EventEmitter,
@@ -83,6 +83,8 @@ const MixinBase = wechatifyMixin(
  * [Examples/Ding-Dong-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
 class MessageMixin extends MixinBase implements SayableSayer {
+
+  public readonly id: string
 
   /**
    *
@@ -185,9 +187,10 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @hideconstructor
    */
   constructor (
-    public readonly id: string,
+    id: string,
   ) {
     super()
+    this.id = id
     log.verbose('Message', 'constructor(%s) for class %s',
       id || '',
       this.constructor.name,

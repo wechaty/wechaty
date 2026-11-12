@@ -34,16 +34,16 @@ import type {
 import {
   validationMixin,
   wechatifyMixinBase,
-}                       from '../user-mixins/mod.js'
+}                       from '../user-mixins/mod.ts'
 
-import type { Sayable } from '../sayable/mod.js'
+import type { Sayable } from '../sayable/mod.ts'
 import {
   sayableToPayload,
   payloadToSayableWechaty,
-}                       from '../sayable/mod.js'
+}                       from '../sayable/mod.ts'
 
-import { ContactImpl } from './contact.js'
-import type { ContactInterface } from './contact.js'
+import { ContactImpl } from './contact.ts'
+import type { ContactInterface } from './contact.ts'
 import { concurrencyExecuter } from 'rx-queue'
 
 interface Tap {
@@ -53,6 +53,8 @@ interface Tap {
 }
 
 class PostBuilder {
+
+  protected Impl: typeof PostMixin
 
   payload: PUPPET.payloads.PostClient
 
@@ -66,8 +68,9 @@ class PostBuilder {
    */
   static new (Impl: typeof PostMixin) { return new this(Impl) }
   protected constructor (
-    protected Impl: typeof PostMixin,
+    Impl: typeof PostMixin,
   ) {
+    this.Impl = Impl
     this.payload = {
       sayableList: [],  // Puppet Sayable Payload List
       type: PUPPET.types.Post.Unspecified,

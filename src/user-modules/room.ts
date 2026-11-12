@@ -27,40 +27,37 @@ import type {
 import {
   FOUR_PER_EM_SPACE,
   log,
-}                           from '../config.js'
-import {
-  wechatyCaptureException,
-}                           from '../raven.js'
+}                           from '../config.ts'
 
 import {
   guardQrCodeValue,
-}                           from '../pure-functions/guard-qr-code-value.js'
+}                           from '../pure-functions/guard-qr-code-value.ts'
 import {
   isTemplateStringArray,
-}                           from '../pure-functions/is-template-string-array.js'
+}                           from '../pure-functions/is-template-string-array.ts'
 
-import { RoomEventEmitter }             from '../schemas/mod.js'
+import { RoomEventEmitter }             from '../schemas/mod.ts'
 import {
   poolifyMixin,
   wechatifyMixin,
   validationMixin,
-}                                       from '../user-mixins/mod.js'
+}                                       from '../user-mixins/mod.ts'
 import {
   deliverSayableConversationPuppet,
-}                                       from '../sayable/mod.js'
+}                                       from '../sayable/mod.ts'
 import type {
   SayableSayer,
   Sayable,
-}                                       from '../sayable/mod.js'
-import { stringifyFilter }              from '../helper-functions/stringify-filter.js'
+}                                       from '../sayable/mod.ts'
+import { stringifyFilter }              from '../helper-functions/stringify-filter.ts'
 
 import {
-  ContactInterface,
+  type ContactInterface,
   ContactImpl,
-}                       from './contact.js'
+}                       from './contact.ts'
 import type {
   MessageInterface,
-}                       from './message.js'
+}                       from './message.ts'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -75,6 +72,8 @@ const MixinBase = wechatifyMixin(
  *
  */
 class RoomMixin extends MixinBase implements SayableSayer {
+
+  public readonly id: string
 
   /**
    * Create a new room.
@@ -258,9 +257,10 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    */
   constructor (
-    public readonly id: string,
+    id: string,
   ) {
     super()
+    this.id = id
     log.silly('Room', `constructor(${id})`)
   }
 
@@ -817,7 +817,6 @@ class RoomMixin extends MixinBase implements SayableSayer {
         log.warn('Room', 'topic(newTopic=%s) exception: %s',
           newTopic, (e && e.message) || e,
         )
-        wechatyCaptureException(e)
       })
 
     return future

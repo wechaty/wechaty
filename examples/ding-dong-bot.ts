@@ -20,9 +20,9 @@
 import {
   WechatyBuilder,
   ScanStatus,
-  Message,
-  Contact,
-}                     from '../src/mods/mod.js' // from 'wechaty'
+  type Message,
+  type Contact,
+}                     from '../src/mods/mod.ts' // from 'wechaty'
 
 import qrTerm from 'qrcode-terminal'
 import { FileBox } from 'file-box'

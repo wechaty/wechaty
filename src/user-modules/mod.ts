@@ -19,86 +19,86 @@
  */
 import {
   ContactImpl,
-  ContactInterface,
-  ContactConstructor,
-}                           from './contact.js'
+  type ContactInterface,
+  type ContactConstructor,
+}                           from './contact.ts'
 import {
   ContactSelfImpl,
-  ContactSelfInterface,
-  ContactSelfConstructor,
-}                           from './contact-self.js'
+  type ContactSelfInterface,
+  type ContactSelfConstructor,
+}                           from './contact-self.ts'
 import {
   FavoriteImpl,
-  FavoriteInterface,
-  FavoriteConstructor,
-}                           from './favorite.js'
+  type FavoriteInterface,
+  type FavoriteConstructor,
+}                           from './favorite.ts'
 import {
   FriendshipImpl,
-  FriendshipInterface,
-  FriendshipConstructor,
-}                           from './friendship.js'
+  type FriendshipInterface,
+  type FriendshipConstructor,
+}                           from './friendship.ts'
 import {
   ImageImpl,
-  ImageInterface,
-  ImageConstructor,
-}                           from './image.js'
+  type ImageInterface,
+  type ImageConstructor,
+}                           from './image.ts'
 import {
   LocationImpl,
-  LocationInterface,
-  LocationConstructor,
-}                           from './location.js'
+  type LocationInterface,
+  type LocationConstructor,
+}                           from './location.ts'
 import {
   MessageImpl,
-  MessageInterface,
-  MessageConstructor,
-}                           from './message.js'
+  type MessageInterface,
+  type MessageConstructor,
+}                           from './message.ts'
 import {
   MiniProgramImpl,
-  MiniProgramInterface,
-  MiniProgramConstructor,
-}                           from './mini-program.js'
+  type MiniProgramInterface,
+  type MiniProgramConstructor,
+}                           from './mini-program.ts'
 import {
   MomentImpl,
-  MomentInterface,
-  MomentConstructor,
-}                           from './moment.js'
+  type MomentInterface,
+  type MomentConstructor,
+}                           from './moment.ts'
 import {
   MoneyImpl,
-  MoneyInterface,
-  MoneyConstructor,
-}                           from './money.js'
+  type MoneyInterface,
+  type MoneyConstructor,
+}                           from './money.ts'
 import {
   PostImpl,
-  PostInterface,
-  PostConstructor,
-}                           from './post.js'
+  type PostInterface,
+  type PostConstructor,
+}                           from './post.ts'
 import {
   RoomImpl,
-  RoomInterface,
-  RoomConstructor,
-}                           from './room.js'
+  type RoomInterface,
+  type RoomConstructor,
+}                           from './room.ts'
 import {
   RoomInvitationImpl,
-  RoomInvitationInterface,
-  RoomInvitationConstructor,
-}                           from './room-invitation.js'
+  type RoomInvitationInterface,
+  type RoomInvitationConstructor,
+}                           from './room-invitation.ts'
 import {
   TagImpl,
-  TagInterface,
-  TagConstructor,
-}                           from './tag.js'
+  type TagInterface,
+  type TagConstructor,
+}                           from './tag.ts'
 import {
   UrlLinkImpl,
-  UrlLinkInterface,
-  UrlLinkConstructor,
-}                           from './url-link.js'
+  type UrlLinkInterface,
+  type UrlLinkConstructor,
+}                           from './url-link.ts'
 import {
   DelayImpl,
-  DelayInterface,
-  DelayConstructor,
-}                           from './delay.js'
+  type DelayInterface,
+  type DelayConstructor,
+}                           from './delay.ts'
 
-import { wechatifyUserModule } from '../user-mixins/wechatify.js'
+import { wechatifyUserModule } from '../user-mixins/wechatify.ts'
 
 export type {
   ContactInterface,
