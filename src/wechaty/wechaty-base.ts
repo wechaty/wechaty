@@ -17,9 +17,6 @@
  *   limitations under the License.
  *
  */
-import {
-  serviceCtlMixin,
-}                       from 'state-switch'
 import { function as FP } from 'fp-ts'
 import type * as PUPPET from 'wechaty-puppet'
 
@@ -53,6 +50,10 @@ import type {
   WechatyOptions,
 }                             from '../schemas/wechaty-options.ts'
 import type { PostInterface } from '../user-modules/post.ts'
+import {
+  AsyncLifecycleController,
+  type LegacyLifecycleState,
+}                             from '../lifecycle/mod.ts'
 
 const mixinBase = FP.pipe(
   WechatySkeleton,
@@ -63,32 +64,7 @@ const mixinBase = FP.pipe(
   loginMixin,
   miscMixin,
   pluginMixin,
-  /**
-   * Huan(202002):
-   *
-   * The `serviceCtlMixin` must be the most outer mixin
-   *  because the `wechaty.start/stop()` should first entry `serviceCtlMixin.start/stop()`
-   *  which can be managed correctly by the `serviceCtlMixin`
-   */
-  serviceCtlMixin('Wechaty', { log }),
 )
-
-/**
- * Huan(2021211): Keep the below call back hell
- *  because it's easy for testing
- *  especially when there's some typing mismatch and we need to figure it out.
- */
-// const mixinTest = serviceCtlMixin('Wechaty', { log })(
-//   pluginMixin(
-//     puppetMixin(
-//       wechatifyUserModuleMixin(
-//         gErrorMixin(
-//           WechatySkeleton,
-//         ),
-//       ),
-//     ),
-//   ),
-// )
 
 /**
  * Main bot class.
@@ -117,10 +93,12 @@ class WechatyBase extends mixinBase implements SayableSayer {
 
   override __options: WechatyOptions
 
-  static   override readonly VERSION = VERSION
+  static   readonly VERSION = VERSION
   readonly wechaty : WechatyInterface
+  readonly state: LegacyLifecycleState
 
   readonly _stopCallbackList: (() => void)[] = []
+  readonly __lifecycle: AsyncLifecycleController
 
   /**
    * The term [Puppet](https://wechaty.js.org/docs/specs/puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
@@ -174,15 +152,71 @@ class WechatyBase extends mixinBase implements SayableSayer {
 
     this.__memory = this.__options.memory
     this.wechaty  = this
+    this.__lifecycle = new AsyncLifecycleController({
+      name: 'Wechaty',
+      hooks: {
+        start: async ({ signal }) => this.__runLifecycleStart(signal),
+        stop: async () => this.__runLifecycleStop(),
+      },
+    })
+    this.state = this.__lifecycle.legacyState
   }
 
   override async start (): Promise<void> {
     log.verbose('Wechaty', 'start()')
     await this.init()
-    return super.start()
+    try {
+      return await this.__lifecycle.start()
+    } catch (e) {
+      this.emitError(e)
+      throw e
+    }
   }
 
-  override async onStart (): Promise<void> {
+  override async stop (): Promise<void> {
+    log.verbose('Wechaty', 'stop()')
+    try {
+      return await this.__lifecycle.stop()
+    } catch (e) {
+      this.emitError(e)
+      throw e
+    }
+  }
+
+  async reset (): Promise<void> {
+    log.verbose('Wechaty', 'reset()')
+    try {
+      return await this.__lifecycle.restart()
+    } catch (e) {
+      this.emitError(e)
+      throw e
+    }
+  }
+
+  async __runLifecycleStart (signal: AbortSignal): Promise<void> {
+    if (signal.aborted) {
+      const error = new Error('start cancelled before acquiring resources')
+      error.name = 'AbortError'
+      throw error
+    }
+
+    await super.start()
+
+    if (signal.aborted) {
+      const error = new Error('start cancelled before announcing lifecycle readiness')
+      error.name = 'AbortError'
+      throw error
+    }
+
+    await this.onStart()
+  }
+
+  async __runLifecycleStop (): Promise<void> {
+    await this.onStop()
+    await super.stop()
+  }
+
+  async onStart (): Promise<void> {
     log.verbose('Wechaty', 'onStart()')
 
     log.verbose('Wechaty', '<%s>(%s) onStart() v%s is starting...',
@@ -201,7 +235,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     log.verbose('Wechaty', 'onStart() ... done')
   }
 
-  override async onStop (): Promise<void> {
+  async onStop (): Promise<void> {
     log.verbose('Wechaty', 'onStop()')
 
     log.verbose('Wechaty', '<%s> onStop() v%s is stopping ...',
@@ -295,9 +329,9 @@ class WechatyBase extends mixinBase implements SayableSayer {
 }
 
 type WechatyBaseProtectedProperty =
-  // | '_serviceCtlFsmInterpreter'  // from ServiceCtlFsm
-  | '__serviceCtlLogger'             // from ServiceCtl(&Fsm)
-  | '__serviceCtlResettingIndicator' // from ServiceCtl
+  | '__lifecycle'
+  | '__runLifecycleStart'
+  | '__runLifecycleStop'
   | 'wechaty'
   | 'onStart'
   | 'onStop'

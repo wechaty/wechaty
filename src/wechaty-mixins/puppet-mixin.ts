@@ -6,12 +6,8 @@ import {
   TimeoutPromiseGError,
 }                       from 'gerror'
 
-import { StateSwitch }  from 'state-switch'
-import type {
-  StateSwitchInterface,
-}                       from 'state-switch'
-
 import { config }               from '../config.ts'
+import { AwaitableState }       from '../lifecycle/mod.ts'
 import { timestampToDate }      from '../pure-functions/timestamp-to-date.ts'
 import type {
   ContactImpl,
@@ -63,7 +59,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       return this.__puppet
     }
 
-    readonly __readyState : StateSwitchInterface
+    readonly __readyState : AwaitableState
 
     __puppetMixinInited = false
 
@@ -71,7 +67,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.verbose('WechatyPuppetMixin', 'construct()')
       super(...args)
 
-      this.__readyState = new StateSwitch('WechatyReady', { log })
+      this.__readyState = new AwaitableState('WechatyReady')
     }
 
     override async start (): Promise<void> {
@@ -121,10 +117,8 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
          * A failed puppet start must reject `start()` consistently,
          *  whether or not an `error` listener is registered.
          *
-         * Re-throw so the outermost `serviceCtlMixin.start()` rejects consistently.
-         * With a non-throwing `error` listener, it also runs `stop()` and leaves
-         *  the state `inactive`. Without a listener, error emission interrupts
-         *  cleanup and leaves the state `pending`.
+         * Re-throw so Wechaty's lifecycle controller rejects consistently and
+         *  can run a deterministic cleanup path.
          *
          * Previously this called `this.emitError(e)`, which swallowed the failure:
          *  with a listener the bot wrongly reported itself active, and without a

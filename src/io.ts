@@ -20,7 +20,6 @@
 import WebSocket        from 'ws'
 
 import type * as PUPPET from 'wechaty-puppet'
-import { StateSwitch } from 'state-switch'
 
 import * as jsonRpcPeer from 'json-rpc-peer'
 
@@ -33,6 +32,7 @@ import {
   log,
   config,
 }                 from './config.ts'
+import { AwaitableState } from './lifecycle/mod.ts'
 
 import {
   getPeer,
@@ -105,7 +105,7 @@ export class Io {
   protected eventBuffer       : IoEvent[] = []
   protected ws                : undefined | WebSocket
 
-  protected readonly state = new StateSwitch('Io', { log })
+  protected readonly state = new AwaitableState('Io')
 
   protected reconnectTimer?   : ReturnType<typeof setTimeout>
   protected reconnectTimeout? : number
