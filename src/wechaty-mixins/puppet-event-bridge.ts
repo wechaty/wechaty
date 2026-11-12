@@ -1,3 +1,9 @@
+/**
+ * Translates puppet events into Wechaty events through the dependencies supplied
+ * by `puppet-mixin.ts`. Provider setup, memory, lifecycle timeouts, and the
+ * compatibility `puppet` event remain owned by the mixin; this module only
+ * registers persistent listeners and does not remove or deduplicate them.
+ */
 import * as PUPPET from 'wechaty-puppet'
 import { log }     from 'wechaty-puppet'
 import {
@@ -19,11 +25,18 @@ import type {
 }                   from '../schemas/wechaty-events.ts'
 import { timestampToDate } from '../pure-functions/timestamp-to-date.ts'
 
+/**
+ * Emits a typed Wechaty event; handlers emit at bot level before forwarding to
+ * the related room, contact, or friendship where applicable.
+ */
 type PuppetEventBridgeEmit = <EventName extends WechatyEventName> (
   eventName: EventName,
   ...args: Parameters<WechatyEventListeners[EventName]>
 ) => boolean
 
+/**
+ * Entity operations and bot callbacks the event bridge needs from its owner.
+ */
 interface PuppetEventBridgeDependencies {
   contactFind: (id: string) => Promise<undefined | ContactInterface>
   contactReady: (id: string) => Promise<void>
@@ -39,14 +52,28 @@ interface PuppetEventBridgeDependencies {
   emitError: (error: GError) => void
 }
 
+/**
+ * Registers the puppet-to-Wechaty event handlers.
+ *
+ * Adds listeners for supported keys in `PUPPET_EVENT_DICT`; `reset` remains
+ * intentionally unhandled, and unknown runtime keys are logged and skipped.
+ * This function does not deduplicate or remove listeners, so its caller must
+ * ensure it is invoked at most once per puppet; those listeners persist across
+ * service lifecycle cycles. Handler failures caught by the bridge are
+ * normalized to `GError` and passed to `emitError`.
+ *
+ * @param puppet - Provider whose events are translated.
+ * @param dependencies - Entity lookups, bot emission, readiness, and error callbacks.
+ * @throws If registering a listener with `puppet.on()` fails.
+ */
 function registerPuppetEventBridge (
   puppet: PUPPET.impls.PuppetInterface,
   dependencies: PuppetEventBridgeDependencies,
 ): void {
   const eventNameList: PUPPET.types.PuppetEventName[] = Object.keys(PUPPET.types.PUPPET_EVENT_DICT) as PUPPET.types.PuppetEventName[]
   for (const eventName of eventNameList) {
-    log.verbose('PuppetMixin',
-      '__setupPuppetEvents() puppet.on(%s) (listenerCount:%s) registering...',
+    log.verbose('PuppetEventBridge',
+      'registerPuppetEventBridge() puppet.on(%s) (listenerCount:%s) registering...',
       eventName,
       puppet.listenerCount(eventName),
     )
@@ -114,8 +141,8 @@ function registerPuppetEventBridge (
             if (contact) {
               dependencies.emit('logout', contact, payload.data)
             } else {
-              log.verbose('PuppetMixin',
-                '__setupPuppetEvents() logout event contact self not found for id: %s',
+              log.verbose('PuppetEventBridge',
+                'registerPuppetEventBridge() logout event contact self not found for id: %s',
                 payload.contactId,
               )
             }
@@ -170,7 +197,7 @@ function registerPuppetEventBridge (
 
       case 'ready':
         puppet.on('ready', () => {
-          log.silly('WechatyPuppetMixin', '__setupPuppetEvents() puppet.on(ready)')
+          log.silly('PuppetEventBridge', 'registerPuppetEventBridge() puppet.on(ready)')
 
           dependencies.emit('ready')
           dependencies.setReady('active')
@@ -323,12 +350,12 @@ function registerPuppetEventBridge (
 
       default: {
         const unsupportedEvent: never = eventName
-        log.warn('WechatyPuppetMixin', '__setupPuppetEvents() unsupported puppet event: %s', unsupportedEvent)
+        log.warn('PuppetEventBridge', 'registerPuppetEventBridge() unsupported puppet event: %s', unsupportedEvent)
       }
     }
   }
 
-  log.verbose('WechatyPuppetMixin', '__setupPuppetEvents() ... done')
+  log.verbose('PuppetEventBridge', 'registerPuppetEventBridge() ... done')
 }
 
 export {
