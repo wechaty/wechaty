@@ -62,6 +62,26 @@ test('coverage baselines accept at-floor and above-floor measurements and reject
   assert.throws(() => assertBaseline(metrics, null), /must be an object/)
 })
 
+test('dash-valued LCOV branches count as uncovered branches', () => {
+  const partiallyUncovered = record('src/branches.ts').replace(
+    'BRDA:2,0,1,0',
+    'BRDA:2,0,1,-',
+  )
+  const partialMetrics = summarizeLcov(parseLcov(partiallyUncovered))
+  assert.deepEqual(partialMetrics.branches, { covered: 1, total: 2, percent: 50 })
+  assert.throws(
+    () => assertBaseline(partialMetrics, { lines: 100, functions: 100, branches: 75 }),
+    /branches coverage 50\.00% is below/,
+  )
+
+  const neverExecuted = record('src/branches.ts')
+    .replace('BRDA:2,0,0,1', 'BRDA:2,0,0,-')
+    .replace('BRDA:2,0,1,0', 'BRDA:2,0,1,-')
+    .replace('BRH:1', 'BRH:0')
+  const noHitsMetrics = summarizeLcov(parseLcov(neverExecuted))
+  assert.deepEqual(noHitsMetrics.branches, { covered: 0, total: 2, percent: 0 })
+})
+
 test('unloaded-source supplement adds only zero-hit production records', () => {
   const unloaded = record('src/unloaded.ts', 0).replace('LH:0', 'LH:1')
   const combined = mergeUnloadedSources(

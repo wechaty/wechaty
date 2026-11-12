@@ -123,8 +123,8 @@ function parseRecord (lines: string[]): LcovRecord {
       if (!data || data.slice(1, 4).some(item => !Number.isSafeInteger(Number(item)))) {
         throw new Error(`Malformed LCOV branch record: ${line}`)
       }
+      branchCount++
       if (data[4] !== '-') {
-        branchCount++
         branchHits += Number(data[4]) > 0 ? 1 : 0
       }
     }
@@ -576,89 +576,94 @@ function denoCoverage (tests: string[]): number {
   const profile = join(output, 'raw')
   rmSync(output, { recursive: true, force: true })
   mkdirSync(output, { recursive: true })
-  const env = denoEnvironment()
-  const testStatus = run(denoBinary(), [
-    'test',
-    '--no-check',
-    `--coverage=${profile}`,
-    '--allow-read=.,/tmp,/etc/alpine-release',
-    '--allow-write=coverage/deno,/tmp',
-    '--allow-run=git,node',
-    '--allow-env',
-    '--allow-sys=hostname',
-    '--allow-ffi=node_modules/leveldown/prebuilds',
-    ...tests,
-  ], env)
-
-  let reportStatus = 0
   const nativeLcov = join(output, 'lcov-native.info')
-  const htmlProfile = [
-    'coverage',
-    profile,
-    '--include=src/',
-    '--exclude=\\.spec\\.ts$',
-    '--exclude=\\.d\\.ts$',
-    '--exclude=fixtures/',
-    '--exclude=src/package-json\\.ts$',
-    '--lcov',
-    `--output=${nativeLcov}`,
-  ]
-  if (existsSync(profile)) {
-    reportStatus = run(denoBinary(), htmlProfile, env)
-    const htmlStatus = run(denoBinary(), [
-      'coverage',
-      profile,
+  const denominator = join(output, 'unloaded.lcov')
+  const probeOutput = join(tmpdir(), `wechaty-deno-coverage-probe-${process.pid}.lcov`)
+  let testStatus = 1
+  let reportStatus = 0
+  let denominatorStatus = 0
+  let probeStatus = 0
+  try {
+    const env = denoEnvironment()
+    testStatus = run(denoBinary(), [
+      'test',
+      '--no-check',
+      `--coverage=${profile}`,
+      '--allow-read=.,/tmp,/etc/alpine-release',
+      '--allow-write=coverage/deno,/tmp',
+      '--allow-run=git,node',
+      '--allow-env',
+      '--allow-sys=hostname',
+      '--allow-ffi=node_modules/leveldown/prebuilds',
+      ...tests,
+    ], env)
+
+    const filterArgs = [
       '--include=src/',
       '--exclude=\\.spec\\.ts$',
       '--exclude=\\.d\\.ts$',
       '--exclude=fixtures/',
       '--exclude=src/package-json\\.ts$',
-      '--html',
-    ], env)
-    reportStatus ||= htmlStatus
-    const nativeHtml = join(profile, 'html')
-    if (existsSync(nativeHtml)) {
-      const destination = join(output, 'native-html')
-      rmSync(destination, { recursive: true, force: true })
-      renameSync(nativeHtml, destination)
+    ]
+    if (existsSync(profile)) {
+      reportStatus = run(denoBinary(), [
+        'coverage',
+        profile,
+        ...filterArgs,
+        '--lcov',
+        `--output=${nativeLcov}`,
+      ], env)
+      const htmlStatus = run(denoBinary(), [
+        'coverage',
+        profile,
+        ...filterArgs,
+        '--html',
+      ], env)
+      reportStatus ||= htmlStatus
+      const nativeHtml = join(profile, 'html')
+      if (existsSync(nativeHtml)) {
+        const destination = join(output, 'native-html')
+        rmSync(destination, { recursive: true, force: true })
+        renameSync(nativeHtml, destination)
+      } else {
+        reportStatus ||= 1
+        console.error('Deno did not produce its native HTML report')
+      }
     } else {
-      reportStatus ||= 1
-      console.error('Deno did not produce its native HTML report')
+      reportStatus = 1
+      console.error('Deno did not produce a coverage profile')
     }
-  } else {
-    reportStatus = 1
-    console.error('Deno did not produce a coverage profile')
-  }
 
-  const denominator = join(output, 'unloaded.lcov')
-  const denominatorStatus = run(process.execPath, [
-    ...coverageArgs(denominator),
-    'tests/fixtures/coverage-empty.test.ts',
-  ])
-  const probeOutput = join(tmpdir(), `wechaty-deno-coverage-probe-${process.pid}.lcov`)
-  const probeStatus = probe('deno', probeOutput)
-  try {
-    assertCoverageProbe(readFileSync(probeOutput, 'utf8'), 'tests/fixtures/coverage-probe.ts')
-    if (existsSync(nativeLcov) && existsSync(denominator)) {
-      const merged = mergeUnloadedSources(
-        readFileSync(nativeLcov, 'utf8'),
-        readFileSync(denominator, 'utf8'),
-        productionSources(),
-      )
-      writeFileSync(join(output, 'lcov.info'), merged)
-      rmSync(probeOutput)
-      rmSync(denominator)
-      rmSync(nativeLcov)
-      rmSync(profile, { recursive: true, force: true })
-    } else {
+    denominatorStatus = run(process.execPath, [
+      ...coverageArgs(denominator),
+      'tests/fixtures/coverage-empty.test.ts',
+    ])
+    probeStatus = probe('deno', probeOutput)
+    try {
+      assertCoverageProbe(readFileSync(probeOutput, 'utf8'), 'tests/fixtures/coverage-probe.ts')
+      if (existsSync(nativeLcov) && existsSync(denominator)) {
+        const merged = mergeUnloadedSources(
+          readFileSync(nativeLcov, 'utf8'),
+          readFileSync(denominator, 'utf8'),
+          productionSources(),
+        )
+        writeFileSync(join(output, 'lcov.info'), merged)
+      } else {
+        reportStatus ||= 1
+        console.error('Deno or Node unloaded-source denominator LCOV report is missing')
+      }
+    } catch (error) {
       reportStatus ||= 1
-      console.error('Deno or Node unloaded-source denominator LCOV report is missing')
+      console.error(error instanceof Error ? error.message : error)
     }
   } catch (error) {
     reportStatus ||= 1
     console.error(error instanceof Error ? error.message : error)
   } finally {
     rmSync(probeOutput, { force: true })
+    rmSync(denominator, { force: true })
+    rmSync(nativeLcov, { force: true })
+    rmSync(profile, { recursive: true, force: true })
   }
   const validationStatus = reportStatus || denominatorStatus || probeStatus
   const valid = validateAndRender('deno', testStatus, validationStatus)
