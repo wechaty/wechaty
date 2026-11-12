@@ -1,8 +1,9 @@
-#!/usr/bin/env -S node --import=tsx/esm
-import { test } from 'tstest'
+#!/usr/bin/env node
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 import PuppetMock from 'wechaty-puppet-mock'
 
-import { WechatyEventEmitter } from '../schemas/wechaty-events.js'
+import { WechatyEventEmitter } from '../schemas/wechaty-events.ts'
 
 import type {
   ContactSelfConstructor,
@@ -19,7 +20,7 @@ import type {
   TagConstructor,
   UrlLinkConstructor,
   MessageInterface,
-}                             from '../user-modules/mod.js'
+}                             from '../user-modules/mod.ts'
 
 import {
   type WechatyConstructor,
@@ -27,9 +28,9 @@ import {
   type AllProtectedProperty,
   WechatyImpl,
   // WechatyConstructor,
-}                       from './wechaty-impl.js'
+}                       from './wechaty-impl.ts'
 
-test('Wechaty interface', async t => {
+test('Wechaty interface', async _t => {
   abstract class WechatyImplementation extends WechatyEventEmitter implements WechatyInterface {
 
     Contact        : ContactConstructor
@@ -96,23 +97,23 @@ test('Wechaty interface', async t => {
     msg.say('ok').catch(console.error)
   })
 
-  t.ok(typeof WechatyImplementation, 'should no typing error')
+  assert.ok(typeof WechatyImplementation, 'should no typing error')
 })
 
-test('ProtectedProperties', async t => {
+test('ProtectedProperties', async _t => {
   type NotExistInWechaty = Exclude<AllProtectedProperty, keyof WechatyImpl | `_${string}`>
   type NotExistTest = NotExistInWechaty extends never ? true : false
 
   const noOneLeft: NotExistTest = true
-  t.ok(noOneLeft, 'should match Wechaty properties for every protected property')
+  assert.ok(noOneLeft, 'should match Wechaty properties for every protected property')
 })
 
-test('options.puppet initialization', async t => {
+test('options.puppet initialization', async _t => {
   const puppet  = new PuppetMock()
   const wechaty = new WechatyImpl({ puppet })
-  t.throws(() => wechaty.puppet, 'should throw when access puppet getter before init()')
+  assert.throws(() => wechaty.puppet, 'should throw when access puppet getter before init()')
 
   await wechaty.init()
-  t.doesNotThrow(() => wechaty.puppet, 'should not throw when access puppet getter after init()')
-  t.ok(wechaty.puppet, 'should exist puppet instance by setting the options.puppet')
+  assert.doesNotThrow(() => wechaty.puppet, 'should not throw when access puppet getter after init()')
+  assert.ok(wechaty.puppet, 'should exist puppet instance by setting the options.puppet')
 })

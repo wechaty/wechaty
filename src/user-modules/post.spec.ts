@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,22 +18,27 @@
  *   limitations under the License.
  *
  */
-import {
-  test,
-  sinon,
-}             from 'tstest'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import * as PUPPET from 'wechaty-puppet'
 import PuppetMock from 'wechaty-puppet-mock'
 import { FileBox } from 'file-box'
 
-import { WechatyBuilder } from '../wechaty-builder.js'
+import { WechatyBuilder } from '../wechaty-builder.ts'
 
 test.skip('Post smoke testing', async t => {
-  void sinon
 
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
+
+  started = true
   await wechaty.start()
   const bot = puppet.mocker.createContact({ name: 'Bot' })
   puppet.mocker.login(bot)
@@ -56,22 +61,23 @@ test.skip('Post smoke testing', async t => {
   }
 
   for await (const sayable of post) {
-    t.ok(sayable, 'tbw')
+    assert.ok(sayable, 'tbw')
   }
 
   for await (const descendantPost of post.descendants()) {
-    t.ok(descendantPost, 'tbw')
+    assert.ok(descendantPost, 'tbw')
   }
 
   const [ descendantList, _nextPageToken2 ] = await wechaty.Post.findAll({}, pagination)
-  t.ok(descendantList, 'tbw')
+  assert.ok(descendantList, 'tbw')
 
   for await (const liker of post.taps({ type: PUPPET.types.Tap.Like })) {
-    t.ok(liker, 'tbw')
+    assert.ok(liker, 'tbw')
   }
 
   const [ tapList, _nextPageToken3 ] = await post.tapFind({ type: PUPPET.types.Tap.Like }, pagination)
-  t.ok(tapList, 'tbw')
+  assert.ok(tapList, 'tbw')
 
   await wechaty.stop()
+  started = false
 })

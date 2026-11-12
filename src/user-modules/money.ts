@@ -18,11 +18,11 @@
  *
  */
 import type { Constructor } from 'clone-class'
-import { validationMixin } from '../user-mixins/validation.js'
+import { validationMixin } from '../user-mixins/validation.ts'
 
 import {
   wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.ts'
 
 class MoneyMixin extends wechatifyMixinBase() {
 

@@ -1,9 +1,9 @@
 import { log }        from 'wechaty-puppet'
-import { Io } from '../io.js'
-import type { WechatyOptions } from '../wechaty-builder.js'
+import { Io } from '../io.ts'
+import type { WechatyOptions } from '../wechaty-builder.ts'
 
-import type { WechatySkeleton }      from '../wechaty/mod.js'
-import type { GErrorMixin } from './gerror-mixin.js'
+import type { WechatySkeleton }      from '../wechaty/mod.ts'
+import type { GErrorMixin } from './gerror-mixin.ts'
 
 /**
  * Huan(202111): we should not include the IO logic internally

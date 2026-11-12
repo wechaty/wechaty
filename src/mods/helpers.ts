@@ -2,4 +2,4 @@ export {
   messageToSayable,
   payloadToSayableWechaty,
   sayableToPayload,
-}                           from '../sayable/mod.js'
+}                           from '../sayable/mod.ts'

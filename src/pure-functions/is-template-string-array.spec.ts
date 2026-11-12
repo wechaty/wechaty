@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -18,10 +18,11 @@
  *   limitations under the License.
  *
  */
-import { test } from 'tstest'
-import { isTemplateStringArray } from './is-template-string-array.js'
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { isTemplateStringArray } from './is-template-string-array.ts'
 
-test('isTemplateStringArray', async t => {
+test('isTemplateStringArray', async _t => {
   function test (
     s: string | TemplateStringsArray,
     ...varList : unknown[]
@@ -36,9 +37,9 @@ test('isTemplateStringArray', async t => {
   const n = 42
   const obj = {}
 
-  t.ok(test`foo`, 'should return true for template string')
-  t.ok(test`bar${n}`, 'should return true for template string with one var')
-  t.ok(test`obj${obj}`, 'should return true for template string with one obj')
+  assert.ok(test`foo`, 'should return true for template string')
+  assert.ok(test`bar${n}`, 'should return true for template string with one var')
+  assert.ok(test`obj${obj}`, 'should return true for template string with one obj')
 
-  t.notOk(test('xixi'), 'should return false for (string) call')
+  assert.ok(!test('xixi'), 'should return false for (string) call')
 })

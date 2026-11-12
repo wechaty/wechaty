@@ -12,7 +12,7 @@ import type {
   ContactInterface,
   MessageInterface,
   PostInterface,
-}                       from '../user-modules/mod.js'
+}                       from '../user-modules/mod.ts'
 
 const WECHATY_EVENT_DICT = {
   ...PUPPET.types.CHAT_EVENT_DICT,

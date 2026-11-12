@@ -15,26 +15,25 @@ import {
   TagImpl,
   UrlLinkImpl,
 
-  ContactConstructor,
-  ContactSelfConstructor,
-  DelayConstructor,
-  FriendshipConstructor,
-  ImageConstructor,
-  LocationConstructor,
-  MessageConstructor,
-  MiniProgramConstructor,
-  PostConstructor,
-  RoomConstructor,
-  RoomInvitationConstructor,
-  TagConstructor,
-  UrlLinkConstructor,
-
+  type ContactConstructor,
+  type ContactSelfConstructor,
+  type DelayConstructor,
+  type FriendshipConstructor,
+  type ImageConstructor,
+  type LocationConstructor,
+  type MessageConstructor,
+  type MiniProgramConstructor,
+  type PostConstructor,
+  type RoomConstructor,
+  type RoomInvitationConstructor,
+  type TagConstructor,
+  type UrlLinkConstructor,
   wechatifyUserModule,
-}                       from '../user-modules/mod.js'
+}                       from '../user-modules/mod.ts'
 
 import type {
   WechatySkeleton,
-}                             from '../wechaty/mod.js'
+}                             from '../wechaty/mod.ts'
 
 const wechatifyUserModuleMixin = <MixinBase extends typeof WechatySkeleton> (mixinBase: MixinBase) => {
   log.verbose('WechatifyUserModuleMixin', 'wechatifyUserModuleMixin(%s)', mixinBase.name)

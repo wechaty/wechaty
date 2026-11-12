@@ -19,14 +19,16 @@
  */
 import type * as PUPPET          from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
-import { log } from '../config.js'
+import { log } from '../config.ts'
 
-import { validationMixin }  from '../user-mixins/validation.js'
+import { validationMixin }  from '../user-mixins/validation.ts'
 import {
   wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.ts'
 
 class LocationMixin extends wechatifyMixinBase() {
+
+  public readonly payload: PUPPET.payloads.Location
 
   /**
    *
@@ -52,9 +54,10 @@ class LocationMixin extends wechatifyMixinBase() {
    * @hideconstructor
    */
   constructor (
-    public readonly payload: PUPPET.payloads.Location,
+    payload: PUPPET.payloads.Location,
   ) {
     super()
+    this.payload = payload
     log.verbose('Location', 'constructor()')
     // Huan(202110): it is ok to create a raw one without wechaty instance
     // guardWechatifyClass.call(this, Location)

@@ -3,9 +3,9 @@ import { log } from 'wechaty-puppet'
 
 import type {
   MessageInterface,
-}                   from '../user-modules/mod.js'
+}                   from '../user-modules/mod.ts'
 
-import type { Sayable } from './types.js'
+import type { Sayable } from './types.ts'
 
 async function messageToSayable (
   message: MessageInterface,

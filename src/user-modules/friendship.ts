@@ -24,23 +24,23 @@ import type { Constructor } from 'clone-class'
 
 import {
   retryPolicy,
-}                   from '../pure-functions/mod.js'
+}                   from '../pure-functions/mod.ts'
 
 import type {
   Accepter,
-}                   from '../schemas/acceptable.js'
+}                   from '../schemas/acceptable.ts'
 
 import type {
   ContactInterface,
   ContactImpl,
-}                       from './contact.js'
+}                       from './contact.ts'
 import type {
   RoomInterface,
-}                       from './room.js'
+}                       from './room.ts'
 import {
   wechatifyMixin,
-}                       from '../user-mixins/wechatify.js'
-import { validationMixin } from '../user-mixins/validation.js'
+}                       from '../user-mixins/wechatify.ts'
+import { validationMixin } from '../user-mixins/validation.ts'
 
 interface FriendshipAddOptionsObject {
   room?: RoomInterface,
@@ -64,6 +64,8 @@ const MixinBase = wechatifyMixin(
  * [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
 class FriendshipMixin extends MixinBase implements Accepter {
+
+  public readonly id: string
 
   static Type = PUPPET.types.Friendship
 
@@ -177,9 +179,10 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * @hideconstructor
    */
   constructor (
-    public readonly id: string,
+    id: string,
   ) {
     super()
+    this.id = id
     log.verbose('Friendship', 'constructor(id=%s)', id)
   }
 

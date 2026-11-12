@@ -1,8 +1,6 @@
-#!/usr/bin/env -S node --import=tsx/esm
-import {
-  test,
-  sinon,
-}             from 'tstest'
+#!/usr/bin/env node
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { function as FP } from 'fp-ts'
 
@@ -16,39 +14,35 @@ import { function as FP } from 'fp-ts'
  *
  * TODO: find out why
  */
-import '../wechaty/wechaty-impl.js'
+import '../wechaty/wechaty-impl.ts'
 
 import {
   gErrorMixin,
-}                             from '../wechaty-mixins/mod.js'
+}                             from '../wechaty-mixins/mod.ts'
 
 import {
   WechatySkeleton,
-}                             from '../wechaty/wechaty-skeleton.js'
+}                             from '../wechaty/wechaty-skeleton.ts'
 
 import {
   pluginMixin,
-  PluginMixin,
-  ProtectedPropertyPluginMixin,
-}                                             from './plugin-mixin.js'
-import { miscMixin } from './misc-mixin.js'
-import { puppetMixin } from './puppet-mixin.js'
-import { ioMixin } from './io-mixin.js'
-import { wechatifyUserModuleMixin } from './wechatify-user-module-mixin.js'
+  type PluginMixin,
+  type ProtectedPropertyPluginMixin,
+}                                             from './plugin-mixin.ts'
+import { miscMixin } from './misc-mixin.ts'
+import { puppetMixin } from './puppet-mixin.ts'
+import { ioMixin } from './io-mixin.ts'
+import { wechatifyUserModuleMixin } from './wechatify-user-module-mixin.ts'
 
-test('ProtectedPropertyPluginMixin', async t => {
+test('ProtectedPropertyPluginMixin', async _t => {
   type NotExistInMixin = Exclude<ProtectedPropertyPluginMixin, keyof InstanceType<PluginMixin>>
   type NotExistTest = NotExistInMixin extends never ? true : false
 
   const noOneLeft: NotExistTest = true
-  t.ok(noOneLeft, 'should match Mixin properties for every protected property')
+  assert.ok(noOneLeft, 'should match Mixin properties for every protected property')
 })
 
 test('PluginMixin smoke testing', async t => {
-  const sandbox = sinon.createSandbox({
-    useFakeTimers: true,
-  })
-
   const mixinBase = FP.pipe(
     WechatySkeleton,
     gErrorMixin,
@@ -71,28 +65,28 @@ test('PluginMixin smoke testing', async t => {
   }
 
   const pluginMixinTest = new PluginMixinTest({ puppet: 'wechaty-puppet-mock' })
-  let future
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await pluginMixinTest.stop()
+    }
+  })
 
   const unuse = pluginMixinTest.use(Plugin)
 
-  t.equal(pluginMixinTest.counter, 1, 'should call plugin function right after use before start')
-  future = pluginMixinTest.start()
-  t.equal(pluginMixinTest.counter, 1, 'should call plugin function right after start')
+  assert.equal(pluginMixinTest.counter, 1, 'should call plugin function right after use before start')
+  started = true
+  const future = pluginMixinTest.start()
+  assert.equal(pluginMixinTest.counter, 1, 'should call plugin function right after start')
 
-  /**
-   * finish initializing the system
-   */
-  await sandbox.clock.runAllAsync()
   await future
-  // t.equal(pluginMixinTest.counter, 1, 'should call plugin function after start')
+  // assert.equal(pluginMixinTest.counter, 1, 'should call plugin function after start')
 
-  future = pluginMixinTest.stop()
-  await sandbox.clock.runAllAsync()
-  await future
-  t.equal(pluginMixinTest.counter, 1, 'should not clean plugin context after stop')
+  await pluginMixinTest.stop()
+  started = false
+  assert.equal(pluginMixinTest.counter, 1, 'should not clean plugin context after stop')
 
   unuse()
-  t.equal(pluginMixinTest.counter, 0, 'should clean plugin context after call unuse()')
+  assert.equal(pluginMixinTest.counter, 0, 'should clean plugin context after call unuse()')
 
-  sandbox.restore()
 })

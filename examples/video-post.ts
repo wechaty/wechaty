@@ -3,7 +3,7 @@ import { FileBox } from 'file-box'
 
 import {
   WechatyBuilder,
-}                     from '../src/mods/mod.js'
+}                     from '../src/mods/mod.ts'
 
 const bot = WechatyBuilder.build({
   name : 'video-post-bot',

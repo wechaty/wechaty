@@ -10,11 +10,11 @@ import {
   UrlLinkImpl,
   ContactImpl,
   PostImpl,
-}                       from '../user-modules/mod.js'
+}                       from '../user-modules/mod.ts'
 
 import type {
   Sayable,
-}                   from './types.js'
+}                   from './types.ts'
 
 async function sayableToPayload (sayable: Sayable): Promise<undefined | PUPPET.payloads.Sayable> {
   log.verbose('Wechaty', 'sayableToPayload(%s)', sayable)

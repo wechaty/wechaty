@@ -11,20 +11,20 @@ import type {
   StateSwitchInterface,
 }                       from 'state-switch'
 
-import { config }               from '../config.js'
-import { timestampToDate }      from '../pure-functions/timestamp-to-date.js'
+import { config }               from '../config.ts'
+import { timestampToDate }      from '../pure-functions/timestamp-to-date.ts'
 import type {
   ContactImpl,
   ContactInterface,
   RoomImpl,
-}                               from '../user-modules/mod.js'
+}                               from '../user-modules/mod.ts'
 
 import type {
   WechatifyUserModuleMixin,
-}                               from './wechatify-user-module-mixin.js'
+}                               from './wechatify-user-module-mixin.ts'
 
-import type { GErrorMixin } from './gerror-mixin.js'
-import type { IoMixin }     from './io-mixin.js'
+import type { GErrorMixin } from './gerror-mixin.ts'
+import type { IoMixin }     from './io-mixin.ts'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 

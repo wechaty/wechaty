@@ -1,4 +1,5 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# This workflow does a clean install of node dependencies and runs the TypeScript
+# tests directly. Compilation happens only in the npm and Docker publish workflows.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Node.js CI
@@ -30,7 +31,45 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
     - run: npm ci
-    - run: npm run build --if-present
     - run: npm test
       env:
         CI: true
+
+    - name: Verify native test failure exit
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        if node --test tests/fixtures/native-test-failure.js; then
+          echo "The native test runner accepted a deliberately failing test."
+          exit 1
+        fi
+
+  deno:
+    name: Deno test (2.9.8, experimental)
+    runs-on: ubuntu-latest
+    # Deno is not a supported runtime yet; this job tracks compatibility without
+    # failing the workflow.
+    continue-on-error: true
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 26
+      uses: actions/setup-node@v4
+      with:
+        node-version: 26
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - uses: denoland/setup-deno@v2.0.5
+      with:
+        deno-version: 2.9.8
+    - run: npm ci
+    - name: Export Node executable for subprocess fixtures
+      run: echo "NODE_BINARY=$(command -v node)" >> "$GITHUB_ENV"
+    - run: npm run test:unit:deno
+    - name: Verify native test failure exit
+      run: |
+        if deno test tests/fixtures/native-test-failure.js; then
+          echo "The native test runner accepted a deliberately failing test."
+          exit 1
+        fi

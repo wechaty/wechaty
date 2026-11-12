@@ -7,7 +7,7 @@ import { cmds } from 'wechaty-token'
 
 import {
   VERSION,
-}                           from '../config.js'
+}                           from '../config.ts'
 
 const token = subcommands({
   name: 'Token',
