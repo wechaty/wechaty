@@ -92,9 +92,9 @@ counts remain Deno-native, and its native HTML renderer includes branch
 coverage. The runtimes are never averaged or merged.
 Machine-readable totals use the detailed `DA`, `FNDA`, and `BRDA` records, so
 their percentages match the HTML renderer instead of inconsistent aggregate
-LCOV tags. `genhtml` ignores inconsistent function metadata because both native
-runners can emit repeated function names for distinct getter declarations;
-validated detailed counters remain the source for coverage totals.
+LCOV tags. The renderer-only LCOV input normalizes source paths and makes
+repeated function names unique; the native reports and measured counters remain
+unchanged.
 `coverage/node/` and `coverage/deno/` are published as separate GitHub Actions
 artifacts, and each runtime is checked against its reviewed baseline in
 `.github/coverage-baselines/`.

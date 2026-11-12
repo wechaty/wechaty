@@ -7,6 +7,7 @@ import {
   coverageExitCode,
   coveragePassed,
   mergeUnloadedSources,
+  normalizeLcovForRenderer,
   parseLcov,
   summarizeLcov,
 } from '../scripts/coverage.ts'
@@ -76,4 +77,33 @@ test('unloaded-source supplement adds only zero-hit production records', () => {
     record('src/loaded.ts') + record('src/unloaded.ts', 0),
     [ 'src/loaded.ts', 'src/unloaded.ts' ],
   ), /hits/)
+})
+
+test('renderer normalizes source paths and duplicate function names', () => {
+  const absolute = `TN:
+SF:/repo/src/loaded.ts
+FN:23,get wechaty
+FN:24,get wechaty
+FNDA:1,get wechaty
+FNDA:0,get wechaty
+FNF:2
+FNH:1
+BRF:0
+BRH:0
+DA:23,1
+DA:24,0
+LH:1
+LF:2
+end_of_record
+`
+  const mixed = `${absolute}${record('src/unloaded.ts', 0)}`
+  const normalized = normalizeLcovForRenderer(mixed, '/repo')
+  assert.deepEqual(parseLcov(normalized).map(item => item.source), [ 'src/loaded.ts', 'src/unloaded.ts' ])
+  assert.match(normalized, /FN:23,get wechaty \(1\)/)
+  assert.match(normalized, /FN:24,get wechaty \(2\)/)
+  assert.equal(parseLcov(normalized)[0]?.metrics.functions.percent, 50)
+  assert.throws(
+    () => normalizeLcovForRenderer(absolute.replace('FNDA:0,get wechaty\n', ''), '/repo'),
+    /hit count does not match declarations/,
+  )
 })

@@ -186,6 +186,48 @@ export function sourceKey (source: string, root = ROOT): string {
   return path
 }
 
+export function normalizeLcovForRenderer (content: string, root = ROOT): string {
+  const records = parseLcov(content)
+  return `${records.map(record => {
+    const lines = record.text.split('\n')
+    const functionCounts = new Map<string, Map<string, number>>([
+      [ 'FN', new Map() ],
+      [ 'FNDA', new Map() ],
+    ])
+    for (const line of lines) {
+      const declaration = /^(FN|FNDA):[^,]+,(.+)$/.exec(line)
+      if (declaration) {
+        const counts = functionCounts.get(declaration[1]!)!
+        const name = declaration[2]!
+        counts.set(name, (counts.get(name) ?? 0) + 1)
+      }
+    }
+    const declarations = functionCounts.get('FN')!
+    const hits = functionCounts.get('FNDA')!
+    for (const [ name, count ] of declarations) {
+      if (count > 1 && hits.get(name) !== count) {
+        throw new Error(`LCOV function hit count does not match declarations: ${record.source}`)
+      }
+    }
+    const indices = new Map<string, Map<string, number>>([
+      [ 'FN', new Map() ],
+      [ 'FNDA', new Map() ],
+    ])
+    const renderedLines = lines.map(line => {
+      if (line.startsWith('SF:')) return `SF:${sourceKey(record.source, root)}`
+      const declaration = /^(FN|FNDA):([^,]+),(.+)$/.exec(line)
+      if (declaration && (declarations.get(declaration[3]!) ?? 0) > 1) {
+        const nextIndices = indices.get(declaration[1]!)!
+        const index = nextIndices.get(declaration[3]!) ?? 0
+        nextIndices.set(declaration[3]!, index + 1)
+        return `${declaration[1]}:${declaration[2]},${declaration[3]} (${index + 1})`
+      }
+      return line
+    })
+    return renderedLines.join('\n')
+  }).join('\n')}\n`
+}
+
 function relativeSource (source: string, root: string): string {
   const absolute = source.startsWith('file:')
     ? fileURLToPath(source)
@@ -420,14 +462,21 @@ function validateAndRender (runtime: 'node' | 'deno', testStatus: number, valida
     }
     const html = join(output, 'html')
     mkdirSync(html, { recursive: true })
+    const renderLcovPath = join(tmpdir(), `wechaty-${runtime}-render-${process.pid}.lcov`)
+    writeFileSync(renderLcovPath, normalizeLcovForRenderer(readFileSync(lcovPath, 'utf8')))
     const renderArgs = [
       '--ignore-errors', 'inconsistent',
       '--title=Wechaty native coverage',
       ...(runtime === 'deno' ? [ '--branch-coverage' ] : []),
       `--output-directory=${html}`,
-      lcovPath,
+      renderLcovPath,
     ]
-    const renderStatus = run('genhtml', renderArgs)
+    let renderStatus = 1
+    try {
+      renderStatus = run('genhtml', renderArgs)
+    } finally {
+      rmSync(renderLcovPath, { force: true })
+    }
     if (renderStatus !== 0 || !existsSync(join(html, 'index.html'))) {
       console.error('LCOV HTML rendering failed or did not produce index.html')
     }
