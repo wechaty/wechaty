@@ -1,4 +1,8 @@
 #!/usr/bin/env -S node --import=tsx/esm
+/**
+ * Exercises the puppet event bridge with real PuppetMock event delivery and
+ * stubbed entity dependencies, recording bot, error, and forwarding effects.
+ */
 import * as PUPPET from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 import assert from 'node:assert/strict'
@@ -22,6 +26,11 @@ import {
 
 type Dependencies = Parameters<typeof registerPuppetEventBridge>[1]
 
+/**
+ * Provides harmless entity defaults and records emitted events, errors, and
+ * readiness changes; dependency overrides replace behavior but keep recording
+ * callbacks unless those callbacks are explicitly overridden.
+ */
 function createBridgeTestContext (
   overrides: Partial<Dependencies> = {},
 ) {

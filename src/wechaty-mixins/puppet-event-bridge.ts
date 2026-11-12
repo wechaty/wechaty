@@ -55,8 +55,8 @@ interface PuppetEventBridgeDependencies {
 /**
  * Registers the puppet-to-Wechaty event handlers.
  *
- * Adds listeners for supported keys in `PUPPET_EVENT_DICT`; `reset` remains
- * intentionally unhandled, and unknown runtime keys are logged and skipped.
+ * Adds listeners for keys in `PUPPET_EVENT_DICT`; `reset` remains intentionally
+ * unhandled, and unknown runtime keys throw to preserve startup failure behavior.
  * This function does not deduplicate or remove listeners, so its caller must
  * ensure it is invoked at most once per puppet; those listeners persist across
  * service lifecycle cycles. Handler failures caught by the bridge are
@@ -64,7 +64,7 @@ interface PuppetEventBridgeDependencies {
  *
  * @param puppet - Provider whose events are translated.
  * @param dependencies - Entity lookups, bot emission, readiness, and error callbacks.
- * @throws If registering a listener with `puppet.on()` fails.
+ * @throws If listener registration fails or the dictionary contains an unknown event.
  */
 function registerPuppetEventBridge (
   puppet: PUPPET.impls.PuppetInterface,
@@ -350,7 +350,7 @@ function registerPuppetEventBridge (
 
       default: {
         const unsupportedEvent: never = eventName
-        log.warn('PuppetEventBridge', 'registerPuppetEventBridge() unsupported puppet event: %s', unsupportedEvent)
+        throw new Error('eventName ' + unsupportedEvent + ' unsupported!')
       }
     }
   }
@@ -359,5 +359,6 @@ function registerPuppetEventBridge (
 }
 
 export {
+  PuppetEventBridgeDependencies,
   registerPuppetEventBridge,
 }

@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/**
+ * Verifies puppet-mixin contracts for forward-event failures, public event
+ * timing, and listener persistence across repeated initialization and service
+ * lifecycles.
+ */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { function as FP } from 'fp-ts'
@@ -29,7 +34,7 @@ test('ProtectedPropertyPuppetMixin', async _t => {
   assert.ok(noOneLeft, 'should match Mixin properties for every protected property')
 })
 
-test('__setupPuppetEvents() should ignore unsupported puppet events', async _t => {
+test('__setupPuppetEvents() should reject unsupported puppet events', async _t => {
   const mixinBase = FP.pipe(
     WechatySkeleton,
     gErrorMixin,
@@ -57,9 +62,10 @@ test('__setupPuppetEvents() should ignore unsupported puppet events', async _t =
 
   eventDict[unknownEventName] = undefined
   try {
-    assert.doesNotThrow(
+    assert.throws(
       () => (wechaty as any).__setupPuppetEvents(fakePuppet),
-      'should not throw during setup when unknown puppet event exists',
+      /eventName __future-unknown-event__ unsupported!/,
+      'should reject setup when an unknown puppet event exists',
     )
   } finally {
     if (hadUnknownEvent) {
