@@ -19,29 +19,31 @@
  */
 import type * as PUPPET          from 'wechaty-puppet'
 
-import { log } from '../config.js'
+import { log } from '../config.ts'
 import type { Constructor } from 'clone-class'
 
 import type {
   Accepter,
-}                     from '../schemas/acceptable.js'
+}                     from '../schemas/acceptable.ts'
 import {
   timestampToDate,
-}                     from '../pure-functions/timestamp-to-date.js'
+}                     from '../pure-functions/timestamp-to-date.ts'
 
 import type {
   ContactInterface,
-}               from './contact.js'
+}               from './contact.ts'
 import {
   wechatifyMixinBase,
-}                     from '../user-mixins/wechatify.js'
-import { validationMixin } from '../user-mixins/validation.js'
+}                     from '../user-mixins/wechatify.ts'
+import { validationMixin } from '../user-mixins/validation.ts'
 
 /**
  *
  * accept room invitation
  */
 class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
+
+  public readonly id: string
 
   static load (
     id   : string,
@@ -56,9 +58,10 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    *
    */
   constructor (
-    public readonly id: string,
+    id: string,
   ) {
     super()
+    this.id = id
     log.verbose('RoomInvitation', 'constructor(id=%s)', id)
   }
 

@@ -20,10 +20,10 @@
 import { log } from 'wechaty-puppet'
 
 import {
-  WechatyInterface,
+  type WechatyInterface,
   WechatyImpl,
   type WechatyOptions,
-}                     from './wechaty/mod.js'
+}                     from './wechaty/mod.ts'
 
 interface BuilderInterface {
   build (options?: WechatyOptions): WechatyInterface

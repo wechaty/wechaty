@@ -1,19 +1,19 @@
 import type {
   SayableSayer,
   Sayable,
-}                                     from './types.js'
+}                                     from './types.ts'
 import {
   messageToSayable,
-}                                     from './message-to-sayable.js'
+}                                     from './message-to-sayable.ts'
 import {
   sayableToPayload,
-}                                     from './sayable-to-payload.js'
+}                                     from './sayable-to-payload.ts'
 import {
   payloadToSayableWechaty,
-}                                     from './payload-to-sayable.js'
+}                                     from './payload-to-sayable.ts'
 import {
   deliverSayableConversationPuppet,
-}                                     from './deliver-sayable.js'
+}                                     from './deliver-sayable.ts'
 
 export type {
   Sayable,

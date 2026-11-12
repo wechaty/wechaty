@@ -20,11 +20,11 @@
 import { log } from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import type { ContactInterface } from './contact.js'
-import { validationMixin } from '../user-mixins/validation.js'
+import type { ContactInterface } from './contact.ts'
+import { validationMixin } from '../user-mixins/validation.ts'
 import {
   wechatifyMixinBase,
-}                       from '../user-mixins/wechatify.js'
+}                       from '../user-mixins/wechatify.ts'
 
 class MomentMixin extends wechatifyMixinBase() {
 

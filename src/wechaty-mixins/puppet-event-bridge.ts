@@ -12,12 +12,12 @@ import type {
   MessageInterface,
   PostInterface,
   RoomInterface,
-}                   from '../user-modules/mod.js'
+}                   from '../user-modules/mod.ts'
 import type {
   WechatyEventListeners,
   WechatyEventName,
-}                   from '../schemas/wechaty-events.js'
-import { timestampToDate } from '../pure-functions/timestamp-to-date.js'
+}                   from '../schemas/wechaty-events.ts'
+import { timestampToDate } from '../pure-functions/timestamp-to-date.ts'
 
 type PuppetEventBridgeEmit = <EventName extends WechatyEventName> (
   eventName: EventName,
@@ -323,7 +323,7 @@ function registerPuppetEventBridge (
 
       default: {
         const unsupportedEvent: never = eventName
-        throw new Error('eventName ' + unsupportedEvent + ' unsupported!')
+        log.warn('WechatyPuppetMixin', '__setupPuppetEvents() unsupported puppet event: %s', unsupportedEvent)
       }
     }
   }

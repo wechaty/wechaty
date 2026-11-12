@@ -4,6 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
     "isolatedModules": true,
     "traceResolution": false,
     "noLib": false,
@@ -13,8 +14,6 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "strict": true,
     "noEmitOnError": true,
     "noUnusedLocals": true,
@@ -30,7 +29,7 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist/esm",
     "lib": ["ESNext", "DOM"],
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": true
   },
   "exclude": [
     "node_modules/",
@@ -44,6 +43,6 @@
     "examples/**/*.ts",
     "scripts/**/*.ts",
     "src/**/*.ts",
-    "tests/**/*.spec.ts",
+    "tests/**/*.test.ts",
   ],
 }

@@ -1,6 +1,7 @@
 import * as PUPPET      from 'wechaty-puppet'
 import { log }          from 'wechaty-puppet'
 import {
+  GError,
   timeoutPromise,
   TimeoutPromiseGError,
 }                       from 'gerror'
@@ -10,20 +11,20 @@ import type {
   StateSwitchInterface,
 }                       from 'state-switch'
 
-import { config }               from '../config.js'
+import { config }               from '../config.ts'
 import type {
   ContactImpl,
   RoomImpl,
-}                               from '../user-modules/mod.js'
+}                               from '../user-modules/mod.ts'
 
-import { registerPuppetEventBridge } from './puppet-event-bridge.js'
+import { registerPuppetEventBridge } from './puppet-event-bridge.ts'
 
 import type {
   WechatifyUserModuleMixin,
-}                               from './wechatify-user-module-mixin.js'
+}                               from './wechatify-user-module-mixin.ts'
 
-import type { GErrorMixin } from './gerror-mixin.js'
-import type { IoMixin }     from './io-mixin.js'
+import type { GErrorMixin } from './gerror-mixin.ts'
+import type { IoMixin }     from './io-mixin.ts'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 
@@ -108,7 +109,22 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         }
 
       } catch (e) {
-        this.emitError(e)
+        /**
+         * A failed puppet start must reject `start()` consistently,
+         *  whether or not an `error` listener is registered.
+         *
+         * Re-throw so the outermost `serviceCtlMixin.start()` rejects consistently.
+         * With a non-throwing `error` listener, it also runs `stop()` and leaves
+         *  the state `inactive`. Without a listener, error emission interrupts
+         *  cleanup and leaves the state `pending`.
+         *
+         * Previously this called `this.emitError(e)`, which swallowed the failure:
+         *  with a listener the bot wrongly reported itself active, and without a
+         *  listener the synchronous EventEmitter throw left the state `pending`.
+         *
+         * @see https://github.com/wechaty/wechaty/issues/2855
+         */
+        throw GError.from(e)
       }
     }
 

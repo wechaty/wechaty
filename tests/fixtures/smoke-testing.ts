@@ -19,15 +19,33 @@
  *
  */
 import {
-  Wechaty,
   WechatyBuilder,
   VERSION,
 }                   from 'wechaty'
+import type { Wechaty } from 'wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'
 
 import assert from 'assert'
+
+function publicTypeContract (bot: Wechaty, contact: USERS.Contact) {
+  bot.on('message', message => {
+    const messageId: string = message.id
+    void message.say('hello')
+    void messageId
+  })
+
+  const sayable: import('wechaty').Sayable = contact
+  void bot.say(sayable)
+
+  const implementationConstructor: typeof IMPLS.WechatyImpl = IMPLS.WechatyImpl
+  void implementationConstructor
+
+  // @ts-expect-error Internal options are not part of the public interface.
+  bot.__options
+}
+void publicTypeContract
 
 function getBotList (): Wechaty[] {
   const botList = [

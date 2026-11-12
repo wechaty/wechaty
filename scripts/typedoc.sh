@@ -2,7 +2,7 @@
 set -e
 
 typedoc \
-  --exclude \"src/*.spec.ts\" \
+  --exclude \"src/**/*.test.ts\" \
   --excludeExternals \
   --excludePrivate \
   --excludeProtected \

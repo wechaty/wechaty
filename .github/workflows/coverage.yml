@@ -1,0 +1,66 @@
+name: Native coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    name: Node.js 26 native coverage
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 26.13.0
+        cache: npm
+        cache-dependency-path: package-lock.json
+    - run: npm ci
+    - name: Install LCOV HTML renderer
+      run: sudo apt-get update && sudo apt-get install --no-install-recommends -y lcov
+    - name: Run tests and validate Node.js coverage
+      run: npm run coverage:node
+      env:
+        CI: true
+    - uses: actions/upload-artifact@v4
+      if: always() && !cancelled()
+      with:
+        name: coverage-node
+        path: coverage/node/
+        if-no-files-found: error
+        retention-days: 14
+
+  deno:
+    name: Deno 2.9.8 native coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 26.13.0
+        cache: npm
+        cache-dependency-path: package-lock.json
+    - uses: denoland/setup-deno@v2.0.5
+      with:
+        deno-version: 2.9.8
+    - run: npm ci
+    - name: Install LCOV HTML renderer
+      run: sudo apt-get update && sudo apt-get install --no-install-recommends -y lcov
+    - name: Run tests and validate Deno coverage
+      run: npm run coverage:deno
+      env:
+        CI: true
+    - uses: actions/upload-artifact@v4
+      if: always() && !cancelled()
+      with:
+        name: coverage-deno
+        path: coverage/deno/
+        if-no-files-found: error
+        retention-days: 14

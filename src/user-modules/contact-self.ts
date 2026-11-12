@@ -29,13 +29,13 @@ import type { Constructor }   from 'clone-class'
 
 import {
   guardQrCodeValue,
-}                       from '../pure-functions/guard-qr-code-value.js'
+}                       from '../pure-functions/guard-qr-code-value.ts'
 
 import {
   ContactImpl,
-}                       from './contact.js'
-import { validationMixin } from '../user-mixins/validation.js'
-import { poolifyMixin } from '../user-mixins/poolify.js'
+}                       from './contact.ts'
+import { validationMixin } from '../user-mixins/validation.ts'
+import { poolifyMixin } from '../user-mixins/poolify.ts'
 
 const MixinBase = poolifyMixin(
   ContactImpl,

@@ -9,9 +9,9 @@ import {
   MiniProgramImpl,
   PostImpl,
   LocationImpl,
-}                     from '../user-modules/mod.js'
+}                     from '../user-modules/mod.ts'
 
-import type { Sayable } from './types.js'
+import type { Sayable } from './types.ts'
 
 /**
  * TODO: add unit test to ensure the interface validation code works

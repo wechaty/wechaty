@@ -3,17 +3,17 @@ import type { EventEmitter }  from 'events'
 import type { Constructor }           from 'clone-class'
 import type {
   WechatyMixinProtectedProperty,
-}                                     from '../wechaty-mixins/mod.js'
-import type { WechatyEventListeners } from '../schemas/mod.js'
-import { validationMixin }            from '../user-mixins/mod.js'
+}                                     from '../wechaty-mixins/mod.ts'
+import type { WechatyEventListeners } from '../schemas/mod.ts'
+import { validationMixin }            from '../user-mixins/mod.ts'
 
 import type {
   WechatySkeletonProtectedProperty,
-}                                     from './wechaty-skeleton.js'
+}                                     from './wechaty-skeleton.ts'
 import {
   WechatyBase,
-  WechatyBaseProtectedProperty,
-}                                     from './wechaty-base.js'
+  type WechatyBaseProtectedProperty,
+}                                     from './wechaty-base.ts'
 
 /**
  * Huan(202111): this is for solving the circyle dependency problem

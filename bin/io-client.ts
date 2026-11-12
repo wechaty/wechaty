@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -26,13 +26,13 @@ import {
 }             from 'wechaty-puppet'
 import {
   config,
-}             from '../src/config.js'
+}             from '../src/config.ts'
 
 import {
   IoClient,
-  IoClientOptions,
-}                   from '../src/io-client.js'
-import { WechatyBuilder }  from '../src/wechaty-builder.js'
+  type IoClientOptions,
+}                   from '../src/io-client.ts'
+import { WechatyBuilder }  from '../src/wechaty-builder.ts'
 
 const welcome = `
 | __        __        _           _

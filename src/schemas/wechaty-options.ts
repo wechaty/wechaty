@@ -5,7 +5,7 @@ import type {
 
 import type {
   OfficialPuppetNpmName,
-}                             from '../puppet-config.js'
+}                             from '../puppet-config.ts'
 
 interface OptionsPuppetInstance {
   puppet?: PUPPET.impls.PuppetInterface,

@@ -41,4 +41,4 @@ export type {
   RoomInvitationInterface as RoomInvitation,
   TagInterface            as Tag,
   UrlLinkInterface        as UrlLink,
-}                                               from '../user-modules/mod.js'
+}                                               from '../user-modules/mod.ts'

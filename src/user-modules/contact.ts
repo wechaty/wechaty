@@ -30,27 +30,27 @@ import type {
 
 import {
   log,
-}                           from '../config.js'
+}                           from '../config.ts'
 
-import { ContactEventEmitter }        from '../schemas/mod.js'
+import { ContactEventEmitter }        from '../schemas/mod.ts'
 
 import {
   poolifyMixin,
   wechatifyMixin,
   validationMixin,
-}                                     from '../user-mixins/mod.js'
+}                                     from '../user-mixins/mod.ts'
 import {
   deliverSayableConversationPuppet,
-}                                     from '../sayable/mod.js'
+}                                     from '../sayable/mod.ts'
 import type {
   SayableSayer,
   Sayable,
-}                                     from '../sayable/mod.js'
-import { stringifyFilter }            from '../helper-functions/stringify-filter.js'
+}                                     from '../sayable/mod.ts'
+import { stringifyFilter }            from '../helper-functions/stringify-filter.ts'
 
-import type { MessageInterface }  from './message.js'
-import type { TagInterface }      from './tag.js'
-import type { ContactSelfImpl }   from './contact-self.js'
+import type { MessageInterface }  from './message.ts'
+import type { TagInterface }      from './tag.ts'
+import type { ContactSelfImpl }   from './contact-self.ts'
 
 const MixinBase = wechatifyMixin(
   poolifyMixin(
@@ -66,6 +66,8 @@ const MixinBase = wechatifyMixin(
  * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
 class ContactMixin extends MixinBase implements SayableSayer {
+
+  public readonly id: string
 
   static Type   = PUPPET.types.Contact
   static Gender = PUPPET.types.ContactGender
@@ -240,9 +242,10 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @hideconstructor
    */
   constructor (
-    public readonly id: string,
+    id: string,
   ) {
     super()
+    this.id = id
     log.silly('Contact', `constructor(${id})`)
   }
 

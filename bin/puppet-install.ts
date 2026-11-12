@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --import=tsx/esm
+#!/usr/bin/env node
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -24,8 +24,8 @@ import { log } from 'wechaty-puppet'
 
 import {
   OFFICIAL_PUPPET_DEPENDENCIES,
-  OfficialPuppetNpmName,
-}                         from '../src/puppet-config.js'
+  type OfficialPuppetNpmName,
+}                         from '../src/puppet-config.ts'
 
 /**
  * Install all `wechaty-puppet-*` modules from `puppet-config.ts`
