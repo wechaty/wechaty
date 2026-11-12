@@ -27,8 +27,8 @@ function getRetryPolicy (): RetryPolicy {
   })
 
   policy.onRetry(reason => log.silly('wechaty',
-    'retry-policy getRetryPolicy policy.onRetry() reason: "%s"',
-    JSON.stringify({ ...reason, attempt: undefined }),
+    'retry-policy getRetryPolicy policy.onRetry() delay: %s ms',
+    reason.delay,
   ))
   policy.onSuccess(({ duration }) => log.silly('wechaty',
     'retry-policy getRetryPolicy policy.onSuccess(): retry call ran in %s ms',
