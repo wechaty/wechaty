@@ -59,8 +59,9 @@ interface PuppetEventBridgeDependencies {
  * unhandled, and unknown runtime keys throw to preserve startup failure behavior.
  * This function does not deduplicate or remove listeners, so its caller must
  * ensure it is invoked at most once per puppet; those listeners persist across
- * service lifecycle cycles. Handler failures caught by the bridge are
- * normalized to `GError` and passed to `emitError`.
+ * service lifecycle cycles. If registration throws, listeners added before the
+ * failure remain attached. Handler failures caught by the bridge are normalized
+ * to `GError` and passed to `emitError`.
  *
  * @param puppet - Provider whose events are translated.
  * @param dependencies - Entity lookups, bot emission, readiness, and error callbacks.
