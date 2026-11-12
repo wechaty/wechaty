@@ -421,6 +421,7 @@ function validateAndRender (runtime: 'node' | 'deno', testStatus: number, valida
     const html = join(output, 'html')
     mkdirSync(html, { recursive: true })
     const renderArgs = [
+      '--ignore-errors', 'inconsistent',
       '--title=Wechaty native coverage',
       ...(runtime === 'deno' ? [ '--branch-coverage' ] : []),
       `--output-directory=${html}`,
