@@ -285,6 +285,38 @@ test('lifecycle order and restart', async t => {
   assert.equal(stopPuppet.mock.callCount(), 2, 'should stop the puppet once per lifecycle')
 })
 
+test('explicit stop supersedes older reset intent', async t => {
+  class ResettableWechaty extends WechatyBase {
+    releaseStop = () => {}
+    readonly stopGate = new Promise<void>(resolve => {
+      this.releaseStop = resolve
+    })
+
+    override async onStop () {
+      await this.stopGate
+      await super.onStop()
+    }
+  }
+
+  const puppet = new PuppetMock()
+  const bot = new ResettableWechaty({ puppet })
+  const startSpy = t.mock.method(bot, 'onStart')
+
+  await bot.start()
+  assert.equal(startSpy.mock.callCount(), 1, 'baseline start should run once')
+
+  const resetting = bot.reset()
+  await new Promise(resolve => setImmediate(resolve))
+  const stopping = bot.stop()
+
+  bot.releaseStop()
+  await stopping
+  await assert.rejects(resetting, /superseded/i, 'reset should not overrule a later explicit stop')
+
+  assert.equal(startSpy.mock.callCount(), 1, 'should not start a new generation after explicit stop')
+  assert.equal(bot.state.active(), false, 'should remain inactive after explicit stop supersedes reset')
+})
+
 test('puppet and user modules initialize once', async () => {
   const puppet = new PuppetMock()
   const bot = new WechatyBase({ puppet })

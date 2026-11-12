@@ -17,7 +17,6 @@
  *   limitations under the License.
  *
  */
-import { StateSwitch } from 'state-switch'
 import {
   PuppetServer,
   type PuppetServerOptions,
@@ -30,6 +29,7 @@ import {
   log,
 }                       from './config.ts'
 import { Io }           from './io.ts'
+import { AwaitableState } from './lifecycle/mod.ts'
 
 export interface IoClientOptions {
   token   : string,
@@ -50,7 +50,7 @@ export class IoClient {
   private io?: Io
   private puppetServer?: PuppetServer
 
-  private state: StateSwitch
+  private state: AwaitableState
 
   protected options: Required<IoClientOptions>
 
@@ -72,7 +72,7 @@ export class IoClient {
 
     this.options = normalizedOptions
 
-    this.state = new StateSwitch('IoClient', { log })
+    this.state = new AwaitableState('IoClient')
   }
 
   private async startPuppetServer () {
