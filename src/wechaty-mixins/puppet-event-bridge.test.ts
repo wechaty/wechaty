@@ -84,60 +84,41 @@ test('registers every puppet event once and keeps reset unhandled', async () => 
 
 test('message event hydrates then forwards the same object in order', async () => {
   const puppet = new PuppetMock()
-  const trace: string[] = []
+  const context = createBridgeTestContext()
   const room = {
-    emit: (event: string) => trace.push(`room:${event}`),
+    emit: (event: string) => context.trace.push(`room:${event}`),
   } as unknown as RoomInterface
   const message = {
     room: () => room,
     listener: () => undefined,
   } as unknown as MessageInterface
-  const context = createBridgeTestContext({
-    messageFind: async () => message,
-    emit: function <EventName extends WechatyEventName> (
-      event: EventName,
-      ...args: Parameters<WechatyEventListeners[EventName]>
-    ) {
-      trace.push(`bot:${event}`)
-      context.eventList.push({ event, args })
-      return true
-    },
-  })
+  context.dependencies.messageFind = async () => message
 
   registerPuppetEventBridge(puppet, context.dependencies)
   puppet.emit('message', { messageId: 'message-id' })
   await flushEvents()
 
-  assert.deepEqual(trace, ['bot:message', 'room:message'], 'should emit to the bot before forwarding to the room')
+  assert.deepEqual(context.trace, ['bot:message', 'room:message'], 'should emit to the bot before forwarding to the room')
   assert.equal(context.eventList[0]?.args[0], message, 'should forward the hydrated message object')
 })
 
 test('message event forwards to a listener contact when it has no room', async () => {
   const puppet = new PuppetMock()
-  const trace: string[] = []
+  const context = createBridgeTestContext()
   const listener = {
-    emit: (event: string) => trace.push(`contact:${event}`),
+    emit: (event: string) => context.trace.push(`contact:${event}`),
   } as unknown as ContactInterface
   const message = {
     room: () => undefined,
     listener: () => listener,
   } as unknown as MessageInterface
-  const context = createBridgeTestContext()
   context.dependencies.messageFind = async () => message
-  context.dependencies.emit = function <EventName extends WechatyEventName> (
-    event: EventName,
-    ...args: Parameters<WechatyEventListeners[EventName]>
-  ) {
-    trace.push(`bot:${event}`)
-    context.eventList.push({ event, args })
-    return true
-  }
 
   registerPuppetEventBridge(puppet, context.dependencies)
   puppet.emit('message', { messageId: 'message-id' })
   await flushEvents()
 
-  assert.deepEqual(trace, ['bot:message', 'contact:message'], 'should forward to the listener contact after the bot event')
+  assert.deepEqual(context.trace, ['bot:message', 'contact:message'], 'should forward to the listener contact after the bot event')
   assert.equal(context.eventList[0]?.args[0], message, 'should forward the same hydrated message object')
 })
 
@@ -194,7 +175,11 @@ test('login, friendship, and room-join handlers preserve their event forwarding'
 
   assert.ok(context.eventList.some(({ event, args }) => event === 'login' && args[0] === contactSelf), 'should emit login contact')
   assert.ok(context.eventList.some(({ event, args }) => event === 'friendship' && args[0] === friendship), 'should emit loaded friendship')
-  assert.ok(context.trace.indexOf('bot:friendship') < context.trace.indexOf('contact:friendship'), 'should emit friendship before contact forwarding')
+  assert.deepEqual(
+    context.trace.filter(event => event === 'bot:friendship' || event === 'contact:friendship'),
+    ['bot:friendship', 'contact:friendship'],
+    'should emit friendship before contact forwarding',
+  )
   assert.deepEqual(context.trace.filter(event => event === 'bot:room-join' || event === 'room:join'), ['bot:room-join', 'room:join'], 'should emit room-join before room forwarding')
 })
 

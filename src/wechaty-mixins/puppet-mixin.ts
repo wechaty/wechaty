@@ -229,10 +229,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
             this.__readyState.inactive(true)
           }
         },
+        // Preserve GErrorMixin's error-event conversion for bridge emissions.
         emit: this.emit.bind(this),
         emitError: error => this.emitError(error),
       })
-
     }
 
   }
