@@ -113,8 +113,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
          * A failed puppet start must reject `start()` consistently,
          *  whether or not an `error` listener is registered.
          *
-         * Re-throw so the outermost `serviceCtlMixin.start()` performs its cleanup
-         *  (emit `error`, run `stop()`, leave the state `inactive`) and rejects.
+         * Re-throw so the outermost `serviceCtlMixin.start()` rejects consistently.
+         * With a non-throwing `error` listener, it also runs `stop()` and leaves
+         *  the state `inactive`. Without a listener, error emission interrupts
+         *  cleanup and leaves the state `pending`.
          *
          * Previously this called `this.emitError(e)`, which swallowed the failure:
          *  with a listener the bot wrongly reported itself active, and without a
