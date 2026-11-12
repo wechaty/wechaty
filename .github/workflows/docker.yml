@@ -39,6 +39,11 @@ jobs:
       - name: Check shell scripts for problems
         run: find . -not -path '*/.git/*' -type f -name '*.sh' -print0 | xargs -0 -r shellcheck --external-sources
 
+      - name: Enable ARM64 containers on this runner
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
+
       - name: Prepare the Docker image builder
         uses: docker/setup-buildx-action@v4
 
@@ -54,6 +59,13 @@ jobs:
 
       - name: Run the container behavior and unit tests
         run: ./scripts/docker.sh test
+
+      - name: Build the ARM64 image before publishing
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/arm64
+          cache-from: type=gha,scope=wechaty
 
   release-images:
     name: Publish and verify both images, then update release tags
