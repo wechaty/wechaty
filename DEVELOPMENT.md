@@ -49,12 +49,12 @@ clean installation from the lockfile.
 
 ## Tests
 
-Specs use `node:test` and `node:assert/strict`. `npm test` lints and runs the
-complete suite with Node.js directly from the `*.spec.ts` sources, without a
+Unit tests use `node:test` and `node:assert/strict`. `npm test` lints and runs the
+complete unit suite with Node.js directly from the `*.test.ts` sources, without a
 build. Run one Node test file with
-`npm run test:unit:file -- src/plugin.spec.ts`.
+`npm run test:unit:file -- src/plugin.test.ts`.
 For Deno, use
-`NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.spec.ts`.
+`NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.test.ts`.
 `npm run coverage` (or `npm run coverage:node`) collects Node.js native
 coverage for the complete `src/**/*.ts` production scope and writes LCOV,
 totals, and navigable HTML under `coverage/node/`. It requires Node.js 26.13.0
@@ -74,8 +74,7 @@ fixtures, and the hostname system query required by `cuid`. The command starts
 Deno with a sanitized environment containing only `PATH`, `HOME`, `CI`, and
 `NODE_BINARY`; the broad env permission is needed by a dependency that
 enumerates `process.env`. It also allows loading the `leveldown` prebuilt native
-modules required by the package's memory-card dependency. Node is needed
-separately because some fixtures launch Node-specific CLI arguments.
+modules required by the package's memory-card dependency.
 Deno uses `--no-check` because its checker cannot resolve a declaration import
 inside the `json-rpc-peer` dependency; `npm run lint:ts` remains the mandatory
 canonical check.

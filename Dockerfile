@@ -52,7 +52,7 @@ RUN  npm ci \
 
 COPY . .
 
-RUN ./scripts/generate-package-json.sh && rm -f src/package-json.spec.ts
+RUN ./scripts/generate-package-json.sh && rm -f src/package-json.test.ts
 RUN  npm test \
   && npm run dist \
   && npm link

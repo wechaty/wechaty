@@ -21,7 +21,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-test('Node.js function params destructuring behaviour test', async t => {
+test('function parameter destructuring applies defaults', async t => {
 
   const DEFAULT_N = 1
   const DEFAULT_S = 't'

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { OFFICIAL_PUPPET_DEPENDENCIES } from '../src/puppet-config.ts'
+import { OFFICIAL_PUPPET_DEPENDENCIES } from '../../src/puppet-config.ts'
 
 const testInstaller = process.platform === 'win32' ? test.skip : test
 const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
@@ -30,7 +30,7 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
 `, { mode: 0o755 })
 
       const result = spawnSync(nodeExecutable, [
-        fileURLToPath(new URL('../bin/puppet-install.ts', import.meta.url)),
+        fileURLToPath(new URL('../../bin/puppet-install.ts', import.meta.url)),
       ], {
         encoding: 'utf8',
         env: {

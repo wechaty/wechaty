@@ -178,7 +178,7 @@ export function sourceKey (source: string, root = ROOT): string {
     || !path.startsWith('src/')
     || !path.endsWith('.ts')
     || path.endsWith('.d.ts')
-    || path.endsWith('.spec.ts')
+    || path.endsWith('.test.ts')
     || path.split('/').includes('fixtures')
     || SOURCE_EXCLUDES.has(path)
   ) {
@@ -247,7 +247,7 @@ export function productionSources (root = ROOT): string[] {
         entry.isFile()
         && entry.name.endsWith('.ts')
         && !entry.name.endsWith('.d.ts')
-        && !entry.name.endsWith('.spec.ts')
+        && !entry.name.endsWith('.test.ts')
         && !relative(root, path).split(sep).includes('fixtures')
         && !SOURCE_EXCLUDES.has(relative(root, path).split(sep).join('/'))
       ) {
@@ -264,7 +264,7 @@ export function productionSources (root = ROOT): string[] {
 
 export function assertTestDiscovery (files: string[]): void {
   if (!files.length) {
-    throw new Error('Native test discovery returned no *.spec.ts files')
+    throw new Error('Native test discovery returned no *.test.ts files')
   }
 }
 
@@ -394,13 +394,13 @@ export function assertCoverageProbe (lcov: string, sourceName: string, root = RO
 
 function testFiles (root = ROOT): string[] {
   const files: string[] = []
-  for (const directory of [ 'src', 'tests' ]) {
+  for (const directory of [ 'src', 'scripts', 'tests/unit' ]) {
     const visit = (path: string) => {
       for (const entry of readdirSync(path, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
         const child = join(path, entry.name)
         if (entry.isDirectory()) {
           visit(child)
-        } else if (entry.isFile() && entry.name.endsWith('.spec.ts')) {
+        } else if (entry.isFile() && entry.name.endsWith('.test.ts')) {
           files.push(relative(root, child).split(sep).join('/'))
         }
       }
@@ -426,7 +426,7 @@ function coverageArgs (destination: string, include = 'src/**/*.ts'): string[] {
     '--test-timeout=180000',
     '--experimental-test-coverage',
     `--test-coverage-include=${include}`,
-    '--test-coverage-exclude=**/*.spec.ts',
+    '--test-coverage-exclude=**/*.test.ts',
     '--test-coverage-exclude=**/*.d.ts',
     '--test-coverage-exclude=src/**/fixtures/**/*.ts',
     '--test-coverage-exclude=src/package-json.ts',
@@ -600,7 +600,7 @@ function denoCoverage (tests: string[]): number {
 
     const filterArgs = [
       '--include=src/',
-      '--exclude=\\.spec\\.ts$',
+      '--exclude=\\.test\\.ts$',
       '--exclude=\\.d\\.ts$',
       '--exclude=fixtures/',
       '--exclude=src/package-json\\.ts$',

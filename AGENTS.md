@@ -1,6 +1,7 @@
 # Instructions for coding agents
 
 - Use node:test for a shared Node.js/Deno test suite; collect coverage natively in both runtimes, publish LCOV and HTML reports as GitHub Actions artifacts, and enforce independent, measured coverage regression baselines without third-party coverage services.
+- Name all unit test files *.test.ts and colocate them with their source modules. Use *.integration.test.ts or *.e2e.test.ts only for broader tests requiring separate execution. Write portable tests using node:test and node:assert/strict, and ensure the shared unit test suite runs under both Node.js and Deno.
 
 ## Project
 
@@ -94,7 +95,7 @@ outermost.
 - `load()` only returns the pooled instance. It does not fetch a payload.
 - To add a bot-bound module, update its file, `src/user-modules/mod.ts`,
   `src/wechaty-mixins/wechatify-user-module-mixin.ts`, `src/mods/impls.ts`,
-  `src/mods/users.ts`, and `src/wechaty/wechaty-impl.spec.ts`.
+  `src/mods/users.ts`, and `src/wechaty/wechaty-impl.test.ts`.
 - To add a sayable type, update `src/sayable/types.ts`, `deliver-sayable.ts`,
   `sayable-to-payload.ts`, `payload-to-sayable.ts`, and `message-to-sayable.ts`.
 
@@ -146,7 +147,7 @@ outermost.
 - Biome's formatter is off, so match nearby style by hand: two spaces, no
   semicolons, and a space before method parentheses.
 - Import order can matter because of circular dependencies. See the `Huan(...)`
-  comments in `src/wechaty/wechaty-base.spec.ts` and `src/mods/mod.ts`.
+  comments in `src/wechaty/wechaty-base.test.ts` and `src/mods/mod.ts`.
 - Log with `log.verbose('Module', 'method(%s)', arg)` from `wechaty-puppet`, and
   use `log.silly` for detail. Use `info`, `warn`, and `error` sparingly.
 - Keep existing `Huan(YYYYMM):` comments, but do not write new comments in a
@@ -166,17 +167,19 @@ NODE_BINARY="$(command -v node)" npm run test:unit:deno
 Run a focused Node test file with:
 
 ```sh
-npm run test:unit:file -- src/plugin.spec.ts
+npm run test:unit:file -- src/plugin.test.ts
 ```
 
 Run one Deno test file with:
 
 ```sh
-NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.spec.ts
+NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.test.ts
 ```
 
-- Specs sit beside the source as `*.spec.ts`, or under `tests/`, and import
+- Unit tests sit beside the source as `*.test.ts`, or under `tests/unit/`, and import
   `test` from `node:test` and assertions from `node:assert/strict`.
+- Broader tests live under `tests/integration/` or `tests/e2e/` and use
+  `*.integration.test.ts` or `*.e2e.test.ts` respectively.
 - Always set the puppet explicitly, usually `new PuppetMock()`, and use
   `puppet.mocker` for data. The default puppet is a real protocol.
 - Register `t.after()` cleanup before starting a bot, and stop it before the test
@@ -199,7 +202,7 @@ Before handing off, report the commands you ran and anything you could not run.
 
 Do not commit a regenerated `src/package-json.ts`.
 `scripts/generate-package-json.sh` overwrites it for publishing, and
-`src/package-json.spec.ts` fails on the result. Commit `package-lock.json` with
+`src/package-json.test.ts` fails on the result. Commit `package-lock.json` with
 dependency changes.
 
 ## Stale sources

@@ -10,7 +10,7 @@ import {
   normalizeLcovForRenderer,
   parseLcov,
   summarizeLcov,
-} from '../scripts/coverage.ts'
+} from './coverage.ts'
 
 const record = (source: string, lineHits = 1) => `TN:
 SF:${source}
@@ -38,8 +38,8 @@ test('coverage parser rejects empty, incomplete, duplicate, and malformed LCOV',
 })
 
 test('empty discovery fails and report success cannot erase a failing test status', () => {
-  assert.throws(() => assertTestDiscovery([]), /no \*\.spec\.ts files/)
-  assert.doesNotThrow(() => assertTestDiscovery([ 'src/plugin.spec.ts' ]))
+  assert.throws(() => assertTestDiscovery([]), /no \*\.test\.ts files/)
+  assert.doesNotThrow(() => assertTestDiscovery([ 'src/plugin.test.ts' ]))
   assert.equal(coverageExitCode(1, 0), 1)
   assert.equal(coverageExitCode(0, 0), 0)
   assert.equal(coverageExitCode(0, 1), 1)

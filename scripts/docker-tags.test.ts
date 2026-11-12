@@ -3,7 +3,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { dockerTags } from '../scripts/docker-tags.ts'
+import { dockerTags } from './docker-tags.ts'
 
 test('Docker rolling tags preserve prerelease stages and discard patch and counters', async _t => {
   const cases = [
