@@ -29,6 +29,14 @@ import type { IoMixin }     from './io-mixin.ts'
 const PUPPET_MEMORY_NAME = 'puppet'
 
 /**
+ * Asserts switch exhaustiveness for puppet events at compile time and keeps
+ * startup resilient at runtime if a newer puppet introduces unknown events.
+ */
+const assertPuppetEventNameExhaustive = (eventName: never): void => {
+  log.warn('WechatyPuppetMixin', '__setupPuppetEvents() unsupported puppet event: %s', eventName)
+}
+
+/**
  * Huan(202111): the `wechaty-redux` plugin need to be installed before
  *  the puppet started
  *
@@ -490,9 +498,10 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
           default:
             /**
-             * Check: The eventName here should have the type `never`
+             * Enforce compile-time exhaustiveness and keep runtime startup tolerant.
              */
-            throw new Error('eventName ' + eventName + ' unsupported!')
+            assertPuppetEventNameExhaustive(eventName)
+            break
 
         }
       }
