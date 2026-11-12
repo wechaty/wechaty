@@ -343,7 +343,7 @@ test('bot-bound Contact classes and pools are isolated', async () => {
   }
 })
 
-test('startup puppet failure depends on error listener (#2855)', async t => {
+test('startup puppet failure rejects consistently (#2855)', async t => {
   const handledPuppet = new PuppetMock()
   const handledBot = new WechatyBase({ puppet: handledPuppet })
   const expectedError = new Error('puppet start failed')
@@ -352,8 +352,13 @@ test('startup puppet failure depends on error listener (#2855)', async t => {
   const errors: Error[] = []
   handledBot.on('error', error => errors.push(error))
   try {
-    await handledBot.start()
-    assert.equal(errors.length, 1, 'should emit the startup failure to an error listener')
+    await assert.rejects(
+      handledBot.start(),
+      /puppet start failed/,
+      'should reject start() when the puppet fails to start, even with an error listener',
+    )
+    assert.equal(handledBot.state.active(), false, 'should not report active after a failed puppet start')
+    assert.ok(errors.length >= 1, 'should emit the startup failure to an error listener')
     assert.equal(errors[0]?.message, expectedError.message, 'should preserve the startup failure message')
   } finally {
     await handledBot.stop()
