@@ -55,8 +55,15 @@ build. Run one Node test file with
 `npm run test:unit:file -- src/plugin.spec.ts`.
 For Deno, use
 `NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.spec.ts`.
-`npm run coverage` runs the suite with Node.js's built-in coverage and writes
-`coverage/lcov.info`.
+`npm run coverage` (or `npm run coverage:node`) collects Node.js native
+coverage for the complete `src/**/*.ts` production scope and writes LCOV,
+totals, and navigable HTML under `coverage/node/`. It requires Node.js 26.13.0
+and `genhtml` from the LCOV package for HTML rendering. Native Node coverage
+includes unloaded source files without importing them. Specs, declaration
+files, and generated `src/package-json.ts` are excluded.
+The Node HTML renderer shows line and function coverage; its version does not
+display Node's native branch records. Branch totals remain available in the
+Node LCOV and machine-readable report.
 
 The same suite runs under Deno 2.9.8 with
 `NODE_BINARY="$(command -v node)" npm run test:unit:deno`. Deno is not a
@@ -72,6 +79,29 @@ separately because some fixtures launch Node-specific CLI arguments.
 Deno uses `--no-check` because its checker cannot resolve a declaration import
 inside the `json-rpc-peer` dependency; `npm run lint:ts` remains the mandatory
 canonical check.
+
+Run `npm run coverage:deno` with Node.js 26.13.0, Deno 2.9.8, and `genhtml` to
+collect Deno-native profiles and write LCOV, totals, and navigable HTML under
+`coverage/deno/`. Deno's native report covers loaded modules only. To represent
+the other production files without importing them, the LCOV report adds
+zero-hit records for only those missing files from a separate Node native
+include-all run. The Node LCOV reporter can report `LH` hits for type-only
+lines whose `DA` counters are all zero, so the supplement validates those
+counters and normalizes its added records to zero hits. Deno's loaded-file
+counts remain Deno-native, and its native HTML renderer includes branch
+coverage. The runtimes are never averaged or merged.
+Machine-readable totals use the detailed `DA`, `FNDA`, and `BRDA` records, so
+their percentages match the HTML renderer instead of inconsistent aggregate
+LCOV tags.
+`coverage/node/` and `coverage/deno/` are published as separate GitHub Actions
+artifacts, and each runtime is checked against its reviewed baseline in
+`.github/coverage-baselines/`.
+
+The committed line/function/branch floors in
+`.github/coverage-baselines/node.json` and
+`.github/coverage-baselines/deno.json` were measured independently from the full
+shared suite at the versions above. Baseline changes require review; the
+workflow never lowers them automatically.
 
 `npm run lint:ts` remains the canonical TypeScript check; the test runner does
 not replace it. Lifecycle tests register `t.after()` cleanup before starting
