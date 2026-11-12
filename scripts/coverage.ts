@@ -79,8 +79,8 @@ export function parseLcov (content: string): LcovRecord[] {
 
 function parseRecord (lines: string[]): LcovRecord {
   const fields = new Map<string, string[]>()
-  const functionNames = new Set<string>()
-  const functionHits = new Map<string, number>()
+  const functionCounts = new Map<string, number>()
+  const functionHits = new Map<string, number[]>()
   let lineCount = 0
   let lineHits = 0
   let branchCount = 0
@@ -111,13 +111,13 @@ function parseRecord (lines: string[]): LcovRecord {
       if (!data || !Number.isSafeInteger(Number(data[1]))) {
         throw new Error(`Malformed LCOV function record: ${line}`)
       }
-      functionNames.add(data[2]!)
+      functionCounts.set(data[2]!, (functionCounts.get(data[2]!) ?? 0) + 1)
     } else if (key === 'FNDA') {
       const data = /^(\d+),(.+)$/.exec(value)
       if (!data || !Number.isSafeInteger(Number(data[1]))) {
         throw new Error(`Malformed LCOV function count: ${line}`)
       }
-      functionHits.set(data[2]!, (functionHits.get(data[2]!) ?? 0) + Number(data[1]))
+      functionHits.set(data[2]!, [ ...(functionHits.get(data[2]!) ?? []), Number(data[1]) ])
     } else if (key === 'BRDA') {
       const data = /^(\d+),(\d+),(\d+),(-|\d+)$/.exec(value)
       if (!data || data.slice(1, 4).some(item => !Number.isSafeInteger(Number(item)))) {
@@ -137,7 +137,8 @@ function parseRecord (lines: string[]): LcovRecord {
   if (!lineCount) {
     throw new Error(`LCOV record has no line data: ${source}`)
   }
-  if ([ ...functionNames ].some(name => !functionHits.has(name)) || [ ...functionHits.keys() ].some(name => !functionNames.has(name))) {
+  const functionNames = new Set([ ...functionCounts.keys(), ...functionHits.keys() ])
+  if ([ ...functionNames ].some(name => functionCounts.get(name) !== functionHits.get(name)?.length)) {
     throw new Error(`LCOV function declarations and counts differ: ${source}`)
   }
 
@@ -161,8 +162,8 @@ function parseRecord (lines: string[]): LcovRecord {
   const metrics: CoverageMetrics = {
     lines: metric(lineHits, lineCount),
     functions: metric(
-      [ ...functionHits.values() ].filter(hits => hits > 0).length,
-      functionHits.size,
+      [ ...functionHits.values() ].flat().filter(hits => hits > 0).length,
+      [ ...functionHits.values() ].flat().length,
     ),
     branches: metric(branchHits, branchCount),
   }

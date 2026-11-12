@@ -102,8 +102,19 @@ end_of_record
   assert.match(normalized, /FN:23,get wechaty \(1\)/)
   assert.match(normalized, /FN:24,get wechaty \(2\)/)
   assert.equal(parseLcov(normalized)[0]?.metrics.functions.percent, 50)
+  const duplicateMetrics = summarizeLcov(parseLcov(record('src/duplicates.ts').replace(
+    'FN:1,example\nFNDA:1,example\nFNF:1\nFNH:1',
+    'FN:1,example\nFN:2,example\nFNDA:1,example\nFNDA:0,example\nFNF:2\nFNH:1',
+  )))
+  assert.equal(duplicateMetrics.functions.covered, 1)
+  assert.equal(duplicateMetrics.functions.total, 2)
+  assert.equal(duplicateMetrics.functions.percent, 50)
+  assert.throws(
+    () => assertBaseline(duplicateMetrics, { lines: 100, functions: 75, branches: 50 }),
+    /functions coverage 50\.00% is below/,
+  )
   assert.throws(
     () => normalizeLcovForRenderer(absolute.replace('FNDA:0,get wechaty\n', ''), '/repo'),
-    /hit count does not match declarations/,
+    /function declarations and counts differ/,
   )
 })
