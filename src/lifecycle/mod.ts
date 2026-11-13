@@ -30,7 +30,6 @@ export {
 }                         from './lifecycle.ts'
 export type {
   Lifecycle,
-  LifecycleOptions,
 }                         from './lifecycle.ts'
 export type {
   LifecycleHooks,

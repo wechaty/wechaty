@@ -79,11 +79,6 @@ function defer (): Deferred {
   return { promise, reject, resolve }
 }
 
-interface LifecycleOptions {
-  /** The service name, used only for diagnostics. */
-  readonly name?: string
-}
-
 interface Lifecycle {
   readonly state: LifecycleState
 
@@ -100,7 +95,6 @@ interface Lifecycle {
 class LifecycleController implements Lifecycle {
 
   readonly #hooks: LifecycleHooks
-  readonly #name: string
 
   #state: LifecycleState = { kind: 'stopped' }
 
@@ -154,9 +148,8 @@ class LifecycleController implements Lifecycle {
   /** Observers registered via {@link whenState}, checked after every change. */
   readonly #observers = new Set<(state: LifecycleState) => void>()
 
-  constructor (hooks: LifecycleHooks, options: LifecycleOptions = {}) {
+  constructor (hooks: LifecycleHooks) {
     this.#hooks = hooks
-    this.#name = options.name ?? 'Lifecycle'
   }
 
   get state (): LifecycleState {
@@ -533,5 +526,4 @@ export {
 }
 export type {
   Lifecycle,
-  LifecycleOptions,
 }
