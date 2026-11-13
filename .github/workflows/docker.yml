@@ -65,7 +65,10 @@ jobs:
         with:
           context: .
           platforms: linux/arm64
-          cache-from: type=gha,scope=wechaty
+          cache-from: |
+            type=gha,scope=wechaty
+            type=gha,scope=wechaty-arm64
+          cache-to: type=gha,mode=max,scope=wechaty-arm64
 
   release-images:
     name: Publish and verify both images, then update release tags
@@ -140,7 +143,9 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           outputs: type=image,name=wechaty/wechaty,push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=wechaty
+          cache-from: |
+            type=gha,scope=wechaty
+            type=gha,scope=wechaty-arm64
           cache-to: type=gha,mode=max,scope=wechaty
           sbom: true
           provenance: mode=max
