@@ -92,7 +92,12 @@ function stringifyCause (cause: unknown): string {
   if (cause instanceof Error) {
     return cause.message
   }
-  return String(cause)
+  try {
+    return String(cause)
+  } catch {
+    // e.g. Object.create(null) has no toString; never throw while reporting.
+    return '[unprintable value]'
+  }
 }
 
 export {

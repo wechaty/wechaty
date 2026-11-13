@@ -96,7 +96,7 @@ class LifecycleController implements Lifecycle {
 
   readonly #hooks: LifecycleHooks
 
-  #state: LifecycleState = { kind: 'stopped' }
+  #state: LifecycleState = Object.freeze({ kind: 'stopped' })
 
   /**
    * Latest declared intent. Reconciliation always reads this (desired-state,
@@ -106,52 +106,58 @@ class LifecycleController implements Lifecycle {
 
   /**
    * Monotonic resource generation. Incremented when a run begins acquiring
-   * resources; used to fence stale completions (inv. 9).
+   * resources (inv. 9).
    */
   #generation = 0
 
   /**
-   * Monotonic intent revision. Incremented on every externally-driven intent
-   * change (start/stop). Supervisor recovery can be gated on the revision it
-   * observed so a late restart cannot override a newer user stop (inv. 1, §6.4).
+   * Monotonic intent revision. Incremented on every accepted start/stop request.
+   * Supervisor recovery can be gated on the revision it observed so a late
+   * restart cannot override a newer user stop (inv. 1, §6.4).
    */
   #revision = 0
 
   /**
-   * The {@link #revision} at which the controller last entered a `failed` state.
-   * Used so the reconciliation loop does not auto-retry a start for the same
-   * request, yet a newer request (higher revision) can re-attempt.
+   * Incremented on every `stop()` request, including idempotent ones. `restart()`
+   * captures it so any later explicit stop invalidates the pending start phase.
+   */
+  #stopRevision = 0
+
+  /**
+   * The {@link #revision} for which the controller last published `failed`.
+   * The loop does not re-attempt work for a request that already failed; a newer
+   * request (higher revision) may.
    */
   #failedRevision = -1
 
   /** Aborts the in-flight `start()` hook when its run is superseded. */
   #runAbort?: AbortController
 
-  /** Serializes reconciliation: a single worker drains intent changes. */
+  /** The single reconciliation worker; undefined when idle. */
   #reconciling?: Promise<void>
 
   /**
-   * Set when a request arrives while the worker is between its loop exit and its
-   * `.finally` cleanup, so the worker is re-run exactly once rather than lost.
+   * Set when a request arrives while the worker is finishing, so it is re-run
+   * once rather than losing the request.
    */
   #wakePending = false
 
   /**
-   * Callers awaiting the next convergence to each desired state. Settled in
-   * bulk when the reconciler reaches (or fails to reach) that state, so a single
-   * attempt serves many waiters (single-flight) while each caller keeps its own
-   * abortable wait registered via {@link whenState}.
+   * Callers awaiting convergence to each desired state. Because a request that
+   * flips intent rejects the opposite list immediately, only waiters matching
+   * the *current* intent ever exist; settling one list never touches the other.
    */
   readonly #runningWaiters: Deferred[] = []
   readonly #stoppedWaiters: Deferred[] = []
 
-  /** Observers registered via {@link whenState}, checked after every change. */
+  /** Observers registered via {@link whenState}, notified after every change. */
   readonly #observers = new Set<(state: LifecycleState) => void>()
 
   constructor (hooks: LifecycleHooks) {
     this.#hooks = hooks
   }
 
+  /** Immutable snapshot (frozen); only reconciliation can change the controller. */
   get state (): LifecycleState {
     return this.#state
   }
@@ -159,11 +165,10 @@ class LifecycleController implements Lifecycle {
   /**
    * Declare the intent to reach `running`.
    *
-   * Resolves once the service genuinely reaches `running` for the run that
-   * satisfies *current* intent. Rejects with {@link LifecycleStartError} if the
-   * start hook fails, or {@link LifecycleSupersededError} if a later `stop()`
-   * supersedes this request before it reaches `running`. An already-aborted
-   * `signal` rejects immediately without changing intent (§6.4).
+   * Resolves once the service genuinely reaches `running`. Rejects with
+   * {@link LifecycleStartError} if the start hook fails, or
+   * {@link LifecycleSupersededError} if a later `stop()` supersedes this request.
+   * An already-aborted `signal` rejects immediately without changing intent.
    */
   async start (options: { signal?: AbortSignal } = {}): Promise<void> {
     return this.#request('running', this.#runningWaiters, options.signal)
@@ -174,27 +179,34 @@ class LifecycleController implements Lifecycle {
    *
    * Resolves only after owned resources are actually released; rejects with
    * {@link LifecycleStopError} if cleanup fails (never masquerades as stopped).
+   * Calling it after a failed start/stop retries or finalizes cleanup.
    */
   async stop (options: { signal?: AbortSignal } = {}): Promise<void> {
     return this.#request('stopped', this.#stoppedWaiters, options.signal)
   }
 
   /**
-   * Explicit stop-then-start cycle. Unlike two independent calls, it is a single
-   * intent sequence; a concurrent later `stop()` still wins (intent authority).
+   * Explicit stop-then-start cycle. Any `stop()` requested after this call
+   * (even an otherwise idempotent one) cancels the pending start phase, so a
+   * later user stop always wins (intent authority, inv. 1).
    */
   async restart (options: { signal?: AbortSignal } = {}): Promise<void> {
-    await this.stop(options)
+    const stopped = this.stop(options)
+    const stopRevision = this.#stopRevision
+    await stopped
+    if (this.#stopRevision !== stopRevision) {
+      throw new LifecycleSupersededError()
+    }
     await this.start(options)
   }
 
   /**
    * Await the first state satisfying `predicate`.
    *
-   * Read-only observation that never mutates intent. Resolves with the matching
-   * snapshot. Rejects if the caller's `signal` aborts, or — to avoid the
-   * `state-switch` "wait forever after failure" hang (§3.1/§3.4) — if the
-   * service reaches a terminal `failed` state that does not satisfy `predicate`.
+   * Read-only observation that never mutates intent. Rejects if the caller's
+   * `signal` aborts, if `predicate` throws (only this observation fails), or —
+   * to avoid the `state-switch` hang (§3.1/§3.4) — if the service is in, or
+   * reaches, a terminal `failed` state that does not satisfy `predicate`.
    */
   whenState (
     predicate: (state: LifecycleState) => boolean,
@@ -205,29 +217,42 @@ class LifecycleController implements Lifecycle {
     if (signal?.aborted) {
       return Promise.reject(toAbortError(signal))
     }
-    if (predicate(this.#state)) {
-      return Promise.resolve(this.#state)
-    }
 
     return new Promise<LifecycleState>((resolve, reject) => {
       const cleanup = () => {
         this.#observers.delete(observer)
         signal?.removeEventListener('abort', onAbort)
       }
-      const observer = (state: LifecycleState) => {
-        if (predicate(state)) {
+      /** Returns true when the wait is finished (settled). */
+      const observer = (state: LifecycleState): boolean => {
+        try {
+          if (predicate(state)) {
+            cleanup()
+            resolve(state)
+            return true
+          }
+        } catch (error) {
+          // A faulty predicate must only fail its own observation.
           cleanup()
-          resolve(state)
-        } else if (state.kind === 'failed') {
+          reject(error)
+          return true
+        }
+        if (state.kind === 'failed') {
           cleanup()
           reject(new LifecycleStartError(state.error, state.cleanupComplete, state.cleanupError))
+          return true
         }
+        return false
       }
       const onAbort = () => {
         cleanup()
         reject(toAbortError(signal!))
       }
 
+      // Evaluate the current snapshot first, then subscribe for changes.
+      if (observer(this.#state)) {
+        return
+      }
       this.#observers.add(observer)
       signal?.addEventListener('abort', onAbort, { once: true })
     })
@@ -236,8 +261,8 @@ class LifecycleController implements Lifecycle {
   /**
    * Register a caller's intent and its abortable waiter, then ensure the
    * reconciliation worker is running. Aborting `signal` cancels only this
-   * caller's wait (rejecting with an AbortError) — it does not revoke the
-   * accepted service intent or other callers' waits (§6.4).
+   * caller's wait — it does not revoke the accepted service intent or other
+   * callers' waits (§6.4).
    */
   #request (
     desired: DesiredState,
@@ -248,10 +273,13 @@ class LifecycleController implements Lifecycle {
       return Promise.reject(toAbortError(signal))
     }
 
+    if (desired === 'stopped') {
+      this.#stopRevision += 1
+    }
+
     /**
-     * Fast path: already in the desired terminal state and no pending change in
-     * the other direction. Idempotent repeat requests resolve immediately
-     * (inv. 5) without spawning a redundant attempt.
+     * Fast path: already settled at the desired state with no pending change.
+     * Idempotent repeat requests resolve immediately (inv. 5).
      */
     if (this.#desired === desired && this.#isSettledAt(desired)) {
       return Promise.resolve()
@@ -261,18 +289,14 @@ class LifecycleController implements Lifecycle {
     this.#desired = desired
 
     /**
-     * Supersession: flipping desired state makes any callers still awaiting the
-     * *opposite* convergence irrelevant. Reject them now with
-     * {@link LifecycleSupersededError} (intent authority, inv. 1) instead of
-     * leaving them pending behind an uncooperative in-flight hook. A newly-desired
-     * `stopped` also aborts the in-flight start's signal so a cooperative hook can
-     * unwind promptly (inv. 8); an uncooperative hook is fenced on late completion.
+     * Supersession happens here, when intent changes — never as a side effect
+     * of intermediate convergence. A new `stopped` intent also aborts the
+     * in-flight start's signal so a cooperative hook can unwind (inv. 8); an
+     * uncooperative hook is fenced on late completion (see #doStart).
      */
     if (desired === 'stopped') {
       this.#rejectWaiters(this.#runningWaiters, new LifecycleSupersededError())
-      if (this.#runAbort) {
-        this.#runAbort.abort(new LifecycleSupersededError())
-      }
+      this.#runAbort?.abort(new LifecycleSupersededError())
     } else {
       this.#rejectWaiters(this.#stoppedWaiters, new LifecycleSupersededError())
     }
@@ -302,18 +326,15 @@ class LifecycleController implements Lifecycle {
   }
 
   #isSettledAt (desired: DesiredState): boolean {
-    if (desired === 'running') {
-      return this.#state.kind === 'running'
-    }
-    return this.#state.kind === 'stopped'
+    return this.#state.kind === (desired === 'running' ? 'running' : 'stopped')
   }
 
   /**
-   * Start the reconciliation worker if it is not already draining.
+   * Start the reconciliation worker if it is not already running.
    *
-   * If a request arrives while the worker is still settling (its terminating
-   * `.finally` has not yet cleared `#reconciling`), record a pending wake so the
-   * worker re-runs once instead of being lost to that race.
+   * The loop is entered from a promise continuation so `#reconciling` is
+   * assigned *before* any consumer code (hooks, predicates) can run; a hook that
+   * synchronously calls `stop()` therefore cannot spawn a second worker.
    */
   #ensureReconciling (): void {
     if (this.#reconciling) {
@@ -321,7 +342,7 @@ class LifecycleController implements Lifecycle {
       return
     }
     this.#wakePending = false
-    this.#reconciling = this.#reconcileLoop().finally(() => {
+    this.#reconciling = Promise.resolve().then(() => this.#reconcileLoop()).finally(() => {
       this.#reconciling = undefined
       if (this.#wakePending) {
         this.#ensureReconciling()
@@ -331,37 +352,32 @@ class LifecycleController implements Lifecycle {
 
   /**
    * The single reconciliation worker. Each iteration reads the *latest* desired
-   * state and takes one step toward it, re-reading intent after every await so a
-   * mid-flight supersession is honored before publishing an authoritative state
-   * (§6.4). Exits only when the service already matches current intent.
+   * state and takes one step toward it, so mid-flight supersession is honored
+   * before any authoritative state is published (§6.4).
    */
   async #reconcileLoop (): Promise<void> {
     for (;;) {
-      const desired = this.#desired
+      const state = this.#state
 
-      if (desired === 'running') {
-        if (this.#state.kind === 'running') {
-          this.#settleRunningWaiters()
+      if (this.#desired === 'running') {
+        if (state.kind === 'running') {
+          this.#resolveWaiters(this.#runningWaiters)
           return
         }
         /**
-         * A `failed` state is terminal for the request that produced it; the
-         * loop does not auto-retry (recovery is the supervisor's policy, inv. 12).
-         * A *new* start request (which advances `#revision`) is what re-enters a
-         * start here. Block restart when prior cleanup is unverified, since the
-         * old run's resources may still be live (inv. 4/7).
+         * `failed` is terminal for the request that produced it (no auto-retry;
+         * recovery is supervisor policy, inv. 12). A newer start request may
+         * retry, but only if cleanup was verified complete (inv. 4/7).
          */
-        if (this.#state.kind === 'failed') {
+        if (state.kind === 'failed') {
           if (this.#revision === this.#failedRevision) {
             return
           }
-          if (!this.#state.cleanupComplete) {
-            const unsafe = new LifecycleStartError(
-              this.#state.error,
-              this.#state.cleanupComplete,
-              this.#state.cleanupError,
+          if (!state.cleanupComplete) {
+            this.#rejectWaiters(
+              this.#runningWaiters,
+              new LifecycleStartError(state.error, false, state.cleanupError),
             )
-            this.#rejectWaiters(this.#runningWaiters, unsafe)
             return
           }
         }
@@ -370,35 +386,46 @@ class LifecycleController implements Lifecycle {
       }
 
       // desired === 'stopped'
-      if (this.#state.kind === 'stopped') {
-        this.#settleStoppedWaiters()
+      if (state.kind === 'stopped') {
+        this.#resolveWaiters(this.#stoppedWaiters)
         return
       }
-      if (this.#state.kind === 'failed') {
-        // Terminal failure already settled its waiters; nothing left to do
-        // unless a new start intent arrives (which flips #desired to running).
-        return
+      if (state.kind === 'failed') {
+        if (this.#revision === this.#failedRevision) {
+          return // this request already failed and was reported
+        }
+        if (state.cleanupComplete) {
+          // Rollback already released everything: finalize as stopped.
+          this.#publish({ kind: 'stopped' }, () => this.#resolveWaiters(this.#stoppedWaiters))
+          return
+        }
+        // Cleanup was incomplete: fall through and retry it.
       }
       await this.#doStop()
     }
   }
 
   /**
-   * Execute one start attempt for a fresh generation. On hook failure, roll back
-   * via the stop hook and publish a `failed` state that records whether that
-   * rollback actually completed.
+   * Execute one start attempt for a fresh generation. A run whose signal was
+   * aborted is *retired*: whatever its hook returned, it never publishes
+   * `running`, and its resources are released via {@link #doStop} before any
+   * replacement generation starts (inv. 4/9).
    */
   async #doStart (): Promise<void> {
     const generation = ++this.#generation
     const runAbort = new AbortController()
     this.#runAbort = runAbort
 
-    this.#setState({ generation, kind: 'starting' })
+    this.#publish({ generation, kind: 'starting' })
 
     try {
       await this.#hooks.start({ signal: runAbort.signal })
     } catch (error) {
-      await this.#rollback(generation, error)
+      if (runAbort.signal.aborted) {
+        await this.#doStop() // retired run: its start error is irrelevant
+      } else {
+        await this.#rollback(generation, error)
+      }
       return
     } finally {
       if (this.#runAbort === runAbort) {
@@ -406,27 +433,18 @@ class LifecycleController implements Lifecycle {
       }
     }
 
-    /**
-     * Fence stale completion: if intent flipped to stopped (or a newer run
-     * began) while start was awaiting, do not publish `running`. The loop will
-     * reconcile toward the current desired state next iteration.
-     */
-    if (this.#generation !== generation || this.#desired !== 'running') {
-      // Resources for this generation were acquired; let the loop stop them.
-      if (this.#state.kind === 'starting' && this.#state.generation === generation) {
-        this.#setState({ generation, kind: 'running' })
-      }
+    if (runAbort.signal.aborted) {
+      await this.#doStop()
       return
     }
 
-    this.#setState({ generation, kind: 'running' })
-    this.#settleRunningWaiters()
+    this.#publish({ generation, kind: 'running' }, () => this.#resolveWaiters(this.#runningWaiters))
   }
 
-  /** Roll back a failed start and record cleanup outcome. */
+  /** Roll back a failed (non-retired) start and record the cleanup outcome. */
   async #rollback (generation: number, error: unknown): Promise<void> {
-    let cleanupComplete = true
     let cleanupError: unknown
+    let cleanupComplete = true
 
     try {
       await this.#hooks.stop()
@@ -435,22 +453,16 @@ class LifecycleController implements Lifecycle {
       cleanupError = e
     }
 
-    const failed: LifecycleState = cleanupError === undefined
-      ? { cleanupComplete, error, generation, kind: 'failed' }
-      : { cleanupComplete, cleanupError, error, generation, kind: 'failed' }
-
-    this.#setState(failed)
     this.#failedRevision = this.#revision
-
-    const startError = new LifecycleStartError(error, cleanupComplete, cleanupError)
-    this.#rejectWaiters(this.#runningWaiters, startError)
-    // A stop requested during a failing start is satisfied once resources are
-    // released; if cleanup failed, surface that instead.
-    if (cleanupComplete) {
-      this.#settleStoppedWaiters()
-    } else {
-      this.#rejectWaiters(this.#stoppedWaiters, new LifecycleStopError(cleanupError))
-    }
+    this.#publish(
+      cleanupComplete
+        ? { cleanupComplete, error, generation, kind: 'failed' }
+        : { cleanupComplete, cleanupError, error, generation, kind: 'failed' },
+      () => this.#rejectWaiters(
+        this.#runningWaiters,
+        new LifecycleStartError(error, cleanupComplete, cleanupError),
+      ),
+    )
   }
 
   /** Execute one stop attempt, releasing the current run's resources. */
@@ -458,44 +470,42 @@ class LifecycleController implements Lifecycle {
     const current = this.#state
     const generation = 'generation' in current ? current.generation : this.#generation
 
-    this.#setState({ generation, kind: 'stopping' })
+    this.#publish({ generation, kind: 'stopping' })
 
     try {
       await this.#hooks.stop()
     } catch (error) {
-      this.#setState({ cleanupComplete: false, cleanupError: error, error, generation, kind: 'failed' })
       this.#failedRevision = this.#revision
-      this.#rejectWaiters(this.#stoppedWaiters, new LifecycleStopError(error))
-      // Also reject any start waiters that were coalesced behind this stop.
-      this.#rejectWaiters(this.#runningWaiters, new LifecycleStopError(error))
+      this.#publish(
+        { cleanupComplete: false, cleanupError: error, error, generation, kind: 'failed' },
+        () => {
+          const stopError = new LifecycleStopError(error)
+          this.#rejectWaiters(this.#stoppedWaiters, stopError)
+          this.#rejectWaiters(this.#runningWaiters, stopError)
+        },
+      )
       return
     }
 
-    this.#setState({ kind: 'stopped' })
-    this.#settleStoppedWaiters()
+    this.#publish({ kind: 'stopped' }, () => this.#resolveWaiters(this.#stoppedWaiters))
   }
 
-  #setState (state: LifecycleState): void {
-    this.#state = state
+  /**
+   * Commit a frozen snapshot, settle eligible request waiters, and only then
+   * notify `whenState` observers. Settling first means an observer that
+   * reentrantly calls `start()`/`stop()` cannot supersede a request that has
+   * already been satisfied by this very transition.
+   */
+  #publish (state: LifecycleState, settle?: () => void): void {
+    this.#state = Object.freeze(state)
+    settle?.()
     for (const observer of [ ...this.#observers ]) {
-      observer(state)
+      observer(this.#state)
     }
   }
 
-  #settleRunningWaiters (): void {
-    this.#resolveWaiters(this.#runningWaiters)
-    // Anyone still waiting for stopped is, for now, superseded by running intent.
-    this.#rejectWaiters(this.#stoppedWaiters, new LifecycleSupersededError())
-  }
-
-  #settleStoppedWaiters (): void {
-    this.#resolveWaiters(this.#stoppedWaiters)
-    this.#rejectWaiters(this.#runningWaiters, new LifecycleSupersededError())
-  }
-
   #resolveWaiters (waiters: Deferred[]): void {
-    const pending = waiters.splice(0, waiters.length)
-    for (const deferred of pending) {
+    for (const deferred of waiters.splice(0, waiters.length)) {
       deferred.resolve()
     }
   }
@@ -503,13 +513,10 @@ class LifecycleController implements Lifecycle {
   /**
    * Reject waiters on a microtask. Supersession can reject a waiter in the very
    * tick a caller created it (e.g. `const p = lc.start(); lc.stop()`), before the
-   * caller attaches `await`/`.catch`. Deferring one microtask lets the caller's
-   * synchronous code register its handler first, avoiding spurious
-   * unhandled-rejection reports without changing observable ordering.
+   * caller attaches `await`/`.catch`; deferring lets the handler register first.
    */
   #rejectWaiters (waiters: Deferred[], error: unknown): void {
-    const pending = waiters.splice(0, waiters.length)
-    for (const deferred of pending) {
+    for (const deferred of waiters.splice(0, waiters.length)) {
       queueMicrotask(() => deferred.reject(error))
     }
   }

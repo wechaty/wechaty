@@ -324,3 +324,162 @@ test('restart() performs a stop then start cycle', async () => {
   assert.equal(h.counts.stop >= 1, true)
   assert.equal(h.counts.start, 2)
 })
+
+test('stop() after a failed start (cleanup complete) settles as stopped', async () => {
+  const h = makeHooks()
+  const lifecycle = new LifecycleController(h.hooks)
+
+  const started = lifecycle.start()
+  const startedRejected = assert.rejects(started, (e: unknown) => e instanceof LifecycleStartError)
+  await tick()
+  h.rejectStart(new Error('boom'))
+  await tick()
+  h.resolveStop()
+  await startedRejected
+
+  await lifecycle.stop()
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+test('stop() retries cleanup after a failed stop hook', async () => {
+  const h = makeHooks()
+  const lifecycle = new LifecycleController(h.hooks)
+
+  const started = lifecycle.start()
+  await tick()
+  h.resolveStart()
+  await started
+
+  const first = lifecycle.stop()
+  const firstRejected = assert.rejects(first, (e: unknown) => e instanceof LifecycleStopError)
+  await tick()
+  h.rejectStop(new Error('stuck'))
+  await firstRejected
+
+  const second = lifecycle.stop()
+  await tick()
+  h.resolveStop()
+  await second
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+test('whenState() rejects immediately when already failed', async () => {
+  const h = makeHooks()
+  const lifecycle = new LifecycleController(h.hooks)
+
+  const started = lifecycle.start()
+  const startedRejected = assert.rejects(started)
+  await tick()
+  h.rejectStart(new Error('boom'))
+  await tick()
+  h.resolveStop()
+  await startedRejected
+
+  await assert.rejects(
+    lifecycle.whenState(s => s.kind === 'running'),
+    (e: unknown) => e instanceof LifecycleStartError,
+  )
+})
+
+test('a throwing whenState predicate does not disturb reconciliation', async () => {
+  const h = makeHooks()
+  const lifecycle = new LifecycleController(h.hooks)
+
+  const boom = new Error('bad predicate')
+  const waited = lifecycle.whenState(s => {
+    if (s.kind === 'starting') { throw boom }
+    return false
+  })
+  const waitedRejected = assert.rejects(waited, (e: unknown) => e === boom)
+
+  const started = lifecycle.start()
+  await tick()
+  h.resolveStart()
+  await started
+  await waitedRejected
+  assert.equal(lifecycle.state.kind, 'running')
+})
+
+test('published snapshots are frozen', () => {
+  const lifecycle = new LifecycleController(makeHooks().hooks)
+  assert.ok(Object.isFrozen(lifecycle.state))
+})
+
+test('restart() is cancelled by a later stop()', async () => {
+  const h = makeHooks()
+  const lifecycle = new LifecycleController(h.hooks)
+
+  const started = lifecycle.start()
+  await tick()
+  h.resolveStart()
+  await started
+
+  const restarted = lifecycle.restart()
+  const restartedRejected = assert.rejects(restarted, (e: unknown) => e instanceof LifecycleSupersededError)
+  await tick()
+  const stopped = lifecycle.stop()
+  await tick()
+  h.resolveStop()
+  await stopped
+  await restartedRejected
+  await tick()
+
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(h.counts.start, 1, 'no replacement start after later stop')
+})
+
+test('start-stop-start: canceled run never publishes running; replacement gets a fresh generation', async () => {
+  const h = makeHooks()
+  const lifecycle = new LifecycleController(h.hooks)
+  const seen: string[] = []
+  lifecycle.whenState(s => { seen.push(s.kind); return false }).catch(() => {})
+
+  const first = lifecycle.start()
+  const firstRejected = assert.rejects(first, (e: unknown) => e instanceof LifecycleSupersededError)
+  await tick()
+  const stopped = lifecycle.stop()
+  const stoppedRejected = assert.rejects(stopped, (e: unknown) => e instanceof LifecycleSupersededError)
+  const second = lifecycle.start()
+  await tick()
+
+  h.resolveStart() // late success of the canceled run
+  await tick()
+  h.resolveStop()  // its cleanup
+  await tick()
+  h.resolveStart() // replacement run
+  await second
+  await firstRejected
+  await stoppedRejected
+
+  assert.equal(h.counts.start, 2)
+  assert.equal(lifecycle.state.kind, 'running')
+  assert.equal(lifecycle.state.kind === 'running' && lifecycle.state.generation, 2)
+  assert.equal(seen.indexOf('running'), seen.lastIndexOf('running'), 'running published once')
+})
+
+test('a hook that synchronously calls stop() cannot spawn a second worker', async () => {
+  let lifecycle!: LifecycleController
+  let stopCalls = 0
+  let releaseStart!: () => void
+  const hooks: LifecycleHooks = {
+    start () {
+      lifecycle.stop().catch(() => {})
+      return new Promise<void>(resolve => { releaseStart = resolve })
+    },
+    async stop () { stopCalls += 1 },
+  }
+  lifecycle = new LifecycleController(hooks)
+
+  lifecycle.start().catch(() => {})
+  await tick()
+  assert.equal(stopCalls, 0, 'stop hook must not run while start is pending')
+  releaseStart()
+  await tick()
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(stopCalls, 1)
+})
+
+test('error construction survives null-prototype thrown values', () => {
+  const err = new LifecycleStartError(Object.create(null), true)
+  assert.match(err.message, /start\(\) failed/)
+})
