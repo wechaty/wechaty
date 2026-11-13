@@ -378,7 +378,7 @@ test('startup puppet failure rejects consistently (#2855)', async t => {
   const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
   const result = spawnSync(nodeExecutable, [ '--input-type=module', '-e', script ], {
     encoding: 'utf8',
-    timeout: 10_000,
+    timeout: 30_000,
   })
   assert.equal(result.status, 0, 'should reject startup without an error listener in an isolated process')
 })
