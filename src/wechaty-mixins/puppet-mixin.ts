@@ -12,12 +12,12 @@ import type {
 }                       from 'state-switch'
 
 import { config }               from '../config.ts'
-import { timestampToDate }      from '../pure-functions/timestamp-to-date.ts'
 import type {
   ContactImpl,
-  ContactInterface,
   RoomImpl,
 }                               from '../user-modules/mod.ts'
+
+import { registerPuppetEventBridge } from './puppet-event-bridge.ts'
 
 import type {
   WechatifyUserModuleMixin,
@@ -27,14 +27,6 @@ import type { GErrorMixin } from './gerror-mixin.ts'
 import type { IoMixin }     from './io-mixin.ts'
 
 const PUPPET_MEMORY_NAME = 'puppet'
-
-/**
- * Asserts switch exhaustiveness for puppet events at compile time and keeps
- * startup resilient at runtime if a newer puppet introduces unknown events.
- */
-const assertPuppetEventNameExhaustive = (eventName: never): void => {
-  log.warn('WechatyPuppetMixin', '__setupPuppetEvents() unsupported puppet event: %s', eventName)
-}
 
 /**
  * Huan(202111): the `wechaty-redux` plugin need to be installed before
@@ -214,299 +206,33 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
     __setupPuppetEvents (puppet: PUPPET.impls.PuppetInterface): void {
       log.verbose('WechatyPuppetMixin', '__setupPuppetEvents(%s)', puppet)
 
-      const eventNameList: PUPPET.types.PuppetEventName[] = Object.keys(PUPPET.types.PUPPET_EVENT_DICT) as PUPPET.types.PuppetEventName[]
-      for (const eventName of eventNameList) {
-        log.verbose('PuppetMixin',
-          '__setupPuppetEvents() puppet.on(%s) (listenerCount:%s) registering...',
-          eventName,
-          puppet.listenerCount(eventName),
-        )
-
-        switch (eventName) {
-          case 'dong':
-            puppet.on('dong', payload => {
-              this.emit('dong', payload.data)
-            })
-            break
-
-          case 'error':
-            puppet.on('error', payload => {
-              /**
-               * Huan(202112):
-               *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
-               *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
-               */
-              this.emit('error', GError.from(payload.gerror || payload.data || payload))
-            })
-            break
-
-          case 'heartbeat':
-            puppet.on('heartbeat', payload => {
-              /**
-               * Use `watchdog` event from Puppet to `heartbeat` Wechaty.
-               */
-              // TODO: use a throttle queue to prevent beat too fast.
-              this.emit('heartbeat', payload.data)
-            })
-            break
-
-          case 'friendship':
-            puppet.on('friendship', async payload => {
-              const friendship = this.Friendship.load(payload.friendshipId)
-              try {
-                await friendship.ready()
-                this.emit('friendship', friendship)
-                friendship.contact().emit('friendship', friendship)
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'login':
-            puppet.on('login', async payload => {
-              try {
-                const contact = await this.ContactSelf.find({ id: payload.contactId })
-                if (!contact) {
-                  throw new Error('no contact found for id: ' + payload.contactId)
-                }
-                this.emit('login', contact)
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'logout':
-            puppet.on('logout', async payload => {
-              try {
-                this.__readyState.inactive(true)
-                const contact = await this.ContactSelf.find({ id: payload.contactId })
-                if (contact) {
-                  this.emit('logout', contact, payload.data)
-                } else {
-                  log.verbose('PuppetMixin',
-                    '__setupPuppetEvents() logout event contact self not found for id: %s',
-                    payload.contactId,
-                  )
-                }
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'message':
-            puppet.on('message', async payload => {
-              try {
-                const msg = await this.Message.find({ id: payload.messageId })
-                if (!msg) {
-                  this.emit('error', GError.from('message not found for id: ' + payload.messageId))
-                  return
-                }
-
-                this.emit('message', msg)
-
-                const room     = msg.room()
-                const listener = msg.listener()
-
-                if (room) {
-                  room.emit('message', msg)
-                } else if (listener) {
-                  listener.emit('message', msg)
-                } else {
-                  this.emit('error', GError.from('message without room and listener'))
-                }
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'post':
-            puppet.on('post', async payload => {
-              try {
-                const post = await this.Post.find({ id: payload.postId })
-                if (!post) {
-                  this.emit('error', GError.from('post not found for id: ' + payload.postId))
-                  return
-                }
-
-                this.emit('post', post)
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'ready':
-            puppet.on('ready', () => {
-              log.silly('WechatyPuppetMixin', '__setupPuppetEvents() puppet.on(ready)')
-
-              this.emit('ready')
-              this.__readyState.active(true)
-            })
-            break
-
-          case 'room-invite':
-            puppet.on('room-invite', async payload => {
-              const roomInvitation = this.RoomInvitation.load(payload.roomInvitationId)
-              this.emit('room-invite', roomInvitation)
-            })
-            break
-
-          case 'room-join':
-            puppet.on('room-join', async payload => {
-              try {
-                const room = await this.Room.find({ id: payload.roomId })
-                if (!room) {
-                  throw new Error('no room found for id: ' + payload.roomId)
-                }
-                await room.sync()
-
-                const validInviteeIdList = payload.inviteeIdList.filter((m) => m)
-                const inviteeListAll = await Promise.all(
-                  validInviteeIdList.map(id => this.Contact.find({ id })),
-                )
-                const inviteeList = inviteeListAll.filter(c => !!c) as ContactInterface[]
-
-                const inviter = await this.Contact.find({ id: payload.inviterId })
-                if (!inviter) {
-                  throw new Error('no inviter found for id: ' + payload.inviterId)
-                }
-
-                const date = timestampToDate(payload.timestamp)
-
-                this.emit('room-join', room, inviteeList, inviter, date)
-                room.emit('join', inviteeList, inviter, date)
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'room-leave':
-            puppet.on('room-leave', async payload => {
-              try {
-                const room = await this.Room.find({ id: payload.roomId })
-                if (!room) {
-                  throw new Error('no room found for id: ' + payload.roomId)
-                }
-
-                /**
-                 * See: https://github.com/wechaty/wechaty/pull/1833
-                 */
-                await room.sync()
-
-                const leaverListAll = await Promise.all(
-                  payload.removeeIdList.map(id => this.Contact.find({ id })),
-                )
-                const leaverList = leaverListAll.filter(c => !!c) as ContactInterface[]
-
-                const remover = await this.Contact.find({ id: payload.removerId })
-                if (!remover) {
-                  throw new Error('no remover found for id: ' + payload.removerId)
-                }
-                const date = timestampToDate(payload.timestamp)
-
-                this.emit('room-leave', room, leaverList, remover, date)
-                room.emit('leave', leaverList, remover, date)
-
-                // issue #254
-                if (payload.removeeIdList.includes(puppet.currentUserId)) {
-                  await puppet.roomPayloadDirty(payload.roomId)
-                  await puppet.roomMemberPayloadDirty(payload.roomId)
-                }
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'room-topic':
-            puppet.on('room-topic', async payload => {
-              try {
-                const room = await this.Room.find({ id: payload.roomId })
-                if (!room) {
-                  throw new Error('no room found for id: ' + payload.roomId)
-                }
-                await room.sync()
-
-                const changer = await this.Contact.find({ id: payload.changerId })
-                if (!changer) {
-                  throw new Error('no changer found for id: ' + payload.changerId)
-                }
-                const date = timestampToDate(payload.timestamp)
-
-                this.emit('room-topic', room, payload.newTopic, payload.oldTopic, changer, date)
-                room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          case 'scan':
-            puppet.on('scan', async payload => {
-              this.__readyState.inactive(true)
-              this.emit('scan', payload.qrcode || '', payload.status, payload.data)
-            })
-            break
-
-          case 'reset':
-            // Do not propagation `reset` event from puppet
-            break
-
-          case 'dirty':
-            /**
-             * https://github.com/wechaty/wechaty-puppet-service/issues/43
-             */
-            puppet.on('dirty', async ({ payloadType, payloadId }) => {
-              try {
-                switch (payloadType) {
-                  case PUPPET.types.Payload.RoomMember:
-                  case PUPPET.types.Payload.Contact: {
-                    const contact = await this.Contact.find({ id: payloadId }) as unknown as undefined | ContactImpl
-                    await contact?.ready(true)
-                    break
-                  }
-                  case PUPPET.types.Payload.Room: {
-                    const room = await this.Room.find({ id: payloadId })  as unknown as undefined | RoomImpl
-                    await room?.ready(true)
-                    break
-                  }
-
-                  /**
-                   * Huan(202008): noop for the following
-                   */
-                  case PUPPET.types.Payload.Friendship:
-                    // Friendship has no payload
-                    break
-                  case PUPPET.types.Payload.Message:
-                    // Message does not need to dirty (?)
-                    break
-
-                  case PUPPET.types.Payload.Unspecified:
-                  default:
-                    throw new Error('unknown payload type: ' + payloadType)
-                }
-              } catch (e) {
-                this.emit('error', GError.from(e))
-              }
-            })
-            break
-
-          default:
-            /**
-             * Enforce compile-time exhaustiveness and keep runtime startup tolerant.
-             */
-            assertPuppetEventNameExhaustive(eventName)
-            break
-
-        }
-      }
-
-      log.verbose('WechatyPuppetMixin', '__setupPuppetEvents() ... done')
+      registerPuppetEventBridge(puppet, {
+        contactFind: id => this.Contact.find({ id }),
+        contactReady: async id => {
+          const contact = await this.Contact.find({ id }) as unknown as undefined | ContactImpl
+          await contact?.ready(true)
+        },
+        contactSelfFind: id => this.ContactSelf.find({ id }),
+        friendshipLoad: id => this.Friendship.load(id),
+        messageFind: id => this.Message.find({ id }),
+        postFind: id => this.Post.find({ id }),
+        roomFind: id => this.Room.find({ id }),
+        roomInvitationLoad: id => this.RoomInvitation.load(id),
+        roomReady: async id => {
+          const room = await this.Room.find({ id }) as unknown as undefined | RoomImpl
+          await room?.ready(true)
+        },
+        setReady: state => {
+          if (state === 'active') {
+            this.__readyState.active(true)
+          } else {
+            this.__readyState.inactive(true)
+          }
+        },
+        // Preserve GErrorMixin's error-event conversion for bridge emissions.
+        emit: this.emit.bind(this),
+        emitError: error => this.emitError(error),
+      })
     }
 
   }
