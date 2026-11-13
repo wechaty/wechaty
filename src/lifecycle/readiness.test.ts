@@ -113,3 +113,79 @@ test('ReadinessGate rejects pending waiters on startup failure, stop(), pre-star
   await ctl.stop()
   await assert.rejects(pStoppedWait, LifecycleSupersededError)
 })
+
+test('ReadinessGate rejects whenReady() during unreplaced stop() and handles restart() supersession or stop failure', async () => {
+  const stopGate = defer()
+  let failStop = false
+  let readiness!: ReadinessGate
+
+  const ctl = new LifecycleController({
+    hooks: {
+      onStateChange: state => readiness.handleStateChange(state),
+      start: async () => {},
+      stop: async () => {
+        await stopGate.promise
+        if (failStop) {
+          throw new Error('teardown jammed')
+        }
+      },
+    },
+  })
+  readiness = new ReadinessGate(ctl)
+
+  // 1. Calling whenReady() during an unreplaced stop() rejects immediately!
+  await ctl.start()
+  const pStop1 = ctl.stop()
+  assert.equal(ctl.state.kind, 'stopping')
+  await assert.rejects(readiness.whenReady(), LifecycleSupersededError)
+  stopGate.resolve()
+  await pStop1
+
+  // 2. Calling whenReady() during restart() binds to G+1, and rejects if stop() later cancels the restart!
+  const stopGate2 = defer()
+  let readiness2!: ReadinessGate
+  const ctl2 = new LifecycleController({
+    hooks: {
+      onStateChange: state => readiness2.handleStateChange(state),
+      start: async () => {},
+      stop: async () => {
+        await stopGate2.promise
+      },
+    },
+  })
+  readiness2 = new ReadinessGate(ctl2)
+
+  await ctl2.start()
+  const pRestart = ctl2.restart()
+  const pReadyDuringRestart = readiness2.whenReady()
+  const pCancellingStop = ctl2.stop()
+
+  await assert.rejects(pRestart, LifecycleSupersededError)
+  stopGate2.resolve()
+  await pCancellingStop
+  await assert.rejects(pReadyDuringRestart, LifecycleSupersededError)
+
+  // 3. Calling whenReady() during restart() also rejects if G's retirement fails!
+  const stopGate3 = defer()
+  let readiness3!: ReadinessGate
+  const ctl3 = new LifecycleController({
+    hooks: {
+      onStateChange: state => readiness3.handleStateChange(state),
+      start: async () => {},
+      stop: async () => {
+        await stopGate3.promise
+        throw new Error('stop hook exploded')
+      },
+    },
+  })
+  readiness3 = new ReadinessGate(ctl3)
+
+  await ctl3.start()
+  const pFailedRestart = ctl3.restart()
+  const pReadyOnFailedRestart = readiness3.whenReady()
+  stopGate3.resolve()
+
+  await assert.rejects(pFailedRestart, /unproven resource cleanup/)
+  await assert.rejects(pReadyOnFailedRestart, /stop hook exploded/)
+})
+

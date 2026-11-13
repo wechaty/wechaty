@@ -73,6 +73,10 @@ interface ScopeEntry<T> {
   disposed: boolean
 }
 
+/**
+ * Collapses zero, one, or multiple teardown errors into `undefined`, the single
+ * error value, or a `LifecycleAggregateCleanupError`.
+ */
 function summarizeErrors (errors: readonly unknown[]): unknown {
   if (errors.length === 0) {
     return undefined
@@ -83,6 +87,10 @@ function summarizeErrors (errors: readonly unknown[]): unknown {
   return new LifecycleAggregateCleanupError(errors)
 }
 
+/**
+ * Returns `true` when `error` is the cooperative cancellation error produced by
+ * `signal` aborting rather than an independent background task failure.
+ */
 function isAbortSignalError (error: unknown, signal: AbortSignal): boolean {
   if (!signal.aborted) {
     return false
@@ -101,13 +109,17 @@ export class ResourceScope {
 
   readonly #controller = new AbortController()
   readonly #entries: ScopeEntry<any>[] = []
+  readonly #deferredFailedLateEntries: ScopeEntry<any>[] = []
   readonly #inFlightCreations = new Set<Promise<void>>()
   readonly #unsettledExternal = new Set<Promise<void>>()
   readonly #tasks = new Set<Promise<void>>()
   readonly #lateCleanupPromises = new Set<Promise<void>>()
+  #pendingInterruptErrors: unknown[] = []
   #pendingTaskErrors: unknown[] = []
   #pendingLateCleanupErrors: unknown[] = []
   #closed = false
+  #closing = false
+  #hasClosedOnce = false
 
   /**
    * Cooperative cancellation signal aborted as soon as scope retirement begins.
@@ -117,7 +129,8 @@ export class ResourceScope {
   }
 
   /**
-   * `true` once `abort()` or `close()` has sealed this scope against new work.
+   * `true` once `abort()`, `interrupt()`, or `close()` has sealed this scope
+   * against new work.
    */
   get isClosed (): boolean {
     return this.#closed
@@ -132,7 +145,7 @@ export class ResourceScope {
 
   /**
    * Seals the scope against new acquisitions/tasks and triggers `signal` abort
-   * synchronously without awaiting resource disposal.
+   * synchronously without invoking resource interrupters or disposers.
    */
   abort (reason?: unknown): void {
     this.#closed = true
@@ -142,12 +155,38 @@ export class ResourceScope {
   }
 
   /**
+   * Executes Phase 1 (`abort`) and Phase 2 (synchronous LIFO `interrupt()`)
+   * without running async disposers.
+   *
+   * Used before joining an in-flight startup hook so resources whose `interrupt`
+   * callback closes blocking sockets/timers wake up immediately, while keeping
+   * async `dispose()` gated behind startup settlement. Never throws; any
+   * synchronous interrupter exception is retained and surfaced by `close()`.
+   */
+  interrupt (reason?: unknown): void {
+    this.abort(reason)
+    for (let i = this.#entries.length - 1; i >= 0; i--) {
+      const entry = this.#entries[i]!
+      if (!entry.interrupted && !entry.disposed) {
+        entry.interrupted = true
+        try {
+          entry.interrupt?.(entry.resource)
+        } catch (error) {
+          this.#pendingInterruptErrors.push(error)
+        }
+      }
+    }
+  }
+
+  /**
    * Acquires a managed resource and registers its `interrupt` / `dispose` hooks
    * in LIFO order.
    *
    * If the scope is sealed while `create()` is in flight and `create()` still
    * resolves with a value, `interrupt` and `dispose` run immediately on that
-   * late value before `acquire()` rejects so late completions cannot leak.
+   * late value before `acquire()` rejects. If `dispose` throws on that late
+   * value, the entry remains owned by this scope (`disposed: false`) so future
+   * `close()` calls retry teardown until cleanup genuinely succeeds.
    */
   async acquire<T> (descriptor: ResourceDescriptor<T>): Promise<T> {
     if (this.#closed || this.#controller.signal.aborted) {
@@ -182,7 +221,23 @@ export class ResourceScope {
         try {
           await descriptor.dispose?.(resource)
         } catch (disposeErr) {
-          this.#pendingLateCleanupErrors.push(disposeErr)
+          const failedEntry: ScopeEntry<T> = {
+            dispose: descriptor.dispose,
+            disposed: false,
+            interrupt: descriptor.interrupt,
+            interrupted: true,
+            resource,
+          }
+          if (!this.#hasClosedOnce || this.#closing) {
+            // Surface `disposeErr` on the current/initial `close()` without invoking
+            // `dispose()` a second time in the same `close()` pass, then retain for retry.
+            this.#pendingLateCleanupErrors.push(disposeErr)
+            this.#deferredFailedLateEntries.push(failedEntry)
+          } else {
+            // An earlier `close()` already timed out; register directly so the next
+            // explicit `close()` retries `dispose()` cleanly.
+            this.#entries.push(failedEntry)
+          }
         }
       })()
       this.#lateCleanupPromises.add(lateCleanup)
@@ -293,54 +348,24 @@ export class ResourceScope {
   /**
    * Executes three-phase retirement (`seal+abort` -> LIFO `interrupt` ->
    * task join + LIFO `dispose`). Safe to call again to retry previously failed
-   * disposers without re-running disposers that already succeeded.
+   * disposers (including failed late-acquisition disposers) without re-running
+   * disposers that already succeeded.
    */
   async close (options?: ScopeCloseOptions): Promise<ScopeCloseResult> {
-    this.abort(options?.reason)
+    this.#closing = true
+    try {
+      // Phases 1 & 2: seal, abort signal, and run synchronous LIFO interrupters.
+      this.interrupt(options?.reason)
 
-    const errors: unknown[] = []
-
-    // Phase 2: synchronous LIFO interruption to wake tasks blocked on sockets/timers.
-    for (let i = this.#entries.length - 1; i >= 0; i--) {
-      const entry = this.#entries[i]!
-      if (!entry.interrupted && !entry.disposed) {
-        entry.interrupted = true
-        try {
-          entry.interrupt?.(entry.resource)
-        } catch (error) {
-          errors.push(error)
-        }
+      const errors: unknown[] = []
+      if (this.#pendingInterruptErrors.length > 0) {
+        errors.push(...this.#pendingInterruptErrors)
+        this.#pendingInterruptErrors = []
       }
-    }
 
-    // Phase 3a: await cooperative in-flight creations, background tasks, and late cleanups.
-    await this.#joinPendingWork(options?.timeoutMs, errors)
-
-    if (this.#pendingTaskErrors.length > 0) {
-      errors.push(...this.#pendingTaskErrors)
-      this.#pendingTaskErrors = []
-    }
-    if (this.#pendingLateCleanupErrors.length > 0) {
-      errors.push(...this.#pendingLateCleanupErrors)
-      this.#pendingLateCleanupErrors = []
-    }
-
-    // Phase 3b: strict LIFO async disposal. Every remaining disposer runs even if an earlier one fails.
-    for (let i = this.#entries.length - 1; i >= 0; i--) {
-      const entry = this.#entries[i]!
-      if (!entry.disposed) {
-        try {
-          await entry.dispose?.(entry.resource)
-          entry.disposed = true
-        } catch (error) {
-          errors.push(error)
-        }
-      }
-    }
-
-    // Drain any tasks or late cleanups unblocked during disposal itself.
-    if (this.#tasks.size > 0 || this.#lateCleanupPromises.size > 0) {
+      // Phase 3a: await cooperative in-flight creations, background tasks, and late cleanups.
       await this.#joinPendingWork(options?.timeoutMs, errors)
+
       if (this.#pendingTaskErrors.length > 0) {
         errors.push(...this.#pendingTaskErrors)
         this.#pendingTaskErrors = []
@@ -349,24 +374,66 @@ export class ResourceScope {
         errors.push(...this.#pendingLateCleanupErrors)
         this.#pendingLateCleanupErrors = []
       }
-    }
 
-    const allDisposed = this.#entries.every(entry => entry.disposed)
-    const cleanupComplete =
-      errors.length === 0
-      && allDisposed
-      && this.#inFlightCreations.size === 0
-      && this.#unsettledExternal.size === 0
-      && this.#tasks.size === 0
-      && this.#lateCleanupPromises.size === 0
+      // Phase 3b: strict LIFO async disposal. Every remaining disposer runs even if an earlier one fails.
+      for (let i = this.#entries.length - 1; i >= 0; i--) {
+        const entry = this.#entries[i]!
+        if (!entry.disposed) {
+          try {
+            await entry.dispose?.(entry.resource)
+            entry.disposed = true
+          } catch (error) {
+            errors.push(error)
+          }
+        }
+      }
 
-    return {
-      cleanupComplete,
-      error: summarizeErrors(errors),
-      errors,
+      // Drain any tasks or late cleanups unblocked during disposal itself.
+      if (this.#tasks.size > 0 || this.#lateCleanupPromises.size > 0) {
+        await this.#joinPendingWork(options?.timeoutMs, errors)
+        if (this.#pendingTaskErrors.length > 0) {
+          errors.push(...this.#pendingTaskErrors)
+          this.#pendingTaskErrors = []
+        }
+        if (this.#pendingLateCleanupErrors.length > 0) {
+          errors.push(...this.#pendingLateCleanupErrors)
+          this.#pendingLateCleanupErrors = []
+        }
+      }
+
+      // Retain any late acquisitions whose initial disposal failed so subsequent
+      // `close()` calls retry their `dispose()` hooks until cleanup succeeds.
+      if (this.#deferredFailedLateEntries.length > 0) {
+        this.#entries.push(...this.#deferredFailedLateEntries)
+        this.#deferredFailedLateEntries.length = 0
+      }
+
+      const allDisposed = this.#entries.every(entry => entry.disposed)
+      const cleanupComplete =
+        errors.length === 0
+        && allDisposed
+        && this.#inFlightCreations.size === 0
+        && this.#unsettledExternal.size === 0
+        && this.#tasks.size === 0
+        && this.#lateCleanupPromises.size === 0
+
+      return {
+        cleanupComplete,
+        error: summarizeErrors(errors),
+        errors,
+      }
+    } finally {
+      this.#closing = false
+      this.#hasClosedOnce = true
     }
   }
 
+  /**
+   * Awaits in-flight resource creations, spawned background tasks, and active
+   * late-acquisition cleanups up to `timeoutMs` (or unbounded when `undefined`).
+   * Appends a `LifecycleTimeoutError('stop', timeoutMs)` to `errors` if work
+   * remains unsettled after a positive deadline expires.
+   */
   async #joinPendingWork (
     timeoutMs: number | undefined,
     errors: unknown[],

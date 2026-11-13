@@ -557,3 +557,198 @@ test('Both startup and rollback failing preserves both errors and blocks unsafe 
   await assert.rejects(ctl.start(), LifecycleUnsafeStateError)
 })
 
+test('stop() followed by start() during failed start or failed run rollback resolves stop() as soon as retirement completes', async () => {
+  // 1. Failed start rollback joined by stop(), then start() queued before rollback finishes.
+  const rollbackGate1 = defer()
+  let attempt = 0
+
+  const ctl1 = new LifecycleController({
+    hooks: {
+      start: async () => {
+        attempt++
+        if (attempt === 1) {
+          throw new Error('gen1 start failed')
+        }
+      },
+      stop: async ({ generation }) => {
+        if (generation === 1) {
+          await rollbackGate1.promise
+        }
+      },
+    },
+  })
+
+  const pStart1 = ctl1.start()
+  await ctl1.whenState(s => s.kind === 'stopping')
+  assert.deepEqual(ctl1.state, { generation: 1, kind: 'stopping' })
+
+  const pStop1 = ctl1.stop()
+  const pStart2 = ctl1.start()
+
+  rollbackGate1.resolve()
+  await assert.rejects(pStart1, /gen1 start failed/)
+  await pStop1
+  await pStart2
+  assert.deepEqual(ctl1.state, { generation: 2, kind: 'running' })
+
+  // 2. Runtime context.fail() rollback joined by stop(), then start() queued before rollback finishes.
+  const rollbackGate2 = defer()
+  let failGen1!: (error: unknown) => void
+
+  const ctl2 = new LifecycleController({
+    hooks: {
+      start: async ({ fail, generation }) => {
+        if (generation === 1) {
+          failGen1 = fail
+        }
+      },
+      stop: async ({ generation }) => {
+        if (generation === 1) {
+          await rollbackGate2.promise
+        }
+      },
+    },
+  })
+
+  await ctl2.start()
+  failGen1(new Error('gen1 child crashed'))
+  await flushMicrotasks()
+  assert.deepEqual(ctl2.state, { generation: 1, kind: 'stopping' })
+
+  const pStopDuringRunRollback = ctl2.stop()
+  const pReplacementStart = ctl2.start()
+
+  rollbackGate2.resolve()
+  await pStopDuringRunRollback
+  await pReplacementStart
+  assert.deepEqual(ctl2.state, { generation: 2, kind: 'running' })
+})
+
+test('Timed-out stop hook remains tracked without overlapping duplicate calls until original invocation settles', async () => {
+  const firstStopGate = defer()
+  let stopHookInvocations = 0
+
+  const ctl = new LifecycleController({
+    hooks: {
+      start: async () => {},
+      stop: async () => {
+        stopHookInvocations++
+        if (stopHookInvocations === 1) {
+          await firstStopGate.promise
+        }
+      },
+    },
+    stopTimeoutMs: 15,
+  })
+
+  await ctl.start()
+  await assert.rejects(ctl.stop(), LifecycleTimeoutError)
+  assert.equal(stopHookInvocations, 1)
+  assert.equal(ctl.state.kind, 'failed')
+  if (ctl.state.kind === 'failed') {
+    assert.equal(ctl.state.phase, 'stop')
+    assert.equal(ctl.state.cleanupComplete, false)
+  }
+
+  // Second stop() while first stop hook is STILL running joins the first invocation
+  // instead of launching an overlapping second stop() that could falsely succeed!
+  await assert.rejects(ctl.stop(), LifecycleTimeoutError)
+  assert.equal(stopHookInvocations, 1, 'must not overlap a second hooks.stop while first is pending')
+  await assert.rejects(ctl.start(), LifecycleUnsafeStateError)
+
+  // Once the first stop hook settles cleanly, stop() completes retirement without a duplicate call.
+  firstStopGate.resolve()
+  await flushMicrotasks()
+  await ctl.stop()
+  assert.equal(stopHookInvocations, 1)
+  assert.deepEqual(ctl.state, { generation: 1, kind: 'stopped' })
+
+  await ctl.start()
+  assert.deepEqual(ctl.state, { generation: 2, kind: 'running' })
+})
+
+test('stop() during starting interrupts scoped resources before joining startup while delaying dispose until startup exits', async () => {
+  const trace: string[] = []
+  const socketInterrupted = defer()
+  const resourceAcquired = defer()
+
+  const ctl = new LifecycleController({
+    hooks: {
+      start: async ({ scope }) => {
+        const socket = await scope.acquire({
+          create: () => {
+            trace.push('socket:create')
+            return {}
+          },
+          dispose: () => {
+            trace.push('socket:dispose')
+          },
+          interrupt: () => {
+            trace.push('socket:interrupt')
+            socketInterrupted.resolve()
+          },
+        })
+        void socket
+        resourceAcquired.resolve()
+        trace.push('start:awaiting-io')
+        // Unblocks ONLY when `socket:interrupt` runs — ignores AbortSignal!
+        await socketInterrupted.promise
+        trace.push('start:io-unblocked')
+      },
+    },
+  })
+
+  const pStart = ctl.start()
+  await resourceAcquired.promise
+  await flushMicrotasks()
+
+  const pStop = ctl.stop()
+  await assert.rejects(pStart, LifecycleSupersededError)
+  await pStop
+
+  assert.deepEqual(ctl.state, { generation: 1, kind: 'stopped' })
+  assert.deepEqual(trace, [
+    'socket:create',
+    'start:awaiting-io',
+    'socket:interrupt',
+    'start:io-unblocked',
+    'socket:dispose',
+  ])
+})
+
+test('Reentrant stop() inside onStateChange upon observing starting retires cleanly when hooks.start was never invoked', async () => {
+  let startInvocations = 0
+  let stopInvocations = 0
+  let reentrantStopPromise: Promise<void> | undefined
+
+  const ctl = new LifecycleController({
+    hooks: {
+      onStateChange: state => {
+        if (state.kind === 'starting' && state.generation === 1) {
+          reentrantStopPromise = ctl.stop()
+        }
+      },
+      start: async () => {
+        startInvocations++
+      },
+      stop: async () => {
+        stopInvocations++
+      },
+    },
+  })
+
+  await assert.rejects(ctl.start(), LifecycleSupersededError)
+  assert.ok(reentrantStopPromise)
+  await reentrantStopPromise
+
+  assert.equal(startInvocations, 0, 'hooks.start should never run when superseded on starting commit')
+  assert.equal(stopInvocations, 0, 'hooks.stop should not run when hooks.start was never invoked')
+  assert.deepEqual(ctl.state, { generation: 1, kind: 'stopped' })
+
+  // Generation 2 starts and runs normally afterward.
+  await ctl.start()
+  assert.equal(startInvocations, 1)
+  assert.deepEqual(ctl.state, { generation: 2, kind: 'running' })
+})
+
+

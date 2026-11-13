@@ -41,6 +41,7 @@ import {
   VERSION,
 }                       from '../config.ts'
 import {
+  LifecycleAggregateCleanupError,
   type LifecycleCallOptions,
   LifecycleController,
   type LifecycleState,
@@ -122,7 +123,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
 
     this.#lifecycle = new LifecycleController({
       hooks: {
-        onStateChange: (nextState, previousState) => {
+        onStateChange: nextState => {
           this.#readiness.handleStateChange(nextState)
 
           if (nextState.kind === 'running') {
@@ -133,7 +134,6 @@ class WechatyBase extends mixinBase implements SayableSayer {
 
           if (
             nextState.kind === 'stopped'
-            && previousState.kind === 'stopping'
             && this.#runningGeneration === nextState.generation
           ) {
             this.#runningGeneration = null
@@ -142,7 +142,9 @@ class WechatyBase extends mixinBase implements SayableSayer {
           }
 
           if (nextState.kind === 'failed') {
-            this.#runningGeneration = null
+            if (nextState.cleanupComplete) {
+              this.#runningGeneration = null
+            }
             // Notify registered `'error'` listeners without triggering Node's
             // synchronous `ERR_UNHANDLED_ERROR` when no listener is attached (#2855).
             if (this.listenerCount('error') > 0) {
@@ -162,12 +164,14 @@ class WechatyBase extends mixinBase implements SayableSayer {
           await this.__acquirePuppet(scope, generation, fail)
           await this.__acquireIo(scope)
 
+          const lifeTimer = setInterval(() => {
+            log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
+          }, 1000 * 60 * 60)
+          const clearLifeTimer = () => clearInterval(lifeTimer)
+          scope.onDispose(clearLifeTimer, clearLifeTimer)
+
           await scope.acquire({
             create: async () => {
-              const lifeTimer = setInterval(() => {
-                log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
-              }, 1000 * 60 * 60)
-              this._stopCallbackList.push(() => clearInterval(lifeTimer))
               await this.onStart()
             },
             dispose: async () => {
@@ -250,6 +254,10 @@ class WechatyBase extends mixinBase implements SayableSayer {
     await this.#lifecycle.recover(token)
   }
 
+  /**
+   * Subclass startup hook executed after Puppet and optional IO resources are
+   * running and before `'start'` is emitted.
+   */
   async onStart (): Promise<void> {
     log.verbose('Wechaty', 'onStart()')
 
@@ -262,6 +270,11 @@ class WechatyBase extends mixinBase implements SayableSayer {
     log.verbose('Wechaty', 'onStart() ... done')
   }
 
+  /**
+   * Subclass teardown hook executed in LIFO order before IO and Puppet
+   * resources stop. Runs every registered `_stopCallbackList` callback even if
+   * an individual callback throws, surfacing any failures to the lifecycle scope.
+   */
   async onStop (): Promise<void> {
     log.verbose('Wechaty', 'onStop()')
 
@@ -271,8 +284,20 @@ class WechatyBase extends mixinBase implements SayableSayer {
     )
 
     const callbacks = this._stopCallbackList.splice(0, this._stopCallbackList.length)
+    const errors: unknown[] = []
     for (let i = callbacks.length - 1; i >= 0; i--) {
-      await callbacks[i]!()
+      try {
+        await callbacks[i]!()
+      } catch (error) {
+        errors.push(error)
+      }
+    }
+
+    if (errors.length === 1) {
+      throw errors[0]
+    }
+    if (errors.length > 1) {
+      throw new LifecycleAggregateCleanupError(errors)
     }
 
     log.verbose('Wechaty', 'onStop() ... done')

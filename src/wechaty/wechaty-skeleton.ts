@@ -17,6 +17,16 @@
  *   limitations under the License.
  *
  */
+
+/**
+ * Root base class (`WechatySkeleton`) owning bot UUID identity, typed
+ * `EventEmitter` plumbing, options storage, and idempotent `MemoryCard`
+ * initialization.
+ *
+ * Lifecycle orchestration lives in `WechatyBase` via `LifecycleController` +
+ * `ResourceScope`; `WechatySkeleton.start()` guards against redundant
+ * re-initialization when `WechatyBase` has already awaited `init()`.
+ */
 import { randomUUID }     from 'node:crypto'
 import { MemoryCard }     from 'memory-card'
 import { log }            from 'wechaty-puppet'

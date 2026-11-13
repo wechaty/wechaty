@@ -146,6 +146,7 @@ export class Io {
 
   protected reconnectTimer?   : ReturnType<typeof setTimeout>
   protected reconnectTimeout? : number
+  #runSignal?                 : AbortSignal
 
   protected lifeTimer? : ReturnType<typeof setInterval>
 
@@ -184,6 +185,12 @@ export class Io {
           if (this.lifeTimer) {
             throw new Error('lifeTimer exist')
           }
+
+          this.#runSignal = signal
+          scope.onDispose(
+            () => { this.#runSignal = undefined },
+            () => { this.#runSignal = undefined },
+          )
 
           this.registerEventHooks(scope)
 
@@ -609,10 +616,15 @@ export class Io {
     }
 
     log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout / 1000))
+    const signal = this.#runSignal
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined
-      if (this.#lifecycle.state.kind === 'running') {
-        this.initWebSocket().catch(console.error)
+      if (this.#lifecycle.state.kind === 'running' && !signal?.aborted) {
+        this.initWebSocket(signal).catch(err => {
+          if (!signal?.aborted) {
+            log.warn('Io', 'reconnect() initWebSocket failed: %s', (err as Error).message)
+          }
+        })
       }
     }, this.reconnectTimeout)
   }

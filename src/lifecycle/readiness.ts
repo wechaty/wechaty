@@ -115,12 +115,18 @@ export class ReadinessGate {
         continue
       }
 
-      if (state.generation === waiter.targetGeneration) {
-        if (state.kind === 'failed') {
-          this.#waiters.delete(waiter)
-          waiter.cleanup()
-          waiter.reject(state.error)
-        } else if (state.kind === 'stopped') {
+      if (state.kind === 'failed') {
+        this.#waiters.delete(waiter)
+        waiter.cleanup()
+        waiter.reject(state.error)
+        continue
+      }
+
+      if (state.kind === 'stopped') {
+        if (
+          waiter.targetGeneration === state.generation
+          || !this.#controller.hasQueuedStart
+        ) {
           this.#waiters.delete(waiter)
           waiter.cleanup()
           waiter.reject(
@@ -155,8 +161,11 @@ export class ReadinessGate {
   }
 
   /**
-   * Awaits readiness for the current (or immediately upcoming, if `stopped`)
-   * generation.
+   * Awaits readiness for the current generation (when `starting`/`running`),
+   * the queued replacement generation (when `stopping` with an active
+   * `restart()`/`recover()`/queued `start()`), or the next generation (when
+   * cleanly `stopped` prior to `start()`). Rejects immediately when `stopping`
+   * without a replacement or when `failed`.
    */
   whenReady (options?: LifecycleCallOptions): Promise<void> {
     if (options?.signal?.aborted) {
@@ -182,8 +191,14 @@ export class ReadinessGate {
       }
 
       case 'stopping': {
-        // Bind to the next generation if a restart/start is queued; if the service
-        // stops without restarting, `cancelPendingPreStartWaiters` or the next stop rejects.
+        if (!this.#controller.hasQueuedStart) {
+          return Promise.reject(
+            new LifecycleSupersededError(
+              'ready',
+              `Service is stopping generation ${state.generation} without a queued replacement`,
+            ),
+          )
+        }
         targetGeneration = state.generation + 1
         break
       }

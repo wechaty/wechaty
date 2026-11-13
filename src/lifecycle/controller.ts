@@ -119,6 +119,10 @@ class AttemptOutcome<T> {
     return this.#settled
   }
 
+  /**
+   * Resolves all currently attached and future waiters with `value`. Idempotent
+   * once settled.
+   */
   resolve (value: T): void {
     if (this.#settled) {
       return
@@ -134,6 +138,10 @@ class AttemptOutcome<T> {
     }
   }
 
+  /**
+   * Rejects all currently attached and future waiters with `error` without
+   * creating an unhandled rejection when zero waiters are attached.
+   */
   reject (error: unknown): void {
     if (this.#settled) {
       return
@@ -149,6 +157,10 @@ class AttemptOutcome<T> {
     }
   }
 
+  /**
+   * Attaches a caller wait to this attempt outcome. Aborting `signal` detaches
+   * and rejects only this caller's Promise without affecting other waiters.
+   */
   wait (signal?: AbortSignal): Promise<T> {
     if (signal?.aborted) {
       return Promise.reject(toAbortError(signal.reason))
@@ -195,8 +207,10 @@ interface ActiveRun {
   readonly startAttempt: AttemptOutcome<void>
   retireAttempt: AttemptOutcome<void>
   readonly startedAtMs: number
+  startInvoked: boolean
   startInvocation?: Promise<void>
   startSettled: boolean
+  stopInvocation?: Promise<void>
   stopDisposed: boolean
   interruptStartWait?: () => void
   triggerError?: unknown
@@ -208,6 +222,10 @@ interface PendingRecovery {
   readonly outcome: AttemptOutcome<RecoveryOutcome>
 }
 
+/**
+ * Collapses zero, one, or multiple cleanup errors into `undefined`, the single
+ * error value, or a `LifecycleAggregateCleanupError`.
+ */
 function summarizeCleanupErrors (errors: readonly unknown[]): unknown {
   if (errors.length === 0) {
     return undefined
@@ -218,12 +236,15 @@ function summarizeCleanupErrors (errors: readonly unknown[]): unknown {
   return new LifecycleAggregateCleanupError(errors)
 }
 
-async function runWithOptionalTimeout (
-  operation: () => Promise<void> | void,
+/**
+ * Awaits `promise` with an optional phase deadline. Suppresses unhandled
+ * rejections on `promise` if `timeoutMs` expires before `promise` rejects.
+ */
+async function awaitWithOptionalTimeout (
+  promise: Promise<void>,
   phase: 'start' | 'stop',
   timeoutMs: number | undefined,
 ): Promise<void> {
-  const promise = Promise.resolve().then(operation)
   if (timeoutMs === undefined) {
     await promise
     return
@@ -290,6 +311,23 @@ export class LifecycleController {
    */
   get revision (): number {
     return this.#revision
+  }
+
+  /**
+   * `true` when a replacement generation is scheduled to start as soon as any
+   * retiring generation finishes clean teardown.
+   */
+  get hasQueuedStart (): boolean {
+    if (this.#desired !== 'running') {
+      return false
+    }
+    if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
+      return false
+    }
+    return (
+      this.#attemptedRevision < this.#revision
+      || (this.#pendingRecovery !== null && this.#pendingRecovery.revision === this.#revision)
+    )
   }
 
   /**
@@ -409,7 +447,7 @@ export class LifecycleController {
         const run = this.#activeRun!
         const superseded = new LifecycleSupersededError('start')
         this.#retireBeforeGen = run.generation
-        run.scope.abort(superseded)
+        run.scope.interrupt(superseded)
         if (this.#queuedStartAttempt) {
           this.#queuedStartAttempt.reject(new LifecycleSupersededError('start'))
           this.#queuedStartAttempt = null
@@ -513,7 +551,7 @@ export class LifecycleController {
         const run = this.#activeRun!
         const superseded = new LifecycleSupersededError('start')
         this.#retireBeforeGen = run.generation
-        run.scope.abort(superseded)
+        run.scope.interrupt(superseded)
         if (!this.#queuedStartAttempt) {
           this.#queuedStartAttempt = new AttemptOutcome<void>()
         }
@@ -594,7 +632,7 @@ export class LifecycleController {
         const run = this.#activeRun!
         const superseded = new LifecycleSupersededError('start', 'Superseded by supervisor recovery')
         this.#retireBeforeGen = run.generation
-        run.scope.abort(superseded)
+        run.scope.interrupt(superseded)
         this.#commitState(
           { generation: run.generation, kind: 'stopping' },
           () => run.startAttempt.reject(superseded),
@@ -681,6 +719,10 @@ export class LifecycleController {
     })
   }
 
+  /**
+   * Resolves any pending supervisor `recover()` call with `'superseded'` when a
+   * newer explicit user command (`start`, `stop`, or `restart`) takes authority.
+   */
   #supersedePendingRecovery (): void {
     if (this.#pendingRecovery) {
       const pending = this.#pendingRecovery
@@ -689,6 +731,11 @@ export class LifecycleController {
     }
   }
 
+  /**
+   * Handles a generation-fenced `context.fail(error)` signal emitted while
+   * `generation` is `running`, interrupting its scope and entering `stopping`
+   * rollback without mutating newer generations.
+   */
   #failActiveRun (generation: number, error: unknown): void {
     if (
       this.#state.kind !== 'running'
@@ -700,12 +747,21 @@ export class LifecycleController {
     const run = this.#activeRun
     run.triggerError = error
     run.failurePhase = 'run'
-    run.scope.abort(error)
+    run.scope.interrupt(error)
     this.#retireBeforeGen = generation
     this.#commitState({ generation, kind: 'stopping' })
     this.#ensureLoop()
   }
 
+  /**
+   * Allocates generation `G + 1` with a fresh `ResourceScope` and commits
+   * `starting(G + 1)` synchronously before the first `await` so concurrent
+   * callers and `ReadinessGate` observe the active generation immediately.
+   *
+   * `startSettled` begins as `true` until `#stepStarting` actually invokes
+   * `hooks.start` so a reentrant `stop()` inside `onStateChange('starting')`
+   * can retire the unstarted generation cleanly without hanging or failing.
+   */
   #beginGenerationSync (startAttempt: AttemptOutcome<void>): void {
     const generation = ++this.#generation
     const scope = new ResourceScope()
@@ -715,14 +771,24 @@ export class LifecycleController {
       retireAttempt,
       scope,
       startAttempt,
-      startSettled: false,
+      startInvoked: false,
+      startSettled: true,
       startedAtMs: performance.now(),
-      stopDisposed: false,
+      stopDisposed: !this.#hooks.stop,
     }
     this.#retireBeforeGen = null
     this.#commitState({ generation, kind: 'starting' })
   }
 
+  /**
+   * Atomically publishes `next` as a frozen state snapshot, settles internal
+   * attempt and `whenState` waiters *before* external observers run, emits
+   * privacy-safe diagnostics, and isolates `onStateChange` exceptions.
+   *
+   * Invariant: reentrant calls inside `onStateChange` (such as calling `stop()`
+   * upon observing `starting` or `running`) observe the committed snapshot and
+   * cannot retroactively alter already-settled attempt outcomes.
+   */
   #commitState (
     next: LifecycleState,
     settleAttempts?: () => void,
@@ -770,6 +836,10 @@ export class LifecycleController {
     }
   }
 
+  /**
+   * Starts the single asynchronous reconciliation loop if it is not already
+   * running. Never queues unbounded Promise chains.
+   */
   #ensureLoop (): void {
     if (this.#loopRunning) {
       return
@@ -778,6 +848,10 @@ export class LifecycleController {
     void this.#runLoop()
   }
 
+  /**
+   * Drives `starting` and `stopping` steps and launches queued replacement
+   * generations until the controller parks in `running`, `stopped`, or `failed`.
+   */
   async #runLoop (): Promise<void> {
     try {
       for (;;) {
@@ -812,11 +886,26 @@ export class LifecycleController {
     }
   }
 
+  /**
+   * Executes `hooks.start` for `run`, racing it against external supersession
+   * (`interruptStartWait`) and optional `startTimeoutMs`.
+   *
+   * On hook error or startup deadline expiry, marks `run.failurePhase = 'start'`,
+   * interrupts `run.scope`, sets `#retireBeforeGen = run.generation`, and
+   * transitions to `stopping` so `#stepStopping` performs LIFO rollback before
+   * publishing `failed`.
+   */
   async #stepStarting (run: ActiveRun): Promise<void> {
+    if (this.#state.kind !== 'starting' || this.#retireBeforeGen === run.generation) {
+      return
+    }
+
     let hasStartError = false
     let startError: unknown
 
     if (!run.startInvocation) {
+      run.startInvoked = true
+      run.startSettled = false
       run.startInvocation = Promise.resolve()
         .then(() =>
           this.#hooks.start({
@@ -876,7 +965,7 @@ export class LifecycleController {
       const timeoutError = new LifecycleTimeoutError('start', this.#startTimeoutMs!)
       run.triggerError = timeoutError
       run.failurePhase = 'start'
-      run.scope.abort(timeoutError)
+      run.scope.interrupt(timeoutError)
       this.#retireBeforeGen = run.generation
       this.#commitState({ generation: run.generation, kind: 'stopping' })
       return
@@ -885,7 +974,7 @@ export class LifecycleController {
     if (hasStartError) {
       run.triggerError = startError
       run.failurePhase = 'start'
-      run.scope.abort(startError)
+      run.scope.interrupt(startError)
       this.#retireBeforeGen = run.generation
       this.#commitState({ generation: run.generation, kind: 'stopping' })
       return
@@ -899,22 +988,37 @@ export class LifecycleController {
     )
   }
 
+  /**
+   * Retires `run` across both normal shutdown (`stop`/`restart`/`recover`) and
+   * failure rollback (`failurePhase === 'start' | 'run'`).
+   *
+   * Execution invariants:
+   *   1. `run.scope.interrupt()` executes *before* awaiting `run.startInvocation`
+   *      so startup hooks blocked on resource I/O wake up immediately, while
+   *      async `dispose()` stays gated behind startup settlement.
+   *   2. If `hooks.start` was never invoked (`!run.startInvoked`), `hooks.stop`
+   *      is skipped and the empty scope closes cleanly.
+   *   3. If `hooks.stop` times out, `run.stopInvocation` remains tracked so
+   *      subsequent `stop()` calls join the in-flight invocation rather than
+   *      launching overlapping stop hooks or reporting false cleanup completion.
+   *   4. `run.retireAttempt` resolves whenever `cleanupComplete` is `true`
+   *      (even if a newer `start()` flipped `#desired` back to `'running'`) and
+   *      rejects whenever `!cleanupComplete`.
+   */
   async #stepStopping (run: ActiveRun): Promise<void> {
     const retiringStartedAtMs = performance.now()
     const abortReason = run.triggerError ?? new LifecycleSupersededError('run')
-    run.scope.abort(abortReason)
+    run.scope.interrupt(abortReason)
 
-    // Wait for in-flight `hooks.start` before tearing down shared resources unless
+    // Wait for in-flight `hooks.start` after interrupting scoped resources unless
     // a startup deadline already expired on an uncooperative hook.
     if (run.startInvocation && !run.startSettled) {
       if (run.triggerError instanceof LifecycleTimeoutError) {
         await Promise.resolve()
-      } else if (this.#stopTimeoutMs === undefined) {
-        await run.startInvocation
       } else {
         try {
-          await runWithOptionalTimeout(
-            () => run.startInvocation!,
+          await awaitWithOptionalTimeout(
+            run.startInvocation,
             'stop',
             this.#stopTimeoutMs,
           )
@@ -926,18 +1030,42 @@ export class LifecycleController {
 
     const cleanupErrors: unknown[] = []
 
-    if (this.#hooks.stop && !run.stopDisposed) {
-      try {
-        await runWithOptionalTimeout(
-          () =>
+    if (!run.startInvoked) {
+      run.stopDisposed = true
+    } else if (this.#hooks.stop && !run.stopDisposed) {
+      if (!run.stopInvocation) {
+        let rawStop!: Promise<void>
+        rawStop = Promise.resolve()
+          .then(() =>
             this.#hooks.stop!({
               generation: run.generation,
               reason: run.failurePhase ? 'rollback' : 'stop',
             }),
+          )
+          .then(
+            () => {
+              if (run.stopInvocation === rawStop) {
+                run.stopInvocation = undefined
+                run.stopDisposed = true
+              }
+            },
+            (err: unknown) => {
+              if (run.stopInvocation === rawStop) {
+                run.stopInvocation = undefined
+              }
+              throw err
+            },
+          )
+        rawStop.catch(() => {})
+        run.stopInvocation = rawStop
+      }
+
+      try {
+        await awaitWithOptionalTimeout(
+          run.stopInvocation,
           'stop',
           this.#stopTimeoutMs,
         )
-        run.stopDisposed = true
       } catch (error) {
         cleanupErrors.push(error)
       }
@@ -958,6 +1086,7 @@ export class LifecycleController {
       cleanupErrors.length === 0
       && scopeCloseResult.cleanupComplete
       && run.stopDisposed
+      && run.stopInvocation === undefined
       && run.startSettled
     const durationMs = performance.now() - retiringStartedAtMs
 
@@ -1006,9 +1135,9 @@ export class LifecycleController {
           if (phase === 'start') {
             run.startAttempt.reject(primaryError)
           }
-          if (cleanupComplete && this.#desired === 'stopped') {
+          if (cleanupComplete) {
             run.retireAttempt.resolve()
-          } else if (!cleanupComplete) {
+          } else {
             run.retireAttempt.reject(cleanupError ?? primaryError)
           }
         },
@@ -1050,6 +1179,11 @@ export class LifecycleController {
     )
   }
 
+  /**
+   * Rejects any queued replacement `start()`/`restart()` or supervisor
+   * `recover()` with `LifecycleUnsafeStateError` when generation `generation`
+   * finishes retirement with unproven cleanup (`cleanupComplete === false`).
+   */
   #rejectQueuedStartDueToUnsafeState (generation: number, cause: unknown): void {
     const unsafeError = new LifecycleUnsafeStateError(generation, undefined, {
       cause,
@@ -1066,6 +1200,14 @@ export class LifecycleController {
     this.#attemptedRevision = this.#revision
   }
 
+  /**
+   * Evaluates whether a queued user `start`/`restart` (`#attemptedRevision < #revision`)
+   * or an authorized supervisor `recover()` (`pendingRecovery.revision === #revision`)
+   * should launch generation `G + 1` after generation `G` has cleanly retired.
+   *
+   * Returns `true` if generation `G + 1` was started synchronously, or `false`
+   * if the loop should park without implicitly retrying a failed revision.
+   */
   #stepMaybeLaunchNextGeneration (): boolean {
     const pendingRecovery = this.#pendingRecovery
     const hasUserStartIntent =

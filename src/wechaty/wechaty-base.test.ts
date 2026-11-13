@@ -477,6 +477,40 @@ test('Wechaty detaches puppet listeners on stop, awaits stop callbacks before st
   await bot.stop()
 })
 
+test('Wechaty preserves both errors and blocks restart when puppet.start() and rollback puppet.stop() both fail', async t => {
+  const puppet = new PuppetMock()
+  const startErr = new Error('puppet start fail')
+  const stopErr = new Error('puppet rollback fail')
+  let failPuppetStop = true
+
+  t.mock.method(puppet, 'start', async () => {
+    throw startErr
+  })
+  t.mock.method(puppet, 'stop', async () => {
+    if (failPuppetStop) {
+      throw stopErr
+    }
+  })
+
+  const bot = new WechatyBase({ puppet })
+  await assert.rejects(bot.start(), /puppet start fail/)
+
+  assert.equal(bot.state.kind, 'failed')
+  if (bot.state.kind === 'failed') {
+    assert.equal(bot.state.phase, 'start')
+    assert.equal(bot.state.error, startErr)
+    assert.equal(bot.state.cleanupError, stopErr)
+    assert.equal(bot.state.cleanupComplete, false)
+  }
+
+  await assert.rejects(bot.start(), LifecycleUnsafeStateError)
+
+  // Retry stop() once underlying teardown issue clears: converges cleanly to stopped!
+  failPuppetStop = false
+  await bot.stop()
+  assert.deepEqual(bot.state, { generation: 1, kind: 'stopped' })
+})
+
 // TODO: add test for event args
 
 test('Perfect restart', async t => {

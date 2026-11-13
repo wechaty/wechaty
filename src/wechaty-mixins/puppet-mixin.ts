@@ -49,6 +49,11 @@ const assertPuppetEventNameExhaustive = (eventName: never): void => {
   log.warn('WechatyPuppetMixin', '__setupPuppetEvents() unsupported puppet event: %s', eventName)
 }
 
+/**
+ * Races an asynchronous Puppet lifecycle operation against `timeoutMs`,
+ * tracking whether the underlying provider Promise has actually settled so
+ * timed-out operations can be registered via `scope.trackUnsettled()`.
+ */
 function runPuppetPhaseWithTimeout (
   operation: () => Promise<void>,
   phase: 'start' | 'stop',
@@ -169,6 +174,15 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       detach?.()
     }
 
+    /**
+     * Acquires the configured Puppet and its provider-event bridge inside
+     * `scope` for `generation`.
+     *
+     * Registers Puppet teardown on `scope` prior to `puppet.start()` so partial
+     * startup failures unwind through `ResourceScope`, preserving both the
+     * primary startup error and any rollback `puppet.stop()` failure while
+     * keeping failed or timed-out `puppet.stop()` calls retryable and tracked.
+     */
     async __acquirePuppet (
       scope: ResourceScope,
       generation: number,
@@ -191,42 +205,67 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         })
       }
 
-      await scope.acquire({
-        create: async () => {
-          const timeoutMs = this.__options.puppetStartTimeoutMs ?? DEFAULT_PUPPET_TIMEOUT_MS
-          log.verbose('WechatyPuppetMixin', '__acquirePuppet() starting puppet ...')
-          const phaseRun = runPuppetPhaseWithTimeout(
-            () => puppet.start(),
-            'start',
-            timeoutMs,
+      let inFlightPuppetStop: Promise<void> | undefined
+      scope.onDispose(
+        async () => {
+          retiringByParent = true
+          if (!inFlightPuppetStop) {
+            let rawStop!: Promise<void>
+            rawStop = Promise.resolve()
+              .then(() => puppet.stop())
+              .finally(() => {
+                if (inFlightPuppetStop === rawStop) {
+                  inFlightPuppetStop = undefined
+                }
+              })
+            rawStop.catch(() => {})
+            inFlightPuppetStop = rawStop
+          }
+
+          const stopTimeoutMs = this.__options.puppetStopTimeoutMs ?? DEFAULT_PUPPET_TIMEOUT_MS
+          log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ...')
+          const stopPhase = runPuppetPhaseWithTimeout(
+            () => inFlightPuppetStop!,
+            'stop',
+            stopTimeoutMs,
           )
           try {
-            await phaseRun.promise
-            log.verbose('WechatyPuppetMixin', '__acquirePuppet() starting puppet ... done')
-          } catch (error) {
-            retiringByParent = true
-            try {
-              await this.__stopPuppetRaw(puppet)
-            } catch {
-              // Preserve primary startup error; unsettled start debt is tracked below.
+            await stopPhase.promise
+            log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ... done')
+          } catch (stopError) {
+            if (!stopPhase.isSettled()) {
+              scope.trackUnsettled(stopPhase.rawPromise)
             }
-            if (!phaseRun.isSettled()) {
-              scope.trackUnsettled(phaseRun.rawPromise)
-            }
-            throw error
+            throw stopError
           }
         },
-        dispose: async () => {
-          retiringByParent = true
-          await this.__stopPuppetRaw(puppet)
-        },
-        interrupt: () => {
+        () => {
           retiringByParent = true
         },
-        name: 'puppet',
-      })
+      )
+
+      const startTimeoutMs = this.__options.puppetStartTimeoutMs ?? DEFAULT_PUPPET_TIMEOUT_MS
+      log.verbose('WechatyPuppetMixin', '__acquirePuppet() starting puppet ...')
+      const startPhase = runPuppetPhaseWithTimeout(
+        () => puppet.start(),
+        'start',
+        startTimeoutMs,
+      )
+      try {
+        await startPhase.promise
+        log.verbose('WechatyPuppetMixin', '__acquirePuppet() starting puppet ... done')
+      } catch (error) {
+        retiringByParent = true
+        if (!startPhase.isSettled()) {
+          scope.trackUnsettled(startPhase.rawPromise)
+        }
+        throw error
+      }
     }
 
+    /**
+     * Stops `puppet` under `puppetStopTimeoutMs` for standalone mixin usage.
+     */
     async __stopPuppetRaw (puppet: PUPPET.impls.PuppetInterface): Promise<void> {
       const timeoutMs = this.__options.puppetStopTimeoutMs ?? DEFAULT_PUPPET_TIMEOUT_MS
       log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ...')

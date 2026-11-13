@@ -233,6 +233,69 @@ test('ResourceScope immediately interrupts and disposes late acquisitions after 
   ])
 })
 
+test('ResourceScope retains failed late acquisitions and retries their disposers on subsequent close() calls', async () => {
+  const trace: string[] = []
+  const scope = new ResourceScope()
+  const lateCreate = defer<string>()
+  let failLateDispose = true
+
+  const acquirePromise = scope.acquire({
+    create: async () => {
+      const val = await lateCreate.promise
+      trace.push(`create:${val}`)
+      return val
+    },
+    dispose: async val => {
+      trace.push(`dispose:${val}`)
+      if (failLateDispose) {
+        throw new Error('late dispose transient failure')
+      }
+    },
+    interrupt: val => {
+      trace.push(`interrupt:${val}`)
+    },
+  })
+
+  scope.abort(new Error('cancelled'))
+  lateCreate.resolve('LATE_SOCKET')
+  await assert.rejects(acquirePromise, /cancelled/)
+
+  // First close() surfaces the initial late disposal failure without double-calling dispose().
+  const firstClose = await scope.close()
+  assert.equal(firstClose.cleanupComplete, false)
+  assert.equal(firstClose.errors.length, 1)
+  assert.match(String(firstClose.error), /late dispose transient failure/)
+  assert.deepEqual(trace, [
+    'create:LATE_SOCKET',
+    'interrupt:LATE_SOCKET',
+    'dispose:LATE_SOCKET',
+  ])
+
+  // Second close() while dispose still fails continues reporting cleanupComplete=false!
+  const secondClose = await scope.close()
+  assert.equal(secondClose.cleanupComplete, false)
+  assert.equal(secondClose.errors.length, 1)
+  assert.deepEqual(trace, [
+    'create:LATE_SOCKET',
+    'interrupt:LATE_SOCKET',
+    'dispose:LATE_SOCKET',
+    'dispose:LATE_SOCKET',
+  ])
+
+  // Third close() after transient failure clears succeeds and completes cleanup!
+  failLateDispose = false
+  const thirdClose = await scope.close()
+  assert.equal(thirdClose.cleanupComplete, true)
+  assert.equal(thirdClose.errors.length, 0)
+  assert.deepEqual(trace, [
+    'create:LATE_SOCKET',
+    'interrupt:LATE_SOCKET',
+    'dispose:LATE_SOCKET',
+    'dispose:LATE_SOCKET',
+    'dispose:LATE_SOCKET',
+  ])
+})
+
 test('ResourceScope reports cleanupComplete=false when an uncooperative creation remains hung past timeoutMs', async () => {
   const scope = new ResourceScope()
   const hungGate = defer<string>()
