@@ -14,11 +14,13 @@
  *   3. Dependency-safe two-phase retirement (`seal -> graceful onStop -> abort + interrupt ->
  *      LIFO unwind -> truthful cleanupComplete tracking & stop() retry`).
  *   4. Generation-fenced `LifecycleScope` + double-checked `scope.recover()` authority.
- *   5. Strict post-commit ordering: freeze snapshot -> settle eligible attempt & condition
+ *   5. Spawn-task context lets recovery retirement avoid joining its own requesting task.
+ *   6. Strict post-commit ordering: freeze snapshot -> settle eligible attempt & condition
  *      waiters -> publish privacy-safe diagnostics -> invoke isolated `onStateChange` and
  *      `whenState` predicates.
  */
 
+import { AsyncLocalStorage } from 'node:async_hooks'
 import {
   getAbortReason,
   isCooperativeAbortError,
@@ -112,6 +114,7 @@ interface PendingRecovery {
   readonly capturedRevision: number
   readonly reason: unknown
   readonly outcome: Deferred<RecoveryOutcome>
+  readonly requesterTaskIds: Set<symbol>
 }
 
 interface GenerationRun {
@@ -131,6 +134,11 @@ interface GenerationRun {
   linkedRecoveryOutcome: Deferred<RecoveryOutcome> | undefined
 }
 
+interface SpawnTaskContext {
+  readonly run: GenerationRun
+  readonly taskId: symbol
+}
+
 const CHILD_OWNERS = new WeakMap<object, object>()
 
 /**
@@ -145,6 +153,7 @@ export class LifecycleKernel implements LifecycleController {
   readonly #instanceId: number
   readonly #conditions = new ConditionRegistry()
   readonly #watchers = new Set<StateWatcher>()
+  readonly #spawnTaskContext = new AsyncLocalStorage<SpawnTaskContext>()
 
   #state: LifecycleState
   #lastTransitionMs: number
@@ -555,7 +564,12 @@ export class LifecycleKernel implements LifecycleController {
         task: (signal: AbortSignal) => Promise<void>,
         options?: SpawnOptions,
       ): void => {
-        ledger.spawn(task, options)
+        const taskId = Symbol('lifecycle spawn task')
+        ledger.spawn(
+          signal => this.#spawnTaskContext.run({ run, taskId }, () => task(signal)),
+          options,
+          taskId,
+        )
       },
       start: <C extends Lifecycle> (childOrFactory: C | (() => C)): Promise<C> => {
         return this.#startOwnedChild(run, childOrFactory)
@@ -570,7 +584,12 @@ export class LifecycleKernel implements LifecycleController {
         this.#reportGenerationFailure(run, error)
       },
       recover: (reason?: unknown): Promise<RecoveryOutcome> => {
-        return this.#requestGenerationRecovery(run, reason)
+        const context = this.#spawnTaskContext.getStore()
+        return this.#requestGenerationRecovery(
+          run,
+          reason,
+          context?.run === run ? context.taskId : undefined,
+        )
       },
     })
 
@@ -914,7 +933,10 @@ export class LifecycleKernel implements LifecycleController {
           cleanupComplete = false
           cleanupErrors.push(interruptOutcome.timeoutReason)
         } else {
-          const unwindResult = await run.ledger.unwind(stopDeadline.signal)
+          const unwindResult = await run.ledger.unwind(
+            stopDeadline.signal,
+            stopReason === 'recover' ? recovery?.requesterTaskIds : undefined,
+          )
           if (!unwindResult.cleanupComplete) {
             cleanupComplete = false
           }
@@ -961,7 +983,7 @@ export class LifecycleKernel implements LifecycleController {
         phase: 'run',
         error: run.failureError,
         cleanupComplete: allGenerationsClean,
-        ...(collapsedStopError !== undefined ? { cleanupError: collapsedStopError } : {}),
+        ...(allStopErrors.length > 0 ? { cleanupError: collapsedStopError } : {}),
       }
 
       this.#commit(failedSnapshot, () => {
@@ -969,9 +991,9 @@ export class LifecycleKernel implements LifecycleController {
           run.stopAttempt.resolve()
         } else {
           run.stopAttempt.reject(
-            collapsedStopError
-            ?? this.#dirtyRuns.values().next().value?.failureError
-            ?? run.failureError,
+            allStopErrors.length > 0
+              ? collapsedStopError
+              : this.#dirtyRuns.values().next().value?.failureError ?? run.failureError,
           )
         }
         recovery?.outcome.resolve('failed')
@@ -990,9 +1012,10 @@ export class LifecycleKernel implements LifecycleController {
       const failedQueuedStart = this.#queuedStartAttempt
       this.#queuedStartAttempt = undefined
 
-      const retirementError = collapsedStopError
-        ?? this.#dirtyRuns.values().next().value?.failureError
-        ?? new Error(`[${this.#serviceName}] Lifecycle cleanup did not complete`)
+      const retirementError = allStopErrors.length > 0
+        ? collapsedStopError
+        : this.#dirtyRuns.values().next().value?.failureError
+          ?? new Error(`[${this.#serviceName}] Lifecycle cleanup did not complete`)
       const failedSnapshot: LifecycleState = {
         kind: 'failed',
         generation: run.generation,
@@ -1125,10 +1148,11 @@ export class LifecycleKernel implements LifecycleController {
       this.#desired = 'stopped'
       const blockedQueuedStart = this.#queuedStartAttempt
       this.#queuedStartAttempt = undefined
-      const retirementError = collapsedError
-        ?? this.#dirtyRuns.values().next().value?.failureError
-        ?? run.failureError
-        ?? new Error(`[${this.#serviceName}] Lifecycle cleanup did not complete`)
+      const retirementError = allErrors.length > 0
+        ? collapsedError
+        : this.#dirtyRuns.values().next().value?.failureError
+          ?? run.failureError
+          ?? new Error(`[${this.#serviceName}] Lifecycle cleanup did not complete`)
 
       const failedSnapshot: LifecycleState = {
         kind: 'failed',
@@ -1206,9 +1230,11 @@ export class LifecycleKernel implements LifecycleController {
     this.#ensureReconciling()
   }
 
+  /** Requests authority-fenced recovery and records any owned task awaiting that handoff. */
   #requestGenerationRecovery (
     run: GenerationRun,
     reason?: unknown,
+    requesterTaskId?: symbol,
   ): Promise<RecoveryOutcome> {
     if (this.#activeRun !== run) {
       return Promise.resolve('superseded')
@@ -1233,6 +1259,9 @@ export class LifecycleKernel implements LifecycleController {
     }
 
     if (run.pendingRecovery) {
+      if (requesterTaskId !== undefined) {
+        run.pendingRecovery.requesterTaskIds.add(requesterTaskId)
+      }
       return run.pendingRecovery.outcome.promise
     }
 
@@ -1241,6 +1270,9 @@ export class LifecycleKernel implements LifecycleController {
       capturedRevision: run.capturedRevision,
       reason,
       outcome,
+      requesterTaskIds: new Set(
+        requesterTaskId === undefined ? [] : [ requesterTaskId ],
+      ),
     }
     this.#ensureReconciling()
     return outcome.promise

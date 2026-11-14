@@ -34,6 +34,7 @@ import type {
   LifecycleCondition,
   LifecycleHooks,
   Lifecycle,
+  LifecycleOptions,
   LifecycleScope,
   LifecycleState,
   LifecycleStopContext,
@@ -655,12 +656,13 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
   const createHarness = (
     entryPoint: 'composition' | 'inheritance',
     hooks: LifecycleHooks,
+    options?: LifecycleOptions,
   ): {
     readonly lifecycle: Lifecycle
     condition (name: string): LifecycleCondition
   } => {
     if (entryPoint === 'composition') {
-      const lifecycle = createLifecycle(hooks)
+      const lifecycle = createLifecycle(hooks, options)
       return { lifecycle, condition: name => lifecycle.condition(name) }
     }
 
@@ -668,7 +670,7 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
       #hooks: LifecycleHooks
 
       constructor () {
-        super()
+        super(options)
         this.#hooks = hooks
       }
 
@@ -700,6 +702,58 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
   }
 
   for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
+    {
+      const clock = createManualClock()
+      let scope!: LifecycleScope
+      let recoveryOutcome!: Promise<Awaited<ReturnType<LifecycleScope['recover']>>>
+      const taskSettled = deferred<void>()
+      const beginRecovery = deferred<void>()
+      const stopEntered = deferred<void>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+          if (currentScope.generation === 1) {
+            currentScope.spawn(async () => {
+              await beginRecovery.promise
+              recoveryOutcome = scope.recover()
+              await recoveryOutcome
+              taskSettled.resolve()
+            })
+          }
+        },
+        onStop () {
+          stopEntered.resolve()
+        },
+      }, { clock, stopTimeoutMs: 5 })
+      await lifecycle.start()
+      beginRecovery.resolve()
+      await stopEntered.promise
+      await flushMicrotasks()
+      if (lifecycle.state.kind === 'stopping') {
+        clock.advanceBy(5)
+      }
+      assert.equal(await recoveryOutcome, 'recovered')
+      await taskSettled.promise
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 2)
+      await lifecycle.stop()
+    }
+
+    for (const rejection of [ undefined, null, false ]) {
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart: () => {},
+        onStop () {
+          throw rejection
+        },
+      })
+      await lifecycle.start()
+      await assert.rejects(lifecycle.stop(), error => Object.is(error, rejection))
+      assert.equal(lifecycle.state.kind, 'failed')
+      if (lifecycle.state.kind === 'failed') {
+        assert.ok(Object.is(lifecycle.state.error, rejection))
+      }
+    }
+
     {
       const starts: ReturnType<typeof deferred<void>>[] = []
       const stopGate = deferred<void>()

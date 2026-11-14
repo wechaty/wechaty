@@ -346,6 +346,8 @@ export interface LifecycleScope {
    * entry and again after `G` retires—so explicit caller commands always win.
    * If called before `running` is committed, degrades to fail-fast `scope.fail(reason)` and
    * resolves `'failed'`.
+   * A `spawn()` task awaiting its own recovery is excluded from that retirement's task join;
+   * it must return promptly after the outcome without using the retired generation's resources.
    */
   recover (reason?: unknown): Promise<RecoveryOutcome>
 }

@@ -9,7 +9,8 @@
  *   2. `interruptAll()` invokes and tracks `interrupt(resource)` hooks in LIFO order
  *      immediately upon `scope.signal` abort—BEFORE background tasks or in-flight startup
  *      work are joined—so blocked stream/socket loops wake up without deadlocking.
- *   3. `unwind(deadlineSignal)` joins tasks and releases resources in strict LIFO order,
+ *   3. `unwind(deadlineSignal)` joins background tasks (except recovery requesters) and
+ *      releases resources in strict LIFO order,
  *      continuing past disposer throws while preserving failed disposers and timed-out
  *      in-flight promises in unresolved debt so a subsequent `stop()` retries/completes
  *      cleanup without double-invoking still-running disposers.
@@ -48,6 +49,7 @@ type ResourceEntry<T = unknown> = {
 
 type TaskEntry = {
   readonly kind: 'task'
+  readonly id: symbol
   readonly label: string
   status: 'running' | 'settled'
   promise: Promise<void>
@@ -136,6 +138,11 @@ export class GenerationLedger {
    * `acquire()`, or unreleased resource/disposer remains unfinished.
    */
   get hasUnresolvedDebt (): boolean {
+    return this.#hasUnresolvedDebt()
+  }
+
+  /** Checks ledger ownership while optionally excluding recovery handoff tasks. */
+  #hasUnresolvedDebt (excludedTaskIds?: ReadonlySet<symbol>): boolean {
     if (this.#inFlightStartPromise !== undefined || this.#inFlightStopPromise !== undefined) {
       return true
     }
@@ -152,7 +159,11 @@ export class GenerationLedger {
       if (entry.kind === 'resource' && entry.hasPendingLateError) {
         return true
       }
-      if (entry.kind === 'task' && entry.status !== 'settled') {
+      if (
+        entry.kind === 'task'
+        && entry.status !== 'settled'
+        && !excludedTaskIds?.has(entry.id)
+      ) {
         return true
       }
     }
@@ -480,6 +491,7 @@ export class GenerationLedger {
   spawn (
     task: (signal: AbortSignal) => Promise<void>,
     options?: SpawnOptions,
+    taskId = Symbol('lifecycle spawn task'),
   ): void {
     if (typeof task !== 'function') {
       throw new TypeError('scope.spawn(task) requires a task function')
@@ -490,6 +502,7 @@ export class GenerationLedger {
 
     const entry: TaskEntry = {
       kind: 'task',
+      id: taskId,
       label: options?.name ?? 'spawn',
       status: 'running',
       promise: Promise.resolve(),
@@ -563,16 +576,14 @@ export class GenerationLedger {
   }
 
   /**
-   * Step 5 of retirement: walks all ledger entries in strict LIFO order, joining in-flight
-   * acquisitions/tasks and releasing resources up to `deadlineSignal`.
-   *
-   * Behavioral guarantees:
-   * - Continues unwinding earlier resources when a disposer throws.
-   * - Stops and preserves remaining debt if `deadlineSignal` expires mid-unwind so a
-   *   still-running higher-level task/disposer never has lower-level dependencies torn out
-   *   from underneath it, and never double-invokes an already in-flight disposer on retry.
+   * Joins tasks and releases resources in LIFO order; recovery requester tasks are excluded
+   * because they cannot settle until their recovery outcome is delivered. Continues past
+   * disposer failures, but preserves remaining debt if the deadline expires mid-unwind.
    */
-  async unwind (deadlineSignal: AbortSignal): Promise<UnwindResult> {
+  async unwind (
+    deadlineSignal: AbortSignal,
+    excludedTaskIds?: ReadonlySet<symbol>,
+  ): Promise<UnwindResult> {
     const errors: unknown[] = []
     if (this.#interruptErrors.length > 0) {
       errors.push(...this.#interruptErrors)
@@ -583,6 +594,9 @@ export class GenerationLedger {
       const entry = this.#entries[index]!
 
       if (entry.kind === 'task') {
+        if (excludedTaskIds?.has(entry.id)) {
+          continue
+        }
         if (entry.status !== 'settled') {
           const race = await settleBeforeDeadline(entry.promise, deadlineSignal)
           if (race.timedOut) {
@@ -636,7 +650,7 @@ export class GenerationLedger {
       }
     }
 
-    const cleanupComplete = !this.hasUnresolvedDebt
+    const cleanupComplete = !this.#hasUnresolvedDebt(excludedTaskIds)
     this.#retirementCompleted = true
     return { cleanupComplete, errors }
   }
