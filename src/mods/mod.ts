@@ -53,6 +53,25 @@ export {
   qrcodeValueToImageUrl,
   VERSION,
 }                         from '../config.ts'
+export {
+  AsyncLifecycle,
+  createLifecycle,
+  LifecycleSupersededError,
+  LifecycleTimeoutError,
+  LifecycleUnsafeStateError,
+}                         from '../async-lifecycle/mod.ts'
+export type {
+  AsyncDisposable,
+  Disposable,
+  Lifecycle,
+  LifecycleCallOptions,
+  LifecycleCondition,
+  LifecycleController,
+  LifecycleHooks,
+  LifecycleOptions,
+  LifecycleScope,
+  LifecycleState,
+}                         from '../async-lifecycle/mod.ts'
 
 export type {
   WechatyEventName,
