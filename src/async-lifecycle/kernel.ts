@@ -199,10 +199,16 @@ class ScopeImpl implements LifecycleScope {
   }
 
   use<T extends AsyncDisposable | Disposable>(resource: T): T {
-    if (Symbol.asyncDispose in resource) {
-      return this.adopt(resource, async value => { await value[Symbol.asyncDispose]() })
+    if (typeof resource === 'object' && resource !== null && Symbol.asyncDispose in resource) {
+      return this.adopt(resource, async value => {
+        const disposable = value as AsyncDisposable
+        await disposable[Symbol.asyncDispose]()
+      })
     }
-    return this.adopt(resource, value => value[Symbol.dispose]())
+    return this.adopt(resource, value => {
+      const disposable = value as Disposable
+      disposable[Symbol.dispose]()
+    })
   }
 
   adopt<T>(resource: T, release: (resource: T) => void | PromiseLike<void>): T {

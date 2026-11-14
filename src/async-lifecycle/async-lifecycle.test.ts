@@ -123,7 +123,7 @@ test('failed clean start can be stopped and retried', async () => {
 
   fail = false
   await lifecycle.start()
-  assert.equal(lifecycle.state.kind, 'running')
+  assert.equal((lifecycle.state as { kind: string }).kind, 'running')
 })
 
 test('restart superseded by stop ends stopped', async () => {
@@ -176,9 +176,13 @@ test('retired generation fail and set calls are ignored', async () => {
 test('owned child unexpected stop fails parent generation', async () => {
   class Child extends AsyncLifecycle {
     protected override onStart(): void {}
+
+    static create(): Child {
+      return new Child()
+    }
   }
 
-  const child = new Child()
+  const child = Child.create()
   const parent = createLifecycle({
     async onStart(scope) {
       await scope.start(child)
