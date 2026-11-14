@@ -114,6 +114,27 @@ test('abort helpers preserve caller isolation and report deadline outcomes', asy
     timedOut: true,
     timeoutReason: reason,
   })
+
+  const missingReason = getAbortReason({ reason: undefined } as AbortSignal)
+  assert.ok(missingReason instanceof DOMException)
+  assert.equal(missingReason.name, 'AbortError')
+
+  const alreadyCancelled = new AbortController()
+  alreadyCancelled.abort(reason)
+  let abortCallbackCalls = 0
+  await assert.rejects(
+    waitWithCallerSignal(Promise.resolve('unused'), alreadyCancelled.signal, () => abortCallbackCalls++),
+    error => error === reason,
+  )
+  assert.equal(abortCallbackCalls, 1)
+
+  const timedOutOperation = deferred<string>()
+  const timedOutSignal = new AbortController()
+  const timedOutWait = settleBeforeDeadline(timedOutOperation.promise, timedOutSignal.signal)
+  timedOutSignal.abort(reason)
+  assert.deepEqual(await timedOutWait, { timedOut: true, timeoutReason: reason })
+  timedOutOperation.resolve('late')
+  await flushMicrotasks()
 })
 
 test('condition registry isolates generations and rejects foreign conditions', async () => {
@@ -133,6 +154,8 @@ test('condition registry isolates generations and rejects foreign conditions', a
   await ready.wait()
   registry.clearForGeneration(1, ready)
   assert.equal(ready.isSet, false)
+  registry.clearForGeneration(2, ready)
+  registry.endGeneration(2, new Error('stale end'))
 
   const nextWait = ready.wait()
   const retirementError = new LifecycleSupersededError('retired')
@@ -143,6 +166,9 @@ test('condition registry isolates generations and rejects foreign conditions', a
 
   const other = new ConditionRegistry().condition('ready')
   assert.throws(() => registry.setForGeneration(2, other), TypeError)
+  const abortedWait = new AbortController()
+  abortedWait.abort(new Error('wait cancelled'))
+  await assert.rejects(ready.wait({ signal: abortedWait.signal }), /wait cancelled/)
   const preStart = ready.wait()
   registry.rejectPreStartWaiters()
   await assert.rejects(preStart, LifecycleSupersededError)
@@ -205,8 +231,10 @@ test('scope resources unwind in reverse order and listeners detach on retirement
   const emitter = new EventEmitter()
   const eventTarget = new EventTarget()
   let listenerCalls = 0
+  let retiredScope!: LifecycleScope
   const lifecycle = createLifecycle({
     onStart (scope) {
+      retiredScope = scope
       scope.defer(() => {
         order.push('first')
       })
@@ -242,6 +270,17 @@ test('scope resources unwind in reverse order and listeners detach on retirement
   eventTarget.dispatchEvent(new Event('tick'))
   assert.equal(listenerCalls, 2)
   assert.deepEqual(order, [ 'acquire', 'task', 'release:resource', 'second', 'first' ])
+
+  assert.throws(() => retiredScope.defer(() => {
+    order.push('late-defer')
+  }), LifecycleSupersededError)
+  assert.equal(order.at(-1), 'late-defer')
+  assert.throws(() => retiredScope.use({
+    [Symbol.dispose] () {
+      order.push('late-use')
+    },
+  }), LifecycleSupersededError)
+  assert.equal(order.at(-1), 'late-use')
 })
 
 test('startup failures report cleanup errors and stop retries remaining debt', async () => {
@@ -400,6 +439,43 @@ test('AsyncLifecycle inheritance rejects final-method overrides', async () => {
     protected override onStart (): void {}
   }
   assert.throws(() => new InvalidService(), LifecycleOverrideError)
+
+  class ObservedService extends AsyncLifecycle {
+    readonly observedStates: string[] = []
+
+    constructor () {
+      super({ name: 'observed' })
+    }
+
+    protected override onStart (): void {}
+
+    protected override onStop (): void {
+      this.observedStates.push('stopped')
+    }
+
+    protected override onStateChange (state: LifecycleState): void {
+      this.observedStates.push(state.kind)
+    }
+  }
+  const observed = new ObservedService()
+  await observed.start()
+  await observed.stop()
+  assert.ok(observed.observedStates.includes('running'))
+  assert.equal(observed.observedStates.at(-1), 'stopped')
+
+  class StateOverrideService extends Service {
+    override get state (): LifecycleState {
+      return { kind: 'stopped', generation: 0 }
+    }
+  }
+  assert.throws(() => new StateOverrideService(), LifecycleOverrideError)
+
+  class DisposeOverrideService extends Service {
+    override [Symbol.asyncDispose] (): Promise<void> {
+      return Promise.resolve()
+    }
+  }
+  assert.throws(() => new DisposeOverrideService(), LifecycleOverrideError)
 })
 
 test('watchdog feed, disarm, and expiry use the supplied clock', async () => {
@@ -432,6 +508,23 @@ test('watchdog feed, disarm, and expiry use the supplied clock', async () => {
     assert.equal(state.error.timeoutMs, 20)
   }
   watchdog.disarm()
+  await lifecycle.stop()
+})
+
+test('watchdog defaults to recovery and the default diagnostic label', async () => {
+  const clock = createManualClock()
+  let scope!: LifecycleScope
+  const lifecycle = createLifecycle({
+    onStart (currentScope) {
+      scope = currentScope
+    },
+  })
+  await lifecycle.start()
+
+  createWatchdog(scope, { timeoutMs: 5, clock })
+  clock.advanceBy(5)
+  await lifecycle.whenState(state => state.kind === 'running' && state.generation === 2)
+  assert.equal(lifecycle.state.generation, 2)
   await lifecycle.stop()
 })
 

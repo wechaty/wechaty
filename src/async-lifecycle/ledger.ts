@@ -678,20 +678,37 @@ export class GenerationLedger {
       return entry.releasingPromise
     }
 
-    const promise = Promise.resolve().then(async () => {
-      try {
-        await entry.release(entry.resource as T)
-        entry.status = 'released'
-        entry.resource = undefined
-        entry.hasResource = false
-      } catch (err) {
-        this.#recordLateReleaseError(entry, err)
-      } finally {
+    let settleRelease!: () => void
+    const promise = new Promise<void>(resolve => {
+      settleRelease = resolve
+    })
+    entry.releasingPromise = promise
+
+    const completeRelease = (): void => {
+      if (entry.releasingPromise === promise) {
         entry.releasingPromise = undefined
       }
-    })
+      settleRelease()
+    }
 
-    entry.releasingPromise = promise
+    try {
+      Promise.resolve(entry.release(entry.resource as T)).then(
+        () => {
+          entry.status = 'released'
+          entry.resource = undefined
+          entry.hasResource = false
+          completeRelease()
+        },
+        err => {
+          this.#recordLateReleaseError(entry, err)
+          completeRelease()
+        },
+      )
+    } catch (err) {
+      this.#recordLateReleaseError(entry, err)
+      completeRelease()
+    }
+
     return promise
   }
 
