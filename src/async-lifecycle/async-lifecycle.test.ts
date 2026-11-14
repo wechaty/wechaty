@@ -175,6 +175,10 @@ test('retired generation fail and set calls are ignored', async () => {
 
 test('owned child unexpected stop fails parent generation', async () => {
   class Child extends AsyncLifecycle {
+    public constructor() {
+      super()
+    }
+
     protected override onStart(): void {}
 
     static create(): Child {

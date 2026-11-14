@@ -131,6 +131,7 @@ class ScopeImpl implements LifecycleScope {
   #pendingSet = new Set<Promise<void>>()
   #pendingErrors: unknown[] = []
   #runtimeFailure?: unknown
+  #hasRuntimeFailure = false
   #cleanupError?: unknown
 
   constructor(kernel: LifecycleKernel, generation: number) {
@@ -158,6 +159,10 @@ class ScopeImpl implements LifecycleScope {
 
   get runtimeFailure(): unknown | undefined {
     return this.#runtimeFailure
+  }
+
+  get hasRuntimeFailure(): boolean {
+    return this.#hasRuntimeFailure
   }
 
   get cleanupError(): unknown | undefined {
@@ -285,6 +290,7 @@ class ScopeImpl implements LifecycleScope {
       return
     }
     this.#runtimeFailure = error
+    this.#hasRuntimeFailure = true
     this.#kernel.failGeneration(this.#generation, error)
   }
 
@@ -630,11 +636,11 @@ export class LifecycleKernel implements LifecycleController {
   }
 
   async #reconcileStep(): Promise<void> {
-    const runtimeFailure = this.#activeScope?.runtimeFailure
-    if (runtimeFailure && this.#activeScope) {
+    const activeScope = this.#activeScope
+    if (activeScope?.hasRuntimeFailure) {
       await this.#retireActiveScope({
         phase: 'run',
-        cause: runtimeFailure,
+        cause: activeScope.runtimeFailure,
       })
       return
     }
@@ -726,11 +732,10 @@ export class LifecycleKernel implements LifecycleController {
       return
     }
 
-    const runtimeFailure = scope.runtimeFailure
-    if (runtimeFailure) {
+    if (scope.hasRuntimeFailure) {
       await this.#retireActiveScope({
         phase: 'run',
-        cause: runtimeFailure,
+        cause: scope.runtimeFailure,
       })
       return
     }
