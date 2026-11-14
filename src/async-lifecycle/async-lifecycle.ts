@@ -46,17 +46,10 @@ export abstract class AsyncLifecycle implements Lifecycle {
   protected constructor (options?: LifecycleOptions) {
     this.#assertFinalMembersNotOverridden()
 
-    const hasCustomOnStop = this.onStop !== AsyncLifecycle.prototype.onStop
-    const hasCustomOnStateChange = this.onStateChange !== AsyncLifecycle.prototype.onStateChange
-
     const hooks: LifecycleHooks = {
       onStart: scope => this.onStart(scope),
-      ...(hasCustomOnStop
-        ? { onStop: stop => this.onStop(stop) }
-        : {}),
-      ...(hasCustomOnStateChange
-        ? { onStateChange: (state, previous) => this.onStateChange(state, previous) }
-        : {}),
+      onStop: stop => this.onStop(stop),
+      onStateChange: (state, previous) => this.onStateChange(state, previous),
     }
 
     const effectiveOptions: LifecycleOptions = {
@@ -109,12 +102,12 @@ export abstract class AsyncLifecycle implements Lifecycle {
    * Optional graceful goodbye hook invoked before `scope.signal` aborts ONLY when retiring
    * a generation that committed `running`.
    */
-  protected onStop (_stop: LifecycleStopContext): Promise<void> | void {}
+  protected onStop: (stop: LifecycleStopContext) => Promise<void> | void = () => {}
 
   /**
    * Optional post-commit state observer invoked after waiters settle, with throws isolated.
    */
-  protected onStateChange (_state: LifecycleState, _previous: LifecycleState): void {}
+  protected onStateChange: (state: LifecycleState, previous: LifecycleState) => void = () => {}
 
   /**
    * Declares or retrieves a generation-bound named `LifecycleCondition` (such as `'ready'`).

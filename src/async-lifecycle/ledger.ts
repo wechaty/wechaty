@@ -20,6 +20,7 @@ import {
   isCooperativeAbortError,
   settleBeforeDeadline,
 } from './cancellable-wait.ts'
+import { isCleanIdleState } from './types.ts'
 import type {
   AcquireOptions,
   EventEmitterLike,
@@ -39,6 +40,8 @@ type ResourceEntry<T = unknown> = {
   readonly release: (resource: T) => void | PromiseLike<void>
   acquiringPromise: Promise<void> | undefined
   releasingPromise: Promise<void> | undefined
+  interruptPromise: Promise<void> | undefined
+  interruptComplete: boolean
   pendingLateError: unknown
   hasPendingLateError: boolean
 }
@@ -102,13 +105,16 @@ export class GenerationLedger {
   readonly #callbacks: LedgerCallbacks
   #sealed = false
   #sealReason: unknown = undefined
-  #interruptRan = false
+  #interruptCursor: number | undefined
   #interruptErrors: unknown[] = []
   /** Tracks an `onStart` promise that outlived a deadline so `hasUnresolvedDebt` stays accurate. */
   #inFlightStartPromise: Promise<void> | undefined = undefined
   /** Tracks an `onStop` promise that outlived `stopTimeoutMs` so retry `stop()` joins it first. */
-  #inFlightStopPromise: Promise<void> | undefined = undefined
-  #retiredCleanly = false
+  #inFlightStopPromise: Promise<{
+    readonly hasHookError: boolean
+    readonly hookError?: unknown
+  }> | undefined = undefined
+  #retirementCompleted = false
 
   constructor (callbacks: LedgerCallbacks) {
     this.#callbacks = callbacks
@@ -132,8 +138,17 @@ export class GenerationLedger {
     if (this.#inFlightStartPromise !== undefined || this.#inFlightStopPromise !== undefined) {
       return true
     }
+    if (this.#interruptErrors.length > 0) {
+      return true
+    }
     for (const entry of this.#entries) {
       if (entry.kind === 'resource' && entry.status !== 'released') {
+        return true
+      }
+      if (entry.kind === 'resource' && entry.interruptPromise !== undefined) {
+        return true
+      }
+      if (entry.kind === 'resource' && entry.hasPendingLateError) {
         return true
       }
       if (entry.kind === 'task' && entry.status !== 'settled') {
@@ -196,26 +211,13 @@ export class GenerationLedger {
       return { settled: true, hasHookError: false }
     }
 
-    let hookFailed = false
-    let hookError: unknown
-
     if (!this.#inFlightStopPromise && invokeOnStop) {
-      const rawPromise = (async () => {
-        await invokeOnStop()
-      })()
-      const tracked = rawPromise.then(
-        () => {
-          if (this.#inFlightStopPromise === tracked) {
-            this.#inFlightStopPromise = undefined
-          }
-        },
-        (err: unknown) => {
-          if (this.#inFlightStopPromise === tracked) {
-            this.#inFlightStopPromise = undefined
-          }
-          throw err
-        },
-      )
+      const tracked = Promise.resolve()
+        .then(invokeOnStop)
+        .then(
+          () => ({ hasHookError: false }),
+          (hookError: unknown) => ({ hasHookError: true, hookError }),
+        )
       this.#inFlightStopPromise = tracked
     }
 
@@ -232,14 +234,16 @@ export class GenerationLedger {
         timeoutReason: race.timeoutReason,
       }
     }
-    if (race.status === 'rejected') {
-      hookFailed = true
-      hookError = race.error
+    if (this.#inFlightStopPromise === activeStop) {
+      this.#inFlightStopPromise = undefined
     }
+    const outcome = race.status === 'fulfilled'
+      ? race.value
+      : { hasHookError: true, hookError: race.error }
     return {
       settled: true,
-      hasHookError: hookFailed,
-      ...(hookFailed ? { hookError } : {}),
+      hasHookError: outcome.hasHookError,
+      ...(outcome.hasHookError ? { hookError: outcome.hookError } : {}),
     }
   }
 
@@ -257,7 +261,8 @@ export class GenerationLedger {
 
   /**
    * Step 3 & 4 of retirement: aborts `scope.signal` (if not already aborted) and invokes
-   * every currently acquired resource's `interrupt(resource)` hook once in LIFO order.
+   * every acquired resource's `interrupt(resource)` hook in LIFO order. A retry joins
+   * unfinished work and resumes at the first uncompleted entry.
    */
   async abortAndInterrupt (
     deadlineSignal: AbortSignal,
@@ -273,33 +278,31 @@ export class GenerationLedger {
     if (!this.#abortController.signal.aborted) {
       this.#abortController.abort(effectiveReason)
     }
-    if (this.#interruptRan) {
-      return { timedOut: false }
+    if (this.#interruptCursor === undefined) {
+      this.#interruptCursor = this.#entries.length - 1
     }
-    this.#interruptRan = true
 
-    for (let index = this.#entries.length - 1; index >= 0; index--) {
+    for (let index = this.#interruptCursor; index >= 0; index--) {
       const entry = this.#entries[index]!
-      if (
-        entry.kind === 'resource'
-        && entry.status === 'ready'
-        && entry.hasResource
-        && entry.interrupt
-      ) {
-        const interruptFn = entry.interrupt
-        const resourceVal = entry.resource
-        const interruptPromise = (async () => {
-          await interruptFn(resourceVal)
-        })()
-        const race = await settleBeforeDeadline(interruptPromise, deadlineSignal)
-        if (race.timedOut) {
-          return { timedOut: true, timeoutReason: race.timeoutReason }
+      if (entry.kind === 'resource') {
+        if (entry.acquiringPromise) {
+          const acquiring = await settleBeforeDeadline(entry.acquiringPromise, deadlineSignal)
+          if (acquiring.timedOut) {
+            return { timedOut: true, timeoutReason: acquiring.timeoutReason }
+          }
         }
-        if (race.status === 'rejected') {
-          this.#interruptErrors.push(race.error)
+        if (entry.status === 'ready' && entry.hasResource && entry.interrupt) {
+          const interruptPromise = this.#startOrJoinInterrupt(entry)
+          const race = await settleBeforeDeadline(interruptPromise, deadlineSignal)
+          if (race.timedOut) {
+            this.#interruptCursor = index
+            return { timedOut: true, timeoutReason: race.timeoutReason }
+          }
         }
+        this.#interruptCursor = index - 1
       }
     }
+    this.#interruptCursor = -1
     return { timedOut: false }
   }
 
@@ -328,6 +331,8 @@ export class GenerationLedger {
       release,
       acquiringPromise: undefined,
       releasingPromise: undefined,
+      interruptPromise: undefined,
+      interruptComplete: false,
       pendingLateError: undefined,
       hasPendingLateError: false,
     }
@@ -337,14 +342,12 @@ export class GenerationLedger {
     let createSucceeded = false
     let createError: unknown
 
-    const settleAcquisition = (async () => {
+    const acquisitionWork = (async () => {
       try {
         createdResource = await create(this.#abortController.signal)
         createSucceeded = true
       } catch (err) {
         createError = err
-      } finally {
-        entry.acquiringPromise = undefined
       }
 
       if (!createSucceeded) {
@@ -359,19 +362,19 @@ export class GenerationLedger {
       // If retirement sealed the ledger while `create(signal)` was in flight, immediately
       // interrupt and release the late-arriving resource before rejecting the caller.
       if (this.#sealed) {
-        if (entry.interrupt) {
-          try {
-            await entry.interrupt(createdResource)
-          } catch (interruptErr) {
-            this.#recordLateReleaseError(entry, interruptErr)
-          }
-        }
+        await this.#startOrJoinInterrupt(entry)
         await this.#startOrJoinResourceRelease(entry)
       }
     })()
 
-    entry.acquiringPromise = settleAcquisition
-    await settleAcquisition
+    let trackedAcquisition!: Promise<void>
+    trackedAcquisition = acquisitionWork.finally(() => {
+      if (entry.acquiringPromise === trackedAcquisition) {
+        entry.acquiringPromise = undefined
+      }
+    })
+    entry.acquiringPromise = trackedAcquisition
+    await trackedAcquisition
 
     if (!createSucceeded) {
       throw createError
@@ -523,6 +526,7 @@ export class GenerationLedger {
   registerChild (
     child: Lifecycle,
     disarmWatcher: () => void,
+    releaseOwnership: () => void,
   ): void {
     if (this.#sealed) {
       disarmWatcher()
@@ -543,9 +547,14 @@ export class GenerationLedger {
       release: async ownedChild => {
         disarmWatcher()
         await ownedChild.stop()
+        if (isCleanIdleState(ownedChild.state)) {
+          releaseOwnership()
+        }
       },
       acquiringPromise: undefined,
       releasingPromise: undefined,
+      interruptPromise: undefined,
+      interruptComplete: false,
       pendingLateError: undefined,
       hasPendingLateError: false,
     }
@@ -588,10 +597,6 @@ export class GenerationLedger {
         continue
       }
 
-      if (entry.status === 'released') {
-        continue
-      }
-
       if (entry.acquiringPromise) {
         const acqRace = await settleBeforeDeadline(entry.acquiringPromise, deadlineSignal)
         if (acqRace.timedOut) {
@@ -606,6 +611,10 @@ export class GenerationLedger {
         entry.pendingLateError = undefined
         // Note: if `status` is still `'ready'`, the late release threw before completing;
         // do NOT re-invoke in the exact same unwind pass—leave `'ready'` for explicit retry `stop()`.
+        continue
+      }
+
+      if (entry.status === 'released') {
         continue
       }
 
@@ -627,7 +636,7 @@ export class GenerationLedger {
     }
 
     const cleanupComplete = !this.hasUnresolvedDebt
-    this.#retiredCleanly = cleanupComplete
+    this.#retirementCompleted = true
     return { cleanupComplete, errors }
   }
 
@@ -646,20 +655,17 @@ export class GenerationLedger {
       release,
       acquiringPromise: undefined,
       releasingPromise: undefined,
+      interruptPromise: undefined,
+      interruptComplete: false,
       pendingLateError: undefined,
       hasPendingLateError: false,
     }
     this.#entries.push(entry)
 
     if (this.#sealed) {
-      const wasRetiredCleanly = this.#retiredCleanly
-      this.#retiredCleanly = false
       void this.#startOrJoinResourceRelease(entry).then(() => {
-        if (wasRetiredCleanly && entry.hasPendingLateError) {
-          const lateErr = entry.pendingLateError
-          entry.hasPendingLateError = false
-          entry.pendingLateError = undefined
-          this.#callbacks.onPostRetirementDebt(lateErr)
+        if (entry.hasPendingLateError && this.#retirementCompleted) {
+          this.#callbacks.onPostRetirementDebt(entry.pendingLateError)
         }
       })
       throw this.#currentAbortReason()
@@ -709,6 +715,37 @@ export class GenerationLedger {
       completeRelease()
     }
 
+    return promise
+  }
+
+  #startOrJoinInterrupt<T> (entry: ResourceEntry<T>): Promise<void> {
+    if (entry.interruptComplete || !entry.interrupt || !entry.hasResource) {
+      return Promise.resolve()
+    }
+    if (entry.interruptPromise) {
+      return entry.interruptPromise
+    }
+
+    const interruptFn = entry.interrupt
+    const resourceVal = entry.resource
+    let promise!: Promise<void>
+    promise = Promise.resolve()
+      .then(() => interruptFn(resourceVal!))
+      .then(
+        () => {
+          entry.interruptComplete = true
+        },
+        error => {
+          this.#interruptErrors.push(error)
+          entry.interruptComplete = true
+        },
+      )
+      .finally(() => {
+        if (entry.interruptPromise === promise) {
+          entry.interruptPromise = undefined
+        }
+      })
+    entry.interruptPromise = promise
     return promise
   }
 

@@ -32,8 +32,10 @@ import {
 import { collapseCleanupErrors } from './errors.ts'
 import type {
   LifecycleCondition,
+  LifecycleHooks,
   LifecycleScope,
   LifecycleState,
+  LifecycleStopContext,
 } from './types.ts'
 
 function deferred<T> (): {
@@ -224,6 +226,351 @@ test('createLifecycle serializes start, stop, restart, conditions, and observers
     'starting', 'running', 'stopping', 'starting', 'running', 'stopping', 'stopped',
   ])
   await lifecycle[Symbol.asyncDispose]()
+})
+
+test('start-stop-start retires an interrupted startup before creating a fresh scope', async () => {
+  const starts: ReturnType<typeof deferred<void>>[] = []
+  const signals: AbortSignal[] = []
+  const lifecycle = createLifecycle({
+    onStart (scope) {
+      signals.push(scope.signal)
+      const gate = deferred<void>()
+      starts.push(gate)
+      return gate.promise
+    },
+  })
+
+  const firstStart = lifecycle.start()
+  await flushMicrotasks()
+  const stop = lifecycle.stop()
+  const replacementStart = lifecycle.start()
+  await flushMicrotasks()
+  assert.equal(starts.length, 1)
+
+  starts[0]!.resolve()
+  await assert.rejects(firstStart, LifecycleSupersededError)
+  await stop
+  await flushMicrotasks()
+  assert.equal(starts.length, 2)
+  assert.equal(signals[0]?.aborted, true)
+  assert.equal(signals[1]?.aborted, false)
+
+  starts[1]!.resolve()
+  await replacementStart
+  assert.equal(lifecycle.state.kind, 'running')
+  assert.equal(lifecycle.state.generation, 2)
+  await lifecycle.stop()
+})
+
+test('stop-start while running preserves the retirement barrier and both attempts', async () => {
+  const retirement = deferred<void>()
+  const starts: ReturnType<typeof deferred<void>>[] = []
+  let stopCalls = 0
+  const lifecycle = createLifecycle({
+    onStart () {
+      const gate = deferred<void>()
+      starts.push(gate)
+      return gate.promise
+    },
+    onStop () {
+      stopCalls++
+      return stopCalls === 1 ? retirement.promise : undefined
+    },
+  })
+
+  const firstStart = lifecycle.start()
+  await flushMicrotasks()
+  starts[0]!.resolve()
+  await firstStart
+
+  const stop = lifecycle.stop()
+  const replacementStart = lifecycle.start()
+  await flushMicrotasks()
+  assert.equal(lifecycle.state.kind, 'stopping')
+  assert.equal(starts.length, 1)
+
+  retirement.resolve()
+  await stop
+  await flushMicrotasks()
+  assert.equal(starts.length, 2)
+  starts[1]!.resolve()
+  await replacementStart
+  assert.equal(lifecycle.state.generation, 2)
+  await lifecycle.stop()
+})
+
+test('restart during incomplete startup settles the old attempt and starts one replacement', async () => {
+  const starts: ReturnType<typeof deferred<void>>[] = []
+  const lifecycle = createLifecycle({
+    onStart () {
+      const gate = deferred<void>()
+      starts.push(gate)
+      return gate.promise
+    },
+  })
+
+  const firstStart = lifecycle.start()
+  await flushMicrotasks()
+  const restart = lifecycle.restart()
+  await flushMicrotasks()
+  starts[0]!.resolve()
+  await assert.rejects(firstStart, LifecycleSupersededError)
+  await flushMicrotasks()
+  assert.equal(starts.length, 2)
+  starts[1]!.resolve()
+  await restart
+  assert.equal(lifecycle.state.kind, 'running')
+  assert.equal(lifecycle.state.generation, 2)
+  await lifecycle.stop()
+})
+
+test('every accepted stop invalidates pre-start conditions during retirement', async () => {
+  const retirement = deferred<void>()
+  const lifecycle = createLifecycle({
+    onStart () {},
+    onStop: () => retirement.promise,
+  })
+  const ready = lifecycle.condition('ready')
+  await lifecycle.start()
+
+  const firstStop = lifecycle.stop()
+  await flushMicrotasks()
+  const waiting = ready.wait()
+  const secondStop = lifecycle.stop()
+  await assert.rejects(waiting, LifecycleSupersededError)
+  retirement.resolve()
+  await Promise.all([ firstStop, secondStop ])
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+test('timed-out interrupts resume in LIFO order without skipping or duplicating work', async () => {
+  const clock = createManualClock()
+  const blockedInterrupt = deferred<void>()
+  const interrupts: string[] = []
+  const releases: string[] = []
+  const lifecycle = createLifecycle({
+    async onStart (scope) {
+      await scope.acquire(
+        () => 'first',
+        resource => releases.push(resource),
+        { interrupt: () => interrupts.push('first') },
+      )
+      await scope.acquire(
+        () => 'second',
+        resource => releases.push(resource),
+        { interrupt: () => {
+          interrupts.push('second')
+          return blockedInterrupt.promise
+        } },
+      )
+    },
+  }, { stopTimeoutMs: 5, clock })
+
+  await lifecycle.start()
+  const firstStop = lifecycle.stop()
+  await flushMicrotasks()
+  clock.advanceBy(5)
+  await flushMicrotasks()
+  await assert.rejects(firstStop, LifecycleTimeoutError)
+  assert.deepEqual(interrupts, [ 'second' ])
+  assert.deepEqual(releases, [])
+
+  blockedInterrupt.resolve()
+  await flushMicrotasks()
+  await lifecycle.stop()
+  assert.deepEqual(interrupts, [ 'second', 'first' ])
+  assert.deepEqual(releases, [ 'second', 'first' ])
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+test('late acquisition remains owned through its one interrupt and release', async () => {
+  const acquisition = deferred<string>()
+  const interrupt = deferred<void>()
+  const gracefulStop = deferred<void>()
+  const interruptError = new Error('late interrupt failed')
+  let interruptCalls = 0
+  let releaseCalls = 0
+  let acquirePromise!: Promise<string>
+  const lifecycle = createLifecycle({
+    onStart (scope) {
+      acquirePromise = scope.acquire(
+        () => acquisition.promise,
+        () => {
+          releaseCalls++
+        },
+        { interrupt: () => {
+          interruptCalls++
+          return interrupt.promise
+        } },
+      )
+      void acquirePromise.catch(() => {})
+    },
+    onStop: () => gracefulStop.promise,
+  })
+
+  await lifecycle.start()
+  let stopSettled = false
+  const stop = lifecycle.stop()
+  void stop.then(() => {
+    stopSettled = true
+  }, () => {
+    stopSettled = true
+  })
+  await flushMicrotasks()
+  acquisition.resolve('late resource')
+  await flushMicrotasks()
+  assert.equal(interruptCalls, 1)
+
+  gracefulStop.resolve()
+  await flushMicrotasks()
+  assert.equal(stopSettled, false)
+  interrupt.reject(interruptError)
+  await assert.rejects(acquirePromise, LifecycleSupersededError)
+  await assert.rejects(stop, error => error === interruptError)
+  assert.equal(interruptCalls, 1)
+  assert.equal(releaseCalls, 1)
+  assert.equal(lifecycle.state.kind, 'failed')
+})
+
+test('sync throws and async disposer rejections remain retryable cleanup debt', async () => {
+  for (const mode of [ 'sync', 'async' ] as const) {
+    let releaseCalls = 0
+    const cleanupError = new Error(`${mode} disposer failed`)
+    const lifecycle = createLifecycle({
+      onStart (scope) {
+        scope.defer(() => {
+          releaseCalls++
+          if (releaseCalls !== 1) {
+            return
+          }
+          if (mode === 'sync') {
+            throw cleanupError
+          }
+          return Promise.reject(cleanupError)
+        })
+      },
+    })
+
+    await lifecycle.start()
+    await assert.rejects(lifecycle.stop(), error => error === cleanupError)
+    const dirty = lifecycle.state
+    assert.equal(dirty.kind, 'failed')
+    if (dirty.kind !== 'failed') {
+      assert.fail('expected a failed state')
+    }
+    assert.equal(dirty.cleanupComplete, false)
+    await lifecycle.stop()
+    assert.equal(releaseCalls, 2)
+    assert.equal(lifecycle.state.kind, 'stopped')
+  }
+})
+
+test('late cleanup debt stays attached to an old generation after replacement starts', async () => {
+  let oldScope!: LifecycleScope
+  let releaseCalls = 0
+  const lifecycle = createLifecycle({
+    onStart (scope) {
+      if (scope.generation === 1) {
+        oldScope = scope
+      }
+    },
+  })
+
+  await lifecycle.start()
+  await lifecycle.stop()
+  assert.throws(() => oldScope.defer(() => {}), LifecycleSupersededError)
+  await flushMicrotasks()
+  await lifecycle.start()
+
+  const cleanupError = new Error('late old-generation cleanup failed')
+  assert.throws(() => oldScope.defer(() => {
+    releaseCalls++
+    if (releaseCalls === 1) {
+      throw cleanupError
+    }
+  }), LifecycleSupersededError)
+  await flushMicrotasks()
+  await assert.rejects(lifecycle.start(), LifecycleUnsafeStateError)
+  await assert.rejects(lifecycle.stop(), error => error === cleanupError)
+  await lifecycle.stop()
+  assert.equal(releaseCalls, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+test('a child remains exclusively owned until its first parent releases it', async () => {
+  const parentStop = deferred<void>()
+  const child = createLifecycle({ onStart () {} })
+  const parentA = createLifecycle({
+    onStart: async scope => {
+      await scope.start(child)
+    },
+    onStop: () => parentStop.promise,
+  })
+  const parentB = createLifecycle({
+    onStart: async scope => {
+      await scope.start(child)
+    },
+  })
+
+  await parentA.start()
+  const stopA = parentA.stop()
+  await flushMicrotasks()
+  await child.stop()
+  await assert.rejects(parentB.start(), LifecycleUnsafeStateError)
+
+  parentStop.resolve()
+  await stopA
+  await parentB.start()
+  assert.equal(child.state.kind, 'running')
+  await parentB.stop()
+})
+
+test('composition and inheritance preserve reentrant observer attempt outcomes', async () => {
+  for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
+    const events: string[] = []
+    let lifecycle!: ReturnType<typeof createLifecycle>
+    let reentrantStop: Promise<void> | undefined
+    const hooks: LifecycleHooks = {
+      onStart: () => {
+        events.push('start')
+      },
+      onStop: () => {
+        events.push('stop')
+      },
+      onStateChange: state => {
+        if (state.kind === 'running' && reentrantStop === undefined) {
+          reentrantStop = lifecycle.stop()
+        }
+      },
+    }
+
+    if (entryPoint === 'composition') {
+      lifecycle = createLifecycle(hooks)
+    } else {
+      class InheritedService extends AsyncLifecycle {
+        protected override onStart (scope: LifecycleScope): void {
+          hooks.onStart(scope)
+        }
+
+        protected override onStop = (stop: LifecycleStopContext): void | Promise<void> => {
+          return hooks.onStop?.(stop)
+        }
+
+        protected override onStateChange = (
+          state: LifecycleState,
+          previous: LifecycleState,
+        ): void => {
+          hooks.onStateChange?.(state, previous)
+        }
+      }
+      lifecycle = new InheritedService()
+    }
+
+    await lifecycle.start()
+    await reentrantStop
+    assert.deepEqual(events, [ 'start', 'stop' ])
+    assert.equal(lifecycle.state.kind, 'stopped')
+  }
 })
 
 test('scope resources unwind in reverse order and listeners detach on retirement', async () => {
@@ -449,11 +796,11 @@ test('AsyncLifecycle inheritance rejects final-method overrides', async () => {
 
     protected override onStart (): void {}
 
-    protected override onStop (): void {
+    protected override onStop = (): void => {
       this.observedStates.push('stopped')
     }
 
-    protected override onStateChange (state: LifecycleState): void {
+    protected override onStateChange = (state: LifecycleState): void => {
       this.observedStates.push(state.kind)
     }
   }

@@ -121,6 +121,7 @@ interface GenerationRun {
   readonly scope: LifecycleScope
   stopAttempt: Deferred<void>
   readonly startupInterrupted: Deferred<void>
+  stopRequested: boolean
   reachedRunning: boolean
   failureReported: boolean
   failurePhase: LifecycleFailurePhase
@@ -129,6 +130,8 @@ interface GenerationRun {
   /** Linked recovery deferred when this generation was booted by a prior generation's `recover()`. */
   linkedRecoveryOutcome: Deferred<RecoveryOutcome> | undefined
 }
+
+const CHILD_OWNERS = new WeakMap<object, object>()
 
 /**
  * Private reconciliation engine backing both `createLifecycle()` and `AsyncLifecycle`.
@@ -156,8 +159,9 @@ export class LifecycleKernel implements LifecycleController {
 
   #reconciling = false
   #activeRun: GenerationRun | undefined = undefined
-  #dirtyRun: GenerationRun | undefined = undefined
-  #retryDirtyStopRequested = false
+  #dirtyRuns = new Map<number, GenerationRun>()
+  #retryDirtyStopRequested = new Set<number>()
+  #dirtyRetryInProgress: GenerationRun | undefined
 
   /** Attempt bound to the currently `starting` generation. */
   #currentStartAttempt: Deferred<void> | undefined = undefined
@@ -209,6 +213,11 @@ export class LifecycleKernel implements LifecycleController {
       return Promise.reject(getAbortReason(signal))
     }
 
+    // Refuse starting a new generation while any earlier generation still owns cleanup debt.
+    if (this.#dirtyRuns.size > 0) {
+      return Promise.reject(this.#createDirtyRunError(this.#dirtyRuns.values().next().value!))
+    }
+
     // Refuse starting a new generation over unreleased debt when no cleanup is already running.
     if (
       this.#state.kind === 'failed'
@@ -224,6 +233,7 @@ export class LifecycleKernel implements LifecycleController {
       && this.#desired === 'running'
       && this.#activeRun !== undefined
       && !this.#activeRun.failureReported
+      && !this.#activeRun.stopRequested
       && this.#activeRun.pendingRecovery === undefined
       && this.#mustRetireGeneration < this.#activeRun.generation
     ) {
@@ -236,6 +246,7 @@ export class LifecycleKernel implements LifecycleController {
       && this.#desired === 'running'
       && this.#activeRun !== undefined
       && !this.#activeRun.failureReported
+      && !this.#activeRun.stopRequested
       && this.#mustRetireGeneration < this.#activeRun.generation
       && this.#currentStartAttempt !== undefined
     ) {
@@ -269,6 +280,7 @@ export class LifecycleKernel implements LifecycleController {
     this.#desired = 'stopped'
     this.#revision++
     this.#mustRetireGeneration = 0
+    this.#conditions.rejectPreStartWaiters()
 
     // Immediately reject any queued replacement `start()` / `restart()` that has not booted yet.
     if (this.#queuedStartAttempt) {
@@ -279,35 +291,46 @@ export class LifecycleKernel implements LifecycleController {
       )
     }
 
-    // Cleanly idle (`stopped` or `failed { cleanupComplete: true }`): cancel any unbound
-    // pre-start condition waits and resolve immediately.
+    // Retry every retained generation's cleanup debt without re-running an in-flight retry.
+    const dirtyRetries: Promise<void>[] = []
+    if (this.#dirtyRuns.size > 0) {
+      const dirtyRuns = [ ...this.#dirtyRuns.values() ]
+      for (const dirtyRun of dirtyRuns) {
+        if (dirtyRun.stopAttempt.settled()) {
+          dirtyRun.stopAttempt = createDeferred<void>()
+        }
+        if (this.#dirtyRetryInProgress !== dirtyRun) {
+          this.#retryDirtyStopRequested.add(dirtyRun.generation)
+        }
+        dirtyRetries.push(dirtyRun.stopAttempt.promise)
+      }
+    }
+
+    // Cleanly idle (`stopped` or `failed { cleanupComplete: true }`): resolve immediately.
     if (
       this.#activeRun === undefined
-      && this.#dirtyRun === undefined
+      && this.#dirtyRuns.size === 0
       && isCleanIdleState(this.#state)
     ) {
-      this.#conditions.rejectPreStartWaiters()
       return Promise.resolve()
     }
 
-    // Dirty failed state: schedule a fresh cleanup retry pass on `#dirtyRun`.
-    if (this.#activeRun === undefined && this.#dirtyRun !== undefined) {
-      if (this.#dirtyRun.stopAttempt.settled()) {
-        this.#dirtyRun.stopAttempt = createDeferred<void>()
-      }
-      this.#retryDirtyStopRequested = true
-      const retryPromise = this.#dirtyRun.stopAttempt.promise
+    if (this.#activeRun === undefined && this.#dirtyRuns.size > 0) {
       this.#ensureReconciling()
-      return waitWithCallerSignal(retryPromise, signal)
+      return waitWithCallerSignal(Promise.all(dirtyRetries).then(() => {}), signal)
     }
 
     // Active generation (`starting`, `running`, or `stopping`).
     const run = this.#activeRun!
+    run.stopRequested = true
     if (!run.reachedRunning) {
       run.startupInterrupted.resolve()
     }
     this.#ensureReconciling()
-    return waitWithCallerSignal(run.stopAttempt.promise, signal)
+    return waitWithCallerSignal(
+      Promise.all([ run.stopAttempt.promise, ...dirtyRetries ]).then(() => {}),
+      signal,
+    )
   }
 
   restart (options?: LifecycleCallOptions): Promise<void> {
@@ -316,6 +339,9 @@ export class LifecycleKernel implements LifecycleController {
       return Promise.reject(getAbortReason(signal))
     }
 
+    if (this.#dirtyRuns.size > 0) {
+      return Promise.reject(this.#createDirtyRunError(this.#dirtyRuns.values().next().value!))
+    }
     if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
       return Promise.reject(this.#createDirtyStateError(this.#state))
     }
@@ -400,17 +426,26 @@ export class LifecycleKernel implements LifecycleController {
   async #reconcileLoop (): Promise<void> {
     try {
       while (true) {
-        // 1. Retry cleanup on a previously parked dirty `failed { cleanupComplete: false }` run.
-        if (this.#activeRun === undefined && this.#dirtyRun !== undefined && this.#retryDirtyStopRequested) {
-          this.#retryDirtyStopRequested = false
-          await this.#retryDirtyCleanup(this.#dirtyRun)
+        // 1. Retry only the dirty generations explicitly requested by stop().
+        if (this.#activeRun === undefined && this.#retryDirtyStopRequested.size > 0) {
+          const generation = this.#retryDirtyStopRequested.values().next().value!
+          this.#retryDirtyStopRequested.delete(generation)
+          const dirtyRun = this.#dirtyRuns.get(generation)
+          if (dirtyRun) {
+            this.#dirtyRetryInProgress = dirtyRun
+            try {
+              await this.#retryDirtyCleanup(dirtyRun)
+            } finally {
+              this.#dirtyRetryInProgress = undefined
+            }
+          }
           continue
         }
 
         // 2. Retire the active `running` generation when stop, restart, failure, or recovery requires it.
         if (this.#activeRun !== undefined) {
           const run = this.#activeRun
-          const needsStop = this.#desired === 'stopped'
+          const needsStop = this.#desired === 'stopped' || run.stopRequested
           const needsRestart = this.#mustRetireGeneration >= run.generation
           const hasFailure = run.failureReported
           const hasRecovery = run.pendingRecovery !== undefined
@@ -425,13 +460,15 @@ export class LifecycleKernel implements LifecycleController {
 
         // 3. No active run: start a new generation iff desired is `'running'` and state is clean.
         if (this.#desired === 'running') {
-          if (!isCleanIdleState(this.#state)) {
+          if (this.#dirtyRuns.size > 0 || !isCleanIdleState(this.#state)) {
             this.#desired = 'stopped'
             if (this.#queuedStartAttempt) {
               const blocked = this.#queuedStartAttempt
               this.#queuedStartAttempt = undefined
               blocked.reject(
-                this.#state.kind === 'failed'
+                this.#dirtyRuns.size > 0
+                  ? this.#createDirtyRunError(this.#dirtyRuns.values().next().value!)
+                  : this.#state.kind === 'failed'
                   ? this.#createDirtyStateError(this.#state)
                   : new LifecycleUnsafeStateError(
                     `[${this.#serviceName}] Cannot start new generation from state "${this.#state.kind}"`,
@@ -463,20 +500,21 @@ export class LifecycleKernel implements LifecycleController {
         this.#reportGenerationFailure(run, error)
       },
       onPostRetirementDebt: (error: unknown) => {
-        // If this generation was the latest cleanly stopped generation and a detached callback
-        // registered a resource after retirement whose immediate release failed, surface the
-        // debt honestly so the next `stop()` retries it and `start()` refuses overlap.
-        if (
-          this.#activeRun === undefined
-          && this.#dirtyRun === undefined
-          && this.#state.kind === 'stopped'
-          && this.#state.generation === generation
-        ) {
+        // Keep late debt attached to its original ledger even after a replacement starts.
+        if (!this.#dirtyRuns.has(generation)) {
           run.stopAttempt = createDeferred<void>()
-          this.#dirtyRun = run
+          this.#dirtyRuns.set(generation, run)
+        }
+        run.failureError = error
+        run.failurePhase = 'stop'
+
+        if (this.#activeRun !== undefined && this.#activeRun !== run) {
+          this.#reportGenerationFailure(this.#activeRun, error)
+        } else if (this.#activeRun === undefined) {
+          const stateGeneration = Math.max(this.#state.generation, generation)
           this.#commit({
             kind: 'failed',
-            generation,
+            generation: stateGeneration,
             phase: 'stop',
             error,
             cleanupComplete: false,
@@ -543,6 +581,7 @@ export class LifecycleKernel implements LifecycleController {
       scope,
       stopAttempt: createDeferred<void>(),
       startupInterrupted: createDeferred<void>(),
+      stopRequested: false,
       reachedRunning: false,
       failureReported: false,
       failurePhase: 'start',
@@ -604,7 +643,8 @@ export class LifecycleKernel implements LifecycleController {
     const timedOut = startDeadline.didTimeout()
     const timeoutError = timedOut ? getAbortReason(startDeadline.signal) : undefined
     const superseded = (
-      this.#desired !== 'running'
+      run.stopRequested
+      || this.#desired !== 'running'
       || this.#mustRetireGeneration >= run.generation
     )
 
@@ -708,14 +748,14 @@ export class LifecycleKernel implements LifecycleController {
     }
 
     this.#activeRun = undefined
+    if (!cleanupComplete) {
+      this.#dirtyRuns.set(run.generation, run)
+    }
+    const allGenerationsClean = cleanupComplete && this.#dirtyRuns.size === 0
 
-    if (isSupersededAbort && cleanupComplete && cleanupErrors.length === 0) {
+    if (isSupersededAbort && allGenerationsClean && cleanupErrors.length === 0) {
       // Clean supersession during `starting`: resolve `stop()` waiters on `G`!
-      if (this.#desired === 'running' && this.#mustRetireGeneration <= run.generation) {
-        this.#mustRetireGeneration = 0
-        run.stopAttempt.resolve()
-        return
-      }
+      this.#mustRetireGeneration = 0
       this.#commit(
         {
           kind: 'stopped',
@@ -731,10 +771,13 @@ export class LifecycleKernel implements LifecycleController {
     // Either startup genuinely failed, or supersession encountered a cleanup failure/timeout.
     const collapsedCleanupError = collapseCleanupErrors(cleanupErrors)
     const failurePhase: LifecycleFailurePhase = isSupersededAbort ? 'stop' : 'start'
-    const finalError = isSupersededAbort ? collapsedCleanupError : primaryStartError
+    const finalError = isSupersededAbort
+      ? collapsedCleanupError
+        ?? this.#dirtyRuns.values().next().value?.failureError
+        ?? primaryStartError
+      : primaryStartError
 
-    if (!cleanupComplete) {
-      this.#dirtyRun = run
+    if (!allGenerationsClean) {
       this.#desired = 'stopped'
       this.#mustRetireGeneration = 0
     } else if (!isSupersededAbort && this.#peekQueuedStartAttempt() === undefined) {
@@ -744,7 +787,7 @@ export class LifecycleKernel implements LifecycleController {
       this.#mustRetireGeneration = 0
     }
 
-    const blockedQueuedStart = (!cleanupComplete || isSupersededAbort)
+    const blockedQueuedStart = (!allGenerationsClean || isSupersededAbort)
       ? this.#takeQueuedStartAttempt()
       : undefined
     if (blockedQueuedStart) {
@@ -757,21 +800,21 @@ export class LifecycleKernel implements LifecycleController {
       generation: run.generation,
       phase: failurePhase,
       error: finalError,
-      cleanupComplete,
+      cleanupComplete: allGenerationsClean,
       ...(!isSupersededAbort && collapsedCleanupError !== undefined
         ? { cleanupError: collapsedCleanupError }
         : {}),
     }
 
     this.#commit(failedSnapshot, () => {
-      if (cleanupComplete && cleanupErrors.length === 0) {
+      if (allGenerationsClean && cleanupErrors.length === 0) {
         run.stopAttempt.resolve()
       } else {
         run.stopAttempt.reject(collapsedCleanupError ?? finalError)
       }
       if (blockedQueuedStart) {
         blockedQueuedStart.reject(
-          !cleanupComplete
+          !allGenerationsClean
             ? this.#createDirtyStateError(failedSnapshot)
             : (collapsedCleanupError ?? finalError),
         )
@@ -782,8 +825,13 @@ export class LifecycleKernel implements LifecycleController {
   async #retireRunningGeneration (run: GenerationRun): Promise<void> {
     const recovery = run.pendingRecovery
     const isFailureRetirement = run.failureReported
-    const isRestartRetirement = !isFailureRetirement && this.#mustRetireGeneration >= run.generation
-    const isStopRetirement = !isFailureRetirement && !isRestartRetirement && this.#desired === 'stopped'
+    const isStopRetirement = !isFailureRetirement && (
+      run.stopRequested
+      || (this.#mustRetireGeneration < run.generation && this.#desired === 'stopped')
+    )
+    const isRestartRetirement = !isFailureRetirement
+      && !isStopRetirement
+      && this.#mustRetireGeneration >= run.generation
 
     const stopReason: StopReason = isFailureRetirement
       ? 'failure'
@@ -887,19 +935,22 @@ export class LifecycleKernel implements LifecycleController {
       ...cleanupErrors,
     ]
     const collapsedStopError = collapseCleanupErrors(allStopErrors)
-    const retirementClean = cleanupComplete && allStopErrors.length === 0
+    if (!cleanupComplete) {
+      this.#dirtyRuns.set(run.generation, run)
+    }
+    const allGenerationsClean = cleanupComplete && this.#dirtyRuns.size === 0
+    const retirementClean = allGenerationsClean && allStopErrors.length === 0
 
     // Runtime failure (`scope.fail()` / unhandled `spawn()` / child crash) ALWAYS commits `failed`.
     if (isFailureRetirement) {
-      if (!cleanupComplete) {
-        this.#dirtyRun = run
+      if (!allGenerationsClean) {
         this.#desired = 'stopped'
         this.#mustRetireGeneration = 0
       } else if (this.#queuedStartAttempt === undefined) {
         this.#desired = 'stopped'
       }
 
-      const blockedQueuedStart = !cleanupComplete ? this.#queuedStartAttempt : undefined
+      const blockedQueuedStart = !allGenerationsClean ? this.#queuedStartAttempt : undefined
       if (blockedQueuedStart) {
         this.#queuedStartAttempt = undefined
       }
@@ -909,7 +960,7 @@ export class LifecycleKernel implements LifecycleController {
         generation: run.generation,
         phase: 'run',
         error: run.failureError,
-        cleanupComplete,
+        cleanupComplete: allGenerationsClean,
         ...(collapsedStopError !== undefined ? { cleanupError: collapsedStopError } : {}),
       }
 
@@ -917,7 +968,11 @@ export class LifecycleKernel implements LifecycleController {
         if (retirementClean) {
           run.stopAttempt.resolve()
         } else {
-          run.stopAttempt.reject(collapsedStopError ?? run.failureError)
+          run.stopAttempt.reject(
+            collapsedStopError
+            ?? this.#dirtyRuns.values().next().value?.failureError
+            ?? run.failureError,
+          )
         }
         recovery?.outcome.resolve('failed')
         if (blockedQueuedStart) {
@@ -929,34 +984,34 @@ export class LifecycleKernel implements LifecycleController {
 
     // Stop / Restart / Recover retirement encountered an error or timed out -> `failed { phase: 'stop' }`.
     if (!retirementClean) {
-      if (!cleanupComplete) {
-        this.#dirtyRun = run
-      }
       this.#desired = 'stopped'
       this.#mustRetireGeneration = 0
 
       const failedQueuedStart = this.#queuedStartAttempt
       this.#queuedStartAttempt = undefined
 
+      const retirementError = collapsedStopError
+        ?? this.#dirtyRuns.values().next().value?.failureError
+        ?? new Error(`[${this.#serviceName}] Lifecycle cleanup did not complete`)
       const failedSnapshot: LifecycleState = {
         kind: 'failed',
         generation: run.generation,
         phase: 'stop',
-        error: collapsedStopError,
-        cleanupComplete,
+        error: retirementError,
+        cleanupComplete: allGenerationsClean,
         ...(hasOnStopError && cleanupErrors.length > 0
           ? { cleanupError: collapseCleanupErrors(cleanupErrors) }
           : {}),
       }
 
       this.#commit(failedSnapshot, () => {
-        run.stopAttempt.reject(collapsedStopError)
+        run.stopAttempt.reject(retirementError)
         recovery?.outcome.resolve('failed')
         if (failedQueuedStart) {
           failedQueuedStart.reject(
-            !cleanupComplete
+            !allGenerationsClean
               ? this.#createDirtyStateError(failedSnapshot)
-              : collapsedStopError,
+              : retirementError,
           )
         }
       })
@@ -995,9 +1050,10 @@ export class LifecycleKernel implements LifecycleController {
   }
 
   async #retryDirtyCleanup (run: GenerationRun): Promise<void> {
+    const stateGeneration = Math.max(this.#state.generation, run.generation)
     this.#commit({
       kind: 'stopping',
-      generation: run.generation,
+      generation: stateGeneration,
     })
 
     const stopDeadline = createDeadlineController(
@@ -1058,29 +1114,41 @@ export class LifecycleKernel implements LifecycleController {
     ]
     const collapsedError = collapseCleanupErrors(allErrors)
 
+    if (cleanupComplete) {
+      this.#dirtyRuns.delete(run.generation)
+    } else {
+      this.#dirtyRuns.set(run.generation, run)
+    }
+    const allGenerationsClean = cleanupComplete && this.#dirtyRuns.size === 0
+
     if (!cleanupComplete || allErrors.length > 0) {
-      if (cleanupComplete) {
-        this.#dirtyRun = undefined
-      }
       this.#desired = 'stopped'
       const blockedQueuedStart = this.#queuedStartAttempt
       this.#queuedStartAttempt = undefined
+      const retirementError = collapsedError
+        ?? this.#dirtyRuns.values().next().value?.failureError
+        ?? run.failureError
+        ?? new Error(`[${this.#serviceName}] Lifecycle cleanup did not complete`)
 
       const failedSnapshot: LifecycleState = {
         kind: 'failed',
-        generation: run.generation,
+        generation: Math.max(this.#state.generation, run.generation),
         phase: 'stop',
-        error: collapsedError,
-        cleanupComplete,
+        error: retirementError,
+        cleanupComplete: allGenerationsClean,
       }
 
       this.#commit(failedSnapshot, () => {
-        run.stopAttempt.reject(collapsedError)
+        if (!cleanupComplete || allErrors.length > 0) {
+          run.stopAttempt.reject(retirementError)
+        } else {
+          run.stopAttempt.resolve()
+        }
         if (blockedQueuedStart) {
           blockedQueuedStart.reject(
-            !cleanupComplete
+            !allGenerationsClean
               ? this.#createDirtyStateError(failedSnapshot)
-              : collapsedError,
+              : retirementError,
           )
         }
       })
@@ -1088,18 +1156,34 @@ export class LifecycleKernel implements LifecycleController {
     }
 
     // All remaining debt has now been cleanly released!
-    this.#dirtyRun = undefined
-
-    if (this.#desired === 'running') {
+    if (this.#dirtyRuns.size === 0 && this.#desired === 'running') {
       run.stopAttempt.resolve()
       await this.#bootAndRunGeneration(this.#revision, undefined)
+      return
+    }
+
+    if (this.#dirtyRuns.size > 0) {
+      const remainingDebt = this.#dirtyRuns.values().next().value!
+      const failedSnapshot: LifecycleState = {
+        kind: 'failed',
+        generation: Math.max(this.#state.generation, run.generation),
+        phase: 'stop',
+        error: remainingDebt.failureError,
+        cleanupComplete: false,
+        ...(remainingDebt.failureError !== undefined
+          ? { cleanupError: remainingDebt.failureError }
+          : {}),
+      }
+      this.#commit(failedSnapshot, () => {
+        run.stopAttempt.resolve()
+      })
       return
     }
 
     this.#commit(
       {
         kind: 'stopped',
-        generation: run.generation,
+        generation: Math.max(this.#state.generation, run.generation),
       },
       () => {
         run.stopAttempt.resolve()
@@ -1191,6 +1275,20 @@ export class LifecycleKernel implements LifecycleController {
       )
     }
 
+    if (CHILD_OWNERS.has(child)) {
+      throw new LifecycleUnsafeStateError(
+        `[${this.#serviceName}] Cannot adopt a child lifecycle that is still owned by another parent`,
+      )
+    }
+
+    const ownership = {}
+    CHILD_OWNERS.set(child, ownership)
+    const releaseOwnership = (): void => {
+      if (CHILD_OWNERS.get(child) === ownership) {
+        CHILD_OWNERS.delete(child)
+      }
+    }
+
     const watcherAbort = new AbortController()
     const disarmWatcher = (): void => {
       if (!watcherAbort.signal.aborted) {
@@ -1198,7 +1296,12 @@ export class LifecycleKernel implements LifecycleController {
       }
     }
 
-    run.ledger.registerChild(child, disarmWatcher)
+    try {
+      run.ledger.registerChild(child, disarmWatcher, releaseOwnership)
+    } catch (error) {
+      releaseOwnership()
+      throw error
+    }
 
     await child.start({ signal: run.ledger.signal })
 
@@ -1316,6 +1419,13 @@ export class LifecycleKernel implements LifecycleController {
     return new LifecycleUnsafeStateError(
       `[${this.#serviceName}] Generation ${failedState.generation} failed during ${failedState.phase} with cleanupComplete=false; call stop() to finish releasing resources before starting a new generation`,
       { cause: failedState.cleanupError ?? failedState.error },
+    )
+  }
+
+  #createDirtyRunError (run: GenerationRun): LifecycleUnsafeStateError {
+    return new LifecycleUnsafeStateError(
+      `[${this.#serviceName}] Generation ${run.generation} still owns cleanup debt; call stop() to finish releasing resources before starting a new generation`,
+      { cause: run.failureError },
     )
   }
 }
