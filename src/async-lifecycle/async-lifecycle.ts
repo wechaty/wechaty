@@ -43,6 +43,7 @@ const FINAL_METHOD_NAMES = [
 export abstract class AsyncLifecycle implements Lifecycle {
   readonly #controller: LifecycleController
 
+  /** Defers optional hook lookup until invocation so subclass arrow fields are already initialized. */
   protected constructor (options?: LifecycleOptions) {
     this.#assertFinalMembersNotOverridden()
 

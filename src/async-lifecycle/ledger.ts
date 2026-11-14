@@ -6,7 +6,7 @@
  *   exclusive child tracking within one strict LIFO registration stack.
  * - Executes dependency-safe two-phase retirement:
  *   1. `seal()` closes new admissions.
- *   2. `interruptAll()` invokes synchronous `interrupt(resource)` callbacks in LIFO order
+ *   2. `interruptAll()` invokes and tracks `interrupt(resource)` hooks in LIFO order
  *      immediately upon `scope.signal` abort—BEFORE background tasks or in-flight startup
  *      work are joined—so blocked stream/socket loops wake up without deadlocking.
  *   3. `unwind(deadlineSignal)` joins tasks and releases resources in strict LIFO order,
@@ -66,8 +66,8 @@ export interface LedgerCallbacks {
   /** Invoked when a background `spawn()` task rejects unexpectedly while the generation is active. */
   onActiveTaskFailure (error: unknown): void
   /**
-   * Invoked if a late registration after retirement fails its immediate release after the
-   * generation had already committed clean `stopped`, allowing the kernel to surface the debt.
+   * Invoked when a late registration after completed retirement fails its immediate release,
+   * allowing the kernel to retain the debt even if a replacement generation is active.
    */
   onPostRetirementDebt (error: unknown): void
 }
@@ -109,11 +109,12 @@ export class GenerationLedger {
   #interruptErrors: unknown[] = []
   /** Tracks an `onStart` promise that outlived a deadline so `hasUnresolvedDebt` stays accurate. */
   #inFlightStartPromise: Promise<void> | undefined = undefined
-  /** Tracks an `onStop` promise that outlived `stopTimeoutMs` so retry `stop()` joins it first. */
+  /** Retains an `onStop` outcome that outlived its deadline until a cleanup pass consumes it. */
   #inFlightStopPromise: Promise<{
     readonly hasHookError: boolean
     readonly hookError?: unknown
   }> | undefined = undefined
+  /** Allows late disposer failures to be reported after the first completed unwind pass. */
   #retirementCompleted = false
 
   constructor (callbacks: LedgerCallbacks) {
@@ -196,7 +197,7 @@ export class GenerationLedger {
   }
 
   /**
-   * Runs or joins an already-started graceful `onStop` execution up to `deadlineSignal`.
+   * Runs `onStop` once or joins it, retaining a timed-out outcome until a retry consumes it.
    */
   async runOrJoinStopHook (
     invokeOnStop: (() => Promise<void> | void) | undefined,
@@ -640,6 +641,9 @@ export class GenerationLedger {
     return { cleanupComplete, errors }
   }
 
+  /**
+   * Pre-accounts late resources and immediately releases them after the scope is sealed.
+   */
   #registerImmediateResource<T> (
     label: string,
     resource: T,
@@ -676,6 +680,9 @@ export class GenerationLedger {
     return entry.status === 'released'
   }
 
+  /**
+   * Joins an in-flight disposer or starts one, preserving failed resources for explicit retry.
+   */
   #startOrJoinResourceRelease<T> (entry: ResourceEntry<T>): Promise<void> {
     if (entry.status === 'released') {
       return Promise.resolve()
@@ -718,6 +725,9 @@ export class GenerationLedger {
     return promise
   }
 
+  /**
+   * Joins or starts one resource interruption and retains its failure for shutdown reporting.
+   */
   #startOrJoinInterrupt<T> (entry: ResourceEntry<T>): Promise<void> {
     if (entry.interruptComplete || !entry.interrupt || !entry.hasResource) {
       return Promise.resolve()
