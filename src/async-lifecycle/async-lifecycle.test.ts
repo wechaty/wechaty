@@ -36,11 +36,17 @@ import {
 
 import {
   AsyncLifecycle,
+  LIFECYCLE_DIAGNOSTICS_CHANNEL,
   createLifecycle,
   LifecycleSupersededError,
   LifecycleTimeoutError,
   LifecycleUnsafeStateError,
 }           from './mod.ts'
+import type {
+  LifecycleDiagnosticRecord,
+  LifecycleCondition,
+}           from './mod.ts'
+import diagnosticsChannel from 'node:diagnostics_channel'
 import type {
   LifecycleScope,
   LifecycleState,
@@ -201,6 +207,49 @@ test('§3.8-C stop() supersedes a pending start and wins', async () => {
   assert.equal(lc.state.kind, 'stopped')
 })
 
+test('stop aborts startup synchronously so an abort-driven hook can finish', async () => {
+  let observedAbort = false
+  const lc = createLifecycle({
+    onStart: scope => new Promise<void>(resolve => {
+      scope.signal.addEventListener('abort', () => {
+        observedAbort = true
+        resolve()
+      }, { once: true })
+    }),
+  })
+
+  const starting = lc.start()
+  const startRejected = assert.rejects(starting, LifecycleSupersededError)
+  await tick()
+  await lc.stop()
+  await startRejected
+  assert.equal(observedAbort, true)
+  assert.equal(lc.state.kind, 'stopped')
+})
+
+test('a later start cannot publish running for the retired startup generation', async () => {
+  const gateStart = gate()
+  let starts = 0
+  const lc = createLifecycle({
+    onStart: () => {
+      starts += 1
+      return starts === 1 ? gateStart.promise : undefined
+    },
+  })
+  const oldStart = lc.start()
+  const oldRejected = assert.rejects(oldStart, LifecycleSupersededError)
+  await tick()
+  const stopped = lc.stop()
+  const replacement = lc.start()
+  gateStart.open()
+  await Promise.all([ stopped, replacement, oldRejected ])
+
+  assert.equal(starts, 2)
+  assert.equal(lc.state.kind, 'running')
+  assert.equal(lc.state.generation, 2)
+  await lc.stop()
+})
+
 // =========================================================================
 // §3.8 D (inverted): a failed attempt ends — no implicit auto-retry loop
 // =========================================================================
@@ -232,6 +281,32 @@ test('§3.8-D a start failure publishes failed { phase: start }', async () => {
     assert.equal((s.error as Error).message, 'x')
     assert.equal(s.cleanupComplete, true, 'clean failure with no live resources')
   }
+})
+
+test('start failures preserve falsy rejection values', async () => {
+  for (const reason of [ undefined, null, false, 0, '' ]) {
+    const lc = createLifecycle({
+      onStart: () => { throw reason },
+    })
+    await assert.rejects(lc.start(), error => error === reason)
+    const state = lc.state
+    assert.equal(state.kind, 'failed')
+    if (state.kind === 'failed') {
+      assert.equal(state.error, reason)
+    }
+  }
+})
+
+test('scope.fail(undefined) rejects the failed attempt instead of resolving it', async () => {
+  let fail!: (error: unknown) => void
+  const lc = createLifecycle({
+    onStart: scope => { fail = error => scope.fail(error) },
+  })
+  await lc.start()
+  fail(undefined)
+  await lc.whenState(state => state.kind === 'failed')
+  assert.equal(lc.state.kind, 'failed')
+  assert.equal(lc.state.kind === 'failed' && lc.state.error, undefined)
 })
 
 // =========================================================================
@@ -272,6 +347,8 @@ test('§3.8-E a dirty failure blocks start until stop() retries cleanup', async 
     assert.equal(s.kind, 'failed')
     assert.equal(s.kind === 'failed' && s.cleanupComplete, false)
   }
+  await assert.rejects(lc.start(), LifecycleUnsafeStateError)
+  await assert.rejects(lc.restart(), LifecycleUnsafeStateError)
 
   // stop() retries the remaining cleanup, clearing the dirty failure.
   await lc.stop()
@@ -282,6 +359,44 @@ test('§3.8-E a dirty failure blocks start until stop() retries cleanup', async 
   assert.equal(lc.state.kind, 'running')
   assert.equal(starts, 2)
   await lc.stop()
+})
+
+test('a failed disposer remains cleanup debt and is retried by stop()', async () => {
+  let attempts = 0
+  const lc = createLifecycle({
+    onStart: scope => {
+      scope.defer(() => {
+        attempts += 1
+        if (attempts === 1) {
+          throw new Error('first release failed')
+        }
+      })
+    },
+  })
+  await lc.start()
+  await assert.rejects(lc.stop(), /first release failed/)
+  assert.equal(lc.state.kind === 'failed' && lc.state.cleanupComplete, false)
+  await lc.stop()
+  assert.equal(attempts, 2)
+  assert.equal(lc.state.kind, 'stopped')
+})
+
+test('a failed restart retirement rejects its replacement attempt', async () => {
+  let failStop = true
+  const lc = createLifecycle({
+    onStart: () => {},
+    onStop: () => {
+      if (failStop) {
+        failStop = false
+        throw new Error('restart cleanup failed')
+      }
+    },
+  })
+  await lc.start()
+  await assert.rejects(lc.restart(), /restart cleanup failed/)
+  assert.equal(lc.state.kind === 'failed' && lc.state.cleanupComplete, false)
+  await lc.stop()
+  assert.equal(lc.state.kind, 'stopped')
 })
 
 // =========================================================================
@@ -343,6 +458,76 @@ test('condition.wait() before start binds to the next generation', async () => {
   await lc.start()
   await waited // resolves
   await lc.stop()
+})
+
+test('condition.wait() observes a set level and waits again after clear', async () => {
+  let set!: () => void
+  let clear!: () => void
+  const lc = createLifecycle({
+    onStart: scope => {
+      set = () => scope.set(ready)
+      clear = () => scope.clear(ready)
+      set()
+    },
+  })
+  const ready = lc.condition('ready')
+  await lc.start()
+  await ready.wait()
+
+  clear()
+  let resolved = false
+  const waiting = ready.wait().then(() => { resolved = true })
+  await tick()
+  assert.equal(resolved, false)
+  set()
+  // The pending waiter resolves on the next set; a new wait also observes it.
+  await waiting
+  assert.equal(resolved, true)
+  await ready.wait()
+  await lc.stop()
+})
+
+test('onStop cannot set readiness for a generation being retired', async () => {
+  let ready!: LifecycleCondition
+  const lc = createLifecycle({
+    onStart: () => {},
+    onStop: scope => { scope.set(ready) },
+  })
+  ready = lc.condition('ready')
+  await lc.start()
+  await lc.stop()
+
+  const abort = new AbortController()
+  const waiting = ready.wait({ signal: abort.signal })
+  abort.abort(new Error('cancelled'))
+  await assert.rejects(waiting, /cancelled/)
+})
+
+test('a late acquisition is released and a failed release stays retryable', async () => {
+  let savedScope!: LifecycleScope
+  let releases = 0
+  const lc = createLifecycle({
+    onStart: scope => { savedScope = scope },
+    onStop: () => {
+      try {
+        savedScope.adopt({}, () => {
+          releases += 1
+          if (releases === 1) {
+            throw new Error('late release failed')
+          }
+        })
+      } catch {
+        // A retiring scope rejects registration after releasing the resource.
+      }
+    },
+  })
+  await lc.start()
+  await assert.rejects(lc.stop(), /late release failed/)
+  assert.equal(lc.state.kind === 'failed' && lc.state.cleanupComplete, false)
+
+  await lc.stop()
+  assert.equal(lc.state.kind, 'stopped')
+  assert.equal(releases, 3)
 })
 
 test('condition rejects if its generation retires without setting it', async () => {
@@ -458,6 +643,27 @@ test('a run failure does not auto-retry', async () => {
   assert.equal(starts, 1, 'no implicit restart after a run failure')
 })
 
+test('runtime failures share the reconciler retirement with stop()', async () => {
+  const stopping = gate()
+  let onStopCalls = 0
+  let fail!: (error: unknown) => void
+  const lc = createLifecycle({
+    onStart: scope => { fail = error => scope.fail(error) },
+    onStop: () => {
+      onStopCalls += 1
+      return stopping.promise
+    },
+  })
+  await lc.start()
+  fail(new Error('runtime failure'))
+  const stopped = lc.stop()
+  await tick()
+  assert.equal(onStopCalls, 1)
+  stopping.open()
+  await stopped
+  assert.equal(onStopCalls, 1)
+})
+
 // =========================================================================
 // spawn (owned background task)
 // =========================================================================
@@ -492,6 +698,20 @@ test('a spawned task rejection fails the running generation', async () => {
   assert.equal(s.kind === 'failed' && s.phase, 'run')
 })
 
+test('resource shutdown interrupts a task before its join', async () => {
+  let closeSocket!: () => void
+  const socketClosed = new Promise<void>(resolve => { closeSocket = resolve })
+  const lc = createLifecycle({
+    onStart: scope => {
+      scope.adopt({}, () => { closeSocket() })
+      scope.spawn(async () => { await socketClosed })
+    },
+  })
+  await lc.start()
+  await lc.stop()
+  assert.equal(lc.state.kind, 'stopped')
+})
+
 // =========================================================================
 // child lifecycles (scope.start)
 // =========================================================================
@@ -519,6 +739,20 @@ test('scope.start refuses a child that is not in a safe state', async () => {
   await assert.rejects(parent.start(), LifecycleUnsafeStateError)
 
   await child.stop()
+})
+
+test('a retired scope cannot start children or unowned tasks', async () => {
+  let savedScope!: LifecycleScope
+  const parent = createLifecycle({
+    onStart: scope => { savedScope = scope },
+  })
+  const child = createLifecycle({ onStart: () => {} })
+  await parent.start()
+  await parent.stop()
+
+  assert.throws(() => savedScope.spawn(async () => {}), LifecycleSupersededError)
+  await assert.rejects(savedScope.start(child), LifecycleSupersededError)
+  assert.equal(child.state.kind, 'stopped')
 })
 
 test('a child failing out of running fails the parent', async () => {
@@ -571,6 +805,44 @@ test('startTimeoutMs aborts the scope signal', async () => {
   g.open()
 })
 
+test('start timeout keeps an unsettled hook dirty until stop joins it', async () => {
+  const g = gate()
+  const lc = createLifecycle(
+    { onStart: () => g.promise },
+    { startTimeoutMs: 10 },
+  )
+  await assert.rejects(lc.start(), LifecycleTimeoutError)
+  assert.equal(lc.state.kind === 'failed' && lc.state.cleanupComplete, false)
+
+  g.open()
+  await lc.stop()
+  assert.equal(lc.state.kind, 'stopped')
+})
+
+test('stopTimeoutMs covers a hanging disposer and retains it for stop retry', async () => {
+  const g = gate()
+  let releases = 0
+  const lc = createLifecycle(
+    {
+      onStart: scope => {
+        scope.defer(async () => {
+          releases += 1
+          await g.promise
+        })
+      },
+    },
+    { stopTimeoutMs: 10 },
+  )
+  await lc.start()
+  await assert.rejects(lc.stop(), LifecycleTimeoutError)
+  assert.equal(lc.state.kind === 'failed' && lc.state.cleanupComplete, false)
+
+  g.open()
+  await lc.stop()
+  assert.equal(releases, 1)
+  assert.equal(lc.state.kind, 'stopped')
+})
+
 // =========================================================================
 // recover (authority-checked recovery)
 // =========================================================================
@@ -600,6 +872,21 @@ test('recover against a stale snapshot reports superseded', async () => {
   const result = await lc.recover(stale)
   assert.equal(result, 'superseded')
   await startP
+})
+
+test('recover requires the exact current failed snapshot', async () => {
+  let fail = true
+  const lc = createLifecycle({
+    onStart: () => { if (fail) { fail = false; throw new Error('first failure') } },
+  })
+  await assert.rejects(lc.start(), /first failure/)
+  const failed = lc.state
+  assert.equal(failed.kind, 'failed')
+  assert.equal(await lc.recover({ ...failed }), 'superseded')
+
+  await lc.recover(failed)
+  assert.equal(await lc.recover(lc.state), 'superseded')
+  await lc.stop()
 })
 
 // =========================================================================
@@ -674,6 +961,93 @@ test('onStateChange observer exceptions are isolated', async () => {
   await lc.start()
   assert.equal(lc.state.kind, 'running')
   await lc.stop()
+})
+
+test('the successful start attempt settles before running observers can stop', async () => {
+  let lifecycle!: ReturnType<typeof createLifecycle>
+  let stopped: Promise<void> | undefined
+  lifecycle = createLifecycle({
+    onStart: () => {},
+    onStateChange: state => {
+      if (state.kind === 'running') {
+        stopped = lifecycle.stop()
+      }
+    },
+  })
+  await lifecycle.start()
+  await stopped
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+test('a start accepted by a failed-state observer is not overwritten', async () => {
+  let lifecycle!: ReturnType<typeof createLifecycle>
+  let replacement: Promise<void> | undefined
+  let starts = 0
+  lifecycle = createLifecycle({
+    onStart: () => {
+      starts += 1
+      if (starts === 1) {
+        throw new Error('first attempt fails')
+      }
+    },
+    onStateChange: state => {
+      if (state.kind === 'failed' && !replacement) {
+        replacement = lifecycle.start()
+      }
+    },
+  })
+
+  await assert.rejects(lifecycle.start(), /first attempt fails/)
+  await replacement
+  assert.equal(starts, 2)
+  assert.equal(lifecycle.state.kind, 'running')
+  await lifecycle.stop()
+})
+
+test('a start accepted during failure cleanup is preserved', async () => {
+  let lifecycle!: ReturnType<typeof createLifecycle>
+  let followUp: Promise<void> | undefined
+  let starts = 0
+  lifecycle = createLifecycle({
+    onStart: () => {
+      starts += 1
+      if (starts === 1) {
+        throw new Error('first attempt fails')
+      }
+    },
+    onStop: () => {
+      if (!followUp) {
+        followUp = lifecycle.start()
+      }
+    },
+  })
+
+  await assert.rejects(lifecycle.start(), /first attempt fails/)
+  await followUp
+  assert.equal(starts, 2)
+  assert.equal(lifecycle.state.kind, 'running')
+  await lifecycle.stop()
+})
+
+test('diagnostic snapshots omit lifecycle errors', async () => {
+  const records: LifecycleDiagnosticRecord[] = []
+  const onRecord = (record: unknown) => {
+    records.push(record as LifecycleDiagnosticRecord)
+  }
+  diagnosticsChannel.subscribe(LIFECYCLE_DIAGNOSTICS_CHANNEL, onRecord)
+  try {
+    const lc = createLifecycle({
+      onStart: () => { throw new Error('sensitive hook error') },
+    })
+    await assert.rejects(lc.start(), /sensitive hook error/)
+    const failed = records.find(record => record.state.kind === 'failed')
+    assert.ok(failed)
+    assert.equal('error' in failed.state, false)
+    assert.equal('cleanupError' in failed.state, false)
+    assert.equal(failed.state.kind, 'failed')
+  } finally {
+    diagnosticsChannel.unsubscribe(LIFECYCLE_DIAGNOSTICS_CHANNEL, onRecord)
+  }
 })
 
 // =========================================================================

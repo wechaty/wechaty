@@ -52,7 +52,14 @@ import type {
 /**
  * The caller-API members a subclass must not override.
  */
-const SEALED_MEMBERS = [ 'start', 'stop', 'restart', 'whenState' ] as const
+const SEALED_MEMBERS: readonly PropertyKey[] = [
+  'state',
+  'start',
+  'stop',
+  'restart',
+  'whenState',
+  Symbol.asyncDispose,
+]
 
 /**
  * Abstract base: adopt a lifecycle by inheritance.
@@ -70,6 +77,41 @@ abstract class AsyncLifecycle implements Lifecycle {
     this.#kernel = new LifecycleKernel(hooks, options)
 
     this.#assertNoOverride()
+    Object.defineProperties(this, {
+      state: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#kernel.state,
+      },
+      start: {
+        configurable: false,
+        writable: false,
+        value: (callOptions?: LifecycleCallOptions) => this.#kernel.start(callOptions),
+      },
+      stop: {
+        configurable: false,
+        writable: false,
+        value: (callOptions?: LifecycleCallOptions) => this.#kernel.stop(callOptions),
+      },
+      restart: {
+        configurable: false,
+        writable: false,
+        value: (callOptions?: LifecycleCallOptions) => this.#kernel.restart(callOptions),
+      },
+      whenState: {
+        configurable: false,
+        writable: false,
+        value: (
+          predicate: (state: LifecycleState) => boolean,
+          callOptions?: LifecycleCallOptions,
+        ) => this.#kernel.whenState(predicate, callOptions),
+      },
+      [Symbol.asyncDispose]: {
+        configurable: false,
+        writable: false,
+        value: () => this.#kernel[Symbol.asyncDispose](),
+      },
+    })
   }
 
   /**
@@ -82,8 +124,13 @@ abstract class AsyncLifecycle implements Lifecycle {
     while (proto && proto !== base) {
       for (const member of SEALED_MEMBERS) {
         if (Object.hasOwn(proto, member)) {
+          const label = typeof member === 'symbol'
+            ? 'Symbol.asyncDispose'
+            : member === 'state'
+              ? member
+              : `${member}()`
           throw new Error(
-            `AsyncLifecycle subclass must not override '${member}()'; `
+            `AsyncLifecycle subclass must not override '${label}'; `
             + 'implement onStart/onStop instead',
           )
         }

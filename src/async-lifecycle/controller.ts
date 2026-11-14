@@ -49,6 +49,7 @@ import {
   LifecycleUnsafeStateError,
 }                               from './errors.ts'
 import {
+  diagnosticState,
   publishStateChange,
 }                               from './diagnostics.ts'
 import {
@@ -126,10 +127,21 @@ interface GenerationRecord {
   readonly conditionsSet: Set<string>
   /** Whether this generation has been retired (fences late scope callbacks). */
   retired: boolean
+  /** Scope operations are fenced as soon as retirement is accepted. */
+  sealed: boolean
+  /** Reason reported to late registrations before the signal is aborted. */
+  retirementReason: unknown
+  /** Once retirement is requested, a later start cannot revive this generation. */
+  retireRequested: boolean
   /** A fail() reason captured during the run, consumed by retirement. */
   failError?: { readonly error: unknown }
   /** Background task promises to join on retirement. */
   readonly tasks: Promise<void>[]
+  /** The original startup hook remains generation-owned until it settles. */
+  startWork: Promise<void> | undefined
+  startWorkSettled: boolean
+  /** A timed-out retirement is retained and joined by a later stop(). */
+  retirementWork: Promise<unknown[]> | undefined
 }
 
 /**
@@ -165,6 +177,9 @@ class ConditionImpl implements LifecycleCondition {
     }
 
     const generation = this.#kernel.bindConditionGeneration()
+    if (this.#kernel.conditionIsSet(generation, this.name)) {
+      return Promise.resolve()
+    }
     const settled = defer<void>()
 
     let set = this.#waiters.get(generation)
@@ -314,6 +329,9 @@ class LifecycleKernel {
     if (signal?.aborted) {
       return Promise.reject(signal.reason)
     }
+    if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
+      return Promise.reject(new LifecycleUnsafeStateError('cannot start while cleanup is incomplete'))
+    }
 
     /**
      * Already running with no pending retirement: start() is a no-op that
@@ -371,6 +389,9 @@ class LifecycleKernel {
     const signal = options?.signal
     if (signal?.aborted) {
       return Promise.reject(signal.reason)
+    }
+    if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
+      return Promise.reject(new LifecycleUnsafeStateError('cannot restart while cleanup is incomplete'))
     }
 
     /**
@@ -445,6 +466,9 @@ class LifecycleKernel {
     if (!this.#recoveryStillValid(observed, revisionAtEntry)) {
       return 'superseded'
     }
+    if (observed.kind !== 'failed' || !observed.cleanupComplete) {
+      throw new LifecycleUnsafeStateError('cannot recover while cleanup is incomplete')
+    }
 
     /**
      * A recovery does not count as user intent, but it does request the service
@@ -481,10 +505,15 @@ class LifecycleKernel {
    * (wechaty/wechaty#2911 §6.3).
    */
   bindConditionGeneration (): number {
-    if (this.#current && !this.#current.retired) {
+    if (this.#current && !this.#current.retired && !this.#current.sealed) {
       return this.#current.generation
     }
     return this.#generationSeq + 1
+  }
+
+  conditionIsSet (generation: number, name: string): boolean {
+    return this.#current?.generation === generation
+      && this.#current.conditionsSet.has(name)
   }
 
   // =========================================================================
@@ -507,6 +536,14 @@ class LifecycleKernel {
        */
       if (this.#current && !this.#current.retired) {
         this.#mustRetireCurrent = true
+        this.#current.retireRequested = true
+        if (this.#state.kind === 'starting') {
+          this.#sealAndAbort(
+            this.#current,
+            new LifecycleSupersededError('startup superseded'),
+            true,
+          )
+        }
       }
       /**
        * A newly superseded start attempt must be rejected now so its callers do
@@ -626,7 +663,11 @@ class LifecycleKernel {
   // =========================================================================
 
   #recoveryStillValid (observed: LifecycleState, revisionAtEntry: number): boolean {
-    if (this.#intentRevision !== revisionAtEntry) {
+    if (
+      this.#intentRevision !== revisionAtEntry
+      || observed !== this.#state
+      || observed.kind !== 'failed'
+    ) {
       return false
     }
     /**
@@ -637,11 +678,7 @@ class LifecycleKernel {
      * does not act on an observation the user already invalidated.
      */
     const observedRevision = this.#stateRevision.get(observed)
-    if (observedRevision !== undefined && observedRevision !== this.#intentRevision) {
-      return false
-    }
-    const current = this.#state
-    if (current.kind !== observed.kind || current.generation !== observed.generation) {
+    if (observedRevision !== revisionAtEntry) {
       return false
     }
     return true
@@ -766,8 +803,14 @@ class LifecycleKernel {
       ledger,
       conditionsSet : new Set(),
       retired       : false,
+      sealed        : false,
+      retirementReason: undefined,
+      retireRequested: false,
       tasks         : [],
       scope         : undefined as unknown as LifecycleScope,
+      startWork     : undefined,
+      startWorkSettled: false,
+      retirementWork: undefined,
     }
     ;(record as { scope: LifecycleScope }).scope = this.#makeScope(record)
     this.#current = record
@@ -778,14 +821,24 @@ class LifecycleKernel {
     this.#commit({ kind: 'starting', generation })
 
     let startError: unknown
+    let startFailed = false
     try {
+      record.startWork = Promise.resolve().then(() => this.#hooks.onStart(record.scope))
+      record.startWork = record.startWork.then(
+        () => { record.startWorkSettled = true },
+        error => {
+          record.startWorkSettled = true
+          throw error
+        },
+      )
       await this.#withTimeout(
-        Promise.resolve(this.#hooks.onStart(record.scope)),
+        record.startWork,
         this.#startTimeoutMs,
         'start',
         controller,
       )
     } catch (error) {
+      startFailed = true
       startError = error
     }
 
@@ -793,11 +846,16 @@ class LifecycleKernel {
      * Revalidate intent and generation after onStart settles. A superseded or
      * aborted start must never publish running (wechaty/wechaty#2905 §6 item 4).
      */
-    const superseded = this.#desired !== 'running' || record.retired || controller.signal.aborted
+    const supersededByIntent = this.#desired !== 'running'
+      || record.retireRequested
+      || record.retired
+      || this.#current !== record
+    const superseded = supersededByIntent
+      || controller.signal.aborted
 
-    if (!startError && !record.failError && !superseded) {
+    if (!startFailed && !record.failError && !superseded) {
+      this.#settleStartAttempt(attempt, true)
       this.#commit({ kind: 'running', generation })
-      this.#settleStartAttempt(attempt, undefined)
       return
     }
 
@@ -806,23 +864,25 @@ class LifecycleKernel {
      * this generation. The commit is failed (start) when there was a real error,
      * otherwise the retirement proceeds toward stopped.
      */
-    const error = startError ?? record.failError?.error
-    if (superseded && !startError && !record.failError) {
+    const failureError = startFailed
+      ? startError
+      : record.failError?.error
+    if (supersededByIntent && !record.failError) {
       // Superseded cleanly before running: retire to stopped, reject attempt.
       await this.#retireAfterStartFailure(record, 'start', undefined, attempt, true)
     } else {
-      await this.#retireAfterStartFailure(record, 'start', error, attempt, false)
+      await this.#retireAfterStartFailure(record, 'start', failureError, attempt, false)
     }
   }
 
   /**
    * Settle a start attempt's shared outcome and clear it if still current.
    */
-  #settleStartAttempt (attempt: AttemptRecord, error: unknown): void {
+  #settleStartAttempt (attempt: AttemptRecord, succeeded: boolean, error?: unknown): void {
     if (this.#startAttempt === attempt) {
       this.#startAttempt = undefined
     }
-    if (error === undefined) {
+    if (succeeded) {
       attempt.settled.resolve()
     } else {
       attempt.settled.reject(error)
@@ -844,27 +904,30 @@ class LifecycleKernel {
     }
 
     const generation = record.generation
+    const failedWhileRunning = record.failError !== undefined
+    this.#sealAndAbort(
+      record,
+      new LifecycleSupersededError('generation retirement requested'),
+      failedWhileRunning,
+    )
     this.#commit({ kind: 'stopping', generation })
 
-    const errors = await this.#performRetirement(record, true)
+    const errors = await this.#runRetirement(record, true, failedWhileRunning)
 
     const cleanupComplete = errors.length === 0
-    record.retired = true
-    this.#current = undefined
-
-    this.#rejectConditions(record, new LifecycleSupersededError('generation retired'))
 
     if (!cleanupComplete) {
-      /**
-       * Cleanup failed. Commit failed { phase: 'stop' } and release stop waiters
-       * with the cleanup error. A new generation is blocked until stop() retries.
-       */
       const cleanupError = this.#aggregate(errors)
+      const failedAttempt = this.#startAttempt
+      if (failedAttempt) {
+        this.#settleStartAttempt(failedAttempt, false, cleanupError)
+      }
+      this.#rejectConditions(record, cleanupError)
       this.#commit({
         kind            : 'failed',
         generation,
-        phase           : 'stop',
-        error           : cleanupError,
+        phase           : failedWhileRunning ? 'run' : 'stop',
+        error           : failedWhileRunning ? record.failError?.error : cleanupError,
         cleanupComplete : false,
         cleanupError,
       })
@@ -872,7 +935,22 @@ class LifecycleKernel {
       return
     }
 
-    this.#commit({ kind: 'stopped', generation })
+    record.retired = true
+    this.#mustRetireCurrent = false
+    this.#current = undefined
+    this.#rejectConditions(record, new LifecycleSupersededError('generation retired'))
+
+    if (failedWhileRunning) {
+      this.#commit({
+        kind            : 'failed',
+        generation,
+        phase           : 'run',
+        error           : record.failError!.error,
+        cleanupComplete : true,
+      })
+    } else {
+      this.#commit({ kind: 'stopped', generation })
+    }
     this.#resolveStopWaiters(generation)
 
     if (reason === 'start') {
@@ -897,32 +975,77 @@ class LifecycleKernel {
     superseded: boolean,
   ): Promise<void> {
     const generation = record.generation
+    if (this.#startAttempt === attempt) {
+      // End this attempt now so a new start accepted during cleanup gets its own
+      // outcome instead of being folded into the attempt that is already failing.
+      this.#startAttempt = undefined
+      this.#desired = 'stopped'
+    }
+    this.#sealAndAbort(
+      record,
+      error ?? new LifecycleSupersededError('startup ended'),
+      true,
+    )
+
+    if (!record.startWorkSettled) {
+      const cleanupError = new LifecycleUnsafeStateError('startup hook is still running')
+      this.#settleStartAttempt(attempt, false, error)
+      if (this.#startAttempt && this.#startAttempt !== attempt) {
+        this.#settleStartAttempt(this.#startAttempt, false, cleanupError)
+      }
+      this.#rejectConditions(record, cleanupError)
+      this.#commit({
+        kind            : 'failed',
+        generation,
+        phase,
+        error,
+        cleanupComplete : false,
+        cleanupError,
+      })
+      this.#rejectStopWaiters(generation, cleanupError)
+      return
+    }
+
     this.#commit({ kind: 'stopping', generation })
 
-    const errors = await this.#performRetirement(record, true)
-    record.retired = true
-    this.#current = undefined
+    const errors = await this.#runRetirement(record, true, true)
 
     const cleanupComplete = errors.length === 0
     const cleanupError = cleanupComplete ? undefined : this.#aggregate(errors)
 
-    this.#rejectConditions(record, new LifecycleSupersededError('generation retired'))
-
     if (superseded && error === undefined) {
       // Clean supersession before running.
-      if (cleanupComplete) {
-        this.#commit({ kind: 'stopped', generation })
-      } else {
+      if (!cleanupComplete) {
+        this.#settleStartAttempt(attempt, false, cleanupError)
+        if (this.#startAttempt && this.#startAttempt !== attempt) {
+          this.#settleStartAttempt(this.#startAttempt, false, cleanupError)
+        }
         this.#commit({
           kind: 'failed', generation, phase: 'stop', error: cleanupError,
           cleanupComplete: false, cleanupError,
         })
+        this.#rejectStopWaiters(generation, cleanupError)
+        return
       }
-      this.#settleStartAttempt(attempt, new LifecycleSupersededError())
+      record.retired = true
+      this.#mustRetireCurrent = false
+      this.#current = undefined
+      this.#rejectConditions(record, new LifecycleSupersededError('generation retired'))
+      this.#settleStartAttempt(attempt, false, new LifecycleSupersededError())
+      this.#commit({ kind: 'stopped', generation })
       this.#resolveStopWaiters(generation)
       return
     }
 
+    if (cleanupComplete) {
+      record.retired = true
+      this.#mustRetireCurrent = false
+      this.#current = undefined
+    } else if (this.#startAttempt && this.#startAttempt !== attempt) {
+      this.#settleStartAttempt(this.#startAttempt, false, cleanupError)
+    }
+    this.#rejectConditions(record, error)
+    this.#settleStartAttempt(attempt, false, error)
     this.#commit({
       kind            : 'failed',
       generation,
@@ -931,19 +1054,11 @@ class LifecycleKernel {
       cleanupComplete,
       ...(cleanupError !== undefined ? { cleanupError } : {}),
     })
-    this.#settleStartAttempt(attempt, error)
     if (cleanupComplete) {
       this.#resolveStopWaiters(generation)
+    } else {
+      this.#rejectStopWaiters(generation, cleanupError)
     }
-    // Dirty failure: stop waiters stay pending until a stop() retries cleanup.
-
-    /**
-     * A failed attempt ends. The kernel never retries just because desired state
-     * is still running (wechaty/wechaty#2905 §3). Park by clearing desired so the
-     * reconciler does not immediately re-enter onStart. Only a new user command
-     * or an accepted recover() starts another generation.
-     */
-    this.#desired = 'stopped'
   }
 
   /**
@@ -954,39 +1069,125 @@ class LifecycleKernel {
     if (state.kind !== 'failed' || state.cleanupComplete) {
       return
     }
-    /**
-     * The ledger of a dirty failure was drained once; a retry simply re-commits
-     * clean because no disposers remain. In a real deployment a disposer may be
-     * re-registered; here we treat the remaining debt as cleared on retry, which
-     * is the documented "stop() retries the remaining cleanup" behaviour. If the
-     * original record is gone we cannot re-run disposers, so we mark clean.
-     */
     const generation = state.generation
+    const record = this.#current
+    if (!record || record.generation !== generation) {
+      const error = new LifecycleUnsafeStateError('failed generation cleanup is unavailable')
+      this.#rejectStopWaiters(generation, error)
+      return
+    }
+    const errors = await this.#runRetirement(record, true, true)
+    if (errors.length > 0) {
+      const cleanupError = this.#aggregate(errors)
+      this.#commit({
+        kind            : 'failed',
+        generation,
+        phase           : state.phase,
+        error           : state.error,
+        cleanupComplete : false,
+        cleanupError,
+      })
+      this.#rejectStopWaiters(generation, cleanupError)
+      return
+    }
+    record.retired = true
+    this.#mustRetireCurrent = false
+    this.#current = undefined
+    this.#rejectConditions(record, new LifecycleSupersededError('generation retired'))
     this.#commit({ kind: 'stopped', generation })
     this.#resolveStopWaiters(generation)
   }
 
   /**
-   * Execute §6.5: seal the scope, run onStop while resources are live (when the
-   * run reached running), abort the signal, then unwind the ledger in reverse.
-   *
-   * @param graceful whether to run onStop with resources still live first.
+   * Fence new scope operations immediately and optionally interrupt the run.
    */
-  async #performRetirement (record: GenerationRecord, graceful: boolean): Promise<unknown[]> {
-    const errors: unknown[] = []
+  #sealAndAbort (
+    record: GenerationRecord,
+    reason: unknown,
+    abortFirst = false,
+  ): void {
+    if (!record.sealed) {
+      record.retirementReason = reason === undefined
+        ? new LifecycleSupersededError('generation retired')
+        : reason
+    }
+    record.sealed = true
+    record.ledger.seal()
+    if (abortFirst && !record.controller.signal.aborted) {
+      record.controller.abort(record.retirementReason)
+    }
+  }
 
-    // Seal: no new conditions/fails take effect from here.
-    // (retired flag is set by caller after this returns, but late scope calls
-    //  are already fenced because the ledger is unwinding.)
-
-    if (graceful && this.#hooks.onStop) {
+  /**
+   * Run or join retirement under one deadline, retaining timed-out work for retry.
+   */
+  async #runRetirement (
+    record: GenerationRecord,
+    graceful: boolean,
+    abortFirst: boolean,
+  ): Promise<unknown[]> {
+    if (record.retirementWork) {
       try {
-        await this.#withTimeout(
-          Promise.resolve(this.#hooks.onStop(record.scope)),
+        const previousErrors = await this.#withTimeout(
+          record.retirementWork,
           this.#stopTimeoutMs,
           'stop',
           record.controller,
         )
+        record.retirementWork = undefined
+        if (previousErrors.length === 0) {
+          return previousErrors
+        }
+      } catch (error) {
+        return [ error ]
+      }
+    }
+
+    const work = this.#performRetirement(record, graceful, abortFirst)
+    record.retirementWork = work
+    try {
+      const errors = await this.#withTimeout(
+        work,
+        this.#stopTimeoutMs,
+        'stop',
+        record.controller,
+      )
+      if (record.retirementWork === work) {
+        record.retirementWork = undefined
+      }
+      return errors
+    } catch (error) {
+      return [ error ]
+    }
+  }
+
+  /**
+   * Run graceful hooks, interruption, startup joining, and ledger cleanup.
+   */
+  async #performRetirement (
+    record: GenerationRecord,
+    graceful: boolean,
+    abortFirst: boolean,
+  ): Promise<unknown[]> {
+    const errors: unknown[] = []
+
+    this.#sealAndAbort(
+      record,
+      new LifecycleSupersededError('generation retired'),
+      abortFirst,
+    )
+
+    if (!record.startWorkSettled && record.startWork) {
+      try {
+        await record.startWork
+      } catch {
+        // The start failure is reported by the start attempt, not cleanup.
+      }
+    }
+
+    if (graceful && this.#hooks.onStop) {
+      try {
+        await Promise.resolve(this.#hooks.onStop(record.scope))
       } catch (error) {
         errors.push(error)
       }
@@ -997,9 +1198,6 @@ class LifecycleKernel {
       record.controller.abort(new LifecycleSupersededError('generation retired'))
     }
 
-    // Join background tasks before unwinding the resources they may depend on
-    // is handled by the ledger order: spawn registers a join disposer, so the
-    // ledger unwind joins tasks interleaved with resources in reverse order.
     const ledgerErrors = await record.ledger.unwind()
     errors.push(...ledgerErrors)
 
@@ -1013,7 +1211,8 @@ class LifecycleKernel {
   #makeScope (record: GenerationRecord): LifecycleScope {
     const kernel = this
 
-    const isActive = () => !record.retired && kernel.#current === record
+    const isActive = () => !record.retired && !record.sealed && kernel.#current === record
+    const abortReason = () => record.retirementReason
 
     return {
       signal: record.controller.signal,
@@ -1027,32 +1226,35 @@ class LifecycleKernel {
             anyRes[Symbol.dispose]!()
           }
         }
-        if (!record.ledger.register(disposer)) {
-          // Late acquisition: release now and signal the abort reason.
-          void Promise.resolve(disposer()).catch(error => record.ledger.recordLateError(error))
-          throw record.controller.signal.reason
+        if (!record.ledger.register(disposer, true)) {
+          void record.ledger.releaseLate(disposer).catch(() => {})
+          throw abortReason()
         }
         return resource
       },
 
       adopt (resource, release) {
         const disposer = () => release(resource)
-        if (!record.ledger.register(disposer)) {
-          void Promise.resolve(disposer()).catch(error => record.ledger.recordLateError(error))
-          throw record.controller.signal.reason
+        if (!record.ledger.register(disposer, true)) {
+          void record.ledger.releaseLate(disposer).catch(() => {})
+          throw abortReason()
         }
         return resource
       },
 
       defer (cleanup) {
         if (!record.ledger.register(cleanup)) {
-          void Promise.resolve(cleanup()).catch(error => record.ledger.recordLateError(error))
-          throw record.controller.signal.reason
+          void record.ledger.releaseLate(cleanup).catch(() => {})
+          throw abortReason()
         }
       },
 
       spawn (task) {
-        const taskPromise = (async () => {
+        let taskPromise: Promise<void> = Promise.resolve()
+        if (!record.ledger.register(() => taskPromise)) {
+          throw abortReason()
+        }
+        taskPromise = Promise.resolve().then(async () => {
           try {
             await task(record.controller.signal)
           } catch (error) {
@@ -1063,13 +1265,14 @@ class LifecycleKernel {
               kernel.#scopeFail(record, error)
             }
           }
-        })()
+        })
         record.tasks.push(taskPromise)
-        // Join the task during unwind.
-        record.ledger.register(() => taskPromise)
       },
 
       async start (child) {
+        if (!isActive()) {
+          throw abortReason()
+        }
         const childState = child.state
         const safe = childState.kind === 'stopped'
           || (childState.kind === 'failed' && childState.cleanupComplete)
@@ -1080,12 +1283,23 @@ class LifecycleKernel {
         }
 
         // Register ownership before starting: stop the child during unwind.
-        record.ledger.register(() => child.stop())
+        if (!record.ledger.register(() => child.stop(), true)) {
+          throw abortReason()
+        }
+        record.controller.signal.addEventListener(
+          'abort',
+          () => { void child.stop().catch(() => {}) },
+          { once: true },
+        )
+        let watch: Promise<void> = Promise.resolve()
+        if (!record.ledger.register(() => watch)) {
+          throw abortReason()
+        }
 
         await child.start()
 
         // Watch the child: an unrequested exit from running fails the parent.
-        const watch = (async () => {
+        watch = (async () => {
           try {
             await child.whenState(
               state => state.kind === 'failed'
@@ -1138,55 +1352,24 @@ class LifecycleKernel {
    * Handle a `scope.fail()` or task/child failure for a generation.
    */
   #scopeFail (record: GenerationRecord, error: unknown): void {
-    if (record.retired || this.#current !== record) {
+    if (record.retired || record.sealed || this.#current !== record) {
       return
     }
     if (!record.failError) {
       record.failError = { error }
     }
+    this.#rejectConditions(record, error)
 
     const state = this.#state
-    if (state.kind === 'running' && state.generation === record.generation) {
-      /**
-       * A running generation failed. Retire it and commit failed { phase: 'run' }.
-       * Desired stays running, but a failed attempt ends: the kernel never
-       * retries on its own (wechaty/wechaty#2905 §3). Only a new command or an
-       * accepted recover() starts another.
-       */
-      void this.#failRunningGeneration(record, error)
+    if (state.generation === record.generation) {
+      if (state.kind === 'starting') {
+        this.#sealAndAbort(record, error, true)
+      } else if (state.kind === 'running') {
+        this.#desired = 'stopped'
+        this.#mustRetireCurrent = true
+        this.#scheduleReconcile()
+      }
     }
-    // If still starting, #runStart observes record.failError after onStart.
-  }
-
-  async #failRunningGeneration (record: GenerationRecord, error: unknown): Promise<void> {
-    const generation = record.generation
-    this.#commit({ kind: 'stopping', generation })
-
-    const errors = await this.#performRetirement(record, true)
-    record.retired = true
-    this.#current = undefined
-
-    const cleanupComplete = errors.length === 0
-    const cleanupError = cleanupComplete ? undefined : this.#aggregate(errors)
-
-    this.#rejectConditions(record, error)
-    this.#commit({
-      kind            : 'failed',
-      generation,
-      phase           : 'run',
-      error,
-      cleanupComplete,
-      ...(cleanupError !== undefined ? { cleanupError } : {}),
-    })
-    if (cleanupComplete) {
-      this.#resolveStopWaiters(generation)
-    }
-    /**
-     * Park: do not auto-retry. Clear desired so #needsWork() does not loop.
-     * Desired state remaining running must not create an implicit retry loop
-     * (wechaty/wechaty#2905 §3). A new start()/recover() is required.
-     */
-    this.#desired = 'stopped'
   }
 
   // =========================================================================
@@ -1216,7 +1399,11 @@ class LifecycleKernel {
     }
 
     // Diagnostics after commit, never affecting the outcome.
-    publishStateChange({ name: this.#name, state: frozen, previous })
+    publishStateChange({
+      name: this.#name,
+      state: diagnosticState(frozen),
+      previous: diagnosticState(previous),
+    })
 
     // Observer runs last and is isolated.
     if (this.#hooks.onStateChange) {

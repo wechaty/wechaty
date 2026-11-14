@@ -42,18 +42,42 @@ import type { LifecycleState } from './state.ts'
 const CHANNEL_NAME = 'wechaty.async-lifecycle'
 
 /**
+ * The safe scalar subset of a state snapshot used for diagnostics.
+ */
+type LifecycleDiagnosticState = Pick<LifecycleState, 'kind' | 'generation'>
+  & Partial<Pick<Extract<LifecycleState, { kind: 'failed' }>, 'phase' | 'cleanupComplete'>>
+
+/**
  * A diagnostics record published after a state commit.
  */
 interface LifecycleDiagnosticRecord {
   /** The instance name from {@link LifecycleOptions.name}, or `undefined`. */
   readonly name: string | undefined
   /** The committed snapshot. */
-  readonly state: LifecycleState
+  readonly state: LifecycleDiagnosticState
   /** The snapshot it replaced. */
-  readonly previous: LifecycleState
+  readonly previous: LifecycleDiagnosticState
 }
 
 const channel = diagnosticsChannel.channel(CHANNEL_NAME)
+
+/**
+ * Remove exception-bearing fields before publishing a state snapshot.
+ */
+function diagnosticState (state: LifecycleState): LifecycleDiagnosticState {
+  if (state.kind === 'failed') {
+    return {
+      kind: state.kind,
+      generation: state.generation,
+      phase: state.phase,
+      cleanupComplete: state.cleanupComplete,
+    }
+  }
+  return {
+    kind: state.kind,
+    generation: state.generation,
+  }
+}
 
 /**
  * Publish a state-commit record if and only if a subscriber is attached.
@@ -79,9 +103,11 @@ function publishStateChange (record: LifecycleDiagnosticRecord): void {
 }
 
 export type {
+  LifecycleDiagnosticState,
   LifecycleDiagnosticRecord,
 }
 export {
   CHANNEL_NAME,
+  diagnosticState,
   publishStateChange,
 }

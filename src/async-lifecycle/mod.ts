@@ -49,6 +49,7 @@ export {
 }                             from './diagnostics.ts'
 export type {
   LifecycleDiagnosticRecord,
+  LifecycleDiagnosticState,
 }                             from './diagnostics.ts'
 
 export type {

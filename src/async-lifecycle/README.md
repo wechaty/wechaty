@@ -69,7 +69,7 @@ Two ergonomic entry points sit over the **same** private kernel:
 ### Composition — `createLifecycle`
 
 ```ts
-import { createLifecycle } from 'wechaty/src/async-lifecycle/mod.ts'
+import { createLifecycle } from 'wechaty/async-lifecycle'
 
 class MyService {
 
@@ -107,8 +107,8 @@ await svc.stop()
 ### Inheritance — `AsyncLifecycle`
 
 ```ts
-import { AsyncLifecycle } from 'wechaty/src/async-lifecycle/mod.ts'
-import type { LifecycleScope } from 'wechaty/src/async-lifecycle/mod.ts'
+import { AsyncLifecycle } from 'wechaty/async-lifecycle'
+import type { LifecycleScope } from 'wechaty/async-lifecycle'
 
 class PuppetServer extends AsyncLifecycle {
 
@@ -228,8 +228,8 @@ mirror `AsyncDisposableStack` names and semantics (reverse-order release).
 | Member | Purpose |
 | ------ | ------- |
 | `signal` | `AbortSignal`, aborted when this generation retires (the "interrupt" step, before the ledger unwinds). |
-| `use(resource)` | Register something that already implements `Symbol.dispose` / `Symbol.asyncDispose`. |
-| `adopt(resource, release)` | Register a resource with an explicit release fn. A late acquisition during retirement is released immediately. |
+| `use(resource)` | Register something that already implements `Symbol.dispose` / `Symbol.asyncDispose`. Resource releases run before task joins so they can interrupt tasks waiting on resource closure. |
+| `adopt(resource, release)` | Register a resource with an explicit release fn. A late acquisition during retirement is released immediately and remains cleanup debt until release succeeds. |
 | `defer(cleanup)` | Register a cleanup action (remove a listener, clear a timer). |
 | `spawn(task)` | Start an owned background task, joined on retirement. A non-abort rejection calls `scope.fail`. |
 | `start(child)` | Start, own, and watch a child lifecycle (works with either entry point). A child that fails or leaves `running` unasked fails the parent. |
@@ -246,7 +246,7 @@ construction, which fences stale callbacks.
 named condition once. A caller waits with `condition.wait()`; the generation
 sets it with `scope.set(condition)`.
 
-A condition is **edge-triggered and generation-bound**:
+A condition is **level-triggered and generation-bound**:
 
 * `wait()` binds to the generation that is currently `starting` / `running`, or
   else to the *next* generation to start — so this works:
@@ -260,10 +260,9 @@ A condition is **edge-triggered and generation-bound**:
 * A resolution **never crosses generations**: a second start does not inherit the
   first run's readiness. If the bound generation fails or retires before setting
   the condition, `wait()` rejects with `LifecycleSupersededError`.
-
-> Because it is edge-triggered, a waiter registered *after* `scope.set()` has
-> already fired for a generation will **not** retroactively resolve for that
-> generation — bind the wait before (or during) the start you care about.
+* A wait registered after `scope.set()` resolves immediately while that
+  generation remains set. After `scope.clear()`, later waits remain pending until
+  the condition is set again.
 
 ### `recover(observed)` — authority-checked recovery
 
@@ -289,9 +288,12 @@ snapshot returns `'superseded'`.
 
 `LifecycleOptions` accepts `startTimeoutMs` and `stopTimeoutMs`:
 
-* A start timeout fails the attempt with `LifecycleTimeoutError`, aborts the
-  scope signal, and unwinds.
-* A stop timeout yields `failed { phase: 'stop', cleanupComplete: false }`.
+* A start timeout fails the attempt with `LifecycleTimeoutError` and aborts the
+  scope signal. If the hook is still running, the generation stays dirty until a
+  later `stop()` joins it and verifies cleanup.
+* The stop deadline covers the stop hook, task joins, and all disposers. A timeout
+  yields `failed { phase: 'stop', cleanupComplete: false }`; unfinished work stays
+  owned and blocks replacement generations.
 
 ---
 
@@ -304,8 +306,8 @@ subscriber can never change a lifecycle outcome.
 
 ```ts
 import diagnosticsChannel from 'node:diagnostics_channel'
-import { LIFECYCLE_DIAGNOSTICS_CHANNEL } from 'wechaty/src/async-lifecycle/mod.ts'
-import type { LifecycleDiagnosticRecord } from 'wechaty/src/async-lifecycle/mod.ts'
+import { LIFECYCLE_DIAGNOSTICS_CHANNEL } from 'wechaty/async-lifecycle'
+import type { LifecycleDiagnosticRecord } from 'wechaty/async-lifecycle'
 
 diagnosticsChannel.subscribe(LIFECYCLE_DIAGNOSTICS_CHANNEL, message => {
   const record = message as LifecycleDiagnosticRecord
@@ -314,8 +316,8 @@ diagnosticsChannel.subscribe(LIFECYCLE_DIAGNOSTICS_CHANNEL, message => {
 ```
 
 The channel name is `wechaty.async-lifecycle`. Records are published *after* the
-snapshot is committed. Deno implements `node:diagnostics_channel`, so this works
-cross-runtime.
+snapshot is committed and include only scalar state metadata, never hook errors.
+Deno implements `node:diagnostics_channel`, so this works cross-runtime.
 
 ---
 

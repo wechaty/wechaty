@@ -43,6 +43,7 @@ export *                from './users.ts'
 export * as users       from './users.ts'
 export * as impls       from './impls.ts'
 export * as helpers     from './helpers.ts'
+export * as asyncLifecycle from '../async-lifecycle/mod.ts'
 export {
   ScanStatus,
 }                       from 'wechaty-puppet/types'
