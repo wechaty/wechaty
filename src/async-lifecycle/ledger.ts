@@ -678,7 +678,7 @@ export class GenerationLedger {
       return entry.releasingPromise
     }
 
-    const promise = (async () => {
+    const promise = Promise.resolve().then(async () => {
       try {
         await entry.release(entry.resource as T)
         entry.status = 'released'
@@ -689,7 +689,7 @@ export class GenerationLedger {
       } finally {
         entry.releasingPromise = undefined
       }
-    })()
+    })
 
     entry.releasingPromise = promise
     return promise
