@@ -237,7 +237,7 @@ class ScopeImpl implements LifecycleScope {
           this.fail(error)
         }
       })
-    this.#registerCleanup(async () => { await promise })
+    this.trackPending(promise)
   }
 
   async start(child: Lifecycle): Promise<void> {
@@ -253,8 +253,28 @@ class ScopeImpl implements LifecycleScope {
       )
     }
 
+    if (this.signal.aborted) {
+      await child.stop()
+      throw makeAbortError(this.signal)
+    }
+
     this.defer(async () => { await child.stop() })
-    await child.start()
+    const childStartPromise = child.start()
+    try {
+      await Promise.race([
+        childStartPromise,
+        new Promise<never>((_, reject) => {
+          const onAbort = () => reject(makeAbortError(this.signal))
+          this.signal.addEventListener('abort', onAbort, { once: true })
+          childStartPromise.finally(() => this.signal.removeEventListener('abort', onAbort))
+        }),
+      ])
+    } catch (error) {
+      if (this.signal.aborted) {
+        await child.stop()
+      }
+      throw error
+    }
     this.spawn(async signal => {
       const settled = await child.whenState(
         state => state.kind === 'failed' || state.kind === 'stopped' || state.kind === 'stopping',
@@ -440,7 +460,9 @@ export class LifecycleKernel implements LifecycleController {
 
     this.#intentRevision++
     this.#desired = 'stopped'
-    this.#activeScope?.abort(new LifecycleSupersededError('Lifecycle stop requested'))
+    if (this.#state.kind === 'starting') {
+      this.#activeScope?.abort(new LifecycleSupersededError('Lifecycle stop requested'))
+    }
 
     this.#supersedeAttempt(this.#startAttempt)
     this.#supersedeAttempt(this.#restartAttempt)
@@ -463,7 +485,9 @@ export class LifecycleKernel implements LifecycleController {
 
     this.#intentRevision++
     this.#desired = 'running'
-    this.#activeScope?.abort(new LifecycleSupersededError('Lifecycle restart requested'))
+    if (this.#state.kind === 'starting') {
+      this.#activeScope?.abort(new LifecycleSupersededError('Lifecycle restart requested'))
+    }
 
     this.#supersedeAttempt(this.#stopAttempt)
     this.#stopAttempt = undefined
@@ -614,7 +638,8 @@ export class LifecycleKernel implements LifecycleController {
     if (this.#reconciler) {
       return
     }
-    this.#reconciler = this.#reconcileLoop()
+    const runner = this.#reconcileLoop()
+    this.#reconciler = runner
       .catch(error => {
         this.#settleAttemptFailure(this.#startAttempt, error)
         this.#settleAttemptFailure(this.#stopAttempt, error)
@@ -638,9 +663,13 @@ export class LifecycleKernel implements LifecycleController {
   async #reconcileStep(): Promise<void> {
     const activeScope = this.#activeScope
     if (activeScope?.hasRuntimeFailure) {
+      const runtimeFailure = activeScope.runtimeFailure
+      if (this.#state.kind === 'failed' && this.#state.generation === activeScope.generation) {
+        return
+      }
       await this.#retireActiveScope({
         phase: 'run',
-        cause: activeScope.runtimeFailure,
+        cause: runtimeFailure,
       })
       return
     }
@@ -705,17 +734,19 @@ export class LifecycleKernel implements LifecycleController {
     scope.setStartPromise(startPromise)
 
     let startError: unknown
+    let startRejected = false
     try {
       await withTimeout(startPromise, this.#options.startTimeoutMs, 'start')
     } catch (error) {
       startError = error
+      startRejected = true
     }
 
     if (this.#activeScope !== scope) {
       return
     }
 
-    if (startError) {
+    if (startRejected) {
       scope.abort(startError)
       if (startError instanceof LifecycleTimeoutError) {
         scope.trackPending(startPromise)
