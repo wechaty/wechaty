@@ -72,6 +72,10 @@ export interface LedgerCallbacks {
    * allowing the kernel to retain the debt even if a replacement generation is active.
    */
   onPostRetirementDebt (error: unknown): void
+  /** Reserves kernel ownership while an immediate late disposer is still running. */
+  onPostRetirementCleanupStarted (): void
+  /** Releases the reservation after an immediate late disposer succeeds. */
+  onPostRetirementCleanupSucceeded (): void
 }
 
 function isEventEmitterLike (target: ListenTarget): target is EventEmitterLike {
@@ -274,7 +278,8 @@ export class GenerationLedger {
   /**
    * Step 3 & 4 of retirement: aborts `scope.signal` (if not already aborted) and invokes
    * every acquired resource's `interrupt(resource)` hook in LIFO order. A retry joins
-   * unfinished work and resumes at the first uncompleted entry.
+   * unfinished work and resumes at the first uncompleted entry. Pending acquisitions are
+   * skipped here because their late-arrival path interrupts and releases them after settlement.
    */
   async abortAndInterrupt (
     deadlineSignal: AbortSignal,
@@ -297,12 +302,6 @@ export class GenerationLedger {
     for (let index = this.#interruptCursor; index >= 0; index--) {
       const entry = this.#entries[index]!
       if (entry.kind === 'resource') {
-        if (entry.acquiringPromise) {
-          const acquiring = await settleBeforeDeadline(entry.acquiringPromise, deadlineSignal)
-          if (acquiring.timedOut) {
-            return { timedOut: true, timeoutReason: acquiring.timeoutReason }
-          }
-        }
         if (entry.status === 'ready' && entry.hasResource && entry.interrupt) {
           const interruptPromise = this.#startOrJoinInterrupt(entry)
           const race = await settleBeforeDeadline(interruptPromise, deadlineSignal)
@@ -681,9 +680,15 @@ export class GenerationLedger {
     this.#entries.push(entry)
 
     if (this.#sealed) {
+      const postRetirement = this.#retirementCompleted
+      if (postRetirement) {
+        this.#callbacks.onPostRetirementCleanupStarted()
+      }
       void this.#startOrJoinResourceRelease(entry).then(() => {
         if (entry.hasPendingLateError && this.#retirementCompleted) {
           this.#callbacks.onPostRetirementDebt(entry.pendingLateError)
+        } else if (postRetirement) {
+          this.#callbacks.onPostRetirementCleanupSucceeded()
         }
       })
       throw this.#currentAbortReason()

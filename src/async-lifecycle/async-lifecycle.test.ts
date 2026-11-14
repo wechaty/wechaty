@@ -704,6 +704,90 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
   for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
     {
       const clock = createManualClock()
+      const pendingAcquisition = deferred<{ readonly name: string }>()
+      const acquisitionStarted = deferred<void>()
+      const events: string[] = []
+      const { lifecycle } = createHarness(entryPoint, {
+        async onStart (scope) {
+          await scope.acquire(
+            () => ({ name: 'first' }),
+            () => {
+              events.push('release-first')
+            },
+            { interrupt: () => {
+              events.push('interrupt-first')
+              pendingAcquisition.resolve({ name: 'late' })
+            } },
+          )
+          const acquiring = scope.acquire(
+            () => {
+              acquisitionStarted.resolve()
+              return pendingAcquisition.promise
+            },
+            resource => {
+              events.push(`release-${resource.name}`)
+            },
+            { interrupt: resource => {
+              events.push(`interrupt-${resource.name}`)
+            } },
+          )
+          scope.spawn(async () => {
+            try {
+              await acquiring
+            } catch (error) {
+              if (!scope.signal.aborted) {
+                throw error
+              }
+            }
+          })
+        },
+      }, { clock, stopTimeoutMs: 5 })
+      await lifecycle.start()
+      await acquisitionStarted.promise
+      const stop = lifecycle.stop()
+      for (let index = 0; index < 64 && lifecycle.state.kind === 'stopping'; index++) {
+        await Promise.resolve()
+      }
+      if (lifecycle.state.kind === 'stopping') {
+        clock.advanceBy(5)
+      }
+      await stop
+      assert.deepEqual(events, [
+        'interrupt-first',
+        'interrupt-late',
+        'release-late',
+        'release-first',
+      ])
+    }
+
+    {
+      let scope!: LifecycleScope
+      const cleanupStarted = deferred<void>()
+      const finishCleanup = deferred<void>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+      })
+      await lifecycle.start()
+      await lifecycle.stop()
+      assert.throws(() => scope.defer(() => {
+        cleanupStarted.resolve()
+        return finishCleanup.promise
+      }))
+      await cleanupStarted.promise
+      const stop = lifecycle.stop()
+      await assert.rejects(lifecycle.start())
+      finishCleanup.resolve()
+      await stop
+      assert.equal(lifecycle.state.kind, 'stopped')
+      await lifecycle.start()
+      assert.equal(lifecycle.state.kind, 'running')
+      await lifecycle.stop()
+    }
+
+    {
+      const clock = createManualClock()
       let scope!: LifecycleScope
       let recoveryOutcome!: Promise<Awaited<ReturnType<LifecycleScope['recover']>>>
       const taskSettled = deferred<void>()

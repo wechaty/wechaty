@@ -508,6 +508,39 @@ export class LifecycleKernel implements LifecycleController {
       onActiveTaskFailure: (error: unknown) => {
         this.#reportGenerationFailure(run, error)
       },
+      onPostRetirementCleanupStarted: () => {
+        // Reserve the retired ledger before a late async disposer can overlap a replacement.
+        if (!this.#dirtyRuns.has(generation)) {
+          if (run.stopAttempt.settled()) {
+            run.stopAttempt = createDeferred<void>()
+          }
+          this.#dirtyRuns.set(generation, run)
+        }
+
+        if (this.#activeRun !== undefined && this.#activeRun !== run) {
+          this.#reportGenerationFailure(
+            this.#activeRun,
+            new LifecycleUnsafeStateError(
+              `[${this.#serviceName}] Generation ${generation} still has late cleanup in progress`,
+            ),
+          )
+        }
+      },
+      onPostRetirementCleanupSucceeded: () => {
+        if (run.ledger.hasUnresolvedDebt) {
+          return
+        }
+        this.#dirtyRuns.delete(generation)
+        this.#retryDirtyStopRequested.delete(generation)
+        run.stopAttempt.resolve()
+
+        if (this.#dirtyRuns.size === 0 && this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
+          this.#commit({
+            ...this.#state,
+            cleanupComplete: true,
+          })
+        }
+      },
       onPostRetirementDebt: (error: unknown) => {
         // Keep late debt attached to its original ledger even after a replacement starts.
         if (!this.#dirtyRuns.has(generation)) {
