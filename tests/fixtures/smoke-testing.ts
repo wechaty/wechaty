@@ -110,6 +110,7 @@ async function main () {
   await lifecycle.stop()
 
   class SmokeLifecycle extends AsyncLifecycle {
+    constructor () { super() }
     protected override onStart (): void {}
   }
   const inheritedLifecycle = new SmokeLifecycle()
