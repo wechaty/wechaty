@@ -33,6 +33,7 @@ import { collapseCleanupErrors } from './errors.ts'
 import type {
   LifecycleCondition,
   LifecycleHooks,
+  Lifecycle,
   LifecycleScope,
   LifecycleState,
   LifecycleStopContext,
@@ -352,12 +353,18 @@ test('timed-out interrupts resume in LIFO order without skipping or duplicating 
     async onStart (scope) {
       await scope.acquire(
         () => 'first',
-        resource => releases.push(resource),
-        { interrupt: () => interrupts.push('first') },
+        resource => {
+          releases.push(resource)
+        },
+        { interrupt: () => {
+          interrupts.push('first')
+        } },
       )
       await scope.acquire(
         () => 'second',
-        resource => releases.push(resource),
+        resource => {
+          releases.push(resource)
+        },
         { interrupt: () => {
           interrupts.push('second')
           return blockedInterrupt.promise
@@ -432,6 +439,44 @@ test('late acquisition remains owned through its one interrupt and release', asy
   assert.equal(lifecycle.state.kind, 'failed')
 })
 
+test('a late onStop rejection is retained and reported across retry timing', async () => {
+  for (const retryBeforeReject of [ false, true ]) {
+    const clock = createManualClock()
+    const stopHook = deferred<void>()
+    const hookError = new Error('late stop-hook rejection')
+    let stopCalls = 0
+    const lifecycle = createLifecycle({
+      onStart () {},
+      onStop () {
+        stopCalls++
+        return stopHook.promise
+      },
+    }, { stopTimeoutMs: 5, clock })
+
+    await lifecycle.start()
+    const firstStop = lifecycle.stop()
+    await flushMicrotasks()
+    clock.advanceBy(5)
+    await flushMicrotasks()
+    await assert.rejects(firstStop, LifecycleTimeoutError)
+
+    let retry: Promise<void> | undefined
+    if (retryBeforeReject) {
+      retry = lifecycle.stop()
+      await flushMicrotasks()
+    }
+    stopHook.reject(hookError)
+    await flushMicrotasks()
+    await assert.rejects(retry ?? lifecycle.stop(), error => error === hookError)
+    assert.equal(stopCalls, 1)
+    assert.equal(lifecycle.state.kind, 'failed')
+    if (lifecycle.state.kind === 'failed') {
+      assert.equal(lifecycle.state.cleanupComplete, true)
+      assert.equal(lifecycle.state.error, hookError)
+    }
+  }
+})
+
 test('sync throws and async disposer rejections remain retryable cleanup debt', async () => {
   for (const mode of [ 'sync', 'async' ] as const) {
     let releaseCalls = 0
@@ -463,6 +508,35 @@ test('sync throws and async disposer rejections remain retryable cleanup debt', 
     assert.equal(releaseCalls, 2)
     assert.equal(lifecycle.state.kind, 'stopped')
   }
+})
+
+test('a stop joining a dirty cleanup retry does not schedule an extra disposal pass', async () => {
+  const releaseRetry = deferred<void>()
+  let releaseCalls = 0
+  const lifecycle = createLifecycle({
+    onStart (scope) {
+      scope.defer(() => {
+        releaseCalls++
+        if (releaseCalls === 1) {
+          throw new Error('first release failed')
+        }
+        return releaseRetry.promise
+      })
+    },
+  })
+
+  await lifecycle.start()
+  await assert.rejects(lifecycle.stop(), /first release failed/)
+  const retry = lifecycle.stop()
+  await flushMicrotasks()
+  assert.equal(releaseCalls, 2)
+
+  const joinedRetry = lifecycle.stop()
+  releaseRetry.resolve()
+  await Promise.all([ retry, joinedRetry ])
+  await flushMicrotasks()
+  assert.equal(releaseCalls, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
 })
 
 test('late cleanup debt stays attached to an old generation after replacement starts', async () => {
@@ -528,7 +602,7 @@ test('a child remains exclusively owned until its first parent releases it', asy
 test('composition and inheritance preserve reentrant observer attempt outcomes', async () => {
   for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
     const events: string[] = []
-    let lifecycle!: ReturnType<typeof createLifecycle>
+    let lifecycle!: Lifecycle
     let reentrantStop: Promise<void> | undefined
     const hooks: LifecycleHooks = {
       onStart: () => {
@@ -548,6 +622,10 @@ test('composition and inheritance preserve reentrant observer attempt outcomes',
       lifecycle = createLifecycle(hooks)
     } else {
       class InheritedService extends AsyncLifecycle {
+        constructor () {
+          super()
+        }
+
         protected override onStart (scope: LifecycleScope): void {
           hooks.onStart(scope)
         }
@@ -570,6 +648,167 @@ test('composition and inheritance preserve reentrant observer attempt outcomes',
     await reentrantStop
     assert.deepEqual(events, [ 'start', 'stop' ])
     assert.equal(lifecycle.state.kind, 'stopped')
+  }
+})
+
+test('the #2905 A–F contract traces pass through both lifecycle entry points', async () => {
+  const createHarness = (
+    entryPoint: 'composition' | 'inheritance',
+    hooks: LifecycleHooks,
+  ): {
+    readonly lifecycle: Lifecycle
+    condition (name: string): LifecycleCondition
+  } => {
+    if (entryPoint === 'composition') {
+      const lifecycle = createLifecycle(hooks)
+      return { lifecycle, condition: name => lifecycle.condition(name) }
+    }
+
+    class InheritedService extends AsyncLifecycle {
+      #hooks: LifecycleHooks
+
+      constructor () {
+        super()
+        this.#hooks = hooks
+      }
+
+      getCondition (name: string): LifecycleCondition {
+        return this.condition(name)
+      }
+
+      protected override onStart (scope: LifecycleScope): Promise<void> | void {
+        return this.#hooks.onStart(scope)
+      }
+
+      protected override onStop = (stop: LifecycleStopContext): Promise<void> | void => {
+        return this.#hooks.onStop?.(stop)
+      }
+
+      protected override onStateChange = (
+        state: LifecycleState,
+        previous: LifecycleState,
+      ): void => {
+        this.#hooks.onStateChange?.(state, previous)
+      }
+    }
+
+    const lifecycle = new InheritedService()
+    return {
+      lifecycle,
+      condition: name => lifecycle.getCondition(name),
+    }
+  }
+
+  for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
+    {
+      const starts: ReturnType<typeof deferred<void>>[] = []
+      const stopGate = deferred<void>()
+      let stopCalls = 0
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart () {
+          const gate = deferred<void>()
+          starts.push(gate)
+          return gate.promise
+        },
+        onStop () {
+          stopCalls++
+          return stopCalls === 1 ? stopGate.promise : undefined
+        },
+      })
+      const initialStart = lifecycle.start()
+      await flushMicrotasks()
+      starts[0]!.resolve()
+      await initialStart
+      const stop = lifecycle.stop()
+      const firstQueuedStart = lifecycle.start()
+      const secondQueuedStart = lifecycle.start()
+      await flushMicrotasks()
+      assert.equal(starts.length, 1)
+      stopGate.resolve()
+      await stop
+      await flushMicrotasks()
+      assert.equal(starts.length, 2)
+      starts[1]!.resolve()
+      await Promise.all([ firstQueuedStart, secondQueuedStart ])
+      await lifecycle.stop()
+    }
+
+    {
+      let scope!: LifecycleScope
+      const gracefulStop = deferred<void>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+        onStop: () => gracefulStop.promise,
+      })
+      await lifecycle.start()
+      const recovery = scope.recover()
+      await flushMicrotasks()
+      const stop = lifecycle.stop()
+      gracefulStop.resolve()
+      assert.equal(await recovery, 'superseded')
+      await stop
+      assert.equal(lifecycle.state.kind, 'stopped')
+    }
+
+    {
+      const startGate = deferred<void>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart: () => startGate.promise,
+      })
+      const start = lifecycle.start()
+      await flushMicrotasks()
+      const stop = lifecycle.stop()
+      startGate.resolve()
+      await assert.rejects(start, LifecycleSupersededError)
+      await stop
+      assert.equal(lifecycle.state.kind, 'stopped')
+    }
+
+    {
+      const startError = new Error(`${entryPoint} startup failure`)
+      let startCalls = 0
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart () {
+          startCalls++
+          if (startCalls === 1) {
+            throw startError
+          }
+        },
+      })
+      await assert.rejects(lifecycle.start(), error => error === startError)
+      await lifecycle.start()
+      assert.equal(startCalls, 2)
+      await lifecycle.stop()
+    }
+
+    {
+      const startError = new Error(`${entryPoint} readiness failure`)
+      const { lifecycle, condition } = createHarness(entryPoint, {
+        onStart: () => {
+          throw startError
+        },
+      })
+      const readyWait = condition('ready').wait()
+      await assert.rejects(lifecycle.start(), error => error === startError)
+      await assert.rejects(readyWait, error => error === startError)
+    }
+
+    {
+      const emitter = new EventEmitter()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (scope) {
+          scope.listen(emitter, 'tick', () => {})
+        },
+      })
+      for (let cycle = 0; cycle < 3; cycle++) {
+        await lifecycle.start()
+        assert.equal(emitter.listenerCount('tick'), 1)
+        await lifecycle.stop()
+        assert.equal(emitter.listenerCount('tick'), 0)
+      }
+    }
   }
 })
 
