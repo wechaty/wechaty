@@ -17,8 +17,7 @@ on:
 jobs:
   interactive:
     # Trusted human commands only. Action also checks actual write access.
-    # startsWith accepts both LF and CRLF after /claude; the action's own
-    # trigger_phrase parser makes the final command determination.
+    # Require a command boundary: end, space, LF, or CRLF.
     if: >-
       (github.event_name == 'issues' &&
        github.event.label.name == 'agent:claude-action' &&
@@ -30,19 +29,19 @@ jobs:
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       startsWith(github.event.comment.body, '/claude')) ||
+       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\r\\n"'))))) ||
       (github.event_name == 'pull_request_review_comment' &&
        github.event.comment.user.type != 'Bot' &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       startsWith(github.event.comment.body, '/claude')) ||
+       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\r\\n"'))))) ||
       (github.event_name == 'pull_request_review' &&
        github.event.review.user.type != 'Bot' &&
        (github.event.review.author_association == 'OWNER' ||
         github.event.review.author_association == 'MEMBER' ||
         github.event.review.author_association == 'COLLABORATOR') &&
-       startsWith(github.event.review.body, '/claude'))
+       (github.event.review.body == '/claude' || startsWith(github.event.review.body, '/claude ') || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\\n"'))) || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\\r\\n"')))))
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
@@ -80,13 +79,13 @@ jobs:
           restrict_untrusted_prs: true
           additional_permissions: |
             actions: read
-          # Do not grant unrestricted Edit, Write, or Bash(git:*).
+          # Do not grant unrestricted Edit, Write, or Git Bash tools.
           # Tag mode provides its own guarded workspace edits and git helpers.
           # Explicit interpreter grants remain denied on untrusted PRs by
           # the action's disallowedTools policy.
           claude_args: |
             --max-turns 50
-            --allowedTools "Read,Glob,Grep,Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*)"
+            --allowedTools "Read,Glob,Grep,Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*)"
 
       - name: Report Claude failure
         if: ${{ failure() }}
@@ -104,9 +103,8 @@ jobs:
     timeout-minutes: 50
     permissions:
       contents: read
-      pull-requests: read
-      issues: read
-      id-token: write
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -118,6 +116,9 @@ jobs:
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
+          # Scope GitHub access to this job's GITHUB_TOKEN, not the action's
+          # default OIDC-minted App token (which has contents write).
+          github_token: ${{ github.token }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
