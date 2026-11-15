@@ -1,7 +1,7 @@
-name: Claude Subscription Agent
+name: Claude Agent
 
-# Subscription-backed Claude coding only. Native @claude is separate.
-# Automatic PR reviews live exclusively in claude-code-review.yml.
+# Subscription-backed Claude: human-directed coding and automatic PR reviews.
+# Native GitHub @claude remains a separate, Copilot-billed route.
 on:
   issue_comment:
     types: [created]
@@ -11,11 +11,14 @@ on:
     types: [submitted]
   issues:
     types: [labeled]
+  pull_request:
+    types: [opened, ready_for_review, reopened]
 
 jobs:
-  implement:
-    # Never execute based on bot messages or arbitrary public comments.
-    # The action performs its own write-permission check as an additional guard.
+  interactive:
+    # Trusted human commands only. Action also checks actual write access.
+    # startsWith accepts both LF and CRLF after /claude; the action's own
+    # trigger_phrase parser makes the final command determination.
     if: >-
       (github.event_name == 'issues' &&
        github.event.label.name == 'agent:claude-action' &&
@@ -27,27 +30,20 @@ jobs:
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       (startsWith(github.event.comment.body, '/claude ') ||
-        github.event.comment.body == '/claude' ||
-        startsWith(github.event.comment.body, '/claude\n'))) ||
+       startsWith(github.event.comment.body, '/claude')) ||
       (github.event_name == 'pull_request_review_comment' &&
        github.event.comment.user.type != 'Bot' &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       (startsWith(github.event.comment.body, '/claude ') ||
-        github.event.comment.body == '/claude' ||
-        startsWith(github.event.comment.body, '/claude\n'))) ||
+       startsWith(github.event.comment.body, '/claude')) ||
       (github.event_name == 'pull_request_review' &&
        github.event.review.user.type != 'Bot' &&
        (github.event.review.author_association == 'OWNER' ||
         github.event.review.author_association == 'MEMBER' ||
         github.event.review.author_association == 'COLLABORATOR') &&
-       (startsWith(github.event.review.body, '/claude ') ||
-        github.event.review.body == '/claude' ||
-        startsWith(github.event.review.body, '/claude\n')))
+       startsWith(github.event.review.body, '/claude'))
     runs-on: ubuntu-latest
-    # GitHub App installation tokens expire after ~60 minutes.
     timeout-minutes: 50
     permissions:
       contents: write
@@ -72,11 +68,10 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Run Claude Code
+      - name: Claude interactive agent
         id: claude
         uses: anthropics/claude-code-action@v1
         env:
-          # Defense in depth: do not pass action secrets into spawned commands.
           CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -85,13 +80,46 @@ jobs:
           restrict_untrusted_prs: true
           additional_permissions: |
             actions: read
-          # No Bash(git:*): git can execute arbitrary programs (e.g. rebase --exec).
-          # Leave commits and pushes to the action's guarded Git helpers.
+          # Do not grant unrestricted Edit, Write, or Bash(git:*).
+          # Tag mode provides its own guarded workspace edits and git helpers.
+          # Explicit interpreter grants remain denied on untrusted PRs by
+          # the action's disallowedTools policy.
           claude_args: |
             --max-turns 50
-            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*)"
+            --allowedTools "Read,Glob,Grep,Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*)"
 
-      - name: Report Claude action failure
+      - name: Report Claude failure
         if: ${{ failure() }}
-        run: |
-          echo "::error::Claude action failed; inspect the Claude step logs. Do not treat a green workflow as proof of a completed coding task."
+        run: echo "::error::Claude failed; check the run logs and verify task completion."
+
+  review:
+    # Single automatic reviewer. Draft PRs wait until ready_for_review.
+    # Never execute a subscription-authenticated review on fork PR code.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false &&
+      github.actor != 'Copilot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
+          plugins: 'code-review@claude-code-plugins'
+          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          claude_args: '--allowedTools "mcp__github_inline_comment__create_inline_comment"'
