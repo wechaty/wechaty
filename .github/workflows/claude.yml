@@ -1,50 +1,90 @@
-name: Claude Code
+name: Claude Subscription Agent
 
+# /claude routes to Claude Pro; @claude remains reserved for native GitHub agents.
 on:
   issue_comment:
     types: [created]
   pull_request_review_comment:
     types: [created]
-  issues:
-    types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [ready_for_review]
+
+concurrency:
+  group: claude-subscription-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
-  claude:
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+  implement:
+    if: >-
+      (github.event_name == 'issues' && github.event.label.name == 'agent:claude-action') ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '/claude'))
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
-
-      - name: Run Claude Code
-        id: claude
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Claude implementation
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
-          # This is an optional setting that allows Claude to read CI results on PRs
+          trigger_phrase: /claude
+          label_trigger: agent:claude-action
+          restrict_untrusted_prs: true
           additional_permissions: |
             actions: read
+          claude_args: |
+            --max-turns 60
+            --allowedTools "Bash(git:*),Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*),Read,Edit,Write,Glob,Grep"
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
-
-          # Optional: Add claude_args to customize behavior and configuration
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
-          # claude_args: '--allowed-tools Bash(gh pr *)'
-
+  review:
+    # No secrets or write-capable shell execution on fork PRs.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'ready_for_review' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.pull_request.author_association == 'OWNER' ||
+       github.event.pull_request.author_association == 'MEMBER' ||
+       github.event.pull_request.author_association == 'COLLABORATOR')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Claude review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          restrict_untrusted_prs: true
+          prompt: |
+            Review this PR for correctness, security, regressions, concurrency
+            races and Node/Deno compatibility. Provide actionable file/line
+            findings. Do not edit, approve or merge.
+          claude_args: |
+            --max-turns 20
+            --allowedTools "Read,Glob,Grep"
