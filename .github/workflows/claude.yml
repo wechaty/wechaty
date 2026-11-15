@@ -29,19 +29,19 @@ jobs:
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\r\\n"'))))) ||
+       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\r\n"'))))) ||
       (github.event_name == 'pull_request_review_comment' &&
        github.event.comment.user.type != 'Bot' &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\\r\\n"'))))) ||
+       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\r\n"'))))) ||
       (github.event_name == 'pull_request_review' &&
        github.event.review.user.type != 'Bot' &&
        (github.event.review.author_association == 'OWNER' ||
         github.event.review.author_association == 'MEMBER' ||
         github.event.review.author_association == 'COLLABORATOR') &&
-       (github.event.review.body == '/claude' || startsWith(github.event.review.body, '/claude ') || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\\n"'))) || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\\r\\n"')))))
+       (github.event.review.body == '/claude' || startsWith(github.event.review.body, '/claude ') || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\r\n"')))))
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
