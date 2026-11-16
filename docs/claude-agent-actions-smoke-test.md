@@ -47,6 +47,10 @@ This Claude-authored push is intended to trigger the automatic `synchronize` rev
 
 The Phase 5 test exercises `git ls-remote` to verify the remote branch head.
 
+## Post-merge v2 review verification
+
+This revision exercises the merged autonomy-first Claude workflow from PR #2922. The deliberately incorrect statement below is retained as an inline-review detection fixture. Do not merge this smoke-test PR.
+
 ## Automatic review permissions
 
 The automatic review job should have `contents: write` permission and push fixes directly to `main` without human approval.
