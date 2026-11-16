@@ -42,6 +42,8 @@ jobs:
        (github.event.review.body == '/claude' || startsWith(github.event.review.body, '/claude ') || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\r\n"')))))
     # Serialize human tasks and automatic reviews for the same issue/PR.
     # GitHub queue:max holds up to 100 pending jobs; overflow is canceled.
+    # Anthropic tag mode may reject a queued command if a preceding job
+    # pushed after that command's timestamp. Retry with a NEW /claude comment.
     concurrency:
       group: claude-agent-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
       queue: max
@@ -93,7 +95,8 @@ jobs:
 
       - name: Report Claude failure
         if: ${{ failure() }}
-        run: echo "::error::Claude failed; check the run logs and verify task completion."
+        run: |
+          echo "::error::Claude failed. If another /claude task pushed to this PR while your command was queued, Anthropic's branch safety check may reject this stale request. After the earlier task completes, post a NEW /claude comment to retry. Check logs for the actual cause."
 
   review:
     # Single automatic reviewer. Draft PRs wait until ready_for_review.
@@ -102,6 +105,7 @@ jobs:
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false &&
+      github.event.sender.type != 'Bot' &&
       github.actor != 'Copilot' &&
       github.actor != 'dependabot[bot]' &&
       github.event.pull_request.user.login != 'dependabot[bot]'
@@ -133,11 +137,17 @@ jobs:
         run: |
           current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
           if [ "$current_sha" != "$EXPECTED_SHA" ]; then
-            echo "::warning::PR head changed while review was queued; skip stale review. Request a fresh review after the current coding task."
+            echo "::warning::PR head changed while review was queued; skipping stale review. After coding finishes, a maintainer can move this PR to draft and then mark it ready for review, or close and reopen it, to trigger a NEW review event. Rerunning this old workflow will not refresh its event SHA."
             echo "current=false" >> "$GITHUB_OUTPUT"
           else
             echo "current=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Explain stale review skip
+        if: steps.review-target.outputs.current == 'false'
+        run: |
+          echo "### Claude review skipped: stale PR HEAD" >> "$GITHUB_STEP_SUMMARY"
+          echo "The PR changed after this event. After coding finishes, toggle draft → ready for review (or close → reopen) to request a new review. Rerunning this workflow retains the old event SHA." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run Claude Code Review
         if: steps.review-target.outputs.current == 'true'
@@ -152,3 +162,17 @@ jobs:
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           claude_args: '--allowedTools "mcp__github_inline_comment__create_inline_comment"'
+
+      - name: Check whether reviewed HEAD changed
+        if: steps.review-target.outputs.current == 'true' && always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+          if [ "$current_sha" != "$EXPECTED_SHA" ]; then
+            echo "::warning::PR HEAD changed during Claude review. Any posted comments may be stale; request a NEW review on the current HEAD."
+            echo "### Review may be stale" >> "$GITHUB_STEP_SUMMARY"
+            echo "Expected \`$EXPECTED_SHA\`, current \`$current_sha\`. Trigger a new review with draft → ready after coding finishes." >> "$GITHUB_STEP_SUMMARY"
+          fi
