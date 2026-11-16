@@ -34,6 +34,11 @@ review of the updated revision (trigger a new ready-for-review event if needed).
 
 The trusted `/claude` path can edit, commit, and push to this PR branch.
 
+## Automatic re-review test
+
+This commit is intended to trigger the `pull_request` `synchronize` review
+workflow, so that a fresh review runs for the updated head revision.
+
 ## Safety
 
 No production code, secrets, dependencies, or workflow permissions are changed
