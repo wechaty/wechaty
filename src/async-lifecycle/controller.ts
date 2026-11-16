@@ -778,6 +778,9 @@ class LifecycleKernel {
     // desired === 'stopped'
     if (this.#current && !this.#current.retired) {
       this.#mustRetireCurrent = false
+      // Consume the explicit dirty-retry request exactly once: a retry that
+      // fails again stays dirty until the next explicit stop(), never spins.
+      this.#dirtyCleanupRequested = false
       await this.#retire('stop')
       return
     }
@@ -1226,7 +1229,7 @@ class LifecycleKernel {
             anyRes[Symbol.dispose]!()
           }
         }
-        if (!record.ledger.register(disposer, true)) {
+        if (!record.ledger.register(disposer)) {
           void record.ledger.releaseLate(disposer).catch(() => {})
           throw abortReason()
         }
@@ -1235,7 +1238,7 @@ class LifecycleKernel {
 
       adopt (resource, release) {
         const disposer = () => release(resource)
-        if (!record.ledger.register(disposer, true)) {
+        if (!record.ledger.register(disposer)) {
           void record.ledger.releaseLate(disposer).catch(() => {})
           throw abortReason()
         }
@@ -1251,14 +1254,14 @@ class LifecycleKernel {
 
       spawn (task) {
         let taskPromise: Promise<void> = Promise.resolve()
-        if (!record.ledger.register(() => taskPromise)) {
+        if (!record.ledger.register(() => taskPromise, true)) {
           throw abortReason()
         }
         taskPromise = Promise.resolve().then(async () => {
           try {
             await task(record.controller.signal)
           } catch (error) {
-            if (error === record.controller.signal.reason) {
+            if (record.controller.signal.aborted && error === record.controller.signal.reason) {
               return // expected abort
             }
             if (isActive()) {
@@ -1283,7 +1286,7 @@ class LifecycleKernel {
         }
 
         // Register ownership before starting: stop the child during unwind.
-        if (!record.ledger.register(() => child.stop(), true)) {
+        if (!record.ledger.register(() => child.stop())) {
           throw abortReason()
         }
         record.controller.signal.addEventListener(
@@ -1292,7 +1295,7 @@ class LifecycleKernel {
           { once: true },
         )
         let watch: Promise<void> = Promise.resolve()
-        if (!record.ledger.register(() => watch)) {
+        if (!record.ledger.register(() => watch, true)) {
           throw abortReason()
         }
 

@@ -54,15 +54,17 @@ class ResourceLedger {
   }
 
   /**
-   * Add a disposer unless retirement has sealed the ledger.
+   * Add a disposer unless retirement has sealed the ledger. Cleanup entries
+   * unwind in strict reverse registration order; `joinsTask` entries (spawned
+   * task joins) run after them so closing a resource can unblock the task.
    */
-  register (disposer: Disposer, interruptsTasks = false): boolean {
+  register (disposer: Disposer, joinsTask = false): boolean {
     if (this.#sealed) {
       return false
     }
     this.#disposers.push({
       dispose: disposer,
-      interruptsTasks,
+      interruptsTasks: !joinsTask,
       late: false,
       complete: false,
       pending: undefined,

@@ -1065,3 +1065,66 @@ test('failed snapshot carries phase/error/cleanup fields', async () => {
     assert.fail('expected failed state')
   }
 })
+
+// =========================================================================
+// Review-round regressions (PR #2913, Codex findings on 9e4e715)
+// =========================================================================
+
+test('a disposer that always fails is retried once per explicit stop, never spun', async () => {
+  let calls = 0
+  const lc = createLifecycle({
+    onStart: scope => {
+      scope.defer(() => { calls += 1; throw new Error('stuck') })
+    },
+  })
+  await lc.start()
+  await assert.rejects(lc.stop(), /stuck/)
+  assert.equal(calls, 1)
+  await assert.rejects(lc.stop(), /stuck/)
+  // Let any runaway reconcile loop show itself across macrotasks.
+  await tick(20)
+  assert.equal(calls, 2)
+  assert.equal(lc.state.kind === 'failed' && lc.state.cleanupComplete, false)
+})
+
+test('mixed adopt/defer cleanup keeps reverse registration order', async () => {
+  const order: string[] = []
+  const lc = createLifecycle({
+    onStart: scope => {
+      scope.adopt({}, () => { order.push('conn') })
+      scope.defer(() => { order.push('dependent-op') })
+    },
+  })
+  await lc.start()
+  await lc.stop()
+  // defer was registered last, so it runs first, while conn is still open.
+  assert.deepEqual(order, [ 'dependent-op', 'conn' ])
+})
+
+test('a spawned task that throws undefined fails the generation', async () => {
+  const lc = createLifecycle({
+    onStart: scope => {
+      scope.spawn(async () => {
+        await tick(1)
+        // eslint-disable-next-line no-throw-literal
+        throw undefined
+      })
+    },
+  })
+  await lc.start()
+  await lc.whenState(s => s.kind === 'failed')
+  assert.equal(lc.state.kind, 'failed')
+})
+
+test('task blocked on a socket close still does not deadlock with mixed cleanup', async () => {
+  const closed = gate()
+  const lc = createLifecycle({
+    onStart: scope => {
+      scope.adopt({}, () => closed.open())
+      scope.spawn(async () => { await closed.promise })
+    },
+  })
+  await lc.start()
+  await lc.stop()
+  assert.equal(lc.state.kind, 'stopped')
+})
