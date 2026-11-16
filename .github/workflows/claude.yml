@@ -161,6 +161,7 @@ jobs:
           EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           marker="<!-- claude-agent-reviewed head=${EXPECTED_SHA} base=${EXPECTED_BASE_SHA} -->"
+          # Accept only completion markers authored by the workflow token identity.
           if gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --jq '.[].body' | grep -Fqx "$marker"; then
             echo "already_reviewed=true" >> "$GITHUB_OUTPUT"
             echo "Already reviewed this exact head/base revision." >> "$GITHUB_STEP_SUMMARY"
@@ -191,7 +192,7 @@ jobs:
             If no actionable issues are found, report that clearly.
           claude_args: |
             --max-turns 30
-            --allowedTools "Read,Glob,Grep,Bash(gh pr diff:*),Bash(gh api:*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Read,Glob,Grep,Bash(gh pr diff:*),mcp__github_inline_comment__create_inline_comment"
 
       - name: Record completed review for exact revision
         if: steps.claude-review.outcome == 'success'
@@ -223,5 +224,5 @@ jobs:
           if [ "$current_sha" != "$EXPECTED_SHA" ] || [ "$current_base_sha" != "$EXPECTED_BASE_SHA" ]; then
             echo "::warning::PR HEAD or BASE changed during Claude review. Any posted comments may be stale; request a NEW review on the current revision."
             echo "### Review may be stale" >> "$GITHUB_STEP_SUMMARY"
-            echo "Expected \`$EXPECTED_SHA\`, current \`$current_sha\`. Trigger a new review with draft → ready after coding finishes." >> "$GITHUB_STEP_SUMMARY"
+            echo "Expected HEAD/BASE: $EXPECTED_SHA / $EXPECTED_BASE_SHA; current HEAD/BASE: $current_sha / $current_base_sha. Trigger a new review with draft → ready after coding finishes." >> "$GITHUB_STEP_SUMMARY"
           fi
