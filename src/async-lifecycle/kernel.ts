@@ -291,6 +291,12 @@ export class LifecycleKernel implements LifecycleController {
     this.#mustRetireGeneration = 0
     this.#conditions.rejectPreStartWaiters()
 
+    const pendingRecovery = this.#activeRun?.pendingRecovery
+    if (pendingRecovery !== undefined) {
+      this.#activeRun!.pendingRecovery = undefined
+      pendingRecovery.outcome.resolve('superseded')
+    }
+
     // Immediately reject any queued replacement `start()` / `restart()` that has not booted yet.
     if (this.#queuedStartAttempt) {
       const supersededQueued = this.#queuedStartAttempt
@@ -876,7 +882,7 @@ export class LifecycleKernel implements LifecycleController {
 
   async #retireRunningGeneration (run: GenerationRun): Promise<void> {
     const recovery = run.pendingRecovery
-    const isFailureRetirement = run.failureReported
+    let isFailureRetirement = run.failureReported
     const isStopRetirement = !isFailureRetirement && (
       run.stopRequested
       || (this.#mustRetireGeneration < run.generation && this.#desired === 'stopped')
@@ -902,6 +908,14 @@ export class LifecycleKernel implements LifecycleController {
     ) {
       run.pendingRecovery = undefined
       recovery.outcome.resolve('superseded')
+      if (
+        this.#activeRun === run
+        && this.#state.kind === 'running'
+        && this.#desired === 'running'
+        && this.#mustRetireGeneration < run.generation
+      ) {
+        this.#takeQueuedStartAttempt()?.resolve()
+      }
       return
     }
 
@@ -968,7 +982,13 @@ export class LifecycleKernel implements LifecycleController {
         } else {
           const unwindResult = await run.ledger.unwind(
             stopDeadline.signal,
-            stopReason === 'recover' ? recovery?.requesterTaskIds : undefined,
+            stopReason === 'recover'
+                && recovery !== undefined
+                && run.pendingRecovery === recovery
+                && this.#revision === recovery.capturedRevision
+                && this.#desired === 'running'
+              ? recovery.requesterTaskIds
+              : undefined,
           )
           if (!unwindResult.cleanupComplete) {
             cleanupComplete = false
@@ -980,6 +1000,9 @@ export class LifecycleKernel implements LifecycleController {
       stopDeadline.dispose()
     }
 
+    // A failure reported by an owned task or child while retirement awaited user code
+    // must not be hidden by the earlier stop/restart/recover decision.
+    isFailureRetirement ||= run.failureReported
     this.#activeRun = undefined
     if (this.#mustRetireGeneration === run.generation) {
       this.#mustRetireGeneration = 0

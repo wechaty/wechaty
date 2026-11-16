@@ -59,6 +59,7 @@ export abstract class AsyncLifecycle implements Lifecycle {
     }
 
     this.#controller = createLifecycle(hooks, effectiveOptions)
+    this.#lockFinalMembers()
   }
 
   /** Frozen snapshot of the current lifecycle state. */
@@ -138,5 +139,29 @@ export abstract class AsyncLifecycle implements Lifecycle {
       }
       proto = Object.getPrototypeOf(proto) as object | null
     }
+  }
+
+  /**
+   * Reserves final own-property names so subclass fields initialized after `super()` cannot
+   * shadow the kernel-backed API. Prototype overrides are reported by the earlier guard.
+   */
+  #lockFinalMembers (): void {
+    for (const methodName of FINAL_METHOD_NAMES) {
+      Object.defineProperty(this, methodName, {
+        configurable: false,
+        value: AsyncLifecycle.prototype[methodName].bind(this),
+        writable: false,
+      })
+    }
+
+    Object.defineProperty(this, 'state', {
+      configurable: false,
+      get: () => this.#controller.state,
+    })
+    Object.defineProperty(this, Symbol.asyncDispose, {
+      configurable: false,
+      value: AsyncLifecycle.prototype[Symbol.asyncDispose].bind(this),
+      writable: false,
+    })
   }
 }

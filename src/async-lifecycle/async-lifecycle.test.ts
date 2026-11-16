@@ -4,6 +4,7 @@
  */
 
 import assert from 'node:assert/strict'
+import diagnosticsChannel from 'node:diagnostics_channel'
 import { EventEmitter } from 'node:events'
 import test from 'node:test'
 
@@ -16,6 +17,7 @@ import {
   LifecycleSupersededError,
   LifecycleTimeoutError,
   LifecycleUnsafeStateError,
+  LIFECYCLE_DIAGNOSTICS_CHANNEL,
 } from './mod.ts'
 import {
   getAbortReason,
@@ -703,6 +705,197 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
 
   for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
     {
+      const startGate = deferred<void>()
+      const startEntered = deferred<void>()
+      let startCalls = 0
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart () {
+          startCalls++
+          startEntered.resolve()
+          return startGate.promise
+        },
+      })
+      const firstStart = lifecycle.start()
+      const secondStart = lifecycle.start()
+      await startEntered.promise
+      assert.equal(startCalls, 1)
+      startGate.resolve()
+      await Promise.all([ firstStart, secondStart ])
+      assert.equal(lifecycle.state.generation, 1)
+      await lifecycle.stop()
+    }
+
+    {
+      const startGate = deferred<void>()
+      const controller = new AbortController()
+      const reason = new Error(`${entryPoint} caller wait cancelled`)
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart: () => startGate.promise,
+      })
+      const cancelledStart = lifecycle.start({ signal: controller.signal })
+      await flushMicrotasks()
+      const sharedStart = lifecycle.start()
+      controller.abort(reason)
+      await assert.rejects(cancelledStart, error => error === reason)
+      assert.equal(lifecycle.state.kind, 'starting')
+      startGate.resolve()
+      await sharedStart
+      const runningState = lifecycle.state
+      assert.equal(runningState.kind, 'running')
+      assert.equal(runningState.generation, 1)
+      await lifecycle.stop()
+    }
+
+    {
+      const finishStop = deferred<void>()
+      let stopCalls = 0
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart: () => {},
+        onStop () {
+          stopCalls++
+          return finishStop.promise
+        },
+      })
+      await lifecycle.start()
+      const firstStop = lifecycle.stop()
+      const secondStop = lifecycle.stop()
+      const dispose = lifecycle[Symbol.asyncDispose]()
+      finishStop.resolve()
+      await Promise.all([ firstStop, secondStop, dispose ])
+      assert.equal(stopCalls, 1)
+      assert.equal(lifecycle.state.kind, 'stopped')
+    }
+
+    {
+      const clock = createManualClock()
+      let scope!: LifecycleScope
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+      }, { clock })
+      await lifecycle.start()
+      createWatchdog(scope, { timeoutMs: 5, clock })
+      await lifecycle.stop()
+      clock.advanceBy(5)
+      const stoppedState = lifecycle.state
+      assert.equal(stoppedState.kind, 'stopped')
+      assert.equal(stoppedState.generation, 1)
+    }
+
+    {
+      const childStart = deferred<void>()
+      const childEntered = deferred<void>()
+      const childHarness = createHarness(entryPoint, {
+        onStart () {
+          childEntered.resolve()
+          return childStart.promise
+        },
+      })
+      const parent = createHarness(entryPoint, {
+        async onStart (scope) {
+          await scope.start(childHarness.lifecycle)
+        },
+      })
+      const parentStart = parent.lifecycle.start()
+      await childEntered.promise
+      const parentStop = parent.lifecycle.stop()
+      childStart.resolve()
+      await assert.rejects(parentStart, LifecycleSupersededError)
+      await parentStop
+      assert.equal(parent.lifecycle.state.kind, 'stopped')
+      assert.equal(childHarness.lifecycle.state.kind, 'stopped')
+    }
+
+    {
+      let scope!: LifecycleScope
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+      })
+      await lifecycle.start()
+      const recovery = scope.recover()
+      const started = lifecycle.start()
+      assert.equal(await recovery, 'superseded')
+      await started
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 1)
+      await lifecycle.stop()
+    }
+
+    {
+      let scope!: LifecycleScope
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+      })
+      await lifecycle.start()
+      await scope.recover()
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 2)
+      await scope.recover()
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 3)
+      await lifecycle.stop()
+    }
+
+    {
+      let scope!: LifecycleScope
+      const stopEntered = deferred<void>()
+      const finishStop = deferred<void>()
+      const taskFinished = deferred<void>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+        onStop () {
+          stopEntered.resolve()
+          return finishStop.promise
+        },
+      })
+      await lifecycle.start()
+      scope.spawn(async () => {
+        assert.equal(await scope.recover(), 'superseded')
+        taskFinished.resolve()
+      })
+      const stop = lifecycle.stop()
+      await stopEntered.promise
+      await taskFinished.promise
+      finishStop.resolve()
+      await stop
+      assert.equal(lifecycle.state.kind, 'stopped')
+    }
+
+    {
+      let scope!: LifecycleScope
+      const stopEntered = deferred<void>()
+      const finishStop = deferred<void>()
+      const failure = new Error(`${entryPoint} failure during recovery retirement`)
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+        onStop () {
+          stopEntered.resolve()
+          return finishStop.promise
+        },
+      })
+      await lifecycle.start()
+      const recovery = scope.recover()
+      await stopEntered.promise
+      scope.fail(failure)
+      finishStop.resolve()
+      assert.equal(await recovery, 'failed')
+      assert.equal(lifecycle.state.kind, 'failed')
+      if (lifecycle.state.kind === 'failed') {
+        assert.equal(lifecycle.state.error, failure)
+        assert.equal(lifecycle.state.phase, 'run')
+      }
+    }
+
+    {
       const clock = createManualClock()
       const pendingAcquisition = deferred<{ readonly name: string }>()
       const acquisitionStarted = deferred<void>()
@@ -1200,6 +1393,87 @@ test('AsyncLifecycle inheritance rejects final-method overrides', async () => {
     }
   }
   assert.throws(() => new DisposeOverrideService(), LifecycleOverrideError)
+
+  class FieldStartOverride extends AsyncLifecycle {
+    constructor () {
+      super()
+    }
+
+    protected override onStart (): void {}
+
+    override start = (): Promise<void> => Promise.resolve()
+  }
+  assert.throws(() => new FieldStartOverride(), TypeError)
+})
+
+test('diagnostics publish committed sanitized metadata before isolated observers', async () => {
+  const channel = diagnosticsChannel.channel(LIFECYCLE_DIAGNOSTICS_CHANNEL)
+  const events: Array<Record<string, unknown>> = []
+  const order: string[] = []
+  const secret = 'credential=must-not-appear'
+  let lifecycle!: Lifecycle
+  let scope!: LifecycleScope
+
+  const subscriber = (event: unknown): void => {
+    const payload = event as Record<string, unknown>
+    events.push(payload)
+    order.push(`diagnostic:${String(payload['kind'])}`)
+    assert.equal(lifecycle.state.kind, payload['kind'])
+    assert.equal(Object.isFrozen(payload), true)
+  }
+  channel.subscribe(subscriber)
+
+  try {
+    lifecycle = createLifecycle({
+      onStart (currentScope) {
+        scope = currentScope
+      },
+      onStateChange (state) {
+        order.push(`observer:${state.kind}`)
+        if (state.kind === 'running') {
+          throw new Error(secret)
+        }
+      },
+    }, { name: 'diagnostic-test' })
+
+    const failed = lifecycle.whenState(state => state.kind === 'failed')
+    await lifecycle.start()
+    scope.fail(new Error(secret))
+    await failed
+
+    assert.deepEqual(order, [
+      'diagnostic:starting',
+      'observer:starting',
+      'diagnostic:running',
+      'observer:running',
+      'diagnostic:stopping',
+      'observer:stopping',
+      'diagnostic:failed',
+      'observer:failed',
+    ])
+    assert.equal(events.length, 4)
+    const failedEvent = events.at(-1)!
+    assert.deepEqual(Object.keys(failedEvent).sort(), [
+      'cleanupComplete',
+      'durationMs',
+      'generation',
+      'instanceId',
+      'kind',
+      'phase',
+      'previousKind',
+      'revision',
+      'service',
+      'timestampMs',
+      'version',
+    ])
+    assert.equal(failedEvent['kind'], 'failed')
+    assert.equal(failedEvent['phase'], 'run')
+    assert.equal(failedEvent['service'], 'diagnostic-test')
+    assert.equal(JSON.stringify(events).includes(secret), false)
+    await lifecycle.stop()
+  } finally {
+    channel.unsubscribe(subscriber)
+  }
 })
 
 test('watchdog feed, disarm, and expiry use the supplied clock', async () => {
