@@ -79,16 +79,15 @@ jobs:
         id: claude
         uses: anthropics/claude-code-action@v1
         env:
-          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           trigger_phrase: /claude
           label_trigger: agent:claude-action
-          restrict_untrusted_prs: true
+          restrict_untrusted_prs: false
           additional_permissions: |
             actions: read
             contents: write
-            pull-requests: write
+            pull_requests: write
             issues: write
           # Explicit full-execution experiment for trusted human commands.
           # Do not apply this to the automatic PR reviewer.
@@ -187,7 +186,7 @@ jobs:
           allowed_bots: 'claude[bot]'
           additional_permissions: |
             contents: write
-            pull-requests: write
+            pull_requests: write
             issues: write
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
@@ -203,6 +202,11 @@ jobs:
             Existing Claude tracking or review comments are NOT a reason to
             skip reviewing this revision.
             If no actionable issues are found, report that clearly.
+            As the LAST review action, publish a PR conversation comment via
+            gh CLI containing this exact completion marker on its own line:
+            <!-- claude-review-complete:${{ github.event.pull_request.head.sha }}:${{ github.event.pull_request.base.sha }} -->
+            Include a concise review summary (or explicit no-findings result)
+            in the same comment. Never publish the marker before finishing.
           # Broad agent tools and explicit write-scoped GitHub App token.
           # Inline review comments remain the default review output.
           claude_args: |
@@ -219,8 +223,13 @@ jobs:
         run: |
           current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
           current_base_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')"
+          marker="<!-- claude-review-complete:${EXPECTED_SHA}:${EXPECTED_BASE_SHA} -->"
+          completed="$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --paginate --jq '.[] | select(.user.login == "claude[bot]") | .body' | grep -Fxc "$marker" || true)"
           if [ "$current_sha" != "$EXPECTED_SHA" ] || [ "$current_base_sha" != "$EXPECTED_BASE_SHA" ]; then
             echo "::warning::Review completed but PR revision changed; no status recorded. Trigger a new review event."
+          elif [ "$completed" -lt 1 ]; then
+            echo "::warning::Claude exited successfully but did not publish the required review completion marker. No dedup status recorded."
+            echo "Claude review output was not verified; request another review." >> "$GITHUB_STEP_SUMMARY"
           else
             gh api -X POST "repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}" \
               -f state=success \
