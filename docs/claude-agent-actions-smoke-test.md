@@ -30,6 +30,10 @@ Verify that the agent accepts the authorized request, edits only this file,
 pushes the commit, and reports its result. A new commit should permit a fresh
 review of the updated revision (trigger a new ready-for-review event if needed).
 
+## Interactive agent result
+
+The trusted `/claude` path can edit, commit, and push to this PR branch.
+
 ## Safety
 
 No production code, secrets, dependencies, or workflow permissions are changed
