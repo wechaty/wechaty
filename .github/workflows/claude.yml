@@ -1,7 +1,7 @@
 name: Claude Agent
 
 # Subscription-backed Claude: human-directed coding and automatic PR reviews.
-# Native GitHub @claude remains a separate, Copilot-billed route.
+# Experimental @claude comment trigger; may overlap with native GitHub Claude.
 on:
   issue_comment:
     types: [created]
@@ -17,7 +17,7 @@ on:
 jobs:
   interactive:
     # Trusted human commands only. Action also checks actual write access.
-    # Require a command boundary: end, space, LF, or CRLF.
+    # Experimental start-of-comment @claude trigger with command boundary.
     if: >-
       (github.event_name == 'issues' &&
        github.event.label.name == 'agent:claude-action' &&
@@ -27,23 +27,23 @@ jobs:
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\r\n"'))))) ||
+       (github.event.comment.body == '@claude' || startsWith(github.event.comment.body, '@claude ') || startsWith(github.event.comment.body, format('@claude{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('@claude{0}', fromJSON('"\r\n"'))))) ||
       (github.event_name == 'pull_request_review_comment' &&
        github.event.comment.user.type != 'Bot' &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR') &&
-       (github.event.comment.body == '/claude' || startsWith(github.event.comment.body, '/claude ') || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('/claude{0}', fromJSON('"\r\n"'))))) ||
+       (github.event.comment.body == '@claude' || startsWith(github.event.comment.body, '@claude ') || startsWith(github.event.comment.body, format('@claude{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('@claude{0}', fromJSON('"\r\n"'))))) ||
       (github.event_name == 'pull_request_review' &&
        github.event.review.user.type != 'Bot' &&
        (github.event.review.author_association == 'OWNER' ||
         github.event.review.author_association == 'MEMBER' ||
         github.event.review.author_association == 'COLLABORATOR') &&
-       (github.event.review.body == '/claude' || startsWith(github.event.review.body, '/claude ') || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\r\n"')))))
+       (github.event.review.body == '@claude' || startsWith(github.event.review.body, '@claude ') || startsWith(github.event.review.body, format('@claude{0}', fromJSON('"\n"'))) || startsWith(github.event.review.body, format('@claude{0}', fromJSON('"\r\n"')))))
     # Serialize human tasks and automatic reviews for the same issue/PR.
     # GitHub queue:max holds up to 100 pending jobs; overflow is canceled.
     # Anthropic tag mode may reject a queued command if a preceding job
-    # pushed after that command's timestamp. Retry with a NEW /claude comment.
+    # pushed after that command's timestamp. Retry with a NEW @claude comment.
     concurrency:
       group: claude-agent-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
       queue: max
@@ -80,7 +80,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          trigger_phrase: /claude
+          trigger_phrase: '@claude'
           label_trigger: agent:claude-action
           restrict_untrusted_prs: false
           additional_permissions: |
@@ -97,7 +97,7 @@ jobs:
       - name: Report Claude failure
         if: ${{ failure() }}
         run: |
-          echo "::error::Claude failed. If another /claude task pushed to this PR while your command was queued, Anthropic's branch safety check may reject this stale request. After the earlier task completes, post a NEW /claude comment to retry. Check logs for the actual cause."
+          echo "::error::Claude failed. If another /claude task pushed to this PR while your command was queued, Anthropic's branch safety check may reject this stale request. After the earlier task completes, post a NEW @claude comment to retry. Check logs for the actual cause."
 
   review:
     # Single automatic reviewer. Draft PRs wait until ready_for_review.
