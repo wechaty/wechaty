@@ -1,35 +1,38 @@
-# Claude Agent Permission Policy v1
+# Claude Agent Permission Policy v2 — autonomy-first
 
-## Goal
+## Intent
 
-Maximize useful autonomous engineering work while keeping credentials, protected branches, and repository administration outside the agent's routine authority. Tool permissions, GitHub token scopes, and branch protection are independent controls; none replaces the others.
+Favor productive autonomous development over command-by-command approval. Claude Code tool approval, Bash sandboxing, GitHub token permissions, and branch rules are distinct controls. Broad tool access is not the same as broad GitHub authorization.
 
-## Interactive agent (trusted maintainer command)
+## Trusted interactive agent
 
-- Only trusted human collaborators can initiate `/claude`; the action independently checks write access.
-- Allow repository inspection, narrow read-only Git commands, Node/npm/Deno development tools, and the action's guarded editing, commit, and PR-branch push flow.
-- Do not grant unrestricted Bash, unrestricted Git push, shell-based secret access, or arbitrary repository administration.
-- Work on task/PR branches; merging to `main`, changing rulesets, managing secrets, or changing organization settings remains a human action.
-- Preserve sandboxing and `restrict_untrusted_prs`; do not treat a trusted command as making PR content trustworthy.
+- Only the existing trusted-human trigger and the action's write-access verification may initiate work.
+- Allow Read, Glob, Grep, Edit, Write and unrestricted Bash tool patterns for normal development, including git, gh, npm, Deno, tests and debugging.
+- Retain the Claude Bash sandbox, subprocess environment scrubbing, `restrict_untrusted_prs: true`, guarded tag-mode commit/push behavior, and checkout with `persist-credentials: false`.
+- The interactive job retains its existing contents/PR/issues write token for authorized branch work. Protected-branch rules, required checks and human merge decisions remain in force.
+- Do not grant repository administration, secrets management, ruleset modification or an intentional direct-to-main merge workflow.
 
 ## Automatic PR reviewer
 
-- Only same-repository, non-draft PRs; bot-triggered synchronize events are limited to `claude[bot]`.
-- Read-only repository and PR inspection; allow narrowly scoped Git/gh inspection and the inline-review-comment tool.
-- No source edits, commits, pushes, merges, or administrative operations.
-- Use Claude's GitHub App identity for published feedback; record completion against exact HEAD/BASE revisions.
-- A successful action run does not by itself prove review quality or that comments were published.
+- Same-repository non-draft PRs only; retain bot exclusions, Claude-authored synchronize exception, revision-specific status and deduplication.
+- Allow broad Bash inspection (git, gh and other diagnostic commands), Read, Glob and Grep; do not explicitly allow Edit/Write.
+- Keep `contents: read`, `pull-requests: write` for feedback, and the dedicated inline-comment tool. No authorized source push or merge.
+- Do not interpret a green job as proof that comments were published. A review with no findings can legitimately publish no comments.
 
-## Permission design
+## Security tradeoffs and limitations
 
-Prefer exact command patterns to broad `Bash(git:*)` or `Bash(gh:*)`. Explicitly permitted Git commands are inspection-only. Note that Git configuration, aliases, hooks, external diff drivers, and command arguments can change risk; command allowlists are defense in depth, not a sandbox replacement. Review changes to allowlists like security-sensitive code.
+- **Important:** unrestricted Bash can write workspace files, run arbitrary scripts, read available environment variables, and potentially communicate with external systems subject to sandbox/network policy. A tool allowlist is not a credential boundary.
+- `persist-credentials: false` prevents checkout from persisting its token in Git configuration; it does **not** guarantee that OAuth tokens or action-provided credentials are inaccessible to a compromised Claude subprocess.
+- This PR does not implement a separately brokered GitHub credential or prove strong secret isolation. Achieving that requires an architecture where untrusted execution has no credential access and privileged GitHub operations happen through a separate validated broker/job.
+- Keep the sandbox enabled and the existing trust checks. Avoid adding arbitrary network access or disabling permission checks globally until credential isolation is tested.
+- Broad Bash in automatic review may execute repository-supplied code if Claude chooses to; the review prompt prohibits following PR instructions, but prompt text alone is not an isolation mechanism.
 
-## Acceptance tests (PR #2917)
+## Verification before merge
 
-1. Interactive Claude runs `git ls-remote` on the repository and independently confirms the remote PR branch HEAD, without a tool approval denial.
-2. Automatic reviewer inspects a deliberately harmless, seeded issue and publishes an actionable inline comment under `claude[bot]`.
-3. Confirm the exact HEAD/BASE completion status, no `github-actions[bot]` bookkeeping comment, and no unauthorized file changes.
-4. Verify a repeated review event for an already completed revision is deduplicated.
-5. Confirm unrelated bots and fork PRs do not get subscription-backed review access.
+1. Inspect the effective Claude Code tool and sandbox settings in both jobs; ensure broad Bash is accepted by the installed action version.
+2. On PR #2917, rerun the interactive remote verification and branch-only edit/push; verify no unexpected files changed.
+3. Re-trigger automatic review on the seeded permission-policy issue. Inspect the job logs for denied operations and verify a concrete inline comment by `claude[bot]` (not Codex).
+4. Report permission denials separately from review success; investigate whether the denied operation was essential. Do not infer review quality from exit status.
+5. Check fork/bot exclusions, HEAD/BASE deduplication, protected-branch enforcement, and credential redaction in logs.
 
-Do not merge the smoke-test fixture until these tests pass. Never introduce real secrets or intentionally exploitable code for testing.
+This v2 policy supersedes v1 after merge. PR #2917 remains an unmerged test fixture until its deliberate incorrect statement is removed.
