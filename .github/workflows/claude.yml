@@ -162,7 +162,7 @@ jobs:
         run: |
           marker="<!-- claude-agent-reviewed head=${EXPECTED_SHA} base=${EXPECTED_BASE_SHA} -->"
           # Accept only completion markers authored by the workflow token identity.
-          if gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --jq '.[].body' | grep -Fqx "$marker"; then
+          if gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --jq '.[] | select(.user.login == "github-actions[bot]" and .user.type == "Bot") | .body' | grep -Fqx "$marker"; then
             echo "already_reviewed=true" >> "$GITHUB_OUTPUT"
             echo "Already reviewed this exact head/base revision." >> "$GITHUB_STEP_SUMMARY"
           else
