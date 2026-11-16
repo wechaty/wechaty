@@ -222,10 +222,10 @@ jobs:
           if [ "$current_sha" != "$EXPECTED_SHA" ] || [ "$current_base_sha" != "$EXPECTED_BASE_SHA" ]; then
             echo "::warning::Review completed but PR revision changed; no status recorded. Trigger a new review event."
           else
-            gh api -X POST "repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}" \\
-              -f state=success \\
-              -f context="claude-agent/review/${EXPECTED_BASE_SHA}" \\
-              -f description="Claude reviewed this exact HEAD/BASE revision" \\
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}" \
+              -f state=success \
+              -f context="claude-agent/review/${EXPECTED_BASE_SHA}" \
+              -f description="Claude reviewed this exact HEAD/BASE revision" \
               -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >/dev/null
           fi
 
