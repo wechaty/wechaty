@@ -39,6 +39,10 @@ The trusted `/claude` path can edit, commit, and push to this PR branch.
 This commit is intended to trigger the `pull_request` `synchronize` review
 workflow, so that a fresh review runs for the updated head revision.
 
+## Bot-triggered automatic review verification
+
+This Claude-authored push is intended to trigger the automatic `synchronize` review.
+
 ## Safety
 
 No production code, secrets, dependencies, or workflow permissions are changed
