@@ -55,7 +55,6 @@ jobs:
       pull-requests: write
       issues: write
       actions: read
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -73,18 +72,8 @@ jobs:
         with:
           deno-version: v2.x
 
-      # Keep the Bash sandbox and its network/filesystem boundaries even when
-      # the interactive agent has broad Bash tool permissions.
-      - name: Install Claude Bash sandbox dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends bubblewrap socat
-          command -v bwrap
-          command -v socat
-          if [ -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
-            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          fi
-
+      # Full execution experiment: do not install/enable the Claude Bash sandbox.
+      # GitHub-hosted runners are ephemeral; no repository admin token is granted.
       - name: Claude interactive agent
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -97,12 +86,11 @@ jobs:
           restrict_untrusted_prs: true
           additional_permissions: |
             actions: read
-          # Broad development tools for trusted interactive commands. Preserve
-          # action-level trust checks, guarded branch pushes and Bash sandbox.
-          # This is NOT a secret-isolation guarantee for arbitrary shell code.
+          # Explicit full-execution experiment for trusted human commands.
+          # Do not apply this to the automatic PR reviewer.
           claude_args: |
             --max-turns 50
-            --allowedTools "Read,Glob,Grep,Edit,Write,Bash"
+            --dangerously-skip-permissions
 
       - name: Report Claude failure
         if: ${{ failure() }}
