@@ -1,0 +1,45 @@
+name: Codex ChatGPT Auth PoC (manual only)
+
+# Experimental: never run on PRs, comments, forks, or untrusted source.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  auth-probe:
+    if: ${{ vars.CODEX_AUTH_POC_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Codex CLI
+        run: npm install --global @openai/codex
+
+      - name: Verify CLI version
+        run: codex --version
+
+      - name: Test ChatGPT account-backed headless execution
+        shell: bash
+        env:
+          CODEX_AUTH_JSON_B64: ${{ secrets.CODEX_AUTH_JSON_B64 }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${CODEX_AUTH_JSON_B64}" ]]; then
+            echo "::error::CODEX_AUTH_JSON_B64 secret is missing; no authentication test was run."
+            exit 1
+          fi
+          export CODEX_HOME="$(mktemp -d)"
+          chmod 700 "$CODEX_HOME"
+          trap 'rm -rf "$CODEX_HOME"' EXIT
+          printf '%s' "$CODEX_AUTH_JSON_B64" | base64 --decode > "$CODEX_HOME/auth.json"
+          chmod 600 "$CODEX_HOME/auth.json"
+          unset CODEX_AUTH_JSON_B64
+          cd "$(mktemp -d)"
+          # No checkout, GitHub write token, tools, or source changes.
+          codex exec --skip-git-repo-check --sandbox read-only             "Reply with exactly: WECHATY_CODEX_AUTH_POC_OK"
