@@ -21,9 +21,7 @@ jobs:
     if: >-
       (github.event_name == 'issues' &&
        github.event.label.name == 'agent:claude-action' &&
-       (github.event.issue.author_association == 'OWNER' ||
-        github.event.issue.author_association == 'MEMBER' ||
-        github.event.issue.author_association == 'COLLABORATOR')) ||
+       github.event.sender.type != 'Bot') ||
       (github.event_name == 'issue_comment' &&
        github.event.comment.user.type != 'Bot' &&
        (github.event.comment.author_association == 'OWNER' ||
@@ -42,6 +40,12 @@ jobs:
         github.event.review.author_association == 'MEMBER' ||
         github.event.review.author_association == 'COLLABORATOR') &&
        (github.event.review.body == '/claude' || startsWith(github.event.review.body, '/claude ') || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\n"'))) || startsWith(github.event.review.body, format('/claude{0}', fromJSON('"\r\n"')))))
+    # Serialize human tasks and automatic reviews for the same issue/PR.
+    # GitHub queue:max holds up to 100 pending jobs; overflow is canceled.
+    concurrency:
+      group: claude-agent-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
@@ -98,7 +102,15 @@ jobs:
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false &&
-      github.actor != 'Copilot'
+      github.actor != 'Copilot' &&
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    # Share the same PR lock with interactive coding. A queued review may
+    # become stale if the branch changes; it must not be treated as current.
+    concurrency:
+      group: claude-agent-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
@@ -112,7 +124,23 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Verify review target is current
+        id: review-target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+          if [ "$current_sha" != "$EXPECTED_SHA" ]; then
+            echo "::warning::PR head changed while review was queued; skip stale review. Request a fresh review after the current coding task."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run Claude Code Review
+        if: steps.review-target.outputs.current == 'true'
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
