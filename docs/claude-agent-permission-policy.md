@@ -36,3 +36,11 @@ Favor productive autonomous development over command-by-command approval. Claude
 5. Check fork/bot exclusions, HEAD/BASE deduplication, protected-branch enforcement, and credential redaction in logs.
 
 This v2 policy supersedes v1 after merge. PR #2917 remains an unmerged test fixture until its deliberate incorrect statement is removed.
+
+## Review-driven fixes (PR #2922)
+
+- Use `pull_requests` (underscore) in Claude GitHub App `additional_permissions`; use `pull-requests` (hyphen) only for Actions job permissions.
+- Do not force `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` in the interactive job, since it can override bypass permissions.
+- Set `restrict_untrusted_prs: false` for maintainer-triggered interactive work on outside-authored PRs. This explicitly increases trust in external PR content.
+- Require a Claude-authored review completion comment with a HEAD/BASE-specific marker and a substantive review summary (or explicit no-findings result) before recording the dedup success status. A successful action exit alone is insufficient.
+- Verify these behaviors in real workflow runs; a configured permission is not proof of runtime capability.
