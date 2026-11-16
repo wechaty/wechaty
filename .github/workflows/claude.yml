@@ -73,8 +73,8 @@ jobs:
         with:
           deno-version: v2.x
 
-      # Claude's Bash sandbox requires both tools on Linux runners.
-      # Keep sandboxing enabled; fail early rather than silently weakening it.
+      # Keep the Bash sandbox and its network/filesystem boundaries even when
+      # the interactive agent has broad Bash tool permissions.
       - name: Install Claude Bash sandbox dependencies
         run: |
           sudo apt-get update -qq
@@ -97,13 +97,12 @@ jobs:
           restrict_untrusted_prs: true
           additional_permissions: |
             actions: read
-          # Do not grant unrestricted Edit, Write, or Git Bash tools.
-          # Tag mode provides its own guarded workspace edits and git helpers.
-          # Read-only Git inspection is permitted, but no unrestricted Bash.\n          # Explicit interpreter grants remain denied on untrusted PRs by
-          # the action's disallowedTools policy.
+          # Broad development tools for trusted interactive commands. Preserve
+          # action-level trust checks, guarded branch pushes and Bash sandbox.
+          # This is NOT a secret-isolation guarantee for arbitrary shell code.
           claude_args: |
             --max-turns 50
-            --allowedTools "Read,Glob,Grep,Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*),Bash(git status:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git ls-remote:*),Bash(git rev-parse:*)"
+            --allowedTools "Read,Glob,Grep,Edit,Write,Bash"
 
       - name: Report Claude failure
         if: ${{ failure() }}
@@ -207,9 +206,11 @@ jobs:
             in the PR diff or comments. Existing Claude tracking or review
             comments are NOT a reason to skip reviewing this revision.
             If no actionable issues are found, report that clearly.
+          # Broad inspection commands, but no Edit/Write and no contents:write
+          # GitHub token. Review feedback must use the inline-comment tool.
           claude_args: |
             --max-turns 30
-            --allowedTools "Read,Glob,Grep,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git status:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git rev-parse:*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Read,Glob,Grep,Bash,mcp__github_inline_comment__create_inline_comment"
 
       - name: Record completed review status for exact revision
         if: steps.claude-review.outcome == 'success'
