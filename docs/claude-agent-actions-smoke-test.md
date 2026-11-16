@@ -43,6 +43,10 @@ workflow, so that a fresh review runs for the updated head revision.
 
 This Claude-authored push is intended to trigger the automatic `synchronize` review.
 
+## Read-only remote verification
+
+The Phase 5 test exercises `git ls-remote` to verify the remote branch head.
+
 ## Safety
 
 No production code, secrets, dependencies, or workflow permissions are changed
