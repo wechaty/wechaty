@@ -1260,23 +1260,37 @@ test('recover refuses a running snapshot', async () => {
   await lc.stop()
 })
 
-test('class-field overrides cannot shadow sealed AsyncLifecycle methods', async () => {
+test('class-field overrides of sealed methods are rejected at construction', () => {
   class Bad extends AsyncLifecycle {
     constructor () { super() }
     protected onStart (): void {}
-    // Field initialisers run after super(); they must not replace the facade.
-    start = (): Promise<void> => Promise.resolve()
+    // Field initialisers run after super() with define semantics; the base
+    // installed non-configurable properties, so this must throw, not shadow.
+    override start = (): Promise<void> => Promise.resolve()
   }
-  let threw = false
-  let instance: Bad | undefined
-  try {
-    instance = new Bad()
-  } catch {
-    threw = true
+  assert.throws(() => new Bad(), TypeError)
+})
+
+test('prototype-method overrides of sealed methods throw at construction', () => {
+  class Bad extends AsyncLifecycle {
+    constructor () { super() }
+    protected onStart (): void {}
+    override stop (): Promise<void> { return Promise.resolve() }
   }
-  if (!threw) {
-    await instance!.start()
-    assert.equal(instance!.state.kind, 'running', 'field override must not bypass the kernel')
-    await instance!.stop()
-  }
+  assert.throws(() => new Bad(), /must not override/)
+})
+
+test('explicit stop() before any start leaves pre-start condition waits pending (#2911 Q1 default)', async () => {
+  const lc = createLifecycle({ onStart: scope => { scope.set(lc.condition('ready')) } })
+  const ready = lc.condition('ready')
+  const abort = new AbortController()
+  let settled = false
+  const waiter = ready.wait({ signal: abort.signal }).then(() => { settled = true }, () => { settled = true })
+  await lc.stop()
+  await tick(2)
+  assert.equal(settled, false, 'stop() must not reject a pre-start wait')
+  await lc.start()
+  await waiter
+  assert.equal(settled, true)
+  await lc.stop()
 })
