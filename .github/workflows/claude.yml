@@ -220,8 +220,8 @@ jobs:
         run: |
           current_base_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')"
           current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
-          if [ "$current_sha" != "$EXPECTED_SHA" ]; then
-            echo "::warning::PR HEAD changed during Claude review. Any posted comments may be stale; request a NEW review on the current HEAD."
+          if [ "$current_sha" != "$EXPECTED_SHA" ] || [ "$current_base_sha" != "$EXPECTED_BASE_SHA" ]; then
+            echo "::warning::PR HEAD or BASE changed during Claude review. Any posted comments may be stale; request a NEW review on the current revision."
             echo "### Review may be stale" >> "$GITHUB_STEP_SUMMARY"
             echo "Expected \`$EXPECTED_SHA\`, current \`$current_sha\`. Trigger a new review with draft → ready after coding finishes." >> "$GITHUB_STEP_SUMMARY"
           fi
