@@ -99,11 +99,11 @@ jobs:
             actions: read
           # Do not grant unrestricted Edit, Write, or Git Bash tools.
           # Tag mode provides its own guarded workspace edits and git helpers.
-          # Explicit interpreter grants remain denied on untrusted PRs by
+          # Read-only Git inspection is permitted, but no unrestricted Bash.\n          # Explicit interpreter grants remain denied on untrusted PRs by
           # the action's disallowedTools policy.
           claude_args: |
             --max-turns 50
-            --allowedTools "Read,Glob,Grep,Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*)"
+            --allowedTools "Read,Glob,Grep,Bash(node:*),Bash(npm:*),Bash(npx:*),Bash(deno:*),Bash(git status:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git ls-remote:*),Bash(git rev-parse:*)"
 
       - name: Report Claude failure
         if: ${{ failure() }}
@@ -209,7 +209,7 @@ jobs:
             If no actionable issues are found, report that clearly.
           claude_args: |
             --max-turns 30
-            --allowedTools "Read,Glob,Grep,Bash(gh pr diff:*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Read,Glob,Grep,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git status:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git rev-parse:*),mcp__github_inline_comment__create_inline_comment"
 
       - name: Record completed review status for exact revision
         if: steps.claude-review.outcome == 'success'
