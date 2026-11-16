@@ -705,6 +705,109 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
 
   for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
     {
+      const starts: ReturnType<typeof deferred<void>>[] = []
+      const signals: AbortSignal[] = []
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (scope) {
+          signals.push(scope.signal)
+          const gate = deferred<void>()
+          starts.push(gate)
+          return gate.promise
+        },
+      })
+      const firstStart = lifecycle.start()
+      await flushMicrotasks()
+      const stop = lifecycle.stop()
+      const replacementStart = lifecycle.start()
+      await flushMicrotasks()
+      starts[0]!.resolve()
+      await assert.rejects(firstStart, LifecycleSupersededError)
+      await stop
+      await flushMicrotasks()
+      assert.equal(starts.length, 2)
+      assert.equal(signals[0]?.aborted, true)
+      assert.equal(signals[1]?.aborted, false)
+      starts[1]!.resolve()
+      await replacementStart
+      assert.equal(lifecycle.state.generation, 2)
+      await lifecycle.stop()
+    }
+
+    {
+      const retirement = deferred<void>()
+      const starts: ReturnType<typeof deferred<void>>[] = []
+      let stopCalls = 0
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart () {
+          const gate = deferred<void>()
+          starts.push(gate)
+          return gate.promise
+        },
+        onStop () {
+          stopCalls++
+          return stopCalls === 1 ? retirement.promise : undefined
+        },
+      })
+      const firstStart = lifecycle.start()
+      await flushMicrotasks()
+      starts[0]!.resolve()
+      await firstStart
+      const stop = lifecycle.stop()
+      const replacementStart = lifecycle.start()
+      await flushMicrotasks()
+      assert.equal(lifecycle.state.kind, 'stopping')
+      assert.equal(starts.length, 1)
+      retirement.resolve()
+      await stop
+      await flushMicrotasks()
+      assert.equal(starts.length, 2)
+      starts[1]!.resolve()
+      await replacementStart
+      assert.equal(lifecycle.state.generation, 2)
+      await lifecycle.stop()
+    }
+
+    {
+      const starts: ReturnType<typeof deferred<void>>[] = []
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart () {
+          const gate = deferred<void>()
+          starts.push(gate)
+          return gate.promise
+        },
+      })
+      const firstStart = lifecycle.start()
+      await flushMicrotasks()
+      const restart = lifecycle.restart()
+      await flushMicrotasks()
+      starts[0]!.resolve()
+      await assert.rejects(firstStart, LifecycleSupersededError)
+      await flushMicrotasks()
+      assert.equal(starts.length, 2)
+      starts[1]!.resolve()
+      await restart
+      assert.equal(lifecycle.state.generation, 2)
+      await lifecycle.stop()
+    }
+
+    {
+      const retirement = deferred<void>()
+      const { lifecycle, condition } = createHarness(entryPoint, {
+        onStart () {},
+        onStop: () => retirement.promise,
+      })
+      const ready = condition('ready')
+      await lifecycle.start()
+      const firstStop = lifecycle.stop()
+      await flushMicrotasks()
+      const waiting = ready.wait()
+      const secondStop = lifecycle.stop()
+      await assert.rejects(waiting, LifecycleSupersededError)
+      retirement.resolve()
+      await Promise.all([ firstStop, secondStop ])
+    }
+
+    {
       const startGate = deferred<void>()
       const startEntered = deferred<void>()
       let startCalls = 0
