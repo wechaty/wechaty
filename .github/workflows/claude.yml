@@ -78,7 +78,6 @@ jobs:
       - name: Claude interactive agent
         id: claude
         uses: anthropics/claude-code-action@v1
-        env:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           trigger_phrase: /claude
