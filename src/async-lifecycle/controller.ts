@@ -230,6 +230,12 @@ class ConditionImpl implements LifecycleCondition {
 }
 
 /**
+ * Children currently owned by some scope. Reserved synchronously in
+ * `scope.start(child)` and released when the owner's stop action finishes.
+ */
+const OWNED_CHILDREN = new WeakSet<object>()
+
+/**
  * The kernel. One instance per lifecycle.
  */
 class LifecycleKernel {
@@ -1285,10 +1291,23 @@ class LifecycleKernel {
           )
         }
 
+        // Exclusive ownership is reserved synchronously, before the child's own
+        // asynchronous reconciler publishes `starting`, so two parents racing on
+        // one stopped child cannot both adopt it.
+        if (OWNED_CHILDREN.has(child)) {
+          throw new LifecycleUnsafeStateError('child lifecycle is already owned by a scope')
+        }
         // Register ownership before starting: stop the child during unwind.
-        if (!record.ledger.register(() => child.stop())) {
+        if (!record.ledger.register(async () => {
+          try {
+            await child.stop()
+          } finally {
+            OWNED_CHILDREN.delete(child)
+          }
+        })) {
           throw abortReason()
         }
+        OWNED_CHILDREN.add(child)
         record.controller.signal.addEventListener(
           'abort',
           () => { void child.stop().catch(() => {}) },
@@ -1299,15 +1318,16 @@ class LifecycleKernel {
           throw abortReason()
         }
 
-        await child.start()
+        await child.start({ signal: record.controller.signal })
 
         // Watch the child: an unrequested exit from running fails the parent.
         watch = (async () => {
           try {
             await child.whenState(
+              // `stopping` is transient: wait for the terminal snapshot so the
+              // child's original failure is preserved as the parent's cause.
               state => state.kind === 'failed'
-                || state.kind === 'stopped'
-                || state.kind === 'stopping',
+                || state.kind === 'stopped',
               { signal: record.controller.signal },
             )
           } catch {

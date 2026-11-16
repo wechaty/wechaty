@@ -1128,3 +1128,155 @@ test('task blocked on a socket close still does not deadlock with mixed cleanup'
   await lc.stop()
   assert.equal(lc.state.kind, 'stopped')
 })
+
+// ---- Review-reconciliation regressions (PR #2913) --------------------------
+
+test('two parents cannot both adopt the same stopped child', async () => {
+  const child = createLifecycle({ onStart: () => {} })
+  const mk = () => createLifecycle({ onStart: scope => scope.start(child) })
+  const a = mk()
+  const b = mk()
+  const results = await Promise.allSettled([ a.start(), b.start() ])
+  assert.equal(results.filter(r => r.status === 'fulfilled').length, 1)
+  const rejected = results.find(r => r.status === 'rejected') as PromiseRejectedResult
+  assert.ok(rejected.reason instanceof LifecycleUnsafeStateError)
+  // Ownership is released once the owner stops the child.
+  await a.stop().catch(() => {})
+  await b.stop().catch(() => {})
+  const c = mk()
+  await c.start()
+  assert.equal(child.state.kind, 'running')
+  await c.stop()
+})
+
+test('child failure cause survives an asynchronous child stopping phase', async () => {
+  const boom = new Error('child boom')
+  const release = gate()
+  let childScope: LifecycleScope | undefined
+  const child = createLifecycle({
+    onStart: scope => { childScope = scope },
+    onStop : async () => { await release.promise },
+  })
+  const parent = createLifecycle({ onStart: scope => scope.start(child) })
+  await parent.start()
+  childScope!.fail(boom)
+  await tick(5)
+  release.open()
+  const failed = await parent.whenState(s => s.kind === 'failed')
+  assert.equal(failed.kind, 'failed')
+  if (failed.kind === 'failed') {
+    assert.equal((failed.error as Error).cause, boom)
+  }
+})
+
+test('a retired scope refuses child.start() before invoking it', async () => {
+  let saved: LifecycleScope | undefined
+  const lc = createLifecycle({ onStart: scope => { saved = scope } })
+  await lc.start()
+  await lc.stop()
+  const child = createLifecycle({ onStart: () => {} })
+  await assert.rejects(saved!.start(child))
+  assert.equal(child.state.kind, 'stopped')
+  assert.equal(child.state.generation, 0)
+})
+
+test('parent stop during child startup aborts the child start', async () => {
+  const hold = gate()
+  const child = createLifecycle({
+    onStart: async scope => {
+      await new Promise<void>((_, reject) => {
+        scope.signal.addEventListener('abort', () => reject(scope.signal.reason))
+        void hold.promise
+      })
+    },
+  })
+  const parent = createLifecycle({ onStart: scope => scope.start(child) })
+  const started = parent.start().catch(() => {})
+  await tick(2)
+  await parent.stop()
+  await started
+  assert.equal(parent.state.kind, 'stopped')
+  assert.equal(child.state.kind, 'stopped')
+})
+
+test('falsy rejection values are failures: null / false / 0 / empty string', async () => {
+  for (const value of [ null, false, 0, '' ]) {
+    const lc = createLifecycle({ onStart: () => { throw value } })
+    await assert.rejects(lc.start(), (e: unknown) => e === value)
+    const st = lc.state
+    assert.equal(st.kind, 'failed')
+    if (st.kind === 'failed') { assert.equal(st.error, value) }
+  }
+})
+
+test('stop → start during a gated onStart does not publish the interrupted generation', async () => {
+  const gens: number[] = []
+  const lc = createLifecycle({
+    onStart: async scope => {
+      gens.push(0)
+      if (gens.length === 1) {
+        await new Promise<void>(resolve =>
+          scope.signal.addEventListener('abort', () => resolve()))
+      }
+    },
+  })
+  const first = lc.start().catch(() => {})
+  await tick(1)
+  void lc.stop()
+  const second = lc.start()
+  await Promise.all([ first, second ])
+  assert.equal(lc.state.kind, 'running')
+  assert.equal(lc.state.generation, 2)
+  await tick(5)
+  assert.equal(lc.state.generation, 2, 'no unsolicited G+2 after a successful G+1')
+  await lc.stop()
+})
+
+test('condition wait during stopping binds to the next generation', async () => {
+  const release = gate()
+  let cond: LifecycleCondition | undefined
+  const lc = createLifecycle({
+    onStart: scope => { scope.set(cond!) },
+    onStop : async () => { await release.promise },
+  })
+  cond = lc.condition('ready')
+  await lc.start()
+  const stopping = lc.stop()
+  await tick(1)
+  assert.equal(lc.state.kind, 'stopping')
+  const waiter = cond.wait()
+  release.open()
+  await stopping
+  await lc.start()
+  await waiter
+})
+
+test('recover refuses a running snapshot', async () => {
+  const lc = createLifecycle({ onStart: () => {} })
+  const ctl = lc
+  await lc.start()
+  assert.equal(await ctl.recover(lc.state).catch(() => 'rejected'), 'superseded')
+  assert.equal(lc.state.generation, 1)
+  await lc.stop()
+})
+
+test('class-field overrides cannot shadow sealed AsyncLifecycle methods', async () => {
+  class Bad extends AsyncLifecycle {
+    constructor () { super() }
+    protected onStart (): void {}
+    // Field initialisers run after super(); they must not replace the facade.
+    start = (): Promise<void> => Promise.resolve()
+  }
+  let threw = false
+  let instance: Bad | undefined
+  try {
+    instance = new Bad()
+  } catch {
+    threw = true
+  }
+  if (!threw) {
+    await instance!.start()
+    assert.equal(instance!.state.kind, 'running', 'field override must not bypass the kernel')
+    await instance!.stop()
+  }
+})
