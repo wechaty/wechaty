@@ -12,7 +12,7 @@ on:
   issues:
     types: [labeled]
   pull_request:
-    types: [opened, ready_for_review, reopened]
+    types: [opened, ready_for_review, reopened, synchronize]
 
 jobs:
   interactive:
@@ -117,7 +117,8 @@ jobs:
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false &&
-      github.event.sender.type != 'Bot' &&
+      (github.event.sender.type != 'Bot' ||
+       (github.event.action == 'synchronize' && github.event.sender.login == 'claude[bot]')) &&
       github.actor != 'Copilot' &&
       github.actor != 'dependabot[bot]' &&
       github.event.pull_request.user.login != 'dependabot[bot]'
@@ -133,6 +134,8 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      statuses: write
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -163,20 +166,20 @@ jobs:
           echo "### Claude review skipped: stale PR HEAD" >> "$GITHUB_STEP_SUMMARY"
           echo "The PR changed after this event. After coding finishes, toggle draft → ready for review (or close → reopen) to request a new review. Rerunning this workflow retains the old event SHA." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Check completed review marker for this revision
+      # Store deduplication state as a commit status, not a PR comment.
+      # The status context includes the BASE SHA so base changes require re-review.
+      - name: Check completed review status for this revision
         id: review-duplicate
         if: steps.review-target.outputs.current == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
           EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          marker="<!-- claude-agent-reviewed head=${EXPECTED_SHA} base=${EXPECTED_BASE_SHA} -->"
-          # Accept only completion markers authored by the workflow token identity.
-          if gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --jq '.[] | select(.user.login == "github-actions[bot]" and .user.type == "Bot") | .body' | grep -Fqx "$marker"; then
+          context="claude-agent/review/${EXPECTED_BASE_SHA}"
+          if gh api "repos/${GITHUB_REPOSITORY}/commits/${EXPECTED_SHA}/statuses?per_page=100" --jq '.[] | select(.context == "'"$context"'" and .state == "success" and .creator.login == "github-actions[bot]") | .context' | grep -Fqx "$context"; then
             echo "already_reviewed=true" >> "$GITHUB_OUTPUT"
-            echo "Already reviewed this exact head/base revision." >> "$GITHUB_STEP_SUMMARY"
+            echo "Already reviewed this exact HEAD/BASE revision." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "already_reviewed=false" >> "$GITHUB_OUTPUT"
           fi
@@ -188,7 +191,7 @@ jobs:
         with:
           # Avoid the upstream plugin's PR-wide "Claude already commented"
           # short-circuit. This prompt reviews a specific head/base revision.
-          github_token: ${{ github.token }}
+          # Let Anthropic's GitHub App publish as claude[bot], not github-actions[bot].
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             Review PR ${{ github.repository }}#${{ github.event.pull_request.number }}.
@@ -206,7 +209,7 @@ jobs:
             --max-turns 30
             --allowedTools "Read,Glob,Grep,Bash(gh pr diff:*),mcp__github_inline_comment__create_inline_comment"
 
-      - name: Record completed review for exact revision
+      - name: Record completed review status for exact revision
         if: steps.claude-review.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -217,10 +220,13 @@ jobs:
           current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
           current_base_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')"
           if [ "$current_sha" != "$EXPECTED_SHA" ] || [ "$current_base_sha" != "$EXPECTED_BASE_SHA" ]; then
-            echo "::warning::Review completed but PR revision changed; no completed marker recorded. Trigger a new review event."
+            echo "::warning::Review completed but PR revision changed; no status recorded. Trigger a new review event."
           else
-            marker="<!-- claude-agent-reviewed head=${EXPECTED_SHA} base=${EXPECTED_BASE_SHA} -->"
-            gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f body="$marker" >/dev/null
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}" \\
+              -f state=success \\
+              -f context="claude-agent/review/${EXPECTED_BASE_SHA}" \\
+              -f description="Claude reviewed this exact HEAD/BASE revision" \\
+              -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >/dev/null
           fi
 
       - name: Check whether reviewed HEAD changed
