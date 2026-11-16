@@ -192,6 +192,8 @@ jobs:
           # Avoid the upstream plugin's PR-wide "Claude already commented"
           # short-circuit. This prompt reviews a specific head/base revision.
           # Let Anthropic's GitHub App publish as claude[bot], not github-actions[bot].
+          # Allow only our own Claude App to trigger reviews after its pushes.
+          allowed_bots: 'claude[bot]'
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             Review PR ${{ github.repository }}#${{ github.event.pull_request.number }}.
