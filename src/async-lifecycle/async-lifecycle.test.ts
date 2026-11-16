@@ -705,6 +705,52 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
 
   for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
     {
+      const acquisition = deferred<string>()
+      const acquisitionEntered = deferred<void>()
+      const taskGate = deferred<void>()
+      const interruptGate = deferred<void>()
+      const interruptEntered = deferred<void>()
+      const interruptError = new Error(`${entryPoint} late acquisition interrupt failed`)
+      let releaseCalls = 0
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (scope) {
+          void scope.acquire(
+            () => {
+              acquisitionEntered.resolve()
+              return acquisition.promise
+            },
+            () => {
+              releaseCalls++
+            },
+            { interrupt: () => {
+              interruptEntered.resolve()
+              return interruptGate.promise
+            } },
+          ).catch(() => {})
+          scope.spawn(async () => taskGate.promise)
+        },
+      })
+
+      await lifecycle.start()
+      await acquisitionEntered.promise
+      const stop = lifecycle.stop()
+      await flushMicrotasks()
+      acquisition.resolve('late resource')
+      await interruptEntered.promise
+      interruptGate.reject(interruptError)
+      await flushMicrotasks()
+      assert.equal(releaseCalls, 1)
+      taskGate.resolve()
+      await assert.rejects(stop, error => error === interruptError)
+      const failedState = lifecycle.state
+      assert.equal(failedState.kind, 'failed')
+      if (failedState.kind === 'failed') {
+        assert.equal(failedState.error, interruptError)
+        assert.equal(failedState.cleanupComplete, true)
+      }
+    }
+
+    {
       const starts: ReturnType<typeof deferred<void>>[] = []
       const signals: AbortSignal[] = []
       const { lifecycle } = createHarness(entryPoint, {

@@ -649,6 +649,11 @@ export class GenerationLedger {
       }
     }
 
+    if (this.#interruptErrors.length > 0) {
+      errors.push(...this.#interruptErrors)
+      this.#interruptErrors = []
+    }
+
     const cleanupComplete = !this.#hasUnresolvedDebt(excludedTaskIds)
     this.#retirementCompleted = true
     return { cleanupComplete, errors }
