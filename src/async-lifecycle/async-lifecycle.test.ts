@@ -134,6 +134,14 @@ test('abort helpers preserve caller isolation and report deadline outcomes', asy
   )
   assert.equal(abortCallbackCalls, 1)
 
+  const lateRejection = deferred<void>()
+  await assert.rejects(
+    waitWithCallerSignal(lateRejection.promise, alreadyCancelled.signal),
+    error => error === reason,
+  )
+  lateRejection.reject(reason)
+  await flushMicrotasks()
+
   const timedOutOperation = deferred<string>()
   const timedOutSignal = new AbortController()
   const timedOutWait = settleBeforeDeadline(timedOutOperation.promise, timedOutSignal.signal)
@@ -1101,6 +1109,10 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
       await started
       assert.equal(lifecycle.state.kind, 'running')
       assert.equal(lifecycle.state.generation, 1)
+      const subsequentRecovery = scope.recover()
+      assert.equal(await subsequentRecovery, 'recovered')
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 2)
       await lifecycle.stop()
     }
 

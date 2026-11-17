@@ -119,7 +119,7 @@ interface PendingRecovery {
 
 interface GenerationRun {
   readonly generation: number
-  readonly capturedRevision: number
+  capturedRevision: number
   readonly ledger: GenerationLedger
   readonly scope: LifecycleScope
   stopAttempt: Deferred<void>
@@ -944,6 +944,7 @@ export class LifecycleKernel implements LifecycleController {
         && this.#desired === 'running'
         && this.#mustRetireGeneration < run.generation
       ) {
+        run.capturedRevision = this.#revision
         this.#takeQueuedStartAttempt()?.resolve()
       }
       return

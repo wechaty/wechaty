@@ -64,6 +64,7 @@ export function waitWithCallerSignal<T> (
     return promise
   }
   if (signal.aborted) {
+    promise.catch(() => {})
     onCallerAbort?.()
     return Promise.reject(getAbortReason(signal))
   }
