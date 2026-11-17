@@ -51,6 +51,8 @@ type TaskEntry = {
   readonly kind: 'task'
   readonly id: symbol
   readonly label: string
+  readonly recoveryRequested: Promise<void>
+  readonly markRecoveryRequested: () => void
   status: 'running' | 'settled'
   promise: Promise<void>
   unexpectedShutdownError: unknown
@@ -100,6 +102,10 @@ function isEventTargetLike (target: ListenTarget): target is EventTargetLike {
     && 'removeEventListener' in target
     && typeof target.removeEventListener === 'function'
   )
+}
+
+function isTaskSettled (entry: TaskEntry): boolean {
+  return entry.status === 'settled'
 }
 
 /**
@@ -499,10 +505,16 @@ export class GenerationLedger {
       throw this.#currentAbortReason()
     }
 
+    let markRecoveryRequested!: () => void
+    const recoveryRequested = new Promise<void>(resolve => {
+      markRecoveryRequested = resolve
+    })
     const entry: TaskEntry = {
       kind: 'task',
       id: taskId,
       label: options?.name ?? 'spawn',
+      recoveryRequested,
+      markRecoveryRequested,
       status: 'running',
       promise: Promise.resolve(),
       unexpectedShutdownError: undefined,
@@ -530,6 +542,14 @@ export class GenerationLedger {
 
     entry.promise = runPromise
     this.#entries.push(entry)
+  }
+
+  /** Wakes an in-progress join when this task becomes a recovery requester. */
+  markRecoveryRequester (taskId: symbol): void {
+    const entry = this.#entries.find(
+      (candidate): candidate is TaskEntry => candidate.kind === 'task' && candidate.id === taskId,
+    )
+    entry?.markRecoveryRequested()
   }
 
   /**
@@ -593,14 +613,40 @@ export class GenerationLedger {
       const entry = this.#entries[index]!
 
       if (entry.kind === 'task') {
-        if (excludedTaskIds?.has(entry.id)) {
+        if (excludedTaskIds?.has(entry.id) && !isTaskSettled(entry)) {
           continue
         }
-        if (entry.status !== 'settled') {
-          const race = await settleBeforeDeadline(entry.promise, deadlineSignal)
+        if (!isTaskSettled(entry)) {
+          const taskOrRecoveryRequest = Promise.race([
+            entry.promise.then(() => 'settled' as const),
+            entry.recoveryRequested.then(() => 'recovery-requested' as const),
+          ])
+          const race = await settleBeforeDeadline(taskOrRecoveryRequest, deadlineSignal)
           if (race.timedOut) {
             errors.push(race.timeoutReason)
             return { cleanupComplete: false, errors }
+          }
+          if (race.status === 'rejected') {
+            errors.push(race.error)
+            return { cleanupComplete: false, errors }
+          }
+          if (
+            race.value === 'recovery-requested'
+            && excludedTaskIds?.has(entry.id)
+            && !isTaskSettled(entry)
+          ) {
+            continue
+          }
+          if (!isTaskSettled(entry)) {
+            const joinRace = await settleBeforeDeadline(entry.promise, deadlineSignal)
+            if (joinRace.timedOut) {
+              errors.push(joinRace.timeoutReason)
+              return { cleanupComplete: false, errors }
+            }
+            if (joinRace.status === 'rejected') {
+              errors.push(joinRace.error)
+              return { cleanupComplete: false, errors }
+            }
           }
         }
         if (entry.hasUnexpectedShutdownError) {
@@ -616,6 +662,21 @@ export class GenerationLedger {
         if (acqRace.timedOut) {
           errors.push(acqRace.timeoutReason)
           return { cleanupComplete: false, errors }
+        }
+      }
+
+      // Excluded recovery requesters may settle while later resources are being joined.
+      // Their shutdown failures remain authoritative even though their task join was skipped.
+      for (const entry of this.#entries) {
+        if (
+          entry.kind === 'task'
+          && excludedTaskIds?.has(entry.id)
+          && isTaskSettled(entry)
+          && entry.hasUnexpectedShutdownError
+        ) {
+          errors.push(entry.unexpectedShutdownError)
+          entry.hasUnexpectedShutdownError = false
+          entry.unexpectedShutdownError = undefined
         }
       }
 

@@ -705,6 +705,137 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
 
   for (const entryPoint of [ 'composition', 'inheritance' ] as const) {
     {
+      let scope!: LifecycleScope
+      const taskFinished = deferred<void>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+      })
+      await lifecycle.start()
+      scope.spawn(async () => {
+        await scope.recover()
+        taskFinished.resolve()
+      })
+      const restart = lifecycle.restart()
+      assert.equal(await scope.recover(), 'superseded')
+      await restart
+      await taskFinished.promise
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 2)
+      await lifecycle.stop()
+    }
+
+    {
+      const clock = createManualClock()
+      let scope!: LifecycleScope
+      const taskGate = deferred<void>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+      }, { clock, stopTimeoutMs: 5 })
+      await lifecycle.start()
+      const requesterScope = scope
+      requesterScope.spawn(async () => {
+        await taskGate.promise
+        await requesterScope.recover()
+      })
+      const recovery = scope.recover()
+      await flushMicrotasks()
+      taskGate.resolve()
+      const earlyOutcome = await Promise.race([
+        recovery.then(outcome => ({ outcome })),
+        flushMicrotasks().then(() => ({ pending: true })),
+      ])
+      assert.equal('pending' in earlyOutcome, false)
+      const recoveryOutcome = await recovery
+      assert.equal(recoveryOutcome, 'recovered', JSON.stringify({
+        earlyOutcome,
+        state: lifecycle.state,
+      }))
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 2)
+      await lifecycle.stop()
+    }
+
+    {
+      let scope!: LifecycleScope
+      const finishGracefulStop = deferred<void>()
+      const requesterError = new Error(`${entryPoint} recovery requester failed`)
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+        onStop: () => finishGracefulStop.promise,
+      })
+      await lifecycle.start()
+      scope.spawn(async () => {
+        void scope.recover()
+        throw requesterError
+      })
+      const recovery = scope.recover()
+      await flushMicrotasks()
+      finishGracefulStop.resolve()
+      assert.equal(await recovery, 'failed')
+      const failedState = lifecycle.state
+      assert.equal(failedState.kind, 'failed')
+      if (failedState.kind === 'failed') {
+        assert.equal(failedState.error, requesterError)
+        assert.equal(failedState.cleanupComplete, true)
+      }
+    }
+
+    {
+      const reportedFailure = new Error(`${entryPoint} failure after startup interruption`)
+      let scope!: LifecycleScope
+      const { lifecycle } = createHarness(entryPoint, {
+        async onStart (currentScope) {
+          scope = currentScope
+          await new Promise<void>(resolve => {
+            currentScope.signal.addEventListener('abort', () => resolve(), { once: true })
+          })
+          scope.fail(reportedFailure)
+        },
+      })
+      const start = lifecycle.start()
+      await flushMicrotasks()
+      const stop = lifecycle.stop()
+      await assert.rejects(start, LifecycleSupersededError)
+      await assert.rejects(stop, error => error === reportedFailure)
+      const failedState = lifecycle.state
+      assert.equal(failedState.kind, 'failed')
+      if (failedState.kind === 'failed') {
+        assert.equal(failedState.phase, 'run')
+        assert.equal(failedState.error, reportedFailure)
+      }
+    }
+
+    for (const cleanupFailure of [ undefined, null ]) {
+      const { lifecycle } = createHarness(entryPoint, {
+        async onStart (scope) {
+          scope.defer(() => {
+            throw cleanupFailure
+          })
+          await new Promise<void>(resolve => {
+            scope.signal.addEventListener('abort', () => resolve(), { once: true })
+          })
+        },
+      })
+      const start = lifecycle.start()
+      await flushMicrotasks()
+      const stop = lifecycle.stop()
+      await assert.rejects(start, LifecycleSupersededError)
+      await assert.rejects(stop, error => Object.is(error, cleanupFailure))
+      const failedState = lifecycle.state
+      assert.equal(failedState.kind, 'failed')
+      if (failedState.kind === 'failed') {
+        assert.equal(failedState.error, cleanupFailure)
+        assert.equal(failedState.cleanupComplete, false)
+      }
+    }
+
+    {
       const acquisition = deferred<string>()
       const acquisitionEntered = deferred<void>()
       const taskGate = deferred<void>()

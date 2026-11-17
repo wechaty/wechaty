@@ -6,7 +6,7 @@
  *   user-intent revision, generation counter, shared startup/retirement attempt waiters,
  *   active/dirty generation ledgers, cross-generation `whenState` watchers, and named
  *   `ConditionRegistry`.
- * - Enforces the five core invariants converged across RFC #2905 and #2911:
+ * - Enforces the six core invariants converged across RFC #2905 and #2911:
  *   1. Synchronous intent acceptance before the first `await` (pre-aborted caller signals
  *      reject prior to mutating state or revision).
  *   2. Single-flight reconciliation loop guarded before any hook or observer executes so
@@ -216,6 +216,10 @@ export class LifecycleKernel implements LifecycleController {
     return this.#conditions.condition(name)
   }
 
+  /**
+   * Accepts running intent synchronously and joins or creates its shared generation attempt.
+   * Caller cancellation detaches only that caller's wait; it never cancels accepted work.
+   */
   start (options?: LifecycleCallOptions): Promise<void> {
     const signal = options?.signal
     if (signal?.aborted) {
@@ -228,11 +232,7 @@ export class LifecycleKernel implements LifecycleController {
     }
 
     // Refuse starting a new generation over unreleased debt when no cleanup is already running.
-    if (
-      this.#state.kind === 'failed'
-      && !this.#state.cleanupComplete
-      && this.#state.kind === 'failed'
-    ) {
+    if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
       return Promise.reject(this.#createDirtyStateError(this.#state))
     }
 
@@ -280,6 +280,10 @@ export class LifecycleKernel implements LifecycleController {
     return waitWithCallerSignal(attempt.promise, signal)
   }
 
+  /**
+   * Accepts stop authority synchronously, settles superseded recovery/start requests, and
+   * joins retirement plus any explicitly requested dirty-generation retries.
+   */
   stop (options?: LifecycleCallOptions): Promise<void> {
     const signal = options?.signal
     if (signal?.aborted) {
@@ -348,6 +352,10 @@ export class LifecycleKernel implements LifecycleController {
     )
   }
 
+  /**
+   * Accepts replacement intent, retires the current generation, then starts exactly one
+   * fresh generation. A superseded recovery is settled before its requester can be joined.
+   */
   restart (options?: LifecycleCallOptions): Promise<void> {
     const signal = options?.signal
     if (signal?.aborted) {
@@ -359,6 +367,12 @@ export class LifecycleKernel implements LifecycleController {
     }
     if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
       return Promise.reject(this.#createDirtyStateError(this.#state))
+    }
+
+    const pendingRecovery = this.#activeRun?.pendingRecovery
+    if (pendingRecovery !== undefined) {
+      this.#activeRun!.pendingRecovery = undefined
+      pendingRecovery.outcome.resolve('superseded')
     }
 
     // If we are already retiring an earlier generation with a queued replacement that has
@@ -393,6 +407,7 @@ export class LifecycleKernel implements LifecycleController {
     return waitWithCallerSignal(attempt.promise, signal)
   }
 
+  /** Resolves on the first committed snapshot satisfying `predicate`, or rejects on wait cancellation. */
   whenState (
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleCallOptions,
@@ -651,6 +666,11 @@ export class LifecycleKernel implements LifecycleController {
     return run
   }
 
+  /**
+   * Starts one fresh generation and resolves or rejects its shared start attempt.
+   * The generation is committed as running only after startup, intent, failure, and timeout
+   * authority are revalidated together.
+   */
   async #bootAndRunGeneration (
     capturedRevision: number,
     linkedRecoveryOutcome: Deferred<RecoveryOutcome> | undefined,
@@ -728,7 +748,7 @@ export class LifecycleKernel implements LifecycleController {
     }
 
     // Startup did NOT succeed: classify whether this was supersession or a startup failure.
-    const isSupersededAbort = superseded && !run.failureReported && !timedOut && (
+    let isSupersededAbort = superseded && !run.failureReported && !timedOut && (
       !onStartFailed || isCooperativeAbortError(onStartError, run.ledger.signal)
     )
 
@@ -785,6 +805,10 @@ export class LifecycleKernel implements LifecycleController {
           cleanupComplete = false
           cleanupErrors.push(startJoin.timeoutReason)
         } else {
+          if (run.failureReported && isSupersededAbort) {
+            isSupersededAbort = false
+            cleanupErrors.push(run.failureError)
+          }
           // If `onStart` had not failed yet when interrupted, check whether it threw a
           // non-cooperative error while exiting after abort; only record if superseded.
           if (
@@ -829,11 +853,13 @@ export class LifecycleKernel implements LifecycleController {
     // Either startup genuinely failed, or supersession encountered a cleanup failure/timeout.
     const collapsedCleanupError = collapseCleanupErrors(cleanupErrors)
     const failurePhase: LifecycleFailurePhase = isSupersededAbort ? 'stop' : 'start'
-    const finalError = isSupersededAbort
-      ? collapsedCleanupError
-        ?? this.#dirtyRuns.values().next().value?.failureError
-        ?? primaryStartError
-      : primaryStartError
+    const finalError = run.failureReported
+      ? run.failureError
+      : isSupersededAbort
+        ? cleanupErrors.length > 0
+          ? collapsedCleanupError
+          : this.#dirtyRuns.values().next().value?.failureError ?? primaryStartError
+        : primaryStartError
 
     if (!allGenerationsClean) {
       this.#desired = 'stopped'
@@ -856,10 +882,10 @@ export class LifecycleKernel implements LifecycleController {
     const failedSnapshot: LifecycleState = {
       kind: 'failed',
       generation: run.generation,
-      phase: failurePhase,
+      phase: run.failureReported ? 'run' : failurePhase,
       error: finalError,
       cleanupComplete: allGenerationsClean,
-      ...(!isSupersededAbort && collapsedCleanupError !== undefined
+      ...(cleanupErrors.length > 0
         ? { cleanupError: collapsedCleanupError }
         : {}),
     }
@@ -868,18 +894,22 @@ export class LifecycleKernel implements LifecycleController {
       if (allGenerationsClean && cleanupErrors.length === 0) {
         run.stopAttempt.resolve()
       } else {
-        run.stopAttempt.reject(collapsedCleanupError ?? finalError)
+        run.stopAttempt.reject(cleanupErrors.length > 0 ? collapsedCleanupError : finalError)
       }
       if (blockedQueuedStart) {
         blockedQueuedStart.reject(
           !allGenerationsClean
             ? this.#createDirtyStateError(failedSnapshot)
-            : (collapsedCleanupError ?? finalError),
+            : (cleanupErrors.length > 0 ? collapsedCleanupError : finalError),
         )
       }
     })
   }
 
+  /**
+   * Retires a running generation with graceful stop, interruption, task joining, and LIFO
+   * release. Accepted failure/stop/restart authority is rechecked after awaited hooks.
+   */
   async #retireRunningGeneration (run: GenerationRun): Promise<void> {
     const recovery = run.pendingRecovery
     let isFailureRetirement = run.failureReported
@@ -1128,6 +1158,10 @@ export class LifecycleKernel implements LifecycleController {
     )
   }
 
+  /**
+   * Retries only the unfinished retirement work for one dirty generation and settles its
+   * shared stop attempt with the exact remaining cleanup outcome.
+   */
   async #retryDirtyCleanup (run: GenerationRun): Promise<void> {
     const stateGeneration = Math.max(this.#state.generation, run.generation)
     this.#commit({
@@ -1271,6 +1305,7 @@ export class LifecycleKernel implements LifecycleController {
     )
   }
 
+  /** Records generation failure authority and wakes the single reconciler when it can retire. */
   #reportGenerationFailure (run: GenerationRun, error: unknown): void {
     if (this.#activeRun !== run || run.failureReported) {
       return
@@ -1317,6 +1352,7 @@ export class LifecycleKernel implements LifecycleController {
     if (run.pendingRecovery) {
       if (requesterTaskId !== undefined) {
         run.pendingRecovery.requesterTaskIds.add(requesterTaskId)
+        run.ledger.markRecoveryRequester(requesterTaskId)
       }
       return run.pendingRecovery.outcome.promise
     }
@@ -1329,6 +1365,9 @@ export class LifecycleKernel implements LifecycleController {
       requesterTaskIds: new Set(
         requesterTaskId === undefined ? [] : [ requesterTaskId ],
       ),
+    }
+    if (requesterTaskId !== undefined) {
+      run.ledger.markRecoveryRequester(requesterTaskId)
     }
     this.#ensureReconciling()
     return outcome.promise
@@ -1439,6 +1478,10 @@ export class LifecycleKernel implements LifecycleController {
     await settleBeforeDeadline(raceTarget, deadlineSignal)
   }
 
+  /**
+   * Commits a frozen state before settling waiters, publishing diagnostics, and invoking
+   * isolated observers; this ordering keeps reentrant callbacks from changing the commit.
+   */
   #commit (
     nextUnfrozenState: LifecycleState,
     settleWaiters?: () => void,
