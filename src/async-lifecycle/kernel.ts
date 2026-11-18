@@ -1340,6 +1340,7 @@ export class LifecycleKernel implements LifecycleController {
     run.failureReported = true
     run.failurePhase = run.reachedRunning ? 'run' : 'start'
     run.failureError = error
+    run.pendingRecovery?.outcome.resolve('failed')
 
     if (!run.reachedRunning) {
       run.startupInterrupted.resolve()

@@ -1307,6 +1307,34 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
 
     {
       let scope!: LifecycleScope
+      const requesterEntered = deferred<void>()
+      const recoveryOutcome = deferred<'recovered' | 'failed' | 'superseded'>()
+      const failure = new Error(`${entryPoint} failure superseding recovery`)
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+      })
+      await lifecycle.start()
+      const failedState = lifecycle.whenState(state => state.kind === 'failed')
+      scope.spawn(async () => {
+        requesterEntered.resolve()
+        recoveryOutcome.resolve(await scope.recover())
+      })
+      await requesterEntered.promise
+      scope.fail(failure)
+
+      assert.equal(await recoveryOutcome.promise, 'failed')
+      const state = await failedState
+      assert.equal(state.kind, 'failed')
+      if (state.kind === 'failed') {
+        assert.equal(state.error, failure)
+        assert.equal(state.phase, 'run')
+      }
+    }
+
+    {
+      let scope!: LifecycleScope
       const stopEntered = deferred<void>()
       const finishStop = deferred<void>()
       const failure = new Error(`${entryPoint} failure during recovery retirement`)
@@ -1322,13 +1350,15 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
       await lifecycle.start()
       const recovery = scope.recover()
       await stopEntered.promise
+      const failedState = lifecycle.whenState(state => state.kind === 'failed')
       scope.fail(failure)
       finishStop.resolve()
       assert.equal(await recovery, 'failed')
-      assert.equal(lifecycle.state.kind, 'failed')
-      if (lifecycle.state.kind === 'failed') {
-        assert.equal(lifecycle.state.error, failure)
-        assert.equal(lifecycle.state.phase, 'run')
+      const state = await failedState
+      assert.equal(state.kind, 'failed')
+      if (state.kind === 'failed') {
+        assert.equal(state.error, failure)
+        assert.equal(state.phase, 'run')
       }
     }
 
