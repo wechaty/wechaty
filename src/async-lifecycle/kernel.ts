@@ -271,6 +271,16 @@ export class LifecycleKernel implements LifecycleController {
       return waitWithCallerSignal(this.#queuedStartAttempt.promise, signal)
     }
 
+    // A replacement start cannot retain a generation whose recovery retirement has begun.
+    // Settle its requesters before unwind joins their tasks.
+    if (this.#state.kind === 'stopping') {
+      const pendingRecovery = this.#activeRun?.pendingRecovery
+      if (pendingRecovery !== undefined) {
+        this.#activeRun!.pendingRecovery = undefined
+        pendingRecovery.outcome.resolve('superseded')
+      }
+    }
+
     this.#desired = 'running'
     this.#revision++
 

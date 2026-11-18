@@ -1229,6 +1229,40 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
 
     {
       let scope!: LifecycleScope
+      const stopEntered = deferred<void>()
+      const finishStop = deferred<void>()
+      const recoveryOutcome = deferred<'recovered' | 'failed' | 'superseded'>()
+      const { lifecycle } = createHarness(entryPoint, {
+        onStart (currentScope) {
+          scope = currentScope
+        },
+        onStop () {
+          stopEntered.resolve()
+          return finishStop.promise
+        },
+      })
+      await lifecycle.start()
+      scope.spawn(async () => {
+        recoveryOutcome.resolve(await scope.recover())
+      })
+      await stopEntered.promise
+
+      const started = lifecycle.start()
+      const outcome = await Promise.race([
+        recoveryOutcome.promise.then(value => ({ value })),
+        flushMicrotasks().then(() => ({ pending: true })),
+      ])
+      finishStop.resolve()
+
+      assert.deepEqual(outcome, { value: 'superseded' })
+      await started
+      assert.equal(lifecycle.state.kind, 'running')
+      assert.equal(lifecycle.state.generation, 2)
+      await lifecycle.stop()
+    }
+
+    {
+      let scope!: LifecycleScope
       const { lifecycle } = createHarness(entryPoint, {
         onStart (currentScope) {
           scope = currentScope
