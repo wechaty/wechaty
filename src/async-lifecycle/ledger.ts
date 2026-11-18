@@ -604,11 +604,24 @@ export class GenerationLedger {
     excludedTaskIds?: ReadonlySet<symbol>,
   ): Promise<UnwindResult> {
     const errors: unknown[] = []
-    const excludedTasks = excludedTaskIds === undefined
-      ? []
-      : this.#entries.filter(
-        (entry): entry is TaskEntry => entry.kind === 'task' && excludedTaskIds.has(entry.id),
-      )
+    const taskEntries = this.#entries.filter(
+      (entry): entry is TaskEntry => entry.kind === 'task',
+    )
+    /** Includes requesters added while this unwind pass is awaiting another task or resource. */
+    const collectExcludedTaskErrors = (): void => {
+      for (const entry of taskEntries) {
+        if (
+          excludedTaskIds?.has(entry.id)
+          && isTaskSettled(entry)
+          && entry.hasUnexpectedShutdownError
+        ) {
+          errors.push(entry.unexpectedShutdownError)
+          entry.hasUnexpectedShutdownError = false
+          entry.unexpectedShutdownError = undefined
+        }
+      }
+    }
+
     if (this.#interruptErrors.length > 0) {
       errors.push(...this.#interruptErrors)
       this.#interruptErrors = []
@@ -672,13 +685,7 @@ export class GenerationLedger {
 
       // Excluded recovery requesters may settle while later resources are being joined.
       // Their shutdown failures remain authoritative even though their task join was skipped.
-      for (const entry of excludedTasks) {
-        if (isTaskSettled(entry) && entry.hasUnexpectedShutdownError) {
-          errors.push(entry.unexpectedShutdownError)
-          entry.hasUnexpectedShutdownError = false
-          entry.unexpectedShutdownError = undefined
-        }
-      }
+      collectExcludedTaskErrors()
 
       if (entry.hasPendingLateError) {
         errors.push(entry.pendingLateError)
@@ -708,15 +715,10 @@ export class GenerationLedger {
         entry.hasPendingLateError = false
         entry.pendingLateError = undefined
       }
+      collectExcludedTaskErrors()
     }
 
-    for (const entry of excludedTasks) {
-      if (isTaskSettled(entry) && entry.hasUnexpectedShutdownError) {
-        errors.push(entry.unexpectedShutdownError)
-        entry.hasUnexpectedShutdownError = false
-        entry.unexpectedShutdownError = undefined
-      }
-    }
+    collectExcludedTaskErrors()
 
     if (this.#interruptErrors.length > 0) {
       errors.push(...this.#interruptErrors)

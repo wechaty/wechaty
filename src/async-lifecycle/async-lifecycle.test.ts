@@ -405,6 +405,48 @@ test('recovery requester failure during the final disposer fails recovery', asyn
   }
 })
 
+test('recovery requester added during unwind is included in error collection', async () => {
+  const becomeRequester = deferred<void>()
+  const disposerStarted = deferred<void>()
+  const finishDisposer = deferred<void>()
+  const requesterError = new Error('late recovery requester failed')
+  let scope!: LifecycleScope
+  let taskRecovery!: Promise<Awaited<ReturnType<LifecycleScope['recover']>>>
+
+  const lifecycle = createLifecycle({
+    onStart (currentScope) {
+      scope = currentScope
+      scope.defer(async () => {
+        disposerStarted.resolve()
+        await finishDisposer.promise
+      })
+      scope.spawn(async () => {
+        await becomeRequester.promise
+        taskRecovery = scope.recover()
+        await disposerStarted.promise
+        throw requesterError
+      })
+    },
+  })
+
+  await lifecycle.start()
+  const recovery = scope.recover()
+  await flushMicrotasks()
+  becomeRequester.resolve()
+  await disposerStarted.promise
+  await flushMicrotasks()
+  finishDisposer.resolve()
+
+  assert.equal(await recovery, 'failed')
+  assert.equal(await taskRecovery, 'failed')
+  const state = lifecycle.state
+  assert.equal(state.kind, 'failed')
+  if (state.kind === 'failed') {
+    assert.equal(state.error, requesterError)
+    assert.equal(state.cleanupComplete, true)
+  }
+})
+
 test('every accepted stop invalidates pre-start conditions during retirement', async () => {
   const retirement = deferred<void>()
   const lifecycle = createLifecycle({
@@ -1740,6 +1782,28 @@ test('AsyncLifecycle inheritance rejects final-method overrides', async () => {
   await observed.stop()
   assert.ok(observed.observedStates.includes('running'))
   assert.equal(observed.observedStates.at(-1), 'stopped')
+
+  class MethodHookService extends AsyncLifecycle {
+    readonly observedStates: string[] = []
+
+    constructor () {
+      super()
+    }
+
+    protected override onStart (): void {}
+
+    protected override onStop (): void {
+      this.observedStates.push('stop')
+    }
+
+    protected override onStateChange (state: LifecycleState): void {
+      this.observedStates.push(state.kind)
+    }
+  }
+  const methodHooks = new MethodHookService()
+  await methodHooks.start()
+  await methodHooks.stop()
+  assert.ok(methodHooks.observedStates.includes('stop'))
 
   class StateOverrideService extends Service {
     override get state (): LifecycleState {

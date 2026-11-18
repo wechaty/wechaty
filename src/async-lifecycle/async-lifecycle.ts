@@ -104,12 +104,12 @@ export abstract class AsyncLifecycle implements Lifecycle {
    * Optional graceful goodbye hook invoked before `scope.signal` aborts ONLY when retiring
    * a generation that committed `running`.
    */
-  protected onStop: (stop: LifecycleStopContext) => Promise<void> | void = () => {}
+  protected onStop (_stop: LifecycleStopContext): Promise<void> | void {}
 
   /**
    * Optional post-commit state observer invoked after waiters settle, with throws isolated.
    */
-  protected onStateChange: (state: LifecycleState, previous: LifecycleState) => void = () => {}
+  protected onStateChange (_state: LifecycleState, _previous: LifecycleState): void {}
 
   /**
    * Declares or retrieves a generation-bound named `LifecycleCondition` (such as `'ready'`).
