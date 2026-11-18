@@ -337,6 +337,74 @@ test('restart during incomplete startup settles the old attempt and starts one r
   await lifecycle.stop()
 })
 
+test('failure reported during startup unwind overrides clean stop supersession', async () => {
+  const failure = new Error('startup cleanup failure')
+  let scope!: LifecycleScope
+  const lifecycle = createLifecycle({
+    async onStart (currentScope) {
+      scope = currentScope
+      scope.defer(() => {
+        scope.fail(failure)
+      })
+      await new Promise<void>(resolve => {
+        currentScope.signal.addEventListener('abort', () => resolve(), { once: true })
+      })
+    },
+  })
+
+  const start = lifecycle.start()
+  await flushMicrotasks()
+  const stop = lifecycle.stop()
+  await assert.rejects(start, LifecycleSupersededError)
+  await assert.rejects(stop, error => error === failure)
+
+  const state = lifecycle.state
+  assert.equal(state.kind, 'failed')
+  if (state.kind === 'failed') {
+    assert.equal(state.phase, 'start')
+    assert.equal(state.error, failure)
+    assert.equal(state.cleanupComplete, true)
+  }
+})
+
+test('recovery requester failure during the final disposer fails recovery', async () => {
+  const requestRecovery = deferred<void>()
+  const disposerStarted = deferred<void>()
+  const finishDisposer = deferred<void>()
+  const requesterError = new Error('recovery requester failed during disposal')
+  let recoveryOutcome!: Promise<Awaited<ReturnType<LifecycleScope['recover']>>>
+
+  const lifecycle = createLifecycle({
+    onStart (scope) {
+      scope.defer(async () => {
+        disposerStarted.resolve()
+        await finishDisposer.promise
+      })
+      scope.spawn(async () => {
+        await requestRecovery.promise
+        recoveryOutcome = scope.recover()
+        await disposerStarted.promise
+        throw requesterError
+      })
+    },
+  })
+
+  await lifecycle.start()
+  requestRecovery.resolve()
+  await disposerStarted.promise
+  await flushMicrotasks()
+  finishDisposer.resolve()
+
+  assert.equal(await recoveryOutcome, 'failed')
+  const state = lifecycle.state
+  assert.equal(state.kind, 'failed')
+  if (state.kind === 'failed') {
+    assert.equal(state.phase, 'stop')
+    assert.equal(state.error, requesterError)
+    assert.equal(state.cleanupComplete, true)
+  }
+})
+
 test('every accepted stop invalidates pre-start conditions during retirement', async () => {
   const retirement = deferred<void>()
   const lifecycle = createLifecycle({

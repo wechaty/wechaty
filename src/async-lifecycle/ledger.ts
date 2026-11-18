@@ -710,6 +710,14 @@ export class GenerationLedger {
       }
     }
 
+    for (const entry of excludedTasks) {
+      if (isTaskSettled(entry) && entry.hasUnexpectedShutdownError) {
+        errors.push(entry.unexpectedShutdownError)
+        entry.hasUnexpectedShutdownError = false
+        entry.unexpectedShutdownError = undefined
+      }
+    }
+
     if (this.#interruptErrors.length > 0) {
       errors.push(...this.#interruptErrors)
       this.#interruptErrors = []

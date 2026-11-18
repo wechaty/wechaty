@@ -840,6 +840,11 @@ export class LifecycleKernel implements LifecycleController {
       stopDeadline.dispose()
     }
 
+    if (run.failureReported && isSupersededAbort) {
+      isSupersededAbort = false
+      cleanupErrors.push(run.failureError)
+    }
+
     this.#activeRun = undefined
     if (!cleanupComplete) {
       this.#dirtyRuns.set(run.generation, run)
