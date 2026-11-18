@@ -397,11 +397,12 @@ export interface LifecycleClock {
 export interface LifecycleOptions {
   /** Human-readable service name emitted in error messages and privacy-safe diagnostics. */
   readonly name?: string | undefined
-  /** Maximum milliseconds allowed for `onStart(scope)` before aborting with `LifecycleTimeoutError`. */
+  /** Maximum milliseconds allowed for `onStart(scope)`; must not exceed `2^31 - 1`. */
   readonly startTimeoutMs?: number | undefined
   /**
    * Maximum milliseconds allowed for graceful `onStop` and for ledger unwind before committing
-   * `failed { phase: 'stop', cleanupComplete: false }` with `LifecycleTimeoutError`.
+   * `failed { phase: 'stop', cleanupComplete: false }` with `LifecycleTimeoutError`; must not
+   * exceed `2^31 - 1`.
    */
   readonly stopTimeoutMs?: number | undefined
   /** Custom clock implementation (defaults to platform `Date.now` / `setTimeout` / `clearTimeout`). */
@@ -421,7 +422,7 @@ export interface LifecycleController extends Lifecycle {
  * Options for the companion `createWatchdog(scope, options)` helper.
  */
 export interface WatchdogOptions {
-  /** Inactivity window in milliseconds (must be a finite positive number). */
+  /** Inactivity window in milliseconds (finite, positive, and no greater than `2^31 - 1`). */
   readonly timeoutMs: number
   /**
    * Action taken on expiry: `'recover'` (default) invokes `void scope.recover(err)`;
@@ -438,7 +439,10 @@ export interface WatchdogOptions {
  * Control handle returned by `createWatchdog(scope, options)`.
  */
 export interface WatchdogHandle {
-  /** Resets the inactivity deadline (optionally overriding `timeoutMs` for the next window). */
+  /**
+   * Resets the inactivity deadline; an override must be finite, positive, and no greater than
+   * `2^31 - 1` milliseconds.
+   */
   feed (timeoutMs?: number): void
   /** Disarms the current timer without retiring the owning generation. */
   disarm (): void

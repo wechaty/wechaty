@@ -9,10 +9,12 @@
 
 import type { LifecycleClock, LifecycleTimerHandle } from './types.ts'
 
+const MAX_TIMEOUT_MS = 2 ** 31 - 1
+
 /**
- * Validates that an optional timeout duration is a finite positive number when supplied.
+ * Validates that an optional timeout fits the portable native timer range.
  *
- * @throws {RangeError} When `ms` is `<= 0`, `NaN`, or `±Infinity`.
+ * @throws {RangeError} When `ms` is not positive and finite, or exceeds `2^31 - 1` ms.
  */
 export function assertValidTimeoutMs (
   ms: number | undefined,
@@ -21,8 +23,10 @@ export function assertValidTimeoutMs (
   if (ms === undefined) {
     return
   }
-  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms <= 0) {
-    throw new RangeError(`${optionName} must be a finite positive number of milliseconds, got ${String(ms)}`)
+  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms <= 0 || ms > MAX_TIMEOUT_MS) {
+    throw new RangeError(
+      `${optionName} must be a finite positive number of milliseconds no greater than ${MAX_TIMEOUT_MS}, got ${String(ms)}`,
+    )
   }
 }
 

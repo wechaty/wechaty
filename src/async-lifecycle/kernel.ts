@@ -208,10 +208,12 @@ export class LifecycleKernel implements LifecycleController {
     })
   }
 
+  /** Returns the current immutable state snapshot. */
   get state (): LifecycleState {
     return this.#state
   }
 
+  /** Declares or retrieves a generation-bound condition for this lifecycle. */
   condition (name: string): LifecycleCondition {
     return this.#conditions.condition(name)
   }
@@ -441,10 +443,12 @@ export class LifecycleKernel implements LifecycleController {
     })
   }
 
+  /** Stops the lifecycle when it leaves an `await using` scope. */
   [Symbol.asyncDispose] (): Promise<void> {
     return this.stop()
   }
 
+  /** Starts the single reconciler if no reconciliation worker is already running. */
   #ensureReconciling (): void {
     if (this.#reconciling) {
       return
@@ -453,6 +457,10 @@ export class LifecycleKernel implements LifecycleController {
     void this.#reconcileLoop()
   }
 
+  /**
+   * Serializes accepted intent into startup, retirement, and dirty-cleanup work.
+   * Reentrant commands only update shared intent; this loop remains the sole worker.
+   */
   async #reconcileLoop (): Promise<void> {
     try {
       while (true) {
@@ -519,6 +527,9 @@ export class LifecycleKernel implements LifecycleController {
     }
   }
 
+  /**
+   * Creates the next fenced generation, its ledger, and the scope capability facade.
+   */
   #allocateGenerationRun (
     capturedRevision: number,
     linkedRecoveryOutcome: Deferred<RecoveryOutcome> | undefined,
@@ -882,7 +893,7 @@ export class LifecycleKernel implements LifecycleController {
     const failedSnapshot: LifecycleState = {
       kind: 'failed',
       generation: run.generation,
-      phase: run.failureReported ? 'run' : failurePhase,
+      phase: run.failureReported ? run.failurePhase : failurePhase,
       error: finalError,
       cleanupComplete: allGenerationsClean,
       ...(cleanupErrors.length > 0
@@ -1374,6 +1385,9 @@ export class LifecycleKernel implements LifecycleController {
     return outcome.promise
   }
 
+  /**
+   * Claims an idle child before startup and retains ownership until parent-led cleanup releases it.
+   */
   async #startOwnedChild<C extends Lifecycle> (
     run: GenerationRun,
     childOrFactory: C | (() => C),
@@ -1470,6 +1484,9 @@ export class LifecycleKernel implements LifecycleController {
     return child
   }
 
+  /**
+   * Waits for startup completion, accepted cancellation, or the startup deadline.
+   */
   async #waitForStartOrInterruption (
     onStartExecution: Promise<void>,
     interruptedPromise: Promise<void>,
@@ -1547,6 +1564,7 @@ export class LifecycleKernel implements LifecycleController {
     return attempt
   }
 
+  /** Builds the caller-facing error for a failed snapshot that still owns cleanup debt. */
   #createDirtyStateError (failedState: LifecycleState & { readonly kind: 'failed' }): LifecycleUnsafeStateError {
     return new LifecycleUnsafeStateError(
       `[${this.#serviceName}] Generation ${failedState.generation} failed during ${failedState.phase} with cleanupComplete=false; call stop() to finish releasing resources before starting a new generation`,
@@ -1554,6 +1572,7 @@ export class LifecycleKernel implements LifecycleController {
     )
   }
 
+  /** Builds the caller-facing error while a retired generation's ledger still has debt. */
   #createDirtyRunError (run: GenerationRun): LifecycleUnsafeStateError {
     return new LifecycleUnsafeStateError(
       `[${this.#serviceName}] Generation ${run.generation} still owns cleanup debt; call stop() to finish releasing resources before starting a new generation`,

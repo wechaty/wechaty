@@ -81,7 +81,8 @@ test('manual clock orders due timers, handles reentrant timers, and clears deadl
   assert.throws(() => clock.advanceBy(-1), RangeError)
 
   assert.doesNotThrow(() => assertValidTimeoutMs(undefined, 'timeout'))
-  for (const invalid of [ 0, -1, Number.NaN, Number.POSITIVE_INFINITY ]) {
+  assert.doesNotThrow(() => assertValidTimeoutMs(2 ** 31 - 1, 'timeout'))
+  for (const invalid of [ 0, -1, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 31 ]) {
     assert.throws(() => assertValidTimeoutMs(invalid, 'timeout'), RangeError)
   }
 
@@ -814,7 +815,7 @@ test('the #2905 A–F contract traces pass through both lifecycle entry points',
       const failedState = lifecycle.state
       assert.equal(failedState.kind, 'failed')
       if (failedState.kind === 'failed') {
-        assert.equal(failedState.phase, 'run')
+        assert.equal(failedState.phase, 'start')
         assert.equal(failedState.error, reportedFailure)
       }
     }

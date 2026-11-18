@@ -604,6 +604,11 @@ export class GenerationLedger {
     excludedTaskIds?: ReadonlySet<symbol>,
   ): Promise<UnwindResult> {
     const errors: unknown[] = []
+    const excludedTasks = excludedTaskIds === undefined
+      ? []
+      : this.#entries.filter(
+        (entry): entry is TaskEntry => entry.kind === 'task' && excludedTaskIds.has(entry.id),
+      )
     if (this.#interruptErrors.length > 0) {
       errors.push(...this.#interruptErrors)
       this.#interruptErrors = []
@@ -667,13 +672,8 @@ export class GenerationLedger {
 
       // Excluded recovery requesters may settle while later resources are being joined.
       // Their shutdown failures remain authoritative even though their task join was skipped.
-      for (const entry of this.#entries) {
-        if (
-          entry.kind === 'task'
-          && excludedTaskIds?.has(entry.id)
-          && isTaskSettled(entry)
-          && entry.hasUnexpectedShutdownError
-        ) {
+      for (const entry of excludedTasks) {
+        if (isTaskSettled(entry) && entry.hasUnexpectedShutdownError) {
           errors.push(entry.unexpectedShutdownError)
           entry.hasUnexpectedShutdownError = false
           entry.unexpectedShutdownError = undefined
@@ -844,6 +844,7 @@ export class GenerationLedger {
     return promise
   }
 
+  /** Keeps a failed release attached to its resource for reporting and a later retry. */
   #recordLateReleaseError<T> (entry: ResourceEntry<T>, error: unknown): void {
     entry.status = 'ready'
     if (!entry.hasPendingLateError) {
@@ -857,6 +858,7 @@ export class GenerationLedger {
     }
   }
 
+  /** Returns the retirement reason, with a standard abort error as the final fallback. */
   #currentAbortReason (): unknown {
     if (this.#abortController.signal.aborted) {
       return getAbortReason(this.#abortController.signal)
