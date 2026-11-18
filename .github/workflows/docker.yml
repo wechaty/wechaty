@@ -1,6 +1,12 @@
 name: Docker
 
-on: [push, pull_request]
+# Run PR validation once per commit; reserve push runs for publishing branches.
+on:
+  push:
+    branches:
+      - main
+      - 'v[0-9]*'
+  pull_request:
 
 permissions:
   contents: read
@@ -40,6 +46,7 @@ jobs:
         run: find . -not -path '*/.git/*' -type f -name '*.sh' -print0 | xargs -0 -r shellcheck --external-sources
 
       - name: Enable ARM64 containers on this runner
+        if: github.event_name == 'push'
         uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64
@@ -61,6 +68,7 @@ jobs:
         run: ./scripts/docker.sh test
 
       - name: Build the ARM64 image before publishing
+        if: github.event_name == 'push'
         uses: docker/build-push-action@v7
         with:
           context: .
