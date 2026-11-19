@@ -199,29 +199,9 @@ jobs:
         run: |
           marker="<!-- claude-review-progress:${EXPECTED_SHA}:${EXPECTED_BASE_SHA} -->"
           body="$(printf '%s\n\n%s\n\n%s\n' "$marker" '### Claude official Code Review plugin' 'Review started. Plugin execution and completion are not yet verified.')"
-          comment_id="$(gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f body="$body" --jq '.id')"
-          echo "comment_id=$comment_id" >> "$GITHUB_OUTPUT"
-
-      # Keep the official plugin implementation current. The upstream command
-      # has a PR-wide already-commented short circuit that conflicts with our
-      # HEAD/BASE-specific deduplication; remove only that eligibility clause.
-      - name: Prepare official plugin for revision-scoped reviews
-        if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
-        env:
-          PLUGIN_DIR: ${{ runner.temp }}/anthropic-code-review
-        run: |
-          git clone --quiet --depth=1 https://github.com/anthropics/claude-plugins-official.git "$PLUGIN_DIR"
-          python3 - <<'PY'
-          from pathlib import Path
-          import os
-          path = Path(os.environ['PLUGIN_DIR']) / 'plugins/code-review/commands/code-review.md'
-          original = path.read_text()
-          line = '   - Claude has already commented on this PR (check `gh pr view <PR> --comments` for comments left by claude)\n'
-          if original.count(line) != 1:
-              raise SystemExit('Upstream plugin eligibility has changed; review integration patch before proceeding')
-          path.write_text(original.replace(line, ''))
-          print('Disabled only upstream PR-wide already-commented check; HEAD/BASE deduplication remains authoritative')
-          PY
+          response="$(gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f body="$body")"
+          echo "comment_id=$(jq -r '.id' <<< "$response")" >> "$GITHUB_OUTPUT"
+          echo "created_at=$(jq -r '.created_at' <<< "$response")" >> "$GITHUB_OUTPUT"
 
       - name: Run Anthropic Code Review plugin
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
@@ -238,81 +218,99 @@ jobs:
             pull_requests: write
             issues: write
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # Load the freshly cloned official plugin with one eligibility-line patch.
-          # Keep automation mode so the slash command is actually invoked.
-          # Do NOT set track_progress: true: it forces tag mode.
+          # Install through the official Action inputs. A CLI --plugin-dir
+          # flag in claude_args was not carried into the SDK options in the
+          # failed pilot and the Action reported "No plugins specified".
+          plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
+          plugins: code-review@claude-plugins-official
+          # Automation mode executes slash commands; native track_progress
+          # selects tag mode, so progress is tracked by our workflow instead.
           prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
           claude_args: |
             --max-turns 100
-            --plugin-dir "${{ runner.temp }}/anthropic-code-review/plugins/code-review"
             --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Bash,Task,mcp__github_inline_comment__create_inline_comment"
 
-      # The upstream Action writes a pretty-printed JSON array.
-      # This pilot gate must still be validated with a real plugin execution.
-      # Require a terminal success and every launched task to complete.
-      # The official plugin currently launches three preparatory and four review
-      # agents, plus optional finding validators. Verify every launched task
-      # and conservatively identify all four primary reviewers separately.
+      # Attribute published feedback to THIS Claude execution, not merely
+      # to claude[bot] and a recent timestamp. Otherwise a concurrent native
+      # Claude session can make a skipped plugin look successfully reviewed.
       - name: Verify plugin review actually executed
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
         env:
           EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          REVIEW_STARTED: ${{ steps.review-progress.outputs.created_at }}
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs'
+          import { execFileSync } from 'node:child_process'
           const file = process.env.EXECUTION_FILE
-          if (!file) throw Error('No execution file: action may have skipped workflow validation')
-          const raw = readFileSync(file, 'utf8')
-          // Upstream writeExecutionFile serializes an entire pretty-printed JSON array.
+          if (!file) throw Error('Claude execution file missing; action may have skipped execution')
           let events
-          try { events = JSON.parse(raw) } catch { throw Error('Invalid Claude execution JSON') }
-          if (!Array.isArray(events) || !events.length)
-            throw Error('No Claude execution messages: plugin may not have run')
-          const finished = events.some(e => e.type === 'result' && e.subtype === 'success' && !e.is_error)
-          if (!finished) throw Error('No successful terminal Claude result')
-          const uses = new Map()
+          try { events = JSON.parse(readFileSync(file, 'utf8')) }
+          catch { throw Error('Invalid Claude execution JSON') }
+          if (!Array.isArray(events) || !events.length) throw Error('No Claude execution messages')
+          if (!events.some(e => e.type === 'result' && e.subtype === 'success' && e.is_error === false))
+            throw Error('Claude did not report a successful terminal result')
+          const calls = new Map()
           const results = new Map()
-          function scan(o, depth = 0) {
-            if (!o || typeof o !== 'object' || depth > 16) return
-            if (o.type === 'tool_use' && ['Task', 'Agent'].includes(o.name) && o.id)
-              uses.set(o.id, o)
-            if (o.type === 'tool_result' && o.tool_use_id)
-              results.set(o.tool_use_id, o)
-            if (o.subagent_stats && Object.values(o.subagent_stats.killed || {}).some(n => Number(n) > 0))
-              throw Error('A Claude subagent was killed')
-            for (const v of Object.values(o)) scan(v, depth + 1)
+          function scan(x, depth = 0) {
+            if (!x || typeof x !== 'object' || depth > 16) return
+            if (x.type === 'tool_use' && x.id) calls.set(x.id, x)
+            if (x.type === 'tool_result' && x.tool_use_id) results.set(x.tool_use_id, x)
+            for (const v of Object.values(x)) scan(v, depth + 1)
           }
-          events.forEach(e => scan(e))
-          // Three preparatory agents plus four parallel reviewers are the
-          // current upstream minimum. Validation agents, if launched, are
-          // included in 'uses' and MUST also finish before we record success.
-          if (uses.size < 7)
-            throw Error('Fewer than seven plugin agent tasks observed; review may have been skipped')
-          // Do not confuse optional finding validators with the four primary
-          // reviewers. Classify the task's own review instruction, not the
-          // aggregate agent count. An unknown role fails closed.
-          const compliance = []
-          const bugs = []
-          for (const [id, task] of uses) {
-            const instruction = String(task.input?.prompt ?? task.input?.description ?? '')
-            if (/audit.{0,100}CLAUDE\.md|CLAUDE\.md.{0,100}compliance/i.test(instruction))
-              compliance.push(id)
-            else if (/scan for obvious bugs|problems that exist in the introduced code|review.{0,100}for bugs/i.test(instruction))
-              bugs.push(id)
-          }
-          if (compliance.length < 2 || bugs.length < 2)
-            throw Error('Cannot establish completion of both compliance and both bug reviewers')
-          for (const [id, task] of uses) {
+          events.forEach(x => scan(x))
+          const repo = process.env.GITHUB_REPOSITORY
+          const pr = process.env.PR_NUMBER
+          const prefix = 'https://github.com/' + repo + '/pull/' + pr
+          const started = process.env.REVIEW_STARTED
+          if (!started) throw Error('Missing review start timestamp')
+          const api = route => JSON.parse(execFileSync('gh', ['api', route], { encoding: 'utf8' }))
+          const textOf = x => typeof x === 'string' ? x : JSON.stringify(x ?? '')
+          let verified = 0
+          for (const [id, call] of calls) {
+            const command = String(call.input?.command ?? '')
+            const inline = call.name === 'mcp__github_inline_comment__create_inline_comment'
+            const summary = call.name === 'Bash' && /(^|\s)gh\s+pr\s+comment(\s|$)/.test(command)
+            if (!inline && !summary) continue
             const result = results.get(id)
-            if (!result) throw Error(`Agent task ${id} has no result: review is incomplete`)
-            if (result.is_error === true || result.status === 'failed' ||
-                result.status === 'cancelled' || result.status === 'error' ||
-                (Array.isArray(result.content) && result.content.some(x => x?.is_error === true)))
-              throw Error(`Agent task ${id} failed or was cancelled`)
+            if (!result || result.is_error === true) continue
+            const output = textOf(result.content)
+            if (/error:|permission denied|failed to|not found/i.test(output)) continue
+            // Only trust URLs returned by the matching publishing tool call.
+            // Do not scan all PR comments; another Claude session may race us.
+            const urls = [...output.matchAll(/https:\/\/github\.com\/[^\s"'\\]+/g)].map(m => m[0])
+            const ids = [...new Set(urls.map(url => {
+              if (!url.startsWith(prefix)) return null
+              const issue = url.match(/#issuecomment-(\d+)/)
+              const review = url.match(/#discussion_r(\d+)/)
+              return issue ? ['issue', issue[1]] : review ? ['inline', review[1]] : null
+            }).filter(Boolean).map(pair => pair.join(':')))]
+            for (const entry of ids) {
+              const [kind, commentId] = entry.split(':')
+              if ((kind === 'inline') !== inline) continue
+              const route = kind === 'issue'
+                ? 'repos/' + repo + '/issues/comments/' + commentId
+                : 'repos/' + repo + '/pulls/comments/' + commentId
+              const published = api(route)
+              if (published.user?.login !== 'claude[bot]') continue
+              if (!published.created_at || published.created_at < started) continue
+              if (kind === 'issue') {
+                if (!String(published.html_url ?? '').startsWith(prefix + '#issuecomment-')) continue
+                if (!String(published.body ?? '').includes('## Code review')) continue
+              } else {
+                if (!String(published.html_url ?? '').startsWith(prefix + '#discussion_r')) continue
+                if (published.commit_id !== process.env.EXPECTED_SHA) continue
+              }
+              console.log('Verified output from this execution: ' + kind + ' comment ' + commentId)
+              verified++
+            }
           }
-          console.log(`Verified terminal result and all ${uses.size} observed agent tasks`)
+          if (!verified) throw Error('No review artifact tied to this Claude execution. Plugin may have skipped or returned unsupported tool output.')
           NODE
 
       - name: Update review progress
@@ -326,7 +324,7 @@ jobs:
         run: |
           marker="<!-- claude-review-progress:${EXPECTED_SHA}:${EXPECTED_BASE_SHA} -->"
           if [ "$VERIFIED" = success ]; then
-            message='Official plugin review agents completed. See the Claude review comment for findings (the plugin may omit comments if no high-confidence issues are found).'
+            message='Official Code Review plugin completed and fresh Claude review feedback was found on this PR.'
           else
             message='Plugin review was NOT verified. Inspect the workflow run and execution output; do not treat this as a completed review.'
           fi
