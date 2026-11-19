@@ -238,11 +238,11 @@ jobs:
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
         env:
-          EXECUTION_FILE: \${{ steps.claude-review.outputs.execution_file }}
-          GH_TOKEN: \${{ github.token }}
-          PR_NUMBER: \${{ github.event.pull_request.number }}
-          EXPECTED_SHA: \${{ github.event.pull_request.head.sha }}
-          REVIEW_STARTED: \${{ steps.review-progress.outputs.created_at }}
+          EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          REVIEW_STARTED: ${{ steps.review-progress.outputs.created_at }}
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs'
