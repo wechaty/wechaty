@@ -35,6 +35,10 @@ jobs:
       env:
         CI: true
 
+    - name: Verify lifecycle shutdown over TCP
+      if: matrix.os == 'ubuntu-latest'
+      run: node --test tests/integration/async-lifecycle-socket.integration.test.ts
+
     - name: Verify native test failure exit
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -67,6 +71,8 @@ jobs:
     - name: Export Node executable for subprocess fixtures
       run: echo "NODE_BINARY=$(command -v node)" >> "$GITHUB_ENV"
     - run: npm run test:unit:deno
+    - name: Verify lifecycle shutdown over TCP
+      run: deno test --no-check --allow-net=127.0.0.1 tests/integration/async-lifecycle-socket.integration.test.ts
     - name: Verify native test failure exit
       run: |
         if deno test tests/fixtures/native-test-failure.js; then

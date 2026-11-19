@@ -106,7 +106,11 @@ export interface LifecycleScope {
   /** Register release in reverse registration order. A sealed scope releases immediately and throws. */
   defer(cleanup: () => void | PromiseLike<void>): void
 
-  /** Run a task with the scope signal. Active task failures fail this generation. */
+  /**
+   * Run a task with the scope signal. Retirement aborts the signal and joins
+   * the task before disposing resources. Use the signal to interrupt blocking
+   * work so the task can finish. Active task failures fail this generation.
+   */
   spawn(task: (signal: AbortSignal) => Promise<void>): void
   /**
    * Claim an idle child and fail this generation if it exits unexpectedly.
