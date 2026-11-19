@@ -102,3 +102,33 @@ for (const [name, create] of entryPoints) {
     assert.equal(service.state.kind, 'stopped')
   })
 }
+
+test('concurrent stop callers join retirement and dispose each resource once', { timeout: 5000 }, async () => {
+  const entered = Promise.withResolvers<void>()
+  const release = Promise.withResolvers<void>()
+  let stopCalls = 0
+  let disposalCalls = 0
+  const lifecycle = createLifecycle({
+    onStart(scope) {
+      scope.defer(() => { disposalCalls++ })
+    },
+    async onStop() {
+      stopCalls++
+      entered.resolve()
+      await release.promise
+    },
+  })
+
+  await lifecycle.start()
+  const first = lifecycle.stop()
+  await entered.promise
+  const second = lifecycle.stop()
+  assert.equal(stopCalls, 1)
+  assert.equal(disposalCalls, 0)
+
+  release.resolve()
+  await Promise.all([first, second])
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(stopCalls, 1)
+  assert.equal(disposalCalls, 1)
+})
