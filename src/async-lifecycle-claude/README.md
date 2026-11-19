@@ -123,7 +123,8 @@ work.
 | `[Symbol.asyncDispose]()` | same as `stop()`; the instance can start again | same as `stop()` |
 
 Equivalent concurrent calls share one attempt outcome; promise identity is not
-guaranteed. A failed attempt ends: nothing retries because "running" is still
+guaranteed. Two `restart()` calls before the replacement starts share one
+replacement. A failed attempt ends: nothing retries because "running" is still
 wanted.
 
 ### State
@@ -269,11 +270,17 @@ between. It never counts as user intent.
 - Any user `start()` / `stop()` / `restart()` accepted before the replacement
   starts supersedes it (`'superseded'`), so a user `stop()` always wins
   (#2905 §3.3).
+  Once the replacement is `starting`, a user `start()` joins that run's outcome
+  instead, while `stop()` and `restart()` still supersede it.
 - It resolves `'recovered'` when the replacement runs. It rejects when
   retirement reports an error or the replacement fails.
 - Before `running` it behaves like `fail(reason)` and rejects with `reason`, so
   a first boot fails fast.
 - The returned promise is pre-handled, so `void scope.recover()` is safe.
+- From owned work (a `spawn()` task, a `listen()` handler), call
+  `void scope.recover()` and do not await it. Recovery resolves only after this
+  run retires, and retirement joins every owned task, so a task awaiting its own
+  recovery waits on itself, exactly like a task awaiting `stop()`.
 
 Back-off and retry budgets are policy. Wait at the top of the next `onStart`
 under `scope.signal`, where `stop()` cancels the wait. Call `fail()` when the

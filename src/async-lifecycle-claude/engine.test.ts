@@ -261,6 +261,29 @@ for (const [ shell, make ] of SHELLS) {
     assert.ok(!rec.kinds.includes('running:1'))
   })
 
+  t('a start() from an abort listener gets its own attempt, not the superseded one', async () => {
+    const gate = Promise.withResolvers<void>()
+    let restarted: Promise<void> | undefined
+    const { lifecycle } = make({
+      onStart: scope => {
+        if (scope.generation === 1) {
+          scope.signal.addEventListener('abort', () => { restarted = lifecycle.start() })
+          return gate.promise
+        }
+        return undefined
+      },
+    })
+    const first = lifecycle.start()
+    await flush()
+    const stopping = lifecycle.stop()
+    assert.ok(restarted, 'the abort listener ran synchronously inside stop()')
+    gate.resolve()
+    await assert.rejects(first, LifecycleSupersededError)
+    await stopping // generation 1 retired cleanly
+    await restarted
+    assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  })
+
   t('restart during a gated start retires it before the replacement', async () => {
     const rec = recorder()
     const gate = Promise.withResolvers<void>()
@@ -272,6 +295,58 @@ for (const [ shell, make ] of SHELLS) {
     await assert.rejects(first, LifecycleSupersededError)
     await restarted
     assert.deepEqual(rec.kinds, [ 'starting:1', 'stopping:1', 'starting:2', 'running:2' ])
+  })
+
+  t('concurrent restart() calls share one replacement', async () => {
+    let starts = 0
+    const { lifecycle } = make({ onStart: () => { starts++ } })
+    await lifecycle.start()
+    await Promise.all([ lifecycle.restart(), lifecycle.restart() ])
+    assert.equal(starts, 2)
+    assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  })
+
+  t('a start() from an abort listener during restart joins the restart', async () => {
+    const gate = Promise.withResolvers<void>()
+    let joined: Promise<void> | undefined
+    const { lifecycle } = make({
+      onStart: scope => {
+        if (scope.generation === 1) {
+          scope.signal.addEventListener('abort', () => { joined = lifecycle.start() })
+          return gate.promise
+        }
+        return undefined
+      },
+    })
+    const first = lifecycle.start()
+    await flush()
+    const restarting = lifecycle.restart()
+    gate.resolve()
+    await assert.rejects(first, LifecycleSupersededError)
+    await restarting
+    await joined
+    assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  })
+
+  t('a stop() from an abort listener during restart supersedes the restart', async () => {
+    const gate = Promise.withResolvers<void>()
+    const { lifecycle } = make({
+      onStart: scope => {
+        if (scope.generation === 1) {
+          scope.signal.addEventListener('abort', () => { void lifecycle.stop() })
+          return gate.promise
+        }
+        return undefined
+      },
+    })
+    const first = outcome(lifecycle.start())
+    await flush()
+    const restarting = outcome(lifecycle.restart())
+    gate.resolve()
+    await flush()
+    assert.ok(first.rejected)
+    assert.ok(restarting.error instanceof LifecycleSupersededError)
+    assert.equal(lifecycle.state.kind, 'stopped')
   })
 
   t('restart() followed by stop() ends stopped; restart() followed by start() does not hang', async () => {
@@ -529,6 +604,27 @@ for (const [ shell, make ] of SHELLS) {
     assert.equal(lifecycle.state.kind, 'running')
   })
 
+  t('an onStop rejecting with undefined is a cleanup failure, not success', async () => {
+    const a = make({ onStart: () => {}, onStop: () => { throw undefined } })
+    await a.lifecycle.start()
+    const stopping = outcome(a.lifecycle.stop())
+    await flush()
+    assert.ok(stopping.rejected)
+    assert.equal(stopping.error, undefined)
+    const failed = failedState(a.lifecycle.state)
+    assert.equal(failed.phase, 'stop')
+    assert.equal(failed.cleanupComplete, true)
+    assert.ok('cleanupError' in failed)
+
+    let starts = 0
+    const b = make({ onStart: () => { starts++ }, onStop: () => { throw undefined } })
+    await b.lifecycle.start()
+    const restarting = outcome(b.lifecycle.restart())
+    await flush()
+    assert.ok(restarting.rejected, 'the replacement is refused')
+    assert.equal(starts, 1)
+  })
+
   t('acquire, use, child, task and defer unwind in strict reverse order', async () => {
     const log: string[] = []
     const child = createLifecycle({ onStart: () => {}, onStop: () => { log.push('child') } })
@@ -656,6 +752,50 @@ for (const [ shell, make ] of SHELLS) {
     assert.deepEqual(log, [ 'task ends', 'close' ])
   })
 
+  t('an acquisition finishing after the interrupt pass is interrupted before release', async () => {
+    const log: string[] = []
+    const creating = Promise.withResolvers<EventTarget>()
+    const { lifecycle } = make({
+      onStart: scope => {
+        const socket = scope.acquire(
+          () => creating.promise,
+          () => { log.push('close') },
+          { interrupt: s => { log.push('interrupt'); s.dispatchEvent(new Event('end')) } },
+        )
+        socket.catch(() => {})
+        scope.spawn(async () => {
+          const s = await socket.catch(() => undefined)
+          if (s) {
+            await new Promise<void>(resolve => s.addEventListener('end', () => resolve()))
+          }
+        })
+      },
+    })
+    await lifecycle.start()
+    const stopping = lifecycle.stop()
+    await flush()
+    assert.deepEqual(log, [], 'the interrupt pass ran before the resource existed')
+    creating.resolve(new EventTarget())
+    await stopping
+    assert.deepEqual(log, [ 'interrupt', 'close' ])
+  })
+
+  t('a late interrupt that throws is reported as a cleanup error', async () => {
+    const creating = Promise.withResolvers<string>()
+    const boom = new Error('interrupt')
+    const { lifecycle } = make({
+      onStart: scope => {
+        void scope.acquire(() => creating.promise, () => {}, { interrupt: () => { throw boom } }).catch(() => {})
+      },
+    })
+    await lifecycle.start()
+    const stopping = lifecycle.stop()
+    await flush()
+    creating.resolve('r')
+    await assert.rejects(stopping, boom)
+    assert.equal(failedState(lifecycle.state).cleanupComplete, true)
+  })
+
   // ===========================================================================
   // Sealed scopes and late debt
   // ===========================================================================
@@ -711,6 +851,28 @@ for (const [ shell, make ] of SHELLS) {
     assert.equal(lifecycle.state.kind, 'running', 'a live run is not interrupted by old debt')
     await lifecycle.stop()
     assert.equal(calls, 2)
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+
+  t('a stop() settles when debt clears on its own', async () => {
+    const clock = new ManualClock()
+    let saved!: LifecycleScope
+    const gate = Promise.withResolvers<void>()
+    let calls = 0
+    const { lifecycle } = make({ onStart: scope => { saved = scope } }, { stopTimeoutMs: 50, clock })
+    await lifecycle.start()
+    await lifecycle.stop()
+    assert.throws(() => saved.defer(() => {
+      if (++calls === 1) { throw new Error('late') }
+      return gate.promise
+    }))
+    await flush()
+    const retry = outcome(lifecycle.stop())
+    await clock.advance(60)
+    assert.ok(retry.error instanceof LifecycleTimeoutError)
+    gate.resolve()
+    await flush()
+    await lifecycle.stop()
     assert.equal(lifecycle.state.kind, 'stopped')
   })
 
@@ -1040,6 +1202,58 @@ for (const [ shell, make ] of SHELLS) {
     assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
   })
 
+  t('a user start() while the recovery replacement is starting joins it', async () => {
+    const gate = Promise.withResolvers<void>()
+    let saved!: LifecycleScope
+    const { lifecycle } = make({ onStart: scope => { saved = scope; return scope.generation === 2 ? gate.promise : undefined } })
+    await lifecycle.start()
+    const recovering = saved.recover()
+    await flush()
+    assert.deepEqual(lifecycle.state, { kind: 'starting', generation: 2 })
+    const starting = lifecycle.start()
+    gate.resolve()
+    await starting
+    assert.equal(await recovering, 'recovered')
+    assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  })
+
+  t('a start() joined to a recovery still rejects when stop() supersedes it', async () => {
+    let saved!: LifecycleScope
+    const { lifecycle } = make({
+      onStart: scope => {
+        saved = scope
+        if (scope.generation === 2) {
+          return new Promise((_, reject) => scope.signal.addEventListener('abort', () => reject(scope.signal.reason)))
+        }
+        return undefined
+      },
+    })
+    await lifecycle.start()
+    const recovering = saved.recover()
+    await flush()
+    const starting = outcome(lifecycle.start())
+    await lifecycle.stop()
+    await flush()
+    assert.ok(starting.error instanceof LifecycleSupersededError)
+    assert.equal(await recovering, 'superseded')
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+
+  t('an owned task may trigger recovery with void scope.recover()', async () => {
+    const trigger = Promise.withResolvers<void>()
+    const { lifecycle } = make({
+      onStart: scope => {
+        if (scope.generation === 1) {
+          scope.spawn(async () => { await trigger.promise; void scope.recover() })
+        }
+      },
+    })
+    await lifecycle.start()
+    trigger.resolve()
+    await flush()
+    assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  })
+
   t('recover() rejects when the replacement fails or retirement is dirty', async () => {
     const boom = new Error('boom')
     let saved!: LifecycleScope
@@ -1079,6 +1293,22 @@ for (const [ shell, make ] of SHELLS) {
     assert.equal(failed.phase, 'start')
     assert.equal(failed.cleanupComplete, true)
     assert.equal(clock.pending, 0, 'no timer is left behind')
+  })
+
+  t('stopTimeoutMs bounds a stop() that waits on an onStart ignoring abort', async () => {
+    const clock = new ManualClock()
+    const gate = Promise.withResolvers<void>()
+    const { lifecycle } = make({ onStart: () => gate.promise }, { stopTimeoutMs: 50, clock })
+    const starting = outcome(lifecycle.start())
+    await flush()
+    const stopping = outcome(lifecycle.stop())
+    await clock.advance(60)
+    assert.ok(stopping.error instanceof LifecycleTimeoutError)
+    assert.ok(starting.rejected)
+    assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+    gate.resolve()
+    await lifecycle.stop()
+    assert.equal(lifecycle.state.kind, 'stopped')
   })
 
   t('an onStart that ignores its timeout keeps the generation dirty until it settles', async () => {

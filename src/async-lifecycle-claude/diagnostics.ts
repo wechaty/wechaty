@@ -28,8 +28,8 @@
  *
  * A single channel (`wechaty.async-lifecycle-claude`) carries every record; the
  * suffix keeps it apart from the `src/async-lifecycle-copilot/` implementation,
- * whose records have a different shape. Subscribers
- * filter by the record's `type`. The channel is cross-runtime: Deno implements
+ * whose records have a different shape. Subscribers filter on `state.kind` and
+ * `name`. The channel is cross-runtime: Deno implements
  * `node:diagnostics_channel`, and `hasSubscribers` keeps the publish path free
  * when nobody is listening.
  */

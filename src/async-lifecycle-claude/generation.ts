@@ -89,6 +89,12 @@ class Generation {
   /** `onStop` runs at most once per generation, even across cleanup retries. */
   onStopCalled = false
   /**
+   * Errors from interrupts that ran outside the interrupt pass: an acquisition
+   * that finished after the pass gets its interrupt then. Retirement drains
+   * these after unwinding, so they are reported like any other interrupt error.
+   */
+  readonly lateInterruptErrors: unknown[] = []
+  /**
    * Retirement work that is still running, possibly past a stop deadline. A later
    * retirement pass joins it first, so timed-out work is never forgotten.
    */
@@ -153,6 +159,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         return Promise.reject(generation.sealReason)
       }
       let created: { readonly resource: T } | undefined
+      let interruptPending = false
       let creating!: Promise<T>
       // Ownership first: the release is on the ledger before `create` runs.
       generation.ledger.add({
@@ -168,12 +175,26 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         interrupt: options?.interrupt && (() => {
           if (created) {
             options.interrupt!(created.resource)
+          } else {
+            // Still creating: interrupt as soon as the resource exists, before
+            // this entry's release (and so before any newer entry is released).
+            interruptPending = true
           }
         }),
       })
       creating = (async () => create(signal))()
+      // Registered before the ledger's release awaits `creating`, so a pending
+      // interrupt always runs before the release.
       return creating.then(resource => {
         created = { resource }
+        if (interruptPending) {
+          interruptPending = false
+          try {
+            options!.interrupt!(resource)
+          } catch (error) {
+            generation.lateInterruptErrors.push(error)
+          }
+        }
         if (generation.sealed) {
           // Retirement began while creating: the ledger entry releases it.
           throw generation.sealReason

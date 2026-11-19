@@ -250,7 +250,12 @@ class LifecycleEngine {
     }
     const attempt = this.#joinableAttempt() ?? (this.#pending = new Attempt('user'))
     this.#schedule()
-    return waitFor(attempt.promise, signal).then(() => {})
+    return waitFor(attempt.promise, signal).then(result => {
+      // A joined recovery reports supersession as a value; a user caller rejects.
+      if (result === 'superseded') {
+        throw new LifecycleSupersededError()
+      }
+    })
   }
 
   /** See {@link Lifecycle.stop}. */
@@ -295,12 +300,23 @@ class LifecycleEngine {
     if (this.#isDirty()) {
       return Promise.reject(new LifecycleUnsafeStateError('cannot restart while cleanup is incomplete'))
     }
-    this.#supersedePending()
+    // Equivalent concurrent restarts share one attempt: a user attempt that has
+    // no generation yet already promises a run that starts after this call.
+    const pending = this.#pending
+    let attempt: Attempt
+    if (pending && pending.kind === 'user' && !pending.settled && !pending.generation) {
+      attempt = pending
+    } else {
+      this.#supersedePending()
+      attempt = this.#pending = new Attempt('user')
+    }
+    // Install the attempt before retiring: `#requestRetire` may abort a starting
+    // run, and its abort listeners can call start() / stop() synchronously; they
+    // must join or supersede this attempt, not one installed after them.
     const current = this.#current
     if (current && !current.sealed) {
       this.#requestRetire(current, 'restart')
     }
-    const attempt = this.#pending = new Attempt('user')
     this.#schedule()
     return waitFor(attempt.promise, signal).then(() => {})
   }
@@ -380,16 +396,19 @@ class LifecycleEngine {
   }
 
   /**
-   * The pending attempt a new `start()` may join, if any. A recovery is replaced
-   * by user intent; an attempt whose generation is already retiring will fail or
-   * be superseded, so a new request gets its own attempt.
+   * The pending attempt a new `start()` may join, if any. A recovery that has not
+   * started its replacement is superseded by user intent; once the replacement is
+   * live, `start()` joins its outcome. An attempt whose generation is already
+   * retiring will fail or be superseded, so a new request gets its own attempt.
    */
   #joinableAttempt (): Attempt | undefined {
     const pending = this.#pending
     if (!pending) {
       return undefined
     }
-    if (pending.kind === 'recover') {
+    if (pending.kind === 'recover' && !(pending.generation && !pending.generation.sealed)) {
+      // Not started yet: user intent supersedes the recovery. Once its
+      // replacement is live, a start() joins that run's outcome instead.
       pending.supersede()
       this.#pending = undefined
       return undefined
@@ -539,9 +558,15 @@ class LifecycleEngine {
 
     if (this.#stopRequested) {
       this.#stopRequested = false
+      // Debt may have cleared on its own (a late release finished) after this
+      // stop() was accepted; its waiters still need an outcome.
+      const debtWaiters = [ ...this.#debtStopWaiters ]
+      this.#debtStopWaiters.clear()
+      const resolve = () => { for (const waiter of debtWaiters) { waiter.resolve() } }
       if (this.#state.kind === 'failed') {
-        return () => this.#commit({ kind: 'stopped', generation: this.#state.generation })
+        return () => this.#commit({ kind: 'stopped', generation: this.#state.generation }, resolve)
       }
+      resolve()
     }
 
     const pending = this.#pending
@@ -684,6 +709,7 @@ class LifecycleEngine {
     errors.push(...generation.ledger.interrupt())
     await generation.startWork
     errors.push(...await generation.ledger.unwind())
+    errors.push(...generation.lateInterruptErrors.splice(0))
     errors.push(...await this.#unwindDebt())
     return errors
   }
@@ -751,24 +777,27 @@ class LifecycleEngine {
 
     generation.retired = true
     this.#current = undefined
-    const stopError = errors.length > 0 ? aggregate(errors) : undefined
+    // Failure is decided by the presence of errors, never by their value: a hook
+    // may legitimately reject with `undefined`.
+    const stopFailed = errors.length > 0
+    const stopError = stopFailed ? aggregate(errors) : undefined
 
     // A replacement needs a retirement without errors ("either half fails").
     // Recovery authority needs no re-check here: see model rule 1.
-    const rejectedReplacement = stopError !== undefined ? this.#pending : undefined
+    const rejectedReplacement = stopFailed ? this.#pending : undefined
     if (rejectedReplacement) {
       this.#pending = undefined
     }
 
     const settle = () => {
       for (const waiter of stopWaiters) {
-        if (stopError === undefined) {
-          waiter.resolve()
-        } else {
+        if (stopFailed) {
           waiter.reject(stopError)
+        } else {
+          waiter.resolve()
         }
       }
-      own?.fail(failure ? failure.error : stopError ?? new LifecycleSupersededError())
+      own?.fail(failure ? failure.error : stopFailed ? stopError : new LifecycleSupersededError())
       rejectedReplacement?.fail(stopError)
     }
 
@@ -780,9 +809,9 @@ class LifecycleEngine {
         phase           : failure.phase,
         error           : failure.error,
         cleanupComplete : true,
-        ...(stopError !== undefined ? { cleanupError: stopError } : {}),
+        ...(stopFailed ? { cleanupError: stopError } : {}),
       }
-    } else if (stopError !== undefined) {
+    } else if (stopFailed) {
       next = {
         kind            : 'failed',
         generation      : generation.number,
