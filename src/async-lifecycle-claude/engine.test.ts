@@ -30,7 +30,9 @@
 
 import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
+import process from 'node:process'
 import { test } from 'node:test'
+import { setImmediate } from 'node:timers'
 
 import { AsyncLifecycle } from './async-lifecycle.ts'
 import { listen } from './companions/listen.ts'
@@ -205,6 +207,35 @@ for (const [ shell, make ] of SHELLS) {
     await flush()
     assert.ok(starting.rejected)
     assert.equal(lifecycle.state.kind, 'stopped', 'the accepted stop still ran')
+  })
+
+  t('a caller that aborted early never leaves a later cleanup failure unhandled', async () => {
+    const unhandled: unknown[] = []
+    const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
+    process.on('unhandledRejection', onUnhandled)
+    try {
+      const gate = Promise.withResolvers<void>()
+      const caller = new AbortController()
+      const cleanupError = new Error('cleanup')
+      const { lifecycle } = make({
+        onStart: scope => {
+          scope.defer(() => { throw cleanupError })
+          scope.signal.addEventListener('abort', () => caller.abort(new Error('caller')))
+          return gate.promise
+        },
+      })
+      void lifecycle.start().catch(() => {})
+      await flush()
+      await assert.rejects(lifecycle.stop({ signal: caller.signal }))
+      gate.resolve()
+      await flush()
+      assert.equal(failedState(lifecycle.state).cleanupError, cleanupError)
+      // Unhandled rejections are reported after the microtask queue drains.
+      await new Promise(resolve => setImmediate(resolve))
+      assert.deepEqual(unhandled, [])
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+    }
   })
 
   t('an already-aborted signal rejects before any intent is accepted', async () => {

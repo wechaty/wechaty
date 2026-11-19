@@ -142,24 +142,29 @@ class Attempt {
  * Give one caller its own view of a shared promise: a fresh promise (so an
  * ignored rejection is still reported to that caller) that also rejects when the
  * caller's signal aborts. The abort listener is removed on settle.
+ *
+ * `shared` always gets a rejection handler, even when the caller has already
+ * aborted: stop waiters are plain promises, and a later cleanup failure on an
+ * unhandled one would surface as a process-level unhandled rejection.
  */
 function waitFor<T> (shared: Promise<T>, signal: AbortSignal | undefined): Promise<T> {
   if (!signal) {
     return shared.then(value => value)
   }
   return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason)
+    // Handlers first, abort check second (see above).
+    shared.then(
+      value => { signal.removeEventListener('abort', onAbort); resolve(value) },
+      (error: unknown) => { signal.removeEventListener('abort', onAbort); reject(error) },
+    )
     // The command may have aborted a starting run synchronously, and that run's
     // abort listeners may have aborted this caller's signal before we got here.
     if (signal.aborted) {
       reject(signal.reason)
       return
     }
-    const onAbort = () => reject(signal.reason)
     signal.addEventListener('abort', onAbort, { once: true })
-    shared.then(
-      value => { signal.removeEventListener('abort', onAbort); resolve(value) },
-      (error: unknown) => { signal.removeEventListener('abort', onAbort); reject(error) },
-    )
   })
 }
 
