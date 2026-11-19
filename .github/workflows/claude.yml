@@ -250,9 +250,10 @@ jobs:
 
       # The upstream Action writes a pretty-printed JSON array.
       # This pilot gate must still be validated with a real plugin execution.
-      # Fail closed on ambiguity: identify each specialist Task/Agent invocation
-      # and its matching successful tool result. A mere completed-agent count is
-      # insufficient because the upstream plugin runs preparatory agents too.
+      # Require a terminal success and every launched task to complete.
+      # The official plugin currently launches three preparatory and four review
+      # agents, plus optional finding validators. Count all launched tasks rather
+      # than relying on undocumented agent prompt text or aggregate statistics.
       - name: Verify plugin review actually executed
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
@@ -273,30 +274,31 @@ jobs:
           if (!finished) throw Error('No successful terminal Claude result')
           const uses = new Map()
           const results = new Map()
-          function scan(o, depth=0) {
-            if (!o || typeof o !== 'object' || depth > 12) return
-            if (o.type === 'tool_use' && ['Task','Agent'].includes(o.name) && o.id) uses.set(o.id,o)
-            if (o.type === 'tool_result' && o.tool_use_id) results.set(o.tool_use_id,o)
-            if (o.subagent_stats && Object.values(o.subagent_stats.killed || {}).some(v => Number(v) > 0))
-              throw Error('One or more subagents were cancelled/killed')
-            for (const v of Object.values(o)) scan(v,depth+1)
+          function scan(o, depth = 0) {
+            if (!o || typeof o !== 'object' || depth > 16) return
+            if (o.type === 'tool_use' && ['Task', 'Agent'].includes(o.name) && o.id)
+              uses.set(o.id, o)
+            if (o.type === 'tool_result' && o.tool_use_id)
+              results.set(o.tool_use_id, o)
+            if (o.subagent_stats && Object.values(o.subagent_stats.killed || {}).some(n => Number(n) > 0))
+              throw Error('A Claude subagent was killed')
+            for (const v of Object.values(o)) scan(v, depth + 1)
           }
-          events.forEach(e=>scan(e))
-          const special = []
-          for (const [id,tool] of uses) {
-            const prompt = JSON.stringify(tool.input ?? {})
-            const reviewer = /CLAUDE\.md|compliance|bug|review.*change|code.*review/i.test(prompt)
-            if (!reviewer) continue
+          events.forEach(e => scan(e))
+          // Three preparatory agents plus four parallel reviewers are the
+          // current upstream minimum. Validation agents, if launched, are
+          // included in 'uses' and MUST also finish before we record success.
+          if (uses.size < 7)
+            throw Error('Fewer than seven plugin agent tasks observed; review may have been skipped')
+          for (const [id, task] of uses) {
             const result = results.get(id)
-            if (!result || result.is_error || result.status === 'failed' || result.status === 'cancelled') continue
-            special.push({ id, prompt })
+            if (!result) throw Error(`Agent task ${id} has no result: review is incomplete`)
+            if (result.is_error === true || result.status === 'failed' ||
+                result.status === 'cancelled' || result.status === 'error' ||
+                (Array.isArray(result.content) && result.content.some(x => x?.is_error === true)))
+              throw Error(`Agent task ${id} failed or was cancelled`)
           }
-          // Two CLAUDE.md reviewers and two bug reviewers; do not count prep agents.
-          const compliance = special.filter(s=>/CLAUDE\.md|compliance/i.test(s.prompt))
-          const bugs = special.filter(s=>/bug|logic|correctness/i.test(s.prompt))
-          if (compliance.length < 2 || bugs.length < 2 || special.length < 4)
-            throw Error('Cannot prove all four specialist review agents completed successfully')
-          console.log('Verified terminal result and four matched specialist tool completions')
+          console.log(`Verified terminal result and all ${uses.size} observed agent tasks`)
           NODE
 
       - name: Update review progress
