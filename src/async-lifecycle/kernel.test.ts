@@ -413,6 +413,60 @@ for (const [name, create] of facades) {
     assert.equal(parent.state.kind, 'stopped')
   })
 
+  for (const command of ['stop', 'restart'] as const) {
+    for (const outcome of ['release', 'fail', 'timeout'] as const) {
+      test(`${name}: ${command} joins a late registration at retirement completion: ${outcome}`, async () => {
+        const gate = Promise.withResolvers<void>()
+        const reason = new Error('late release failed')
+        let starts = 0
+        let releases = 0
+        const lifecycle = create({
+          onStart(scope) {
+            if (++starts > 1) return
+            scope.defer(() => {
+              // These microtasks place registration between completing the
+              // original disposal pass and committing its terminal state.
+              let turns = 4
+              const register = () => {
+                if (--turns > 0) queueMicrotask(register)
+                else assert.throws(() => scope.defer(() => {
+                  return ++releases === 1 ? gate.promise : undefined
+                }), LifecycleSupersededError)
+              }
+              queueMicrotask(register)
+            })
+          },
+        }, { stopTimeoutMs: outcome === 'timeout' ? 40 : undefined })
+        await lifecycle.start()
+        const result = lifecycle[command]().then(() => undefined, error => error)
+        try {
+          if (outcome === 'timeout') {
+            const error = await result
+            assert.ok(error instanceof LifecycleTimeoutError && error.operation === 'stop')
+          } else {
+            await nextTurn(0)
+            assert.deepEqual(lifecycle.state, { kind: 'stopping', generation: 1 })
+            if (outcome === 'fail') gate.reject(reason)
+            else gate.resolve()
+            assert.equal(await result, outcome === 'fail' ? reason : undefined)
+          }
+          if (outcome === 'release') {
+            assert.deepEqual(lifecycle.state, command === 'restart'
+              ? { kind: 'running', generation: 2 }
+              : { kind: 'stopped', generation: 1 })
+          } else {
+            assert.ok(lifecycle.state.kind === 'failed' && !lifecycle.state.cleanupComplete)
+            assert.equal(starts, 1)
+          }
+        } finally {
+          gate.resolve()
+          await lifecycle.stop()
+        }
+        assert.equal(releases, outcome === 'fail' ? 2 : 1)
+      })
+    }
+  }
+
   test(`${name}: one stop deadline spans the active hook and detached releases`, async () => {
     let old!: LifecycleScope
     let hooks = 0

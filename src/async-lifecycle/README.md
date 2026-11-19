@@ -61,8 +61,11 @@ Abort listeners should interrupt blocking I/O so tasks can finish while their
 resources are still live. Retirement joins spawned tasks after abort and then
 releases resources and children in reverse registration order. Disposers may
 be retried after an unsuccessful release. Registrations made after sealing
-release immediately and throw the retirement reason. A failed late release is
-still owned, including when it comes from a detached generation. Registering
+release immediately and throw the retirement reason. A release registered
+before retirement commits shares the same shutdown deadline. A stop or
+restart waits for its outcome, including when the original disposal pass
+has already finished. A failed late release stays owned, including when it
+comes from a detached generation. Registering
 the same callback twice creates two release obligations. A start waiting for
 older cleanup joins the current generation if it is still running afterward.
 If the current generation fails, its failure snapshot keeps the primary error

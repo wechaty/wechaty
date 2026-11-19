@@ -108,6 +108,16 @@ export class GenerationScope {
     return this.#releases.length > 0 || this.#late.size > 0 || this.#lateFailures.length > 0
   }
 
+  /** A release registered after the last drain can still be in flight at commit. */
+  get hasPendingLateReleases(): boolean {
+    return this.#late.size > 0
+  }
+
+  /** Failures in the current late-release ledger, including falsy rejection values. */
+  get lateErrors(): readonly unknown[] {
+    return this.#lateFailures.map(failure => failure.error)
+  }
+
   /** Prevent new scope activity before user callbacks can observe interruption. */
   seal(reason: unknown): void {
     if (!this.#sealed) {
@@ -162,7 +172,7 @@ export class GenerationScope {
   }
 
   /** Wait for immediate late releases, optionally retrying prior failures once. */
-  async finishLateReleases(retry: boolean): Promise<readonly unknown[]> {
+  async finishLateReleases(retry: boolean): Promise<void> {
     if (retry) {
       for (const { release } of this.#lateFailures.splice(0)) {
         this.#releaseLate(release)
@@ -171,7 +181,6 @@ export class GenerationScope {
     while (this.#late.size > 0) {
       await Promise.all(this.#late)
     }
-    return this.#lateFailures.map(failure => failure.error)
   }
 
   /** Run graceful shutdown, interrupt I/O, join tasks, then release resources. */
@@ -200,7 +209,8 @@ export class GenerationScope {
       }
     }
     this.#releases = failed.reverse()
-    errors.push(...await this.finishLateReleases(retry))
+    // Late errors stay in their ledger until the kernel observes the final batch.
+    await this.finishLateReleases(retry)
     return errors
   }
 

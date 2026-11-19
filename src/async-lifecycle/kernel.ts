@@ -428,20 +428,27 @@ export class LifecycleKernel implements LifecycleController {
     const work = scope.retire(retry)
     // After the expired attempt settles, a listener may queue a stop or a
     // replacement. Both need the actual retirement outcome under the stop budget.
-    const result = startTimeout && !this.#stop && !this.#run
+    const pass = startTimeout && !this.#stop && !this.#run
       ? startTimeout
       : await within(work, this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
-    if (!(result instanceof LifecycleTimeoutError)) {
+    const errors = pass instanceof LifecycleTimeoutError ? [] : [...pass]
+    let timeout = pass instanceof LifecycleTimeoutError ? pass : undefined
+    // A late acquisition can arrive between the scope's last drain and this
+    // continuation. Check the live ledger in the same turn that detaches it.
+    while (!timeout && scope.hasPendingLateReleases) {
+      const result = await within(scope.finishLateReleases(false), this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
+      if (result instanceof LifecycleTimeoutError) timeout = result
+    }
+    if (timeout) {
+      errors.push(timeout)
+    } else {
+      errors.push(...scope.lateErrors)
       scope.consumeRetirement()
     }
 
-    const complete = !(result instanceof LifecycleTimeoutError) && !scope.hasCleanup
-    const errors = result instanceof LifecycleTimeoutError ? [result] : [...result]
+    const complete = !timeout && !scope.hasCleanup
     if (this.#lateCleanupFailure && !retry) {
       errors.push(this.#lateCleanupFailure.error)
-    }
-    if (!complete && errors.length === 0) {
-      errors.push(new LifecycleUnsafeStateError('A late release is still pending'))
     }
     if (complete) {
       this.#active = undefined
@@ -468,7 +475,7 @@ export class LifecycleKernel implements LifecycleController {
         phase: failure?.phase ?? 'stop',
         error: failure ? failure.error : cleanupError,
         cleanupComplete: complete && this.#lateScopes.size === 0,
-        ...(startTimeout === result ? {} : { cleanupError }),
+        ...(pass === startTimeout ? {} : { cleanupError }),
       })
     } else if (failure) {
       if (!this.#stop && this.#lateScopes.size === 0) this.#stopDeadline = undefined
@@ -499,7 +506,7 @@ export class LifecycleKernel implements LifecycleController {
     for (const scope of checked) {
       if (!scope.hasCleanup) this.#lateScopes.delete(scope)
     }
-    const errors = result.flat()
+    const errors = checked.flatMap(scope => scope.lateErrors)
     return errors.length ? { ok: false, error: combineErrors(errors) } : { ok: true, value: undefined }
   }
 
