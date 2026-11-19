@@ -30,6 +30,7 @@ jobs:
           // The token-exchange endpoint is NOT a documented external API.
           // Never log an OIDC token, GitHub App token, request authorization header,
           // or raw token-exchange response. Never bypass a 401/403 rejection.
+          ;(async () => {
           const repo = process.env.GITHUB_REPOSITORY
           const pr = process.env.PR_NUMBER
           const endpoint = 'https://api.github.com'
@@ -125,4 +126,8 @@ jobs:
             if (revoked.status !== 204) failed = true
           }
           if (failed) process.exitCode = 1
+          })().catch(() => {
+            console.error('Probe failed without exposing credentials; inspect step summary.')
+            process.exitCode = 1
+          })
           NODE
