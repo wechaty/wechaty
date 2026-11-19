@@ -297,7 +297,7 @@ jobs:
           const bugs = []
           for (const [id, task] of uses) {
             const instruction = String(task.input?.prompt ?? task.input?.description ?? '')
-            if (/audit.{0,100}CLAUDE\\.md|CLAUDE\\.md.{0,100}compliance/i.test(instruction))
+            if (/audit.{0,100}CLAUDE\.md|CLAUDE\.md.{0,100}compliance/i.test(instruction))
               compliance.push(id)
             else if (/scan for obvious bugs|problems that exist in the introduced code|review.{0,100}for bugs/i.test(instruction))
               bugs.push(id)
