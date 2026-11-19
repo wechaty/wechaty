@@ -96,8 +96,12 @@ for (const [name, create] of entryPoints) {
 
     await service.start()
     const disconnected = once(await accepted.promise, 'close')
-    await service.stop()
+    // Concurrent stop requests must join one socket retirement, not repeat disposal.
+    const firstStop = service.stop()
+    const secondStop = service.stop()
+    await Promise.all([firstStop, secondStop])
     await disconnected
+    assert.equal(socket.destroyed, true)
     assert.deepEqual(trace, ['onStop', 'abort', 'task observed close', 'dispose last registration', 'dispose socket'])
     assert.equal(service.state.kind, 'stopped')
   })
