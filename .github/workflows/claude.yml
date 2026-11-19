@@ -132,6 +132,16 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Set up Node.js for review
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+
+      - name: Set up Deno for review
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       - name: Verify review target is current
         id: review-target
         env:
@@ -173,6 +183,10 @@ jobs:
             echo "already_reviewed=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Install review dependencies
+        if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
+        run: npm ci --ignore-scripts
+
       - name: Run Claude Code Review
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
         id: claude-review
@@ -208,8 +222,12 @@ jobs:
             in the same comment. Never publish the marker before finishing.
           # Broad agent tools and explicit write-scoped GitHub App token.
           # Inline review comments remain the default review output.
+          # Allow noninteractive shell and test execution for same-repository PRs.
+          # WARNING: Bypass mode is privileged; retain the fork exclusion above.
+          # Verify effective permissions from action logs before declaring success.
           claude_args: |
-            --max-turns 30
+            --max-turns 50
+            --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Edit,Write,Bash,mcp__github_inline_comment__create_inline_comment"
 
       - name: Record completed review status for exact revision
