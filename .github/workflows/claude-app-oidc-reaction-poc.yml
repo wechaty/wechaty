@@ -1,0 +1,133 @@
+name: Claude App reaction identity probe (experimental)
+
+# Runs only from the protected default-branch workflow, for a same-repo PR
+# opened by huan on an explicit experiment branch. No PR code is checked out.
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+jobs:
+  app-reaction-probe:
+    if: >-
+      github.repository == 'wechaty/wechaty' &&
+      github.actor == 'huan' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'test/claude-app-token-poc-') &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      id-token: write
+      issues: write
+      contents: read
+    steps:
+      - name: Attempt authorized Anthropic OIDC exchange and temporary eyes reaction
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          node <<'NODE'
+          // One-off experiment based on Anthropic's public token.ts implementation.
+          // The token-exchange endpoint is NOT a documented external API.
+          // Never log an OIDC token, GitHub App token, request authorization header,
+          // or raw token-exchange response. Never bypass a 401/403 rejection.
+          ;(async () => {
+          const repo = process.env.GITHUB_REPOSITORY
+          const pr = process.env.PR_NUMBER
+          const endpoint = 'https://api.github.com'
+          const summary = process.env.GITHUB_STEP_SUMMARY
+          const fs = require('node:fs')
+          const record = message => {
+            console.log(message)
+            fs.appendFileSync(summary, message + '\n')
+          }
+          const oidcUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+          const oidcAuth = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
+          if (!oidcUrl || !oidcAuth) throw Error('GitHub Actions OIDC is unavailable')
+
+          const tokenUrl = new URL(oidcUrl)
+          tokenUrl.searchParams.set('audience', 'claude-code-github-action')
+          const oidcResponse = await fetch(tokenUrl, {
+            headers: { Authorization: 'bearer ' + oidcAuth }
+          })
+          if (!oidcResponse.ok) {
+            record('GitHub OIDC request denied (HTTP ' + oidcResponse.status + ').')
+            process.exitCode = 1
+            return
+          }
+          const identity = (await oidcResponse.json()).value
+          if (!identity) throw Error('OIDC response had no token')
+
+          const exchange = await fetch(
+            'https://api.anthropic.com/api/github/github-app-token-exchange',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: 'Bearer ' + identity,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ permissions: {
+                contents: 'read',
+                pull_requests: 'read',
+                issues: 'write',
+              } }),
+            }
+          )
+          if (!exchange.ok) {
+            record('Anthropic App-token exchange denied (HTTP ' + exchange.status +
+              '); authorization was respected, with no fallback or bypass.')
+            process.exitCode = 1
+            return
+          }
+          const exchangeData = await exchange.json()
+          const appToken = exchangeData.token || exchangeData.app_token
+          if (!appToken) throw Error('App-token response contained no usable token')
+          // Never print appToken, exchangeData, or errors with request credentials.
+          const github = (path, method = 'GET', data) => fetch(endpoint + path, {
+            method,
+            headers: {
+              Authorization: 'Bearer ' + appToken,
+              Accept: 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              ...(data ? { 'Content-Type': 'application/json' } : {}),
+            },
+            ...(data ? { body: JSON.stringify(data) } : {}),
+          })
+          let reactionId
+          let failed = false
+          try {
+            const created = await github('/repos/' + repo + '/issues/' + pr + '/reactions', 'POST', { content: 'eyes' })
+            if (!created.ok) {
+              record('Reaction creation denied (HTTP ' + created.status + ').')
+              failed = true
+            } else {
+              const reaction = await created.json()
+              reactionId = reaction.id
+              const author = reaction.user?.login || '(unknown)'
+              record('Reaction created by: ' + author)
+              if (author !== 'claude[bot]') {
+                record('FAIL: GitHub reaction was not attributed to claude[bot].')
+                failed = true
+              } else {
+                record('PASS: authorized exchange produced a claude[bot] 👀 reaction.')
+              }
+            }
+          } finally {
+            // Remove only the reaction returned by THIS request.
+            if (reactionId) {
+              const removed = await github('/repos/' + repo + '/issues/' + pr + '/reactions/' + reactionId, 'DELETE')
+              record(removed.status === 204 ? 'Reaction cleanup succeeded.' :
+                'Reaction cleanup failed (HTTP ' + removed.status + ').')
+              if (removed.status !== 204) failed = true
+            }
+            // Revoke THIS app token, as Anthropic's Action normally does on cleanup.
+            const revoked = await github('/installation/token', 'DELETE')
+            record(revoked.status === 204 ? 'Temporary App token revoked.' :
+              'App token revocation returned HTTP ' + revoked.status + '.')
+            if (revoked.status !== 204) failed = true
+          }
+          if (failed) process.exitCode = 1
+          })().catch(() => {
+            console.error('Probe failed without exposing credentials; inspect step summary.')
+            process.exitCode = 1
+          })
+          NODE
