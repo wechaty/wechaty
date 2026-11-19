@@ -315,9 +315,7 @@ export class LifecycleKernel implements LifecycleController {
       if (this.#state.kind === 'failed' && !this.#stop) {
         return false
       }
-      const failure = this.#state.kind === 'running' && scope.failure
-        ? { phase: 'run' as const, error: scope.failure.error }
-        : undefined
+      const failure = this.#state.kind === 'running' ? scope.failure : undefined
       await this.#retire(scope, failure, this.#state.kind === 'failed')
       return true
     }
@@ -350,6 +348,13 @@ export class LifecycleKernel implements LifecycleController {
         this.#lateWait?.abort()
         this.#requestWork()
       },
+      lateFailure: error => {
+        // A newer startup can be waiting for abort inside its hook. The worker
+        // cannot poll the detached ledger until that hook returns.
+        if (this.#active !== scope && this.#state.kind === 'starting') {
+          this.#active?.fail(error, 'start')
+        }
+      },
       lateRegistration: () => {
         if (this.#active !== scope) {
           this.#lateScopes.add(scope)
@@ -360,12 +365,12 @@ export class LifecycleKernel implements LifecycleController {
     })
     this.#active = scope
     this.#startingAttempt = attempt
+    const timeout = this.#options.startTimeoutMs
+    const deadline = timeout === undefined ? undefined : performance.now() + timeout
     this.#commit({ kind: 'starting', generation })
 
     const startup = waitWithSignal(scope.boot(), scope.signal)
       .catch((error: unknown): Outcome => ({ ok: false, error }))
-    const timeout = this.#options.startTimeoutMs
-    const deadline = timeout === undefined ? undefined : performance.now() + timeout
     let outcome = await within(startup, timeout, 'start', deadline)
     // A detached scope can acquire another release while the hook or a previous
     // batch is settling. Recheck in the same turn that commits running.
@@ -380,7 +385,7 @@ export class LifecycleKernel implements LifecycleController {
     this.#startingAttempt = undefined
 
     if (scope.failure) {
-      await this.#retire(scope, { phase: 'run', error: scope.failure.error, attempt: startedBy })
+      await this.#retire(scope, { ...scope.failure, attempt: startedBy })
     } else if (scope.sealed) {
       await this.#retire(scope)
     } else if (outcome instanceof LifecycleTimeoutError) {
@@ -535,11 +540,16 @@ export class LifecycleKernel implements LifecycleController {
     stop?.reject(error)
     const attempt = this.#run
     this.#run = undefined
-    attempt?.result.reject(new LifecycleUnsafeStateError('Cannot start while late cleanup remains'))
+    attempt?.result.reject(attempt.kind === 'restart'
+      ? error
+      : new LifecycleUnsafeStateError('Cannot start while late cleanup remains'))
     const failure = this.#state.kind === 'failed'
       ? this.#state
       : { kind: 'failed' as const, generation: this.#generation, phase: 'stop' as const, error }
-    this.#commit({ ...failure, cleanupComplete: false, cleanupError: error })
+    const cleanupError = !retry && 'cleanupError' in failure
+      ? combineErrors([failure.cleanupError, error])
+      : error
+    this.#commit({ ...failure, cleanupComplete: false, cleanupError })
     return false
   }
 

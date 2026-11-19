@@ -69,6 +69,80 @@ async function rejectsWith(work: Promise<unknown>, expected: unknown): Promise<v
 }
 
 for (const [name, create] of facades) {
+  for (const yields of [false, true]) {
+    test(`${name}: startup budget includes synchronous work ${yields ? 'after' : 'before'} a microtask`, async () => {
+      const service = create({
+        async onStart() {
+          if (yields) await Promise.resolve()
+          // Timers cannot run while the hook occupies the JS thread.
+          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 30)
+        },
+      }, { startTimeoutMs: 10 })
+      await assert.rejects(service.start(), error => error instanceof LifecycleTimeoutError && error.operation === 'start')
+      await service.stop()
+    })
+  }
+
+  test(`${name}: a detached release failure interrupts a blocked replacement hook and preserves cleanup errors`, async () => {
+    const reason = new Error('detached release failed')
+    const stopError = new Error('replacement stop hook failed')
+    const entered = Promise.withResolvers<AbortSignal>()
+    let retired: LifecycleScope | undefined
+    let releases = 0
+    const service = create({
+      async onStart(scope) {
+        if (!retired) {
+          retired = scope
+          return
+        }
+        entered.resolve(scope.signal)
+        await interrupted(scope.signal)
+      },
+      onStop(scope) {
+        if (scope !== retired) throw stopError
+      },
+    })
+    await service.start()
+    const result = service.restart().then(() => undefined, error => error)
+    const signal = await entered.promise
+    assert.throws(() => retired!.defer(() => {
+      if (++releases === 1) throw reason
+    }), LifecycleSupersededError)
+    try {
+      await nextTurn(0)
+      assert.equal(signal.aborted, true)
+      assert.equal(await result, reason)
+      const failed = service.state
+      assert.ok(failed.kind === 'failed' && failed.phase === 'start' && !failed.cleanupComplete)
+      assert.equal(failed.error, reason)
+      assert.ok(failed.cleanupError instanceof AggregateError)
+      assert.deepEqual(failed.cleanupError.errors, [stopError, reason])
+    } finally {
+      await service.stop()
+    }
+    assert.equal(releases, 2)
+  })
+
+  test(`${name}: queued restart reports the detached disposer error before starting a replacement`, async () => {
+    let retired: LifecycleScope | undefined
+    let starts = 0
+    let releases = 0
+    const reason = new Error('older cleanup failed')
+    const gate = Promise.withResolvers<void>()
+    const service = create({ onStart(scope) { retired ??= scope; starts++ } })
+    await service.start()
+    await service.restart()
+    assert.throws(() => retired!.defer(() => {
+      return ++releases === 1 ? gate.promise : undefined
+    }), LifecycleSupersededError)
+    const replacement = service.restart()
+    gate.reject(reason)
+    await rejectsWith(replacement, reason)
+    assert.equal(starts, 2)
+    await service.stop()
+    assert.equal(releases, 2)
+  })
+
   for (const cleanup of ['success', 'failure', 'timeout'] as const) {
     test(`${name}: stop from the start timeout listener observes cleanup ${cleanup}`, async () => {
       const gate = Promise.withResolvers<void>()

@@ -46,7 +46,8 @@ export async function within<T>(
     return work
   }
 
-  const remaining = deadline === undefined ? timeoutMs : deadline - performance.now()
+  const expires = deadline ?? performance.now() + timeoutMs
+  const remaining = expires - performance.now()
   if (remaining <= 0) {
     return Promise.race([new LifecycleTimeoutError(operation, timeoutMs), work])
   }
@@ -55,7 +56,12 @@ export async function within<T>(
     timer = setTimeout(() => resolve(new LifecycleTimeoutError(operation, timeoutMs)), Math.ceil(remaining))
   })
   try {
-    return await Promise.race([work, timeout])
+    const result = await Promise.race([work, timeout])
+    // Synchronous hook work can block the timer. Check elapsed time before
+    // reporting success even when the work's microtask wins the race.
+    return !(result instanceof LifecycleTimeoutError) && performance.now() >= expires
+      ? new LifecycleTimeoutError(operation, timeoutMs)
+      : result
   } finally {
     clearTimeout(timer)
   }

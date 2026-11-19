@@ -15,6 +15,7 @@ import type {
 
 type Release = () => void | PromiseLike<void>
 type Failure = { readonly error: unknown }
+type GenerationFailure = Failure & { readonly phase: 'start' | 'run' }
 
 /** Native facades expose pending commands and cleanup to ownership checks between state commits. */
 export const childIsIdle = new WeakMap<Lifecycle, () => boolean>()
@@ -33,11 +34,12 @@ export class GenerationScope {
   readonly #hooks: LifecycleHooks
   readonly #onFailure: () => void
   readonly #onLateRegistration: () => void
+  readonly #onLateFailure: (error: unknown) => void
   readonly #controller = new AbortController()
 
   #sealed = false
   #reason: unknown
-  #failure?: Failure
+  #failure?: GenerationFailure
   #entered = false
   #startup?: Promise<Outcome>
   #stopHookRan = false
@@ -55,6 +57,7 @@ export class GenerationScope {
     callbacks: {
       fail: () => void
       lateRegistration: () => void
+      lateFailure: (error: unknown) => void
       setCondition: (condition: LifecycleCondition, value: boolean) => void
     },
   ) {
@@ -62,6 +65,7 @@ export class GenerationScope {
     this.#hooks = hooks
     this.#onFailure = callbacks.fail
     this.#onLateRegistration = callbacks.lateRegistration
+    this.#onLateFailure = callbacks.lateFailure
     this.signal = this.#controller.signal
     const facade: LifecycleScope = {
       signal: this.signal,
@@ -90,7 +94,7 @@ export class GenerationScope {
   }
 
   /** The first failure, independently of the truthiness of its payload. */
-  get failure(): Failure | undefined {
+  get failure(): GenerationFailure | undefined {
     return this.#failure
   }
 
@@ -118,10 +122,10 @@ export class GenerationScope {
     this.#controller.abort(this.#reason)
   }
 
-  /** Record the first active failure and ask the kernel to retire this generation. */
-  fail(error: unknown): void {
+  /** Preserve the first failure and its phase, then interrupt the hook before asking the kernel to retire. */
+  fail(error: unknown, phase: GenerationFailure['phase'] = 'run'): void {
     if (!this.#sealed && !this.#failure) {
-      this.#failure = { error }
+      this.#failure = { error, phase }
       this.interrupt(error)
       this.#onFailure()
     }
@@ -230,6 +234,7 @@ export class GenerationScope {
       if (!outcome.ok) {
         // Each registration owns a release, even if callers reuse the same function.
         this.#lateFailures.push({ release, error: outcome.error })
+        this.#onLateFailure(outcome.error)
       }
       this.#late.delete(promise)
     })

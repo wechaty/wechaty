@@ -68,8 +68,11 @@ older cleanup joins the current generation if it is still running afterward.
 If the current generation fails, its failure snapshot keeps the primary error
 while older releases settle. If an older scope registers a release during a
 new startup, the new generation waits for that release within its start
-deadline before publishing `running`. A failed release is reported in
-`cleanupError`.
+deadline before publishing `running`. A failed detached release interrupts
+the replacement hook even if it is still waiting for its signal. A restart
+waiting on that release rejects with its cleanup error. When the active
+retirement and a detached release both fail, the failed snapshot retains
+both cleanup errors.
 
 For the socket example in [RFC §9](https://github.com/wechaty/wechaty/issues/2911),
 initiate socket closure on abort so the task can observe the close event
@@ -106,6 +109,10 @@ or detached cleanup prevents the claim even before the public state changes.
 For other implementations of `Lifecycle`, the scope can check only the public
 state and existing scope ownership. If an owned child queues a replacement
 while stopping, the parent retains ownership for a later stop.
+
+The startup budget begins before the starting observer and hook run. A
+synchronous hook can delay delivery of a timeout until it yields, and the
+kernel checks elapsed time before publishing success.
 
 An expired deadline rejects the operation and records unresolved cleanup in
 `failed`. A later `stop()` can join the existing retirement and retry
