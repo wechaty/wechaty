@@ -1,6 +1,6 @@
 # Async Lifecycle
 
-`src/async-lifecycle/` provides a reusable async lifecycle kernel with two adoption styles:
+`src/async-lifecycle-codex/` is the Codex implementation of the reusable async lifecycle kernel with two adoption styles:
 
 - `createLifecycle(hooks, options)` for composition (classes that already extend another base).
 - `AsyncLifecycle` for inheritance (classes that can directly extend the lifecycle base).

@@ -9,7 +9,7 @@ import { once } from 'node:events'
 import { createServer, Socket } from 'node:net'
 import { test } from 'node:test'
 
-import { AsyncLifecycle, createLifecycle, type LifecycleHooks, type LifecycleScope } from '../../src/async-lifecycle/mod.ts'
+import { AsyncLifecycle, createLifecycle, type LifecycleHooks, type LifecycleScope } from '../../src/async-lifecycle-codex/mod.ts'
 
 /** Run the same socket hooks through the subclass API. */
 class SocketLifecycle extends AsyncLifecycle {

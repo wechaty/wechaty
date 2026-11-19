@@ -59,7 +59,7 @@ export {
   LifecycleSupersededError,
   LifecycleTimeoutError,
   LifecycleUnsafeStateError,
-}                         from '../async-lifecycle/mod.ts'
+}                         from '../async-lifecycle-codex/mod.ts'
 export type {
   AsyncDisposable,
   Disposable,
@@ -71,7 +71,7 @@ export type {
   LifecycleOptions,
   LifecycleScope,
   LifecycleState,
-}                         from '../async-lifecycle/mod.ts'
+}                         from '../async-lifecycle-codex/mod.ts'
 
 export type {
   WechatyEventName,
