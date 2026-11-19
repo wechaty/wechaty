@@ -106,7 +106,11 @@ export interface LifecycleScope {
 
   /** Run a task with the scope signal. Active task failures fail this generation. */
   spawn(task: (signal: AbortSignal) => Promise<void>): void
-  /** Claim and start an idle child, and fail this generation if it exits unexpectedly. */
+  /**
+   * Claim an idle child and fail this generation if it exits unexpectedly.
+   * Children from either lifecycle entry point reject the claim while a command
+   * or cleanup is pending. A refused claim leaves the child untouched.
+   */
   start(child: Lifecycle): Promise<void>
 
   /** Resolve waits for a condition owned by this controller and bound to this generation. */

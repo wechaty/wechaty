@@ -97,6 +97,66 @@ for (const [name, create] of facades) {
     })
   }
 
+  for (const command of ['start', 'restart'] as const) {
+    test(`${name}: a parent cannot claim a child's independently queued ${command}`, async () => {
+      const child = create({ onStart() {} })
+      let scope!: LifecycleScope
+      const parent = create({ onStart(current) { scope = current } })
+      await parent.start()
+
+      const independent = child[command]()
+      assert.equal(child.state.kind, 'stopped')
+      await assert.rejects(scope.start(child), LifecycleUnsafeStateError)
+      await independent
+      await parent.stop()
+      assert.equal(child.state.kind, 'running')
+      await child.stop()
+    })
+  }
+
+  test(`${name}: a stopped child can be claimed after its detached release settles`, async () => {
+    let retired!: LifecycleScope
+    const child = create({ onStart(scope) { retired = scope } })
+    let owner!: LifecycleScope
+    const parent = create({ onStart(scope) { owner = scope } })
+    await parent.start()
+    await child.start()
+    await child.stop()
+
+    const gate = Promise.withResolvers<void>()
+    assert.throws(() => retired.defer(() => gate.promise), LifecycleSupersededError)
+    const claim = owner.start(child)
+    gate.resolve()
+    await assert.rejects(claim, LifecycleUnsafeStateError)
+    await child.stop()
+    await owner.start(child)
+    await parent.stop()
+    assert.equal(child.state.kind, 'stopped')
+  })
+
+  test(`${name}: a clean failed child with an accepted stop cannot be claimed`, async () => {
+    const error = new Error('first start failed')
+    let first = true
+    const child = create({
+      onStart() {
+        if (first) {
+          first = false
+          throw error
+        }
+      },
+    })
+    let scope!: LifecycleScope
+    const parent = create({ onStart(current) { scope = current } })
+    await parent.start()
+    await rejectsWith(child.start(), error)
+    const stop = child.stop()
+    await assert.rejects(scope.start(child), LifecycleUnsafeStateError)
+    await stop
+    await scope.start(child)
+    await parent.stop()
+    assert.equal(child.state.kind, 'stopped')
+  })
+
   test(`${name}: a replacement child remains owned until a subsequent parent stop releases it`, async () => {
     let replacement: Promise<void> | undefined
     const child = create({

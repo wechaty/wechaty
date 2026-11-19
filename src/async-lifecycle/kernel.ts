@@ -86,7 +86,7 @@ export class LifecycleKernel implements LifecycleController {
   constructor(hooks: LifecycleHooks, options: LifecycleOptions = {}, facade?: Lifecycle) {
     this.#hooks = hooks
     this.#options = options
-    childIsIdle.set(facade ?? this, () => !this.#run && !this.#active && this.#lateScopes.size === 0)
+    childIsIdle.set(facade ?? this, () => !this.#run && !this.#stop && !this.#active && this.#lateScopes.size === 0)
   }
 
   /** @inheritdoc */

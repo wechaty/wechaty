@@ -70,8 +70,14 @@ while older releases settle. A failed release is reported in `cleanupError`.
 
 Stopping an active generation can interrupt the worker's wait for older
 releases. Those releases remain owned and share the stop deadline with the
-active generation. If an owned child queues a replacement while stopping,
-the parent reports incomplete cleanup and retains ownership for a later stop.
+active generation.
+
+A scope may claim a stopped child or one whose failure has been fully cleaned
+up. For children created with either lifecycle entry point, a pending command
+or detached cleanup prevents the claim even before the public state changes.
+For other implementations of `Lifecycle`, the scope can check only the public
+state and existing scope ownership. If an owned child queues a replacement
+while stopping, the parent retains ownership for a later stop.
 
 An expired deadline rejects the operation and records unresolved cleanup in
 `failed`. A later `stop()` can join the existing retirement and retry

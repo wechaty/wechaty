@@ -16,7 +16,7 @@ import type {
 type Release = () => void | PromiseLike<void>
 type Failure = { readonly error: unknown }
 
-/** Native facades can also verify commands queued behind the just-completed stop. */
+/** Native facades expose pending commands and cleanup to ownership checks between state commits. */
 export const childIsIdle = new WeakMap<Lifecycle, () => boolean>()
 
 const childOwners = new WeakMap<Lifecycle, GenerationScope>()
@@ -263,7 +263,8 @@ export class GenerationScope {
       throw this.#reason
     }
     const initial = child.state
-    if (childOwners.has(child) || (initial.kind !== 'stopped' && !(initial.kind === 'failed' && initial.cleanupComplete))) {
+    const canStart = initial.kind === 'stopped' || (initial.kind === 'failed' && initial.cleanupComplete)
+    if (!canStart || childOwners.has(child) || childIsIdle.get(child)?.() === false) {
       throw new LifecycleUnsafeStateError('Child lifecycle is already owned or cannot be started safely')
     }
 
