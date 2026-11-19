@@ -102,3 +102,26 @@ for (const [name, create] of entryPoints) {
     assert.equal(service.state.kind, 'stopped')
   })
 }
+
+for (const [name, create] of entryPoints) {
+  test(`${name}: restart disposes the previous generation before final stop`, async () => {
+    const trace: string[] = []
+    let generation = 0
+    const lifecycle = create({
+      onStart(scope) {
+        const current = ++generation
+        trace.push(`start ${current}`)
+        scope.defer(() => { trace.push(`dispose ${current}`) })
+      },
+    })
+
+    await lifecycle.start()
+    await lifecycle.restart()
+    assert.equal(lifecycle.state.kind, 'running')
+    assert.deepEqual(trace, ['start 1', 'dispose 1', 'start 2'])
+
+    await lifecycle.stop()
+    assert.deepEqual(trace, ['start 1', 'dispose 1', 'start 2', 'dispose 2'])
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+}
