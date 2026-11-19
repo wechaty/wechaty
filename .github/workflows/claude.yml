@@ -57,6 +57,24 @@ jobs:
       actions: read
       id-token: write
     steps:
+      # Acknowledge trusted @claude commands without adding PR/issue comments.
+      # GitHub exposes separate reaction endpoints for issue comments and
+      # pull request inline review comments.
+      - name: Acknowledge Claude invocation with eyes
+        if: github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          if [ "$EVENT_NAME" = issue_comment ]; then
+            endpoint="repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}/reactions"
+          else
+            endpoint="repos/${GITHUB_REPOSITORY}/pulls/comments/${COMMENT_ID}/reactions"
+          fi
+          gh api -X POST "$endpoint" -f content=eyes >/dev/null
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -181,6 +199,19 @@ jobs:
           else
             echo "already_reviewed=false" >> "$GITHUB_OUTPUT"
           fi
+
+      # Show an eyes reaction on the PR while its automatic review is active.
+      # Do not touch the PR body or post a progress comment.
+      - name: Acknowledge automatic review with eyes
+        id: review-eyes
+        if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          reaction_id="$(gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/reactions" -f content=eyes --jq '.id')"
+          echo "reaction_id=$reaction_id" >> "$GITHUB_OUTPUT"
 
       - name: Install review dependencies
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
@@ -324,6 +355,17 @@ jobs:
               -f description="Anthropic code review agents completed for this HEAD/BASE" \
               -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >/dev/null
           fi
+
+      # Remove only the eyes reaction created or acknowledged by this run.
+      # Keep the actual Claude review and exact-HEAD/BASE status intact.
+      - name: Clear automatic review eyes
+        if: always() && steps.review-eyes.outputs.reaction_id != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REACTION_ID: ${{ steps.review-eyes.outputs.reaction_id }}
+        run: gh api -X DELETE "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/reactions/${REACTION_ID}" >/dev/null
 
       - name: Check whether reviewed HEAD changed
         if: steps.review-target.outputs.current == 'true' && always()
