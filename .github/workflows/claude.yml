@@ -57,24 +57,6 @@ jobs:
       actions: read
       id-token: write
     steps:
-      # Acknowledge trusted @claude commands without adding PR/issue comments.
-      # GitHub exposes separate reaction endpoints for issue comments and
-      # pull request inline review comments.
-      - name: Acknowledge Claude invocation with eyes
-        if: github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EVENT_NAME: ${{ github.event_name }}
-          COMMENT_ID: ${{ github.event.comment.id }}
-        run: |
-          if [ "$EVENT_NAME" = issue_comment ]; then
-            endpoint="repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}/reactions"
-          else
-            endpoint="repos/${GITHUB_REPOSITORY}/pulls/comments/${COMMENT_ID}/reactions"
-          fi
-          gh api -X POST "$endpoint" -f content=eyes >/dev/null
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
