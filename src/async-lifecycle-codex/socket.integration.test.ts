@@ -2,14 +2,16 @@
  * Exercises the lifecycle shutdown contract with a real TCP connection.
  * The loopback peer lets this integration test verify closure independently of
  * the task and final disposer that share the client socket. The same trace
- * covers both public lifecycle entry points.
+ * covers both public lifecycle entry points. Opt in when the runner can bind
+ * to the loopback interface.
  */
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { createServer, Socket } from 'node:net'
+import { env } from 'node:process'
 import { test } from 'node:test'
 
-import { AsyncLifecycle, createLifecycle, type LifecycleHooks, type LifecycleScope } from '../../src/async-lifecycle-codex/mod.ts'
+import { AsyncLifecycle, createLifecycle, type LifecycleHooks, type LifecycleScope } from './mod.ts'
 
 /** Run the same socket hooks through the subclass API. */
 class SocketLifecycle extends AsyncLifecycle {
@@ -38,7 +40,10 @@ const entryPoints = [
 ] as const
 
 for (const [name, create] of entryPoints) {
-  test(`${name}: abort closes a connected socket and the waiting task finishes before disposal`, { timeout: 5000 }, async t => {
+  test(`${name}: abort closes a connected socket and the waiting task finishes before disposal`, {
+    timeout: 5000,
+    skip: env['ASYNC_LIFECYCLE_TCP_TEST'] !== '1' && 'Set ASYNC_LIFECYCLE_TCP_TEST=1 to run the loopback test',
+  }, async t => {
     const accepted = Promise.withResolvers<Socket>()
     let peer: Socket | undefined
     const server = createServer(connection => {

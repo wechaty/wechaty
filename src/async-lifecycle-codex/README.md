@@ -1,6 +1,8 @@
 # Async Lifecycle
 
-`src/async-lifecycle-codex/` is the Codex implementation of the reusable async lifecycle kernel with two adoption styles:
+`src/async-lifecycle-codex/` is the standalone Codex implementation of the async
+lifecycle kernel. Import it from this directory's `mod.ts`. It supports two
+adoption styles:
 
 - `createLifecycle(hooks, options)` for composition (classes that already extend another base).
 - `AsyncLifecycle` for inheritance (classes that can directly extend the lifecycle base).
@@ -184,4 +186,20 @@ class Service extends AsyncLifecycle {
     scope.defer(() => clearInterval(timer))
   }
 }
+```
+
+## Tests
+
+Run the colocated unit suite from the repository root on either runtime.
+
+```sh
+node --test src/async-lifecycle-codex
+deno test --no-check --allow-env=ASYNC_LIFECYCLE_TCP_TEST src/async-lifecycle-codex
+```
+
+Opt in to the loopback TCP test when the runner can open a local socket.
+
+```sh
+ASYNC_LIFECYCLE_TCP_TEST=1 node --test src/async-lifecycle-codex/socket.integration.test.ts
+ASYNC_LIFECYCLE_TCP_TEST=1 deno test --no-check --allow-env=ASYNC_LIFECYCLE_TCP_TEST --allow-net=127.0.0.1 src/async-lifecycle-codex/socket.integration.test.ts
 ```

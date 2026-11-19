@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 /**
- *   Exercise runtime and TypeScript entry points from the installed Wechaty tarball.
- *
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -21,19 +19,16 @@
  *
  */
 import {
-  AsyncLifecycle,
-  createLifecycle,
   WechatyBuilder,
   VERSION,
 }                   from 'wechaty'
-import type { Lifecycle, Wechaty } from 'wechaty'
+import type { Wechaty } from 'wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'
 
 import assert from 'assert'
 
-/** Check public event and implementation types against the generated declarations. */
 function publicTypeContract (bot: Wechaty, contact: USERS.Contact) {
   bot.on('message', message => {
     const messageId: string = message.id
@@ -52,7 +47,6 @@ function publicTypeContract (bot: Wechaty, contact: USERS.Contact) {
 }
 void publicTypeContract
 
-/** Build the mock bot and any external bots enabled by the smoke test environment. */
 function getBotList (): Wechaty[] {
   const botList = [
     WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' }),
@@ -78,26 +72,7 @@ function getBotList (): Wechaty[] {
   return botList
 }
 
-/** Verify the root ESM exports and the inherited legacy hook signatures. */
-async function lifecycleContract () {
-  class Service extends AsyncLifecycle {
-    constructor () { super() }
-    protected override onStart (): void {}
-    protected override onStop (): void {}
-  }
-
-  const lifecycles: Lifecycle[] = [createLifecycle({ onStart () {} }), new Service()]
-  for (const lifecycle of lifecycles) {
-    await lifecycle.start()
-    assert.equal(lifecycle.state.kind, 'running')
-    await lifecycle[Symbol.asyncDispose]()
-    assert.equal(lifecycle.state.kind, 'stopped')
-  }
-}
-
-/** Run lifecycle checks, then exercise the packaged bot with its configured puppets. */
 async function main () {
-  await lifecycleContract()
   const botList = getBotList()
   try {
     await Promise.all(
