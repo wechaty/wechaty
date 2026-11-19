@@ -66,7 +66,35 @@ still owned, including when it comes from a detached generation. Registering
 the same callback twice creates two release obligations. A start waiting for
 older cleanup joins the current generation if it is still running afterward.
 If the current generation fails, its failure snapshot keeps the primary error
-while older releases settle. A failed release is reported in `cleanupError`.
+while older releases settle. If an older scope registers a release during a
+new startup, the new generation waits for that release within its start
+deadline before publishing `running`. A failed release is reported in
+`cleanupError`.
+
+For the socket example in [RFC §9](https://github.com/wechaty/wechaty/issues/2911),
+initiate socket closure on abort so the task can observe the close event
+before retirement joins it. The final disposer also covers a socket acquired
+before its task gets to run.
+
+```ts
+import { once } from 'node:events'
+import { Socket } from 'node:net'
+
+function onStart(scope: LifecycleScope) {
+  const socket = scope.adopt(new Socket(), socket => { socket.destroy() })
+  scope.spawn(async signal => {
+    const close = () => { socket.destroy() }
+    signal.addEventListener('abort', close, { once: true })
+    try {
+      const closed = once(socket, 'close')
+      socket.connect(9000, 'localhost')
+      await closed
+    } finally {
+      signal.removeEventListener('abort', close)
+    }
+  })
+}
+```
 
 Stopping an active generation can interrupt the worker's wait for older
 releases. Those releases remain owned and share the stop deadline with the
@@ -81,7 +109,9 @@ while stopping, the parent retains ownership for a later stop.
 
 An expired deadline rejects the operation and records unresolved cleanup in
 `failed`. A later `stop()` can join the existing retirement and retry
-unfinished releases. A replacement requires confirmation that owned work
+unfinished releases. If an abort listener requests a stop when startup times
+out, the start caller receives the start timeout. The stop caller receives the
+retirement outcome under its own stop deadline. A replacement requires confirmation that owned work
 has settled and resources have been released.
 Hooks can request another lifecycle operation synchronously. A hook must
 return before awaiting a command that depends on that hook settling.

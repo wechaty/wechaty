@@ -69,6 +69,109 @@ async function rejectsWith(work: Promise<unknown>, expected: unknown): Promise<v
 }
 
 for (const [name, create] of facades) {
+  for (const cleanup of ['success', 'failure', 'timeout'] as const) {
+    test(`${name}: stop from the start timeout listener observes cleanup ${cleanup}`, async () => {
+      const gate = Promise.withResolvers<void>()
+      const reason = new Error('release failed')
+      let stop!: Promise<unknown>
+      let stops = 0
+      let releases = 0
+      const service = create({
+        async onStart(scope) {
+          scope.defer(() => {
+            if (++releases === 1 && cleanup === 'failure') throw reason
+          })
+          scope.signal.addEventListener('abort', () => {
+            stop = service.stop().then(() => undefined, error => error)
+            if (cleanup !== 'timeout') gate.resolve()
+          }, { once: true })
+          await gate.promise
+        },
+        onStop() { stops++ },
+      }, { startTimeoutMs: 10, stopTimeoutMs: cleanup === 'timeout' ? 25 : 1000 })
+
+      await assert.rejects(service.start(), error => error instanceof LifecycleTimeoutError && error.operation === 'start')
+      const result = await stop
+      if (cleanup === 'failure') {
+        assert.equal(result, reason)
+      } else if (cleanup === 'timeout') {
+        assert.ok(result instanceof LifecycleTimeoutError && result.operation === 'stop')
+        assert.equal(stops, 0)
+        gate.resolve()
+      } else {
+        assert.equal(result, undefined)
+      }
+      if (cleanup !== 'success') {
+        assert.ok(service.state.kind === 'failed' && !service.state.cleanupComplete)
+        await service.stop()
+      }
+      assert.equal(service.state.kind, 'stopped')
+      assert.equal(stops, 1)
+      assert.equal(releases, cleanup === 'failure' ? 2 : 1)
+    })
+  }
+
+  for (const completion of ['already released', 'release', 'reject', 'stop', 'timeout'] as const) {
+    test(`${name}: replacement startup handles detached cleanup: ${completion}`, async () => {
+      const gate = Promise.withResolvers<void>()
+      const entered = Promise.withResolvers<void>()
+      const retired = Promise.withResolvers<void>()
+      const reason = new Error('older release failed')
+      const running: number[] = []
+      let old: LifecycleScope | undefined
+      let releases = 0
+      const service = create({
+        async onStart(scope) {
+          if (!old) {
+            old = scope
+            return
+          }
+          scope.defer(retired.resolve)
+          assert.throws(() => old!.defer(() => {
+            return ++releases === 1 ? gate.promise : undefined
+          }), LifecycleSupersededError)
+          if (completion === 'already released') gate.resolve()
+          entered.resolve()
+        },
+        onStateChange(state) {
+          if (state.kind === 'running') running.push(state.generation)
+        },
+      }, { startTimeoutMs: completion === 'timeout' ? 50 : undefined })
+      await service.start()
+      const start = service.restart()
+      // Observe failures immediately while the test drives the independent cleanup.
+      const outcome = start.then(() => undefined, error => error)
+      await entered.promise
+      if (completion === 'already released') {
+        await start
+      } else if (completion === 'timeout') {
+        const error = await outcome
+        assert.ok(error instanceof LifecycleTimeoutError && error.operation === 'start')
+        gate.resolve()
+      } else {
+        await nextTurn(0)
+        assert.deepEqual(service.state, { kind: 'starting', generation: 2 })
+        if (completion === 'release') {
+          gate.resolve()
+          await start
+        } else if (completion === 'reject') {
+          gate.reject(reason)
+          await rejectsWith(start, reason)
+          assert.ok(service.state.kind === 'failed' && !service.state.cleanupComplete)
+        } else {
+          const stop = service.stop()
+          await assert.rejects(start, LifecycleSupersededError)
+          await retired.promise
+          gate.resolve()
+          await stop
+        }
+      }
+      assert.deepEqual(running, completion === 'release' || completion === 'already released' ? [1, 2] : [1])
+      await service.stop()
+      assert.equal(releases, completion === 'reject' ? 2 : 1)
+    })
+  }
+
   for (const command of ['stop', 'fail'] as const) {
     test(`${name}: ${command} retires active resources while a detached release is blocked`, { timeout: 2000 }, async () => {
       const scopes: LifecycleScope[] = []

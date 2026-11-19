@@ -364,7 +364,18 @@ export class LifecycleKernel implements LifecycleController {
 
     const startup = waitWithSignal(scope.boot(), scope.signal)
       .catch((error: unknown): Outcome => ({ ok: false, error }))
-    const outcome = await within(startup, this.#options.startTimeoutMs, 'start')
+    const timeout = this.#options.startTimeoutMs
+    const deadline = timeout === undefined ? undefined : performance.now() + timeout
+    let outcome = await within(startup, timeout, 'start', deadline)
+    // A detached scope can acquire another release while the hook or a previous
+    // batch is settling. Recheck in the same turn that commits running.
+    while (!(outcome instanceof LifecycleTimeoutError) && outcome.ok && !scope.sealed && this.#lateScopes.size > 0) {
+      outcome = await this.#collectLateReleases(false, scope.signal, 'start', deadline)
+        .catch((error: unknown): Outcome => ({ ok: false, error }))
+      if (!scope.sealed && !(outcome instanceof LifecycleTimeoutError) && !outcome.ok) {
+        this.#lateCleanupFailure = { error: outcome.error }
+      }
+    }
     const startedBy = this.#startingAttempt
     this.#startingAttempt = undefined
 
@@ -373,15 +384,15 @@ export class LifecycleKernel implements LifecycleController {
     } else if (scope.sealed) {
       await this.#retire(scope)
     } else if (outcome instanceof LifecycleTimeoutError) {
+      // Abort listeners can synchronously issue stop or restart. The expired
+      // attempt already owns its timeout before those commands are accepted.
+      this.#run = undefined
+      startedBy?.result.reject(outcome)
       scope.interrupt(outcome)
       await this.#retire(scope, { phase: 'start', error: outcome, attempt: startedBy }, false, outcome)
     } else if (!outcome.ok) {
       scope.interrupt(outcome.error)
       await this.#retire(scope, { phase: 'start', error: outcome.error, attempt: startedBy })
-    } else if (this.#lateScopes.size > 0) {
-      const error = new LifecycleUnsafeStateError('Cannot publish running while older cleanup remains')
-      scope.interrupt(error)
-      await this.#retire(scope, { phase: 'start', error, attempt: startedBy })
     } else {
       this.#run = undefined
       startedBy?.result.resolve()
@@ -400,7 +411,11 @@ export class LifecycleKernel implements LifecycleController {
     scope.seal(failure ? failure.error : new LifecycleSupersededError('Lifecycle retiring generation'))
     this.#commit({ kind: 'stopping', generation: scope.generation })
     const work = scope.retire(retry)
-    const result = startTimeout ?? await within(work, this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
+    // Report a timed-out startup promptly. A stop accepted by an abort or
+    // state listener joins this same retirement under its own deadline.
+    const result = startTimeout && !this.#stop
+      ? startTimeout
+      : await within(work, this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
     if (!(result instanceof LifecycleTimeoutError)) {
       scope.consumeRetirement()
     }
@@ -454,6 +469,25 @@ export class LifecycleKernel implements LifecycleController {
     }
   }
 
+  /** Drain one batch under the waiting command's deadline. Interrupted work stays owned. */
+  async #collectLateReleases(
+    retry: boolean,
+    signal: AbortSignal | undefined,
+    operation: 'start' | 'stop',
+    deadline: number | undefined,
+  ): Promise<Outcome | LifecycleTimeoutError> {
+    const checked = [...this.#lateScopes]
+    const work = Promise.all(checked.map(scope => scope.finishLateReleases(retry)))
+    const timeout = operation === 'start' ? this.#options.startTimeoutMs : this.#options.stopTimeoutMs
+    const result = await within(waitWithSignal(work, signal), timeout, operation, deadline)
+    if (result instanceof LifecycleTimeoutError) return result
+    for (const scope of checked) {
+      if (!scope.hasCleanup) this.#lateScopes.delete(scope)
+    }
+    const errors = result.flat()
+    return errors.length ? { ok: false, error: combineErrors(errors) } : { ok: true, value: undefined }
+  }
+
   /** Account for late releases from even a detached generation before starting again. */
   async #reconcileLateScopes(): Promise<boolean> {
     const retry = this.#stop !== undefined
@@ -463,29 +497,20 @@ export class LifecycleKernel implements LifecycleController {
       attempt?.result.reject(new LifecycleUnsafeStateError('Cannot start while late cleanup remains'))
       return false
     }
-    const checked = [...this.#lateScopes]
     // An active stop or failure must be able to reclaim the worker while these
     // releases continue. Their scopes retain the obligations across this wait.
     const interrupt = retry ? undefined : new AbortController()
     this.#lateWait = interrupt
-    const work = Promise.all(checked.map(scope => scope.finishLateReleases(retry)))
     let result
     try {
-      result = await within(waitWithSignal(work, interrupt?.signal), this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
+      result = await this.#collectLateReleases(retry, interrupt?.signal, 'stop', this.#stopDeadline)
     } catch (error) {
       if (interrupt?.signal.aborted) return true
       throw error
     } finally {
       this.#lateWait = undefined
     }
-    // Only the worker may detach scopes. A timed-out pass can still finish later.
-    if (!(result instanceof LifecycleTimeoutError)) {
-      for (const scope of checked) {
-        if (!scope.hasCleanup) this.#lateScopes.delete(scope)
-      }
-    }
-    const errors = result instanceof LifecycleTimeoutError ? [result] : result.flat()
-    if (errors.length === 0) {
+    if (!(result instanceof LifecycleTimeoutError) && result.ok) {
       this.#lateCleanupFailure = undefined
       if (this.#lateScopes.size === 0 && !this.#active) {
         if (this.#stop || this.#state.kind === 'stopping') {
@@ -498,7 +523,7 @@ export class LifecycleKernel implements LifecycleController {
       return true
     }
 
-    const error = combineErrors(errors)
+    const error = result instanceof LifecycleTimeoutError ? result : result.error
     this.#lateCleanupFailure = { error }
     if (this.#active) {
       this.#active.fail(error)
