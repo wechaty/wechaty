@@ -1,985 +1,579 @@
 /**
- * Core lifecycle kernel that centralizes reconciliation, generation fencing, and
- * scoped resource ownership for async start/stop orchestration.
- *
- * This module is private to `src/async-lifecycle` and is shared by both public
- * entry points (`createLifecycle` and `AsyncLifecycle`). It intentionally avoids
- * any EventEmitter dependency; observers are callback- and diagnostics-driven.
+ * Shared reconciliation engine for both lifecycle entry points. It owns command
+ * authority, state publication and conditions. GenerationScope owns the actual
+ * hooks, tasks and resource retirement.
  */
 import { channel } from 'node:diagnostics_channel'
 
-import {
-  LifecycleSupersededError,
-  LifecycleTimeoutError,
-  LifecycleUnsafeStateError,
-} from './errors.ts'
+import { LifecycleSupersededError, LifecycleTimeoutError, LifecycleUnsafeStateError } from './errors.ts'
+import { combineErrors, type Outcome, waitWithSignal, within } from './operations.ts'
+import { GenerationScope } from './scope.ts'
 import type {
-  AsyncDisposable,
-  Disposable,
-  Lifecycle,
   LifecycleCallOptions,
   LifecycleCondition,
   LifecycleController,
   LifecycleHooks,
   LifecycleOptions,
-  LifecycleScope,
   LifecycleState,
 } from './types.ts'
 
-type Deferred<T> = {
-  promise: Promise<T>
-  resolve: (value: T) => void
-  reject: (error?: unknown) => void
-}
-
-type AttemptKind = 'start' | 'stop' | 'restart'
-type Attempt = {
-  kind: AttemptKind
-  revision: number
-  deferred: Deferred<void>
-  settled: boolean
-}
-
-type ConditionWaiter = {
-  generation: number
-  deferred: Deferred<void>
-  abortCleanup?: () => void
-}
-
-type ConditionRecord = {
-  name: string
-  setByGeneration: Set<number>
-  waiters: Set<ConditionWaiter>
+type RunAttempt = {
+  readonly kind: 'start' | 'restart' | 'recover'
+  readonly result: PromiseWithResolvers<void>
 }
 
 type StateWaiter = {
-  predicate: (state: LifecycleState) => boolean
-  deferred: Deferred<LifecycleState>
-  abortCleanup?: () => void
+  readonly predicate: (state: LifecycleState) => boolean
+  readonly result: PromiseWithResolvers<LifecycleState>
+  readonly signal?: AbortSignal
+  readonly onAbort: () => void
+}
+
+type ConditionWaiter = {
+  readonly generation: number
+  readonly result: PromiseWithResolvers<void>
+  readonly signal?: AbortSignal
+  readonly onAbort: () => void
+}
+
+type ConditionRecord = {
+  readonly condition: LifecycleCondition
+  readonly waiters: Set<ConditionWaiter>
+  setGeneration?: number
+}
+
+type Failure = {
+  readonly phase: 'start' | 'run'
+  readonly attempt?: RunAttempt
+  readonly error: unknown
 }
 
 const diagnostics = channel('wechaty.async_lifecycle')
 
-function createDeferred<T>(): Deferred<T> {
-  let resolve!: (value: T) => void
-  let reject!: (error?: unknown) => void
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res
-    reject = rej
-  })
-  return { promise, resolve, reject }
+/** Compare only the fields that describe a transition, excluding application errors. */
+function diagnosticState(state: LifecycleState) {
+  const { kind, generation } = state
+  return state.kind === 'failed'
+    ? { kind, generation, phase: state.phase, cleanupComplete: state.cleanupComplete }
+    : { kind, generation }
 }
 
-function makeAbortError(signal: AbortSignal): Error {
-  if (signal.reason instanceof Error) {
-    return signal.reason
-  }
-  return new Error('Operation aborted')
-}
-
-function bindCallerAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
-  if (!signal) {
-    return promise
-  }
-  if (signal.aborted) {
-    return Promise.reject(makeAbortError(signal))
-  }
-  const deferred = createDeferred<T>()
-  const onAbort = () => deferred.reject(makeAbortError(signal))
-  signal.addEventListener('abort', onAbort, { once: true })
-  promise.then(
-    value => deferred.resolve(value),
-    error => deferred.reject(error),
-  ).finally(() => signal.removeEventListener('abort', onAbort))
-  return deferred.promise
-}
-
-async function withTimeout<T>(
-  operation: Promise<T>,
-  timeoutMs: number | undefined,
-  name: 'start' | 'stop',
-): Promise<T> {
-  if (!timeoutMs || timeoutMs <= 0) {
-    return operation
-  }
-  let timer: ReturnType<typeof setTimeout> | undefined
-  try {
-    return await Promise.race([
-      operation,
-      new Promise<T>((_resolve, reject) => {
-        timer = setTimeout(() => reject(new LifecycleTimeoutError(name, timeoutMs)), timeoutMs)
-      }),
-    ])
-  } finally {
-    if (timer) {
-      clearTimeout(timer)
-    }
-  }
-}
-
-class ScopeImpl implements LifecycleScope {
-  readonly signal: AbortSignal
-
-  readonly #abortController: AbortController
-  readonly #generation: number
-  readonly #kernel: LifecycleKernel
-
-  #retired = false
-  #startEntered = false
-  #startPromise?: Promise<void>
-  #cleanupEntries: Array<() => Promise<void>> = []
-  #pendingSet = new Set<Promise<void>>()
-  #pendingErrors: unknown[] = []
-  #runtimeFailure?: unknown
-  #hasRuntimeFailure = false
-  #cleanupError?: unknown
-
-  constructor(kernel: LifecycleKernel, generation: number) {
-    this.#kernel = kernel
-    this.#generation = generation
-    this.#abortController = new AbortController()
-    this.signal = this.#abortController.signal
-  }
-
-  /**
-   * Marks that onStart entered for this generation and returns the hook promise.
-   */
-  setStartPromise(startPromise: Promise<void>): void {
-    this.#startEntered = true
-    this.#startPromise = startPromise
-  }
-
-  get generation(): number {
-    return this.#generation
-  }
-
-  get retired(): boolean {
-    return this.#retired
-  }
-
-  get runtimeFailure(): unknown | undefined {
-    return this.#runtimeFailure
-  }
-
-  get hasRuntimeFailure(): boolean {
-    return this.#hasRuntimeFailure
-  }
-
-  get cleanupError(): unknown | undefined {
-    return this.#cleanupError
-  }
-
-  cleanupComplete(): boolean {
-    return this.#cleanupEntries.length === 0 && this.#pendingSet.size === 0
-  }
-
-  startEntered(): boolean {
-    return this.#startEntered
-  }
-
-  abort(reason: unknown): void {
-    if (!this.signal.aborted) {
-      this.#abortController.abort(reason)
-    }
-  }
-
-  seal(): void {
-    this.#retired = true
-  }
-
-  async waitForStartToSettle(): Promise<void> {
-    if (this.#startPromise) {
-      try {
-        await this.#startPromise
-      } catch {
-        // Start failures are handled by the kernel's transition logic.
-      }
-    }
-  }
-
-  recordCleanupError(error: unknown): void {
-    this.#cleanupError = this.#cleanupError
-      ? new AggregateError([this.#cleanupError, error], 'Multiple cleanup errors')
-      : error
-  }
-
-  use<T extends AsyncDisposable | Disposable>(resource: T): T {
-    if (typeof resource === 'object' && resource !== null && Symbol.asyncDispose in resource) {
-      return this.adopt(resource, async value => {
-        const disposable = value as AsyncDisposable
-        await disposable[Symbol.asyncDispose]()
-      })
-    }
-    return this.adopt(resource, value => {
-      const disposable = value as Disposable
-      disposable[Symbol.dispose]()
-    })
-  }
-
-  adopt<T>(resource: T, release: (resource: T) => void | PromiseLike<void>): T {
-    const cleanup = async () => {
-      await release(resource)
-    }
-    this.#registerCleanup(cleanup)
-    return resource
-  }
-
-  defer(cleanup: () => void | PromiseLike<void>): void {
-    this.#registerCleanup(async () => { await cleanup() })
-  }
-
-  spawn(task: (signal: AbortSignal) => Promise<void>): void {
-    this.#assertOpen()
-    const promise = Promise.resolve()
-      .then(() => task(this.signal))
-      .catch(error => {
-        if (!this.signal.aborted || error !== this.signal.reason) {
-          this.fail(error)
-        }
-      })
-    this.trackPending(promise)
-  }
-
-  async start(child: Lifecycle): Promise<void> {
-    this.#assertOpen()
-
-    const childState = child.state
-    if (
-      childState.kind !== 'stopped'
-      && !(childState.kind === 'failed' && childState.cleanupComplete)
-    ) {
-      throw new LifecycleUnsafeStateError(
-        `Child lifecycle is not startable from state "${childState.kind}"`,
-      )
-    }
-
-    if (this.signal.aborted) {
-      await child.stop()
-      throw makeAbortError(this.signal)
-    }
-
-    this.defer(async () => { await child.stop() })
-    const childStartPromise = child.start()
-    try {
-      await Promise.race([
-        childStartPromise,
-        new Promise<never>((_, reject) => {
-          const onAbort = () => reject(makeAbortError(this.signal))
-          this.signal.addEventListener('abort', onAbort, { once: true })
-          childStartPromise.finally(() => this.signal.removeEventListener('abort', onAbort))
-        }),
-      ])
-    } catch (error) {
-      if (this.signal.aborted) {
-        await child.stop()
-      }
-      throw error
-    }
-    this.spawn(async signal => {
-      const settled = await child.whenState(
-        state => state.kind === 'failed' || state.kind === 'stopped' || state.kind === 'stopping',
-        { signal },
-      )
-      if (signal.aborted) {
-        return
-      }
-      if (settled.kind === 'failed') {
-        this.fail(new Error('Owned child lifecycle failed', { cause: settled.error }))
-        return
-      }
-      this.fail(new Error('Owned child lifecycle exited unexpectedly'))
-    })
-  }
-
-  set(condition: LifecycleCondition): void {
-    if (this.#retired) {
-      return
-    }
-    this.#kernel.setConditionForGeneration(condition.name, this.#generation)
-  }
-
-  clear(condition: LifecycleCondition): void {
-    if (this.#retired) {
-      return
-    }
-    this.#kernel.clearConditionForGeneration(condition.name, this.#generation)
-  }
-
-  fail(error: unknown): void {
-    if (this.#retired) {
-      return
-    }
-    this.#runtimeFailure = error
-    this.#hasRuntimeFailure = true
-    this.#kernel.failGeneration(this.#generation, error)
-  }
-
-  async drainPending(timeoutMs?: number): Promise<unknown[]> {
-    if (this.#pendingSet.size === 0) {
-      return this.#pendingErrors.splice(0)
-    }
-    const pending = [...this.#pendingSet]
-    for (const promise of pending) {
-      try {
-        await withTimeout(promise, timeoutMs, 'stop')
-        this.#pendingSet.delete(promise)
-      } catch (error) {
-        if (error instanceof LifecycleTimeoutError) {
-          continue
-        }
-        this.#pendingSet.delete(promise)
-        this.#pendingErrors.push(error)
-      }
-    }
-    return this.#pendingErrors.splice(0)
-  }
-
-  async unwindLedger(): Promise<unknown[]> {
-    const failures: unknown[] = []
-    const nextEntries: Array<() => Promise<void>> = []
-
-    while (this.#cleanupEntries.length > 0) {
-      const cleanup = this.#cleanupEntries.pop()
-      if (!cleanup) {
-        continue
-      }
-      try {
-        await cleanup()
-      } catch (error) {
-        failures.push(error)
-        nextEntries.unshift(cleanup)
-      }
-    }
-
-    this.#cleanupEntries = nextEntries
-    return failures
-  }
-
-  trackPending(promise: Promise<void>): void {
-    this.#pendingSet.add(promise)
-    promise.finally(() => {
-      if (!this.#pendingSet.has(promise)) {
-        return
-      }
-      this.#pendingSet.delete(promise)
-    })
-  }
-
-  #registerCleanup(cleanup: () => Promise<void>): void {
-    if (!this.#retired) {
-      this.#cleanupEntries.push(cleanup)
-      return
-    }
-
-    const cleanupPromise = cleanup().catch(error => {
-      this.recordCleanupError(error)
-      throw error
-    })
-    this.trackPending(cleanupPromise)
-    throw makeAbortError(this.signal)
-  }
-
-  #assertOpen(): void {
-    if (!this.#retired) {
-      return
-    }
-    throw makeAbortError(this.signal)
-  }
-}
-
-/**
- * Private lifecycle engine used by both public entry points.
- */
+/** One worker reconciles accepted commands and never starts over unresolved cleanup. */
 export class LifecycleKernel implements LifecycleController {
   readonly #hooks: LifecycleHooks
   readonly #options: LifecycleOptions
+  readonly #conditions = new Map<string, ConditionRecord>()
+  readonly #stateWaiters = new Set<StateWaiter>()
+  readonly #lateScopes = new Set<GenerationScope>()
 
   #state: LifecycleState = Object.freeze({ kind: 'stopped', generation: 0 })
-  #stateRevision = 0
+  #generation = 0
   #intentRevision = 0
   #desired: 'running' | 'stopped' = 'stopped'
-  #generationCounter = 0
-  #activeScope?: ScopeImpl
-  #reconciler?: Promise<void>
-  #reconcileRequested = false
-  #lastAcceptedRecoveryRevision = -1
+  #observedIntent = 0
+  #active?: GenerationScope
+  #run?: RunAttempt
+  #startingAttempt?: RunAttempt
+  #stop?: PromiseWithResolvers<void>
+  #lateCleanupFailed = false
+  #working = false
+  #requested = false
 
-  #conditions = new Map<string, ConditionRecord>()
-  #stateWaiters = new Set<StateWaiter>()
-  #stateRevisionBySnapshot = new WeakMap<LifecycleState, number>()
-
-  #startAttempt?: Attempt
-  #stopAttempt?: Attempt
-  #restartAttempt?: Attempt
-
-  constructor(hooks: LifecycleHooks, options?: LifecycleOptions) {
+  /** The facade passes only its own hooks and configuration to the engine. */
+  constructor(hooks: LifecycleHooks, options: LifecycleOptions = {}) {
     this.#hooks = hooks
-    this.#options = options ?? {}
-    this.#stateRevisionBySnapshot.set(this.#state, this.#stateRevision)
+    this.#options = options
   }
 
+  /** @inheritdoc */
   get state(): LifecycleState {
     return this.#state
   }
 
+  /** @inheritdoc */
   start(options?: LifecycleCallOptions): Promise<void> {
-    if (options?.signal?.aborted) {
-      return Promise.reject(makeAbortError(options.signal))
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    if (this.#run && this.#run.kind !== 'recover') {
+      return waitWithSignal(this.#run.result.promise, signal)
+    }
+    if (this.#state.kind === 'running' && !this.#active?.sealed && this.#lateScopes.size === 0) {
+      return Promise.resolve()
+    }
+    if (this.#blockedByCleanup()) {
+      return Promise.reject(new LifecycleUnsafeStateError('Cannot start while failed cleanup remains'))
     }
 
-    if (this.#startAttempt && !this.#startAttempt.settled && this.#desired === 'running') {
-      return bindCallerAbort(this.#startAttempt.deferred.promise, options?.signal)
+    const adoptRecovery = this.#run?.kind === 'recover' && this.#startingAttempt === this.#run && !this.#active?.sealed
+    const attempt = this.#acceptRun('start')
+    if (adoptRecovery) {
+      this.#startingAttempt = attempt
     }
-
-    if (this.#state.kind === 'running' && this.#desired === 'running') {
-      return bindCallerAbort(Promise.resolve(), options?.signal)
-    }
-
-    this.#intentRevision++
-    this.#desired = 'running'
-    this.#supersedeAttempt(this.#stopAttempt)
-    this.#stopAttempt = undefined
-
-    this.#startAttempt = this.#createAttempt('start', this.#intentRevision)
-    this.#requestReconcile()
-    return bindCallerAbort(this.#startAttempt.deferred.promise, options?.signal)
+    this.#requestWork()
+    return waitWithSignal(attempt.result.promise, signal)
   }
 
+  /** @inheritdoc */
   stop(options?: LifecycleCallOptions): Promise<void> {
-    if (options?.signal?.aborted) {
-      return Promise.reject(makeAbortError(options.signal))
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    if (!this.#stop || this.#run) {
+      this.#desired = 'stopped'
+      this.#intentRevision++
+      this.#supersedeRun()
+    }
+    if (!this.#active && this.#lateScopes.size === 0 && this.#state.kind === 'stopped') {
+      return Promise.resolve()
     }
 
-    if (this.#stopAttempt && !this.#stopAttempt.settled && this.#desired === 'stopped') {
-      return bindCallerAbort(this.#stopAttempt.deferred.promise, options?.signal)
-    }
-
-    if (this.#state.kind === 'stopped' && this.#desired === 'stopped') {
-      return bindCallerAbort(Promise.resolve(), options?.signal)
-    }
-
-    this.#intentRevision++
-    this.#desired = 'stopped'
-    if (this.#state.kind === 'starting') {
-      this.#activeScope?.abort(new LifecycleSupersededError('Lifecycle stop requested'))
-    }
-
-    this.#supersedeAttempt(this.#startAttempt)
-    this.#supersedeAttempt(this.#restartAttempt)
-    this.#startAttempt = undefined
-    this.#restartAttempt = undefined
-
-    this.#stopAttempt = this.#createAttempt('stop', this.#intentRevision)
-    this.#requestReconcile()
-    return bindCallerAbort(this.#stopAttempt.deferred.promise, options?.signal)
+    const stop = this.#stop ??= Promise.withResolvers<void>()
+    const wait = waitWithSignal(stop.promise, signal)
+    this.#requestWork()
+    this.#requestRetirement(new LifecycleSupersededError('Lifecycle stop requested'))
+    return wait
   }
 
+  /** @inheritdoc */
   restart(options?: LifecycleCallOptions): Promise<void> {
-    if (options?.signal?.aborted) {
-      return Promise.reject(makeAbortError(options.signal))
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    if (this.#run?.kind === 'restart') {
+      return waitWithSignal(this.#run.result.promise, signal)
+    }
+    if (this.#blockedByCleanup()) {
+      return Promise.reject(new LifecycleUnsafeStateError('Cannot restart while failed cleanup remains'))
     }
 
-    if (this.#restartAttempt && !this.#restartAttempt.settled) {
-      return bindCallerAbort(this.#restartAttempt.deferred.promise, options?.signal)
-    }
-
-    this.#intentRevision++
-    this.#desired = 'running'
-    if (this.#state.kind === 'starting') {
-      this.#activeScope?.abort(new LifecycleSupersededError('Lifecycle restart requested'))
-    }
-
-    this.#supersedeAttempt(this.#stopAttempt)
-    this.#stopAttempt = undefined
-    this.#restartAttempt = this.#createAttempt('restart', this.#intentRevision)
-    this.#requestReconcile()
-    return bindCallerAbort(this.#restartAttempt.deferred.promise, options?.signal)
+    const attempt = this.#acceptRun('restart')
+    const wait = waitWithSignal(attempt.result.promise, signal)
+    this.#requestWork()
+    this.#requestRetirement(new LifecycleSupersededError('Lifecycle restart requested'))
+    return wait
   }
 
+  /** @inheritdoc */
   whenState(
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleCallOptions,
   ): Promise<LifecycleState> {
-    if (options?.signal?.aborted) {
-      return Promise.reject(makeAbortError(options.signal))
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
     }
 
+    const state = this.#state
     try {
-      if (predicate(this.#state)) {
-        return Promise.resolve(this.#state)
+      const matches = predicate(state)
+      if (signal?.aborted) {
+        return Promise.reject(signal.reason)
+      }
+      if (matches) {
+        return Promise.resolve(state)
       }
     } catch (error) {
       return Promise.reject(error)
     }
 
-    const deferred = createDeferred<LifecycleState>()
-    const waiter: StateWaiter = { predicate, deferred }
-    if (options?.signal) {
-      const signal = options.signal
-      const onAbort = () => {
-        this.#stateWaiters.delete(waiter)
-        deferred.reject(makeAbortError(signal))
-      }
-      signal.addEventListener('abort', onAbort, { once: true })
-      waiter.abortCleanup = () => signal.removeEventListener('abort', onAbort)
+    const result = Promise.withResolvers<LifecycleState>()
+    const onAbort = () => {
+      this.#stateWaiters.delete(waiter)
+      result.reject(signal?.reason)
     }
+    const waiter: StateWaiter = { predicate, result, signal, onAbort }
     this.#stateWaiters.add(waiter)
-    return deferred.promise
+    signal?.addEventListener('abort', onAbort, { once: true })
+    return result.promise
   }
 
-  async [Symbol.asyncDispose](): Promise<void> {
-    await this.stop()
+  /** @inheritdoc */
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.stop()
   }
 
+  /** @inheritdoc */
   condition(name: string): LifecycleCondition {
-    if (!this.#conditions.has(name)) {
-      this.#conditions.set(name, {
+    let record = this.#conditions.get(name)
+    if (!record) {
+      const condition = Object.freeze({
         name,
-        setByGeneration: new Set<number>(),
-        waiters: new Set<ConditionWaiter>(),
+        wait: (options?: LifecycleCallOptions) => this.#waitCondition(condition, options),
       })
+      record = { condition, waiters: new Set() }
+      this.#conditions.set(name, record)
     }
-
-    return {
-      name,
-      wait: options => this.#waitCondition(name, options),
-    }
+    return record.condition
   }
 
+  /** @inheritdoc */
   async recover(observed: LifecycleState): Promise<'recovered' | 'superseded'> {
-    if (observed !== this.#state) {
-      return 'superseded'
-    }
-    if (this.#state.kind !== 'failed') {
-      return 'superseded'
-    }
-
-    const observedRevision = this.#stateRevisionBySnapshot.get(observed)
-    if (observedRevision === undefined || observedRevision !== this.#stateRevision) {
-      return 'superseded'
-    }
-    if (this.#lastAcceptedRecoveryRevision === this.#intentRevision) {
+    if (
+      observed !== this.#state || observed.kind !== 'failed' || !observed.cleanupComplete
+      || this.#desired !== 'running' || this.#intentRevision !== this.#observedIntent
+      || this.#run || this.#stop || this.#lateScopes.size > 0
+    ) {
       return 'superseded'
     }
 
-    this.#lastAcceptedRecoveryRevision = this.#intentRevision
-    this.#desired = 'running'
-    this.#requestReconcile()
-
-    const nextState = await this.whenState(
-      state => state.kind === 'running' || state.kind === 'failed',
-    )
-    return nextState.kind === 'running' ? 'recovered' : 'superseded'
-  }
-
-  setConditionForGeneration(name: string, generation: number): void {
-    const condition = this.#conditions.get(name)
-    if (!condition) {
-      return
-    }
-    condition.setByGeneration.add(generation)
-
-    for (const waiter of [...condition.waiters]) {
-      if (waiter.generation !== generation) {
-        continue
-      }
-      condition.waiters.delete(waiter)
-      waiter.abortCleanup?.()
-      waiter.deferred.resolve()
-    }
-  }
-
-  clearConditionForGeneration(name: string, generation: number): void {
-    const condition = this.#conditions.get(name)
-    if (!condition) {
-      return
-    }
-    condition.setByGeneration.delete(generation)
-  }
-
-  failGeneration(generation: number, _error: unknown): void {
-    if (this.#activeScope?.generation !== generation) {
-      return
-    }
-    this.#requestReconcile()
-  }
-
-  #createAttempt(kind: AttemptKind, revision: number): Attempt {
-    return {
-      kind,
-      revision,
-      deferred: createDeferred<void>(),
-      settled: false,
-    }
-  }
-
-  #settleAttemptSuccess(attempt: Attempt | undefined): void {
-    if (!attempt || attempt.settled) {
-      return
-    }
-    attempt.settled = true
-    attempt.deferred.resolve()
-  }
-
-  #settleAttemptFailure(attempt: Attempt | undefined, error: unknown): void {
-    if (!attempt || attempt.settled) {
-      return
-    }
-    attempt.settled = true
-    attempt.deferred.reject(error)
-  }
-
-  #supersedeAttempt(attempt: Attempt | undefined): void {
-    this.#settleAttemptFailure(attempt, new LifecycleSupersededError())
-  }
-
-  #requestReconcile(): void {
-    this.#reconcileRequested = true
-    if (this.#reconciler) {
-      return
-    }
-    const runner = this.#reconcileLoop()
-    this.#reconciler = runner
-      .catch(error => {
-        this.#settleAttemptFailure(this.#startAttempt, error)
-        this.#settleAttemptFailure(this.#stopAttempt, error)
-        this.#settleAttemptFailure(this.#restartAttempt, error)
-      })
-      .finally(() => {
-        this.#reconciler = undefined
-        if (this.#reconcileRequested) {
-          this.#requestReconcile()
-        }
-      })
-  }
-
-  async #reconcileLoop(): Promise<void> {
-    while (this.#reconcileRequested) {
-      this.#reconcileRequested = false
-      await this.#reconcileStep()
-    }
-  }
-
-  async #reconcileStep(): Promise<void> {
-    const activeScope = this.#activeScope
-    if (activeScope?.hasRuntimeFailure) {
-      const runtimeFailure = activeScope.runtimeFailure
-      if (this.#state.kind === 'failed' && this.#state.generation === activeScope.generation) {
-        return
-      }
-      await this.#retireActiveScope({
-        phase: 'run',
-        cause: runtimeFailure,
-      })
-      return
-    }
-
-    if (this.#desired === 'stopped') {
-      if (this.#activeScope) {
-        await this.#retireActiveScope({
-          phase: 'stop',
-        })
-      } else if (this.#state.kind !== 'stopped') {
-        this.#commitState(Object.freeze({
-          kind: 'stopped',
-          generation: this.#generationCounter,
-        }))
-      }
-      this.#settleAttemptSuccess(this.#stopAttempt)
-      this.#stopAttempt = undefined
-      return
-    }
-
-    if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
-      this.#settleAttemptFailure(
-        this.#startAttempt,
-        new LifecycleUnsafeStateError('Cannot start while failed cleanup remains'),
-      )
-      this.#settleAttemptFailure(
-        this.#restartAttempt,
-        new LifecycleUnsafeStateError('Cannot restart while failed cleanup remains'),
-      )
-      this.#startAttempt = undefined
-      this.#restartAttempt = undefined
-      return
-    }
-
-    if (this.#state.kind === 'running') {
-      this.#settleAttemptSuccess(this.#startAttempt)
-      this.#settleAttemptSuccess(this.#restartAttempt)
-      this.#startAttempt = undefined
-      this.#restartAttempt = undefined
-      return
-    }
-
-    if (this.#activeScope) {
-      await this.#retireActiveScope({ phase: 'stop' })
-      return
-    }
-
-    await this.#beginStart()
-  }
-
-  async #beginStart(): Promise<void> {
-    const generation = ++this.#generationCounter
-    const scope = new ScopeImpl(this, generation)
-    this.#activeScope = scope
-
-    this.#commitState(Object.freeze({
-      kind: 'starting',
-      generation,
-    }))
-
-    const startPromise = Promise.resolve().then(() => this.#hooks.onStart(scope))
-    scope.setStartPromise(startPromise)
-
-    let startError: unknown
-    let startRejected = false
+    const attempt = this.#acceptRun('recover')
+    this.#requestWork()
     try {
-      await withTimeout(startPromise, this.#options.startTimeoutMs, 'start')
-    } catch (error) {
-      startError = error
-      startRejected = true
+      await attempt.result.promise
+      return 'recovered'
+    } catch {
+      return 'superseded'
     }
-
-    if (this.#activeScope !== scope) {
-      return
-    }
-
-    if (startRejected) {
-      scope.abort(startError)
-      if (startError instanceof LifecycleTimeoutError) {
-        scope.trackPending(startPromise)
-      }
-      await this.#retireActiveScope({ phase: 'start', cause: startError })
-      return
-    }
-
-    if (this.#desired !== 'running') {
-      await this.#retireActiveScope({
-        phase: 'stop',
-        cause: new LifecycleSupersededError(),
-      })
-      return
-    }
-
-    if (scope.hasRuntimeFailure) {
-      await this.#retireActiveScope({
-        phase: 'run',
-        cause: scope.runtimeFailure,
-      })
-      return
-    }
-
-    this.#settleAttemptSuccess(this.#startAttempt)
-    this.#settleAttemptSuccess(this.#restartAttempt)
-    this.#startAttempt = undefined
-    this.#restartAttempt = undefined
-    this.#commitState(Object.freeze({
-      kind: 'running',
-      generation,
-    }))
   }
 
-  async #retireActiveScope(options: { phase: 'start' | 'run' | 'stop'; cause?: unknown }): Promise<void> {
-    const scope = this.#activeScope
-    if (!scope) {
-      return
+  /** A stop already in progress can accept a queued replacement behind its cleanup. */
+  #blockedByCleanup(): boolean {
+    return this.#state.kind === 'failed' && !this.#state.cleanupComplete && !this.#stop
+  }
+
+  /** Install intent and its promise before any hook or abort listener can reenter. */
+  #acceptRun(kind: RunAttempt['kind']): RunAttempt {
+    if (kind !== 'recover') {
+      this.#desired = 'running'
+      this.#intentRevision++
+      this.#supersedeRun()
     }
+    const attempt = { kind, result: Promise.withResolvers<void>() }
+    this.#run = attempt
+    return attempt
+  }
 
-    this.#commitState(Object.freeze({
-      kind: 'stopping',
-      generation: scope.generation,
-    }))
-    scope.seal()
+  /** Supersede the replacement request without canceling any retirement it required. */
+  #supersedeRun(): void {
+    const attempt = this.#run
+    this.#run = undefined
+    attempt?.result.reject(new LifecycleSupersededError())
+  }
 
-    const shouldRunOnStop = scope.startEntered()
-    if (shouldRunOnStop && this.#hooks.onStop) {
-      const stopPromise = Promise.resolve().then(() => this.#hooks.onStop?.(scope))
-      try {
-        await withTimeout(stopPromise, this.#options.stopTimeoutMs, 'stop')
-      } catch (error) {
-        if (error instanceof LifecycleTimeoutError) {
-          scope.trackPending(stopPromise)
-        } else {
-          scope.recordCleanupError(error)
+  /** Startup is interrupted immediately. Running hooks get a graceful stop first. */
+  #requestRetirement(reason: unknown): void {
+    if (this.#state.kind === 'starting') {
+      this.#active?.interrupt(reason)
+    } else {
+      this.#active?.seal(reason)
+    }
+  }
+
+  /** Claim the worker before it can publish state or invoke any user code. */
+  #requestWork(): void {
+    this.#requested = true
+    if (!this.#working) {
+      this.#working = true
+      queueMicrotask(() => { void this.#reconcile() })
+    }
+  }
+
+  /** Process work to quiescence. A failed run never creates its own next attempt. */
+  async #reconcile(): Promise<void> {
+    try {
+      while (this.#requested) {
+        this.#requested = false
+        while (await this.#step()) {
+          // Each step consumes a command, transitions state, or parks for new input.
         }
       }
+    } catch (error) {
+      this.#run?.result.reject(error)
+      this.#stop?.reject(error)
+      this.#run = undefined
+      this.#stop = undefined
+    } finally {
+      this.#working = false
+      if (this.#requested) {
+        this.#requestWork()
+      }
     }
-
-    scope.abort(options.cause ?? new LifecycleSupersededError('Lifecycle retiring generation'))
-    await scope.waitForStartToSettle()
-
-    const unwindErrors = await scope.unwindLedger()
-    for (const error of unwindErrors) {
-      scope.recordCleanupError(error)
-    }
-    const pendingErrors = await scope.drainPending(this.#options.stopTimeoutMs)
-    for (const error of pendingErrors) {
-      scope.recordCleanupError(error)
-    }
-
-    this.#activeScope = scope.cleanupComplete() ? undefined : scope
-
-    const cleanupComplete = scope.cleanupComplete()
-    const cleanupError = scope.cleanupError
-
-    if (options.phase === 'stop' && cleanupComplete) {
-      this.#commitState(Object.freeze({
-        kind: 'stopped',
-        generation: scope.generation,
-      }))
-      this.#settleAttemptSuccess(this.#stopAttempt)
-      this.#stopAttempt = undefined
-      return
-    }
-
-    const phase = options.phase
-    const error = options.cause ?? scope.cleanupError ?? new Error('Lifecycle failed')
-    this.#commitState(Object.freeze({
-      kind: 'failed',
-      generation: scope.generation,
-      phase,
-      error,
-      cleanupComplete,
-      ...(cleanupError ? { cleanupError } : {}),
-    }))
-
-    if (phase === 'stop' && cleanupComplete) {
-      this.#settleAttemptSuccess(this.#stopAttempt)
-      this.#stopAttempt = undefined
-      return
-    }
-
-    if (phase === 'stop') {
-      this.#settleAttemptFailure(this.#stopAttempt, error)
-      this.#stopAttempt = undefined
-      return
-    }
-
-    this.#settleAttemptFailure(this.#startAttempt, error)
-    this.#settleAttemptFailure(this.#restartAttempt, error)
-    this.#startAttempt = undefined
-    this.#restartAttempt = undefined
   }
 
-  #waitCondition(name: string, options?: LifecycleCallOptions): Promise<void> {
-    if (options?.signal?.aborted) {
-      return Promise.reject(makeAbortError(options.signal))
+  /** Prioritize existing retirement and late resources over queued startup. */
+  async #step(): Promise<boolean> {
+    const scope = this.#active
+    if (scope?.sealed) {
+      if (this.#state.kind === 'failed' && !this.#stop) {
+        return false
+      }
+      const failure = this.#state.kind === 'running' && scope.failure
+        ? { phase: 'run' as const, error: scope.failure.error }
+        : undefined
+      await this.#retire(scope, failure, this.#state.kind === 'failed')
+      return true
+    }
+    if (this.#lateScopes.size > 0) {
+      return this.#reconcileLateScopes()
+    }
+    if (this.#stop) {
+      this.#finishStop()
+      return true
+    }
+    if (this.#run && !scope) {
+      await this.#beginStart(this.#run)
+      return true
+    }
+    return false
+  }
+
+  /** Publish running only for an unsealed generation with a successful startup. */
+  async #beginStart(attempt: RunAttempt): Promise<void> {
+    const generation = ++this.#generation
+    const scope = new GenerationScope(generation, this.#hooks, {
+      fail: () => this.#requestWork(),
+      lateRegistration: () => {
+        if (this.#active !== scope) {
+          this.#lateScopes.add(scope)
+          this.#requestWork()
+        }
+      },
+      setCondition: (condition, value) => this.#setCondition(generation, condition, value),
+    })
+    this.#active = scope
+    this.#startingAttempt = attempt
+    this.#commit({ kind: 'starting', generation })
+
+    const startup = waitWithSignal(scope.boot(), scope.signal)
+      .catch((error: unknown): Outcome => ({ ok: false, error }))
+    const outcome = await within(startup, this.#options.startTimeoutMs, 'start')
+    const startedBy = this.#startingAttempt
+    this.#startingAttempt = undefined
+
+    if (scope.failure) {
+      await this.#retire(scope, { phase: 'run', error: scope.failure.error, attempt: startedBy })
+    } else if (scope.sealed) {
+      await this.#retire(scope)
+    } else if (outcome instanceof LifecycleTimeoutError) {
+      scope.interrupt(outcome)
+      await this.#retire(scope, { phase: 'start', error: outcome, attempt: startedBy }, false, outcome)
+    } else if (!outcome.ok) {
+      scope.interrupt(outcome.error)
+      await this.#retire(scope, { phase: 'start', error: outcome.error, attempt: startedBy })
+    } else if (this.#lateScopes.size > 0) {
+      const error = new LifecycleUnsafeStateError('Cannot publish running while older cleanup remains')
+      scope.interrupt(error)
+      await this.#retire(scope, { phase: 'start', error, attempt: startedBy })
+    } else {
+      this.#run = undefined
+      startedBy?.result.resolve()
+      this.#commit({ kind: 'running', generation })
+    }
+  }
+
+  /** Publish a single retirement outcome, preserving the pass across deadlines. */
+  async #retire(
+    scope: GenerationScope,
+    failure?: Failure,
+    retry = false,
+    startTimeout?: LifecycleTimeoutError,
+  ): Promise<void> {
+    scope.seal(failure ? failure.error : new LifecycleSupersededError('Lifecycle retiring generation'))
+    this.#commit({ kind: 'stopping', generation: scope.generation })
+    const work = scope.retire(retry)
+    const result = startTimeout ?? await within(work, this.#options.stopTimeoutMs, 'stop')
+    if (!(result instanceof LifecycleTimeoutError)) {
+      scope.consumeRetirement()
     }
 
-    const condition = this.#conditions.get(name)
-    if (!condition) {
-      return Promise.reject(new Error(`Unknown lifecycle condition: ${name}`))
+    const complete = !(result instanceof LifecycleTimeoutError) && !scope.hasCleanup
+    const errors = result instanceof LifecycleTimeoutError ? [result] : [...result]
+    if (!complete && errors.length === 0) {
+      errors.push(new LifecycleUnsafeStateError('A late release is still pending'))
+    }
+    if (complete) {
+      this.#active = undefined
+    }
+    if (failure?.attempt && this.#run === failure.attempt) {
+      this.#run = undefined
+      failure.attempt.result.reject(failure.error)
     }
 
-    const generation = this.#boundConditionGeneration()
-    if (condition.setByGeneration.has(generation)) {
+    if (errors.length > 0) {
+      const cleanupError = combineErrors(errors)
+      const stop = this.#stop
+      this.#stop = undefined
+      stop?.reject(cleanupError)
+      const attempt = this.#run
+      this.#run = undefined
+      attempt?.result.reject(attempt.kind === 'restart'
+        ? cleanupError
+        : new LifecycleUnsafeStateError('Cannot start while retirement failed'))
+      this.#commit({
+        kind: 'failed',
+        generation: scope.generation,
+        phase: failure?.phase ?? 'stop',
+        error: failure ? failure.error : cleanupError,
+        cleanupComplete: complete && this.#lateScopes.size === 0,
+        ...(startTimeout === result ? {} : { cleanupError }),
+      })
+    } else if (failure) {
+      this.#commit({
+        kind: 'failed',
+        generation: scope.generation,
+        phase: failure.phase,
+        error: failure.error,
+        cleanupComplete: complete && this.#lateScopes.size === 0,
+      })
+    } else if (this.#lateScopes.size === 0) {
+      this.#finishStop()
+    }
+  }
+
+  /** Account for late releases from even a detached generation before starting again. */
+  async #reconcileLateScopes(): Promise<boolean> {
+    const retry = this.#stop !== undefined
+    if (this.#lateCleanupFailed && !retry) {
+      const attempt = this.#run
+      this.#run = undefined
+      attempt?.result.reject(new LifecycleUnsafeStateError('Cannot start while late cleanup remains'))
+      return false
+    }
+    const checked = [...this.#lateScopes]
+    const result = await within(
+      Promise.all(checked.map(async scope => {
+        const errors = await scope.finishLateReleases(retry)
+        if (!scope.hasCleanup) {
+          this.#lateScopes.delete(scope)
+        }
+        return errors
+      })),
+      this.#options.stopTimeoutMs,
+      'stop',
+    )
+    const errors = result instanceof LifecycleTimeoutError ? [result] : result.flat()
+    if (errors.length === 0) {
+      this.#lateCleanupFailed = false
+      if (this.#lateScopes.size === 0 && !this.#active
+        && (this.#stop || this.#state.kind === 'stopping' || this.#state.kind === 'failed' && !this.#state.cleanupComplete)) {
+        this.#finishStop()
+      }
+      return true
+    }
+
+    const error = combineErrors(errors)
+    this.#lateCleanupFailed = true
+    if (this.#active) {
+      this.#active.fail(error)
+      return true
+    }
+    const stop = this.#stop
+    this.#stop = undefined
+    stop?.reject(error)
+    const attempt = this.#run
+    this.#run = undefined
+    attempt?.result.reject(new LifecycleUnsafeStateError('Cannot start while late cleanup remains'))
+    this.#commit({ kind: 'failed', generation: this.#generation, phase: 'stop', error, cleanupComplete: false, cleanupError: error })
+    return false
+  }
+
+  /** Resolve the stop before a stopped observer can enqueue another command. */
+  #finishStop(): void {
+    this.#lateCleanupFailed = false
+    const stop = this.#stop
+    this.#stop = undefined
+    stop?.resolve()
+    this.#commit({ kind: 'stopped', generation: this.#generation })
+  }
+
+  /** Match conditions by owner identity as well as the active generation. */
+  #setCondition(generation: number, condition: LifecycleCondition, value: boolean): void {
+    const record = this.#conditions.get(condition.name)
+    if (record?.condition === condition && this.#active?.generation === generation) {
+      record.setGeneration = value ? generation : undefined
+      if (value) {
+        this.#settleConditions(record, generation)
+      }
+    }
+  }
+
+  /** Stopped, failed and retiring states bind new waits to the next generation. */
+  #waitCondition(condition: LifecycleCondition, options?: LifecycleCallOptions): Promise<void> {
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    const record = this.#conditions.get(condition.name)!
+    const generation = this.#active && !this.#active.sealed ? this.#active.generation : this.#generation + 1
+    if (record.setGeneration === generation) {
       return Promise.resolve()
     }
 
-    const waiter: ConditionWaiter = {
-      generation,
-      deferred: createDeferred<void>(),
+    const result = Promise.withResolvers<void>()
+    const onAbort = () => {
+      record.waiters.delete(waiter)
+      result.reject(signal?.reason)
     }
+    const waiter: ConditionWaiter = { generation, result, signal, onAbort }
+    record.waiters.add(waiter)
+    signal?.addEventListener('abort', onAbort, { once: true })
+    return result.promise
+  }
 
-    if (options?.signal) {
-      const signal = options.signal
-      const onAbort = () => {
-        condition.waiters.delete(waiter)
-        waiter.deferred.reject(makeAbortError(signal))
+  /** Settle or reject only waits owned by the generation being updated. */
+  #settleConditions(record: ConditionRecord, generation: number, failure?: { error: unknown }): void {
+    for (const waiter of record.waiters) {
+      if (waiter.generation === generation) {
+        record.waiters.delete(waiter)
+        waiter.signal?.removeEventListener('abort', waiter.onAbort)
+        if (failure) {
+          waiter.result.reject(failure.error)
+        } else {
+          waiter.result.resolve()
+        }
       }
-      signal.addEventListener('abort', onAbort, { once: true })
-      waiter.abortCleanup = () => signal.removeEventListener('abort', onAbort)
     }
-
-    condition.waiters.add(waiter)
-    return waiter.deferred.promise
   }
 
-  #boundConditionGeneration(): number {
-    if (this.#state.kind === 'starting' || this.#state.kind === 'running') {
-      return this.#state.generation
-    }
-    return this.#generationCounter + 1
-  }
-
-  #commitState(next: LifecycleState): void {
+  /** Freeze state and settle observations before notifying user code or diagnostics. */
+  #commit(next: LifecycleState): void {
     const previous = this.#state
-    this.#state = Object.freeze(next)
-    this.#stateRevision++
-    this.#stateRevisionBySnapshot.set(this.#state, this.#stateRevision)
+    const state = this.#state = Object.freeze(next)
+    this.#observedIntent = this.#intentRevision
 
-    this.#settleConditionWaiters(previous, this.#state)
-    this.#settleStateWaiters()
+    if (state.kind === 'stopping' && this.#active) {
+      for (const record of this.#conditions.values()) {
+        if (record.setGeneration === state.generation) {
+          record.setGeneration = undefined
+        }
+        // A startup hook can itself await a condition. Reject bound waits before joining it.
+        const reason = this.#active.reason
+        const error = reason instanceof LifecycleSupersededError
+          ? reason
+          : new Error(`Condition "${record.condition.name}" rejected by failed generation`, { cause: reason })
+        this.#settleConditions(record, state.generation, { error })
+      }
+    }
+
+    for (const waiter of [...this.#stateWaiters]) {
+      try {
+        if (this.#stateWaiters.has(waiter) && waiter.predicate(state) && this.#stateWaiters.delete(waiter)) {
+          waiter.signal?.removeEventListener('abort', waiter.onAbort)
+          waiter.result.resolve(state)
+        }
+      } catch (error) {
+        this.#stateWaiters.delete(waiter)
+        waiter.signal?.removeEventListener('abort', waiter.onAbort)
+        waiter.result.reject(error)
+      }
+    }
 
     try {
-      this.#hooks.onStateChange?.(this.#state, previous)
+      this.#hooks.onStateChange?.(state, previous)
     } catch {
-      // Observer exceptions are isolated from reconciliation outcomes.
+      // State observers cannot change a committed outcome by throwing.
     }
 
     if (diagnostics.hasSubscribers) {
       diagnostics.publish({
         name: this.#options.name ?? 'Lifecycle',
-        previous,
-        state: this.#state,
+        previous: diagnosticState(previous),
+        state: diagnosticState(state),
       })
-    }
-  }
-
-  #settleStateWaiters(): void {
-    for (const waiter of [...this.#stateWaiters]) {
-      try {
-        if (!waiter.predicate(this.#state)) {
-          continue
-        }
-        this.#stateWaiters.delete(waiter)
-        waiter.abortCleanup?.()
-        waiter.deferred.resolve(this.#state)
-      } catch (error) {
-        this.#stateWaiters.delete(waiter)
-        waiter.abortCleanup?.()
-        waiter.deferred.reject(error)
-      }
-    }
-  }
-
-  #settleConditionWaiters(previous: LifecycleState, next: LifecycleState): void {
-    const retiredGeneration = previous.generation
-    const generationRetired = (
-      (previous.kind === 'starting' || previous.kind === 'running' || previous.kind === 'stopping')
-      && (next.kind === 'failed' || next.kind === 'stopped')
-      && next.generation === retiredGeneration
-    )
-
-    for (const condition of this.#conditions.values()) {
-      if (generationRetired) {
-        for (const waiter of [...condition.waiters]) {
-          if (waiter.generation !== retiredGeneration) {
-            continue
-          }
-          condition.waiters.delete(waiter)
-          waiter.abortCleanup?.()
-          waiter.deferred.reject(
-            next.kind === 'failed'
-              ? new Error(`Condition "${condition.name}" rejected by failed generation`, { cause: next.error })
-              : new LifecycleSupersededError(`Condition "${condition.name}" not met before generation retired`),
-          )
-        }
-      }
-
-      if (!condition.setByGeneration.has(next.generation)) {
-        continue
-      }
-      for (const waiter of [...condition.waiters]) {
-        if (waiter.generation !== next.generation) {
-          continue
-        }
-        condition.waiters.delete(waiter)
-        waiter.abortCleanup?.()
-        waiter.deferred.resolve()
-      }
     }
   }
 }

@@ -36,6 +36,7 @@ export function createLifecycle(
 export abstract class AsyncLifecycle implements Lifecycle {
   readonly #controller: LifecycleController
 
+  /** Tie the subclass hooks to a single engine and guard the caller API. */
   protected constructor(options?: LifecycleOptions) {
     this.#controller = createLifecycle({
       onStart: scope => this.onStart(scope),
@@ -78,22 +79,27 @@ export abstract class AsyncLifecycle implements Lifecycle {
     return this.#controller.recover(observed)
   }
 
+  /** @inheritdoc */
   get state(): LifecycleState {
     return this.#controller.state
   }
 
+  /** @inheritdoc */
   start(options?: LifecycleCallOptions): Promise<void> {
     return this.#controller.start(options)
   }
 
+  /** @inheritdoc */
   stop(options?: LifecycleCallOptions): Promise<void> {
     return this.#controller.stop(options)
   }
 
+  /** @inheritdoc */
   restart(options?: LifecycleCallOptions): Promise<void> {
     return this.#controller.restart(options)
   }
 
+  /** @inheritdoc */
   whenState(
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleCallOptions,
@@ -101,6 +107,7 @@ export abstract class AsyncLifecycle implements Lifecycle {
     return this.#controller.whenState(predicate, options)
   }
 
+  /** @inheritdoc */
   [Symbol.asyncDispose](): Promise<void> {
     return this.#controller[Symbol.asyncDispose]()
   }
@@ -110,14 +117,16 @@ export abstract class AsyncLifecycle implements Lifecycle {
    * invariants.
    */
   #assertNoLifecycleOverrides(): void {
-    const proto = Object.getPrototypeOf(this) as Record<string, unknown>
-    const forbidden = ['start', 'stop', 'restart', 'whenState']
+    const forbidden = ['start', 'stop', 'restart', 'whenState'] as const
     for (const name of forbidden) {
-      if (Object.hasOwn(proto, name)) {
+      const method = AsyncLifecycle.prototype[name]
+      if (this[name] !== method) {
         throw new Error(
           `AsyncLifecycle subclasses must not override "${name}"; implement onStart/onStop instead.`,
         )
       }
+      // Subclass field initializers run after super() and can shadow prototype methods.
+      Object.defineProperty(this, name, { value: method })
     }
   }
 }

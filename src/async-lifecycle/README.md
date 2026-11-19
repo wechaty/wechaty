@@ -50,32 +50,49 @@ Hooks:
 - `set(condition)` / `clear(condition)`
 - `fail(error)`
 
+## Retirement
+
+An ordinary stop or restart seals the scope, then runs the optional
+`onStop` hook with resources still live. Canceling startup or reporting a
+failure interrupts the scope first. Retirement waits for an entered
+`onStart` to settle before invoking `onStop`.
+
+Abort listeners should interrupt blocking I/O so tasks can finish while their
+resources are still live. Retirement joins spawned tasks after abort and then
+releases resources and children in reverse registration order. Disposers may
+be retried after an unsuccessful release. Registrations made after sealing
+release immediately and throw the retirement reason. A failed late release is
+still owned, including when it comes from a detached generation.
+
+An expired deadline rejects the operation and records unresolved cleanup in
+`failed`. A later `stop()` can join the existing retirement and retry
+unfinished releases. A replacement requires confirmation that owned work
+has settled and resources have been released.
+Hooks can request another lifecycle operation synchronously. A hook must
+return before awaiting a command that depends on that hook settling.
+
 ## Conditions
 
-`condition(name)` creates a reusable generation-bound condition.
-
-Rules:
-
-- waits created during `starting`/`running` bind to that generation
-- waits created while stopped/failed bind to the next generation
-- a wait resolves only when that generation sets the condition
-- a wait rejects if that generation fails or retires first
+`condition(name)` returns an instance-owned, generation-bound condition.
+A wait binds to the open generation or the next generation if the instance
+is idle or retiring. Setting the condition resolves waits for that generation.
+Retirement rejects any unsatisfied waits. A wait made before the first start
+can remain pending across an idle stop.
 
 ## Recovery
 
-`recover(observed)` is authority-checked:
-
-- returns `'superseded'` unless `observed` is still the current failed snapshot
-- accepted recovery does not increment user intent revision
-- later user commands still win
+`recover(observed)` can request a replacement from the current clean
+failure while user intent still permits running. It returns `recovered`
+when its replacement reaches `running`. A stale snapshot, a superseding
+command, or a failed replacement returns `superseded`. Distinct failed
+snapshots can each authorize a recovery.
 
 ## Diagnostics
 
-The kernel publishes post-commit snapshots on `node:diagnostics_channel` channel:
-
-- `wechaty.async_lifecycle`
-
-Publishing occurs only when subscribers exist and never changes lifecycle outcomes.
+The kernel publishes on the `wechaty.async_lifecycle` channel after state
+and attempt outcomes are committed. Records contain the configured
+non-sensitive name and structural fields from the previous and current
+snapshots. Application and cleanup errors stay on the public failure snapshot.
 
 ## Minimal composition example
 

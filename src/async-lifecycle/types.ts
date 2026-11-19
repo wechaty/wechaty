@@ -7,16 +7,18 @@
  */
 
 /**
- * Error-tolerant disposable resource shape for synchronous cleanups.
+ * Structural contract for a synchronous disposable resource.
  */
 export interface Disposable {
+  /** Release the resource before returning. */
   [Symbol.dispose](): void
 }
 
 /**
- * Error-tolerant disposable resource shape for asynchronous cleanups.
+ * Structural contract for an asynchronous disposable resource.
  */
 export interface AsyncDisposable {
+  /** Resolve after release completes, or reject with its failure. */
   [Symbol.asyncDispose](): PromiseLike<void>
 }
 
@@ -51,17 +53,25 @@ export type LifecycleState =
  * Minimal caller-facing lifecycle API shared by all layers.
  */
 export interface Lifecycle extends AsyncDisposable {
+  /** The current frozen snapshot. */
   readonly state: LifecycleState
 
+  /** Request a run or join a pending one. Reject on failure, supersession, or caller abort. */
   start(options?: LifecycleCallOptions): Promise<void>
+
+  /** Retire owned work and retry dirty cleanup. The result survives a queued start. */
   stop(options?: LifecycleCallOptions): Promise<void>
+
+  /** Retire the current generation and start a fresh one. A later stop supersedes it. */
   restart(options?: LifecycleCallOptions): Promise<void>
 
+  /** Observe the current and future snapshots. Caller abort and predicate errors reject this wait. */
   whenState(
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleCallOptions,
   ): Promise<LifecycleState>
 
+  /** Request the same retirement as stop(). */
   [Symbol.asyncDispose](): Promise<void>
 }
 
@@ -74,8 +84,8 @@ export interface LifecycleCondition {
   /**
    * Waits until the bound generation sets this condition.
    *
-   * The wait rejects if that generation fails or retires first, or if the caller
-   * aborts this wait.
+   * Bind to an open generation, or to the next generation while idle or
+   * retiring. Reject if that generation retires first or the caller aborts.
    */
   wait(options?: LifecycleCallOptions): Promise<void>
 }
@@ -84,18 +94,27 @@ export interface LifecycleCondition {
  * Implementer-facing scope for one lifecycle generation.
  */
 export interface LifecycleScope {
+  /** Interrupt I/O on abort so owned tasks can finish while resources are still live. */
   readonly signal: AbortSignal
 
+  /** Own a disposable and return it. Prefer asynchronous disposal when available. */
   use<T extends AsyncDisposable | Disposable>(resource: T): T
+  /** Own a resource using its release callback and return that same resource. */
   adopt<T>(resource: T, release: (resource: T) => void | PromiseLike<void>): T
+  /** Register release in reverse registration order. A sealed scope releases immediately and throws. */
   defer(cleanup: () => void | PromiseLike<void>): void
 
+  /** Run a task with the scope signal. Active task failures fail this generation. */
   spawn(task: (signal: AbortSignal) => Promise<void>): void
+  /** Claim and start an idle child, and fail this generation if it exits unexpectedly. */
   start(child: Lifecycle): Promise<void>
 
+  /** Resolve waits for a condition owned by this controller and bound to this generation. */
   set(condition: LifecycleCondition): void
+  /** Clear the condition for future waits in this generation. */
   clear(condition: LifecycleCondition): void
 
+  /** Record the first active failure and interrupt the generation. Sealed scopes ignore it. */
   fail(error: unknown): void
 }
 
@@ -103,8 +122,11 @@ export interface LifecycleScope {
  * Implementer hooks passed to the composition entry point.
  */
 export interface LifecycleHooks {
+  /** Acquire and register resources. Returning permits publication of the running state. */
   onStart(scope: LifecycleScope): Promise<void> | void
+  /** Say goodbye once startup entered. Ordinary running stop calls this before abort. */
   onStop?(scope: LifecycleScope): Promise<void> | void
+  /** Observe committed snapshots after attempt settlement. Exceptions are isolated. */
   onStateChange?(state: LifecycleState, previous: LifecycleState): void
 }
 
@@ -112,8 +134,11 @@ export interface LifecycleHooks {
  * Lifecycle runtime options.
  */
 export interface LifecycleOptions {
+  /** Optional non-sensitive diagnostic label. */
   readonly name?: string
+  /** Positive deadline for the start hook. The hook remains owned after timeout. */
   readonly startTimeoutMs?: number
+  /** Positive deadline for a full retirement wait, including hooks, joins and releases. */
   readonly stopTimeoutMs?: number
 }
 
@@ -121,6 +146,11 @@ export interface LifecycleOptions {
  * Owner-only controller returned by the composition entry point.
  */
 export interface LifecycleController extends Lifecycle {
+  /** Declare or retrieve an instance-owned named condition. */
   condition(name: string): LifecycleCondition
+  /**
+   * Request replacement for the current clean failure while intent still
+   * permits running. Resolve when the replacement succeeds or report supersession.
+   */
   recover(observed: LifecycleState): Promise<'recovered' | 'superseded'>
 }
