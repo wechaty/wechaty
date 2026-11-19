@@ -1,9 +1,9 @@
 name: Claude App reaction identity probe (experimental)
 
-# Runs only from the protected default-branch workflow, for a same-repo PR
-# opened by huan on an explicit experiment branch. No PR code is checked out.
+# Runs only for a same-repository PR opened by huan on an explicit experiment
+# branch. No PR code is checked out and the token is never logged.
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened]
 
 jobs:
