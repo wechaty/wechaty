@@ -116,7 +116,9 @@ for (const [name, create] of entryPoints) {
     })
 
     await lifecycle.start()
+    assert.equal(generation, 1)
     await lifecycle.restart()
+    assert.equal(generation, 2)
     assert.equal(lifecycle.state.kind, 'running')
     assert.deepEqual(trace, ['start 1', 'dispose 1', 'start 2'])
 
