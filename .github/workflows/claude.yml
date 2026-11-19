@@ -117,7 +117,7 @@ jobs:
       queue: max
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 90
     permissions:
       contents: write
       pull-requests: write
@@ -128,7 +128,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js for review
@@ -206,6 +206,9 @@ jobs:
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
         id: claude-review
         uses: anthropics/claude-code-action@v1
+        env:
+          # Work around headless sessions ending before background review agents.
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
         with:
           allowed_bots: 'Claude,Codex,claude[bot],chatgpt-codex-connector[bot],Copilot,copilot-pull-request-reviewer[bot],copilot-swe-agent[bot],gemini-code-assist[bot]'
           restrict_untrusted_prs: false
