@@ -107,8 +107,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false &&
       (github.event.sender.type != 'Bot' ||
-       (github.event.action == 'synchronize' && github.event.sender.login == 'claude[bot]')) &&
-      github.actor != 'Copilot' &&
+       contains(fromJSON('["Claude","Codex","claude[bot]","chatgpt-codex-connector[bot]","Copilot","copilot-pull-request-reviewer[bot]","copilot-swe-agent[bot]","gemini-code-assist[bot]"]'), github.event.sender.login)) &&
       github.actor != 'dependabot[bot]' &&
       github.event.pull_request.user.login != 'dependabot[bot]'
     # Share the same PR lock with interactive coding. A queued review may
@@ -131,6 +130,16 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
+
+      - name: Set up Node.js for review
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+
+      - name: Set up Deno for review
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
 
       - name: Verify review target is current
         id: review-target
@@ -173,6 +182,10 @@ jobs:
             echo "already_reviewed=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Install review dependencies
+        if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
+        run: npm ci --ignore-scripts
+
       - name: Run Claude Code Review
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
         id: claude-review
@@ -182,7 +195,11 @@ jobs:
           # short-circuit. This prompt reviews a specific head/base revision.
           # Let Anthropic's GitHub App publish as claude[bot], not github-actions[bot].
           # Allow only our own Claude App to trigger reviews after its pushes.
-          allowed_bots: 'claude[bot]'
+          # Explicit allowlist of the AI agents participating in Wechaty.
+          # Review identities can differ from coding-agent identities.
+          allowed_bots: 'Claude,Codex,claude[bot],chatgpt-codex-connector[bot],Copilot,copilot-pull-request-reviewer[bot],copilot-swe-agent[bot],gemini-code-assist[bot]'
+          # Bot-authored PRs otherwise receive injected node/npm/deno denials.
+          restrict_untrusted_prs: false
           additional_permissions: |
             contents: write
             pull_requests: write
@@ -208,8 +225,12 @@ jobs:
             in the same comment. Never publish the marker before finishing.
           # Broad agent tools and explicit write-scoped GitHub App token.
           # Inline review comments remain the default review output.
+          # Allow noninteractive shell and test execution for same-repository PRs.
+          # WARNING: Bypass mode is privileged; retain the fork exclusion above.
+          # Verify effective permissions from action logs before declaring success.
           claude_args: |
-            --max-turns 30
+            --max-turns 50
+            --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Edit,Write,Bash,mcp__github_inline_comment__create_inline_comment"
 
       - name: Record completed review status for exact revision
