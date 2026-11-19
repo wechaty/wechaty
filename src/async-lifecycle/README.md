@@ -62,7 +62,11 @@ resources are still live. Retirement joins spawned tasks after abort and then
 releases resources and children in reverse registration order. Disposers may
 be retried after an unsuccessful release. Registrations made after sealing
 release immediately and throw the retirement reason. A failed late release is
-still owned, including when it comes from a detached generation.
+still owned, including when it comes from a detached generation. Registering
+the same callback twice creates two release obligations. A start waiting for
+older cleanup joins the current generation if it is still running afterward.
+If the current generation fails, its failure snapshot keeps the primary error
+while older releases settle. A failed release is reported in `cleanupError`.
 
 An expired deadline rejects the operation and records unresolved cleanup in
 `failed`. A later `stop()` can join the existing retirement and retry

@@ -79,27 +79,27 @@ export abstract class AsyncLifecycle implements Lifecycle {
     return this.#controller.recover(observed)
   }
 
-  /** @inheritdoc */
+  /** Read the latest frozen generation snapshot. */
   get state(): LifecycleState {
     return this.#controller.state
   }
 
-  /** @inheritdoc */
+  /** Join or request a running generation. Failure, supersession, and caller abort reject the wait. */
   start(options?: LifecycleCallOptions): Promise<void> {
     return this.#controller.start(options)
   }
 
-  /** @inheritdoc */
+  /** Retire owned work and retry outstanding releases. A queued start preserves this wait. */
   stop(options?: LifecycleCallOptions): Promise<void> {
     return this.#controller.stop(options)
   }
 
-  /** @inheritdoc */
+  /** Retire the current generation and await its replacement. A later stop supersedes this request. */
   restart(options?: LifecycleCallOptions): Promise<void> {
     return this.#controller.restart(options)
   }
 
-  /** @inheritdoc */
+  /** Wait across generations for a matching snapshot. Caller abort or a throwing predicate rejects the wait. */
   whenState(
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleCallOptions,
@@ -107,7 +107,7 @@ export abstract class AsyncLifecycle implements Lifecycle {
     return this.#controller.whenState(predicate, options)
   }
 
-  /** @inheritdoc */
+  /** Retire owned work with the same completion and failure behavior as stop(). */
   [Symbol.asyncDispose](): Promise<void> {
     return this.#controller[Symbol.asyncDispose]()
   }

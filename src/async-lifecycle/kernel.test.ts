@@ -69,6 +69,72 @@ async function rejectsWith(work: Promise<unknown>, expected: unknown): Promise<v
 }
 
 for (const [name, create] of facades) {
+  test(`${name}: late registrations sharing a disposer are independently retried`, async () => {
+    let retired!: LifecycleScope
+    const lifecycle = create({ onStart(scope) { retired = scope } })
+    await lifecycle.start()
+    await lifecycle.stop()
+    let calls = 0
+    const release = () => {
+      if (++calls <= 2) throw new Error('retry release')
+    }
+    assert.throws(() => retired.defer(release), LifecycleSupersededError)
+    assert.throws(() => retired.defer(release), LifecycleSupersededError)
+    await lifecycle.whenState(state => state.kind === 'failed')
+    await lifecycle.stop()
+    assert.equal(calls, 4)
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+
+  for (const rejects of [false, true]) {
+    test(`${name}: a run failure survives a late release that ${rejects ? 'rejects' : 'succeeds'}`, async () => {
+      const scopes: LifecycleScope[] = []
+      const lifecycle = create({ onStart(scope) { scopes.push(scope) } })
+      await lifecycle.start()
+      await lifecycle.restart()
+      const gate = Promise.withResolvers<void>()
+      const primary = new Error('generation two failed')
+      const secondary = new Error('old release failed')
+      let calls = 0
+      assert.throws(() => scopes[0]!.defer(() => ++calls === 1 ? gate.promise : undefined), LifecycleSupersededError)
+      scopes[1]!.fail(primary)
+      const dirty = await lifecycle.whenState(state => state.kind === 'failed')
+      assert.ok(dirty.kind === 'failed' && !dirty.cleanupComplete)
+      const next = lifecycle.whenState(state => state !== dirty)
+      if (rejects) gate.reject(secondary)
+      else gate.resolve()
+      const state = await next
+      assert.ok(state.kind === 'failed')
+      assert.equal(state.generation, 2)
+      assert.equal(state.phase, 'run')
+      assert.equal(state.error, primary)
+      assert.equal(state.cleanupComplete, !rejects)
+      assert.equal(state.cleanupError, rejects ? secondary : undefined)
+      assert.equal(await lifecycle.recover(dirty), 'superseded')
+      assert.equal(await lifecycle.recover(state), rejects ? 'superseded' : 'recovered')
+      await lifecycle.stop()
+    })
+  }
+
+  for (const stopWins of [false, true]) {
+    test(`${name}: start waiting for detached cleanup ${stopWins ? 'is superseded by stop' : 'joins the surviving run'}`, async () => {
+      const scopes: LifecycleScope[] = []
+      const lifecycle = create({ onStart(scope) { scopes.push(scope) } })
+      await lifecycle.start()
+      await lifecycle.restart()
+      const gate = Promise.withResolvers<void>()
+      assert.throws(() => scopes[0]!.defer(() => gate.promise), LifecycleSupersededError)
+      const start = lifecycle.start({ signal: AbortSignal.timeout(2000) })
+      const result = stopWins ? assert.rejects(start, LifecycleSupersededError) : start
+      const stop = stopWins ? lifecycle.stop() : undefined
+      gate.resolve()
+      await Promise.all([result, stop])
+      assert.equal(scopes.length, 2)
+      assert.deepEqual(lifecycle.state, { kind: stopWins ? 'stopped' : 'running', generation: 2 })
+      await lifecycle.stop()
+    })
+  }
+
   test(`${name}: restart gracefully retires the old generation before a joined start`, async () => {
     const trace: string[] = []
     const lifecycle = create({

@@ -75,7 +75,7 @@ export class LifecycleKernel implements LifecycleController {
   #run?: RunAttempt
   #startingAttempt?: RunAttempt
   #stop?: PromiseWithResolvers<void>
-  #lateCleanupFailed = false
+  #lateCleanupFailure?: { error: unknown }
   #working = false
   #requested = false
 
@@ -314,6 +314,13 @@ export class LifecycleKernel implements LifecycleController {
       this.#finishStop()
       return true
     }
+    if (scope && this.#state.kind === 'running' && this.#run?.kind === 'start') {
+      // A start delayed by detached cleanup can now join the surviving generation.
+      const attempt = this.#run
+      this.#run = undefined
+      attempt.result.resolve()
+      return true
+    }
     if (this.#run && !scope) {
       await this.#beginStart(this.#run)
       return true
@@ -382,6 +389,9 @@ export class LifecycleKernel implements LifecycleController {
 
     const complete = !(result instanceof LifecycleTimeoutError) && !scope.hasCleanup
     const errors = result instanceof LifecycleTimeoutError ? [result] : [...result]
+    if (this.#lateCleanupFailure && !retry) {
+      errors.push(this.#lateCleanupFailure.error)
+    }
     if (!complete && errors.length === 0) {
       errors.push(new LifecycleUnsafeStateError('A late release is still pending'))
     }
@@ -427,7 +437,7 @@ export class LifecycleKernel implements LifecycleController {
   /** Account for late releases from even a detached generation before starting again. */
   async #reconcileLateScopes(): Promise<boolean> {
     const retry = this.#stop !== undefined
-    if (this.#lateCleanupFailed && !retry) {
+    if (this.#lateCleanupFailure && !retry) {
       const attempt = this.#run
       this.#run = undefined
       attempt?.result.reject(new LifecycleUnsafeStateError('Cannot start while late cleanup remains'))
@@ -435,28 +445,31 @@ export class LifecycleKernel implements LifecycleController {
     }
     const checked = [...this.#lateScopes]
     const result = await within(
-      Promise.all(checked.map(async scope => {
-        const errors = await scope.finishLateReleases(retry)
-        if (!scope.hasCleanup) {
-          this.#lateScopes.delete(scope)
-        }
-        return errors
-      })),
+      Promise.all(checked.map(scope => scope.finishLateReleases(retry))),
       this.#options.stopTimeoutMs,
       'stop',
     )
+    // Only the worker may detach scopes. A timed-out pass can still finish later.
+    if (!(result instanceof LifecycleTimeoutError)) {
+      for (const scope of checked) {
+        if (!scope.hasCleanup) this.#lateScopes.delete(scope)
+      }
+    }
     const errors = result instanceof LifecycleTimeoutError ? [result] : result.flat()
     if (errors.length === 0) {
-      this.#lateCleanupFailed = false
-      if (this.#lateScopes.size === 0 && !this.#active
-        && (this.#stop || this.#state.kind === 'stopping' || this.#state.kind === 'failed' && !this.#state.cleanupComplete)) {
-        this.#finishStop()
+      this.#lateCleanupFailure = undefined
+      if (this.#lateScopes.size === 0 && !this.#active) {
+        if (this.#stop || this.#state.kind === 'stopping') {
+          this.#finishStop()
+        } else if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
+          this.#commit({ ...this.#state, cleanupComplete: true })
+        }
       }
       return true
     }
 
     const error = combineErrors(errors)
-    this.#lateCleanupFailed = true
+    this.#lateCleanupFailure = { error }
     if (this.#active) {
       this.#active.fail(error)
       return true
@@ -467,13 +480,16 @@ export class LifecycleKernel implements LifecycleController {
     const attempt = this.#run
     this.#run = undefined
     attempt?.result.reject(new LifecycleUnsafeStateError('Cannot start while late cleanup remains'))
-    this.#commit({ kind: 'failed', generation: this.#generation, phase: 'stop', error, cleanupComplete: false, cleanupError: error })
+    const failure = this.#state.kind === 'failed'
+      ? this.#state
+      : { kind: 'failed' as const, generation: this.#generation, phase: 'stop' as const, error }
+    this.#commit({ ...failure, cleanupComplete: false, cleanupError: error })
     return false
   }
 
   /** Resolve the stop before a stopped observer can enqueue another command. */
   #finishStop(): void {
-    this.#lateCleanupFailed = false
+    this.#lateCleanupFailure = undefined
     const stop = this.#stop
     this.#stop = undefined
     stop?.resolve()

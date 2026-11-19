@@ -42,7 +42,7 @@ export class GenerationScope {
   #releases: Release[] = []
   #tasks = new Set<Promise<void>>()
   #late = new Set<Promise<Outcome>>()
-  #lateFailures = new Map<Release, Failure>()
+  #lateFailures: Array<{ release: Release; error: unknown }> = []
   #retirement?: { work: Promise<readonly unknown[]>; settled: boolean }
 
   /** Wire kernel callbacks without exposing retirement authority to hooks. */
@@ -98,7 +98,7 @@ export class GenerationScope {
 
   /** Resources left behind by an earlier pass or still releasing after sealing. */
   get hasCleanup(): boolean {
-    return this.#releases.length > 0 || this.#late.size > 0 || this.#lateFailures.size > 0
+    return this.#releases.length > 0 || this.#late.size > 0 || this.#lateFailures.length > 0
   }
 
   /** Prevent new scope activity before user callbacks can observe interruption. */
@@ -157,15 +157,14 @@ export class GenerationScope {
   /** Wait for immediate late releases, optionally retrying prior failures once. */
   async finishLateReleases(retry: boolean): Promise<readonly unknown[]> {
     if (retry) {
-      for (const release of this.#lateFailures.keys()) {
-        this.#lateFailures.delete(release)
+      for (const { release } of this.#lateFailures.splice(0)) {
         this.#releaseLate(release)
       }
     }
     while (this.#late.size > 0) {
       await Promise.all(this.#late)
     }
-    return Array.from(this.#lateFailures.values(), failure => failure.error)
+    return this.#lateFailures.map(failure => failure.error)
   }
 
   /** Run graceful shutdown, interrupt I/O, join tasks, then release resources. */
@@ -226,7 +225,8 @@ export class GenerationScope {
     this.#late.add(promise)
     void promise.then(outcome => {
       if (!outcome.ok) {
-        this.#lateFailures.set(release, { error: outcome.error })
+        // Each registration owns a release, even if callers reuse the same function.
+        this.#lateFailures.push({ release, error: outcome.error })
       }
       this.#late.delete(promise)
     })
