@@ -19,16 +19,18 @@
  */
 
 /**
- * Public entry point of the async lifecycle module (wechaty/wechaty#2911).
+ * Entry point of the Claude implementation of the async lifecycle module
+ * (wechaty/wechaty#2911, consolidated v1 design).
  *
- * One reusable abstraction for asynchronous lifecycle that Wechaty, Puppet,
- * Puppet providers, PuppetService and IO share. Two ergonomic entry points over
- * one private kernel:
+ * One private engine behind two shells:
  *
- * - {@link createLifecycle} — composition: a class holds a lifecycle.
- * - {@link AsyncLifecycle}  — inheritance: a class extends a lifecycle.
+ * - {@link createLifecycle}: composition, for a class that already has a base.
+ * - {@link AsyncLifecycle}: inheritance, for a class with no other base.
  *
- * See `./README.md` for the full contract of every member.
+ * plus the `listen` / `watchdog` companions built on the public scope. This
+ * module is deliberately not re-exported from the package root or `exports`
+ * map: it lands beside `src/async-lifecycle-copilot/` for comparison until the
+ * API is frozen. See `./README.md` for every contract.
  */
 
 export {
@@ -36,14 +38,27 @@ export {
 }                             from './async-lifecycle.ts'
 export {
   createLifecycle,
-}                             from './create.ts'
-
+}                             from './create-lifecycle.ts'
+export {
+  listen,
+}                             from './companions/listen.ts'
+export type {
+  EmitterLike,
+  EventTargetLike,
+  ListenTarget,
+}                             from './companions/listen.ts'
+export {
+  watchdog,
+}                             from './companions/watchdog.ts'
+export type {
+  Watchdog,
+  WatchdogOptions,
+}                             from './companions/watchdog.ts'
 export {
   LifecycleSupersededError,
   LifecycleTimeoutError,
   LifecycleUnsafeStateError,
 }                             from './errors.ts'
-
 export {
   CHANNEL_NAME as LIFECYCLE_DIAGNOSTICS_CHANNEL,
 }                             from './diagnostics.ts'
@@ -51,20 +66,20 @@ export type {
   LifecycleDiagnosticRecord,
   LifecycleDiagnosticState,
 }                             from './diagnostics.ts'
-
-export type {
-  LifecyclePhase,
-  LifecycleState,
-  LifecycleStateKind,
-}                             from './state.ts'
-
 export type {
   Lifecycle,
-  LifecycleCallOptions,
+  LifecycleAcquireOptions,
+  LifecycleClock,
   LifecycleCondition,
   LifecycleController,
   LifecycleHooks,
   LifecycleOptions,
+  LifecyclePhase,
   LifecycleScope,
+  LifecycleState,
+  LifecycleStateKind,
+  LifecycleStop,
+  LifecycleStopReason,
+  LifecycleWaitOptions,
   RecoverResult,
 }                             from './types.ts'

@@ -19,34 +19,29 @@
  */
 
 /**
- * Inheritance entry point for the async lifecycle module.
+ * Inheritance entry point: `abstract class AsyncLifecycle`.
  *
- * A class with no other base class (for example a PuppetServer) extends
- * {@link AsyncLifecycle} and implements `onStart` / `onStop`. The base owns
- * `start` / `stop` / `restart` / `whenState` / `state` and delegates to the same
- * {@link LifecycleKernel} used by the composition form. Subclasses never override
- * the caller API and never call `super.start()`: a template method exactly one
- * level deep (wechaty/wechaty#2911 §2).
+ * For a class with no other base class (for example a PuppetServer): it extends
+ * {@link AsyncLifecycle} and implements `onStart` (and optionally `onStop` /
+ * `onStateChange`). The base owns the caller API and delegates to the same
+ * {@link LifecycleEngine} as `createLifecycle`; it adds no lifecycle behaviour.
+ * Subclasses never override the caller API and never call `super.start()`: a
+ * template method exactly one level deep (wechaty/wechaty#2911 §2).
  *
- * The constructor installs an override guard that throws if a subclass overrides
- * `start`, `stop`, `restart` or `whenState`, so the "never override" rule is a
- * runtime error, not a silent footgun (wechaty/wechaty#2911 §8).
+ * The "never override" rule is enforced at construction time, both for
+ * prototype overrides and for class-field overrides (v1 design §8).
  */
 
-import {
-  LifecycleKernel,
-}                           from './controller.ts'
-import type {
-  LifecycleState,
-}                           from './state.ts'
+import { LifecycleEngine } from './engine.ts'
 import type {
   Lifecycle,
-  LifecycleCallOptions,
   LifecycleCondition,
   LifecycleHooks,
   LifecycleOptions,
   LifecycleScope,
-  RecoverResult,
+  LifecycleState,
+  LifecycleStop,
+  LifecycleWaitOptions,
 }                           from './types.ts'
 
 /**
@@ -66,57 +61,59 @@ const SEALED_MEMBERS: readonly PropertyKey[] = [
  */
 abstract class AsyncLifecycle implements Lifecycle {
 
-  readonly #kernel: LifecycleKernel
+  readonly #engine: LifecycleEngine
 
   protected constructor (options?: LifecycleOptions) {
     const hooks: LifecycleHooks = {
       onStart       : scope => this.onStart(scope),
-      onStop        : scope => this.onStop(scope),
+      onStop        : stop => this.onStop(stop),
       onStateChange : (state, previous) => this.onStateChange(state, previous),
     }
-    this.#kernel = new LifecycleKernel(hooks, options)
+    this.#engine = new LifecycleEngine(hooks, options)
 
     this.#assertNoOverride()
     Object.defineProperties(this, {
       state: {
         configurable: false,
         enumerable: true,
-        get: () => this.#kernel.state,
+        get: () => this.#engine.state,
       },
       start: {
         configurable: false,
         writable: false,
-        value: (callOptions?: LifecycleCallOptions) => this.#kernel.start(callOptions),
+        value: (callOptions?: LifecycleWaitOptions) => this.#engine.start(callOptions),
       },
       stop: {
         configurable: false,
         writable: false,
-        value: (callOptions?: LifecycleCallOptions) => this.#kernel.stop(callOptions),
+        value: (callOptions?: LifecycleWaitOptions) => this.#engine.stop(callOptions),
       },
       restart: {
         configurable: false,
         writable: false,
-        value: (callOptions?: LifecycleCallOptions) => this.#kernel.restart(callOptions),
+        value: (callOptions?: LifecycleWaitOptions) => this.#engine.restart(callOptions),
       },
       whenState: {
         configurable: false,
         writable: false,
         value: (
           predicate: (state: LifecycleState) => boolean,
-          callOptions?: LifecycleCallOptions,
-        ) => this.#kernel.whenState(predicate, callOptions),
+          callOptions?: LifecycleWaitOptions,
+        ) => this.#engine.whenState(predicate, callOptions),
       },
       [Symbol.asyncDispose]: {
         configurable: false,
         writable: false,
-        value: () => this.#kernel[Symbol.asyncDispose](),
+        value: () => this.#engine[Symbol.asyncDispose](),
       },
     })
   }
 
   /**
-   * Throw if a subclass overrode a sealed caller-API member. We compare the
-   * subclass prototype's own method against {@link AsyncLifecycle}'s.
+   * Throw if a subclass prototype overrides a sealed caller-API member. A
+   * class-field override is rejected separately: the constructor installs the
+   * members as non-configurable own properties, so the field initializer that
+   * runs after `super()` throws `TypeError`.
    */
   #assertNoOverride (): void {
     const base = AsyncLifecycle.prototype as unknown as Record<string, unknown>
@@ -149,56 +146,49 @@ abstract class AsyncLifecycle implements Lifecycle {
   /**
    * Optional graceful goodbye. See {@link LifecycleHooks.onStop}. Default no-op.
    */
-  protected onStop (_scope: LifecycleScope): Promise<void> | void {}
+  protected onStop (_stop: LifecycleStop): Promise<void> | void {}
 
   /**
    * Optional observer. See {@link LifecycleHooks.onStateChange}. Default no-op.
    */
   protected onStateChange (_state: LifecycleState, _previous: LifecycleState): void {}
 
-  // ---- Tier 2 owner-only helpers ------------------------------------------
+  // ---- Tier 2 owner-only helper ---------------------------------------------
 
   /**
    * Declare a generation-bound condition. See {@link LifecycleController.condition}.
    */
   protected condition (name: string): LifecycleCondition {
-    return this.#kernel.condition(name)
-  }
-
-  /**
-   * Authority-checked recovery. See {@link LifecycleController.recover}.
-   */
-  protected recover (observed: LifecycleState): Promise<RecoverResult> {
-    return this.#kernel.recover(observed)
+    return this.#engine.condition(name)
   }
 
   // ---- Tier 1 caller API (sealed) -----------------------------------------
 
   get state (): LifecycleState {
-    return this.#kernel.state
+    return this.#engine.state
   }
 
-  start (options?: LifecycleCallOptions): Promise<void> {
-    return this.#kernel.start(options)
+  start (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#engine.start(options)
   }
 
-  stop (options?: LifecycleCallOptions): Promise<void> {
-    return this.#kernel.stop(options)
+  stop (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#engine.stop(options)
   }
 
-  restart (options?: LifecycleCallOptions): Promise<void> {
-    return this.#kernel.restart(options)
+  restart (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#engine.restart(options)
   }
 
   whenState (
     predicate: (state: LifecycleState) => boolean,
-    options?: LifecycleCallOptions,
+    options?: LifecycleWaitOptions,
   ): Promise<LifecycleState> {
-    return this.#kernel.whenState(predicate, options)
+    return this.#engine.whenState(predicate, options)
   }
 
   [Symbol.asyncDispose] (): Promise<void> {
-    return this.#kernel[Symbol.asyncDispose]()
+    return this.#engine[Symbol.asyncDispose]()
   }
 
 }

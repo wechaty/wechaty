@@ -21,10 +21,10 @@
 /**
  * Typed errors exported by the async lifecycle module.
  *
- * These are the only error classes the module throws on its own behalf. A hook
- * failure or a cleanup failure is surfaced as the implementer's own `unknown`
- * error (wrapped in `AggregateError` when more than one cleanup fails), never
- * replaced by one of these. See wechaty/wechaty#2911 §5 "Exported errors".
+ * These are the only error classes the module creates for its own conditions. A
+ * hook failure or a cleanup failure is surfaced as the implementer's own value
+ * (several cleanup failures as a native `AggregateError`), never replaced by one
+ * of these. See the consolidated v1 design in wechaty/wechaty#2911, §3.5.
  */
 
 /**
@@ -46,24 +46,25 @@ class LifecycleSupersededError extends Error {
 }
 
 /**
- * Rejection reason when a start or stop deadline expired.
+ * Rejection reason when a deadline expired.
  *
- * `startTimeoutMs` expiry fails the attempt, aborts the scope, and unwinds.
- * `stopTimeoutMs` expiry yields `failed { phase: 'stop', cleanupComplete: false }`.
- * A timeout is a deadline, never proof of cleanup (wechaty/wechaty#2905 §3.2,
- * invariant 14).
+ * - `'start'`: `startTimeoutMs` expiry fails the attempt, aborts the scope, and unwinds.
+ * - `'stop'`: `stopTimeoutMs` expiry yields `failed { cleanupComplete: false }`.
+ * - `'watchdog'`: the `watchdog()` companion was not fed in time.
+ *
+ * A timeout is a deadline, never proof of cleanup (wechaty/wechaty#2905 §3.2).
  */
 class LifecycleTimeoutError extends Error {
 
   override name = 'LifecycleTimeoutError'
 
-  /** Which phase timed out. */
-  readonly phase: 'start' | 'stop'
+  /** Which deadline expired. */
+  readonly phase: 'start' | 'stop' | 'watchdog'
   /** The configured deadline in milliseconds. */
   readonly timeoutMs: number
 
   constructor (
-    phase: 'start' | 'stop',
+    phase: 'start' | 'stop' | 'watchdog',
     timeoutMs: number,
   ) {
     super(`The lifecycle ${phase} exceeded its ${timeoutMs}ms deadline`)
@@ -74,11 +75,12 @@ class LifecycleTimeoutError extends Error {
 }
 
 /**
- * Thrown by `scope.start(child)` when the child is not safe to start.
+ * Refusal when the requested operation could overlap unreleased resources.
  *
- * A child must be `stopped` or cleanly `failed` (`cleanupComplete: true`) before
- * a parent adopts it. Starting over a dirty failure risks an unsafe overlap of
- * resources (wechaty/wechaty#2905 invariant 4).
+ * `start()` / `restart()` reject with it while the state is `failed` with
+ * `cleanupComplete: false`, and `scope.start(child)` throws it for a child that is
+ * not `stopped` or cleanly `failed`, or that another scope already owns
+ * (wechaty/wechaty#2905 §3.6).
  */
 class LifecycleUnsafeStateError extends Error {
 

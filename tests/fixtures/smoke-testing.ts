@@ -26,11 +26,6 @@ import type { Wechaty } from 'wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'
-import {
-  AsyncLifecycle,
-  createLifecycle,
-}                   from 'wechaty/async-lifecycle'
-import type { LifecycleState } from 'wechaty/async-lifecycle'
 
 import assert from 'assert'
 
@@ -51,11 +46,6 @@ function publicTypeContract (bot: Wechaty, contact: USERS.Contact) {
   bot.__options
 }
 void publicTypeContract
-
-function publicLifecycleTypeContract (state: LifecycleState): void {
-  void state
-}
-void publicLifecycleTypeContract
 
 function getBotList (): Wechaty[] {
   const botList = [
@@ -103,20 +93,6 @@ async function main () {
 
   const tag: USERS.Tag = {} as any as IMPLS.TagImpl
   assert.ok(tag, 'should get valid USERS & IMPLS')
-
-  const lifecycle = createLifecycle({ onStart: () => {} })
-  await lifecycle.start()
-  assert.equal(lifecycle.state.kind, 'running')
-  await lifecycle.stop()
-
-  class SmokeLifecycle extends AsyncLifecycle {
-    constructor () { super() }
-    protected override onStart (): void {}
-  }
-  const inheritedLifecycle = new SmokeLifecycle()
-  await inheritedLifecycle.start()
-  assert.equal(inheritedLifecycle.state.kind, 'running')
-  await inheritedLifecycle.stop()
 
   assert.notStrictEqual(VERSION,  '0.0.0', 'VERSION must be set!')
 

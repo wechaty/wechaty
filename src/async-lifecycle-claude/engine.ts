@@ -1,0 +1,919 @@
+/**
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
+ *
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+/**
+ * The private lifecycle engine: every invariant of the module lives here.
+ *
+ * Owns intent (user commands and the attempts they create), the caller
+ * waits on them, generation allocation, the single reconciler, retirement and
+ * its deadline, cleanup debt, and the commit step that publishes snapshots. The
+ * two entry points (`create-lifecycle.ts`, `async-lifecycle.ts`) are thin shells
+ * over {@link LifecycleEngine}; the per-run scope lives in `generation.ts`, the
+ * ownership ledger in `ledger.ts`, conditions in `condition.ts`.
+ *
+ * ## Model (keep these rules when changing this file)
+ *
+ * 1. **Commands only record intent.** `start` / `stop` / `restart` and the scope's
+ *    `fail` / `recover` change intent synchronously: they create or supersede an
+ *    {@link Attempt} and seal (and, before `running`, abort) the current
+ *    generation. They never commit state and never run hooks. Every user command
+ *    supersedes a pending recovery the moment it is accepted, which is the whole
+ *    of recovery's authority check (a user command always wins).
+ * 2. **One writer.** Only the reconciler ({@link LifecycleEngine.#reconcile})
+ *    commits snapshots. It runs one step at a time, chosen from the current facts
+ *    by {@link LifecycleEngine.#nextStep}, so there is no wake flag to leak and a
+ *    reentrant command simply changes what the next step will be.
+ * 3. **Attempts drive starting.** A generation starts only for a pending attempt.
+ *    A failed attempt ends; nothing retries because "running is still wanted".
+ * 4. **One retirement path.** Every retirement (stop, restart, recover, failure,
+ *    cleanup retry) runs {@link LifecycleEngine.#retire} and ends in
+ *    {@link LifecycleEngine.#finishRetirement}, which settles waiters before
+ *    observers see the new snapshot.
+ * 5. **Cleanup truth.** Completion is read back from the ledgers and the hook
+ *    promises, never inferred from "no error" or from a deadline.
+ */
+
+import {
+  defaultClock,
+}                           from './clock.ts'
+import {
+  ConditionBoard,
+  type Condition,
+}                           from './condition.ts'
+import {
+  diagnosticState,
+  publishStateChange,
+}                           from './diagnostics.ts'
+import {
+  LifecycleSupersededError,
+  LifecycleTimeoutError,
+  LifecycleUnsafeStateError,
+}                           from './errors.ts'
+import {
+  createScope,
+  Generation,
+  type ScopeHost,
+}                           from './generation.ts'
+import type {
+  LifecycleClock,
+  LifecycleCondition,
+  LifecycleHooks,
+  LifecycleOptions,
+  LifecycleState,
+  LifecycleStopReason,
+  LifecycleWaitOptions,
+  RecoverResult,
+}                           from './types.ts'
+
+const TIMEOUT = Symbol('timeout')
+
+/**
+ * One start request shared by every equivalent caller.
+ *
+ * `user` attempts come from `start()` / `restart()` and reject on supersession;
+ * `recover` attempts come from `scope.recover()` and resolve `'superseded'`
+ * instead. Settlement is idempotent: the first outcome wins.
+ */
+class Attempt {
+
+  readonly kind: 'user' | 'recover'
+  /** Bound when the reconciler allocates a generation for this attempt. */
+  generation: Generation | undefined = undefined
+  #settled = false
+  readonly #deferred = Promise.withResolvers<RecoverResult | undefined>()
+
+  constructor (kind: 'user' | 'recover') {
+    this.kind = kind
+    // Callers attach their own handlers; the shared promise must never be the
+    // source of an unhandled rejection when every caller has detached.
+    this.#deferred.promise.catch(() => {})
+  }
+
+  get promise (): Promise<RecoverResult | undefined> {
+    return this.#deferred.promise
+  }
+
+  get settled (): boolean {
+    return this.#settled
+  }
+
+  succeed (): void {
+    if (this.#settled) { return }
+    this.#settled = true
+    this.#deferred.resolve(this.kind === 'recover' ? 'recovered' : undefined)
+  }
+
+  supersede (): void {
+    if (this.#settled) { return }
+    this.#settled = true
+    if (this.kind === 'recover') {
+      this.#deferred.resolve('superseded')
+    } else {
+      this.#deferred.reject(new LifecycleSupersededError())
+    }
+  }
+
+  fail (error: unknown): void {
+    if (this.#settled) { return }
+    this.#settled = true
+    this.#deferred.reject(error)
+  }
+
+}
+
+/**
+ * Give one caller its own view of a shared promise: a fresh promise (so an
+ * ignored rejection is still reported to that caller) that also rejects when the
+ * caller's signal aborts. The abort listener is removed on settle.
+ */
+function waitFor<T> (shared: Promise<T>, signal: AbortSignal | undefined): Promise<T> {
+  if (!signal) {
+    return shared.then(value => value)
+  }
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason)
+    signal.addEventListener('abort', onAbort, { once: true })
+    shared.then(
+      value => { signal.removeEventListener('abort', onAbort); resolve(value) },
+      (error: unknown) => { signal.removeEventListener('abort', onAbort); reject(error) },
+    )
+  })
+}
+
+/** Combine cleanup errors: one error as itself, several as an `AggregateError`. */
+function aggregate (errors: readonly unknown[]): unknown {
+  return errors.length === 1
+    ? errors[0]
+    : new AggregateError(errors, 'lifecycle cleanup failed')
+}
+
+interface Deadline {
+  /** Resolves with {@link TIMEOUT} on expiry; never settles without a limit. */
+  readonly expired: Promise<typeof TIMEOUT>
+  /** Aborted on expiry with a {@link LifecycleTimeoutError}. */
+  readonly signal: AbortSignal
+  cancel (): void
+}
+
+/**
+ * The single lifecycle engine behind both entry points. Public methods are the
+ * Tier 1 caller API plus `condition`; everything else is private.
+ */
+class LifecycleEngine {
+
+  readonly #hooks: LifecycleHooks
+  readonly #name: string | undefined
+  readonly #startTimeoutMs: number | undefined
+  readonly #stopTimeoutMs: number | undefined
+  readonly #clock: LifecycleClock
+  readonly #host: ScopeHost
+  readonly #board = new ConditionBoard()
+
+  #state: LifecycleState = Object.freeze({ kind: 'stopped', generation: 0 })
+  readonly #stateWaiters = new Set<{
+    readonly predicate: (state: LifecycleState) => boolean
+    readonly resolve: (state: LifecycleState) => void
+    readonly reject: (reason: unknown) => void
+  }>()
+
+  #generationSeq = 0
+  /** The generation that is live, retiring, or dirty. `undefined` when idle. */
+  #current: Generation | undefined = undefined
+  /** The attempt the next `start()` joins, until it is settled. */
+  #pending: Attempt | undefined = undefined
+  /** An explicit `stop()` targeting a dirty or cleanly failed idle state. */
+  #stopRequested = false
+  /** Retired generations whose late releases failed: debt that blocks a new run. */
+  readonly #debtors = new Set<Generation>()
+  /** `stop()` callers waiting for debt cleanup while no generation is current. */
+  readonly #debtStopWaiters = new Set<PromiseWithResolvers<void>>()
+  /** The attempt that allocated each generation, settled when that run ends. */
+  readonly #attemptOf = new WeakMap<Generation, Attempt>()
+  /** `stop()` callers waiting for a generation's release. */
+  readonly #stopWaiters = new WeakMap<Generation, Set<PromiseWithResolvers<void>>>()
+  /** Debt retirement work still running past a stop deadline. */
+  #debtRetirement: Promise<unknown[]> | undefined = undefined
+  #reconciling = false
+
+  constructor (hooks: LifecycleHooks, options?: LifecycleOptions) {
+    this.#hooks = hooks
+    this.#name = options?.name
+    this.#startTimeoutMs = options?.startTimeoutMs
+    this.#stopTimeoutMs = options?.stopTimeoutMs
+    this.#clock = options?.clock ?? defaultClock
+    this.#host = {
+      fail              : (generation, error) => this.#fail(generation, error),
+      recover           : (generation, reason) => this.#recover(generation, reason),
+      lateReleaseFailed : generation => this.#lateReleaseFailed(generation),
+      setCondition      : (generation, condition, value) => this.#setCondition(generation, condition, value),
+    }
+  }
+
+  // ===========================================================================
+  // Tier 1: caller API
+  // ===========================================================================
+
+  get state (): LifecycleState {
+    return this.#state
+  }
+
+  /** See {@link Lifecycle.start}. */
+  start (options?: LifecycleWaitOptions): Promise<void> {
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    if (this.#isDirty()) {
+      return Promise.reject(new LifecycleUnsafeStateError('cannot start while cleanup is incomplete'))
+    }
+
+    const current = this.#current
+    if (current && current.reachedRunning && !current.sealed) {
+      return Promise.resolve() // already running, nothing to retire (#2905 §3.8 A)
+    }
+    const attempt = this.#joinableAttempt() ?? (this.#pending = new Attempt('user'))
+    this.#schedule()
+    return waitFor(attempt.promise, signal).then(() => {})
+  }
+
+  /** See {@link Lifecycle.stop}. */
+  stop (options?: LifecycleWaitOptions): Promise<void> {
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    this.#supersedePending()
+    this.#board.rejectNext(new LifecycleSupersededError('stopped before the condition wait was bound'))
+
+    const current = this.#current
+    let waiter: PromiseWithResolvers<void>
+    if (current) {
+      if (current.dirty) {
+        this.#stopRequested = true
+      } else {
+        this.#requestRetire(current, 'stop')
+      }
+      waiter = this.#stopWaiter(current)
+    } else if (this.#debtors.size > 0 || this.#isDirty()) {
+      this.#stopRequested = true
+      waiter = Promise.withResolvers<void>()
+      this.#debtStopWaiters.add(waiter)
+    } else {
+      if (this.#state.kind === 'failed') {
+        this.#stopRequested = true // clean failed → stopped
+        this.#schedule()
+      }
+      return Promise.resolve()
+    }
+    this.#schedule()
+    return waitFor(waiter.promise, signal)
+  }
+
+  /** See {@link Lifecycle.restart}. */
+  restart (options?: LifecycleWaitOptions): Promise<void> {
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    if (this.#isDirty()) {
+      return Promise.reject(new LifecycleUnsafeStateError('cannot restart while cleanup is incomplete'))
+    }
+    this.#supersedePending()
+    const current = this.#current
+    if (current && !current.sealed) {
+      this.#requestRetire(current, 'restart')
+    }
+    const attempt = this.#pending = new Attempt('user')
+    this.#schedule()
+    return waitFor(attempt.promise, signal).then(() => {})
+  }
+
+  /** See {@link Lifecycle.whenState}. */
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> {
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    try {
+      if (predicate(this.#state)) {
+        return Promise.resolve(this.#state)
+      }
+    } catch (error) {
+      return Promise.reject(error)
+    }
+
+    const { promise, resolve, reject } = Promise.withResolvers<LifecycleState>()
+    const onAbort = () => {
+      this.#stateWaiters.delete(waiter)
+      reject(signal!.reason)
+    }
+    const detach = () => signal?.removeEventListener('abort', onAbort)
+    const waiter = {
+      predicate,
+      resolve : (state: LifecycleState) => { detach(); resolve(state) },
+      reject  : (reason: unknown) => { detach(); reject(reason) },
+    }
+    this.#stateWaiters.add(waiter)
+    signal?.addEventListener('abort', onAbort, { once: true })
+    return promise
+  }
+
+  [Symbol.asyncDispose] (): Promise<void> {
+    return this.stop()
+  }
+
+  // ===========================================================================
+  // Tier 2: owner API
+  // ===========================================================================
+
+  /** See {@link LifecycleController.condition}. */
+  condition (name: string): LifecycleCondition {
+    return this.#board.declare(name, (condition, options) => this.#waitCondition(condition, options))
+  }
+
+  #waitCondition (condition: Condition, options?: LifecycleWaitOptions): Promise<void> {
+    const current = this.#current
+    const target = current && !current.sealed ? current.number : 'next'
+    return this.#board.wait(condition, target, options)
+  }
+
+  #setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void {
+    if (!this.#board.owns(condition)) {
+      throw new TypeError(`condition '${condition.name}' was not declared on this lifecycle`)
+    }
+    if (generation.sealed) {
+      return
+    }
+    if (value) {
+      this.#board.set(generation.number, condition)
+    } else {
+      this.#board.clear(generation.number, condition)
+    }
+  }
+
+  // ===========================================================================
+  // Intent helpers (synchronous; never commit, never run hooks)
+  // ===========================================================================
+
+  #isDirty (): boolean {
+    return this.#state.kind === 'failed' && !this.#state.cleanupComplete
+  }
+
+  /**
+   * The pending attempt a new `start()` may join, if any. A recovery is replaced
+   * by user intent; an attempt whose generation is already retiring will fail or
+   * be superseded, so a new request gets its own attempt.
+   */
+  #joinableAttempt (): Attempt | undefined {
+    const pending = this.#pending
+    if (!pending) {
+      return undefined
+    }
+    if (pending.kind === 'recover') {
+      pending.supersede()
+      this.#pending = undefined
+      return undefined
+    }
+    if (pending.generation?.sealed) {
+      this.#pending = undefined // still settled through its generation
+      return undefined
+    }
+    return pending
+  }
+
+  #supersedePending (): void {
+    this.#pending?.supersede()
+    this.#pending = undefined
+  }
+
+  #stopWaiter (generation: Generation): PromiseWithResolvers<void> {
+    const waiter = Promise.withResolvers<void>()
+    let waiters = this.#stopWaiters.get(generation)
+    if (!waiters) {
+      waiters = new Set()
+      this.#stopWaiters.set(generation, waiters)
+    }
+    waiters.add(waiter)
+    return waiter
+  }
+
+  /**
+   * Ask `generation` to retire: seal it now (fencing its scope and freezing its
+   * conditions) and, if it never reached `running`, abort it now so an
+   * abort-aware `onStart` returns. The reconciler performs the retirement.
+   */
+  #requestRetire (generation: Generation, reason: LifecycleStopReason): void {
+    if (generation.retireReason === undefined || (reason === 'stop' && generation.retireReason !== 'failure')) {
+      generation.retireReason = reason
+    }
+    if (!generation.sealed) {
+      generation.sealed = true
+      generation.sealReason = generation.failure
+        ? generation.failure.error
+        : new LifecycleSupersededError('the generation is retiring')
+      generation.ledger.seal()
+      this.#board.retire(generation.number, generation.sealReason)
+    }
+    if (!generation.reachedRunning) {
+      this.#abort(generation)
+    }
+    generation.retireRequested.resolve()
+  }
+
+  #abort (generation: Generation): void {
+    if (!generation.controller.signal.aborted) {
+      generation.controller.abort(generation.sealReason ?? new LifecycleSupersededError('the generation is retiring'))
+    }
+  }
+
+  // ===========================================================================
+  // Scope host (called through the scope of a specific generation)
+  // ===========================================================================
+
+  #fail (generation: Generation, error: unknown): void {
+    if (generation !== this.#current || generation.sealed) {
+      return // stale or already retiring
+    }
+    generation.failure = { phase: generation.reachedRunning ? 'run' : 'start', error }
+    this.#requestRetire(generation, 'failure')
+    this.#schedule()
+  }
+
+  #recover (generation: Generation, reason: unknown): Promise<RecoverResult> {
+    if (generation !== this.#current || generation.sealed) {
+      return Promise.resolve('superseded')
+    }
+    if (!generation.reachedRunning) {
+      this.#fail(generation, reason) // a first boot fails fast
+      return Promise.reject(reason)
+    }
+    // Running and unsealed means no start attempt is pending.
+    const attempt = this.#pending = new Attempt('recover')
+    this.#requestRetire(generation, 'recover')
+    this.#schedule()
+    return attempt.promise as Promise<RecoverResult>
+  }
+
+  #lateReleaseFailed (generation: Generation): void {
+    if (!generation.retired) {
+      return // its own retirement reads the ledger back
+    }
+    this.#debtors.add(generation)
+    this.#schedule()
+  }
+
+  // ===========================================================================
+  // Reconciler (the only writer of state)
+  // ===========================================================================
+
+  #schedule (): void {
+    if (this.#reconciling) {
+      return // the running loop re-reads the facts after its current step
+    }
+    this.#reconciling = true
+    // A microtask keeps intent acceptance synchronous and lets commands issued in
+    // the same tick coalesce before the first step is chosen.
+    queueMicrotask(() => { void this.#reconcile() })
+  }
+
+  async #reconcile (): Promise<void> {
+    try {
+      for (let step = this.#nextStep(); step; step = this.#nextStep()) {
+        await step()
+      }
+    } finally {
+      this.#reconciling = false
+    }
+  }
+
+  /**
+   * Choose the next step from the current facts, or `undefined` when settled.
+   * Every step returned here changes those facts, so the loop cannot spin.
+   */
+  #nextStep (): (() => Promise<void> | void) | undefined {
+    const current = this.#current
+    if (current) {
+      if (current.dirty) {
+        if (!this.#stopRequested) {
+          return undefined // a dirty failure waits for an explicit stop()
+        }
+        this.#stopRequested = false
+        return () => this.#retire(current)
+      }
+      return current.retireReason !== undefined
+        ? () => this.#retire(current)
+        : undefined // live: starting (inside #runStart) or running
+    }
+
+    this.#pruneDebtors()
+    if (this.#debtors.size > 0) {
+      if (!this.#isDirty()) {
+        return () => this.#commitDebt()
+      }
+      if (!this.#stopRequested) {
+        return undefined
+      }
+      this.#stopRequested = false
+      return () => this.#retireDebt()
+    }
+
+    if (this.#stopRequested) {
+      this.#stopRequested = false
+      if (this.#state.kind === 'failed') {
+        return () => this.#commit({ kind: 'stopped', generation: this.#state.generation })
+      }
+    }
+
+    const pending = this.#pending
+    if (pending && !pending.settled && !this.#isDirty()) {
+      return () => this.#runStart(pending)
+    }
+    return undefined
+  }
+
+  // ===========================================================================
+  // Start runner
+  // ===========================================================================
+
+  async #runStart (attempt: Attempt): Promise<void> {
+    const generation = new Generation(++this.#generationSeq)
+    generation.scope = createScope(generation, this.#host)
+    attempt.generation = generation
+    this.#attemptOf.set(generation, attempt)
+    this.#current = generation
+    this.#board.bindNext(generation.number)
+    this.#commit({ kind: 'starting', generation: generation.number })
+
+    const work = (async () => this.#hooks.onStart(generation.scope))()
+    generation.startWork = work.then(
+      () => { generation.startSettled = true },
+      () => { generation.startSettled = true },
+    )
+    const outcome = work.then(
+      () => ({ ok: true as const }),
+      (error: unknown) => ({ ok: false as const, error }),
+    )
+
+    const deadline = this.#deadline(this.#startTimeoutMs, 'start')
+    const result = await Promise.race([
+      outcome,
+      deadline.expired,
+      generation.retireRequested.promise.then(() => undefined),
+    ])
+    deadline.cancel()
+
+    if (generation.sealed || result === undefined) {
+      return // stop, restart or fail arrived; the next step retires it
+    }
+    if (result === TIMEOUT || !result.ok) {
+      generation.failure = {
+        phase: 'start',
+        error: result === TIMEOUT ? new LifecycleTimeoutError('start', this.#startTimeoutMs!) : result.error,
+      }
+      this.#requestRetire(generation, 'failure')
+      return
+    }
+
+    generation.reachedRunning = true
+    this.#commit({ kind: 'running', generation: generation.number }, () => {
+      attempt.succeed()
+      if (this.#pending === attempt) {
+        this.#pending = undefined
+      }
+    })
+  }
+
+  // ===========================================================================
+  // Retirement
+  // ===========================================================================
+
+  /**
+   * Retire `generation` (first time or a cleanup retry) and commit the outcome.
+   */
+  async #retire (generation: Generation): Promise<void> {
+    const retry = generation.dirty
+    generation.dirty = false
+    this.#commit({ kind: 'stopping', generation: generation.number })
+    const { errors, timedOut } = await this.#underStopDeadline(
+      generation.retirement,
+      signal => this.#performRetirement(generation, signal),
+      work => { generation.retirement = work },
+    )
+    this.#pruneDebtors()
+    const complete = !timedOut
+      && generation.ledger.clean
+      && generation.startSettled
+      && this.#debtors.size === 0
+    this.#finishRetirement(generation, errors, complete, retry)
+  }
+
+  /**
+   * Run `pass` (after joining `previous`, timed-out work of the same target)
+   * under one stop deadline. The work stays tracked past the deadline.
+   */
+  async #underStopDeadline (
+    previous: Promise<unknown[]> | undefined,
+    pass: (deadlineSignal: AbortSignal) => Promise<unknown[]>,
+    keep: (work: Promise<unknown[]> | undefined) => void,
+  ): Promise<{ errors: unknown[], timedOut: boolean }> {
+    const deadline = this.#deadline(this.#stopTimeoutMs, 'stop')
+    // Joining earlier work and the new pass share this one deadline.
+    const work = (async () => {
+      const earlier = previous ? await previous : []
+      return [ ...earlier, ...await pass(deadline.signal) ]
+    })()
+    keep(work)
+    try {
+      const result = await Promise.race([ work, deadline.expired ])
+      if (result === TIMEOUT) {
+        return { errors: [ new LifecycleTimeoutError('stop', this.#stopTimeoutMs!) ], timedOut: true }
+      }
+      keep(undefined)
+      return { errors: result, timedOut: false }
+    } finally {
+      deadline.cancel()
+    }
+  }
+
+  /**
+   * The retirement protocol (v1 design §4.3). Never rejects; returns the errors.
+   *
+   * 1. seal (already done by {@link LifecycleEngine.#requestRetire})
+   * 2. `onStop` with live resources, once, only for a run that reached `running`
+   * 3. abort `scope.signal`
+   * 4. run interrupts, newest first
+   * 5. wait for `onStart` to settle
+   * 6. unwind the ledger newest first, then any older generations' debt
+   */
+  async #performRetirement (generation: Generation, deadlineSignal: AbortSignal): Promise<unknown[]> {
+    const errors: unknown[] = []
+
+    if (generation.reachedRunning && !generation.onStopCalled && this.#hooks.onStop) {
+      generation.onStopCalled = true
+      try {
+        await this.#hooks.onStop({
+          reason: generation.retireReason ?? 'stop',
+          signal: deadlineSignal,
+        })
+      } catch (error) {
+        errors.push(error)
+      }
+    }
+
+    this.#abort(generation)
+    errors.push(...generation.ledger.interrupt())
+    await generation.startWork
+    errors.push(...await generation.ledger.unwind())
+    errors.push(...await this.#unwindDebt())
+    return errors
+  }
+
+  async #unwindDebt (): Promise<unknown[]> {
+    const errors: unknown[] = []
+    for (const debtor of [ ...this.#debtors ]) {
+      errors.push(...await debtor.ledger.unwind())
+    }
+    this.#pruneDebtors()
+    return errors
+  }
+
+  #pruneDebtors (): void {
+    for (const debtor of this.#debtors) {
+      if (debtor.ledger.clean) {
+        this.#debtors.delete(debtor)
+      }
+    }
+  }
+
+  /**
+   * Commit the outcome of a retirement pass. Waiters are settled inside the
+   * commit, before `whenState` waiters and observers run, so a reentrant command
+   * from an observer always gets a fresh waiter and a fresh outcome.
+   */
+  #finishRetirement (
+    generation: Generation,
+    errors: unknown[],
+    complete: boolean,
+    retry: boolean,
+  ): void {
+    const failure = generation.failure
+    const stopWaiters = this.#stopWaiters.get(generation) ?? new Set()
+    this.#stopWaiters.delete(generation)
+    // The attempt that allocated this run ends with it; any other pending
+    // attempt is a replacement (restart, recover, or a start() accepted meanwhile).
+    const own = this.#attemptOf.get(generation)
+    if (this.#pending === own) {
+      this.#pending = undefined
+    }
+
+    if (!complete) {
+      if (errors.length === 0) {
+        errors.push(new LifecycleUnsafeStateError('a release is still in progress'))
+      }
+      const cleanupError = aggregate(errors)
+      generation.dirty = true
+      this.#commit({
+        kind            : 'failed',
+        generation      : generation.number,
+        phase           : failure ? failure.phase : 'stop',
+        error           : failure ? failure.error : cleanupError,
+        cleanupComplete : false,
+        cleanupError,
+      }, () => {
+        for (const waiter of stopWaiters) { waiter.reject(cleanupError) }
+        own?.fail(failure ? failure.error : cleanupError)
+        // A dirty failure blocks every new run, including a queued replacement.
+        this.#pending?.fail(cleanupError)
+        this.#pending = undefined
+      })
+      return
+    }
+
+    generation.retired = true
+    this.#current = undefined
+    const stopError = errors.length > 0 ? aggregate(errors) : undefined
+
+    // A replacement needs a retirement without errors ("either half fails").
+    // Recovery authority needs no re-check here: see model rule 1.
+    const rejectedReplacement = stopError !== undefined ? this.#pending : undefined
+    if (rejectedReplacement) {
+      this.#pending = undefined
+    }
+
+    const settle = () => {
+      for (const waiter of stopWaiters) {
+        if (stopError === undefined) {
+          waiter.resolve()
+        } else {
+          waiter.reject(stopError)
+        }
+      }
+      own?.fail(failure ? failure.error : stopError ?? new LifecycleSupersededError())
+      rejectedReplacement?.fail(stopError)
+    }
+
+    let next: LifecycleState | undefined
+    if (failure && !retry) {
+      next = {
+        kind            : 'failed',
+        generation      : generation.number,
+        phase           : failure.phase,
+        error           : failure.error,
+        cleanupComplete : true,
+        ...(stopError !== undefined ? { cleanupError: stopError } : {}),
+      }
+    } else if (stopError !== undefined) {
+      next = {
+        kind            : 'failed',
+        generation      : generation.number,
+        phase           : 'stop',
+        error           : stopError,
+        cleanupComplete : true,
+        cleanupError    : stopError,
+      }
+    } else if (this.#pending && !this.#pending.settled) {
+      next = undefined // the next step commits `starting` for the replacement
+    } else {
+      next = { kind: 'stopped', generation: generation.number }
+    }
+
+    if (next) {
+      this.#commit(next, settle)
+    } else {
+      settle()
+    }
+  }
+
+  /** Debt appeared while idle: publish it as a dirty failure. */
+  #commitDebt (): void {
+    const errors = [ ...this.#debtors ].flatMap(debtor => debtor.ledger.failures)
+    const cleanupError = aggregate(errors.length > 0 ? errors : [ new LifecycleUnsafeStateError('a late release failed') ])
+    this.#commit({
+      kind            : 'failed',
+      generation      : this.#state.generation,
+      phase           : 'stop',
+      error           : cleanupError,
+      cleanupComplete : false,
+      cleanupError,
+    }, () => {
+      this.#pending?.fail(cleanupError)
+      this.#pending = undefined
+    })
+  }
+
+  /** An explicit `stop()` retries debt left by retired generations. */
+  async #retireDebt (): Promise<void> {
+    const generation = this.#state.generation
+    this.#commit({ kind: 'stopping', generation })
+    const { errors, timedOut } = await this.#underStopDeadline(
+      this.#debtRetirement,
+      () => this.#unwindDebt(),
+      work => { this.#debtRetirement = work },
+    )
+    const waiters = [ ...this.#debtStopWaiters ]
+    this.#debtStopWaiters.clear()
+    if (!timedOut && this.#debtors.size === 0) {
+      this.#commit({ kind: 'stopped', generation }, () => {
+        for (const waiter of waiters) { waiter.resolve() }
+      })
+      return
+    }
+    const cleanupError = aggregate(errors.length > 0 ? errors : [ new LifecycleUnsafeStateError('a late release is still in progress') ])
+    this.#commit({
+      kind: 'failed', generation, phase: 'stop', error: cleanupError, cleanupComplete: false, cleanupError,
+    }, () => {
+      for (const waiter of waiters) { waiter.reject(cleanupError) }
+      this.#pending?.fail(cleanupError)
+      this.#pending = undefined
+    })
+  }
+
+  // ===========================================================================
+  // Commit
+  // ===========================================================================
+
+  /**
+   * Publish a snapshot: freeze it, run `settle` (attempt, stop and condition
+   * outcomes), then resolve `whenState` waiters, publish diagnostics, and call
+   * the observer. Observer and diagnostics failures are isolated.
+   */
+  #commit (next: LifecycleState, settle?: () => void): void {
+    const previous = this.#state
+    const state = Object.freeze(next)
+    this.#state = state
+    settle?.()
+
+    for (const waiter of [ ...this.#stateWaiters ]) {
+      let matched: boolean
+      try {
+        matched = waiter.predicate(state)
+      } catch (error) {
+        this.#stateWaiters.delete(waiter)
+        waiter.reject(error)
+        continue
+      }
+      if (matched) {
+        this.#stateWaiters.delete(waiter)
+        waiter.resolve(state)
+      }
+    }
+
+    publishStateChange({
+      name     : this.#name,
+      state    : diagnosticState(state),
+      previous : diagnosticState(previous),
+    })
+
+    try {
+      this.#hooks.onStateChange?.(state, previous)
+    } catch {
+      // Isolated: an observer can never change a lifecycle outcome.
+    }
+  }
+
+  // ===========================================================================
+  // Deadlines
+  // ===========================================================================
+
+  #deadline (timeoutMs: number | undefined, phase: 'start' | 'stop'): Deadline {
+    const controller = new AbortController()
+    if (timeoutMs === undefined) {
+      return { expired: new Promise(() => {}), signal: controller.signal, cancel: () => {} }
+    }
+    const { promise, resolve } = Promise.withResolvers<typeof TIMEOUT>()
+    const handle = this.#clock.setTimeout(() => {
+      controller.abort(new LifecycleTimeoutError(phase, timeoutMs))
+      resolve(TIMEOUT)
+    }, timeoutMs)
+    return {
+      expired : promise,
+      signal  : controller.signal,
+      cancel  : () => this.#clock.clearTimeout(handle),
+    }
+  }
+
+}
+
+export {
+  LifecycleEngine,
+}

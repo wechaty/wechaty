@@ -19,14 +19,16 @@
  */
 
 /**
- * Privacy-safe, zero-cost-when-unused diagnostics for the async lifecycle kernel.
+ * Privacy-safe, zero-cost-when-unused diagnostics for the async lifecycle engine.
  *
  * Uses `node:diagnostics_channel` so observability never participates in control
- * flow: records are published *after* a snapshot is committed, only when a
- * subscriber is attached, and a throwing subscriber can never change a lifecycle
- * outcome (wechaty/wechaty#2883, wechaty/wechaty#2905 invariant 13).
+ * flow: records are published *after* a snapshot is committed and only when a
+ * subscriber is attached (wechaty/wechaty#2883, wechaty/wechaty#2905 invariant
+ * 13). Records carry structural metadata only, never `error` / `cleanupError`.
  *
- * A single channel (`wechaty.async-lifecycle`) carries every record. Subscribers
+ * A single channel (`wechaty.async-lifecycle-claude`) carries every record; the
+ * suffix keeps it apart from the `src/async-lifecycle-copilot/` implementation,
+ * whose records have a different shape. Subscribers
  * filter by the record's `type`. The channel is cross-runtime: Deno implements
  * `node:diagnostics_channel`, and `hasSubscribers` keeps the publish path free
  * when nobody is listening.
@@ -34,12 +36,12 @@
 
 import diagnosticsChannel from 'node:diagnostics_channel'
 
-import type { LifecycleState } from './state.ts'
+import type { LifecycleState } from './types.ts'
 
 /**
  * The name of the single diagnostics channel for all lifecycle instances.
  */
-const CHANNEL_NAME = 'wechaty.async-lifecycle'
+const CHANNEL_NAME = 'wechaty.async-lifecycle-claude'
 
 /**
  * The safe scalar subset of a state snapshot used for diagnostics.
@@ -53,7 +55,7 @@ type LifecycleDiagnosticState = Pick<LifecycleState, 'kind' | 'generation'>
 interface LifecycleDiagnosticRecord {
   /** The instance name from {@link LifecycleOptions.name}, or `undefined`. */
   readonly name: string | undefined
-  /** The committed snapshot. */
+  /** The committed snapshot, without `error` / `cleanupError` (wechaty/wechaty#2883). */
   readonly state: LifecycleDiagnosticState
   /** The snapshot it replaced. */
   readonly previous: LifecycleDiagnosticState
@@ -82,10 +84,12 @@ function diagnosticState (state: LifecycleState): LifecycleDiagnosticState {
 /**
  * Publish a state-commit record if and only if a subscriber is attached.
  *
- * This is the only diagnostics entry point the kernel calls. It is a no-op with
- * no allocation when there are no subscribers, and it never throws into the
- * caller: `channel.publish` isolation is the subscriber's responsibility, but we
- * additionally guard so a buggy subscriber cannot break a commit.
+ * This is the only diagnostics entry point the engine calls, and it never
+ * throws into the commit. Node's `channel.publish` already catches a throwing
+ * subscriber and reports it on a later tick as `uncaughtException` (so a buggy
+ * subscriber is visible at process level but cannot change a lifecycle
+ * outcome); the local `try` only covers a runtime whose `publish` might throw
+ * synchronously.
  */
 function publishStateChange (record: LifecycleDiagnosticRecord): void {
   if (!channel.hasSubscribers) {
@@ -94,11 +98,7 @@ function publishStateChange (record: LifecycleDiagnosticRecord): void {
   try {
     channel.publish(record)
   } catch {
-    /**
-     * A diagnostics failure must never affect a lifecycle outcome
-     * (invariant 13). We deliberately swallow here; subscribers own their own
-     * error handling.
-     */
+    // A diagnostics failure must never affect a lifecycle outcome (invariant 13).
   }
 }
 
