@@ -252,8 +252,8 @@ jobs:
       # This pilot gate must still be validated with a real plugin execution.
       # Require a terminal success and every launched task to complete.
       # The official plugin currently launches three preparatory and four review
-      # agents, plus optional finding validators. Count all launched tasks rather
-      # than relying on undocumented agent prompt text or aggregate statistics.
+      # agents, plus optional finding validators. Verify every launched task
+      # and conservatively identify all four primary reviewers separately.
       - name: Verify plugin review actually executed
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
@@ -290,6 +290,20 @@ jobs:
           // included in 'uses' and MUST also finish before we record success.
           if (uses.size < 7)
             throw Error('Fewer than seven plugin agent tasks observed; review may have been skipped')
+          // Do not confuse optional finding validators with the four primary
+          // reviewers. Classify the task's own review instruction, not the
+          // aggregate agent count. An unknown role fails closed.
+          const compliance = []
+          const bugs = []
+          for (const [id, task] of uses) {
+            const instruction = String(task.input?.prompt ?? task.input?.description ?? '')
+            if (/audit.{0,100}CLAUDE\\.md|CLAUDE\\.md.{0,100}compliance/i.test(instruction))
+              compliance.push(id)
+            else if (/scan for obvious bugs|problems that exist in the introduced code|review.{0,100}for bugs/i.test(instruction))
+              bugs.push(id)
+          }
+          if (compliance.length < 2 || bugs.length < 2)
+            throw Error('Cannot establish completion of both compliance and both bug reviewers')
           for (const [id, task] of uses) {
             const result = results.get(id)
             if (!result) throw Error(`Agent task ${id} has no result: review is incomplete`)
