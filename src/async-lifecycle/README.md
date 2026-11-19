@@ -109,10 +109,11 @@ while stopping, the parent retains ownership for a later stop.
 
 An expired deadline rejects the operation and records unresolved cleanup in
 `failed`. A later `stop()` can join the existing retirement and retry
-unfinished releases. If an abort listener requests a stop when startup times
-out, the start caller receives the start timeout. The stop caller receives the
-retirement outcome under its own stop deadline. A replacement requires confirmation that owned work
-has settled and resources have been released.
+unfinished releases. When startup times out, the original caller receives
+the start timeout. A synchronous abort listener can call `stop()`, `start()`,
+or `restart()`. Each command waits for retirement under the stop deadline.
+A replacement starts only after owned work has settled and resources have
+been released.
 Hooks can request another lifecycle operation synchronously. A hook must
 return before awaiting a command that depends on that hook settling.
 

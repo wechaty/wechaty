@@ -411,9 +411,9 @@ export class LifecycleKernel implements LifecycleController {
     scope.seal(failure ? failure.error : new LifecycleSupersededError('Lifecycle retiring generation'))
     this.#commit({ kind: 'stopping', generation: scope.generation })
     const work = scope.retire(retry)
-    // Report a timed-out startup promptly. A stop accepted by an abort or
-    // state listener joins this same retirement under its own deadline.
-    const result = startTimeout && !this.#stop
+    // After the expired attempt settles, a listener may queue a stop or a
+    // replacement. Both need the actual retirement outcome under the stop budget.
+    const result = startTimeout && !this.#stop && !this.#run
       ? startTimeout
       : await within(work, this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
     if (!(result instanceof LifecycleTimeoutError)) {

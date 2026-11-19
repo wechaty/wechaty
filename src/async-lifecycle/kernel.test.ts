@@ -111,6 +111,42 @@ for (const [name, create] of facades) {
     })
   }
 
+  for (const command of ['start', 'restart'] as const) {
+    test(`${name}: ${command} from a timeout listener waits for the expired generation to retire`, async () => {
+      const release = Promise.withResolvers<void>()
+      const trace: string[] = []
+      let replacement!: Promise<unknown>
+      const service = create({
+        async onStart(scope) {
+          if (trace.length > 0) {
+            trace.push('replacement')
+            return
+          }
+          trace.push('first start')
+          scope.defer(async () => {
+            await release.promise
+            trace.push('released')
+          })
+          scope.signal.addEventListener('abort', () => {
+            replacement = service[command]().then(() => undefined, error => error)
+          }, { once: true })
+          await interrupted(scope.signal)
+        },
+      }, { startTimeoutMs: 10, stopTimeoutMs: 1000 })
+
+      try {
+        await assert.rejects(service.start(), error => error instanceof LifecycleTimeoutError && error.operation === 'start')
+        assert.deepEqual(service.state, { kind: 'stopping', generation: 1 })
+      } finally {
+        release.resolve()
+      }
+      assert.equal(await replacement, undefined)
+      assert.deepEqual(trace, ['first start', 'released', 'replacement'])
+      assert.deepEqual(service.state, { kind: 'running', generation: 2 })
+      await service.stop()
+    })
+  }
+
   for (const completion of ['already released', 'release', 'reject', 'stop', 'timeout'] as const) {
     test(`${name}: replacement startup handles detached cleanup: ${completion}`, async () => {
       const gate = Promise.withResolvers<void>()
