@@ -85,7 +85,9 @@ export interface LifecycleCondition {
    * Waits until the bound generation sets this condition.
    *
    * Bind to an open generation, or to the next generation while idle or
-   * retiring. Reject if that generation retires first or the caller aborts.
+   * retiring. Reject if the caller aborts or the bound generation retires
+   * first. A new stop intent before that generation starts rejects the wait
+   * with LifecycleSupersededError.
    */
   wait(options?: LifecycleCallOptions): Promise<void>
 }

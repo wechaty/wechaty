@@ -434,6 +434,57 @@ for (const [name, create] of facades) {
     await lifecycle.stop()
   })
 
+  for (const queued of [false, true]) {
+    test(`${name}: stop supersedes pre-start condition waits with ${queued ? 'a queued start' : 'no queued start'}`, async () => {
+      const service = create({
+        onStart(scope) {
+          scope.set(ready)
+          scope.set(online)
+        },
+      })
+      const ready = service.condition('ready')
+      const online = service.condition('online')
+      const controller = new AbortController()
+      const waits = [ready.wait(), ready.wait({ signal: controller.signal }), online.wait()]
+        .map(wait => assert.rejects(wait, LifecycleSupersededError))
+      const start = queued ? assert.rejects(service.start(), LifecycleSupersededError) : undefined
+      const stop = service.stop()
+      // Caller cancellation immediately after stop must leave the accepted stop's rejection intact.
+      controller.abort(new Error('later caller abort'))
+      const next = ready.wait()
+      await stop
+      assert.deepEqual(service.state, { kind: 'stopped', generation: 0 })
+      await service.start()
+      await Promise.all([...waits, start, next])
+      await service.stop()
+    })
+  }
+
+  test(`${name}: a pre-aborted stop leaves the next generation's condition waits intact`, async () => {
+    const service = create({ onStart(scope) { scope.set(ready) } })
+    const ready = service.condition('ready')
+    const waiting = ready.wait()
+    const reason = new Error('stop caller aborted')
+    await rejectsWith(service.stop({ signal: AbortSignal.abort(reason) }), reason)
+    await service.start()
+    await waiting
+    await service.stop()
+  })
+
+  test(`${name}: stop superseding a queued replacement also rejects its condition waits`, async () => {
+    const gate = Promise.withResolvers<void>()
+    const service = create({ onStart() {}, onStop: () => gate.promise })
+    const ready = service.condition('ready')
+    await service.start()
+    const retiring = service.stop()
+    const replacement = assert.rejects(service.start(), LifecycleSupersededError)
+    const waiting = assert.rejects(ready.wait(), LifecycleSupersededError)
+    const stopped = service.stop()
+    gate.resolve()
+    await Promise.all([retiring, stopped, replacement, waiting])
+    assert.deepEqual(service.state, { kind: 'stopped', generation: 1 })
+  })
+
   test(`${name}: a condition wait created during retirement binds to the next generation`, async () => {
     let scope!: LifecycleScope
     const lifecycle = create({ onStart(current) { scope = current } })
@@ -443,7 +494,7 @@ for (const [name, create] of facades) {
     const stop = lifecycle.stop()
     let resolved = false
     const wait = ready.wait().then(() => { resolved = true })
-    await stop
+    await Promise.all([stop, lifecycle.stop()])
     assert.equal(resolved, false)
     await lifecycle.start()
     scope.set(ready)

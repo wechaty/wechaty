@@ -125,10 +125,16 @@ export class LifecycleKernel implements LifecycleController {
     if (signal?.aborted) {
       return Promise.reject(signal.reason)
     }
+    const reason = new LifecycleSupersededError('Lifecycle stop requested')
     if (!this.#stop || this.#run) {
       this.#desired = 'stopped'
       this.#intentRevision++
       this.#supersedeRun()
+      // Only a new stop intent supersedes waits for a generation that has
+      // yet to start. Callers joining retirement preserve later waits.
+      for (const record of this.#conditions.values()) {
+        this.#settleConditions(record, this.#generation + 1, { error: reason })
+      }
     }
     if (!this.#active && this.#lateScopes.size === 0 && this.#state.kind === 'stopped') {
       return Promise.resolve()
@@ -138,7 +144,7 @@ export class LifecycleKernel implements LifecycleController {
     const stop = this.#stop ??= Promise.withResolvers<void>()
     const wait = waitWithSignal(stop.promise, signal)
     this.#requestWork()
-    this.#requestRetirement(new LifecycleSupersededError('Lifecycle stop requested'))
+    this.#requestRetirement(reason)
     return wait
   }
 

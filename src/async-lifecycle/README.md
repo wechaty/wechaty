@@ -129,8 +129,10 @@ return before awaiting a command that depends on that hook settling.
 `condition(name)` returns an instance-owned, generation-bound condition.
 A wait binds to the open generation or the next generation if the instance
 is idle or retiring. Setting the condition resolves waits for that generation.
-Retirement rejects any unsatisfied waits. A wait made before the first start
-can remain pending across an idle stop.
+Retirement rejects unsatisfied waits for the retiring generation. An accepted
+stop supersedes existing waits for the next generation, including waits
+registered before the first start. A wait registered after that stop can
+observe the next start. Joining the same stop leaves that later wait intact.
 
 ## Recovery
 
