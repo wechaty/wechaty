@@ -202,6 +202,27 @@ jobs:
           comment_id="$(gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f body="$body" --jq '.id')"
           echo "comment_id=$comment_id" >> "$GITHUB_OUTPUT"
 
+      # Keep the official plugin implementation current. The upstream command
+      # has a PR-wide already-commented short circuit that conflicts with our
+      # HEAD/BASE-specific deduplication; remove only that eligibility clause.
+      - name: Prepare official plugin for revision-scoped reviews
+        if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
+        env:
+          PLUGIN_DIR: ${{ runner.temp }}/anthropic-code-review
+        run: |
+          git clone --quiet --depth=1 https://github.com/anthropics/claude-plugins-official.git "$PLUGIN_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          path = Path(os.environ['PLUGIN_DIR']) / 'plugins/code-review/commands/code-review.md'
+          original = path.read_text()
+          line = '   - Claude has already commented on this PR (check `gh pr view <PR> --comments` for comments left by claude)\n'
+          if original.count(line) != 1:
+              raise SystemExit('Upstream plugin eligibility has changed; review integration patch before proceeding')
+          path.write_text(original.replace(line, ''))
+          print('Disabled only upstream PR-wide already-commented check; HEAD/BASE deduplication remains authoritative')
+          PY
+
       - name: Run Anthropic Code Review plugin
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
         id: claude-review
@@ -217,18 +238,19 @@ jobs:
             pull_requests: write
             issues: write
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
-          plugins: code-review@claude-plugins-official
+          # Load the freshly cloned official plugin with one eligibility-line patch.
           # Keep automation mode so the slash command is actually invoked.
           # Do NOT set track_progress: true: it forces tag mode.
-          prompt: /code-review:code-review --comment
+          prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
           claude_args: |
             --max-turns 100
+            --plugin-dir "${{ runner.temp }}/anthropic-code-review/plugins/code-review"
             --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Bash,Task,mcp__github_inline_comment__create_inline_comment"
 
-      # Pilot safety gate: action success alone can mean the plugin never ran.
-      # Require evidence of completed specialist agents in the execution output.
+      # Fail closed on ambiguity: identify each specialist Task/Agent invocation
+      # and its matching successful tool result. A mere completed-agent count is
+      # insufficient because the upstream plugin runs preparatory agents too.
       - name: Verify plugin review actually executed
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
@@ -238,25 +260,41 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs'
           const file = process.env.EXECUTION_FILE
-          if (!file) throw new Error('Claude did not provide an execution output file')
+          if (!file) throw Error('No execution file: action may have skipped workflow validation')
           const raw = readFileSync(file, 'utf8')
-          const records = []
-          try { records.push(JSON.parse(raw)) } catch {}
+          const events = []
           for (const line of raw.split('\n')) {
-            try { records.push(JSON.parse(line)) } catch {}
+            try { events.push(JSON.parse(line)) } catch {}
           }
-          const stats = []
-          function visit(value, depth = 0) {
-            if (!value || typeof value !== 'object' || depth > 12) return
-            if (value.subagent_stats) stats.push(value.subagent_stats)
-            for (const part of Object.values(value)) visit(part, depth + 1)
+          if (!events.length) throw Error('No JSON execution events: cannot validate plugin')
+          const finished = events.some(e => e.type === 'result' && e.subtype === 'success' && !e.is_error)
+          if (!finished) throw Error('No successful terminal Claude result')
+          const uses = new Map()
+          const results = new Map()
+          function scan(o, depth=0) {
+            if (!o || typeof o !== 'object' || depth > 12) return
+            if (o.type === 'tool_use' && ['Task','Agent'].includes(o.name) && o.id) uses.set(o.id,o)
+            if (o.type === 'tool_result' && o.tool_use_id) results.set(o.tool_use_id,o)
+            if (o.subagent_stats && Object.values(o.subagent_stats.killed || {}).some(v => Number(v) > 0))
+              throw Error('One or more subagents were cancelled/killed')
+            for (const v of Object.values(o)) scan(v,depth+1)
           }
-          for (const record of records) visit(record)
-          const verified = stats.some(s => Number(s.completed) >= 4 && Number(s.killed?.system ?? 0) === 0)
-          if (!verified) {
-            throw new Error('No evidence of four completed plugin reviewers; inspect execution output before trusting a green action')
+          events.forEach(e=>scan(e))
+          const special = []
+          for (const [id,tool] of uses) {
+            const prompt = JSON.stringify(tool.input ?? {})
+            const reviewer = /CLAUDE\.md|compliance|bug|review.*change|code.*review/i.test(prompt)
+            if (!reviewer) continue
+            const result = results.get(id)
+            if (!result || result.is_error || result.status === 'failed' || result.status === 'cancelled') continue
+            special.push({ id, prompt })
           }
-          console.log('Verified at least four completed code-review subagents')
+          // Two CLAUDE.md reviewers and two bug reviewers; do not count prep agents.
+          const compliance = special.filter(s=>/CLAUDE\.md|compliance/i.test(s.prompt))
+          const bugs = special.filter(s=>/bug|logic|correctness/i.test(s.prompt))
+          if (compliance.length < 2 || bugs.length < 2 || special.length < 4)
+            throw Error('Cannot prove all four specialist review agents completed successfully')
+          console.log('Verified terminal result and four matched specialist tool completions')
           NODE
 
       - name: Update review progress
