@@ -83,45 +83,51 @@ for (const [name, create] of facades) {
     })
   }
 
-  test(`${name}: a detached release failure interrupts a blocked replacement hook and preserves cleanup errors`, async () => {
-    const reason = new Error('detached release failed')
-    const stopError = new Error('replacement stop hook failed')
-    const entered = Promise.withResolvers<AbortSignal>()
-    let retired: LifecycleScope | undefined
-    let releases = 0
-    const service = create({
-      async onStart(scope) {
-        if (!retired) {
-          retired = scope
-          return
-        }
-        entered.resolve(scope.signal)
-        await interrupted(scope.signal)
-      },
-      onStop(scope) {
-        if (scope !== retired) throw stopError
-      },
+  for (const cleanup of ['stop hook', 'disposer'] as const) {
+    test(`${name}: a detached release failure interrupts startup and preserves the failing ${cleanup}`, async () => {
+      const reason = new Error('detached release failed')
+      const stopError = new Error('replacement cleanup failed')
+      const entered = Promise.withResolvers<AbortSignal>()
+      let retired: LifecycleScope | undefined
+      let releases = 0
+      let disposalAttempts = 0
+      const service = create({
+        async onStart(scope) {
+          if (!retired) {
+            retired = scope
+            return
+          }
+          if (cleanup === 'disposer') {
+            scope.defer(() => { if (++disposalAttempts === 1) throw stopError })
+          }
+          entered.resolve(scope.signal)
+          await interrupted(scope.signal)
+        },
+        onStop(scope) {
+          if (scope !== retired && cleanup === 'stop hook') throw stopError
+        },
+      })
+      await service.start()
+      const result = service.restart().then(() => undefined, error => error)
+      const signal = await entered.promise
+      assert.throws(() => retired!.defer(() => {
+        if (++releases === 1) throw reason
+      }), LifecycleSupersededError)
+      try {
+        await nextTurn(0)
+        assert.equal(signal.aborted, true)
+        assert.equal(await result, reason)
+        const failed = service.state
+        assert.ok(failed.kind === 'failed' && failed.phase === 'start' && !failed.cleanupComplete)
+        assert.equal(failed.error, reason)
+        assert.ok(failed.cleanupError instanceof AggregateError)
+        assert.deepEqual(failed.cleanupError.errors, [stopError, reason])
+      } finally {
+        await service.stop()
+      }
+      assert.equal(releases, 2)
     })
-    await service.start()
-    const result = service.restart().then(() => undefined, error => error)
-    const signal = await entered.promise
-    assert.throws(() => retired!.defer(() => {
-      if (++releases === 1) throw reason
-    }), LifecycleSupersededError)
-    try {
-      await nextTurn(0)
-      assert.equal(signal.aborted, true)
-      assert.equal(await result, reason)
-      const failed = service.state
-      assert.ok(failed.kind === 'failed' && failed.phase === 'start' && !failed.cleanupComplete)
-      assert.equal(failed.error, reason)
-      assert.ok(failed.cleanupError instanceof AggregateError)
-      assert.deepEqual(failed.cleanupError.errors, [stopError, reason])
-    } finally {
-      await service.stop()
-    }
-    assert.equal(releases, 2)
-  })
+  }
 
   test(`${name}: queued restart reports the detached disposer error before starting a replacement`, async () => {
     let retired: LifecycleScope | undefined

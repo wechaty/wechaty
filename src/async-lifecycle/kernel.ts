@@ -311,10 +311,9 @@ export class LifecycleKernel implements LifecycleController {
   /** Prioritize existing retirement and late resources over queued startup. */
   async #step(): Promise<boolean> {
     const scope = this.#active
-    if (scope?.sealed) {
-      if (this.#state.kind === 'failed' && !this.#stop) {
-        return false
-      }
+    // Park a failed active pass until stop retries it. Detached releases can
+    // still settle independently and contribute their own cleanup errors.
+    if (scope?.sealed && (this.#state.kind !== 'failed' || this.#stop)) {
       const failure = this.#state.kind === 'running' ? scope.failure : undefined
       await this.#retire(scope, failure, this.#state.kind === 'failed')
       return true
@@ -530,7 +529,7 @@ export class LifecycleKernel implements LifecycleController {
 
     const error = result instanceof LifecycleTimeoutError ? result : result.error
     this.#lateCleanupFailure = { error }
-    if (this.#active) {
+    if (this.#active && this.#state.kind !== 'failed') {
       this.#active.fail(error)
       return true
     }
