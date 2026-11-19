@@ -68,6 +68,11 @@ older cleanup joins the current generation if it is still running afterward.
 If the current generation fails, its failure snapshot keeps the primary error
 while older releases settle. A failed release is reported in `cleanupError`.
 
+Stopping an active generation can interrupt the worker's wait for older
+releases. Those releases remain owned and share the stop deadline with the
+active generation. If an owned child queues a replacement while stopping,
+the parent reports incomplete cleanup and retains ownership for a later stop.
+
 An expired deadline rejects the operation and records unresolved cleanup in
 `failed`. A later `stop()` can join the existing retirement and retry
 unfinished releases. A replacement requires confirmation that owned work

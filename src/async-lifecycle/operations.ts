@@ -40,14 +40,19 @@ export async function within<T>(
   work: Promise<T>,
   timeoutMs: number | undefined,
   operation: 'start' | 'stop',
+  deadline?: number,
 ): Promise<T | LifecycleTimeoutError> {
   if (timeoutMs === undefined || !Number.isFinite(timeoutMs) || timeoutMs <= 0) {
     return work
   }
 
+  const remaining = deadline === undefined ? timeoutMs : deadline - performance.now()
+  if (remaining <= 0) {
+    return Promise.race([new LifecycleTimeoutError(operation, timeoutMs), work])
+  }
   let timer: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<LifecycleTimeoutError>(resolve => {
-    timer = setTimeout(() => resolve(new LifecycleTimeoutError(operation, timeoutMs)), timeoutMs)
+    timer = setTimeout(() => resolve(new LifecycleTimeoutError(operation, timeoutMs)), Math.ceil(remaining))
   })
   try {
     return await Promise.race([work, timeout])

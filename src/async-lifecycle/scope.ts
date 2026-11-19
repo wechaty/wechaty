@@ -16,6 +16,9 @@ import type {
 type Release = () => void | PromiseLike<void>
 type Failure = { readonly error: unknown }
 
+/** Native facades can also verify commands queued behind the just-completed stop. */
+export const childIsIdle = new WeakMap<Lifecycle, () => boolean>()
+
 const childOwners = new WeakMap<Lifecycle, GenerationScope>()
 
 /**
@@ -274,6 +277,9 @@ export class GenerationScope {
       earlyStop = undefined
       if (!outcome.ok) {
         throw outcome.error
+      }
+      if (child.state.kind !== 'stopped' || childIsIdle.get(child)?.() === false) {
+        throw new LifecycleUnsafeStateError('Owned child has a replacement or unfinished retirement')
       }
       childOwners.delete(child)
     })

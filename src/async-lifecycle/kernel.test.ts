@@ -69,6 +69,89 @@ async function rejectsWith(work: Promise<unknown>, expected: unknown): Promise<v
 }
 
 for (const [name, create] of facades) {
+  for (const command of ['stop', 'fail'] as const) {
+    test(`${name}: ${command} retires active resources while a detached release is blocked`, { timeout: 2000 }, async () => {
+      const scopes: LifecycleScope[] = []
+      const released = Promise.withResolvers<void>()
+      const gate = Promise.withResolvers<void>()
+      const lifecycle = create({
+        onStart(scope) {
+          scopes.push(scope)
+          if (scopes.length === 2) scope.defer(released.resolve)
+        },
+      })
+      await lifecycle.start()
+      await lifecycle.restart()
+      assert.throws(() => scopes[0]!.defer(() => gate.promise), LifecycleSupersededError)
+      await nextTurn(0) // Let the worker enter the detached cleanup wait.
+      const stopped = command === 'stop' ? lifecycle.stop() : undefined
+      if (command === 'fail') scopes[1]!.fail(new Error('lost connection'))
+      try {
+        await released.promise
+        assert.equal(scopes[1]!.signal.aborted, true)
+      } finally {
+        gate.resolve()
+      }
+      await stopped
+      await lifecycle.stop()
+    })
+  }
+
+  test(`${name}: a replacement child remains owned until a subsequent parent stop releases it`, async () => {
+    let replacement: Promise<void> | undefined
+    const child = create({
+      onStart() {},
+      onStop() { replacement ??= child.start() },
+    })
+    const parent = create({ onStart: scope => scope.start(child) })
+    await parent.start()
+    await assert.rejects(parent.stop(), LifecycleUnsafeStateError)
+    await replacement
+    assert.equal(child.state.kind, 'running')
+    assert.ok(parent.state.kind === 'failed' && !parent.state.cleanupComplete)
+    await parent.stop()
+    assert.equal(child.state.kind, 'stopped')
+    assert.equal(parent.state.kind, 'stopped')
+  })
+
+  test(`${name}: one stop deadline spans the active hook and detached releases`, async () => {
+    let old!: LifecycleScope
+    let hooks = 0
+    const lifecycle = create({
+      onStart(scope) { old ??= scope },
+      async onStop() {
+        if (++hooks === 2) {
+          await nextTurn(70)
+          assert.throws(() => old.defer(() => nextTurn(70)), LifecycleSupersededError)
+        }
+      },
+    }, { stopTimeoutMs: 100 })
+    await lifecycle.start()
+    await lifecycle.restart()
+    const error = await lifecycle.stop().then(() => undefined, cause => cause)
+    assert.ok(error instanceof LifecycleTimeoutError)
+    assert.equal(error.timeoutMs, 100)
+    assert.ok(lifecycle.state.kind === 'failed' && !lifecycle.state.cleanupComplete)
+    await lifecycle.stop()
+  })
+
+  test(`${name}: a condition wait created during retirement binds to the next generation`, async () => {
+    let scope!: LifecycleScope
+    const lifecycle = create({ onStart(current) { scope = current } })
+    const ready = lifecycle.condition('ready')
+    await lifecycle.start()
+    scope.set(ready)
+    const stop = lifecycle.stop()
+    let resolved = false
+    const wait = ready.wait().then(() => { resolved = true })
+    await stop
+    assert.equal(resolved, false)
+    await lifecycle.start()
+    scope.set(ready)
+    await wait
+    await lifecycle.stop()
+  })
+
   test(`${name}: late registrations sharing a disposer are independently retried`, async () => {
     let retired!: LifecycleScope
     const lifecycle = create({ onStart(scope) { retired = scope } })

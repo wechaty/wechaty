@@ -7,8 +7,9 @@ import { channel } from 'node:diagnostics_channel'
 
 import { LifecycleSupersededError, LifecycleTimeoutError, LifecycleUnsafeStateError } from './errors.ts'
 import { combineErrors, type Outcome, waitWithSignal, within } from './operations.ts'
-import { GenerationScope } from './scope.ts'
+import { childIsIdle, GenerationScope } from './scope.ts'
 import type {
+  Lifecycle,
   LifecycleCallOptions,
   LifecycleCondition,
   LifecycleController,
@@ -76,13 +77,16 @@ export class LifecycleKernel implements LifecycleController {
   #startingAttempt?: RunAttempt
   #stop?: PromiseWithResolvers<void>
   #lateCleanupFailure?: { error: unknown }
+  #lateWait?: AbortController
+  #stopDeadline?: number
   #working = false
   #requested = false
 
   /** The facade passes only its own hooks and configuration to the engine. */
-  constructor(hooks: LifecycleHooks, options: LifecycleOptions = {}) {
+  constructor(hooks: LifecycleHooks, options: LifecycleOptions = {}, facade?: Lifecycle) {
     this.#hooks = hooks
     this.#options = options
+    childIsIdle.set(facade ?? this, () => !this.#run && !this.#active && this.#lateScopes.size === 0)
   }
 
   /** @inheritdoc */
@@ -130,6 +134,7 @@ export class LifecycleKernel implements LifecycleController {
       return Promise.resolve()
     }
 
+    this.#beginStopBudget()
     const stop = this.#stop ??= Promise.withResolvers<void>()
     const wait = waitWithSignal(stop.promise, signal)
     this.#requestWork()
@@ -254,6 +259,14 @@ export class LifecycleKernel implements LifecycleController {
     attempt?.result.reject(new LifecycleSupersededError())
   }
 
+  /** A shared retirement has one monotonic deadline through hooks, tasks and detached releases. */
+  #beginStopBudget(): void {
+    const timeout = this.#options.stopTimeoutMs
+    if (timeout !== undefined && Number.isFinite(timeout) && timeout > 0) {
+      this.#stopDeadline ??= performance.now() + timeout
+    }
+  }
+
   /** Startup is interrupted immediately. Running hooks get a graceful stop first. */
   #requestRetirement(reason: unknown): void {
     if (this.#state.kind === 'starting') {
@@ -261,6 +274,7 @@ export class LifecycleKernel implements LifecycleController {
     } else {
       this.#active?.seal(reason)
     }
+    this.#lateWait?.abort()
   }
 
   /** Claim the worker before it can publish state or invoke any user code. */
@@ -332,7 +346,10 @@ export class LifecycleKernel implements LifecycleController {
   async #beginStart(attempt: RunAttempt): Promise<void> {
     const generation = ++this.#generation
     const scope = new GenerationScope(generation, this.#hooks, {
-      fail: () => this.#requestWork(),
+      fail: () => {
+        this.#lateWait?.abort()
+        this.#requestWork()
+      },
       lateRegistration: () => {
         if (this.#active !== scope) {
           this.#lateScopes.add(scope)
@@ -379,10 +396,11 @@ export class LifecycleKernel implements LifecycleController {
     retry = false,
     startTimeout?: LifecycleTimeoutError,
   ): Promise<void> {
+    this.#beginStopBudget()
     scope.seal(failure ? failure.error : new LifecycleSupersededError('Lifecycle retiring generation'))
     this.#commit({ kind: 'stopping', generation: scope.generation })
     const work = scope.retire(retry)
-    const result = startTimeout ?? await within(work, this.#options.stopTimeoutMs, 'stop')
+    const result = startTimeout ?? await within(work, this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
     if (!(result instanceof LifecycleTimeoutError)) {
       scope.consumeRetirement()
     }
@@ -404,6 +422,7 @@ export class LifecycleKernel implements LifecycleController {
     }
 
     if (errors.length > 0) {
+      this.#stopDeadline = undefined
       const cleanupError = combineErrors(errors)
       const stop = this.#stop
       this.#stop = undefined
@@ -422,6 +441,7 @@ export class LifecycleKernel implements LifecycleController {
         ...(startTimeout === result ? {} : { cleanupError }),
       })
     } else if (failure) {
+      if (!this.#stop && this.#lateScopes.size === 0) this.#stopDeadline = undefined
       this.#commit({
         kind: 'failed',
         generation: scope.generation,
@@ -444,11 +464,20 @@ export class LifecycleKernel implements LifecycleController {
       return false
     }
     const checked = [...this.#lateScopes]
-    const result = await within(
-      Promise.all(checked.map(scope => scope.finishLateReleases(retry))),
-      this.#options.stopTimeoutMs,
-      'stop',
-    )
+    // An active stop or failure must be able to reclaim the worker while these
+    // releases continue. Their scopes retain the obligations across this wait.
+    const interrupt = retry ? undefined : new AbortController()
+    this.#lateWait = interrupt
+    const work = Promise.all(checked.map(scope => scope.finishLateReleases(retry)))
+    let result
+    try {
+      result = await within(waitWithSignal(work, interrupt?.signal), this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
+    } catch (error) {
+      if (interrupt?.signal.aborted) return true
+      throw error
+    } finally {
+      this.#lateWait = undefined
+    }
     // Only the worker may detach scopes. A timed-out pass can still finish later.
     if (!(result instanceof LifecycleTimeoutError)) {
       for (const scope of checked) {
@@ -462,6 +491,7 @@ export class LifecycleKernel implements LifecycleController {
         if (this.#stop || this.#state.kind === 'stopping') {
           this.#finishStop()
         } else if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
+          this.#stopDeadline = undefined
           this.#commit({ ...this.#state, cleanupComplete: true })
         }
       }
@@ -474,6 +504,7 @@ export class LifecycleKernel implements LifecycleController {
       this.#active.fail(error)
       return true
     }
+    this.#stopDeadline = undefined
     const stop = this.#stop
     this.#stop = undefined
     stop?.reject(error)
@@ -489,6 +520,7 @@ export class LifecycleKernel implements LifecycleController {
 
   /** Resolve the stop before a stopped observer can enqueue another command. */
   #finishStop(): void {
+    this.#stopDeadline = undefined
     this.#lateCleanupFailure = undefined
     const stop = this.#stop
     this.#stop = undefined

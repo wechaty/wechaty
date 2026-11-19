@@ -38,11 +38,11 @@ export abstract class AsyncLifecycle implements Lifecycle {
 
   /** Tie the subclass hooks to a single engine and guard the caller API. */
   protected constructor(options?: LifecycleOptions) {
-    this.#controller = createLifecycle({
+    this.#controller = new LifecycleKernel({
       onStart: scope => this.onStart(scope),
       onStop: scope => this.onStop(scope),
       onStateChange: (state, previous) => this.onStateChange(state, previous),
-    }, options)
+    }, options, this)
     this.#assertNoLifecycleOverrides()
   }
 
