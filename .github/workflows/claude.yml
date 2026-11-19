@@ -187,21 +187,13 @@ jobs:
         run: npm ci --ignore-scripts
 
       # Native track_progress forces tag mode, which can treat a plugin command
-      # as instructions rather than executing it. Track progress independently.
-      - name: Start review progress
-        id: review-progress
+      # as instructions rather than executing it. Use Actions checks for status.
+      # Capture a timestamp for run-specific review publication verification
+      # without creating a GitHub PR discussion comment.
+      - name: Mark review start
+        id: review-start
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          marker="<!-- claude-review-progress:${EXPECTED_SHA}:${EXPECTED_BASE_SHA} -->"
-          body="$(printf '%s\n\n%s\n\n%s\n' "$marker" '### Claude official Code Review plugin' 'Review started. Plugin execution and completion are not yet verified.')"
-          response="$(gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f body="$body")"
-          echo "comment_id=$(jq -r '.id' <<< "$response")" >> "$GITHUB_OUTPUT"
-          echo "created_at=$(jq -r '.created_at' <<< "$response")" >> "$GITHUB_OUTPUT"
+        run: echo "created_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
 
       - name: Run Anthropic Code Review plugin
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
@@ -224,7 +216,7 @@ jobs:
           plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
           plugins: code-review@claude-plugins-official
           # Automation mode executes slash commands; native track_progress
-          # selects tag mode, so progress is tracked by our workflow instead.
+          # selects tag mode; use Actions checks rather than PR progress comments.
           prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
           claude_args: |
             --max-turns 100
@@ -242,7 +234,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-          REVIEW_STARTED: ${{ steps.review-progress.outputs.created_at }}
+          REVIEW_STARTED: ${{ steps.review-start.outputs.created_at }}
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs'
@@ -312,24 +304,6 @@ jobs:
           }
           if (!verified) throw Error('No review artifact tied to this Claude execution. Plugin may have skipped or returned unsupported tool output.')
           NODE
-
-      - name: Update review progress
-        if: always() && steps.review-progress.outputs.comment_id != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          COMMENT_ID: ${{ steps.review-progress.outputs.comment_id }}
-          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          VERIFIED: ${{ steps.verify-plugin.outcome }}
-        run: |
-          marker="<!-- claude-review-progress:${EXPECTED_SHA}:${EXPECTED_BASE_SHA} -->"
-          if [ "$VERIFIED" = success ]; then
-            message='Official Code Review plugin completed and fresh Claude review feedback was found on this PR.'
-          else
-            message='Plugin review was NOT verified. Inspect the workflow run and execution output; do not treat this as a completed review.'
-          fi
-          body="$(printf '%s\n\n%s\n\n%s\n' "$marker" '### Claude official Code Review plugin' "$message")"
-          gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}" -f body="$body" >/dev/null
 
       - name: Record completed review status for exact revision
         if: steps.verify-plugin.outcome == 'success'
