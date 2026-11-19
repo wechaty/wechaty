@@ -248,6 +248,8 @@ jobs:
             --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Bash,Task,mcp__github_inline_comment__create_inline_comment"
 
+      # The upstream Action writes a pretty-printed JSON array.
+      # This pilot gate must still be validated with a real plugin execution.
       # Fail closed on ambiguity: identify each specialist Task/Agent invocation
       # and its matching successful tool result. A mere completed-agent count is
       # insufficient because the upstream plugin runs preparatory agents too.
@@ -262,11 +264,11 @@ jobs:
           const file = process.env.EXECUTION_FILE
           if (!file) throw Error('No execution file: action may have skipped workflow validation')
           const raw = readFileSync(file, 'utf8')
-          const events = []
-          for (const line of raw.split('\n')) {
-            try { events.push(JSON.parse(line)) } catch {}
-          }
-          if (!events.length) throw Error('No JSON execution events: cannot validate plugin')
+          // Upstream writeExecutionFile serializes an entire pretty-printed JSON array.
+          let events
+          try { events = JSON.parse(raw) } catch { throw Error('Invalid Claude execution JSON') }
+          if (!Array.isArray(events) || !events.length)
+            throw Error('No Claude execution messages: plugin may not have run')
           const finished = events.some(e => e.type === 'result' && e.subtype === 'success' && !e.is_error)
           if (!finished) throw Error('No successful terminal Claude result')
           const uses = new Map()
