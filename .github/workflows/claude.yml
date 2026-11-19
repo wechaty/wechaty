@@ -231,21 +231,22 @@ jobs:
             --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Bash,Task,mcp__github_inline_comment__create_inline_comment"
 
-      # Do not parse undocumented subagent task structure. The public plugin
-      # posts a no-issues conversation comment or inline findings with --comment.
-      # Requiring a fresh Claude-authored review artifact prevents an SDK-only
-      # successful exit, or an upstream eligibility skip, from recording success.
+      # Attribute published feedback to THIS Claude execution, not merely
+      # to claude[bot] and a recent timestamp. Otherwise a concurrent native
+      # Claude session can make a skipped plugin look successfully reviewed.
       - name: Verify plugin review actually executed
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
         env:
-          EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REVIEW_STARTED: ${{ steps.review-progress.outputs.created_at }}
+          EXECUTION_FILE: \${{ steps.claude-review.outputs.execution_file }}
+          GH_TOKEN: \${{ github.token }}
+          PR_NUMBER: \${{ github.event.pull_request.number }}
+          EXPECTED_SHA: \${{ github.event.pull_request.head.sha }}
+          REVIEW_STARTED: \${{ steps.review-progress.outputs.created_at }}
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs'
+          import { execFileSync } from 'node:child_process'
           const file = process.env.EXECUTION_FILE
           if (!file) throw Error('Claude execution file missing; action may have skipped execution')
           let events
@@ -254,24 +255,63 @@ jobs:
           if (!Array.isArray(events) || !events.length) throw Error('No Claude execution messages')
           if (!events.some(e => e.type === 'result' && e.subtype === 'success' && e.is_error === false))
             throw Error('Claude did not report a successful terminal result')
-          console.log('Claude SDK finished successfully; checking GitHub for actual review output')
+          const calls = new Map()
+          const results = new Map()
+          function scan(x, depth = 0) {
+            if (!x || typeof x !== 'object' || depth > 16) return
+            if (x.type === 'tool_use' && x.id) calls.set(x.id, x)
+            if (x.type === 'tool_result' && x.tool_use_id) results.set(x.tool_use_id, x)
+            for (const v of Object.values(x)) scan(v, depth + 1)
+          }
+          events.forEach(x => scan(x))
+          const repo = process.env.GITHUB_REPOSITORY
+          const pr = process.env.PR_NUMBER
+          const prefix = 'https://github.com/' + repo + '/pull/' + pr
+          const started = process.env.REVIEW_STARTED
+          if (!started) throw Error('Missing review start timestamp')
+          const api = route => JSON.parse(execFileSync('gh', ['api', route], { encoding: 'utf8' }))
+          const textOf = x => typeof x === 'string' ? x : JSON.stringify(x ?? '')
+          let verified = 0
+          for (const [id, call] of calls) {
+            const command = String(call.input?.command ?? '')
+            const inline = call.name === 'mcp__github_inline_comment__create_inline_comment'
+            const summary = call.name === 'Bash' && /(^|\s)gh\s+pr\s+comment(\s|$)/.test(command)
+            if (!inline && !summary) continue
+            const result = results.get(id)
+            if (!result || result.is_error === true) continue
+            const output = textOf(result.content)
+            if (/error:|permission denied|failed to|not found/i.test(output)) continue
+            // Only trust URLs returned by the matching publishing tool call.
+            // Do not scan all PR comments; another Claude session may race us.
+            const urls = [...output.matchAll(/https:\/\/github\.com\/[^\s"'\\]+/g)].map(m => m[0])
+            const ids = [...new Set(urls.map(url => {
+              if (!url.startsWith(prefix)) return null
+              const issue = url.match(/#issuecomment-(\d+)/)
+              const review = url.match(/#discussion_r(\d+)/)
+              return issue ? ['issue', issue[1]] : review ? ['inline', review[1]] : null
+            }).filter(Boolean).map(pair => pair.join(':')))]
+            for (const entry of ids) {
+              const [kind, commentId] = entry.split(':')
+              if ((kind === 'inline') !== inline) continue
+              const route = kind === 'issue'
+                ? 'repos/' + repo + '/issues/comments/' + commentId
+                : 'repos/' + repo + '/pulls/comments/' + commentId
+              const published = api(route)
+              if (published.user?.login !== 'claude[bot]') continue
+              if (!published.created_at || published.created_at < started) continue
+              if (kind === 'issue') {
+                if (!String(published.html_url ?? '').startsWith(prefix + '#issuecomment-')) continue
+                if (!String(published.body ?? '').includes('## Code review')) continue
+              } else {
+                if (!String(published.html_url ?? '').startsWith(prefix + '#discussion_r')) continue
+                if (published.commit_id !== process.env.EXPECTED_SHA) continue
+              }
+              console.log('Verified output from this execution: ' + kind + ' comment ' + commentId)
+              verified++
+            }
+          }
+          if (!verified) throw Error('No review artifact tied to this Claude execution. Plugin may have skipped or returned unsupported tool output.')
           NODE
-          if [ -z "$REVIEW_STARTED" ]; then
-            echo "::error::Missing review start timestamp"
-            exit 1
-          fi
-          # The plugin is expected to post a final comment if no issues are
-          # found, or inline comments if it finds actionable issues. Exclude
-          # this workflow's own github-actions progress comment.
-          issue_count="$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --paginate \
-            --jq '.[] | select(.created_at >= "'"$REVIEW_STARTED"'" and .user.login == "claude[bot]" and (.body | contains("## Code review"))) | .id' | wc -l)"
-          inline_count="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments?per_page=100" --paginate \
-            --jq '.[] | select(.created_at >= "'"$REVIEW_STARTED"'" and .user.login == "claude[bot]") | .id' | wc -l)"
-          if [ "$issue_count" -eq 0 ] && [ "$inline_count" -eq 0 ]; then
-            echo "::error::Claude returned success but published no new Code Review artifact. Plugin might have skipped this PR."
-            exit 1
-          fi
-          echo "Verified fresh Claude review output: $issue_count summary comments, $inline_count inline findings"
 
       - name: Update review progress
         if: always() && steps.review-progress.outputs.comment_id != ''
