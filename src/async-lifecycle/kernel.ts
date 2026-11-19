@@ -273,6 +273,15 @@ export class LifecycleKernel implements LifecycleController {
     }
   }
 
+  /** Check the shared retirement budget in the continuation publishing the outcome. */
+  #expiredStopDeadline(): LifecycleTimeoutError | undefined {
+    const timeout = this.#options.stopTimeoutMs
+    if (timeout !== undefined && this.#stopDeadline !== undefined && performance.now() >= this.#stopDeadline) {
+      return new LifecycleTimeoutError('stop', timeout)
+    }
+    return undefined
+  }
+
   /** Startup is interrupted immediately. Running hooks get a graceful stop first. */
   #requestRetirement(reason: unknown): void {
     if (this.#state.kind === 'starting') {
@@ -324,12 +333,8 @@ export class LifecycleKernel implements LifecycleController {
       await this.#retire(scope, failure, this.#state.kind === 'failed')
       return true
     }
-    if (this.#lateScopes.size > 0) {
+    if (this.#lateScopes.size > 0 || this.#stop) {
       return this.#reconcileLateScopes()
-    }
-    if (this.#stop) {
-      this.#finishStop()
-      return true
     }
     if (scope && this.#state.kind === 'running' && this.#run?.kind === 'start') {
       // A start delayed by detached cleanup can now join the surviving generation.
@@ -439,6 +444,7 @@ export class LifecycleKernel implements LifecycleController {
       const result = await within(scope.finishLateReleases(false), this.#options.stopTimeoutMs, 'stop', this.#stopDeadline)
       if (result instanceof LifecycleTimeoutError) timeout = result
     }
+    if (!timeout && errors.length === 0 && !scope.hasCleanup) timeout = this.#expiredStopDeadline()
     if (timeout) {
       errors.push(timeout)
     } else {
@@ -510,7 +516,7 @@ export class LifecycleKernel implements LifecycleController {
     return errors.length ? { ok: false, error: combineErrors(errors) } : { ok: true, value: undefined }
   }
 
-  /** Account for late releases from even a detached generation before starting again. */
+  /** Finish detached releases and any pending stop within the remaining retirement budget. */
   async #reconcileLateScopes(): Promise<boolean> {
     const retry = this.#stop !== undefined
     if (this.#lateCleanupFailure && !retry) {
@@ -532,7 +538,9 @@ export class LifecycleKernel implements LifecycleController {
     } finally {
       this.#lateWait = undefined
     }
-    if (!(result instanceof LifecycleTimeoutError) && result.ok) {
+    const outcome: Outcome = result instanceof LifecycleTimeoutError ? { ok: false, error: result } : result
+    const expired = outcome.ok ? this.#expiredStopDeadline() : undefined
+    if (outcome.ok && !expired) {
       this.#lateCleanupFailure = undefined
       if (this.#lateScopes.size === 0 && !this.#active) {
         if (this.#stop || this.#state.kind === 'stopping') {
@@ -545,7 +553,7 @@ export class LifecycleKernel implements LifecycleController {
       return true
     }
 
-    const error = result instanceof LifecycleTimeoutError ? result : result.error
+    const error = outcome.ok ? expired : outcome.error
     this.#lateCleanupFailure = { error }
     if (this.#active && this.#state.kind !== 'failed') {
       this.#active.fail(error)

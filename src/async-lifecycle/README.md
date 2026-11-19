@@ -115,7 +115,9 @@ while stopping, the parent retains ownership for a later stop.
 
 The startup budget begins before the starting observer and hook run. A
 synchronous hook can delay delivery of a timeout until it yields, and the
-kernel checks elapsed time before publishing success.
+kernel checks elapsed time before publishing success. Retirement likewise
+checks the shared stop deadline before committing success, including after
+it has joined late releases.
 
 An expired deadline rejects the operation and records unresolved cleanup in
 `failed`. A later `stop()` can join the existing retirement and retry

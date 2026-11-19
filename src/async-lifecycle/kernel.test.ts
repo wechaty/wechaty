@@ -467,6 +467,42 @@ for (const [name, create] of facades) {
     }
   }
 
+  for (const detached of [false, true]) {
+    test(`${name}: stop checks its deadline before committing ${detached ? 'detached' : 'active'} cleanup`, async () => {
+      let releases = 0
+      let captured!: LifecycleScope
+      const blockBeforeCommit = () => {
+        releases++
+        // The detached path also awaits the batch of retired scopes.
+        let turns = detached ? 8 : 6
+        const delayPublication = () => {
+          if (--turns > 0) queueMicrotask(delayPublication)
+          else Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50)
+        }
+        queueMicrotask(delayPublication)
+      }
+      const service = create({
+        onStart(scope) {
+          captured = scope
+          if (!detached) scope.defer(blockBeforeCommit)
+        },
+      }, { stopTimeoutMs: 10 })
+      await service.start()
+      const gate = Promise.withResolvers<void>()
+      if (detached) {
+        await service.stop()
+        assert.throws(() => captured.defer(() => gate.promise.then(blockBeforeCommit)), LifecycleSupersededError)
+      }
+      const stop = service.stop()
+      gate.resolve()
+      await assert.rejects(stop, error => error instanceof LifecycleTimeoutError && error.operation === 'stop')
+      assert.ok(service.state.kind === 'failed' && !service.state.cleanupComplete)
+      await service.stop()
+      assert.equal(service.state.kind, 'stopped')
+      assert.equal(releases, 1)
+    })
+  }
+
   test(`${name}: one stop deadline spans the active hook and detached releases`, async () => {
     let old!: LifecycleScope
     let hooks = 0
