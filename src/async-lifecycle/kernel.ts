@@ -364,8 +364,8 @@ export class LifecycleKernel implements LifecycleController {
     })
     this.#active = scope
     this.#startingAttempt = attempt
-    const timeout = this.#options.startTimeoutMs
-    const deadline = timeout === undefined ? undefined : performance.now() + timeout
+    const timeout = this.#options.startTimeoutMs ?? Infinity
+    const deadline = timeout > 0 ? performance.now() + timeout : Infinity
     this.#commit({ kind: 'starting', generation })
 
     const startup = waitWithSignal(scope.boot(), scope.signal)
@@ -379,6 +379,11 @@ export class LifecycleKernel implements LifecycleController {
       if (!scope.sealed && !(outcome instanceof LifecycleTimeoutError) && !outcome.ok) {
         this.#lateCleanupFailure = { error: outcome.error }
       }
+    }
+    // Other microtasks can run after the last awaited deadline check. Keep
+    // this check in the same continuation that settles start and commits running.
+    if (!(outcome instanceof LifecycleTimeoutError) && outcome.ok && performance.now() >= deadline) {
+      outcome = new LifecycleTimeoutError('start', timeout)
     }
     const startedBy = this.#startingAttempt
     this.#startingAttempt = undefined

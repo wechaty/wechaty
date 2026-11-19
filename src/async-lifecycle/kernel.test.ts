@@ -83,6 +83,26 @@ for (const [name, create] of facades) {
     })
   }
 
+  test(`${name}: queued microtasks cannot publish running after the startup deadline`, async () => {
+    const running: number[] = []
+    const service = create({
+      onStart() {
+        // Let the hook settle, then occupy the thread between the deadline
+        // helper's completion and the worker resuming to publish the result.
+        let turns = 10
+        const delayPublication = () => {
+          if (--turns > 0) queueMicrotask(delayPublication)
+          else Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50)
+        }
+        queueMicrotask(delayPublication)
+      },
+      onStateChange(state) { if (state.kind === 'running') running.push(state.generation) },
+    }, { startTimeoutMs: 10 })
+    await assert.rejects(service.start(), error => error instanceof LifecycleTimeoutError && error.operation === 'start')
+    assert.deepEqual(running, [])
+    await service.stop()
+  })
+
   for (const cleanup of ['stop hook', 'disposer'] as const) {
     test(`${name}: a detached release failure interrupts startup and preserves the failing ${cleanup}`, async () => {
       const reason = new Error('detached release failed')
