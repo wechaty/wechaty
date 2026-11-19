@@ -307,7 +307,11 @@ interface LifecycleClock {
 interface LifecycleOptions {
   /** Diagnostics-only name. */
   readonly name?: string
-  /** Start deadline. Expiry fails the attempt with `LifecycleTimeoutError` and unwinds. */
+  /**
+   * Start deadline. Expiry fails the attempt with `LifecycleTimeoutError` and
+   * unwinds. Like `stopTimeoutMs`, it must be a finite, non-negative number;
+   * anything else throws `RangeError` at construction.
+   */
   readonly startTimeoutMs?: number
   /**
    * Retirement deadline, applied to one whole retirement pass (`onStop`, joining

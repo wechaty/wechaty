@@ -59,3 +59,38 @@ test('listen() refuses an emitter whose listener could never be removed', async 
   await lifecycle.start()
   assert.ok(refused instanceof TypeError)
 })
+
+test('a stale listen() never removes the same handler registered by a newer run', async () => {
+  const target = new EventTarget()
+  const emitter = new EventEmitter()
+  let hits = 0
+  const handler = () => { hits++ }
+  let saved!: LifecycleScope
+  const lifecycle = createLifecycle({
+    onStart: scope => {
+      saved = scope
+      listen(scope, target, 'ping', handler)
+      listen(scope, emitter, 'ping', handler)
+    },
+  })
+  await lifecycle.start()
+  const stale = saved
+  await lifecycle.restart()
+  assert.throws(() => listen(stale, target, 'ping', handler))
+  assert.throws(() => listen(stale, emitter, 'ping', handler))
+  target.dispatchEvent(new Event('ping'))
+  emitter.emit('ping')
+  assert.equal(hits, 2, 'generation 2 still receives both events')
+})
+
+test('the forwarded listener keeps the target as this and gets every argument', async () => {
+  const emitter = new EventEmitter()
+  let seen: { self: unknown, args: unknown[] } | undefined
+  const lifecycle = createLifecycle({
+    onStart: scope => listen(scope, emitter, 'data', function (this: unknown, ...args: unknown[]) { seen = { self: this, args } }),
+  })
+  await lifecycle.start()
+  emitter.emit('data', 1, 2)
+  assert.equal(seen?.self, emitter)
+  assert.deepEqual(seen?.args, [ 1, 2 ])
+})

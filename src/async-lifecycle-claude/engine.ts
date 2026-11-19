@@ -148,6 +148,12 @@ function waitFor<T> (shared: Promise<T>, signal: AbortSignal | undefined): Promi
     return shared.then(value => value)
   }
   return new Promise<T>((resolve, reject) => {
+    // The command may have aborted a starting run synchronously, and that run's
+    // abort listeners may have aborted this caller's signal before we got here.
+    if (signal.aborted) {
+      reject(signal.reason)
+      return
+    }
     const onAbort = () => reject(signal.reason)
     signal.addEventListener('abort', onAbort, { once: true })
     shared.then(
@@ -155,6 +161,19 @@ function waitFor<T> (shared: Promise<T>, signal: AbortSignal | undefined): Promi
       (error: unknown) => { signal.removeEventListener('abort', onAbort); reject(error) },
     )
   })
+}
+
+/**
+ * Check a deadline option. A `NaN`, negative or infinite value would fire at
+ * once (or never) instead of meaning a deadline, so it is refused.
+ *
+ * @throws RangeError when `value` is not a finite, non-negative number.
+ */
+function validTimeout (name: string, value: number | undefined): number | undefined {
+  if (value !== undefined && !(Number.isFinite(value) && value >= 0)) {
+    throw new RangeError(`${name} must be a finite, non-negative number of milliseconds, got ${String(value)}`)
+  }
+  return value
 }
 
 /** Combine cleanup errors: one error as itself, several as an `AggregateError`. */
@@ -202,21 +221,26 @@ class LifecycleEngine {
   #stopRequested = false
   /** Retired generations whose late releases failed: debt that blocks a new run. */
   readonly #debtors = new Set<Generation>()
-  /** `stop()` callers waiting for debt cleanup while no generation is current. */
-  readonly #debtStopWaiters = new Set<PromiseWithResolvers<void>>()
+  /**
+   * `stop()` callers waiting while no generation is current: for debt cleanup,
+   * or for a clean failure to commit `stopped`. Settled by that commit.
+   */
+  readonly #idleStopWaiters = new Set<PromiseWithResolvers<void>>()
   /** The attempt that allocated each generation, settled when that run ends. */
   readonly #attemptOf = new WeakMap<Generation, Attempt>()
   /** `stop()` callers waiting for a generation's release. */
   readonly #stopWaiters = new WeakMap<Generation, Set<PromiseWithResolvers<void>>>()
   /** Debt retirement work still running past a stop deadline. */
   #debtRetirement: Promise<unknown[]> | undefined = undefined
+  /** A debt pass is in progress; a `stop()` arriving now joins it. */
+  #debtPassActive = false
   #reconciling = false
 
   constructor (hooks: LifecycleHooks, options?: LifecycleOptions) {
     this.#hooks = hooks
     this.#name = options?.name
-    this.#startTimeoutMs = options?.startTimeoutMs
-    this.#stopTimeoutMs = options?.stopTimeoutMs
+    this.#startTimeoutMs = validTimeout('startTimeoutMs', options?.startTimeoutMs)
+    this.#stopTimeoutMs = validTimeout('stopTimeoutMs', options?.stopTimeoutMs)
     this.#clock = options?.clock ?? defaultClock
     this.#host = {
       fail              : (generation, error) => this.#fail(generation, error),
@@ -276,15 +300,21 @@ class LifecycleEngine {
         this.#requestRetire(current, 'stop')
       }
       waiter = this.#stopWaiter(current)
-    } else if (this.#debtors.size > 0 || this.#isDirty()) {
+    } else if (this.#debtors.size > 0 || this.#isDirty() || this.#debtPassActive) {
+      // A stop() during a debt pass joins that pass; only a stop() after it
+      // ends asks for another (retries need explicit intent).
+      if (!this.#debtPassActive) {
+        this.#stopRequested = true
+      }
+      waiter = Promise.withResolvers<void>()
+      this.#idleStopWaiters.add(waiter)
+    } else if (this.#state.kind === 'failed') {
+      // Clean failed → stopped. Resolve on that commit, not before it, so even
+      // a reentrant observer sees `stopped` once its stop() resolves.
       this.#stopRequested = true
       waiter = Promise.withResolvers<void>()
-      this.#debtStopWaiters.add(waiter)
+      this.#idleStopWaiters.add(waiter)
     } else {
-      if (this.#state.kind === 'failed') {
-        this.#stopRequested = true // clean failed → stopped
-        this.#schedule()
-      }
       return Promise.resolve()
     }
     this.#schedule()
@@ -336,6 +366,9 @@ class LifecycleEngine {
       }
     } catch (error) {
       return Promise.reject(error)
+    }
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason) // the predicate aborted its own caller
     }
 
     const { promise, resolve, reject } = Promise.withResolvers<LifecycleState>()
@@ -560,8 +593,8 @@ class LifecycleEngine {
       this.#stopRequested = false
       // Debt may have cleared on its own (a late release finished) after this
       // stop() was accepted; its waiters still need an outcome.
-      const debtWaiters = [ ...this.#debtStopWaiters ]
-      this.#debtStopWaiters.clear()
+      const debtWaiters = [ ...this.#idleStopWaiters ]
+      this.#idleStopWaiters.clear()
       const resolve = () => { for (const waiter of debtWaiters) { waiter.resolve() } }
       if (this.#state.kind === 'failed') {
         return () => this.#commit({ kind: 'stopped', generation: this.#state.generation }, resolve)
@@ -588,6 +621,14 @@ class LifecycleEngine {
     this.#current = generation
     this.#board.bindNext(generation.number)
     this.#commit({ kind: 'starting', generation: generation.number })
+
+    if (generation.sealed) {
+      // An observer of `starting` already stopped this run. Never call onStart
+      // with an aborted scope: an abort-driven hook would miss the event.
+      generation.startWork = Promise.resolve()
+      generation.startSettled = true
+      return
+    }
 
     const work = (async () => this.#hooks.onStart(generation.scope))()
     generation.startWork = work.then(
@@ -853,15 +894,35 @@ class LifecycleEngine {
   /** An explicit `stop()` retries debt left by retired generations. */
   async #retireDebt (): Promise<void> {
     const generation = this.#state.generation
+    this.#debtPassActive = true
     this.#commit({ kind: 'stopping', generation })
-    const { errors, timedOut } = await this.#underStopDeadline(
-      this.#debtRetirement,
-      () => this.#unwindDebt(),
-      work => { this.#debtRetirement = work },
-    )
-    const waiters = [ ...this.#debtStopWaiters ]
-    this.#debtStopWaiters.clear()
+    let result: { errors: unknown[], timedOut: boolean }
+    try {
+      result = await this.#underStopDeadline(
+        this.#debtRetirement,
+        () => this.#unwindDebt(),
+        work => { this.#debtRetirement = work },
+      )
+    } finally {
+      this.#debtPassActive = false
+    }
+    const { errors, timedOut } = result
+    const waiters = [ ...this.#idleStopWaiters ]
+    this.#idleStopWaiters.clear()
     if (!timedOut && this.#debtors.size === 0) {
+      if (errors.length > 0) {
+        // Released, but some earlier work (joined from a timed-out pass) failed:
+        // report it as a clean failure, as a generation retirement would.
+        const stopError = aggregate(errors)
+        this.#commit({
+          kind: 'failed', generation, phase: 'stop', error: stopError, cleanupComplete: true, cleanupError: stopError,
+        }, () => {
+          for (const waiter of waiters) { waiter.reject(stopError) }
+          this.#pending?.fail(stopError)
+          this.#pending = undefined
+        })
+        return
+      }
       this.#commit({ kind: 'stopped', generation }, () => {
         for (const waiter of waiters) { waiter.resolve() }
       })

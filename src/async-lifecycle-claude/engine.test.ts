@@ -188,6 +188,25 @@ for (const [ shell, make ] of SHELLS) {
     assert.equal(lifecycle.state.kind, 'running')
   })
 
+  t('a caller abort fired while the command aborts a starting run is honoured', async () => {
+    const gate = Promise.withResolvers<void>()
+    const caller = new AbortController()
+    const callerAbort = new Error('caller')
+    const { lifecycle } = make({
+      onStart: scope => {
+        scope.signal.addEventListener('abort', () => caller.abort(callerAbort))
+        return gate.promise
+      },
+    })
+    const starting = outcome(lifecycle.start())
+    await flush()
+    await assert.rejects(lifecycle.stop({ signal: caller.signal }), callerAbort)
+    gate.resolve()
+    await flush()
+    assert.ok(starting.rejected)
+    assert.equal(lifecycle.state.kind, 'stopped', 'the accepted stop still ran')
+  })
+
   t('an already-aborted signal rejects before any intent is accepted', async () => {
     let starts = 0
     const subject = make({ onStart: () => { starts++ } })
@@ -876,6 +895,57 @@ for (const [ shell, make ] of SHELLS) {
     assert.equal(lifecycle.state.kind, 'stopped')
   })
 
+  t('a stop() during a debt pass joins it and requests no extra pass', async () => {
+    let saved!: LifecycleScope
+    let calls = 0
+    let gate = Promise.withResolvers<void>()
+    const { lifecycle } = make({ onStart: scope => { saved = scope } })
+    await lifecycle.start()
+    await lifecycle.stop()
+    assert.throws(() => saved.defer(async () => { calls++; await gate.promise; throw new Error('late') }))
+    gate.resolve()
+    await flush()
+    gate = Promise.withResolvers<void>()
+    const first = outcome(lifecycle.stop())
+    await flush()
+    const second = outcome(lifecycle.stop())
+    gate.resolve()
+    await flush()
+    assert.ok(first.rejected && second.rejected, 'both share the failed pass')
+    assert.equal(calls, 2, 'one late call and one retry pass, no unrequested pass')
+    assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  })
+
+  t('debt released after joined work failed reports that failure', async () => {
+    const clock = new ManualClock()
+    let saved!: LifecycleScope
+    let calls = 0
+    const pending = Promise.withResolvers<void>()
+    const late = new Error('late')
+    const { lifecycle } = make({ onStart: scope => { saved = scope } }, { stopTimeoutMs: 50, clock })
+    await lifecycle.start()
+    await lifecycle.stop()
+    assert.throws(() => saved.defer(() => {
+      calls++
+      if (calls === 1) { throw new Error('first') }
+      if (calls === 2) { return pending.promise }
+      return undefined
+    }))
+    await flush()
+    const timedOut = outcome(lifecycle.stop())
+    await clock.advance(60)
+    assert.ok(timedOut.error instanceof LifecycleTimeoutError)
+    const retry = outcome(lifecycle.stop())
+    pending.reject(late)
+    await clock.advance(1)
+    assert.equal(retry.error, late)
+    const failed = failedState(lifecycle.state)
+    assert.equal(failed.cleanupComplete, true)
+    assert.equal(failed.cleanupError, late)
+    await lifecycle.stop()
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+
   // ===========================================================================
   // Tasks
   // ===========================================================================
@@ -1151,6 +1221,16 @@ for (const [ shell, make ] of SHELLS) {
     assert.equal(lifecycle.state.kind, 'running')
   })
 
+  t('whenState rejects when its first predicate call aborts the caller', async () => {
+    const { lifecycle } = make({ onStart: () => {} })
+    const caller = new AbortController()
+    const reason = new Error('caller')
+    await assert.rejects(
+      lifecycle.whenState(() => { caller.abort(reason); return false }, { signal: caller.signal }),
+      reason,
+    )
+  })
+
   // ===========================================================================
   // Recovery (v1 §4.4)
   // ===========================================================================
@@ -1293,6 +1373,14 @@ for (const [ shell, make ] of SHELLS) {
     assert.equal(failed.phase, 'start')
     assert.equal(failed.cleanupComplete, true)
     assert.equal(clock.pending, 0, 'no timer is left behind')
+  })
+
+  t('a deadline that is not a finite, non-negative number is refused', () => {
+    for (const bad of [ Number.NaN, -1, Number.POSITIVE_INFINITY ]) {
+      assert.throws(() => make({ onStart: () => {} }, { startTimeoutMs: bad }), RangeError)
+      assert.throws(() => make({ onStart: () => {} }, { stopTimeoutMs: bad }), RangeError)
+    }
+    make({ onStart: () => {} }, { startTimeoutMs: 0, stopTimeoutMs: 0 })
   })
 
   t('stopTimeoutMs bounds a stop() that waits on an onStart ignoring abort', async () => {
@@ -1458,6 +1546,37 @@ for (const [ shell, make ] of SHELLS) {
     await lifecycle.stop()
     await flush()
     assert.equal(lifecycle.state.kind, 'stopped')
+  })
+
+  t('an observer stop() on a clean failure resolves only once stopped is committed', async () => {
+    let seen: string | undefined
+    const { lifecycle } = make({
+      onStart: () => { throw new Error('boom') },
+      onStateChange: state => {
+        if (state.kind === 'failed') {
+          void lifecycle.stop().then(() => { seen = lifecycle.state.kind })
+        }
+      },
+    })
+    await assert.rejects(lifecycle.start())
+    await flush()
+    assert.equal(seen, 'stopped')
+  })
+
+  t('an observer stop() on starting means onStart is never called', async () => {
+    let calls = 0
+    const rec = recorder()
+    const { lifecycle } = make({
+      onStart: () => { calls++ },
+      onStateChange: state => {
+        rec.onStateChange(state)
+        if (state.kind === 'starting') { void lifecycle.stop() }
+      },
+    })
+    await assert.rejects(lifecycle.start(), LifecycleSupersededError)
+    await flush()
+    assert.equal(calls, 0)
+    assert.deepEqual(rec.kinds, [ 'starting:1', 'stopping:1', 'stopped:1' ])
   })
 
   t('await using stops the lifecycle', async () => {

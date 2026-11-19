@@ -50,7 +50,11 @@ interface WatchdogOptions {
 
 /** The handle returned by {@link watchdog}. */
 interface Watchdog {
-  /** Restart the countdown. Does nothing once the generation is retiring. */
+  /**
+   * Restart the countdown. Does nothing once `scope.signal` has aborted. A feed
+   * during `onStop` (before the abort) may re-arm the timer, but a firing on a
+   * retiring generation is ignored by the scope, and retirement clears the timer.
+   */
   feed (): void
 }
 

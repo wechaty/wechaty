@@ -178,6 +178,10 @@ A partial start is rolled back by the ledger alone; `onStop` is not called.
 | `stopTimeoutMs` | One deadline per retirement pass (`onStop`, joining `onStart`, the unwind, and any earlier work being joined). Expiry commits `failed { cleanupComplete: false }`. The unfinished work stays tracked, and the next `stop()` joins it. |
 | `clock` | Timer source for the deadlines (inject one in tests). |
 
+Both deadlines must be finite, non-negative numbers; anything else (`NaN`,
+negative, `Infinity`) throws `RangeError` at construction. Omit an option for
+no deadline.
+
 ### The scope (one per generation)
 
 | Member | Contract |
@@ -292,7 +296,10 @@ Built only on the public scope:
 
 - `listen(scope, target, event, listener)`: adds a listener to an
   EventEmitter-like object or an `EventTarget` and registers its removal.
-  On a sealed scope nothing is added.
+  On a sealed scope nothing is added. Each call installs its own forwarding
+  wrapper and removes only that, so a late `listen()` on a retired scope can
+  never detach the same handler registered by a newer run (and
+  `target.off(event, listener)` does not remove it; retirement does).
 - `watchdog(scope, { timeoutMs, onTimeout?, clock? })`: returns `{ feed() }`.
   An expiry calls `scope.fail()` (default) or `scope.recover()` with
   `LifecycleTimeoutError('watchdog')`. The timer is cleared with the

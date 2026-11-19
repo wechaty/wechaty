@@ -53,6 +53,10 @@ type ListenTarget = EmitterLike | EventTargetLike
  * sealed (retiring) scope nothing is added and the scope's retirement reason is
  * thrown, as for any late registration.
  *
+ * The target holds a per-registration wrapper, not `listener` itself, so only
+ * this registration's removal can detach it. Consequently `target.off(event,
+ * listener)` does not remove it; retirement does.
+ *
  * @throws TypeError when an EventEmitter-like target has neither `off` nor
  *         `removeListener`, because its listener could never be removed.
  */
@@ -62,17 +66,24 @@ function listen (
   event: string,
   listener: (...args: any[]) => void,
 ): void {
+  // Each registration installs its own forwarding function and removes only
+  // that one. Removing `listener` itself would let a stale registration (a late
+  // listen() on a retired scope, whose removal runs at once) detach the same
+  // handler that a newer generation registered.
+  const forward = function (this: unknown, ...args: unknown[]): unknown {
+    return listener.apply(this, args)
+  }
   if ('addEventListener' in target) {
-    scope.defer(() => target.removeEventListener(event, listener))
-    target.addEventListener(event, listener)
+    scope.defer(() => target.removeEventListener(event, forward))
+    target.addEventListener(event, forward)
     return
   }
   const remove = target.off ?? target.removeListener
   if (typeof remove !== 'function') {
     throw new TypeError('listen() needs a target with off() or removeListener()')
   }
-  scope.defer(() => { remove.call(target, event, listener) })
-  target.on(event, listener)
+  scope.defer(() => { remove.call(target, event, forward) })
+  target.on(event, forward)
 }
 
 export type {
