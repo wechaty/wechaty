@@ -107,7 +107,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false &&
       (github.event.sender.type != 'Bot' ||
-       contains(fromJSON('["claude[bot]","chatgpt-codex-connector[bot]","Copilot","copilot-pull-request-reviewer[bot]","copilot-swe-agent[bot]","gemini-code-assist[bot]"]'), github.event.sender.login)) &&
+       contains(fromJSON('["Claude","Codex","claude[bot]","chatgpt-codex-connector[bot]","Copilot","copilot-pull-request-reviewer[bot]","copilot-swe-agent[bot]","gemini-code-assist[bot]"]'), github.event.sender.login)) &&
       github.actor != 'dependabot[bot]' &&
       github.event.pull_request.user.login != 'dependabot[bot]'
     # Share the same PR lock with interactive coding. A queued review may
@@ -197,7 +197,7 @@ jobs:
           # Allow only our own Claude App to trigger reviews after its pushes.
           # Explicit allowlist of the AI agents participating in Wechaty.
           # Review identities can differ from coding-agent identities.
-          allowed_bots: 'claude[bot],chatgpt-codex-connector[bot],Copilot,copilot-pull-request-reviewer[bot],copilot-swe-agent[bot],gemini-code-assist[bot]'
+          allowed_bots: 'Claude,Codex,claude[bot],chatgpt-codex-connector[bot],Copilot,copilot-pull-request-reviewer[bot],copilot-swe-agent[bot],gemini-code-assist[bot]'
           # Bot-authored PRs otherwise receive injected node/npm/deno denials.
           restrict_untrusted_prs: false
           additional_permissions: |
