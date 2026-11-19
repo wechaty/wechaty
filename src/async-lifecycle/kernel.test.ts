@@ -467,6 +467,82 @@ for (const [name, create] of facades) {
     }
   }
 
+  for (const retiring of ['starting', 'running', 'detached'] as const) {
+    test(`${name}: restart includes ${retiring} retirement from the instant it is accepted`, async () => {
+      let captured!: LifecycleScope
+      let starts = 0
+      const entered = Promise.withResolvers<void>()
+      const release = Promise.withResolvers<void>()
+      const block = () => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 40)
+      const service = create({
+        async onStart(scope) {
+          captured = scope
+          if (++starts === 1 && retiring === 'starting') {
+            scope.signal.addEventListener('abort', block, { once: true })
+            entered.resolve()
+            await interrupted(scope.signal)
+          }
+        },
+      }, { stopTimeoutMs: 10 })
+      const first = service.start()
+      const started = retiring === 'starting' ? assert.rejects(first, LifecycleSupersededError) : first
+      await (retiring === 'starting' ? entered.promise : started)
+      if (retiring === 'detached') {
+        await service.stop()
+        assert.throws(() => captured.defer(() => release.promise), LifecycleSupersededError)
+      }
+      const restart = service.restart()
+      // A startup abort listener blocks synchronously. For the other two
+      // paths, occupy the thread before the queued worker can take its turn.
+      if (retiring !== 'starting') block()
+      release.resolve()
+      await started
+      await assert.rejects(restart, error => error instanceof LifecycleTimeoutError && error.operation === 'stop')
+      assert.equal(starts, 1)
+      assert.ok(service.state.kind === 'failed' && !service.state.cleanupComplete)
+      await service.stop()
+    })
+  }
+
+  test(`${name}: a replacement gets a fresh retirement budget after detached cleanup`, async () => {
+    let captured!: LifecycleScope
+    const service = create({ onStart(scope) { captured = scope } }, { stopTimeoutMs: 30 })
+    await service.start()
+    await service.stop()
+    assert.throws(() => captured.defer(() => {}), LifecycleSupersededError)
+    await service.restart()
+    await nextTurn(50)
+    await service.stop()
+    assert.deepEqual(service.state, { kind: 'stopped', generation: 2 })
+  })
+
+  test(`${name}: a stop joining detached cleanup receives the same deadline outcome`, async () => {
+    let captured!: LifecycleScope
+    const release = Promise.withResolvers<void>()
+    const service = create({ onStart(scope) { captured = scope } }, { stopTimeoutMs: 10 })
+    await service.start()
+    await service.stop()
+    assert.throws(() => captured.defer(() => release.promise), LifecycleSupersededError)
+
+    const first = service.stop().then(() => undefined, cause => cause)
+    release.resolve()
+    const joined = Promise.withResolvers<unknown>()
+    // Join after the final release leaves the ledger but before its stop commits.
+    let turns = 8
+    const join = () => {
+      if (--turns > 0) queueMicrotask(join)
+      else {
+        void service.stop().then(() => joined.resolve(undefined), joined.resolve)
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 40)
+      }
+    }
+    queueMicrotask(join)
+    const error = await first
+    assert.ok(error instanceof LifecycleTimeoutError && error.operation === 'stop')
+    assert.equal(await joined.promise, error)
+    await service.stop()
+  })
+
   for (const detached of [false, true]) {
     test(`${name}: stop checks its deadline before committing ${detached ? 'detached' : 'active'} cleanup`, async () => {
       let releases = 0

@@ -136,11 +136,10 @@ export class LifecycleKernel implements LifecycleController {
         this.#settleConditions(record, this.#generation + 1, { error: reason })
       }
     }
-    if (!this.#active && this.#lateScopes.size === 0 && this.#state.kind === 'stopped') {
+    if (!this.#stop && !this.#active && this.#lateScopes.size === 0 && this.#state.kind === 'stopped') {
       return Promise.resolve()
     }
 
-    this.#beginStopBudget()
     const stop = this.#stop ??= Promise.withResolvers<void>()
     const wait = waitWithSignal(stop.promise, signal)
     this.#requestWork()
@@ -282,8 +281,9 @@ export class LifecycleKernel implements LifecycleController {
     return undefined
   }
 
-  /** Startup is interrupted immediately. Running hooks get a graceful stop first. */
+  /** Arm retirement before synchronous abort listeners run. An idle restart only needs a start budget. */
   #requestRetirement(reason: unknown): void {
+    if (this.#stop || this.#active || this.#lateScopes.size > 0) this.#beginStopBudget()
     if (this.#state.kind === 'starting') {
       this.#active?.interrupt(reason)
     } else {
@@ -543,10 +543,10 @@ export class LifecycleKernel implements LifecycleController {
     if (outcome.ok && !expired) {
       this.#lateCleanupFailure = undefined
       if (this.#lateScopes.size === 0 && !this.#active) {
+        this.#stopDeadline = undefined
         if (this.#stop || this.#state.kind === 'stopping') {
           this.#finishStop()
         } else if (this.#state.kind === 'failed' && !this.#state.cleanupComplete) {
-          this.#stopDeadline = undefined
           this.#commit({ ...this.#state, cleanupComplete: true })
         }
       }
