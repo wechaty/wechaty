@@ -44,7 +44,7 @@ export abstract class AsyncLifecycle implements Lifecycle {
   readonly #controller: LifecycleController
 
   /** Defers optional hook lookup until invocation so subclass arrow fields are already initialized. */
-  protected constructor (options?: LifecycleOptions) {
+  public constructor (options?: LifecycleOptions) {
     this.#assertFinalMembersNotOverridden()
 
     const hooks: LifecycleHooks = {

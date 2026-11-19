@@ -39,10 +39,8 @@ export const SYSTEM_CLOCK: LifecycleClock = Object.freeze({
     return Date.now()
   },
   setTimeout (callback: () => void, ms: number): LifecycleTimerHandle {
+    // Awaited lifecycle work may have no other event-loop handles to keep its deadline alive.
     const handle = globalThis.setTimeout(callback, ms) as unknown as LifecycleTimerHandle
-    // Deadline timers exist only to bound awaited promises; unref when supported so idle
-    // safety timers never artificially keep a process event loop alive on their own.
-    handle.unref?.()
     return handle
   },
   clearTimeout (handle: LifecycleTimerHandle): void {

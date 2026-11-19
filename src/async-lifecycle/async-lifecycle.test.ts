@@ -15,6 +15,7 @@ import {
   createLifecycle,
   LifecycleOverrideError,
   LifecycleSupersededError,
+  LifecycleChildFailureError,
   LifecycleTimeoutError,
   LifecycleUnsafeStateError,
   LIFECYCLE_DIAGNOSTICS_CHANNEL,
@@ -30,6 +31,7 @@ import { ConditionRegistry } from './conditions.ts'
 import {
   assertValidTimeoutMs,
   createDeadlineController,
+  SYSTEM_CLOCK,
 } from './clock.ts'
 import { collapseCleanupErrors } from './errors.ts'
 import type {
@@ -79,6 +81,13 @@ test('manual clock orders due timers, handles reentrant timers, and clears deadl
   assert.deepEqual(calls, [ 'first', 'nested' ])
   assert.equal(clock.pendingTimers, 0)
   assert.throws(() => clock.advanceBy(-1), RangeError)
+
+  const systemTimer = SYSTEM_CLOCK.setTimeout(() => {}, 60_000)
+  const hasRef = (systemTimer as unknown as { hasRef?: () => boolean }).hasRef
+  if (typeof hasRef === 'function') {
+    assert.equal(hasRef.call(systemTimer), true)
+  }
+  SYSTEM_CLOCK.clearTimeout(systemTimer)
 
   assert.doesNotThrow(() => assertValidTimeoutMs(undefined, 'timeout'))
   assert.doesNotThrow(() => assertValidTimeoutMs(2 ** 31 - 1, 'timeout'))
@@ -239,6 +248,18 @@ test('createLifecycle serializes start, stop, restart, conditions, and observers
     'starting', 'running', 'stopping', 'starting', 'running', 'stopping', 'stopped',
   ])
   await lifecycle[Symbol.asyncDispose]()
+})
+
+test('whenState resolves with the snapshot inspected by its initial predicate', async () => {
+  const lifecycle = createLifecycle({ onStart () {} })
+  const snapshot = await lifecycle.whenState(state => {
+    void lifecycle.start()
+    return state.kind === 'stopped'
+  })
+
+  assert.equal(snapshot.kind, 'stopped')
+  await lifecycle.whenState(state => state.kind === 'running')
+  await lifecycle.stop()
 })
 
 test('start-stop-start retires an interrupted startup before creating a fresh scope', async () => {
@@ -1796,6 +1817,31 @@ test('owned child lifecycles stop with their parent and unexpected child failure
   assert.equal((await failedParent).kind, 'failed')
 })
 
+test('owned child failures remain supervised during graceful parent shutdown', async () => {
+  const finishParentStop = deferred<void>()
+  const child = createLifecycle({ onStart () {} })
+  const parent = createLifecycle({
+    onStart: async scope => {
+      await scope.start(child)
+    },
+    onStop: () => finishParentStop.promise,
+  })
+
+  await parent.start()
+  const stopping = parent.stop()
+  await flushMicrotasks()
+  await child.stop()
+  await flushMicrotasks()
+  finishParentStop.resolve()
+
+  await stopping
+  const state = parent.state
+  assert.equal(state.kind, 'failed')
+  if (state.kind === 'failed') {
+    assert.ok(state.error instanceof LifecycleChildFailureError)
+  }
+})
+
 test('AsyncLifecycle inheritance rejects final-method overrides', async () => {
   class Service extends AsyncLifecycle {
     constructor () {
@@ -1846,6 +1892,13 @@ test('AsyncLifecycle inheritance rejects final-method overrides', async () => {
   await observed.stop()
   assert.ok(observed.observedStates.includes('running'))
   assert.equal(observed.observedStates.at(-1), 'stopped')
+
+  class ConstructorlessService extends AsyncLifecycle {
+    protected override onStart (): void {}
+  }
+  const constructorless = new ConstructorlessService()
+  await constructorless.start()
+  await constructorless.stop()
 
   class MethodHookService extends AsyncLifecycle {
     readonly observedStates: string[] = []

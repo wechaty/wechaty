@@ -432,9 +432,10 @@ export class LifecycleKernel implements LifecycleController {
       return Promise.reject(getAbortReason(signal))
     }
 
+    const snapshot = this.#state
     try {
-      if (predicate(this.#state)) {
-        return Promise.resolve(this.#state)
+      if (predicate(snapshot)) {
+        return Promise.resolve(snapshot)
       }
     } catch (err) {
       return Promise.reject(err)
@@ -1463,13 +1464,13 @@ export class LifecycleKernel implements LifecycleController {
 
     await child.start({ signal: run.ledger.signal })
 
-    if (!run.ledger.isSealed && !watcherAbort.signal.aborted) {
+    if (!watcherAbort.signal.aborted) {
       void child.whenState(
         childState => childState.kind === 'failed' || childState.kind === 'stopped',
         { signal: watcherAbort.signal },
       ).then(
         terminalChildState => {
-          if (watcherAbort.signal.aborted || run.ledger.isSealed) {
+          if (watcherAbort.signal.aborted) {
             return
           }
           if (terminalChildState.kind === 'failed') {

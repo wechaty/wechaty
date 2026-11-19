@@ -537,11 +537,17 @@ export class GenerationLedger {
         entry.hasUnexpectedShutdownError = true
       } finally {
         entry.status = 'settled'
+        if (!this.#sealed || this.#retirementCompleted) {
+          this.#removeSettledTaskEntry(entry)
+        }
       }
     })()
 
     entry.promise = runPromise
     this.#entries.push(entry)
+    if (entry.status === 'settled' && (!this.#sealed || this.#retirementCompleted)) {
+      this.#removeSettledTaskEntry(entry)
+    }
   }
 
   /** Wakes an in-progress join when this task becomes a recovery requester. */
@@ -725,9 +731,29 @@ export class GenerationLedger {
       this.#interruptErrors = []
     }
 
+    this.#compactSettledTaskEntries()
     const cleanupComplete = !this.#hasUnresolvedDebt(excludedTaskIds)
     this.#retirementCompleted = true
     return { cleanupComplete, errors }
+  }
+
+  #removeSettledTaskEntry (entry: TaskEntry): void {
+    if (!isTaskSettled(entry) || entry.hasUnexpectedShutdownError) {
+      return
+    }
+    const index = this.#entries.indexOf(entry)
+    if (index >= 0) {
+      this.#entries.splice(index, 1)
+    }
+  }
+
+  #compactSettledTaskEntries (): void {
+    for (let index = this.#entries.length - 1; index >= 0; index--) {
+      const entry = this.#entries[index]!
+      if (entry.kind === 'task') {
+        this.#removeSettledTaskEntry(entry)
+      }
+    }
   }
 
   /**
