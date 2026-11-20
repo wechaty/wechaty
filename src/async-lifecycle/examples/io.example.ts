@@ -21,7 +21,7 @@
 /**
  * Usage example: an `Io`-like WebSocket client on the inheritance entry point.
  *
- * Type-checked only (see `./pending-shells.ts`); it becomes a runnable test
+ * Type-checked only, against the kernel in `../mod.ts`; it becomes a runnable test
  * against a fake socket in wechaty/wechaty#2973. It shows a leaf resource with
  * an interruptible socket, a keepalive task, recovery when the socket closes,
  * and reconnect backoff written by the implementer, with no retry policy in the
@@ -29,7 +29,7 @@
  */
 
 import type { LifecycleScope } from '../types.ts'
-import { AsyncLifecycle } from './pending-shells.ts'
+import { AsyncLifecycle } from '../mod.ts'
 
 /** The few socket operations the example needs. */
 interface SocketLike {

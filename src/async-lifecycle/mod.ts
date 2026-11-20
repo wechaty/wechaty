@@ -21,11 +21,12 @@
 /**
  * Entry point of the final async lifecycle module (wechaty/wechaty#2968).
  *
- * Stage S1 (wechaty/wechaty#2969) exports only the public contract: types and
- * errors. The two entry points `createLifecycle` and `AsyncLifecycle`, and the
- * `listen` / `watchdog` companions, are added here when the kernel lands
- * (wechaty/wechaty#2972). Nothing outside this directory imports it yet, and it
- * is not part of the package exports map until wechaty/wechaty#2974.
+ * Exports the public contract (types and errors, wechaty/wechaty#2969), the two
+ * entry points `createLifecycle` and `AsyncLifecycle`, and the diagnostics
+ * channel name. The kernel behind them is built in S4 (wechaty/wechaty#2972);
+ * the `listen` / `watchdog` companions join it there. Nothing outside this
+ * directory imports it yet, and it is not part of the package exports map until
+ * wechaty/wechaty#2974. README §18 describes the internal components.
  *
  * Boundary: the module's own files import nothing outside this directory except
  * `node:diagnostics_channel`, so it can move to its own package unchanged. The
@@ -36,6 +37,15 @@
  * wechaty/wechaty#2974.
  */
 
+export {
+  AsyncLifecycle,
+}                             from './async-lifecycle.ts'
+export {
+  createLifecycle,
+}                             from './create-lifecycle.ts'
+export {
+  CHANNEL_NAME as LIFECYCLE_DIAGNOSTICS_CHANNEL,
+}                             from './diagnostics.ts'
 export {
   isLifecycleError,
   LifecycleChildFailureError,

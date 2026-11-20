@@ -338,3 +338,29 @@ contract('C-RET-05.b', 'concurrent stop() calls and Symbol.asyncDispose share on
   assert.equal(stops, 1)
   assert.equal(lifecycle.state.kind, 'stopped')
 })
+
+contract('C-RET-01.e', 'a task spawned before a resource is joined before that resource is released, whatever the registration order (D9)', {}, async ({ make }) => {
+  // Found in review of #2995: a kernel that joins tasks inside the newest-first
+  // release pass releases a resource registered after a task before that task
+  // has finished its shutdown.
+  const log: string[] = []
+  const shutdown = Promise.withResolvers<void>()
+  const { lifecycle } = make({
+    onStart (scope) {
+      scope.spawn(async signal => {
+        await new Promise<void>(resolve => signal.addEventListener('abort', () => resolve(), { once: true }))
+        await shutdown.promise // asynchronous shutdown after the abort
+        log.push('task finished')
+      })
+      scope.defer(() => { log.push('resource released') })
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.deepEqual(log, [], 'nothing is released while the task is still shutting down')
+  shutdown.resolve()
+  await flush()
+  assert.deepEqual(log, [ 'task finished', 'resource released' ])
+  assert.equal(stopped.status, 'resolved')
+})

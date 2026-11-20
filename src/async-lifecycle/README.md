@@ -44,7 +44,7 @@ interface LifecycleScope {
   recover (reason?: unknown): Promise<'recovered' | 'superseded' | 'failed'>
 }
 
-// Entry points (implemented in S4; signatures in examples/pending-shells.ts)
+// Entry points (create-lifecycle.ts, async-lifecycle.ts)
 function createLifecycle (hooks: LifecycleHooks, options?: LifecycleOptions): LifecycleController
 abstract class AsyncLifecycle implements Lifecycle { /* protected onStart, onStop, onStateChange, condition */ }
 ```
@@ -287,3 +287,27 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 - **Retry, backoff, budgets and supervision policy** (D7). Write them in hooks, or later as companions.
 - **What happens to an in-flight `messageSend` during `stop()`**, legacy `reset()` and `state.active()` shims, and the legacy event mapping. These are decided in S5 (D24); `examples/` shows the event mapping done by the owner.
 - **Proof that a remote peer stopped.** Cancelling a gRPC call does not prove the server released anything; PuppetService needs its own session protocol.
+
+## 18. Internal components
+
+The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues/2911#issuecomment-6873515089). It started from Claude's comparison implementation (D40) and is changed in S4 (#2972) only through the contract suite. These boundaries are part of the design: keep them when changing the code.
+
+| Component | File | Owns |
+| --- | --- | --- |
+| Types | `types.ts` | The public contract. No runtime code |
+| Errors | `errors.ts` | `LifecycleError` and its subclasses, their `code`s, `isLifecycleError` |
+| Engine | `engine.ts` | Intent and attempts, caller waits, generation allocation, the single reconciler, retirement and its deadlines, cleanup debt, and the commit that publishes a snapshot. Every rule of §3 to §12 is enforced here |
+| Generation scope | `generation.ts` | One run: its `AbortController`, its ledger, its seal, and the scope object its hooks receive. It never commits state or settles a caller; it asks the engine through a narrow host interface |
+| Ledger | `ledger.ts` | A generation's obligations with per-entry status, released newest first, a failed entry retried, a running one joined. It knows nothing about state |
+| Conditions | `condition.ts` | Declared conditions, waits bound to a generation, and each live generation's set flags |
+| Clock | `clock.ts` | The default `LifecycleClock`: global timers, and `performance.now()` |
+| Diagnostics | `diagnostics.ts` | Publishing on `wechaty.async-lifecycle.state`, after commit and only when subscribed |
+| Entry points | `create-lifecycle.ts`, `async-lifecycle.ts` | Delegation to the engine; the class adds only the override guard (C-SHELL-02) |
+| Companions | `companions/` | `listen`, `watchdog` (planned, §15) |
+| Module | `mod.ts` | Public exports |
+
+Rules the engine keeps, from its own header:
+- **Commands only record intent.** `start`, `stop`, `restart`, `fail` and `recover` change intent synchronously. They never commit state and never run hooks.
+- **One writer.** Only the reconciler commits snapshots, one step at a time, so a reentrant command only changes what the next step is.
+- **One retirement path.** Stop, restart, recover, failure and cleanup retry all go through the same retirement, which settles caller waits before observers see the new snapshot.
+- **Cleanup truth.** Completion is read back from the ledgers and the hook promises, never inferred from "no error" or from a deadline.
