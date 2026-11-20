@@ -321,9 +321,15 @@ class LifecycleEngine {
       }
       waiter = Promise.withResolvers<void>()
       this.#idleStopWaiters.add(waiter)
-    } else if (this.#state.kind === 'failed') {
+    } else if (this.#state.kind === 'failed' || this.#state.kind === 'stopping') {
       // Clean failed → stopped. Resolve on that commit, not before it, so even
       // a reentrant observer sees `stopped` once its stop() resolves.
+      //
+      // `stopping` with no current generation and no debt is the gap between a
+      // retirement and the replacement queued behind it: the retirement
+      // committed nothing, leaving the next step to commit `starting`. This
+      // stop() just superseded that replacement, so it must commit `stopped`
+      // itself; resolving at once left the state `stopping` forever (B13).
       this.#stopRequested = true
       waiter = Promise.withResolvers<void>()
       this.#idleStopWaiters.add(waiter)
@@ -609,7 +615,7 @@ class LifecycleEngine {
       const debtWaiters = [ ...this.#idleStopWaiters ]
       this.#idleStopWaiters.clear()
       const resolve = () => { for (const waiter of debtWaiters) { waiter.resolve() } }
-      if (this.#state.kind === 'failed') {
+      if (this.#state.kind === 'failed' || this.#state.kind === 'stopping') {
         return () => this.#commit({ kind: 'stopped', generation: this.#state.generation }, resolve)
       }
       resolve()
@@ -876,7 +882,10 @@ class LifecycleEngine {
         cleanupError    : stopError,
       }
     } else if (this.#pending && !this.#pending.settled) {
-      next = undefined // the next step commits `starting` for the replacement
+      // The next step commits `starting` for the replacement. Until then the
+      // state stays `stopping` with no current generation; a stop() in that gap
+      // commits `stopped` instead (see stop()).
+      next = undefined
     } else {
       next = { kind: 'stopped', generation: generation.number }
     }
