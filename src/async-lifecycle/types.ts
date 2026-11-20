@@ -114,8 +114,9 @@ interface Lifecycle extends AsyncDisposable {
    *
    * Resolves when the attempt this call joined commits `running`, or at once if
    * a generation is running and not retiring. Rejects with the start error when
-   * that attempt fails, with `LifecycleSupersededError` when a later `stop()`
-   * supersedes it, with `LifecycleUnsafeStateError` while the state is
+   * that attempt fails, with `LifecycleSupersededError` when a later `stop()`, or a
+   * `restart()` accepted while it is `starting`, supersedes it (C-CMD-07,
+   * C-CMD-11), with `LifecycleUnsafeStateError` while the state is
    * `failed { cleanupComplete: false }`, or with the caller's abort reason.
    */
   start (options?: LifecycleWaitOptions): Promise<void>
@@ -212,8 +213,9 @@ interface LifecycleAcquireOptions<T> {
  * C-REC-03).
  *
  * - `'recovered'`: the replacement generation committed `running`.
- * - `'superseded'`: a user command won, or the calling scope was already retired
- *   or retiring.
+ * - `'superseded'`: a `stop()` or `restart()` was accepted before the replacement
+ *   committed `running` (including while it was still `starting`), or the calling
+ *   scope was already retired or retiring.
  * - `'failed'`: called before this generation reached `running` (it then acts
  *   like `fail(reason)`), or the retirement or the replacement failed. The state
  *   says how.
@@ -325,9 +327,11 @@ interface LifecycleScope {
    * intent (C-REC-02 to C-REC-05). Never rejects; see
    * {@link LifecycleRecoverResult}.
    *
-   * The retirement does not wait for a spawned task that is itself awaiting this
-   * recovery (D19); such a task must return promptly once the result arrives and
-   * must not use the retired generation's resources.
+   * The retirement does not wait for the spawned task that itself made this call
+   * and is awaiting it (D19, C-REC-05). Only that task is exempt; a sibling task
+   * awaiting the same result indirectly is joined as usual. The exempt task must
+   * return promptly once the result arrives and must not use the retired
+   * generation's resources.
    */
   recover (reason?: unknown): Promise<LifecycleRecoverResult>
 

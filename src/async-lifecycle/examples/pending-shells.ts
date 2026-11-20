@@ -58,9 +58,10 @@ export declare function createLifecycle (hooks: LifecycleHooks, options?: Lifecy
  * Inheritance entry point: for a class with no other base. Same engine and
  * behavior as {@link createLifecycle} (C-SHELL-01).
  *
- * The caller-API members are final: the constructor throws
- * `LifecycleOverrideError` if a subclass overrides one, including through a class
- * field (C-SHELL-02).
+ * The caller-API members are final (C-SHELL-02). A subclass method that overrides
+ * one makes the constructor throw `LifecycleOverrideError`. A class-field override
+ * makes construction fail with a native `TypeError`, because the field is defined
+ * after the base constructor has locked the member.
  */
 export declare abstract class AsyncLifecycle implements Lifecycle {
 

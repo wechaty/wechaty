@@ -88,7 +88,7 @@ stateDiagram-v2
 - **C-CMD-08** `stop()` resolves when the generation it captured is released, even if a newer `start()` is already queued behind it.
 - **C-CMD-09** `stop()` while `stopped` resolves at once. On a clean `failed` state it commits `stopped`, then resolves.
 - **C-CMD-10** `stop()` on `failed { cleanupComplete: false }` retries only the obligations still unreleased. It commits `stopped` and resolves when they are all released; otherwise it stays dirty and rejects with the cleanup error.
-- **C-CMD-11** `restart()` retires the current generation, if any, and resolves only when a new generation commits `running`. It is never a no-op while running. A later `stop()` supersedes it.
+- **C-CMD-11** `restart()` retires the current generation, if any, and resolves only when a new generation commits `running`. It is never a no-op while running. During `starting` it aborts that attempt, and the attempt's `start()` callers reject with `LifecycleSupersededError`; they do not join the replacement. A later `stop()` supersedes it.
 - **C-CMD-12** `restart()` from `stopped` or a clean `failed` behaves like `start()`.
 - **C-CMD-13** `start()` and `restart()` on `failed { cleanupComplete: false }` reject at once with `LifecycleUnsafeStateError` and change nothing. Only `stop()` can finish that cleanup (D27).
 - **C-CMD-14** A failed attempt ends. Nothing retries because the intent is still "running". A new generation needs a new command or an accepted `scope.recover()`.
@@ -113,7 +113,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 
 | Call | Resolves when | Rejects when |
 | --- | --- | --- |
-| `start()` | The attempt it joined commits `running` | The attempt fails (its error) · a later `stop()` supersedes it · dirty state · caller abort |
+| `start()` | The attempt it joined commits `running` | The attempt fails (its error) · a later `stop()`, or a `restart()` during `starting`, supersedes it · dirty state · caller abort |
 | `stop()` | The generation it captured is released | Retirement reports errors (the cleanup error) · caller abort |
 | `restart()` | The replacement commits `running` | Retirement or replacement fails · a later `stop()` supersedes it · dirty state · caller abort |
 | `whenState()` | The predicate matches | Caller abort · the predicate throws |
@@ -165,9 +165,9 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 
 - **C-REC-01** `scope.fail(error)` retires the generation with no replacement and ends `failed` (`phase: 'run'` if it reached `running`, otherwise `'start'`). The first failure wins, and its value is kept as given.
 - **C-REC-02** `scope.recover(reason)` from a running generation retires it (`onStop` reason `'recover'`) and starts a replacement without counting as user intent: `running → stopping → starting → running`, with no `stopped` or `failed` in between.
-- **C-REC-03** `scope.recover()` never rejects (D10). It resolves `'recovered'` when the replacement commits `running`. It resolves `'superseded'` when called from a retired or retiring scope, or when a user command is accepted before the replacement starts. It resolves `'failed'` when called before `running` (it then acts like `fail(reason)`, so a first boot fails fast), or when the retirement or the replacement fails.
+- **C-REC-03** `scope.recover()` never rejects (D10). It resolves `'recovered'` when the replacement commits `running`. It resolves `'superseded'` when called from a retired or retiring scope, or when a `stop()` or `restart()` is accepted before the replacement commits `running`. That includes a replacement still in `starting`, for example one retrying its connection under C-REC-06, which the user cancels; that is never reported as `'failed'`. A `start()` accepted meanwhile does not supersede the recovery; it joins the replacement (C-CMD-05). It resolves `'failed'` when called before `running` (it then acts like `fail(reason)`, so a first boot fails fast), or when the retirement or the replacement fails.
 - **C-REC-04** Recovery authority is checked again after the old generation is released, so a `stop()` or `restart()` accepted in the meantime always wins.
-- **C-REC-05** The retirement started by `recover()` does not wait for a spawned task that is itself awaiting that `recover()` (D19). Such a task must return promptly once the result arrives.
+- **C-REC-05** The retirement started by `recover()` does not wait for the spawned task that itself called that `recover()` and is awaiting it (D19). Only that task is exempt, identified by the call being made from its own execution. Another task that awaits the same result indirectly, for example through a shared promise, is joined as usual, so it must return once `scope.signal` aborts. The exempt task must return promptly once the result arrives and must not use the retired generation's resources. How the kernel identifies the calling task is decided in S4 (D22): `AsyncLocalStorage`, which the Copilot comparison implementation already uses under both Node.js and Deno, or an explicit per-task handle.
 - **C-REC-06** The module has no retry policy: no backoff, no budget, no automatic restart (D7). Implementers write policy in their hooks. The usual pattern is to retry inside `onStart` under `scope.signal`, so the state stays `starting` while offline and `stop()` cancels the wait; see `examples/io.example.ts`. A recovery whose replacement fails ends `failed`, and an owning parent then fails too (C-CHILD-05).
 
 ## 10. Children
@@ -191,6 +191,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 Usage notes, not rules:
 - A wait created before `start()` rejects if that start fails, so give it a handler at once, for example `await Promise.all([ bot.ready(), bot.start() ])`. Awaiting `start()` first leaves the wait unhandled when `start()` throws.
 - To expose a child's condition, delegate to the child (`ready () { return this.puppet.ready() }`) rather than mirroring it into a condition of your own. A mirror would also have to be cleared whenever the child's generation retires, which no child event reports.
+- A delegated wait is bound to the child, so on its own it does not reject when the parent stops or fails before it ever owned the child. Pass the child a signal that the parent aborts when it accepts `stop()` or fails, as `examples/wechaty.example.ts` does.
 
 ## 12. Observers and diagnostics
 
@@ -202,7 +203,7 @@ Usage notes, not rules:
 ## 13. Entry points
 
 - **C-SHELL-01** `createLifecycle(hooks, options)` and `abstract class AsyncLifecycle` share one engine and behave identically; the entry points add no behavior.
-- **C-SHELL-02** The `AsyncLifecycle` constructor throws `LifecycleOverrideError` if a subclass overrides a caller-API member (`state`, `start`, `stop`, `restart`, `whenState`, `Symbol.asyncDispose`), including through a class field.
+- **C-SHELL-02** The caller-API members of `AsyncLifecycle` (`state`, `start`, `stop`, `restart`, `whenState`, `Symbol.asyncDispose`) cannot be overridden; either kind of override fails `new`. An override declared as a **method** on a subclass is detected by the base constructor, which throws `LifecycleOverrideError`. An override declared as a **class field** is defined only after the base constructor returns, so the base cannot detect it. Instead, the base constructor installs these members as own, non-configurable properties, and defining the field then throws a native `TypeError`.
 - **C-SHELL-03** `createLifecycle` throws `TypeError` when `hooks.onStart` is not a function, or `onStop` / `onStateChange` is present but not a function.
 - **C-SHELL-04** The `name` option is a diagnostics label. It is published (C-OBS-04), so it must not contain secrets.
 
@@ -219,9 +220,9 @@ Branch on `code`, or use `isLifecycleError(value, code?)`. Don't rely on `instan
 | `LifecycleTimeoutError` | `ERR_LIFECYCLE_TIMEOUT` | A start or stop deadline expired; has `phase` and `timeoutMs` |
 | `LifecycleUnsafeStateError` | `ERR_LIFECYCLE_UNSAFE_STATE` | A command refused on a dirty state, or an unusable child (C-CMD-13, C-CHILD-01) |
 | `LifecycleChildFailureError` | `ERR_LIFECYCLE_CHILD_FAILURE` | An owned child failed or stopped unasked; `cause` is its error (C-CHILD-05) |
-| `LifecycleOverrideError` | `ERR_LIFECYCLE_OVERRIDE` | A subclass overrode a caller-API member; has `member` (C-SHELL-02) |
+| `LifecycleOverrideError` | `ERR_LIFECYCLE_OVERRIDE` | A subclass method overrode a caller-API member; has `member`. A class-field override fails with a native `TypeError` instead (C-SHELL-02). |
 
-The module also passes through, without wrapping: hook errors as reported (falsy values included), `AggregateError` for several cleanup errors (C-RET-04), `RangeError` for invalid options (C-TIME-01), and `TypeError` for misuse (C-SCOPE-06, C-COND-01, C-SHELL-03).
+The module also passes through, without wrapping: hook errors as reported (falsy values included), `AggregateError` for several cleanup errors (C-RET-04), `RangeError` for invalid options (C-TIME-01), and `TypeError` for misuse (C-SCOPE-06, C-COND-01, C-SHELL-02 for class-field overrides, C-SHELL-03).
 
 ## 15. Companions (planned, S4)
 

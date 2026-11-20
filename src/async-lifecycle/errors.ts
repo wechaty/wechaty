@@ -152,9 +152,13 @@ class LifecycleChildFailureError extends LifecycleError {
 }
 
 /**
- * A subclass of `AsyncLifecycle` overrode a caller-API member. Thrown by the
- * `AsyncLifecycle` constructor, so the mistake surfaces when the instance is
- * created rather than as a lifecycle that silently skips the engine.
+ * A subclass of `AsyncLifecycle` overrode a caller-API member with a method.
+ * Thrown by the `AsyncLifecycle` constructor, so the mistake surfaces when the
+ * instance is created rather than as a lifecycle that silently skips the engine.
+ *
+ * A class-field override cannot be reported with this error: the field is
+ * defined after the base constructor returns, and defining it over the locked
+ * member throws a native `TypeError` instead (README C-SHELL-02).
  */
 class LifecycleOverrideError extends LifecycleError {
 

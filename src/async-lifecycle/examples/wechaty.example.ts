@@ -31,6 +31,11 @@
  * whenever the puppet's ready generation retires (a puppet restart or recovery
  * emits no `'logout'`), and getting that wrong leaves `ready()` resolving for a
  * puppet that is still starting (review of wechaty/wechaty#2975).
+ *
+ * Delegating alone loses the parent's half of C-COND-04. A `bot.ready()` wait is
+ * bound to the puppet, so a bot that stops or fails before it ever owned the
+ * puppet would leave the wait pending forever. The bot therefore also cancels
+ * its delegated waits when it accepts `stop()` or fails (see `ready()`).
  */
 
 import { EventEmitter } from 'node:events'
@@ -42,6 +47,7 @@ import type {
   LifecycleState,
   LifecycleWaitOptions,
 }                           from '../types.ts'
+import { LifecycleSupersededError } from '../errors.ts'
 import type { Io } from './io.example.ts'
 import { createLifecycle } from './pending-shells.ts'
 import type { Puppet } from './puppet.example.ts'
@@ -68,6 +74,12 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
   readonly io: Io | undefined
 
   readonly #lifecycle: LifecycleController
+
+  /**
+   * Cancels the delegated `ready()` waits created before it. Aborted, and
+   * replaced, when this bot accepts `stop()` or fails; see `#cancelReadyWaits`.
+   */
+  #readyWaits = new AbortController()
 
   /**
    * @param puppet - Must be idle and not owned by another lifecycle when `start()`
@@ -109,18 +121,36 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
       this.emit('start')
     } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {
       this.emit('stop')
-    } else if (state.kind === 'failed' && this.listenerCount('error') > 0) {
-      this.emit('error', state.error)
+    } else if (state.kind === 'failed') {
+      // Also covers a start that failed before the puppet was ever owned.
+      this.#cancelReadyWaits(new LifecycleSupersededError('the bot failed before the puppet was ready', { cause: state.error }))
+      if (this.listenerCount('error') > 0) {
+        this.emit('error', state.error)
+      }
     }
   }
 
   /**
+   * Reject every pending delegated `ready()` wait with `reason`, as C-COND-04
+   * rejects a condition wait, and start a fresh controller for later waits.
+   */
+  #cancelReadyWaits (reason: unknown): void {
+    this.#readyWaits.abort(reason)
+    this.#readyWaits = new AbortController()
+  }
+
+  /**
    * Resolves when the puppet's current, or next, generation is ready, so it
-   * works before `start()`. Rejects when that puppet generation retires first,
-   * which includes this bot stopping or failing (C-COND-04).
+   * works before `start()`. Rejects with `LifecycleSupersededError` when that
+   * puppet generation retires first (C-COND-04), and also when this bot accepts
+   * `stop()` or fails before then, even if it never owned the puppet. Rejects with
+   * the caller's abort reason on abort.
    */
   ready (options?: LifecycleWaitOptions): Promise<void> {
-    return this.puppet.ready(options)
+    const signal = options?.signal
+      ? AbortSignal.any([ options.signal, this.#readyWaits.signal ])
+      : this.#readyWaits.signal
+    return this.puppet.ready({ signal })
   }
 
   /** Whether the puppet's live generation is logged in. */
@@ -133,8 +163,17 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
   get state (): LifecycleState { return this.#lifecycle.state }
   /** See `Lifecycle.start`. */
   start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
-  /** See `Lifecycle.stop`. */
-  stop (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.stop(options) }
+  /**
+   * See `Lifecycle.stop`. Also rejects pending `ready()` waits, at the moment the
+   * stop is accepted, as C-COND-04 does for a pre-start condition wait.
+   */
+  stop (options?: LifecycleWaitOptions): Promise<void> {
+    // A pre-aborted call accepts nothing (C-CMD-01), so it cancels nothing either.
+    if (!options?.signal?.aborted) {
+      this.#cancelReadyWaits(new LifecycleSupersededError('the bot was stopped before the puppet was ready'))
+    }
+    return this.#lifecycle.stop(options)
+  }
   /** See `Lifecycle.restart`. */
   restart (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.restart(options) }
   /** See `Lifecycle.whenState`. */
@@ -142,8 +181,8 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleWaitOptions,
   ): Promise<LifecycleState> { return this.#lifecycle.whenState(predicate, options) }
-  /** See `Lifecycle[Symbol.asyncDispose]`: same as `stop()`. */
-  [Symbol.asyncDispose] (): Promise<void> { return this.#lifecycle[Symbol.asyncDispose]() }
+  /** See `Lifecycle[Symbol.asyncDispose]`: same as `stop()`, including cancelling `ready()` waits. */
+  [Symbol.asyncDispose] (): Promise<void> { return this.stop() }
 
 }
 

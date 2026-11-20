@@ -49,6 +49,8 @@ export interface PuppetEvents {
   login: [ userId: string ]
   logout: [ userId: string ]
   ready: []
+  /** A QR code to scan: authentication is pending again, so readiness is lost. */
+  scan: [ qrcode: string ]
   error: [ error: unknown ]
 }
 
@@ -80,10 +82,15 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   protected abstract onStop (): Promise<void>
 
   async #start (scope: LifecycleScope): Promise<void> {
-    // One provider stop per pass, shared by the early and the normal path. The
-    // async wrapper turns a provider's synchronous throw into a cached rejection:
-    // thrown from the abort listener it would be an uncaught exception, and left
-    // uncached the deferred cleanup would call onStop() a second time.
+    // At most one onStop() is in flight per generation, shared by the early and
+    // the normal path. A new call happens only after a previous one rejected and
+    // the ledger saw it. A hung onStop() stays pending past stopTimeoutMs, so a
+    // later stop() joins it rather than starting a second, overlapping call on a
+    // provider that may not be reentrant.
+    //
+    // The async wrapper turns a provider's synchronous throw into a cached
+    // rejection: thrown from the abort listener it would be an uncaught exception,
+    // and left uncached the deferred cleanup would call onStop() a second time.
     let stopping: Promise<void> | undefined
     const stopProvider = (): Promise<void> => (stopping ??= (async () => this.onStop())())
 
@@ -120,19 +127,26 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
 
     // Conditions follow the provider's events for this generation only. A
     // listener from an old generation holds an old scope, so it changes nothing.
+    // The same holds for events the provider emits during an early onStop(),
+    // before step 7 removes these listeners: by then the scope is sealed, and
+    // set/clear on a sealed scope do nothing (C-SCOPE-02).
     const onLogin = () => scope.set(this.#login)
     const onLogout = () => {
       scope.clear(this.#login)
       scope.clear(this.#ready)
     }
     const onReady = () => scope.set(this.#ready)
+    // As in today's puppet-event-bridge: a new QR code means not ready.
+    const onScan = () => scope.clear(this.#ready)
     this.on('login', onLogin)
     this.on('logout', onLogout)
     this.on('ready', onReady)
+    this.on('scan', onScan)
     scope.defer(() => {
       this.off('login', onLogin)
       this.off('logout', onLogout)
       this.off('ready', onReady)
+      this.off('scan', onScan)
     })
 
     await this.onStart()
@@ -141,8 +155,10 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
 
   /** Map a failure to today's `'error'` event. */
   #reportFailure (state: LifecycleState): void {
-    // emit('error') with no listener throws. onStateChange is isolated (C-OBS-02),
-    // so that could not break the lifecycle, but checking keeps the intent clear.
+    // emit('error') with no listener throws ERR_UNHANDLED_ERROR, the trap behind
+    // #2855. The listener check avoids it when a failed start() is already
+    // handled by its caller. onStateChange is also isolated (C-OBS-02), so even a
+    // throwing listener could not change the lifecycle's outcome.
     if (state.kind === 'failed' && this.listenerCount('error') > 0) {
       this.emit('error', state.error)
     }
