@@ -185,6 +185,8 @@ jobs:
             pull_requests: write
             issues: write
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Tag mode posts native progress while preserving the direct review prompt.
+          track_progress: true
           # Direct review prompt: no plugin-wide "already commented" skip rule.
           # The existing HEAD/BASE guard handles duplicate revisions.
           show_full_output: true
