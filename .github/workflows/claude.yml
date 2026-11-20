@@ -199,9 +199,8 @@ jobs:
           # failed pilot and the Action reported "No plugins specified".
           plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
           plugins: code-review@claude-plugins-official
-          # Experiment: track_progress forces tag mode. Verify the actual
-          # /code-review plugin execution before keeping this setting.
-          track_progress: true
+          # Automation mode executes slash commands; native track_progress
+          # selects tag mode; use Actions checks rather than PR progress comments.
           prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
           claude_args: |
             --max-turns 100
