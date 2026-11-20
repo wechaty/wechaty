@@ -55,7 +55,6 @@ Source tests that assert behavior contradicting an accepted decision. Each is po
 | codex, claude: inheritance rejects command overrides | Throw a plain `Error` | D13: `LifecycleOverrideError` |
 | codex: start waiting for detached cleanup joins the surviving run | `start()` on a running generation waits for an old late release | C-CMD-04: it resolves at once (D31 makes only new generations wait) |
 | codex: a parent cannot claim a child's queued start / restart; a clean failed child with an accepted stop cannot be claimed | Refuses through private knowledge of the child's pending command | D33: decided by public state alone |
-| claude: debt from a retired generation is retried by the next retirement | A late release that fails while a generation runs leaves that run alone | D31: the failure retires the live generation and leaves cleanup debt |
 | codex: a start deadline reports dirty failure; claude: an onStart that ignores its timeout | A failed start rejects only after cleanup | D35: it rejects when the failure is decided |
 
 ## Ported and dropped tests
