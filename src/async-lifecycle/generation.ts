@@ -123,6 +123,12 @@ class Generation {
    */
   awaitingErrors: unknown[] = []
   /**
+   * The last retirement pass's own cleanup errors (`onStop`, interrupts, its
+   * own releases), kept apart from debt errors, which stay in the debtors'
+   * ledgers and must not be reported twice.
+   */
+  localErrors: unknown[] = []
+  /**
    * Its start failed because a late release failed meanwhile (C-SCOPE-11): that
    * debt is reported, not retried by this generation's own retirement.
    */

@@ -257,6 +257,8 @@ class LifecycleEngine {
   readonly #late = new Set<Promise<void>>()
   /** Resolved, then cleared, when {@link LifecycleEngine.#late} becomes empty. */
   readonly #lateDrainWaiters = new Set<() => void>()
+  /** Resolved, then cleared, when a late release fails and becomes debt. */
+  readonly #debtWaiters = new Set<() => void>()
   /**
    * The idle snapshot (`stopped`, or a clean `failed`) that a late release
    * interrupted with `stopping`; restored when the late releases end (D31).
@@ -601,6 +603,11 @@ class LifecycleEngine {
     this.#schedule()
   }
 
+  /** Resolves the next time a late release fails and becomes debt. */
+  #debtAppeared (): Promise<void> {
+    return new Promise(resolve => this.#debtWaiters.add(resolve))
+  }
+
   /** Resolves once no late release is running, including ones added meanwhile. */
   async #drainLate (): Promise<void> {
     while (this.#late.size > 0) {
@@ -613,6 +620,11 @@ class LifecycleEngine {
       return // its own retirement reads the ledger back
     }
     this.#debtors.add(generation)
+    const waiters = [ ...this.#debtWaiters ]
+    this.#debtWaiters.clear()
+    for (const resolve of waiters) {
+      resolve()
+    }
     this.#schedule()
   }
 
@@ -756,12 +768,22 @@ class LifecycleEngine {
     const deadline = this.#deadline(this.#startTimeoutMs, 'start')
     const retireRequested = generation.retireRequested.promise.then(() => undefined)
     let result = await Promise.race([ outcome, deadline.expired, retireRequested ])
-    if (result !== undefined && result !== TIMEOUT && result.ok && this.#late.size > 0 && !generation.sealed) {
-      // Late releases of earlier runs are obligations of the instance: this run
-      // does not commit `running` until they finish, under its start deadline
-      // (C-SCOPE-11, C-TIME-02).
-      const drained = await Promise.race([ this.#drainLate().then(() => result), deadline.expired, retireRequested ])
-      result = drained
+    // Late releases of earlier runs are obligations of the instance: this run
+    // does not commit `running` until they finish, under its start deadline
+    // (C-SCOPE-11, C-TIME-02). The condition is checked again after every wake,
+    // in the same turn as the commit below, so a release registered just after a
+    // drain is waited for too. A failure ends the wait at once, even while other
+    // late releases still run.
+    while (result !== undefined && result !== TIMEOUT && result.ok && !generation.sealed
+      && this.#late.size > 0 && this.#debtors.size === 0) {
+      const ok = result
+      const woke = await Promise.race([
+        this.#drainLate().then(() => ok),
+        this.#debtAppeared().then(() => ok),
+        deadline.expired,
+        retireRequested,
+      ])
+      result = woke
     }
     deadline.cancel()
 
@@ -818,7 +840,9 @@ class LifecycleEngine {
     // run, the engine commits again once they finish (D31), with this pass's
     // own cleanup errors.
     generation.awaitingLate = released && this.#late.size > 0
-    generation.awaitingErrors = generation.awaitingLate ? [ ...errors ] : []
+    // Only this pass's own errors: debt errors stay in the debtors' ledgers and
+    // are read from there when the outcome is published.
+    generation.awaitingErrors = generation.awaitingLate ? [ ...generation.localErrors ] : []
     this.#finishRetirement(generation, errors, complete, retry)
   }
 
@@ -864,7 +888,7 @@ class LifecycleEngine {
    * 8. retry the debt that existed when this retirement began
    */
   async #performRetirement (generation: Generation, deadlineSignal: AbortSignal, retry: boolean): Promise<unknown[]> {
-    const errors: unknown[] = []
+    const errors: unknown[] = [] // this pass's own errors: onStop, interrupts, its releases
     // Debt this run's own start failed on is left for an explicit stop().
     const earlierDebt = generation.debtFailure && !retry ? new Map<Generation, ReadonlySet<object>>() : this.#debtSnapshot()
 
@@ -886,17 +910,32 @@ class LifecycleEngine {
     await generation.startWork
     errors.push(...await generation.ledger.unwind())
     errors.push(...generation.lateInterruptErrors.splice(0))
+    const debt: unknown[] = []
     if (retry || generation.retireReason !== 'failure') {
       await this.#drainLate()
-      errors.push(...this.#newDebtFailures(earlierDebt))
-      errors.push(...await this.#unwindDebt(earlierDebt))
+      debt.push(...await this.#unwindDebt(earlierDebt))
+      // Until nothing runs: late releases registered by a retry, and releases
+      // registered on this generation's sealed scope after its unwind, which
+      // are joined without being retried.
+      for (;;) {
+        await this.#drainLate()
+        if (generation.ledger.running) {
+          errors.push(...await generation.ledger.unwind({ retry: new Set() }))
+          continue
+        }
+        if (this.#late.size === 0) {
+          break
+        }
+      }
     } else {
-      // A failure's retirement does not wait for late releases, but reports the
-      // ones that already failed during it.
-      errors.push(...this.#newDebtFailures(earlierDebt))
-      errors.push(...await this.#unwindDebt(earlierDebt, false))
+      // A failure's retirement does not wait for late releases.
+      debt.push(...await this.#unwindDebt(earlierDebt, false))
     }
-    return errors
+    // Debt that appeared during this pass, even while a retry was blocked, is
+    // reported, not retried (C-CMD-10).
+    debt.push(...this.#newDebtFailures(earlierDebt))
+    generation.localErrors = errors
+    return [ ...errors, ...debt ]
   }
 
   /**
@@ -1123,8 +1162,11 @@ class LifecycleEngine {
         async () => {
           const earlierDebt = this.#debtSnapshot()
           await this.#drainLate()
-          const errors = this.#newDebtFailures(earlierDebt)
-          return [ ...errors, ...await this.#unwindDebt(earlierDebt) ]
+          const errors = await this.#unwindDebt(earlierDebt)
+          // A retry may register late releases of its own: join them too.
+          await this.#drainLate()
+          // Debt that appeared during this pass is reported, not retried.
+          return [ ...errors, ...this.#newDebtFailures(earlierDebt) ]
         },
         work => { this.#debtRetirement = work },
       )

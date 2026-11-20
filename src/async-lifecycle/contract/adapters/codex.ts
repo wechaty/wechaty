@@ -203,6 +203,8 @@ const codex: Implementation = {
     'S3.I4.late': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
     'S3-D31-idle': 'B3: onStop runs for a generation that never reached `running`',
     'S3-D41': 'B3: onStop runs for a generation that never reached `running`',
+    'C-SCOPE-11.w': 'D31 divergence: a late release that fails while a generation is running fails that generation with the release error, instead of leaving the debt to its retirement (C-SCOPE-11)',
+    'C-SCOPE-11.y': 'D31 divergence: a late release that fails during a failure\'s retirement is missing from the failed snapshot\'s cleanupError (C-SCOPE-11)',
   },
 }
 

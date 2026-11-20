@@ -97,6 +97,11 @@ class Ledger {
     return this.#entries.length === 0
   }
 
+  /** Whether a release is running right now (started and not yet settled). */
+  get running (): boolean {
+    return this.#entries.some(entry => entry.status === 'running')
+  }
+
   /** The last errors of releases that failed and still await a retry. */
   get failures (): unknown[] {
     return this.failuresExcept(new Set())
@@ -200,16 +205,14 @@ class Ledger {
   async #unwindPass (options: UnwindOptions | undefined): Promise<unknown[]> {
     const errors: unknown[] = []
     const attempted = new Set<Entry>()
+    // The policy is checked at every selection, so entries added while the pass
+    // waits (late releases) follow it too.
     const skip = (entry: Entry) => (options?.retry !== undefined && entry.status === 'failed' && !options.retry.has(entry))
       || (options?.joinRunning === false && entry.status === 'running')
-    for (const entry of this.#entries) {
-      if (skip(entry)) {
-        attempted.add(entry)
-      }
-    }
+    const eligible = (entry: Entry) => !attempted.has(entry) && !skip(entry)
     for (;;) {
-      const entry = this.#entries.findLast(candidate => candidate.join && !attempted.has(candidate))
-        ?? this.#entries.findLast(candidate => !attempted.has(candidate))
+      const entry = this.#entries.findLast(candidate => candidate.join && eligible(candidate))
+        ?? this.#entries.findLast(candidate => eligible(candidate))
       if (!entry) {
         return errors
       }
