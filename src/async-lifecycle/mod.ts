@@ -27,8 +27,13 @@
  * (wechaty/wechaty#2972). Nothing outside this directory imports it yet, and it
  * is not part of the package exports map until wechaty/wechaty#2974.
  *
- * Boundary: this directory imports nothing outside itself except
- * `node:diagnostics_channel`, so it can move to its own package unchanged.
+ * Boundary: the module's own files import nothing outside this directory except
+ * `node:diagnostics_channel`, so it can move to its own package unchanged. The
+ * one exception is test code in `contract/`: its `adapters/` import the three
+ * comparison implementations in `src/async-lifecycle-{codex,claude,copilot}/`
+ * so the shared suite can run against them (wechaty/wechaty#2970). Nothing here
+ * imports `contract/`, and the adapters are deleted with those directories in
+ * wechaty/wechaty#2974.
  */
 
 export {
