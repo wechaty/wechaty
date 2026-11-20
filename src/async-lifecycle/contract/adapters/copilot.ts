@@ -1,0 +1,132 @@
+/**
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
+ *
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+/**
+ * Contract-suite adapter for the Copilot comparison implementation
+ * (`src/async-lifecycle-copilot/`, #2912), frozen at `731caedd`.
+ *
+ * Its API is a superset of S1, so translations are minimal:
+ * - `scope.start(child)` resolves with the child; S1 resolves with nothing.
+ * - The scope's extra `listen` member and `spawn` options are not exposed.
+ *
+ * It supports every capability.
+ */
+
+import {
+  AsyncLifecycle,
+  createLifecycle,
+}                           from '../../../async-lifecycle-copilot/mod.ts'
+import type * as Copilot    from '../../../async-lifecycle-copilot/mod.ts'
+import type {
+  Lifecycle,
+  LifecycleCondition,
+  LifecycleHooks,
+  LifecycleOptions,
+  LifecycleScope,
+  LifecycleState,
+}                           from '../../types.ts'
+import type {
+  Implementation,
+  MakeSubject,
+  Subject,
+}                           from '../subject.ts'
+
+/** Present the implementation's scope with the S1 shape. */
+function adaptScope (scope: Copilot.LifecycleScope): LifecycleScope {
+  return Object.freeze<LifecycleScope>({
+    generation : scope.generation,
+    signal     : scope.signal,
+    acquire    : (create, release, options) => scope.acquire(
+      create,
+      release as (resource: unknown) => void | PromiseLike<void>,
+      options,
+    ) as Promise<never>,
+    use     : resource => scope.use(resource),
+    defer   : cleanup => scope.defer(cleanup as () => void | PromiseLike<void>),
+    spawn   : task => scope.spawn(task),
+    start   : child => scope.start(child as Copilot.Lifecycle).then(() => {}),
+    set     : condition => scope.set(condition as Copilot.LifecycleCondition),
+    clear   : condition => scope.clear(condition as Copilot.LifecycleCondition),
+    fail    : error => scope.fail(error),
+    recover : reason => scope.recover(reason),
+  })
+}
+
+/** Translate S1 hooks into this implementation's hooks. */
+function adaptHooks (hooks: LifecycleHooks): Required<Copilot.LifecycleHooks> {
+  return {
+    onStart       : scope => hooks.onStart(adaptScope(scope)),
+    onStop        : stop => hooks.onStop?.(stop),
+    onStateChange : (state, previous) => hooks.onStateChange?.(state as LifecycleState, previous as LifecycleState),
+  }
+}
+
+const makeComposed: MakeSubject = (hooks, options) => {
+  const adapted = adaptHooks(hooks)
+  const controller = createLifecycle({
+    onStart: adapted.onStart,
+    // Only pass optional hooks the test supplied: their presence is observable.
+    ...(hooks.onStop ? { onStop: adapted.onStop } : {}),
+    ...(hooks.onStateChange ? { onStateChange: adapted.onStateChange } : {}),
+  }, options as Copilot.LifecycleOptions)
+  return {
+    lifecycle : controller as unknown as Lifecycle,
+    condition : name => controller.condition(name) as unknown as LifecycleCondition,
+  }
+}
+
+const makeInherited: MakeSubject = (hooks, options) => {
+  const adapted = adaptHooks(hooks)
+  class Probe extends AsyncLifecycle {
+
+    constructor (probeOptions?: LifecycleOptions) {
+      super(probeOptions as Copilot.LifecycleOptions)
+    }
+
+    protected override onStart (scope: Copilot.LifecycleScope) { return adapted.onStart(scope) }
+    protected override onStop (stop: Copilot.LifecycleStopContext) { return adapted.onStop(stop) }
+    protected override onStateChange (state: Copilot.LifecycleState, previous: Copilot.LifecycleState) {
+      adapted.onStateChange(state, previous)
+    }
+
+    declareCondition (name: string): LifecycleCondition {
+      return this.condition(name) as unknown as LifecycleCondition
+    }
+
+  }
+  const probe = new Probe(options)
+  const subject: Subject = {
+    lifecycle : probe as unknown as Lifecycle,
+    condition : name => probe.declareCondition(name),
+  }
+  return subject
+}
+
+/** The Copilot comparison implementation. */
+const copilot: Implementation = {
+  name         : 'copilot',
+  capabilities : new Set([ 'clock', 'scope.acquire', 'acquire.interrupt', 'scope.recover', 'onStop.context', 'condition.isSet' ]),
+  shells       : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
+  knownFailures: {
+    B1: 'start() rejects before `failed` is committed, and stop() then resolves on a lifecycle that ends `failed` (#2968 §5)',
+  },
+}
+
+export { copilot }
