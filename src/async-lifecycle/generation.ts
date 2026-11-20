@@ -56,12 +56,14 @@ interface ScopeHost {
   /** See {@link LifecycleScope.recover}. */
   recover (generation: Generation, reason: unknown): Promise<LifecycleRecoverResult>
   /**
-   * A release registered on `generation` after it was sealed is running as
-   * `run`, which rejects if it fails. The engine decides whether it belongs to
-   * that generation's own retirement (C-SCOPE-02) or is a late release, an
+   * A release was registered on `generation` after it was sealed. `start` runs
+   * it and returns its run, which rejects if it fails. The engine calls `start`
+   * itself, after recording the obligation, so a command the release calls
+   * reentrantly already sees it. It decides whether the release belongs to that
+   * generation's own retirement (C-SCOPE-02) or is a late release, an
    * obligation of the instance (C-SCOPE-11, D31).
    */
-  lateRelease (generation: Generation, run: Promise<void>): void
+  lateRelease (generation: Generation, start: () => Promise<void>): void
   /** Set or clear a condition; throws `TypeError` for a foreign condition. */
   setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void
 }
@@ -115,6 +117,12 @@ class Generation {
    */
   awaitingLate = false
   /**
+   * The cleanup errors of the retirement that set {@link Generation.awaitingLate}
+   * (an `onStop` that threw, a failed release), kept for the outcome published
+   * once the late releases finish.
+   */
+  awaitingErrors: unknown[] = []
+  /**
    * Its start failed because a late release failed meanwhile (C-SCOPE-11): that
    * debt is reported, not retried by this generation's own retirement.
    */
@@ -158,7 +166,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
    * until that succeeds, and throw the retirement reason to the caller.
    */
   const late = (release: Release): never => {
-    host.lateRelease(generation, generation.ledger.addLate(release))
+    host.lateRelease(generation, () => generation.ledger.addLate(release))
     throw generation.sealReason
   }
 

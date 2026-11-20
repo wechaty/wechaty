@@ -222,6 +222,12 @@ const copilot: Implementation = {
     'S3.I5.acquire': 'D41 divergence: a late acquisition rejects only after its release finishes, so a hanging release leaves acquire() pending (C-SCOPE-04)',
     'S3-D41': 'D41 divergence: a late acquisition rejects only after its release finishes, so a hanging release leaves acquire() pending (C-SCOPE-04)',
     'C-RET-01.e': 'B14: tasks are joined in the same newest-first pass as releases, so a resource registered after a task is released before that task finishes (C-RET-01)',
+    'C-SCOPE-11.n': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
+    'C-SCOPE-11.o': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.p': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.r': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.s-succeeds': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.s-rejects': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
   },
 }
 

@@ -32,7 +32,7 @@ import { createScope, Generation, type ScopeHost } from './generation.ts'
 const host: ScopeHost = {
   fail: () => {},
   recover: () => Promise.resolve('superseded'),
-  lateRelease: (_generation, run) => { run.catch(() => {}) },
+  lateRelease: (_generation, start) => { start().catch(() => {}) },
   setCondition: () => {},
 }
 

@@ -54,6 +54,17 @@ interface LedgerEntryOptions {
   readonly join?: boolean
 }
 
+/** Options for {@link Ledger.unwind}. */
+interface UnwindOptions {
+  /**
+   * Retry only these failed entries (handles from {@link Ledger.failedEntries});
+   * other failed entries stay failed and are not run. Default: retry every one.
+   */
+  readonly retry?: ReadonlySet<object>
+  /** `false`: leave running entries alone instead of joining them. Default `true`. */
+  readonly joinRunning?: boolean
+}
+
 interface Entry {
   readonly release: Release
   readonly interrupt: (() => void) | undefined
@@ -88,8 +99,22 @@ class Ledger {
 
   /** The last errors of releases that failed and still await a retry. */
   get failures (): unknown[] {
+    return this.failuresExcept(new Set())
+  }
+
+  /**
+   * Opaque handles of the entries that have failed so far. A caller snapshots
+   * them to tell debt that existed before a pass from a failure first seen
+   * during it (C-SCOPE-11): only the first is retried by that pass.
+   */
+  failedEntries (): ReadonlySet<object> {
+    return new Set(this.#entries.filter(entry => entry.status === 'failed'))
+  }
+
+  /** The errors of failed entries that are not in `known`. */
+  failuresExcept (known: ReadonlySet<object>): unknown[] {
     return this.#entries
-      .filter(entry => entry.status === 'failed' && entry.failure)
+      .filter(entry => entry.status === 'failed' && entry.failure && !known.has(entry))
       .map(entry => entry.failure!.error)
   }
 
@@ -164,17 +189,24 @@ class Ledger {
    * Concurrent calls share one pass. Never rejects: the errors of this pass are
    * returned, and {@link Ledger.clean} tells whether anything is still owned.
    */
-  unwind (): Promise<unknown[]> {
+  unwind (options?: UnwindOptions): Promise<unknown[]> {
     this.#sealed = true
-    this.#unwinding ??= this.#unwindPass().finally(() => {
+    this.#unwinding ??= this.#unwindPass(options).finally(() => {
       this.#unwinding = undefined
     })
     return this.#unwinding
   }
 
-  async #unwindPass (): Promise<unknown[]> {
+  async #unwindPass (options: UnwindOptions | undefined): Promise<unknown[]> {
     const errors: unknown[] = []
     const attempted = new Set<Entry>()
+    const skip = (entry: Entry) => (options?.retry !== undefined && entry.status === 'failed' && !options.retry.has(entry))
+      || (options?.joinRunning === false && entry.status === 'running')
+    for (const entry of this.#entries) {
+      if (skip(entry)) {
+        attempted.add(entry)
+      }
+    }
     for (;;) {
       const entry = this.#entries.findLast(candidate => candidate.join && !attempted.has(candidate))
         ?? this.#entries.findLast(candidate => !attempted.has(candidate))
@@ -238,6 +270,7 @@ class Ledger {
 
 export type {
   LedgerEntryOptions,
+  UnwindOptions,
   Release,
 }
 export {

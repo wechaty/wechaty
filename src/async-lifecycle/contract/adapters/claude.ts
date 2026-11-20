@@ -204,6 +204,9 @@ const claude: Implementation = {
     'S3-D31-idle': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-04.f-interrupt': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
     'C-RET-01.e': 'B14: tasks are joined in the same newest-first pass as releases, so a resource registered after a task is released before that task finishes (C-RET-01)',
+    'C-SCOPE-11.p': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.q': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.s-rejects': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
   },
 }
 
