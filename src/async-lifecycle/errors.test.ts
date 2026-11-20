@@ -106,6 +106,13 @@ test('isLifecycleError rejects values that are not lifecycle errors', () => {
   }
 })
 
+test('isLifecycleError rejects a plain object that only carries a lifecycle code', () => {
+  // The guard narrows to an Error shape, so `message` must really exist.
+  assert.equal(isLifecycleError({ code: 'ERR_LIFECYCLE_TIMEOUT' }), false)
+  assert.equal(isLifecycleError({ code: 'ERR_LIFECYCLE_TIMEOUT', name: 'X' }), false)
+  assert.equal(isLifecycleError({ code: 'ERR_LIFECYCLE_TIMEOUT', name: 'X', message: 'm' }), true)
+})
+
 test('the module entry point exports the errors and the guard', () => {
   assert.equal(mod.LifecycleSupersededError, LifecycleSupersededError)
   assert.equal(mod.isLifecycleError, isLifecycleError)

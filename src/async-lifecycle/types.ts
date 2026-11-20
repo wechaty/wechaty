@@ -299,6 +299,11 @@ interface LifecycleScope {
    * When the child fails, or stops without this scope asking, this generation
    * fails with `LifecycleChildFailureError`. A child that restarts or recovers
    * itself is not escalated.
+   *
+   * The wait uses `scope.signal` as its caller signal (C-CHILD-03): if this
+   * generation retires while the child is still starting, it rejects with the
+   * abort reason so `onStart` can settle, and the child stays owned until
+   * retirement stops it.
    */
   start (child: Lifecycle): Promise<void>
 

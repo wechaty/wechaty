@@ -177,17 +177,24 @@ class LifecycleOverrideError extends LifecycleError {
  * Whether `value` is an error created by any copy of this module, optionally
  * with a specific `code`.
  *
- * Checks the shape (`code` is one of {@link LifecycleErrorCode}) instead of using
- * `instanceof`, so it also recognizes errors from another installed copy.
+ * Checks the shape instead of using `instanceof`, so it also recognizes errors
+ * from another installed copy: `name` and `message` are strings, as on every
+ * `Error`, and `code` is one of {@link LifecycleErrorCode}. A plain object that
+ * only carries a matching `code` is rejected, because the narrowed type promises
+ * the `Error` fields.
  *
  * @param value - Anything, typically a caught rejection.
  * @param code - When given, also require this exact code.
  */
 function isLifecycleError (value: unknown, code?: LifecycleErrorCode): value is LifecycleErrorLike {
-  if (typeof value !== 'object' || value === null || !('code' in value)) {
+  if (typeof value !== 'object' || value === null) {
     return false
   }
-  const actual = value.code
+  const candidate = value as { readonly name?: unknown, readonly message?: unknown, readonly code?: unknown }
+  if (typeof candidate.name !== 'string' || typeof candidate.message !== 'string') {
+    return false
+  }
+  const actual = candidate.code
   if (typeof actual !== 'string' || !LIFECYCLE_ERROR_CODES.has(actual)) {
     return false
   }

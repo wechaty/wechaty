@@ -119,7 +119,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 | `whenState()` | The predicate matches | Caller abort · the predicate throws |
 | `condition.wait()` | The bound generation sets the condition | The bound generation retires first · `stop()` before the wait is bound · caller abort |
 | `scope.acquire()` | `create` resolved while the scope is live | `create` rejects (its error) · retirement began (the retirement reason) |
-| `scope.start(child)` | The child commits `running` | The child's start fails · the child is not idle and clean, or already owned · this scope is sealed |
+| `scope.start(child)` | The child commits `running` | The child's start fails · the child is not idle and clean, or already owned · this scope is sealed · this scope's signal aborts while the child is starting (C-CHILD-03) |
 | `scope.recover()` | Always resolves (D10) | Never |
 
 ## 6. Scope
@@ -174,7 +174,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 
 - **C-CHILD-01** `scope.start(child)` needs only the `Lifecycle` interface. The child must be `stopped` or cleanly `failed` and not owned by another scope. Otherwise it rejects with `LifecycleUnsafeStateError` and does not touch the child.
 - **C-CHILD-02** Ownership is recorded before `child.start()` is called, and released only after this scope's `child.stop()` succeeds. Until then no other scope can own the child.
-- **C-CHILD-03** If the parent retires while `child.start()` is pending, the child is stopped as part of the parent's retirement.
+- **C-CHILD-03** `scope.start(child)` waits for the child with the parent's `scope.signal` as its caller signal. When the parent retires while the child is still starting, the wait rejects with the abort reason at retirement step 3, so the parent's `onStart` can settle (step 5). Ownership is kept, and the child is stopped in step 7. Without this, a parent waiting on a child that keeps retrying, such as an offline `Io`, would hold its own retirement until the stop deadline.
 - **C-CHILD-04** Children start in the order the hook starts them, and stop in retirement step 7, newest first, together with resources.
 - **C-CHILD-05** When a child commits `failed`, or commits `stopped` without the parent asking, the parent generation fails with `LifecycleChildFailureError`; its `cause` is the child's error, or `undefined` for an unrequested stop. A child that restarts or recovers itself (`stopping → starting`) is not escalated.
 - **C-CHILD-06** When the child's start fails, `scope.start()` rejects with that error, and the module creates no unhandled rejection.

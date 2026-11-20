@@ -26,7 +26,8 @@
  * wechaty/wechaty#2973. It shows that:
  * - an EventEmitter base keeps its base class and delegates the caller API;
  * - a provider's zero-argument `onStart()` / `onStop()` work unchanged, with the
- *   legacy "onStop is the cleanup" rule kept in the Puppet base, not the kernel;
+ *   legacy "onStop is the cleanup" rule kept in the Puppet base, not the kernel,
+ *   including providers whose `onStart()` settles only after `onStop()` starts;
  * - `login` and `ready` are generation-bound conditions, so `isLoggedIn` and
  *   `ready()` can never report a previous run.
  */
@@ -79,11 +80,35 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   protected abstract onStop (): Promise<void>
 
   async #start (scope: LifecycleScope): Promise<void> {
+    // One provider stop per generation, shared by the early and the normal path.
+    // Reset on failure, so a later stop() retries it (C-SCOPE-09).
+    let stopping: Promise<void> | undefined
+    const stopProvider = (): Promise<void> => {
+      stopping ??= this.onStop().catch((error: unknown) => {
+        stopping = undefined
+        throw error
+      })
+      return stopping
+    }
+
     // Registered first, so it is released last and also runs when onStart()
     // throws halfway: today's contract, kept here for every provider at once.
     // The kernel's own onStop hook only runs after `running` (D8), which is why
     // it is not used for this.
-    scope.defer(() => this.onStop())
+    scope.defer(stopProvider)
+
+    // Some providers' onStart() settles only once onStop() is called (the
+    // current puppet mixin works around one that never settles; see
+    // padlocal/wechaty-puppet-padlocal#116). Retirement waits for onStart in step
+    // 5 but releases in step 7, so start the provider's stop at abort (step 3)
+    // while startup is still pending. The deferred cleanup above joins it.
+    let started = false
+    scope.signal.addEventListener('abort', () => {
+      if (!started) {
+        // Its error, if any, is reported by the deferred cleanup that joins it.
+        stopProvider().catch(() => {})
+      }
+    }, { once: true })
 
     // Conditions follow the provider's events for this generation only. A
     // listener from an old generation holds an old scope, so it changes nothing.
@@ -103,6 +128,7 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
     })
 
     await this.onStart()
+    started = true
   }
 
   /** Map a failure to today's `'error'` event. */
