@@ -199,17 +199,16 @@ jobs:
           # failed pilot and the Action reported "No plugins specified".
           plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
           plugins: code-review@claude-plugins-official
-          # Automation mode executes slash commands; native track_progress
-          # selects tag mode; use Actions checks rather than PR progress comments.
+          # Tag mode publishes an editable Claude progress/review comment.
+          # Verify that run-linked comment independently of plugin internals.
+          track_progress: true
           prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
           claude_args: |
             --max-turns 100
             --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Bash,Task,mcp__github_inline_comment__create_inline_comment"
 
-      # Attribute published feedback to THIS Claude execution, not merely
-      # to claude[bot] and a recent timestamp. Otherwise a concurrent native
-      # Claude session can make a skipped plugin look successfully reviewed.
+      # Verify output of this execution: publishing tool or run-linked tag comment.
       - name: Verify plugin review actually executed
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
@@ -285,6 +284,25 @@ jobs:
               console.log('Verified output from this execution: ' + kind + ' comment ' + commentId)
               verified++
             }
+          }
+          // Tag mode updates its existing tracking comment, not gh pr comment.
+          // Match this exact run, the author, freshness, and completed review.
+          if (!verified) {
+            const runUrl = process.env.GITHUB_SERVER_URL + '/' + repo +
+              '/actions/runs/' + process.env.GITHUB_RUN_ID
+            const comments = api('repos/' + repo + '/issues/' + pr + '/comments?per_page=100')
+            const matched = comments.filter(c =>
+              c.user?.login === 'claude[bot]' &&
+              c.created_at >= started &&
+              c.updated_at >= started &&
+              String(c.body ?? '').includes(runUrl) &&
+              /## Code review(?:\s|$)/i.test(String(c.body ?? '')) &&
+              !String(c.body ?? '').includes('Claude Code is working…')
+            )
+            if (matched.length !== 1)
+              throw Error('Expected one completed Claude review for this run; found ' + matched.length)
+            console.log('Verified tag-mode review: comment ' + matched[0].id)
+            verified++
           }
           if (!verified) throw Error('No review artifact tied to this Claude execution. Plugin may have skipped or returned unsupported tool output.')
           NODE
