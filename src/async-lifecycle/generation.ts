@@ -162,17 +162,18 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       let created: { readonly resource: T } | undefined
       let interruptPending = false
       let creating!: Promise<T>
+      const entry = async () => {
+        let resource: T
+        try {
+          resource = await creating
+        } catch {
+          return // nothing was acquired
+        }
+        await release(resource)
+      }
       // Ownership first: the release is on the ledger before `create` runs.
       generation.ledger.add({
-        release: async () => {
-          let resource: T
-          try {
-            resource = await creating
-          } catch {
-            return // nothing was acquired
-          }
-          await release(resource)
-        },
+        release: entry,
         interrupt: options?.interrupt && (() => {
           if (created) {
             options.interrupt!(created.resource)
@@ -184,6 +185,9 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         }),
       })
       creating = (async () => create(signal))()
+      // A failed creation holds nothing, so it leaves no obligation behind and a
+      // retry loop does not grow the ledger (C-SCOPE-04).
+      creating.catch(() => generation.ledger.discard(entry))
       // Registered before the ledger's release awaits `creating`, so a pending
       // interrupt always runs before the release.
       return creating.then(resource => {
@@ -230,6 +234,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         },
         // The task already ended; report its failure once instead of retrying.
         retryable: false,
+        join: true,
       })
       if (!registered) {
         throw generation.sealReason

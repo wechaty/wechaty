@@ -157,22 +157,27 @@ abstract class AsyncLifecycle implements Lifecycle {
 
   // ---- Tier 1 caller API (sealed) -----------------------------------------
 
+  /** The current frozen snapshot. See {@link Lifecycle.state} (C-STATE-01). */
   get state (): LifecycleState {
     return this.#engine.state
   }
 
+  /** Ask for a running generation. See {@link Lifecycle.start} (C-CMD-01 to C-CMD-06). */
   start (options?: LifecycleWaitOptions): Promise<void> {
     return this.#engine.start(options)
   }
 
+  /** Ask for the current run to be released. See {@link Lifecycle.stop} (C-CMD-07 to C-CMD-10). */
   stop (options?: LifecycleWaitOptions): Promise<void> {
     return this.#engine.stop(options)
   }
 
+  /** Release the current run, then start a replacement. See {@link Lifecycle.restart} (C-CMD-11 to C-CMD-13). */
   restart (options?: LifecycleWaitOptions): Promise<void> {
     return this.#engine.restart(options)
   }
 
+  /** Wait for a snapshot that matches `predicate`. See {@link Lifecycle.whenState} (C-CMD-16). */
   whenState (
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleWaitOptions,
@@ -180,6 +185,7 @@ abstract class AsyncLifecycle implements Lifecycle {
     return this.#engine.whenState(predicate, options)
   }
 
+  /** `stop()`, for `await using`; the instance can start again (C-CMD-15, D4). */
   [Symbol.asyncDispose] (): Promise<void> {
     return this.#engine[Symbol.asyncDispose]()
   }

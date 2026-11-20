@@ -221,6 +221,7 @@ const copilot: Implementation = {
     'C-SCOPE-04.f-interrupt': 'D41 divergence: a late acquisition rejects only after its release finishes, so a hanging release leaves acquire() pending (C-SCOPE-04)',
     'S3.I5.acquire': 'D41 divergence: a late acquisition rejects only after its release finishes, so a hanging release leaves acquire() pending (C-SCOPE-04)',
     'S3-D41': 'D41 divergence: a late acquisition rejects only after its release finishes, so a hanging release leaves acquire() pending (C-SCOPE-04)',
+    'C-RET-01.e': 'B14: tasks are joined in the same newest-first pass as releases, so a resource registered after a task is released before that task finishes (C-RET-01)',
   },
 }
 

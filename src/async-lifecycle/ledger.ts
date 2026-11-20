@@ -46,12 +46,19 @@ interface LedgerEntryOptions {
    * for task joins, where the task has already finished and holds nothing.
    */
   readonly retryable?: boolean
+  /**
+   * A task join. Every unwind runs all joins before any other entry, whatever
+   * the registration order, because tasks use resources: a task spawned before
+   * a resource may still be using it after the abort (C-RET-01 steps 6 and 7).
+   */
+  readonly join?: boolean
 }
 
 interface Entry {
   readonly release: Release
   readonly interrupt: (() => void) | undefined
   readonly retryable: boolean
+  readonly join: boolean
   status: 'idle' | 'running' | 'failed'
   running: Promise<void> | undefined
   /** The last failure, kept so debt can be reported without re-running it. */
@@ -98,8 +105,21 @@ class Ledger {
     if (this.#sealed) {
       return false
     }
-    this.#entries.push(this.#entry(options.release, options.interrupt, options.retryable ?? true))
+    this.#entries.push(this.#entry(options.release, options.interrupt, options.retryable ?? true, options.join ?? false))
     return true
+  }
+
+  /**
+   * Drop the entry registered with `release` if it has not started: its owner
+   * found it holds nothing. A rejected `acquire` creation uses this, so a retry
+   * loop does not grow the ledger (C-SCOPE-04). A running entry is left alone;
+   * it removes itself when it finishes.
+   */
+  discard (release: Release): void {
+    const entry = this.#entries.find(candidate => candidate.release === release)
+    if (entry && entry.status === 'idle') {
+      this.#remove(entry)
+    }
   }
 
   /**
@@ -110,7 +130,7 @@ class Ledger {
    * this first run and rejects with its error.
    */
   addLate (release: Release): Promise<void> {
-    const entry = this.#entry(release, undefined, true)
+    const entry = this.#entry(release, undefined, true, false)
     this.#entries.push(entry)
     return this.#run(entry)
   }
@@ -136,7 +156,8 @@ class Ledger {
   }
 
   /**
-   * Release every unfinished entry, newest first, continuing past failures.
+   * Release every unfinished entry, continuing past failures: first every task
+   * join, then everything else, each newest first (C-RET-01 steps 6 and 7).
    *
    * A running entry is joined, not started again; a failed one is retried once
    * per unwind. Entries added while unwinding (late releases) are joined too.
@@ -155,7 +176,8 @@ class Ledger {
     const errors: unknown[] = []
     const attempted = new Set<Entry>()
     for (;;) {
-      const entry = this.#entries.findLast(candidate => !attempted.has(candidate))
+      const entry = this.#entries.findLast(candidate => candidate.join && !attempted.has(candidate))
+        ?? this.#entries.findLast(candidate => !attempted.has(candidate))
       if (!entry) {
         return errors
       }
@@ -168,11 +190,12 @@ class Ledger {
     }
   }
 
-  #entry (release: Release, interrupt: (() => void) | undefined, retryable: boolean): Entry {
+  #entry (release: Release, interrupt: (() => void) | undefined, retryable: boolean, join: boolean): Entry {
     return {
       release,
       interrupt,
       retryable,
+      join,
       status      : 'idle',
       running     : undefined,
       failure     : undefined,

@@ -39,6 +39,7 @@ Bugs found while porting, each recorded in the adapter's `knownFailures` and in 
 | B11 | codex | A `stop()` accepted while an earlier `stop()` retires does not reject the condition waits created in between; they survive and bind to the next generation | `C-COND-04.h` |
 | B12 | codex | Overriding `state` or `Symbol.asyncDispose` in an `AsyncLifecycle` subclass is not refused, so the override silently replaces the caller API | `C-SHELL-02.d-state`, `C-SHELL-02.d-asyncDispose` |
 | B13 | claude | A `stop()` accepted at one microtask while a stopped generation finishes retiring, with a `start()` queued behind it, resolves and supersedes the start, but the state stays `stopping` forever; later `stop()` calls resolve without committing `stopped`. Found by the S3 random schedules | `C-CMD-07.d`, `S3-B13` |
+| B14 | claude, copilot | Tasks are joined in the same newest-first pass as releases, so a resource registered after a task is released before that task finishes its shutdown (C-RET-01). Found in review of #2995; fixed in the final kernel there | `C-RET-01.e` |
 
 ## Conflicts
 

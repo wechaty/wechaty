@@ -106,20 +106,27 @@ class Attempt {
     this.#deferred.promise.catch(() => {})
   }
 
+  /** The shared outcome; each caller gets its own view of it (C-CMD-03). */
   get promise (): Promise<LifecycleRecoverResult | undefined> {
     return this.#deferred.promise
   }
 
+  /** Whether an outcome was already chosen. */
   get settled (): boolean {
     return this.#settled
   }
 
+  /** The generation committed `running`: callers resolve, a recovery reports `'recovered'`. */
   succeed (): void {
     if (this.#settled) { return }
     this.#settled = true
     this.#deferred.resolve(this.kind === 'recover' ? 'recovered' : undefined)
   }
 
+  /**
+   * A newer command won (C-CMD-07): user callers reject with
+   * `LifecycleSupersededError`, a recovery resolves `'superseded'`.
+   */
   supersede (): void {
     if (this.#settled) { return }
     this.#settled = true
@@ -130,6 +137,7 @@ class Attempt {
     }
   }
 
+  /** The attempt failed: callers reject with `error`, kept as given (C-STATE-05). */
   fail (error: unknown): void {
     if (this.#settled) { return }
     this.#settled = true

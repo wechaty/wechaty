@@ -40,11 +40,17 @@ import type {
  * @param hooks   `onStart`, and optionally `onStop` and `onStateChange`.
  * @param options Diagnostics name, deadlines and timer source.
  * @returns A frozen {@link LifecycleController}: the caller API plus `condition`.
+ * @throws TypeError when `hooks.onStart` is not a function, or `onStop` /
+ *   `onStateChange` is present but not a function (C-SHELL-03): a mistake in
+ *   JavaScript, or in hooks built at runtime, surfaces here instead of at the
+ *   first start or stop.
+ * @throws RangeError when a timeout option is invalid (C-TIME-01).
  */
 function createLifecycle (
   hooks: LifecycleHooks,
   options?: LifecycleOptions,
 ): LifecycleController {
+  assertHooks(hooks)
   const engine = new LifecycleEngine(hooks, options)
   return Object.freeze<LifecycleController>({
     get state () { return engine.state },
@@ -55,6 +61,21 @@ function createLifecycle (
     condition : name => engine.condition(name),
     [Symbol.asyncDispose]: () => engine[Symbol.asyncDispose](),
   })
+}
+
+/** C-SHELL-03: throw `TypeError` for a missing `onStart` or a non-function hook. */
+function assertHooks (hooks: LifecycleHooks): void {
+  if (typeof hooks !== 'object' || hooks === null) {
+    throw new TypeError('createLifecycle() needs a hooks object')
+  }
+  if (typeof hooks.onStart !== 'function') {
+    throw new TypeError('createLifecycle() needs an onStart function')
+  }
+  for (const name of [ 'onStop', 'onStateChange' ] as const) {
+    if (hooks[name] !== undefined && typeof hooks[name] !== 'function') {
+      throw new TypeError(`createLifecycle(): ${name} must be a function when present`)
+    }
+  }
 }
 
 export {
