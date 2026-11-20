@@ -182,119 +182,103 @@ jobs:
             echo "already_reviewed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Diagnostic only: use the SAME workflow job and OIDC context as the
-      # successful Claude Action. Match upstream token.ts: NO permissions JSON
-      # unless ADDITIONAL_PERMISSIONS is requested. No Claude model calls.
-      # Restricted to an intentionally named same-repo PR pilot branch.
-      - name: Probe Claude App credential in review job
-        if: >-
-          steps.review-target.outputs.current == 'true' &&
-          steps.review-duplicate.outputs.already_reviewed == 'false' &&
-          startsWith(github.event.pull_request.head.ref, 'test/claude-auth-review-poc-') &&
-          github.event.pull_request.user.login == 'huan'
-        continue-on-error: true
-        env:
-          PROBE_PR_NUMBER: ${{ github.event.pull_request.number }}
+      # The trusted workflow supplies this helper inline (never run scripts
+      # from PR HEAD). Use Anthropic's default OIDC exchange, then immediately
+      # revoke the short-lived App token. No Claude inference is involved.
+      - name: Prepare Claude App reaction helper
+        if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
         run: |
-          node <<'NODE'
+          cat > "$RUNNER_TEMP/claude-review-eyes.cjs" <<'NODE'
           ;(async () => {
             const { appendFileSync } = require('node:fs')
+            const mode = process.env.REACTION_MODE
+            const pr = process.env.PR_NUMBER
             const repo = process.env.GITHUB_REPOSITORY
-            const pr = process.env.PROBE_PR_NUMBER
-            const record = value => {
-              console.log(value)
-              appendFileSync(process.env.GITHUB_STEP_SUMMARY, value + '\n')
+            const summary = message => {
+              console.log(message)
+              appendFileSync(process.env.GITHUB_STEP_SUMMARY, message + '\n')
             }
-            if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL ||
-                !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN) {
-              record('OIDC unavailable in review job.')
-              process.exitCode = 1
-              return
-            }
-            const url = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL)
+            const requestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+            const requestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
+            if (!requestUrl || !requestToken) throw Error('OIDC not available')
+            const url = new URL(requestUrl)
             url.searchParams.set('audience', 'claude-code-github-action')
             const oidc = await fetch(url, {
-              headers: { Authorization: 'bearer ' + process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }
+              headers: { Authorization: 'bearer ' + requestToken }
             })
-            if (!oidc.ok) {
-              record('GitHub OIDC HTTP ' + oidc.status)
-              process.exitCode = 1
-              return
-            }
-            const token = (await oidc.json()).value
-            if (!token) throw Error('No GitHub OIDC identity returned')
-            // EXACT upstream default exchange request: no body, no Content-Type.
-            const exchanged = await fetch(
+            if (!oidc.ok) throw Error('GitHub OIDC HTTP ' + oidc.status)
+            const identity = (await oidc.json()).value
+            if (!identity) throw Error('Missing OIDC identity')
+            // Matches the verified official-action exchange: NO JSON body.
+            const exchange = await fetch(
               'https://api.anthropic.com/api/github/github-app-token-exchange', {
-                method: 'POST', headers: { Authorization: 'Bearer ' + token }
-              }
-            )
-            if (!exchanged.ok) {
-              let details = {}
-              try { details = await exchanged.json() } catch {}
-              const code = details?.error?.details?.error_code
-              record('Anthropic exchange HTTP ' + exchanged.status +
-                (typeof code === 'string' && /^[a-z_]+$/.test(code) ? '; code=' + code : ''))
-              // Do not emit untrusted raw error messages; they can contain data.
-              process.exitCode = 1
-              return
-            }
-            const response = await exchanged.json()
-            const appToken = response.token || response.app_token
-            if (!appToken) throw Error('No App credential in successful exchange')
-            console.log('::add-mask::' + appToken)
-            const api = (path, method, body) => fetch('https://api.github.com' + path, {
-              method,
-              headers: {
-                Authorization: 'Bearer ' + appToken,
-                Accept: 'application/vnd.github+json',
-                'X-GitHub-Api-Version': '2022-11-28',
-                ...(body ? {'Content-Type': 'application/json'} : {}),
-              },
-              ...(body ? { body: JSON.stringify(body) } : {}),
-            })
-            let reaction
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + identity }
+              })
+            if (!exchange.ok) throw Error('Anthropic exchange HTTP ' + exchange.status)
+            const response = await exchange.json()
+            const token = response.token || response.app_token
+            if (!token) throw Error('Missing App credential')
+            console.log('::add-mask::' + token)
+            const api = (path, method = 'GET', body) => fetch(
+              'https://api.github.com' + path, {
+                method,
+                headers: {
+                  Authorization: 'Bearer ' + token,
+                  Accept: 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                  ...(body ? { 'Content-Type': 'application/json' } : {}),
+                },
+                ...(body ? { body: JSON.stringify(body) } : {}),
+              })
+            const base = '/repos/' + repo + '/issues/' + pr + '/reactions'
             try {
-              const result = await api('/repos/' + repo + '/issues/' + pr + '/reactions',
-                'POST', { content: 'eyes' })
-              if (!result.ok) {
-                record('Claude App reaction HTTP ' + result.status)
-                process.exitCode = 1
-              } else {
-                reaction = await result.json()
-                const actor = reaction.user?.login ?? '(unknown)'
-                record('Authorized App reaction actor: ' + actor)
-                if (actor !== 'claude[bot]') process.exitCode = 1
+              if (mode === 'start') {
+                // Do not claim ownership of a preexisting claude[bot] eye.
+                const current = await api(base + '?per_page=100')
+                if (!current.ok) throw Error('List reactions HTTP ' + current.status)
+                const existing = await current.json()
+                if (existing.some(r => r.content === 'eyes' && r.user?.login === 'claude[bot]')) {
+                  summary('Existing Claude eyes reaction retained; no duplicate created.')
+                } else {
+                  const created = await api(base, 'POST', { content: 'eyes' })
+                  if (!created.ok) throw Error('Create eyes HTTP ' + created.status)
+                  const reaction = await created.json()
+                  if (reaction.user?.login !== 'claude[bot]' || !reaction.id) {
+                    throw Error('Unexpected reaction author or missing ID')
+                  }
+                  appendFileSync(process.env.GITHUB_OUTPUT, 'reaction_id=' + reaction.id + '\n')
+                  summary('claude[bot] eyes reaction added.')
+                }
+              } else if (mode === 'finish' && process.env.REACTION_ID) {
+                const removed = await api(base + '/' + process.env.REACTION_ID, 'DELETE')
+                if (removed.status !== 204 && removed.status !== 404) {
+                  throw Error('Delete eyes HTTP ' + removed.status)
+                }
+                summary('claude[bot] eyes reaction cleared.')
+              } else if (mode !== 'finish') {
+                throw Error('Invalid reaction mode')
               }
             } finally {
-              if (reaction?.id) {
-                const deleted = await api('/repos/' + repo + '/issues/' + pr +
-                  '/reactions/' + reaction.id, 'DELETE')
-                record('App reaction cleanup HTTP ' + deleted.status)
-                if (deleted.status !== 204) process.exitCode = 1
-              }
+              // Never persist the App token between GitHub Actions steps.
               const revoked = await api('/installation/token', 'DELETE')
-              record('App token revocation HTTP ' + revoked.status)
-              if (revoked.status !== 204) process.exitCode = 1
+              if (revoked.status !== 204) throw Error('App token revoke HTTP ' + revoked.status)
             }
-          })().catch(() => {
-            console.error('Claude App credential pilot failed (no credential diagnostics logged).')
+          })().catch(error => {
+            // Report only locally created status strings, never token payloads.
+            console.error('Claude reaction helper failed: ' + error.message)
             process.exitCode = 1
           })
           NODE
 
-      # Show an eyes reaction on the PR while its automatic review is active.
-      # Do not touch the PR body or post a progress comment.
-      - name: Acknowledge automatic review with eyes
+      - name: Add Claude eyes to PR while reviewing
         id: review-eyes
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ github.token }}
+          REACTION_MODE: start
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          reaction_id="$(gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/reactions" -f content=eyes --jq '.id')"
-          echo "reaction_id=$reaction_id" >> "$GITHUB_OUTPUT"
+        run: node "$RUNNER_TEMP/claude-review-eyes.cjs"
 
       - name: Install review dependencies
         if: steps.review-target.outputs.current == 'true' && steps.review-duplicate.outputs.already_reviewed == 'false'
@@ -439,16 +423,16 @@ jobs:
               -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >/dev/null
           fi
 
-      # Remove only the eyes reaction created or acknowledged by this run.
-      # Keep the actual Claude review and exact-HEAD/BASE status intact.
-      - name: Clear automatic review eyes
+      # Re-authenticate as the same Claude App to delete our reaction.
+      # The first token was revoked immediately after posting.
+      - name: Clear Claude eyes after review
         if: always() && steps.review-eyes.outputs.reaction_id != ''
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ github.token }}
+          REACTION_MODE: finish
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REACTION_ID: ${{ steps.review-eyes.outputs.reaction_id }}
-        run: gh api -X DELETE "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/reactions/${REACTION_ID}" >/dev/null
+        run: node "$RUNNER_TEMP/claude-review-eyes.cjs"
 
       - name: Check whether reviewed HEAD changed
         if: steps.review-target.outputs.current == 'true' && always()
