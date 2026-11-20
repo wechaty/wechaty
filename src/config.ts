@@ -47,7 +47,7 @@ type PackageJsonWechaty = {
 const VERSION = packageJson.version || '0.0.0'
 
 /**
- * to handle unhandled exceptions
+ * Register process error handlers for verbose debugging.
  */
 if (log.level() === 'verbose' || log.level() === 'silly') {
   log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
