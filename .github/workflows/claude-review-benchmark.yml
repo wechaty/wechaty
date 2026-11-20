@@ -1,0 +1,118 @@
+name: Claude review effort benchmark
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  benchmark:
+    if: >-
+      github.repository == 'wechaty/wechaty' &&
+      github.event.issue.number == 2995 &&
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.actor == 'huan' &&
+      github.event.comment.user.login == 'huan' &&
+      (github.event.comment.body == '/claude-review-benchmark xhigh' ||
+       github.event.comment.body == '/claude-review-benchmark ultracode')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: claude-agent-wechaty/wechaty-2995
+      queue: max
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Verify the benchmark revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/pulls/2995" |
+            jq -e '.head.sha == "091dd325217216e9222f389a4a8dc1eff7c86e4e" and
+              .head.repo.full_name == "wechaty/wechaty"' >/dev/null
+
+      - uses: actions/checkout@v4
+        with:
+          ref: 091dd325217216e9222f389a4a8dc1eff7c86e4e
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify the historical base is available
+        run: git cat-file -e 'c1521ab509bbed6f2e592981638df2e77392d234^{commit}'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - run: npm ci --ignore-scripts
+
+      - name: Run Claude review benchmark
+        uses: anthropics/claude-code-action@v1
+        env:
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          track_progress: true
+          show_full_output: true
+          additional_permissions: |
+            pull_requests: write
+            issues: write
+          prompt: |
+            Review pull request #2995 in ${{ github.repository }}.
+            Review HEAD 091dd325217216e9222f389a4a8dc1eff7c86e4e against BASE c1521ab509bbed6f2e592981638df2e77392d234.
+
+            Use the pinned BASE and HEAD above for the diff and file inspection even if
+            the live PR base has advanced. Take benchmark results only from this run.
+
+            This is an automatic review for the current revision, even if Claude has commented
+            on this PR before. NEVER skip because of prior comments or earlier reviews.
+            Read the applicable repository guidance, including AGENTS.md when present.
+            Inspect the diff and relevant tests to establish the intended behavior and
+            identify what could regress. Scale the investigation to the impact of the change.
+
+            Trace consequential changes beyond the diff into callers, dependencies, and
+            affected contracts. Check relevant edge cases, failure and recovery paths,
+            compatibility, and whether tests would catch a regression in the changed behavior.
+
+            Verify each candidate against the surrounding code before publishing it.
+            Confirm that the affected path is reachable, the revision introduces the defect,
+            and existing guards do not prevent it. For each actionable finding, cite the
+            changed file and line, explain the trigger and observable consequence, and
+            suggest a concrete fix. Briefly disclose any material area you could not assess.
+            Do not modify the repository. Do not approve or merge the PR.
+            Wait for any delegated review work to finish and incorporate its results.
+            Only the parent session publishes to GitHub.
+            Publish the final review in the native progress comment created for this run.
+            Load mcp__github_comment__update_claude_comment with ToolSearch and use it to
+            update that same comment in place. Include exactly one "## Code review"
+            heading, the findings or "No issues found.", and this exact line:
+            Reviewed HEAD SHA: 091dd325217216e9222f389a4a8dc1eff7c86e4e
+            Update the comment even if there are no findings. Do not create a separate
+            comment or a GitHub review submission, and do not edit comments from prior runs.
+          claude_args: |
+            --model claude-sonnet-5-5
+            --effort ${{ github.event.comment.body == '/claude-review-benchmark ultracode' && 'ultracode' || 'xhigh' }}
+            --max-turns 100
+            --dangerously-skip-permissions
+            --allowedTools "Read,Glob,Grep,Bash,Task"
+
+      - name: Verify one review comment for this run and revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/issues/2995/comments?per_page=100" |
+            jq -e --arg run_url "$run_url" '
+              [ .[][] | select(.user.login == "claude[bot]" and (.body | contains($run_url))) ]
+              | length == 1 and (.[0].body | split("\n") | any(. ==
+                "Reviewed HEAD SHA: 091dd325217216e9222f389a4a8dc1eff7c86e4e"))' >/dev/null
