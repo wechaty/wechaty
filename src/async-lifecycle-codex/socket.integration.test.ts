@@ -100,5 +100,6 @@ for (const [name, create] of entryPoints) {
     await disconnected
     assert.deepEqual(trace, ['onStop', 'abort', 'task observed close', 'dispose last registration', 'dispose socket'])
     assert.equal(service.state.kind, 'stopped')
+    assert.equal(socket.destroyed, true, 'stopping the lifecycle destroys its socket')
   })
 }
