@@ -43,6 +43,7 @@ import type {
 }                           from '../types.ts'
 import { createLifecycle } from './pending-shells.ts'
 
+/** Today's provider events that the base turns into conditions. */
 export interface PuppetEvents {
   login: [ userId: string ]
   logout: [ userId: string ]
@@ -60,6 +61,7 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   readonly #login: LifecycleCondition
   readonly #ready: LifecycleCondition
 
+  /** Creates the lifecycle and declares the `login` and `ready` conditions. */
   constructor () {
     super()
     this.#lifecycle = createLifecycle({
@@ -123,14 +125,20 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   }
 
   // The caller API, delegated. Six one-line members per composed class.
+  /** See `Lifecycle.state`. */
   get state (): LifecycleState { return this.#lifecycle.state }
+  /** See `Lifecycle.start`. */
   start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
+  /** See `Lifecycle.stop`. */
   stop (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.stop(options) }
+  /** See `Lifecycle.restart`. */
   restart (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.restart(options) }
+  /** See `Lifecycle.whenState`. */
   whenState (
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleWaitOptions,
   ): Promise<LifecycleState> { return this.#lifecycle.whenState(predicate, options) }
+  /** See `Lifecycle[Symbol.asyncDispose]`: same as `stop()`. */
   [Symbol.asyncDispose] (): Promise<void> { return this.#lifecycle[Symbol.asyncDispose]() }
 
 }
@@ -138,11 +146,13 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
 /** A provider written against today's contract needs no change. */
 export class PuppetMock extends Puppet {
 
+  /** Logs in and reports ready at once. */
   protected override async onStart (): Promise<void> {
     this.emit('login', 'mock-user')
     this.emit('ready')
   }
 
+  /** Nothing to release; a real provider closes its connections here. */
   protected override async onStop (): Promise<void> {
     // Release provider resources.
   }

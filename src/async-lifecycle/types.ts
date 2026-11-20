@@ -252,10 +252,14 @@ interface LifecycleScope {
    * retirement began, the resource is released and `acquire` rejects with the
    * retirement reason. If `create` rejects, `acquire` rejects with that error and
    * leaves no obligation behind, so retrying in a loop does not grow the ledger.
+   *
+   * `release` may return anything: a promise-like is awaited, any other value is
+   * ignored (C-SCOPE-10), so `socket => socket.destroy()` works even though
+   * `destroy()` returns the socket.
    */
   acquire<T> (
     create: (signal: AbortSignal) => T | PromiseLike<T>,
-    release: (resource: NoInfer<T>) => void | PromiseLike<void>,
+    release: (resource: NoInfer<T>) => unknown,
     options?: LifecycleAcquireOptions<NoInfer<T>>,
   ): Promise<T>
 
@@ -266,8 +270,13 @@ interface LifecycleScope {
    */
   use<T extends AsyncDisposable | Disposable> (resource: T): T
 
-  /** Register a cleanup action, such as removing a listener or clearing a timer. */
-  defer (cleanup: () => void | PromiseLike<void>): void
+  /**
+   * Register a cleanup action, such as removing a listener or clearing a timer.
+   * It may return anything: a promise-like is awaited, any other value is ignored
+   * (C-SCOPE-10), so `() => emitter.off(event, listener)` works even though
+   * `off()` returns the emitter.
+   */
+  defer (cleanup: () => unknown): void
 
   /**
    * Start an owned background task, joined during retirement (C-SCOPE-07,

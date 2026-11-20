@@ -33,9 +33,9 @@ interface LifecycleHooks {
 interface LifecycleScope {
   readonly generation: number
   readonly signal: AbortSignal
-  acquire<T> (create, release, options?: { interrupt? }): Promise<T>
+  acquire<T> (create, release: (resource: T) => unknown, options?: { interrupt? }): Promise<T>
   use<T extends AsyncDisposable | Disposable> (resource: T): T
-  defer (cleanup): void
+  defer (cleanup: () => unknown): void
   spawn (task: (signal: AbortSignal) => Promise<void>): void
   start (child: Lifecycle): Promise<void>
   set (condition): void
@@ -133,6 +133,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-SCOPE-07** A `spawn` task receives `scope.signal`. A rejection with `signal.reason` is its own cancellation. Any other rejection fails the generation while it is live, or becomes a cleanup error while it is retiring.
 - **C-SCOPE-08** Registering the same function twice creates two obligations.
 - **C-SCOPE-09** A release that fails stays owned and is retried by the next `stop()`. A release that is still running is joined, never started twice.
+- **C-SCOPE-10** `defer` cleanups and `acquire` releases may return any value. A returned promise-like is awaited and its rejection is a cleanup error; any other value is ignored. Cleanups are therefore typed `() => unknown`, so common one-liners such as `() => emitter.off(event, listener)` type-check even though `off()` returns the emitter (D29).
 
 ## 7. Retirement
 
@@ -186,6 +187,10 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-COND-04** A wait rejects with `LifecycleSupersededError` when its bound generation retires first (the generation's failure, if any, is the `cause`), or when `stop()` is accepted before the wait is bound to a generation. It rejects with the caller's abort reason on abort (D28).
 - **C-COND-05** Results never cross generations. A `set` from a stale scope does nothing, and a new generation starts with every condition clear.
 - **C-COND-06** `isSet` is `true` only while the current live generation has the condition set (D23).
+
+Usage notes, not rules:
+- A wait created before `start()` rejects if that start fails, so give it a handler at once, for example `await Promise.all([ bot.ready(), bot.start() ])`. Awaiting `start()` first leaves the wait unhandled when `start()` throws.
+- To expose a child's condition, delegate to the child (`ready () { return this.puppet.ready() }`) rather than mirroring it into a condition of your own. A mirror would also have to be cleared whenever the child's generation retires, which no child event reports.
 
 ## 12. Observers and diagnostics
 
@@ -252,6 +257,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D26 | Companion signatures land with their implementation (S4), not in S1 |
 | D27 | `restart()` on a dirty `failed` rejects at once, as `start()` does; only `stop()` finishes cleanup |
 | D28 | A condition wait whose generation retires rejects with `LifecycleSupersededError`, with the failure as `cause` |
+| D29 | `defer` cleanups and `acquire` releases are typed to return `unknown`; promise-likes are awaited, other values ignored |
 
 ## 17. Not in this module
 

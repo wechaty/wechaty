@@ -52,18 +52,30 @@ function backoffMs (failures: number): number {
   return failures === 0 ? 0 : Math.min(30_000, 1_000 * 2 ** (failures - 1))
 }
 
+/**
+ * An `Io`-like client. Each generation holds one connected socket and a
+ * keepalive task. When the socket closes, the generation recovers into a new one
+ * that reconnects with backoff; while offline the state stays `starting`, and
+ * `stop()` cancels the wait.
+ */
 export class Io extends AsyncLifecycle {
 
   readonly #url: string
   /** Consecutive socket losses. Policy state belongs to the implementer (D7). */
   #failures = 0
 
+  /** @param url - The server to connect to. Not published in diagnostics. */
   constructor (url: string) {
     // No startTimeoutMs: #connect retries until stop(); see its comment.
     super({ name: 'Io', stopTimeoutMs: 5_000 })
     this.#url = url
   }
 
+  /**
+   * Connect, then watch the socket and keep it alive. Resolves once connected,
+   * which commits `running`. Rejects only when the generation retires while
+   * connecting.
+   */
   protected override async onStart (scope: LifecycleScope): Promise<void> {
     const socket = await this.#connect(scope)
 
