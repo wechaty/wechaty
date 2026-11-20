@@ -149,12 +149,36 @@ async function expectFailure (body: () => Promise<void>, reason: string): Promis
   throw new Error(`expected this test to fail (${reason}), but it passed: remove the known-failure entry`)
 }
 
+/**
+ * The `name` of an error, or `undefined`. The comparison implementations each
+ * have their own error classes, so tests identify errors by name (all three use
+ * the S1 class names) rather than with `instanceof`.
+ */
+function errorName (error: unknown): string | undefined {
+  return typeof error === 'object' && error !== null && 'name' in error && typeof error.name === 'string'
+    ? error.name
+    : undefined
+}
+
+/**
+ * Stop `lifecycle` at the end of a test without risking a hang: observe the
+ * stop, flush, and return the outcome. A stop that does not settle is left
+ * pending rather than awaited.
+ */
+async function shutdown (lifecycle: { stop (): Promise<void> }): Promise<Observed<void>> {
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  return stopped
+}
+
 export type {
   Observed,
 }
 export {
+  errorName,
   expectFailure,
   flush,
   ManualClock,
   observe,
+  shutdown,
 }

@@ -163,7 +163,11 @@ const codex: Implementation = {
   capabilities : new Set(),
   shells       : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
   knownFailures: {
-    B3: 'onStop runs for a run that never reached `running` (#2968 §5)',
+    'B3'         : 'onStop runs for a run that never reached `running` (#2968 §5)',
+    'C-CMD-11.b'  : 'B3: onStop runs for the starting generation that restart() interrupts',
+    'C-COND-01.a' : 'conflict: set() and clear() with a foreign condition are silently ignored instead of throwing TypeError',
+    'C-COND-04.a' : 'D28 divergence: a wait on a failed generation rejects with a plain Error, not LifecycleSupersededError',
+    'C-SCOPE-07.a': 'conflict: a task failure before `running` is reported with phase `run` instead of `start` (C-STATE-05)',
   },
 }
 

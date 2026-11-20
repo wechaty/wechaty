@@ -125,7 +125,18 @@ const copilot: Implementation = {
   capabilities : new Set([ 'clock', 'scope.acquire', 'acquire.interrupt', 'scope.recover', 'onStop.context', 'condition.isSet' ]),
   shells       : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
   knownFailures: {
-    B1: 'start() rejects before `failed` is committed, and stop() then resolves on a lifecycle that ends `failed` (#2968 §5)',
+    'B1'         : 'start() rejects before `failed` is committed, and stop() then resolves on a lifecycle that ends `failed` (#2968 §5)',
+    'C-CMD-09.a'  : 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
+    'C-COND-02.a' : 'B4: a wait created right after stop() is satisfied by the retiring generation',
+    'C-COND-04.a' : 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
+    'C-COND-04.b1': 'divergence: stop() rejects pre-start waits asynchronously, so a caller abort in the same tick replaces the rejection',
+    'C-COND-04.b2': 'divergence: stop() rejects pre-start waits asynchronously, so a caller abort in the same tick replaces the rejection',
+    'C-RET-02.a'  : 'B1: stop() on a clean failure (after onStop threw) leaves the state `failed` instead of committing `stopped`',
+    'C-TIME-02.a-success': 'B1: a stop() accepted while the timed-out generation retires leaves the state `failed`, not `stopped`',
+    'C-TIME-02.c'        : 'B1: a stop() accepted while the timed-out generation retires leaves the state `failed`, not `stopped`',
+    'C-TIME-03.b'        : 'B6: an onStop rejection after the stop deadline rejects the joining stop() but is missing from the snapshot\'s cleanupError',
+    'C-SCOPE-08.a': 'B5: a failed late release on a retired scope is never called again; stop() rejects with the old error',
+    'C-SCOPE-09.a': 'B5: a failed late release on a retired scope is never called again; stop() rejects with the old error',
   },
 }
 
