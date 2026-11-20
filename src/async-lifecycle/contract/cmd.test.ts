@@ -669,3 +669,26 @@ contract('C-CMD-16.d', 'whenState() rejects when its first predicate call aborts
   await flush()
   assert.equal(waiting.error, reason)
 })
+
+// ---------------------------------------------------------------------------
+// Accepted decisions D30 to D37 (#2968 §6)
+// ---------------------------------------------------------------------------
+
+contract('C-CMD-17.a', 'a failed start rejects while its cleanup is still running, not after it (D35)', {}, async ({ make }) => {
+  const failure = new Error('onStart failed')
+  const cleanup = Promise.withResolvers<void>()
+  const { lifecycle } = make({
+    onStart (scope) {
+      scope.defer(() => cleanup.promise)
+      throw failure
+    },
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.equal(started.status, 'rejected', 'the caller learns of the failure before cleanup finishes')
+  assert.equal(started.error, failure)
+  assert.equal(lifecycle.state.kind, 'stopping')
+  cleanup.resolve()
+  await flush()
+  assert.equal(failedState(lifecycle.state).error, failure)
+})

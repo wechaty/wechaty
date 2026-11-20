@@ -62,10 +62,12 @@ stateDiagram-v2
   running --> stopping: stop, restart, recover, fail
   stopping --> stopped: released, no replacement wanted
   stopping --> starting: released, replacement wanted
-  stopping --> failed: failure, or retirement failed
+  stopping --> failed: failure, retirement failed, or a late release ends on a failed instance
   failed --> starting: start / restart, only if cleanupComplete
   failed --> stopping: stop, only if not cleanupComplete (retry cleanup)
   failed --> stopped: stop, if cleanupComplete
+  stopped --> stopping: a late release starts (C-SCOPE-11)
+  failed --> stopping: a late release starts on a clean failure (C-SCOPE-11)
 ```
 
 - **C-STATE-01** `state` is a frozen snapshot. Each transition publishes a new object; a snapshot never changes after it is published.
@@ -87,13 +89,14 @@ stateDiagram-v2
 - **C-CMD-07** `stop()` supersedes every pending start, restart and recovery. Their callers reject with `LifecycleSupersededError`, and a pending `scope.recover()` resolves `'superseded'`.
 - **C-CMD-08** `stop()` resolves when the generation it captured is released, even if a newer `start()` is already queued behind it.
 - **C-CMD-09** `stop()` while `stopped` resolves at once. On a clean `failed` state it commits `stopped`, then resolves.
-- **C-CMD-10** `stop()` on `failed { cleanupComplete: false }` retries only the obligations still unreleased. It commits `stopped` and resolves when they are all released; otherwise it stays dirty and rejects with the cleanup error.
+- **C-CMD-10** `stop()` on `failed { cleanupComplete: false }` retries only the obligations still unreleased. It commits `stopped` and resolves when they are all released; otherwise it stays dirty and rejects with the cleanup error. One exception: a `stop()` that joined unfinished work in which something failed reports that failure even if its retry released everything, and then commits a clean `failed { phase: 'stop' }` instead of `stopped` (C-TIME-03, D36).
 - **C-CMD-11** `restart()` retires the current generation, if any, and resolves only when a new generation commits `running`. It is never a no-op while running. During `starting` it aborts that attempt, and the attempt's `start()` callers reject with `LifecycleSupersededError`; they do not join the replacement. A later `stop()` supersedes it.
 - **C-CMD-12** `restart()` from `stopped` or a clean `failed` behaves like `start()`.
 - **C-CMD-13** `start()` and `restart()` on `failed { cleanupComplete: false }` reject at once with `LifecycleUnsafeStateError` and change nothing. Only `stop()` can finish that cleanup (D27).
 - **C-CMD-14** A failed attempt ends. Nothing retries because the intent is still "running". A new generation needs a new command or an accepted `scope.recover()`.
 - **C-CMD-15** `[Symbol.asyncDispose]()` is `stop()`, and the instance can start again (D4).
 - **C-CMD-16** `whenState(predicate)` resolves with the first snapshot, the current one included, for which `predicate` returns `true`; `failed` snapshots are passed to it like any other. It rejects only on caller abort, or with the error if `predicate` throws.
+- **C-CMD-17** A failed start attempt rejects its callers when the failure is decided, at the first commit after it (normally `stopping`), not when its cleanup completes. A start timeout therefore reaches its callers at the deadline, even if the hook never settles. The outcome is fixed from that moment: a command accepted later, for example a `stop()` from an abort listener, does not turn it into `LifecycleSupersededError` (D35).
 
 ### Command by state
 
@@ -113,7 +116,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 
 | Call | Resolves when | Rejects when |
 | --- | --- | --- |
-| `start()` | The attempt it joined commits `running` | The attempt fails (its error) · a later `stop()`, or a `restart()` during `starting`, supersedes it · dirty state · caller abort |
+| `start()` | The attempt it joined commits `running` | The attempt fails (its error, as soon as the failure is decided, C-CMD-17) · a later `stop()`, or a `restart()` during `starting`, supersedes it · dirty state · caller abort |
 | `stop()` | The generation it captured is released | Retirement reports errors (the cleanup error) · caller abort |
 | `restart()` | The replacement commits `running` | Retirement or replacement fails · a later `stop()` supersedes it · dirty state · caller abort |
 | `whenState()` | The predicate matches | Caller abort · the predicate throws |
@@ -134,6 +137,11 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-SCOPE-08** Registering the same function twice creates two obligations.
 - **C-SCOPE-09** A release that fails stays owned and is retried by the next `stop()`. A release that is still running is joined, never started twice.
 - **C-SCOPE-10** `defer` cleanups and `acquire` releases may return any value. A returned promise-like is awaited and its rejection is a cleanup error; any other value is ignored. A synchronous throw is a cleanup error too, handled exactly like a rejection: it never escapes as an uncaught exception, and it never stops later obligations from being released. Cleanups are therefore typed `() => unknown`, so common one-liners such as `() => emitter.off(event, listener)` type-check even though `off()` returns the emitter (D29).
+- **C-SCOPE-11** A late release, one registered on a scope whose generation has already been released (C-SCOPE-02), is an obligation of the instance until it succeeds (D31). A late release that fails is cleanup **debt** of the instance:
+  - While it runs, a generation that is `starting` does not commit `running` until the late release finishes; the wait counts against its start deadline (C-TIME-02). If the late release fails, that start fails with the release error and the instance ends `failed { cleanupComplete: false }`.
+  - While it runs on an idle instance (`stopped`, or a clean `failed`), the state is `stopping`, and commands follow the `stopping` row of the command table: a `stop()` or `restart()` joins it as a retirement pass under its own stop deadline, which starts at acceptance (C-TIME-03), and a `start()` queues behind it (C-CMD-06). When it succeeds, the instance returns to the idle state it left: `stopped`, or the same clean `failed` (its generation, `phase` and `error`), unless a command accepted meanwhile decides otherwise. Only `stop()` turns a clean `failed` into `stopped` (C-CMD-09). When it fails, the state is `failed { cleanupComplete: false }` with the release error as `cleanupError`: from `stopped` with `phase: 'stop'` and the release error as `error`; from a clean `failed`, that failure's `phase` and `error` are kept, as the first failure wins.
+  - If it fails while a generation is `running`, that generation keeps running: a live run is not taken down by an earlier generation's cleanup, and `running` makes no claim about it. Its retirement retries the debt with its own releases (C-SCOPE-09) and reports the error if the retry fails too (C-RET-06), so `stopped` and a new generation still wait until the debt is cleared. The failure produces no commit, so no observer sees it; S4 decides how diagnostics report it.
+  - If it fails while a generation is retiring, that retirement reports it as a cleanup error.
 
 ## 7. Retirement
 
@@ -153,13 +161,15 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-RET-04** One cleanup error is reported as itself; several are reported as an `AggregateError`.
 - **C-RET-05** Concurrent `stop()` calls, and `Symbol.asyncDispose`, share one retirement pass per generation.
 - **C-RET-06** A replacement starts only after the previous generation was released. If that retirement reports errors, the queued replacement does not start: its callers reject with the cleanup error, and the state is `failed { phase: 'stop' }`.
+- **C-RET-07** If a generation is already retiring when its `onStart` would be called, for example after a `stop()` from the `starting` observer, `onStart` is not called. Calling it with an aborted scope would make an abort-driven hook miss the abort (D34).
 
 ## 8. Deadlines
 
 - **C-TIME-01** `startTimeoutMs` and `stopTimeoutMs` must be finite, greater than 0 and at most 2³¹−1. Anything else throws `RangeError` when the instance is created. Omitted means no deadline (D11).
-- **C-TIME-02** The start deadline runs from the commit of `starting` until `onStart` settles. On expiry the attempt fails with `LifecycleTimeoutError` (`phase: 'start'`) and the generation retires. The hook stays tracked until it settles.
-- **C-TIME-03** The stop deadline covers one whole retirement pass: `onStop`, waiting for `onStart`, joining tasks, and releases. On expiry the state becomes `failed { phase: 'stop', cleanupComplete: false }` with a `LifecycleTimeoutError`. Unfinished work stays tracked, and the next `stop()` joins it and retries what failed.
+- **C-TIME-02** The start deadline runs from the commit of `starting` until the attempt can commit `running`: until `onStart` settles and every late release the generation waits for has finished (C-SCOPE-11). On expiry the attempt fails with `LifecycleTimeoutError` (`phase: 'start'`) and the generation retires. The hook stays tracked until it settles.
+- **C-TIME-03** The stop deadline covers one whole retirement pass: `onStop`, waiting for `onStart`, joining tasks, and releases. It starts when the retirement is requested, that is when the command is accepted, before any abort listener runs. On expiry the state becomes `failed { phase: 'stop', cleanupComplete: false }` with a `LifecycleTimeoutError`. Unfinished work stays tracked. The next `stop()` joins it, and within its own deadline retries, once, every obligation that failed, including one that failed in the work it joined (D36). Errors from the joined work are still reported, because the `stop()` that timed out reported only the timeout: the joining `stop()` rejects with them, and the state is `failed { phase: 'stop' }`, whose `cleanupComplete` says whether the retry released everything. A caller that only wants the instance stopped calls `stop()` again. The two deadlines start at different points on purpose: the stop deadline at acceptance, so that `stop()` settles within `stopTimeoutMs` of the call even if an abort listener blocks; the start deadline at the commit of `starting` (C-TIME-02), so that a `start()` queued behind a slow retirement does not time out before its `onStart` runs.
 - **C-TIME-04** All deadlines use the injected `LifecycleClock`; the default uses the global timers (D12).
+- **C-TIME-05** A deadline is judged by the clock. If `clock.now()` shows that a deadline has passed when an outcome would be committed, the outcome is a timeout, even if the deadline's timer has not fired, for example because a hook blocked the thread. The timer only wakes the reconciler (D30).
 
 ## 9. Failure and recovery
 
@@ -172,12 +182,13 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 
 ## 10. Children
 
-- **C-CHILD-01** `scope.start(child)` needs only the `Lifecycle` interface. The child must be `stopped` or cleanly `failed` and not owned by another scope. Otherwise it rejects with `LifecycleUnsafeStateError` and does not touch the child.
+- **C-CHILD-01** `scope.start(child)` needs only the `Lifecycle` interface. The child must be `stopped` or cleanly `failed` and not owned by another scope. Otherwise it rejects with `LifecycleUnsafeStateError` and does not touch the child. Whether a child can be claimed is decided by its public `state` alone, which is all a child from another installed copy of the module exposes. A child whose `start()` was accepted but has not committed yet still reads `stopped`, so it can be claimed, and the claim joins that start (D33).
 - **C-CHILD-02** Ownership is recorded before `child.start()` is called, and released only after this scope's `child.stop()` succeeds. Until then no other scope can own the child.
 - **C-CHILD-03** `scope.start(child)` waits for the child with the parent's `scope.signal` as its caller signal. When the parent retires while the child is still starting, the wait rejects with the abort reason at retirement step 3, so the parent's `onStart` can settle (step 5). Ownership is kept, and the child is stopped in step 7. Without this, a parent waiting on a child that keeps retrying, such as an offline `Io`, would hold its own retirement until the stop deadline.
 - **C-CHILD-04** Children start in the order the hook starts them, and stop in retirement step 7, newest first, together with resources.
 - **C-CHILD-05** When a child commits `failed`, or commits `stopped` without the parent asking, the parent generation fails with `LifecycleChildFailureError`; its `cause` is the child's error, or `undefined` for an unrequested stop. A child that restarts or recovers itself (`stopping → starting`) is not escalated.
 - **C-CHILD-06** When the child's start fails, `scope.start()` rejects with that error, and the module creates no unhandled rejection.
+- **C-CHILD-07** If an owned child restarts itself while its parent is stopping it, so that the child is not `stopped` when the parent's stop of it settles, the parent's retirement reports a `LifecycleUnsafeStateError` cleanup error. The parent ends `failed { cleanupComplete: false }`, keeps owning the child, and its next `stop()` stops the child again (D32).
 
 ## 11. Conditions
 
@@ -259,6 +270,14 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D27 | `restart()` on a dirty `failed` rejects at once, as `start()` does; only `stop()` finishes cleanup |
 | D28 | A condition wait whose generation retires rejects with `LifecycleSupersededError`, with the failure as `cause` |
 | D29 | `defer` cleanups and `acquire` releases are typed to return `unknown`; promise-likes are awaited, other values ignored |
+| D30 | A deadline is judged by the clock when an outcome would be committed (C-TIME-05) |
+| D31 | A late release is an obligation of the instance: new generations wait for it, an idle instance shows `stopping` and then returns to the idle state it left, a failure leaves cleanup debt that a running generation carries until its retirement retries it (C-SCOPE-11) |
+| D32 | A child that restarts itself during its parent's stop leaves the parent with cleanup debt; the parent keeps it (C-CHILD-07) |
+| D33 | A child can be claimed based on its public state alone (C-CHILD-01) |
+| D34 | `onStart` is not called for a generation that is already retiring (C-RET-07) |
+| D35 | A failed start rejects when the failure is decided, not after cleanup (C-CMD-17) |
+| D36 | A `stop()` joining unfinished work retries, once, what failed in it, within its own deadline (C-TIME-03) |
+| D37 | A `start()` during a recovery joins its replacement; only `stop()` and `restart()` supersede a recovery (C-REC-03) |
 
 ## 17. Not in this module
 

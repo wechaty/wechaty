@@ -110,11 +110,13 @@ interface Lifecycle extends AsyncDisposable {
   readonly state: LifecycleState
 
   /**
-   * Ask for a running service (C-CMD-04 to C-CMD-06, C-CMD-13, C-CMD-14).
+   * Ask for a running service (C-CMD-04 to C-CMD-06, C-CMD-13, C-CMD-14,
+   * C-CMD-17).
    *
    * Resolves when the attempt this call joined commits `running`, or at once if
    * a generation is running and not retiring. Rejects with the start error when
-   * that attempt fails, with `LifecycleSupersededError` when a later `stop()`, or a
+   * that attempt fails, as soon as the failure is decided rather than after its
+   * cleanup (a start timeout rejects at the deadline), with `LifecycleSupersededError` when a later `stop()`, or a
    * `restart()` accepted while it is `starting`, supersedes it (C-CMD-07,
    * C-CMD-11), with `LifecycleUnsafeStateError` while the state is
    * `failed { cleanupComplete: false }`, or with the caller's abort reason.
@@ -129,7 +131,8 @@ interface Lifecycle extends AsyncDisposable {
    * already queued. On a clean `failed` state it commits `stopped`; on a dirty
    * one it retries only the obligations that are still unreleased. Rejects with
    * the cleanup error when retirement reports one (the state then says whether
-   * cleanup completed), or with the caller's abort reason.
+   * cleanup completed), including an error from earlier unfinished work it
+   * joined and retried successfully (C-TIME-03), or with the caller's abort reason.
    */
   stop (options?: LifecycleWaitOptions): Promise<void>
 
@@ -401,13 +404,18 @@ interface LifecycleOptions {
   /**
    * Start deadline in milliseconds (C-TIME-01, C-TIME-02). Must be finite, greater
    * than 0 and at most 2³¹−1, or construction throws `RangeError` (D11). Omitted
-   * means no deadline.
+   * means no deadline. It runs from the commit of `starting` until the attempt
+   * can commit `running`, so it includes waiting for late releases (C-SCOPE-11).
+   * Judged by `clock.now()` when an outcome would be committed, not only by its
+   * timer firing (C-TIME-05).
    */
   readonly startTimeoutMs?: number
 
   /**
    * Deadline for one whole retirement pass, in milliseconds (C-TIME-01,
-   * C-TIME-03). Same validation as `startTimeoutMs`.
+   * C-TIME-03, C-TIME-05). It starts when the retirement is requested, that is
+   * when `stop()` or `restart()` is accepted, so `stop()` settles within this
+   * budget of the call. Same validation as `startTimeoutMs`.
    */
   readonly stopTimeoutMs?: number
 

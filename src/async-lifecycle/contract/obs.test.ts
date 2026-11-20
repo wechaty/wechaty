@@ -48,11 +48,12 @@ contract('C-OBS-03.a', 'a stop() from the running observer does not turn the fin
   assert.equal(lifecycle.state.kind, 'stopped')
 })
 
-contract('C-OBS-03.b', 'a stop() from the starting observer supersedes the start, with one reconciler', {}, async ({ make }) => {
+contract('C-OBS-03.b', 'a stop() from the starting observer supersedes the start with one reconciler, and onStart is never called (D34)', {}, async ({ make }) => {
   let lifecycle!: Lifecycle
   let stop: ReturnType<typeof observe<void>> | undefined
+  let entered = 0
   ;({ lifecycle } = make({
-    onStart () {},
+    onStart () { entered++ },
     onStateChange (state) {
       if (state.kind === 'starting') {
         stop = observe(lifecycle.stop())
@@ -65,6 +66,7 @@ contract('C-OBS-03.b', 'a stop() from the starting observer supersedes the start
   assert.ok(stop)
   assert.equal(stop.status, 'resolved')
   assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(entered, 0, 'C-RET-07: onStart is not called for a generation that is already retiring')
 })
 
 contract('C-OBS-03.c', 'a restart() from the failed observer starts fresh, without inheriting the old failure', {}, async ({ make }) => {

@@ -77,30 +77,45 @@ class ManualClock implements LifecycleClock {
   }
 
   /**
+   * Move time forward by `ms` synchronously **without firing any timer**: what a
+   * hook that blocks the thread looks like to the kernel. Due timers fire on the
+   * next `advance()`. Used for deadlines judged by the clock (C-TIME-05).
+   */
+  jump (ms: number): void {
+    this.#now += ms
+  }
+
+  /**
    * Move time forward by `ms`, firing every timer that falls due on the way, and
    * flush microtasks after each one so the lifecycle reacts before the next fires.
    *
    * Queued microtasks run first, before the target time is fixed: a command
    * accepted just before `advance()` arms its deadline in a microtask, and that
    * deadline must be measured from the current time, not from the target.
+   *
+   * Time never moves backwards. A timer made overdue by {@link ManualClock.jump},
+   * before this call or by a callback during it, fires at the current time, not
+   * at its due time, the way a blocked thread resumes late.
    */
   async advance (ms: number): Promise<void> {
     await flush()
     const target = this.#now + ms
     for (;;) {
+      // A callback may jump past `target`; timers due by then are overdue too.
+      const limit = Math.max(target, this.#now)
       const next = [ ...this.#timers.entries() ]
-        .filter(([ , timer ]) => timer.at <= target)
+        .filter(([ , timer ]) => timer.at <= limit)
         .sort(([ , a ], [ , b ]) => a.at - b.at || a.order - b.order)[0]
       if (!next) {
         break
       }
       const [ id, timer ] = next
       this.#timers.delete(id)
-      this.#now = timer.at
+      this.#now = Math.max(this.#now, timer.at)
       timer.callback()
       await flush()
     }
-    this.#now = target
+    this.#now = Math.max(this.#now, target)
     await flush()
   }
 
