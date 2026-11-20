@@ -129,6 +129,12 @@ class Generation {
    */
   localErrors: unknown[] = []
   /**
+   * The failed entries of its own ledger right after its retirement's unwind.
+   * A release registered on its sealed scope later that fails is reported once,
+   * as a failure not in this set.
+   */
+  failedAfterUnwind: ReadonlySet<object> = new Set()
+  /**
    * Its start failed because a late release failed meanwhile (C-SCOPE-11): that
    * debt is reported, not retried by this generation's own retirement.
    */

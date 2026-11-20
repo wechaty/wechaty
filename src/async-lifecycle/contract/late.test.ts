@@ -847,3 +847,85 @@ contract('C-SCOPE-11.y', 'a late release that fails during a failure\'s retireme
   assert.equal(state.cleanupError, lateError, 'once, not AggregateError([e, e])')
   await shutdown(lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// From the third review of #2999
+// ---------------------------------------------------------------------------
+
+for (const where of [ 'idle', 'live' ] as const) {
+  contract(`C-SCOPE-11.z-${where}`, `a late release registered at any moment while a stop() of ${where === 'idle' ? 'an idle instance' : 'a running instance'} waits for an older one is joined, not reported as "still in progress" (D31)`, {}, async ({ make }) => {
+    // The window between the last drain and the published outcome is a few
+    // microtasks wide, so the registration is swept (C-TIME-05.d).
+    for (let turns = 0; turns <= 30; turns++) {
+      const scopes: LifecycleScope[] = []
+      const first = Promise.withResolvers<void>()
+      const second = Promise.withResolvers<void>()
+      const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+      await lifecycle.start()
+      if (where === 'idle') {
+        await lifecycle.stop()
+      } else {
+        await lifecycle.restart()
+      }
+      registerLate(scopes[0]!, () => first.promise)
+      await flush()
+      const stopped = observe(lifecycle.stop())
+      await flush()
+      first.resolve()
+      await flush(turns)
+      registerLate(scopes[0]!, () => second.promise)
+      await flush()
+      assert.notEqual(stopped.status, 'rejected', `turn ${turns}: ${String(stopped.error)}`)
+      second.resolve()
+      await flush()
+      assert.equal(stopped.status, 'resolved', `turn ${turns}`)
+      assert.equal(lifecycle.state.kind, 'stopped', `turn ${turns}`)
+    }
+  })
+}
+
+contract('C-SCOPE-11.za', 'a release on the retiring run\'s own scope that fails while the stop() waits for an older late release is reported as itself (D31)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const older = Promise.withResolvers<void>()
+  const own = Promise.withResolvers<void>()
+  const ownError = new Error('own release failed')
+  const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+  await lifecycle.start()
+  await lifecycle.restart()
+  registerLate(scopes[0]!, () => older.promise)
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  registerLate(scopes[1]!, () => own.promise)
+  own.reject(ownError)
+  await flush()
+  older.resolve()
+  await flush()
+  assert.equal(stopped.error, ownError, 'the actual failure, not "a release is still in progress"')
+  const state = failedState(lifecycle.state)
+  assert.equal(state.cleanupComplete, false)
+  assert.equal(state.cleanupError, ownError)
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-11.zb', 'on an idle instance, a late release that fails while another still runs is published as debt at once, and a queued start() gets its error (D31)', {}, async ({ make }) => {
+  const reason = new Error('late release failed')
+  const failing = Promise.withResolvers<void>()
+  const pending = Promise.withResolvers<void>()
+  let retired: LifecycleScope | undefined
+  const { lifecycle } = make({ onStart (scope) { retired ??= scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => failing.promise)
+  registerLate(retired!, () => pending.promise)
+  const started = observe(lifecycle.start())
+  await flush()
+  failing.reject(reason)
+  await flush()
+  const state = failedState(lifecycle.state)
+  assert.equal(state.cleanupComplete, false)
+  assert.equal(state.cleanupError, reason)
+  assert.equal(started.error, reason, 'the queued start() is not left waiting')
+  pending.resolve()
+  await flush()
+  await shutdown(lifecycle)
+})
