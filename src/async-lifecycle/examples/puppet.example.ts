@@ -80,9 +80,12 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   protected abstract onStop (): Promise<void>
 
   async #start (scope: LifecycleScope): Promise<void> {
-    // One provider stop per pass, shared by the early and the normal path.
+    // One provider stop per pass, shared by the early and the normal path. The
+    // async wrapper turns a provider's synchronous throw into a cached rejection:
+    // thrown from the abort listener it would be an uncaught exception, and left
+    // uncached the deferred cleanup would call onStop() a second time.
     let stopping: Promise<void> | undefined
-    const stopProvider = (): Promise<void> => (stopping ??= this.onStop())
+    const stopProvider = (): Promise<void> => (stopping ??= (async () => this.onStop())())
 
     // Registered first, so it is released last and also runs when onStart()
     // throws halfway: today's contract, kept here for every provider at once.
