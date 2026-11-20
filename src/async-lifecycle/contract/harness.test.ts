@@ -57,6 +57,17 @@ test('ManualClock fires a timer scheduled by a callback within the same advance,
   assert.deepEqual(fired, [ 10, 15 ])
 })
 
+test('ManualClock arms a timer queued in a microtask before advance() at the current time', async () => {
+  // Like `lifecycle.start(); await clock.advance(100)`: the kernel arms its
+  // deadline in a microtask after the command returns.
+  const clock = new ManualClock()
+  let fired = false
+  queueMicrotask(() => { clock.setTimeout(() => { fired = true }, 100) })
+  await clock.advance(100)
+  assert.equal(fired, true)
+  assert.equal(clock.now(), 100)
+})
+
 test('ManualClock clearTimeout cancels a timer', async () => {
   const clock = new ManualClock()
   let fired = false

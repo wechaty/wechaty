@@ -79,8 +79,13 @@ class ManualClock implements LifecycleClock {
   /**
    * Move time forward by `ms`, firing every timer that falls due on the way, and
    * flush microtasks after each one so the lifecycle reacts before the next fires.
+   *
+   * Queued microtasks run first, before the target time is fixed: a command
+   * accepted just before `advance()` arms its deadline in a microtask, and that
+   * deadline must be measured from the current time, not from the target.
    */
   async advance (ms: number): Promise<void> {
+    await flush()
     const target = this.#now + ms
     for (;;) {
       const next = [ ...this.#timers.entries() ]

@@ -26,10 +26,13 @@
  * - `onStop` gets `{ reason, signal }`; the adapter adds `generation`, which is
  *   the most recently started generation (only a `running` generation gets
  *   `onStop`, and a replacement starts only after it retires).
- * - `scope.recover()` rejects where S1 resolves `'failed'` (D10); the adapter
- *   maps a rejection to `'failed'`.
  * - `LifecycleOptions.clock` lacks `now()` in this implementation; extra members
  *   are ignored, so the manual clock is passed through.
+ *
+ * Forwarded unchanged although it differs from S1, so the difference shows up
+ * as known failures rather than being hidden by the adapter:
+ * - `scope.recover()` **rejects** where S1 resolves `'failed'` (D10): before
+ *   `running`, and when the retirement or the replacement fails.
  *
  * Missing: `condition.isSet` (D23).
  */
@@ -70,7 +73,8 @@ function adaptScope (scope: Claude.LifecycleScope): LifecycleScope {
     set     : condition => scope.set(condition as Claude.LifecycleCondition),
     clear   : condition => scope.clear(condition as Claude.LifecycleCondition),
     fail    : error => scope.fail(error),
-    recover : reason => scope.recover(reason).then(result => result, () => 'failed' as const),
+    // Not translated: a rejection here is a D10 divergence the suite must see.
+    recover : reason => scope.recover(reason),
   })
 }
 
