@@ -1,4 +1,4 @@
-name: Claude review effort benchmark
+name: Claude Ultracode review benchmark
 
 on:
   issue_comment:
@@ -13,8 +13,7 @@ jobs:
       github.event.issue.state == 'open' &&
       github.actor == 'huan' &&
       github.event.comment.user.login == 'huan' &&
-      (github.event.comment.body == '/claude-review-benchmark xhigh' ||
-       github.event.comment.body == '/claude-review-benchmark ultracode')
+      github.event.comment.body == '/claude-review-benchmark ultracode'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
@@ -100,7 +99,7 @@ jobs:
             comment or a GitHub review submission, and do not edit comments from prior runs.
           claude_args: |
             --model claude-sonnet-5-5
-            --effort ${{ github.event.comment.body == '/claude-review-benchmark ultracode' && 'ultracode' || 'xhigh' }}
+            --effort ultracode
             --max-turns 100
             --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Bash,Task"
