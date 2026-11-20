@@ -28,7 +28,7 @@ import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
 
 import type { Lifecycle, LifecycleScope } from '../types.ts'
-import { errorName, failedState, flush, ManualClock, observe, shutdown } from './harness.ts'
+import { errorName, failedState, flush, ManualClock, observe, shutdown, stateTrace } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-CHILD-05.a', 'a child that stops without the parent asking fails the parent generation, phase `run`', {}, async ({ make }) => {
@@ -367,6 +367,7 @@ contract('C-CHILD-05.f', 'a child whose own recovery fails to start a replacemen
   const boom = new Error('replacement failed')
   let childScope: LifecycleScope | undefined
   let childStarts = 0
+  const childTrace = stateTrace()
   const child = make({
     onStart (scope) {
       childScope = scope
@@ -374,6 +375,7 @@ contract('C-CHILD-05.f', 'a child whose own recovery fails to start a replacemen
         throw boom
       }
     },
+    onStateChange: childTrace.onStateChange,
   }).lifecycle
   const parent = make({ async onStart (scope) { await scope.start(child) } }).lifecycle
   await parent.start()
@@ -385,7 +387,8 @@ contract('C-CHILD-05.f', 'a child whose own recovery fails to start a replacemen
   const failing = observe(childScope!.recover())
   await flush()
   assert.equal(failing.value, 'failed')
-  assert.equal(child.state.kind, 'failed')
+  assert.ok(childTrace.kinds.includes('failed:3'), 'the child committed its failure')
+  assert.equal(child.state.kind, 'stopped', 'the parent\'s retirement stopped the cleanly failed child (C-CMD-09)')
   const failed = failedState(parent.state)
   assert.equal(errorName(failed.error), 'LifecycleChildFailureError')
   assert.equal((failed.error as Error).cause, boom)

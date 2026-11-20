@@ -193,7 +193,7 @@ const claude: Implementation = {
     'C-REC-05.d': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
     '2905-E': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
     'C-CHILD-05.g': 'D13 divergence: a child that stops unasked fails the parent with a plain Error, not LifecycleChildFailureError',
-    'C-CHILD-05.f': 'D10 divergence: recover() rejects when the replacement fails, instead of resolving `failed`',
+    'C-CHILD-05.f': 'D10 divergence: recover() rejects when the replacement fails, instead of resolving `failed` (the parent\'s error is also a plain Error, D13)',
     'C-REC-06.a': 'D10 divergence: recover() rejects when the replacement fails, instead of resolving `failed`',
   },
 }
