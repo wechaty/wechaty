@@ -171,6 +171,12 @@ jobs:
         if: steps.eyes.outputs.review_needed == 'true'
         run: npm ci --ignore-scripts
 
+      # The run URL is shared by reruns. Ignore comments from earlier attempts.
+      - name: Record review start time
+        if: steps.eyes.outputs.review_needed == 'true'
+        id: review-start
+        run: date -u '+started_at=%Y-%m-%dT%H:%M:%SZ' >> "$GITHUB_OUTPUT"
+
       - name: Run Claude PR review (direct prompt)
         if: steps.eyes.outputs.review_needed == 'true'
         id: claude-review
@@ -191,6 +197,24 @@ jobs:
           # Direct review prompt: no plugin-wide "already commented" skip rule.
           # The existing HEAD/BASE guard handles duplicate revisions.
           show_full_output: true
+          # The action closes the SDK stream at its first result. Keep Claude
+          # in the session while Ultracode's workflow is still running.
+          settings: |
+            {
+              "hooks": {
+                "Stop": [
+                  {
+                    "hooks": [
+                      {
+                        "type": "command",
+                        "command": "if jq -e 'any(.background_tasks[]?; .type == \"workflow\")' >/dev/null; then\n  sleep 10\n  echo 'An Ultracode workflow is still running. Keep this session open. Wait in the foreground (for example, Bash sleep 30) and consume its completion result before publishing or ending the review.' >&2\n  exit 2\nfi",
+                        "timeout": 20
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
           prompt: |
             Review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}.
             Review HEAD ${{ github.event.pull_request.head.sha }} against BASE ${{ github.event.pull_request.base.sha }}.
@@ -211,6 +235,11 @@ jobs:
             changed file and line, explain the trigger and observable consequence, and
             suggest a concrete fix. Briefly disclose any material area you could not assess.
             Do not modify the repository. Do not approve or merge the PR.
+            A Workflow launch acknowledgment is not a result. If you launch an Ultracode
+            workflow, stay in this session and wait in the foreground for its completion
+            notification and results. Read and incorporate the results before publishing.
+            Only the parent session may update the PR comment. If the workflow fails,
+            report the incomplete review without labeling it as a final code review.
             Publish the final review in the native progress comment created for this run.
             Load mcp__github_comment__update_claude_comment with ToolSearch and use it to
             update that same comment in place. Include exactly one "## Code review"
@@ -223,17 +252,46 @@ jobs:
             --max-turns 150
             --dangerously-skip-permissions
 
-      # Trust the successful Claude execution result; no internal-agent checks.
-      - name: Verify Claude execution succeeded
-        id: verify-plugin
+      - name: Verify workflow completion and published review
+        id: verify-review
         if: steps.claude-review.outcome == 'success'
         env:
           EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          STARTED_AT: ${{ steps.review-start.outputs.started_at }}
+        shell: bash
         run: |
-          test -s "$EXECUTION_FILE"
-          jq -e 'type == "array" and any(.[]; .type == "result" and .subtype == "success" and .is_error == false)' "$EXECUTION_FILE" >/dev/null
+          set -euo pipefail
+          if ! test -s "$EXECUTION_FILE" || ! jq -e '
+            def is($subtype): .type == "system" and .subtype == $subtype;
+            ([.[] | select(.type == "result")] | last |
+              .subtype == "success" and .is_error == false) and
+            ([.[] | select(is("task_notification") and .status == "completed")] as $done |
+              all(.[] | select(is("task_started") and .task_type == "local_workflow");
+                . as $started | any($done[];
+                  .task_id == $started.task_id and
+                  (.run_id == null or $started.run_id == null or .run_id == $started.run_id))))
+          ' "$EXECUTION_FILE" >/dev/null; then
+            echo "::error::Claude did not finish the review or an Ultracode workflow is incomplete."
+            exit 1
+          fi
+
+          run_link="(${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+          if ! gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" |
+            jq -e --arg link "$run_link" --arg since "$STARTED_AT" --arg sha "$EXPECTED_SHA" '
+              [.[][] | select(.user.login == "claude[bot]" and .created_at >= $since and
+                (.body | contains($link)))] |
+              length == 1 and (.[0].body | split("\n") |
+                map(select(. == "## Code review")) | length == 1) and
+              (.[0].body | split("\n") | any(. == ("Reviewed HEAD SHA: " + $sha)))
+            ' >/dev/null; then
+            echo "::error::The native Claude comment is missing the final review or exact HEAD SHA."
+            exit 1
+          fi
       - name: Record completed review status for exact revision
-        if: steps.verify-plugin.outcome == 'success'
+        if: steps.verify-review.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
