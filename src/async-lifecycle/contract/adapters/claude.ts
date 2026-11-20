@@ -194,6 +194,14 @@ const claude: Implementation = {
     '2905-E': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
     'C-CHILD-05.g': 'D13 divergence: a child that stops unasked fails the parent with a plain Error, not LifecycleChildFailureError',
     'C-REC-06.a': 'D10 divergence: recover() rejects when the replacement fails, instead of resolving `failed`',
+    'S3.I1.late': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'S3.I4.late': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'S3-D31-running': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'S3-D31-stopped': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-CMD-07.d': 'B13: a stop() accepted at one microtask while a stopped generation finishes retiring, with a start() queued behind it, resolves and supersedes the start, but the state stays `stopping` forever; later stop() calls resolve without committing `stopped`',
+    'S3-B13@createLifecycle': 'B13: a stop() accepted at one microtask while a stopped generation finishes retiring, with a start() queued behind it, resolves and supersedes the start, but the state stays `stopping` forever; later stop() calls resolve without committing `stopped`',
+    'S3.I3.late': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'S3-D31-idle': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
   },
 }
 

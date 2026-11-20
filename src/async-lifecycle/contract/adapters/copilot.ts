@@ -211,6 +211,12 @@ const copilot: Implementation = {
     '2905-D': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
     '2905-E': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
     'C-CHILD-05.f-stop': 'B1: the parent\'s retirement stops the cleanly failed child, which stays `failed` instead of committing `stopped`',
+    'S3.I11': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
+    'S3-B1': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
+    'S3-B13': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
+    'S3.I4.late': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'S3-D31-idle': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'S3-D31-stopped': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
   },
 }
 

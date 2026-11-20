@@ -56,6 +56,16 @@ class ManualClock implements LifecycleClock {
   #now = 0
   #order = 0
   readonly #timers = new Map<number, Timer>()
+  readonly #turns: number | undefined
+
+  /**
+   * @param turns - Microtask turns {@link flush} spins in {@link ManualClock.advance};
+   *   the default suits hand-written tests. The S3 runner passes fewer, because
+   *   it advances thousands of times and spinning dominates its run time.
+   */
+  constructor (turns?: number) {
+    this.#turns = turns
+  }
 
   /** The number of armed timers. */
   get pending (): number {
@@ -98,7 +108,7 @@ class ManualClock implements LifecycleClock {
    * at its due time, the way a blocked thread resumes late.
    */
   async advance (ms: number): Promise<void> {
-    await flush()
+    await flush(this.#turns)
     const target = this.#now + ms
     for (;;) {
       // A callback may jump past `target`; timers due by then are overdue too.
@@ -113,10 +123,10 @@ class ManualClock implements LifecycleClock {
       this.#timers.delete(id)
       this.#now = Math.max(this.#now, timer.at)
       timer.callback()
-      await flush()
+      await flush(this.#turns)
     }
     this.#now = Math.max(this.#now, target)
-    await flush()
+    await flush(this.#turns)
   }
 
 }

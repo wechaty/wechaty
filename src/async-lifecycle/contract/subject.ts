@@ -87,6 +87,10 @@ interface Implementation {
    * Contract tests this implementation is known to fail, keyed by test key
    * (for example `'B1'` or `'C-CMD-04.a'`), or by `'<key>@<shell>'` when only
    * one entry point fails. The value says why, citing a bug ID when there is one.
+   *
+   * A key `'S3.<invariant>'` (for example `'S3.I7'`) instead waives one
+   * invariant in the S3 random-schedule run (`random/random.test.ts`): the run
+   * still checks every other invariant, and a waived one is not reported.
    */
   readonly knownFailures: Readonly<Record<string, string>>
 }
