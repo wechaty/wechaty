@@ -776,3 +776,49 @@ contract('C-SCOPE-01.a', 'each generation\'s scope carries that generation\'s nu
   assert.equal(scopes[1]!.signal.aborted, false)
   await shutdown(lifecycle)
 })
+
+for (const pending of [ 'release', 'interrupt' ] as const) {
+  contract(`C-SCOPE-04.f-${pending}`, `an onStart awaiting a late acquisition settles while ${pending === 'release' ? 'its release is' : 'its async interrupt, and so its release, are'} still pending, and stop() still waits (D41${pending === 'interrupt' ? ', D38' : ''})`, { needs: pending === 'interrupt' ? [ 'scope.acquire', 'acquire.interrupt' ] : [ 'scope.acquire' ] }, async ({ make }) => {
+    // Found by S3 (#2992): an implementation that rejects only after the release
+    // leaves the acquire(), and the hook awaiting it, pending while the release
+    // hangs; the generation can then never finish retiring.
+    const creating = Promise.withResolvers<string>()
+    const interrupting = Promise.withResolvers<void>()
+    const releasing = Promise.withResolvers<void>()
+    const log: string[] = []
+    let hookSettled = false
+    const { lifecycle } = make({
+      async onStart (scope) {
+        try {
+          await scope.acquire(() => creating.promise, () => {
+            log.push('release')
+            return releasing.promise
+          }, pending === 'interrupt'
+            ? { interrupt: () => { log.push('interrupt'); return interrupting.promise } }
+            : undefined)
+        } finally {
+          hookSettled = true
+        }
+      },
+    })
+    const started = observe(lifecycle.start())
+    await flush()
+    const stopped = observe(lifecycle.stop())
+    await flush()
+    creating.resolve('late')
+    await flush()
+    assert.equal(hookSettled, true, 'acquire() rejected at once, so the awaiting hook settled')
+    assert.equal(errorName(started.error), 'LifecycleSupersededError')
+    if (pending === 'interrupt') {
+      assert.deepEqual(log, [ 'interrupt' ], 'not released before its interrupt settles (D38)')
+      interrupting.resolve()
+      await flush()
+    }
+    assert.deepEqual(log, pending === 'interrupt' ? [ 'interrupt', 'release' ] : [ 'release' ])
+    assert.equal(stopped.status, 'pending', 'the stop() still waits for the release')
+    releasing.resolve()
+    await flush()
+    assert.equal(stopped.status, 'resolved')
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+}

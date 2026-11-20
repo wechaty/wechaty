@@ -202,6 +202,7 @@ const codex: Implementation = {
     'S3-D31-stopped': 'B3: onStop runs for a generation that never reached `running`',
     'S3.I4.late': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
     'S3-D31-idle': 'B3: onStop runs for a generation that never reached `running`',
+    'S3-D41': 'B3: onStop runs for a generation that never reached `running`',
   },
 }
 
