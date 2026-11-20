@@ -27,7 +27,10 @@
  *   `S3.<invariant>` (for example `S3.I7`), citing the bug that breaks it; any
  *   other violation fails the test with a shrunk, replayable schedule.
  * - `S3-*` replay schedules that once failed, shrunk and saved here. Each
- *   cites the bug or divergence it found.
+ *   cites the bug or divergence it found. They are also what catches a stale
+ *   waiver: `S3.random` cannot tell a waived invariant that no longer fires,
+ *   but the matching `S3-*` replay is a known failure, which turns red once
+ *   the implementation is fixed (see `expectFailure()` in `harness.ts`).
  *
  * Environment variables, for local soak runs:
  * - `ASYNC_LIFECYCLE_SEEDS`: seeds per run (default 100);
@@ -82,6 +85,14 @@ const REGRESSIONS: readonly Regression[] = [
     schedule : { seed: 29, steps: [ { op: 'restart', n: 322771957 }, { op: 'restart', n: 77178033 }, { op: 'fail', n: 1588934533 }, { op: 'stop', n: 672500064 }, { op: 'late-defer', n: 1141441639 }, { op: 'late-defer', n: 176278709 }, { op: 'start', n: 1676683016 } ] },
   },
   {
+    key      : 'S3-D31-idle',
+    title    : 'a late release on an idle instance shows `stopping` until it is released (I4, found in review of #2992 on all three: D31)',
+    schedule : { seed: 29, steps: [ { op: 'restart', n: 322771957 }, { op: 'restart', n: 77178033 }, { op: 'fail', n: 1588934533 }, { op: 'stop', n: 672500064 }, { op: 'late-defer', n: 1141441639 }, { op: 'late-defer', n: 176278709 } ] },
+  },
+  {
+    // The saved schedule hits B13's window only through createLifecycle, and
+    // only at today's microtask timing. C-CMD-07.d, which sweeps the delay, is
+    // the real guard; this keeps the schedule S3 found.
     key      : 'S3-B13',
     title    : 'a stop() during a retirement with a start() queued behind it ends stopped (I11, found on Claude at seed 6295 of a 10,000-seed soak: B13)',
     schedule : { seed: 6295, steps: [ { op: 'restart', n: 2113443349 }, { op: 'child', n: 304182382 }, { op: 'stop', n: 872276838 }, { op: 'use', n: 1005799022 }, { op: 'resolve', n: 609667528 }, { op: 'defer', n: 1954595663 }, { op: 'start', n: 641922338 }, { op: 'use', n: 1036139674 }, { op: 'resolve', n: 257146160 }, { op: 'stop', n: 372604258 } ] },

@@ -214,6 +214,9 @@ const copilot: Implementation = {
     'S3.I11': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
     'S3-B1': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
     'S3-B13': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
+    'S3.I4.late': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'S3-D31-idle': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'S3-D31-stopped': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
   },
 }
 

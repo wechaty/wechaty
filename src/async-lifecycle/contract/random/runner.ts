@@ -33,12 +33,12 @@
  * | --- | --- |
  * | I1 | No overlap: when a generation's `onStart` is entered, every earlier generation's hooks and tasks have settled and its own resources are released; late releases (D31) are excused until `running` |
  * | I2 | `running` is never committed for a generation whose signal is aborted |
- * | I3 | When a `stop()` resolves, every resource of the generation it captured, and of every earlier one, was released; no resource is ever released after a successful release |
- * | I4 | `stopped` and `failed { cleanupComplete: true }` hold no resource, no pending creation, no running hook or task, and no started child |
- * | I5 | Every promise handed to a caller settles once the schedule drains |
+ * | I3 | When a `stop()` resolves, every resource of the generation it captured, and of every earlier one, was released, and so was every late release (D31) already running when it was accepted, unless a newer generation started; no resource is ever released after a successful release |
+ * | I4 | `stopped` and `failed { cleanupComplete: true }` hold no resource, no pending creation, no running hook or task, and no started child; checked at each such commit, after every step and after draining |
+ * | I5 | Every promise handed to a caller, `scope.acquire()` and `recover()` included, settles once the schedule drains; an acquisition whose own release hangs forever is exempt (C-SCOPE-04 sets no order between the two) |
  * | I6 | No unhandled rejection |
  * | I7 | `onStop` runs at most once per generation, and only for one that committed `running` (D8) |
- * | I8 | A stale scope changes nothing: its `fail()` error never shows up in the state, its `recover()` resolves `'superseded'`, and its `set()` / `clear()` leave `isSet` unchanged |
+ * | I8 | A stale scope changes nothing: its `fail()` error never shows up in the state, its `recover()` resolves (never rejects) `'superseded'`, and its `set()` / `clear()` leave `isSet` unchanged |
  * | I9 | Snapshots are frozen, and generation numbers never decrease |
  * | I10 | Observers (`onStateChange`, `whenState` predicates) see the state that is already committed |
  * | I11 | Liveness: when no behavior hung forever, draining ends `stopped` |
@@ -158,6 +158,8 @@ interface Obligation {
   dropped: boolean
   attempts: number
   released: number
+  /** Its release drew the `forever` behavior. */
+  forever: boolean
 }
 
 /** What the runner knows about one generation. */
@@ -182,6 +184,8 @@ interface Call {
   readonly observed: Observed<unknown>
   readonly controller?: AbortController
   readonly check?: (value: unknown) => string | undefined
+  /** True when the run must not require this promise to settle (see I5). */
+  readonly exempt?: () => boolean
 }
 
 /**
@@ -302,13 +306,14 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
       case 'gate':
         return gate(`release ${obligation.id}`, ok => { if (ok) { done() } })
       case 'forever':
+        obligation.forever = true
         return forever()
     }
   }
 
   const register = (generation: number, created = true): Obligation => {
     const record = generations.get(generation)
-    const obligation: Obligation = { id: nextId++, generation, late: record?.ended ?? false, called: created, created, dropped: false, attempts: 0, released: 0 }
+    const obligation: Obligation = { id: nextId++, generation, late: record?.ended ?? false, called: created, created, dropped: false, attempts: 0, released: 0, forever: false }
     obligations.push(obligation)
     return obligation
   }
@@ -341,7 +346,14 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
           return obligation.id
         }
         const interrupt = capabilities.has('acquire.interrupt') ? { interrupt: () => {} } : undefined
-        observe(scope.acquire(create, () => release(), interrupt))
+        // C-SCOPE-04 requires both the release and the rejection of a late
+        // acquisition, in no order, so one whose own release hangs forever is
+        // not required to settle (proposed as D41, #2992).
+        calls.push({
+          label    : `scope.acquire() ${obligation.id}`,
+          observed : observe(scope.acquire(create, () => release(), interrupt)),
+          exempt   : () => obligation.forever,
+        })
       } else if (generation) {
         scope.spawn(async signal => {
           const how = behavior.weighted(table.task)
@@ -478,6 +490,17 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
         }
       }
     },
+  }
+
+  /**
+   * I4 on the current snapshot, without waiting for a commit: an implementation
+   * that wrongly stays `stopped` while a late release runs commits nothing.
+   */
+  const checkIdle = () => {
+    const state = lifecycle.state
+    if (state.kind === 'stopped' || (state.kind === 'failed' && state.cleanupComplete)) {
+      checkClean(state)
+    }
   }
 
   /** I4: a clean idle state holds nothing. */
@@ -668,6 +691,10 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
 
   /** Check I3 once `entry`, a stop() that captured `captured`, resolves. */
   const watchStop = (entry: Call, captured: number) => {
+    // Late releases already running when the stop() was accepted are instance
+    // obligations it waits for (C-SCOPE-11), unless a newer generation started
+    // meanwhile; ones registered later are not its business.
+    const lateAtAcceptance = new Set(obligations.filter(obligation => obligation.late && holds(obligation)))
     stopChecks.push(() => {
       if (entry.observed.status === 'pending') {
         return false
@@ -675,7 +702,14 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
       if (entry.observed.status === 'resolved') {
         for (const obligation of obligations) {
           if (obligation.generation <= captured && !obligation.late && holds(obligation)) {
-            violate('I3', `stop() resolved while obligation ${obligation.id} of generation ${obligation.generation} is not released`)
+            violate('I3', `stop() resolved while ${name(obligation)} is not released`)
+          }
+        }
+        if (lifecycle.state.generation === captured) {
+          for (const obligation of lateAtAcceptance) {
+            if (holds(obligation)) {
+              violate('I3.late', `stop() resolved while ${name(obligation)}, running when the stop() was accepted, is not released`)
+            }
           }
         }
       }
@@ -700,17 +734,23 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
       await flush(TURNS)
       checkStops()
       checkSnapshot(lifecycle.state, 'after a step')
+      checkIdle()
     }
     step = schedule.steps.length
     log?.('drain')
     await drain()
     await new Promise(resolve => setImmediate(resolve))
     await flush()
+    checkIdle()
     for (const entry of calls) {
       if (entry.observed.status === 'pending') {
-        violate('I5', `${entry.label} never settled`)
-      } else if (entry.check && entry.observed.status === 'resolved') {
-        const problem = entry.check(entry.observed.value)
+        if (!entry.exempt?.()) {
+          violate('I5', `${entry.label} never settled`)
+        }
+      } else if (entry.check) {
+        const problem = entry.observed.status === 'resolved'
+          ? entry.check(entry.observed.value)
+          : `${entry.label} rejected with ${describe(entry.observed.error)} instead of resolving`
         if (problem) {
           violate('I8', problem)
         }
