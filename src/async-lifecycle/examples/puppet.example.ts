@@ -22,7 +22,7 @@
  * Usage example: a `Puppet` base on the composition entry point, wrapping
  * providers written against today's contract.
  *
- * Type-checked only (see `./pending-shells.ts`); it becomes a runnable test in
+ * Type-checked only, against the kernel in `../mod.ts`; it becomes a runnable test in
  * wechaty/wechaty#2973. It shows that:
  * - an EventEmitter base keeps its base class and delegates the caller API;
  * - a provider's zero-argument `onStart()` / `onStop()` work unchanged, with the
@@ -42,7 +42,7 @@ import type {
   LifecycleState,
   LifecycleWaitOptions,
 }                           from '../types.ts'
-import { createLifecycle } from './pending-shells.ts'
+import { createLifecycle } from '../mod.ts'
 
 /** Today's provider events that the base turns into conditions. */
 export interface PuppetEvents {

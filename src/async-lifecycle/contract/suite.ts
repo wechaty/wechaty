@@ -49,6 +49,7 @@ import { test } from 'node:test'
 import { claude } from './adapters/claude.ts'
 import { codex } from './adapters/codex.ts'
 import { copilot } from './adapters/copilot.ts'
+import { final } from './adapters/final.ts'
 import { expectFailure } from './harness.ts'
 import type {
   Capability,
@@ -58,7 +59,7 @@ import type {
 }                           from './subject.ts'
 
 /** Every implementation the suite runs against. */
-const IMPLEMENTATIONS: readonly Implementation[] = [ codex, claude, copilot ]
+const IMPLEMENTATIONS: readonly Implementation[] = [ codex, claude, copilot, final ]
 
 /** Run known failures as ordinary tests, to see their real assertion. */
 const SHOW_KNOWN_FAILURES = process.env['ASYNC_LIFECYCLE_SHOW_KNOWN_FAILURES'] === '1'

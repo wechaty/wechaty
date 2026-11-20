@@ -23,7 +23,7 @@
  * owns a `Puppet` and an optional `Io` as children, offers `ready()`, and maps
  * lifecycle states to today's `'start'` / `'stop'` / `'error'` events.
  *
- * Type-checked only (see `./pending-shells.ts`); it becomes a runnable test in
+ * Type-checked only, against the kernel in `../mod.ts`; it becomes a runnable test in
  * wechaty/wechaty#2973.
  *
  * Readiness is delegated to the puppet's own `ready` condition rather than
@@ -49,7 +49,7 @@ import type {
 }                           from '../types.ts'
 import { LifecycleSupersededError } from '../errors.ts'
 import type { Io } from './io.example.ts'
-import { createLifecycle } from './pending-shells.ts'
+import { createLifecycle } from '../mod.ts'
 import type { Puppet } from './puppet.example.ts'
 
 /** Today's Wechaty events that the lifecycle drives. */
