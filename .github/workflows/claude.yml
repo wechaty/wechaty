@@ -91,7 +91,8 @@ jobs:
           # Explicit full-execution experiment for trusted human commands.
           # Do not apply this to the automatic PR reviewer.
           claude_args: |
-            --max-turns 50
+            --effort ultracode
+            --max-turns 150
             --dangerously-skip-permissions
 
       - name: Report Claude failure
@@ -218,10 +219,9 @@ jobs:
             Update the comment even if there are no findings. Do not create a separate
             comment or a GitHub review submission, and do not edit comments from prior runs.
           claude_args: |
-            --effort high
-            --max-turns 100
+            --effort ultracode
+            --max-turns 150
             --dangerously-skip-permissions
-            --allowedTools "Read,Glob,Grep,Bash,Task"
 
       # Trust the successful Claude execution result; no internal-agent checks.
       - name: Verify Claude execution succeeded
