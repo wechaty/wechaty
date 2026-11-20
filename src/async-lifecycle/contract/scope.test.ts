@@ -27,7 +27,7 @@ import assert from 'node:assert/strict'
 import type { LifecycleScope } from '../types.ts'
 import { EventEmitter } from 'node:events'
 
-import { errorName, failedState, flush, ManualClock, observe, shutdown } from './harness.ts'
+import { errorName, failedState, flush, ManualClock, observe, type Observed, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-SCOPE-02.a', 'a retired scope ignores fail() and set(), so the state does not change', {}, async ({ make }) => {
@@ -634,3 +634,78 @@ for (const value of [ undefined, null ]) {
     assert.ok('cleanupError' in failed && Object.is(failed.cleanupError, value))
   })
 }
+
+contract('C-SCOPE-05.e', 'interrupts are all called at once, newest first; a pending interrupt promise holds the releases under the stop deadline, and the next stop() releases without calling any interrupt again (D38)', { needs: [ 'clock', 'scope.acquire', 'acquire.interrupt' ] }, async ({ make }) => {
+  // The Copilot source awaited each interrupt before calling the next, so the
+  // older one ran only after the newer one settled.
+  const clock = new ManualClock()
+  const blocked = Promise.withResolvers<void>()
+  const interrupts: string[] = []
+  const releases: string[] = []
+  const { lifecycle } = make({
+    async onStart (scope) {
+      await scope.acquire(() => 'first', resource => { releases.push(resource) }, { interrupt: () => { interrupts.push('first') } })
+      await scope.acquire(() => 'second', resource => { releases.push(resource) }, {
+        interrupt: () => {
+          interrupts.push('second')
+          return blocked.promise
+        },
+      })
+    },
+  }, { clock, stopTimeoutMs: 5 })
+  await lifecycle.start()
+  const first = observe(lifecycle.stop())
+  await flush()
+  assert.deepEqual(interrupts, [ 'second', 'first' ], 'no interrupt waits for another')
+  assert.deepEqual(releases, [], 'nothing is released while an interrupt is pending')
+  await clock.advance(5)
+  assert.equal(errorName(first.error), 'LifecycleTimeoutError')
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+
+  blocked.resolve()
+  await flush()
+  const second = observe(lifecycle.stop())
+  await flush()
+  assert.equal(second.status, 'resolved')
+  assert.deepEqual(releases, [ 'second', 'first' ])
+  assert.deepEqual(interrupts, [ 'second', 'first' ], 'each interrupt runs once')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-05.f', 'a late acquisition whose interrupt returns a promise that rejects: interrupted once, released once only after that promise settles, and the rejection is a cleanup error (D38)', { needs: [ 'scope.acquire', 'acquire.interrupt' ] }, async ({ make }) => {
+  const acquisition = Promise.withResolvers<string>()
+  const interrupt = Promise.withResolvers<void>()
+  const interruptError = new Error('late interrupt failed')
+  let interrupts = 0
+  let releases = 0
+  let acquired: Observed<string> | undefined
+  const { lifecycle } = make({
+    onStart (scope) {
+      acquired = observe(scope.acquire(() => acquisition.promise, () => { releases++ }, {
+        interrupt: () => {
+          interrupts++
+          return interrupt.promise
+        },
+      }))
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(interrupts, 0, 'the resource does not exist yet')
+  acquisition.resolve('late resource')
+  await flush()
+  assert.equal(interrupts, 1, 'interrupted as soon as it exists')
+  assert.equal(releases, 0, 'not released before its interrupt settles')
+  assert.equal(stopped.status, 'pending')
+
+  interrupt.reject(interruptError)
+  await flush()
+  assert.equal(errorName(acquired?.error), 'LifecycleSupersededError')
+  assert.equal(stopped.error, interruptError)
+  assert.equal(interrupts, 1)
+  assert.equal(releases, 1)
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.cleanupError, interruptError)
+  assert.equal(failed.cleanupComplete, true, 'the interrupt is never retried, and the resource was released')
+})

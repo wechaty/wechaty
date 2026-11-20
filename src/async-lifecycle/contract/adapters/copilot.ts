@@ -57,7 +57,9 @@ function adaptScope (scope: Copilot.LifecycleScope): LifecycleScope {
     acquire    : (create, release, options) => scope.acquire(
       create,
       release as (resource: unknown) => void | PromiseLike<void>,
-      options,
+      // A type cast only: D38 widened `interrupt` to return `unknown`, and
+      // Copilot already awaits a returned promise-like.
+      options as Copilot.AcquireOptions<unknown> | undefined,
     ) as Promise<never>,
     use     : resource => scope.use(resource),
     defer   : cleanup => scope.defer(cleanup as () => void | PromiseLike<void>),
@@ -201,6 +203,10 @@ const copilot: Implementation = {
     'C-SCOPE-10.a-async': 'B6: a cleanup error rejects stop() but is missing from the failed snapshot\'s cleanupError',
     'C-SCOPE-11.m': 'D31 divergence: a start() queued during an idle late release is refused with LifecycleUnsafeStateError instead of waiting for it (C-SCOPE-11)',
     'C-TIME-03.i': 'B6: a cleanup error rejects stop() but is missing from the failed snapshot\'s cleanupError',
+    'C-SCOPE-05.e': 'D38 divergence: each interrupt is awaited before the next one is called, so a pending interrupt keeps the older resources from being interrupted',
+    'C-SCOPE-05.f': 'B6: the interrupt\'s rejection rejects stop() but is missing from the failed snapshot\'s cleanupError',
+    'C-CHILD-05.e-stops': 'D39 divergence: a child that stops or fails unasked while its parent retires still fails the parent with LifecycleChildFailureError',
+    'C-CHILD-05.e-fails': 'D39 divergence: a child that stops or fails unasked while its parent retires still fails the parent with LifecycleChildFailureError',
   },
 }
 

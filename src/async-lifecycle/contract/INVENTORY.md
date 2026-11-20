@@ -10,7 +10,7 @@ The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one im
 | --- | --- | --- | --- | --- |
 | `src/async-lifecycle-codex/*.test.ts` | 63 tests (154 cases) | 61 | 2 (1 dropped, 1 moved to S5) | 0 |
 | `src/async-lifecycle-claude/*.test.ts` | 113 tests (208 cases) | 99 (83 new, 16 already covered) | 14 moved to S4 | 0 |
-| `src/async-lifecycle-copilot/*.test.ts` | 32 tests (one bundles 31 scenarios) | 23 (12 new, 11 already covered) | 6 moved to S4 | 3 (waiting for D38, D39) |
+| `src/async-lifecycle-copilot/*.test.ts` | 32 tests (one bundles 31 scenarios) | 26 (15 new, 11 already covered) | 6 moved to S4 | 0 |
 | #2905 traces A to F | 6 | 0 | 0 | 6 |
 | v1 design acceptance list | 6 | 0 | 0 | 6 |
 | ChatGPT review, 17-row regression table | 17 | 0 | 0 | 17 |
@@ -62,6 +62,8 @@ Source tests that assert behavior contradicting an accepted decision. Each is po
 | copilot: late cleanup debt stays attached after a replacement starts | A late release that fails while generation 2 runs fails generation 2 | D31 (C-SCOPE-11): the run continues; its `stop()` retries the debt |
 | copilot: a late release on an idle instance (bundled #2905 test) | A `start()` during the late release is refused | C-SCOPE-11: it queues behind the release (C-CMD-06) |
 | copilot: runtime failures retire the generation | `stop()` on the clean failure leaves `failed` | B1; C-CMD-09: it commits `stopped` |
+| copilot: timed-out interrupts resume in LIFO order | Each interrupt is awaited before the next is called | D38: every interrupt is called at once; a returned promise is joined like a task |
+| copilot: owned child failures remain supervised during graceful parent shutdown | A child that stops unasked while the parent retires fails the parent | D39: no escalation while the parent retires; the parent stops it as usual |
 
 ## Ported and dropped tests
 
@@ -267,7 +269,7 @@ Other files:
 
 ### Copilot (`src/async-lifecycle-copilot/`, #2912)
 
-32 tests, all in `async-lifecycle.test.ts`. Ported: 12 (as 24 new contract tests). Already covered: 11. Moved to S4: 6. Waiting for a decision: 3 (D38, D39).
+32 tests, all in `async-lifecycle.test.ts`. Ported: 15 (as 28 new contract tests; 3 after D38 and D39 were accepted). Already covered: 11. Moved to S4: 6.
 
 | Source test | Status | Contract test or reason |
 | --- | --- | --- |
@@ -283,8 +285,8 @@ Other files:
 | recovery requester failure during the final disposer fails recovery | ported | `C-REC-05.b-during-release` |
 | recovery requester added during unwind is included in error collection | ported, C-REC-03 and C-REC-05 form (the late caller gets `superseded` and is joined) | `C-REC-05.c` |
 | every accepted stop invalidates pre-start conditions during retirement | ported | `C-COND-04.h` |
-| timed-out interrupts resume in LIFO order without skipping or duplicating work | waiting, D38 | An interrupt that returns a pending promise |
-| late acquisition remains owned through its one interrupt and release | waiting, D38 (the single interrupt and release are `C-SCOPE-05.b`) | An interrupt that returns a rejected promise |
+| timed-out interrupts resume in LIFO order without skipping or duplicating work | ported, D38 form (every interrupt is called at once) | `C-SCOPE-05.e` |
+| late acquisition remains owned through its one interrupt and release | ported, D38 (the resource is created after step 4, so its interrupt runs as soon as it exists) | `C-SCOPE-05.f` |
 | a late onStop rejection is retained and reported across retry timing (2) | covered and ported | `C-TIME-03.b` (retry before the rejection), `C-TIME-03.i` (after it) |
 | sync throws and async disposer rejections remain retryable cleanup debt (2) | ported | `C-SCOPE-10.a-sync`, `C-SCOPE-10.a-async` |
 | a stop joining a dirty cleanup retry does not schedule an extra disposal pass | covered | `C-RET-05.a` |
@@ -297,7 +299,7 @@ Other files:
 | start timeout is deterministic and a pre-aborted caller does not mutate intent | covered | `C-CMD-01.a`, `C-TIME-02.d` |
 | runtime failures retire the generation and resolve whenState observers | covered (its final `stop()` leaving `failed` is B1) | `C-SCOPE-07.c-error`, `C-CMD-16.b`, `C-SCOPE-02.a`, `C-CMD-09.a` |
 | owned child lifecycles stop with their parent and unexpected child failure propagates | covered | `C-CHILD-04.a`, `C-CHILD-06.a` |
-| owned child failures remain supervised during graceful parent shutdown | waiting, D39 | A child stopped by someone else while its parent's `onStop` runs |
+| owned child failures remain supervised during graceful parent shutdown | ported, D39 form (no escalation while the parent retires) | `C-CHILD-05.e-stops`, `C-CHILD-05.e-fails` |
 | AsyncLifecycle inheritance rejects final-method overrides | covered and ported | `C-SHELL-02.a`, `C-SHELL-02.b`, `C-SHELL-02.d` (`state`, `Symbol.asyncDispose`, `stop`, `restart`, `whenState`). Class-field hooks dropped, as above |
 | diagnostics publish committed sanitized metadata before isolated observers | covered and ported | `C-OBS-04.a` (Copilot's record shape is a known divergence), `C-OBS-01.b` (the order) |
 | watchdog feed, disarm, and expiry use the supplied clock | moved to S4 | Companions land with their implementation (D26) |
@@ -313,7 +315,7 @@ The 31 scenarios of the bundled "#2905 A–F" test, each run through both entry 
 | a recovery requester that rejects at once | ported | `C-REC-05.b-at-once` |
 | an onStart that calls fail() after a stop() aborted it | ported, C-SCOPE-02 form | `C-SCOPE-02.e-onStart` |
 | a release that throws undefined or null while a stopped start rolls back (2) | ported | `C-SCOPE-10.c-*` |
-| a late acquisition whose interrupt rejects | waiting, D38 | |
+| a late acquisition whose interrupt rejects | ported, D38 | `C-SCOPE-05.f` |
 | start, stop, start during a gated onStart | covered | `C-CMD-06.a` |
 | stop, start while running | covered | `C-CMD-06.b` |
 | restart during startup | covered | `C-CMD-11.b` |

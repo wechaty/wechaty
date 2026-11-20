@@ -131,7 +131,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-SCOPE-02** When the generation starts retiring, its scope is **sealed**. Then `use` and `defer` release their argument at once (tracked until that succeeds) and throw the retirement reason; `acquire` and `start` reject and `spawn` throws, with the retirement reason, without running anything; `set`, `clear` and `fail` do nothing; `recover` resolves `'superseded'`. The retirement reason is the generation's failure if it failed, otherwise a `LifecycleSupersededError`.
 - **C-SCOPE-03** Obligations are released in the retirement order of C-RET-01.
 - **C-SCOPE-04** `acquire` registers the release before `create` runs. If `create` resolves after retirement began, the resource is released and `acquire` rejects with the retirement reason. If `create` rejects, `acquire` rejects with that error and leaves no obligation behind, so a retry loop does not grow the ledger.
-- **C-SCOPE-05** An `acquire` `interrupt` runs once, synchronously, in retirement step 4. For a resource still being created, it runs as soon as the resource exists, and always before that resource's release. A synchronous throw is a cleanup error.
+- **C-SCOPE-05** An `acquire` `interrupt` runs once, synchronously, in retirement step 4. For a resource still being created, it runs as soon as the resource exists, and always before that resource's release. A synchronous throw is a cleanup error. Every interrupt is called without waiting for another. A promise-like it returns is tracked like a spawned task: it is joined in step 6 under the stop deadline, its rejection is a cleanup error, and its resource is not released before it settles. Any other returned value is ignored (D38).
 - **C-SCOPE-06** `use` takes `Symbol.asyncDispose` when present, otherwise `Symbol.dispose`, and throws `TypeError` for anything else.
 - **C-SCOPE-07** A `spawn` task receives `scope.signal`. A rejection with `signal.reason` is its own cancellation. Any other rejection fails the generation while it is live, or becomes a cleanup error while it is retiring.
 - **C-SCOPE-08** Registering the same function twice creates two obligations.
@@ -149,9 +149,9 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
   1. **Seal** the scope (C-SCOPE-02).
   2. **`onStop`**, only if the generation reached `running`. It runs with its resources live and `scope.signal` not yet aborted, under the stop-deadline signal.
   3. **Abort** `scope.signal`.
-  4. **Interrupt**: run every `acquire` `interrupt`, newest first, synchronously.
+  4. **Interrupt**: run every `acquire` `interrupt`, newest first, synchronously, without waiting for any (C-SCOPE-05).
   5. **Wait for `onStart`** to settle, if it is still running.
-  6. **Join every spawned task.**
+  6. **Join every spawned task**, and every promise returned by an interrupt.
   7. **Release** resources and deferred cleanups and stop children, newest first, continuing past errors.
   8. **Commit**: `stopped`, `starting` for a queued replacement, or `failed` with the truth about `cleanupComplete`.
 
@@ -186,7 +186,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-CHILD-02** Ownership is recorded before `child.start()` is called, and released only after this scope's `child.stop()` succeeds. Until then no other scope can own the child.
 - **C-CHILD-03** `scope.start(child)` waits for the child with the parent's `scope.signal` as its caller signal. When the parent retires while the child is still starting, the wait rejects with the abort reason at retirement step 3, so the parent's `onStart` can settle (step 5). Ownership is kept, and the child is stopped in step 7. Without this, a parent waiting on a child that keeps retrying, such as an offline `Io`, would hold its own retirement until the stop deadline.
 - **C-CHILD-04** Children start in the order the hook starts them, and stop in retirement step 7, newest first, together with resources.
-- **C-CHILD-05** When a child commits `failed`, or commits `stopped` without the parent asking, the parent generation fails with `LifecycleChildFailureError`; its `cause` is the child's error, or `undefined` for an unrequested stop. A child that restarts or recovers itself (`stopping → starting`) is not escalated.
+- **C-CHILD-05** When a child commits `failed`, or commits `stopped` without the parent asking, the parent generation fails with `LifecycleChildFailureError`; its `cause` is the child's error, or `undefined` for an unrequested stop. A child that restarts or recovers itself (`stopping → starting`) is not escalated. Escalation applies only while the parent generation is live: once it is retiring, a child that stops or fails unasked is not escalated, and step 7 stops it as usual. A clean `failed` child then commits `stopped` (C-CMD-09), a dirty one has its cleanup retried (C-CMD-10), and a failure to stop it is a cleanup error of the parent (D39).
 - **C-CHILD-06** When the child's start fails, `scope.start()` rejects with that error, and the module creates no unhandled rejection.
 - **C-CHILD-07** If an owned child restarts itself while its parent is stopping it, so that the child is not `stopped` when the parent's stop of it settles, the parent's retirement reports a `LifecycleUnsafeStateError` cleanup error. The parent ends `failed { cleanupComplete: false }`, keeps owning the child, and its next `stop()` stops the child again (D32).
 
@@ -278,6 +278,8 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D35 | A failed start rejects when the failure is decided, not after cleanup (C-CMD-17) |
 | D36 | A `stop()` joining unfinished work retries, once, what failed in it, within its own deadline (C-TIME-03) |
 | D37 | A `start()` during a recovery joins its replacement; only `stop()` and `restart()` supersede a recovery (C-REC-03) |
+| D38 | Interrupts are all called at once; a promise one returns is joined like a task, and its rejection is a cleanup error (C-SCOPE-05) |
+| D39 | A child that stops or fails unasked while its parent is retiring is not escalated; the parent stops it as usual (C-CHILD-05) |
 
 ## 17. Not in this module
 
