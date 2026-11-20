@@ -172,7 +172,7 @@ const claude: Implementation = {
     'C-CHILD-07.a'        : "D32 divergence: a child that restarts itself during its parent's stop is not reported; the parent's stop succeeds while the child runs",
     'C-TIME-01.a'          : 'D11 divergence: a deadline of 0 or above 2^31-1 is accepted instead of throwing RangeError',
     'C-REC-03.d'           : 'D10 divergence: recover() rejects when the replacement fails or the retirement leaves debt, instead of resolving `failed`',
-    'C-REC-04.b'           : 'conflict with C-REC-03 as accepted (pending D37): a start() during the recovery\'s retirement supersedes the recovery instead of joining its replacement',
+    'C-REC-04.b'           : 'conflict with C-REC-03 (D37): a start() during the recovery\'s retirement supersedes the recovery instead of joining its replacement',
     'C-REC-03.b'           : 'D10 divergence: recover() before `running` rejects instead of resolving `failed`',
     'C-TIME-02.a-success'  : 'B7: the start timeout settles only after retirement, so a stop() from the abort listener supersedes it',
     'C-TIME-02.a-failure'  : 'B7: the start timeout settles only after retirement, so a stop() from the abort listener supersedes it',
@@ -191,6 +191,9 @@ const claude: Implementation = {
     'C-SHELL-02.d-state@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
     'C-SHELL-02.d-asyncDispose@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
     'C-REC-05.d': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
+    '2905-E': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
+    'C-CHILD-05.g': 'D13 divergence: a child that stops unasked fails the parent with a plain Error, not LifecycleChildFailureError',
+    'C-REC-06.a': 'D10 divergence: recover() rejects when the replacement fails, instead of resolving `failed`',
   },
 }
 

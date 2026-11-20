@@ -325,3 +325,27 @@ contract('C-COND-04.h', 'a stop() accepted while an earlier stop() is still reti
   assert.equal(second.status, 'resolved')
   assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })
 })
+
+// ---------------------------------------------------------------------------
+// Rules that had no test of their own (S2 exit criteria)
+// ---------------------------------------------------------------------------
+
+contract('C-COND-06.a', 'isSet is true only while the current live generation has the condition set', { needs: [ 'condition.isSet' ] }, async ({ make }) => {
+  let saved: LifecycleScope | undefined
+  const subject = make({ onStart (scope) { saved = scope } })
+  const { lifecycle } = subject
+  const ready = subject.condition('ready')
+  assert.equal(ready.isSet, false, 'before any start')
+  await lifecycle.start()
+  assert.equal(ready.isSet, false)
+  saved!.set(ready)
+  assert.equal(ready.isSet, true)
+  saved!.clear(ready)
+  assert.equal(ready.isSet, false)
+  saved!.set(ready)
+  await lifecycle.stop()
+  assert.equal(ready.isSet, false, 'a retired generation has no conditions')
+  await lifecycle.start()
+  assert.equal(ready.isSet, false, 'a new generation starts with every condition clear (C-COND-05)')
+  await shutdown(lifecycle)
+})

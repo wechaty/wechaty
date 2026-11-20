@@ -11,9 +11,10 @@ The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one im
 | `src/async-lifecycle-codex/*.test.ts` | 63 tests (154 cases) | 61 | 2 (1 dropped, 1 moved to S5) | 0 |
 | `src/async-lifecycle-claude/*.test.ts` | 113 tests (208 cases) | 99 (83 new, 16 already covered) | 14 moved to S4 | 0 |
 | `src/async-lifecycle-copilot/*.test.ts` | 32 tests (one bundles 31 scenarios) | 26 (15 new, 11 already covered) | 6 moved to S4 | 0 |
-| #2905 traces A to F | 6 | 0 | 0 | 6 |
-| v1 design acceptance list | 6 | 0 | 0 | 6 |
-| ChatGPT review, 17-row regression table | 17 | 0 | 0 | 17 |
+| #2905 traces A to F | 6 | 6 (new, in `traces.test.ts`) | 0 | 0 |
+| v1 design acceptance list (§6 of the v1 comment) | 6 | 6 (3 new, 3 already covered) | 0 | 0 |
+| #2911 §9 acceptance traces | 18 | 17 (5 new, 12 already covered) | 1 moved to S5 | 0 |
+| ChatGPT review, 17-row regression table | 17 | 17 (1 new, 16 already covered) | 0 | 0 |
 | #2968 §5 bugs | 3 | 3 | 0 | 0 |
 
 ## Required bug regressions
@@ -342,3 +343,95 @@ The 31 scenarios of the bundled "#2905 A–F" test, each run through both entry 
 | a failed start is not retried | covered | `C-CMD-14.a` |
 | a pre-start wait when the start fails | covered, D28 form | `C-COND-04.a` |
 | listeners never accumulate across cycles | covered with `on` plus `defer(off)`; `listen` is S4 | `C-SCOPE-03.a` |
+
+## Required lists
+
+### #2905 traces A to F
+
+From the [reproduction comment](https://github.com/wechaty/wechaty/issues/2905#issuecomment-6819182496), inverted. Each replays its script's scenario in `traces.test.ts`.
+
+| Trace | Old behavior | Contract test | Clause tests that also cover it |
+| --- | --- | --- | --- |
+| A | Two `start()`s queued behind a `stop()` entered `onStart` twice, concurrently | `2905-A` | `C-CMD-06.b`, `C-CMD-03.a` |
+| B | `reset()` racing a user `stop()` restarted the stopped service | `2905-B-restart-starting` (the original overlap with a blocked `onStart`), `2905-B-recover`, `2905-B-restart` (from `running`) | `C-REC-04.a`, `C-CMD-11.a` |
+| C | `stop()` during a slow `onStart` resolved after a timeout, then the late completion published `active` | `2905-C` | `C-CMD-07.c`, `C-TIME-03.e` |
+| D | A failing `onStart` without an `error` listener left the instance stuck and unrecoverable | `2905-D` | `C-CMD-14.a`, `C-CMD-09.a` |
+| E | A `stable('active')` waiter never settled after a failing `onStart` | `2905-E` | `C-COND-04.a`, `C-CMD-16.b` |
+| F | `ready`, `logout` and `reset` listeners accumulated across start/stop cycles | `2905-F` | `C-SCOPE-03.a` |
+
+### v1 design acceptance list
+
+From §6 of the [v1 consolidated design](https://github.com/wechaty/wechaty/issues/2911#issuecomment-6873515089).
+
+| Item | Status | Contract test |
+| --- | --- | --- |
+| An acquisition that resolves after abort is released, or recorded as unresolved if its release fails | covered and ported | `C-SCOPE-04.b`, `C-SCOPE-04.d` |
+| A hook that throws between `create` resolving and its next statement leaks nothing | ported | `C-SCOPE-04.e` |
+| `onStop` is not called for a run that never reached `running` | covered | `C-RET-03.a`, `B3` |
+| `onStop` can use a live resource and sees a deadline signal separate from `scope.signal` | covered | `C-RET-01.d` |
+| A pre-start condition wait rejects when `stop()` is called before any start | covered | `C-COND-04.b1` |
+| `scope.recover()` from a child does not fail its parent; a failed replacement does | covered and ported | `C-CHILD-05.d`, `C-CHILD-05.f-*` |
+
+### #2911 §9 acceptance traces
+
+| Item | Status | Contract test |
+| --- | --- | --- |
+| Cases A to F of #2905 §3.8, inverted | ported | `2905-*` |
+| A hook or observer that synchronously calls `stop()` never produces a second reconciler | covered | `C-OBS-03.b`, `C-OBS-03.f` |
+| `onStateChange` calling `stop()` on `running` does not turn the completed `start()` into a rejection | covered | `C-OBS-03.a` |
+| A throwing `whenState` predicate rejects only that wait, and a throwing `onStateChange` is isolated | covered | `C-CMD-16.a`, `C-OBS-02.a` |
+| `stop()` on `failed` settles: resolves when clean, retries cleanup when dirty | covered | `C-CMD-09.a`, `C-CMD-10.a` |
+| A stop waiter resolves when its generation is released, even if a newer `start()` is queued | ported | `C-CMD-08.a` |
+| `restart()` then `stop()` ends stopped; `restart()` then `start()` does not hang | covered | `C-CMD-11.g` |
+| A start hook that ignores abort and resolves late never publishes `running` | covered | `C-CMD-07.c`, `2905-C` |
+| `failed { cleanupComplete: false }` refuses a new generation until cleanup succeeds | covered | `C-CMD-10.a`, `C-CMD-13.a` |
+| A stop hook that outlives `stopTimeoutMs` blocks a clean retirement until it settles | covered | `C-TIME-03.a` |
+| Registration after abort releases immediately; a failing late release is retried by the next `stop()` | covered | `C-SCOPE-02.b`, `C-SCOPE-02.c`, `C-SCOPE-09.a` |
+| A task waiting for its socket to close finishes when scope abort initiates the close (TCP) | moved to S5 | Real I/O belongs in consumer validation (#2973); already run once on CI. The ordering it checks is `C-SCOPE-05.a`, `C-RET-01.a` |
+| Stopping from `running` lets `onStop` use a live resource before the scope aborts | covered | `C-RET-01.d` |
+| `scope.fail()`, `scope.set()` and `recover()` from a retired generation have no effect | covered | `C-SCOPE-02.a`, `C-REC-03.c` |
+| Delayed recovery stays `superseded` after user `stop() → start()` | ported | `C-REC-03.e` |
+| A condition wait made before `start()` binds to the next generation and rejects if that generation fails | covered | `C-COND-04.a` |
+| A child that stops on its own fails its parent; the parent unwinds its other children in reverse order | covered and ported | `C-CHILD-05.a`, `C-CHILD-05.g` |
+| Three nested levels, mixing both entry points, start in order, stop in reverse, and leave no listener, timer or task | covered and ported | `C-CHILD-04.b`, `C-CHILD-04.c` |
+
+### ChatGPT review, 17-row regression table
+
+From §7 of the [ChatGPT review](https://github.com/wechaty/wechaty/issues/2911#issuecomment-6884631028).
+
+| Test | Required result | Contract test |
+| --- | --- | --- |
+| Concurrent `start()` | One startup attempt | `C-CMD-03.a`, `2905-A` |
+| `start → stop → start` | Fresh, non-aborted generation | `C-CMD-06.a`, `C-CMD-06.c` |
+| Restart during startup | Old generation retires before replacement | `C-CMD-11.b` |
+| Stop during uncooperative startup | Bounded failure reporting; unresolved work retained | `C-TIME-03.e`, `C-TIME-03.f`, `2905-C` |
+| Graceful shutdown | `onStop` can access required live resources | `C-RET-01.d` |
+| Late acquisition | Release or persistent cleanup debt | `C-SCOPE-04.b`, `C-SCOPE-04.d` (new) |
+| Failed disposer retry | Retry only unfinished work | `C-CMD-10.a` |
+| Task blocked on socket | Interrupt before joining | `C-SCOPE-05.a` |
+| Stale watchdog | Cannot override newer intent | `C-REC-03.c`, `C-REC-03.e`, `C-REC-04.a`, `2905-B-*` |
+| Reentrant observer | One reconciler, stable attempt outcomes | `C-OBS-03.*` |
+| Parent stop during child startup | Child cancellation propagates | `C-CHILD-03.a` |
+| Generation-bound readiness | No stale conditions or orphaned waiters | `C-COND-02.a`, `C-COND-04.*`, `C-COND-05.a` |
+| Falsy rejection values | Preserve failures exactly | `C-STATE-05.a`, `C-SCOPE-07.c-undefined`, `C-RET-02.d`, `C-RET-02.e-*`, `C-SCOPE-10.c-*` |
+| Repeated recovery | Distinct failures can be independently recovered | `C-REC-02.a` |
+| Concurrent stop/dispose | One retirement operation per generation | `C-RET-05.b` |
+| Late cleanup failure | Never silently lost | `C-SCOPE-09.a`, `C-SCOPE-11.b-*`, `C-TIME-03.i` |
+| Child ownership transfer | Exclusive ownership until release | `C-CHILD-02.a` |
+
+## Rules without a test keyed to them
+
+S2 requires every README rule to have a test or a reason. These have no test named after them; each is covered as shown.
+
+| Rule | Covered by | Note |
+| --- | --- | --- |
+| C-STATE-03 | `C-STATE-01.a`, `2905-D` | Generation numbers per attempt, failed attempts included |
+| C-STATE-04 | every test that asserts a `stateTrace()` | An invariant over all schedules; S3 checks it on random schedules |
+| C-STATE-06 | `C-CMD-10.a`, `C-CMD-13.a`, `C-SCOPE-09.a` | |
+| C-STATE-07 | `C-SCOPE-11.a-*`, `C-SCOPE-11.h-stop`, `C-TIME-03.*` | |
+| C-RET-07 | `C-OBS-03.b` | D34 |
+| C-SHELL-01 | the whole suite | Every test runs through both entry points |
+| C-SHELL-03 | — | Untested here: the adapters wrap the hooks to translate the scope, so invalid hooks never reach an implementation. The final kernel's own tests cover it (S4) |
+| C-SHELL-04 | `C-OBS-04.a` | The `name` option appears in the record |
+| C-SCOPE-01 (in part) | `C-SCOPE-01.a` | The generation and the signal are checked. That the scope is frozen and one object per generation is not: the adapters build the scope object the hooks receive. The final kernel's own tests cover it (S4) |
+| C-TIME-04 | every test with `needs: [ 'clock' ]` | The default global-timer clock is not exercised: unit tests use no real time |
