@@ -98,6 +98,11 @@ const REGRESSIONS: readonly Regression[] = [
     schedule : { seed: 6295, steps: [ { op: 'restart', n: 2113443349 }, { op: 'child', n: 304182382 }, { op: 'stop', n: 872276838 }, { op: 'use', n: 1005799022 }, { op: 'resolve', n: 609667528 }, { op: 'defer', n: 1954595663 }, { op: 'start', n: 641922338 }, { op: 'use', n: 1036139674 }, { op: 'resolve', n: 257146160 }, { op: 'stop', n: 372604258 } ] },
   },
   {
+    key      : 'S3-D41',
+    title    : 'a late acquisition whose release hangs still rejects its acquire() (I5, found on Copilot: D41)',
+    schedule : { seed: 15, steps: [ { op: 'restart', n: 867851222 }, { op: 'restart', n: 1419616662 }, { op: 'recover', n: 656124003 }, { op: 'start', n: 815862914 }, { op: 'resolve', n: 668799503 }, { op: 'restart', n: 586982945 } ] },
+  },
+  {
     key      : 'S3-B1',
     title    : 'a single restart() then draining ends stopped, even after a clean stop failure (I11, found on Copilot: B1)',
     schedule : { seed: 5, steps: [ { op: 'restart', n: 40841628 } ] },

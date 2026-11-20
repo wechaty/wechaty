@@ -258,7 +258,8 @@ interface LifecycleScope {
    *
    * The release is registered before `create` runs. If `create` resolves after
    * retirement began, the resource is released and `acquire` rejects with the
-   * retirement reason. If `create` rejects, `acquire` rejects with that error and
+   * retirement reason at once, without waiting for that release (D41). If
+   * `create` rejects, `acquire` rejects with that error and
    * leaves no obligation behind, so retrying in a loop does not grow the ledger.
    *
    * `release` may return anything: a promise-like is awaited, any other value is

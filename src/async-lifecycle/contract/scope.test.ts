@@ -776,3 +776,32 @@ contract('C-SCOPE-01.a', 'each generation\'s scope carries that generation\'s nu
   assert.equal(scopes[1]!.signal.aborted, false)
   await shutdown(lifecycle)
 })
+
+contract('C-SCOPE-04.f', 'a late acquisition rejects at once, without waiting for its release to finish (D41)', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
+  // Found by S3 (#2992): an implementation that rejects only after the release
+  // leaves the acquire(), and a hook awaiting it, pending while the release hangs.
+  const creating = Promise.withResolvers<string>()
+  const releasing = Promise.withResolvers<void>()
+  let releases = 0
+  let acquired: Observed<string> | undefined
+  const { lifecycle } = make({
+    onStart (scope) {
+      acquired = observe(scope.acquire(() => creating.promise, () => {
+        releases++
+        return releasing.promise
+      }))
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  creating.resolve('late')
+  await flush()
+  assert.equal(releases, 1, 'the late resource is being released')
+  assert.equal(errorName(acquired?.error), 'LifecycleSupersededError', 'acquire() rejected while the release is still running')
+  assert.equal(stopped.status, 'pending', 'the stop() still waits for the release')
+  releasing.resolve()
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})

@@ -130,7 +130,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-SCOPE-01** Each generation has one scope, frozen. Its `generation` and `signal` belong to that generation only.
 - **C-SCOPE-02** When the generation starts retiring, its scope is **sealed**. Then `use` and `defer` release their argument at once (tracked until that succeeds) and throw the retirement reason; `acquire` and `start` reject and `spawn` throws, with the retirement reason, without running anything; `set`, `clear` and `fail` do nothing; `recover` resolves `'superseded'`. The retirement reason is the generation's failure if it failed, otherwise a `LifecycleSupersededError`.
 - **C-SCOPE-03** Obligations are released in the retirement order of C-RET-01.
-- **C-SCOPE-04** `acquire` registers the release before `create` runs. If `create` resolves after retirement began, the resource is released and `acquire` rejects with the retirement reason. If `create` rejects, `acquire` rejects with that error and leaves no obligation behind, so a retry loop does not grow the ledger.
+- **C-SCOPE-04** `acquire` registers the release before `create` runs. If `create` resolves after retirement began, the resource is released and `acquire` rejects with the retirement reason at once, without waiting for that release to finish, so a hook awaiting it can return (D41). If `create` rejects, `acquire` rejects with that error and leaves no obligation behind, so a retry loop does not grow the ledger.
 - **C-SCOPE-05** An `acquire` `interrupt` runs once, synchronously, in retirement step 4. For a resource still being created, it runs as soon as the resource exists, and always before that resource's release. A synchronous throw is a cleanup error. Every interrupt is called without waiting for another. A promise-like it returns is tracked like a spawned task: it is joined in step 6 under the stop deadline, its rejection is a cleanup error, and its resource is not released before it settles. Any other returned value is ignored (D38).
 - **C-SCOPE-06** `use` takes `Symbol.asyncDispose` when present, otherwise `Symbol.dispose`, and throws `TypeError` for anything else.
 - **C-SCOPE-07** A `spawn` task receives `scope.signal`. A rejection with `signal.reason` is its own cancellation. Any other rejection fails the generation while it is live, or becomes a cleanup error while it is retiring.
@@ -280,6 +280,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D37 | A `start()` during a recovery joins its replacement; only `stop()` and `restart()` supersede a recovery (C-REC-03) |
 | D38 | Interrupts are all called at once; a promise one returns is joined like a task, and its rejection is a cleanup error (C-SCOPE-05) |
 | D39 | A child that stops or fails unasked while its parent is retiring is not escalated; the parent stops it as usual (C-CHILD-05) |
+| D41 | A late acquisition's `acquire()` rejects at once, without waiting for its release (C-SCOPE-04) |
 
 ## 17. Not in this module
 
