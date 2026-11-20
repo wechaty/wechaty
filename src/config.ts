@@ -67,7 +67,7 @@ if (log.level() === 'verbose' || log.level() === 'silly') {
   })
 
   process.on('uncaughtException', function (error) {
-    const origin = arguments[1] // to compatible with node 12 or below version typings
+    const origin = arguments[1] // For compatibility with Node.js 12 and earlier typings.
 
     log.error('Config', '###########################')
     log.error('Config', 'Wechaty uncaughtException: %s %s', error.stack, origin)
