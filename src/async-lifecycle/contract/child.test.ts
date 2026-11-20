@@ -328,3 +328,31 @@ for (const command of [ 'start', 'restart', 'stop-after-failure' ] as const) {
     }
   })
 }
+
+for (const how of [ 'stops', 'fails' ] as const) {
+  contract(`C-CHILD-05.e-${how}`, `a child that ${how === 'stops' ? 'is stopped by someone else' : 'fails'} while its parent is retiring does not fail the parent; the parent stops it as usual (D39)`, {}, async ({ make }) => {
+    // The Copilot source ended the parent `failed` with LifecycleChildFailureError.
+    const gate = Promise.withResolvers<void>()
+    let childScope: LifecycleScope | undefined
+    const child = make({ onStart (scope) { childScope = scope } }).lifecycle
+    const parent = make({
+      async onStart (scope) { await scope.start(child) },
+      onStop: () => gate.promise,
+    }).lifecycle
+    await parent.start()
+    const stopped = observe(parent.stop())
+    await flush()
+    if (how === 'stops') {
+      await child.stop()
+    } else {
+      childScope!.fail(new Error('child failed'))
+      await flush()
+    }
+    assert.equal(child.state.kind, how === 'stops' ? 'stopped' : 'failed')
+    gate.resolve()
+    await flush()
+    assert.equal(stopped.status, 'resolved')
+    assert.deepEqual(parent.state, { kind: 'stopped', generation: 1 })
+    assert.equal(child.state.kind, 'stopped')
+  })
+}

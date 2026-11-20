@@ -205,10 +205,13 @@ interface LifecycleAcquireOptions<T> {
    * Unblock anything waiting on the resource, for example destroy a socket so a
    * task reading from it returns (C-SCOPE-05). Runs once, synchronously, during
    * retirement step 4, before any task is joined or anything is released. For a
-   * resource still being created it runs as soon as the resource exists. Its
-   * return value is ignored; a synchronous throw is reported as a cleanup error.
+   * resource still being created it runs as soon as the resource exists.
+   * Interrupts never wait for each other. A returned promise-like is joined
+   * with the tasks in step 6, under the stop deadline, and the resource is not
+   * released before it settles; its rejection, like a synchronous throw, is a
+   * cleanup error. Any other return value is ignored (D38).
    */
-  readonly interrupt?: (resource: T) => void
+  readonly interrupt?: (resource: T) => unknown
 }
 
 /**

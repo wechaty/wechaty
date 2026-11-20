@@ -481,3 +481,32 @@ for (const command of [ 'stop', 'restart' ] as const) {
     })
   }
 }
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-11.m', 'stop() then start() during an idle late release: stop() resolves when the release finishes, and the start runs the next generation (D31, C-CMD-08)', {}, async ({ make }) => {
+  // The Copilot suite refused the start() while the late release ran;
+  // C-SCOPE-11 queues it behind the release (C-CMD-06).
+  let retired: LifecycleScope | undefined
+  let starts = 0
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({ onStart (scope) { starts++; retired ??= scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => gate.promise)
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.equal(stopped.status, 'pending')
+  assert.equal(started.status, 'pending')
+  assert.equal(starts, 1)
+  gate.resolve()
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(started.status, 'resolved')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})

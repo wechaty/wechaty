@@ -180,6 +180,17 @@ const claude: Implementation = {
     'C-TIME-02.b-start'    : 'B7: start() is still pending at the start deadline; it settles only after retirement',
     'C-TIME-02.b-restart'  : 'B7: the start timeout settles only after retirement, so a restart() from the abort listener supersedes it',
     'C-TIME-02.c'          : 'B7: start() is still pending at the start deadline while the hook has not settled',
+    'C-REC-05.b-at-once': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
+    'C-REC-05.b-during-release': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
+    'C-SCOPE-11.m': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-05.e': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
+    'C-SCOPE-05.f': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
+    'C-SHELL-02.d-stop@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-SHELL-02.d-restart@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-SHELL-02.d-whenState@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-SHELL-02.d-state@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-SHELL-02.d-asyncDispose@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-REC-05.d': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
   },
 }
 

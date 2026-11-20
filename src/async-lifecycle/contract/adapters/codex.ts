@@ -187,6 +187,13 @@ const codex: Implementation = {
     'C-COND-04.g': 'D28 divergence: a run failure rejects its condition waits with the failure itself, not LifecycleSupersededError',
     'C-COND-04.a' : 'D28 divergence: a wait on a failed generation rejects with a plain Error, not LifecycleSupersededError',
     'C-SCOPE-07.a': 'conflict: a task failure before `running` is reported with phase `run` instead of `start` (C-STATE-05)',
+    'C-COND-04.h': 'B11: a stop() accepted while an earlier stop() retires does not reject the condition waits created in between; they survive and bind to the next generation',
+    'C-OBS-01.b': 'C-OBS-01 divergence: onStateChange is called before the diagnostics record is published',
+    'C-SHELL-02.d-stop@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-SHELL-02.d-restart@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-SHELL-02.d-whenState@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-SHELL-02.d-state@AsyncLifecycle': 'B12: overriding this member in a subclass is not refused at all, so the override silently replaces the caller API (C-SHELL-02)',
+    'C-SHELL-02.d-asyncDispose@AsyncLifecycle': 'B12: overriding this member in a subclass is not refused at all, so the override silently replaces the caller API (C-SHELL-02)',
   },
 }
 

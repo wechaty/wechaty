@@ -300,3 +300,28 @@ contract('C-COND-05.b', 'a retiring scope (in onStop) and a stale scope cannot s
   assert.equal(waited.status, 'pending')
   await shutdown(subject.lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-COND-04.h', 'a stop() accepted while an earlier stop() is still retiring rejects the waits created in between', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  const subject = make({ onStart () {}, onStop: () => gate.promise })
+  const { lifecycle } = subject
+  const ready = subject.condition('ready')
+  await lifecycle.start()
+  const first = observe(lifecycle.stop())
+  await flush()
+  const waited = observe(ready.wait())
+  await flush()
+  assert.equal(waited.status, 'pending', 'C-COND-02: it waits for the next generation')
+  const second = observe(lifecycle.stop())
+  await flush()
+  assert.equal(errorName(waited.error), 'LifecycleSupersededError', 'the wait was not bound when the second stop() was accepted')
+  gate.resolve()
+  await flush()
+  assert.equal(first.status, 'resolved')
+  assert.equal(second.status, 'resolved')
+  assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })
+})
