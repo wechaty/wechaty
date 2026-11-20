@@ -56,7 +56,7 @@ contract('C-SHELL-02.b', 'a caller-API member overridden by a class field fails 
   assert.throws(() => new Field(), TypeError)
 })
 
-contract('C-SHELL-02.c', 'the caller-API members of an AsyncLifecycle instance are own, non-configurable properties that still work', {}, async ({ impl, shell }) => {
+contract('C-SHELL-02.c', 'the caller-API members of an AsyncLifecycle instance are own, non-writable, non-configurable properties that still work', {}, async ({ impl, shell }) => {
   // How C-SHELL-02 rejects class-field overrides; ported from the Claude suite.
   if (shell !== 'AsyncLifecycle') {
     return
@@ -71,6 +71,7 @@ contract('C-SHELL-02.c', 'the caller-API members of an AsyncLifecycle instance a
     const descriptor = Object.getOwnPropertyDescriptor(plain, member)
     assert.ok(descriptor, `${member} is an own property`)
     assert.equal(descriptor.configurable, false, `${member} is not configurable`)
+    assert.equal(descriptor.writable, false, `${member} cannot be replaced by assignment`)
   }
   await plain.start()
   assert.equal(plain.state.kind, 'running')

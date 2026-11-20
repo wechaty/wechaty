@@ -168,7 +168,7 @@ One table per source suite, added as each is ported.
 | #2905 D: a failed onStart publishes failed { start } and is not retried | ported | `C-CMD-14.a` |
 | #2905 E: a failed onStart rejects the condition waits bound to it | covered, D28 form | `C-COND-04.a` |
 | falsy rejection values are failures, kept as given | ported | `C-STATE-05.a` |
-| scope.fail(undefined) and a task throwing undefined fail the run | ported | `C-REC-01.a`, `C-SCOPE-07.a` |
+| scope.fail(undefined) and a task throwing undefined fail the run | ported | `C-REC-01.a`, `C-SCOPE-07.a` (while starting), `C-SCOPE-07.c-undefined` (while running) |
 | a failed release leaves a dirty failure that refuses start and is retried by stop() | ported | `C-CMD-10.a` |
 | a release that keeps failing runs once per explicit stop(), never spins | ported | `C-CMD-10.b` |
 | a stop() that supersedes a gated start cleans up once and stays dirty until asked again | ported | `C-CMD-10.c` |
@@ -196,7 +196,7 @@ One table per source suite, added as each is ported.
 | a stop() during a debt pass joins it and requests no extra pass | ported | `C-RET-05.a` |
 | debt released after joined work failed reports that failure | waiting | D36: does a stop() joining failed work retry it in the same pass? |
 | a spawned task gets scope.signal, aborted on retirement, and is joined | ported | `C-SCOPE-07.b` |
-| a spawned task rejection fails the running generation | ported | `C-SCOPE-07.c` |
+| a spawned task rejection fails the running generation | ported | `C-SCOPE-07.c-error` |
 | a task failing while retiring is reported once as a cleanup error | ported | `C-SCOPE-07.d` |
 | scope.start refuses a child that is not stopped or cleanly failed | ported | `C-CHILD-01.a` |
 | two parents cannot adopt the same child | ported | `C-CHILD-01.b` |

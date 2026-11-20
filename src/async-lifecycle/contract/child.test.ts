@@ -209,14 +209,16 @@ contract('C-CHILD-02.b', 'a child whose stop failed stays owned until its owner\
   await shutdown(b)
 })
 
-contract('C-CHILD-04.b', 'three nested levels mixing both entry points start top-down and retire with onStop top-down, children last', {}, async ({ shells }) => {
+contract('C-CHILD-04.b', 'three nested levels mixing both entry points start top-down and retire with onStop top-down, children last', {}, async ({ make, shells }) => {
+  // The root uses the entry point under test, so both a composed and an
+  // inherited root are covered, each with descendants built the other ways.
   const log: string[] = []
   const leaf = shells.createLifecycle({ onStart () { log.push('leaf+') }, onStop () { log.push('leaf-') } }).lifecycle
   const middle = shells.AsyncLifecycle({
     async onStart (scope) { log.push('middle+'); await scope.start(leaf) },
     onStop () { log.push('middle-') },
   }).lifecycle
-  const root = shells.createLifecycle({
+  const root = make({
     async onStart (scope) { log.push('root+'); await scope.start(middle) },
     onStop () { log.push('root-') },
   }).lifecycle

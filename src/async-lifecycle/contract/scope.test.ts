@@ -368,18 +368,20 @@ contract('C-SCOPE-07.b', 'a spawned task gets scope.signal, which aborts at reti
   assert.deepEqual(log, [ 'same=true', 'joined' ])
 })
 
-contract('C-SCOPE-07.c', 'a spawned task that rejects while running fails the generation, phase `run`, cleanly', {}, async ({ make }) => {
-  const crash = new Error('crash')
-  const gate = Promise.withResolvers<void>()
-  const { lifecycle } = make({ onStart: scope => scope.spawn(async () => { await gate.promise; throw crash }) })
-  await lifecycle.start()
-  gate.resolve()
-  await flush()
-  const failed = failedState(lifecycle.state)
-  assert.equal(failed.phase, 'run')
-  assert.equal(failed.error, crash)
-  assert.equal(failed.cleanupComplete, true)
-})
+for (const crash of [ new Error('crash'), undefined ]) {
+  contract(`C-SCOPE-07.c-${crash === undefined ? 'undefined' : 'error'}`, `a spawned task that rejects with ${crash === undefined ? 'undefined' : 'an error'} while running fails the generation, phase \`run\`, cleanly`, {}, async ({ make }) => {
+    // Falsy rejection values are failures too (C-STATE-05); the Claude source covered undefined.
+    const gate = Promise.withResolvers<void>()
+    const { lifecycle } = make({ onStart: scope => scope.spawn(async () => { await gate.promise; throw crash }) })
+    await lifecycle.start()
+    gate.resolve()
+    await flush()
+    const failed = failedState(lifecycle.state)
+    assert.equal(failed.phase, 'run')
+    assert.equal(failed.error, crash)
+    assert.equal(failed.cleanupComplete, true)
+  })
+}
 
 contract('C-SCOPE-07.d', 'a task that fails while retiring is reported once as a cleanup error, and start() works after', {}, async ({ make }) => {
   const late = new Error('late task')
