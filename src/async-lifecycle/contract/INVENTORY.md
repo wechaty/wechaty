@@ -353,7 +353,7 @@ From the [reproduction comment](https://github.com/wechaty/wechaty/issues/2905#i
 | Trace | Old behavior | Contract test | Clause tests that also cover it |
 | --- | --- | --- | --- |
 | A | Two `start()`s queued behind a `stop()` entered `onStart` twice, concurrently | `2905-A` | `C-CMD-06.b`, `C-CMD-03.a` |
-| B | `reset()` racing a user `stop()` restarted the stopped service | `2905-B-recover`, `2905-B-restart` | `C-REC-04.a`, `C-CMD-11.a` |
+| B | `reset()` racing a user `stop()` restarted the stopped service | `2905-B-restart-starting` (the original overlap with a blocked `onStart`), `2905-B-recover`, `2905-B-restart` (from `running`) | `C-REC-04.a`, `C-CMD-11.a` |
 | C | `stop()` during a slow `onStart` resolved after a timeout, then the late completion published `active` | `2905-C` | `C-CMD-07.c`, `C-TIME-03.e` |
 | D | A failing `onStart` without an `error` listener left the instance stuck and unrecoverable | `2905-D` | `C-CMD-14.a`, `C-CMD-09.a` |
 | E | A `stable('active')` waiter never settled after a failing `onStart` | `2905-E` | `C-COND-04.a`, `C-CMD-16.b` |
@@ -370,7 +370,7 @@ From §6 of the [v1 consolidated design](https://github.com/wechaty/wechaty/issu
 | `onStop` is not called for a run that never reached `running` | covered | `C-RET-03.a`, `B3` |
 | `onStop` can use a live resource and sees a deadline signal separate from `scope.signal` | covered | `C-RET-01.d` |
 | A pre-start condition wait rejects when `stop()` is called before any start | covered | `C-COND-04.b1` |
-| `scope.recover()` from a child does not fail its parent; a failed replacement does | covered and ported | `C-CHILD-05.d`, `C-CHILD-05.f` |
+| `scope.recover()` from a child does not fail its parent; a failed replacement does | covered and ported | `C-CHILD-05.d`, `C-CHILD-05.f-*` |
 
 ### #2911 §9 acceptance traces
 
@@ -433,4 +433,5 @@ S2 requires every README rule to have a test or a reason. These have no test nam
 | C-SHELL-01 | the whole suite | Every test runs through both entry points |
 | C-SHELL-03 | — | Untested here: the adapters wrap the hooks to translate the scope, so invalid hooks never reach an implementation. The final kernel's own tests cover it (S4) |
 | C-SHELL-04 | `C-OBS-04.a` | The `name` option appears in the record |
+| C-SCOPE-01 (in part) | `C-SCOPE-01.a` | The generation and the signal are checked. That the scope is frozen and one object per generation is not: the adapters build the scope object the hooks receive. The final kernel's own tests cover it (S4) |
 | C-TIME-04 | every test with `needs: [ 'clock' ]` | The default global-timer clock is not exercised: unit tests use no real time |

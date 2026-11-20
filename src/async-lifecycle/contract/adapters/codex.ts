@@ -196,6 +196,7 @@ const codex: Implementation = {
     'C-SHELL-02.d-asyncDispose@AsyncLifecycle': 'B12: overriding this member in a subclass is not refused at all, so the override silently replaces the caller API (C-SHELL-02)',
     '2905-E': 'D28 divergence: a wait on a failed generation rejects with a plain Error, not LifecycleSupersededError',
     'C-CHILD-05.g': 'C-CHILD-05 divergence: a child that stops unasked fails the parent with LifecycleSupersededError, not LifecycleChildFailureError',
+    '2905-B-restart-starting': 'B3: onStop runs for the starting generation that restart() interrupts, so a gated onStop holds the user\'s stop()',
   },
 }
 

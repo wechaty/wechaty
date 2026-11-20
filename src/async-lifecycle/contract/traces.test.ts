@@ -74,9 +74,48 @@ contract('2905-A', 'two start()s queued behind an in-flight stop() enter onStart
   assert.deepEqual([ a.status, b.status ], [ 'resolved', 'resolved' ])
   assert.deepEqual(trace, [ 'onStart>', 'onStart<', 'onStop>', 'onStop<', 'onStart>', 'onStart<' ])
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
-  await shutdown(lifecycle)
+
+  const last = observe(lifecycle.stop())
+  await flush()
+  stops[1]!.resolve()
+  await flush()
+  assert.equal(last.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
 })
 
+contract('2905-B-restart-starting', 'a supervisor restart() during a blocked onStart, then a user stop(), never restarts the stopped service (C-CMD-11, C-CMD-07)', {}, async ({ make }) => {
+  // The original trace: reset() was called while the first onStart was still
+  // blocked. Under S1, restart() during `starting` aborts that attempt and
+  // supersedes its start() callers (C-CMD-11); the later stop() supersedes the
+  // restart (C-CMD-07). The generation never reached `running`, so onStop is
+  // not called (D8). There is no recover() variant of this overlap: recover()
+  // before `running` acts like fail() (C-REC-03, D10), not like a reset.
+  const trace: string[] = []
+  const starts: PromiseWithResolvers<void>[] = []
+  const stops: PromiseWithResolvers<void>[] = []
+  const { lifecycle } = make({ onStart: gated(trace, 'onStart', starts), onStop: gated(trace, 'onStop', stops) })
+  const started = observe(lifecycle.start())
+  await flush()
+  const reset = observe(lifecycle.restart())
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  starts[0]!.resolve()
+  await flush()
+  for (const gate of starts.slice(1)) {
+    gate.resolve()
+  }
+  await flush()
+  assert.equal(errorName(started.error), 'LifecycleSupersededError', 'the restart superseded the blocked start')
+  assert.equal(errorName(reset.error), 'LifecycleSupersededError', 'the user stop() superseded the restart')
+  assert.equal(stopped.status, 'resolved')
+  assert.deepEqual(trace, [ 'onStart>', 'onStart<' ], 'one onStart, rolled back without onStop, and no replacement')
+  assert.equal(stops.length, 0)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+// The supervisor acts on a running generation here; the original trace's
+// overlap with a blocked onStart is 2905-B-restart-starting above.
 for (const supervisor of [ 'recover', 'restart' ] as const) {
   contract(`2905-B-${supervisor}`, `a supervisor ${supervisor === 'recover' ? 'scope.recover()' : 'restart()'} racing a user stop() never restarts the stopped service (C-REC-04, C-CMD-07)`, { needs: supervisor === 'recover' ? [ 'scope.recover' ] : [] }, async ({ make }) => {
     // Old: reset() waited on stable(), then started the service the user had

@@ -363,37 +363,47 @@ for (const how of [ 'stops', 'fails' ] as const) {
 // From the acceptance lists: v1 design §6, #2911 §9 and the ChatGPT review §7
 // ---------------------------------------------------------------------------
 
-contract('C-CHILD-05.f', 'a child whose own recovery fails to start a replacement fails its parent; a recovery that succeeds does not (C-REC-06)', { needs: [ 'scope.recover' ] }, async ({ make }) => {
-  const boom = new Error('replacement failed')
-  let childScope: LifecycleScope | undefined
-  let childStarts = 0
-  const childTrace = stateTrace()
-  const child = make({
-    onStart (scope) {
-      childScope = scope
-      if (++childStarts === 3) {
-        throw boom
-      }
-    },
-    onStateChange: childTrace.onStateChange,
-  }).lifecycle
-  const parent = make({ async onStart (scope) { await scope.start(child) } }).lifecycle
-  await parent.start()
-  const recovered = observe(childScope!.recover())
-  await flush()
-  assert.equal(recovered.value, 'recovered')
-  assert.deepEqual(parent.state, { kind: 'running', generation: 1 }, 'a successful recovery is not escalated')
+for (const part of [ 'escalate', 'stop' ] as const) {
+  const title = part === 'escalate'
+    ? 'a child whose own recovery fails to start a replacement fails its parent, with the failure as cause; a recovery that succeeds does not (C-REC-06)'
+    : 'after a child\'s failed recovery fails its parent, the parent\'s retirement stops the cleanly failed child (C-CMD-09)'
+  contract(`C-CHILD-05.f-${part}`, title, { needs: [ 'scope.recover' ] }, async ({ make }) => {
+    // Split so each implementation's known failure covers only its own part:
+    // what recover() returns is C-REC-06.a, and the parent's error type is
+    // checked by C-CHILD-05.g.
+    const boom = new Error('replacement failed')
+    let childScope: LifecycleScope | undefined
+    let childStarts = 0
+    const childTrace = stateTrace()
+    const child = make({
+      onStart (scope) {
+        childScope = scope
+        if (++childStarts === 3) {
+          throw boom
+        }
+      },
+      onStateChange: childTrace.onStateChange,
+    }).lifecycle
+    const parent = make({ async onStart (scope) { await scope.start(child) } }).lifecycle
+    await parent.start()
+    observe(childScope!.recover())
+    await flush()
+    assert.deepEqual(parent.state, { kind: 'running', generation: 1 }, 'a successful recovery is not escalated')
 
-  const failing = observe(childScope!.recover())
-  await flush()
-  assert.equal(failing.value, 'failed')
-  assert.ok(childTrace.kinds.includes('failed:3'), 'the child committed its failure')
-  assert.equal(child.state.kind, 'stopped', 'the parent\'s retirement stopped the cleanly failed child (C-CMD-09)')
-  const failed = failedState(parent.state)
-  assert.equal(errorName(failed.error), 'LifecycleChildFailureError')
-  assert.equal((failed.error as Error).cause, boom)
-  await shutdown(parent)
-})
+    observe(childScope!.recover())
+    await flush()
+    assert.ok(childTrace.kinds.includes('failed:3'), 'the child committed its failure')
+    if (part === 'escalate') {
+      const failed = failedState(parent.state)
+      assert.equal(failed.phase, 'run')
+      assert.equal((failed.error as Error).cause, boom)
+    } else {
+      assert.equal(parent.state.kind, 'failed')
+      assert.equal(child.state.kind, 'stopped')
+    }
+    await shutdown(parent)
+  })
+}
 
 contract('C-CHILD-05.g', 'when one child stops on its own, the parent fails and stops its other children newest first', {}, async ({ make }) => {
   const log: string[] = []

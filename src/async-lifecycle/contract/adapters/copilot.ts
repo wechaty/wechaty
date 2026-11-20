@@ -210,7 +210,7 @@ const copilot: Implementation = {
     'C-REC-05.d': 'conflict with C-REC-03 and C-REC-05: a task calling recover() while a recovery retires joins it as another requester (gets `recovered`, exempt from the join), instead of getting `superseded`',
     '2905-D': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
     '2905-E': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
-    'C-CHILD-05.f': 'B1: the parent\'s retirement stops the cleanly failed child, which stays `failed` instead of committing `stopped`',
+    'C-CHILD-05.f-stop': 'B1: the parent\'s retirement stops the cleanly failed child, which stays `failed` instead of committing `stopped`',
   },
 }
 
