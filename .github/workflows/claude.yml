@@ -202,10 +202,13 @@ jobs:
             For each actionable defect, cite its file and line and explain the failure
             scenario and a concrete fix. Avoid generic checklist or CLAUDE.md claims.
             Do not modify the repository. Do not approve or merge the PR.
-            Always publish a NEW PR issue comment with exactly one "## Code review"
-            heading, the findings or "No issues found.", and the reviewed HEAD SHA.
-            Use gh pr comment ${{ github.event.pull_request.number }} --body ...
-            even if there are no findings. Do not treat a previous review as completion.
+            Publish the final review in the native progress comment created for this run.
+            Load mcp__github_comment__update_claude_comment with ToolSearch and use it to
+            update that same comment in place. Include exactly one "## Code review"
+            heading, the findings or "No issues found.", and this exact line:
+            Reviewed HEAD SHA: ${{ github.event.pull_request.head.sha }}
+            Update the comment even if there are no findings. Do not create a separate
+            comment or a GitHub review submission, and do not edit comments from prior runs.
           claude_args: |
             --max-turns 100
             --dangerously-skip-permissions
