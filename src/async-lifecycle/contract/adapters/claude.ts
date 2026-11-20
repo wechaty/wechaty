@@ -138,7 +138,15 @@ const claude: Implementation = {
   capabilities : new Set([ 'clock', 'scope.acquire', 'acquire.interrupt', 'scope.recover', 'onStop.context' ]),
   shells       : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
   knownFailures: {
-    B2: 'a spawned task awaiting its own scope.recover() deadlocks the retirement (#2968 §5)',
+    'B2'          : 'a spawned task awaiting its own scope.recover() deadlocks the retirement (#2968 §5)',
+    'C-COND-04.a'          : 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
+    'C-REC-03.b'           : 'D10 divergence: recover() before `running` rejects instead of resolving `failed`',
+    'C-TIME-02.a-success'  : 'B7: the start timeout settles only after retirement, so a stop() from the abort listener supersedes it',
+    'C-TIME-02.a-failure'  : 'B7: the start timeout settles only after retirement, so a stop() from the abort listener supersedes it',
+    'C-TIME-02.a-timeout'  : 'B7: the start timeout settles only after retirement, so a stop() from the abort listener supersedes it',
+    'C-TIME-02.b-start'    : 'B7: start() is still pending at the start deadline; it settles only after retirement',
+    'C-TIME-02.b-restart'  : 'B7: the start timeout settles only after retirement, so a restart() from the abort listener supersedes it',
+    'C-TIME-02.c'          : 'B7: start() is still pending at the start deadline while the hook has not settled',
   },
 }
 
