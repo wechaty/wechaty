@@ -55,3 +55,13 @@ contract('C-STATE-05.a', 'falsy failure values are failures, kept exactly as giv
     assert.equal(failedState(lifecycle.state).error, value)
   }
 })
+
+// ---------------------------------------------------------------------------
+// Rules that had no test of their own (S2 exit criteria)
+// ---------------------------------------------------------------------------
+
+contract('C-STATE-02.a', 'the initial state is a frozen { kind: \'stopped\', generation: 0 }', {}, async ({ make }) => {
+  const { lifecycle } = make({ onStart () {} })
+  assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 0 })
+  assert.ok(Object.isFrozen(lifecycle.state))
+})

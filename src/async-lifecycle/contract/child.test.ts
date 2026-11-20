@@ -25,8 +25,10 @@
 
 import assert from 'node:assert/strict'
 
-import type { LifecycleScope } from '../types.ts'
-import { errorName, failedState, flush, observe, shutdown } from './harness.ts'
+import { EventEmitter } from 'node:events'
+
+import type { Lifecycle, LifecycleScope } from '../types.ts'
+import { errorName, failedState, flush, ManualClock, observe, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-CHILD-05.a', 'a child that stops without the parent asking fails the parent generation, phase `run`', {}, async ({ make }) => {
@@ -356,3 +358,87 @@ for (const how of [ 'stops', 'fails' ] as const) {
     assert.equal(child.state.kind, 'stopped')
   })
 }
+
+// ---------------------------------------------------------------------------
+// From the acceptance lists: v1 design §6, #2911 §9 and the ChatGPT review §7
+// ---------------------------------------------------------------------------
+
+contract('C-CHILD-05.f', 'a child whose own recovery fails to start a replacement fails its parent; a recovery that succeeds does not (C-REC-06)', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const boom = new Error('replacement failed')
+  let childScope: LifecycleScope | undefined
+  let childStarts = 0
+  const child = make({
+    onStart (scope) {
+      childScope = scope
+      if (++childStarts === 3) {
+        throw boom
+      }
+    },
+  }).lifecycle
+  const parent = make({ async onStart (scope) { await scope.start(child) } }).lifecycle
+  await parent.start()
+  const recovered = observe(childScope!.recover())
+  await flush()
+  assert.equal(recovered.value, 'recovered')
+  assert.deepEqual(parent.state, { kind: 'running', generation: 1 }, 'a successful recovery is not escalated')
+
+  const failing = observe(childScope!.recover())
+  await flush()
+  assert.equal(failing.value, 'failed')
+  assert.equal(child.state.kind, 'failed')
+  const failed = failedState(parent.state)
+  assert.equal(errorName(failed.error), 'LifecycleChildFailureError')
+  assert.equal((failed.error as Error).cause, boom)
+  await shutdown(parent)
+})
+
+contract('C-CHILD-05.g', 'when one child stops on its own, the parent fails and stops its other children newest first', {}, async ({ make }) => {
+  const log: string[] = []
+  const children = [ 'a', 'b', 'c' ].map(name => make({ onStart () {}, onStop () { log.push(name) } }).lifecycle)
+  const parent = make({
+    async onStart (scope) {
+      for (const child of children) {
+        await scope.start(child)
+      }
+    },
+  }).lifecycle
+  await parent.start()
+  await children[1]!.stop()
+  await flush()
+  assert.equal(parent.state.kind, 'failed')
+  assert.deepEqual(log, [ 'b', 'c', 'a' ], 'b stopped on its own, then c and a newest first')
+  assert.ok(children.every(child => child.state.kind === 'stopped'))
+  assert.equal(errorName(failedState(parent.state).error), 'LifecycleChildFailureError')
+  await shutdown(parent)
+})
+
+contract('C-CHILD-04.c', 'three nested levels mixing both entry points leave no listener, timer or task after stop()', { needs: [ 'clock' ] }, async ({ make, shells }) => {
+  const clock = new ManualClock()
+  const emitter = new EventEmitter()
+  const tasks: string[] = []
+  const options = { clock, startTimeoutMs: 1000, stopTimeoutMs: 1000 }
+  const level = (name: string, next?: Lifecycle) => async (scope: LifecycleScope) => {
+    const listener = () => {}
+    emitter.on('tick', listener)
+    scope.defer(() => emitter.off('tick', listener))
+    scope.spawn(async signal => {
+      await new Promise<void>(resolve => signal.addEventListener('abort', () => resolve(), { once: true }))
+      tasks.push(name)
+    })
+    if (next) {
+      await scope.start(next)
+    }
+  }
+  const leaf = shells.createLifecycle({ onStart: level('leaf') }, options).lifecycle
+  const middle = shells.AsyncLifecycle({ onStart: level('middle', leaf) }, options).lifecycle
+  const root = make({ onStart: level('root', middle) }, options).lifecycle
+  await root.start()
+  assert.equal(emitter.listenerCount('tick'), 3)
+  const stopped = observe(root.stop())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(emitter.listenerCount('tick'), 0, 'no listener')
+  assert.equal(clock.pending, 0, 'no timer')
+  assert.deepEqual(tasks.sort(), [ 'leaf', 'middle', 'root' ], 'every task finished')
+  assert.ok([ root, middle, leaf ].every(lifecycle => lifecycle.state.kind === 'stopped'))
+})

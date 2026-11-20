@@ -146,7 +146,7 @@ const copilot: Implementation = {
     'C-TIME-03.b'        : 'B6: an onStop rejection after the stop deadline rejects the joining stop() but is missing from the snapshot\'s cleanupError',
     'C-OBS-04.a'         : 'divergence: diagnostics records use a versioned shape (version, instanceId, service, revision, timestamps) instead of { name, previous, state } (C-OBS-04)',
     'C-OBS-01.a'         : 'B1: a stop() from the failed observer resolves while the state is still `failed`',
-    'C-REC-04.b'         : 'conflict with C-REC-03 as accepted (pending D37): a start() during the recovery\'s retirement supersedes the recovery instead of joining its replacement',
+    'C-REC-04.b'         : 'conflict with C-REC-03 (D37): a start() during the recovery\'s retirement supersedes the recovery instead of joining its replacement',
     'C-RET-02.d'         : 'B6: a cleanup error of undefined (onStop threw undefined) is missing from the failed snapshot\'s cleanupError',
     'C-RET-06.a'         : 'divergence: a restart() whose retirement leaves debt rejects with LifecycleUnsafeStateError (cause = the cleanup error), not the cleanup error itself (C-RET-06)',
     'C-CMD-10.a'         : 'B6: a failed release rejects stop() but is missing from the failed snapshot\'s cleanupError',
@@ -208,6 +208,8 @@ const copilot: Implementation = {
     'C-CHILD-05.e-stops': 'D39 divergence: a child that stops or fails unasked while its parent retires still fails the parent with LifecycleChildFailureError',
     'C-CHILD-05.e-fails': 'D39 divergence: a child that stops or fails unasked while its parent retires still fails the parent with LifecycleChildFailureError',
     'C-REC-05.d': 'conflict with C-REC-03 and C-REC-05: a task calling recover() while a recovery retires joins it as another requester (gets `recovered`, exempt from the join), instead of getting `superseded`',
+    '2905-D': 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
+    '2905-E': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
   },
 }
 

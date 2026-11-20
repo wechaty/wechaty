@@ -709,3 +709,68 @@ contract('C-SCOPE-05.f', 'a late acquisition whose interrupt returns a promise t
   assert.equal(failed.cleanupError, interruptError)
   assert.equal(failed.cleanupComplete, true, 'the interrupt is never retried, and the resource was released')
 })
+
+// ---------------------------------------------------------------------------
+// From the acceptance lists: v1 design §6, #2911 §9 and the ChatGPT review §7
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-04.d', 'an acquisition that resolves after retirement began and whose release fails leaves cleanup debt, and the next stop() retries it', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
+  const creating = Promise.withResolvers<string>()
+  const releaseError = new Error('late release failed')
+  let releases = 0
+  let acquired: Observed<string> | undefined
+  const { lifecycle } = make({
+    onStart (scope) {
+      acquired = observe(scope.acquire(() => creating.promise, () => { if (++releases === 1) { throw releaseError } }))
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  creating.resolve('late')
+  await flush()
+  assert.equal(errorName(acquired?.error), 'LifecycleSupersededError')
+  assert.equal(stopped.error, releaseError)
+  const dirty = failedState(lifecycle.state)
+  assert.equal(dirty.cleanupComplete, false, 'recorded as unreleased, not lost')
+  const retried = observe(lifecycle.stop())
+  await flush()
+  assert.equal(retried.status, 'resolved')
+  assert.equal(releases, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-04.e', 'an onStart that throws right after acquire() resolves still releases the resource', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
+  const boom = new Error('after acquire')
+  const released: string[] = []
+  const { lifecycle } = make({
+    async onStart (scope) {
+      await scope.acquire(() => 'socket', resource => { released.push(resource) })
+      throw boom
+    },
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.equal(started.error, boom)
+  assert.deepEqual(released, [ 'socket' ])
+  assert.equal(failedState(lifecycle.state).cleanupComplete, true)
+})
+
+// ---------------------------------------------------------------------------
+// Rules that had no test of their own (S2 exit criteria)
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-01.a', 'each generation gets its own frozen scope, whose generation and signal belong to that generation only', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+  await lifecycle.start()
+  await lifecycle.restart()
+  assert.equal(scopes.length, 2)
+  assert.notEqual(scopes[0], scopes[1])
+  assert.ok(scopes.every(scope => Object.isFrozen(scope)))
+  assert.deepEqual(scopes.map(scope => scope.generation), [ 1, 2 ])
+  assert.notEqual(scopes[0]!.signal, scopes[1]!.signal)
+  assert.equal(scopes[0]!.signal.aborted, true, 'the retired generation\'s signal')
+  assert.equal(scopes[1]!.signal.aborted, false)
+  await shutdown(lifecycle)
+})

@@ -743,3 +743,59 @@ contract('C-CMD-13.a', 'a failed start whose rollback fails leaves failed { star
   assert.equal(calls, 2)
   assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })
 })
+
+// ---------------------------------------------------------------------------
+// From the acceptance lists: v1 design §6, #2911 §9 and the ChatGPT review §7
+// ---------------------------------------------------------------------------
+
+contract('C-CMD-08.a', 'stop() resolves when the generation it captured is released, while a newer start() is still starting', {}, async ({ make }) => {
+  const stopGate = Promise.withResolvers<void>()
+  const startGate = Promise.withResolvers<void>()
+  let starts = 0
+  const { lifecycle } = make({
+    onStart: () => (++starts === 2 ? startGate.promise : undefined),
+    onStop: () => stopGate.promise,
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.equal(stopped.status, 'pending')
+  stopGate.resolve()
+  await flush()
+  assert.equal(stopped.status, 'resolved', 'it does not wait for the queued start')
+  assert.deepEqual(lifecycle.state, { kind: 'starting', generation: 2 })
+  assert.equal(started.status, 'pending')
+  startGate.resolve()
+  await flush()
+  assert.equal(started.status, 'resolved')
+  await shutdown(lifecycle)
+})
+
+// ---------------------------------------------------------------------------
+// Rules that had no test of their own (S2 exit criteria)
+// ---------------------------------------------------------------------------
+
+contract('C-CMD-05.a', 'start() while `starting` joins that attempt and never aborts it', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  let saved: LifecycleScope | undefined
+  let starts = 0
+  const { lifecycle } = make({
+    onStart (scope) {
+      starts++
+      saved = scope
+      return gate.promise
+    },
+  })
+  const first = observe(lifecycle.start())
+  await flush()
+  const second = observe(lifecycle.start())
+  await flush()
+  assert.equal(starts, 1)
+  assert.equal(saved!.signal.aborted, false, 'joining never aborts the attempt')
+  gate.resolve()
+  await flush()
+  assert.deepEqual([ first.status, second.status ], [ 'resolved', 'resolved' ])
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 1 })
+  await shutdown(lifecycle)
+})

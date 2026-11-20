@@ -361,3 +361,52 @@ contract('C-REC-04.e', 'a user restart() during a task\'s recovery supersedes it
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
   await shutdown(lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// From the acceptance lists: v1 design §6, #2911 §9 and the ChatGPT review §7
+// ---------------------------------------------------------------------------
+
+contract('C-REC-03.e', 'a delayed recover() from generation 1, after a user stop() and start(), resolves `superseded` and leaves generation 2 running', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  // The #2905 follow-up: desired state is `running` again, but the recovery
+  // was decided for a run the user already stopped.
+  let first: LifecycleScope | undefined
+  let starts = 0
+  const { lifecycle } = make({ onStart (scope) { starts++; first ??= scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  await lifecycle.start()
+  const delayed = observe(first!.recover(new Error('watchdog saw generation 1 stall')))
+  await flush()
+  assert.equal(delayed.value, 'superseded')
+  assert.equal(starts, 2)
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+// ---------------------------------------------------------------------------
+// Rules that had no test of their own (S2 exit criteria)
+// ---------------------------------------------------------------------------
+
+contract('C-REC-06.a', 'a recovery whose replacement fails ends `failed`, and nothing retries it', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const boom = new Error('replacement failed')
+  let saved: LifecycleScope | undefined
+  let starts = 0
+  const { lifecycle } = make({
+    onStart (scope) {
+      saved = scope
+      if (++starts === 2) {
+        throw boom
+      }
+    },
+  })
+  await lifecycle.start()
+  const recovered = observe(saved!.recover())
+  await flush()
+  assert.equal(recovered.value, 'failed')
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.generation, 2)
+  assert.equal(failed.phase, 'start')
+  assert.equal(failed.error, boom)
+  await flush()
+  assert.equal(starts, 2, 'the module has no retry policy (D7)')
+})
