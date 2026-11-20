@@ -190,6 +190,8 @@ jobs:
           # failed pilot and the Action reported "No plugins specified".
           plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
           plugins: code-review@claude-plugins-official
+          # Temporary diagnostic: only test PRs whose title starts [diagnostic].
+          show_full_output: ${{ startsWith(github.event.pull_request.title, '[diagnostic]') }}
           # Automation mode dispatches the slash command to the official plugin.
           # Native tracking comments are unavailable; the Bash eyes step indicates activity.
           prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
