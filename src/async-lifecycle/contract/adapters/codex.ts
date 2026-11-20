@@ -167,6 +167,12 @@ const codex: Implementation = {
   diagnosticsChannel : 'wechaty.async_lifecycle',
   knownFailures: {
     'B3'         : 'onStop runs for a run that never reached `running` (#2968 §5)',
+    'C-CMD-17.a'  : 'D35 divergence: a failed start rejects only after its cleanup completes, not when the failure is decided',
+    'C-SCOPE-11.a': 'D31 divergence: an idle instance keeps showing `stopped` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'C-SCOPE-11.h-start': 'conflict with C-CMD-04: start() on a running generation waits for an old late release instead of resolving at once',
+    'C-CHILD-01.c-start': 'conflict with D33: a claimable child (by its public state) is refused, through private knowledge of its pending command',
+    'C-CHILD-01.c-restart': 'conflict with D33: a claimable child (by its public state) is refused, through private knowledge of its pending command',
+    'C-CHILD-01.c-stop-after-failure': 'conflict with D33: a claimable child (by its public state) is refused, through private knowledge of its pending command',
     'C-TIME-01.a' : 'D11 divergence: invalid deadlines (NaN, negative, 0, infinite, above 2^31-1) are accepted instead of throwing RangeError',
     'C-SCOPE-07.d': 'B9: a task that rejects while its generation retires is swallowed; stop() resolves instead of reporting a cleanup error',
     'C-RET-03.a'  : 'B3: onStop runs for runs that never reached `running` (a failed start, and a stopped gated start)',

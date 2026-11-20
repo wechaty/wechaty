@@ -260,3 +260,71 @@ contract('C-CHILD-05.d', 'a child that recovers itself does not fail its parent'
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 1 })
   await shutdown(lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// Accepted decisions D32 and D33 (#2968 §6)
+// ---------------------------------------------------------------------------
+
+contract('C-CHILD-07.a', 'a child that restarts itself while its parent stops it leaves the parent with cleanup debt; the next stop() stops it (D32)', {}, async ({ make }) => {
+  // Ported from the Codex suite ("a replacement child remains owned until a
+  // subsequent parent stop releases it").
+  let restarted: ReturnType<typeof observe<void>> | undefined
+  let child!: ReturnType<typeof make>['lifecycle']
+  ;({ lifecycle: child } = make({
+    onStart () {},
+    onStop () { restarted ??= observe(child.start()) },
+  }))
+  const parent = make({ onStart: scope => scope.start(child) }).lifecycle
+  await parent.start()
+
+  const first = observe(parent.stop())
+  await flush()
+  assert.equal(errorName(first.error), 'LifecycleUnsafeStateError', 'the child was not stopped when its stop settled')
+  assert.equal(restarted?.status, 'resolved')
+  assert.equal(child.state.kind, 'running')
+  assert.equal(failedState(parent.state).cleanupComplete, false, 'the parent still owns a running child')
+
+  const second = observe(parent.stop())
+  await flush()
+  assert.equal(second.status, 'resolved')
+  assert.equal(child.state.kind, 'stopped')
+  assert.equal(parent.state.kind, 'stopped')
+})
+
+for (const command of [ 'start', 'restart', 'stop-after-failure' ] as const) {
+  contract(`C-CHILD-01.c-${command}`, `a claim right after the child's own ${command === 'stop-after-failure' ? 'stop() of a clean failure' : command + '()'} is decided by its public state alone (D33)`, {}, async ({ make }) => {
+    // The Codex source tests refused these claims through private state. D33
+    // decides by public state: a child that reads `stopped` or a clean `failed`
+    // can be claimed, and the claim joins whatever it is doing; a child that
+    // already reads `starting` or `stopping` is refused.
+    let fail = command === 'stop-after-failure'
+    const child = make({ onStart () { if (fail) { throw new Error('first start failed') } } }).lifecycle
+    // Read through a call: an assertion would narrow `child.state` statically.
+    const kind = () => child.state.kind
+    let owner: LifecycleScope | undefined
+    const parent = make({ onStart (scope) { owner = scope } }).lifecycle
+    await parent.start()
+    if (command === 'stop-after-failure') {
+      observe(child.start())
+      await flush()
+      assert.equal(kind(), 'failed')
+      fail = false
+    }
+    const independent = observe(command === 'stop-after-failure' ? child.stop() : child[command]())
+    const seen = child.state
+    const claimable = seen.kind === 'stopped' || (seen.kind === 'failed' && seen.cleanupComplete)
+    const claimed = observe(owner!.start(child))
+    await flush()
+    assert.equal(independent.status, 'resolved')
+    if (claimable) {
+      assert.equal(claimed.status, 'resolved', `it read \`${seen.kind}\`, so it could be claimed`)
+      assert.equal(kind(), 'running')
+      await parent.stop()
+      assert.equal(kind(), 'stopped', 'the parent owned it')
+    } else {
+      assert.equal(errorName(claimed.error), 'LifecycleUnsafeStateError', `it read \`${seen.kind}\`, so it could not be claimed`)
+      await shutdown(parent)
+      await shutdown(child)
+    }
+  })
+}

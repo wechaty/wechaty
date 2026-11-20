@@ -426,3 +426,41 @@ contract('C-SCOPE-09.b', 'a stop() that times out on a late release settles, and
   assert.equal(final.status, 'resolved')
   assert.equal(lifecycle.state.kind, 'stopped')
 })
+
+contract('C-SCOPE-09.c', 'a late release that fails in joined work is retried by the joining stop(), which still reports the failure (D36)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  let saved: LifecycleScope | undefined
+  let calls = 0
+  const pending = Promise.withResolvers<void>()
+  const late = new Error('late')
+  const { lifecycle } = make({ onStart (scope) { saved = scope } }, { stopTimeoutMs: 50, clock })
+  await lifecycle.start()
+  await lifecycle.stop()
+  assert.throws(() => saved!.defer(() => {
+    calls++
+    if (calls === 1) {
+      throw new Error('first')
+    }
+    if (calls === 2) {
+      return pending.promise
+    }
+    return undefined
+  }), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
+  await flush()
+  const timedOut = observe(lifecycle.stop())
+  await clock.advance(60)
+  assert.equal(errorName(timedOut.error), 'LifecycleTimeoutError')
+
+  const retry = observe(lifecycle.stop())
+  pending.reject(late)
+  await clock.advance(1)
+  assert.equal(retry.error, late, 'the joined failure is reported')
+  assert.equal(calls, 3, 'and retried once by the same stop()')
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.cleanupComplete, true)
+  assert.equal(failed.cleanupError, late)
+
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})

@@ -68,6 +68,17 @@ test('ManualClock arms a timer queued in a microtask before advance() at the cur
   assert.equal(clock.now(), 100)
 })
 
+test('ManualClock.jump moves time without firing timers; the next advance fires them', async () => {
+  const clock = new ManualClock()
+  let fired = false
+  clock.setTimeout(() => { fired = true }, 10)
+  clock.jump(30)
+  assert.equal(clock.now(), 30)
+  assert.equal(fired, false, 'a blocked thread lets no timer run')
+  await clock.advance(0)
+  assert.equal(fired, true)
+})
+
 test('ManualClock clearTimeout cancels a timer', async () => {
   const clock = new ManualClock()
   let fired = false

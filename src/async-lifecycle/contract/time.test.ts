@@ -225,7 +225,7 @@ contract('C-TIME-03.b', 'an onStop that rejects after its stop deadline is repor
   assert.equal(calls, 1)
 })
 
-contract('C-TIME-03.c', 'a release still running at the stop deadline is joined, and only failed releases are retried', { needs: [ 'clock' ] }, async ({ make }) => {
+contract('C-TIME-03.c', 'a stop() joining a timed-out pass retries the release that failed in it, at once, and still reports that failure (D36)', { needs: [ 'clock' ] }, async ({ make }) => {
   const clock = new ManualClock()
   const gate = Promise.withResolvers<void>()
   const reason = new Error('first release failed')
@@ -245,8 +245,6 @@ contract('C-TIME-03.c', 'a release still running at the stop deadline is joined,
   await clock.advance(10)
   assert.equal(errorName(first.error), 'LifecycleTimeoutError')
 
-  // C-TIME-03 lets the joining stop() either report the pass's failure or retry
-  // it at once; this test checks only what holds either way.
   const joining = observe(lifecycle.stop())
   // Read through a call: an assertion would narrow `joining.status` statically.
   const status = () => joining.status
@@ -255,15 +253,16 @@ contract('C-TIME-03.c', 'a release still running at the stop deadline is joined,
   assert.equal(status(), 'pending', 'the joining stop() waits for the release it joined')
   gate.reject(reason)
   await flush()
-  assert.deepEqual(trace.slice(0, 2), [ 'second', 'first' ], 'the pass continued past the failure, newest first')
-  assert.ok(
-    status() === 'resolved' || (status() === 'rejected' && joining.error === reason),
-    `the joining stop() either retried and resolved, or reported the release error; got ${status()} ${String(joining.error)}`,
-  )
+  assert.deepEqual(trace, [ 'second', 'first', 'second' ], 'the failed release was retried once, by the same stop()')
+  assert.equal(status(), 'rejected')
+  assert.equal(joining.error, reason, 'the joined failure is still reported')
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.phase, 'stop')
+  assert.equal(failed.cleanupComplete, true, 'the retry released everything')
 
   await shutdown(lifecycle)
   assert.equal(lifecycle.state.kind, 'stopped')
-  assert.deepEqual(trace, [ 'second', 'first', 'second' ], 'only the failed release was retried, once')
+  assert.deepEqual(trace, [ 'second', 'first', 'second' ], 'nothing left to release')
 })
 
 contract('C-TIME-03.d', 'the stop deadline covers joining tasks, and resources stay live until the task returns', { needs: [ 'clock' ] }, async ({ make }) => {
@@ -383,3 +382,103 @@ contract('C-TIME-03.g', 'a release that hangs past the stop deadline is joined b
   assert.equal(releases, 1, 'the running release is joined, not repeated')
   assert.equal(lifecycle.state.kind, 'stopped')
 })
+
+contract('C-TIME-03.h', 'one stop() has one deadline that covers joining earlier work and retrying what failed in it (D36)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const first = Promise.withResolvers<void>()
+  let calls = 0
+  const { lifecycle } = make({
+    onStart: scope => scope.defer(() => (++calls === 1 ? first.promise : new Promise(() => {}))),
+  }, { stopTimeoutMs: 100, clock })
+  await lifecycle.start()
+  const stopping = observe(lifecycle.stop())
+  await clock.advance(100)
+  assert.equal(stopping.status, 'rejected')
+
+  const retry = observe(lifecycle.stop())
+  await clock.advance(50)
+  first.reject(new Error('old release failed'))
+  await flush()
+  assert.equal(calls, 2, 'the failed release is retried in the same pass')
+  await clock.advance(49)
+  assert.equal(retry.status, 'pending')
+  await clock.advance(1)
+  assert.equal(errorName(retry.error), 'LifecycleTimeoutError', 'the retry shares the joining stop()\'s 100 ms')
+})
+
+for (const yields of [ false, true ]) {
+  contract(`C-TIME-05.a-${yields ? 'after' : 'before'}`, `synchronous work ${yields ? 'after' : 'before'} a microtask in onStart counts against the start deadline (D30)`, { needs: [ 'clock' ] }, async ({ make }) => {
+    // Ported from the Codex suite, which blocked the thread with Atomics.wait.
+    // jump() is the same thing on the manual clock: time passes, no timer runs.
+    const clock = new ManualClock()
+    let running = 0
+    const { lifecycle } = make({
+      async onStart () {
+        if (yields) {
+          await Promise.resolve()
+        }
+        clock.jump(30)
+      },
+      onStateChange (state) { if (state.kind === 'running') { running++ } },
+    }, { clock, startTimeoutMs: 10 })
+    const started = observe(lifecycle.start())
+    await flush()
+    await clock.advance(0)
+    assert.equal(errorName(started.error), 'LifecycleTimeoutError', 'onStart settled after its deadline')
+    assert.equal(running, 0, 'running is never published past the deadline')
+    await shutdown(lifecycle)
+  })
+}
+
+contract('C-TIME-05.b', 'a release that blocks past the stop deadline makes that stop() a timeout, and is not run again (D30)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  let releases = 0
+  const { lifecycle } = make({
+    onStart: scope => scope.defer(() => { releases++; clock.jump(30) }),
+  }, { clock, stopTimeoutMs: 10 })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  await clock.advance(0)
+  assert.equal(errorName(stopped.error), 'LifecycleTimeoutError')
+  assert.equal(failedState(lifecycle.state).phase, 'stop')
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(releases, 1)
+})
+
+for (const retiring of [ 'starting', 'running' ] as const) {
+  contract(`C-TIME-05.c-${retiring}`, `restart()'s stop deadline starts when it is accepted, while the ${retiring} generation is still live (D30, C-TIME-03)`, { needs: [ 'clock' ] }, async ({ make }) => {
+    const clock = new ManualClock()
+    const entered = Promise.withResolvers<void>()
+    let starts = 0
+    const { lifecycle } = make({
+      async onStart (scope) {
+        if (++starts === 1 && retiring === 'starting') {
+          // A synchronous abort listener blocks the thread before retirement work begins.
+          scope.signal.addEventListener('abort', () => clock.jump(40), { once: true })
+          entered.resolve()
+          await new Promise<void>(resolve => scope.signal.addEventListener('abort', () => resolve(), { once: true }))
+        }
+      },
+    }, { clock, stopTimeoutMs: 10 })
+    const first = observe(lifecycle.start())
+    if (retiring === 'starting') {
+      await entered.promise
+    } else {
+      await flush()
+      assert.equal(first.status, 'resolved')
+    }
+    const restarted = observe(lifecycle.restart())
+    if (retiring === 'running') {
+      clock.jump(40) // the thread is blocked right after restart() is accepted
+    }
+    await flush()
+    await clock.advance(0)
+    assert.equal(errorName(restarted.error), 'LifecycleTimeoutError', 'the stop budget ran from acceptance')
+    assert.equal(starts, 1, 'no replacement after a timed-out retirement')
+    assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+    await shutdown(lifecycle)
+  })
+}

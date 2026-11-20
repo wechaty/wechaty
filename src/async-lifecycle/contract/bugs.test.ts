@@ -34,8 +34,11 @@ import type { LifecycleRecoverResult } from '../types.ts'
 import { flush, observe } from './harness.ts'
 import { contract } from './suite.ts'
 
-contract('B1', 'a failed start is reported only after `failed` is committed, and stop() then commits `stopped`', {}, async ({ make }) => {
-  // C-OBS-01: commit, then settle outcomes. C-CMD-09: a clean failure plus stop() commits stopped.
+contract('B1', 'stop() after a cleanly failed start commits `stopped`, and the rejection follows the failure\'s commit', {}, async ({ make }) => {
+  // C-CMD-09: a clean failure plus stop() commits stopped. C-OBS-01, C-CMD-17:
+  // the rejection follows the commit that records the failure. D35 withdrew this
+  // bug's first half: the rejection may come at the `stopping` commit, so it no
+  // longer has to wait for `failed`.
   const failure = new Error('onStart failed')
   const { lifecycle } = make({ onStart () { throw failure } })
 
@@ -47,7 +50,7 @@ contract('B1', 'a failed start is reported only after `failed` is committed, and
   await flush()
   assert.equal(started.status, 'rejected')
   assert.equal(started.error, failure)
-  assert.equal(stateWhenRejected, 'failed', 'the rejection must not be observable before the failure is committed')
+  assert.notEqual(stateWhenRejected, 'starting', 'the failure was committed before the rejection was observable')
 
   const stopped = observe(lifecycle.stop())
   await flush()

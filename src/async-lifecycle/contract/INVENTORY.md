@@ -8,8 +8,8 @@ The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one im
 
 | Source | Cases | Ported | Dropped | Remaining |
 | --- | --- | --- | --- | --- |
-| `src/async-lifecycle-codex/*.test.ts` | 63 tests (154 cases) | 43 | 2 (1 dropped, 1 moved to S5) | 18 waiting for a decision |
-| `src/async-lifecycle-claude/*.test.ts` | 113 tests (208 cases) | 96 (80 new, 16 already covered) | 14 moved to S4 | 3 waiting for a decision |
+| `src/async-lifecycle-codex/*.test.ts` | 63 tests (154 cases) | 61 | 2 (1 dropped, 1 moved to S5) | 0 |
+| `src/async-lifecycle-claude/*.test.ts` | 113 tests (208 cases) | 99 (83 new, 16 already covered) | 14 moved to S4 | 0 |
 | `src/async-lifecycle-copilot/*.test.ts` | 32 scenarios | 0 | 0 | 32 |
 | #2905 traces A to F | 6 | 0 | 0 | 6 |
 | v1 design acceptance list | 6 | 0 | 0 | 6 |
@@ -34,6 +34,7 @@ Bugs found while porting, each recorded in the adapter's `knownFailures` and in 
 | B7 | claude | A start timeout settles only after retirement, so `start()` is not bounded by its deadline and an abort-listener command supersedes it | `C-TIME-02.*` |
 | B8 | copilot | A `start()` then `stop()` in the same tick still runs `onStart`, so pre-start condition waits resolve instead of rejecting | `C-COND-04.b2` |
 | B9 | codex | A task that rejects while its generation retires is swallowed, so `stop()` resolves instead of reporting a cleanup error | `C-SCOPE-07.d` |
+| B10 | copilot | A `stop()` or `restart()` does not wait for a cleanup registered during its own retirement: it rejects at once, and the state stays `failed` after the cleanup finishes | `C-SCOPE-02.d-*` |
 
 ## Conflicts
 
@@ -52,6 +53,10 @@ Source tests that assert behavior contradicting an accepted decision. Each is po
 | claude: #2905 C: stop() aborts a pending abort-aware onStart at once | Requires the abort synchronously inside `stop()` | Not in the contract (C-CMD-01 requires only synchronous intent); ported as "aborted before onStart settles" |
 | claude: an acquisition that resolves after retirement began | Requires `acquire()` to reject before the release runs | C-SCOPE-04 requires both, not an order |
 | codex, claude: inheritance rejects command overrides | Throw a plain `Error` | D13: `LifecycleOverrideError` |
+| codex: start waiting for detached cleanup joins the surviving run | `start()` on a running generation waits for an old late release | C-CMD-04: it resolves at once (D31 makes only new generations wait) |
+| codex: a parent cannot claim a child's queued start / restart; a clean failed child with an accepted stop cannot be claimed | Refuses through private knowledge of the child's pending command | D33: decided by public state alone |
+| claude: debt from a retired generation is retried by the next retirement | A late release that fails while a generation runs leaves that run alone | D31: the failure retires the live generation and leaves cleanup debt |
+| codex: a start deadline reports dirty failure; claude: an onStart that ignores its timeout | A failed start rejects only after cleanup | D35: it rejects when the failure is decided |
 
 ## Ported and dropped tests
 
@@ -59,7 +64,7 @@ One table per source suite, added as each is ported.
 
 ### Codex (`src/async-lifecycle-codex/`, #2914)
 
-63 distinct tests (154 cases: most run through both entry points, some in several variants). Ported: 43. Waiting for a decision: 18. Dropped: 1. Moved to S5: 1.
+63 distinct tests (154 cases: most run through both entry points, some in several variants). Ported: 61 (18 of them after D30 to D37 were accepted). Dropped: 1. Moved to S5: 1.
 
 `async-lifecycle.test.ts`:
 
@@ -79,35 +84,35 @@ One table per source suite, added as each is ported.
 
 | Source test | Status | Contract test or reason |
 | --- | --- | --- |
-| startup budget includes synchronous work (2 variants) | waiting | D30: is a deadline judged by the clock at commit, or only by its timer? |
-| queued microtasks cannot publish running after the startup deadline | waiting | D30 |
-| a detached release failure interrupts startup and preserves the failing cleanup (2) | waiting | D31: releases registered on an already retired scope |
-| queued restart reports the detached disposer error before starting a replacement | waiting | D31 |
+| startup budget includes synchronous work (2 variants) | ported, D30 | `C-TIME-05.a-before`, `C-TIME-05.a-after` |
+| queued microtasks cannot publish running after the startup deadline | covered, D30: on the manual clock this is the same as synchronous work after a microtask | `C-TIME-05.a-after` |
+| a detached release failure interrupts startup and preserves the failing cleanup (2) | ported, D31 (simplified: the start fails with the release error and leaves debt) | `C-SCOPE-11.c-reject`, `C-SCOPE-11.f` |
+| queued restart reports the detached disposer error before starting a replacement | ported, D31 | `C-SCOPE-11.d` |
 | stop from the start timeout listener observes cleanup (3) | ported, D8 form (no onStop) | `C-TIME-02.a-*` |
 | start / restart from a timeout listener waits for the expired generation to retire (2) | ported | `C-TIME-02.b-*` |
-| replacement startup handles detached cleanup (5) | waiting | D31 |
-| stop / fail retires active resources while a detached release is blocked (2) | waiting | D31 |
-| a parent cannot claim a child's independently queued start / restart (2) | waiting | D33: a child with an accepted, uncommitted command |
-| a stopped child can be claimed after its detached release settles | waiting | D31 |
-| a clean failed child with an accepted stop cannot be claimed | waiting | D33 |
-| a replacement child remains owned until a subsequent parent stop releases it | waiting | D32: a child that restarts itself during its parent's stop |
-| stop / restart joins a late registration at retirement completion (6) | waiting | D31; the microtask-tuned interleavings belong to S3 |
-| restart includes retirement from the instant it is accepted (3) | waiting | D30 |
-| a replacement gets a fresh retirement budget after detached cleanup | waiting | D31 |
-| a stop joining detached cleanup receives the same deadline outcome | waiting | D31 |
-| stop checks its deadline before committing cleanup (2) | waiting | D30 |
-| one stop deadline spans the active hook and detached releases | waiting | D31 |
+| replacement startup handles detached cleanup (5) | ported, D31 | `C-SCOPE-11.c-*` |
+| stop / fail retires active resources while a detached release is blocked (2) | ported, D31 | `C-SCOPE-11.e-stop`, `C-SCOPE-11.e-fail` |
+| a parent cannot claim a child's independently queued start / restart (2) | ported, D33 form (decided by public state) | `C-CHILD-01.c-start`, `C-CHILD-01.c-restart` |
+| a stopped child can be claimed after its detached release settles | ported, D31 | `C-SCOPE-11.i` |
+| a clean failed child with an accepted stop cannot be claimed | ported, D33 form | `C-CHILD-01.c-stop-after-failure` |
+| a replacement child remains owned until a subsequent parent stop releases it | ported, D32 | `C-CHILD-07.a` |
+| stop / restart joins a late registration at retirement completion (6) | ported (the generation is still retiring, so C-SCOPE-02, not D31); exact microtask interleavings belong to S3 | `C-SCOPE-02.d-*` |
+| restart includes retirement from the instant it is accepted (3) | ported, D30, C-TIME-03 (the detached variant is `C-SCOPE-11.l`) | `C-TIME-05.c-starting`, `C-TIME-05.c-running` |
+| a replacement gets a fresh retirement budget after detached cleanup | ported, D31 | `C-SCOPE-11.l` |
+| a stop joining detached cleanup receives the same deadline outcome | ported, D31 | `C-SCOPE-11.j` |
+| stop checks its deadline before committing cleanup (2) | ported, D30 | `C-TIME-05.b` |
+| one stop deadline spans the active hook and detached releases | ported, D31 | `C-SCOPE-11.k` |
 | stop supersedes pre-start condition waits (2) | ported | `C-COND-04.b1`, `C-COND-04.b2` |
 | a pre-aborted stop leaves the next generation's condition waits intact | ported | `C-COND-04.c` |
 | stop superseding a queued replacement also rejects its condition waits | ported | `C-COND-04.d` |
 | a condition wait created during retirement binds to the next generation | ported | `C-COND-02.a` |
 | late registrations sharing a disposer are independently retried | ported | `C-SCOPE-08.a` |
-| a run failure survives a late release (2) | waiting | D31 |
-| start waiting for detached cleanup joins or is superseded (2) | waiting | D31 |
+| a run failure survives a late release (2) | ported, D31 (without the owner-level recover) | `C-SCOPE-11.g-*` |
+| start waiting for detached cleanup joins or is superseded (2) | ported, D31 and C-CMD-04 form (a start() on a running generation resolves at once) | `C-SCOPE-11.h-*` |
 | restart gracefully retires the old generation before a joined start | ported | `C-CMD-11.c` |
 | reentrant start from startup abort waits for the interrupted generation to retire | ported | `C-CMD-06.a` |
 | restarting during startup retires the interrupted hook before replacement | ported, D8 form (no onStop) | `C-CMD-11.b` |
-| one worker handles stop from a starting observer | ported; its "onStart is never entered" assertion waits for D34 | `C-OBS-03.b` |
+| one worker handles stop from a starting observer | ported, D34 | `C-OBS-03.b` |
 | a failed observer can restart without inheriting the old failure | ported | `C-OBS-03.c` |
 | a task failure interrupts startup and parks the failed attempt | ported, C-STATE-05 form (phase `start`) | `C-SCOPE-07.a` |
 | caller abort cancels only one wait and preserves an arbitrary reason | ported | `C-CMD-01.a`, `C-CMD-02.a` |
@@ -141,7 +146,7 @@ One table per source suite, added as each is ported.
 
 ### Claude (`src/async-lifecycle-claude/`, #2913)
 
-113 distinct tests (208 cases: the 95 engine tests run through both entry points). Ported: 80. Already covered by an earlier contract test: 16. Waiting for a decision: 3. Moved to S4: 14.
+113 distinct tests (208 cases: the 95 engine tests run through both entry points). Ported: 83 (3 after D30 to D37 were accepted). Already covered by an earlier contract test: 16. Moved to S4: 14.
 
 `engine.test.ts`:
 
@@ -191,10 +196,10 @@ One table per source suite, added as each is ported.
 | a late interrupt that throws is reported as a cleanup error | ported | `C-SCOPE-05.c` |
 | a sealed scope releases late registrations at once and refuses new work | ported | `C-SCOPE-02.c` |
 | a failing late release after retirement becomes debt until stop() clears it | covered | `C-SCOPE-09.a` |
-| debt from a retired generation is retried by the next retirement | waiting | D31: whether old debt interrupts a live run |
+| debt from a retired generation is retried by the next retirement | ported, D31 form (the failure retires the live run) | `C-SCOPE-11.f` |
 | a stop() settles when debt clears on its own | ported | `C-SCOPE-09.b` |
 | a stop() during a debt pass joins it and requests no extra pass | ported | `C-RET-05.a` |
-| debt released after joined work failed reports that failure | waiting | D36: does a stop() joining failed work retry it in the same pass? |
+| debt released after joined work failed reports that failure | ported, D36 | `C-SCOPE-09.c` |
 | a spawned task gets scope.signal, aborted on retirement, and is joined | ported | `C-SCOPE-07.b` |
 | a spawned task rejection fails the running generation | ported | `C-SCOPE-07.c-error` |
 | a task failing while retiring is reported once as a cleanup error | ported | `C-SCOPE-07.d` |
@@ -230,7 +235,7 @@ One table per source suite, added as each is ported.
 | stopTimeoutMs bounds a stop() that waits on an onStart ignoring abort | ported | `C-TIME-03.e` |
 | an onStart that ignores its timeout keeps the generation dirty until it settles | ported | `C-TIME-03.f` |
 | stopTimeoutMs bounds a hanging release and the next stop() joins it | ported | `C-TIME-03.g` |
-| one stop() has one deadline for joining earlier work and retrying | waiting | D36 |
+| one stop() has one deadline for joining earlier work and retrying | ported, D36 | `C-TIME-03.h` |
 | an onStop past its deadline stays tracked and blocks a clean retirement | covered | `C-TIME-03.a` |
 | observer exceptions are isolated | covered | `C-OBS-02.a` |
 | an observer stop() on running does not reject the completed start | covered | `C-OBS-03.a` |
@@ -239,7 +244,7 @@ One table per source suite, added as each is ported.
 | a hook calling stop() synchronously never runs a second reconciler | ported | `C-OBS-03.f` |
 | stop() on a clean failure commits stopped | covered | `C-CMD-09.a` |
 | an observer stop() on a clean failure resolves only once stopped is committed | ported | `C-OBS-01.a` |
-| an observer stop() on starting means onStart is never called | ported; its "onStart is never called" assertion waits for D34 | `C-OBS-03.b` |
+| an observer stop() on starting means onStart is never called | ported, D34 | `C-OBS-03.b` |
 | await using stops the lifecycle | ported | `C-CMD-15.a` |
 | #2905 F: start/stop ×3 never accumulates listeners | ported with `on` plus `defer(off)`; the `listen` companion is S4 | `C-SCOPE-03.a` |
 

@@ -77,6 +77,15 @@ class ManualClock implements LifecycleClock {
   }
 
   /**
+   * Move time forward by `ms` synchronously **without firing any timer**: what a
+   * hook that blocks the thread looks like to the kernel. Due timers fire on the
+   * next `advance()`. Used for deadlines judged by the clock (C-TIME-05).
+   */
+  jump (ms: number): void {
+    this.#now += ms
+  }
+
+  /**
    * Move time forward by `ms`, firing every timer that falls due on the way, and
    * flush microtasks after each one so the lifecycle reacts before the next fires.
    *
