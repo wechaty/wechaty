@@ -207,6 +207,7 @@ const copilot: Implementation = {
     'C-SCOPE-05.f': 'B6: the interrupt\'s rejection rejects stop() but is missing from the failed snapshot\'s cleanupError',
     'C-CHILD-05.e-stops': 'D39 divergence: a child that stops or fails unasked while its parent retires still fails the parent with LifecycleChildFailureError',
     'C-CHILD-05.e-fails': 'D39 divergence: a child that stops or fails unasked while its parent retires still fails the parent with LifecycleChildFailureError',
+    'C-REC-05.d': 'conflict with C-REC-03 and C-REC-05: a task calling recover() while a recovery retires joins it as another requester (gets `recovered`, exempt from the join), instead of getting `superseded`',
   },
 }
 

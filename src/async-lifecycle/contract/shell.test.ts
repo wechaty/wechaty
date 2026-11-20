@@ -26,6 +26,7 @@
 import assert from 'node:assert/strict'
 
 import { errorName } from './harness.ts'
+import type { LifecycleBase } from './subject.ts'
 import { contract } from './suite.ts'
 
 contract('C-SHELL-02.a', 'a caller-API method overridden by a subclass, or by an intermediate class, fails construction with LifecycleOverrideError', {}, async ({ impl, shell }) => {
@@ -83,19 +84,26 @@ contract('C-SHELL-02.c', 'the caller-API members of an AsyncLifecycle instance a
 // Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
 // ---------------------------------------------------------------------------
 
-contract('C-SHELL-02.d', 'overriding any caller-API member with a method or accessor fails construction with LifecycleOverrideError', {}, async ({ impl, shell }) => {
-  if (shell !== 'AsyncLifecycle') {
-    return
-  }
-  const Base = impl.base
-  const overrides: Record<string, new () => unknown> = {
-    stop: class extends Base { constructor () { super() } protected onStart (): void {} override stop (): Promise<void> { return Promise.resolve() } },
-    restart: class extends Base { constructor () { super() } protected onStart (): void {} override restart (): Promise<void> { return Promise.resolve() } },
-    whenState: class extends Base { constructor () { super() } protected onStart (): void {} override whenState (): never { throw new Error('unused') } },
-    state: class extends Base { constructor () { super() } protected onStart (): void {} override get state (): never { throw new Error('unused') } },
-    [String(Symbol.asyncDispose)]: class extends Base { constructor () { super() } protected onStart (): void {} override [Symbol.asyncDispose] (): Promise<void> { return Promise.resolve() } },
-  }
-  for (const [ member, Override ] of Object.entries(overrides)) {
-    assert.throws(() => new Override(), (error: unknown) => errorName(error) === 'LifecycleOverrideError', member)
-  }
-})
+/**
+ * A subclass of `Base` that overrides one caller-API member with a method or
+ * accessor, for C-SHELL-02.d. Each member is its own contract case, so every
+ * guard is exercised and each implementation's gaps are recorded separately.
+ */
+const OVERRIDES = {
+  stop: (Base: LifecycleBase) => class extends Base { constructor () { super() } protected onStart (): void {} override stop (): Promise<void> { return Promise.resolve() } },
+  restart: (Base: LifecycleBase) => class extends Base { constructor () { super() } protected onStart (): void {} override restart (): Promise<void> { return Promise.resolve() } },
+  whenState: (Base: LifecycleBase) => class extends Base { constructor () { super() } protected onStart (): void {} override whenState (): never { throw new Error('unused') } },
+  state: (Base: LifecycleBase) => class extends Base { constructor () { super() } protected onStart (): void {} override get state (): never { throw new Error('unused') } },
+  asyncDispose: (Base: LifecycleBase) => class extends Base { constructor () { super() } protected onStart (): void {} override [Symbol.asyncDispose] (): Promise<void> { return Promise.resolve() } },
+} as const
+
+for (const member of Object.keys(OVERRIDES) as (keyof typeof OVERRIDES)[]) {
+  const name = member === 'asyncDispose' ? 'Symbol.asyncDispose' : member
+  contract(`C-SHELL-02.d-${member}`, `overriding ${name} with a method or accessor fails construction with LifecycleOverrideError`, {}, async ({ impl, shell }) => {
+    if (shell !== 'AsyncLifecycle') {
+      return
+    }
+    const Override = OVERRIDES[member](impl.base)
+    assert.throws(() => new Override(), (error: unknown) => errorName(error) === 'LifecycleOverrideError')
+  })
+}

@@ -289,35 +289,62 @@ for (const when of [ 'at-once', 'during-release' ] as const) {
   })
 }
 
-contract('C-REC-05.c', 'a task that calls recover() while a recovery already retires gets \'superseded\' at once and is joined as usual; the recovery reports \'recovered\'', { needs: [ 'scope.recover' ] }, async ({ make }) => {
-  // The Copilot suite made such a late caller exempt from the join too and
-  // reported 'failed' when it then rejected; C-REC-03 and C-REC-05 make it a
-  // caller on a retiring scope.
-  const go = Promise.withResolvers<void>()
-  let first: LifecycleScope | undefined
-  let late: LifecycleRecoverResult | undefined
-  const { lifecycle } = make({
-    onStart (scope) {
-      if (first) {
-        return
-      }
-      first = scope
-      scope.spawn(async () => {
-        await go.promise
-        late = await scope.recover()
-      })
-    },
+for (const rejects of [ false, true ]) {
+  const key = rejects ? 'C-REC-05.d' : 'C-REC-05.c'
+  const title = rejects
+    ? 'a task that calls recover() while a recovery already retires, then rejects, fails the recovery: \'failed\', failed { stop }, and no replacement (C-SCOPE-07)'
+    : 'a task that calls recover() while a recovery already retires gets \'superseded\' at once and is joined as usual; the recovery reports \'recovered\''
+  contract(key, title, { needs: [ 'scope.recover' ] }, async ({ make }) => {
+    // The Copilot suite made such a late caller exempt from the join too; C-REC-03
+    // and C-REC-05 make it a caller on a retiring scope: it gets 'superseded', it
+    // is joined like any other task, and its rejection is a cleanup error.
+    const requesterError = new Error('late recovery requester failed')
+    const go = Promise.withResolvers<void>()
+    const hold = Promise.withResolvers<void>()
+    let first: LifecycleScope | undefined
+    let late: LifecycleRecoverResult | undefined
+    let starts = 0
+    const { lifecycle } = make({
+      onStart (scope) {
+        starts++
+        if (first) {
+          return
+        }
+        first = scope
+        scope.spawn(async () => {
+          await go.promise
+          late = await scope.recover()
+          await hold.promise
+          if (rejects) {
+            throw requesterError
+          }
+        })
+      },
+    })
+    await lifecycle.start()
+    const recovery = observe(first!.recover())
+    await flush()
+    go.resolve()
+    await flush()
+    assert.equal(late, 'superseded')
+    assert.equal(recovery.status, 'pending', 'the late caller is joined, not exempt')
+    assert.equal(starts, 1)
+    hold.resolve()
+    await flush()
+    if (rejects) {
+      assert.equal(recovery.value, 'failed')
+      const failed = failedState(lifecycle.state)
+      assert.equal(failed.phase, 'stop')
+      assert.equal(failed.error, requesterError)
+      assert.equal(failed.cleanupComplete, true)
+      assert.equal(starts, 1, 'no replacement after a failed retirement')
+    } else {
+      assert.equal(recovery.value, 'recovered')
+      assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+      await shutdown(lifecycle)
+    }
   })
-  await lifecycle.start()
-  const recovery = observe(first!.recover())
-  await flush()
-  go.resolve()
-  await flush()
-  assert.equal(late, 'superseded')
-  assert.equal(recovery.value, 'recovered')
-  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
-  await shutdown(lifecycle)
-})
+}
 
 contract('C-REC-04.e', 'a user restart() during a task\'s recovery supersedes it: the task gets \'superseded\' and the restart\'s replacement runs', { needs: [ 'scope.recover' ] }, async ({ make }) => {
   let saved: LifecycleScope | undefined

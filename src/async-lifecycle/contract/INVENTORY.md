@@ -36,6 +36,7 @@ Bugs found while porting, each recorded in the adapter's `knownFailures` and in 
 | B9 | codex | A task that rejects while its generation retires is swallowed, so `stop()` resolves instead of reporting a cleanup error | `C-SCOPE-07.d` |
 | B10 | copilot | A `stop()` or `restart()` does not wait for a cleanup registered during its own retirement: it rejects at once, and the state stays `failed` after the cleanup finishes | `C-SCOPE-02.d-*` |
 | B11 | codex | A `stop()` accepted while an earlier `stop()` retires does not reject the condition waits created in between; they survive and bind to the next generation | `C-COND-04.h` |
+| B12 | codex | Overriding `state` or `Symbol.asyncDispose` in an `AsyncLifecycle` subclass is not refused, so the override silently replaces the caller API | `C-SHELL-02.d-state`, `C-SHELL-02.d-asyncDispose` |
 
 ## Conflicts
 
@@ -269,7 +270,7 @@ Other files:
 
 ### Copilot (`src/async-lifecycle-copilot/`, #2912)
 
-32 tests, all in `async-lifecycle.test.ts`. Ported: 15 (as 28 new contract tests; 3 after D38 and D39 were accepted). Already covered: 11. Moved to S4: 6.
+32 tests, all in `async-lifecycle.test.ts`. Ported: 15 (as 33 new contract tests; 3 after D38 and D39 were accepted). Already covered: 11. Moved to S4: 6.
 
 | Source test | Status | Contract test or reason |
 | --- | --- | --- |
@@ -283,7 +284,7 @@ Other files:
 | restart during incomplete startup settles the old attempt and starts one replacement | covered | `C-CMD-11.b` |
 | failure reported during startup unwind overrides clean stop supersession | ported, C-SCOPE-02 form (the `fail()` is ignored) | `C-SCOPE-02.e-release` |
 | recovery requester failure during the final disposer fails recovery | ported | `C-REC-05.b-during-release` |
-| recovery requester added during unwind is included in error collection | ported, C-REC-03 and C-REC-05 form (the late caller gets `superseded` and is joined) | `C-REC-05.c` |
+| recovery requester added during unwind is included in error collection | ported, C-REC-03 and C-REC-05 form (the late caller gets `superseded` and is joined; its rejection is a cleanup error) | `C-REC-05.c`, `C-REC-05.d` |
 | every accepted stop invalidates pre-start conditions during retirement | ported | `C-COND-04.h` |
 | timed-out interrupts resume in LIFO order without skipping or duplicating work | ported, D38 form (every interrupt is called at once) | `C-SCOPE-05.e` |
 | late acquisition remains owned through its one interrupt and release | ported, D38 (the resource is created after step 4, so its interrupt runs as soon as it exists) | `C-SCOPE-05.f` |
@@ -300,7 +301,7 @@ Other files:
 | runtime failures retire the generation and resolve whenState observers | covered (its final `stop()` leaving `failed` is B1) | `C-SCOPE-07.c-error`, `C-CMD-16.b`, `C-SCOPE-02.a`, `C-CMD-09.a` |
 | owned child lifecycles stop with their parent and unexpected child failure propagates | covered | `C-CHILD-04.a`, `C-CHILD-06.a` |
 | owned child failures remain supervised during graceful parent shutdown | ported, D39 form (no escalation while the parent retires) | `C-CHILD-05.e-stops`, `C-CHILD-05.e-fails` |
-| AsyncLifecycle inheritance rejects final-method overrides | covered and ported | `C-SHELL-02.a`, `C-SHELL-02.b`, `C-SHELL-02.d` (`state`, `Symbol.asyncDispose`, `stop`, `restart`, `whenState`). Class-field hooks dropped, as above |
+| AsyncLifecycle inheritance rejects final-method overrides | covered and ported | `C-SHELL-02.a`, `C-SHELL-02.b`, `C-SHELL-02.d-*` (one case each for `state`, `Symbol.asyncDispose`, `stop`, `restart`, `whenState`). Class-field hooks dropped, as above |
 | diagnostics publish committed sanitized metadata before isolated observers | covered and ported | `C-OBS-04.a` (Copilot's record shape is a known divergence), `C-OBS-01.b` (the order) |
 | watchdog feed, disarm, and expiry use the supplied clock | moved to S4 | Companions land with their implementation (D26) |
 | watchdog defaults to recovery and the default diagnostic label | moved to S4 | Companions land with their implementation (D26) |
