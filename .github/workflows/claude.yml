@@ -170,12 +170,6 @@ jobs:
         if: steps.eyes.outputs.review_needed == 'true'
         run: npm ci --ignore-scripts
 
-      # Timestamp binds the later published review to this workflow run.
-      - name: Mark review start
-        id: review-start
-        if: steps.eyes.outputs.review_needed == 'true'
-        run: echo "created_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
-
       - name: Run Anthropic Code Review plugin
         if: steps.eyes.outputs.review_needed == 'true'
         id: claude-review
@@ -196,9 +190,8 @@ jobs:
           # failed pilot and the Action reported "No plugins specified".
           plugin_marketplaces: https://github.com/anthropics/claude-plugins-official.git
           plugins: code-review@claude-plugins-official
-          # Tag mode publishes an editable Claude progress/review comment.
-          # Verify the published run-linked comment independently of plugin internals.
-          track_progress: true
+          # Automation mode dispatches the slash command to the official plugin.
+          # Native tracking comments are unavailable; the Bash eyes step indicates activity.
           prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
           claude_args: |
             --max-turns 100
@@ -206,31 +199,15 @@ jobs:
             --allowedTools "Read,Glob,Grep,Bash,Task,mcp__github_inline_comment__create_inline_comment"
             --append-system-prompt "For pull request reviews, read and apply repository AGENTS.md instructions. Keep the published review concise and actionable. Preserve the ## Code review heading. If no actionable issues are found, write only No issues found. beneath that heading. Omit generic checklist claims and CLAUDE.md compliance boilerplate. If issues exist, explain each actual defect with its file location and suggested fix. Never suppress substantive findings for brevity."
 
-      # Tag mode edits its own run-linked comment. Check completion and identity.
-      - name: Verify Claude review published
+      # Trust the plugin's terminal result; do not infer review depth from tool counts.
+      - name: Verify Claude execution succeeded
         id: verify-plugin
         if: steps.claude-review.outcome == 'success'
         env:
           EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REVIEW_STARTED: ${{ steps.review-start.outputs.created_at }}
-        shell: bash
         run: |
-          set -euo pipefail
-          : "${EXECUTION_FILE:?}" "${REVIEW_STARTED:?}"
+          test -s "$EXECUTION_FILE"
           jq -e 'type == "array" and any(.[]; .type == "result" and .subtype == "success" and .is_error == false)' "$EXECUTION_FILE" >/dev/null
-          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" --jq '.[]' |
-            jq -se --arg run "$run_url" --arg started "$REVIEW_STARTED" '
-              [.[] | select(
-                .user.login == "claude[bot]" and
-                .created_at >= $started and .updated_at >= $started and
-                (.body | type == "string" and contains($run) and
-                  startswith("**Claude finished") and contains("## Code review"))
-              )] | length == 1
-            ' >/dev/null
-          echo 'Verified completed Claude review linked to this Actions run.'
       - name: Record completed review status for exact revision
         if: steps.verify-plugin.outcome == 'success'
         env:
