@@ -210,6 +210,7 @@ jobs:
             Update the comment even if there are no findings. Do not create a separate
             comment or a GitHub review submission, and do not edit comments from prior runs.
           claude_args: |
+            --effort high
             --max-turns 100
             --dangerously-skip-permissions
             --allowedTools "Read,Glob,Grep,Bash,Task"
