@@ -194,7 +194,12 @@ jobs:
           show_full_output: true
           # Automation mode dispatches the slash command to the official plugin.
           # Native tracking comments are unavailable; the Bash eyes step indicates activity.
-          prompt: /code-review:code-review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
+          # The official command skips an entire PR after any previous Claude comment.
+          # On new commits, review the current revision directly instead.
+          prompt: >-
+            ${{ github.event.action == 'synchronize' &&
+                format('Review PR #{0} at HEAD {1} against base {2}. This is a new revision: ignore older Claude reviews and do not stop because Claude already commented on this PR. Read AGENTS.md, inspect the current diff and relevant code, and identify actionable correctness issues. Publish a NEW PR comment headed "## Code review" with findings and file locations, or "No issues found." if none. Mention reviewed HEAD {1} in the comment. Do not modify files.', github.event.pull_request.number, github.event.pull_request.head.sha, github.event.pull_request.base.sha) ||
+                format('/code-review:code-review https://github.com/{0}/pull/{1} --comment', github.repository, github.event.pull_request.number) }}
           claude_args: |
             --max-turns 100
             --dangerously-skip-permissions
