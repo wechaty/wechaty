@@ -86,7 +86,9 @@ contract('C-CHILD-06.a', 'a child whose start fails fails the parent with that e
   await flush()
   assert.equal(started.error, reason)
   assert.equal(parent.state.kind, 'failed')
-  assert.notEqual(child.state.kind, 'running')
+  // The parent's rollback stops the child it owned (C-CHILD-02, C-CHILD-04), and
+  // stop() on a clean failure commits `stopped` (C-CMD-09).
+  assert.equal(child.state.kind, 'stopped')
   await shutdown(parent)
 })
 

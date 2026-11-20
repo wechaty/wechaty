@@ -20,7 +20,7 @@ The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one im
 
 | Bug | Contract test | Clauses | Known failure for |
 | --- | --- | --- | --- |
-| B1 | `B1` in `bugs.test.ts` | C-OBS-01, C-CMD-09 | copilot |
+| B1 | `B1` in `bugs.test.ts`; also `C-CMD-09.a`, `C-RET-02.a`, `C-CHILD-06.a`, `C-TIME-02.a-success`, `C-TIME-02.c` | C-OBS-01, C-CMD-09 | copilot |
 | B2 | `B2` in `bugs.test.ts` | C-REC-05, D19 | claude (codex lacks `scope.recover`) |
 | B3 | `B3` in `bugs.test.ts` | C-RET-03, D8 | codex |
 
@@ -32,6 +32,7 @@ Bugs found while porting, each recorded in the adapter's `knownFailures` and in 
 | B5 | copilot | A failed late release on a retired scope is never called again; `stop()` rejects with the old error forever | `C-SCOPE-08.a`, `C-SCOPE-09.a` |
 | B6 | copilot | An `onStop` rejection after the stop deadline is missing from the snapshot's `cleanupError` | `C-TIME-03.b` |
 | B7 | claude | A start timeout settles only after retirement, so `start()` is not bounded by its deadline and an abort-listener command supersedes it | `C-TIME-02.*` |
+| B8 | copilot | A `start()` then `stop()` in the same tick still runs `onStart`, so pre-start condition waits resolve instead of rejecting | `C-COND-04.b2` |
 
 ## Conflicts
 

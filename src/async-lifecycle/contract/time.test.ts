@@ -247,12 +247,19 @@ contract('C-TIME-03.c', 'a release still running at the stop deadline is joined,
 
   // C-TIME-03 lets the joining stop() either report the pass's failure or retry
   // it at once; this test checks only what holds either way.
-  observe(lifecycle.stop())
+  const joining = observe(lifecycle.stop())
+  // Read through a call: an assertion would narrow `joining.status` statically.
+  const status = () => joining.status
   await flush()
   assert.deepEqual(trace, [ 'second' ], 'the joining stop() did not start the pending release again')
+  assert.equal(status(), 'pending', 'the joining stop() waits for the release it joined')
   gate.reject(reason)
   await flush()
   assert.deepEqual(trace.slice(0, 2), [ 'second', 'first' ], 'the pass continued past the failure, newest first')
+  assert.ok(
+    status() === 'resolved' || (status() === 'rejected' && joining.error === reason),
+    `the joining stop() either retried and resolved, or reported the release error; got ${status()} ${String(joining.error)}`,
+  )
 
   await shutdown(lifecycle)
   assert.equal(lifecycle.state.kind, 'stopped')

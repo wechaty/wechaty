@@ -92,7 +92,13 @@ for (const queued of [ false, true ]) {
     if (start) {
       assert.equal(errorName(start.error), 'LifecycleSupersededError')
     }
-    assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: queued ? lifecycle.state.generation : 0 })
+    assert.equal(lifecycle.state.kind, 'stopped')
+    if (!queued) {
+      assert.equal(lifecycle.state.generation, 0, 'no start was requested, so no generation exists')
+    }
+    // With a queued start the generation number is not asserted: C-STATE-03
+    // gives every start attempt a generation, and whether one superseded before
+    // it begins counts is not decided. The waits rejecting above is the rule.
 
     await lifecycle.start()
     await flush()
