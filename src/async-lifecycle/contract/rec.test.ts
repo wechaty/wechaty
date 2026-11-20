@@ -30,7 +30,7 @@
 import assert from 'node:assert/strict'
 
 import type { LifecycleRecoverResult, LifecycleScope } from '../types.ts'
-import { flush, observe, shutdown } from './harness.ts'
+import { errorName, failedState, flush, observe, shutdown, stateTrace } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-REC-02.a', 'a running generation can recover into a fresh one, again and again', { needs: [ 'scope.recover' ] }, async ({ make }) => {
@@ -103,4 +103,140 @@ contract('C-REC-03.c', 'recover() from a retired scope resolves `superseded` and
   assert.equal(stale.value, 'superseded')
   assert.equal(lifecycle.state, snapshot)
   await shutdown(lifecycle)
+})
+
+// ---------------------------------------------------------------------------
+// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-REC-02.b', 'recover() goes running, stopping, starting, running, with no stopped or failed in between', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const trace = stateTrace()
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({ onStart (scope) { saved = scope }, onStateChange: trace.onStateChange })
+  await lifecycle.start()
+  const recovered = observe(saved!.recover(new Error('stale socket')))
+  await flush()
+  assert.equal(recovered.value, 'recovered')
+  assert.deepEqual(trace.kinds, [ 'starting:1', 'running:1', 'stopping:1', 'starting:2', 'running:2' ])
+  await shutdown(lifecycle)
+})
+
+contract('C-REC-03.d', 'recover() resolves `failed` when the replacement fails, or when the retirement leaves debt (D10)', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const boom = new Error('boom')
+  let saved: LifecycleScope | undefined
+  const a = make({ onStart (scope) { saved = scope; if (scope.generation === 2) { throw boom } } })
+  await a.lifecycle.start()
+  const first = observe(saved!.recover())
+  await flush()
+  assert.equal(first.status, 'resolved', 'D10: recover() never rejects')
+  assert.equal(first.value, 'failed')
+
+  const release = new Error('release')
+  const b = make({ onStart (scope) { saved = scope; scope.defer(() => { throw release }) } })
+  await b.lifecycle.start()
+  const second = observe(saved!.recover())
+  await flush()
+  assert.equal(second.value, 'failed')
+  assert.equal(failedState(b.lifecycle.state).cleanupComplete, false)
+})
+
+contract('C-REC-04.a', 'a user stop() during recovery wins: the recovery is superseded and the lifecycle ends stopped (#2905 B)', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({ onStart (scope) { saved = scope }, onStop: () => gate.promise })
+  await lifecycle.start()
+  const recovering = observe(saved!.recover())
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  gate.resolve()
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(recovering.value, 'superseded')
+  assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })
+})
+
+contract('C-REC-04.b', 'a user start() during a recovery\'s retirement joins the replacement, and the recovery reports `recovered`', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  // The Claude source test expected the recovery to be superseded. C-REC-03
+  // (revised in the S1 review) decides that a start() joins the replacement.
+  const gate = Promise.withResolvers<void>()
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({ onStart (scope) { saved = scope }, onStop: () => gate.promise })
+  await lifecycle.start()
+  const recovering = observe(saved!.recover())
+  await flush()
+  const started = observe(lifecycle.start())
+  gate.resolve()
+  await flush()
+  assert.equal(started.status, 'resolved')
+  assert.equal(recovering.value, 'recovered')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-REC-04.c', 'a user start() while the recovery\'s replacement is starting joins it', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({ onStart (scope) { saved = scope; return scope.generation === 2 ? gate.promise : undefined } })
+  await lifecycle.start()
+  const recovering = observe(saved!.recover())
+  await flush()
+  assert.deepEqual(lifecycle.state, { kind: 'starting', generation: 2 })
+  const started = observe(lifecycle.start())
+  gate.resolve()
+  await flush()
+  assert.equal(started.status, 'resolved')
+  assert.equal(recovering.value, 'recovered')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-REC-04.d', 'a start() that joined a recovery is still superseded by a later stop()', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({
+    onStart (scope) {
+      saved = scope
+      if (scope.generation === 2) {
+        return new Promise((_resolve, reject) => scope.signal.addEventListener('abort', () => reject(scope.signal.reason)))
+      }
+      return undefined
+    },
+  })
+  await lifecycle.start()
+  const recovering = observe(saved!.recover())
+  await flush()
+  const started = observe(lifecycle.start())
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(errorName(started.error), 'LifecycleSupersededError')
+  assert.equal(recovering.value, 'superseded')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-REC-05.a', 'a task may trigger recovery with `void scope.recover()`', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const trigger = Promise.withResolvers<void>()
+  const { lifecycle } = make({
+    onStart (scope) {
+      if (scope.generation === 1) {
+        scope.spawn(async () => { await trigger.promise; void scope.recover() })
+      }
+    },
+  })
+  await lifecycle.start()
+  trigger.resolve()
+  await flush()
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-REC-01.a', 'scope.fail(undefined) on a running generation fails it, phase `run`, keeping the value as given', {}, async ({ make }) => {
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({ onStart (scope) { saved = scope } })
+  await lifecycle.start()
+  saved!.fail(undefined)
+  await flush()
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.phase, 'run')
+  assert.equal(failed.error, undefined)
+  assert.equal(failed.cleanupComplete, true)
 })

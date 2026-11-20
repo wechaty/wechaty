@@ -27,7 +27,7 @@
 import assert from 'node:assert/strict'
 
 import type { Lifecycle } from '../types.ts'
-import { errorName, flush, ManualClock, observe, type Observed, shutdown } from './harness.ts'
+import { errorName, failedState, flush, ManualClock, observe, type Observed, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
 
 /** Resolve once `signal` aborts, at once if it already has. */
@@ -297,4 +297,89 @@ contract('C-TIME-03.d', 'the stop deadline covers joining tasks, and resources s
   assert.equal(second.status, 'resolved')
   assert.equal(released, true)
   assert.equal(releasedDuringTask, false)
+})
+
+// ---------------------------------------------------------------------------
+// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-TIME-01.a', 'a deadline must be finite, greater than 0 and at most 2^31-1, or construction throws RangeError (D11)', {}, async ({ make }) => {
+  // The Claude source test also accepted 0; D11 refuses it.
+  for (const bad of [ Number.NaN, -1, 0, Number.POSITIVE_INFINITY, 2 ** 31 ]) {
+    assert.throws(() => make({ onStart () {} }, { startTimeoutMs: bad }), RangeError, `startTimeoutMs ${bad}`)
+    assert.throws(() => make({ onStart () {} }, { stopTimeoutMs: bad }), RangeError, `stopTimeoutMs ${bad}`)
+  }
+  make({ onStart () {} }, { startTimeoutMs: 1, stopTimeoutMs: 2 ** 31 - 1 })
+})
+
+contract('C-TIME-02.d', 'the start deadline fails the attempt, aborts the scope, and leaves no timer behind', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const { lifecycle } = make({
+    onStart: scope => new Promise((_resolve, reject) => scope.signal.addEventListener('abort', () => reject(scope.signal.reason))),
+  }, { startTimeoutMs: 100, clock })
+  const started = observe(lifecycle.start())
+  await clock.advance(99)
+  assert.equal(started.status, 'pending')
+  await clock.advance(1)
+  assert.equal(errorName(started.error), 'LifecycleTimeoutError')
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.phase, 'start')
+  assert.equal(failed.cleanupComplete, true)
+  assert.equal(clock.pending, 0, 'no timer is left behind')
+})
+
+contract('C-TIME-03.e', 'the stop deadline bounds a stop() that waits on an onStart ignoring abort', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({ onStart: () => gate.promise }, { stopTimeoutMs: 50, clock })
+  const started = observe(lifecycle.start())
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await clock.advance(60)
+  assert.equal(errorName(stopped.error), 'LifecycleTimeoutError')
+  assert.equal(started.status, 'rejected')
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  gate.resolve()
+  await flush()
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-TIME-03.f', 'an onStart that ignores its start deadline keeps the generation dirty, refusing start(), until it settles', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({ onStart: () => gate.promise }, { startTimeoutMs: 100, stopTimeoutMs: 50, clock })
+  const started = observe(lifecycle.start())
+  await clock.advance(150)
+  assert.equal(errorName(started.error), 'LifecycleTimeoutError')
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false, 'the retirement hit its own deadline waiting for the hook')
+  const refused = observe(lifecycle.start())
+  await flush()
+  assert.equal(errorName(refused.error), 'LifecycleUnsafeStateError')
+  gate.resolve()
+  await flush()
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-TIME-03.g', 'a release that hangs past the stop deadline is joined by the next stop(), not run again', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const gate = Promise.withResolvers<void>()
+  let releases = 0
+  const { lifecycle } = make({
+    onStart: scope => scope.defer(() => { releases++; return gate.promise }),
+  }, { stopTimeoutMs: 100, clock })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await clock.advance(100)
+  assert.equal(errorName(stopped.error), 'LifecycleTimeoutError')
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  const retry = observe(lifecycle.stop())
+  gate.resolve()
+  await flush()
+  assert.equal(retry.status, 'resolved')
+  assert.equal(releases, 1, 'the running release is joined, not repeated')
+  assert.equal(lifecycle.state.kind, 'stopped')
 })

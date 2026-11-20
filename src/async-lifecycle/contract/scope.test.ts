@@ -25,7 +25,9 @@
 import assert from 'node:assert/strict'
 
 import type { LifecycleScope } from '../types.ts'
-import { errorName, flush, observe, shutdown } from './harness.ts'
+import { EventEmitter } from 'node:events'
+
+import { errorName, failedState, flush, ManualClock, observe, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-SCOPE-02.a', 'a retired scope ignores fail() and set(), so the state does not change', {}, async ({ make }) => {
@@ -150,4 +152,275 @@ contract('C-SCOPE-07.a', 'a spawned task that rejects while starting fails the a
   assert.equal(lifecycle.state.phase, 'start')
   assert.equal(lifecycle.state.error, undefined)
   await shutdown(lifecycle)
+})
+
+// ---------------------------------------------------------------------------
+// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-02.c', 'a sealed scope releases a late defer() at once and refuses acquire, spawn and start without running them', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
+  const log: string[] = []
+  let saved: LifecycleScope | undefined
+  const child = make({ onStart () { log.push('child started') } }).lifecycle
+  const { lifecycle } = make({
+    onStart (scope) { saved = scope },
+    async onStop () {
+      try {
+        saved!.defer(() => { log.push('late released') })
+      } catch (error) {
+        log.push(`defer threw ${errorName(error)}`)
+      }
+      await saved!.acquire(() => { log.push('created') }, () => {}).catch(() => log.push('acquire refused'))
+      try {
+        saved!.spawn(async () => { log.push('task ran') })
+      } catch {
+        log.push('spawn refused')
+      }
+      await saved!.start(child).catch(() => log.push('child refused'))
+    },
+  })
+  await lifecycle.start()
+  // onStop runs after the seal (C-RET-01 steps 1 and 2).
+  await lifecycle.stop()
+  assert.deepEqual(log, [
+    'late released', 'defer threw LifecycleSupersededError',
+    'acquire refused', 'spawn refused', 'child refused',
+  ])
+  assert.equal(child.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-03.a', 'listeners never accumulate across start/stop cycles (#2905 F)', {}, async ({ make }) => {
+  const puppet = new EventEmitter()
+  const { lifecycle } = make({
+    onStart (scope) {
+      for (const event of [ 'ready', 'logout' ]) {
+        const listener = () => {}
+        puppet.on(event, listener)
+        scope.defer(() => puppet.off(event, listener))
+      }
+    },
+  })
+  for (let i = 0; i < 3; i++) {
+    await lifecycle.start()
+    assert.equal(puppet.listenerCount('ready'), 1)
+    assert.equal(puppet.listenerCount('logout'), 1)
+    await lifecycle.stop()
+    assert.equal(puppet.listenerCount('ready'), 0)
+    assert.equal(puppet.listenerCount('logout'), 0)
+  }
+})
+
+contract('C-SCOPE-04.a', 'acquire() passes scope.signal to create and releases the resource at retirement', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
+  const log: string[] = []
+  const { lifecycle } = make({
+    async onStart (scope) {
+      const resource = await scope.acquire(
+        signal => { log.push(`create same-signal=${signal === scope.signal}`); return 'r' },
+        r => { log.push(`release ${r}`) },
+      )
+      log.push(`got ${resource}`)
+    },
+  })
+  await lifecycle.start()
+  await lifecycle.stop()
+  assert.deepEqual(log, [ 'create same-signal=true', 'got r', 'release r' ])
+})
+
+contract('C-SCOPE-04.b', 'an acquisition that resolves after retirement began is released, and acquire() rejects with the retirement reason', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
+  const log: string[] = []
+  const gate = Promise.withResolvers<string>()
+  const { lifecycle } = make({
+    async onStart (scope) {
+      try {
+        await scope.acquire(() => gate.promise, r => { log.push(`release ${r}`) })
+      } catch (error) {
+        log.push(`rejected ${errorName(error)}`)
+        throw error
+      }
+    },
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  gate.resolve('late')
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(errorName(started.error), 'LifecycleSupersededError')
+  // C-SCOPE-04 requires both, not an order (the Claude source test fixed one).
+  assert.deepEqual([ ...log ].sort(), [ 'rejected LifecycleSupersededError', 'release late' ])
+})
+
+contract('C-SCOPE-04.c', 'a create() that throws releases nothing and fails the attempt cleanly', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
+  let released = 0
+  const { lifecycle } = make({
+    onStart: scope => scope.acquire(() => { throw new Error('create') }, () => { released++ }).then(() => {}),
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.match(String((started.error as Error).message), /create/)
+  assert.equal(released, 0)
+  assert.equal(failedState(lifecycle.state).cleanupComplete, true)
+})
+
+contract('C-SCOPE-05.a', 'an interrupt unblocks a task that ignores abort, before the task is joined', { needs: [ 'scope.acquire', 'acquire.interrupt' ] }, async ({ make }) => {
+  const log: string[] = []
+  const { lifecycle } = make({
+    async onStart (scope) {
+      const socket = await scope.acquire(
+        () => new EventTarget(),
+        () => { log.push('close') },
+        { interrupt: s => s.dispatchEvent(new Event('end')) },
+      )
+      // This task ignores the abort signal: only the socket ending stops it.
+      scope.spawn(() => new Promise<void>(resolve => {
+        socket.addEventListener('end', () => { log.push('task ends'); resolve() })
+      }))
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.deepEqual(log, [ 'task ends', 'close' ])
+})
+
+contract('C-SCOPE-05.b', 'an acquisition that finishes after the interrupt pass is interrupted before it is released', { needs: [ 'scope.acquire', 'acquire.interrupt' ] }, async ({ make }) => {
+  const log: string[] = []
+  const creating = Promise.withResolvers<EventTarget>()
+  const { lifecycle } = make({
+    onStart (scope) {
+      const socket = scope.acquire(
+        () => creating.promise,
+        () => { log.push('close') },
+        { interrupt: s => { log.push('interrupt'); s.dispatchEvent(new Event('end')) } },
+      )
+      socket.catch(() => {})
+      scope.spawn(async () => {
+        const s = await socket.catch(() => undefined)
+        if (s) {
+          await new Promise<void>(resolve => s.addEventListener('end', () => resolve()))
+        }
+      })
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.deepEqual(log, [], 'the interrupt pass ran before the resource existed')
+  creating.resolve(new EventTarget())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.deepEqual(log, [ 'interrupt', 'close' ])
+})
+
+contract('C-SCOPE-05.c', 'a late interrupt that throws is a cleanup error, and the resource is still released', { needs: [ 'scope.acquire', 'acquire.interrupt' ] }, async ({ make }) => {
+  const creating = Promise.withResolvers<string>()
+  const boom = new Error('interrupt')
+  const { lifecycle } = make({
+    onStart (scope) {
+      void scope.acquire(() => creating.promise, () => {}, { interrupt: () => { throw boom } }).catch(() => {})
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  creating.resolve('r')
+  await flush()
+  assert.equal(stopped.error, boom)
+  assert.equal(failedState(lifecycle.state).cleanupComplete, true)
+})
+
+contract('C-SCOPE-06.a', 'use() accepts AsyncDisposable and Disposable, releases them newest first, and refuses anything else', {}, async ({ make }) => {
+  const log: string[] = []
+  let refused: unknown
+  const { lifecycle } = make({
+    onStart (scope) {
+      scope.use({ [Symbol.asyncDispose]: async () => { log.push('async') } })
+      scope.use({ [Symbol.dispose]: () => { log.push('sync') } })
+      try {
+        scope.use({} as Disposable)
+      } catch (error) {
+        refused = error
+      }
+    },
+  })
+  await lifecycle.start()
+  await lifecycle.stop()
+  assert.ok(refused instanceof TypeError)
+  assert.deepEqual(log, [ 'sync', 'async' ])
+})
+
+contract('C-SCOPE-07.b', 'a spawned task gets scope.signal, which aborts at retirement, and it is joined', {}, async ({ make }) => {
+  const log: string[] = []
+  const { lifecycle } = make({
+    onStart: scope => scope.spawn(async signal => {
+      log.push(`same=${signal === scope.signal}`)
+      await new Promise(resolve => signal.addEventListener('abort', resolve))
+      await flush(3)
+      log.push('joined')
+    }),
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.deepEqual(log, [ 'same=true', 'joined' ])
+})
+
+contract('C-SCOPE-07.c', 'a spawned task that rejects while running fails the generation, phase `run`, cleanly', {}, async ({ make }) => {
+  const crash = new Error('crash')
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({ onStart: scope => scope.spawn(async () => { await gate.promise; throw crash }) })
+  await lifecycle.start()
+  gate.resolve()
+  await flush()
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.phase, 'run')
+  assert.equal(failed.error, crash)
+  assert.equal(failed.cleanupComplete, true)
+})
+
+contract('C-SCOPE-07.d', 'a task that fails while retiring is reported once as a cleanup error, and start() works after', {}, async ({ make }) => {
+  const late = new Error('late task')
+  const { lifecycle } = make({
+    onStart: scope => scope.spawn(async signal => {
+      await new Promise(resolve => signal.addEventListener('abort', resolve))
+      throw late
+    }),
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.error, late)
+  assert.equal(failedState(lifecycle.state).cleanupComplete, true)
+  const restarted = observe(lifecycle.start())
+  await flush()
+  assert.equal(restarted.status, 'resolved')
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-09.b', 'a stop() that times out on a late release settles, and the next stop() completes once the release clears', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  let saved: LifecycleScope | undefined
+  const gate = Promise.withResolvers<void>()
+  let calls = 0
+  const { lifecycle } = make({ onStart (scope) { saved = scope } }, { stopTimeoutMs: 50, clock })
+  await lifecycle.start()
+  await lifecycle.stop()
+  assert.throws(() => saved!.defer(() => {
+    if (++calls === 1) {
+      throw new Error('late')
+    }
+    return gate.promise
+  }), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
+  await flush()
+  const retry = observe(lifecycle.stop())
+  await clock.advance(60)
+  assert.equal(errorName(retry.error), 'LifecycleTimeoutError')
+  gate.resolve()
+  await flush()
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
 })

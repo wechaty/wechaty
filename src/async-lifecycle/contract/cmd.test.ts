@@ -25,8 +25,11 @@
 
 import assert from 'node:assert/strict'
 
-import type { LifecycleScope } from '../types.ts'
-import { errorName, flush, observe, shutdown } from './harness.ts'
+import process from 'node:process'
+import { setImmediate } from 'node:timers'
+
+import type { Lifecycle, LifecycleScope } from '../types.ts'
+import { errorName, failedState, flush, observe, shutdown, stateTrace } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-CMD-01.a', 'a pre-aborted caller signal rejects with its reason and starts nothing', {}, async ({ make }) => {
@@ -236,4 +239,433 @@ contract('C-CMD-16.a', 'a throwing whenState predicate rejects only its own wait
   await flush()
   assert.equal(good.status, 'resolved')
   await shutdown(lifecycle)
+})
+
+// ---------------------------------------------------------------------------
+// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-CMD-01.b', 'a pre-aborted signal rejects restart, stop, whenState and condition waits too, accepting nothing', {}, async ({ make }) => {
+  let starts = 0
+  const subject = make({ onStart () { starts++ } })
+  const signal = AbortSignal.abort(new Error('pre-aborted'))
+  const calls = ([
+    subject.lifecycle.restart({ signal }),
+    subject.lifecycle.stop({ signal }),
+    subject.lifecycle.whenState(() => true, { signal }),
+    subject.condition('ready').wait({ signal }),
+  ] as Array<Promise<unknown>>).map(call => observe(call))
+  await flush()
+  for (const call of calls) {
+    assert.equal(call.status, 'rejected')
+    assert.equal((call.error as Error).message, 'pre-aborted')
+  }
+  assert.equal(starts, 0)
+  assert.deepEqual(subject.lifecycle.state, { kind: 'stopped', generation: 0 })
+})
+
+contract('C-CMD-02.b', 'a caller abort fired while its command aborts a starting run rejects that caller, and the stop still happens', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  const caller = new AbortController()
+  const callerAbort = new Error('caller')
+  const { lifecycle } = make({
+    onStart (scope) {
+      scope.signal.addEventListener('abort', () => caller.abort(callerAbort))
+      return gate.promise
+    },
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  const stopped = observe(lifecycle.stop({ signal: caller.signal }))
+  await flush()
+  assert.equal(stopped.error, callerAbort)
+  gate.resolve()
+  await flush()
+  assert.equal(started.status, 'rejected')
+  assert.equal(lifecycle.state.kind, 'stopped', 'the accepted stop still ran')
+})
+
+contract('C-CMD-02.c', 'a caller that aborted early never leaves a later cleanup failure as an unhandled rejection', {}, async ({ make }) => {
+  const unhandled: unknown[] = []
+  const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
+  process.on('unhandledRejection', onUnhandled)
+  try {
+    const gate = Promise.withResolvers<void>()
+    const caller = new AbortController()
+    const cleanupError = new Error('cleanup')
+    const { lifecycle } = make({
+      onStart (scope) {
+        scope.defer(() => { throw cleanupError })
+        scope.signal.addEventListener('abort', () => caller.abort(new Error('caller')))
+        return gate.promise
+      },
+    })
+    observe(lifecycle.start())
+    await flush()
+    const stopped = observe(lifecycle.stop({ signal: caller.signal }))
+    gate.resolve()
+    await flush()
+    assert.equal(stopped.status, 'rejected')
+    assert.equal(failedState(lifecycle.state).cleanupError, cleanupError)
+    // Unhandled rejections are reported at the next macrotask; no real time passes.
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(unhandled, [])
+  } finally {
+    process.off('unhandledRejection', onUnhandled)
+  }
+})
+
+contract('C-CMD-03.b', 'concurrent restart() calls share one replacement', {}, async ({ make }) => {
+  let starts = 0
+  const { lifecycle } = make({ onStart () { starts++ } })
+  await lifecycle.start()
+  const both = [ observe(lifecycle.restart()), observe(lifecycle.restart()) ]
+  await flush()
+  assert.deepEqual(both.map(call => call.status), [ 'resolved', 'resolved' ])
+  assert.equal(starts, 2)
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-04.a', 'start() while running resolves at once and starts nothing (#2905 A)', {}, async ({ make }) => {
+  let starts = 0
+  const { lifecycle } = make({ onStart () { starts++ } })
+  await lifecycle.start()
+  const again = observe(lifecycle.start())
+  await flush()
+  assert.equal(again.status, 'resolved')
+  assert.equal(starts, 1)
+  assert.equal(lifecycle.state.generation, 1)
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-06.b', 'two start()s queued behind an in-flight stop() run one onStart, never two at once (#2905 A)', {}, async ({ make }) => {
+  let active = 0
+  let maxActive = 0
+  let starts = 0
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({
+    async onStart () {
+      starts++
+      active++
+      maxActive = Math.max(maxActive, active)
+      await flush(5)
+      active--
+    },
+    onStop: () => gate.promise,
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  const a = observe(lifecycle.start())
+  const b = observe(lifecycle.start())
+  gate.resolve()
+  await flush()
+  assert.deepEqual([ stopped.status, a.status, b.status ], [ 'resolved', 'resolved', 'resolved' ])
+  assert.equal(starts, 2)
+  assert.equal(maxActive, 1)
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-06.c', 'stop() then start() during a gated onStart starts a fresh generation; the first never runs', {}, async ({ make }) => {
+  const trace = stateTrace()
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({
+    onStart: scope => scope.generation === 1 ? gate.promise : undefined,
+    onStateChange: trace.onStateChange,
+  })
+  const first = observe(lifecycle.start())
+  await flush()
+  observe(lifecycle.stop())
+  const second = observe(lifecycle.start())
+  gate.resolve()
+  await flush()
+  assert.equal(errorName(first.error), 'LifecycleSupersededError')
+  assert.equal(second.status, 'resolved')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  assert.equal(trace.kinds.includes('running:1'), false)
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-07.b', 'stop() aborts an abort-aware onStart without waiting for it (#2905 C)', {}, async ({ make }) => {
+  // The Claude source test also required the abort to happen synchronously
+  // inside stop(). The contract requires only that intent is accepted
+  // synchronously (C-CMD-01), so this test checks the abort before onStart settles.
+  const trace = stateTrace()
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({
+    onStart: scope => new Promise<void>((_resolve, reject) => {
+      saved = scope
+      scope.signal.addEventListener('abort', () => reject(scope.signal.reason))
+    }),
+    onStateChange: trace.onStateChange,
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(saved!.signal.aborted, true, 'the abort is what made the abort-aware onStart settle')
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(errorName(started.error), 'LifecycleSupersededError')
+  assert.deepEqual(trace.kinds, [ 'starting:1', 'stopping:1', 'stopped:1' ])
+})
+
+contract('C-CMD-07.c', 'stop() waits for an onStart that ignores abort, and its late success never publishes running (#2905 C)', {}, async ({ make }) => {
+  const trace = stateTrace()
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({ onStart: () => gate.promise, onStateChange: trace.onStateChange })
+  const started = observe(lifecycle.start())
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(lifecycle.state.kind, 'stopping')
+  assert.equal(stopped.status, 'pending', 'C-RET-01 step 5: stop waits for onStart to settle')
+  gate.resolve()
+  await flush()
+  assert.equal(errorName(started.error), 'LifecycleSupersededError')
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(trace.kinds.includes('running:1'), false)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-CMD-10.a', 'a failed release leaves a dirty failure that refuses start() and restart(), and stop() retries only that release', {}, async ({ make }) => {
+  const releaseError = new Error('release')
+  let attempts = 0
+  let other = 0
+  let stops = 0
+  const { lifecycle } = make({
+    onStart (scope) {
+      scope.defer(() => { other++ })
+      scope.defer(() => { if (++attempts === 1) { throw releaseError } })
+    },
+    onStop () { stops++ },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.error, releaseError)
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.phase, 'stop')
+  assert.equal(failed.cleanupComplete, false)
+  assert.equal(failed.cleanupError, releaseError)
+
+  const refused = [ observe(lifecycle.start()), observe(lifecycle.restart()) ]
+  await flush()
+  for (const call of refused) {
+    assert.equal(errorName(call.error), 'LifecycleUnsafeStateError', 'C-CMD-13')
+  }
+
+  const retried = observe(lifecycle.stop())
+  await flush()
+  assert.equal(retried.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(attempts, 2, 'only the failed release is retried')
+  assert.equal(other, 1)
+  assert.equal(stops, 1, 'a successful onStop is not replayed')
+})
+
+contract('C-CMD-10.b', 'a release that keeps failing runs once per explicit stop(), and never on its own', {}, async ({ make }) => {
+  let calls = 0
+  const { lifecycle } = make({ onStart: scope => scope.defer(() => { calls++; throw new Error('always') }) })
+  await lifecycle.start()
+  observe(lifecycle.stop())
+  await flush()
+  assert.equal(calls, 1)
+  await flush()
+  assert.equal(calls, 1, 'no automatic retry')
+  observe(lifecycle.stop())
+  await flush()
+  assert.equal(calls, 2)
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+})
+
+contract('C-CMD-10.c', 'a stop() that supersedes a gated start releases once, and stays dirty until stop() is called again', {}, async ({ make }) => {
+  const releaseError = new Error('release')
+  const gate = Promise.withResolvers<void>()
+  let calls = 0
+  const { lifecycle } = make({
+    async onStart (scope) {
+      scope.defer(() => { if (++calls === 1) { throw releaseError } })
+      await gate.promise
+    },
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  gate.resolve()
+  await flush()
+  assert.equal(stopped.error, releaseError)
+  assert.equal(errorName(started.error), 'LifecycleSupersededError')
+  assert.equal(calls, 1)
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+
+  const again = observe(lifecycle.stop())
+  await flush()
+  assert.equal(again.status, 'resolved')
+  assert.equal(calls, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-CMD-11.d', 'restart() goes running, stopping, starting, running, with onStop reason `restart`', { needs: [ 'onStop.context' ] }, async ({ make }) => {
+  const trace = stateTrace()
+  const reasons: string[] = []
+  const { lifecycle } = make({
+    onStart () {},
+    onStop (stop) { reasons.push(stop.reason) },
+    onStateChange: trace.onStateChange,
+  })
+  await lifecycle.start()
+  await lifecycle.restart()
+  assert.deepEqual(trace.kinds, [ 'starting:1', 'running:1', 'stopping:1', 'starting:2', 'running:2' ])
+  assert.deepEqual(reasons, [ 'restart' ])
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-11.e', 'a start() from an abort listener during restart() joins the replacement', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  let lifecycle!: Lifecycle
+  let joined: ReturnType<typeof observe<void>> | undefined
+  ;({ lifecycle } = make({
+    onStart (scope) {
+      if (scope.generation === 1) {
+        scope.signal.addEventListener('abort', () => { joined = observe(lifecycle.start()) })
+        return gate.promise
+      }
+      return undefined
+    },
+  }))
+  const first = observe(lifecycle.start())
+  await flush()
+  const restarted = observe(lifecycle.restart())
+  gate.resolve()
+  await flush()
+  assert.equal(errorName(first.error), 'LifecycleSupersededError')
+  assert.equal(restarted.status, 'resolved')
+  assert.equal(joined?.status, 'resolved')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-11.f', 'a stop() from an abort listener during restart() supersedes the restart', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  let lifecycle!: Lifecycle
+  ;({ lifecycle } = make({
+    onStart (scope) {
+      if (scope.generation === 1) {
+        scope.signal.addEventListener('abort', () => { observe(lifecycle.stop()) })
+        return gate.promise
+      }
+      return undefined
+    },
+  }))
+  const first = observe(lifecycle.start())
+  await flush()
+  const restarted = observe(lifecycle.restart())
+  gate.resolve()
+  await flush()
+  assert.equal(first.status, 'rejected')
+  assert.equal(errorName(restarted.error), 'LifecycleSupersededError')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-CMD-11.g', 'restart() then stop() ends stopped; restart() then start() does not hang', {}, async ({ make }) => {
+  const { lifecycle } = make({ onStart () {} })
+  await lifecycle.start()
+  const restarted = observe(lifecycle.restart())
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(errorName(restarted.error), 'LifecycleSupersededError')
+  assert.equal(lifecycle.state.kind, 'stopped')
+
+  await lifecycle.start()
+  const again = observe(lifecycle.restart())
+  const joined = observe(lifecycle.start())
+  await flush()
+  assert.deepEqual([ again.status, joined.status ], [ 'resolved', 'resolved' ])
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 3 })
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-12.a', 'restart() from stopped behaves like start()', {}, async ({ make }) => {
+  const { lifecycle } = make({ onStart () {} })
+  const restarted = observe(lifecycle.restart())
+  await flush()
+  assert.equal(restarted.status, 'resolved')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 1 })
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-14.a', 'a failed onStart publishes failed { start } and is not retried; the next start() runs a new generation (#2905 D)', {}, async ({ make }) => {
+  const boom = new Error('boom')
+  let starts = 0
+  const { lifecycle } = make({ onStart () { if (++starts === 1) { throw boom } } })
+  const first = observe(lifecycle.start())
+  await flush()
+  assert.equal(first.error, boom)
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.phase, 'start')
+  assert.equal(failed.error, boom)
+  assert.equal(failed.cleanupComplete, true)
+  await flush()
+  assert.equal(starts, 1, 'a failed attempt ends')
+
+  const second = observe(lifecycle.start())
+  await flush()
+  assert.equal(second.status, 'resolved')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-15.a', '`await using` stops the lifecycle when the block exits', {}, async ({ make }) => {
+  let stops = 0
+  const { lifecycle } = make({ onStart () {}, onStop () { stops++ } })
+  {
+    await using owned = lifecycle
+    await owned.start()
+  }
+  assert.equal(stops, 1)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-CMD-16.b', 'whenState() resolves at once, on a later snapshot, or rejects when its predicate throws', {}, async ({ make }) => {
+  const { lifecycle } = make({ onStart () {} })
+  const now = observe(lifecycle.whenState(state => state.kind === 'stopped'))
+  const running = observe(lifecycle.whenState(state => state.kind === 'running'))
+  await flush()
+  assert.equal(now.value?.kind, 'stopped')
+  await lifecycle.start()
+  await flush()
+  assert.deepEqual(running.value, { kind: 'running', generation: 1 })
+
+  const throwing = observe(lifecycle.whenState(state => {
+    if (state.kind === 'stopping') {
+      throw new Error('predicate')
+    }
+    return false
+  }))
+  await lifecycle.stop()
+  await flush()
+  assert.match(String((throwing.error as Error).message), /predicate/)
+})
+
+contract('C-CMD-16.c', 'a caller abort rejects whenState() without affecting the lifecycle', {}, async ({ make }) => {
+  const { lifecycle } = make({ onStart () {} })
+  const caller = new AbortController()
+  const waiting = observe(lifecycle.whenState(state => state.kind === 'failed', { signal: caller.signal }))
+  caller.abort(new Error('bye'))
+  await flush()
+  assert.match(String((waiting.error as Error).message), /bye/)
+  await lifecycle.start()
+  assert.equal(lifecycle.state.kind, 'running')
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-16.d', 'whenState() rejects when its first predicate call aborts the caller', {}, async ({ make }) => {
+  const { lifecycle } = make({ onStart () {} })
+  const caller = new AbortController()
+  const reason = new Error('caller')
+  const waiting = observe(lifecycle.whenState(() => { caller.abort(reason); return false }, { signal: caller.signal }))
+  await flush()
+  assert.equal(waiting.error, reason)
 })
