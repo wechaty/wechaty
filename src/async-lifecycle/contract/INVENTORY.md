@@ -266,7 +266,7 @@ Other files:
 | `async-lifecycle.test.ts`: a class-field override of a caller-API member throws at construction | ported | `C-SHELL-02.b` |
 | `async-lifecycle.test.ts`: caller-API members are own, non-writable properties | ported | `C-SHELL-02.c` |
 | `diagnostics.test.ts`: records carry kind, generation and phase, never errors | ported, merged with the Codex diagnostics test | `C-OBS-04.a` |
-| `ledger.test.ts` (6 tests) | moved to S4 | White-box tests of Claude's internal `Ledger`. They become unit tests of the final kernel's ledger if S4 adopts it; the behavior they protect is covered by `C-SCOPE-09.*`, `C-TIME-03.*` and `C-RET-01.*`. |
+| `ledger.test.ts` (6 tests) | moved to S4, now `src/async-lifecycle/ledger.test.ts` | White-box tests of the `Ledger`, which S4 adopted with Claude's kernel (D40), so they run as the final kernel's own unit tests. The behavior they protect is also covered by `C-SCOPE-09.*`, `C-TIME-03.*` and `C-RET-01.*`. |
 | `companions/listen.test.ts` (5 tests) | moved to S4 | Companions land with their implementation (D26) |
 | `companions/watchdog.test.ts` (3 tests) | moved to S4 | Companions land with their implementation (D26) |
 
