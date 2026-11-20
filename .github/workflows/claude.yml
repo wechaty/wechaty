@@ -196,11 +196,19 @@ jobs:
 
             This is an automatic review for the current revision, even if Claude has commented
             on this PR before. NEVER skip because of prior comments or earlier reviews.
-            Read and follow AGENTS.md, inspect the current PR diff and relevant surrounding
-            implementation, and look for real correctness, lifecycle, resource-cleanup,
-            concurrency, regression, and test-coverage defects.
-            For each actionable defect, cite its file and line and explain the failure
-            scenario and a concrete fix. Avoid generic checklist or CLAUDE.md claims.
+            Read the applicable repository guidance, including AGENTS.md when present.
+            Inspect the diff and relevant tests to establish the intended behavior and
+            identify what could regress. Scale the investigation to the impact of the change.
+
+            Trace consequential changes beyond the diff into callers, dependencies, and
+            affected contracts. Check relevant edge cases, failure and recovery paths,
+            compatibility, and whether tests would catch a regression in the changed behavior.
+
+            Verify each candidate against the surrounding code before publishing it.
+            Confirm that the affected path is reachable, the revision introduces the defect,
+            and existing guards do not prevent it. For each actionable finding, cite the
+            changed file and line, explain the trigger and observable consequence, and
+            suggest a concrete fix. Briefly disclose any material area you could not assess.
             Do not modify the repository. Do not approve or merge the PR.
             Publish the final review in the native progress comment created for this run.
             Load mcp__github_comment__update_claude_comment with ToolSearch and use it to
