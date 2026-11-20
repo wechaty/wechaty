@@ -35,7 +35,7 @@
  * | I2 | `running` is never committed for a generation whose signal is aborted |
  * | I3 | When a `stop()` resolves, every resource of the generation it captured, and of every earlier one, was released, and so was every late release (D31) already running when it was accepted, unless a newer generation started; no resource is ever released after a successful release |
  * | I4 | `stopped` and `failed { cleanupComplete: true }` hold no resource, no pending creation, no running hook or task, and no started child; checked at each such commit, after every step and after draining |
- * | I5 | Every promise handed to a caller, `scope.acquire()` and `recover()` included, settles once the schedule drains. An `acquire()` that never settles is reported as `I5.acquire`, so it can be waived separately |
+ * | I5 | Every promise handed to a caller, `scope.acquire()` and `recover()` included, settles once the schedule drains. An `acquire()` that never settles while its own release is still running is reported as `I5.acquire`, so that case (D41) can be waived without hiding other hangs |
  * | I6 | No unhandled rejection |
  * | I7 | `onStop` runs at most once per generation, and only for one that committed `running` (D8) |
  * | I8 | A stale scope changes nothing: its `fail()` error never shows up in the state, its `recover()` resolves (never rejects) `'superseded'`, and its `set()` / `clear()` leave `isSet` unchanged |
@@ -183,7 +183,7 @@ interface Call {
   readonly controller?: AbortController
   readonly check?: (value: unknown) => string | undefined
   /** The code to report when it never settles; `I5` by default. */
-  readonly invariant?: string
+  readonly invariant?: () => string
 }
 
 /**
@@ -344,11 +344,12 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
         }
         const interrupt = capabilities.has('acquire.interrupt') ? { interrupt: () => {} } : undefined
         // A late acquisition rejects without waiting for its release (D41), so
-        // this must settle even when that release hangs forever.
+        // this must settle even when that release hangs forever. Only that case
+        // is reported as I5.acquire, so a waiver for it hides no other hang.
         calls.push({
           label     : `scope.acquire() ${obligation.id}`,
           observed  : observe(scope.acquire(create, () => release(), interrupt)),
-          invariant : 'I5.acquire',
+          invariant : () => (obligation.created && obligation.attempts > 0 && obligation.released === 0 ? 'I5.acquire' : 'I5'),
         })
       } else if (generation) {
         scope.spawn(async signal => {
@@ -740,7 +741,7 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
     checkIdle()
     for (const entry of calls) {
       if (entry.observed.status === 'pending') {
-        violate(entry.invariant ?? 'I5', `${entry.label} never settled`)
+        violate(entry.invariant?.() ?? 'I5', `${entry.label} never settled`)
       } else if (entry.check) {
         const problem = entry.observed.status === 'resolved'
           ? entry.check(entry.observed.value)
