@@ -80,22 +80,27 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   protected abstract onStop (): Promise<void>
 
   async #start (scope: LifecycleScope): Promise<void> {
-    // One provider stop per generation, shared by the early and the normal path.
-    // Reset on failure, so a later stop() retries it (C-SCOPE-09).
+    // One provider stop per pass, shared by the early and the normal path.
     let stopping: Promise<void> | undefined
-    const stopProvider = (): Promise<void> => {
-      stopping ??= this.onStop().catch((error: unknown) => {
-        stopping = undefined
-        throw error
-      })
-      return stopping
-    }
+    const stopProvider = (): Promise<void> => (stopping ??= this.onStop())
 
     // Registered first, so it is released last and also runs when onStart()
     // throws halfway: today's contract, kept here for every provider at once.
     // The kernel's own onStop hook only runs after `running` (D8), which is why
     // it is not used for this.
-    scope.defer(stopProvider)
+    //
+    // It joins an early stop started at abort, rejected or not, so that stop's
+    // error reaches the ledger. Only after the ledger has seen a failure is the
+    // promise reset, so the next stop() retries it (C-SCOPE-09) rather than this
+    // pass calling onStop() a second time and hiding the first error.
+    scope.defer(async () => {
+      try {
+        await stopProvider()
+      } catch (error) {
+        stopping = undefined
+        throw error
+      }
+    })
 
     // Some providers' onStart() settles only once onStop() is called (the
     // current puppet mixin works around one that never settles; see
