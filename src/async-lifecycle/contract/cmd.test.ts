@@ -799,3 +799,39 @@ contract('C-CMD-05.a', 'start() while `starting` joins that attempt and never ab
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 1 })
   await shutdown(lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// Found by the S3 random schedules (random/random.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-CMD-07.d', 'a stop() accepted at any moment while a stopped generation finishes retiring supersedes the start() queued behind it, and the instance can still be stopped afterwards (B13)', {}, async ({ make }) => {
+  // The window is a few microtasks wide and its position depends on the
+  // kernel's promise chain, so the delay before stop() is swept, as in
+  // C-TIME-05.d.
+  for (let turns = 0; turns <= 60; turns++) {
+    const gate = Promise.withResolvers<void>()
+    let starts = 0
+    const { lifecycle } = make({
+      onStart: () => (++starts === 1 ? gate.promise : undefined),
+      onStop () {},
+    })
+    observe(lifecycle.start())
+    await flush()
+    observe(lifecycle.stop())
+    await flush()
+    const queued = observe(lifecycle.start())
+    await flush()
+    gate.resolve()
+    await flush(turns)
+    // Decided from the committed state: an observed promise settles a microtask late.
+    const pending = !(lifecycle.state.kind === 'running' && lifecycle.state.generation === 2)
+    const stopped = observe(lifecycle.stop())
+    await flush()
+    await flush()
+    assert.equal(stopped.status, 'resolved', `turn ${turns}`)
+    assert.equal(lifecycle.state.kind, 'stopped', `turn ${turns}: the resolved stop() left ${lifecycle.state.kind}(${lifecycle.state.generation})`)
+    if (pending) {
+      assert.equal(errorName(queued.error), 'LifecycleSupersededError', `turn ${turns}: the stop() supersedes the start() still pending (C-CMD-07)`)
+    }
+  }
+})

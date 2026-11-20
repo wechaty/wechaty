@@ -197,6 +197,9 @@ const codex: Implementation = {
     '2905-E': 'D28 divergence: a wait on a failed generation rejects with a plain Error, not LifecycleSupersededError',
     'C-CHILD-05.g': 'C-CHILD-05 divergence: a child that stops unasked fails the parent with LifecycleSupersededError, not LifecycleChildFailureError',
     '2905-B-restart-starting': 'B3: onStop runs for the starting generation that restart() interrupts, so a gated onStop holds the user\'s stop()',
+    'S3.I7': 'B3: onStop runs for a generation that never reached `running`',
+    'S3-B3': 'B3: onStop runs for a generation that never reached `running`',
+    'S3-D31-stopped': 'B3: onStop runs for a generation that never reached `running`',
   },
 }
 

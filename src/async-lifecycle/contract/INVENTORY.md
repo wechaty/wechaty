@@ -38,6 +38,7 @@ Bugs found while porting, each recorded in the adapter's `knownFailures` and in 
 | B10 | copilot | A `stop()` or `restart()` does not wait for a cleanup registered during its own retirement: it rejects at once, and the state stays `failed` after the cleanup finishes | `C-SCOPE-02.d-*` |
 | B11 | codex | A `stop()` accepted while an earlier `stop()` retires does not reject the condition waits created in between; they survive and bind to the next generation | `C-COND-04.h` |
 | B12 | codex | Overriding `state` or `Symbol.asyncDispose` in an `AsyncLifecycle` subclass is not refused, so the override silently replaces the caller API | `C-SHELL-02.d-state`, `C-SHELL-02.d-asyncDispose` |
+| B13 | claude | A `stop()` accepted at one microtask while a stopped generation finishes retiring, with a `start()` queued behind it, resolves and supersedes the start, but the state stays `stopping` forever; later `stop()` calls resolve without committing `stopped`. Found by the S3 random schedules | `C-CMD-07.d`, `S3-B13` |
 
 ## Conflicts
 
