@@ -30,49 +30,94 @@
 
 import assert from 'node:assert/strict'
 
-import type { LifecycleScope } from '../types.ts'
+import type { LifecycleScope, LifecycleState } from '../types.ts'
 import { errorName, failedState, flush, ManualClock, observe, shutdown, stateTrace } from './harness.ts'
+import type { MakeSubject } from './subject.ts'
 import { contract } from './suite.ts'
 
-/** Register `cleanup` on a retired scope, asserting the late registration throws. */
-function registerLate (scope: LifecycleScope, cleanup: () => unknown): void {
-  assert.throws(() => scope.defer(cleanup), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
+/**
+ * Register `cleanup` on a retired scope, asserting the late registration throws
+ * the retirement reason (C-SCOPE-02): the generation's failure when one is
+ * given, otherwise a `LifecycleSupersededError`.
+ */
+function registerLate (scope: LifecycleScope, cleanup: () => unknown, failure?: Error): void {
+  assert.throws(() => scope.defer(cleanup), (error: unknown) => failure ? error === failure : errorName(error) === 'LifecycleSupersededError')
 }
 
-contract('C-SCOPE-11.a', 'on an idle instance the state is `stopping` while a late release runs, then `stopped` (D31)', {}, async ({ make }) => {
-  const trace = stateTrace()
+/**
+ * Start an instance that ends idle in `from`: `stopped` after a clean run, or a
+ * clean `failed { phase: 'start' }` after `onStart` threw. Returns the retired
+ * generation's scope, on which a test registers its late release.
+ */
+async function idleInstance (make: MakeSubject, from: 'stopped' | 'failed', onStateChange?: (state: LifecycleState) => void) {
   let retired: LifecycleScope | undefined
-  const gate = Promise.withResolvers<void>()
-  const { lifecycle } = make({ onStart (scope) { retired = scope }, onStateChange: trace.onStateChange })
-  await lifecycle.start()
-  await lifecycle.stop()
-  registerLate(retired!, () => gate.promise)
-  await flush()
-  assert.equal(lifecycle.state.kind, 'stopping', '`stopped` would claim everything was released (C-STATE-07)')
-  gate.resolve()
-  await flush()
-  assert.equal(lifecycle.state.kind, 'stopped')
-  assert.deepEqual(trace.kinds.slice(-2), [ 'stopping:1', 'stopped:1' ])
-})
+  const failure = new Error('onStart failed')
+  const { lifecycle } = make({
+    onStart (scope) {
+      retired = scope
+      if (from === 'failed') {
+        throw failure
+      }
+    },
+    onStateChange,
+  })
+  if (from === 'failed') {
+    const started = observe(lifecycle.start())
+    await flush()
+    assert.equal(started.error, failure)
+    assert.equal(failedState(lifecycle.state).cleanupComplete, true)
+  } else {
+    await lifecycle.start()
+    await lifecycle.stop()
+  }
+  return { lifecycle, retired: retired!, failure }
+}
 
-contract('C-SCOPE-11.b', 'a late release that fails on an idle instance leaves failed { stop, cleanupComplete: false } until stop() retries it (D31)', {}, async ({ make }) => {
-  const reason = new Error('late release failed')
-  let retired: LifecycleScope | undefined
-  let calls = 0
-  const { lifecycle } = make({ onStart (scope) { retired = scope } })
-  await lifecycle.start()
-  await lifecycle.stop()
-  registerLate(retired!, () => { if (++calls === 1) { throw reason } })
-  await flush()
-  const failed = failedState(lifecycle.state)
-  assert.equal(failed.phase, 'stop')
-  assert.equal(failed.cleanupComplete, false)
-  assert.equal(failed.cleanupError, reason)
-  const final = await shutdown(lifecycle)
-  assert.equal(final.status, 'resolved')
-  assert.equal(calls, 2)
-  assert.equal(lifecycle.state.kind, 'stopped')
-})
+for (const from of [ 'stopped', 'failed' ] as const) {
+  contract(`C-SCOPE-11.a-${from}`, `on an idle instance the state is \`stopping\` while a late release runs, then the ${from === 'stopped' ? '`stopped`' : 'same clean `failed`'} it left (D31)`, {}, async ({ make }) => {
+    const trace = stateTrace()
+    const gate = Promise.withResolvers<void>()
+    const { lifecycle, retired, failure } = await idleInstance(make, from, trace.onStateChange)
+    registerLate(retired, () => gate.promise, from === 'failed' ? failure : undefined)
+    await flush()
+    assert.equal(lifecycle.state.kind, 'stopping', `\`${from}\` would claim everything was released (C-STATE-07)`)
+    gate.resolve()
+    await flush()
+    if (from === 'stopped') {
+      assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })
+    } else {
+      // Only stop() turns a clean failure into `stopped` (C-CMD-09); the
+      // failure stays visible to a supervisor deciding whether to restart.
+      const state = failedState(lifecycle.state)
+      assert.equal(state.generation, 1)
+      assert.equal(state.phase, 'start')
+      assert.equal(state.error, failure)
+      assert.equal(state.cleanupComplete, true)
+      assert.equal(state.cleanupError, undefined)
+    }
+    assert.deepEqual(trace.kinds.slice(-3), [ `${from}:1`, 'stopping:1', `${from}:1` ])
+  })
+
+  contract(`C-SCOPE-11.b-${from}`, `a late release that fails on an idle instance (${from}) leaves failed { cleanupComplete: false } until stop() retries it (D31)`, {}, async ({ make }) => {
+    const reason = new Error('late release failed')
+    let calls = 0
+    const { lifecycle, retired, failure } = await idleInstance(make, from)
+    registerLate(retired, () => { if (++calls === 1) { throw reason } }, from === 'failed' ? failure : undefined)
+    await flush()
+    const failed = failedState(lifecycle.state)
+    assert.equal(failed.generation, 1)
+    // From `stopped` the release error is the failure; from a clean `failed`
+    // the earlier failure stays the reported one (the first failure wins).
+    assert.equal(failed.phase, from === 'stopped' ? 'stop' : 'start')
+    assert.equal(failed.error, from === 'stopped' ? reason : failure)
+    assert.equal(failed.cleanupComplete, false)
+    assert.equal(failed.cleanupError, reason)
+    const final = await shutdown(lifecycle)
+    assert.equal(final.status, 'resolved')
+    assert.equal(calls, 2)
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+}
 
 for (const completion of [ 'already released', 'release', 'reject', 'stop', 'timeout' ] as const) {
   contract(`C-SCOPE-11.c-${completion.replace(' ', '-')}`, `a new generation does not commit running until a late release finishes: ${completion} (D31)`, { needs: completion === 'timeout' ? [ 'clock' ] : [] }, async ({ make }) => {
@@ -188,27 +233,50 @@ for (const command of [ 'stop', 'fail' ] as const) {
   })
 }
 
-contract('C-SCOPE-11.f', 'a late release that fails while a generation is running fails that generation, leaving cleanup debt (D31)', {}, async ({ make }) => {
-  // The Claude source test expected the running generation to continue; D31
-  // decides that the failure retires it and leaves failed { cleanupComplete: false }.
-  const reason = new Error('late')
-  let first: LifecycleScope | undefined
-  let calls = 0
-  const { lifecycle } = make({ onStart (scope) { first ??= scope } })
-  await lifecycle.start()
-  await lifecycle.stop()
-  await lifecycle.start()
-  registerLate(first!, () => { if (++calls === 1) { throw reason } })
-  await flush()
-  const failed = failedState(lifecycle.state)
-  assert.equal(failed.generation, 2)
-  assert.equal(failed.error, reason)
-  assert.equal(failed.cleanupComplete, false)
-  const final = await shutdown(lifecycle)
-  assert.equal(final.status, 'resolved')
-  assert.equal(calls, 2)
-  assert.equal(lifecycle.state.kind, 'stopped')
-})
+for (const command of [ 'stop', 'restart' ] as const) {
+  for (const retry of [ 'succeeds', 'fails' ] as const) {
+    contract(`C-SCOPE-11.f-${command}-${retry}`, `a late release that fails while a generation is running leaves it running; ${command}() retries the debt, which ${retry} (D31)`, {}, async ({ make }) => {
+      // Ported from the Claude suite ("debt from a retired generation is retried
+      // by the next retirement"). A live run is not taken down by an earlier
+      // generation's cleanup; its own retirement carries the debt.
+      const trace = stateTrace()
+      const reason = new Error('late')
+      let first: LifecycleScope | undefined
+      let calls = 0
+      const { lifecycle } = make({ onStart (scope) { first ??= scope }, onStateChange: trace.onStateChange })
+      await lifecycle.start()
+      await lifecycle.stop()
+      await lifecycle.start()
+      const commits = trace.kinds.length
+      registerLate(first!, () => { if (++calls <= (retry === 'fails' ? 2 : 1)) { throw reason } })
+      await flush()
+      assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 }, 'a live run is not interrupted by old debt')
+      assert.equal(trace.kinds.length, commits, 'the failure commits nothing')
+      assert.equal(calls, 1)
+
+      const result = observe(lifecycle[command]())
+      await flush()
+      assert.equal(calls, 2, 'the retirement retried the debt')
+      if (retry === 'succeeds') {
+        assert.equal(result.status, 'resolved')
+        assert.deepEqual(lifecycle.state, command === 'stop'
+          ? { kind: 'stopped', generation: 2 }
+          : { kind: 'running', generation: 3 })
+      } else {
+        assert.equal(result.error, reason)
+        const failed = failedState(lifecycle.state)
+        assert.equal(failed.generation, 2)
+        assert.equal(failed.phase, 'stop')
+        assert.equal(failed.cleanupComplete, false)
+        assert.equal(trace.kinds.includes('starting:3'), false, 'no replacement over debt (C-RET-06)')
+      }
+      const final = await shutdown(lifecycle)
+      assert.equal(final.status, 'resolved')
+      assert.equal(calls, retry === 'fails' ? 3 : 2)
+      assert.equal(lifecycle.state.kind, 'stopped')
+    })
+  }
+}
 
 for (const rejects of [ false, true ]) {
   contract(`C-SCOPE-11.g-${rejects ? 'rejects' : 'succeeds'}`, `a run failure stays the reported error while a late release ${rejects ? 'fails' : 'succeeds'} (D31)`, {}, async ({ make }) => {

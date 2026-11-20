@@ -26,7 +26,7 @@
 
 import assert from 'node:assert/strict'
 
-import type { Lifecycle } from '../types.ts'
+import type { Lifecycle, LifecycleScope } from '../types.ts'
 import { errorName, failedState, flush, ManualClock, observe, type Observed, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
 
@@ -448,13 +448,16 @@ contract('C-TIME-05.b', 'a release that blocks past the stop deadline makes that
   assert.equal(releases, 1)
 })
 
-for (const retiring of [ 'starting', 'running' ] as const) {
-  contract(`C-TIME-05.c-${retiring}`, `restart()'s stop deadline starts when it is accepted, while the ${retiring} generation is still live (D30, C-TIME-03)`, { needs: [ 'clock' ] }, async ({ make }) => {
+for (const retiring of [ 'starting', 'running', 'late' ] as const) {
+  const what = retiring === 'late' ? 'while a late release runs on the idle instance (C-SCOPE-11)' : `while the ${retiring} generation is still live`
+  contract(`C-TIME-05.c-${retiring}`, `restart()'s stop deadline starts when it is accepted, ${what} (D30, C-TIME-03)`, { needs: [ 'clock' ] }, async ({ make }) => {
     const clock = new ManualClock()
     const entered = Promise.withResolvers<void>()
     let starts = 0
+    let retired: LifecycleScope | undefined
     const { lifecycle } = make({
       async onStart (scope) {
+        retired ??= scope
         if (++starts === 1 && retiring === 'starting') {
           // A synchronous abort listener blocks the thread before retirement work begins.
           scope.signal.addEventListener('abort', () => clock.jump(40), { once: true })
@@ -470,15 +473,123 @@ for (const retiring of [ 'starting', 'running' ] as const) {
       await flush()
       assert.equal(first.status, 'resolved')
     }
+    const release = Promise.withResolvers<void>()
+    if (retiring === 'late') {
+      await lifecycle.stop()
+      assert.throws(() => retired!.defer(() => release.promise), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
+    }
     const restarted = observe(lifecycle.restart())
-    if (retiring === 'running') {
+    if (retiring !== 'starting') {
       clock.jump(40) // the thread is blocked right after restart() is accepted
     }
+    release.resolve()
     await flush()
     await clock.advance(0)
     assert.equal(errorName(restarted.error), 'LifecycleTimeoutError', 'the stop budget ran from acceptance')
     assert.equal(starts, 1, 'no replacement after a timed-out retirement')
     assert.equal(failedState(lifecycle.state).cleanupComplete, false)
     await shutdown(lifecycle)
+  })
+}
+
+/**
+ * Run `block` after `turns` microtask turns: time that passes after a hook or
+ * release has settled but before the lifecycle commits its outcome. Where that
+ * window lies depends on the kernel's own promise chain, so the C-TIME-05.d
+ * tests sweep `turns` instead of assuming a count.
+ */
+function afterTurns (turns: number, block: () => void): void {
+  const tick = () => {
+    if (turns-- > 0) {
+      queueMicrotask(tick)
+    } else {
+      block()
+    }
+  }
+  queueMicrotask(tick)
+}
+
+/** Enough turns to cover the gap between settlement and commit in any kernel. */
+const SWEEP = 40
+
+contract('C-TIME-05.d-start', 'time passing after onStart settled but before `running` is committed still counts against the start deadline (D30)', { needs: [ 'clock' ] }, async ({ make }) => {
+  // Ported from the Codex suite ("queued microtasks cannot publish running after
+  // the startup deadline"), which used one turn count tuned to its kernel.
+  for (let turns = 0; turns < SWEEP; turns++) {
+    const clock = new ManualClock()
+    const committedAt: number[] = []
+    const { lifecycle } = make({
+      onStart () { afterTurns(turns, () => clock.jump(30)) },
+      onStateChange (state) { if (state.kind === 'running') { committedAt.push(clock.now()) } },
+    }, { clock, startTimeoutMs: 10 })
+    const started = observe(lifecycle.start())
+    await flush()
+    await clock.advance(0)
+    if (started.status === 'resolved') {
+      assert.ok(committedAt[0]! <= 10, `turn ${turns}: \`running\` was committed at ${committedAt[0]}, past the 10 ms deadline`)
+    } else {
+      assert.equal(errorName(started.error), 'LifecycleTimeoutError', `turn ${turns}`)
+      assert.deepEqual(committedAt, [], `turn ${turns}: running is never published past the deadline`)
+    }
+    await shutdown(lifecycle)
+  }
+})
+
+for (const late of [ false, true ]) {
+  contract(`C-TIME-05.d-stop-${late ? 'late' : 'active'}`, `time passing after ${late ? 'a late release' : 'the last release'} settled but before \`stopped\` is committed still counts against the stop deadline (D30${late ? ', C-SCOPE-11' : ''})`, { needs: [ 'clock' ] }, async ({ make }) => {
+    // Ported from the Codex suite ("stop checks its deadline before committing
+    // active / detached cleanup", and "a stop joining detached cleanup receives
+    // the same deadline outcome"), sweeping the turn count as C-TIME-05.d-start does.
+    for (let turns = 0; turns < SWEEP; turns++) {
+      const clock = new ManualClock()
+      const committedAt: number[] = []
+      const gate = Promise.withResolvers<void>()
+      let releases = 0
+      let retired: LifecycleScope | undefined
+      let joined: Observed<void> | undefined
+      const release = () => {
+        releases++
+        afterTurns(turns, () => {
+          if (late) {
+            // A stop() that joins in the window shares the outcome (C-RET-05).
+            joined = observe(lifecycle.stop())
+          }
+          clock.jump(30)
+        })
+      }
+      const { lifecycle } = make({
+        onStart (scope) {
+          retired = scope
+          if (!late) {
+            scope.defer(release)
+          }
+        },
+        onStateChange (state) { if (state.kind === 'stopped') { committedAt.push(clock.now()) } },
+      }, { clock, stopTimeoutMs: 10 })
+      await lifecycle.start()
+      if (late) {
+        await lifecycle.stop()
+        committedAt.length = 0
+        assert.throws(() => retired!.defer(() => gate.promise.then(release)), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
+      }
+      const stopped = observe(lifecycle.stop())
+      gate.resolve()
+      await flush()
+      await clock.advance(0)
+      if (stopped.status === 'resolved') {
+        assert.equal(committedAt.length, 1, `turn ${turns}: stop() resolved with one \`stopped\` commit (C-SCOPE-11)`)
+        assert.ok(committedAt[0]! <= 10, `turn ${turns}: \`stopped\` was committed at ${committedAt[0]}, past the 10 ms deadline`)
+      } else {
+        assert.equal(errorName(stopped.error), 'LifecycleTimeoutError', `turn ${turns}`)
+        assert.deepEqual(committedAt, [], `turn ${turns}`)
+        if (late) {
+          assert.equal(joined?.error, stopped.error, `turn ${turns}: the joining stop() gets the same timeout`)
+        }
+        const final = await shutdown(lifecycle)
+        assert.equal(final.status, 'resolved', `turn ${turns}: the next stop() completes`)
+        assert.equal(lifecycle.state.kind, 'stopped')
+      }
+      assert.equal(releases, 1, `turn ${turns}: a release that succeeded is not run again`)
+    }
   })
 }

@@ -85,8 +85,8 @@ One table per source suite, added as each is ported.
 | Source test | Status | Contract test or reason |
 | --- | --- | --- |
 | startup budget includes synchronous work (2 variants) | ported, D30 | `C-TIME-05.a-before`, `C-TIME-05.a-after` |
-| queued microtasks cannot publish running after the startup deadline | covered, D30: on the manual clock this is the same as synchronous work after a microtask | `C-TIME-05.a-after` |
-| a detached release failure interrupts startup and preserves the failing cleanup (2) | ported, D31 (simplified: the start fails with the release error and leaves debt) | `C-SCOPE-11.c-reject`, `C-SCOPE-11.f` |
+| queued microtasks cannot publish running after the startup deadline | ported, D30; sweeps the turn at which time passes, instead of the source's count tuned to its kernel | `C-TIME-05.d-start` |
+| a detached release failure interrupts startup and preserves the failing cleanup (2) | ported, D31 (simplified: the start fails with the release error and leaves debt) | `C-SCOPE-11.c-reject` |
 | queued restart reports the detached disposer error before starting a replacement | ported, D31 | `C-SCOPE-11.d` |
 | stop from the start timeout listener observes cleanup (3) | ported, D8 form (no onStop) | `C-TIME-02.a-*` |
 | start / restart from a timeout listener waits for the expired generation to retire (2) | ported | `C-TIME-02.b-*` |
@@ -97,10 +97,10 @@ One table per source suite, added as each is ported.
 | a clean failed child with an accepted stop cannot be claimed | ported, D33 form | `C-CHILD-01.c-stop-after-failure` |
 | a replacement child remains owned until a subsequent parent stop releases it | ported, D32 | `C-CHILD-07.a` |
 | stop / restart joins a late registration at retirement completion (6) | ported (the generation is still retiring, so C-SCOPE-02, not D31); exact microtask interleavings belong to S3 | `C-SCOPE-02.d-*` |
-| restart includes retirement from the instant it is accepted (3) | ported, D30, C-TIME-03 (the detached variant is `C-SCOPE-11.l`) | `C-TIME-05.c-starting`, `C-TIME-05.c-running` |
+| restart includes retirement from the instant it is accepted (3) | ported, D30, C-TIME-03 | `C-TIME-05.c-starting`, `C-TIME-05.c-running`, `C-TIME-05.c-late` |
 | a replacement gets a fresh retirement budget after detached cleanup | ported, D31 | `C-SCOPE-11.l` |
-| a stop joining detached cleanup receives the same deadline outcome | ported, D31 | `C-SCOPE-11.j` |
-| stop checks its deadline before committing cleanup (2) | ported, D30 | `C-TIME-05.b` |
+| a stop joining detached cleanup receives the same deadline outcome | ported, D31, D30 (the joiner arriving after the release settled is part of the sweep) | `C-SCOPE-11.j`, `C-TIME-05.d-stop-late` |
+| stop checks its deadline before committing cleanup (2) | ported, D30; sweeps the turn at which time passes after the release settled. `C-TIME-05.b` adds time passing inside the release | `C-TIME-05.b`, `C-TIME-05.d-stop-active`, `C-TIME-05.d-stop-late` |
 | one stop deadline spans the active hook and detached releases | ported, D31 | `C-SCOPE-11.k` |
 | stop supersedes pre-start condition waits (2) | ported | `C-COND-04.b1`, `C-COND-04.b2` |
 | a pre-aborted stop leaves the next generation's condition waits intact | ported | `C-COND-04.c` |
@@ -196,7 +196,7 @@ One table per source suite, added as each is ported.
 | a late interrupt that throws is reported as a cleanup error | ported | `C-SCOPE-05.c` |
 | a sealed scope releases late registrations at once and refuses new work | ported | `C-SCOPE-02.c` |
 | a failing late release after retirement becomes debt until stop() clears it | covered | `C-SCOPE-09.a` |
-| debt from a retired generation is retried by the next retirement | ported, D31 form (the failure retires the live run) | `C-SCOPE-11.f` |
+| debt from a retired generation is retried by the next retirement | ported, D31 (the running generation keeps running; its stop() or restart() retries the debt) | `C-SCOPE-11.f-*` |
 | a stop() settles when debt clears on its own | ported | `C-SCOPE-09.b` |
 | a stop() during a debt pass joins it and requests no extra pass | ported | `C-RET-05.a` |
 | debt released after joined work failed reports that failure | ported, D36 | `C-SCOPE-09.c` |

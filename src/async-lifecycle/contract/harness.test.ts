@@ -79,6 +79,30 @@ test('ManualClock.jump moves time without firing timers; the next advance fires 
   assert.equal(fired, true)
 })
 
+test('ManualClock never moves time backwards: an overdue timer fires at the current time', async () => {
+  const clock = new ManualClock()
+  const seen: string[] = []
+  clock.setTimeout(() => {
+    seen.push(`overdue@${clock.now()}`)
+    clock.setTimeout(() => { seen.push(`follow-up@${clock.now()}`) }, 5)
+  }, 10)
+  clock.jump(30)
+  await clock.advance(0)
+  assert.deepEqual(seen, [ 'overdue@30' ], 'the follow-up is due at 35, not 15')
+  await clock.advance(5)
+  assert.deepEqual(seen, [ 'overdue@30', 'follow-up@35' ])
+})
+
+test('ManualClock fires a timer made overdue by a callback that jumps', async () => {
+  const clock = new ManualClock()
+  const seen: string[] = []
+  clock.setTimeout(() => { clock.jump(20) }, 10)
+  clock.setTimeout(() => { seen.push(`late@${clock.now()}`) }, 25)
+  await clock.advance(15)
+  assert.deepEqual(seen, [ 'late@30' ], 'the callback blocked until 30, past the second timer')
+  assert.equal(clock.now(), 30)
+})
+
 test('ManualClock clearTimeout cancels a timer', async () => {
   const clock = new ManualClock()
   let fired = false

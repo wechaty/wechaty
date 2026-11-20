@@ -131,7 +131,8 @@ interface Lifecycle extends AsyncDisposable {
    * already queued. On a clean `failed` state it commits `stopped`; on a dirty
    * one it retries only the obligations that are still unreleased. Rejects with
    * the cleanup error when retirement reports one (the state then says whether
-   * cleanup completed), or with the caller's abort reason.
+   * cleanup completed), including an error from earlier unfinished work it
+   * joined and retried successfully (C-TIME-03), or with the caller's abort reason.
    */
   stop (options?: LifecycleWaitOptions): Promise<void>
 
@@ -403,15 +404,18 @@ interface LifecycleOptions {
   /**
    * Start deadline in milliseconds (C-TIME-01, C-TIME-02). Must be finite, greater
    * than 0 and at most 2³¹−1, or construction throws `RangeError` (D11). Omitted
-   * means no deadline. Judged by `clock.now()` when an outcome would be
-   * committed, not only by its timer firing (C-TIME-05).
+   * means no deadline. It runs from the commit of `starting` until the attempt
+   * can commit `running`, so it includes waiting for late releases (C-SCOPE-11).
+   * Judged by `clock.now()` when an outcome would be committed, not only by its
+   * timer firing (C-TIME-05).
    */
   readonly startTimeoutMs?: number
 
   /**
    * Deadline for one whole retirement pass, in milliseconds (C-TIME-01,
-   * C-TIME-03, C-TIME-05). It starts when the retirement is requested. Same
-   * validation as `startTimeoutMs`.
+   * C-TIME-03, C-TIME-05). It starts when the retirement is requested, that is
+   * when `stop()` or `restart()` is accepted, so `stop()` settles within this
+   * budget of the call. Same validation as `startTimeoutMs`.
    */
   readonly stopTimeoutMs?: number
 

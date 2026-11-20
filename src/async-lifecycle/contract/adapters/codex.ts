@@ -168,7 +168,12 @@ const codex: Implementation = {
   knownFailures: {
     'B3'         : 'onStop runs for a run that never reached `running` (#2968 §5)',
     'C-CMD-17.a'  : 'D35 divergence: a failed start rejects only after its cleanup completes, not when the failure is decided',
-    'C-SCOPE-11.a': 'D31 divergence: an idle instance keeps showing `stopped` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'C-SCOPE-11.a-stopped': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'C-SCOPE-11.a-failed': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
+    'C-SCOPE-11.f-stop-succeeds': 'D31 divergence: a late release that fails while a generation is running fails that generation with the release error, instead of leaving the debt to its retirement (C-SCOPE-11)',
+    'C-SCOPE-11.f-stop-fails': 'D31 divergence: a late release that fails while a generation is running fails that generation with the release error, instead of leaving the debt to its retirement (C-SCOPE-11)',
+    'C-SCOPE-11.f-restart-succeeds': 'D31 divergence: a late release that fails while a generation is running fails that generation with the release error, instead of leaving the debt to its retirement (C-SCOPE-11)',
+    'C-SCOPE-11.f-restart-fails': 'D31 divergence: a late release that fails while a generation is running fails that generation with the release error, instead of leaving the debt to its retirement (C-SCOPE-11)',
     'C-SCOPE-11.h-start': 'conflict with C-CMD-04: start() on a running generation waits for an old late release instead of resolving at once',
     'C-CHILD-01.c-start': 'conflict with D33: a claimable child (by its public state) is refused, through private knowledge of its pending command',
     'C-CHILD-01.c-restart': 'conflict with D33: a claimable child (by its public state) is refused, through private knowledge of its pending command',
