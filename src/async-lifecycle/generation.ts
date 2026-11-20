@@ -55,8 +55,13 @@ interface ScopeHost {
   fail (generation: Generation, error: unknown): void
   /** See {@link LifecycleScope.recover}. */
   recover (generation: Generation, reason: unknown): Promise<LifecycleRecoverResult>
-  /** A late release registered on `generation` failed. */
-  lateReleaseFailed (generation: Generation): void
+  /**
+   * A release registered on `generation` after it was sealed is running as
+   * `run`, which rejects if it fails. The engine decides whether it belongs to
+   * that generation's own retirement (C-SCOPE-02) or is a late release, an
+   * obligation of the instance (C-SCOPE-11, D31).
+   */
+  lateRelease (generation: Generation, run: Promise<void>): void
   /** Set or clear a condition; throws `TypeError` for a foreign condition. */
   setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void
 }
@@ -104,6 +109,16 @@ class Generation {
   dirty = false
   /** Fully released and detached from the engine. */
   retired = false
+  /**
+   * Its retirement after a failure left nothing owned but late releases still
+   * running (D31): the engine commits again once they finish.
+   */
+  awaitingLate = false
+  /**
+   * Its start failed because a late release failed meanwhile (C-SCOPE-11): that
+   * debt is reported, not retried by this generation's own retirement.
+   */
+  debtFailure = false
 
   constructor (number: number) {
     this.number = number
@@ -143,7 +158,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
    * until that succeeds, and throw the retirement reason to the caller.
    */
   const late = (release: Release): never => {
-    generation.ledger.addLate(release).catch(() => host.lateReleaseFailed(generation))
+    host.lateRelease(generation, generation.ledger.addLate(release))
     throw generation.sealReason
   }
 

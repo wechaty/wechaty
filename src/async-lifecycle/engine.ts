@@ -23,7 +23,9 @@
  *
  * Owns intent (user commands and the attempts they create), the caller
  * waits on them, generation allocation, the single reconciler, retirement and
- * its deadline, cleanup debt, and the commit step that publishes snapshots. The
+ * its deadline, cleanup debt, late releases (obligations of the instance that
+ * new runs and `stopped` wait for, C-SCOPE-11), and the commit step that
+ * publishes snapshots. The
  * two entry points (`create-lifecycle.ts`, `async-lifecycle.ts`) are thin shells
  * over {@link LifecycleEngine}; the per-run scope lives in `generation.ts`, the
  * ownership ledger in `ledger.ts`, conditions in `condition.ts`.
@@ -247,6 +249,19 @@ class LifecycleEngine {
   #debtRetirement: Promise<unknown[]> | undefined = undefined
   /** A debt pass is in progress; a `stop()` arriving now joins it. */
   #debtPassActive = false
+  /**
+   * Late releases still running on retired generations (C-SCOPE-11, D31): each
+   * entry settles (never rejects) when its release finishes. They are
+   * obligations of the instance, so `stopped` and a new run wait for them.
+   */
+  readonly #late = new Set<Promise<void>>()
+  /** Resolved, then cleared, when {@link LifecycleEngine.#late} becomes empty. */
+  readonly #lateDrainWaiters = new Set<() => void>()
+  /**
+   * The idle snapshot (`stopped`, or a clean `failed`) that a late release
+   * interrupted with `stopping`; restored when the late releases end (D31).
+   */
+  #idleBefore: LifecycleState | undefined = undefined
   #reconciling = false
 
   constructor (hooks: LifecycleHooks, options?: LifecycleOptions) {
@@ -258,7 +273,7 @@ class LifecycleEngine {
     this.#host = {
       fail              : (generation, error) => this.#fail(generation, error),
       recover           : (generation, reason) => this.#recover(generation, reason),
-      lateReleaseFailed : generation => this.#lateReleaseFailed(generation),
+      lateRelease       : (generation, run) => this.#lateRelease(generation, run),
       setCondition      : (generation, condition, value) => this.#setCondition(generation, condition, value),
     }
   }
@@ -313,9 +328,10 @@ class LifecycleEngine {
         this.#requestRetire(current, 'stop')
       }
       waiter = this.#stopWaiter(current)
-    } else if (this.#debtors.size > 0 || this.#isDirty() || this.#debtPassActive) {
+    } else if (this.#debtors.size > 0 || this.#isDirty() || this.#debtPassActive || this.#late.size > 0) {
       // A stop() during a debt pass joins that pass; only a stop() after it
-      // ends asks for another (retries need explicit intent).
+      // ends asks for another (retries need explicit intent). Late releases on
+      // an idle instance are joined the same way (C-SCOPE-11).
       if (!this.#debtPassActive) {
         this.#stopRequested = true
       }
@@ -365,6 +381,10 @@ class LifecycleEngine {
     const current = this.#current
     if (current && !current.sealed) {
       this.#requestRetire(current, 'restart')
+    } else if (!current && this.#late.size > 0 && !this.#debtPassActive) {
+      // Late releases on an idle instance: restart() joins them as a retirement
+      // pass under its own stop deadline, then starts the replacement (C-SCOPE-11).
+      this.#stopRequested = true
     }
     this.#schedule()
     return waitFor(attempt.promise, signal).then(() => {})
@@ -545,6 +565,40 @@ class LifecycleEngine {
     return attempt.promise as Promise<LifecycleRecoverResult>
   }
 
+  /**
+   * A release registered after `generation` was sealed is running. Before that
+   * generation is retired it is part of its own retirement, which joins it
+   * (C-SCOPE-02). After, it is a late release (C-SCOPE-11, D31): tracked until
+   * it finishes, so the reconciler can make new runs and `stopped` wait for it.
+   * A failure becomes debt either way.
+   */
+  #lateRelease (generation: Generation, run: Promise<void>): void {
+    const settled = run.then(() => {}, () => { this.#lateReleaseFailed(generation) })
+    if (!generation.retired) {
+      return
+    }
+    this.#late.add(settled)
+    void settled.then(() => {
+      this.#late.delete(settled)
+      if (this.#late.size === 0) {
+        const waiters = [ ...this.#lateDrainWaiters ]
+        this.#lateDrainWaiters.clear()
+        for (const resolve of waiters) {
+          resolve()
+        }
+      }
+      this.#schedule()
+    })
+    this.#schedule()
+  }
+
+  /** Resolves once no late release is running, including ones added meanwhile. */
+  async #drainLate (): Promise<void> {
+    while (this.#late.size > 0) {
+      await new Promise<void>(resolve => this.#lateDrainWaiters.add(resolve))
+    }
+  }
+
   #lateReleaseFailed (generation: Generation): void {
     if (!generation.retired) {
       return // its own retirement reads the ledger back
@@ -585,6 +639,9 @@ class LifecycleEngine {
     const current = this.#current
     if (current) {
       if (current.dirty) {
+        if (current.awaitingLate && this.#late.size === 0) {
+          return () => this.#settleAwaitingLate(current)
+        }
         if (!this.#stopRequested) {
           return undefined // a dirty failure waits for an explicit stop()
         }
@@ -597,6 +654,22 @@ class LifecycleEngine {
     }
 
     this.#pruneDebtors()
+    if (this.#late.size > 0) {
+      // Late releases on an idle instance (C-SCOPE-11, D31).
+      if (this.#stopRequested) {
+        this.#stopRequested = false
+        return () => this.#retireDebt() // a stop() or restart() joins them
+      }
+      const state = this.#state
+      if (state.kind === 'stopped' || (state.kind === 'failed' && state.cleanupComplete)) {
+        return () => {
+          this.#idleBefore = state
+          this.#commit({ kind: 'stopping', generation: state.generation })
+        }
+      }
+      return undefined // `stopping` (or dirty) until they finish; a start() queues
+    }
+
     if (this.#debtors.size > 0) {
       if (!this.#isDirty()) {
         return () => this.#commitDebt()
@@ -616,12 +689,22 @@ class LifecycleEngine {
       this.#idleStopWaiters.clear()
       const resolve = () => { for (const waiter of debtWaiters) { waiter.resolve() } }
       if (this.#state.kind === 'failed' || this.#state.kind === 'stopping') {
+        this.#idleBefore = undefined // a stop() decides: `stopped`
         return () => this.#commit({ kind: 'stopped', generation: this.#state.generation }, resolve)
       }
       resolve()
     }
 
     const pending = this.#pending
+    const before = this.#idleBefore
+    if (before && this.#state.kind === 'stopping') {
+      // The late releases ended cleanly. A queued start() commits `starting`
+      // next; otherwise return to the idle state they interrupted (D31).
+      this.#idleBefore = undefined
+      if (!pending || pending.settled) {
+        return () => this.#commit({ ...before })
+      }
+    }
     if (pending && !pending.settled && !this.#isDirty()) {
       return () => this.#runStart(pending)
     }
@@ -660,15 +743,28 @@ class LifecycleEngine {
     )
 
     const deadline = this.#deadline(this.#startTimeoutMs, 'start')
-    const result = await Promise.race([
-      outcome,
-      deadline.expired,
-      generation.retireRequested.promise.then(() => undefined),
-    ])
+    const retireRequested = generation.retireRequested.promise.then(() => undefined)
+    let result = await Promise.race([ outcome, deadline.expired, retireRequested ])
+    if (result !== undefined && result !== TIMEOUT && result.ok && this.#late.size > 0 && !generation.sealed) {
+      // Late releases of earlier runs are obligations of the instance: this run
+      // does not commit `running` until they finish, under its start deadline
+      // (C-SCOPE-11, C-TIME-02).
+      const drained = await Promise.race([ this.#drainLate().then(() => result), deadline.expired, retireRequested ])
+      result = drained
+    }
     deadline.cancel()
 
     if (generation.sealed || result === undefined) {
       return // stop, restart or fail arrived; the next step retires it
+    }
+    this.#pruneDebtors()
+    if (result !== TIMEOUT && result.ok && this.#debtors.size > 0) {
+      // A late release failed while this run was starting: the start fails with
+      // its error, and this run's retirement leaves that debt for a stop().
+      generation.failure = { phase: 'start', error: aggregate([ ...this.#debtors ].flatMap(debtor => debtor.ledger.failures)) }
+      generation.debtFailure = true
+      this.#requestRetire(generation, 'failure')
+      return
     }
     if (result === TIMEOUT || !result.ok) {
       generation.failure = {
@@ -701,14 +797,15 @@ class LifecycleEngine {
     this.#commit({ kind: 'stopping', generation: generation.number })
     const { errors, timedOut } = await this.#underStopDeadline(
       generation.retirement,
-      signal => this.#performRetirement(generation, signal),
+      signal => this.#performRetirement(generation, signal, retry),
       work => { generation.retirement = work },
     )
     this.#pruneDebtors()
-    const complete = !timedOut
-      && generation.ledger.clean
-      && generation.startSettled
-      && this.#debtors.size === 0
+    const released = !timedOut && generation.ledger.clean && generation.startSettled
+    const complete = released && this.#debtors.size === 0 && this.#late.size === 0
+    // A failure's retirement does not wait for late releases; when they are all
+    // that is left, the engine commits again once they finish (D31).
+    generation.awaitingLate = released && this.#debtors.size === 0 && this.#late.size > 0
     this.#finishRetirement(generation, errors, complete, retry)
   }
 
@@ -748,10 +845,15 @@ class LifecycleEngine {
    * 3. abort `scope.signal`
    * 4. run interrupts, newest first
    * 5. wait for `onStart` to settle
-   * 6. unwind the ledger newest first, then any older generations' debt
+   * 6. unwind the ledger: tasks first, then everything else newest first
+   * 7. unless this retirement follows a failure, wait for late releases of
+   *    earlier runs (D31); one that fails now is reported, not retried
+   * 8. retry the debt that existed when this retirement began
    */
-  async #performRetirement (generation: Generation, deadlineSignal: AbortSignal): Promise<unknown[]> {
+  async #performRetirement (generation: Generation, deadlineSignal: AbortSignal, retry: boolean): Promise<unknown[]> {
     const errors: unknown[] = []
+    // Debt this run's own start failed on is left for an explicit stop().
+    const earlierDebt = generation.debtFailure && !retry ? [] : [ ...this.#debtors ]
 
     if (generation.reachedRunning && !generation.onStopCalled && this.#hooks.onStop) {
       generation.onStopCalled = true
@@ -771,17 +873,63 @@ class LifecycleEngine {
     await generation.startWork
     errors.push(...await generation.ledger.unwind())
     errors.push(...generation.lateInterruptErrors.splice(0))
-    errors.push(...await this.#unwindDebt())
+    if (retry || generation.retireReason !== 'failure') {
+      errors.push(...await this.#joinLate(earlierDebt))
+    }
+    errors.push(...await this.#unwindDebt(earlierDebt))
     return errors
   }
 
-  async #unwindDebt (): Promise<unknown[]> {
+  /**
+   * Wait for the late releases still running (D31) and return the errors of
+   * those that failed meanwhile. That new debt is reported, not retried in the
+   * same pass: a retry needs an explicit stop() (C-CMD-10).
+   */
+  async #joinLate (earlierDebt: readonly Generation[]): Promise<unknown[]> {
+    await this.#drainLate()
+    this.#pruneDebtors()
+    return [ ...this.#debtors ]
+      .filter(debtor => !earlierDebt.includes(debtor))
+      .flatMap(debtor => debtor.ledger.failures)
+  }
+
+  async #unwindDebt (debtors: readonly Generation[] = [ ...this.#debtors ]): Promise<unknown[]> {
     const errors: unknown[] = []
-    for (const debtor of [ ...this.#debtors ]) {
-      errors.push(...await debtor.ledger.unwind())
+    for (const debtor of debtors) {
+      if (this.#debtors.has(debtor)) {
+        errors.push(...await debtor.ledger.unwind())
+      }
     }
     this.#pruneDebtors()
     return errors
+  }
+
+  /**
+   * A failure's retirement left only late releases running (D31); they ended.
+   * Publish the outcome: a clean failure, or a dirty one with their error.
+   */
+  #settleAwaitingLate (generation: Generation): void {
+    generation.awaitingLate = false
+    this.#pruneDebtors()
+    const failure = generation.failure
+    if (this.#debtors.size > 0) {
+      const cleanupError = aggregate([ ...this.#debtors ].flatMap(debtor => debtor.ledger.failures))
+      this.#commit({
+        kind            : 'failed',
+        generation      : generation.number,
+        phase           : failure ? failure.phase : 'stop',
+        error           : failure ? failure.error : cleanupError,
+        cleanupComplete : false,
+        cleanupError,
+      })
+      return // still dirty: a stop() retries the debt
+    }
+    generation.dirty = false
+    generation.retired = true
+    this.#current = undefined
+    this.#commit(failure
+      ? { kind: 'failed', generation: generation.number, phase: failure.phase, error: failure.error, cleanupComplete: true }
+      : { kind: 'stopped', generation: generation.number })
   }
 
   #pruneDebtors (): void {
@@ -897,15 +1045,22 @@ class LifecycleEngine {
     }
   }
 
-  /** Debt appeared while idle: publish it as a dirty failure. */
+  /**
+   * Debt appeared while idle: publish it as a dirty failure. An earlier clean
+   * failure keeps its phase and error, because the first failure wins; the debt
+   * becomes its `cleanupError` (C-SCOPE-11).
+   */
   #commitDebt (): void {
     const errors = [ ...this.#debtors ].flatMap(debtor => debtor.ledger.failures)
     const cleanupError = aggregate(errors.length > 0 ? errors : [ new LifecycleUnsafeStateError('a late release failed') ])
+    const before = this.#idleBefore ?? this.#state
+    this.#idleBefore = undefined
+    const earlier = before.kind === 'failed' ? before : undefined
     this.#commit({
       kind            : 'failed',
       generation      : this.#state.generation,
-      phase           : 'stop',
-      error           : cleanupError,
+      phase           : earlier ? earlier.phase : 'stop',
+      error           : earlier ? earlier.error : cleanupError,
       cleanupComplete : false,
       cleanupError,
     }, () => {
@@ -918,12 +1073,19 @@ class LifecycleEngine {
   async #retireDebt (): Promise<void> {
     const generation = this.#state.generation
     this.#debtPassActive = true
-    this.#commit({ kind: 'stopping', generation })
+    this.#idleBefore = undefined // a stop() or restart() decides the outcome
+    if (this.#state.kind !== 'stopping') {
+      this.#commit({ kind: 'stopping', generation })
+    }
     let result: { errors: unknown[], timedOut: boolean }
     try {
       result = await this.#underStopDeadline(
         this.#debtRetirement,
-        () => this.#unwindDebt(),
+        async () => {
+          const earlierDebt = [ ...this.#debtors ]
+          const errors = await this.#joinLate(earlierDebt)
+          return [ ...errors, ...await this.#unwindDebt(earlierDebt) ]
+        },
         work => { this.#debtRetirement = work },
       )
     } finally {
@@ -932,7 +1094,7 @@ class LifecycleEngine {
     const { errors, timedOut } = result
     const waiters = [ ...this.#idleStopWaiters ]
     this.#idleStopWaiters.clear()
-    if (!timedOut && this.#debtors.size === 0) {
+    if (!timedOut && this.#debtors.size === 0 && this.#late.size === 0) {
       if (errors.length > 0) {
         // Released, but some earlier work (joined from a timed-out pass) failed:
         // report it as a clean failure, as a generation retirement would.

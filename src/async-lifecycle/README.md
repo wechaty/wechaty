@@ -296,7 +296,7 @@ The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues
 | --- | --- | --- |
 | Types | `types.ts` | The public contract. No runtime code |
 | Errors | `errors.ts` | `LifecycleError` and its subclasses, their `code`s, `isLifecycleError` |
-| Engine | `engine.ts` | Intent and attempts, caller waits, generation allocation, the single reconciler, retirement and its deadlines, cleanup debt, and the commit that publishes a snapshot. Every rule of §3 to §12 is enforced here |
+| Engine | `engine.ts` | Intent and attempts, caller waits, generation allocation, the single reconciler, retirement and its deadlines, cleanup debt, late releases (C-SCOPE-11), and the commit that publishes a snapshot. Every rule of §3 to §12 is enforced here |
 | Generation scope | `generation.ts` | One run: its `AbortController`, its ledger, its seal, and the scope object its hooks receive. It never commits state or settles a caller; it asks the engine through a narrow host interface |
 | Ledger | `ledger.ts` | A generation's obligations with per-entry status, released newest first, a failed entry retried, a running one joined. It knows nothing about state |
 | Conditions | `condition.ts` | Declared conditions, waits bound to a generation, and each live generation's set flags |
