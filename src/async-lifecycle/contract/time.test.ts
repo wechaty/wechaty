@@ -593,3 +593,40 @@ for (const late of [ false, true ]) {
     }
   })
 }
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-TIME-03.i', 'an onStop that rejects after its stop deadline, before any stop() joins, is reported by the next stop()', { needs: [ 'clock' ] }, async ({ make }) => {
+  // The other timing of C-TIME-03.b: the rejection arrives while nobody waits.
+  const clock = new ManualClock()
+  const gate = Promise.withResolvers<void>()
+  const cause = new Error('late stop-hook rejection')
+  let calls = 0
+  const { lifecycle } = make({
+    onStart () {},
+    onStop () {
+      calls++
+      return gate.promise
+    },
+  }, { clock, stopTimeoutMs: 10 })
+  await lifecycle.start()
+  const first = observe(lifecycle.stop())
+  await clock.advance(10)
+  assert.equal(errorName(first.error), 'LifecycleTimeoutError')
+  gate.reject(cause)
+  await flush()
+
+  const second = observe(lifecycle.stop())
+  await flush()
+  assert.equal(second.error, cause, 'errors are never dropped')
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.cleanupError, cause)
+  assert.equal(failed.cleanupComplete, true, 'onStop is never retried, and nothing else is owned')
+
+  const third = await shutdown(lifecycle)
+  assert.equal(third.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(calls, 1)
+})

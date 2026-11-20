@@ -10,7 +10,7 @@ The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one im
 | --- | --- | --- | --- | --- |
 | `src/async-lifecycle-codex/*.test.ts` | 63 tests (154 cases) | 61 | 2 (1 dropped, 1 moved to S5) | 0 |
 | `src/async-lifecycle-claude/*.test.ts` | 113 tests (208 cases) | 99 (83 new, 16 already covered) | 14 moved to S4 | 0 |
-| `src/async-lifecycle-copilot/*.test.ts` | 32 scenarios | 0 | 0 | 32 |
+| `src/async-lifecycle-copilot/*.test.ts` | 32 tests (one bundles 31 scenarios) | 23 (12 new, 11 already covered) | 6 moved to S4 | 3 (waiting for D38, D39) |
 | #2905 traces A to F | 6 | 0 | 0 | 6 |
 | v1 design acceptance list | 6 | 0 | 0 | 6 |
 | ChatGPT review, 17-row regression table | 17 | 0 | 0 | 17 |
@@ -35,6 +35,7 @@ Bugs found while porting, each recorded in the adapter's `knownFailures` and in 
 | B8 | copilot | A `start()` then `stop()` in the same tick still runs `onStart`, so pre-start condition waits resolve instead of rejecting | `C-COND-04.b2` |
 | B9 | codex | A task that rejects while its generation retires is swallowed, so `stop()` resolves instead of reporting a cleanup error | `C-SCOPE-07.d` |
 | B10 | copilot | A `stop()` or `restart()` does not wait for a cleanup registered during its own retirement: it rejects at once, and the state stays `failed` after the cleanup finishes | `C-SCOPE-02.d-*` |
+| B11 | codex | A `stop()` accepted while an earlier `stop()` retires does not reject the condition waits created in between; they survive and bind to the next generation | `C-COND-04.h` |
 
 ## Conflicts
 
@@ -49,13 +50,18 @@ Source tests that assert behavior contradicting an accepted decision. Each is po
 | codex, claude, copilot: condition wait on a failed generation | All reject with the failure or a plain `Error` | D28: `LifecycleSupersededError` with the failure as `cause` |
 | claude: a deadline that is not a finite, non-negative number is refused | Accepts 0 | D11: 0 is refused |
 | claude: recover() rejects when the replacement fails; recover() before running | Rejects | D10: resolves `failed` |
-| claude: a user start() during recovery supersedes it and still runs | The recovery reports `superseded` | C-REC-03: the start joins the replacement and the recovery reports `recovered`. Copilot also supersedes, so this is D37 for confirmation |
+| claude: a user start() during recovery supersedes it and still runs; copilot: the same, twice in its bundled #2905 test | The recovery reports `superseded` | C-REC-03 (D37): the start joins the replacement and the recovery reports `recovered` |
 | claude: #2905 C: stop() aborts a pending abort-aware onStart at once | Requires the abort synchronously inside `stop()` | Not in the contract (C-CMD-01 requires only synchronous intent); ported as "aborted before onStart settles" |
 | claude: an acquisition that resolves after retirement began | Requires `acquire()` to reject before the release runs | C-SCOPE-04 requires both, not an order |
 | codex, claude: inheritance rejects command overrides | Throw a plain `Error` | D13: `LifecycleOverrideError` |
 | codex: start waiting for detached cleanup joins the surviving run | `start()` on a running generation waits for an old late release | C-CMD-04: it resolves at once (D31 makes only new generations wait) |
 | codex: a parent cannot claim a child's queued start / restart; a clean failed child with an accepted stop cannot be claimed | Refuses through private knowledge of the child's pending command | D33: decided by public state alone |
 | codex: a start deadline reports dirty failure; claude: an onStart that ignores its timeout | A failed start rejects only after cleanup | D35: it rejects when the failure is decided |
+| copilot: failure reported during startup unwind; three scenarios of its bundled #2905 test | `fail()` from a release, from an `onStart` that saw the abort, or during a recovery's retirement fails the generation, overriding the stop or recovery | C-SCOPE-02: a sealed scope ignores `fail()` |
+| copilot: recovery requester added during unwind | A task calling `recover()` while a recovery retires joins it as another requester, exempt from the join, and the recovery reports `failed` when it then rejects | C-REC-03, C-REC-05: it gets `superseded` and is joined as usual |
+| copilot: late cleanup debt stays attached after a replacement starts | A late release that fails while generation 2 runs fails generation 2 | D31 (C-SCOPE-11): the run continues; its `stop()` retries the debt |
+| copilot: a late release on an idle instance (bundled #2905 test) | A `start()` during the late release is refused | C-SCOPE-11: it queues behind the release (C-CMD-06) |
+| copilot: runtime failures retire the generation | `stop()` on the clean failure leaves `failed` | B1; C-CMD-09: it commits `stopped` |
 
 ## Ported and dropped tests
 
@@ -258,3 +264,78 @@ Other files:
 | `ledger.test.ts` (6 tests) | moved to S4 | White-box tests of Claude's internal `Ledger`. They become unit tests of the final kernel's ledger if S4 adopts it; the behavior they protect is covered by `C-SCOPE-09.*`, `C-TIME-03.*` and `C-RET-01.*`. |
 | `companions/listen.test.ts` (5 tests) | moved to S4 | Companions land with their implementation (D26) |
 | `companions/watchdog.test.ts` (3 tests) | moved to S4 | Companions land with their implementation (D26) |
+
+### Copilot (`src/async-lifecycle-copilot/`, #2912)
+
+32 tests, all in `async-lifecycle.test.ts`. Ported: 12 (as 24 new contract tests). Already covered: 11. Moved to S4: 6. Waiting for a decision: 3 (D38, D39).
+
+| Source test | Status | Contract test or reason |
+| --- | --- | --- |
+| manual clock orders due timers, handles reentrant timers, and clears deadlines | moved to S4 | White-box test of Copilot's clock and deadline controller; deadline validation is `C-TIME-01.a` |
+| abort helpers preserve caller isolation and report deadline outcomes | moved to S4 | White-box test of Copilot's abort helpers; the behavior is `C-CMD-01.a`, `C-CMD-02.a` |
+| condition registry isolates generations and rejects foreign conditions | moved to S4 | White-box test of Copilot's `ConditionRegistry`; the behavior is `C-COND-01.*`, `C-COND-04.b1`, `C-COND-04.e`, `C-COND-05.a`. Its blank-name `TypeError` is not in the contract |
+| createLifecycle serializes start, stop, restart, conditions, and observers | covered | `C-STATE-01.a`, `C-CMD-04.a`, `C-CMD-11.d`, `C-OBS-02.a`, `C-RET-01.d`, `C-COND-04.b1` |
+| whenState resolves with the snapshot inspected by its initial predicate | ported | `C-CMD-16.e` |
+| start-stop-start retires an interrupted startup before creating a fresh scope | covered | `C-CMD-06.a`, `C-CMD-06.c` |
+| stop-start while running preserves the retirement barrier and both attempts | covered | `C-CMD-06.b` |
+| restart during incomplete startup settles the old attempt and starts one replacement | covered | `C-CMD-11.b` |
+| failure reported during startup unwind overrides clean stop supersession | ported, C-SCOPE-02 form (the `fail()` is ignored) | `C-SCOPE-02.e-release` |
+| recovery requester failure during the final disposer fails recovery | ported | `C-REC-05.b-during-release` |
+| recovery requester added during unwind is included in error collection | ported, C-REC-03 and C-REC-05 form (the late caller gets `superseded` and is joined) | `C-REC-05.c` |
+| every accepted stop invalidates pre-start conditions during retirement | ported | `C-COND-04.h` |
+| timed-out interrupts resume in LIFO order without skipping or duplicating work | waiting, D38 | An interrupt that returns a pending promise |
+| late acquisition remains owned through its one interrupt and release | waiting, D38 (the single interrupt and release are `C-SCOPE-05.b`) | An interrupt that returns a rejected promise |
+| a late onStop rejection is retained and reported across retry timing (2) | covered and ported | `C-TIME-03.b` (retry before the rejection), `C-TIME-03.i` (after it) |
+| sync throws and async disposer rejections remain retryable cleanup debt (2) | ported | `C-SCOPE-10.a-sync`, `C-SCOPE-10.a-async` |
+| a stop joining a dirty cleanup retry does not schedule an extra disposal pass | covered | `C-RET-05.a` |
+| late cleanup debt stays attached to an old generation after replacement starts | covered, D31 form (the run continues) | `C-SCOPE-11.f-stop-succeeds` |
+| a child remains exclusively owned until its first parent releases it | covered | `C-CHILD-02.a` |
+| composition and inheritance preserve reentrant observer attempt outcomes (2) | covered | `C-OBS-03.a` on both entry points. Its hooks declared as class fields are dropped: S1 declares the hooks as methods, so such an override does not type-check (TS2425) |
+| the #2905 A–F contract traces pass through both lifecycle entry points | ported; 31 scenarios, listed below | The #2905 traces themselves are still to do (see Progress) |
+| scope resources unwind in reverse order and listeners detach on retirement | covered and ported | `C-RET-01.c`, `C-SCOPE-02.c`, `C-SCOPE-02.f` (late `use`); `listen` is a companion (S4) |
+| startup failures report cleanup errors and stop retries remaining debt | ported | `C-CMD-13.a` |
+| start timeout is deterministic and a pre-aborted caller does not mutate intent | covered | `C-CMD-01.a`, `C-TIME-02.d` |
+| runtime failures retire the generation and resolve whenState observers | covered (its final `stop()` leaving `failed` is B1) | `C-SCOPE-07.c-error`, `C-CMD-16.b`, `C-SCOPE-02.a`, `C-CMD-09.a` |
+| owned child lifecycles stop with their parent and unexpected child failure propagates | covered | `C-CHILD-04.a`, `C-CHILD-06.a` |
+| owned child failures remain supervised during graceful parent shutdown | waiting, D39 | A child stopped by someone else while its parent's `onStop` runs |
+| AsyncLifecycle inheritance rejects final-method overrides | covered and ported | `C-SHELL-02.a`, `C-SHELL-02.b`, `C-SHELL-02.d` (`state`, `Symbol.asyncDispose`, `stop`, `restart`, `whenState`). Class-field hooks dropped, as above |
+| diagnostics publish committed sanitized metadata before isolated observers | covered and ported | `C-OBS-04.a` (Copilot's record shape is a known divergence), `C-OBS-01.b` (the order) |
+| watchdog feed, disarm, and expiry use the supplied clock | moved to S4 | Companions land with their implementation (D26) |
+| watchdog defaults to recovery and the default diagnostic label | moved to S4 | Companions land with their implementation (D26) |
+| cleanup error collapsing preserves zero, one, and multiple failures | moved to S4 | White-box test of a Copilot helper; the behavior is `C-RET-04.b` |
+
+The 31 scenarios of the bundled "#2905 A–F" test, each run through both entry points:
+
+| Scenario | Status | Contract test |
+| --- | --- | --- |
+| a user restart() while a task awaits its own recover() | ported | `C-REC-04.e` |
+| a task calls recover() while the owner's recovery retires | ported | `C-REC-05.c` |
+| a recovery requester that rejects at once | ported | `C-REC-05.b-at-once` |
+| an onStart that calls fail() after a stop() aborted it | ported, C-SCOPE-02 form | `C-SCOPE-02.e-onStart` |
+| a release that throws undefined or null while a stopped start rolls back (2) | ported | `C-SCOPE-10.c-*` |
+| a late acquisition whose interrupt rejects | waiting, D38 | |
+| start, stop, start during a gated onStart | covered | `C-CMD-06.a` |
+| stop, start while running | covered | `C-CMD-06.b` |
+| restart during startup | covered | `C-CMD-11.b` |
+| a second stop() rejects waits created during the first | ported | `C-COND-04.h` |
+| concurrent start() calls share one attempt | covered | `C-CMD-03.a` |
+| a caller abort cancels only its own start() | covered | `C-CMD-02.a` |
+| two stop()s and Symbol.asyncDispose share one pass | ported | `C-RET-05.b` |
+| a watchdog armed before stop() never fires afterwards | moved to S4 | Companion (D26) |
+| stopping a parent while its child starts | covered | `C-CHILD-03.a` |
+| recover(), then start() in the same tick | covered, D37 form | `C-REC-04.b` |
+| a task's recovery, then start() during its onStop | covered, D37 form | `C-REC-04.c` |
+| recover() twice | covered | `C-REC-02.a` |
+| a task's recovery, then stop() | covered | `C-REC-04.a` |
+| a task's recovery, then fail() during its retirement | ported, C-SCOPE-02 form | `C-SCOPE-02.e-onStop` |
+| the owner's recovery, then fail() during its onStop | ported, C-SCOPE-02 form | `C-SCOPE-02.e-onStop` |
+| an interrupt that completes another pending acquisition | ported | `C-SCOPE-05.d` |
+| stop() then start() during an idle late release | ported, C-SCOPE-11 form (the start queues) | `C-SCOPE-11.m` |
+| a task's recovery with the stop deadline armed | covered | `C-REC-05.a` |
+| an onStop that throws undefined, null or false (3) | covered and ported | `C-RET-02.d`, `C-RET-02.e-*` |
+| two start()s queued behind stop() | covered | `C-CMD-06.b` |
+| the owner's recovery, then stop() | covered | `C-REC-04.a` |
+| stop() during a gated onStart | covered | `C-CMD-07.a` |
+| a failed start is not retried | covered | `C-CMD-14.a` |
+| a pre-start wait when the start fails | covered, D28 form | `C-COND-04.a` |
+| listeners never accumulate across cycles | covered with `on` plus `defer(off)`; `listen` is S4 | `C-SCOPE-03.a` |

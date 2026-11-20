@@ -299,3 +299,42 @@ contract('C-RET-06.a', 'a restart() whose retirement leaves cleanup debt rejects
   assert.deepEqual(generations, [ 1 ])
   assert.equal(failedState(lifecycle.state).cleanupComplete, false)
 })
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+for (const value of [ null, false ]) {
+  contract(`C-RET-02.e-${String(value)}`, `an onStop that throws ${String(value)} rejects stop() with exactly that value`, {}, async ({ make }) => {
+    const { lifecycle } = make({ onStart () {}, onStop () { throw value } })
+    await lifecycle.start()
+    const stopped = observe(lifecycle.stop())
+    await flush()
+    assert.equal(stopped.status, 'rejected')
+    assert.ok(Object.is(stopped.error, value))
+    const failed = failedState(lifecycle.state)
+    assert.ok(Object.is(failed.error, value))
+    assert.ok(Object.is(failed.cleanupError, value))
+  })
+}
+
+contract('C-RET-05.b', 'concurrent stop() calls and Symbol.asyncDispose share one retirement pass', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  let stops = 0
+  const { lifecycle } = make({
+    onStart () {},
+    onStop () {
+      stops++
+      return gate.promise
+    },
+  })
+  await lifecycle.start()
+  const calls = [ observe(lifecycle.stop()), observe(lifecycle.stop()), observe(lifecycle[Symbol.asyncDispose]()) ]
+  await flush()
+  assert.ok(calls.every(call => call.status === 'pending'))
+  gate.resolve()
+  await flush()
+  assert.ok(calls.every(call => call.status === 'resolved'))
+  assert.equal(stops, 1)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})

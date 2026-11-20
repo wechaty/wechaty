@@ -30,7 +30,7 @@
 import assert from 'node:assert/strict'
 
 import type { LifecycleRecoverResult, LifecycleScope } from '../types.ts'
-import { errorName, failedState, flush, observe, shutdown, stateTrace } from './harness.ts'
+import { errorName, failedState, flush, observe, type Observed, shutdown, stateTrace } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-REC-02.a', 'a running generation can recover into a fresh one, again and again', { needs: [ 'scope.recover' ] }, async ({ make }) => {
@@ -239,4 +239,98 @@ contract('C-REC-01.a', 'scope.fail(undefined) on a running generation fails it, 
   assert.equal(failed.phase, 'run')
   assert.equal(failed.error, undefined)
   assert.equal(failed.cleanupComplete, true)
+})
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+for (const when of [ 'at-once', 'during-release' ] as const) {
+  contract(`C-REC-05.b-${when}`, `a task that requested recovery and then rejects ${when === 'at-once' ? 'at once' : 'during the last release'} fails the recovery: \'failed\' and failed { stop } (C-SCOPE-07)`, { needs: [ 'scope.recover' ] }, async ({ make }) => {
+    // The requesting task is exempt from the join (C-REC-05), so it can wait
+    // for a release; its rejection while the generation retires is still a
+    // cleanup error (C-SCOPE-07), so the replacement does not start (C-RET-06).
+    const requesterError = new Error('recovery requester failed')
+    const go = Promise.withResolvers<void>()
+    const releaseStarted = Promise.withResolvers<void>()
+    const finishRelease = Promise.withResolvers<void>()
+    let starts = 0
+    let outcome: Observed<LifecycleRecoverResult> | undefined
+    const { lifecycle } = make({
+      onStart (scope) {
+        if (++starts > 1) {
+          return
+        }
+        scope.defer(async () => {
+          releaseStarted.resolve()
+          await finishRelease.promise
+        })
+        scope.spawn(async () => {
+          await go.promise
+          outcome = observe(scope.recover())
+          if (when === 'during-release') {
+            await releaseStarted.promise
+          }
+          throw requesterError
+        })
+      },
+    })
+    await lifecycle.start()
+    go.resolve()
+    await flush()
+    finishRelease.resolve()
+    await flush()
+    assert.equal(outcome?.value, 'failed')
+    const failed = failedState(lifecycle.state)
+    assert.equal(failed.phase, 'stop')
+    assert.equal(failed.error, requesterError)
+    assert.equal(failed.cleanupComplete, true)
+    assert.equal(starts, 1, 'no replacement after a failed retirement')
+  })
+}
+
+contract('C-REC-05.c', 'a task that calls recover() while a recovery already retires gets \'superseded\' at once and is joined as usual; the recovery reports \'recovered\'', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  // The Copilot suite made such a late caller exempt from the join too and
+  // reported 'failed' when it then rejected; C-REC-03 and C-REC-05 make it a
+  // caller on a retiring scope.
+  const go = Promise.withResolvers<void>()
+  let first: LifecycleScope | undefined
+  let late: LifecycleRecoverResult | undefined
+  const { lifecycle } = make({
+    onStart (scope) {
+      if (first) {
+        return
+      }
+      first = scope
+      scope.spawn(async () => {
+        await go.promise
+        late = await scope.recover()
+      })
+    },
+  })
+  await lifecycle.start()
+  const recovery = observe(first!.recover())
+  await flush()
+  go.resolve()
+  await flush()
+  assert.equal(late, 'superseded')
+  assert.equal(recovery.value, 'recovered')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
+})
+
+contract('C-REC-04.e', 'a user restart() during a task\'s recovery supersedes it: the task gets \'superseded\' and the restart\'s replacement runs', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  let saved: LifecycleScope | undefined
+  let fromTask: LifecycleRecoverResult | undefined
+  const { lifecycle } = make({ onStart (scope) { saved ??= scope } })
+  await lifecycle.start()
+  saved!.spawn(async () => { fromTask = await saved!.recover() })
+  const restarted = observe(lifecycle.restart())
+  const fromOwner = observe(saved!.recover())
+  await flush()
+  assert.equal(fromTask, 'superseded')
+  assert.equal(fromOwner.value, 'superseded')
+  assert.equal(restarted.status, 'resolved')
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
+  await shutdown(lifecycle)
 })

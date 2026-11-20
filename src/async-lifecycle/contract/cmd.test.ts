@@ -29,7 +29,7 @@ import process from 'node:process'
 import { setImmediate } from 'node:timers'
 
 import type { Lifecycle, LifecycleScope } from '../types.ts'
-import { errorName, failedState, flush, observe, shutdown, stateTrace } from './harness.ts'
+import { errorName, failedState, flush, observe, type Observed, shutdown, stateTrace } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-CMD-01.a', 'a pre-aborted caller signal rejects with its reason and starts nothing', {}, async ({ make }) => {
@@ -691,4 +691,55 @@ contract('C-CMD-17.a', 'a failed start rejects while its cleanup is still runnin
   cleanup.resolve()
   await flush()
   assert.equal(failedState(lifecycle.state).error, failure)
+})
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-CMD-16.e', 'whenState() resolves with the snapshot its first predicate call inspected, even if that predicate starts the lifecycle', {}, async ({ make }) => {
+  const { lifecycle } = make({ onStart () {} })
+  const starts: Observed<void>[] = []
+  const seen = observe(lifecycle.whenState(state => {
+    starts.push(observe(lifecycle.start()))
+    return state.kind === 'stopped'
+  }))
+  await flush()
+  assert.deepEqual(seen.value, { kind: 'stopped', generation: 0 }, 'not the `starting` snapshot the start() produced')
+  assert.equal(lifecycle.state.kind, 'running')
+  assert.ok(starts.every(start => start.status === 'resolved'))
+  await shutdown(lifecycle)
+})
+
+contract('C-CMD-13.a', 'a failed start whose rollback fails leaves failed { start, cleanupComplete: false }: start() and restart() are refused, and stop() retries the release', {}, async ({ make }) => {
+  const startError = new Error('startup')
+  const cleanupError = new Error('first cleanup')
+  let calls = 0
+  const { lifecycle } = make({
+    onStart (scope) {
+      scope.defer(() => { if (++calls === 1) { throw cleanupError } })
+      throw startError
+    },
+  })
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.equal(started.error, startError)
+  const failed = failedState(lifecycle.state)
+  assert.equal(failed.phase, 'start')
+  assert.equal(failed.error, startError)
+  assert.equal(failed.cleanupComplete, false)
+  assert.equal(failed.cleanupError, cleanupError)
+
+  const refused = [ observe(lifecycle.start()), observe(lifecycle.restart()) ]
+  await flush()
+  for (const command of refused) {
+    assert.equal(errorName(command.error), 'LifecycleUnsafeStateError')
+  }
+  assert.equal(calls, 1, 'a refused command changes nothing')
+
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(calls, 2)
+  assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })
 })

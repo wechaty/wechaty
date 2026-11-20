@@ -78,3 +78,24 @@ contract('C-SHELL-02.c', 'the caller-API members of an AsyncLifecycle instance a
   await plain.stop()
   assert.equal(plain.state.kind, 'stopped')
 })
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-SHELL-02.d', 'overriding any caller-API member with a method or accessor fails construction with LifecycleOverrideError', {}, async ({ impl, shell }) => {
+  if (shell !== 'AsyncLifecycle') {
+    return
+  }
+  const Base = impl.base
+  const overrides: Record<string, new () => unknown> = {
+    stop: class extends Base { constructor () { super() } protected onStart (): void {} override stop (): Promise<void> { return Promise.resolve() } },
+    restart: class extends Base { constructor () { super() } protected onStart (): void {} override restart (): Promise<void> { return Promise.resolve() } },
+    whenState: class extends Base { constructor () { super() } protected onStart (): void {} override whenState (): never { throw new Error('unused') } },
+    state: class extends Base { constructor () { super() } protected onStart (): void {} override get state (): never { throw new Error('unused') } },
+    [String(Symbol.asyncDispose)]: class extends Base { constructor () { super() } protected onStart (): void {} override [Symbol.asyncDispose] (): Promise<void> { return Promise.resolve() } },
+  }
+  for (const [ member, Override ] of Object.entries(overrides)) {
+    assert.throws(() => new Override(), (error: unknown) => errorName(error) === 'LifecycleOverrideError', member)
+  }
+})

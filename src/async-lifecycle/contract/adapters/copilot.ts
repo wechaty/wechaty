@@ -191,6 +191,16 @@ const copilot: Implementation = {
     'C-TIME-03.h'        : 'D36 divergence: a stop() joining a timed-out pass reports the release that failed in it without retrying it',
     'C-SCOPE-09.c'       : 'B5: the stop() meant to time out rejects at once with the old late-release error, without retrying it',
     'C-SCOPE-09.a': 'B5: a failed late release on a retired scope is never called again; stop() rejects with the old error',
+    'C-REC-05.c': 'conflict with C-REC-03 and C-REC-05: a task calling recover() while a recovery retires joins it as another requester (gets `recovered`, exempt from the join), instead of getting `superseded`',
+    'C-RET-02.e-null': 'B6: a cleanup error rejects stop() but is missing from the failed snapshot\'s cleanupError',
+    'C-RET-02.e-false': 'B6: a cleanup error rejects stop() but is missing from the failed snapshot\'s cleanupError',
+    'C-SCOPE-02.e-release': 'conflict with C-SCOPE-02: fail() on a sealed (retiring) scope still fails the generation, overriding the stop or recovery',
+    'C-SCOPE-02.e-onStart': 'conflict with C-SCOPE-02: fail() on a sealed (retiring) scope still fails the generation, overriding the stop or recovery',
+    'C-SCOPE-02.e-onStop': 'conflict with C-SCOPE-02: fail() on a sealed (retiring) scope still fails the generation, overriding the stop or recovery',
+    'C-SCOPE-10.a-sync': 'B6: a cleanup error rejects stop() but is missing from the failed snapshot\'s cleanupError',
+    'C-SCOPE-10.a-async': 'B6: a cleanup error rejects stop() but is missing from the failed snapshot\'s cleanupError',
+    'C-SCOPE-11.m': 'D31 divergence: a start() queued during an idle late release is refused with LifecycleUnsafeStateError instead of waiting for it (C-SCOPE-11)',
+    'C-TIME-03.i': 'B6: a cleanup error rejects stop() but is missing from the failed snapshot\'s cleanupError',
   },
 }
 

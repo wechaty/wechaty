@@ -212,3 +212,22 @@ contract('C-OBS-03.f', 'an onStart that calls stop() synchronously is superseded
   assert.equal(starts, 1)
   assert.equal(lifecycle.state.kind, 'stopped')
 })
+
+// ---------------------------------------------------------------------------
+// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-OBS-01.b', 'each commit publishes its diagnostics record before calling onStateChange', {}, async ({ make, impl }) => {
+  const order: string[] = []
+  let lifecycle!: Lifecycle
+  const subscriber = () => { order.push(`diagnostic:${lifecycle.state.kind}`) }
+  diagnosticsChannel.subscribe(impl.diagnosticsChannel, subscriber)
+  try {
+    ;({ lifecycle } = make({ onStart () {}, onStateChange (state) { order.push(`observer:${state.kind}`) } }))
+    await lifecycle.start()
+    await lifecycle.stop()
+    assert.deepEqual(order, [ 'starting', 'running', 'stopping', 'stopped' ].flatMap(kind => [ `diagnostic:${kind}`, `observer:${kind}` ]))
+  } finally {
+    diagnosticsChannel.unsubscribe(impl.diagnosticsChannel, subscriber)
+  }
+})

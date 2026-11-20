@@ -180,6 +180,10 @@ const claude: Implementation = {
     'C-TIME-02.b-start'    : 'B7: start() is still pending at the start deadline; it settles only after retirement',
     'C-TIME-02.b-restart'  : 'B7: the start timeout settles only after retirement, so a restart() from the abort listener supersedes it',
     'C-TIME-02.c'          : 'B7: start() is still pending at the start deadline while the hook has not settled',
+    'C-REC-05.b-at-once': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
+    'C-REC-05.b-during-release': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
+    'C-SCOPE-11.m': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SHELL-02.d@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
   },
 }
 
