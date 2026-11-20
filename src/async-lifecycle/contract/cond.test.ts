@@ -201,3 +201,102 @@ contract('C-COND-04.e', 'a caller abort rejects only that wait, with its reason'
   assert.equal(kept.status, 'resolved')
   await shutdown(subject.lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-COND-02.b', 'a wait made while restart() is retiring the old generation binds to the replacement', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  let ready!: LifecycleCondition
+  const subject = make({
+    onStart (scope) { if (scope.generation === 2) { scope.set(ready) } },
+    onStop: () => gate.promise,
+  })
+  ready = subject.condition('ready')
+  await subject.lifecycle.start()
+  const restarted = observe(subject.lifecycle.restart())
+  await flush()
+  assert.equal(subject.lifecycle.state.kind, 'stopping')
+  const waited = observe(ready.wait())
+  gate.resolve()
+  await flush()
+  assert.equal(restarted.status, 'resolved')
+  assert.equal(waited.status, 'resolved')
+  await shutdown(subject.lifecycle)
+})
+
+contract('C-COND-03.a', 'a condition is a level: later waits resolve at once, and clear() blocks them again', {}, async ({ make }) => {
+  let saved: LifecycleScope | undefined
+  const subject = make({ onStart (scope) { saved = scope } })
+  const ready = subject.condition('ready')
+  await subject.lifecycle.start()
+  saved!.set(ready)
+  const now = observe(ready.wait())
+  await flush()
+  assert.equal(now.status, 'resolved')
+
+  saved!.clear(ready)
+  const blocked = observe(ready.wait())
+  await flush()
+  assert.equal(blocked.status, 'pending')
+  saved!.set(ready)
+  await flush()
+  assert.equal(blocked.status, 'resolved')
+  await shutdown(subject.lifecycle)
+})
+
+contract('C-COND-04.f', 'waits bound to a starting generation reject when restart() supersedes it and its cleanup fails', {}, async ({ make }) => {
+  const releaseError = new Error('release')
+  const gate = Promise.withResolvers<void>()
+  const subject = make({
+    async onStart (scope) {
+      scope.defer(() => { if (scope.generation === 1) { throw releaseError } })
+      await gate.promise
+    },
+  })
+  const ready = observe(subject.condition('ready').wait())
+  const started = observe(subject.lifecycle.start())
+  await flush()
+  const restarted = observe(subject.lifecycle.restart())
+  gate.resolve()
+  await flush()
+  assert.equal(restarted.error, releaseError)
+  assert.equal(errorName(started.error), 'LifecycleSupersededError')
+  assert.equal(ready.status, 'rejected')
+})
+
+contract('C-COND-04.g', 'a run failure rejects its waits with LifecycleSupersededError, cause = the failure (D28)', {}, async ({ make }) => {
+  const crash = new Error('crash')
+  let saved: LifecycleScope | undefined
+  const subject = make({ onStart (scope) { saved = scope } })
+  await subject.lifecycle.start()
+  const waited = observe(subject.condition('ready').wait())
+  saved!.fail(crash)
+  await flush()
+  assert.equal(errorName(waited.error), 'LifecycleSupersededError')
+  assert.equal((waited.error as Error).cause, crash)
+})
+
+contract('C-COND-05.b', 'a retiring scope (in onStop) and a stale scope cannot set conditions', {}, async ({ make }) => {
+  let saved: LifecycleScope | undefined
+  let ready!: LifecycleCondition
+  const subject = make({
+    onStart (scope) { saved = scope },
+    onStop () { saved!.set(ready) },
+  })
+  ready = subject.condition('ready')
+  await subject.lifecycle.start()
+  const first = observe(ready.wait())
+  await subject.lifecycle.restart()
+  await flush()
+  assert.equal(first.status, 'rejected', 'a wait bound to a retired generation rejects')
+
+  const stale = saved!
+  await subject.lifecycle.restart()
+  stale.set(ready)
+  const waited = observe(ready.wait())
+  await flush()
+  assert.equal(waited.status, 'pending')
+  await shutdown(subject.lifecycle)
+})

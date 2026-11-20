@@ -44,6 +44,7 @@ import type {
 }                           from '../../types.ts'
 import type {
   Implementation,
+  LifecycleBase,
   MakeSubject,
   Subject,
 }                           from '../subject.ts'
@@ -124,10 +125,14 @@ const copilot: Implementation = {
   name         : 'copilot',
   capabilities : new Set([ 'clock', 'scope.acquire', 'acquire.interrupt', 'scope.recover', 'onStop.context', 'condition.isSet' ]),
   shells       : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
+  base               : AsyncLifecycle as unknown as LifecycleBase,
+  diagnosticsChannel : 'wechaty.async-lifecycle',
   knownFailures: {
     'B1'         : 'start() rejects before `failed` is committed, and stop() then resolves on a lifecycle that ends `failed` (#2968 §5)',
     'C-CMD-09.a'  : 'B1: stop() on a clean failure leaves the state `failed` instead of committing `stopped`',
     'C-COND-02.a' : 'B4: a wait created right after stop() is satisfied by the retiring generation',
+    'C-COND-04.g': 'D28 divergence: a run failure rejects its condition waits with the failure itself, not LifecycleSupersededError',
+    'C-COND-04.f': 'divergence: a restart() whose retirement leaves debt rejects with LifecycleUnsafeStateError (cause = the cleanup error), not the cleanup error itself (C-RET-06)',
     'C-COND-04.a' : 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
     'C-COND-04.b1': 'divergence: stop() rejects pre-start waits asynchronously, so a caller abort in the same tick replaces the rejection',
     'C-COND-04.b2': 'B8: a start() then stop() in the same tick still runs onStart, so pre-start waits resolve instead of rejecting',
@@ -136,7 +141,14 @@ const copilot: Implementation = {
     'C-TIME-02.a-success': 'B1: a stop() accepted while the timed-out generation retires leaves the state `failed`, not `stopped`',
     'C-TIME-02.c'        : 'B1: a stop() accepted while the timed-out generation retires leaves the state `failed`, not `stopped`',
     'C-TIME-03.b'        : 'B6: an onStop rejection after the stop deadline rejects the joining stop() but is missing from the snapshot\'s cleanupError',
+    'C-OBS-04.a'         : 'divergence: diagnostics records use a versioned shape (version, instanceId, service, revision, timestamps) instead of { name, previous, state } (C-OBS-04)',
+    'C-OBS-01.a'         : 'B1: a stop() from the failed observer resolves while the state is still `failed`',
+    'C-REC-04.b'         : 'conflict with C-REC-03 as accepted (pending D37): a start() during the recovery\'s retirement supersedes the recovery instead of joining its replacement',
+    'C-RET-02.d'         : 'B6: a cleanup error of undefined (onStop threw undefined) is missing from the failed snapshot\'s cleanupError',
+    'C-RET-06.a'         : 'divergence: a restart() whose retirement leaves debt rejects with LifecycleUnsafeStateError (cause = the cleanup error), not the cleanup error itself (C-RET-06)',
+    'C-CMD-10.a'         : 'B6: a failed release rejects stop() but is missing from the failed snapshot\'s cleanupError',
     'C-SCOPE-08.a': 'B5: a failed late release on a retired scope is never called again; stop() rejects with the old error',
+    'C-SCOPE-09.b': 'B5: the retry stop() rejects at once with the old late-release error instead of retrying the release',
     'C-SCOPE-09.a': 'B5: a failed late release on a retired scope is never called again; stop() rejects with the old error',
   },
 }

@@ -27,7 +27,7 @@
  * lifecycle implementation, so it also serves the final kernel (S4).
  */
 
-import type { LifecycleClock } from '../types.ts'
+import type { LifecycleClock, LifecycleState } from '../types.ts'
 
 /**
  * Let pending promise chains run by yielding to the microtask queue `turns`
@@ -161,6 +161,26 @@ function errorName (error: unknown): string | undefined {
 }
 
 /**
+ * Record committed snapshots as `kind:generation`, for asserting a transition
+ * trace. Pass `onStateChange` as the hook.
+ */
+function stateTrace (): { readonly kinds: string[], onStateChange (state: LifecycleState): void } {
+  const kinds: string[] = []
+  return {
+    kinds,
+    onStateChange: state => { kinds.push(`${state.kind}:${state.generation}`) },
+  }
+}
+
+/** Assert that `state` is `failed` and return it narrowed. */
+function failedState (state: LifecycleState): Extract<LifecycleState, { kind: 'failed' }> {
+  if (state.kind !== 'failed') {
+    throw new Error(`expected a failed state, got ${state.kind}:${state.generation}`)
+  }
+  return state
+}
+
+/**
  * Stop `lifecycle` at the end of a test without risking a hang: observe the
  * stop, flush, and return the outcome. A stop that does not settle is left
  * pending rather than awaited.
@@ -177,8 +197,10 @@ export type {
 export {
   errorName,
   expectFailure,
+  failedState,
   flush,
   ManualClock,
   observe,
   shutdown,
+  stateTrace,
 }

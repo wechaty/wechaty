@@ -67,10 +67,21 @@ interface Subject {
 /** Create a subject from hooks and options written against the final API. */
 type MakeSubject = (hooks: LifecycleHooks, options?: LifecycleOptions) => Subject
 
+/**
+ * The implementation's own `AsyncLifecycle` base class, for tests of the
+ * inheritance entry point itself (C-SHELL-02). Typed loosely: each comparison
+ * implementation declares its constructor and hooks with its own types.
+ */
+type LifecycleBase = abstract new (options?: LifecycleOptions) => Lifecycle
+
 /** One implementation under test. */
 interface Implementation {
   readonly name: string
   readonly capabilities: ReadonlySet<Capability>
+  /** Its `AsyncLifecycle` class, used directly only by entry-point tests. */
+  readonly base: LifecycleBase
+  /** The `node:diagnostics_channel` name it publishes state changes on (C-OBS-04). */
+  readonly diagnosticsChannel: string
   readonly shells: Readonly<Record<ShellName, MakeSubject>>
   /**
    * Contract tests this implementation is known to fail, keyed by test key
@@ -96,6 +107,7 @@ class UnsupportedFeatureError extends Error {
 export type {
   Capability,
   Implementation,
+  LifecycleBase,
   MakeSubject,
   ShellName,
   Subject,

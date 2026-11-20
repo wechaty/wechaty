@@ -69,6 +69,10 @@ const SHELLS: readonly ShellName[] = [ 'createLifecycle', 'AsyncLifecycle' ]
 interface ContractContext {
   /** Create a subject on the implementation and entry point under test. */
   readonly make: MakeSubject
+  /** Both entry points of the implementation under test, for tests that mix them. */
+  readonly shells: Readonly<Record<ShellName, MakeSubject>>
+  /** The implementation under test, for entry-point and diagnostics tests. */
+  readonly impl: Implementation
   readonly implementation: string
   readonly shell: ShellName
 }
@@ -95,7 +99,13 @@ function contract (
   for (const implementation of IMPLEMENTATIONS) {
     for (const shell of SHELLS) {
       const name = `${key} ${title} [${implementation.name}/${shell}]`
-      const context: ContractContext = { make: implementation.shells[shell], implementation: implementation.name, shell }
+      const context: ContractContext = {
+        make           : implementation.shells[shell],
+        shells         : implementation.shells,
+        impl           : implementation,
+        implementation : implementation.name,
+        shell,
+      }
 
       const missing = (options.needs ?? []).filter(capability => !implementation.capabilities.has(capability))
       if (missing.length > 0) {

@@ -53,6 +53,7 @@ import type {
 import {
   UnsupportedFeatureError,
   type Implementation,
+  type LifecycleBase,
   type MakeSubject,
   type Subject,
 }                           from '../subject.ts'
@@ -162,10 +163,17 @@ const codex: Implementation = {
   name         : NAME,
   capabilities : new Set(),
   shells       : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
+  base               : AsyncLifecycle as unknown as LifecycleBase,
+  diagnosticsChannel : 'wechaty.async_lifecycle',
   knownFailures: {
     'B3'         : 'onStop runs for a run that never reached `running` (#2968 §5)',
+    'C-TIME-01.a' : 'D11 divergence: invalid deadlines (NaN, negative, 0, infinite, above 2^31-1) are accepted instead of throwing RangeError',
+    'C-SCOPE-07.d': 'B9: a task that rejects while its generation retires is swallowed; stop() resolves instead of reporting a cleanup error',
+    'C-RET-03.a'  : 'B3: onStop runs for runs that never reached `running` (a failed start, and a stopped gated start)',
     'C-CMD-11.b'  : 'B3: onStop runs for the starting generation that restart() interrupts',
     'C-COND-01.a' : 'conflict: set() and clear() with a foreign condition are silently ignored instead of throwing TypeError',
+    'C-SHELL-02.a@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
+    'C-COND-04.g': 'D28 divergence: a run failure rejects its condition waits with the failure itself, not LifecycleSupersededError',
     'C-COND-04.a' : 'D28 divergence: a wait on a failed generation rejects with a plain Error, not LifecycleSupersededError',
     'C-SCOPE-07.a': 'conflict: a task failure before `running` is reported with phase `run` instead of `start` (C-STATE-05)',
   },

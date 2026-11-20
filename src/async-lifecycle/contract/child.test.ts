@@ -26,7 +26,7 @@
 import assert from 'node:assert/strict'
 
 import type { LifecycleScope } from '../types.ts'
-import { errorName, flush, observe, shutdown } from './harness.ts'
+import { errorName, failedState, flush, observe, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
 
 contract('C-CHILD-05.a', 'a child that stops without the parent asking fails the parent generation, phase `run`', {}, async ({ make }) => {
@@ -151,4 +151,112 @@ contract('C-CHILD-04.a', 'three nested levels start top-down and release bottom-
   for (const lifecycle of [ wechaty, puppet, provider ]) {
     assert.equal(lifecycle.state.kind, 'stopped')
   }
+})
+
+// ---------------------------------------------------------------------------
+// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// ---------------------------------------------------------------------------
+
+contract('C-CHILD-01.a', 'scope.start() refuses a child that is already running, with LifecycleUnsafeStateError', {}, async ({ make }) => {
+  const child = make({ onStart () {} }).lifecycle
+  await child.start()
+  const { lifecycle } = make({ onStart: scope => scope.start(child) })
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.equal(errorName(started.error), 'LifecycleUnsafeStateError')
+  assert.equal(child.state.kind, 'running', 'a refused claim leaves the child untouched')
+  await shutdown(child)
+})
+
+contract('C-CHILD-01.b', 'two parents cannot own the same child', {}, async ({ make }) => {
+  const gate = Promise.withResolvers<void>()
+  const child = make({ onStart: () => gate.promise }).lifecycle
+  const a = make({ onStart: scope => scope.start(child) }).lifecycle
+  const b = make({ onStart: scope => scope.start(child) }).lifecycle
+  const startA = observe(a.start())
+  await flush()
+  const startB = observe(b.start())
+  await flush()
+  assert.equal(errorName(startB.error), 'LifecycleUnsafeStateError')
+  gate.resolve()
+  await flush()
+  assert.equal(startA.status, 'resolved')
+  await shutdown(a)
+})
+
+contract('C-CHILD-02.b', 'a child whose stop failed stays owned until its owner\'s retry succeeds', {}, async ({ make }) => {
+  let fails = 1
+  const child = make({ onStart: scope => scope.defer(() => { if (fails-- > 0) { throw new Error('child release') } }) }).lifecycle
+  const a = make({ onStart: scope => scope.start(child) }).lifecycle
+  const b = make({ onStart: scope => scope.start(child) }).lifecycle
+  await a.start()
+  const first = observe(a.stop())
+  await flush()
+  assert.equal(first.status, 'rejected')
+  await child.stop() // repaired directly
+  assert.equal(child.state.kind, 'stopped')
+  const refused = observe(b.start())
+  await flush()
+  assert.equal(errorName(refused.error), 'LifecycleUnsafeStateError', 'still owned by the first parent')
+
+  const retried = observe(a.stop())
+  await flush()
+  assert.equal(retried.status, 'resolved')
+  const claimed = observe(b.start())
+  await flush()
+  assert.equal(claimed.status, 'resolved')
+  assert.equal(child.state.kind, 'running')
+  await shutdown(b)
+})
+
+contract('C-CHILD-04.b', 'three nested levels mixing both entry points start top-down and retire with onStop top-down, children last', {}, async ({ make, shells }) => {
+  // The root uses the entry point under test, so both a composed and an
+  // inherited root are covered, each with descendants built the other ways.
+  const log: string[] = []
+  const leaf = shells.createLifecycle({ onStart () { log.push('leaf+') }, onStop () { log.push('leaf-') } }).lifecycle
+  const middle = shells.AsyncLifecycle({
+    async onStart (scope) { log.push('middle+'); await scope.start(leaf) },
+    onStop () { log.push('middle-') },
+  }).lifecycle
+  const root = make({
+    async onStart (scope) { log.push('root+'); await scope.start(middle) },
+    onStop () { log.push('root-') },
+  }).lifecycle
+  await root.start()
+  const stopped = observe(root.stop())
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.deepEqual(log, [ 'root+', 'middle+', 'leaf+', 'root-', 'middle-', 'leaf-' ])
+  assert.equal(leaf.state.kind, 'stopped')
+  assert.equal(middle.state.kind, 'stopped')
+})
+
+contract('C-CHILD-05.c', 'escalation waits for the child to commit failed: the parent stays running while the child retires', {}, async ({ make }) => {
+  const exit = new Error('child exit')
+  const gate = Promise.withResolvers<void>()
+  let childScope: LifecycleScope | undefined
+  const child = make({ onStart (scope) { childScope = scope }, onStop: () => gate.promise }).lifecycle
+  const { lifecycle } = make({ onStart: scope => scope.start(child) })
+  await lifecycle.start()
+  childScope!.fail(exit)
+  await flush()
+  assert.equal(lifecycle.state.kind, 'running', 'the child has not committed failed yet')
+  gate.resolve()
+  await flush()
+  const state = failedState(lifecycle.state)
+  assert.equal(state.phase, 'run')
+  assert.equal((state.error as Error).cause, exit)
+})
+
+contract('C-CHILD-05.d', 'a child that recovers itself does not fail its parent', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  let childScope: LifecycleScope | undefined
+  const child = make({ onStart (scope) { childScope = scope } }).lifecycle
+  const { lifecycle } = make({ onStart: scope => scope.start(child) })
+  await lifecycle.start()
+  const recovered = observe(childScope!.recover())
+  await flush()
+  assert.equal(recovered.value, 'recovered')
+  assert.deepEqual(child.state, { kind: 'running', generation: 2 })
+  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 1 })
+  await shutdown(lifecycle)
 })
