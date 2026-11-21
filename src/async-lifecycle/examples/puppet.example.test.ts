@@ -133,6 +133,20 @@ test('send() is an operation of the run: refused before start, waited for by sto
   await assert.rejects(puppet.send('room', 'late'), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
 })
 
+test('a send during the provider\'s startup is refused, so a stop() while starting never stops the provider under it', async () => {
+  const puppet = new ScriptedPuppet()
+  const starting = Promise.withResolvers<void>()
+  puppet.startHook = () => starting.promise
+  puppet.stopHook = async () => starting.resolve()
+  const started = observe(puppet.start())
+  await flush()
+  assert.equal(puppet.state.kind, 'starting')
+  await assert.rejects(puppet.send('room', 'too early'), (error: unknown) => errorName(error) === 'LifecycleUnsafeStateError')
+  await puppet.stop()
+  assert.deepEqual(puppet.log, [ 'onStart', 'onStop' ], 'no send ran')
+  assert.equal(errorName(started.error), 'LifecycleSupersededError')
+})
+
 test('a failed send goes to its caller and leaves the puppet running', async () => {
   const puppet = new ScriptedPuppet()
   const refused = new Error('message refused')

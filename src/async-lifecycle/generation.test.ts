@@ -135,3 +135,21 @@ test('a frozen global gets a private ownership registry instead of failing to lo
   assert.ok(registry instanceof WeakSet)
   assert.equal(Object.hasOwn(frozen, OWNED_CHILDREN_KEY), false)
 })
+
+test('a task that ends cleanly drops its join entry, so many short tasks do not grow the ledger (C-COMP-03)', async () => {
+  const generation = new Generation(1)
+  const scope = createScope(generation, host)
+  for (let i = 0; i < 1_000; i++) {
+    scope.spawn(async () => {})
+  }
+  await flush()
+  assert.equal(generation.ledger.clean, true, 'no entry is left for 1,000 finished tasks')
+  const failing = new Error('task failed')
+  scope.spawn(async () => { throw failing })
+  await flush()
+  assert.equal(generation.ledger.clean, false, 'the failed task keeps its entry')
+  generation.sealed = true
+  assert.deepEqual(await generation.ledger.unwind(), [], 'a live failure goes to the host, not the unwind')
+  assert.equal(generation.ledger.clean, true)
+})
+

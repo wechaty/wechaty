@@ -67,9 +67,12 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   readonly #login: LifecycleCondition
   readonly #ready: LifecycleCondition
   /**
-   * The scope of the latest generation, kept for public operations (D24). It
-   * stays set after that generation retires: its sealed scope then refuses new
-   * operations with the retirement reason.
+   * The scope of the latest generation whose provider finished starting, kept
+   * for public operations (D24). Set only once `onStart()` has completed: during
+   * startup a `stop()` takes the early provider-stop path at abort, which does
+   * not wait for operations, so none may run then. It stays set after that
+   * generation retires: its sealed scope then refuses new operations with the
+   * retirement reason.
    */
   #scope: LifecycleScope | undefined
 
@@ -102,18 +105,18 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
    * waits for it before the provider's `onStop()`, and its error goes to this
    * caller without failing the puppet.
    *
-   * @throws LifecycleUnsafeStateError when no generation has started yet; the
-   *   retirement reason when the latest one is retiring or retired.
+   * @throws LifecycleUnsafeStateError when no provider has finished starting
+   *   yet; the retirement reason when the latest started generation is retiring
+   *   or retired (a send during a restart's startup gets this too).
    */
   send (conversationId: string, text: string): Promise<string> {
     if (!this.#scope) {
-      return Promise.reject(new LifecycleUnsafeStateError('the puppet has not started'))
+      return Promise.reject(new LifecycleUnsafeStateError('the puppet has not finished starting'))
     }
     return operation(this.#scope, signal => this.messageSendText(conversationId, text, signal))
   }
 
   async #start (scope: LifecycleScope): Promise<void> {
-    this.#scope = scope
     // At most one onStop() is in flight per generation, shared by the early and
     // the normal path. A new call happens only after a previous one rejected and
     // the ledger saw it. A hung onStop() stays pending past stopTimeoutMs, so a
@@ -174,6 +177,8 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
 
     await this.onStart()
     started = true
+    // Operations only from here on; see #scope.
+    this.#scope = scope
   }
 
   /** Map a failure to today's `'error'` event. */
