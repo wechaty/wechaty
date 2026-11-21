@@ -58,8 +58,10 @@ contract('B1', 'stop() after a cleanly failed start commits `stopped`, and the r
   assert.equal(lifecycle.state.kind, 'stopped')
 })
 
-contract('B2', 'a spawned task awaiting its own scope.recover() gets the replacement, without deadlock', { needs: [ 'scope.recover' ] }, async ({ make }) => {
-  // C-REC-05 / D19: the recovery's retirement does not wait for the task that requested it.
+contract('B2', 'a spawned task awaiting its own scope.recover() gets the decision at once, and the replacement runs, without deadlock', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  // C-REC-05 / D42: recover() returns its decision, so the task that requested
+  // the recovery never waits on its own retirement. (Before D42 it awaited the
+  // replacement, which waited for the task: the deadlock B2 recorded.)
   const running = Promise.withResolvers<void>()
   const results: LifecycleRecoverResult[] = []
   let starts = 0
@@ -86,7 +88,7 @@ contract('B2', 'a spawned task awaiting its own scope.recover() gets the replace
     assert.equal(started.status, 'resolved')
     // Copy before asserting: the `finally` below can still push a result, and a
     // failure message prints the array it was given by reference.
-    assert.deepEqual([ ...results ], [ 'recovered' ], `stuck in ${lifecycle.state.kind} with the recovery pending`)
+    assert.deepEqual([ ...results ], [ 'accepted' ], `stuck in ${lifecycle.state.kind} with the recovery pending`)
     assert.equal(starts, 2)
     assert.equal(lifecycle.state.kind, 'running')
   } finally {

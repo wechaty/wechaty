@@ -255,9 +255,8 @@ contract('C-CHILD-05.d', 'a child that recovers itself does not fail its parent'
   const child = make({ onStart (scope) { childScope = scope } }).lifecycle
   const { lifecycle } = make({ onStart: scope => scope.start(child) })
   await lifecycle.start()
-  const recovered = observe(childScope!.recover())
+  assert.equal(childScope!.recover(), 'accepted')
   await flush()
-  assert.equal(recovered.value, 'recovered')
   assert.deepEqual(child.state, { kind: 'running', generation: 2 })
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 1 })
   await shutdown(lifecycle)
@@ -369,7 +368,7 @@ for (const part of [ 'escalate', 'stop' ] as const) {
     : 'after a child\'s failed recovery fails its parent, the parent\'s retirement stops the cleanly failed child (C-CMD-09)'
   contract(`C-CHILD-05.f-${part}`, title, { needs: [ 'scope.recover' ] }, async ({ make }) => {
     // Split so each implementation's known failure covers only its own part:
-    // what recover() returns is C-REC-06.a, and the parent's error type is
+    // the recovery's own outcome is C-REC-06.a, and the parent's error type is
     // checked by C-CHILD-05.g.
     const boom = new Error('replacement failed')
     let childScope: LifecycleScope | undefined
@@ -386,11 +385,11 @@ for (const part of [ 'escalate', 'stop' ] as const) {
     }).lifecycle
     const parent = make({ async onStart (scope) { await scope.start(child) } }).lifecycle
     await parent.start()
-    observe(childScope!.recover())
+    childScope!.recover()
     await flush()
     assert.deepEqual(parent.state, { kind: 'running', generation: 1 }, 'a successful recovery is not escalated')
 
-    observe(childScope!.recover())
+    childScope!.recover()
     await flush()
     assert.ok(childTrace.kinds.includes('failed:3'), 'the child committed its failure')
     if (part === 'escalate') {

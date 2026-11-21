@@ -81,8 +81,9 @@ export class Io extends AsyncLifecycle {
 
     const onClose = () => {
       this.#failures++
-      // Never rejects (D10). A stale scope gets 'superseded' and does nothing.
-      void scope.recover(new Error('socket closed'))
+      // Decides at once and never throws (D42). A stale scope gets
+      // 'superseded' and does nothing; the new run is published as state.
+      scope.recover(new Error('socket closed'))
     }
     socket.on('close', onClose)
     scope.defer(() => socket.off('close', onClose))

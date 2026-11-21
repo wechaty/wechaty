@@ -26,6 +26,10 @@
  * - `scope.start(child)` resolves with the child; S1 resolves with nothing.
  * - The scope's extra `listen` member and `spawn` options are not exposed.
  *
+ * Forwarded unchanged although it differs from S1: `scope.recover()` returns a
+ * promise of the replacement's outcome, where S1 returns its decision
+ * synchronously (D42). Only the type is cast.
+ *
  * It supports every capability.
  */
 
@@ -39,6 +43,7 @@ import type {
   LifecycleCondition,
   LifecycleHooks,
   LifecycleOptions,
+  LifecycleRecoverResult,
   LifecycleScope,
   LifecycleState,
 }                           from '../../types.ts'
@@ -68,7 +73,8 @@ function adaptScope (scope: Copilot.LifecycleScope): LifecycleScope {
     set     : condition => scope.set(condition as Copilot.LifecycleCondition),
     clear   : condition => scope.clear(condition as Copilot.LifecycleCondition),
     fail    : error => scope.fail(error),
-    recover : reason => scope.recover(reason),
+    // Not translated: the promise is a D42 divergence the suite must see.
+    recover : reason => scope.recover(reason) as unknown as LifecycleRecoverResult,
   })
 }
 
@@ -148,7 +154,7 @@ const copilot: Implementation = {
     'C-TIME-03.b'        : 'B6: an onStop rejection after the stop deadline rejects the joining stop() but is missing from the snapshot\'s cleanupError',
     'C-OBS-04.a'         : 'divergence: diagnostics records use a versioned shape (version, instanceId, service, revision, timestamps) instead of { name, previous, state } (C-OBS-04)',
     'C-OBS-01.a'         : 'B1: a stop() from the failed observer resolves while the state is still `failed`',
-    'C-REC-04.b'         : 'conflict with C-REC-03 (D37): a start() during the recovery\'s retirement supersedes the recovery instead of joining its replacement',
+    'C-REC-04.b'         : 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-RET-02.d'         : 'B6: a cleanup error of undefined (onStop threw undefined) is missing from the failed snapshot\'s cleanupError',
     'C-RET-06.a'         : 'divergence: a restart() whose retirement leaves debt rejects with LifecycleUnsafeStateError (cause = the cleanup error), not the cleanup error itself (C-RET-06)',
     'C-CMD-10.a'         : 'B6: a failed release rejects stop() but is missing from the failed snapshot\'s cleanupError',
@@ -254,6 +260,27 @@ const copilot: Implementation = {
     'C-SCOPE-11.zj-rejects': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zl': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zm': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    '2905-B-recover': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'B2': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-CHILD-05.d': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-02.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-02.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.c': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.d': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.e': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.c': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.d': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.e': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-05.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-05.b-at-once': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-05.b-during-release': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-06.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-RET-02.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    // Only this shell: through AsyncLifecycle the task is joined (checked under Node.js and Deno).
+    'C-REC-05.e@createLifecycle': 'D42 divergence: the task that called recover() is exempt from the join (D19, AsyncLocalStorage), so the retirement does not wait for it to return',
   },
 }
 

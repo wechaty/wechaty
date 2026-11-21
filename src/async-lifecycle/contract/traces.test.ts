@@ -134,9 +134,9 @@ for (const supervisor of [ 'recover', 'restart' ] as const) {
     await flush()
     assert.equal(started.status, 'resolved')
 
-    const reset = supervisor === 'recover'
-      ? observe<LifecycleRecoverResult | void>(scope!.recover(new Error('watchdog')))
-      : observe<LifecycleRecoverResult | void>(lifecycle.restart())
+    // recover() returns its decision at once (D42); restart() settles later.
+    const recovered: LifecycleRecoverResult | undefined = supervisor === 'recover' ? scope!.recover(new Error('watchdog')) : undefined
+    const restarted = supervisor === 'restart' ? observe(lifecycle.restart()) : undefined
     await flush()
     const stopped = observe(lifecycle.stop())
     await flush()
@@ -150,9 +150,9 @@ for (const supervisor of [ 'recover', 'restart' ] as const) {
     await flush()
     assert.equal(stopped.status, 'resolved')
     if (supervisor === 'recover') {
-      assert.equal(reset.value, 'superseded')
+      assert.equal(recovered, 'accepted', 'accepted, then superseded by the stop() (C-REC-04)')
     } else {
-      assert.equal(errorName(reset.error), 'LifecycleSupersededError')
+      assert.equal(errorName(restarted!.error), 'LifecycleSupersededError')
     }
     assert.deepEqual(trace, [ 'onStart>', 'onStart<', 'onStop>', 'onStop<' ], 'the service is not started again')
     assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })

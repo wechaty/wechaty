@@ -98,9 +98,11 @@ const TIMEOUT = Symbol('timeout')
 /**
  * One start request shared by every equivalent caller.
  *
- * `user` attempts come from `start()` / `restart()` and reject on supersession;
- * `recover` attempts come from `scope.recover()` and resolve `'superseded'`
- * instead. Settlement is idempotent: the first outcome wins, and an outcome
+ * `user` attempts come from `start()` / `restart()` and reject on supersession.
+ * `recover` attempts come from an accepted `scope.recover()`, which already
+ * returned (D42); only a `start()` that joined the replacement waits on one,
+ * and it maps the recovery's `'superseded'` to `LifecycleSupersededError`.
+ * Settlement is idempotent: the first outcome wins, and an outcome
  * fixed by {@link Attempt.decide} wins over anything that would come later.
  */
 class Attempt {
@@ -111,7 +113,7 @@ class Attempt {
   #settled = false
   /** The failure fixed by {@link Attempt.decide}, delivered by {@link Attempt.fail}. */
   #decided: { readonly error: unknown } | undefined = undefined
-  readonly #deferred = Promise.withResolvers<LifecycleRecoverResult | undefined>()
+  readonly #deferred = Promise.withResolvers<'superseded' | undefined>()
 
   constructor (kind: 'user' | 'recover') {
     this.kind = kind
@@ -121,7 +123,7 @@ class Attempt {
   }
 
   /** The shared outcome; each caller gets its own view of it (C-CMD-03). */
-  get promise (): Promise<LifecycleRecoverResult | undefined> {
+  get promise (): Promise<'superseded' | undefined> {
     return this.#deferred.promise
   }
 
@@ -141,16 +143,17 @@ class Attempt {
     this.#decided = { error }
   }
 
-  /** The generation committed `running`: callers resolve, a recovery reports `'recovered'`. */
+  /** The generation committed `running`: callers resolve. */
   succeed (): void {
     if (this.#settled || this.#decided) { return }
     this.#settled = true
-    this.#deferred.resolve(this.kind === 'recover' ? 'recovered' : undefined)
+    this.#deferred.resolve(undefined)
   }
 
   /**
    * A newer command won (C-CMD-07): user callers reject with
-   * `LifecycleSupersededError`, a recovery resolves `'superseded'`.
+   * `LifecycleSupersededError`; a recovery resolves `'superseded'`, which a
+   * `start()` that joined it turns into that error.
    */
   supersede (): void {
     if (this.#settled || this.#decided) { return }
@@ -626,19 +629,24 @@ class LifecycleEngine {
     this.#schedule()
   }
 
-  #recover (generation: Generation, reason: unknown): Promise<LifecycleRecoverResult> {
+  /**
+   * `scope.recover()`: decide at once and return the decision; never throws
+   * (C-REC-03, D42). How the recovery ends is published as state, not returned,
+   * so a task that calls this never waits on its own retirement (C-REC-05).
+   */
+  #recover (generation: Generation, reason: unknown): LifecycleRecoverResult {
     if (generation !== this.#current || generation.sealed) {
-      return Promise.resolve('superseded')
+      return 'superseded'
     }
     if (!generation.reachedRunning) {
       this.#fail(generation, reason) // a first boot fails fast
-      return Promise.reject(reason)
+      return 'failed'
     }
     // Running and unsealed means no start attempt is pending.
-    const attempt = this.#pending = new Attempt('recover')
+    this.#pending = new Attempt('recover')
     this.#requestRetire(generation, 'recover')
     this.#schedule()
-    return attempt.promise as Promise<LifecycleRecoverResult>
+    return 'accepted'
   }
 
   /**
