@@ -37,12 +37,12 @@ jobs:
         github.event.review.author_association == 'MEMBER' ||
         github.event.review.author_association == 'COLLABORATOR') &&
        (github.event.review.body == '@claude' || startsWith(github.event.review.body, '@claude ') || startsWith(github.event.review.body, format('@claude{0}', fromJSON('"\n"'))) || startsWith(github.event.review.body, format('@claude{0}', fromJSON('"\r\n"')))))
-    # Serialize human tasks and automatic reviews for the same issue/PR.
+    # Serialize human-directed tasks for the same issue/PR.
     # GitHub queue:max holds up to 100 pending jobs; overflow is canceled.
     # Anthropic tag mode may reject a queued command if a preceding job
     # pushed after that command's timestamp. Retry with a NEW @claude comment.
     concurrency:
-      group: claude-agent-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
+      group: claude-interactive-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
       queue: max
       cancel-in-progress: false
     runs-on: ubuntu-latest
@@ -144,11 +144,11 @@ jobs:
        contains(fromJSON('["Claude","Codex","claude[bot]","chatgpt-codex-connector[bot]","Copilot","copilot-pull-request-reviewer[bot]","copilot-swe-agent[bot]","gemini-code-assist[bot]"]'), github.event.sender.login)) &&
       github.actor != 'dependabot[bot]' &&
       github.event.pull_request.user.login != 'dependabot[bot]'
-    # Share the same PR lock with interactive coding. A queued review may
-    # become stale if the branch changes; it must not be treated as current.
+    # Serialize reviews per PR independently of human-directed tasks.
+    # Preserve the running review, replacing obsolete pending reviews.
     concurrency:
-      group: claude-agent-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
-      queue: max
+      group: claude-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+      queue: single
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 50
