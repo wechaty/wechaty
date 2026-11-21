@@ -178,6 +178,12 @@ export class Io extends AsyncLifecycle {
    * instance comes to rest (`stopped` or `failed`, see `onStateChange`), so a
    * `stop()` that supersedes the recovery, even before its run starts, leaves
    * the next `start()` a single attempt.
+   *
+   * Known gap: a `restart()` that supersedes the recovery before its run starts
+   * goes `stopping` → `starting` without coming to rest, and the Io cannot
+   * tell that run from the recovery (its reason stays `'recover'`), so that
+   * run retries too. The window is the few microtasks between the close event
+   * and the replacement run's `onStart`.
    */
   #reconnecting = false
   /** Remove the message listener of each socket, set by `openWebSocket`. */
@@ -290,10 +296,18 @@ export class Io extends AsyncLifecycle {
     }
   }
 
-  /** At rest (`stopped` or `failed`) no recovery is pending any more. */
+  /**
+   * At rest (`stopped` or `failed`) no recovery is pending any more, and
+   * nothing buffered belongs to the next `start()`. `onStop` alone cannot drop
+   * the buffer: it does not run for a replacement run that never reached
+   * `running` (a `stop()` while reconnecting), and the bot's listeners, released
+   * after the socket, can still buffer events while the socket closes. A
+   * recovery never passes through either state, so it keeps the buffer.
+   */
   protected override onStateChange (state: LifecycleState): void {
     if (state.kind === 'stopped' || state.kind === 'failed') {
       this.#reconnecting = false
+      this.eventBuffer = []
     }
   }
 
@@ -460,6 +474,10 @@ export class Io extends AsyncLifecycle {
     }
   }
 
+  /**
+   * Announce the bot on a socket that just connected with a `sys` event. A
+   * protocol mismatch is only logged.
+   */
   private wsOnOpen (ws: IoWebSocket): void {
     if (this.protocol !== ws.protocol) {
       log.error('Io', 'wsOnOpen() require protocol[%s] failed', this.protocol)
@@ -477,11 +495,23 @@ export class Io extends AsyncLifecycle {
     this.send(initEvent).catch(console.error)
   }
 
+  /** Dispatch a frame from the server; a failure is printed, never thrown. */
   private wsOnMessage (data: WebSocket.Data): void {
     log.silly('Io', 'wsOnMessage() ws.on(message): %s', data)
     this.wsOnMessageAsync(data).catch(console.error)
   }
 
+  /**
+   * Handle one server event, parsed from a JSON frame (a frame that is not
+   * JSON is treated as a `raw` event):
+   * - `botie`: installs server-provided code as `onMessage`;
+   * - `reset`: reports an error to the bot and resets it;
+   * - `shutdown`: exits the process;
+   * - `update`: sends the current login and scan state;
+   * - `logout`: logs the bot out;
+   * - `jsonrpc`: runs the request against `jsonRpc` and sends the response.
+   * Other names are logged and ignored.
+   */
   private async wsOnMessageAsync (data: WebSocket.Data): Promise<void> {
     log.silly('Io', 'wsOnMessageAsync() ws.on(message): %s', data)
 
@@ -622,6 +652,12 @@ export class Io extends AsyncLifecycle {
     }
   }
 
+  /**
+   * Report a socket error on the run's current, open socket to the bot as an
+   * `error` event. Errors while there is no socket, or while it is connecting
+   * or closing, are only logged. A `close` follows the error and recovers the
+   * run, so nothing is retried here.
+   */
   // FIXME: it seems the parameter `e` might be `undefined`.
   // @types/ws might has bug for `ws.on('error',    e => this.wsOnError(e))`
   private wsOnError (e?: Error) {
@@ -704,6 +740,10 @@ export class Io extends AsyncLifecycle {
     }
   }
 
+  /**
+   * Send a message the bot received to the server as a `message` event, with
+   * the puppet's payload. Buffered while not connected.
+   */
   protected async syncMessage (m: MessageInterface): Promise<void> {
     log.silly('Io', 'syncMessage(%s)', m)
 

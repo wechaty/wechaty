@@ -222,3 +222,32 @@ test('an error the socket reports during the closing handshake is not an uncaugh
   assert.doesNotThrow(() => socket.emit('error', new Error('invalid frame')))
   await stopped
 })
+
+test('a stop() while reconnecting drops what the outage buffered, so the next start() does not send it', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  io.delayMs = 60_000
+  await io.start()
+  io.sockets[0]!.drop()
+  await flush()
+  bot.emit('heartbeat', 'during the outage')
+  await io.stop()
+  await io.start()
+  assert.deepEqual(names(io.socket.sent), [ 'sys' ])
+  await io.stop()
+})
+
+test('an event the bot emits while stop() closes the socket is not sent by the next start()', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  io.closeTimeout = 10
+  await io.start()
+  io.socket.closeHangs = true
+  const stopped = io.stop()
+  await flush()
+  bot.emit('heartbeat', 'while closing')
+  await stopped
+  await io.start()
+  assert.deepEqual(names(io.socket.sent), [ 'sys' ])
+  await io.stop()
+})
