@@ -304,10 +304,10 @@ The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues
 | Types | `types.ts` | The public contract. No runtime code |
 | Errors | `errors.ts` | `LifecycleError` and its subclasses, their `code`s, `isLifecycleError` |
 | Engine | `engine.ts` | Intent and attempts, caller waits, generation allocation, the single reconciler, retirement and its deadlines, cleanup debt, late releases (C-SCOPE-11), and the commit that publishes a snapshot. Every rule of §3 to §12 is enforced here |
-| Generation scope | `generation.ts` | One run: its `AbortController`, its ledger, its seal, and the scope object its hooks receive. It never commits state or settles a caller; it asks the engine through a narrow host interface |
-| Ledger | `ledger.ts` | A generation's obligations with per-entry status, released newest first, a failed entry retried, a running one joined. It knows nothing about state |
+| Generation scope | `generation.ts` | One run: its `AbortController`, its ledger, its seal, and the scope object its hooks receive. It never commits state or settles a caller; it asks the engine through a narrow host interface. It also holds the realm's child-ownership registry (C-CHILD-02, D21) |
+| Ledger | `ledger.ts` | A generation's obligations with per-entry status: task joins (interrupt promises included, D38) before everything else, then releases newest first, a failed entry retried, a running one joined. It knows nothing about state |
 | Conditions | `condition.ts` | Declared conditions, waits bound to a generation, and each live generation's set flags |
-| Clock | `clock.ts` | The default `LifecycleClock`: global timers, and `performance.now()` |
+| Clock | `clock.ts` | The default `LifecycleClock` (global timers, and `performance.now()`), and the deadline-length check the engine and the watchdog share (C-TIME-01) |
 | Diagnostics | `diagnostics.ts` | Publishing on `wechaty.async-lifecycle.state`, after commit and only when subscribed |
 | Entry points | `create-lifecycle.ts`, `async-lifecycle.ts` | Delegation to the engine; the class adds only the override guard (C-SHELL-02) |
 | Companions | `companions/` | `listen` and `watchdog` (§15), built only on the public scope |
@@ -316,5 +316,7 @@ The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues
 Rules the engine keeps, from its own header:
 - **Commands only record intent.** `start`, `stop`, `restart`, `fail` and `recover` change intent synchronously. They never commit state and never run hooks.
 - **One writer.** Only the reconciler commits snapshots, one step at a time, so a reentrant command only changes what the next step is.
+- **Attempts drive starting.** A generation starts only for a pending attempt; a failed attempt ends, and nothing retries it.
 - **One retirement path.** Stop, restart, recover, failure and cleanup retry all go through the same retirement, which settles caller waits before observers see the new snapshot.
 - **Cleanup truth.** Completion is read back from the ledgers and the hook promises, never inferred from "no error" or from a deadline.
+- **Deadlines are judged by the clock.** A deadline's timer only wakes the reconciler; every commit of an outcome a deadline bounds first checks `clock.now()` against it (C-TIME-05, D30).

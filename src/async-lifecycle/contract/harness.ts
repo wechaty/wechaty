@@ -72,16 +72,19 @@ class ManualClock implements LifecycleClock {
     return this.#timers.size
   }
 
+  /** The manual time, in milliseconds; moved only by `advance()` and `jump()`. */
   now (): number {
     return this.#now
   }
 
+  /** Arm `callback` to fire once `advance()` reaches `now() + ms`; returns its handle. */
   setTimeout (callback: () => void, ms: number): unknown {
     const id = ++this.#order
     this.#timers.set(id, { at: this.#now + Math.max(0, ms), order: id, callback })
     return id
   }
 
+  /** Disarm the timer `setTimeout()` returned; an unknown handle is ignored. */
   clearTimeout (handle: unknown): void {
     this.#timers.delete(handle as number)
   }

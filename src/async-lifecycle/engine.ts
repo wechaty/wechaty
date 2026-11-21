@@ -464,6 +464,7 @@ class LifecycleEngine {
     return promise
   }
 
+  /** `stop()`, for `await using` (C-CMD-15, D4). */
   [Symbol.asyncDispose] (): Promise<void> {
     return this.stop()
   }
