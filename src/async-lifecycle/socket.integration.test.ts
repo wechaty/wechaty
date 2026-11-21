@@ -89,7 +89,9 @@ for (const [ name, create ] of entryPoints) {
     const trace: string[] = []
     const service = create({
       async onStart (scope) {
-        // Registered first, so released last (the source's adopt(), D6).
+        // Releases run in reverse registration order, so this first defer() is
+        // released last. The Codex original used scope.adopt(socket, dispose)
+        // for this slot; S1 has no adopt() (D6).
         scope.defer(() => {
           trace.push('dispose socket')
           socket.destroy()
