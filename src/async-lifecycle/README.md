@@ -68,6 +68,7 @@ stateDiagram-v2
   failed --> stopped: stop, if cleanupComplete
   stopped --> stopping: a late release starts (C-SCOPE-11)
   failed --> stopping: a late release starts on a clean failure (C-SCOPE-11)
+  failed --> failed: late releases left by a failure's retirement end (C-SCOPE-11)
 ```
 
 - **C-STATE-01** `state` is a frozen snapshot. Each transition publishes a new object; a snapshot never changes after it is published.
@@ -75,7 +76,7 @@ stateDiagram-v2
 - **C-STATE-03** Every start attempt allocates the next generation number, whether or not it succeeds. Generation numbers never decrease.
 - **C-STATE-04** The only transitions are those in the diagram above.
 - **C-STATE-05** `failed` carries `phase` (`'start'` before the generation committed `running`, `'run'` after, `'stop'` when retirement itself failed), `error` (the primary failure exactly as reported, falsy values included), `cleanupComplete`, and `cleanupError` when cleanup reported errors.
-- **C-STATE-06** `failed { cleanupComplete: false }` means owned work may still be live. It blocks every new generation until a `stop()` finishes the cleanup.
+- **C-STATE-06** `failed { cleanupComplete: false }` means owned work may still be live. It blocks every new generation until a `stop()` finishes the cleanup. One exception: when all that is left after a failure's retirement is late releases still running, the engine publishes the outcome itself once they end (C-SCOPE-11).
 - **C-STATE-07** `stopped` and `failed { cleanupComplete: true }` mean every obligation of every earlier generation was released. A deadline, an abort or a discarded promise never counts as released.
 
 ## 4. Commands
@@ -142,6 +143,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
   - While it runs on an idle instance (`stopped`, or a clean `failed`), the state is `stopping`, and commands follow the `stopping` row of the command table: a `stop()` or `restart()` joins it as a retirement pass under its own stop deadline, which starts at acceptance (C-TIME-03), and a `start()` queues behind it (C-CMD-06). When it succeeds, the instance returns to the idle state it left: `stopped`, or the same clean `failed` (its generation, `phase` and `error`), unless a command accepted meanwhile decides otherwise. Only `stop()` turns a clean `failed` into `stopped` (C-CMD-09). When it fails, the state is `failed { cleanupComplete: false }` with the release error as `cleanupError`: from `stopped` with `phase: 'stop'` and the release error as `error`; from a clean `failed`, that failure's `phase` and `error` are kept, as the first failure wins.
   - If it fails while a generation is `running`, that generation keeps running: a live run is not taken down by an earlier generation's cleanup, and `running` makes no claim about it. Its retirement retries the debt with its own releases (C-SCOPE-09) and reports the error if the retry fails too (C-RET-06), so `stopped` and a new generation still wait until the debt is cleared. The failure produces no commit, so no observer sees it; S4 decides how diagnostics report it.
   - If it fails while a generation is retiring, that retirement reports it as a cleanup error.
+  - A `stop()`, `restart()` or recovery of a live generation waits for late releases that are running, under its stop deadline; one that fails meanwhile is reported, not retried in the same pass (C-CMD-10). A failure's retirement does not wait for them: it commits `failed { cleanupComplete: false }` and, when they end, publishes the outcome itself, the same failure with `cleanupComplete: true`, or still dirty with their error as `cleanupError`. A `stop()`, `start()` or `restart()` accepted while that retirement runs makes it wait for them, so the command gets a real outcome.
 
 ## 7. Retirement
 

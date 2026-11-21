@@ -215,6 +215,13 @@ const claude: Implementation = {
     'C-SCOPE-11.za': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zb': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zc': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.ze-stop': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.ze-start': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.ze-restart': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zf-idle': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zf-live': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zg': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zi': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
   },
 }
 

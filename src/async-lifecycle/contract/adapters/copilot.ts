@@ -240,6 +240,13 @@ const copilot: Implementation = {
     'C-SCOPE-11.zb': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zc': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zd': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.ze-stop': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.ze-start': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.ze-restart': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.zf-idle': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.zf-live': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.zg': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.zh': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
   },
 }
 

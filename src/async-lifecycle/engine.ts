@@ -25,8 +25,8 @@
  * waits on them, generation allocation, the single reconciler, retirement and
  * its deadline, cleanup debt, late releases (obligations of the instance that
  * new runs and `stopped` wait for, C-SCOPE-11), and the commit step that
- * publishes snapshots. The
- * two entry points (`create-lifecycle.ts`, `async-lifecycle.ts`) are thin shells
+ * publishes snapshots. The two entry points (`create-lifecycle.ts`,
+ * `async-lifecycle.ts`) are thin shells
  * over {@link LifecycleEngine}; the per-run scope lives in `generation.ts`, the
  * ownership ledger in `ledger.ts`, conditions in `condition.ts`.
  *
@@ -47,7 +47,10 @@
  * 4. **One retirement path.** Every retirement (stop, restart, recover, failure,
  *    cleanup retry) runs {@link LifecycleEngine.#retire} and ends in
  *    {@link LifecycleEngine.#finishRetirement}, which settles waiters before
- *    observers see the new snapshot.
+ *    observers see the new snapshot. The one later commit for the same run is
+ *    {@link LifecycleEngine.#settleAwaitingLate}: after a failure's retirement
+ *    left only late releases running, it publishes the outcome once they end
+ *    (C-SCOPE-11).
  * 5. **Cleanup truth.** Completion is read back from the ledgers and the hook
  *    promises, never inferred from "no error" or from a deadline.
  */
@@ -867,6 +870,13 @@ class LifecycleEngine {
     // Failures a retry pass already returned; never reported again (C-RET-04).
     const reported = new Set<object>()
     const keep = (work: Promise<unknown[]> | undefined) => { generation.retirement = work }
+    // Failures first seen during this retirement: releases registered on this
+    // run's scope after its unwind, and new debt. Collected once at the end, or
+    // appended to the timed-out work the next stop() joins.
+    const tail = () => [
+      ...generation.ledger.failuresExcept(generation.failedAfterUnwind),
+      ...this.#newDebtFailures(earlierDebt, reported),
+    ]
     const deadline = this.#deadline(this.#stopTimeoutMs, 'stop')
     let errors: unknown[]
     let timedOut: boolean
@@ -879,27 +889,36 @@ class LifecycleEngine {
         },
         keep,
         deadline,
+        tail,
       ))
       // A stop, restart or recovery waits until nothing runs (D31). The check
       // runs in the same turn as the commit below, so a release registered in
       // the microtasks before it is joined too, under the same deadline.
-      const waitsForLate = retry || generation.retireReason !== 'failure'
-      while (!timedOut && waitsForLate && (this.#late.size > 0 || generation.ledger.running)) {
-        const round = await this.#underStopDeadline(undefined, () => this.#joinRunning(generation), keep, deadline)
-        timedOut = round.timedOut
-        if (timedOut) {
-          errors = round.errors
-        }
+      // A failure's retirement does not wait for late releases, unless a
+      // command accepted meanwhile waits on it: its stop() or a queued
+      // replacement must get a real outcome, not "still in progress".
+      // Re-evaluated every round. Releases on this run's own sealed scope are
+      // always joined.
+      const waitsForLate = () => retry || generation.retireReason !== 'failure'
+        || (this.#stopWaiters.get(generation)?.size ?? 0) > 0
+        || (this.#pending !== undefined && !this.#pending.settled && this.#pending !== this.#attemptOf.get(generation))
+      while (!timedOut && ((waitsForLate() && this.#late.size > 0) || generation.ledger.running)) {
+        // The round's work carries the errors so far, so a timeout here keeps
+        // them for the stop() that joins it.
+        const carried = errors
+        const drain = waitsForLate()
+        ;({ errors, timedOut } = await this.#underStopDeadline(undefined, async () => {
+          await this.#joinRunning(generation, drain)
+          return carried
+        }, keep, deadline, tail))
       }
     } finally {
       deadline.cancel()
     }
     if (!timedOut) {
-      // Failures first seen during this retirement are reported, not retried
-      // (C-CMD-10): releases registered on this run's scope after its unwind,
-      // and new debt, even if it appeared while a retry was blocked.
-      errors.push(...generation.ledger.failuresExcept(generation.failedAfterUnwind))
-      errors.push(...this.#newDebtFailures(earlierDebt, reported))
+      // Reported, not retried (C-CMD-10), even if it appeared while a retry
+      // was blocked.
+      errors = [ ...errors, ...tail() ]
     }
     this.#pruneDebtors()
     const released = !timedOut && generation.ledger.clean && generation.startSettled
@@ -923,6 +942,7 @@ class LifecycleEngine {
     pass: (deadlineSignal: AbortSignal) => Promise<unknown[]>,
     keep: (work: Promise<unknown[]> | undefined) => void,
     shared?: Deadline,
+    tail?: () => unknown[],
   ): Promise<{ errors: unknown[], timedOut: boolean }> {
     // A caller running several rounds of one retirement passes its deadline,
     // so they all share it, and cancels it itself.
@@ -936,6 +956,11 @@ class LifecycleEngine {
     try {
       const result = await Promise.race([ work, deadline.expired ])
       if (result === TIMEOUT) {
+        // The work stays tracked; whatever fails before it ends (`tail`) is
+        // part of it, so the stop() that joins it reports and retries it (D36).
+        if (tail) {
+          keep(work.then(errors => [ ...errors, ...tail() ]))
+        }
         return { errors: [ new LifecycleTimeoutError('stop', this.#stopTimeoutMs!) ], timedOut: true }
       }
       keep(undefined)
@@ -953,8 +978,10 @@ class LifecycleEngine {
    * after its unwind) without retrying any failure. Errors are not returned:
    * the caller collects new failures once, at the end, from the ledgers.
    */
-  async #joinRunning (generation: Generation | undefined): Promise<unknown[]> {
-    await this.#drainLate()
+  async #joinRunning (generation: Generation | undefined, drainLate = true): Promise<unknown[]> {
+    if (drainLate) {
+      await this.#drainLate()
+    }
     if (generation?.ledger.running) {
       await generation.ledger.unwind({ retry: new Set() })
     }
@@ -1245,6 +1272,9 @@ class LifecycleEngine {
     let earlierDebt: ReadonlyMap<Generation, ReadonlySet<object>> = new Map()
     const reported = new Set<object>()
     const keep = (work: Promise<unknown[]> | undefined) => { this.#debtRetirement = work }
+    // Debt first seen during this pass: reported once at the end, or appended
+    // to the timed-out work the next stop() joins (D36).
+    const tail = () => this.#newDebtFailures(earlierDebt, reported)
     const deadline = this.#deadline(this.#stopTimeoutMs, 'stop')
     let result: { errors: unknown[], timedOut: boolean }
     try {
@@ -1257,22 +1287,25 @@ class LifecycleEngine {
         },
         keep,
         deadline,
+        tail,
       )
       // Join late releases until none runs, including ones a retry registered;
       // the check runs in the same turn as the commit below (D31).
       while (!result.timedOut && this.#late.size > 0) {
-        const round = await this.#underStopDeadline(undefined, () => this.#joinRunning(undefined), keep, deadline)
-        result = round.timedOut ? round : { errors: result.errors, timedOut: false }
+        // The round carries the errors so far, so a timeout keeps them.
+        const carried = result.errors
+        result = await this.#underStopDeadline(undefined, async () => {
+          await this.#joinRunning(undefined)
+          return carried
+        }, keep, deadline, tail)
       }
     } finally {
       deadline.cancel()
       this.#debtPassActive = false
     }
-    const { errors, timedOut } = result
-    if (!timedOut) {
-      // Debt that appeared during this pass is reported, not retried.
-      errors.push(...this.#newDebtFailures(earlierDebt, reported))
-    }
+    const { timedOut } = result
+    // Debt that appeared during this pass is reported, not retried.
+    const errors = timedOut ? result.errors : [ ...result.errors, ...tail() ]
     const waiters = [ ...this.#idleStopWaiters ]
     this.#idleStopWaiters.clear()
     if (!timedOut && this.#debtors.size === 0 && this.#late.size === 0) {
