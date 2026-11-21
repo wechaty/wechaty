@@ -83,29 +83,19 @@ jobs:
         with:
           deno-version: v2.x
 
-      # Record only a reaction created by this run so cleanup leaves existing reactions alone.
       - name: React to the triggering issue comment 👀
         if: github.event_name == 'issue_comment' && !github.event.issue.pull_request
         id: issue-eyes
         continue-on-error: true
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
-          COMMENT_ID: ${{ github.event.comment.id }}
+          ISSUE_COMMENT_ID: ${{ github.event.comment.id }}
         run: |
           set -euo pipefail
-          response=$(mktemp)
-          trap 'rm -f "$response"' EXIT
-          status=$(curl --fail-with-body --silent --show-error \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            --header 'Accept: application/vnd.github+json' \
-            --header 'Content-Type: application/json' \
-            --data '{"content":"eyes"}' --output "$response" --write-out '%{http_code}' \
-            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions")
-          if [[ "$status" == 201 ]]; then
-            reaction_id=$(jq -er '.id | numbers' "$response")
-            printf 'reaction_id=%s\n' "$reaction_id" >> "$GITHUB_OUTPUT"
-          fi
+          script="$RUNNER_TEMP/claude-issue-eyes.sh"
+          curl -fsSL --retry 3 --output "$script" \
+            "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/.github/scripts/claude-review-eyes.sh"
+          bash "$script" start
 
       # Full execution experiment: do not install/enable the Claude Bash sandbox.
       # GitHub-hosted runners are ephemeral; no repository admin token is granted.
@@ -134,12 +124,9 @@ jobs:
         continue-on-error: true
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
-          COMMENT_ID: ${{ github.event.comment.id }}
+          ISSUE_COMMENT_ID: ${{ github.event.comment.id }}
           REACTION_ID: ${{ steps.issue-eyes.outputs.reaction_id }}
-        run: |
-          gh api --method DELETE \
-            "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions/$REACTION_ID"
+        run: bash "$RUNNER_TEMP/claude-issue-eyes.sh" finish
 
       - name: Report Claude failure
         if: ${{ failure() }}
