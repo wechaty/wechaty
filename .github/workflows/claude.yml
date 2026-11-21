@@ -1,5 +1,7 @@
 name: Claude Agent
 
+# RFC #3001 explains how issue difficulty and PR risk select Claude's effort.
+# https://github.com/wechaty/wechaty/issues/3001
 # Subscription-backed Claude: human-directed coding and automatic PR reviews.
 # Experimental @claude comment trigger; may overlap with native GitHub Claude.
 on:
