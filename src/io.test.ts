@@ -340,3 +340,30 @@ test('an event that arrives as a flush finishes is still sent, whatever the micr
     await io.stop()
   }
 })
+
+test('a first start() whose socket closes as it opens rejects, instead of running on a dead socket', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  io.onOpen = socket => socket.drop()
+  await assert.rejects(io.start(), /websocket closed as it opened/)
+  const settled = await io.whenState(state => state.kind !== 'stopping')
+  assert.equal(settled.kind, 'failed')
+})
+
+test('a recovery whose socket closes as it opens counts a failed attempt and connects again', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot, [ 'open', 'open', 'open' ])
+  await io.start()
+  let drops = 1
+  io.onOpen = socket => {
+    if (drops-- > 0) {
+      socket.drop()
+    }
+  }
+  io.sockets[0]!.drop()
+  await io.whenState(state => state.kind === 'running' && state.generation === 2)
+  assert.equal(io.sockets.length, 3)
+  assert.equal(io.socket.readyState, 1, 'running on an open socket')
+  assert.deepEqual(io.backoffs, [ 1, 2 ])
+  await io.stop()
+})

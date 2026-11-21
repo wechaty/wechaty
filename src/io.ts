@@ -258,7 +258,21 @@ export class Io extends AsyncLifecycle {
 
     this.#unhookWechaty ??= this.hookWechaty()
 
-    const ws = await this.connect(scope, retry)
+    let ws = await this.connect(scope, retry)
+    // `connect()` resolves a few microtasks after `open`, and the socket may
+    // have closed meanwhile: the close handler below would never hear of it,
+    // and the run would sit `running` on a dead socket. Checked in the same
+    // synchronous step as adding the handlers, so nothing can close in
+    // between. A first start fails; a recovery counts a failed attempt.
+    while (ws.readyState !== WebSocket.OPEN) {
+      const error = new Error(`websocket closed as it opened (readyState ${ws.readyState})`)
+      if (!retry) {
+        throw error
+      }
+      this.#failures++
+      log.warn('Io', 'onStart() %s (%d in a row)', error.message, this.#failures)
+      ws = await this.connect(scope, retry)
+    }
     this.ws = ws
 
     // Registered after the socket, so removed before it is closed: closing it
