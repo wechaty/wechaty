@@ -45,7 +45,8 @@
  *
  * Rules that keep schedules valid, so no alarm comes from the generator itself:
  * - Without the `clock` capability nothing hangs forever and no deadline is
- *   set, so a schedule can never wait on real time (Codex uses real timers).
+ *   set, so a schedule can never wait on real time (an implementation without
+ *   the capability, as the S2 Codex kernel was, uses real timers).
  * - With it, both deadlines are always set, so a hang-forever behavior ends
  *   in a timeout, not a hang.
  * - A release retried after a failure succeeds, so cleanup debt can clear.
