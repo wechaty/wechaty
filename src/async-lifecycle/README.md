@@ -4,6 +4,8 @@ One lifecycle module for every async layer of Wechaty: `Wechaty`, `Puppet`, `Pup
 
 **Status: implemented and validated** through stage S5 of the convergence plan in [#2968](https://github.com/wechaty/wechaty/issues/2968): the kernel (S4, [#2972](https://github.com/wechaty/wechaty/issues/2972)) passes this contract under Node.js and Deno, and the `Io`, `Puppet` and `Wechaty` examples run on it (S5, [#2973](https://github.com/wechaty/wechaty/issues/2973)). It is published as `import { createLifecycle } from 'wechaty/async-lifecycle'` (D20). It has no runtime dependency and no runtime import outside this directory, so it can move to a standalone package unchanged; that move is planned before `wechaty-puppet` adopts it.
 
+> **Experimental.** The API of `wechaty/async-lifecycle` may still change in a breaking way before Wechaty 2.0 is final; do not depend on it outside Wechaty yet. Its only adopters are `Io` and `IoClient` ([#3022](https://github.com/wechaty/wechaty/issues/3022)). Migrating the other layers ([#2905](https://github.com/wechaty/wechaty/issues/2905)) is paused, to see how the module holds up in `Io` first; [`TODO.md`](https://github.com/wechaty/wechaty/blob/main/TODO.md) at the repository root records the state and how to resume.
+
 **How to read this file.** Each rule has an ID such as `C-CMD-04`. Tests cite these IDs, and so does the TSDoc in `types.ts`. To change a rule, change it here, give it a decision ID in #2968 §6, and update the tests that cite it. `D…` IDs refer to the decision log in #2968.
 
 ## 1. Model in one paragraph
