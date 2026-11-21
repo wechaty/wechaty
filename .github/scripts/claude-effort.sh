@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
+# Shared by the interactive and automatic review jobs in claude.yml.
+# Owns effort selection and the review title emitted through GITHUB_OUTPUT.
+# Only active labels most recently applied by huan can raise effort.
+# Missing or unverifiable label evidence keeps the medium default.
 set -euo pipefail
 
 level=medium
 
+# Read the event target, current labels, and label history from GitHub.
+# Update level to the highest verified effort. Unavailable metadata leaves
+# level at medium and allows the workflow to continue.
 resolve_effort() {
   local target kind number endpoint labels events selected
 
