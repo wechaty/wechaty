@@ -47,6 +47,10 @@ interface LifecycleScope {
 // Entry points (create-lifecycle.ts, async-lifecycle.ts)
 function createLifecycle (hooks: LifecycleHooks, options?: LifecycleOptions): LifecycleController
 abstract class AsyncLifecycle implements Lifecycle { /* protected onStart, onStop, onStateChange, condition */ }
+
+// Companions (companions/, §15)
+function listen (scope: LifecycleScope, target: EmitterLike | EventTargetLike, event: string, listener: (...args: any[]) => void): void
+function watchdog (scope: LifecycleScope, options: { timeoutMs: number, onTimeout: 'fail' | 'recover', clock?: LifecycleClock }): { feed (): void, disarm (): void }
 ```
 
 `types.ts` has the full signatures with TSDoc. `examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them.
