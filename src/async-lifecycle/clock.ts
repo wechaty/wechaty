@@ -19,7 +19,8 @@
  */
 
 /**
- * The default timer source for lifecycle deadlines and the watchdog companion.
+ * The default timer source for lifecycle deadlines and the watchdog companion,
+ * and the one check of a deadline's length that both use (C-TIME-01, D11).
  *
  * Kept in its own module so tests and embedders can inject a deterministic
  * {@link LifecycleClock} through `LifecycleOptions.clock` without the engine
@@ -41,6 +42,25 @@ const defaultClock: LifecycleClock = Object.freeze({
   },
 })
 
+/** The largest delay a timer accepts (2³¹−1 ms); a longer one fires at once. */
+const MAX_TIMEOUT_MS = 2 ** 31 - 1
+
+/**
+ * Check a deadline option (C-TIME-01, D11). A `NaN`, infinite, zero or negative
+ * value would expire at once or never instead of meaning a deadline, and a
+ * value above 2³¹−1 overflows the timer and fires at once, so each is refused.
+ *
+ * @throws RangeError when `value` is not finite, greater than 0 and at most 2³¹−1.
+ */
+function validTimeout (name: string, value: number | undefined): number | undefined {
+  if (value !== undefined && !(Number.isFinite(value) && value > 0 && value <= MAX_TIMEOUT_MS)) {
+    throw new RangeError(`${name} must be a finite number of milliseconds, greater than 0 and at most ${MAX_TIMEOUT_MS}, got ${String(value)}`)
+  }
+  return value
+}
+
 export {
   defaultClock,
+  MAX_TIMEOUT_MS,
+  validTimeout,
 }

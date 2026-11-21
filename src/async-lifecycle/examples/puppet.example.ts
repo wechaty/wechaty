@@ -42,7 +42,7 @@ import type {
   LifecycleState,
   LifecycleWaitOptions,
 }                           from '../types.ts'
-import { createLifecycle } from '../mod.ts'
+import { createLifecycle, listen } from '../mod.ts'
 
 /** Today's provider events that the base turns into conditions. */
 export interface PuppetEvents {
@@ -129,25 +129,16 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
     // listener from an old generation holds an old scope, so it changes nothing.
     // The same holds for events the provider emits during an early onStop(),
     // before step 7 removes these listeners: by then the scope is sealed, and
-    // set/clear on a sealed scope do nothing (C-SCOPE-02).
-    const onLogin = () => scope.set(this.#login)
-    const onLogout = () => {
+    // set/clear on a sealed scope do nothing (C-SCOPE-02). `listen` registers
+    // each removal with the scope (C-COMP-01).
+    listen(scope, this, 'login', () => scope.set(this.#login))
+    listen(scope, this, 'logout', () => {
       scope.clear(this.#login)
       scope.clear(this.#ready)
-    }
-    const onReady = () => scope.set(this.#ready)
-    // As in today's puppet-event-bridge: a new QR code means not ready.
-    const onScan = () => scope.clear(this.#ready)
-    this.on('login', onLogin)
-    this.on('logout', onLogout)
-    this.on('ready', onReady)
-    this.on('scan', onScan)
-    scope.defer(() => {
-      this.off('login', onLogin)
-      this.off('logout', onLogout)
-      this.off('ready', onReady)
-      this.off('scan', onScan)
     })
+    listen(scope, this, 'ready', () => scope.set(this.#ready))
+    // As in today's puppet-event-bridge: a new QR code means not ready.
+    listen(scope, this, 'scan', () => scope.clear(this.#ready))
 
     await this.onStart()
     started = true

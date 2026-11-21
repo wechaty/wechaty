@@ -99,20 +99,26 @@ class LifecycleSupersededError extends LifecycleError {
 }
 
 /**
- * A start or stop deadline (`startTimeoutMs` / `stopTimeoutMs`) expired.
+ * A start or stop deadline (`startTimeoutMs` / `stopTimeoutMs`) expired, or a
+ * `watchdog` companion was not fed in time (`phase: 'watchdog'`).
  *
  * The work it timed out is not cancelled or forgotten: it stays tracked by the
  * generation, and a stop timeout leaves `failed { cleanupComplete: false }`.
  */
 class LifecycleTimeoutError extends LifecycleError {
 
-  /** Which deadline expired. */
-  readonly phase: 'start' | 'stop'
+  /**
+   * Which deadline expired: the start or stop deadline, or a `watchdog`
+   * companion that was not fed in time (C-COMP-02).
+   */
+  readonly phase: 'start' | 'stop' | 'watchdog'
   /** The configured deadline, in milliseconds. */
   readonly timeoutMs: number
 
-  constructor (phase: 'start' | 'stop', timeoutMs: number, options?: ErrorOptions) {
-    super('ERR_LIFECYCLE_TIMEOUT', `lifecycle ${phase} did not finish within ${timeoutMs} ms`, options)
+  constructor (phase: 'start' | 'stop' | 'watchdog', timeoutMs: number, options?: ErrorOptions) {
+    super('ERR_LIFECYCLE_TIMEOUT', phase === 'watchdog'
+      ? `lifecycle watchdog was not fed within ${timeoutMs} ms`
+      : `lifecycle ${phase} did not finish within ${timeoutMs} ms`, options)
     this.name = 'LifecycleTimeoutError'
     this.phase = phase
     this.timeoutMs = timeoutMs

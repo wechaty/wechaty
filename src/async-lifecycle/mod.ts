@@ -22,9 +22,9 @@
  * Entry point of the final async lifecycle module (wechaty/wechaty#2968).
  *
  * Exports the public contract (types and errors, wechaty/wechaty#2969), the two
- * entry points `createLifecycle` and `AsyncLifecycle`, and the diagnostics
- * channel name. The kernel behind them is built in S4 (wechaty/wechaty#2972);
- * the `listen` / `watchdog` companions join it there. Nothing outside this
+ * entry points `createLifecycle` and `AsyncLifecycle`, the `listen` and
+ * `watchdog` companions (README §15), and the diagnostics channel name. The
+ * kernel behind them is built in S4 (wechaty/wechaty#2972). Nothing outside this
  * directory imports it yet, and it is not part of the package exports map until
  * wechaty/wechaty#2974. README §18 describes the internal components.
  *
@@ -40,6 +40,21 @@
 export {
   AsyncLifecycle,
 }                             from './async-lifecycle.ts'
+export {
+  listen,
+}                             from './companions/listen.ts'
+export type {
+  EmitterLike,
+  EventTargetLike,
+  ListenTarget,
+}                             from './companions/listen.ts'
+export {
+  watchdog,
+}                             from './companions/watchdog.ts'
+export type {
+  Watchdog,
+  WatchdogOptions,
+}                             from './companions/watchdog.ts'
 export {
   createLifecycle,
 }                             from './create-lifecycle.ts'
