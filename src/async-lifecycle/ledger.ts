@@ -146,9 +146,15 @@ class Ledger {
 
   /**
    * Drop the entry registered with `release` if it has not started: its owner
-   * found it holds nothing. A rejected `acquire` creation uses this, so a retry
-   * loop does not grow the ledger (C-SCOPE-04). A running entry is left alone;
-   * it removes itself when it finishes.
+   * found there is nothing left to release or join. Two owners use this:
+   * - a rejected `acquire` creation, which holds nothing, so a retry loop does
+   *   not grow the ledger (C-SCOPE-04);
+   * - `spawn`, when its task ended cleanly or by its own cancellation, so a
+   *   long run with many short tasks (one per operation, C-COMP-03) does not
+   *   keep their joins until retirement.
+   *
+   * A running entry, one an unwind is already releasing or joining, is left
+   * alone; it removes itself when it finishes.
    */
   discard (release: Release): void {
     const entry = this.#entries.find(candidate => candidate.release === release)
