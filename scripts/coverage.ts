@@ -34,6 +34,32 @@ const METRICS: Record<MetricName, [string, string]> = {
 }
 const SOURCE_EXCLUDES = new Set([ 'src/package-json.ts' ])
 
+/**
+ * A part of the production tree with coverage floors of its own, checked after
+ * the repo-wide floors and from the same LCOV report (AGENTS.md: independent,
+ * measured baselines). Its floors live in
+ * `.github/coverage-baselines/<runtime>.<name>.json`.
+ */
+export interface CoverageScope {
+  readonly name: string
+  /** Path prefix, relative to the repository root, of the sources it covers. */
+  readonly include: string
+  /** Path prefixes inside `include` that it leaves out. */
+  readonly exclude: readonly string[]
+}
+
+/**
+ * The scoped floors. `async-lifecycle` is the module's own code: its contract
+ * suite and its runnable examples are test code here (wechaty/wechaty#2974).
+ */
+export const COVERAGE_SCOPES: readonly CoverageScope[] = [
+  {
+    name    : 'async-lifecycle',
+    include : 'src/async-lifecycle/',
+    exclude : [ 'src/async-lifecycle/contract/', 'src/async-lifecycle/examples/' ],
+  },
+]
+
 function metric (covered: number, total: number): Metric {
   return {
     covered,
@@ -298,6 +324,14 @@ export function summarizeLcov (records: LcovRecord[]): CoverageMetrics {
   return result
 }
 
+/** The records of the production sources `scope` covers. */
+export function scopeRecords (records: LcovRecord[], scope: CoverageScope, root = ROOT): LcovRecord[] {
+  return records.filter(record => {
+    const key = sourceKey(record.source, root)
+    return key.startsWith(scope.include) && !scope.exclude.some(prefix => key.startsWith(prefix))
+  })
+}
+
 export function assertBaseline (measured: CoverageMetrics, baseline: unknown): asserts baseline is CoverageBaseline {
   if (!baseline || typeof baseline !== 'object' || Array.isArray(baseline)) {
     throw new Error('Coverage baseline must be an object')
@@ -438,8 +472,9 @@ function coverageArgs (destination: string, include = 'src/**/*.ts'): string[] {
   ]
 }
 
-function baselineFor (runtime: 'node' | 'deno'): CoverageBaseline {
-  return JSON.parse(readFileSync(join(ROOT, '.github', 'coverage-baselines', `${runtime}.json`), 'utf8')) as CoverageBaseline
+function baselineFor (runtime: 'node' | 'deno', scope?: CoverageScope): CoverageBaseline {
+  const file = scope ? `${runtime}.${scope.name}.json` : `${runtime}.json`
+  return JSON.parse(readFileSync(join(ROOT, '.github', 'coverage-baselines', file), 'utf8')) as CoverageBaseline
 }
 
 function validateAndRender (runtime: 'node' | 'deno', testStatus: number, validationStatus = 0): boolean {
@@ -461,6 +496,19 @@ function validateAndRender (runtime: 'node' | 'deno', testStatus: number, valida
       baselineStatus = false
       console.error(error instanceof Error ? error.message : error)
     }
+    const scopes = COVERAGE_SCOPES.map(scope => {
+      const scoped = summarizeLcov(scopeRecords(records, scope))
+      const floor = baselineFor(runtime, scope)
+      let passed = true
+      try {
+        assertBaseline(scoped, floor)
+      } catch (error) {
+        passed = false
+        baselineStatus = false
+        console.error(`${scope.name}: ${error instanceof Error ? error.message : error}`)
+      }
+      return { name: scope.name, metrics: scoped, baseline: floor, passed }
+    })
     const html = join(output, 'html')
     mkdirSync(html, { recursive: true })
     const renderLcovPath = join(tmpdir(), `wechaty-${runtime}-render-${process.pid}.lcov`)
@@ -487,12 +535,15 @@ function validateAndRender (runtime: 'node' | 'deno', testStatus: number, valida
       runtime,
       metrics,
       baseline,
+      scopes,
       testExitCode: testStatus,
       validationExitCode: reportResult ? 0 : 1,
       result,
     }, null, 2)}\n`)
+    const label = runtime === 'node' ? 'Node' : 'Deno'
     const table = [
-      `| ${runtime === 'node' ? 'Node' : 'Deno'} | ${metrics.lines.percent.toFixed(2)}% | ${metrics.functions.percent.toFixed(2)}% | ${metrics.branches.percent.toFixed(2)}% | ${baseline.lines}% / ${baseline.functions}% / ${baseline.branches}% | ${result} |`,
+      `| ${label} | ${metrics.lines.percent.toFixed(2)}% | ${metrics.functions.percent.toFixed(2)}% | ${metrics.branches.percent.toFixed(2)}% | ${baseline.lines}% / ${baseline.functions}% / ${baseline.branches}% | ${result} |`,
+      ...scopes.map(scope => `| ${label} · ${scope.name} | ${scope.metrics.lines.percent.toFixed(2)}% | ${scope.metrics.functions.percent.toFixed(2)}% | ${scope.metrics.branches.percent.toFixed(2)}% | ${scope.baseline.lines}% / ${scope.baseline.functions}% / ${scope.baseline.branches}% | ${scope.passed ? 'pass' : 'fail'} |`),
     ].join('\n')
     const summaryPath = process.env['GITHUB_STEP_SUMMARY']
     if (summaryPath) {
