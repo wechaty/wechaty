@@ -628,6 +628,32 @@ contract('C-TIME-05.e', 'a late release that fails while a start waits, past the
   assert.equal(lifecycle.state.kind, 'stopped')
 })
 
+contract('C-TIME-05.f', 'a deadline timer that fires before the clock reaches the deadline does not expire it (D30)', { needs: [ 'clock' ] }, async ({ make }) => {
+  // A real timer truncates a fractional delay, so it can fire up to a
+  // millisecond early; this clock does the same.
+  const manual = new ManualClock()
+  const clock = {
+    now          : () => manual.now(),
+    setTimeout   : (callback: () => void, ms: number) => manual.setTimeout(callback, Math.trunc(ms)),
+    clearTimeout : (handle: unknown) => manual.clearTimeout(handle),
+  }
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({
+    onStart () {
+      manual.jump(0.5) // the remaining 9.5 ms is armed as a 9 ms timer
+      return gate.promise
+    },
+  }, { clock, startTimeoutMs: 10 })
+  const started = observe(lifecycle.start())
+  await manual.advance(9)
+  assert.equal(started.status, 'pending', 'at 9.5 ms the 10 ms deadline has not passed')
+  gate.resolve()
+  await flush()
+  assert.equal(started.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'running')
+  await shutdown(lifecycle)
+})
+
 // ---------------------------------------------------------------------------
 // Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
 // ---------------------------------------------------------------------------

@@ -1023,15 +1023,8 @@ class LifecycleEngine {
     if (!timedOut) {
       // Reported, not retried (C-CMD-10), even if it appeared while a retry
       // was blocked.
-      errors = [ ...errors, ...tail() ]
-      if (deadline.passed()) {
-        // Judged by the clock in the same turn as the commit below (C-TIME-05,
-        // D30): the pass finished after its deadline, so it is a timeout. Its
-        // errors stay with the work, for the stop() that joins it (D36).
-        keep(Promise.resolve(errors))
-        errors = [ new LifecycleTimeoutError('stop', this.#stopTimeoutMs!) ]
-        timedOut = true
-      }
+      // Judged by the clock in the same turn as the commit below.
+      ;({ errors, timedOut } = this.#judgeStopPass(deadline, [ ...errors, ...tail() ], keep))
     }
     this.#pruneDebtors()
     const released = !timedOut && generation.ledger.clean && generation.startSettled
@@ -1085,6 +1078,26 @@ class LifecycleEngine {
         deadline.cancel()
       }
     }
+  }
+
+  /**
+   * The clock check of a stop pass that ended before its timer fired
+   * (C-TIME-05, D30). Call it in the same turn as the commit of the pass's
+   * outcome: the one helper keeps both stop paths judged alike (model rule 6).
+   * If the deadline has passed, the pass is a timeout: its `errors` stay with
+   * the kept work, for the stop() that joins it (D36), and the timeout is
+   * returned instead.
+   */
+  #judgeStopPass (
+    deadline: Deadline,
+    errors: unknown[],
+    keep: (work: Promise<unknown[]> | undefined) => void,
+  ): { errors: unknown[], timedOut: boolean } {
+    if (!deadline.passed()) {
+      return { errors, timedOut: false }
+    }
+    keep(Promise.resolve(errors))
+    return { errors: [ new LifecycleTimeoutError('stop', this.#stopTimeoutMs!) ], timedOut: true }
   }
 
   /**
@@ -1358,6 +1371,15 @@ class LifecycleEngine {
       this.#commit(next, () => {
         own?.fail(failure ? failure.error : new LifecycleSupersededError())
       })
+      if (this.#late.size > 0 || this.#debtors.size > 0) {
+        // An observer of `failed` registered a late release (or one failed):
+        // `stopped` must wait for it. The stop() joins it as an idle pass under
+        // the same deadline, which commits the outcome (C-SCOPE-11, C-STATE-07).
+        for (const waiter of stopWaiters) { this.#idleStopWaiters.add(waiter) }
+        this.#stopRequested = true
+        this.#stopAcceptedAt ??= generation.retireAt
+        return
+      }
       this.#commit({ kind: 'stopped', generation: generation.number }, () => {
         for (const waiter of stopWaiters) { waiter.resolve() }
       })
@@ -1441,16 +1463,11 @@ class LifecycleEngine {
       deadline.cancel()
       this.#debtPassActive = false
     }
-    let { timedOut } = result
-    // Debt that appeared during this pass is reported, not retried.
-    let errors = timedOut ? result.errors : [ ...result.errors, ...tail() ]
-    if (!timedOut && deadline.passed()) {
-      // Judged by the clock in the same turn as the commit below (C-TIME-05,
-      // D30); the errors stay with the work, for the stop() that joins it.
-      keep(Promise.resolve(errors))
-      errors = [ new LifecycleTimeoutError('stop', this.#stopTimeoutMs!) ]
-      timedOut = true
-    }
+    // Debt that appeared during this pass is reported, not retried. Judged by
+    // the clock in the same turn as the commit below.
+    const { errors, timedOut } = result.timedOut
+      ? result
+      : this.#judgeStopPass(deadline, [ ...result.errors, ...tail() ], keep)
     const waiters = [ ...this.#idleStopWaiters ]
     this.#idleStopWaiters.clear()
     if (!timedOut && this.#debtors.size === 0 && this.#late.size === 0) {
@@ -1543,10 +1560,19 @@ class LifecycleEngine {
     }
     const at = origin + timeoutMs
     const { promise, resolve } = Promise.withResolvers<typeof TIMEOUT>()
-    const handle = this.#clock.setTimeout(() => {
+    // The remaining time is often fractional, and a timer may truncate it and
+    // fire early: the deadline expires only once the clock has reached it, so
+    // an early timer is armed again for the rest (rounded up).
+    const arm = () => this.#clock.setTimeout(fire, Math.max(0, Math.ceil(at - this.#clock.now())))
+    const fire = () => {
+      if (this.#clock.now() < at) {
+        handle = arm()
+        return
+      }
       controller.abort(new LifecycleTimeoutError(phase, timeoutMs))
       resolve(TIMEOUT)
-    }, Math.max(0, at - this.#clock.now()))
+    }
+    let handle = arm()
     return {
       expired : promise,
       signal  : controller.signal,
