@@ -239,8 +239,9 @@ export class Io extends AsyncLifecycle {
   /**
    * One run: forward the bot's events, connect (retrying with backoff while the
    * server is unreachable), keep the socket alive, and recover when it closes.
-   * Rejects only for a configuration error (no `apihost`) or when the run
-   * retires while connecting.
+   * Rejects for a configuration error (no `apihost`), when the run retires
+   * while connecting, or, for a start that is not a recovery, with the error
+   * of its single connection attempt.
    */
   protected override async onStart (scope: LifecycleScope): Promise<void> {
     log.verbose('Io', 'onStart()')
@@ -747,7 +748,8 @@ export class Io extends AsyncLifecycle {
    *
    * One flush at a time: a call while a flush runs joins it, and its event is
    * sent by that flush. Two flushes could each put their failed events back
-   * at the front and swap their order.
+   * at the front and swap their order. The flush starts a microtask later, so
+   * `#flushing` is always set before `#flush` can clear it.
    */
   private send (ioEvent?: IoEvent): Promise<void> {
     if (ioEvent) {
@@ -756,9 +758,7 @@ export class Io extends AsyncLifecycle {
       this.#trimBuffer()
     } else { log.silly('Io', 'send()') }
 
-    this.#flushing ??= this.#flush().finally(() => {
-      this.#flushing = undefined
-    })
+    this.#flushing ??= Promise.resolve().then(() => this.#flush())
     return this.#flushing
   }
 
@@ -768,40 +768,49 @@ export class Io extends AsyncLifecycle {
    * order. If a new socket connected meanwhile, the flush goes on with it
    * (its `sys` was queued first); otherwise it rejects with the first error.
    * An event that cannot be serialized is dropped, so it cannot block the rest.
+   *
+   * Clears `#flushing` in the same synchronous step as its last check of the
+   * buffer: a `send()` that came after that check, but joined before a later
+   * clear, would wait on a finished flush and its event would stay unsent.
+   * Keep the loop and the `finally` in this one function.
    */
   async #flush (): Promise<void> {
-    while (this.eventBuffer.length > 0) {
-      const ws = this.ws
-      if (!ws || !this.connected()) {
-        log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this.eventBuffer.length)
-        return
-      }
-
-      const batch = this.eventBuffer.splice(0)
-      const results = await Promise.allSettled(batch.map(event => {
-        let data: string
-        try {
-          data = JSON.stringify(event)
-        } catch (e) {
-          log.error('Io', 'send() dropped an event that cannot be serialized: %s', (e as Error).message)
-          return Promise.resolve()
+    try {
+      while (this.eventBuffer.length > 0) {
+        const ws = this.ws
+        if (!ws || !this.connected()) {
+          log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this.eventBuffer.length)
+          return
         }
-        return new Promise<void>((resolve, reject) => ws.send(
-          data,
-          (err: undefined | Error) => err ? reject(err) : resolve(),
-        ))
-      }))
 
-      const failed = batch.filter((_, index) => results[index]!.status === 'rejected')
-      if (failed.length > 0) {
-        this.eventBuffer.unshift(...failed)
-        this.#trimBuffer()
-        const error = (results.find(result => result.status === 'rejected') as PromiseRejectedResult).reason
-        log.warn('Io', 'send() %d events not sent, kept for the next connection: %s', failed.length, (error as Error)?.message)
-        if (this.ws === ws) {
-          throw error
+        const batch = this.eventBuffer.splice(0)
+        const results = await Promise.allSettled(batch.map(event => {
+          let data: string
+          try {
+            data = JSON.stringify(event)
+          } catch (e) {
+            log.error('Io', 'send() dropped an event that cannot be serialized: %s', (e as Error).message)
+            return Promise.resolve()
+          }
+          return new Promise<void>((resolve, reject) => ws.send(
+            data,
+            (err: undefined | Error) => err ? reject(err) : resolve(),
+          ))
+        }))
+
+        const failed = batch.filter((_, index) => results[index]!.status === 'rejected')
+        if (failed.length > 0) {
+          this.eventBuffer.unshift(...failed)
+          this.#trimBuffer()
+          const error = (results.find(result => result.status === 'rejected') as PromiseRejectedResult).reason
+          log.warn('Io', 'send() %d events not sent, kept for the next connection: %s', failed.length, (error as Error)?.message)
+          if (this.ws === ws) {
+            throw error
+          }
         }
       }
+    } finally {
+      this.#flushing = undefined
     }
   }
 

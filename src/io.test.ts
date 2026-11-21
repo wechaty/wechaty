@@ -319,3 +319,24 @@ test('the buffer is capped: beyond maxBufferedEvents() the oldest events are dro
   assert.deepEqual(io.socket.sent.map(event => event.name === 'sys' ? 'sys' : (event.payload as { data: number }).data), [ 'sys', 3, 4, 5 ])
   await io.stop()
 })
+
+test('an event that arrives as a flush finishes is still sent, whatever the microtask timing', async () => {
+  for (let depth = 0; depth <= 12; depth++) {
+    const bot = new FakeWechaty()
+    const io = testIo(bot)
+    await io.start()
+    bot.emit('heartbeat', 'a')
+    let hop: Promise<void> = Promise.resolve()
+    for (let i = 0; i < depth; i++) {
+      hop = hop.then(() => {})
+    }
+    await hop
+    bot.emit('heartbeat', 'b')
+    await flush()
+    const beats = io.socket.sent
+      .filter(event => event.name === 'heartbeat')
+      .map(event => (event.payload as { data: string }).data)
+    assert.deepEqual(beats, [ 'a', 'b' ], `depth ${depth}`)
+    await io.stop()
+  }
+})
