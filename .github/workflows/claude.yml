@@ -266,7 +266,7 @@ jobs:
             and existing guards do not prevent it. For each actionable finding, cite the
             changed file and line, explain the trigger and observable consequence, and
             suggest a concrete fix. Briefly disclose any material area you could not assess.
-            Do not modify the repository. Do not approve or merge the PR.
+            Do not modify the repository or merge the PR.
             When the review is complete, publish the findings as a formal GitHub
             Pull Request Review with the COMMENTED state, using available GitHub tools.
             This formal review is separate from the native progress comment.
