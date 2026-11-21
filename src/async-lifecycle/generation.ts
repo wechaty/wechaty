@@ -55,8 +55,15 @@ interface ScopeHost {
   fail (generation: Generation, error: unknown): void
   /** See {@link LifecycleScope.recover}. */
   recover (generation: Generation, reason: unknown): Promise<LifecycleRecoverResult>
-  /** A late release registered on `generation` failed. */
-  lateReleaseFailed (generation: Generation): void
+  /**
+   * A release was registered on `generation` after it was sealed. `start` runs
+   * it and returns its run, which rejects if it fails. The engine calls `start`
+   * itself, after recording the obligation, so a command the release calls
+   * reentrantly already sees it. It decides whether the release belongs to that
+   * generation's own retirement (C-SCOPE-02) or is a late release, an
+   * obligation of the instance (C-SCOPE-11, D31).
+   */
+  lateRelease (generation: Generation, start: () => Promise<void>): void
   /** Set or clear a condition; throws `TypeError` for a foreign condition. */
   setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void
 }
@@ -104,6 +111,42 @@ class Generation {
   dirty = false
   /** Fully released and detached from the engine. */
   retired = false
+  /**
+   * Its retirement after a failure left nothing owned but late releases still
+   * running (D31): the engine commits again once they finish.
+   */
+  awaitingLate = false
+  /**
+   * The cleanup errors of the retirement that set {@link Generation.awaitingLate}
+   * (an `onStop` that threw, a failed release), kept for the outcome published
+   * once the late releases finish.
+   */
+  awaitingErrors: unknown[] = []
+  /**
+   * The last retirement pass's own cleanup errors (`onStop`, interrupts, its
+   * own releases), kept apart from debt errors, which stay in the debtors'
+   * ledgers and must not be reported twice.
+   */
+  localErrors: unknown[] = []
+  /**
+   * The entries whose failure its retirement's unwind returned
+   * (`UnwindOptions.reported`), not every entry failed when that pass resumed.
+   * A release on its sealed scope that fails in the turns after the unwind is
+   * not in this set, so the caller reports it, once. Do not replace this with a
+   * `failedEntries()` snapshot: that would hide such a failure.
+   */
+  failedAfterUnwind: ReadonlySet<object> = new Set()
+  /**
+   * The debt (failed late-release entries by generation) when its retirement
+   * was first requested, before its signal was aborted. Its first retirement
+   * pass retries exactly this; a failure that appears later is reported.
+   */
+  debtAtRequest: ReadonlyMap<Generation, ReadonlySet<object>> | undefined = undefined
+  /**
+   * Its start failed because a late release failed meanwhile (C-SCOPE-11): that
+   * debt is reported, not retried by this generation's own retirement.
+   */
+  debtFailure = false
 
   constructor (number: number) {
     this.number = number
@@ -143,7 +186,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
    * until that succeeds, and throw the retirement reason to the caller.
    */
   const late = (release: Release): never => {
-    generation.ledger.addLate(release).catch(() => host.lateReleaseFailed(generation))
+    host.lateRelease(generation, () => generation.ledger.addLate(release))
     throw generation.sealReason
   }
 

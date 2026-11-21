@@ -510,3 +510,756 @@ contract('C-SCOPE-11.m', 'stop() then start() during an idle late release: stop(
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
   await shutdown(lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// From review of #2999 (the final kernel's D31 implementation)
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-11.n', 'a stop() accepted at any moment while a failed run waits for a late release resolves, and the instance ends `stopped` (D31)', {}, async ({ make }) => {
+  // The window between the late release finishing and the engine publishing
+  // its outcome is a few microtasks wide, so the delay is swept (C-TIME-05.d).
+  for (let turns = 0; turns <= 40; turns++) {
+    const scopes: LifecycleScope[] = []
+    const gate = Promise.withResolvers<void>()
+    const failure = new Error('lost connection')
+    const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+    await lifecycle.start()
+    await lifecycle.restart()
+    registerLate(scopes[0]!, () => gate.promise)
+    scopes[1]!.fail(failure)
+    await flush()
+    gate.resolve()
+    await flush(turns)
+    const stopped = observe(lifecycle.stop())
+    await flush()
+    await flush()
+    assert.equal(stopped.status, 'resolved', `turn ${turns}: the stop() must settle`)
+    assert.equal(lifecycle.state.kind, 'stopped', `turn ${turns}`)
+  }
+})
+
+contract('C-SCOPE-11.o', 'a stop() retries the debt that existed when it was accepted, and only reports a late release that fails while it waits (D31, C-CMD-10)', {}, async ({ make }) => {
+  const first = new Error('older debt')
+  const second = new Error('fails while the stop() waits')
+  const gate = Promise.withResolvers<void>()
+  let retired: LifecycleScope | undefined
+  let a = 0
+  let b = 0
+  const { lifecycle } = make({ onStart (scope) { retired = scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => { if (++a === 1) { throw first } })
+  registerLate(retired!, () => (++b === 1 ? gate.promise : undefined))
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  gate.reject(second)
+  await flush()
+  assert.equal(stopped.error, second, 'the new failure is reported')
+  assert.equal(a, 2, 'the older debt was retried')
+  assert.equal(b, 1, 'the new failure is not retried in the same pass')
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  const again = observe(lifecycle.stop())
+  await flush()
+  assert.equal(again.status, 'resolved')
+  assert.equal(b, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.p', 'a release registered on a failed run while it waits for a late release keeps it dirty until that release finishes too (D31)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const older = Promise.withResolvers<void>()
+  const own = Promise.withResolvers<void>()
+  const failure = new Error('lost connection')
+  const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+  await lifecycle.start()
+  await lifecycle.restart()
+  registerLate(scopes[0]!, () => older.promise)
+  scopes[1]!.fail(failure)
+  await flush()
+  registerLate(scopes[1]!, () => own.promise, failure)
+  older.resolve()
+  await flush()
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false, 'its own release is still running')
+  const refused = observe(lifecycle.start())
+  await flush()
+  assert.equal(errorName(refused.error), 'LifecycleUnsafeStateError', 'no new run over an unreleased resource')
+  own.resolve()
+  await flush()
+  const state = failedState(lifecycle.state)
+  assert.equal(state.error, failure)
+  assert.equal(state.cleanupComplete, true)
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-11.q', 'a stop() that a late release calls from inside its own cleanup waits for that release (D31)', {}, async ({ make }) => {
+  let retired: LifecycleScope | undefined
+  let inner: ReturnType<typeof observe<void>> | undefined
+  const gate = Promise.withResolvers<void>()
+  const { lifecycle } = make({ onStart (scope) { retired = scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => {
+    inner = observe(lifecycle.stop())
+    return gate.promise
+  })
+  await flush()
+  assert.equal(inner?.status, 'pending', 'the release it is part of is still running')
+  gate.resolve()
+  await flush()
+  assert.equal(inner?.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.r', 'a late release that rejects while a failure retires a run is reported as that run\'s cleanup error (D31)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const stopGate = Promise.withResolvers<void>()
+  const late = Promise.withResolvers<void>()
+  const failure = new Error('lost connection')
+  const secondary = new Error('older release failed')
+  const { lifecycle } = make({
+    onStart (scope) { scopes.push(scope) },
+    onStop: stop => (stop.generation === 2 ? stopGate.promise : undefined),
+  })
+  await lifecycle.start()
+  await lifecycle.restart()
+  registerLate(scopes[0]!, () => late.promise)
+  scopes[1]!.fail(failure)
+  await flush()
+  late.reject(secondary)
+  await flush()
+  stopGate.resolve()
+  await flush()
+  const state = failedState(lifecycle.state)
+  assert.equal(state.error, failure)
+  assert.equal(state.cleanupComplete, false)
+  assert.equal(state.cleanupError, secondary, 'the actual rejection, not "still in progress"')
+  await shutdown(lifecycle)
+})
+
+for (const rejects of [ false, true ]) {
+  contract(`C-SCOPE-11.s-${rejects ? 'rejects' : 'succeeds'}`, `an onStop error of a failed run waiting for a late release is kept when that release ${rejects ? 'fails' : 'succeeds'} (D31, C-RET-04)`, {}, async ({ make }) => {
+    const scopes: LifecycleScope[] = []
+    const late = Promise.withResolvers<void>()
+    const failure = new Error('lost connection')
+    const stopError = new Error('onStop failed')
+    const secondary = new Error('older release failed')
+    const { lifecycle } = make({
+      onStart (scope) { scopes.push(scope) },
+      onStop (stop) {
+        if (stop.generation === 2) {
+          throw stopError
+        }
+      },
+    })
+    await lifecycle.start()
+    await lifecycle.restart()
+    registerLate(scopes[0]!, () => late.promise)
+    scopes[1]!.fail(failure)
+    await flush()
+    if (rejects) {
+      late.reject(secondary)
+    } else {
+      late.resolve()
+    }
+    await flush()
+    const state = failedState(lifecycle.state)
+    assert.equal(state.error, failure)
+    assert.equal(state.cleanupComplete, !rejects)
+    if (rejects) {
+      assert.ok(state.cleanupError instanceof AggregateError)
+      assert.deepEqual(state.cleanupError.errors, [ stopError, secondary ])
+    } else {
+      assert.equal(state.cleanupError, stopError)
+    }
+    await shutdown(lifecycle)
+  })
+}
+
+// ---------------------------------------------------------------------------
+// From the second review of #2999
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-11.t', 'stop() waits for a release registered on the retiring run\'s own scope while it waits for an older late release (D31, C-SCOPE-02)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const older = Promise.withResolvers<void>()
+  const own = Promise.withResolvers<void>()
+  const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+  await lifecycle.start()
+  await lifecycle.restart()
+  registerLate(scopes[0]!, () => older.promise)
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  registerLate(scopes[1]!, () => own.promise)
+  older.resolve()
+  await flush()
+  assert.equal(stopped.status, 'pending', 'its own release is still running')
+  own.resolve()
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.u', 'a starting run fails with a late release\'s error as soon as it fails, while another late release still runs (D31)', {}, async ({ make }) => {
+  const reason = new Error('older release failed')
+  const failing = Promise.withResolvers<void>()
+  const pending = Promise.withResolvers<void>()
+  let old: LifecycleScope | undefined
+  const { lifecycle } = make({
+    onStart (scope) {
+      if (!old) {
+        old = scope
+        return
+      }
+      registerLate(old, () => failing.promise)
+      registerLate(old, () => pending.promise)
+    },
+  })
+  await lifecycle.start()
+  const started = observe(lifecycle.restart())
+  await flush()
+  failing.reject(reason)
+  await flush()
+  assert.equal(started.error, reason, 'it does not wait for the other late release')
+  pending.resolve()
+  await flush()
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-11.v', 'a late release registered at any moment while a run is starting keeps it from committing `running` until it finishes (D31)', {}, async ({ make }) => {
+  // A drain that just finished must not let a release registered in the next
+  // microtasks slip through, so the moment of the second release is swept.
+  for (let turns = 0; turns <= 30; turns++) {
+    const first = Promise.withResolvers<void>()
+    const second = Promise.withResolvers<void>()
+    let old: LifecycleScope | undefined
+    const { lifecycle } = make({
+      onStart (scope) {
+        if (!old) {
+          old = scope
+          return
+        }
+        registerLate(old, () => first.promise)
+      },
+    })
+    await lifecycle.start()
+    const started = observe(lifecycle.restart())
+    await flush()
+    first.resolve()
+    await flush(turns)
+    const startingAtRegistration = lifecycle.state.kind === 'starting'
+    registerLate(old!, () => second.promise)
+    await flush()
+    if (startingAtRegistration) {
+      assert.notEqual(lifecycle.state.kind, 'running', `turn ${turns}: running committed while a late release runs`)
+    }
+    second.resolve()
+    await flush()
+    assert.equal(started.status, 'resolved', `turn ${turns}`)
+    await shutdown(lifecycle)
+  }
+})
+
+contract('C-SCOPE-11.w', 'a late release that fails while a failure\'s retirement is retrying older debt is reported, not "still in progress" (D31)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const retrying = Promise.withResolvers<void>()
+  const late = Promise.withResolvers<void>()
+  const failure = new Error('lost connection')
+  const lateError = new Error('fails during the retry')
+  let attempts = 0
+  const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+  await lifecycle.start()
+  await lifecycle.restart()
+  registerLate(scopes[0]!, () => {
+    if (++attempts === 1) {
+      throw new Error('older debt')
+    }
+    return retrying.promise // the retry blocks
+  })
+  registerLate(scopes[0]!, () => late.promise)
+  await flush()
+  scopes[1]!.fail(failure)
+  await flush()
+  assert.equal(attempts, 2, 'the retirement is retrying the older debt')
+  late.reject(lateError)
+  await flush()
+  retrying.resolve()
+  await flush()
+  const state = failedState(lifecycle.state)
+  assert.equal(state.error, failure)
+  assert.equal(state.cleanupComplete, false)
+  assert.equal(state.cleanupError, lateError)
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-11.x', 'a stop() waits for a late release that one of its debt retries registers (D31)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const gate = Promise.withResolvers<void>()
+  let attempts = 0
+  const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+  await lifecycle.start()
+  await lifecycle.restart()
+  await lifecycle.stop()
+  registerLate(scopes[0]!, () => {
+    if (++attempts === 1) {
+      throw new Error('older debt')
+    }
+    registerLate(scopes[1]!, () => gate.promise) // the retry registers another
+  })
+  await flush()
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(attempts, 2)
+  assert.equal(stopped.status, 'pending', 'the release the retry registered is still running')
+  gate.resolve()
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.y', 'a late release that fails during a failure\'s retirement is reported once when the outcome is published (D31, C-RET-04)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const stopGate = Promise.withResolvers<void>()
+  const failing = Promise.withResolvers<void>()
+  const pending = Promise.withResolvers<void>()
+  const failure = new Error('lost connection')
+  const lateError = new Error('older release failed')
+  const { lifecycle } = make({
+    onStart (scope) { scopes.push(scope) },
+    onStop: stop => (stop.generation === 2 ? stopGate.promise : undefined),
+  })
+  await lifecycle.start()
+  await lifecycle.restart()
+  registerLate(scopes[0]!, () => failing.promise)
+  registerLate(scopes[0]!, () => pending.promise)
+  scopes[1]!.fail(failure)
+  await flush()
+  failing.reject(lateError)
+  await flush()
+  stopGate.resolve()
+  await flush()
+  assert.equal(failedState(lifecycle.state).cleanupError, lateError)
+  pending.resolve()
+  await flush()
+  const state = failedState(lifecycle.state)
+  assert.equal(state.cleanupComplete, false)
+  assert.equal(state.cleanupError, lateError, 'once, not AggregateError([e, e])')
+  await shutdown(lifecycle)
+})
+
+// ---------------------------------------------------------------------------
+// From the third review of #2999
+// ---------------------------------------------------------------------------
+
+for (const where of [ 'idle', 'live' ] as const) {
+  contract(`C-SCOPE-11.z-${where}`, `a late release registered at any moment while a stop() of ${where === 'idle' ? 'an idle instance' : 'a running instance'} waits for an older one is joined, not reported as "still in progress" (D31)`, {}, async ({ make }) => {
+    // The window between the last drain and the published outcome is a few
+    // microtasks wide, so the registration is swept (C-TIME-05.d).
+    for (let turns = 0; turns <= 30; turns++) {
+      const scopes: LifecycleScope[] = []
+      const first = Promise.withResolvers<void>()
+      const second = Promise.withResolvers<void>()
+      const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+      await lifecycle.start()
+      if (where === 'idle') {
+        await lifecycle.stop()
+      } else {
+        await lifecycle.restart()
+      }
+      registerLate(scopes[0]!, () => first.promise)
+      await flush()
+      const stopped = observe(lifecycle.stop())
+      await flush()
+      first.resolve()
+      await flush(turns)
+      registerLate(scopes[0]!, () => second.promise)
+      await flush()
+      assert.notEqual(stopped.status, 'rejected', `turn ${turns}: ${String(stopped.error)}`)
+      second.resolve()
+      await flush()
+      assert.equal(stopped.status, 'resolved', `turn ${turns}`)
+      assert.equal(lifecycle.state.kind, 'stopped', `turn ${turns}`)
+    }
+  })
+}
+
+contract('C-SCOPE-11.za', 'a release on the retiring run\'s own scope that fails while the stop() waits for an older late release is reported as itself (D31)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const older = Promise.withResolvers<void>()
+  const own = Promise.withResolvers<void>()
+  const ownError = new Error('own release failed')
+  const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } })
+  await lifecycle.start()
+  await lifecycle.restart()
+  registerLate(scopes[0]!, () => older.promise)
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  registerLate(scopes[1]!, () => own.promise)
+  own.reject(ownError)
+  await flush()
+  older.resolve()
+  await flush()
+  assert.equal(stopped.error, ownError, 'the actual failure, not "a release is still in progress"')
+  const state = failedState(lifecycle.state)
+  assert.equal(state.cleanupComplete, false)
+  assert.equal(state.cleanupError, ownError)
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-11.zb', 'on an idle instance, a late release that fails while another still runs is published as debt at once, and a queued start() gets its error (D31)', {}, async ({ make }) => {
+  const reason = new Error('late release failed')
+  const failing = Promise.withResolvers<void>()
+  const pending = Promise.withResolvers<void>()
+  let retired: LifecycleScope | undefined
+  const { lifecycle } = make({ onStart (scope) { retired ??= scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => failing.promise)
+  registerLate(retired!, () => pending.promise)
+  const started = observe(lifecycle.start())
+  await flush()
+  failing.reject(reason)
+  await flush()
+  const state = failedState(lifecycle.state)
+  assert.equal(state.cleanupComplete, false)
+  assert.equal(state.cleanupError, reason)
+  assert.equal(started.error, reason, 'the queued start() is not left waiting')
+  pending.resolve()
+  await flush()
+  await shutdown(lifecycle)
+})
+
+// ---------------------------------------------------------------------------
+// From the fourth review of #2999
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-11.zc', 'a late release that fails while onStart is still running fails the start at once and aborts the hook, even with no deadline (D31)', {}, async ({ make }) => {
+  const reason = new Error('older release failed')
+  const late = Promise.withResolvers<void>()
+  let old: LifecycleScope | undefined
+  let hookScope: LifecycleScope | undefined
+  const { lifecycle } = make({
+    async onStart (scope) {
+      if (!old) {
+        old = scope
+        return
+      }
+      hookScope = scope
+      registerLate(old, () => late.promise)
+      // An abort-aware hook: it returns only when its signal aborts.
+      await new Promise<void>(resolve => scope.signal.addEventListener('abort', () => resolve(), { once: true }))
+    },
+  })
+  await lifecycle.start()
+  const started = observe(lifecycle.restart())
+  await flush()
+  late.reject(reason)
+  await flush()
+  assert.equal(hookScope?.signal.aborted, true, 'the hook was aborted')
+  assert.equal(started.error, reason)
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-11.zd', 'a late release that a debt retry registers on the same scope and that then fails is reported once (D31, C-RET-04)', {}, async ({ make }) => {
+  const reason = new Error('fails after the retry registered it')
+  const gate = Promise.withResolvers<void>()
+  // An implementation that never registers the second release leaves this
+  // rejection unobserved; the test must not create an unhandled rejection.
+  gate.promise.catch(() => {})
+  let retired: LifecycleScope | undefined
+  let attempts = 0
+  let registered = 0
+  const { lifecycle } = make({ onStart (scope) { retired = scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => {
+    if (++attempts === 1) {
+      throw new Error('older debt')
+    }
+    // The retry registers another on the same scope; it fails once.
+    registerLate(retired!, () => (++registered === 1 ? gate.promise : undefined))
+  })
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  gate.reject(reason)
+  await flush()
+  assert.equal(stopped.error, reason, 'once, not AggregateError([e, e])')
+  assert.equal(failedState(lifecycle.state).cleanupError, reason)
+  const again = await shutdown(lifecycle)
+  assert.equal(again.status, 'resolved')
+})
+
+// ---------------------------------------------------------------------------
+// From Claude's review of #2999
+// ---------------------------------------------------------------------------
+
+for (const command of [ 'stop', 'start', 'restart' ] as const) {
+  contract(`C-SCOPE-11.ze-${command}`, `a ${command}() accepted while a failure retires a run waits for an older late release, instead of failing with "still in progress" (D31)`, {}, async ({ make }) => {
+    const scopes: LifecycleScope[] = []
+    const ownGate = Promise.withResolvers<void>()
+    const oldGate = Promise.withResolvers<void>()
+    const { lifecycle } = make({
+      onStart (scope) {
+        scopes.push(scope)
+        if (scopes.length === 2) {
+          scope.defer(() => ownGate.promise) // the failed run's own slow release
+        }
+      },
+    })
+    await lifecycle.start()
+    await lifecycle.restart()
+    registerLate(scopes[0]!, () => oldGate.promise)
+    scopes[1]!.fail(new Error('lost connection'))
+    await flush()
+    const accepted = observe(lifecycle[command]())
+    await flush()
+    ownGate.resolve()
+    await flush()
+    assert.equal(accepted.status, 'pending', 'it waits for the older late release')
+    oldGate.resolve()
+    await flush()
+    assert.equal(accepted.status, 'resolved', String(accepted.error))
+    if (command === 'stop') {
+      // The stop() joins the failure's retirement. Whether it then reports the
+      // clean failure or commits `stopped` is not decided by the contract;
+      // either way nothing may be left owned.
+      const state = lifecycle.state
+      assert.ok(state.kind === 'stopped' || (state.kind === 'failed' && state.cleanupComplete), `ended ${state.kind}`)
+    } else {
+      assert.deepEqual(lifecycle.state, { kind: 'running', generation: 3 })
+    }
+    await shutdown(lifecycle)
+  })
+}
+
+for (const where of [ 'idle', 'live' ] as const) {
+  contract(`C-SCOPE-11.zf-${where}`, `a late release that fails after a stop() of ${where === 'idle' ? 'an idle instance' : 'a running instance'} timed out is reported by the stop() that joins that work (D31, D36)`, { needs: [ 'clock' ] }, async ({ make }) => {
+    const clock = new ManualClock()
+    const scopes: LifecycleScope[] = []
+    const gate = Promise.withResolvers<void>()
+    const reason = new Error('late release failed after the deadline')
+    let calls = 0
+    const { lifecycle } = make({ onStart (scope) { scopes.push(scope) } }, { clock, stopTimeoutMs: 100 })
+    await lifecycle.start()
+    if (where === 'idle') {
+      await lifecycle.stop()
+    } else {
+      await lifecycle.restart()
+    }
+    registerLate(scopes[0]!, () => (++calls === 1 ? gate.promise : undefined))
+    await flush()
+    const first = observe(lifecycle.stop())
+    await clock.advance(100)
+    assert.equal(errorName(first.error), 'LifecycleTimeoutError')
+    gate.reject(reason)
+    await flush()
+    const second = observe(lifecycle.stop())
+    await flush()
+    assert.equal(second.error, reason, 'the joined work\'s failure is reported')
+    assert.equal(calls, 2, 'and retried at once (D36)')
+    const state = failedState(lifecycle.state)
+    assert.equal(state.phase, 'stop')
+    assert.equal(state.cleanupComplete, true)
+    const final = await shutdown(lifecycle)
+    assert.equal(final.status, 'resolved')
+    assert.equal(lifecycle.state.kind, 'stopped')
+  })
+}
+
+contract('C-SCOPE-11.zg', 'an onStop error survives a timeout in a later join round, and the stop() that joins that work reports it (D31, C-RET-02)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const scopes: LifecycleScope[] = []
+  const hang = Promise.withResolvers<void>()
+  const stopError = new Error('onStop failed')
+  let attempts = 0
+  const { lifecycle } = make({
+    onStart (scope) { scopes.push(scope) },
+    onStop (stop) {
+      if (stop.generation === 3) {
+        throw stopError
+      }
+    },
+  }, { clock, stopTimeoutMs: 100 })
+  await lifecycle.start()
+  await lifecycle.restart()
+  await lifecycle.restart() // generation 3 runs; 1 and 2 are retired
+  registerLate(scopes[0]!, () => {
+    if (++attempts === 1) {
+      throw new Error('older debt')
+    }
+    registerLate(scopes[1]!, () => hang.promise) // the retry registers a slow one
+  })
+  await flush()
+  const first = observe(lifecycle.stop())
+  await clock.advance(100)
+  assert.equal(errorName(first.error), 'LifecycleTimeoutError')
+  hang.resolve()
+  await flush()
+  const second = observe(lifecycle.stop())
+  await flush()
+  assert.equal(second.error, stopError, 'the onStop error is not lost')
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.zh', 'a late release registered while a stop() retries older debt on the same scope, and that fails after the retry succeeded, is reported once (D31, C-RET-04)', {}, async ({ make }) => {
+  const retryGate = Promise.withResolvers<void>()
+  const lateGate = Promise.withResolvers<void>()
+  const reason = new Error('second late release failed')
+  let retired: LifecycleScope | undefined
+  let attempts = 0
+  let registered = 0
+  const { lifecycle } = make({ onStart (scope) { retired = scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => (++attempts === 1 ? Promise.reject(new Error('older debt')) : retryGate.promise))
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(attempts, 2, 'the retry is blocked')
+  registerLate(retired!, () => (++registered === 1 ? lateGate.promise : undefined))
+  retryGate.resolve()
+  await flush()
+  lateGate.reject(reason)
+  await flush()
+  assert.equal(stopped.error, reason, 'once, not AggregateError([e, e])')
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+})
+
+contract('C-SCOPE-11.zi', 'a release registered on a failed run\'s own scope at any moment after fail() is joined, and the run ends clean (D31, C-SCOPE-02)', {}, async ({ make }) => {
+  for (let turns = 0; turns <= 14; turns++) {
+    const failure = new Error('lost connection')
+    const gate = Promise.withResolvers<void>()
+    let saved: LifecycleScope | undefined
+    const { lifecycle } = make({ onStart (scope) { saved = scope } })
+    await lifecycle.start()
+    saved!.fail(failure)
+    await flush(turns)
+    registerLate(saved!, () => gate.promise, failure)
+    await flush()
+    gate.resolve()
+    await flush()
+    const state = failedState(lifecycle.state)
+    assert.equal(state.error, failure, `turn ${turns}`)
+    assert.equal(state.cleanupComplete, true, `turn ${turns}: nothing is left owned`)
+  }
+})
+
+for (const how of [ 'throws', 'rejects' ] as const) {
+  contract(`C-SCOPE-11.zj-${how}`, `a release registered on the retiring run's own scope at any moment of a stop() that ${how} at once is reported as itself, not as "still in progress" (D31, C-SCOPE-02)`, {}, async ({ make }) => {
+    // Every turn while the stop() is still pending; once it has settled, the
+    // release is a late release on an idle instance (`.a-*`).
+    for (let turns = 0; ; turns++) {
+      const reason = new Error('release failed at once')
+      let saved: LifecycleScope | undefined
+      let calls = 0
+      const { lifecycle } = make({ onStart (scope) { saved = scope } })
+      await lifecycle.start()
+      const stopped = observe(lifecycle.stop())
+      await flush(turns)
+      // The committed state, not `stopped.status`, which lags a microtask.
+      if (lifecycle.state.kind !== 'stopping') {
+        await shutdown(lifecycle)
+        break
+      }
+      // Fails only the first time, so the stop() that retries it succeeds.
+      registerLate(saved!, how === 'throws'
+        ? () => { if (++calls === 1) { throw reason } }
+        : () => (++calls === 1 ? Promise.reject(reason) : undefined))
+      await flush()
+      // Registered before the unwind, it is retried once by it and the stop()
+      // resolves; after, it is reported. Never the "still in progress" error.
+      if (stopped.status === 'resolved') {
+        assert.equal(calls, 2, `turn ${turns}: retried by the unwind`)
+        assert.equal(lifecycle.state.kind, 'stopped', `turn ${turns}`)
+      } else {
+        assert.equal(stopped.error, reason, `turn ${turns}`)
+      }
+      const final = await shutdown(lifecycle)
+      assert.equal(final.status, 'resolved', `turn ${turns}: a stop() retries it`)
+      assert.equal(lifecycle.state.kind, 'stopped')
+    }
+  })
+}
+
+contract('C-SCOPE-11.zk', 'a late release that a starting run\'s abort listener rejects is reported by the stop() that aborted it, not retried in that pass (D31, C-CMD-10)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const gate = Promise.withResolvers<void>()
+  const reason = new Error('late release failed on abort')
+  let calls = 0
+  const { lifecycle } = make({
+    onStart (scope) {
+      scopes.push(scope)
+      if (scopes.length === 1) {
+        return
+      }
+      // Registered before the hook's own listener, so it runs first.
+      scope.signal.addEventListener('abort', () => gate.reject(reason))
+      return new Promise<void>((_, reject) => {
+        scope.signal.addEventListener('abort', () => reject(scope.signal.reason))
+      })
+    },
+  })
+  await lifecycle.start()
+  await lifecycle.stop()
+  const starting = observe(lifecycle.start())
+  await flush()
+  assert.equal(lifecycle.state.kind, 'starting')
+  registerLate(scopes[0]!, () => (++calls === 1 ? gate.promise : undefined))
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.error, reason, 'the failure is reported')
+  assert.equal(calls, 1, 'and not retried in the same pass')
+  assert.equal(starting.status, 'rejected')
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved', 'the next stop() retries it')
+  assert.equal(calls, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.zl', 'an error carried by a timed-out debt pass is reported by the next stop(), even after the debt cleared (D31, D36)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const firstRetry = Promise.withResolvers<void>()
+  const secondRetry = Promise.withResolvers<void>()
+  const reason = new Error('the first retry failed after its deadline')
+  let retired: LifecycleScope | undefined
+  let attempts = 0
+  const { lifecycle } = make({ onStart (scope) { retired = scope } }, { clock, stopTimeoutMs: 100 })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => [
+    () => Promise.reject(new Error('debt')),
+    () => firstRetry.promise,
+    () => secondRetry.promise,
+  ][attempts++]?.())
+  await flush()
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  const first = observe(lifecycle.stop())
+  await flush()
+  await clock.advance(100)
+  assert.equal(errorName(first.error), 'LifecycleTimeoutError')
+  firstRetry.reject(reason)
+  await flush()
+  const second = observe(lifecycle.stop())
+  await flush()
+  await clock.advance(100)
+  assert.equal(errorName(second.error), 'LifecycleTimeoutError', 'it joins the failed retry, retries again, and times out')
+  assert.equal(attempts, 3)
+  secondRetry.resolve()
+  await flush()
+  const third = observe(lifecycle.stop())
+  await flush()
+  assert.equal(third.error, reason, 'the joined failure is not lost')
+  const state = failedState(lifecycle.state)
+  assert.equal(state.phase, 'stop')
+  assert.equal(state.cleanupComplete, true)
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})

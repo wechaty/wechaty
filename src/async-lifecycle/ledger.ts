@@ -54,6 +54,22 @@ interface LedgerEntryOptions {
   readonly join?: boolean
 }
 
+/** Options for {@link Ledger.unwind}. */
+interface UnwindOptions {
+  /**
+   * Retry only these failed entries (handles from {@link Ledger.failedEntries});
+   * other failed entries stay failed and are not run. Default: retry every one.
+   */
+  readonly retry?: ReadonlySet<object>
+  /** `false`: leave running entries alone instead of joining them. Default `true`. */
+  readonly joinRunning?: boolean
+  /**
+   * Receives every entry whose failure this pass returned, so a caller that
+   * later collects new failures from the ledger does not report them twice.
+   */
+  readonly reported?: Set<object>
+}
+
 interface Entry {
   readonly release: Release
   readonly interrupt: (() => void) | undefined
@@ -86,10 +102,29 @@ class Ledger {
     return this.#entries.length === 0
   }
 
+  /** Whether a release is running right now (started and not yet settled). */
+  get running (): boolean {
+    return this.#entries.some(entry => entry.status === 'running')
+  }
+
   /** The last errors of releases that failed and still await a retry. */
   get failures (): unknown[] {
+    return this.failuresExcept(new Set())
+  }
+
+  /**
+   * Opaque handles of the entries that have failed so far. A caller snapshots
+   * them to tell debt that existed before a pass from a failure first seen
+   * during it (C-SCOPE-11): only the first is retried by that pass.
+   */
+  failedEntries (): ReadonlySet<object> {
+    return new Set(this.#entries.filter(entry => entry.status === 'failed'))
+  }
+
+  /** The errors of failed entries that are not in `known`. */
+  failuresExcept (known: ReadonlySet<object>): unknown[] {
     return this.#entries
-      .filter(entry => entry.status === 'failed' && entry.failure)
+      .filter(entry => entry.status === 'failed' && entry.failure && !known.has(entry))
       .map(entry => entry.failure!.error)
   }
 
@@ -163,21 +198,32 @@ class Ledger {
    * per unwind. Entries added while unwinding (late releases) are joined too.
    * Concurrent calls share one pass. Never rejects: the errors of this pass are
    * returned, and {@link Ledger.clean} tells whether anything is still owned.
+   *
+   * Options apply only to the call that starts a pass. A call that joins a
+   * running pass gets that pass's errors, and its own options are ignored (its
+   * `reported` set stays empty). The engine never overlaps passes on one ledger:
+   * a retry first joins the earlier timed-out work. A change that lets passes
+   * overlap must handle this, or `reported` under-reports.
    */
-  unwind (): Promise<unknown[]> {
+  unwind (options?: UnwindOptions): Promise<unknown[]> {
     this.#sealed = true
-    this.#unwinding ??= this.#unwindPass().finally(() => {
+    this.#unwinding ??= this.#unwindPass(options).finally(() => {
       this.#unwinding = undefined
     })
     return this.#unwinding
   }
 
-  async #unwindPass (): Promise<unknown[]> {
+  async #unwindPass (options: UnwindOptions | undefined): Promise<unknown[]> {
     const errors: unknown[] = []
     const attempted = new Set<Entry>()
+    // The policy is checked at every selection, so entries added while the pass
+    // waits (late releases) follow it too.
+    const skip = (entry: Entry) => (options?.retry !== undefined && entry.status === 'failed' && !options.retry.has(entry))
+      || (options?.joinRunning === false && entry.status === 'running')
+    const eligible = (entry: Entry) => !attempted.has(entry) && !skip(entry)
     for (;;) {
-      const entry = this.#entries.findLast(candidate => candidate.join && !attempted.has(candidate))
-        ?? this.#entries.findLast(candidate => !attempted.has(candidate))
+      const entry = this.#entries.findLast(candidate => candidate.join && eligible(candidate))
+        ?? this.#entries.findLast(candidate => eligible(candidate))
       if (!entry) {
         return errors
       }
@@ -186,6 +232,7 @@ class Ledger {
         await this.#run(entry)
       } catch (error) {
         errors.push(error)
+        options?.reported?.add(entry)
       }
     }
   }
@@ -238,6 +285,7 @@ class Ledger {
 
 export type {
   LedgerEntryOptions,
+  UnwindOptions,
   Release,
 }
 export {

@@ -102,3 +102,24 @@ test('interrupts run newest first, once, and their errors do not keep entries', 
   await ledger.unwind()
   assert.equal(ledger.clean, true)
 })
+
+test('an unwind applies its retry and join policy to entries added while it waits', async () => {
+  const ledger = new Ledger()
+  const blocking = Promise.withResolvers<void>()
+  const lateGate = Promise.withResolvers<void>()
+  ledger.add({ release: () => blocking.promise })
+  let unwound = false
+  const pass = ledger.unwind({ retry: new Set(), joinRunning: false }).then(errors => { unwound = true; return errors })
+  await Promise.resolve()
+  let failedCalls = 0
+  ledger.addLate(() => { failedCalls++; throw new Error('late failure') }).catch(() => {})
+  ledger.addLate(() => lateGate.promise).catch(() => {})
+  blocking.resolve()
+  for (let i = 0; i < 20; i++) {
+    await Promise.resolve()
+  }
+  assert.equal(unwound, true, 'a running entry added meanwhile is not joined (joinRunning: false)')
+  assert.equal(failedCalls, 1, 'a failed entry added meanwhile is not retried (retry: none)')
+  assert.deepEqual(await pass, [])
+  lateGate.resolve()
+})
