@@ -155,6 +155,7 @@ const copilot: Implementation = {
     'C-SCOPE-08.a': 'B5: a failed late release on a retired scope is never called again; stop() rejects with the old error',
     'C-SCOPE-09.b': 'B5: the retry stop() rejects at once with the old late-release error instead of retrying the release',
     'C-TIME-05.a-before' : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
+    'C-TIME-05.g': 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.a-after'  : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.b'        : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.c-starting': 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',

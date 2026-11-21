@@ -654,6 +654,40 @@ contract('C-TIME-05.f', 'a deadline timer that fires before the clock reaches th
   await shutdown(lifecycle)
 })
 
+contract('C-TIME-05.g', 'an observer of `failed` that blocks past the stop deadline makes the stop() joining that failure\'s retirement a timeout, not `stopped` (D30, B1)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const failure = new Error('lost connection')
+  const gate = Promise.withResolvers<void>()
+  const trace: string[] = []
+  let saved: LifecycleScope | undefined
+  const { lifecycle } = make({
+    onStart (scope) {
+      saved = scope
+      scope.defer(() => gate.promise) // keeps the failure's retirement running
+    },
+    onStateChange (state) {
+      trace.push(state.kind)
+      if (state.kind === 'failed' && state.cleanupComplete) {
+        clock.jump(20) // the observer blocks the thread past the 10 ms deadline
+      }
+    },
+  }, { clock, stopTimeoutMs: 10 })
+  await lifecycle.start()
+  saved!.fail(failure)
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  gate.resolve()
+  await flush()
+  assert.equal(errorName(stopped.error), 'LifecycleTimeoutError', 'judged by the clock before `stopped` is committed')
+  assert.ok(!trace.includes('stopped'))
+  const state = failedState(lifecycle.state)
+  assert.equal(state.error, failure, 'the failure stays')
+  assert.equal(state.cleanupComplete, false)
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved', 'the next stop() commits `stopped`')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
 // ---------------------------------------------------------------------------
 // Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
 // ---------------------------------------------------------------------------

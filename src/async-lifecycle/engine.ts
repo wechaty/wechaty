@@ -539,11 +539,12 @@ class LifecycleEngine {
   /**
    * Record an explicit stop request for the reconciler. The first unconsumed
    * request fixes where the stop deadline of the pass serving it starts: at
-   * acceptance (C-TIME-03, D30).
+   * acceptance (C-TIME-03, D30), or at `origin` for a stop() handed on from a
+   * retirement whose deadline it keeps.
    */
-  #requestStop (): void {
+  #requestStop (origin = this.#clock.now()): void {
     this.#stopRequested = true
-    this.#stopAcceptedAt ??= this.#clock.now()
+    this.#stopAcceptedAt ??= origin
   }
 
   /** Consume the stop request; returns where its stop deadline starts. */
@@ -1036,7 +1037,7 @@ class LifecycleEngine {
     // Only this pass's own errors: debt errors stay in the debtors' ledgers and
     // are read from there when the outcome is published.
     generation.awaitingErrors = generation.awaitingLate ? [ ...generation.localErrors ] : []
-    this.#finishRetirement(generation, errors, complete, retry)
+    this.#finishRetirement(generation, errors, complete, retry, deadline)
   }
 
   /**
@@ -1274,6 +1275,7 @@ class LifecycleEngine {
     errors: unknown[],
     complete: boolean,
     retry: boolean,
+    deadline: Deadline,
   ): void {
     const failure = generation.failure
     const stopWaiters = this.#stopWaiters.get(generation) ?? new Set()
@@ -1376,8 +1378,18 @@ class LifecycleEngine {
         // `stopped` must wait for it. The stop() joins it as an idle pass under
         // the same deadline, which commits the outcome (C-SCOPE-11, C-STATE-07).
         for (const waiter of stopWaiters) { this.#idleStopWaiters.add(waiter) }
-        this.#stopRequested = true
-        this.#stopAcceptedAt ??= generation.retireAt
+        this.#requestStop(generation.retireAt)
+        return
+      }
+      if (deadline.passed()) {
+        // The observers of `failed` ran past the stop deadline: judged by the
+        // clock before `stopped` is committed, that stop() is a timeout
+        // (C-TIME-05, as C-TIME-05.b). The failure stays; the state is dirty
+        // until a stop() commits `stopped` (C-CMD-10), which needs no work.
+        const timeout = new LifecycleTimeoutError('stop', this.#stopTimeoutMs!)
+        this.#commit({ ...next, cleanupComplete: false, cleanupError: timeout }, () => {
+          for (const waiter of stopWaiters) { waiter.reject(timeout) }
+        })
         return
       }
       this.#commit({ kind: 'stopped', generation: generation.number }, () => {

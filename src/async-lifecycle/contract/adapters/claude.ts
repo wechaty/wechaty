@@ -150,6 +150,7 @@ const claude: Implementation = {
     'C-CMD-17.b-restart': 'D35 divergence: a command from the abort listener of a failed start supersedes it, so its callers get LifecycleSupersededError instead of the failure',
     'C-TIME-05.e': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-TIME-05.a-before'   : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
+    'C-TIME-05.g': 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.a-after'    : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.b'          : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.c-starting' : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',

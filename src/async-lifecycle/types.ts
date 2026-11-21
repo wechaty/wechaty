@@ -388,6 +388,12 @@ interface LifecycleHooks {
 /**
  * The timer source for deadlines (D12, C-TIME-04). Injected so tests run
  * deadlines without real time. The default uses the global timers.
+ *
+ * Its timers and `now()` must agree: a timer must not fire before `now()` has
+ * reached its due time, apart from rounding to whole milliseconds, and must
+ * not run its callback synchronously inside `setTimeout`. The engine judges a
+ * deadline by `now()` and arms an early timer again (C-TIME-05), so a clock
+ * whose `now()` stays behind its timers would never expire a deadline.
  */
 interface LifecycleClock {
   /** Milliseconds on a monotonic scale; only differences are used. */
