@@ -135,6 +135,12 @@ class Generation {
    */
   failedAfterUnwind: ReadonlySet<object> = new Set()
   /**
+   * The debt (failed late-release entries by generation) when its retirement
+   * was first requested, before its signal was aborted. Its first retirement
+   * pass retries exactly this; a failure that appears later is reported.
+   */
+  debtAtRequest: ReadonlyMap<Generation, ReadonlySet<object>> | undefined = undefined
+  /**
    * Its start failed because a late release failed meanwhile (C-SCOPE-11): that
    * debt is reported, not retried by this generation's own retirement.
    */

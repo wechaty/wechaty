@@ -1149,3 +1149,117 @@ contract('C-SCOPE-11.zi', 'a release registered on a failed run\'s own scope at 
     assert.equal(state.cleanupComplete, true, `turn ${turns}: nothing is left owned`)
   }
 })
+
+for (const how of [ 'throws', 'rejects' ] as const) {
+  contract(`C-SCOPE-11.zj-${how}`, `a release registered on the retiring run's own scope at any moment of a stop() that ${how} at once is reported as itself, not as "still in progress" (D31, C-SCOPE-02)`, {}, async ({ make }) => {
+    // Every turn while the stop() is still pending; once it has settled, the
+    // release is a late release on an idle instance (`.a-*`).
+    for (let turns = 0; ; turns++) {
+      const reason = new Error('release failed at once')
+      let saved: LifecycleScope | undefined
+      let calls = 0
+      const { lifecycle } = make({ onStart (scope) { saved = scope } })
+      await lifecycle.start()
+      const stopped = observe(lifecycle.stop())
+      await flush(turns)
+      // The committed state, not `stopped.status`, which lags a microtask.
+      if (lifecycle.state.kind !== 'stopping') {
+        await shutdown(lifecycle)
+        break
+      }
+      // Fails only the first time, so the stop() that retries it succeeds.
+      registerLate(saved!, how === 'throws'
+        ? () => { if (++calls === 1) { throw reason } }
+        : () => (++calls === 1 ? Promise.reject(reason) : undefined))
+      await flush()
+      // Registered before the unwind, it is retried once by it and the stop()
+      // resolves; after, it is reported. Never the "still in progress" error.
+      if (stopped.status === 'resolved') {
+        assert.equal(calls, 2, `turn ${turns}: retried by the unwind`)
+        assert.equal(lifecycle.state.kind, 'stopped', `turn ${turns}`)
+      } else {
+        assert.equal(stopped.error, reason, `turn ${turns}`)
+      }
+      const final = await shutdown(lifecycle)
+      assert.equal(final.status, 'resolved', `turn ${turns}: a stop() retries it`)
+      assert.equal(lifecycle.state.kind, 'stopped')
+    }
+  })
+}
+
+contract('C-SCOPE-11.zk', 'a late release that a starting run\'s abort listener rejects is reported by the stop() that aborted it, not retried in that pass (D31, C-CMD-10)', {}, async ({ make }) => {
+  const scopes: LifecycleScope[] = []
+  const gate = Promise.withResolvers<void>()
+  const reason = new Error('late release failed on abort')
+  let calls = 0
+  const { lifecycle } = make({
+    onStart (scope) {
+      scopes.push(scope)
+      if (scopes.length === 1) {
+        return
+      }
+      // Registered before the hook's own listener, so it runs first.
+      scope.signal.addEventListener('abort', () => gate.reject(reason))
+      return new Promise<void>((_, reject) => {
+        scope.signal.addEventListener('abort', () => reject(scope.signal.reason))
+      })
+    },
+  })
+  await lifecycle.start()
+  await lifecycle.stop()
+  const starting = observe(lifecycle.start())
+  await flush()
+  assert.equal(lifecycle.state.kind, 'starting')
+  registerLate(scopes[0]!, () => (++calls === 1 ? gate.promise : undefined))
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.equal(stopped.error, reason, 'the failure is reported')
+  assert.equal(calls, 1, 'and not retried in the same pass')
+  assert.equal(starting.status, 'rejected')
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved', 'the next stop() retries it')
+  assert.equal(calls, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.zl', 'an error carried by a timed-out debt pass is reported by the next stop(), even after the debt cleared (D31, D36)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const firstRetry = Promise.withResolvers<void>()
+  const secondRetry = Promise.withResolvers<void>()
+  const reason = new Error('the first retry failed after its deadline')
+  let retired: LifecycleScope | undefined
+  let attempts = 0
+  const { lifecycle } = make({ onStart (scope) { retired = scope } }, { clock, stopTimeoutMs: 100 })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => [
+    () => Promise.reject(new Error('debt')),
+    () => firstRetry.promise,
+    () => secondRetry.promise,
+  ][attempts++]?.())
+  await flush()
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  const first = observe(lifecycle.stop())
+  await flush()
+  await clock.advance(100)
+  assert.equal(errorName(first.error), 'LifecycleTimeoutError')
+  firstRetry.reject(reason)
+  await flush()
+  const second = observe(lifecycle.stop())
+  await flush()
+  await clock.advance(100)
+  assert.equal(errorName(second.error), 'LifecycleTimeoutError', 'it joins the failed retry, retries again, and times out')
+  assert.equal(attempts, 3)
+  secondRetry.resolve()
+  await flush()
+  const third = observe(lifecycle.stop())
+  await flush()
+  assert.equal(third.error, reason, 'the joined failure is not lost')
+  const state = failedState(lifecycle.state)
+  assert.equal(state.phase, 'stop')
+  assert.equal(state.cleanupComplete, true)
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+})

@@ -222,6 +222,10 @@ const claude: Implementation = {
     'C-SCOPE-11.zf-live': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zg': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zi': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zj-throws': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zj-rejects': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zl': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
+    'C-SCOPE-11.zk': 'C-CMD-10 divergence: a late release that a starting run\'s abort listener rejects is retried by the stop() that aborted it, which resolves without reporting the failure',
   },
 }
 

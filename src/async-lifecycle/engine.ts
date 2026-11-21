@@ -519,6 +519,10 @@ class LifecycleEngine {
    * abort-aware `onStart` returns. The reconciler performs the retirement.
    */
   #requestRetire (generation: Generation, reason: LifecycleStopReason): void {
+    // The debt its first pass retries is the debt that exists now, before the
+    // abort below runs listeners: a late release one of them rejects failed
+    // during this retirement, so it is reported, not retried (C-CMD-10).
+    generation.debtAtRequest ??= this.#debtSnapshot()
     if (generation.retireReason === undefined || (reason === 'stop' && generation.retireReason !== 'failure')) {
       generation.retireReason = reason
     }
@@ -727,6 +731,13 @@ class LifecycleEngine {
       return () => this.#retireDebt()
     }
 
+    if (this.#stopRequested && this.#debtRetirement) {
+      // A timed-out debt pass is still tracked and may carry an error, even
+      // though no debt is left: the stop() joins it to report it (D36).
+      this.#stopRequested = false
+      return () => this.#retireDebt()
+    }
+
     if (this.#stopRequested) {
       this.#stopRequested = false
       // Debt may have cleared on its own (a late release finished) after this
@@ -863,9 +874,11 @@ class LifecycleEngine {
     const retry = generation.dirty
     generation.dirty = false
     this.#commit({ kind: 'stopping', generation: generation.number })
-    // Taken when the pass starts, after any earlier timed-out work it joins has
-    // finished, so a failure in that work is retried (D36). Debt this run's own
-    // start failed on is left for an explicit stop().
+    // A first pass retries the debt that existed when retirement was requested
+    // (#requestRetire). A retry pass takes it when it starts, after the earlier
+    // timed-out work it joins has finished, so a failure in that work is
+    // retried (D36). Debt this run's own start failed on is left for an
+    // explicit stop().
     let earlierDebt: ReadonlyMap<Generation, ReadonlySet<object>> = new Map()
     // Failures a retry pass already returned; never reported again (C-RET-04).
     const reported = new Set<object>()
@@ -884,7 +897,9 @@ class LifecycleEngine {
       ({ errors, timedOut } = await this.#underStopDeadline(
         generation.retirement,
         signal => {
-          earlierDebt = generation.debtFailure && !retry ? new Map() : this.#debtSnapshot()
+          earlierDebt = retry
+            ? this.#debtSnapshot()
+            : generation.debtFailure ? new Map() : generation.debtAtRequest ?? this.#debtSnapshot()
           return this.#performRetirement(generation, signal, retry, earlierDebt, reported)
         },
         keep,
@@ -999,7 +1014,8 @@ class LifecycleEngine {
    * 6. unwind the ledger: tasks first, then everything else newest first
    * 7. unless this retirement follows a failure, wait for late releases of
    *    earlier runs (D31); one that fails now is reported, not retried
-   * 8. retry the debt that existed when this retirement began
+   * 8. retry the debt that existed when this retirement was requested (a retry
+   *    pass: when it began)
    */
   async #performRetirement (
     generation: Generation,
@@ -1026,10 +1042,14 @@ class LifecycleEngine {
     this.#abort(generation)
     errors.push(...generation.ledger.interrupt())
     await generation.startWork
-    errors.push(...await generation.ledger.unwind())
-    // What failed so far is reported by this pass; anything that fails later on
-    // this run's sealed scope is collected by the caller, once.
-    generation.failedAfterUnwind = generation.ledger.failedEntries()
+    // What this unwind returned is reported by this pass; anything else that
+    // fails on this run's sealed scope is collected by the caller, once. The
+    // record is what the pass returned, not what is failed when it resumes: a
+    // release registered and failing in the turns between would otherwise be
+    // reported by no one.
+    const unwound = new Set<object>()
+    errors.push(...await generation.ledger.unwind({ reported: unwound }))
+    generation.failedAfterUnwind = unwound
     errors.push(...generation.lateInterruptErrors.splice(0))
     const debt: unknown[] = []
     if (retry || generation.retireReason !== 'failure') {
