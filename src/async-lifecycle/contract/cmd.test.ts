@@ -242,7 +242,7 @@ contract('C-CMD-16.a', 'a throwing whenState predicate rejects only its own wait
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-CMD-01.b', 'a pre-aborted signal rejects restart, stop, whenState and condition waits too, accepting nothing', {}, async ({ make }) => {
@@ -718,7 +718,7 @@ for (const command of [ 'stop', 'restart' ] as const) {
 }
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-CMD-16.e', 'whenState() resolves with the snapshot its first predicate call inspected, even if that predicate starts the lifecycle', {}, async ({ make }) => {

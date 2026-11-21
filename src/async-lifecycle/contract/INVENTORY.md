@@ -2,18 +2,20 @@
 
 Where every test of the three comparison suites, and every other required case, went in the shared contract suite (S2, [#2970](https://github.com/wechaty/wechaty/issues/2970)).
 
+> **Historical record.** The three comparison implementations (`src/async-lifecycle-{codex,claude,copilot}/`), their own tests and their contract-suite adapters were deleted in S6 ([#2974](https://github.com/wechaty/wechaty/issues/2974)); the paths and "known failure for" columns below describe them as they were. The contract suite now runs against the final module only, which passes every test.
+
 The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one implementation tests a case, the final module tests it too. A source test is either **ported**, naming the contract test key that covers it, or **dropped**, giving the reason. S2 is done when every source test appears below.
 
 ## Progress
 
 | Source | Cases | Ported | Dropped | Remaining |
 | --- | --- | --- | --- | --- |
-| `src/async-lifecycle-codex/*.test.ts` | 63 tests (154 cases) | 61 | 2 (1 dropped, 1 moved to S5) | 0 |
+| `src/async-lifecycle-codex/*.test.ts` | 63 tests (154 cases) | 62 (the TCP test in S6) | 1 dropped | 0 |
 | `src/async-lifecycle-claude/*.test.ts` | 113 tests (208 cases) | 99 (83 new, 16 already covered) | 14 moved to S4 | 0 |
 | `src/async-lifecycle-copilot/*.test.ts` | 32 tests (one bundles 31 scenarios) | 26 (15 new, 11 already covered) | 6 moved to S4 | 0 |
 | #2905 traces A to F | 6 | 6 (new, in `traces.test.ts`) | 0 | 0 |
 | v1 design acceptance list (§6 of the v1 comment) | 6 | 6 (3 new, 3 already covered) | 0 | 0 |
-| #2911 §9 acceptance traces | 18 | 17 (5 new, 12 already covered) | 1 moved to S5 | 0 |
+| #2911 §9 acceptance traces | 18 | 18 (5 new, 12 already covered, 1 in S6) | 0 | 0 |
 | ChatGPT review, 17-row regression table | 17 | 17 (1 new, 16 already covered) | 0 | 0 |
 | #2968 §5 bugs | 3 | 3 | 0 | 0 |
 
@@ -75,7 +77,7 @@ One table per source suite, added as each is ported.
 
 ### Codex (`src/async-lifecycle-codex/`, #2914)
 
-63 distinct tests (154 cases: most run through both entry points, some in several variants). Ported: 61 (18 of them after D30 to D37 were accepted). Dropped: 1. Moved to S5: 1.
+63 distinct tests (154 cases: most run through both entry points, some in several variants). Ported: 62 (18 of them after D30 to D37 were accepted, and the TCP test in S6). Dropped: 1.
 
 `async-lifecycle.test.ts`:
 
@@ -153,7 +155,7 @@ One table per source suite, added as each is ported.
 
 | Source test | Status | Reason |
 | --- | --- | --- |
-| abort closes a connected socket and the waiting task finishes before disposal (opt-in TCP, 2 entry points) | moved to S5 | Real I/O belongs in consumer validation (#2973); the ordering it checks is `C-RET-01.a` |
+| abort closes a connected socket and the waiting task finishes before disposal (opt-in TCP, 2 entry points) | ported in S6 (#2974) as `src/async-lifecycle/socket.integration.test.ts`, still opt-in (`ASYNC_LIFECYCLE_TCP_TEST=1`) | Planned for S5, whose examples used a fake socket instead; the ordering it checks is also `C-RET-01.a` |
 
 ### Claude (`src/async-lifecycle-claude/`, #2913)
 
@@ -389,7 +391,7 @@ From §6 of the [v1 consolidated design](https://github.com/wechaty/wechaty/issu
 | `failed { cleanupComplete: false }` refuses a new generation until cleanup succeeds | covered | `C-CMD-10.a`, `C-CMD-13.a` |
 | A stop hook that outlives `stopTimeoutMs` blocks a clean retirement until it settles | covered | `C-TIME-03.a` |
 | Registration after abort releases immediately; a failing late release is retried by the next `stop()` | covered | `C-SCOPE-02.b`, `C-SCOPE-02.c`, `C-SCOPE-09.a` |
-| A task waiting for its socket to close finishes when scope abort initiates the close (TCP) | moved to S5 | Real I/O belongs in consumer validation (#2973); already run once on CI. The ordering it checks is `C-SCOPE-05.a`, `C-RET-01.a` |
+| A task waiting for its socket to close finishes when scope abort initiates the close (TCP) | ported in S6 (#2974) | `src/async-lifecycle/socket.integration.test.ts` (opt-in, `ASYNC_LIFECYCLE_TCP_TEST=1`). The ordering it checks is also `C-SCOPE-05.a`, `C-RET-01.a` |
 | Stopping from `running` lets `onStop` use a live resource before the scope aborts | covered | `C-RET-01.d` |
 | `scope.fail()`, `scope.set()` and `recover()` from a retired generation have no effect | covered | `C-SCOPE-02.a`, `C-REC-03.c` |
 | Delayed recovery stays `superseded` after user `stop() → start()` | ported | `C-REC-03.e` |

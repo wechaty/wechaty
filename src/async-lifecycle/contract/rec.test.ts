@@ -21,10 +21,10 @@
 /**
  * Contract tests for failure and recovery (README §9, C-REC-*).
  *
- * The Codex comparison implementation recovers through an owner-level
- * `recover(observedState)` instead of `scope.recover()` (not adopted in S1), so
- * its recovery tests are ported here as the `scope.recover()` behavior they
- * protect, and Codex is skipped for lack of `scope.recover`.
+ * The Codex comparison implementation (S2, deleted in S6) recovered through an
+ * owner-level `recover(observedState)` instead of `scope.recover()`, so its
+ * recovery tests were ported here as the `scope.recover()` behavior they
+ * protect.
  *
  * `scope.recover()` returns its decision synchronously (D42), so these tests
  * assert the returned value at the call and read the recovery's outcome from
@@ -111,7 +111,7 @@ contract('C-REC-03.c', 'recover() from a retired scope returns `superseded` and 
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-REC-02.b', 'recover() goes running, stopping, starting, running, with no stopped or failed in between', { needs: [ 'scope.recover' ] }, async ({ make }) => {
@@ -250,7 +250,7 @@ contract('C-REC-01.a', 'scope.fail(undefined) on a running generation fails it, 
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 for (const when of [ 'at-once', 'during-release' ] as const) {

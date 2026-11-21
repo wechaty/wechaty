@@ -157,7 +157,7 @@ contract('C-SCOPE-07.a', 'a spawned task that rejects while starting fails the a
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-SCOPE-02.c', 'a sealed scope releases a late defer() at once and refuses acquire, spawn and start without running them', { needs: [ 'scope.acquire' ] }, async ({ make }) => {
@@ -468,7 +468,7 @@ contract('C-SCOPE-09.c', 'a late release that fails in joined work is retried by
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 for (const from of [ 'release', 'onStart', 'onStop' ] as const) {

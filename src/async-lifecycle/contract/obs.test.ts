@@ -146,7 +146,7 @@ contract('C-OBS-04.a', 'diagnostics are published after commit, structural, and 
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-OBS-01.a', 'a stop() from the failed observer resolves only once `stopped` is committed', {}, async ({ make }) => {
@@ -214,7 +214,7 @@ contract('C-OBS-03.f', 'an onStart that calls stop() synchronously is superseded
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-OBS-01.b', 'each commit publishes its diagnostics record before calling onStateChange', {}, async ({ make, impl }) => {

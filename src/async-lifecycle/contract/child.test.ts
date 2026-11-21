@@ -156,7 +156,7 @@ contract('C-CHILD-04.a', 'three nested levels start top-down and release bottom-
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-CHILD-01.a', 'scope.start() refuses a child that is already running, with LifecycleUnsafeStateError', {}, async ({ make }) => {

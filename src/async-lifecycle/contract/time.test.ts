@@ -20,8 +20,7 @@
 
 /**
  * Contract tests for start and stop deadlines (README §8, C-TIME-*), on the
- * manual clock. They need the `clock` capability, so the Codex comparison
- * implementation, whose deadlines use real timers, is skipped.
+ * manual clock, so they need the `clock` capability.
  */
 
 import assert from 'node:assert/strict'
@@ -299,7 +298,7 @@ contract('C-TIME-03.d', 'the stop deadline covers joining tasks, and resources s
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-TIME-01.a', 'a deadline must be finite, greater than 0 and at most 2^31-1, or construction throws RangeError (D11)', {}, async ({ make }) => {
@@ -689,7 +688,7 @@ contract('C-TIME-05.g', 'an observer of `failed` that blocks past the stop deadl
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-TIME-03.i', 'an onStop that rejects after its stop deadline, before any stop() joins, is reported by the next stop()', { needs: [ 'clock' ] }, async ({ make }) => {
