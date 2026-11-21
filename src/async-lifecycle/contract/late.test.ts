@@ -1023,11 +1023,9 @@ for (const command of [ 'stop', 'start', 'restart' ] as const) {
     await flush()
     assert.equal(accepted.status, 'resolved', String(accepted.error))
     if (command === 'stop') {
-      // The stop() joins the failure's retirement. Whether it then reports the
-      // clean failure or commits `stopped` is not decided by the contract;
-      // either way nothing may be left owned.
-      const state = lifecycle.state
-      assert.ok(state.kind === 'stopped' || (state.kind === 'failed' && state.cleanupComplete), `ended ${state.kind}`)
+      // The stop() joins the failure's retirement, which ends clean, so it
+      // commits `stopped` (C-CMD-09; B1, as C-TIME-02.a-success).
+      assert.equal(lifecycle.state.kind, 'stopped')
     } else {
       assert.deepEqual(lifecycle.state, { kind: 'running', generation: 3 })
     }
@@ -1262,4 +1260,40 @@ contract('C-SCOPE-11.zl', 'an error carried by a timed-out debt pass is reported
   const final = await shutdown(lifecycle)
   assert.equal(final.status, 'resolved')
   assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-11.zm', 'a late release that an observer of `failed` registers, while a stop() waits on the failure\'s retirement, is joined before `stopped` (D31, B1, C-STATE-07)', {}, async ({ make }) => {
+  const failure = new Error('lost connection')
+  const gate = Promise.withResolvers<void>()
+  const trace: string[] = []
+  let saved: LifecycleScope | undefined
+  let registered = false
+  const { lifecycle } = make({
+    onStart (scope) {
+      saved = scope
+      scope.defer(() => gate.promise) // keeps the failure's retirement running
+    },
+    onStateChange (state) {
+      trace.push(state.kind)
+      if (state.kind === 'failed' && !registered) {
+        registered = true
+        registerLate(saved!, () => late.promise, failure)
+      }
+    },
+  })
+  const late = Promise.withResolvers<void>()
+  await lifecycle.start()
+  saved!.fail(failure)
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  gate.resolve()
+  await flush()
+  assert.ok(registered, 'the observer saw `failed`')
+  assert.equal(stopped.status, 'pending', 'the stop() waits for the late release')
+  assert.notEqual(lifecycle.state.kind, 'stopped', '`stopped` waits for it too')
+  late.resolve()
+  await flush()
+  assert.equal(stopped.status, 'resolved')
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(trace.at(-1), 'stopped')
 })

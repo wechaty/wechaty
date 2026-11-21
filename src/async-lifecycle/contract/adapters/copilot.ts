@@ -143,6 +143,8 @@ const copilot: Implementation = {
     'C-RET-02.a'  :'B1: stop() on a clean failure (after onStop threw) leaves the state `failed` instead of committing `stopped`',
     'C-TIME-02.a-success': 'B1: a stop() accepted while the timed-out generation retires leaves the state `failed`, not `stopped`',
     'C-TIME-02.c'        : 'B1: a stop() accepted while the timed-out generation retires leaves the state `failed`, not `stopped`',
+    'C-CMD-17.b-stop': 'B1: a stop() accepted while the failed generation retires leaves the state `failed`, not `stopped`',
+    'C-TIME-05.e': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-TIME-03.b'        : 'B6: an onStop rejection after the stop deadline rejects the joining stop() but is missing from the snapshot\'s cleanupError',
     'C-OBS-04.a'         : 'divergence: diagnostics records use a versioned shape (version, instanceId, service, revision, timestamps) instead of { name, previous, state } (C-OBS-04)',
     'C-OBS-01.a'         : 'B1: a stop() from the failed observer resolves while the state is still `failed`',
@@ -153,6 +155,7 @@ const copilot: Implementation = {
     'C-SCOPE-08.a': 'B5: a failed late release on a retired scope is never called again; stop() rejects with the old error',
     'C-SCOPE-09.b': 'B5: the retry stop() rejects at once with the old late-release error instead of retrying the release',
     'C-TIME-05.a-before' : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
+    'C-TIME-05.g': 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.a-after'  : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.b'        : 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
     'C-TIME-05.c-starting': 'D30 divergence: a deadline is judged only by its timer firing, not by the clock when the outcome is committed (no comparison implementation passes this; the final kernel will)',
@@ -250,6 +253,7 @@ const copilot: Implementation = {
     'C-SCOPE-11.zj-throws': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zj-rejects': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zl': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.zm': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
   },
 }
 

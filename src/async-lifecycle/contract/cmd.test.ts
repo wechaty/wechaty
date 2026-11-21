@@ -693,6 +693,30 @@ contract('C-CMD-17.a', 'a failed start rejects while its cleanup is still runnin
   assert.equal(failedState(lifecycle.state).error, failure)
 })
 
+for (const command of [ 'stop', 'restart' ] as const) {
+  contract(`C-CMD-17.b-${command}`, `a ${command}() from the abort listener of a failed start does not turn its failure into LifecycleSupersededError (D35)`, {}, async ({ make }) => {
+    const failure = new Error('onStart failed')
+    let lifecycle!: Lifecycle
+    let issued: Observed<void> | undefined
+    let starts = 0
+    ;({ lifecycle } = make({
+      onStart (scope) {
+        if (++starts > 1) {
+          return
+        }
+        scope.signal.addEventListener('abort', () => { issued = observe(lifecycle[command]()) }, { once: true })
+        throw failure
+      },
+    }))
+    const started = observe(lifecycle.start())
+    await flush()
+    assert.equal(started.error, failure, 'the failure was decided before the abort listener ran')
+    assert.equal(issued?.status, 'resolved')
+    assert.deepEqual(lifecycle.state, command === 'stop' ? { kind: 'stopped', generation: 1 } : { kind: 'running', generation: 2 })
+    await shutdown(lifecycle)
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
 // ---------------------------------------------------------------------------

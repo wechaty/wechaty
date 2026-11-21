@@ -143,6 +143,12 @@ class Generation {
    */
   debtAtRequest: ReadonlyMap<Generation, ReadonlySet<object>> | undefined = undefined
   /**
+   * `clock.now()` when its retirement was first requested, before its signal
+   * was aborted: where its first retirement pass's stop deadline starts
+   * (C-TIME-03, D30). A retry pass starts from its own `stop()` instead.
+   */
+  retireAt: number | undefined = undefined
+  /**
    * Its start failed because a late release failed meanwhile (C-SCOPE-11): that
    * debt is reported, not retried by this generation's own retirement.
    */
