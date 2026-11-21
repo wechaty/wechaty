@@ -104,6 +104,14 @@ The committed line/function/branch floors in
 shared suite at the versions above. Baseline changes require review; the
 workflow never lowers them automatically.
 
+Some parts of the tree also have floors of their own, checked from the same
+LCOV report after the repo-wide ones. Each is a `CoverageScope` in
+`scripts/coverage.ts`, and its floors live in
+`.github/coverage-baselines/<runtime>.<scope>.json`. Today there is one:
+`async-lifecycle`, the module in `src/async-lifecycle/`, without its contract
+suite and examples. Its floors are its measured coverage minus two points, so a
+real regression fails while ordinary churn does not (wechaty/wechaty#2974).
+
 `npm run lint:ts` remains the canonical TypeScript check; the test runner does
 not replace it. Lifecycle tests register `t.after()` cleanup before starting
 bots. Windows-specific pre-push and puppet-installer exclusions remain limited

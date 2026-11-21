@@ -26,6 +26,12 @@ import type { Wechaty } from 'wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'
+import {
+  createLifecycle,
+  LIFECYCLE_DIAGNOSTICS_CHANNEL,
+  operation,
+}                   from 'wechaty/async-lifecycle'
+import type { LifecycleScope } from 'wechaty/async-lifecycle'
 
 import assert from 'assert'
 
@@ -72,7 +78,21 @@ function getBotList (): Wechaty[] {
   return botList
 }
 
+/** The async-lifecycle module from its published entry point (D20). */
+async function asyncLifecycleSmoke (): Promise<void> {
+  let saved: LifecycleScope | undefined
+  const lifecycle = createLifecycle({ onStart (scope) { saved = scope } })
+  await lifecycle.start()
+  assert.strictEqual(lifecycle.state.kind, 'running')
+  assert.strictEqual(await operation(saved!, () => 42), 42)
+  await lifecycle.stop()
+  assert.strictEqual(lifecycle.state.kind, 'stopped')
+  assert.strictEqual(LIFECYCLE_DIAGNOSTICS_CHANNEL, 'wechaty.async-lifecycle.state')
+  console.info('wechaty/async-lifecycle smoking test passed.')
+}
+
 async function main () {
+  await asyncLifecycleSmoke()
   const botList = getBotList()
   try {
     await Promise.all(

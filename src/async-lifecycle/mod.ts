@@ -23,13 +23,16 @@
  *
  * Exports the public contract (types and errors, wechaty/wechaty#2969), the two
  * entry points `createLifecycle` and `AsyncLifecycle`, the `listen`,
- * `operation` and `watchdog` companions (README §15), and the diagnostics channel name. The
- * kernel behind them is built in S4 (wechaty/wechaty#2972). Nothing outside this
- * directory imports it yet, and it is not part of the package exports map until
- * wechaty/wechaty#2974. README §18 describes the internal components.
+ * `operation` and `watchdog` companions (README §15), and the diagnostics
+ * channel name. The kernel behind them is built in S4 (wechaty/wechaty#2972).
+ * It is published as `wechaty/async-lifecycle` (D20, wechaty/wechaty#2974);
+ * nothing else in `wechaty` imports it yet. README §18 describes the internal
+ * components.
  *
- * Boundary: the module's own files import nothing outside this directory except
- * `node:diagnostics_channel`, so it can move to its own package unchanged. The
+ * Boundary: the module's own files have no runtime import outside this
+ * directory, so it can move to its own package unchanged (D20). It gets
+ * `node:diagnostics_channel` at runtime through `process.getBuiltinModule`, and
+ * runs without it where it is missing, as in a browser (D43). The
  * one exception is test code in `contract/`: its `adapters/` import the three
  * comparison implementations in `src/async-lifecycle-{codex,claude,copilot}/`
  * so the shared suite can run against them (wechaty/wechaty#2970). Nothing here

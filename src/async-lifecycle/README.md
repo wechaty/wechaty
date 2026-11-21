@@ -2,7 +2,7 @@
 
 One lifecycle module for every async layer of Wechaty: `Wechaty`, `Puppet`, `PuppetService`, `PuppetServer` and `Io`. It replaces `state-switch` and hand-written `start` / `stop` / `reset` (#2905).
 
-**Status: release candidate, stage S1** of the convergence plan in [#2968](https://github.com/wechaty/wechaty/issues/2968). This directory holds the public types (`types.ts`), the errors (`errors.ts`) and this contract. The kernel lands in S4 ([#2972](https://github.com/wechaty/wechaty/issues/2972)). The API stays a release candidate until consumer validation in S5 ([#2973](https://github.com/wechaty/wechaty/issues/2973)). It is not exported from the package yet.
+**Status: implemented and validated** through stage S5 of the convergence plan in [#2968](https://github.com/wechaty/wechaty/issues/2968): the kernel (S4, [#2972](https://github.com/wechaty/wechaty/issues/2972)) passes this contract under Node.js and Deno, and the `Io`, `Puppet` and `Wechaty` examples run on it (S5, [#2973](https://github.com/wechaty/wechaty/issues/2973)). It is published as `import { createLifecycle } from 'wechaty/async-lifecycle'` (D20). It has no runtime dependency and no runtime import outside this directory, so it can move to a standalone package unchanged; that move is planned before `wechaty-puppet` adopts it.
 
 **How to read this file.** Each rule has an ID such as `C-CMD-04`. Tests cite these IDs, and so does the TSDoc in `types.ts`. To change a rule, change it here, give it a decision ID in #2968 §6, and update the tests that cite it. `D…` IDs refer to the decision log in #2968.
 
@@ -216,7 +216,7 @@ Usage notes, not rules:
 - **C-OBS-01** Each commit runs in this order: freeze the snapshot; settle the outcomes of attempts, stops and condition waits; resolve `whenState` waiters; publish diagnostics; call `onStateChange`.
 - **C-OBS-02** A throwing `onStateChange` or diagnostics subscriber is isolated and never changes an outcome. A throwing `whenState` predicate rejects only its own wait.
 - **C-OBS-03** Observers may call commands. There is only ever one reconciler per instance, and a command from an observer is accepted like any other.
-- **C-OBS-04** After each commit, and only when the channel has subscribers, a `LifecycleDiagnosticRecord` is published on the `node:diagnostics_channel` channel `wechaty.async-lifecycle.state` (D23). A record holds the `name` option and the structural fields of the previous and current snapshots (`kind`, `generation`, and for `failed`, `phase` and `cleanupComplete`). It never holds errors or application data.
+- **C-OBS-04** After each commit, and only when the channel has subscribers, a `LifecycleDiagnosticRecord` is published on the `node:diagnostics_channel` channel `wechaty.async-lifecycle.state` (D23). The module looks the channel module up at runtime with `process.getBuiltinModule`; where the runtime has none, as in a browser, nothing is published (D43). A record holds the `name` option and the structural fields of the previous and current snapshots (`kind`, `generation`, and for `failed`, `phase` and `cleanupComplete`). It never holds errors or application data.
 
 ## 13. Entry points
 
@@ -271,6 +271,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D13 | Errors share `LifecycleError` with a stable `ERR_LIFECYCLE_*` `code`; `isLifecycleError()` checks by shape |
 | D17 | `listen` and `watchdog` are companions, not scope members |
 | D18 | `onStop` receives `{ generation, reason, signal }` |
+| D20 | Published as `wechaty/async-lifecycle`; zero-dependency, to move into a standalone package before `wechaty-puppet` adopts it |
 | D21 | Child ownership is one registry per JS realm, shared by every installed copy of the module (C-CHILD-02) |
 | D23 | `condition.isSet` exists; options type is `LifecycleWaitOptions`; diagnostics channel is `wechaty.async-lifecycle.state` |
 | D24 | In-flight operations use the `operation` companion (C-COMP-03); the `reset()` / `state.active()` shims and the legacy `'start'` / `'stop'` / `'error'` events live in the integration layer, not the module |
@@ -291,6 +292,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D39 | A child that stops or fails unasked while its parent is retiring is not escalated; the parent stops it as usual (C-CHILD-05) |
 | D41 | A late acquisition's `acquire()` rejects at once, without waiting for its release (C-SCOPE-04) |
 | D42 | `scope.recover()` returns its decision synchronously, `'accepted' \| 'superseded' \| 'failed'`; the replacement's outcome is read from the lifecycle. A task requesting recovery cannot deadlock, without async context, on every runtime (C-REC-03, C-REC-05; replaces D19 and D22) |
+| D43 | `node:diagnostics_channel` is looked up at runtime with `process.getBuiltinModule`; without it, as in a browser, diagnostics are a no-op (C-OBS-04) |
 
 ## 17. Not in this module
 
@@ -311,7 +313,7 @@ The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues
 | Ledger | `ledger.ts` | A generation's obligations with per-entry status: task joins (interrupt promises included, D38) before everything else, then releases newest first, a failed entry retried, a running one joined. It knows nothing about state |
 | Conditions | `condition.ts` | Declared conditions, waits bound to a generation, and each live generation's set flags |
 | Clock | `clock.ts` | The default `LifecycleClock` (global timers, and `performance.now()`), and the deadline-length check the engine and the watchdog share (C-TIME-01) |
-| Diagnostics | `diagnostics.ts` | Publishing on `wechaty.async-lifecycle.state`, after commit and only when subscribed |
+| Diagnostics | `diagnostics.ts` | Publishing on `wechaty.async-lifecycle.state`, after commit and only when subscribed, with the channel module looked up at runtime (D43) |
 | Entry points | `create-lifecycle.ts`, `async-lifecycle.ts` | Delegation to the engine; the class adds only the override guard (C-SHELL-02) |
 | Companions | `companions/` | `listen`, `operation` and `watchdog` (§15), built only on the public scope |
 | Module | `mod.ts` | Public exports |

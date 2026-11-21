@@ -4,11 +4,13 @@ import { test } from 'node:test'
 import {
   assertTestDiscovery,
   assertBaseline,
+  COVERAGE_SCOPES,
   coverageExitCode,
   coveragePassed,
   mergeUnloadedSources,
   normalizeLcovForRenderer,
   parseLcov,
+  scopeRecords,
   summarizeLcov,
 } from './coverage.ts'
 
@@ -138,3 +140,21 @@ end_of_record
     /function declarations and counts differ/,
   )
 })
+
+test('a coverage scope keeps its own sources and leaves out its excluded prefixes', () => {
+  const scope = COVERAGE_SCOPES.find(candidate => candidate.name === 'async-lifecycle')!
+  const records = parseLcov([
+    record('src/async-lifecycle/engine.ts'),
+    record('src/async-lifecycle/companions/listen.ts', 0),
+    record('src/async-lifecycle/contract/harness.ts'),
+    record('src/async-lifecycle/examples/io.example.ts'),
+    record('src/async-lifecycle-claude/engine.ts'),
+    record('src/wechaty/wechaty-base.ts'),
+  ].join(''))
+  const scoped = scopeRecords(records, scope)
+  assert.deepEqual(scoped.map(entry => entry.source), [ 'src/async-lifecycle/engine.ts', 'src/async-lifecycle/companions/listen.ts' ])
+  const metrics = summarizeLcov(scoped)
+  assert.equal(metrics.lines.percent, 50)
+  assert.throws(() => assertBaseline(metrics, { lines: 60, functions: 0, branches: 0 }), /below/)
+})
+

@@ -32,10 +32,15 @@
  * Deno implements `node:diagnostics_channel` and behaves as Node.js does here
  * (checked by `diagnostics.test.ts` and the C-OBS-04 contract tests), and
  * `hasSubscribers` keeps the publish path free when nobody is listening.
- * Browsers lack the module; that is D43, for S6.
+ *
+ * No static import (D43): the module is looked up with
+ * `process.getBuiltinModule`, which Node.js and Deno provide. Where it is
+ * missing, as in a browser, there is no channel and publishing does nothing, so
+ * a bundle needs no alias or shim. The module therefore has no runtime import
+ * outside its own directory.
  */
 
-import diagnosticsChannel from 'node:diagnostics_channel'
+import type * as DiagnosticsChannel from 'node:diagnostics_channel'
 
 import type {
   LifecycleDiagnosticRecord,
@@ -46,7 +51,21 @@ import type {
 /** The single diagnostics channel for every lifecycle instance (D23, C-OBS-04). */
 const CHANNEL_NAME = 'wechaty.async-lifecycle.state'
 
-const channel = diagnosticsChannel.channel(CHANNEL_NAME)
+/**
+ * The runtime's `node:diagnostics_channel`, or `undefined` where the runtime
+ * has none (D43). A failing lookup counts as missing: diagnostics must never
+ * stop the module from loading.
+ */
+function builtinDiagnosticsChannel (): typeof DiagnosticsChannel | undefined {
+  const process = (globalThis as { process?: { getBuiltinModule?: (id: string) => unknown } }).process
+  try {
+    return process?.getBuiltinModule?.('node:diagnostics_channel') as typeof DiagnosticsChannel | undefined
+  } catch {
+    return undefined
+  }
+}
+
+const channel = builtinDiagnosticsChannel()?.channel(CHANNEL_NAME)
 
 /**
  * Remove exception-bearing fields before publishing a state snapshot.
@@ -67,7 +86,8 @@ function diagnosticState (state: LifecycleState): LifecycleDiagnosticState {
 }
 
 /**
- * Publish a state-commit record if and only if a subscriber is attached.
+ * Publish a state-commit record if and only if a subscriber is attached (and
+ * the runtime has a channel at all, D43).
  *
  * This is the only diagnostics entry point the engine calls, and it never
  * throws into the commit. Under both Node.js and Deno, `channel.publish`
@@ -78,7 +98,7 @@ function diagnosticState (state: LifecycleState): LifecycleDiagnosticState {
  * whose `publish` might throw synchronously.
  */
 function publishStateChange (record: LifecycleDiagnosticRecord): void {
-  if (!channel.hasSubscribers) {
+  if (!channel?.hasSubscribers) {
     return
   }
   try {

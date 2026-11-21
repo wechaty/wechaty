@@ -12,6 +12,9 @@
     },
     "./users": {
       "import": "./dist/esm/src/mods/users.js"
+    },
+    "./async-lifecycle": {
+      "import": "./dist/esm/src/async-lifecycle/mod.js"
     }
   },
   "typesVersions": {
@@ -21,6 +24,9 @@
       ],
       "impls": [
         "./dist/esm/src/mods/impls.d.ts"
+      ],
+      "async-lifecycle": [
+        "./dist/esm/src/async-lifecycle/mod.d.ts"
       ]
     }
   },
