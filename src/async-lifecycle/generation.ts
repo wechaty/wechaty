@@ -172,9 +172,11 @@ const OWNED_CHILDREN_KEY = Symbol.for('wechaty.async-lifecycle.owned-children')
  * object is never touched (a `createLifecycle` controller is frozen). If that
  * key holds something else, this copy keeps a private set rather than trusting
  * it. A child cannot cross realms, so one registry per realm is enough.
+ *
+ * `global` is `globalThis`; a test passes its own object to check the branches
+ * without touching the realm's registry.
  */
-function ownedChildren (): WeakSet<Lifecycle> {
-  const global = globalThis as Record<symbol, unknown>
+function ownedChildren (global: Record<symbol, unknown> = globalThis as Record<symbol, unknown>): WeakSet<Lifecycle> {
   if (!Object.hasOwn(global, OWNED_CHILDREN_KEY)) {
     Object.defineProperty(global, OWNED_CHILDREN_KEY, {
       value        : new WeakSet<Lifecycle>(),
@@ -429,4 +431,6 @@ export type {
 export {
   createScope,
   Generation,
+  OWNED_CHILDREN_KEY,
+  ownedChildren,
 }

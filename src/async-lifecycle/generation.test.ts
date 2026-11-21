@@ -27,7 +27,7 @@
 import assert from 'node:assert/strict'
 import { cpSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
@@ -35,7 +35,7 @@ import { createLifecycle } from './create-lifecycle.ts'
 import type { LifecycleScope } from './types.ts'
 import { LifecycleUnsafeStateError } from './errors.ts'
 
-import { createScope, Generation, type ScopeHost } from './generation.ts'
+import { createScope, Generation, OWNED_CHILDREN_KEY, ownedChildren, type ScopeHost } from './generation.ts'
 
 /** A host that records nothing: these tests never fail, recover or set conditions. */
 const host: ScopeHost = {
@@ -71,7 +71,12 @@ test('two installed copies share one child-ownership registry, so only one paren
   try {
     cpSync(import.meta.dirname!, dir, {
       recursive : true,
-      filter    : source => !source.includes('contract') && !source.includes('examples') && !source.endsWith('.test.ts'),
+      // Relative to the module, so a checkout path that happens to contain
+      // these words does not filter out everything.
+      filter    : source => {
+        const path = relative(import.meta.dirname!, source)
+        return !path.startsWith('contract') && !path.startsWith('examples') && !path.endsWith('.test.ts')
+      },
     })
     const copy = await import(pathToFileURL(join(dir, 'mod.ts')).href) as typeof import('./mod.ts')
     assert.notEqual(copy.createLifecycle, createLifecycle, 'a separate module instance')
@@ -109,3 +114,17 @@ test('two installed copies share one child-ownership registry, so only one paren
   }
 })
 
+test('the ownership registry is created once, hidden, and never replaced by a foreign value (D21)', () => {
+  const realm: Record<symbol, unknown> = {}
+  const registry = ownedChildren(realm)
+  assert.equal(ownedChildren(realm), registry, 'the second copy gets the first copy\'s registry')
+  const property = Object.getOwnPropertyDescriptor(realm, OWNED_CHILDREN_KEY)
+  assert.deepEqual([ property?.enumerable, property?.writable, property?.configurable ], [ false, false, false ])
+
+  const foreign = { has: () => true }
+  const other: Record<symbol, unknown> = { [OWNED_CHILDREN_KEY]: foreign }
+  const kept = ownedChildren(other)
+  assert.ok(kept instanceof WeakSet, 'a private registry instead of the foreign value')
+  assert.notEqual(kept as unknown, foreign)
+  assert.equal(other[OWNED_CHILDREN_KEY], foreign, 'the foreign value is left alone')
+})

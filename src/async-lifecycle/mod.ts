@@ -30,13 +30,14 @@
  *
  * Boundary: the module's own files import nothing outside this directory except
  * `node:diagnostics_channel`, so it can move to its own package unchanged. The
- * one global it touches is the child-ownership registry that every installed
- * copy shares (`generation.ts`, D21). The
  * one exception is test code in `contract/`: its `adapters/` import the three
  * comparison implementations in `src/async-lifecycle-{codex,claude,copilot}/`
  * so the shared suite can run against them (wechaty/wechaty#2970). Nothing here
  * imports `contract/`, and the adapters are deleted with those directories in
  * wechaty/wechaty#2974.
+ *
+ * Globals: the only one it touches is the child-ownership registry that every
+ * installed copy shares (`generation.ts`, D21).
  */
 
 export {
