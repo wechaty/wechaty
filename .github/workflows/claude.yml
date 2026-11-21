@@ -77,7 +77,6 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '26'
-          package-manager-cache: false
 
       - name: Set up Deno
         uses: denoland/setup-deno@v2
@@ -208,7 +207,6 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '26'
-          package-manager-cache: false
 
       - name: Set up Deno for review
         if: steps.eyes.outputs.review_needed == 'true'
