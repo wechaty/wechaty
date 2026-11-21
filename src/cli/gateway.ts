@@ -32,7 +32,7 @@ async function onError (
   e    : Error,
 ) {
   log.error('Gateway', 'Error: %s', e)
-  await this.quit()
+  await this.stop()
   process.exit(-1)
 }
 

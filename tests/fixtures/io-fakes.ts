@@ -30,7 +30,12 @@ import { Io, type IoOptions, type IoWebSocket } from '../../src/io.ts'
 /** What a scripted connection attempt does. */
 export type Attempt = 'open' | 'refuse' | 'pending'
 
-/** A WebSocket stand-in: `ws`'s readyState values, events and methods. */
+/**
+ * A WebSocket stand-in: `ws`'s readyState values, events and methods. Like a
+ * `ws` socket it is both an EventEmitter and an EventTarget, so code that
+ * picks an API by feature detection (`listen()`) takes the path it takes in
+ * production.
+ */
 export class FakeSocket extends EventEmitter {
 
   readyState = 0 // CONNECTING
@@ -40,6 +45,8 @@ export class FakeSocket extends EventEmitter {
   closes = 0
   /** The server never answers a close: `close()` does not complete. */
   closeHangs = false
+  /** Every send fails, as on a connection that died without a close yet. */
+  failSends = false
 
   constructor (protocol: string) {
     super()
@@ -47,11 +54,44 @@ export class FakeSocket extends EventEmitter {
   }
 
   send (data: string, callback: (error?: Error) => void): void {
+    if (this.failSends) {
+      queueMicrotask(() => callback(new Error('socket write failed')))
+      return
+    }
     this.sent.push(JSON.parse(data))
     callback()
   }
 
   ping (): void { this.pings++ }
+
+  readonly #eventListeners = new Map<(event: unknown) => void, (...args: unknown[]) => void>()
+
+  /** As in `ws`: the listener gets one event object, not the emitter's arguments. */
+  addEventListener (type: string, listener: (event: unknown) => void): void {
+    const wrapper = (...args: unknown[]) => {
+      const [ first, second ] = args
+      switch (type) {
+        case 'close':
+          return listener({ type, target: this, code: first, reason: String(second) })
+        case 'error':
+          return listener({ type, target: this, error: first, message: (first as Error).message })
+        case 'message':
+          return listener({ type, target: this, data: first })
+        default:
+          return listener({ type, target: this })
+      }
+    }
+    this.#eventListeners.set(listener, wrapper)
+    this.on(type, wrapper)
+  }
+
+  removeEventListener (type: string, listener: (event: unknown) => void): void {
+    const wrapper = this.#eventListeners.get(listener)
+    if (wrapper) {
+      this.#eventListeners.delete(listener)
+      this.off(type, wrapper)
+    }
+  }
 
   close (): void {
     this.closes++
@@ -144,6 +184,7 @@ export class TestIo extends Io {
   readonly backoffs: number[] = []
   delayMs = 0
   closeTimeout = 5 * 1000
+  maxBuffered = 1000
   /** Called in the same tick a socket opens, e.g. for a server that speaks at once. */
   onOpen?: (socket: FakeSocket) => void
 
@@ -166,6 +207,10 @@ export class TestIo extends Io {
 
   protected override closeTimeoutMs (): number {
     return this.closeTimeout
+  }
+
+  protected override maxBufferedEvents (): number {
+    return this.maxBuffered
   }
 
   protected override createWebSocket (_endpoint: string, protocol: string): IoWebSocket {

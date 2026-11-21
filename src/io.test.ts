@@ -57,7 +57,7 @@ test('start() connects and announces the bot; stop() flushes what is buffered, t
   assert.deepEqual(names(socket.sent), [ 'sys', 'heartbeat' ], 'nothing is forwarded once stopped')
 })
 
-test('the bot listeners are added for each run and removed when it stops, so they never pile up', async () => {
+test('the bot listeners are added once per start() and removed when it stops, so they never pile up', async () => {
   const bot = new FakeWechaty()
   const io = testIo(bot)
   for (let round = 0; round < 3; round++) {
@@ -223,7 +223,7 @@ test('an error the socket reports during the closing handshake is not an uncaugh
   await stopped
 })
 
-test('a stop() while reconnecting drops what the outage buffered, so the next start() does not send it', async () => {
+test('what the outage buffered survives a stop() while reconnecting and is sent by the next start(), after the announcement', async () => {
   const bot = new FakeWechaty()
   const io = testIo(bot)
   io.delayMs = 60_000
@@ -233,11 +233,11 @@ test('a stop() while reconnecting drops what the outage buffered, so the next st
   bot.emit('heartbeat', 'during the outage')
   await io.stop()
   await io.start()
-  assert.deepEqual(names(io.socket.sent), [ 'sys' ])
+  assert.deepEqual(names(io.socket.sent), [ 'sys', 'heartbeat' ])
   await io.stop()
 })
 
-test('an event the bot emits while stop() closes the socket is not sent by the next start()', async () => {
+test('an event the bot emits while stop() closes the socket is sent by the next start()', async () => {
   const bot = new FakeWechaty()
   const io = testIo(bot)
   io.closeTimeout = 10
@@ -248,6 +248,74 @@ test('an event the bot emits while stop() closes the socket is not sent by the n
   bot.emit('heartbeat', 'while closing')
   await stopped
   await io.start()
-  assert.deepEqual(names(io.socket.sent), [ 'sys' ])
+  assert.deepEqual(names(io.socket.sent), [ 'sys', 'heartbeat' ])
+  await io.stop()
+})
+
+test('an event the bot emits between a dropped run and its replacement is still sent', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot, [ 'open', 'open' ])
+  await io.start()
+  io.sockets[0]!.drop()
+  // One heartbeat per microtask covers the gap between the old run's
+  // retirement and the new run's onStart, however many ticks that takes.
+  const sent: number[] = []
+  for (let tick = 0; io.state.kind !== 'running' || io.state.generation !== 2; tick++) {
+    assert.ok(tick < 1000, 'the recovery finishes')
+    bot.emit('heartbeat', tick)
+    sent.push(tick)
+    await Promise.resolve()
+  }
+  await flush()
+  const received = io.socket.sent
+    .filter(event => event.name === 'heartbeat')
+    .map(event => (event.payload as { data: number }).data)
+  assert.deepEqual(received, sent)
+  await io.stop()
+})
+
+test('an event whose send fails is kept and sent on the next connection, in order', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot, [ 'open', 'open' ])
+  await io.start()
+  io.sockets[0]!.failSends = true
+  bot.emit('heartbeat', 1)
+  bot.emit('heartbeat', 2)
+  await flush()
+  io.sockets[0]!.drop()
+  await io.whenState(state => state.kind === 'running' && state.generation === 2)
+  await flush()
+  assert.deepEqual(names(io.socket.sent), [ 'sys', 'heartbeat', 'heartbeat' ])
+  assert.deepEqual(io.socket.sent.slice(1).map(event => (event.payload as { data: number }).data), [ 1, 2 ])
+  await io.stop()
+})
+
+test('restart() keeps what could not be sent, and the new connection sends it once', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot, [ 'open', 'open' ])
+  await io.start()
+  io.sockets[0]!.failSends = true
+  bot.emit('heartbeat', 'unsent')
+  await flush()
+  await io.restart()
+  await flush()
+  assert.deepEqual(names(io.socket.sent), [ 'sys', 'heartbeat' ], 'one sys: the failed one is replaced')
+  await io.stop()
+})
+
+test('the buffer is capped: beyond maxBufferedEvents() the oldest events are dropped', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  io.maxBuffered = 3
+  io.delayMs = 60_000
+  await io.start()
+  io.sockets[0]!.drop()
+  await flush()
+  for (let n = 1; n <= 5; n++) {
+    bot.emit('heartbeat', n)
+  }
+  await io.stop()
+  await io.start()
+  assert.deepEqual(io.socket.sent.map(event => event.name === 'sys' ? 'sys' : (event.payload as { data: number }).data), [ 'sys', 3, 4, 5 ])
   await io.stop()
 })

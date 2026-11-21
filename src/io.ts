@@ -21,9 +21,12 @@
  * `Io`: the WebSocket link between a Wechaty bot and the Wechaty cloud (or a
  * gateway), built on the async lifecycle module (wechaty/wechaty#3022).
  *
- * Each run of the lifecycle owns one connected socket, the bot listeners that
- * forward events to it, and a keepalive task; all are released when the run
- * retires (`stop()`, `restart()`, or a recovery). When the socket closes, the
+ * Each run of the lifecycle owns one connected socket and a keepalive task,
+ * both released when the run retires (`stop()`, `restart()`, or a recovery).
+ * The bot listeners that forward its events belong to the instance instead:
+ * added by the first run after a rest, removed only when it comes to rest
+ * (`stopped` or `failed`), so no event is missed between a retired run and
+ * its replacement. When the socket closes, the
  * run recovers (`scope.recover()`): the next run reconnects with backoff inside
  * `onStart`, so the state stays `starting` while offline and `stop()` cancels
  * the wait. The backoff is this class's policy, not the lifecycle's (D7).
@@ -32,8 +35,14 @@
  * connection attempt and rejects if it fails, so a bot whose cloud is
  * unreachable fails to start rather than waiting forever.
  *
- * Events the bot emits while the socket is not connected are buffered and sent
- * once it is; `onStop()` flushes the buffer before the socket is closed.
+ * Io is the transport for the bot's events, so delivery does not depend on
+ * what happens to the connection: an event is buffered until a socket takes
+ * it, and the buffer belongs to the instance, kept through reconnects,
+ * `stop()`/`start()` and `restart()`. An event whose send fails is put back,
+ * in order. Every new connection announces the bot (`sys`) before it sends
+ * what is buffered. The buffer is capped (`maxBufferedEvents()`), dropping the
+ * oldest events. There is no acknowledgement from the server, so an event a
+ * socket accepted just before the connection silently died can still be lost.
  */
 import WebSocket        from 'ws'
 
@@ -43,7 +52,6 @@ import * as jsonRpcPeer from 'json-rpc-peer'
 
 import {
   AsyncLifecycle,
-  listen,
   type LifecycleScope,
   type LifecycleState,
   type LifecycleStop,
@@ -186,6 +194,10 @@ export class Io extends AsyncLifecycle {
    * and the replacement run's `onStart`.
    */
   #reconnecting = false
+  /** The flush in progress, shared by every `send()` meanwhile. */
+  #flushing: Promise<void> | undefined
+  /** Removes the bot listeners; set while they are attached (see `hookWechaty`). */
+  #unhookWechaty: (() => void) | undefined
   /** Remove the message listener of each socket, set by `openWebSocket`. */
   readonly #messageListeners = new WeakMap<IoWebSocket, (data: WebSocket.Data) => void>()
 
@@ -243,7 +255,7 @@ export class Io extends AsyncLifecycle {
       this.#failures = 0 // a start, not a recovery: connect at once
     }
 
-    this.hookWechaty(scope)
+    this.#unhookWechaty ??= this.hookWechaty()
 
     const ws = await this.connect(scope, retry)
     this.ws = ws
@@ -252,14 +264,24 @@ export class Io extends AsyncLifecycle {
     // on retirement never looks like a lost connection. The message listener
     // is attached as the socket is created (openWebSocket), so a frame the
     // server sends with the handshake is not lost.
-    listen(scope, ws, 'error', (e?: Error) => this.wsOnError(e))
-    listen(scope, ws, 'close', (code: number, reason: Buffer) => {
+    //
+    // Not `listen()`: a `ws` socket also has `addEventListener`, which
+    // `listen()` prefers, and through it `ws` passes one `CloseEvent` or
+    // `ErrorEvent` instead of the `(code, reason)` and `(error)` used here.
+    const onError = (e?: Error) => this.wsOnError(e)
+    const onClose = (code: number, reason: Buffer) => {
       log.warn('Io', 'onStart() websocket closed [%d: %s], recovering', code, reason.toString())
       this.#failures++
       if (scope.recover(new Error(`websocket closed: ${code}`)) === 'accepted') {
         this.#reconnecting = true
       }
+    }
+    scope.defer(() => {
+      ws.off('close', onClose)
+      ws.off('error', onError)
     })
+    ws.on('error', onError)
+    ws.on('close', onClose)
 
     scope.spawn(async signal => {
       while (!signal.aborted) {
@@ -280,9 +302,8 @@ export class Io extends AsyncLifecycle {
 
   /**
    * Send what is still buffered while the socket is open. The socket itself is
-   * closed afterwards, by its release. A recovery keeps what could not be sent
-   * (its socket is already closed) for the next run to send; a stop or restart
-   * drops it, as before.
+   * closed afterwards, by its release. Whatever cannot be sent stays buffered
+   * for the next connection, whatever the reason for the stop.
    */
   protected override async onStop (stop: LifecycleStop): Promise<void> {
     log.verbose('Io', 'onStop(%s)', stop.reason)
@@ -291,49 +312,78 @@ export class Io extends AsyncLifecycle {
     } catch (e) {
       log.warn('Io', 'onStop() flushing events failed: %s', (e as Error).message)
     }
-    if (stop.reason !== 'recover') {
-      this.eventBuffer = []
-    }
   }
 
   /**
-   * At rest (`stopped` or `failed`) no recovery is pending any more, and
-   * nothing buffered belongs to the next `start()`. `onStop` alone cannot drop
-   * the buffer: it does not run for a replacement run that never reached
-   * `running` (a `stop()` while reconnecting), and the bot's listeners, released
-   * after the socket, can still buffer events while the socket closes. A
-   * recovery never passes through either state, so it keeps the buffer.
+   * At rest (`stopped` or `failed`) no recovery is pending any more and the
+   * bot's events are no longer forwarded. The buffer is kept for the next
+   * `start()`. A recovery or a restart never passes through either state, so
+   * it keeps the bot listeners.
    */
   protected override onStateChange (state: LifecycleState): void {
     if (state.kind === 'stopped' || state.kind === 'failed') {
       this.#reconnecting = false
-      this.eventBuffer = []
+      this.#unhookWechaty?.()
+      this.#unhookWechaty = undefined
     }
   }
 
-  /** Forward the bot's events for this run only (C-COMP-01). */
-  private hookWechaty (scope: LifecycleScope): void {
+  /**
+   * The most events the buffer holds; beyond it the oldest are dropped. Bounds
+   * memory through a long outage. A subclass may override it.
+   */
+  protected maxBufferedEvents (): number {
+    return 1000
+  }
+
+  /** Drop the oldest buffered events beyond {@link Io.maxBufferedEvents}. */
+  #trimBuffer (): void {
+    const excess = this.eventBuffer.length - this.maxBufferedEvents()
+    if (excess > 0) {
+      this.eventBuffer.splice(0, excess)
+      log.warn('Io', 'buffer full: dropped the %d oldest events', excess)
+    }
+  }
+
+  /**
+   * Forward the bot's events into the buffer, which sends them whenever a
+   * socket is connected. Returns the function that removes these listeners.
+   * Not scoped to a run: between a retired run and its replacement the bot
+   * can still emit (an asynchronous `login`, say), and that event must be
+   * buffered, not dropped.
+   */
+  private hookWechaty (): () => void {
     log.verbose('Io', 'hookWechaty()')
     const wechaty = this.options.wechaty
     const forward = (ioEvent: IoEvent) => {
       this.send(ioEvent).catch(e => log.warn('Io', 'hookWechaty() send(%s) failed: %s', ioEvent.name, (e as Error).message))
     }
 
-    listen(scope, wechaty, 'error',     (error: unknown) => forward({ name: 'error', payload: error }))
-    listen(scope, wechaty, 'heartbeat', (data: unknown) => forward({ name: 'heartbeat', payload: { cuid: this.id, data } }))
-    listen(scope, wechaty, 'login',     (user: { id: string }) => {
-      this.scanPayload = undefined
-      forward({ name: 'login', payload: wechaty.puppet.contactPayload(user.id) })
-    })
-    listen(scope, wechaty, 'logout',    (user: { id: string }) => forward({ name: 'logout', payload: wechaty.puppet.contactPayload(user.id) }))
-    listen(scope, wechaty, 'message',   (message: MessageInterface) => {
-      this.ioMessage(message).catch(e => log.warn('Io', 'hookWechaty() ioMessage() failed: %s', (e as Error).message))
-    })
-    // FIXME: payload schema need to be defined universal
-    listen(scope, wechaty, 'scan',      (qrcode: string, status: PUPPET.types.ScanStatus) => {
-      this.scanPayload = { ...this.scanPayload, qrcode, status }
-      forward({ name: 'scan', payload: { qrcode, status } } as IoEventScan)
-    })
+    const listeners: Record<string, (...args: any[]) => void> = {
+      error     : (error: unknown) => forward({ name: 'error', payload: error }),
+      heartbeat : (data: unknown) => forward({ name: 'heartbeat', payload: { cuid: this.id, data } }),
+      login     : (user: { id: string }) => {
+        this.scanPayload = undefined
+        forward({ name: 'login', payload: wechaty.puppet.contactPayload(user.id) })
+      },
+      logout    : (user: { id: string }) => forward({ name: 'logout', payload: wechaty.puppet.contactPayload(user.id) }),
+      message   : (message: MessageInterface) => {
+        this.ioMessage(message).catch(e => log.warn('Io', 'hookWechaty() ioMessage() failed: %s', (e as Error).message))
+      },
+      // FIXME: payload schema need to be defined universal
+      scan      : (qrcode: string, status: PUPPET.types.ScanStatus) => {
+        this.scanPayload = { ...this.scanPayload, qrcode, status }
+        forward({ name: 'scan', payload: { qrcode, status } } as IoEventScan)
+      },
+    }
+    for (const [ event, listener ] of Object.entries(listeners)) {
+      wechaty.on(event as any, listener)
+    }
+    return () => {
+      for (const [ event, listener ] of Object.entries(listeners)) {
+        wechaty.off(event as any, listener)
+      }
+    }
   }
 
   /**
@@ -492,7 +542,11 @@ export class Io extends AsyncLifecycle {
       name,
       payload,
     }
-    this.send(initEvent).catch(console.error)
+    // First on the new connection, so the server knows the bot before the
+    // buffered events arrive. A `sys` requeued from an earlier connection is
+    // replaced, not repeated.
+    this.eventBuffer = [ initEvent, ...this.eventBuffer.filter(event => event.name !== 'sys') ]
+    this.send().catch(e => log.warn('Io', 'wsOnOpen() send() failed: %s', (e as Error).message))
   }
 
   /** Dispatch a frame from the server; a failure is printed, never thrown. */
@@ -687,44 +741,67 @@ export class Io extends AsyncLifecycle {
 
   /**
    * Buffer `ioEvent`, if given, and send the buffer when the socket is
-   * connected. While it is not, for example while reconnecting, events stay
-   * buffered until the next run connects.
+   * connected. While it is not, for example while reconnecting or stopped,
+   * events stay buffered until a run connects. Rejects with the first send
+   * error; the events that failed stay buffered.
+   *
+   * One flush at a time: a call while a flush runs joins it, and its event is
+   * sent by that flush. Two flushes could each put their failed events back
+   * at the front and swap their order.
    */
-  private async send (ioEvent?: IoEvent): Promise<void> {
+  private send (ioEvent?: IoEvent): Promise<void> {
     if (ioEvent) {
-      log.silly('Io', 'send(%s)', JSON.stringify(ioEvent))
+      log.silly('Io', 'send(%s)', ioEvent.name)
       this.eventBuffer.push(ioEvent)
+      this.#trimBuffer()
     } else { log.silly('Io', 'send()') }
 
-    const ws = this.ws
-    if (!ws || !this.connected()) {
-      log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this.eventBuffer.length)
-      return
-    }
+    this.#flushing ??= this.#flush().finally(() => {
+      this.#flushing = undefined
+    })
+    return this.#flushing
+  }
 
-    const list: Array<Promise<any>> = []
-    while (this.eventBuffer.length) {
-      const data = JSON.stringify(
-        this.eventBuffer.shift(),
-      )
-      const p = new Promise<void>((resolve, reject) => ws.send(
-        data,
-        (err: undefined | Error) => {
-          if (err)  {
-            reject(err)
-          } else {
-            resolve()
-          }
-        },
-      ))
-      list.push(p)
-    }
+  /**
+   * Send buffered events until the buffer is empty or there is no connected
+   * socket. Events whose send fails go back to the front of the buffer, in
+   * order. If a new socket connected meanwhile, the flush goes on with it
+   * (its `sys` was queued first); otherwise it rejects with the first error.
+   * An event that cannot be serialized is dropped, so it cannot block the rest.
+   */
+  async #flush (): Promise<void> {
+    while (this.eventBuffer.length > 0) {
+      const ws = this.ws
+      if (!ws || !this.connected()) {
+        log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this.eventBuffer.length)
+        return
+      }
 
-    try {
-      await Promise.all(list)
-    } catch (e) {
-      log.error('Io', 'send() exception: %s', (e as Error).stack)
-      throw e
+      const batch = this.eventBuffer.splice(0)
+      const results = await Promise.allSettled(batch.map(event => {
+        let data: string
+        try {
+          data = JSON.stringify(event)
+        } catch (e) {
+          log.error('Io', 'send() dropped an event that cannot be serialized: %s', (e as Error).message)
+          return Promise.resolve()
+        }
+        return new Promise<void>((resolve, reject) => ws.send(
+          data,
+          (err: undefined | Error) => err ? reject(err) : resolve(),
+        ))
+      }))
+
+      const failed = batch.filter((_, index) => results[index]!.status === 'rejected')
+      if (failed.length > 0) {
+        this.eventBuffer.unshift(...failed)
+        this.#trimBuffer()
+        const error = (results.find(result => result.status === 'rejected') as PromiseRejectedResult).reason
+        log.warn('Io', 'send() %d events not sent, kept for the next connection: %s', failed.length, (error as Error)?.message)
+        if (this.ws === ws) {
+          throw error
+        }
+      }
     }
   }
 
