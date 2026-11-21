@@ -196,10 +196,16 @@ export class Io extends AsyncLifecycle {
   #reconnecting = false
   /** The flush in progress, shared by every `send()` meanwhile. */
   #flushing: Promise<void> | undefined
+  /** Set by `onStop`: a flush ends after the batch it is sending. */
+  #lastBatch = false
   /** Removes the bot listeners; set while they are attached (see `hookWechaty`). */
   #unhookWechaty: (() => void) | undefined
-  /** Remove the message listener of each socket, set by `openWebSocket`. */
-  readonly #messageListeners = new WeakMap<IoWebSocket, (data: WebSocket.Data) => void>()
+  /**
+   * The listeners Io added to each socket, removed by `closeWebSocket` before
+   * it closes the socket: the message listener (`openWebSocket`), then the
+   * run's `error` and `close` handlers (`watchSocket`).
+   */
+  readonly #socketListeners = new WeakMap<IoWebSocket, [ string, (...args: any[]) => void ][]>()
 
   constructor (
     options: IoOptions,
@@ -258,45 +264,7 @@ export class Io extends AsyncLifecycle {
 
     this.#unhookWechaty ??= this.hookWechaty()
 
-    let ws = await this.connect(scope, retry)
-    // `connect()` resolves a few microtasks after `open`, and the socket may
-    // have closed meanwhile: the close handler below would never hear of it,
-    // and the run would sit `running` on a dead socket. Checked in the same
-    // synchronous step as adding the handlers, so nothing can close in
-    // between. A first start fails; a recovery counts a failed attempt.
-    while (ws.readyState !== WebSocket.OPEN) {
-      const error = new Error(`websocket closed as it opened (readyState ${ws.readyState})`)
-      if (!retry) {
-        throw error
-      }
-      this.#failures++
-      log.warn('Io', 'onStart() %s (%d in a row)', error.message, this.#failures)
-      ws = await this.connect(scope, retry)
-    }
-    this.ws = ws
-
-    // Registered after the socket, so removed before it is closed: closing it
-    // on retirement never looks like a lost connection. The message listener
-    // is attached as the socket is created (openWebSocket), so a frame the
-    // server sends with the handshake is not lost.
-    //
-    // Not `listen()`: a `ws` socket also has `addEventListener`, which
-    // `listen()` prefers, and through it `ws` passes one `CloseEvent` or
-    // `ErrorEvent` instead of the `(code, reason)` and `(error)` used here.
-    const onError = (e?: Error) => this.wsOnError(e)
-    const onClose = (code: number, reason: Buffer) => {
-      log.warn('Io', 'onStart() websocket closed [%d: %s], recovering', code, reason.toString())
-      this.#failures++
-      if (scope.recover(new Error(`websocket closed: ${code}`)) === 'accepted') {
-        this.#reconnecting = true
-      }
-    }
-    scope.defer(() => {
-      ws.off('close', onClose)
-      ws.off('error', onError)
-    })
-    ws.on('error', onError)
-    ws.on('close', onClose)
+    const ws = await this.connect(scope, retry)
 
     scope.spawn(async signal => {
       while (!signal.aborted) {
@@ -322,10 +290,19 @@ export class Io extends AsyncLifecycle {
    */
   protected override async onStop (stop: LifecycleStop): Promise<void> {
     log.verbose('Io', 'onStop(%s)', stop.reason)
+    // Bounded: the bot keeps emitting while the run retires, and a flush that
+    // drains as fast as events arrive would hold the socket open until the
+    // stop deadline. A flush already running ends after its current batch,
+    // then one more batch sends what is buffered now. Later events stay in the
+    // buffer for the next connection.
+    this.#lastBatch = true
     try {
+      await this.#flushing?.catch(() => {})
       await this.send()
     } catch (e) {
       log.warn('Io', 'onStop() flushing events failed: %s', (e as Error).message)
+    } finally {
+      this.#lastBatch = false
     }
   }
 
@@ -424,7 +401,20 @@ export class Io extends AsyncLifecycle {
       await delay(wait, scope.signal)
       try {
         return await scope.acquire(
-          signal => this.openWebSocket(signal),
+          async signal => {
+            const ws = await this.openWebSocket(signal)
+            // The socket may have closed in the microtasks since `open`. Checked
+            // in the same synchronous step as adding the run's handlers, so no
+            // close can be missed. Rejecting here, rather than after
+            // `acquire` resolves, leaves the scope owning nothing (C-SCOPE-04),
+            // so an outage of such attempts does not pile sockets up in the run.
+            if (ws.readyState !== WebSocket.OPEN) {
+              await this.closeWebSocket(ws)
+              throw new Error(`websocket closed as it opened (readyState ${ws.readyState})`)
+            }
+            this.watchSocket(scope, ws)
+            return ws
+          },
           ws => this.closeWebSocket(ws),
         )
       } catch (e) {
@@ -435,6 +425,31 @@ export class Io extends AsyncLifecycle {
         log.warn('Io', 'connect() attempt failed (%d in a row): %s', this.#failures, (e as Error).message)
       }
     }
+  }
+
+  /**
+   * Make `ws` the run's socket: forward its errors to the bot, and recover
+   * the run when it closes. Synchronous, so it runs in the same step as the
+   * check that the socket is open. `closeWebSocket` removes these handlers
+   * before it closes the socket.
+   *
+   * Not `listen()`: a `ws` socket also has `addEventListener`, which
+   * `listen()` prefers, and through it `ws` passes one `CloseEvent` or
+   * `ErrorEvent` instead of the `(code, reason)` and `(error)` used here.
+   */
+  private watchSocket (scope: LifecycleScope, ws: IoWebSocket): void {
+    const onError = (e?: Error) => this.wsOnError(e)
+    const onClose = (code: number, reason: Buffer) => {
+      log.warn('Io', 'onStart() websocket closed [%d: %s], recovering', code, reason.toString())
+      this.#failures++
+      if (scope.recover(new Error(`websocket closed: ${code}`)) === 'accepted') {
+        this.#reconnecting = true
+      }
+    }
+    ws.on('error', onError)
+    ws.on('close', onClose)
+    this.#socketListeners.get(ws)?.push([ 'error', onError ], [ 'close', onClose ])
+    this.ws = ws
   }
 
   /**
@@ -470,7 +485,7 @@ export class Io extends AsyncLifecycle {
     // right away is handled; removed by closeWebSocket.
     const onMessage = (data: WebSocket.Data) => this.wsOnMessage(data)
     ws.on('message', onMessage)
-    this.#messageListeners.set(ws, onMessage)
+    this.#socketListeners.set(ws, [ [ 'message', onMessage ] ])
     try {
       await new Promise<void>((resolve, reject) => {
         const settle = (error?: unknown) => {
@@ -519,10 +534,12 @@ export class Io extends AsyncLifecycle {
     if (this.ws === ws) {
       this.ws = undefined
     }
-    const onMessage = this.#messageListeners.get(ws)
-    if (onMessage) {
-      ws.off('message', onMessage)
+    // Removed before closing: closing the socket on retirement must not look
+    // like a lost connection to the run's close handler.
+    for (const [ event, listener ] of this.#socketListeners.get(ws) ?? []) {
+      ws.off(event, listener)
     }
+    this.#socketListeners.delete(ws)
     if (ws.readyState === WebSocket.CLOSED) {
       return
     }
@@ -781,6 +798,7 @@ export class Io extends AsyncLifecycle {
    * socket. Events whose send fails go back to the front of the buffer, in
    * order. If a new socket connected meanwhile, the flush goes on with it
    * (its `sys` was queued first); otherwise it rejects with the first error.
+   * While `#lastBatch` is set (`onStop`), it sends one batch and ends.
    * An event that cannot be serialized is dropped, so it cannot block the rest.
    *
    * Clears `#flushing` in the same synchronous step as its last check of the
@@ -821,6 +839,9 @@ export class Io extends AsyncLifecycle {
           if (this.ws === ws) {
             throw error
           }
+        }
+        if (this.#lastBatch) {
+          return
         }
       }
     } finally {

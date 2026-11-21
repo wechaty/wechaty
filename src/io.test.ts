@@ -367,3 +367,43 @@ test('a recovery whose socket closes as it opens counts a failed attempt and con
   assert.deepEqual(io.backoffs, [ 1, 2 ])
   await io.stop()
 })
+
+test('sockets that close as they open are released at once, not kept by the run until it retires', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot, [ 'open', 'open', 'open', 'open', 'open' ])
+  await io.start()
+  let drops = 3
+  io.onOpen = socket => {
+    if (drops-- > 0) {
+      socket.drop()
+    }
+  }
+  io.sockets[0]!.drop()
+  await io.whenState(state => state.kind === 'running' && state.generation === 2)
+  assert.equal(io.sockets.length, 5)
+  for (const socket of io.sockets.slice(1, 4)) {
+    assert.equal(socket.listenerCount('message'), 0, 'released while the run is still running')
+  }
+  assert.equal(io.socket.listenerCount('close'), 1, 'only the live socket is watched')
+  await io.stop()
+})
+
+test('stop() is not held up by a bot that keeps emitting while the buffer is flushed', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  await io.start()
+  const socket = io.socket
+  const send = socket.send.bind(socket)
+  // Every send makes the bot emit again before the write completes.
+  socket.send = (data, callback) => {
+    send(data, () => {})
+    bot.emit('heartbeat', 'more')
+    setImmediate(() => callback())
+  }
+  bot.emit('heartbeat', 'first')
+  const started = Date.now()
+  await io.stop()
+  assert.equal(io.state.kind, 'stopped')
+  assert.equal(socket.closes, 1)
+  assert.ok(Date.now() - started < 2_000, 'well inside the stop deadline')
+})
