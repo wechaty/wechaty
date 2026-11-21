@@ -148,7 +148,8 @@ test('a coverage scope keeps its own sources and leaves out its excluded prefixe
     record('src/async-lifecycle/companions/listen.ts', 0),
     record('src/async-lifecycle/contract/harness.ts'),
     record('src/async-lifecycle/examples/io.example.ts'),
-    record('src/async-lifecycle-claude/engine.ts'),
+    // A sibling directory sharing the scope's name prefix is not in the scope.
+    record('src/async-lifecycle-sibling/engine.ts'),
     record('src/wechaty/wechaty-base.ts'),
   ].join(''))
   const scoped = scopeRecords(records, scope)
