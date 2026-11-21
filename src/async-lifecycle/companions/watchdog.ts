@@ -77,13 +77,18 @@ interface Watchdog {
  * `scope.fail` or `scope.recover` with a `LifecycleTimeoutError` (`phase:
  * 'watchdog'`), once (C-COMP-02).
  *
- * @throws RangeError for an invalid `timeoutMs`.
+ * @throws RangeError for a missing or invalid `timeoutMs`.
  * @throws TypeError when `onTimeout` is neither `'fail'` nor `'recover'`: there
  *         is no default, so a typo from JavaScript must not silently fail.
  * @throws the scope's retirement reason when called on a sealed scope
  *         (C-SCOPE-02); no timer is armed then.
  */
 function watchdog (scope: LifecycleScope, options: WatchdogOptions): Watchdog {
+  // Required here: validTimeout() accepts `undefined` because a lifecycle
+  // deadline is optional, but a watchdog without one would fire at once.
+  if (options.timeoutMs === undefined) {
+    throw new RangeError('watchdog timeoutMs is required')
+  }
   const timeoutMs = validTimeout('watchdog timeoutMs', options.timeoutMs)!
   if (options.onTimeout !== 'fail' && options.onTimeout !== 'recover') {
     throw new TypeError(`watchdog onTimeout must be 'fail' or 'recover', got ${String(options.onTimeout)}`)

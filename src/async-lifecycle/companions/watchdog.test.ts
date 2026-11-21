@@ -97,7 +97,9 @@ contract('C-COMP-02.e', 'a watchdog refuses an invalid timeoutMs with RangeError
   let badAction: unknown
   const { lifecycle } = make({
     onStart (scope) {
-      for (const bad of [ Number.NaN, -1, 0, Number.POSITIVE_INFINITY, 2 ** 31 ]) {
+      // `undefined`: a JavaScript caller that omitted it, which a lifecycle
+      // deadline allows but a watchdog does not.
+      for (const bad of [ Number.NaN, -1, 0, Number.POSITIVE_INFINITY, 2 ** 31, undefined as unknown as number ]) {
         try {
           watchdog(scope, { timeoutMs: bad, onTimeout: 'fail', clock: new ManualClock() })
         } catch (error) {
@@ -113,7 +115,7 @@ contract('C-COMP-02.e', 'a watchdog refuses an invalid timeoutMs with RangeError
     },
   })
   await lifecycle.start()
-  assert.equal(refused.length, 5)
+  assert.equal(refused.length, 6)
   assert.ok(refused.every(error => error instanceof RangeError))
   assert.ok(badAction instanceof TypeError)
   await shutdown(lifecycle)
