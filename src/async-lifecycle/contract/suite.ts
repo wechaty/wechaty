@@ -78,6 +78,7 @@ interface ContractContext {
   readonly shell: ShellName
 }
 
+/** Options for {@link contract}. */
 interface ContractOptions {
   /** Capabilities the test uses; it is skipped where one is missing. */
   readonly needs?: readonly Capability[]

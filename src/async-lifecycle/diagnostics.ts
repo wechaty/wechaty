@@ -28,9 +28,11 @@
  *
  * A single channel, `wechaty.async-lifecycle.state` (D23), carries every
  * record; subscribers filter on `state.kind` and `name`. Record types live in
- * `types.ts`, as part of the public contract. The channel is cross-runtime: Deno implements
- * `node:diagnostics_channel`, and `hasSubscribers` keeps the publish path free
- * when nobody is listening.
+ * `types.ts`, as part of the public contract. The channel is cross-runtime:
+ * Deno implements `node:diagnostics_channel` and behaves as Node.js does here
+ * (checked by `diagnostics.test.ts` and the C-OBS-04 contract tests), and
+ * `hasSubscribers` keeps the publish path free when nobody is listening.
+ * Browsers lack the module; that is D43, for S6.
  */
 
 import diagnosticsChannel from 'node:diagnostics_channel'
@@ -68,11 +70,12 @@ function diagnosticState (state: LifecycleState): LifecycleDiagnosticState {
  * Publish a state-commit record if and only if a subscriber is attached.
  *
  * This is the only diagnostics entry point the engine calls, and it never
- * throws into the commit. Node's `channel.publish` already catches a throwing
- * subscriber and reports it on a later tick as `uncaughtException` (so a buggy
- * subscriber is visible at process level but cannot change a lifecycle
- * outcome); the local `try` only covers a runtime whose `publish` might throw
- * synchronously.
+ * throws into the commit. Under both Node.js and Deno, `channel.publish`
+ * catches a throwing subscriber and reports it on a later tick as
+ * `uncaughtException`, so a buggy subscriber is visible at process level but
+ * cannot change a lifecycle outcome; `diagnostics.test.ts` checks this in a
+ * child process of each runtime. The local `try` only covers another runtime
+ * whose `publish` might throw synchronously.
  */
 function publishStateChange (record: LifecycleDiagnosticRecord): void {
   if (!channel.hasSubscribers) {
