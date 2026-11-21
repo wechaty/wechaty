@@ -68,15 +68,16 @@ jobs:
           bash "$resolver"
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '26'
+          package-manager-cache: false
 
       - name: Set up Deno
         uses: denoland/setup-deno@v2
@@ -197,16 +198,17 @@ jobs:
 
       - name: Checkout repository
         if: steps.eyes.outputs.review_needed == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js for review
         if: steps.eyes.outputs.review_needed == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '26'
+          package-manager-cache: false
 
       - name: Set up Deno for review
         if: steps.eyes.outputs.review_needed == 'true'
