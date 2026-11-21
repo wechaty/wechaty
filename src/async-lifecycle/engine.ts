@@ -100,8 +100,11 @@ const TIMEOUT = Symbol('timeout')
  *
  * `user` attempts come from `start()` / `restart()` and reject on supersession.
  * `recover` attempts come from an accepted `scope.recover()`, which already
- * returned (D42); only a `start()` that joined the replacement waits on one,
- * and it maps the recovery's `'superseded'` to `LifecycleSupersededError`.
+ * returned (D42). Only a `start()` waits on one: once the replacement is live,
+ * a `start()` joins it and maps the recovery's `'superseded'` to
+ * `LifecycleSupersededError`; before that, the `start()` replaces the recovery
+ * attempt with its own ({@link LifecycleEngine.#joinableAttempt}), so one
+ * replacement still serves both.
  * Settlement is idempotent: the first outcome wins, and an outcome
  * fixed by {@link Attempt.decide} wins over anything that would come later.
  */
