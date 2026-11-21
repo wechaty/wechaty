@@ -591,7 +591,7 @@ function denoCoverage (tests: string[]): number {
       `--coverage=${profile}`,
       '--allow-read=.,/tmp,/etc/alpine-release',
       '--allow-write=coverage/deno,/tmp',
-      '--allow-run=git,node',
+      '--allow-run=git,node,deno',
       '--allow-env',
       '--allow-sys=hostname',
       '--allow-ffi=node_modules/leveldown/prebuilds',
