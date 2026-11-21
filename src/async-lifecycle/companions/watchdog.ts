@@ -65,7 +65,10 @@ interface Watchdog {
    * cleanup ran).
    */
   feed (): void
-  /** Stop the countdown until the next `feed()`. */
+  /**
+   * Stop the countdown until the next `feed()`. Does nothing once the watchdog
+   * fired or its generation began retiring, like `feed()`.
+   */
   disarm (): void
 }
 
@@ -75,11 +78,16 @@ interface Watchdog {
  * 'watchdog'`), once (C-COMP-02).
  *
  * @throws RangeError for an invalid `timeoutMs`.
+ * @throws TypeError when `onTimeout` is neither `'fail'` nor `'recover'`: there
+ *         is no default, so a typo from JavaScript must not silently fail.
  * @throws the scope's retirement reason when called on a sealed scope
  *         (C-SCOPE-02); no timer is armed then.
  */
 function watchdog (scope: LifecycleScope, options: WatchdogOptions): Watchdog {
   const timeoutMs = validTimeout('watchdog timeoutMs', options.timeoutMs)!
+  if (options.onTimeout !== 'fail' && options.onTimeout !== 'recover') {
+    throw new TypeError(`watchdog onTimeout must be 'fail' or 'recover', got ${String(options.onTimeout)}`)
+  }
   const clock = options.clock ?? defaultClock
   let handle: unknown
   // Retired or fired: nothing arms again.

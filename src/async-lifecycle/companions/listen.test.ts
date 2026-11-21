@@ -19,23 +19,20 @@
  */
 
 /**
- * Contract tests for the companions (README §15, C-COMP-*), ported from the
- * Claude suite's companion tests and extended to every rule.
+ * Tests for the `listen` companion (README §15, C-COMP-01).
  *
- * The companions use only the public scope, so they run against every
- * implementation: the final module's `listen` and `watchdog` are applied to
- * each adapter's scope. The watchdog takes its own clock, so these tests need
- * no `clock` capability.
+ * The companion uses only the public scope, so these tests use the shared
+ * contract harness and run against every implementation: `listen` is applied
+ * to each adapter's scope.
  */
 
 import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
 
-import { listen } from '../companions/listen.ts'
-import { type Watchdog, watchdog } from '../companions/watchdog.ts'
+import { errorName, shutdown } from '../contract/harness.ts'
+import { contract } from '../contract/suite.ts'
 import type { LifecycleScope } from '../types.ts'
-import { errorName, failedState, flush, ManualClock, shutdown } from './harness.ts'
-import { contract } from './suite.ts'
+import { listen } from './listen.ts'
 
 contract('C-COMP-01.a', 'listen() on an EventTarget delivers events while the generation runs, and its retirement removes the listener', {}, async ({ make }) => {
   const target = new EventTarget()
@@ -126,93 +123,4 @@ contract('C-COMP-01.f', 'a stale listen() never removes the same handler a newer
   emitter.emit('ping')
   assert.equal(hits, 2, 'generation 2 still receives both events')
   await shutdown(lifecycle)
-})
-
-contract('C-COMP-02.a', 'an unfed watchdog fails the generation with LifecycleTimeoutError (phase `watchdog`); a feed restarts the countdown', {}, async ({ make }) => {
-  const clock = new ManualClock()
-  let dog: Watchdog | undefined
-  const { lifecycle } = make({ onStart (scope) { dog = watchdog(scope, { timeoutMs: 100, onTimeout: 'fail', clock }) } })
-  await lifecycle.start()
-  await clock.advance(90)
-  dog!.feed()
-  await clock.advance(90)
-  assert.equal(lifecycle.state.kind, 'running', 'fed in time')
-  await clock.advance(10)
-  const failed = failedState(lifecycle.state)
-  assert.equal(failed.phase, 'run')
-  assert.equal(errorName(failed.error), 'LifecycleTimeoutError')
-  assert.equal((failed.error as { phase?: unknown }).phase, 'watchdog')
-  assert.equal((failed.error as { timeoutMs?: unknown }).timeoutMs, 100)
-  assert.equal(clock.pending, 0, 'it fires once and arms nothing after')
-})
-
-contract('C-COMP-02.b', 'a watchdog with onTimeout `recover` replaces the generation', { needs: [ 'scope.recover' ] }, async ({ make }) => {
-  const clock = new ManualClock()
-  const { lifecycle } = make({
-    onStart (scope) {
-      if (scope.generation === 1) {
-        watchdog(scope, { timeoutMs: 50, onTimeout: 'recover', clock })
-      }
-    },
-  })
-  await lifecycle.start()
-  await clock.advance(50)
-  assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
-  assert.equal(clock.pending, 0, 'the retired generation\'s timer is gone')
-  await shutdown(lifecycle)
-})
-
-contract('C-COMP-02.c', 'a watchdog\'s timer is cleared by its retirement, and a stale feed() arms nothing', {}, async ({ make }) => {
-  const clock = new ManualClock()
-  let dog: Watchdog | undefined
-  const { lifecycle } = make({ onStart (scope) { dog = watchdog(scope, { timeoutMs: 100, onTimeout: 'fail', clock }) } })
-  await lifecycle.start()
-  assert.equal(clock.pending, 1)
-  await lifecycle.stop()
-  assert.equal(clock.pending, 0)
-  dog!.feed()
-  assert.equal(clock.pending, 0)
-})
-
-contract('C-COMP-02.d', 'disarm() stops the countdown until the next feed()', {}, async ({ make }) => {
-  const clock = new ManualClock()
-  let dog: Watchdog | undefined
-  const { lifecycle } = make({ onStart (scope) { dog = watchdog(scope, { timeoutMs: 100, onTimeout: 'fail', clock }) } })
-  await lifecycle.start()
-  dog!.disarm()
-  await clock.advance(500)
-  assert.equal(lifecycle.state.kind, 'running', 'disarmed')
-  dog!.feed()
-  await clock.advance(100)
-  assert.equal(lifecycle.state.kind, 'failed', 'armed again by the feed')
-})
-
-contract('C-COMP-02.e', 'a watchdog refuses an invalid timeoutMs with RangeError, as a lifecycle deadline does (C-TIME-01)', {}, async ({ make }) => {
-  const refused: unknown[] = []
-  const { lifecycle } = make({
-    onStart (scope) {
-      for (const bad of [ Number.NaN, -1, 0, Number.POSITIVE_INFINITY, 2 ** 31 ]) {
-        try {
-          watchdog(scope, { timeoutMs: bad, onTimeout: 'fail', clock: new ManualClock() })
-        } catch (error) {
-          refused.push(error)
-        }
-      }
-    },
-  })
-  await lifecycle.start()
-  assert.equal(refused.length, 5)
-  assert.ok(refused.every(error => error instanceof RangeError))
-  await shutdown(lifecycle)
-})
-
-contract('C-COMP-02.f', 'a watchdog on a sealed scope arms nothing and throws the retirement reason (C-SCOPE-02)', {}, async ({ make }) => {
-  const clock = new ManualClock()
-  let saved: LifecycleScope | undefined
-  const { lifecycle } = make({ onStart (scope) { saved = scope } })
-  await lifecycle.start()
-  await lifecycle.stop()
-  assert.throws(() => watchdog(saved!, { timeoutMs: 100, onTimeout: 'fail', clock }), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
-  assert.equal(clock.pending, 0)
-  await flush()
 })
