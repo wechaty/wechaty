@@ -22,7 +22,7 @@ The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one im
 | Bug | Contract test | Clauses | Known failure for |
 | --- | --- | --- | --- |
 | B1 | `B1` in `bugs.test.ts`; also `C-CMD-09.a`, `C-RET-02.a`, `C-CHILD-06.a`, `C-TIME-02.a-success`, `C-TIME-02.c` | C-OBS-01, C-CMD-09 | copilot |
-| B2 | `B2` in `bugs.test.ts` | C-REC-05, D19 | claude (codex lacks `scope.recover`) |
+| B2 | `B2` in `bugs.test.ts` | C-REC-05, D42 (replaced D19) | claude, copilot (codex lacks `scope.recover`) |
 | B3 | `B3` in `bugs.test.ts` | C-RET-03, D8 | codex |
 
 Bugs found while porting, each recorded in the adapter's `knownFailures` and in #2968 §5:
@@ -53,8 +53,8 @@ Source tests that assert behavior contradicting an accepted decision. Each is po
 | codex: conditions are local to their owner | Expected a foreign condition to be silently ignored | C-COND-01: `TypeError` |
 | codex, claude, copilot: condition wait on a failed generation | All reject with the failure or a plain `Error` | D28: `LifecycleSupersededError` with the failure as `cause` |
 | claude: a deadline that is not a finite, non-negative number is refused | Accepts 0 | D11: 0 is refused |
-| claude: recover() rejects when the replacement fails; recover() before running | Rejects | D10: resolves `failed` |
-| claude: a user start() during recovery supersedes it and still runs; copilot: the same, twice in its bundled #2905 test | The recovery reports `superseded` | C-REC-03 (D37): the start joins the replacement and the recovery reports `recovered` |
+| claude: recover() rejects when the replacement fails; recover() before running | Rejects | D10, D42: returns `failed` at once before `running`; after an accepted recovery the state ends `failed` |
+| claude: a user start() during recovery supersedes it and still runs; copilot: the same, twice in its bundled #2905 test | The recovery reports `superseded` | C-REC-03 (D37): the start joins the replacement (since D42 no result reports the recovery's outcome) |
 | claude: #2905 C: stop() aborts a pending abort-aware onStart at once | Requires the abort synchronously inside `stop()` | Not in the contract (C-CMD-01 requires only synchronous intent); ported as "aborted before onStart settles" |
 | claude: an acquisition that resolves after retirement began | Requires `acquire()` to reject before the release runs | C-SCOPE-04 requires both, not an order |
 | codex, claude: inheritance rejects command overrides | Throw a plain `Error` | D13: `LifecycleOverrideError` |
@@ -239,7 +239,7 @@ One table per source suite, added as each is ported.
 | a user start() while the recovery replacement is starting joins it | ported | `C-REC-04.c` |
 | a start() joined to a recovery still rejects when stop() supersedes it | ported | `C-REC-04.d` |
 | an owned task may trigger recovery with void scope.recover() | ported | `C-REC-05.a` |
-| recover() rejects when the replacement fails or retirement is dirty | ported, D10 form (resolves `failed`) | `C-REC-03.d` |
+| recover() rejects when the replacement fails or retirement is dirty | ported, D42 form (`recover()` returns `accepted`; the state ends `failed`) | `C-REC-03.d` |
 | recover() before running behaves like fail() and is safe to ignore | covered, D10 form | `C-REC-03.b` |
 | startTimeoutMs fails the attempt with LifecycleTimeoutError and aborts the scope | ported | `C-TIME-02.d` |
 | a deadline that is not a finite, non-negative number is refused | ported, D11 form (0 refused) | `C-TIME-01.a` |

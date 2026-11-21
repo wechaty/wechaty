@@ -495,12 +495,11 @@ for (const from of [ 'release', 'onStart', 'onStop' ] as const) {
     })
     if (from === 'onStop') {
       await lifecycle.start()
-      const recovering = observe(saved!.recover())
+      saved!.recover() // its decision is checked by C-REC-03
       await flush()
       saved!.fail(failure)
       gate.resolve()
       await flush()
-      assert.equal(recovering.value, 'recovered')
       assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
     } else {
       const started = observe(lifecycle.start())

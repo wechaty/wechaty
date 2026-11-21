@@ -35,10 +35,10 @@
  * | I2 | `running` is never committed for a generation whose signal is aborted |
  * | I3 | When a `stop()` resolves, every resource of the generation it captured, and of every earlier one, was released, and so was every late release (D31) already running when it was accepted, unless a newer generation started; no resource is ever released after a successful release |
  * | I4 | `stopped` and `failed { cleanupComplete: true }` hold no resource, no pending creation, no running hook or task, and no started child; checked at each such commit, after every step and after draining |
- * | I5 | Every promise handed to a caller, `scope.acquire()` and `recover()` included, settles once the schedule drains. An `acquire()` that never settles while its own release is still running is reported as `I5.acquire`, so that case (D41) can be waived without hiding other hangs |
+ * | I5 | Every promise handed to a caller, `scope.acquire()` included, settles once the schedule drains. An `acquire()` that never settles while its own release is still running is reported as `I5.acquire`, so that case (D41) can be waived without hiding other hangs |
  * | I6 | No unhandled rejection |
  * | I7 | `onStop` runs at most once per generation, and only for one that committed `running` (D8) |
- * | I8 | A stale scope changes nothing: its `fail()` error never shows up in the state, its `recover()` resolves (never rejects) `'superseded'`, and its `set()` / `clear()` leave `isSet` unchanged |
+ * | I8 | A stale scope changes nothing: its `fail()` error never shows up in the state, its `recover()` returns `'superseded'` (D42), and its `set()` / `clear()` leave `isSet` unchanged |
  * | I9 | Snapshots are frozen, and generation numbers never decrease |
  * | I10 | Observers (`onStateChange`, `whenState` predicates) see the state that is already committed |
  * | I11 | Liveness: when no behavior hung forever, draining ends `stopped` |
@@ -355,11 +355,12 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
         scope.spawn(async signal => {
           const how = behavior.weighted(table.task)
           if (how === 'recover') {
-            // The task that requests a recovery is exempt from its join (C-REC-05),
-            // so it is not counted as running, and it returns once the result arrives.
-            const result = scope.recover()
-            calls.push({ label: `recover() from a task of generation ${scope.generation}`, observed: observe(result) })
-            await result.catch(() => undefined)
+            // recover() returns its decision at once (D42); the task is joined
+            // like any other, so it returns once its signal aborts (C-REC-05).
+            // Promise.resolve() also accepts a comparison implementation's
+            // promise (its D42 divergence).
+            calls.push({ label: `recover() from a task of generation ${scope.generation}`, observed: observe(Promise.resolve(scope.recover())) })
+            await track(generation, 'tasks', untilAbort(signal))
             return
           }
           const work = how === 'abort' ? untilAbort(signal) : gate(`task ${scope.generation}`)
@@ -598,7 +599,7 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
         break
       case 'recover':
         if (scope) {
-          calls.push({ label: 'recover()', observed: observe(scope.recover()) })
+          calls.push({ label: 'recover()', observed: observe(Promise.resolve(scope.recover())) })
         }
         break
       case 'set':
@@ -640,8 +641,8 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
         if (old) {
           calls.push({
             label: 'stale recover()',
-            observed: observe(old.recover()),
-            check: value => (value === 'superseded' ? undefined : `a stale scope's recover() resolved ${String(value)}, not 'superseded'`),
+            observed: observe(Promise.resolve(old.recover())),
+            check: value => (value === 'superseded' ? undefined : `a stale scope's recover() returned ${String(value)}, not 'superseded'`),
           })
         }
         break

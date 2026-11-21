@@ -31,7 +31,7 @@ import { createScope, Generation, type ScopeHost } from './generation.ts'
 /** A host that records nothing: these tests never fail, recover or set conditions. */
 const host: ScopeHost = {
   fail: () => {},
-  recover: () => Promise.resolve('superseded'),
+  recover: () => 'superseded',
   lateRelease: (_generation, start) => { start().catch(() => {}) },
   setCondition: () => {},
 }

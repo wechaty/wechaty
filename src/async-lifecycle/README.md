@@ -41,7 +41,7 @@ interface LifecycleScope {
   set (condition): void
   clear (condition): void
   fail (error: unknown): void
-  recover (reason?: unknown): Promise<'recovered' | 'superseded' | 'failed'>
+  recover (reason?: unknown): 'accepted' | 'superseded' | 'failed'
 }
 
 // Entry points (create-lifecycle.ts, async-lifecycle.ts)
@@ -87,7 +87,7 @@ stateDiagram-v2
 - **C-CMD-04** `start()` while a generation is `running` and not retiring resolves at once and starts nothing.
 - **C-CMD-05** `start()` while `starting` joins that attempt and never aborts it. This includes the replacement started by a recovery.
 - **C-CMD-06** `start()` during retirement queues one replacement that starts only after the retirement completes. Two generations never overlap.
-- **C-CMD-07** `stop()` supersedes every pending start, restart and recovery. Their callers reject with `LifecycleSupersededError`, and a pending `scope.recover()` resolves `'superseded'`.
+- **C-CMD-07** `stop()` supersedes every pending start, restart and recovery. Their callers reject with `LifecycleSupersededError`. A pending recovery is dropped; its `scope.recover()` already returned (C-REC-03).
 - **C-CMD-08** `stop()` resolves when the generation it captured is released, even if a newer `start()` is already queued behind it.
 - **C-CMD-09** `stop()` while `stopped` resolves at once. On a clean `failed` state it commits `stopped`, then resolves.
 - **C-CMD-10** `stop()` on `failed { cleanupComplete: false }` retries only the obligations still unreleased. It commits `stopped` and resolves when they are all released; otherwise it stays dirty and rejects with the cleanup error. One exception: a `stop()` that joined unfinished work in which something failed reports that failure even if its retry released everything, and then commits a clean `failed { phase: 'stop' }` instead of `stopped` (C-TIME-03, D36).
@@ -124,7 +124,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 | `condition.wait()` | The bound generation sets the condition | The bound generation retires first · `stop()` before the wait is bound · caller abort |
 | `scope.acquire()` | `create` resolved while the scope is live | `create` rejects (its error) · retirement began (the retirement reason) |
 | `scope.start(child)` | The child commits `running` | The child's start fails · the child is not idle and clean, or already owned · this scope is sealed · this scope's signal aborts while the child is starting (C-CHILD-03) |
-| `scope.recover()` | Always resolves (D10) | Never |
+| `scope.recover()` | Returns its decision synchronously and never throws (D10, D42) | Never |
 
 ## 6. Scope
 
@@ -176,10 +176,10 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 ## 9. Failure and recovery
 
 - **C-REC-01** `scope.fail(error)` retires the generation with no replacement and ends `failed` (`phase: 'run'` if it reached `running`, otherwise `'start'`). The first failure wins, and its value is kept as given.
-- **C-REC-02** `scope.recover(reason)` from a running generation retires it (`onStop` reason `'recover'`) and starts a replacement without counting as user intent: `running → stopping → starting → running`, with no `stopped` or `failed` in between.
-- **C-REC-03** `scope.recover()` never rejects (D10). It resolves `'recovered'` when the replacement commits `running`. It resolves `'superseded'` when called from a retired or retiring scope, or when a `stop()` or `restart()` is accepted before the replacement commits `running`. That includes a replacement still in `starting`, for example one retrying its connection under C-REC-06, which the user cancels; that is never reported as `'failed'`. A `start()` accepted meanwhile does not supersede the recovery; it joins the replacement (C-CMD-05). It resolves `'failed'` when called before `running` (it then acts like `fail(reason)`, so a first boot fails fast), or when the retirement or the replacement fails.
+- **C-REC-02** An accepted `scope.recover(reason)` retires the running generation (`onStop` reason `'recover'`) and starts a replacement without counting as user intent: `running → stopping → starting → running`, with no `stopped` or `failed` in between.
+- **C-REC-03** `scope.recover()` returns its decision synchronously and never throws (D10, D42). It returns `'accepted'` when called from the live generation while it is `running`: the generation retires and a replacement is queued. It returns `'superseded'` when called from a retiring or retired scope, and changes nothing. It returns `'failed'` when called before `running`: it then acts like `fail(reason)`, so a first boot fails fast. It does not report how the recovery ends; the lifecycle does (`state`, `whenState`). A `stop()` or `restart()` accepted before the replacement commits `running` supersedes the recovery, including a replacement still in `starting`, for example one retrying its connection under C-REC-06, which the user cancels. A `start()` accepted meanwhile does not cancel the recovery: one replacement starts, and that `start()` resolves when it commits `running` (C-CMD-05). If the retirement reports errors or the replacement fails, the instance ends `failed` as for any retirement or start, and no replacement is retried (C-REC-06).
 - **C-REC-04** Recovery authority is checked again after the old generation is released, so a `stop()` or `restart()` accepted in the meantime always wins.
-- **C-REC-05** The retirement started by `recover()` does not wait for the spawned task that itself called that `recover()` and is awaiting it (D19). Only that task is exempt, identified by the call being made from its own execution. Another task that awaits the same result indirectly, for example through a shared promise, is joined as usual, so it must return once `scope.signal` aborts. The exempt task must return promptly once the result arrives and must not use the retired generation's resources. How the kernel identifies the calling task is decided in S4 (D22): `AsyncLocalStorage`, which the Copilot comparison implementation already uses under both Node.js and Deno, or an explicit per-task handle.
+- **C-REC-05** A task that calls `recover()` is joined like any other task when its generation retires (C-RET-01), so it must return once `scope.signal` aborts. Since `recover()` returns at once, a task never waits on its own retirement, and the kernel needs no way to tell which task made the call (D42, replacing D19 and D22).
 - **C-REC-06** The module has no retry policy: no backoff, no budget, no automatic restart (D7). Implementers write policy in their hooks. The usual pattern is to retry inside `onStart` under `scope.signal`, so the state stays `starting` while offline and `stop()` cancels the wait; see `examples/io.example.ts`. A recovery whose replacement fails ends `failed`, and an owning parent then fails too (C-CHILD-05).
 
 ## 10. Children
@@ -259,13 +259,12 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D7 | Mechanism in the kernel, retry policy outside |
 | D8 | `onStop` only for a run that reached `running` |
 | D9 | Retirement order of C-RET-01: tasks are joined before anything is released |
-| D10 | `scope.recover()` never rejects; it resolves `'recovered' \| 'superseded' \| 'failed'` |
+| D10 | `scope.recover()` never throws or rejects; its result is amended by D42 |
 | D11 | Timeouts: finite, > 0, ≤ 2³¹−1, else `RangeError` |
 | D12 | `LifecycleClock` is `{ now, setTimeout, clearTimeout }` |
 | D13 | Errors share `LifecycleError` with a stable `ERR_LIFECYCLE_*` `code`; `isLifecycleError()` checks by shape |
 | D17 | `listen` and `watchdog` are companions, not scope members |
 | D18 | `onStop` receives `{ generation, reason, signal }` |
-| D19 | Recovery does not deadlock on the task that requested it |
 | D23 | `condition.isSet` exists; options type is `LifecycleWaitOptions`; diagnostics channel is `wechaty.async-lifecycle.state` |
 | D25 | `scope.start(child)` returns `Promise<void>` and takes a child, not a factory |
 | D26 | Companion signatures land with their implementation (S4), not in S1 |
@@ -283,6 +282,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D38 | Interrupts are all called at once; a promise one returns is joined like a task, and its rejection is a cleanup error (C-SCOPE-05) |
 | D39 | A child that stops or fails unasked while its parent is retiring is not escalated; the parent stops it as usual (C-CHILD-05) |
 | D41 | A late acquisition's `acquire()` rejects at once, without waiting for its release (C-SCOPE-04) |
+| D42 | `scope.recover()` returns its decision synchronously, `'accepted' \| 'superseded' \| 'failed'`; the replacement's outcome is read from the lifecycle. A task requesting recovery cannot deadlock, without async context, on every runtime (C-REC-03, C-REC-05; replaces D19 and D22) |
 
 ## 17. Not in this module
 

@@ -215,18 +215,22 @@ interface LifecycleAcquireOptions<T> {
 }
 
 /**
- * The outcome of {@link LifecycleScope.recover}, which never rejects (D10,
- * C-REC-03).
+ * The decision {@link LifecycleScope.recover} returns, synchronously, when it
+ * is called (D10, D42, C-REC-03). It says whether a recovery was started, not
+ * how it ends: the replacement's outcome is read from the lifecycle (`state`,
+ * `whenState`).
  *
- * - `'recovered'`: the replacement generation committed `running`.
- * - `'superseded'`: a `stop()` or `restart()` was accepted before the replacement
- *   committed `running` (including while it was still `starting`), or the calling
- *   scope was already retired or retiring.
- * - `'failed'`: called before this generation reached `running` (it then acts
- *   like `fail(reason)`), or the retirement or the replacement failed. The state
- *   says how.
+ * - `'accepted'`: called from the live generation while it is `running`. It is
+ *   retiring, and a replacement is queued. Acceptance does not promise that the
+ *   replacement starts: a `stop()` or `restart()` accepted first supersedes it
+ *   (C-REC-04), and a retirement that reports an error or times out ends
+ *   `failed` with no replacement (C-REC-03).
+ * - `'superseded'`: the calling scope was already retiring or retired. Nothing
+ *   changed.
+ * - `'failed'`: called before this generation reached `running`. It acted like
+ *   `fail(reason)`, so a first boot fails fast.
  */
-type LifecycleRecoverResult = 'recovered' | 'superseded' | 'failed'
+type LifecycleRecoverResult = 'accepted' | 'superseded' | 'failed'
 
 /**
  * The per-generation scope passed to `onStart`: the only way an implementer
@@ -238,7 +242,7 @@ type LifecycleRecoverResult = 'recovered' | 'superseded' | 'failed'
  * `defer` release their argument at once (tracked until that succeeds) and
  * throw the retirement reason; `acquire` and `start` reject and `spawn` throws,
  * with the retirement reason, without running anything; `set`, `clear` and
- * `fail` do nothing; `recover` resolves
+ * `fail` do nothing; `recover` returns
  * `'superseded'`. A stale callback holding an old scope therefore cannot affect
  * a newer run.
  */
@@ -331,16 +335,14 @@ interface LifecycleScope {
 
   /**
    * Retire this generation and start a replacement, without counting as user
-   * intent (C-REC-02 to C-REC-05). Never rejects; see
-   * {@link LifecycleRecoverResult}.
+   * intent (C-REC-02 to C-REC-05). Returns the decision at once and never
+   * throws; see {@link LifecycleRecoverResult}.
    *
-   * The retirement does not wait for the spawned task that itself made this call
-   * and is awaiting it (D19, C-REC-05). Only that task is exempt; a sibling task
-   * awaiting the same result indirectly is joined as usual. The exempt task must
-   * return promptly once the result arrives and must not use the retired
-   * generation's resources.
+   * There is nothing to await (D42): a task that calls it is joined like any
+   * other task when this generation retires, so it returns once `scope.signal`
+   * aborts (C-REC-05).
    */
-  recover (reason?: unknown): Promise<LifecycleRecoverResult>
+  recover (reason?: unknown): LifecycleRecoverResult
 
 }
 

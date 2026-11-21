@@ -33,7 +33,7 @@
 import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
 
-import type { LifecycleRecoverResult, LifecycleScope } from '../types.ts'
+import type { LifecycleScope } from '../types.ts'
 import { errorName, failedState, flush, ManualClock, observe, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
 
@@ -134,9 +134,11 @@ for (const supervisor of [ 'recover', 'restart' ] as const) {
     await flush()
     assert.equal(started.status, 'resolved')
 
-    const reset = supervisor === 'recover'
-      ? observe<LifecycleRecoverResult | void>(scope!.recover(new Error('watchdog')))
-      : observe<LifecycleRecoverResult | void>(lifecycle.restart())
+    // recover()'s decision is checked by C-REC-03; this trace checks the state.
+    if (supervisor === 'recover') {
+      scope!.recover(new Error('watchdog'))
+    }
+    const restarted = supervisor === 'restart' ? observe(lifecycle.restart()) : undefined
     await flush()
     const stopped = observe(lifecycle.stop())
     await flush()
@@ -149,10 +151,8 @@ for (const supervisor of [ 'recover', 'restart' ] as const) {
     }
     await flush()
     assert.equal(stopped.status, 'resolved')
-    if (supervisor === 'recover') {
-      assert.equal(reset.value, 'superseded')
-    } else {
-      assert.equal(errorName(reset.error), 'LifecycleSupersededError')
+    if (restarted) {
+      assert.equal(errorName(restarted.error), 'LifecycleSupersededError')
     }
     assert.deepEqual(trace, [ 'onStart>', 'onStart<', 'onStop>', 'onStop<' ], 'the service is not started again')
     assert.deepEqual(lifecycle.state, { kind: 'stopped', generation: 1 })

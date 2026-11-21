@@ -31,8 +31,9 @@
  *
  * Forwarded unchanged although it differs from S1, so the difference shows up
  * as known failures rather than being hidden by the adapter:
- * - `scope.recover()` **rejects** where S1 resolves `'failed'` (D10): before
- *   `running`, and when the retirement or the replacement fails.
+ * - `scope.recover()` returns a promise of the replacement's outcome
+ *   (`'recovered' | 'superseded'`, rejecting where D10 says `'failed'`), where
+ *   S1 returns its decision synchronously (D42). Only the type is cast.
  *
  * Missing: `condition.isSet` (D23).
  */
@@ -47,6 +48,7 @@ import type {
   LifecycleCondition,
   LifecycleHooks,
   LifecycleOptions,
+  LifecycleRecoverResult,
   LifecycleScope,
   LifecycleState,
 }                           from '../../types.ts'
@@ -74,8 +76,8 @@ function adaptScope (scope: Claude.LifecycleScope): LifecycleScope {
     set     : condition => scope.set(condition as Claude.LifecycleCondition),
     clear   : condition => scope.clear(condition as Claude.LifecycleCondition),
     fail    : error => scope.fail(error),
-    // Not translated: a rejection here is a D10 divergence the suite must see.
-    recover : reason => scope.recover(reason),
+    // Not translated: the promise is a D42 divergence the suite must see.
+    recover : reason => scope.recover(reason) as unknown as LifecycleRecoverResult,
   })
 }
 
@@ -176,7 +178,7 @@ const claude: Implementation = {
     'C-CHILD-07.a'        : "D32 divergence: a child that restarts itself during its parent's stop is not reported; the parent's stop succeeds while the child runs",
     'C-TIME-01.a'          : 'D11 divergence: a deadline of 0 or above 2^31-1 is accepted instead of throwing RangeError',
     'C-REC-03.d'           : 'D10 divergence: recover() rejects when the replacement fails or the retirement leaves debt, instead of resolving `failed`',
-    'C-REC-04.b'           : 'conflict with C-REC-03 (D37): a start() during the recovery\'s retirement supersedes the recovery instead of joining its replacement',
+    'C-REC-04.b'           : 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-03.b'           : 'D10 divergence: recover() before `running` rejects instead of resolving `failed`',
     'C-TIME-02.a-success'  : 'B7: the start timeout settles only after retirement, so a stop() from the abort listener supersedes it',
     'C-TIME-02.a-failure'  : 'B7: the start timeout settles only after retirement, so a stop() from the abort listener supersedes it',
@@ -184,8 +186,8 @@ const claude: Implementation = {
     'C-TIME-02.b-start'    : 'B7: start() is still pending at the start deadline; it settles only after retirement',
     'C-TIME-02.b-restart'  : 'B7: the start timeout settles only after retirement, so a restart() from the abort listener supersedes it',
     'C-TIME-02.c'          : 'B7: start() is still pending at the start deadline while the hook has not settled',
-    'C-REC-05.b-at-once': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
-    'C-REC-05.b-during-release': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
+    'C-REC-05.b-at-once': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-05.b-during-release': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-SCOPE-11.m': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-05.e': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
     'C-SCOPE-05.f': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
@@ -231,6 +233,17 @@ const claude: Implementation = {
     'C-SCOPE-11.zl': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zm': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zk': 'C-CMD-10 divergence: a late release that a starting run\'s abort listener rejects is retried by the stop() that aborted it, which resolves without reporting the failure',
+    'C-REC-02.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-02.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.c': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-03.e': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.c': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.d': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-04.e': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-05.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-05.c': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
   },
 }
 

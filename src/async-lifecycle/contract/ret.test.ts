@@ -169,12 +169,11 @@ contract('C-RET-01.d', 'onStop runs before scope.signal aborts, with live resour
 
 contract('C-RET-02.b', 'onStop receives the reasons `recover` and `failure`', { needs: [ 'onStop.context', 'scope.recover' ] }, async ({ make }) => {
   const reasons: string[] = []
-  let saved: { recover (reason?: unknown): Promise<unknown>, fail (error: unknown): void } | undefined
+  let saved: { recover (reason?: unknown): unknown, fail (error: unknown): void } | undefined
   const { lifecycle } = make({ onStart (scope) { saved = scope }, onStop (stop) { reasons.push(stop.reason) } })
   await lifecycle.start()
-  const recovered = observe(saved!.recover())
+  saved!.recover() // its decision is checked by C-REC-03
   await flush()
-  assert.equal(recovered.value, 'recovered')
   saved!.fail(new Error('x'))
   await flush()
   assert.deepEqual(reasons, [ 'recover', 'failure' ])

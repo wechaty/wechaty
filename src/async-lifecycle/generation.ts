@@ -53,8 +53,8 @@ import type {
 interface ScopeHost {
   /** Report that `generation` can no longer run. Ignored once it is sealed. */
   fail (generation: Generation, error: unknown): void
-  /** See {@link LifecycleScope.recover}. */
-  recover (generation: Generation, reason: unknown): Promise<LifecycleRecoverResult>
+  /** See {@link LifecycleScope.recover}: decides at once, never throws (D42). */
+  recover (generation: Generation, reason: unknown): LifecycleRecoverResult
   /**
    * A release was registered on `generation` after it was sealed. `start` runs
    * it and returns its run, which rejects if it fails. The engine calls `start`
@@ -362,10 +362,8 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       host.fail(generation, error)
     },
 
-    recover (reason?: unknown): Promise<LifecycleRecoverResult> {
-      const result = host.recover(generation, reason)
-      result.catch(() => {}) // pre-handled: `void scope.recover()` must be safe
-      return result
+    recover (reason?: unknown): LifecycleRecoverResult {
+      return host.recover(generation, reason)
     },
   })
 }
