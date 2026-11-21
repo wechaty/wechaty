@@ -343,6 +343,13 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
           unwatch.abort()
           await watching
           await child.stop()
+          if (child.state.kind !== 'stopped') {
+            // The child restarted itself while this scope stopped it, so its
+            // stop() settled with the child live again: a cleanup error that
+            // keeps it owned, and the parent's next stop() stops it again
+            // (C-CHILD-07, D32).
+            throw new LifecycleUnsafeStateError(`owned child lifecycle is '${child.state.kind}' after its stop, not 'stopped'`)
+          }
           // Only a successful stop ends ownership; a failed one is retried by
           // this ledger, so no other parent may adopt the child meanwhile.
           OWNED_CHILDREN.delete(child)

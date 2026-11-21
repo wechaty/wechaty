@@ -24,9 +24,10 @@
  *
  * The kernel implements the S1 API itself, so this adapter translates nothing:
  * hooks and options pass straight through, and every capability is declared.
- * Its `knownFailures` start as the baseline's (D40: Claude's kernel) and shrink
- * as S4 closes them; an entry is removed in the commit that makes its test pass,
- * because a known failure that starts passing turns the suite red.
+ * Its `knownFailures` started as the baseline's (D40: Claude's kernel) and were
+ * removed one by one as S4 closed them; the list is now empty, so every
+ * contract test runs as a normal test for the final kernel on both shells. A
+ * new contract test it fails is fixed in the kernel, not listed here.
  */
 
 import {
@@ -87,9 +88,7 @@ const final: Implementation = {
   shells             : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
   base               : AsyncLifecycle as unknown as LifecycleBase,
   diagnosticsChannel : LIFECYCLE_DIAGNOSTICS_CHANNEL,
-  knownFailures      : {
-    'C-CHILD-07.a': 'D32 divergence: a child that restarts itself during its parent\'s stop is not reported; the parent\'s stop succeeds while the child runs',
-  },
+  knownFailures      : {},
 }
 
 export { final }
