@@ -929,3 +929,65 @@ contract('C-SCOPE-11.zb', 'on an idle instance, a late release that fails while 
   await flush()
   await shutdown(lifecycle)
 })
+
+// ---------------------------------------------------------------------------
+// From the fourth review of #2999
+// ---------------------------------------------------------------------------
+
+contract('C-SCOPE-11.zc', 'a late release that fails while onStart is still running fails the start at once and aborts the hook, even with no deadline (D31)', {}, async ({ make }) => {
+  const reason = new Error('older release failed')
+  const late = Promise.withResolvers<void>()
+  let old: LifecycleScope | undefined
+  let hookScope: LifecycleScope | undefined
+  const { lifecycle } = make({
+    async onStart (scope) {
+      if (!old) {
+        old = scope
+        return
+      }
+      hookScope = scope
+      registerLate(old, () => late.promise)
+      // An abort-aware hook: it returns only when its signal aborts.
+      await new Promise<void>(resolve => scope.signal.addEventListener('abort', () => resolve(), { once: true }))
+    },
+  })
+  await lifecycle.start()
+  const started = observe(lifecycle.restart())
+  await flush()
+  late.reject(reason)
+  await flush()
+  assert.equal(hookScope?.signal.aborted, true, 'the hook was aborted')
+  assert.equal(started.error, reason)
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false)
+  await shutdown(lifecycle)
+})
+
+contract('C-SCOPE-11.zd', 'a late release that a debt retry registers on the same scope and that then fails is reported once (D31, C-RET-04)', {}, async ({ make }) => {
+  const reason = new Error('fails after the retry registered it')
+  const gate = Promise.withResolvers<void>()
+  // An implementation that never registers the second release leaves this
+  // rejection unobserved; the test must not create an unhandled rejection.
+  gate.promise.catch(() => {})
+  let retired: LifecycleScope | undefined
+  let attempts = 0
+  let registered = 0
+  const { lifecycle } = make({ onStart (scope) { retired = scope } })
+  await lifecycle.start()
+  await lifecycle.stop()
+  registerLate(retired!, () => {
+    if (++attempts === 1) {
+      throw new Error('older debt')
+    }
+    // The retry registers another on the same scope; it fails once.
+    registerLate(retired!, () => (++registered === 1 ? gate.promise : undefined))
+  })
+  await flush()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  gate.reject(reason)
+  await flush()
+  assert.equal(stopped.error, reason, 'once, not AggregateError([e, e])')
+  assert.equal(failedState(lifecycle.state).cleanupError, reason)
+  const again = await shutdown(lifecycle)
+  assert.equal(again.status, 'resolved')
+})

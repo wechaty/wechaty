@@ -238,6 +238,8 @@ const copilot: Implementation = {
     'C-SCOPE-11.z-live': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.za': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zb': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.zc': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
+    'C-SCOPE-11.zd': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
   },
 }
 

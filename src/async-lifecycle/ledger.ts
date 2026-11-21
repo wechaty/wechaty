@@ -63,6 +63,11 @@ interface UnwindOptions {
   readonly retry?: ReadonlySet<object>
   /** `false`: leave running entries alone instead of joining them. Default `true`. */
   readonly joinRunning?: boolean
+  /**
+   * Receives every entry whose failure this pass returned, so a caller that
+   * later collects new failures from the ledger does not report them twice.
+   */
+  readonly reported?: Set<object>
 }
 
 interface Entry {
@@ -221,6 +226,7 @@ class Ledger {
         await this.#run(entry)
       } catch (error) {
         errors.push(error)
+        options?.reported?.add(entry)
       }
     }
   }

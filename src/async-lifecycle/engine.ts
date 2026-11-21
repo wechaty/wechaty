@@ -608,10 +608,12 @@ class LifecycleEngine {
    * time none is running. `cancel` removes both listeners, so a start that
    * stops waiting for another reason leaves nothing behind.
    */
-  #lateWake (): { readonly promise: Promise<void>, cancel (): void } {
+  #lateWake (onDrain = true): { readonly promise: Promise<void>, cancel (): void } {
     const { promise, resolve } = Promise.withResolvers<void>()
     this.#debtWaiters.add(resolve)
-    this.#lateDrainWaiters.add(resolve)
+    if (onDrain) {
+      this.#lateDrainWaiters.add(resolve)
+    }
     return {
       promise,
       cancel: () => {
@@ -785,7 +787,20 @@ class LifecycleEngine {
 
     const deadline = this.#deadline(this.#startTimeoutMs, 'start')
     const retireRequested = generation.retireRequested.promise.then(() => undefined)
-    let result = await Promise.race([ outcome, deadline.expired, retireRequested ])
+    // A late release that fails while onStart is still running fails this start
+    // too (C-SCOPE-11), aborting the hook, instead of waiting for it to finish.
+    const debtWake = this.#debtors.size === 0 ? this.#lateWake(false) : undefined
+    let result: Awaited<typeof outcome> | typeof TIMEOUT | undefined
+    try {
+      result = await Promise.race([
+        outcome,
+        deadline.expired,
+        retireRequested,
+        ...(debtWake ? [ debtWake.promise.then(() => ({ ok: true as const })) ] : []),
+      ])
+    } finally {
+      debtWake?.cancel()
+    }
     // Late releases of earlier runs are obligations of the instance: this run
     // does not commit `running` until they finish, under its start deadline
     // (C-SCOPE-11, C-TIME-02). The condition is checked again after every wake,
@@ -849,6 +864,8 @@ class LifecycleEngine {
     // finished, so a failure in that work is retried (D36). Debt this run's own
     // start failed on is left for an explicit stop().
     let earlierDebt: ReadonlyMap<Generation, ReadonlySet<object>> = new Map()
+    // Failures a retry pass already returned; never reported again (C-RET-04).
+    const reported = new Set<object>()
     const keep = (work: Promise<unknown[]> | undefined) => { generation.retirement = work }
     const deadline = this.#deadline(this.#stopTimeoutMs, 'stop')
     let errors: unknown[]
@@ -858,7 +875,7 @@ class LifecycleEngine {
         generation.retirement,
         signal => {
           earlierDebt = generation.debtFailure && !retry ? new Map() : this.#debtSnapshot()
-          return this.#performRetirement(generation, signal, retry, earlierDebt)
+          return this.#performRetirement(generation, signal, retry, earlierDebt, reported)
         },
         keep,
         deadline,
@@ -882,7 +899,7 @@ class LifecycleEngine {
       // (C-CMD-10): releases registered on this run's scope after its unwind,
       // and new debt, even if it appeared while a retry was blocked.
       errors.push(...generation.ledger.failuresExcept(generation.failedAfterUnwind))
-      errors.push(...this.#newDebtFailures(earlierDebt))
+      errors.push(...this.#newDebtFailures(earlierDebt, reported))
     }
     this.#pruneDebtors()
     const released = !timedOut && generation.ledger.clean && generation.startSettled
@@ -962,6 +979,7 @@ class LifecycleEngine {
     deadlineSignal: AbortSignal,
     retry: boolean,
     earlierDebt: ReadonlyMap<Generation, ReadonlySet<object>>,
+    reported: Set<object>,
   ): Promise<unknown[]> {
     const errors: unknown[] = [] // this pass's own errors: onStop, interrupts, its releases
 
@@ -989,11 +1007,11 @@ class LifecycleEngine {
     const debt: unknown[] = []
     if (retry || generation.retireReason !== 'failure') {
       await this.#drainLate()
-      debt.push(...await this.#unwindDebt(earlierDebt))
+      debt.push(...await this.#unwindDebt(earlierDebt, true, reported))
     } else {
       // A failure's retirement does not wait for late releases; #retire reports
       // the ones that already failed during it.
-      debt.push(...await this.#unwindDebt(earlierDebt, false))
+      debt.push(...await this.#unwindDebt(earlierDebt, false, reported))
     }
     generation.localErrors = errors
     return [ ...errors, ...debt ]
@@ -1009,10 +1027,13 @@ class LifecycleEngine {
     return new Map([ ...this.#debtors ].map(debtor => [ debtor, debtor.ledger.failedEntries() ]))
   }
 
-  /** Errors of debt that appeared after `snapshot` was taken. */
-  #newDebtFailures (snapshot: ReadonlyMap<Generation, ReadonlySet<object>>): unknown[] {
+  /**
+   * Errors of debt that appeared after `snapshot` was taken, except entries a
+   * pass already reported (`reported`), so none is counted twice.
+   */
+  #newDebtFailures (snapshot: ReadonlyMap<Generation, ReadonlySet<object>>, reported: ReadonlySet<object> = new Set()): unknown[] {
     this.#pruneDebtors()
-    return [ ...this.#debtors ].flatMap(debtor => debtor.ledger.failuresExcept(snapshot.get(debtor) ?? new Set()))
+    return [ ...this.#debtors ].flatMap(debtor => debtor.ledger.failuresExcept(new Set([ ...snapshot.get(debtor) ?? [], ...reported ])))
   }
 
   /**
@@ -1020,11 +1041,15 @@ class LifecycleEngine {
    * late releases still running are left alone (a failure's retirement does
    * not wait for them).
    */
-  async #unwindDebt (snapshot: ReadonlyMap<Generation, ReadonlySet<object>>, joinRunning = true): Promise<unknown[]> {
+  async #unwindDebt (
+    snapshot: ReadonlyMap<Generation, ReadonlySet<object>>,
+    joinRunning = true,
+    reported?: Set<object>,
+  ): Promise<unknown[]> {
     const errors: unknown[] = []
     for (const [ debtor, retry ] of snapshot) {
       if (this.#debtors.has(debtor)) {
-        errors.push(...await debtor.ledger.unwind({ retry, joinRunning }))
+        errors.push(...await debtor.ledger.unwind({ retry, joinRunning, reported }))
       }
     }
     this.#pruneDebtors()
@@ -1218,6 +1243,7 @@ class LifecycleEngine {
     }
     // Taken when the pass starts, after any earlier timed-out work it joins (D36).
     let earlierDebt: ReadonlyMap<Generation, ReadonlySet<object>> = new Map()
+    const reported = new Set<object>()
     const keep = (work: Promise<unknown[]> | undefined) => { this.#debtRetirement = work }
     const deadline = this.#deadline(this.#stopTimeoutMs, 'stop')
     let result: { errors: unknown[], timedOut: boolean }
@@ -1227,7 +1253,7 @@ class LifecycleEngine {
         async () => {
           earlierDebt = this.#debtSnapshot()
           await this.#drainLate()
-          return this.#unwindDebt(earlierDebt)
+          return this.#unwindDebt(earlierDebt, true, reported)
         },
         keep,
         deadline,
@@ -1245,7 +1271,7 @@ class LifecycleEngine {
     const { errors, timedOut } = result
     if (!timedOut) {
       // Debt that appeared during this pass is reported, not retried.
-      errors.push(...this.#newDebtFailures(earlierDebt))
+      errors.push(...this.#newDebtFailures(earlierDebt, reported))
     }
     const waiters = [ ...this.#idleStopWaiters ]
     this.#idleStopWaiters.clear()
