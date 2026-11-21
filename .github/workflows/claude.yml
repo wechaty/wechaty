@@ -101,6 +101,7 @@ jobs:
           # Do not apply this to the automatic PR reviewer.
           claude_args: |
             --effort ${{ steps.effort.outputs.level }}
+            --append-system-prompt "Before investigating, use the native update_claude_comment tool to edit this run's existing progress comment in place. For an issue, use Working on issue #NUMBER as the progress heading and Claude response as the final heading. For a PR review, use Review of #NUMBER in progress as the progress heading and Claude review as the final heading. Append the exact effort suffix, including the separator and emoji, from the resolved title ${{ steps.effort.outputs.review_title }} to both headings. If the resolved title is simply Claude review, omit the suffix. Do not create another comment. For a PR review, include Reviewed HEAD SHA followed by the exact full SHA of the revision you reviewed in the final body."
             --max-turns 150
             --dangerously-skip-permissions
 
@@ -218,6 +219,14 @@ jobs:
             Review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}.
             Review HEAD ${{ github.event.pull_request.head.sha }} against BASE ${{ github.event.pull_request.base.sha }}.
 
+            Before investigating, load mcp__github_comment__update_claude_comment with
+            ToolSearch and edit this run's native progress comment in place. Use
+            Review of #${{ github.event.pull_request.number }} in progress as the heading.
+            Append the exact effort suffix from ${{ steps.effort.outputs.review_title }},
+            including the separator and emoji. If the title is simply Claude review,
+            omit the suffix. Preserve the progress checklist and use the same comment
+            for the final review.
+
             This is an automatic review for the current revision, even if Claude has commented
             on this PR before. NEVER skip because of prior comments or earlier reviews.
             Read the applicable repository guidance, including AGENTS.md when present.
@@ -236,8 +245,8 @@ jobs:
             Do not modify the repository. Do not approve or merge the PR.
             Publish the final review in the native progress comment created for this run.
             Load mcp__github_comment__update_claude_comment with ToolSearch and use it to
-            update that same comment in place. Use this heading in your first
-            in-place update and keep it exactly once in the final review:
+            update that same comment in place. Replace the progress heading with this
+            heading and include it exactly once in the final review:
             ## ${{ steps.effort.outputs.review_title }}
             Include the findings or "No issues found.", and this exact line:
             Reviewed HEAD SHA: ${{ github.event.pull_request.head.sha }}
