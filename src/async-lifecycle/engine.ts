@@ -53,6 +53,12 @@
  *    (C-SCOPE-11).
  * 5. **Cleanup truth.** Completion is read back from the ledgers and the hook
  *    promises, never inferred from "no error" or from a deadline.
+ * 6. **Deadlines are judged by the clock.** A deadline's timer only wakes the
+ *    reconciler. Every commit of an outcome a deadline bounds first checks
+ *    `clock.now()` against it, in the same turn (C-TIME-05, D30). A start
+ *    deadline runs from the commit of `starting`; a stop deadline from the
+ *    request of the retirement, before any abort listener runs (C-TIME-02,
+ *    C-TIME-03). Keep both checks next to their commits.
  */
 
 import {
@@ -94,7 +100,8 @@ const TIMEOUT = Symbol('timeout')
  *
  * `user` attempts come from `start()` / `restart()` and reject on supersession;
  * `recover` attempts come from `scope.recover()` and resolve `'superseded'`
- * instead. Settlement is idempotent: the first outcome wins.
+ * instead. Settlement is idempotent: the first outcome wins, and an outcome
+ * fixed by {@link Attempt.decide} wins over anything that would come later.
  */
 class Attempt {
 
@@ -102,6 +109,8 @@ class Attempt {
   /** Bound when the reconciler allocates a generation for this attempt. */
   generation: Generation | undefined = undefined
   #settled = false
+  /** The failure fixed by {@link Attempt.decide}, delivered by {@link Attempt.fail}. */
+  #decided: { readonly error: unknown } | undefined = undefined
   readonly #deferred = Promise.withResolvers<LifecycleRecoverResult | undefined>()
 
   constructor (kind: 'user' | 'recover') {
@@ -116,14 +125,25 @@ class Attempt {
     return this.#deferred.promise
   }
 
-  /** Whether an outcome was already chosen. */
+  /** Whether an outcome was already chosen (delivered, or fixed by {@link Attempt.decide}). */
   get settled (): boolean {
-    return this.#settled
+    return this.#settled || this.#decided !== undefined
+  }
+
+  /**
+   * Its run failed (C-CMD-17, D35): fix the outcome now, before the run's abort
+   * listeners can issue commands, and deliver it at the next commit
+   * ({@link Attempt.fail}). From here on a newer command does not supersede it,
+   * so its callers get the failure, not `LifecycleSupersededError`.
+   */
+  decide (error: unknown): void {
+    if (this.#settled || this.#decided) { return }
+    this.#decided = { error }
   }
 
   /** The generation committed `running`: callers resolve, a recovery reports `'recovered'`. */
   succeed (): void {
-    if (this.#settled) { return }
+    if (this.#settled || this.#decided) { return }
     this.#settled = true
     this.#deferred.resolve(this.kind === 'recover' ? 'recovered' : undefined)
   }
@@ -133,7 +153,7 @@ class Attempt {
    * `LifecycleSupersededError`, a recovery resolves `'superseded'`.
    */
   supersede (): void {
-    if (this.#settled) { return }
+    if (this.#settled || this.#decided) { return }
     this.#settled = true
     if (this.kind === 'recover') {
       this.#deferred.resolve('superseded')
@@ -142,11 +162,14 @@ class Attempt {
     }
   }
 
-  /** The attempt failed: callers reject with `error`, kept as given (C-STATE-05). */
+  /**
+   * The attempt failed: callers reject with `error`, kept as given (C-STATE-05),
+   * or with the failure fixed earlier by {@link Attempt.decide}.
+   */
   fail (error: unknown): void {
     if (this.#settled) { return }
     this.#settled = true
-    this.#deferred.reject(error)
+    this.#deferred.reject(this.#decided ? this.#decided.error : error)
   }
 
 }
@@ -201,11 +224,18 @@ function aggregate (errors: readonly unknown[]): unknown {
     : new AggregateError(errors, 'lifecycle cleanup failed')
 }
 
+/**
+ * One start or stop deadline. Its timer only wakes the reconciler: whether it
+ * has passed is judged by the clock, with {@link Deadline.passed}, in the same
+ * turn as the commit of the outcome it bounds (C-TIME-05, D30).
+ */
 interface Deadline {
-  /** Resolves with {@link TIMEOUT} on expiry; never settles without a limit. */
+  /** Resolves with {@link TIMEOUT} when the timer fires; never settles without a limit. */
   readonly expired: Promise<typeof TIMEOUT>
-  /** Aborted on expiry with a {@link LifecycleTimeoutError}. */
+  /** Aborted when the timer fires, with a {@link LifecycleTimeoutError}. */
   readonly signal: AbortSignal
+  /** Whether `clock.now()` has reached the deadline, even if its timer has not fired. */
+  passed (): boolean
   cancel (): void
 }
 
@@ -235,8 +265,17 @@ class LifecycleEngine {
   #current: Generation | undefined = undefined
   /** The attempt the next `start()` joins, until it is settled. */
   #pending: Attempt | undefined = undefined
-  /** An explicit `stop()` targeting a dirty or cleanly failed idle state. */
+  /**
+   * An explicit `stop()` (or a `restart()` joining idle late releases) targeting
+   * a dirty or idle state. Set by {@link LifecycleEngine.#requestStop}, consumed
+   * by {@link LifecycleEngine.#takeStop}.
+   */
   #stopRequested = false
+  /**
+   * `clock.now()` when the first unconsumed stop request was accepted: where
+   * the stop deadline of the pass serving it starts (C-TIME-03, D30).
+   */
+  #stopAcceptedAt: number | undefined = undefined
   /** Retired generations whose late releases failed: debt that blocks a new run. */
   readonly #debtors = new Set<Generation>()
   /**
@@ -328,7 +367,7 @@ class LifecycleEngine {
     let waiter: PromiseWithResolvers<void>
     if (current) {
       if (current.dirty) {
-        this.#stopRequested = true
+        this.#requestStop()
       } else {
         this.#requestRetire(current, 'stop')
       }
@@ -338,7 +377,7 @@ class LifecycleEngine {
       // ends asks for another (retries need explicit intent). Late releases on
       // an idle instance are joined the same way (C-SCOPE-11).
       if (!this.#debtPassActive) {
-        this.#stopRequested = true
+        this.#requestStop()
       }
       waiter = Promise.withResolvers<void>()
       this.#idleStopWaiters.add(waiter)
@@ -351,7 +390,7 @@ class LifecycleEngine {
       // committed nothing, leaving the next step to commit `starting`. This
       // stop() just superseded that replacement, so it must commit `stopped`
       // itself; resolving at once left the state `stopping` forever (B13).
-      this.#stopRequested = true
+      this.#requestStop()
       waiter = Promise.withResolvers<void>()
       this.#idleStopWaiters.add(waiter)
     } else {
@@ -389,7 +428,7 @@ class LifecycleEngine {
     } else if (!current && this.#late.size > 0 && !this.#debtPassActive) {
       // Late releases on an idle instance: restart() joins them as a retirement
       // pass under its own stop deadline, then starts the replacement (C-SCOPE-11).
-      this.#stopRequested = true
+      this.#requestStop()
     }
     this.#schedule()
     return waitFor(attempt.promise, signal).then(() => {})
@@ -497,6 +536,24 @@ class LifecycleEngine {
     return pending
   }
 
+  /**
+   * Record an explicit stop request for the reconciler. The first unconsumed
+   * request fixes where the stop deadline of the pass serving it starts: at
+   * acceptance (C-TIME-03, D30).
+   */
+  #requestStop (): void {
+    this.#stopRequested = true
+    this.#stopAcceptedAt ??= this.#clock.now()
+  }
+
+  /** Consume the stop request; returns where its stop deadline starts. */
+  #takeStop (): number | undefined {
+    const origin = this.#stopAcceptedAt
+    this.#stopRequested = false
+    this.#stopAcceptedAt = undefined
+    return origin
+  }
+
   #supersedePending (): void {
     this.#pending?.supersede()
     this.#pending = undefined
@@ -519,10 +576,19 @@ class LifecycleEngine {
    * abort-aware `onStart` returns. The reconciler performs the retirement.
    */
   #requestRetire (generation: Generation, reason: LifecycleStopReason): void {
-    // The debt its first pass retries is the debt that exists now, before the
-    // abort below runs listeners: a late release one of them rejects failed
-    // during this retirement, so it is reported, not retried (C-CMD-10).
+    // Both are taken now, before the abort below runs listeners that may block
+    // the thread or issue commands:
+    // - the first pass's stop deadline runs from here, the acceptance of the
+    //   command (C-TIME-03, D30);
+    // - the debt its first pass retries is the debt that exists now: a late
+    //   release an abort listener rejects failed during this retirement, so it
+    //   is reported, not retried (C-CMD-10).
+    generation.retireAt ??= this.#clock.now()
     generation.debtAtRequest ??= this.#debtSnapshot()
+    if (reason === 'failure' && generation.failure) {
+      // The run's attempt now fails whatever its abort listeners do (D35).
+      this.#attemptOf.get(generation)?.decide(generation.failure.error)
+    }
     if (generation.retireReason === undefined || (reason === 'stop' && generation.retireReason !== 'failure')) {
       generation.retireReason = reason
     }
@@ -690,8 +756,8 @@ class LifecycleEngine {
         if (!this.#stopRequested) {
           return undefined // a dirty failure waits for an explicit stop()
         }
-        this.#stopRequested = false
-        return () => this.#retire(current)
+        const origin = this.#takeStop()
+        return () => this.#retire(current, origin)
       }
       return current.retireReason !== undefined
         ? () => this.#retire(current)
@@ -702,8 +768,8 @@ class LifecycleEngine {
     if (this.#late.size > 0) {
       // Late releases on an idle instance (C-SCOPE-11, D31).
       if (this.#stopRequested) {
-        this.#stopRequested = false
-        return () => this.#retireDebt() // a stop() or restart() joins them
+        const origin = this.#takeStop()
+        return () => this.#retireDebt(origin) // a stop() or restart() joins them
       }
       if (this.#debtors.size > 0 && !this.#isDirty()) {
         // One failed while others still run: publish the debt now, so the
@@ -727,19 +793,19 @@ class LifecycleEngine {
       if (!this.#stopRequested) {
         return undefined
       }
-      this.#stopRequested = false
-      return () => this.#retireDebt()
+      const origin = this.#takeStop()
+      return () => this.#retireDebt(origin)
     }
 
     if (this.#stopRequested && this.#debtRetirement) {
       // A timed-out debt pass is still tracked and may carry an error, even
       // though no debt is left: the stop() joins it to report it (D36).
-      this.#stopRequested = false
-      return () => this.#retireDebt()
+      const origin = this.#takeStop()
+      return () => this.#retireDebt(origin)
     }
 
     if (this.#stopRequested) {
-      this.#stopRequested = false
+      this.#takeStop()
       // Debt may have cleared on its own (a late release finished) after this
       // stop() was accepted; its waiters still need an outcome.
       const debtWaiters = [ ...this.#idleStopWaiters ]
@@ -779,6 +845,10 @@ class LifecycleEngine {
     this.#attemptOf.set(generation, attempt)
     this.#current = generation
     this.#board.bindNext(generation.number)
+    // The start deadline runs from the commit of `starting` (C-TIME-02), so a
+    // synchronous onStart, or an observer of `starting`, that blocks the thread
+    // spends it too (C-TIME-05).
+    const startedAt = this.#clock.now()
     this.#commit({ kind: 'starting', generation: generation.number })
 
     if (generation.sealed) {
@@ -799,7 +869,7 @@ class LifecycleEngine {
       (error: unknown) => ({ ok: false as const, error }),
     )
 
-    const deadline = this.#deadline(this.#startTimeoutMs, 'start')
+    const deadline = this.#deadline(this.#startTimeoutMs, 'start', startedAt)
     const retireRequested = generation.retireRequested.promise.then(() => undefined)
     // A late release that fails while onStart is still running fails this start
     // too (C-SCOPE-11), aborting the hook, instead of waiting for it to finish.
@@ -837,7 +907,16 @@ class LifecycleEngine {
       return // stop, restart or fail arrived; the next step retires it
     }
     this.#pruneDebtors()
-    if (result !== TIMEOUT && result.ok && this.#debtors.size > 0) {
+    // A late release failed while this run was starting (C-SCOPE-11).
+    const lateDebt = result !== TIMEOUT && result.ok && this.#debtors.size > 0
+    if (deadline.passed()) {
+      // Judged by the clock in the same turn as the commit below: an outcome
+      // reached after the deadline is a timeout, even if its timer has not
+      // fired because the thread was blocked (C-TIME-05, D30). Debt that failed
+      // the start is still left for a stop() (`debtFailure` below).
+      result = TIMEOUT
+    }
+    if (result !== TIMEOUT && lateDebt) {
       // A late release failed while this run was starting: the start fails with
       // its error, and this run's retirement leaves that debt for a stop().
       generation.failure = { phase: 'start', error: aggregate([ ...this.#debtors ].flatMap(debtor => debtor.ledger.failures)) }
@@ -850,6 +929,7 @@ class LifecycleEngine {
         phase: 'start',
         error: result === TIMEOUT ? new LifecycleTimeoutError('start', this.#startTimeoutMs!) : result.error,
       }
+      generation.debtFailure = lateDebt
       this.#requestRetire(generation, 'failure')
       return
     }
@@ -869,11 +949,21 @@ class LifecycleEngine {
 
   /**
    * Retire `generation` (first time or a cleanup retry) and commit the outcome.
+   * `origin` is where a retry's stop deadline starts: the acceptance of the
+   * `stop()` that asked for it. A first pass starts from the retirement request
+   * ({@link Generation.retireAt}).
    */
-  async #retire (generation: Generation): Promise<void> {
+  async #retire (generation: Generation, origin?: number): Promise<void> {
     const retry = generation.dirty
     generation.dirty = false
-    this.#commit({ kind: 'stopping', generation: generation.number })
+    const own = this.#attemptOf.get(generation)
+    this.#commit({ kind: 'stopping', generation: generation.number }, () => {
+      // A failed start rejects its callers at the first commit after the
+      // failure was decided, not when its cleanup completes (C-CMD-17, D35).
+      if (generation.failure && !retry) {
+        own?.fail(generation.failure.error)
+      }
+    })
     // A first pass retries the debt that existed when retirement was requested
     // (#requestRetire). A retry pass takes it when it starts, after the earlier
     // timed-out work it joins has finished, so a failure in that work is
@@ -890,7 +980,7 @@ class LifecycleEngine {
       ...generation.ledger.failuresExcept(generation.failedAfterUnwind),
       ...this.#newDebtFailures(earlierDebt, reported),
     ]
-    const deadline = this.#deadline(this.#stopTimeoutMs, 'stop')
+    const deadline = this.#deadline(this.#stopTimeoutMs, 'stop', retry ? origin : generation.retireAt)
     let errors: unknown[]
     let timedOut: boolean
     try {
@@ -934,6 +1024,14 @@ class LifecycleEngine {
       // Reported, not retried (C-CMD-10), even if it appeared while a retry
       // was blocked.
       errors = [ ...errors, ...tail() ]
+      if (deadline.passed()) {
+        // Judged by the clock in the same turn as the commit below (C-TIME-05,
+        // D30): the pass finished after its deadline, so it is a timeout. Its
+        // errors stay with the work, for the stop() that joins it (D36).
+        keep(Promise.resolve(errors))
+        errors = [ new LifecycleTimeoutError('stop', this.#stopTimeoutMs!) ]
+        timedOut = true
+      }
     }
     this.#pruneDebtors()
     const released = !timedOut && generation.ledger.clean && generation.startSettled
@@ -970,7 +1068,9 @@ class LifecycleEngine {
     keep(work)
     try {
       const result = await Promise.race([ work, deadline.expired ])
-      if (result === TIMEOUT) {
+      // Judged by the clock too: work that ends after the deadline, while a
+      // blocked thread kept the timer from firing, is a timeout (C-TIME-05).
+      if (result === TIMEOUT || deadline.passed()) {
         // The work stays tracked; whatever fails before it ends (`tail`) is
         // part of it, so the stop() that joins it reports and retries it (D36).
         if (tail) {
@@ -1249,6 +1349,20 @@ class LifecycleEngine {
       next = { kind: 'stopped', generation: generation.number }
     }
 
+    const pending = this.#pending
+    if (next?.kind === 'failed' && !stopFailed && stopWaiters.size > 0 && !(pending && !pending.settled)) {
+      // A stop() accepted while a failure retired this run asked for `stopped`
+      // (C-CMD-09; B1): publish the failure, then `stopped`, and resolve that
+      // stop() on the second commit. A replacement queued after it starts from
+      // the failure instead (C-CMD-08).
+      this.#commit(next, () => {
+        own?.fail(failure ? failure.error : new LifecycleSupersededError())
+      })
+      this.#commit({ kind: 'stopped', generation: generation.number }, () => {
+        for (const waiter of stopWaiters) { waiter.resolve() }
+      })
+      return
+    }
     if (next) {
       this.#commit(next, settle)
     } else {
@@ -1280,8 +1394,12 @@ class LifecycleEngine {
     })
   }
 
-  /** An explicit `stop()` retries debt left by retired generations. */
-  async #retireDebt (): Promise<void> {
+  /**
+   * An explicit `stop()` (or a `restart()` joining idle late releases) retries
+   * debt left by retired generations and joins their late releases. Its stop
+   * deadline starts at `origin`, the acceptance of that command (C-TIME-03).
+   */
+  async #retireDebt (origin?: number): Promise<void> {
     const generation = this.#state.generation
     this.#debtPassActive = true
     this.#idleBefore = undefined // a stop() or restart() decides the outcome
@@ -1295,7 +1413,7 @@ class LifecycleEngine {
     // Debt first seen during this pass: reported once at the end, or appended
     // to the timed-out work the next stop() joins (D36).
     const tail = () => this.#newDebtFailures(earlierDebt, reported)
-    const deadline = this.#deadline(this.#stopTimeoutMs, 'stop')
+    const deadline = this.#deadline(this.#stopTimeoutMs, 'stop', origin)
     let result: { errors: unknown[], timedOut: boolean }
     try {
       result = await this.#underStopDeadline(
@@ -1323,9 +1441,16 @@ class LifecycleEngine {
       deadline.cancel()
       this.#debtPassActive = false
     }
-    const { timedOut } = result
+    let { timedOut } = result
     // Debt that appeared during this pass is reported, not retried.
-    const errors = timedOut ? result.errors : [ ...result.errors, ...tail() ]
+    let errors = timedOut ? result.errors : [ ...result.errors, ...tail() ]
+    if (!timedOut && deadline.passed()) {
+      // Judged by the clock in the same turn as the commit below (C-TIME-05,
+      // D30); the errors stay with the work, for the stop() that joins it.
+      keep(Promise.resolve(errors))
+      errors = [ new LifecycleTimeoutError('stop', this.#stopTimeoutMs!) ]
+      timedOut = true
+    }
     const waiters = [ ...this.#idleStopWaiters ]
     this.#idleStopWaiters.clear()
     if (!timedOut && this.#debtors.size === 0 && this.#late.size === 0) {
@@ -1404,19 +1529,28 @@ class LifecycleEngine {
   // Deadlines
   // ===========================================================================
 
-  #deadline (timeoutMs: number | undefined, phase: 'start' | 'stop'): Deadline {
+  /**
+   * A deadline of `timeoutMs` from `origin` (a `clock.now()` reading; default:
+   * now). The origin is where the contract says the deadline starts, which may
+   * be before this call: the commit of `starting` (C-TIME-02), or the
+   * acceptance of the command that requested the retirement (C-TIME-03). Time
+   * a blocked thread spent since then counts, so the timer may be due at once.
+   */
+  #deadline (timeoutMs: number | undefined, phase: 'start' | 'stop', origin = this.#clock.now()): Deadline {
     const controller = new AbortController()
     if (timeoutMs === undefined) {
-      return { expired: new Promise(() => {}), signal: controller.signal, cancel: () => {} }
+      return { expired: new Promise(() => {}), signal: controller.signal, passed: () => false, cancel: () => {} }
     }
+    const at = origin + timeoutMs
     const { promise, resolve } = Promise.withResolvers<typeof TIMEOUT>()
     const handle = this.#clock.setTimeout(() => {
       controller.abort(new LifecycleTimeoutError(phase, timeoutMs))
       resolve(TIMEOUT)
-    }, timeoutMs)
+    }, Math.max(0, at - this.#clock.now()))
     return {
       expired : promise,
       signal  : controller.signal,
+      passed  : () => this.#clock.now() >= at,
       cancel  : () => this.#clock.clearTimeout(handle),
     }
   }

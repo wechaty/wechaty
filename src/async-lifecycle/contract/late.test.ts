@@ -1023,11 +1023,9 @@ for (const command of [ 'stop', 'start', 'restart' ] as const) {
     await flush()
     assert.equal(accepted.status, 'resolved', String(accepted.error))
     if (command === 'stop') {
-      // The stop() joins the failure's retirement. Whether it then reports the
-      // clean failure or commits `stopped` is not decided by the contract;
-      // either way nothing may be left owned.
-      const state = lifecycle.state
-      assert.ok(state.kind === 'stopped' || (state.kind === 'failed' && state.cleanupComplete), `ended ${state.kind}`)
+      // The stop() joins the failure's retirement, which ends clean, so it
+      // commits `stopped` (C-CMD-09; B1, as C-TIME-02.a-success).
+      assert.equal(lifecycle.state.kind, 'stopped')
     } else {
       assert.deepEqual(lifecycle.state, { kind: 'running', generation: 3 })
     }

@@ -594,6 +594,40 @@ for (const late of [ false, true ]) {
   })
 }
 
+contract('C-TIME-05.e', 'a late release that fails while a start waits, past the start deadline, makes the start a timeout and is still left for a stop() (D30, C-SCOPE-11)', { needs: [ 'clock' ] }, async ({ make }) => {
+  const clock = new ManualClock()
+  const gate = Promise.withResolvers<void>()
+  const reason = new Error('late release failed')
+  let retired: LifecycleScope | undefined
+  let calls = 0
+  const { lifecycle } = make({
+    onStart (scope) {
+      const first = retired
+      if (first) {
+        // The second run's start registers a late release on the first run.
+        assert.throws(() => first.defer(() => (++calls === 1 ? gate.promise : undefined)), (error: unknown) => errorName(error) === 'LifecycleSupersededError')
+      } else {
+        retired = scope
+      }
+    },
+  }, { clock, startTimeoutMs: 10 })
+  await lifecycle.start()
+  await lifecycle.stop()
+  const started = observe(lifecycle.start())
+  await flush()
+  assert.equal(lifecycle.state.kind, 'starting', 'the start waits for the late release')
+  clock.jump(30) // the thread was blocked past the start deadline
+  gate.reject(reason)
+  await flush()
+  assert.equal(errorName(started.error), 'LifecycleTimeoutError', 'judged by the clock when the outcome is committed')
+  assert.equal(calls, 1, 'the failed start does not retry the debt')
+  assert.equal(failedState(lifecycle.state).cleanupComplete, false, 'the debt is left for a stop()')
+  const final = await shutdown(lifecycle)
+  assert.equal(final.status, 'resolved')
+  assert.equal(calls, 2)
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
 // ---------------------------------------------------------------------------
 // Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
 // ---------------------------------------------------------------------------

@@ -168,6 +168,8 @@ const codex: Implementation = {
   knownFailures: {
     'B3'         : 'onStop runs for a run that never reached `running` (#2968 §5)',
     'C-CMD-17.a'  : 'D35 divergence: a failed start rejects only after its cleanup completes, not when the failure is decided',
+    'C-CMD-17.b-stop': 'D35 divergence: a command from the abort listener of a failed start supersedes it, so its callers get LifecycleSupersededError instead of the failure',
+    'C-CMD-17.b-restart': 'D35 divergence: a command from the abort listener of a failed start supersedes it, so its callers get LifecycleSupersededError instead of the failure',
     'C-SCOPE-11.a-stopped': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
     'C-SCOPE-11.a-failed': 'D31 divergence: an idle instance keeps showing `stopped` or `failed` while a late release runs, instead of `stopping` (C-SCOPE-11)',
     'C-SCOPE-11.f-stop-succeeds': 'D31 divergence: a late release that fails while a generation is running fails that generation with the release error, instead of leaving the debt to its retirement (C-SCOPE-11)',
