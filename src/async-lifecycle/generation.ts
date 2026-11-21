@@ -171,26 +171,37 @@ const OWNED_CHILDREN_KEY = Symbol.for('wechaty.async-lifecycle.owned-children')
  * `Symbol.for` key, as a non-enumerable, non-writable property, so the child
  * object is never touched (a `createLifecycle` controller is frozen). If that
  * key holds something else, this copy keeps a private set rather than trusting
- * it. A child cannot cross realms, so one registry per realm is enough.
+ * it. If the global cannot take the property (a frozen `globalThis`, as under
+ * SES lockdown), this copy also keeps a private set: the module still loads,
+ * and ownership is then shared only within this copy.
+ *
+ * Limit: the registry is per realm. A child passed into another realm (a
+ * Node.js `vm` context, a same-origin frame) meets that realm's registry, so a
+ * parent in each realm could claim it; cross-realm ownership is unsupported.
  *
  * `global` is `globalThis`; a test passes its own object to check the branches
  * without touching the realm's registry.
  */
 function ownedChildren (global: Record<symbol, unknown> = globalThis as Record<symbol, unknown>): WeakSet<Lifecycle> {
   if (!Object.hasOwn(global, OWNED_CHILDREN_KEY)) {
-    Object.defineProperty(global, OWNED_CHILDREN_KEY, {
-      value        : new WeakSet<Lifecycle>(),
-      enumerable   : false,
-      writable     : false,
-      configurable : false,
-    })
+    try {
+      Object.defineProperty(global, OWNED_CHILDREN_KEY, {
+        value        : new WeakSet<Lifecycle>(),
+        enumerable   : false,
+        writable     : false,
+        configurable : false,
+      })
+    } catch {
+      return new WeakSet<Lifecycle>()
+    }
   }
   const shared = global[OWNED_CHILDREN_KEY]
   return shared instanceof WeakSet ? shared as WeakSet<Lifecycle> : new WeakSet<Lifecycle>()
 }
 
 /**
- * Children owned by some scope, in this realm (see {@link ownedChildren}).
+ * Children owned by some scope, in this realm (see {@link ownedChildren}, which
+ * also says why cross-realm ownership is unsupported).
  * Reserved synchronously before `child.start()` and released only after the
  * owner's stop of that child succeeded, so a second parent can never adopt a
  * child the first one may still stop.

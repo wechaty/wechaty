@@ -128,3 +128,10 @@ test('the ownership registry is created once, hidden, and never replaced by a fo
   assert.notEqual(kept as unknown, foreign)
   assert.equal(other[OWNED_CHILDREN_KEY], foreign, 'the foreign value is left alone')
 })
+
+test('a frozen global gets a private ownership registry instead of failing to load (D21)', () => {
+  const frozen: Record<symbol, unknown> = Object.freeze({})
+  const registry = ownedChildren(frozen)
+  assert.ok(registry instanceof WeakSet)
+  assert.equal(Object.hasOwn(frozen, OWNED_CHILDREN_KEY), false)
+})
