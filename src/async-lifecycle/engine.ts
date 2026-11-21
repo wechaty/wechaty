@@ -609,7 +609,13 @@ class LifecycleEngine {
         ? generation.failure.error
         : new LifecycleSupersededError('the generation is retiring')
       generation.ledger.seal()
-      this.#board.retire(generation.number, generation.sealReason)
+      // Its condition waits reject with one error type, whatever ended the run;
+      // a failure is the cause (C-COND-04, D28). Late registrations still throw
+      // the seal reason itself (C-SCOPE-02).
+      this.#board.retire(generation.number, new LifecycleSupersededError(
+        'the generation retired before the condition was set',
+        generation.failure ? { cause: generation.failure.error } : undefined,
+      ))
     }
     if (!generation.reachedRunning) {
       this.#abort(generation)

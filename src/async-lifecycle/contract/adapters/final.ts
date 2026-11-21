@@ -88,12 +88,9 @@ const final: Implementation = {
   base               : AsyncLifecycle as unknown as LifecycleBase,
   diagnosticsChannel : LIFECYCLE_DIAGNOSTICS_CHANNEL,
   knownFailures      : {
-    'C-COND-04.g': 'D28 divergence: a run failure rejects its condition waits with the failure itself, not LifecycleSupersededError',
-    'C-COND-04.a': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
     'C-CHILD-07.a': 'D32 divergence: a child that restarts itself during its parent\'s stop is not reported; the parent\'s stop succeeds while the child runs',
     'C-SCOPE-05.e': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
     'C-SCOPE-05.f': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
-    '2905-E': 'D28 divergence: a wait on a failed generation rejects with the failure itself, not LifecycleSupersededError',
     'C-SCOPE-04.f-interrupt': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
   },
 }

@@ -85,7 +85,7 @@ class Generation {
   reachedRunning = false
   /** Retirement has begun: registrations are refused and conditions are frozen. */
   sealed = false
-  /** Thrown to late registrations and used to reject this run's condition waits. */
+  /** Thrown to late registrations (C-SCOPE-02); condition waits get `LifecycleSupersededError` with it as `cause` when it is a failure (D28). */
   sealReason: unknown = undefined
   /** Why this run is retiring; `undefined` while it is live. */
   retireReason: LifecycleStopReason | undefined = undefined
