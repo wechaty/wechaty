@@ -220,12 +220,12 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       let creating!: Promise<T>
       // A promise-like its interrupt returned: the resource is not released
       // before it settles (C-SCOPE-05, D38). Its rejection is reported once by
-      // the join `interrupted` registers, so here it is only waited for.
-      let interrupting: PromiseLike<unknown> | undefined
+      // the ledger join, so here it is only waited for, through the same native
+      // promise: the interrupt's thenable is subscribed to once.
+      let interrupting: Promise<unknown> | undefined
       const interrupted = (result: unknown) => {
         if (isPromiseLike(result)) {
-          interrupting = result
-          generation.ledger.addJoin(result)
+          interrupting = generation.ledger.addJoin(result)
         }
       }
       const entry = async () => {
@@ -236,7 +236,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
           return // nothing was acquired
         }
         if (interrupting) {
-          await Promise.resolve(interrupting).catch(() => {})
+          await interrupting.catch(() => {})
         }
         await release(resource)
       }
@@ -344,10 +344,10 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
           await watching
           await child.stop()
           if (child.state.kind !== 'stopped') {
-            // The child restarted itself while this scope stopped it, so its
-            // stop() settled with the child live again: a cleanup error that
-            // keeps it owned, and the parent's next stop() stops it again
-            // (C-CHILD-07, D32).
+            // Its stop() settled but the child is not `stopped`, typically
+            // because it restarted itself while this scope stopped it: a
+            // cleanup error that keeps it owned, and the parent's next stop()
+            // stops it again (C-CHILD-07, D32).
             throw new LifecycleUnsafeStateError(`owned child lifecycle is '${child.state.kind}' after its stop, not 'stopped'`)
           }
           // Only a successful stop ends ownership; a failed one is retried by

@@ -175,9 +175,19 @@ class Ledger {
    * promise (C-SCOPE-05, D38). Every unwind joins it before any release, like a
    * spawned task; its rejection is returned once as a cleanup error and never
    * retried, because the work already ran.
+   *
+   * Returns the one native promise the ledger holds for `work`, so a caller
+   * that also waits for it shares that promise instead of subscribing to
+   * `work` again: a custom thenable need not memoize, and a second `then` could
+   * repeat its work or never settle. That promise is marked handled at once,
+   * because it may reject before an unwind reaches its entry; the entry still
+   * reports the rejection.
    */
-  addJoin (work: PromiseLike<unknown>): void {
-    this.#entries.push(this.#entry(async () => { await work }, undefined, false, true))
+  addJoin (work: PromiseLike<unknown>): Promise<unknown> {
+    const joined = Promise.resolve(work)
+    joined.catch(() => {})
+    this.#entries.push(this.#entry(async () => { await joined }, undefined, false, true))
+    return joined
   }
 
   /**

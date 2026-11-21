@@ -26,6 +26,8 @@ import assert from 'node:assert/strict'
 
 import type { LifecycleScope } from '../types.ts'
 import { EventEmitter } from 'node:events'
+import process from 'node:process'
+import { setImmediate } from 'node:timers'
 
 import { errorName, failedState, flush, ManualClock, observe, type Observed, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
@@ -707,6 +709,71 @@ contract('C-SCOPE-05.f', 'a late acquisition whose interrupt returns a promise t
   const failed = failedState(lifecycle.state)
   assert.equal(failed.cleanupError, interruptError)
   assert.equal(failed.cleanupComplete, true, 'the interrupt is never retried, and the resource was released')
+})
+
+contract('C-SCOPE-05.g', 'an interrupt that returns a custom thenable is subscribed to once, and the resource is released once it settles (D38)', { needs: [ 'scope.acquire', 'acquire.interrupt' ] }, async ({ make }) => {
+  // A thenable that settles only its first subscriber: a second `then` would
+  // never settle, and the release would wait for it forever.
+  const settle = Promise.withResolvers<void>()
+  let subscriptions = 0
+  const thenable: PromiseLike<void> = {
+    then (onFulfilled, onRejected) {
+      subscriptions++
+      return subscriptions === 1
+        ? settle.promise.then(onFulfilled, onRejected)
+        : new Promise<never>(() => {}) as never
+    },
+  }
+  const releases: string[] = []
+  const { lifecycle } = make({
+    async onStart (scope) {
+      await scope.acquire(() => 'socket', resource => { releases.push(resource) }, { interrupt: () => thenable })
+    },
+  })
+  await lifecycle.start()
+  const stopped = observe(lifecycle.stop())
+  await flush()
+  assert.deepEqual(releases, [], 'not released before its interrupt settles')
+  settle.resolve()
+  await flush()
+  assert.equal(subscriptions, 1)
+  assert.equal(stopped.status, 'resolved')
+  assert.deepEqual(releases, [ 'socket' ])
+  assert.equal(lifecycle.state.kind, 'stopped')
+})
+
+contract('C-SCOPE-05.h', 'an interrupt promise that rejects before the unwind reaches its join is no unhandled rejection, and is reported once (D38)', { needs: [ 'scope.acquire', 'acquire.interrupt', 'interrupt.promise' ] }, async ({ make }) => {
+  const unhandled: unknown[] = []
+  const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
+  process.on('unhandledRejection', onUnhandled)
+  try {
+    const older = Promise.withResolvers<void>()
+    const newer = Promise.withResolvers<void>()
+    const failure = new Error('newer interrupt failed')
+    const { lifecycle } = make({
+      async onStart (scope) {
+        await scope.acquire(() => 'older', () => {}, { interrupt: () => older.promise })
+        await scope.acquire(() => 'newer', () => {}, { interrupt: () => newer.promise })
+      },
+    })
+    await lifecycle.start()
+    const stopped = observe(lifecycle.stop())
+    await flush()
+    // Interrupts run newest first, so the older one's join was registered last
+    // and the unwind is joining it; the newer one's join is not reached yet.
+    newer.reject(failure)
+    await flush()
+    // Unhandled rejections are reported at the next macrotask; no real time passes.
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(unhandled, [])
+    assert.equal(stopped.status, 'pending')
+    older.resolve()
+    await flush()
+    assert.equal(stopped.error, failure, 'reported once, as the stop\'s cleanup error')
+    assert.equal(failedState(lifecycle.state).cleanupComplete, true)
+  } finally {
+    process.off('unhandledRejection', onUnhandled)
+  }
 })
 
 // ---------------------------------------------------------------------------

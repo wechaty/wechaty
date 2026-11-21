@@ -84,7 +84,7 @@ const makeInherited: MakeSubject = (hooks, options) => {
 /** The final kernel. */
 const final: Implementation = {
   name               : 'final',
-  capabilities       : new Set([ 'clock', 'scope.acquire', 'acquire.interrupt', 'scope.recover', 'onStop.context', 'condition.isSet' ]),
+  capabilities       : new Set([ 'clock', 'scope.acquire', 'acquire.interrupt', 'interrupt.promise', 'scope.recover', 'onStop.context', 'condition.isSet' ]),
   shells             : { createLifecycle: makeComposed, AsyncLifecycle: makeInherited },
   base               : AsyncLifecycle as unknown as LifecycleBase,
   diagnosticsChannel : LIFECYCLE_DIAGNOSTICS_CHANNEL,
