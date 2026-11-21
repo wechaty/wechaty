@@ -279,8 +279,6 @@ export class Io extends AsyncLifecycle {
         }
       }
     })
-
-    this.wsOnOpen(ws)
   }
 
   /**
@@ -428,8 +426,8 @@ export class Io extends AsyncLifecycle {
   }
 
   /**
-   * Make `ws` the run's socket: forward its errors to the bot, and recover
-   * the run when it closes. Synchronous, so it runs in the same step as the
+   * Make `ws` the run's socket: forward its errors to the bot, recover the run
+   * when it closes, and announce the bot on it (`sys`). Synchronous, so it runs in the same step as the
    * check that the socket is open. `closeWebSocket` removes these handlers
    * before it closes the socket.
    *
@@ -449,7 +447,10 @@ export class Io extends AsyncLifecycle {
     ws.on('error', onError)
     ws.on('close', onClose)
     this.#socketListeners.get(ws)?.push([ 'error', onError ], [ 'close', onClose ])
+    // `sys` is queued in the same step that makes the socket available to
+    // `send()`, so nothing (a reply to a server `update`, say) goes out first.
     this.ws = ws
+    this.wsOnOpen(ws)
   }
 
   /**

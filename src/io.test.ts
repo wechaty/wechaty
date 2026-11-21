@@ -407,3 +407,14 @@ test('stop() is not held up by a bot that keeps emitting while the buffer is flu
   assert.equal(socket.closes, 1)
   assert.ok(Date.now() - started < 2_000, 'well inside the stop deadline')
 })
+
+test('a server that asks for an update as the connection opens still gets sys first', async () => {
+  const bot = new FakeWechaty()
+  bot.isLoggedIn = true
+  const io = testIo(bot)
+  io.onOpen = socket => socket.receive('update', {})
+  await io.start()
+  await flush()
+  assert.deepEqual(names(io.socket.sent), [ 'sys', 'login' ])
+  await io.stop()
+})
