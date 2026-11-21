@@ -257,7 +257,7 @@ One table per source suite, added as each is ported.
 | an observer stop() on a clean failure resolves only once stopped is committed | ported | `C-OBS-01.a` |
 | an observer stop() on starting means onStart is never called | ported, D34 | `C-OBS-03.b` |
 | await using stops the lifecycle | ported | `C-CMD-15.a` |
-| #2905 F: start/stop ×3 never accumulates listeners | ported with `on` plus `defer(off)`; the `listen` companion is S4 | `C-SCOPE-03.a` |
+| #2905 F: start/stop ×3 never accumulates listeners | ported with `on` plus `defer(off)`; with the `listen` companion too | `C-SCOPE-03.a`, `C-COMP-01.c` |
 
 Other files:
 
@@ -268,8 +268,8 @@ Other files:
 | `async-lifecycle.test.ts`: caller-API members are own, non-writable properties | ported | `C-SHELL-02.c` |
 | `diagnostics.test.ts`: records carry kind, generation and phase, never errors | ported, merged with the Codex diagnostics test | `C-OBS-04.a` |
 | `ledger.test.ts` (6 tests) | moved to S4, now `src/async-lifecycle/ledger.test.ts` | White-box tests of the `Ledger`, which S4 adopted with Claude's kernel (D40), so they run as the final kernel's own unit tests. The behavior they protect is also covered by `C-SCOPE-09.*`, `C-TIME-03.*` and `C-RET-01.*`. |
-| `companions/listen.test.ts` (5 tests) | moved to S4 | Companions land with their implementation (D26) |
-| `companions/watchdog.test.ts` (3 tests) | moved to S4 | Companions land with their implementation (D26) |
+| `companions/listen.test.ts` (5 tests) | ported in S4 with the companions (D26) | `C-COMP-01.a`, `C-COMP-01.b`, `C-COMP-01.d`, `C-COMP-01.e`, `C-COMP-01.f` |
+| `companions/watchdog.test.ts` (3 tests) | ported in S4 with the companions (D26); `onTimeout` is now required | `C-COMP-02.a`, `C-COMP-02.b`, `C-COMP-02.c` |
 
 ### Copilot (`src/async-lifecycle-copilot/`, #2912)
 
@@ -298,7 +298,7 @@ Other files:
 | a child remains exclusively owned until its first parent releases it | covered | `C-CHILD-02.a` |
 | composition and inheritance preserve reentrant observer attempt outcomes (2) | covered | `C-OBS-03.a` on both entry points. Its hooks declared as class fields are dropped: S1 declares the hooks as methods, so such an override does not type-check (TS2425) |
 | the #2905 A–F contract traces pass through both lifecycle entry points | ported; 31 scenarios, listed below | The #2905 traces themselves are still to do (see Progress) |
-| scope resources unwind in reverse order and listeners detach on retirement | covered and ported | `C-RET-01.c`, `C-SCOPE-02.c`, `C-SCOPE-02.f` (late `use`); `listen` is a companion (S4) |
+| scope resources unwind in reverse order and listeners detach on retirement | covered and ported | `C-RET-01.c`, `C-SCOPE-02.c`, `C-SCOPE-02.f` (late `use`); `listen` is `C-COMP-01.a`, `C-COMP-01.b` |
 | startup failures report cleanup errors and stop retries remaining debt | ported | `C-CMD-13.a` |
 | start timeout is deterministic and a pre-aborted caller does not mutate intent | covered | `C-CMD-01.a`, `C-TIME-02.d` |
 | runtime failures retire the generation and resolve whenState observers | covered (its final `stop()` leaving `failed` is B1) | `C-SCOPE-07.c-error`, `C-CMD-16.b`, `C-SCOPE-02.a`, `C-CMD-09.a` |
@@ -306,8 +306,8 @@ Other files:
 | owned child failures remain supervised during graceful parent shutdown | ported, D39 form (no escalation while the parent retires) | `C-CHILD-05.e-stops`, `C-CHILD-05.e-fails` |
 | AsyncLifecycle inheritance rejects final-method overrides | covered and ported | `C-SHELL-02.a`, `C-SHELL-02.b`, `C-SHELL-02.d-*` (one case each for `state`, `Symbol.asyncDispose`, `stop`, `restart`, `whenState`). Class-field hooks dropped, as above |
 | diagnostics publish committed sanitized metadata before isolated observers | covered and ported | `C-OBS-04.a` (Copilot's record shape is a known divergence), `C-OBS-01.b` (the order) |
-| watchdog feed, disarm, and expiry use the supplied clock | moved to S4 | Companions land with their implementation (D26) |
-| watchdog defaults to recovery and the default diagnostic label | moved to S4 | Companions land with their implementation (D26) |
+| watchdog feed, disarm, and expiry use the supplied clock | ported in S4 (D26) | `C-COMP-02.a`, `C-COMP-02.d` |
+| watchdog defaults to recovery and the default diagnostic label | dropped in S4 | C-COMP-02: `onTimeout` is required (the two sources defaulted in opposite directions), and the error carries no label; `onTimeout: 'recover'` is `C-COMP-02.b` |
 | cleanup error collapsing preserves zero, one, and multiple failures | moved to S4 | White-box test of a Copilot helper; the behavior is `C-RET-04.b` |
 
 The 31 scenarios of the bundled "#2905 A–F" test, each run through both entry points:
@@ -327,7 +327,7 @@ The 31 scenarios of the bundled "#2905 A–F" test, each run through both entry 
 | concurrent start() calls share one attempt | covered | `C-CMD-03.a` |
 | a caller abort cancels only its own start() | covered | `C-CMD-02.a` |
 | two stop()s and Symbol.asyncDispose share one pass | ported | `C-RET-05.b` |
-| a watchdog armed before stop() never fires afterwards | moved to S4 | Companion (D26) |
+| a watchdog armed before stop() never fires afterwards | ported in S4 (D26) | `C-COMP-02.c` |
 | stopping a parent while its child starts | covered | `C-CHILD-03.a` |
 | recover(), then start() in the same tick | covered, D37 form | `C-REC-04.b` |
 | a task's recovery, then start() during its onStop | covered, D37 form | `C-REC-04.c` |
@@ -344,7 +344,7 @@ The 31 scenarios of the bundled "#2905 A–F" test, each run through both entry 
 | stop() during a gated onStart | covered | `C-CMD-07.a` |
 | a failed start is not retried | covered | `C-CMD-14.a` |
 | a pre-start wait when the start fails | covered, D28 form | `C-COND-04.a` |
-| listeners never accumulate across cycles | covered with `on` plus `defer(off)`; `listen` is S4 | `C-SCOPE-03.a` |
+| listeners never accumulate across cycles | covered with `on` plus `defer(off)`, and with `listen` | `C-SCOPE-03.a`, `C-COMP-01.c` |
 
 ## Required lists
 

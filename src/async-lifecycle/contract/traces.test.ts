@@ -228,8 +228,8 @@ contract('2905-E', 'after a failing onStart, start() rejects, a readiness wait r
 
 contract('2905-F', 'start/stop three times leaves no ready, logout or reset listener behind (C-SCOPE-03)', {}, async ({ make }) => {
   // Old: readyMixin added the listeners on every start() and never removed
-  // them: counts went 1, 2, 3. The `listen` companion (S4) will replace the
-  // `on` plus `defer(off)` pairs.
+  // them: counts went 1, 2, 3. This trace keeps the raw `on` plus `defer(off)`
+  // pairs; C-COMP-01.c checks the same with the `listen` companion.
   const puppet = new EventEmitter()
   const events = [ 'ready', 'logout', 'reset' ] as const
   const counts = () => events.map(event => puppet.listenerCount(event))

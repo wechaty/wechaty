@@ -29,7 +29,7 @@
  */
 
 import type { LifecycleScope } from '../types.ts'
-import { AsyncLifecycle } from '../mod.ts'
+import { AsyncLifecycle, listen } from '../mod.ts'
 
 /** The few socket operations the example needs. */
 interface SocketLike {
@@ -79,14 +79,13 @@ export class Io extends AsyncLifecycle {
   protected override async onStart (scope: LifecycleScope): Promise<void> {
     const socket = await this.#connect(scope)
 
-    const onClose = () => {
+    // Removed when this generation retires (C-COMP-01).
+    listen(scope, socket, 'close', () => {
       this.#failures++
       // Decides at once and never throws (D42). A stale scope gets
       // 'superseded' and does nothing; the new run is published as state.
       scope.recover(new Error('socket closed'))
-    }
-    socket.on('close', onClose)
-    scope.defer(() => socket.off('close', onClose))
+    })
 
     scope.spawn(async signal => {
       while (!signal.aborted) {

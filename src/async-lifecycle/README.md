@@ -47,6 +47,10 @@ interface LifecycleScope {
 // Entry points (create-lifecycle.ts, async-lifecycle.ts)
 function createLifecycle (hooks: LifecycleHooks, options?: LifecycleOptions): LifecycleController
 abstract class AsyncLifecycle implements Lifecycle { /* protected onStart, onStop, onStateChange, condition */ }
+
+// Companions (companions/, §15)
+function listen (scope: LifecycleScope, target: EmitterLike | EventTargetLike, event: string, listener: (...args: any[]) => void): void
+function watchdog (scope: LifecycleScope, options: { timeoutMs: number, onTimeout: 'fail' | 'recover', clock?: LifecycleClock }): { feed (): void, disarm (): void }
 ```
 
 `types.ts` has the full signatures with TSDoc. `examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them.
@@ -230,19 +234,19 @@ Branch on `code`, or use `isLifecycleError(value, code?)`. Don't rely on `instan
 | --- | --- | --- |
 | `LifecycleError` | (base) | Base of all of the below |
 | `LifecycleSupersededError` | `ERR_LIFECYCLE_SUPERSEDED` | A newer command won (C-CMD-07, C-COND-04), or the retirement reason of a sealed scope |
-| `LifecycleTimeoutError` | `ERR_LIFECYCLE_TIMEOUT` | A start or stop deadline expired; has `phase` and `timeoutMs` |
+| `LifecycleTimeoutError` | `ERR_LIFECYCLE_TIMEOUT` | A start or stop deadline expired, or a `watchdog` was not fed in time; has `phase` (`'start'`, `'stop'` or `'watchdog'`) and `timeoutMs` |
 | `LifecycleUnsafeStateError` | `ERR_LIFECYCLE_UNSAFE_STATE` | A command refused on a dirty state, or an unusable child (C-CMD-13, C-CHILD-01) |
 | `LifecycleChildFailureError` | `ERR_LIFECYCLE_CHILD_FAILURE` | An owned child failed or stopped unasked; `cause` is its error (C-CHILD-05) |
 | `LifecycleOverrideError` | `ERR_LIFECYCLE_OVERRIDE` | A subclass method overrode a caller-API member; has `member`. A class-field override fails with a native `TypeError` instead (C-SHELL-02). |
 
 The module also passes through, without wrapping: hook errors as reported (falsy values included), `AggregateError` for several cleanup errors (C-RET-04), `RangeError` for invalid options (C-TIME-01), and `TypeError` for misuse (C-SCOPE-06, C-COND-01, C-SHELL-02 for class-field overrides, C-SHELL-03).
 
-## 15. Companions (planned, S4)
+## 15. Companions
 
-Helpers built only on the public scope; they need nothing private (D17). Their exact signatures land with their implementation in S4 (D26):
+Helpers built only on the public scope; they need nothing private (D17). Their signatures landed with their implementation in S4 (D26). They import no `node:` module, so they also run in the browser.
 
-- `listen(scope, target, event, listener)`: add a listener to an EventEmitter-like or EventTarget object and register its removal. It replaces the repeated `on` plus `defer(off)` pairs in `examples/`.
-- `watchdog(scope, { timeoutMs, onTimeout })`: a timer bound to the scope; if it is not fed in time, it calls `scope.recover()` or `scope.fail()`.
+- **C-COMP-01** `listen(scope, target, event, listener)` adds `listener` to an EventEmitter-like target (`on`, with `off` or `removeListener`) or an `EventTarget`, and registers its removal on the scope before adding it. Retirement removes it, so re-adding it on every start never accumulates duplicates. On a sealed scope it adds nothing and throws the retirement reason (C-SCOPE-02). The target holds a wrapper made for that registration, which keeps the target's `this` and every argument; only that registration's removal detaches it, so a stale registration never removes the same handler a newer generation added. An EventEmitter-like target with neither `off` nor `removeListener` is refused with `TypeError`. It replaces the repeated `on` plus `defer(off)` pairs.
+- **C-COMP-02** `watchdog(scope, { timeoutMs, onTimeout, clock? })` arms a timer for the generation and returns `{ feed, disarm }`. Unless fed within `timeoutMs`, it calls `scope.fail(error)` (`onTimeout: 'fail'`) or `scope.recover(error)` (`'recover'`) once, with a `LifecycleTimeoutError` whose `phase` is `'watchdog'`. `feed()` restarts the countdown; `disarm()` stops it until the next `feed()`. Once it fired or its generation began retiring, nothing arms it again, and the generation's retirement clears its timer. `timeoutMs` is required and follows C-TIME-01 (`RangeError` otherwise). `onTimeout` is required; any other value is refused with `TypeError`. On a sealed scope it arms nothing and throws the retirement reason. `clock` defaults to the global timers, because the scope does not expose the lifecycle's clock.
 
 ## 16. Decisions in this document
 
@@ -267,7 +271,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D18 | `onStop` receives `{ generation, reason, signal }` |
 | D23 | `condition.isSet` exists; options type is `LifecycleWaitOptions`; diagnostics channel is `wechaty.async-lifecycle.state` |
 | D25 | `scope.start(child)` returns `Promise<void>` and takes a child, not a factory |
-| D26 | Companion signatures land with their implementation (S4), not in S1 |
+| D26 | Companion signatures land with their implementation (S4), not in S1: §15, C-COMP-01 and C-COMP-02 |
 | D27 | `restart()` on a dirty `failed` rejects at once, as `start()` does; only `stop()` finishes cleanup |
 | D28 | A condition wait whose generation retires rejects with `LifecycleSupersededError`, with the failure as `cause` |
 | D29 | `defer` cleanups and `acquire` releases are typed to return `unknown`; promise-likes are awaited, other values ignored |
@@ -305,7 +309,7 @@ The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues
 | Clock | `clock.ts` | The default `LifecycleClock`: global timers, and `performance.now()` |
 | Diagnostics | `diagnostics.ts` | Publishing on `wechaty.async-lifecycle.state`, after commit and only when subscribed |
 | Entry points | `create-lifecycle.ts`, `async-lifecycle.ts` | Delegation to the engine; the class adds only the override guard (C-SHELL-02) |
-| Companions | `companions/` | `listen`, `watchdog` (planned, §15) |
+| Companions | `companions/` | `listen` and `watchdog` (§15), built only on the public scope |
 | Module | `mod.ts` | Public exports |
 
 Rules the engine keeps, from its own header:

@@ -49,7 +49,7 @@ import type {
 }                           from '../types.ts'
 import { LifecycleSupersededError } from '../errors.ts'
 import type { Io } from './io.example.ts'
-import { createLifecycle } from '../mod.ts'
+import { createLifecycle, listen } from '../mod.ts'
 import type { Puppet } from './puppet.example.ts'
 
 /** Today's Wechaty events that the lifecycle drives. */
@@ -99,9 +99,7 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
   async #start (scope: LifecycleScope): Promise<void> {
     // Forward today's 'ready' event. Registered before the puppet starts, so an
     // early 'ready' cannot be missed.
-    const onReady = () => this.emit('ready')
-    this.puppet.on('ready', onReady)
-    scope.defer(() => this.puppet.off('ready', onReady))
+    listen(scope, this.puppet, 'ready', () => this.emit('ready'))
 
     // Children start in order and stop in reverse (C-CHILD-04). If the Io fails
     // to start, the puppet is stopped by the ledger with no extra code. If either
