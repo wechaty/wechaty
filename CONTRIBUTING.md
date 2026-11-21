@@ -70,19 +70,50 @@ Contribute by feedback, make code robust.
 
 Contribute by make product suggestion.
 
-## Pull Request
+## Wechaty 2.0
 
-Please:
- 
-1. submit issue to describe the problem to get start
-1. then send pull request as you need(with unit test & pass linting)
- 
-  ```bash
-  $ npm run lint
-  $ npm run test
-  ```
+Wechaty 2.0 is a redesign of the whole ecosystem. Everyone is welcome to
+contribute: the Wechaty organization, anyone on GitHub, and AI coding agents.
+Everyone follows the same rules, and a maintainer reviews and merges every PR.
 
-1. and do not forget to reference the issue 
+### Design rules
+
+1. **Better design wins over compatibility.** Take breaking changes when they
+   give a better design. Follow current best practice and modern design
+   patterns. Do not add compatibility shims, `V2` suffixes or deprecated
+   aliases for 1.x behavior. Protobuf field and enum numbers may change until
+   2.0.0 is released, and are frozen after that.
+2. **Keep the core portable.** A feature belongs in core only if at least two
+   IMs have it. Provider-specific features go through the provider extension
+   mechanism ([#2794](https://github.com/wechaty/wechaty/issues/2794)).
+3. **Use types, not magic values.** No sentinel strings such as `'@all'`, and
+   no separator characters inside IDs. Use `undefined` for "absent", never
+   `null`.
+4. **Reuse the existing models.** Use `Post`, `Sayable` and `FileBox` before
+   adding a class. If you add one, say why in the issue.
+5. **Change the lowest layer first:** `wechaty-puppet`, then `wechaty-grpc`,
+   then `wechaty-puppet-service`, then `wechaty`. Add every new puppet API to
+   `wechaty-puppet-mock` too, so it can be tested.
+6. **Reimplement; do not cherry-pick.** Code from forks such as
+   `@juzi/wechaty`, or from old PRs, is a reference only. Link it in your PR.
+
+### Pull requests
+
+1. Open an issue, or find one, before you write code. Agree the design of a new
+   API in that issue first; larger changes need an RFC.
+2. Send one feature or fix per PR, and reference the issue.
+3. Follow [`AGENTS.md`](AGENTS.md): ESM only, `.ts` extensions on relative
+   imports, unit tests in colocated `*.test.ts` files using `node:test`, and
+   documentation comments on every source file and exported API.
+4. Run the checks before you push. They must pass under both Node.js and Deno:
+
+   ```bash
+   npm run lint
+   npm run test:unit
+   npm run test:unit:deno
+   npm run coverage:node
+   npm run coverage:deno
+   ```
 
 I built wechaty with pleasure because it can help others. help from you for wechaty will be very appreciated by the community.
 
