@@ -51,6 +51,12 @@ type Capability =
   | 'scope.acquire'
   /** `acquire`'s `interrupt` option. */
   | 'acquire.interrupt'
+  /**
+   * A promise an `interrupt` returns is tracked like a task (D38). Needed only
+   * where lacking it fails outside the test, as an unhandled rejection the
+   * runner reports, which a known failure cannot contain.
+   */
+  | 'interrupt.promise'
   /** `scope.recover()`. */
   | 'scope.recover'
   /** `onStop` receives `{ generation, reason, signal }`. */

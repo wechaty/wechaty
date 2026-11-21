@@ -123,3 +123,21 @@ test('an unwind applies its retry and join policy to entries added while it wait
   assert.deepEqual(await pass, [])
   lateGate.resolve()
 })
+
+test('addJoin tracks work even once sealed, joins it before any release, and reports its rejection once', async () => {
+  const ledger = new Ledger()
+  const log: string[] = []
+  const work = Promise.withResolvers<void>()
+  const failure = new Error('interrupt failed')
+  ledger.add({ release: () => { log.push('release') } })
+  ledger.seal()
+  ledger.addJoin(work.promise.then(() => { log.push('joined'); throw failure }))
+  const pass = ledger.unwind()
+  await Promise.resolve()
+  assert.deepEqual(log, [], 'nothing is released while the join is pending')
+  work.resolve()
+  assert.deepEqual(await pass, [ failure ])
+  assert.deepEqual(log, [ 'joined', 'release' ])
+  assert.equal(ledger.clean, true, 'a failed join is not retried')
+  assert.deepEqual(await ledger.unwind(), [])
+})

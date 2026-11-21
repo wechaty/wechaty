@@ -35,7 +35,8 @@
  *   (`'recovered' | 'superseded'`, rejecting where D10 says `'failed'`), where
  *   S1 returns its decision synchronously (D42). Only the type is cast.
  *
- * Missing: `condition.isSet` (D23).
+ * Missing: `condition.isSet` (D23), and `interrupt.promise`: a promise an interrupt
+ * returns is ignored (D38), so a rejection is left unhandled.
  */
 
 import {
@@ -190,6 +191,7 @@ const claude: Implementation = {
     'C-REC-05.b-during-release': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-SCOPE-11.m': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-05.e': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
+    'C-SCOPE-05.g': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
     'C-SCOPE-05.f': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
     'C-SHELL-02.d-stop@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
     'C-SHELL-02.d-restart@AsyncLifecycle': 'D13 divergence: a method override throws a plain Error, not LifecycleOverrideError',
