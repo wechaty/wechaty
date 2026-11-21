@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
-# Trusted PR-base helper. Requires GH_TOKEN and id-token: write.
+# Shared by the Claude workflow to mark active PR reviews and issue replies.
+# Uses the Claude App identity for reactions. The PR path also checks revision
+# freshness and deduplication using GH_TOKEN. Both paths require id-token: write.
 set -euo pipefail
 set +x
 
 mode="${1:?usage: claude-review-eyes.sh start|finish}"
 repo="$GITHUB_REPOSITORY"
-pr="${PR_NUMBER:?}"
-reactions="https://api.github.com/repos/$repo/issues/$pr/reactions"
+if [[ -n "${ISSUE_COMMENT_ID:-}" ]]; then
+  reactions="https://api.github.com/repos/$repo/issues/comments/$ISSUE_COMMENT_ID/reactions"
+else
+  pr="${PR_NUMBER:?}"
+  reactions="https://api.github.com/repos/$repo/issues/$pr/reactions"
+fi
 
-if [[ "$mode" == start ]]; then
+if [[ "$mode" == start && -z "${ISSUE_COMMENT_ID:-}" ]]; then
   # A review queued behind another agent must not acknowledge a stale revision.
   target="$(gh api "repos/$repo/pulls/$pr")"
   if [[ "$(jq -r .head.sha <<<"$target")" != "$EXPECTED_SHA" ||
@@ -31,7 +37,7 @@ if [[ "$mode" == start ]]; then
   echo "review_needed=true" >> "$GITHUB_OUTPUT"
 elif [[ "$mode" == finish ]]; then
   [[ -n "${REACTION_ID:-}" ]] || exit 0
-else
+elif [[ "$mode" != start ]]; then
   echo "::error::Expected start or finish" >&2
   exit 2
 fi
@@ -86,4 +92,4 @@ react() {
 }
 
 # The emoji is best-effort. Never fail a valid code review because of it.
-react || echo "::warning::Claude eyes operation failed; review continues."
+react || echo "::warning::Claude eyes operation failed; workflow continues."

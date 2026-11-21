@@ -83,6 +83,20 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: React to the triggering issue comment 👀
+        if: github.event_name == 'issue_comment' && !github.event.issue.pull_request
+        id: issue-eyes
+        continue-on-error: true
+        shell: bash
+        env:
+          ISSUE_COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          script="$RUNNER_TEMP/claude-issue-eyes.sh"
+          curl -fsSL --retry 3 --output "$script" \
+            "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/.github/scripts/claude-review-eyes.sh"
+          bash "$script" start
+
       # Full execution experiment: do not install/enable the Claude Bash sandbox.
       # GitHub-hosted runners are ephemeral; no repository admin token is granted.
       - name: Claude interactive agent
@@ -104,6 +118,15 @@ jobs:
             --append-system-prompt "Before investigating, use the native update_claude_comment tool to edit this run's existing progress comment in place. For an issue, use Working on issue #NUMBER as the progress heading. For a PR review, use Review of #NUMBER in progress as the progress heading and Claude review as the final heading. Append the effort suffix from the resolved title ${{ steps.effort.outputs.review_title }}, including the separator and emoji, to these headings. If the resolved title is simply Claude review, omit the suffix. For the final issue reply, replace the progress content with the answer. Omit the progress heading, any final heading, and the checklist. Above Medium, start with a Markdown blockquote on its own line in the form > Effort: 🦾 High, using the exact emoji and level from the resolved title. Follow it with a blank line, then the answer. At Medium, omit the effort line and start directly with the answer. Do not add a divider. Always update this run's same native comment and do not post a separate reply. For a PR review, include Reviewed HEAD SHA followed by the exact full SHA of the revision you reviewed in the final body."
             --max-turns 150
             --dangerously-skip-permissions
+
+      - name: Clear Claude eyes from the triggering issue comment
+        if: always() && steps.issue-eyes.outputs.reaction_id != ''
+        continue-on-error: true
+        shell: bash
+        env:
+          ISSUE_COMMENT_ID: ${{ github.event.comment.id }}
+          REACTION_ID: ${{ steps.issue-eyes.outputs.reaction_id }}
+        run: bash "$RUNNER_TEMP/claude-issue-eyes.sh" finish
 
       - name: Report Claude failure
         if: ${{ failure() }}
