@@ -87,7 +87,7 @@ async function onError (
   e    : Error,
 ) {
   log.error('Client', 'start() fail: %s', e)
-  await this.quit()
+  await this.stop()
   process.exit(-1)
 }
 

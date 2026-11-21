@@ -56,7 +56,7 @@ import { createLifecycle, listen } from '../mod.ts'
 import type { Puppet } from './puppet.example.ts'
 
 /**
- * `state-switch`'s read side, which today's `Io` and `IoClient` call as
+ * `state-switch`'s read side, which today's `Wechaty` calls as
  * `state.active()` / `state.inactive()`: `true` when settled in that state,
  * `'pending'` while moving towards it, `false` otherwise.
  */

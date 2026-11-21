@@ -17,20 +17,37 @@
  *   limitations under the License.
  *
  */
-import { StateSwitch } from 'state-switch'
+/**
+ * `IoClient`: runs a Wechaty bot behind the Wechaty cloud, built on the async
+ * lifecycle module (wechaty/wechaty#3022).
+ *
+ * Each run owns, in this order: the bot listeners that log its events, an
+ * {@link Io} link (a child lifecycle, so its own reconnects never fail this
+ * client), the bot itself, and a PuppetServer that serves the bot's puppet.
+ * They are started in that order and released in reverse when the run
+ * retires. A failure halfway through a start releases what was already
+ * started.
+ */
 import {
   PuppetServer,
   type PuppetServerOptions,
 }                       from 'wechaty-puppet-service'
 
+import {
+  createLifecycle,
+  listen,
+  type LifecycleController,
+  type LifecycleScope,
+}                       from './async-lifecycle/mod.ts'
 import type { MessageInterface }  from './user-modules/mod.ts'
 import type { WechatyInterface }  from './wechaty/mod.ts'
 
 import {
   log,
 }                       from './config.ts'
-import { Io }           from './io.ts'
+import { Io, type IoOptions } from './io.ts'
 
+/** The bot an {@link IoClient} runs, and its Io token and PuppetServer port. */
 export interface IoClientOptions {
   token   : string,
   wechaty : WechatyInterface,
@@ -41,16 +58,19 @@ const DEFAULT_IO_CLIENT_OPTIONS: Partial<IoClientOptions> = {
   port: 8788,
 }
 
+/** The PuppetServer methods the client uses. See {@link IoClient.createPuppetServer}. */
+export type IoPuppetServer = Pick<PuppetServer, 'start' | 'stop'>
+
+/**
+ * Runs a bot with its Io link and PuppetServer. See the module comment for
+ * what each run owns and in which order.
+ */
 export class IoClient {
 
-  /**
-   * Huan(20161026): keep io `null-able` or not?
-   * Huan(202002): make it optional.
-   */
+  /** The Io link of the current run, if any. */
   private io?: Io
-  private puppetServer?: PuppetServer
 
-  private state: StateSwitch
+  readonly #lifecycle: LifecycleController
 
   protected options: Required<IoClientOptions>
 
@@ -72,129 +92,80 @@ export class IoClient {
 
     this.options = normalizedOptions
 
-    this.state = new StateSwitch('IoClient', { log })
+    this.#lifecycle = createLifecycle({
+      onStart: scope => this.onStart(scope),
+    }, { name: 'IoClient' })
   }
 
-  private async startPuppetServer () {
-    log.verbose('IoClient', 'startPuppetServer()')
-
-    if (this.puppetServer) {
-      throw new Error('puppet server exists')
-    }
-
-    const options: PuppetServerOptions = {
-      endpoint : '0.0.0.0:' + this.options.port,
-      /**
-       * Huan(202110): FIXME: remove the any
-       *  by updating the puppet-service server code
-       *  to use PuppetInterface
-       */
-      puppet   : this.options.wechaty.puppet as any,
-      token    : this.options.token,
-    }
-    this.puppetServer = new PuppetServer(options)
-    await this.puppetServer.start()
+  /** Create the run's Io link. Tests override this. */
+  protected createIo (options: IoOptions): Io {
+    return new Io(options)
   }
 
-  private async stopPuppetServer () {
-    log.verbose('IoClient', 'stopPuppetServer()')
-
-    if (!this.puppetServer) {
-      log.error('IoClient', 'stopPuppetServer() this.puppetServer is `undefined`')
-      return
-    }
-
-    await this.puppetServer.stop()
-    this.puppetServer = undefined
+  /** Create the run's PuppetServer. Tests override this. */
+  protected createPuppetServer (options: PuppetServerOptions): IoPuppetServer {
+    return new PuppetServer(options)
   }
 
-  public async start (): Promise<void> {
-    log.verbose('IoClient', 'start()')
+  /** One run: see the module comment for what it owns and in which order. */
+  private async onStart (scope: LifecycleScope): Promise<void> {
+    log.verbose('IoClient', 'onStart()')
+    const wechaty = this.options.wechaty
 
-    if (this.state.active()) {
-      log.warn('IoClient', 'start() with a on state, wait and return')
-      await this.state.stable('active')
-      return
-    }
+    this.hookWechaty(scope, wechaty)
 
-    this.state.active('pending')
+    const io = this.createIo({
+      servicePort : this.options.port,
+      token       : this.options.token,
+      wechaty,
+    })
+    this.io = io
+    scope.defer(() => {
+      if (this.io === io) {
+        this.io = undefined
+      }
+    })
+    await scope.start(io)
 
-    try {
-      await this.hookWechaty(this.options.wechaty)
+    await scope.acquire(
+      () => wechaty.start(),
+      () => wechaty.stop(),
+    )
 
-      await this.startIo()
-
-      await this.options.wechaty.start()
-
-      await this.startPuppetServer()
-
-      this.state.active(true)
-
-    } catch (e) {
-      log.error('IoClient', 'start() exception: %s', (e as Error).message)
-      this.state.inactive(true)
-      throw e
-    }
+    // Owned before it starts: a start that rejects (an occupied port) may have
+    // set up resources already, so its stop() must still run.
+    const server = await scope.acquire(
+      () => this.createPuppetServer({
+        endpoint : '0.0.0.0:' + this.options.port,
+        /**
+         * Huan(202110): FIXME: remove the any
+         *  by updating the puppet-service server code
+         *  to use PuppetInterface
+         */
+        puppet   : wechaty.puppet as any,
+        token    : this.options.token,
+      }),
+      created => created.stop(),
+    )
+    log.verbose('IoClient', 'onStart() starting the puppet server')
+    await server.start()
   }
 
-  private async hookWechaty (wechaty: WechatyInterface): Promise<void> {
+  /** Log the bot's events for this run only (C-COMP-01). */
+  private hookWechaty (scope: LifecycleScope, wechaty: WechatyInterface): void {
     log.verbose('IoClient', 'hookWechaty()')
 
-    if (this.state.inactive()) {
-      const e = new Error('state.off() is true, skipped')
-      log.warn('IoClient', 'initWechaty() %s', e.message)
-      throw e
-    }
-
-    wechaty
-      .on('login',    user => log.info('IoClient', `${user.name()} logged in`))
-      .on('logout',   user => log.info('IoClient', `${user.name()} logged out`))
-      .on('message',  msg => this.onMessage(msg))
-      .on('scan',     (url, code) => {
-        log.info('IoClient', [
-          `[${code}] ${url}`,
-          `Online QR Code Image: https://wechaty.js.org/qrcode/${encodeURIComponent(url)}`,
-        ].join('\n'))
-      })
-  }
-
-  private async startIo (): Promise<void> {
-    log.verbose('IoClient', 'startIo() with token %s', this.options.token)
-
-    if (this.state.inactive()) {
-      const e = new Error('startIo() state.off() is true, skipped')
-      log.warn('IoClient', e.message)
-      throw e
-    }
-
-    if (this.io) {
-      throw new Error('io exists')
-    }
-
-    this.io = new Io({
-      servicePort : this.options.port,
-      token      : this.options.token,
-      wechaty    : this.options.wechaty,
+    listen(scope, wechaty, 'login',   (user: { name (): string }) => log.info('IoClient', `${user.name()} logged in`))
+    listen(scope, wechaty, 'logout',  (user: { name (): string }) => log.info('IoClient', `${user.name()} logged out`))
+    listen(scope, wechaty, 'message', (msg: MessageInterface) => {
+      this.onMessage(msg).catch(e => log.warn('IoClient', 'onMessage() failed: %s', (e as Error).message))
     })
-
-    try {
-      await this.io.start()
-    } catch (e) {
-      log.verbose('IoClient', 'startIo() init fail: %s', (e as Error).message)
-      throw e
-    }
-  }
-
-  private async stopIo () {
-    log.verbose('IoClient', 'stopIo()')
-
-    if (!this.io) {
-      log.warn('IoClient', 'stopIo() io does not exist')
-      return
-    }
-
-    await this.io.stop()
-    this.io = undefined
+    listen(scope, wechaty, 'scan',    (url: string, code: number) => {
+      log.info('IoClient', [
+        `[${code}] ${url}`,
+        `Online QR Code Image: https://wechaty.js.org/qrcode/${encodeURIComponent(url)}`,
+      ].join('\n'))
+    })
   }
 
   private async onMessage (msg: MessageInterface) {
@@ -217,60 +188,37 @@ export class IoClient {
     // }
   }
 
+  /**
+   * Start the client: the Io link, the bot, then the PuppetServer. Resolves at
+   * once while already running; rejects if any of them fails to start, after
+   * releasing the ones already started.
+   */
+  public async start (): Promise<void> {
+    log.verbose('IoClient', 'start()')
+    await this.#lifecycle.start()
+  }
+
+  /** Stop the PuppetServer, the bot and the Io link, in that order. */
   public async stop (): Promise<void> {
     log.verbose('IoClient', 'stop()')
-
-    this.state.inactive('pending')
-
-    await this.stopIo()
-    await this.stopPuppetServer()
-    await this.options.wechaty.stop()
-
-    this.state.inactive(true)
-
-    // XXX 20161026
-    // this.io = null
+    await this.#lifecycle.stop()
   }
 
+  /** Stop, then start again with a new Io link. */
   public async restart (): Promise<void> {
     log.verbose('IoClient', 'restart()')
-
-    try {
-      await this.stop()
-      await this.start()
-    } catch (e) {
-      log.error('IoClient', 'restart() exception %s', (e as Error).message)
-      throw e
-    }
+    await this.#lifecycle.restart()
   }
 
+  /**
+   * Same as {@link IoClient.stop}.
+   *
+   * @deprecated Use `stop()`. It used to stop the bot and the Io link but leave
+   *   the PuppetServer running; it now stops everything (wechaty/wechaty#3022).
+   */
   public async quit (): Promise<void> {
     log.verbose('IoClient', 'quit()')
-
-    if (this.state.inactive() === 'pending') {
-      log.warn('IoClient', 'quit() with state.off() = `pending`, skipped')
-      throw new Error('quit() with state.off() = `pending`')
-    }
-
-    this.state.inactive('pending')
-
-    try {
-      // if (this.options.wechaty) {
-      await this.options.wechaty.stop()
-      // this.wechaty = null
-      // } else { log.warn('IoClient', 'quit() no this.wechaty') }
-
-      if (this.io) {
-        await this.io.stop()
-        // this.io = null
-      } else { log.warn('IoClient', 'quit() no this.io') }
-
-    } catch (e) {
-      log.error('IoClient', 'exception: %s', (e as Error).message)
-      throw e
-    } finally {
-      this.state.inactive(true)
-    }
+    await this.stop()
   }
 
 }

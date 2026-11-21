@@ -52,6 +52,11 @@ type ListenTarget = EmitterLike | EventTargetLike
  * Add `listener` to `target` for this generation only; its retirement removes
  * it (C-COMP-01).
  *
+ * A target with both APIs, such as a `ws` WebSocket, is used as an
+ * `EventTarget`, so the listener gets one event object (a `CloseEvent`, say),
+ * not the emitter's arguments. To get those, call `on` and `scope.defer(off)`
+ * directly.
+ *
  * The removal is registered on the scope before the listener is added, so on a
  * sealed (retiring or retired) scope nothing is added and the scope's
  * retirement reason is thrown, as for any late registration (C-SCOPE-02).
