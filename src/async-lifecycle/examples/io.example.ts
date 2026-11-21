@@ -21,14 +21,15 @@
 /**
  * Usage example: an `Io`-like WebSocket client on the inheritance entry point.
  *
- * Type-checked only, against the kernel in `../mod.ts`; it becomes a runnable test
- * against a fake socket in wechaty/wechaty#2973. It shows a leaf resource with
- * an interruptible socket, a keepalive task, recovery when the socket closes,
- * and reconnect backoff written by the implementer, with no retry policy in the
- * kernel (D7).
+ * Runs against a fake socket in `io.example.test.ts` (wechaty/wechaty#2973). It
+ * shows a leaf resource with an interruptible socket, a keepalive task, recovery
+ * when the socket closes, and reconnect backoff written by the implementer, with
+ * no retry policy in the kernel (D7). The socket factory and the clock are
+ * injected, so a test drives both.
  */
 
-import type { LifecycleScope } from '../types.ts'
+import { defaultClock } from '../clock.ts'
+import type { LifecycleClock, LifecycleScope } from '../types.ts'
 import { AsyncLifecycle, listen } from '../mod.ts'
 
 /** The few socket operations the example needs. */
@@ -42,10 +43,39 @@ interface SocketLike {
   close (): Promise<void>
 }
 
-declare function openSocket (url: string, signal: AbortSignal): Promise<SocketLike>
+/** What `Io` needs from its environment. */
+export interface IoOptions {
+  /** The server to connect to. Not published in diagnostics. */
+  readonly url: string
+  /** Open a socket; abort `signal` to give up connecting. */
+  readonly openSocket: (url: string, signal: AbortSignal) => Promise<SocketLike>
+  /** Timer source for the keepalive and the backoff, and for the lifecycle's deadlines. */
+  readonly clock?: LifecycleClock
+}
 
-/** Resolves after `ms`; rejects with `signal.reason` when `signal` aborts. */
-declare function delay (ms: number, signal: AbortSignal): Promise<void>
+/**
+ * Resolve after `ms` on `clock`; reject with `signal.reason` when `signal`
+ * aborts, at once if it already has. The timer is cleared either way.
+ */
+function delay (ms: number, signal: AbortSignal, clock: LifecycleClock): Promise<void> {
+  if (signal.aborted) {
+    return Promise.reject(signal.reason)
+  }
+  if (ms <= 0) {
+    return Promise.resolve() // the first attempt: nothing to wait for
+  }
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clock.clearTimeout(handle)
+      reject(signal.reason)
+    }
+    const handle = clock.setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
 
 /** Reconnect backoff: 0 for the first attempt, then 1 s, 2 s, 4 s, ... capped at 30 s. */
 function backoffMs (failures: number): number {
@@ -60,15 +90,22 @@ function backoffMs (failures: number): number {
  */
 export class Io extends AsyncLifecycle {
 
-  readonly #url: string
+  readonly #options: IoOptions
+  readonly #clock: LifecycleClock
   /** Consecutive socket losses. Policy state belongs to the implementer (D7). */
   #failures = 0
 
-  /** @param url - The server to connect to. Not published in diagnostics. */
-  constructor (url: string) {
+  /** @param options - The server, the socket factory, and an optional clock. */
+  constructor (options: IoOptions) {
     // No startTimeoutMs: #connect retries until stop(); see its comment.
-    super({ name: 'Io', stopTimeoutMs: 5_000 })
-    this.#url = url
+    super({ name: 'Io', stopTimeoutMs: 5_000, clock: options.clock })
+    this.#options = options
+    this.#clock = options.clock ?? defaultClock
+  }
+
+  /** Consecutive socket losses since the last successful connection. */
+  get failures (): number {
+    return this.#failures
   }
 
   /**
@@ -91,7 +128,7 @@ export class Io extends AsyncLifecycle {
       while (!signal.aborted) {
         socket.ping()
         // Rejects with signal.reason on abort, which spawn treats as cancellation.
-        await delay(10_000, signal)
+        await delay(10_000, signal, this.#clock)
       }
     })
 
@@ -108,10 +145,10 @@ export class Io extends AsyncLifecycle {
    */
   async #connect (scope: LifecycleScope): Promise<SocketLike> {
     for (;;) {
-      await delay(backoffMs(this.#failures), scope.signal)
+      await delay(backoffMs(this.#failures), scope.signal, this.#clock)
       try {
         return await scope.acquire(
-          signal => openSocket(this.#url, signal),
+          signal => this.#options.openSocket(this.#options.url, signal),
           socket => socket.close(),
           // Step 4 of retirement: unblock the keepalive task before it is joined.
           { interrupt: socket => socket.terminate() },

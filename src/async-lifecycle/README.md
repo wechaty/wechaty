@@ -54,7 +54,7 @@ function operation<T> (scope: LifecycleScope, work: (signal: AbortSignal) => T |
 function watchdog (scope: LifecycleScope, options: { timeoutMs: number, onTimeout: 'fail' | 'recover', clock?: LifecycleClock }): { feed (): void, disarm (): void }
 ```
 
-`types.ts` has the full signatures with TSDoc. `examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them.
+`types.ts` has the full signatures with TSDoc. `examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them, and each runs as a test (`examples/*.test.ts`) under Node.js and Deno.
 
 ## 3. State
 
@@ -295,7 +295,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 ## 17. Not in this module
 
 - **Retry, backoff, budgets and supervision policy** (D7). Write them in hooks, or later as companions.
-- **What happens to an in-flight `messageSend` during `stop()`**, legacy `reset()` and `state.active()` shims, and the legacy event mapping. These are decided in S5 (D24); `examples/` shows the event mapping done by the owner.
+- **Legacy compatibility:** today's `reset()`, `state.active()` / `state.inactive()` and the `'start'` / `'stop'` / `'error'` events. They live in the integration layer (D24); `examples/wechaty.example.ts` shows the mapping and its test pins it. An in-flight operation such as `messageSend` during `stop()` uses the `operation` companion (C-COMP-03).
 - **Proof that a remote peer stopped.** Cancelling a gRPC call does not prove the server released anything; PuppetService needs its own session protocol.
 
 ## 18. Internal components
