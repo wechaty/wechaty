@@ -9,8 +9,6 @@ on:
     types: [created]
   pull_request_review:
     types: [submitted]
-  issues:
-    types: [labeled]
   pull_request:
     types: [opened, ready_for_review, reopened, synchronize]
 
@@ -19,9 +17,6 @@ jobs:
     # Trusted human commands only. Action also checks actual write access.
     # Experimental start-of-comment @claude trigger with command boundary.
     if: >-
-      (github.event_name == 'issues' &&
-       github.event.label.name == 'agent:claude-action' &&
-       github.event.sender.type != 'Bot') ||
       (github.event_name == 'issue_comment' &&
        github.event.comment.user.type != 'Bot' &&
        (github.event.comment.author_association == 'OWNER' ||
@@ -57,6 +52,19 @@ jobs:
       actions: read
       id-token: write
     steps:
+      - name: Resolve Claude effort
+        id: effort
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          resolver="$RUNNER_TEMP/claude-effort.sh"
+          gh api -H 'Accept: application/vnd.github.raw+json' \
+            "repos/${GITHUB_REPOSITORY}/contents/.github/scripts/claude-effort.sh?ref=main" \
+            > "$resolver"
+          bash "$resolver"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -81,7 +89,6 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           trigger_phrase: '@claude'
-          label_trigger: agent:claude-action
           restrict_untrusted_prs: false
           additional_permissions: |
             actions: read
@@ -91,7 +98,7 @@ jobs:
           # Explicit full-execution experiment for trusted human commands.
           # Do not apply this to the automatic PR reviewer.
           claude_args: |
-            --effort ultracode
+            --effort ${{ steps.effort.outputs.level }}
             --max-turns 150
             --dangerously-skip-permissions
 
@@ -147,6 +154,20 @@ jobs:
         run: |
           echo "### Claude review skipped: stale PR HEAD" >> "$GITHUB_STEP_SUMMARY"
           echo "The PR changed after this event. Trigger a new review with draft → ready or close → reopen; rerunning this workflow retains the original event SHA." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Resolve Claude effort
+        if: steps.eyes.outputs.review_needed == 'true'
+        id: effort
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          resolver="$RUNNER_TEMP/claude-effort.sh"
+          gh api -H 'Accept: application/vnd.github.raw+json' \
+            "repos/${GITHUB_REPOSITORY}/contents/.github/scripts/claude-effort.sh?ref=main" \
+            > "$resolver"
+          bash "$resolver"
 
       - name: Checkout repository
         if: steps.eyes.outputs.review_needed == 'true'
@@ -213,13 +234,15 @@ jobs:
             Do not modify the repository. Do not approve or merge the PR.
             Publish the final review in the native progress comment created for this run.
             Load mcp__github_comment__update_claude_comment with ToolSearch and use it to
-            update that same comment in place. Include exactly one "## Code review"
-            heading, the findings or "No issues found.", and this exact line:
+            update that same comment in place. Use this heading in your first
+            in-place update and keep it exactly once in the final review:
+            ## ${{ steps.effort.outputs.review_title }}
+            Include the findings or "No issues found.", and this exact line:
             Reviewed HEAD SHA: ${{ github.event.pull_request.head.sha }}
             Update the comment even if there are no findings. Do not create a separate
             comment or a GitHub review submission, and do not edit comments from prior runs.
           claude_args: |
-            --effort ultracode
+            --effort ${{ steps.effort.outputs.level }}
             --max-turns 150
             --dangerously-skip-permissions
 
