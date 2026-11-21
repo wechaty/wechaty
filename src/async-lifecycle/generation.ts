@@ -167,6 +167,13 @@ class Generation {
  */
 const OWNED_CHILDREN = new WeakSet<Lifecycle>()
 
+/** Whether `value` is a promise-like (has a callable `then`). */
+function isPromiseLike (value: unknown): value is PromiseLike<unknown> {
+  return (typeof value === 'object' || typeof value === 'function')
+    && value !== null
+    && typeof (value as { then?: unknown }).then === 'function'
+}
+
 /** Build the disposer for a `use()`d resource, or throw `TypeError`. */
 function disposerOf (resource: AsyncDisposable | Disposable): Release {
   const candidate = resource as Partial<AsyncDisposable & Disposable>
@@ -203,7 +210,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
     acquire<T> (
       create: (signal: AbortSignal) => T | PromiseLike<T>,
       release: (resource: T) => void | PromiseLike<void>,
-      options?: { readonly interrupt?: (resource: T) => void },
+      options?: { readonly interrupt?: (resource: T) => unknown },
     ): Promise<T> {
       if (generation.sealed) {
         return Promise.reject(generation.sealReason)
@@ -211,12 +218,25 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       let created: { readonly resource: T } | undefined
       let interruptPending = false
       let creating!: Promise<T>
+      // A promise-like its interrupt returned: the resource is not released
+      // before it settles (C-SCOPE-05, D38). Its rejection is reported once by
+      // the join `interrupted` registers, so here it is only waited for.
+      let interrupting: PromiseLike<unknown> | undefined
+      const interrupted = (result: unknown) => {
+        if (isPromiseLike(result)) {
+          interrupting = result
+          generation.ledger.addJoin(result)
+        }
+      }
       const entry = async () => {
         let resource: T
         try {
           resource = await creating
         } catch {
           return // nothing was acquired
+        }
+        if (interrupting) {
+          await Promise.resolve(interrupting).catch(() => {})
         }
         await release(resource)
       }
@@ -225,7 +245,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         release: entry,
         interrupt: options?.interrupt && (() => {
           if (created) {
-            options.interrupt!(created.resource)
+            interrupted(options.interrupt!(created.resource))
           } else {
             // Still creating: interrupt as soon as the resource exists, before
             // this entry's release (and so before any newer entry is released).
@@ -244,7 +264,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         if (interruptPending) {
           interruptPending = false
           try {
-            options!.interrupt!(resource)
+            interrupted(options!.interrupt!(resource))
           } catch (error) {
             generation.lateInterruptErrors.push(error)
           }

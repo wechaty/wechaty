@@ -22,10 +22,10 @@
  * The per-generation ownership ledger.
  *
  * Owns the list of release actions a generation registered (resources, deferred
- * cleanups, task joins, child stops) and the truth about which of them finished.
- * It knows nothing about generations, hooks or state: the engine decides *when*
- * to interrupt and unwind, and reads back {@link Ledger.clean} to decide whether
- * retirement really completed.
+ * cleanups, task joins, interrupt promises, child stops) and the truth about
+ * which of them finished. It knows nothing about generations, hooks or state:
+ * the engine decides *when* to interrupt and unwind, and reads back
+ * {@link Ledger.clean} to decide whether retirement really completed.
  *
  * Why not `AsyncDisposableStack`: retrying a failed release and joining a release
  * that is still running both need per-entry status, which the native stack
@@ -168,6 +168,16 @@ class Ledger {
     const entry = this.#entry(release, undefined, true, false)
     this.#entries.push(entry)
     return this.#run(entry)
+  }
+
+  /**
+   * Track `work` as a task join, even once sealed: an interrupt's returned
+   * promise (C-SCOPE-05, D38). Every unwind joins it before any release, like a
+   * spawned task; its rejection is returned once as a cleanup error and never
+   * retried, because the work already ran.
+   */
+  addJoin (work: PromiseLike<unknown>): void {
+    this.#entries.push(this.#entry(async () => { await work }, undefined, false, true))
   }
 
   /**
