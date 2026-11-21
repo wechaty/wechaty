@@ -84,26 +84,6 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  verify_artifact_handoff:
-    name: Verify npm tarball handoff (temporary)
-    if: github.event_name == 'pull_request'
-    needs: pack
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download verified npm tarball
-        uses: actions/download-artifact@v7
-        with:
-          name: npm-package
-          path: ${{ runner.temp }}/npm-package
-      - name: Verify tarball from the pack job
-        run: |
-          set -euo pipefail
-          tarball="$RUNNER_TEMP/npm-package/wechaty-package.tgz"
-          test -s "$tarball"
-          tar -tzf "$tarball" > "$RUNNER_TEMP/npm-package-entries"
-          grep -Fx 'package/package.json' "$RUNNER_TEMP/npm-package-entries"
-          sha256sum "$tarball"
-
   publish:
     if: github.event_name == 'push' && needs.pack.outputs.is_publish_branch == 'true'
     name: Publish
