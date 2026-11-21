@@ -242,13 +242,14 @@ jobs:
             Review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}.
             Review HEAD ${{ github.event.pull_request.head.sha }} against BASE ${{ github.event.pull_request.base.sha }}.
 
-            Before investigating, load mcp__github_comment__update_claude_comment with
-            ToolSearch and edit this run's native progress comment in place. Use
+            During the review, use the native progress comment created for this run.
+            Edit that same comment in place as work progresses; do not create
+            additional progress comments. Use
             Review of #${{ github.event.pull_request.number }} in progress as the heading.
             Append the exact effort suffix from ${{ steps.effort.outputs.review_title }},
             including the separator and emoji. If the title is simply Claude review,
-            omit the suffix. Preserve the progress checklist and use the same comment
-            for the final review.
+            omit the suffix. Preserve the progress checklist.
+            Discover and use the available GitHub tools without requiring a specific tool name.
 
             This is an automatic review for the current revision, even if Claude has commented
             on this PR before. NEVER skip because of prior comments or earlier reviews.
@@ -266,15 +267,16 @@ jobs:
             changed file and line, explain the trigger and observable consequence, and
             suggest a concrete fix. Briefly disclose any material area you could not assess.
             Do not modify the repository. Do not approve or merge the PR.
-            Publish the final review in the native progress comment created for this run.
-            Load mcp__github_comment__update_claude_comment with ToolSearch and use it to
-            update that same comment in place. Replace the progress heading with this
-            heading and include it exactly once in the final review:
+            When the review is complete, publish the findings as a formal GitHub
+            Pull Request Review with the COMMENTED state, using available GitHub tools.
+            This formal review is separate from the native progress comment.
+            Include this heading exactly once in the formal review:
             ## ${{ steps.effort.outputs.review_title }}
             Include the findings or "No issues found.", and this exact line:
             Reviewed HEAD SHA: ${{ github.event.pull_request.head.sha }}
-            Update the comment even if there are no findings. Do not create a separate
-            comment or a GitHub review submission, and do not edit comments from prior runs.
+            Finalize this run's native progress comment in place without creating
+            another progress comment. Do not edit comments from prior runs.
+            Do not approve or merge the PR.
           claude_args: |
             --effort ${{ steps.effort.outputs.level }}
             --max-turns 150
