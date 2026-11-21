@@ -37,6 +37,13 @@ import type { LifecycleRecoverResult, LifecycleScope } from '../types.ts'
 import { errorName, failedState, flush, observe, shutdown, stateTrace } from './harness.ts'
 import { contract } from './suite.ts'
 
+/** Resolve once `signal` aborts, at once if it already has. */
+function untilAborted (signal: AbortSignal): Promise<void> {
+  return signal.aborted
+    ? Promise.resolve()
+    : new Promise(resolve => signal.addEventListener('abort', () => resolve(), { once: true }))
+}
+
 contract('C-REC-02.a', 'a running generation can recover into a fresh one, again and again', { needs: [ 'scope.recover' ] }, async ({ make }) => {
   let scope: LifecycleScope | undefined
   const { lifecycle } = make({ onStart (current) { scope = current } })
@@ -264,7 +271,7 @@ for (const when of [ 'at-once', 'during-release' ] as const) {
           await go.promise
           result = scope.recover()
           if (when === 'during-release') {
-            await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }))
+            await untilAborted(signal)
           }
           throw requesterError
         })
@@ -338,18 +345,26 @@ for (const rejects of [ false, true ]) {
 }
 
 contract('C-REC-04.e', 'a user restart() after a task\'s accepted recovery supersedes it: one replacement, the restart\'s, runs', { needs: [ 'scope.recover' ] }, async ({ make }) => {
+  const requested = Promise.withResolvers<void>()
+  const gate = Promise.withResolvers<void>()
   let saved: LifecycleScope | undefined
   let fromTask: LifecycleRecoverResult | undefined
   let starts = 0
-  const { lifecycle } = make({ onStart (scope) { starts++; saved ??= scope } })
+  const { lifecycle } = make({
+    onStart (scope) { starts++; saved ??= scope },
+    onStop: () => gate.promise, // keeps the recovery's retirement pending
+  })
   await lifecycle.start()
-  // A task's body runs synchronously up to its first await: this recovery is
-  // accepted before the restart() below.
-  saved!.spawn(async () => { fromTask = saved!.recover() })
+  saved!.spawn(async () => {
+    fromTask = saved!.recover()
+    requested.resolve()
+  })
+  await requested.promise
+  assert.equal(fromTask, 'accepted')
   const restarted = observe(lifecycle.restart())
   assert.equal(saved!.recover(), 'superseded', 'the scope is already retiring')
+  gate.resolve()
   await flush()
-  assert.equal(fromTask, 'accepted')
   assert.equal(restarted.status, 'resolved')
   assert.equal(starts, 2, 'one replacement, not two')
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
@@ -409,6 +424,7 @@ contract('C-REC-06.a', 'a recovery whose replacement fails ends `failed`, and no
 
 contract('C-REC-05.e', 'a task that requests recovery, then waits for its signal, is joined and the replacement runs: no task can deadlock its own recovery (D42)', { needs: [ 'scope.recover' ] }, async ({ make }) => {
   const go = Promise.withResolvers<void>()
+  const finish = Promise.withResolvers<void>()
   let starts = 0
   let aborted = false
   const { lifecycle } = make({
@@ -419,15 +435,20 @@ contract('C-REC-05.e', 'a task that requests recovery, then waits for its signal
       scope.spawn(async signal => {
         await go.promise // once `running`
         scope.recover(new Error('stale connection'))
-        await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }))
+        await untilAborted(signal)
         aborted = true
+        await finish.promise // still running after the abort
       })
     },
   })
   await lifecycle.start()
   go.resolve()
   await flush()
-  assert.ok(aborted, 'the task was joined after its signal aborted')
+  assert.ok(aborted, 'the task saw its signal abort')
+  assert.equal(lifecycle.state.kind, 'stopping', 'the retirement waits for the requesting task')
+  assert.equal(starts, 1, 'no replacement before the task returns')
+  finish.resolve()
+  await flush()
   assert.equal(starts, 2)
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 2 })
   await shutdown(lifecycle)

@@ -260,9 +260,7 @@ const copilot: Implementation = {
     'C-SCOPE-11.zj-rejects': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zl': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
     'C-SCOPE-11.zm': 'D31 divergence: late releases are not obligations of the instance as C-SCOPE-11 describes; a late release fails a live generation at once, and an idle instance keeps `stopped`',
-    '2905-B-recover': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'B2': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
-    'C-CHILD-05.d': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-02.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-02.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-03.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
@@ -278,9 +276,7 @@ const copilot: Implementation = {
     'C-REC-05.b-at-once': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-05.b-during-release': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-06.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
-    'C-RET-02.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
-    // Only this shell: through AsyncLifecycle the task is joined (checked under Node.js and Deno).
-    'C-REC-05.e@createLifecycle': 'D42 divergence: the task that called recover() is exempt from the join (D19, AsyncLocalStorage), so the retirement does not wait for it to return',
+    'C-REC-05.e': 'D42 divergence: the task that called recover() is exempt from the join (D19, AsyncLocalStorage), so the retirement does not wait for it to return',
   },
 }
 

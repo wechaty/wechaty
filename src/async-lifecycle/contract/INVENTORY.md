@@ -22,7 +22,7 @@ The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one im
 | Bug | Contract test | Clauses | Known failure for |
 | --- | --- | --- | --- |
 | B1 | `B1` in `bugs.test.ts`; also `C-CMD-09.a`, `C-RET-02.a`, `C-CHILD-06.a`, `C-TIME-02.a-success`, `C-TIME-02.c` | C-OBS-01, C-CMD-09 | copilot |
-| B2 | `B2` in `bugs.test.ts` | C-REC-05, D42 (replaced D19) | claude (codex lacks `scope.recover`) |
+| B2 | `B2` in `bugs.test.ts` | C-REC-05, D42 (replaced D19) | claude, copilot (codex lacks `scope.recover`) |
 | B3 | `B3` in `bugs.test.ts` | C-RET-03, D8 | codex |
 
 Bugs found while porting, each recorded in the adapter's `knownFailures` and in #2968 §5:

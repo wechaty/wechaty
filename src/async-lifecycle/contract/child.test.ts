@@ -255,7 +255,7 @@ contract('C-CHILD-05.d', 'a child that recovers itself does not fail its parent'
   const child = make({ onStart (scope) { childScope = scope } }).lifecycle
   const { lifecycle } = make({ onStart: scope => scope.start(child) })
   await lifecycle.start()
-  assert.equal(childScope!.recover(), 'accepted')
+  childScope!.recover() // its decision is checked by C-REC-03
   await flush()
   assert.deepEqual(child.state, { kind: 'running', generation: 2 })
   assert.deepEqual(lifecycle.state, { kind: 'running', generation: 1 })

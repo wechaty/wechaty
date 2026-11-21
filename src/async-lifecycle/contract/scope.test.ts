@@ -495,7 +495,7 @@ for (const from of [ 'release', 'onStart', 'onStop' ] as const) {
     })
     if (from === 'onStop') {
       await lifecycle.start()
-      assert.equal(saved!.recover(), 'accepted')
+      saved!.recover() // its decision is checked by C-REC-03
       await flush()
       saved!.fail(failure)
       gate.resolve()

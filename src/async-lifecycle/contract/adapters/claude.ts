@@ -186,8 +186,8 @@ const claude: Implementation = {
     'C-TIME-02.b-start'    : 'B7: start() is still pending at the start deadline; it settles only after retirement',
     'C-TIME-02.b-restart'  : 'B7: the start timeout settles only after retirement, so a restart() from the abort listener supersedes it',
     'C-TIME-02.c'          : 'B7: start() is still pending at the start deadline while the hook has not settled',
-    'C-REC-05.b-at-once': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
-    'C-REC-05.b-during-release': 'D10 divergence: recover() rejects when the retirement reports an error, instead of resolving `failed`',
+    'C-REC-05.b-at-once': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
+    'C-REC-05.b-during-release': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-SCOPE-11.m': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-05.e': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
     'C-SCOPE-05.f': 'D38 divergence: a promise returned by an interrupt is ignored, so the resource is released before it settles and its rejection is lost',
@@ -233,8 +233,6 @@ const claude: Implementation = {
     'C-SCOPE-11.zl': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zm': 'D31 divergence: a late release that is still running is not tracked, so new generations, stop() and the reported state do not wait for it (C-SCOPE-11)',
     'C-SCOPE-11.zk': 'C-CMD-10 divergence: a late release that a starting run\'s abort listener rejects is retried by the stop() that aborted it, which resolves without reporting the failure',
-    '2905-B-recover': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
-    'C-CHILD-05.d': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-02.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-02.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-03.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
@@ -246,8 +244,6 @@ const claude: Implementation = {
     'C-REC-04.e': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-05.a': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
     'C-REC-05.c': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
-    'C-RET-02.b': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
-    'C-SCOPE-02.e-onStop': 'D42 divergence: scope.recover() returns a promise of the replacement\'s outcome, not its decision synchronously',
   },
 }
 

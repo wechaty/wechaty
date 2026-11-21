@@ -172,7 +172,7 @@ contract('C-RET-02.b', 'onStop receives the reasons `recover` and `failure`', { 
   let saved: { recover (reason?: unknown): unknown, fail (error: unknown): void } | undefined
   const { lifecycle } = make({ onStart (scope) { saved = scope }, onStop (stop) { reasons.push(stop.reason) } })
   await lifecycle.start()
-  assert.equal(saved!.recover(), 'accepted')
+  saved!.recover() // its decision is checked by C-REC-03
   await flush()
   saved!.fail(new Error('x'))
   await flush()

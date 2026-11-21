@@ -221,8 +221,10 @@ interface LifecycleAcquireOptions<T> {
  * `whenState`).
  *
  * - `'accepted'`: called from the live generation while it is `running`. It is
- *   retiring, and a replacement will start unless a `stop()` or `restart()` is
- *   accepted first (C-REC-04).
+ *   retiring, and a replacement is queued. Acceptance does not promise that the
+ *   replacement starts: a `stop()` or `restart()` accepted first supersedes it
+ *   (C-REC-04), and a retirement that reports an error or times out ends
+ *   `failed` with no replacement (C-REC-03).
  * - `'superseded'`: the calling scope was already retiring or retired. Nothing
  *   changed.
  * - `'failed'`: called before this generation reached `running`. It acted like
