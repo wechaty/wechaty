@@ -158,7 +158,9 @@ export class IoClient {
 
     listen(scope, wechaty, 'login',   (user: { name (): string }) => log.info('IoClient', `${user.name()} logged in`))
     listen(scope, wechaty, 'logout',  (user: { name (): string }) => log.info('IoClient', `${user.name()} logged out`))
-    listen(scope, wechaty, 'message', (msg: MessageInterface) => { this.onMessage(msg).catch(() => {}) })
+    listen(scope, wechaty, 'message', (msg: MessageInterface) => {
+      this.onMessage(msg).catch(e => log.warn('IoClient', 'onMessage() failed: %s', (e as Error).message))
+    })
     listen(scope, wechaty, 'scan',    (url: string, code: number) => {
       log.info('IoClient', [
         `[${code}] ${url}`,

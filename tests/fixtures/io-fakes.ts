@@ -23,11 +23,12 @@
  * them. No network and no real puppet.
  */
 import { EventEmitter } from 'node:events'
+import process from 'node:process'
 
 import { Io, type IoOptions, type IoWebSocket } from '../../src/io.ts'
 
 /** What a scripted connection attempt does. */
-export type Attempt = 'open' | 'refuse'
+export type Attempt = 'open' | 'refuse' | 'pending'
 
 /** A WebSocket stand-in: `ws`'s readyState values, events and methods. */
 export class FakeSocket extends EventEmitter {
@@ -55,7 +56,19 @@ export class FakeSocket extends EventEmitter {
     this.#closed(1000, 'closed by client')
   }
 
+  /**
+   * As in `ws`: terminating a socket that is still connecting reports an
+   * `error` on the next tick, then closes it.
+   */
   terminate (): void {
+    if (this.readyState === 0) {
+      this.readyState = 2 // CLOSING
+      process.nextTick(() => {
+        this.emit('error', new Error('WebSocket was closed before the connection was established'))
+        this.#closed(1006, 'terminated')
+      })
+      return
+    }
     this.#closed(1006, 'terminated')
   }
 
@@ -124,6 +137,8 @@ export class TestIo extends Io {
   readonly attempts: Attempt[]
   readonly backoffs: number[] = []
   delayMs = 0
+  /** Called in the same tick a socket opens, e.g. for a server that speaks at once. */
+  onOpen?: (socket: FakeSocket) => void
 
   constructor (options: IoOptions, attempts: Attempt[] = []) {
     super(options)
@@ -146,7 +161,16 @@ export class TestIo extends Io {
     const socket = new FakeSocket(protocol)
     this.sockets.push(socket)
     const attempt = this.attempts.shift() ?? 'open'
-    queueMicrotask(() => (attempt === 'open' ? socket.open() : socket.refuse()))
+    if (attempt !== 'pending') {
+      queueMicrotask(() => {
+        if (attempt === 'open') {
+          socket.open()
+          this.onOpen?.(socket)
+        } else {
+          socket.refuse()
+        }
+      })
+    }
     return socket as unknown as IoWebSocket
   }
 

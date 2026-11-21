@@ -45,6 +45,8 @@ import {
   AsyncLifecycle,
   listen,
   type LifecycleScope,
+  type LifecycleState,
+  type LifecycleStop,
 }                     from './async-lifecycle/mod.ts'
 import type {
   MessageInterface,
@@ -172,10 +174,14 @@ export class Io extends AsyncLifecycle {
   #failures = 0
   /**
    * The next run is a recovery after the socket closed, so it retries until it
-   * connects. Consumed by that run's `onStart`, so a user's `stop()` during the
-   * reconnect leaves the next `start()` a single attempt.
+   * connects. Consumed by that run's `onStart`, and cleared whenever the
+   * instance comes to rest (`stopped` or `failed`, see `onStateChange`), so a
+   * `stop()` that supersedes the recovery, even before its run starts, leaves
+   * the next `start()` a single attempt.
    */
   #reconnecting = false
+  /** Remove the message listener of each socket, set by `openWebSocket`. */
+  readonly #messageListeners = new WeakMap<IoWebSocket, (data: WebSocket.Data) => void>()
 
   constructor (
     options: IoOptions,
@@ -237,8 +243,9 @@ export class Io extends AsyncLifecycle {
     this.ws = ws
 
     // Registered after the socket, so removed before it is closed: closing it
-    // on retirement never looks like a lost connection.
-    listen(scope, ws, 'message', (data: WebSocket.Data) => this.wsOnMessage(data))
+    // on retirement never looks like a lost connection. The message listener
+    // is attached as the socket is created (openWebSocket), so a frame the
+    // server sends with the handshake is not lost.
     listen(scope, ws, 'error', (e?: Error) => this.wsOnError(e))
     listen(scope, ws, 'close', (code: number, reason: Buffer) => {
       log.warn('Io', 'onStart() websocket closed [%d: %s], recovering', code, reason.toString())
@@ -265,16 +272,27 @@ export class Io extends AsyncLifecycle {
 
   /**
    * Send what is still buffered while the socket is open. The socket itself is
-   * closed afterwards, by its release.
+   * closed afterwards, by its release. A recovery keeps what could not be sent
+   * (its socket is already closed) for the next run to send; a stop or restart
+   * drops it, as before.
    */
-  protected override async onStop (): Promise<void> {
-    log.verbose('Io', 'onStop()')
+  protected override async onStop (stop: LifecycleStop): Promise<void> {
+    log.verbose('Io', 'onStop(%s)', stop.reason)
     try {
       await this.send()
     } catch (e) {
       log.warn('Io', 'onStop() flushing events failed: %s', (e as Error).message)
     }
-    this.eventBuffer = []
+    if (stop.reason !== 'recover') {
+      this.eventBuffer = []
+    }
+  }
+
+  /** At rest (`stopped` or `failed`) no recovery is pending any more. */
+  protected override onStateChange (state: LifecycleState): void {
+    if (state.kind === 'stopped' || state.kind === 'failed') {
+      this.#reconnecting = false
+    }
   }
 
   /** Forward the bot's events for this run only (C-COMP-01). */
@@ -333,7 +351,7 @@ export class Io extends AsyncLifecycle {
           throw e
         }
         this.#failures++
-        log.warn('Io', 'connect() failed: %s', (e as Error).message)
+        log.warn('Io', 'connect() attempt failed (%d in a row): %s', this.#failures, (e as Error).message)
       }
     }
   }
@@ -363,6 +381,11 @@ export class Io extends AsyncLifecycle {
     }
 
     const ws = this.createWebSocket(endpoint, this.protocol, { headers })
+    // Attached now, before the handshake completes, so a frame the server sends
+    // right away is handled; removed by closeWebSocket.
+    const onMessage = (data: WebSocket.Data) => this.wsOnMessage(data)
+    ws.on('message', onMessage)
+    this.#messageListeners.set(ws, onMessage)
     try {
       await new Promise<void>((resolve, reject) => {
         const settle = (error?: unknown) => {
@@ -386,6 +409,11 @@ export class Io extends AsyncLifecycle {
         signal.addEventListener('abort', onAbort, { once: true })
       })
     } catch (e) {
+      ws.off('message', onMessage)
+      // `ws` reports terminating a socket that is still connecting as an
+      // `error` on the next tick; without a listener that would be an uncaught
+      // exception and end the process.
+      ws.on('error', () => {})
       ws.terminate()
       throw e
     }
@@ -397,6 +425,10 @@ export class Io extends AsyncLifecycle {
     log.verbose('Io', 'closeWebSocket()')
     if (this.ws === ws) {
       this.ws = undefined
+    }
+    const onMessage = this.#messageListeners.get(ws)
+    if (onMessage) {
+      ws.off('message', onMessage)
     }
     if (ws.readyState === WebSocket.CLOSED) {
       return

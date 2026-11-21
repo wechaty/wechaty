@@ -23,6 +23,8 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import process from 'node:process'
+import { setImmediate } from 'node:timers'
 
 import { flush, testIo, FakeWechaty } from '../tests/fixtures/io-fakes.ts'
 
@@ -128,3 +130,58 @@ test('a reset from the server is reported and resets the bot', async () => {
   assert.equal(bot.errors.length, 1)
   await io.stop()
 })
+
+test('stop() while the socket is still connecting cancels it without an uncaught error', async () => {
+  const uncaught: unknown[] = []
+  const onUncaught = (error: unknown) => { uncaught.push(error) }
+  process.on('uncaughtException', onUncaught)
+  try {
+    const io = testIo(new FakeWechaty(), [ 'pending' ])
+    const started = io.start().then(() => 'resolved', (error: unknown) => error)
+    await flush()
+    await io.stop()
+    assert.match(String(await started), /Superseded/)
+    await new Promise(resolve => setImmediate(resolve)) // ws reports the abort on the next tick
+    assert.deepEqual(uncaught, [])
+    assert.equal(io.state.kind, 'stopped')
+  } finally {
+    process.off('uncaughtException', onUncaught)
+  }
+})
+
+test('an event the bot emits right after the socket drops is sent on the next socket', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  await io.start()
+  io.sockets[0]!.drop()
+  bot.emit('heartbeat', 'just dropped') // the old run is still live, its socket closed
+  await io.whenState(state => state.kind === 'running' && state.generation === 2)
+  await flush()
+  assert.ok(names(io.socket.sent).includes('heartbeat'), 'kept by the recovery, not dropped')
+  await io.stop()
+})
+
+test('a frame the server sends as the connection opens is handled', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  io.onOpen = socket => socket.receive('reset', 'at once')
+  await io.start()
+  await flush()
+  assert.deepEqual(bot.log, [ 'reset' ])
+  await io.stop()
+})
+
+test('a stop() that supersedes a recovery before it reconnects leaves the next start() a single attempt', async () => {
+  const io = testIo(new FakeWechaty(), [ 'open' ])
+  await io.start()
+  io.sockets[0]!.drop()
+  for (let i = 0; i < 3; i++) {
+    await Promise.resolve() // the close event: the recovery is accepted
+  }
+  assert.equal(io.state.kind, 'stopping', 'the recovery is retiring the old run')
+  await io.stop()
+  assert.equal(io.state.kind, 'stopped')
+  io.attempts.push('refuse')
+  await assert.rejects(io.start(), /connection refused/, 'not a retrying reconnect')
+})
+
