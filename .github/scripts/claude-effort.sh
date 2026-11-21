@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Shared by the interactive and automatic review jobs in claude.yml.
-# Owns effort selection and the review title emitted through GITHUB_OUTPUT.
-# Only active labels most recently applied by huan can raise effort.
-# Missing or unverifiable label evidence keeps the medium default.
+# Selects reasoning effort for the interactive and automatic review jobs in
+# claude.yml. RFC #3001 defines issue difficulty and PR risk as independent
+# measures. This resolver turns those labels into Claude effort and review titles.
+# https://github.com/wechaty/wechaty/issues/3001
+#
+# The workflow defaults to medium. Only active labels most recently applied by
+# huan can raise effort. Missing or unverifiable label evidence keeps the default.
 set -euo pipefail
 
 level=medium
