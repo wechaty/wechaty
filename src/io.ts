@@ -17,13 +17,35 @@
  *   limitations under the License.
  *
  */
+/**
+ * `Io`: the WebSocket link between a Wechaty bot and the Wechaty cloud (or a
+ * gateway), built on the async lifecycle module (wechaty/wechaty#3022).
+ *
+ * Each run of the lifecycle owns one connected socket, the bot listeners that
+ * forward events to it, and a keepalive task; all are released when the run
+ * retires (`stop()`, `restart()`, or a recovery). When the socket closes, the
+ * run recovers (`scope.recover()`): the next run reconnects with backoff inside
+ * `onStart`, so the state stays `starting` while offline and `stop()` cancels
+ * the wait. The backoff is this class's policy, not the lifecycle's (D7).
+ *
+ * Only a run started by such a recovery retries. A `start()` makes one
+ * connection attempt and rejects if it fails, so a bot whose cloud is
+ * unreachable fails to start rather than waiting forever.
+ *
+ * Events the bot emits while the socket is not connected are buffered and sent
+ * once it is; `onStop()` flushes the buffer before the socket is closed.
+ */
 import WebSocket        from 'ws'
 
 import type * as PUPPET from 'wechaty-puppet'
-import { StateSwitch } from 'state-switch'
 
 import * as jsonRpcPeer from 'json-rpc-peer'
 
+import {
+  AsyncLifecycle,
+  listen,
+  type LifecycleScope,
+}                     from './async-lifecycle/mod.ts'
 import type {
   MessageInterface,
 }                     from './user-modules/mod.ts'
@@ -39,6 +61,7 @@ import {
   isJsonRpcRequest,
 }                   from './io-peer/io-peer.ts'
 
+/** What an {@link Io} connects with, and for which bot. */
 export interface IoOptions {
   wechaty      : WechatyInterface,
   token        : string,
@@ -47,6 +70,7 @@ export interface IoOptions {
   servicePort? : number,
 }
 
+/** The Io event names exchanged with the server. */
 export const IO_EVENT_DICT = {
   botie     : 'tbw',
   error     : 'tbw',
@@ -96,21 +120,47 @@ const AsyncFunction = Object.getPrototypeOf(async () => null).constructor
 //   return fn(...Object.values(args))
 // }
 
-export class Io {
+/**
+ * Resolve after `ms`; reject with `signal.reason` when `signal` aborts, at once
+ * if it already has. No timer is left behind either way.
+ */
+function delay (ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) {
+    return Promise.reject(signal.reason)
+  }
+  if (ms <= 0) {
+    return Promise.resolve()
+  }
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer)
+      reject(signal.reason)
+    }
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+
+/** The WebSocket client a run connects with. See {@link Io.createWebSocket}. */
+export type IoWebSocket = WebSocket
+
+/**
+ * The Io link of one bot. `start()`, `stop()` and `restart()` are the lifecycle
+ * caller API (`AsyncLifecycle`); see the module comment for what each run owns.
+ */
+export class Io extends AsyncLifecycle {
 
   protected options: IoOptions
 
   protected readonly id       : string
   protected readonly protocol : string
+  /** Events waiting for a connected socket; kept across reconnects. */
   protected eventBuffer       : IoEvent[] = []
-  protected ws                : undefined | WebSocket
-
-  protected readonly state = new StateSwitch('Io', { log })
-
-  protected reconnectTimer?   : ReturnType<typeof setTimeout>
-  protected reconnectTimeout? : number
-
-  protected lifeTimer? : ReturnType<typeof setTimeout>
+  /** The socket of the live run, or `undefined` between runs. */
+  protected ws                : undefined | IoWebSocket
 
   protected onMessage: undefined | Function
 
@@ -118,9 +168,19 @@ export class Io {
 
   protected jsonRpc?: jsonRpcPeer.Peer
 
+  /** Consecutive connection losses and failed attempts; reset once connected. */
+  #failures = 0
+  /**
+   * The next run is a recovery after the socket closed, so it retries until it
+   * connects. Consumed by that run's `onStart`, so a user's `stop()` during the
+   * reconnect leaves the next `start()` a single attempt.
+   */
+  #reconnecting = false
+
   constructor (
     options: IoOptions,
   ) {
+    super({ name: 'Io', stopTimeoutMs: 10_000 })
     this.options = options
     options.apihost   = options.apihost   || config.apihost
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
@@ -143,117 +203,215 @@ export class Io {
 
   }
 
-  public toString () {
+  /** `Io<token>`, for logs. */
+  public override toString () {
     return `Io<${this.options.token}>`
   }
 
   private connected () {
-    return this.ws && this.ws.readyState === WebSocket.OPEN
+    return this.ws?.readyState === WebSocket.OPEN
   }
 
-  public async start (): Promise<void> {
-    log.verbose('Io', 'start()')
+  /**
+   * One run: forward the bot's events, connect (retrying with backoff while the
+   * server is unreachable), keep the socket alive, and recover when it closes.
+   * Rejects only for a configuration error (no `apihost`) or when the run
+   * retires while connecting.
+   */
+  protected override async onStart (scope: LifecycleScope): Promise<void> {
+    log.verbose('Io', 'onStart()')
 
-    if (this.lifeTimer) {
-      throw new Error('lifeTimer exist')
+    if (!this.options.apihost) {
+      throw new Error('no apihost')
     }
 
-    this.state.active('pending')
+    const retry = this.#reconnecting
+    this.#reconnecting = false
+    if (!retry) {
+      this.#failures = 0 // a start, not a recovery: connect at once
+    }
 
-    try {
-      this.initEventHook()
+    this.hookWechaty(scope)
 
-      this.ws = await this.initWebSocket()
+    const ws = await this.connect(scope, retry)
+    this.ws = ws
 
-      this.options.wechaty.on('login', () => { this.scanPayload = undefined })
-      this.options.wechaty.on('scan', (qrcode, status) => {
-        this.scanPayload = {
-          ...this.scanPayload,
-          qrcode,
-          status,
-        }
-      })
+    // Registered after the socket, so removed before it is closed: closing it
+    // on retirement never looks like a lost connection.
+    listen(scope, ws, 'message', (data: WebSocket.Data) => this.wsOnMessage(data))
+    listen(scope, ws, 'error', (e?: Error) => this.wsOnError(e))
+    listen(scope, ws, 'close', (code: number, reason: Buffer) => {
+      log.warn('Io', 'onStart() websocket closed [%d: %s], recovering', code, reason.toString())
+      this.#failures++
+      if (scope.recover(new Error(`websocket closed: ${code}`)) === 'accepted') {
+        this.#reconnecting = true
+      }
+    })
 
-      this.lifeTimer = setInterval(() => {
-        if (this.ws && this.connected()) {
-          log.silly('Io', 'start() setInterval() ws.ping()')
+    scope.spawn(async signal => {
+      while (!signal.aborted) {
+        await delay(10 * 1000, signal)
+        if (this.connected()) {
+          log.silly('Io', 'onStart() keepalive ws.ping()')
           // TODO: check 'pong' event on ws
-          this.ws.ping()
+          ws.ping()
         }
-      }, 1000 * 10)
+      }
+    })
 
-      this.state.active(true)
+    this.#failures = 0
+    this.wsOnOpen(ws)
+  }
 
+  /**
+   * Send what is still buffered while the socket is open. The socket itself is
+   * closed afterwards, by its release.
+   */
+  protected override async onStop (): Promise<void> {
+    log.verbose('Io', 'onStop()')
+    try {
+      await this.send()
     } catch (e) {
-      log.warn('Io', 'start() exception: %s', (e as Error).message)
-      this.state.inactive(true)
-      throw e
+      log.warn('Io', 'onStop() flushing events failed: %s', (e as Error).message)
+    }
+    this.eventBuffer = []
+  }
+
+  /** Forward the bot's events for this run only (C-COMP-01). */
+  private hookWechaty (scope: LifecycleScope): void {
+    log.verbose('Io', 'hookWechaty()')
+    const wechaty = this.options.wechaty
+    const forward = (ioEvent: IoEvent) => {
+      this.send(ioEvent).catch(e => log.warn('Io', 'hookWechaty() send(%s) failed: %s', ioEvent.name, (e as Error).message))
+    }
+
+    listen(scope, wechaty, 'error',     (error: unknown) => forward({ name: 'error', payload: error }))
+    listen(scope, wechaty, 'heartbeat', (data: unknown) => forward({ name: 'heartbeat', payload: { cuid: this.id, data } }))
+    listen(scope, wechaty, 'login',     (user: { id: string }) => {
+      this.scanPayload = undefined
+      forward({ name: 'login', payload: wechaty.puppet.contactPayload(user.id) })
+    })
+    listen(scope, wechaty, 'logout',    (user: { id: string }) => forward({ name: 'logout', payload: wechaty.puppet.contactPayload(user.id) }))
+    listen(scope, wechaty, 'message',   (message: MessageInterface) => {
+      this.ioMessage(message).catch(e => log.warn('Io', 'hookWechaty() ioMessage() failed: %s', (e as Error).message))
+    })
+    // FIXME: payload schema need to be defined universal
+    listen(scope, wechaty, 'scan',      (qrcode: string, status: PUPPET.types.ScanStatus) => {
+      this.scanPayload = { ...this.scanPayload, qrcode, status }
+      forward({ name: 'scan', payload: { qrcode, status } } as IoEventScan)
+    })
+  }
+
+  /**
+   * The delay before connection attempt number `failures + 1`: none for the
+   * first, then 1 s, 3 s, 9 s and 27 s, capped at 30 s. Policy of this class
+   * (D7); a subclass may override it.
+   */
+  protected reconnectDelayMs (failures: number): number {
+    return failures === 0 ? 0 : Math.min(30 * 1000, 1000 * 3 ** (failures - 1))
+  }
+
+  /**
+   * Connect; with `retry`, keep trying with backoff until it works or the run
+   * retires, otherwise make one attempt and reject if it fails. The socket is
+   * acquired by the scope, so it is closed when the run retires.
+   */
+  private async connect (scope: LifecycleScope, retry: boolean): Promise<IoWebSocket> {
+    for (;;) {
+      const wait = this.reconnectDelayMs(this.#failures)
+      if (wait > 0) {
+        log.warn('Io', 'connect() will reconnect after %d s', Math.floor(wait / 1000))
+      }
+      await delay(wait, scope.signal)
+      try {
+        return await scope.acquire(
+          signal => this.openWebSocket(signal),
+          ws => this.closeWebSocket(ws),
+        )
+      } catch (e) {
+        if (scope.signal.aborted || !retry) {
+          throw e
+        }
+        this.#failures++
+        log.warn('Io', 'connect() failed: %s', (e as Error).message)
+      }
     }
   }
 
-  private initEventHook () {
-    log.verbose('Io', 'initEventHook()')
-    const wechaty = this.options.wechaty
-
-    wechaty.on('error',     error =>        this.send({ name: 'error',      payload: error }))
-    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.id, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: wechaty.puppet.contactPayload(user.id) }))
-    wechaty.on('logout',    user =>         this.send({ name: 'logout',     payload: wechaty.puppet.contactPayload(user.id) }))
-    wechaty.on('message',   message =>      this.ioMessage(message))
-
-    // FIXME: payload schema need to be defined universal
-    // wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
-    wechaty.on('scan',      (qrcode, status) =>  this.send({ name: 'scan',  payload: { qrcode, status } } as IoEventScan))
+  /**
+   * Create the WebSocket client. Tests override this to return a fake socket;
+   * it must start connecting at once, like `ws`.
+   */
+  protected createWebSocket (endpoint: string, protocol: string, options: WebSocket.ClientOptions): IoWebSocket {
+    return new WebSocket(endpoint, protocol, options)
   }
 
-  private async initWebSocket (): Promise<WebSocket> {
-    log.verbose('Io', 'initWebSocket()')
-    // this.state.current('on', false)
+  /** Open a socket and resolve once it is open; give up when `signal` aborts. */
+  private async openWebSocket (signal: AbortSignal): Promise<IoWebSocket> {
+    log.verbose('Io', 'openWebSocket()')
 
     // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
     const auth = 'Token ' + this.options.token
     const headers = { Authorization: auth }
 
-    if (!this.options.apihost) {
-      throw new Error('no apihost')
-    }
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
     // XXX quick and dirty: use no ssl for API_HOST other than official
     // FIXME: use a configurable VARIABLE for the domain name at here:
-    if (!/api\.chatie\.io/.test(this.options.apihost)) {
+    if (!/api\.chatie\.io/.test(this.options.apihost!)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
     }
 
-    const ws = this.ws = new WebSocket(endpoint, this.protocol, { headers })
-
-    ws.on('open',     () => this.wsOnOpen(ws))
-    ws.on('message',  data => this.wsOnMessage(data))
-    ws.on('error',    e => this.wsOnError(e))
-    ws.on('close',    (code, reason) => this.wsOnClose(ws, code, reason.toString()))
-
-    await new Promise((resolve, reject) => {
-      ws.once('open', resolve)
-      ws.once('error', reject)
-      ws.once('close', reject)
-    })
-
+    const ws = this.createWebSocket(endpoint, this.protocol, { headers })
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const settle = (error?: unknown) => {
+          ws.off('open', onOpen)
+          ws.off('error', onError)
+          ws.off('close', onClose)
+          signal.removeEventListener('abort', onAbort)
+          if (error === undefined) {
+            resolve()
+          } else {
+            reject(error)
+          }
+        }
+        const onOpen = () => settle()
+        const onError = (e: Error) => settle(e)
+        const onClose = (code: number) => settle(new Error(`websocket closed while connecting: ${code}`))
+        const onAbort = () => settle(signal.reason)
+        ws.once('open', onOpen)
+        ws.once('error', onError)
+        ws.once('close', onClose)
+        signal.addEventListener('abort', onAbort, { once: true })
+      })
+    } catch (e) {
+      ws.terminate()
+      throw e
+    }
     return ws
   }
 
-  private wsOnOpen (ws: WebSocket): void {
+  /** Close the socket gracefully and resolve once it is closed. */
+  private async closeWebSocket (ws: IoWebSocket): Promise<void> {
+    log.verbose('Io', 'closeWebSocket()')
+    if (this.ws === ws) {
+      this.ws = undefined
+    }
+    if (ws.readyState === WebSocket.CLOSED) {
+      return
+    }
+    const closed = new Promise<void>(resolve => ws.once('close', () => resolve()))
+    ws.close()
+    await closed
+  }
+
+  private wsOnOpen (ws: IoWebSocket): void {
     if (this.protocol !== ws.protocol) {
       log.error('Io', 'wsOnOpen() require protocol[%s] failed', this.protocol)
       // XXX deal with error?
     }
     log.verbose('Io', 'wsOnOpen() connected with protocol [%s]', ws.protocol)
-    // this.currentState('connected')
-    // this.state.current('on')
-
-    // FIXME: how to keep alive???
-    // ws._socket.setKeepAlive(true, 100)
-
-    this.reconnectTimeout = undefined
 
     const name    = 'sys'
     const payload = 'Wechaty version ' + this.options.wechaty.version() + ` with CUID: ${this.id}`
@@ -433,70 +591,23 @@ export class Io {
       return
     }
 
+    // An `error` is followed by a `close`, which recovers the run.
     this.options.wechaty.emitError(e)
-
-    // when `error`, there must have already a `close` event
-    // we should not call this.reconnect() again
-    //
-    // this.close()
-    // this.reconnect()
   }
 
-  private wsOnClose (
-    ws      : WebSocket,
-    code    : number,
-    message : string,
-  ): void {
-    if (this.state.active()) {
-      log.warn('Io', 'wsOnClose() close event[%d: %s]', code, message)
-      ws.close()
-      this.reconnect()
-    }
-  }
-
-  private reconnect () {
-    log.verbose('Io', 'reconnect()')
-
-    if (this.state.inactive()) {
-      log.warn('Io', 'reconnect() canceled because state.target() === offline')
-      return
-    }
-
-    if (this.connected()) {
-      log.warn('Io', 'reconnect() on a already connected io')
-      return
-    }
-    if (this.reconnectTimer) {
-      log.warn('Io', 'reconnect() on a already re-connecting io')
-      return
-    }
-
-    if (!this.reconnectTimeout) {
-      this.reconnectTimeout = 1
-    } else if (this.reconnectTimeout < 10 * 1000) {
-      this.reconnectTimeout *= 3
-    }
-
-    log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout / 1000))
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = undefined
-      this.initWebSocket().catch(console.error)
-    }, this.reconnectTimeout)// as any as NodeJS.Timer
-  }
-
+  /**
+   * Buffer `ioEvent`, if given, and send the buffer when the socket is
+   * connected. While it is not, for example while reconnecting, events stay
+   * buffered until the next run connects.
+   */
   private async send (ioEvent?: IoEvent): Promise<void> {
-    if (!this.ws) {
-      throw new Error('no ws')
-    }
-
-    const ws = this.ws
-
     if (ioEvent) {
       log.silly('Io', 'send(%s)', JSON.stringify(ioEvent))
       this.eventBuffer.push(ioEvent)
     } else { log.silly('Io', 'send()') }
 
-    if (!this.connected()) {
+    const ws = this.ws
+    if (!ws || !this.connected()) {
       log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this.eventBuffer.length)
       return
     }
@@ -525,42 +636,6 @@ export class Io {
       log.error('Io', 'send() exception: %s', (e as Error).stack)
       throw e
     }
-  }
-
-  public async stop (): Promise<void> {
-    log.verbose('Io', 'stop()')
-
-    if (!this.ws) {
-      throw new Error('no ws')
-    }
-
-    this.state.inactive('pending')
-
-    // try to send IoEvents in buffer
-    await this.send()
-    this.eventBuffer = []
-
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-      this.reconnectTimer = undefined
-    }
-
-    if (this.lifeTimer) {
-      clearInterval(this.lifeTimer)
-      this.lifeTimer = undefined
-    }
-
-    this.ws.close()
-    await new Promise<void>(resolve => {
-      if (this.ws) {
-        this.ws.once('close', resolve)
-      } else {
-        resolve()
-      }
-    })
-    this.ws = undefined
-
-    this.state.inactive(true)
   }
 
   /**
