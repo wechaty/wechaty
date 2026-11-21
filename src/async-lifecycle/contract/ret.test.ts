@@ -111,7 +111,7 @@ contract('C-RET-04.a', 'a release that fails during a runtime failure stays owne
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-RET-01.b', 'a cleanup registered after a child is released first, and still sees that child running', {}, async ({ make }) => {
@@ -300,7 +300,7 @@ contract('C-RET-06.a', 'a restart() whose retirement leaves cleanup debt rejects
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 for (const value of [ null, false ]) {

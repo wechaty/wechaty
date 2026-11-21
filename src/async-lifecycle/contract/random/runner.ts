@@ -357,8 +357,8 @@ async function run (make: MakeSubject, capabilities: ReadonlySet<Capability>, sc
           if (how === 'recover') {
             // recover() returns its decision at once (D42); the task is joined
             // like any other, so it returns once its signal aborts (C-REC-05).
-            // Promise.resolve() also accepts a comparison implementation's
-            // promise (its D42 divergence).
+            // Promise.resolve() also accepts an implementation that returns a
+            // promise (the S2 comparison kernels did, before D42).
             calls.push({ label: `recover() from a task of generation ${scope.generation}`, observed: observe(Promise.resolve(scope.recover())) })
             await track(generation, 'tasks', untilAbort(signal))
             return

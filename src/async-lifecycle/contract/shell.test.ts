@@ -81,7 +81,7 @@ contract('C-SHELL-02.c', 'the caller-API members of an AsyncLifecycle instance a
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 /**

@@ -483,7 +483,7 @@ for (const command of [ 'stop', 'restart' ] as const) {
 }
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-SCOPE-11.m', 'stop() then start() during an idle late release: stop() resolves when the release finishes, and the start runs the next generation (D31, C-CMD-08)', {}, async ({ make }) => {

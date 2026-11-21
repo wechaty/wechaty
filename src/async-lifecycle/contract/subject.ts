@@ -40,9 +40,10 @@ import type {
 type ShellName = 'createLifecycle' | 'AsyncLifecycle'
 
 /**
- * Optional parts of the S1 API that a comparison implementation may lack. A
- * test declares what it needs and is skipped, with the reason, for an
- * implementation that lacks it. The final kernel must support every capability.
+ * Optional parts of the S1 API that an implementation under test may lack (the
+ * S2 comparison implementations did). A test declares what it needs and is
+ * skipped, with the reason, for an implementation that lacks it. The final
+ * kernel must support every capability.
  */
 type Capability =
   /** `LifecycleOptions.clock` is honored, so deadlines can run on a manual clock. */
@@ -75,8 +76,8 @@ type MakeSubject = (hooks: LifecycleHooks, options?: LifecycleOptions) => Subjec
 
 /**
  * The implementation's own `AsyncLifecycle` base class, for tests of the
- * inheritance entry point itself (C-SHELL-02). Typed loosely: each comparison
- * implementation declares its constructor and hooks with its own types.
+ * inheritance entry point itself (C-SHELL-02). Typed loosely, so an
+ * implementation may declare its constructor and hooks with its own types.
  */
 type LifecycleBase = abstract new (options?: LifecycleOptions) => Lifecycle
 

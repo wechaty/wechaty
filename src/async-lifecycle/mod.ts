@@ -33,10 +33,9 @@
  * directory, so it can move to its own package unchanged (D20). It gets
  * `node:diagnostics_channel` at runtime through `process.getBuiltinModule`, and
  * runs without it where it is missing, as in a browser (D43). The
- * one exception is test code in `contract/`: its `adapters/` import the three
- * comparison implementations in `src/async-lifecycle-{codex,claude,copilot}/`
- * so the shared suite can run against them (wechaty/wechaty#2970). Nothing here
- * imports `contract/`, and the adapters are deleted with those directories in
+ * contract suite in `contract/` is test code: its one adapter (`final.ts`) runs it
+ * against this module, and nothing here imports `contract/`. The S2 comparison
+ * implementations it once also ran against were deleted in
  * wechaty/wechaty#2974.
  *
  * Globals: the only one it touches is the child-ownership registry that every

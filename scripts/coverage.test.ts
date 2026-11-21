@@ -157,4 +157,3 @@ test('a coverage scope keeps its own sources and leaves out its excluded prefixe
   assert.equal(metrics.lines.percent, 50)
   assert.throws(() => assertBaseline(metrics, { lines: 60, functions: 0, branches: 0 }), /below/)
 })
-

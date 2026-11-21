@@ -25,7 +25,13 @@
  * implementation and entry point. The case name carries the test key, so the
  * results table can be read straight from the runner output:
  *
- *     B1 start() rejects only after failed is committed [copilot/AsyncLifecycle] (known failure)
+ *     B1 stop() after a cleanly failed start commits `stopped` [final/AsyncLifecycle]
+ *
+ * Since S6 (wechaty/wechaty#2974) the only implementation is the final kernel,
+ * which declares every capability and has no known failures. The S2 comparison
+ * implementations were deleted then; `INVENTORY.md` records where their tests
+ * went. The machinery below stays so another implementation, such as the
+ * module once it moves to its own package (D20), can run the same suite.
  *
  * For each implementation and entry point the case is:
  * - **skipped**, with the reason, when the implementation lacks a capability
@@ -46,9 +52,6 @@
 import process from 'node:process'
 import { test } from 'node:test'
 
-import { claude } from './adapters/claude.ts'
-import { codex } from './adapters/codex.ts'
-import { copilot } from './adapters/copilot.ts'
 import { final } from './adapters/final.ts'
 import { expectFailure } from './harness.ts'
 import type {
@@ -59,7 +62,7 @@ import type {
 }                           from './subject.ts'
 
 /** Every implementation the suite runs against. */
-const IMPLEMENTATIONS: readonly Implementation[] = [ codex, claude, copilot, final ]
+const IMPLEMENTATIONS: readonly Implementation[] = [ final ]
 
 /** Run known failures as ordinary tests, to see their real assertion. */
 const SHOW_KNOWN_FAILURES = process.env['ASYNC_LIFECYCLE_SHOW_KNOWN_FAILURES'] === '1'

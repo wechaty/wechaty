@@ -2,6 +2,8 @@
 
 Where every test of the three comparison suites, and every other required case, went in the shared contract suite (S2, [#2970](https://github.com/wechaty/wechaty/issues/2970)).
 
+> **Historical record.** The three comparison implementations (`src/async-lifecycle-{codex,claude,copilot}/`), their own tests and their contract-suite adapters were deleted in S6 ([#2974](https://github.com/wechaty/wechaty/issues/2974)); the paths and "known failure for" columns below describe them as they were. The contract suite now runs against the final module only, which passes every test.
+
 The rule from [#2968](https://github.com/wechaty/wechaty/issues/2968): if one implementation tests a case, the final module tests it too. A source test is either **ported**, naming the contract test key that covers it, or **dropped**, giving the reason. S2 is done when every source test appears below.
 
 ## Progress

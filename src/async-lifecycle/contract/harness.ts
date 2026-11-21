@@ -32,7 +32,8 @@ import type { LifecycleClock, LifecycleState } from '../types.ts'
 /**
  * Let pending promise chains run by yielding to the microtask queue `turns`
  * times. Never waits for real time. The default comfortably exceeds the deepest
- * promise chain of the three comparison kernels; raise it only with a reason.
+ * promise chain of the kernels it was tuned on (the final kernel and the S2
+ * comparison kernels); raise it only with a reason.
  */
 async function flush (turns = 500): Promise<void> {
   for (let i = 0; i < turns; i++) {
@@ -178,9 +179,9 @@ async function expectFailure (body: () => Promise<void>, reason: string): Promis
 }
 
 /**
- * The `name` of an error, or `undefined`. The comparison implementations each
- * have their own error classes, so tests identify errors by name (all three use
- * the S1 class names) rather than with `instanceof`.
+ * The `name` of an error, or `undefined`. Tests identify errors by name (the S1
+ * class names) rather than with `instanceof`, so an implementation with its own
+ * error classes, such as another installed copy of the module, passes too.
  */
 function errorName (error: unknown): string | undefined {
   return typeof error === 'object' && error !== null && 'name' in error && typeof error.name === 'string'

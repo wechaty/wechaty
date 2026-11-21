@@ -203,7 +203,7 @@ contract('C-COND-04.e', 'a caller abort rejects only that wait, with its reason'
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Claude suite (src/async-lifecycle-claude/engine.test.ts)
+// Ported from the Claude comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-COND-02.b', 'a wait made while restart() is retiring the old generation binds to the replacement', {}, async ({ make }) => {
@@ -302,7 +302,7 @@ contract('C-COND-05.b', 'a retiring scope (in onStop) and a stale scope cannot s
 })
 
 // ---------------------------------------------------------------------------
-// Ported from the Copilot suite (src/async-lifecycle-copilot/async-lifecycle.test.ts)
+// Ported from the Copilot comparison suite (deleted in S6; see INVENTORY.md)
 // ---------------------------------------------------------------------------
 
 contract('C-COND-04.h', 'a stop() accepted while an earlier stop() is still retiring rejects the waits created in between', {}, async ({ make }) => {
