@@ -185,3 +185,40 @@ test('a stop() that supersedes a recovery before it reconnects leaves the next s
   await assert.rejects(io.start(), /connection refused/, 'not a retrying reconnect')
 })
 
+
+test('a server that accepts and drops at once keeps backing off, instead of starting from 1 s again', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot, [ 'open', 'open', 'open' ])
+  await io.start()
+  io.sockets[0]!.drop()
+  await io.whenState(state => state.kind === 'running' && state.generation === 2)
+  io.sockets[1]!.drop()
+  await io.whenState(state => state.kind === 'running' && state.generation === 3)
+  assert.deepEqual(io.backoffs, [ 1, 2 ], 'the second drop follows a connection that never stayed up')
+  await io.stop()
+})
+
+test('stop() terminates a socket whose server never answers the close', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  io.closeTimeout = 10
+  await io.start()
+  io.socket.closeHangs = true
+  await io.stop()
+  assert.equal(io.state.kind, 'stopped')
+  assert.equal(io.socket.readyState, 3, 'terminated')
+})
+
+test('an error the socket reports during the closing handshake is not an uncaught exception', async () => {
+  const bot = new FakeWechaty()
+  const io = testIo(bot)
+  io.closeTimeout = 10
+  await io.start()
+  const socket = io.socket
+  socket.closeHangs = true
+  const stopped = io.stop()
+  await flush()
+  assert.equal(socket.readyState, 2, 'closing')
+  assert.doesNotThrow(() => socket.emit('error', new Error('invalid frame')))
+  await stopped
+})

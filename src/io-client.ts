@@ -132,24 +132,23 @@ export class IoClient {
       () => wechaty.stop(),
     )
 
-    await scope.acquire(
-      async () => {
-        log.verbose('IoClient', 'onStart() starting the puppet server')
-        const server = this.createPuppetServer({
-          endpoint : '0.0.0.0:' + this.options.port,
-          /**
-           * Huan(202110): FIXME: remove the any
-           *  by updating the puppet-service server code
-           *  to use PuppetInterface
-           */
-          puppet   : wechaty.puppet as any,
-          token    : this.options.token,
-        })
-        await server.start()
-        return server
-      },
-      server => server.stop(),
+    // Owned before it starts: a start that rejects (an occupied port) may have
+    // set up resources already, so its stop() must still run.
+    const server = await scope.acquire(
+      () => this.createPuppetServer({
+        endpoint : '0.0.0.0:' + this.options.port,
+        /**
+         * Huan(202110): FIXME: remove the any
+         *  by updating the puppet-service server code
+         *  to use PuppetInterface
+         */
+        puppet   : wechaty.puppet as any,
+        token    : this.options.token,
+      }),
+      created => created.stop(),
     )
+    log.verbose('IoClient', 'onStart() starting the puppet server')
+    await server.start()
   }
 
   /** Log the bot's events for this run only (C-COMP-01). */

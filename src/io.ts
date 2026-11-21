@@ -170,7 +170,7 @@ export class Io extends AsyncLifecycle {
 
   protected jsonRpc?: jsonRpcPeer.Peer
 
-  /** Consecutive connection losses and failed attempts; reset once connected. */
+  /** Consecutive connection losses and failed attempts; reset once a connection has stayed up for a keepalive interval. */
   #failures = 0
   /**
    * The next run is a recovery after the socket closed, so it retries until it
@@ -258,6 +258,9 @@ export class Io extends AsyncLifecycle {
     scope.spawn(async signal => {
       while (!signal.aborted) {
         await delay(10 * 1000, signal)
+        // Stable for a whole keepalive interval: back off from scratch next
+        // time. A server that accepts and drops at once keeps backing off.
+        this.#failures = 0
         if (this.connected()) {
           log.silly('Io', 'onStart() keepalive ws.ping()')
           // TODO: check 'pong' event on ws
@@ -266,7 +269,6 @@ export class Io extends AsyncLifecycle {
       }
     })
 
-    this.#failures = 0
     this.wsOnOpen(ws)
   }
 
@@ -381,6 +383,10 @@ export class Io extends AsyncLifecycle {
     }
 
     const ws = this.createWebSocket(endpoint, this.protocol, { headers })
+    // Never removed: `ws` can report an `error` while its connection is aborted
+    // or while the closing handshake runs, after the run's own listener is
+    // gone, and an `error` without a listener would end the process.
+    ws.on('error', () => {})
     // Attached now, before the handshake completes, so a frame the server sends
     // right away is handled; removed by closeWebSocket.
     const onMessage = (data: WebSocket.Data) => this.wsOnMessage(data)
@@ -410,17 +416,25 @@ export class Io extends AsyncLifecycle {
       })
     } catch (e) {
       ws.off('message', onMessage)
-      // `ws` reports terminating a socket that is still connecting as an
-      // `error` on the next tick; without a listener that would be an uncaught
-      // exception and end the process.
-      ws.on('error', () => {})
       ws.terminate()
       throw e
     }
     return ws
   }
 
-  /** Close the socket gracefully and resolve once it is closed. */
+  /**
+   * How long a graceful close may wait for the server's reply before the
+   * socket is terminated. Shorter than the stop deadline, and than `ws`'s own
+   * 30 s, so a dead connection cannot make `stop()` time out.
+   */
+  protected closeTimeoutMs (): number {
+    return 5 * 1000
+  }
+
+  /**
+   * Close the socket gracefully and resolve once it is closed, terminating it
+   * if the server does not complete the close in time.
+   */
   private async closeWebSocket (ws: IoWebSocket): Promise<void> {
     log.verbose('Io', 'closeWebSocket()')
     if (this.ws === ws) {
@@ -435,7 +449,15 @@ export class Io extends AsyncLifecycle {
     }
     const closed = new Promise<void>(resolve => ws.once('close', () => resolve()))
     ws.close()
-    await closed
+    const timer = setTimeout(() => {
+      log.warn('Io', 'closeWebSocket() no close reply in %d ms, terminating', this.closeTimeoutMs())
+      ws.terminate()
+    }, this.closeTimeoutMs())
+    try {
+      await closed
+    } finally {
+      clearTimeout(timer)
+    }
   }
 
   private wsOnOpen (ws: IoWebSocket): void {

@@ -83,8 +83,17 @@ test('a start that fails halfway releases what was already started', async () =>
   client.failServerStart = true
   await assert.rejects(client.start(), /port in use/)
   await flush()
-  assert.deepEqual(bot.log, [ 'io 1 created', 'wechaty start', 'server start', 'wechaty stop' ])
+  assert.deepEqual(bot.log, [ 'io 1 created', 'wechaty start', 'server start', 'server stop', 'wechaty stop' ])
   assert.equal(client.ios[0]!.state.kind, 'stopped')
+})
+
+test('a PuppetServer whose start() rejects is still stopped, since it may have set up resources first', async () => {
+  const bot = new FakeWechaty()
+  const client = new TestIoClient(bot)
+  client.failServerStart = true
+  await assert.rejects(client.start(), /port in use/)
+  await flush()
+  assert.deepEqual(bot.log.slice(2), [ 'server start', 'server stop', 'wechaty stop' ])
 })
 
 test('restart() stops everything and starts again with a new Io link', async () => {

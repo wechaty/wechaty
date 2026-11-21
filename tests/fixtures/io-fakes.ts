@@ -38,6 +38,8 @@ export class FakeSocket extends EventEmitter {
   readonly sent: { name: string, payload: unknown }[] = []
   pings = 0
   closes = 0
+  /** The server never answers a close: `close()` does not complete. */
+  closeHangs = false
 
   constructor (protocol: string) {
     super()
@@ -53,6 +55,10 @@ export class FakeSocket extends EventEmitter {
 
   close (): void {
     this.closes++
+    if (this.closeHangs) {
+      this.readyState = 2 // CLOSING, until terminated
+      return
+    }
     this.#closed(1000, 'closed by client')
   }
 
@@ -137,6 +143,7 @@ export class TestIo extends Io {
   readonly attempts: Attempt[]
   readonly backoffs: number[] = []
   delayMs = 0
+  closeTimeout = 5 * 1000
   /** Called in the same tick a socket opens, e.g. for a server that speaks at once. */
   onOpen?: (socket: FakeSocket) => void
 
@@ -155,6 +162,10 @@ export class TestIo extends Io {
       this.backoffs.push(failures)
     }
     return failures === 0 ? 0 : this.delayMs
+  }
+
+  protected override closeTimeoutMs (): number {
+    return this.closeTimeout
   }
 
   protected override createWebSocket (_endpoint: string, protocol: string): IoWebSocket {
