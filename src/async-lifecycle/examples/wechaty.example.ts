@@ -23,8 +23,11 @@
  * owns a `Puppet` and an optional `Io` as children, offers `ready()`, and maps
  * lifecycle states to today's `'start'` / `'stop'` / `'error'` events.
  *
- * Type-checked only, against the kernel in `../mod.ts`; it becomes a runnable test in
- * wechaty/wechaty#2973.
+ * Runs in `wechaty.example.test.ts` (wechaty/wechaty#2973). It is also where the
+ * integration layer keeps today's API on top of the lifecycle (D24): the
+ * `'start'` / `'stop'` / `'error'` events, `reset()`, and `state-switch`'s
+ * `active()` / `inactive()` (see {@link legacyStateView}). None of these is in
+ * the module.
  *
  * Readiness is delegated to the puppet's own `ready` condition rather than
  * mirrored into a condition of this instance. A mirror must also be cleared
@@ -51,6 +54,40 @@ import { LifecycleSupersededError } from '../errors.ts'
 import type { Io } from './io.example.ts'
 import { createLifecycle, listen } from '../mod.ts'
 import type { Puppet } from './puppet.example.ts'
+
+/**
+ * `state-switch`'s read side, which today's `Io` and `IoClient` call as
+ * `state.active()` / `state.inactive()`: `true` when settled in that state,
+ * `'pending'` while moving towards it, `false` otherwise.
+ */
+export interface LegacyStateView {
+  active (): boolean | 'pending'
+  inactive (): boolean | 'pending'
+}
+
+/**
+ * Derive the `state-switch` view from a lifecycle's state (D24, integration
+ * layer). Read live, so it can never drift from `state`:
+ *
+ * | `state.kind` | `active()` | `inactive()` |
+ * | --- | --- | --- |
+ * | `starting` | `'pending'` | `false` |
+ * | `running` | `true` | `false` |
+ * | `stopping` | `false` | `'pending'` |
+ * | `stopped`, `failed` | `false` | `true` |
+ */
+export function legacyStateView (lifecycle: Pick<Lifecycle, 'state'>): LegacyStateView {
+  return {
+    active: () => {
+      const kind = lifecycle.state.kind
+      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
+    },
+    inactive: () => {
+      const kind = lifecycle.state.kind
+      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
+    },
+  }
+}
 
 /** Today's Wechaty events that the lifecycle drives. */
 export interface WechatyEvents {
@@ -155,6 +192,22 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
   get isLoggedIn (): boolean {
     return this.puppet.isLoggedIn
   }
+
+  /**
+   * Send `text` to a conversation. The puppet runs it as an operation of its
+   * live generation (D24), so `stop()`, which stops the puppet, waits for it.
+   */
+  say (conversationId: string, text: string): Promise<string> {
+    return this.puppet.send(conversationId, text)
+  }
+
+  /** Today's `reset()`, kept by the integration layer: a `restart()` (D24). */
+  reset (options?: LifecycleWaitOptions): Promise<void> {
+    return this.restart(options)
+  }
+
+  /** Today's `state.active()` / `state.inactive()`, derived from `state` (D24). */
+  readonly legacyState: LegacyStateView = legacyStateView(this)
 
   // The caller API, delegated (same six members as Puppet).
   /** See `Lifecycle.state`. */

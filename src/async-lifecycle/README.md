@@ -50,10 +50,11 @@ abstract class AsyncLifecycle implements Lifecycle { /* protected onStart, onSto
 
 // Companions (companions/, §15)
 function listen (scope: LifecycleScope, target: EmitterLike | EventTargetLike, event: string, listener: (...args: any[]) => void): void
+function operation<T> (scope: LifecycleScope, work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
 function watchdog (scope: LifecycleScope, options: { timeoutMs: number, onTimeout: 'fail' | 'recover', clock?: LifecycleClock }): { feed (): void, disarm (): void }
 ```
 
-`types.ts` has the full signatures with TSDoc. `examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them.
+`types.ts` has the full signatures with TSDoc. `examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them, and each runs as a test (`examples/*.test.ts`) under Node.js and Deno.
 
 ## 3. State
 
@@ -247,6 +248,7 @@ Helpers built only on the public scope; they need nothing private (D17). Their s
 
 - **C-COMP-01** `listen(scope, target, event, listener)` adds `listener` to an EventEmitter-like target (`on`, with `off` or `removeListener`) or an `EventTarget`, and registers its removal on the scope before adding it. Retirement removes it, so re-adding it on every start never accumulates duplicates. On a sealed scope it adds nothing and throws the retirement reason (C-SCOPE-02). The target holds a wrapper made for that registration, which keeps the target's `this` and every argument; only that registration's removal detaches it, so a stale registration never removes the same handler a newer generation added. An EventEmitter-like target with neither `off` nor `removeListener` is refused with `TypeError`. It replaces the repeated `on` plus `defer(off)` pairs.
 - **C-COMP-02** `watchdog(scope, { timeoutMs, onTimeout, clock? })` arms a timer for the generation and returns `{ feed, disarm }`. Unless fed within `timeoutMs`, it calls `scope.fail(error)` (`onTimeout: 'fail'`) or `scope.recover(error)` (`'recover'`) once, with a `LifecycleTimeoutError` whose `phase` is `'watchdog'`. `feed()` restarts the countdown; `disarm()` stops it until the next `feed()`. Once it fired or its generation began retiring, nothing arms it again, and the generation's retirement clears its timer. `timeoutMs` is required and follows C-TIME-01 (`RangeError` otherwise). `onTimeout` is required; any other value is refused with `TypeError`. On a sealed scope it arms nothing and throws the retirement reason. `clock` defaults to the global timers, because the scope does not expose the lifecycle's clock.
+- **C-COMP-03** `operation(scope, work)` runs `work(signal)` as an operation of the generation and returns its result (D24). It runs as a spawned task, so `stop()`, `restart()` and a recovery wait for it: retirement joins it with the tasks, before any resource is released, under the stop deadline. `signal` is `scope.signal`, which aborts when the generation starts retiring; an operation that should finish anyway may ignore it. Its result and its error, a synchronous throw included, go only to its caller: a failed operation never fails the generation. On a sealed scope it rejects at once with the retirement reason and does not call `work`. The owner keeps the scope from `onStart` and runs its public operations, such as `messageSend`, through it.
 
 ## 16. Decisions in this document
 
@@ -271,8 +273,9 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D18 | `onStop` receives `{ generation, reason, signal }` |
 | D21 | Child ownership is one registry per JS realm, shared by every installed copy of the module (C-CHILD-02) |
 | D23 | `condition.isSet` exists; options type is `LifecycleWaitOptions`; diagnostics channel is `wechaty.async-lifecycle.state` |
+| D24 | In-flight operations use the `operation` companion (C-COMP-03); the `reset()` / `state.active()` shims and the legacy `'start'` / `'stop'` / `'error'` events live in the integration layer, not the module |
 | D25 | `scope.start(child)` returns `Promise<void>` and takes a child, not a factory |
-| D26 | Companion signatures land with their implementation (S4), not in S1: §15, C-COMP-01 and C-COMP-02 |
+| D26 | Companion signatures land with their implementation (S4), not in S1: §15, C-COMP-01 to C-COMP-03 |
 | D27 | `restart()` on a dirty `failed` rejects at once, as `start()` does; only `stop()` finishes cleanup |
 | D28 | A condition wait whose generation retires rejects with `LifecycleSupersededError`, with the failure as `cause` |
 | D29 | `defer` cleanups and `acquire` releases are typed to return `unknown`; promise-likes are awaited, other values ignored |
@@ -292,7 +295,7 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 ## 17. Not in this module
 
 - **Retry, backoff, budgets and supervision policy** (D7). Write them in hooks, or later as companions.
-- **What happens to an in-flight `messageSend` during `stop()`**, legacy `reset()` and `state.active()` shims, and the legacy event mapping. These are decided in S5 (D24); `examples/` shows the event mapping done by the owner.
+- **Legacy compatibility:** today's `reset()`, `state.active()` / `state.inactive()` and the `'start'` / `'stop'` / `'error'` events. They live in the integration layer (D24); `examples/wechaty.example.ts` shows the mapping and its test pins it. An in-flight operation such as `messageSend` during `stop()` uses the `operation` companion (C-COMP-03).
 - **Proof that a remote peer stopped.** Cancelling a gRPC call does not prove the server released anything; PuppetService needs its own session protocol.
 
 ## 18. Internal components
@@ -310,7 +313,7 @@ The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues
 | Clock | `clock.ts` | The default `LifecycleClock` (global timers, and `performance.now()`), and the deadline-length check the engine and the watchdog share (C-TIME-01) |
 | Diagnostics | `diagnostics.ts` | Publishing on `wechaty.async-lifecycle.state`, after commit and only when subscribed |
 | Entry points | `create-lifecycle.ts`, `async-lifecycle.ts` | Delegation to the engine; the class adds only the override guard (C-SHELL-02) |
-| Companions | `companions/` | `listen` and `watchdog` (§15), built only on the public scope |
+| Companions | `companions/` | `listen`, `operation` and `watchdog` (§15), built only on the public scope |
 | Module | `mod.ts` | Public exports |
 
 Rules the engine keeps, from its own header:

@@ -335,13 +335,14 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
     spawn (task: (signal: AbortSignal) => Promise<void>): void {
       let finished!: Promise<void>
       let retiringFailure: { readonly error: unknown } | undefined
+      const join = async () => {
+        await finished
+        if (retiringFailure) {
+          throw retiringFailure.error
+        }
+      }
       const registered = generation.ledger.add({
-        release: async () => {
-          await finished
-          if (retiringFailure) {
-            throw retiringFailure.error
-          }
-        },
+        release: join,
         // The task already ended; report its failure once instead of retrying.
         retryable: false,
         join: true,
@@ -349,10 +350,17 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       if (!registered) {
         throw generation.sealReason
       }
+      // A task that ends cleanly leaves nothing to join: drop its entry, so a
+      // long run spawning many short tasks (one per operation, C-COMP-03) does
+      // not grow its ledger until retirement. An entry an unwind is already
+      // joining is left to finish (discard only drops an idle one), and a
+      // failed task keeps its entry so the failure is reported.
+      const done = () => generation.ledger.discard(join)
       finished = (async () => task(signal))().then(
-        () => {},
+        done,
         (error: unknown) => {
           if (signal.aborted && error === signal.reason) {
+            done()
             return // its own cancellation, not a failure
           }
           if (generation.sealed) {

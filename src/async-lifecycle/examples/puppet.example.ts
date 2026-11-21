@@ -22,14 +22,16 @@
  * Usage example: a `Puppet` base on the composition entry point, wrapping
  * providers written against today's contract.
  *
- * Type-checked only, against the kernel in `../mod.ts`; it becomes a runnable test in
- * wechaty/wechaty#2973. It shows that:
+ * Runs in `puppet.example.test.ts` (wechaty/wechaty#2973). It shows that:
  * - an EventEmitter base keeps its base class and delegates the caller API;
  * - a provider's zero-argument `onStart()` / `onStop()` work unchanged, with the
  *   legacy "onStop is the cleanup" rule kept in the Puppet base, not the kernel,
  *   including providers whose `onStart()` settles only after `onStop()` starts;
  * - `login` and `ready` are generation-bound conditions, so `isLoggedIn` and
- *   `ready()` can never report a previous run.
+ *   `ready()` can never report a previous run;
+ * - a public operation such as sending a message runs through the `operation`
+ *   companion, so `stop()` waits for a send in flight and a send after the run
+ *   retired is refused (D24, C-COMP-03).
  */
 
 import { EventEmitter } from 'node:events'
@@ -42,7 +44,8 @@ import type {
   LifecycleState,
   LifecycleWaitOptions,
 }                           from '../types.ts'
-import { createLifecycle, listen } from '../mod.ts'
+import { LifecycleUnsafeStateError } from '../errors.ts'
+import { createLifecycle, listen, operation } from '../mod.ts'
 
 /** Today's provider events that the base turns into conditions. */
 export interface PuppetEvents {
@@ -63,6 +66,15 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
   readonly #lifecycle: LifecycleController
   readonly #login: LifecycleCondition
   readonly #ready: LifecycleCondition
+  /**
+   * The scope of the latest generation whose provider finished starting, kept
+   * for public operations (D24). Set only once `onStart()` has completed: during
+   * startup a `stop()` takes the early provider-stop path at abort, which does
+   * not wait for operations, so none may run then. It stays set after that
+   * generation retires: its sealed scope then refuses new operations with the
+   * retirement reason.
+   */
+  #scope: LifecycleScope | undefined
 
   /** Creates the lifecycle and declares the `login` and `ready` conditions. */
   constructor () {
@@ -80,6 +92,29 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
 
   /** Provider hook, unchanged: today it is "the cleanup", called even after a partial start. */
   protected abstract onStop (): Promise<void>
+
+  /**
+   * Provider hook, unchanged: send `text` to a conversation and return the
+   * message id. Called only through {@link Puppet.send}, while a generation is
+   * live; `signal` aborts when that generation starts retiring.
+   */
+  protected abstract messageSendText (conversationId: string, text: string, signal: AbortSignal): Promise<string>
+
+  /**
+   * Send `text`: an operation of the live generation (D24, C-COMP-03). `stop()`
+   * waits for it before the provider's `onStop()`, and its error goes to this
+   * caller without failing the puppet.
+   *
+   * @throws LifecycleUnsafeStateError when no provider has finished starting
+   *   yet; the retirement reason when the latest started generation is retiring
+   *   or retired (a send during a restart's startup gets this too).
+   */
+  send (conversationId: string, text: string): Promise<string> {
+    if (!this.#scope) {
+      return Promise.reject(new LifecycleUnsafeStateError('the puppet has not finished starting'))
+    }
+    return operation(this.#scope, signal => this.messageSendText(conversationId, text, signal))
+  }
 
   async #start (scope: LifecycleScope): Promise<void> {
     // At most one onStop() is in flight per generation, shared by the early and
@@ -142,6 +177,8 @@ export abstract class Puppet extends EventEmitter<PuppetEvents> implements Lifec
 
     await this.onStart()
     started = true
+    // Operations only from here on; see #scope.
+    this.#scope = scope
   }
 
   /** Map a failure to today's `'error'` event. */
@@ -196,6 +233,11 @@ export class PuppetMock extends Puppet {
   /** Nothing to release; a real provider closes its connections here. */
   protected override async onStop (): Promise<void> {
     // Release provider resources.
+  }
+
+  /** Pretends to send and returns a message id. */
+  protected override async messageSendText (_conversationId: string, _text: string): Promise<string> {
+    return 'mock-message-id'
   }
 
 }
