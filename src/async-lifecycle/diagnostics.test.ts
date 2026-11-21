@@ -88,3 +88,21 @@ console.log(JSON.stringify(seen))
   // One record per commit: starting, running, stopping, stopped.
   assert.deepEqual(uncaught, Array(4).fill('uncaught: subscriber failed'))
 })
+
+test('without getBuiltinModule, as in a browser, the module loads and works and publishes nothing (D43)', () => {
+  const mod = pathToFileURL(join(import.meta.dirname!, 'mod.ts')).href
+  const output = runChild(`
+import diagnosticsChannel from 'node:diagnostics_channel'
+import process from 'node:process'
+const records = []
+diagnosticsChannel.subscribe('wechaty.async-lifecycle.state', record => records.push(record))
+// The runtime looks like a browser to the module: no getBuiltinModule.
+process.getBuiltinModule = undefined
+const { createLifecycle } = await import('${mod}')
+const lifecycle = createLifecycle({ onStart () {} })
+await lifecycle.start()
+await lifecycle.stop()
+console.log(JSON.stringify({ state: lifecycle.state.kind, records: records.length }))
+`)
+  assert.deepEqual(JSON.parse(output.trim().split('\n').at(-1)!), { state: 'stopped', records: 0 })
+})
