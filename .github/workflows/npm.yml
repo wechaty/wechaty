@@ -15,11 +15,11 @@ jobs:
           - 26
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Node.js 26 for tests
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -43,11 +43,11 @@ jobs:
       npm_dist_tag: ${{ steps.package_metadata.outputs.npm_dist_tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Node.js 26 for packaging
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 26
 
@@ -77,7 +77,7 @@ jobs:
         env:
           TESTED_PACKAGE_OUTPUT_PATH: ${{ runner.temp }}/wechaty-package.tgz
       - name: Upload tested npm tarball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: npm-package
           path: ${{ runner.temp }}/wechaty-package.tgz
@@ -94,7 +94,7 @@ jobs:
       id-token: write
     steps:
       - name: Set up Node.js 26 and npm registry
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 26
           registry-url: https://registry.npmjs.org/
@@ -112,7 +112,7 @@ jobs:
           }
           NODE
       - name: Download verified npm tarball
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: npm-package
           path: ${{ runner.temp }}/npm-package
