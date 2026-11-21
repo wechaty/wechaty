@@ -129,9 +129,11 @@ class Generation {
    */
   localErrors: unknown[] = []
   /**
-   * The failed entries of its own ledger right after its retirement's unwind.
-   * A release registered on its sealed scope later that fails is reported once,
-   * as a failure not in this set.
+   * The entries whose failure its retirement's unwind returned
+   * (`UnwindOptions.reported`), not every entry failed when that pass resumed.
+   * A release on its sealed scope that fails in the turns after the unwind is
+   * not in this set, so the caller reports it, once. Do not replace this with a
+   * `failedEntries()` snapshot: that would hide such a failure.
    */
   failedAfterUnwind: ReadonlySet<object> = new Set()
   /**

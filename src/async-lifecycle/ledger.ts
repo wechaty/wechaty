@@ -198,6 +198,12 @@ class Ledger {
    * per unwind. Entries added while unwinding (late releases) are joined too.
    * Concurrent calls share one pass. Never rejects: the errors of this pass are
    * returned, and {@link Ledger.clean} tells whether anything is still owned.
+   *
+   * Options apply only to the call that starts a pass. A call that joins a
+   * running pass gets that pass's errors, and its own options are ignored (its
+   * `reported` set stays empty). The engine never overlaps passes on one ledger:
+   * a retry first joins the earlier timed-out work. A change that lets passes
+   * overlap must handle this, or `reported` under-reports.
    */
   unwind (options?: UnwindOptions): Promise<unknown[]> {
     this.#sealed = true
