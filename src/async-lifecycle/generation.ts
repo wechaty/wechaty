@@ -160,12 +160,40 @@ class Generation {
 
 }
 
+/** Where the shared ownership registry lives on `globalThis` (D21). */
+const OWNED_CHILDREN_KEY = Symbol.for('wechaty.async-lifecycle.owned-children')
+
 /**
- * Children owned by some scope. Reserved synchronously before `child.start()` and
- * released only after the owner's stop of that child succeeded, so a second
- * parent can never adopt a child the first one may still stop.
+ * The realm's child-ownership registry, shared by every installed copy of this
+ * module (C-CHILD-02, D21). Two copies, for example one bundled in `wechaty`
+ * and one in `wechaty-puppet`, would otherwise each keep their own set, and two
+ * parents could own the same child. The first copy to load creates it under a
+ * `Symbol.for` key, as a non-enumerable, non-writable property, so the child
+ * object is never touched (a `createLifecycle` controller is frozen). If that
+ * key holds something else, this copy keeps a private set rather than trusting
+ * it. A child cannot cross realms, so one registry per realm is enough.
  */
-const OWNED_CHILDREN = new WeakSet<Lifecycle>()
+function ownedChildren (): WeakSet<Lifecycle> {
+  const global = globalThis as Record<symbol, unknown>
+  if (!Object.hasOwn(global, OWNED_CHILDREN_KEY)) {
+    Object.defineProperty(global, OWNED_CHILDREN_KEY, {
+      value        : new WeakSet<Lifecycle>(),
+      enumerable   : false,
+      writable     : false,
+      configurable : false,
+    })
+  }
+  const shared = global[OWNED_CHILDREN_KEY]
+  return shared instanceof WeakSet ? shared as WeakSet<Lifecycle> : new WeakSet<Lifecycle>()
+}
+
+/**
+ * Children owned by some scope, in this realm (see {@link ownedChildren}).
+ * Reserved synchronously before `child.start()` and released only after the
+ * owner's stop of that child succeeded, so a second parent can never adopt a
+ * child the first one may still stop.
+ */
+const OWNED_CHILDREN = ownedChildren()
 
 /** Whether `value` is a promise-like (has a callable `then`). */
 function isPromiseLike (value: unknown): value is PromiseLike<unknown> {

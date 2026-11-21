@@ -20,11 +20,20 @@
 
 /**
  * Unit tests of the generation scope (`generation.ts`) for what the contract
- * suite cannot see through the public API: the ledger a scope fills in.
+ * suite cannot see through the public API: the ledger a scope fills in, and
+ * child ownership shared across two installed copies of the module (D21).
  */
 
 import assert from 'node:assert/strict'
+import { cpSync, mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { test } from 'node:test'
+import { pathToFileURL } from 'node:url'
+
+import { createLifecycle } from './create-lifecycle.ts'
+import type { LifecycleScope } from './types.ts'
+import { LifecycleUnsafeStateError } from './errors.ts'
 
 import { createScope, Generation, type ScopeHost } from './generation.ts'
 
@@ -54,3 +63,49 @@ test('a rejected acquire() creation leaves no ledger entry, so a retry loop does
   await scope.acquire(() => 'socket', () => {})
   assert.equal(generation.ledger.clean, false, 'a successful acquisition stays owned')
 })
+
+test('two installed copies share one child-ownership registry, so only one parent can own a child (C-CHILD-02, D21)', async () => {
+  // A second copy of the module's source files is a second module instance,
+  // as when `wechaty` and `wechaty-puppet` each bundle the module.
+  const dir = mkdtempSync(join(tmpdir(), 'async-lifecycle-copy-'))
+  try {
+    cpSync(import.meta.dirname!, dir, {
+      recursive : true,
+      filter    : source => !source.includes('contract') && !source.includes('examples') && !source.endsWith('.test.ts'),
+    })
+    const copy = await import(pathToFileURL(join(dir, 'mod.ts')).href) as typeof import('./mod.ts')
+    assert.notEqual(copy.createLifecycle, createLifecycle, 'a separate module instance')
+
+    const child = createLifecycle({ onStart () {} })
+    // Read through a call: an assertion would narrow `child.state` statically.
+    const kind = () => child.state.kind
+    let ownerScope: LifecycleScope | undefined
+    let otherScope: import('./mod.ts').LifecycleScope | undefined
+    const owner = createLifecycle({ onStart (scope) { ownerScope = scope } })
+    const other = copy.createLifecycle({ onStart (scope) { otherScope = scope } })
+    await owner.start()
+    await other.start()
+
+    // Both claims in one synchronous block: the child still reads `stopped`
+    // for the second one, so only the shared registry can refuse it.
+    const claimed = ownerScope!.start(child)
+    const refused = otherScope!.start(child).then(() => undefined, (error: unknown) => error)
+    await claimed
+    const error = await refused
+    assert.ok(error instanceof copy.LifecycleUnsafeStateError, 'the other copy sees the child as owned')
+    assert.ok(!(error instanceof LifecycleUnsafeStateError), 'each copy has its own error classes')
+    assert.match((error as Error).message, /already owned/)
+    assert.equal(kind(), 'running')
+
+    // Released by its owner's stop, the child can be claimed through the other copy.
+    await owner.stop()
+    assert.equal(kind(), 'stopped')
+    await otherScope!.start(child)
+    assert.equal(kind(), 'running')
+    await other.stop()
+    assert.equal(kind(), 'stopped')
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
