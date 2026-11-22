@@ -3,6 +3,7 @@ name: Antigravity Agent
 # Subscription-backed Google Antigravity CLI (`agy`): automatic PR reviews,
 # trusted `@antigravity` commands, and a weekly auth smoke test. Design and
 # risks: https://github.com/wechaty/wechaty/issues/3042
+# Implementation retrospective (permanent issue comment): https://github.com/wechaty/wechaty/issues/3042#issuecomment-7086527680
 #
 # Authentication: secret ANTIGRAVITY_AUTH_JSON holds the CLI's Google sign-in
 # ({"token":{access_token,refresh_token,...},"auth_method",...}) exported from
