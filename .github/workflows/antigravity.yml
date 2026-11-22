@@ -53,14 +53,14 @@ on:
         type: string
         default: ''
   schedule:
-    # Weekly canary: catches an expired/revoked session or CLI storage change.
+    # Production credential-health probe: catches expired/revoked sessions or CLI storage changes.
     - cron: '47 3 * * 1'
 
 permissions: {}
 
 env:
-  # The installer's binary must not replace itself mid-job.
-  AGY_CLI_DISABLE_AUTO_UPDATE: '1'
+  # Install the latest CLI on each new job; prevent mid-job self-replacement.
+  AGY_CLI_DISABLE_AUTO_UPDATE: 'true'
 
 jobs:
   smoke:
@@ -239,7 +239,7 @@ jobs:
 
       - *install
 
-      - name: Run Antigravity review (read-only)
+      - name: Run Antigravity PR review (no GitHub write token)
         shell: bash
         env:
           ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
@@ -384,9 +384,10 @@ jobs:
             const safe = (t, max = 4000) => String(t ?? '').replace(/(^|[^\w`])@(?=[A-Za-z0-9])/g, '$1@​').slice(0, max)
             const cli = safe(fs.readFileSync(`${RUNNER_TEMP}/out/cli.txt`, 'utf8').trim(), 80)
 
-            // Parse the agent's JSON leniently: strip fences, take the outer object.
-            const raw = fs.readFileSync(`${RUNNER_TEMP}/out/result.txt`, 'utf8').replace(/```(?:json)?/g, '')
-            const out = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1))
+            // The CLI is configured for structured JSON output: reject malformed
+            // output instead of heuristically extracting a JSON-shaped substring.
+            const raw = fs.readFileSync(`${RUNNER_TEMP}/out/result.txt`, 'utf8').trim()
+            const out = JSON.parse(raw)
             // The agent result is untrusted input to a privileged publisher.
             // Fail closed rather than silently truncating or coercing findings.
             const validText = (x, max) => typeof x === 'string' && x.length <= max && !/[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f]/.test(x)
