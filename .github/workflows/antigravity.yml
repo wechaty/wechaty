@@ -448,16 +448,24 @@ jobs:
               '', `Reviewed HEAD SHA: ${head}`,
               `<sub>${who} CLI ${cli} · BASE ${base} · [workflow run](${run})</sub>`,
             ].join('\n')
-            let review
-            try {
-              ({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body, comments: inline }))
-            } catch (e) {
-              core.warning(`inline review failed (${e.message}); posting findings in the body`)
-              const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/, ' — ')}`)
-              ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: body.replace('Reviewed HEAD SHA', `${all.join('\n')}\n\nReviewed HEAD SHA`) }))
+            // Recover after partial publication instead of duplicating a review.
+            const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
+            let review = previous.find(r => r.user?.login === 'github-actions[bot]' &&
+              r.commit_id === head && r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`))
+            if (!review) {
+              try {
+                ({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body, comments: inline }))
+              } catch (e) {
+                core.warning(`inline review failed (${e.message}); posting findings in the body`)
+                const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/, ' — ')}`)
+                ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: body.replace('Reviewed HEAD SHA', `${all.join('\n')}\n\nReviewed HEAD SHA`) }))
+              }
+            } else {
+              core.info(`Reusing review ${review.html_url} already published for this revision`)
             }
-            await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success', context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: run })
+            // Set the success status last so a failed progress update remains retryable.
             await progress(`### ✅ ${who} review of #${pr} complete\n\n${count ? `${count} finding(s)` : 'No issues found'} — [view review](${review.html_url})\n\nHEAD \`${head}\` · BASE \`${base}\` · [workflow run](${run})`)
+            await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success', context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: run })
             await core.summary.addRaw(`${who} review posted: ${review.html_url}`).write()
 
       - name: Report review failure
