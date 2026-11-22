@@ -23,11 +23,12 @@ name: Antigravity Agent
 #   treats it as untrusted: it scans it for session material (from saved
 #   files, never `cmd | grep -q`), refuses paths under .github/, applies the
 #   patch to a fresh checkout, neutralizes @mentions, then deletes it.
-# - Reviews use `--mode plan --sandbox --dangerously-skip-permissions` to
-#   avoid unattended tool denials; the agent has access to its subscription
-#   session, so this is an explicit elevated-risk experiment. The workflow
-#   still only submits a COMMENT review:
-#   never approve, request changes, merge, or push.
+# - Review and interactive agent jobs both use unrestricted headless execution
+#   (`--dangerously-skip-permissions`, no plan mode or sandbox override).
+#   The agent can execute arbitrary runner commands and reach its subscription
+#   session: this is an explicitly accepted elevated-risk setting.
+# - Automatic reviews still only submit COMMENT reviews via the separate
+#   publish job: never approve, request changes, merge, or push.
 # - Interactive tasks require the commenter's real write permission. Fork PRs
 #   never reach these jobs.
 # - This repository's Actions logs and artifacts are public: never echo CLI
@@ -243,9 +244,6 @@ jobs:
           ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
           ANTIGRAVITY_MODEL: ${{ vars.ANTIGRAVITY_MODEL }}
           SCHEMA: '{"type":"object","required":["summary","findings","not_assessed"],"properties":{"summary":{"type":"string"},"not_assessed":{"type":"string"},"findings":{"type":"array","items":{"type":"object","required":["path","line","severity","title","body"],"properties":{"path":{"type":"string"},"line":{"type":"integer"},"severity":{"type":"string","enum":["high","medium","low"]},"title":{"type":"string"},"body":{"type":"string"}}}}}}'
-          # Headless runs auto-deny tools that would need a prompt and then
-          # produce no output, so pre-approve read-only commands only.
-          READONLY_SETTINGS: '{"permissions":{"allow":["command(git log)","command(git diff)","command(git show)","command(git blame)","command(git grep)","command(grep)","command(rg)","command(ls)","command(cat)","command(head)","command(tail)","command(sed -n)","command(wc)","command(find)"]}}'
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/out"
@@ -298,7 +296,8 @@ jobs:
           EOF
           model=(); [ -z "${ANTIGRAVITY_MODEL:-}" ] || model=(--model "$ANTIGRAVITY_MODEL")
           set +e
-          timeout 35m agy --mode plan --sandbox --dangerously-skip-permissions --print-timeout 34m \
+          # Headless full-autonomy review; publish permissions remain separate.
+          timeout 35m agy --dangerously-skip-permissions --print-timeout 34m \
             --output-format json --json-schema "$SCHEMA" "${model[@]}" \
             -p "$(cat "$RUNNER_TEMP/prompt.md")" > "$RUNNER_TEMP/agent.json" 2> "$RUNNER_TEMP/agent.err"
           rc=$?
@@ -688,6 +687,7 @@ jobs:
           EOF
           model=(); [ -z "${ANTIGRAVITY_MODEL:-}" ] || model=(--model "$ANTIGRAVITY_MODEL")
           set +e
+          # Same full-autonomy policy for trusted interactive tasks.
           timeout 40m agy --dangerously-skip-permissions --print-timeout 39m --output-format json "${model[@]}" \
             -p "$(cat "$RUNNER_TEMP/prompt.md")" > "$RUNNER_TEMP/agent.json" 2> "$RUNNER_TEMP/agent.err"
           rc=$?
