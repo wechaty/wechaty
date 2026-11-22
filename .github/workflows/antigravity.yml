@@ -23,8 +23,10 @@ name: Antigravity Agent
 #   treats it as untrusted: it scans it for session material (from saved
 #   files, never `cmd | grep -q`), refuses paths under .github/, applies the
 #   patch to a fresh checkout, neutralizes @mentions, then deletes it.
-# - Reviews run the agent read-only (`--mode plan --sandbox`, with only
-#   read-only shell commands allowed) and only ever submit a COMMENT review:
+# - Reviews use `--mode plan --sandbox --dangerously-skip-permissions` to
+#   avoid unattended tool denials; the agent has access to its subscription
+#   session, so this is an explicit elevated-risk experiment. The workflow
+#   still only submits a COMMENT review:
 #   never approve, request changes, merge, or push.
 # - Interactive tasks require the commenter's real write permission. Fork PRs
 #   never reach these jobs.
@@ -296,7 +298,7 @@ jobs:
           EOF
           model=(); [ -z "${ANTIGRAVITY_MODEL:-}" ] || model=(--model "$ANTIGRAVITY_MODEL")
           set +e
-          timeout 35m agy --mode plan --sandbox --settings "$READONLY_SETTINGS" --print-timeout 34m \
+          timeout 35m agy --mode plan --sandbox --dangerously-skip-permissions --print-timeout 34m \
             --output-format json --json-schema "$SCHEMA" "${model[@]}" \
             -p "$(cat "$RUNNER_TEMP/prompt.md")" > "$RUNNER_TEMP/agent.json" 2> "$RUNNER_TEMP/agent.err"
           rc=$?
