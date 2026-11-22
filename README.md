@@ -200,7 +200,7 @@ docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.ts
 
 ### 3. Switch Protocol(Puppet)
 
-Wechaty is very powerful that it can run over different protocols. You can specify the protocol by set the environment variable `WECHATY_PUPPET` to different puppet provider.
+Wechaty is very powerful that it can run over different protocols. You can specify the protocol by setting the environment variable `WECHATY_PUPPET` to different puppet provider.
 
 If you cannot use Web protocol, you can apply other protocols following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
 
