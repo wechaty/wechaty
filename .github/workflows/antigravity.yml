@@ -220,6 +220,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '26'
+          cache: npm
 
       - name: Prepare review context
         shell: bash
