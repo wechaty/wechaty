@@ -270,7 +270,7 @@ All wechat contacts(friends/non-friends) will be encapsulated as a Contact.
 
 | Contact | API | Description |
 | :--- | :--- | :---        |
-| static | [`find(query: string): Promise<null \| Contact>`](https://wechaty.github.io/wechaty/#Contact.find) | find contact by name or alias, if the result more than one, return the first one. |
+| static | [`find(query: string): Promise<null \| Contact>`](https://wechaty.github.io/wechaty/#Contact.find) | find contact by name or alias, if there is more than one result, return the first one. |
 | static | [`findAll(query: string): Promise<Contact[]>`](https://wechaty.github.io/wechaty/#Contact.findAll) | find contact by `name` or `alias` |
 | static | [`load(query: string): Contact`](https://wechaty.github.io/wechaty/#Contact.load) | get contact by id |
 | property | `id: readonly string` | get contact id |
