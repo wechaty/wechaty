@@ -59,6 +59,14 @@ jobs:
           jq -e '(.accessToken|type=="string") and (.refreshToken|type=="string") and (has("apiKey")|not)' "$dir/auth.json" >/dev/null \
             || { echo "::error::auth.json must hold accessToken/refreshToken only"; exit 1; }
           sha256sum "$dir/auth.json" | cut -c1-12 > "$RUNNER_TEMP/auth.before"
+          # CI never persists refreshed tokens, so the exported pair dies at the
+          # refresh token's exp (~60 days after export). Warn well before that.
+          b64url() { local s; s="$(tr '_-' '/+')"; while [ $(( ${#s} % 4 )) -ne 0 ]; do s="$s="; done; printf '%s' "$s" | base64 -d; }
+          exp="$(jq -r '.refreshToken|split(".")[1]' "$dir/auth.json" | b64url | jq -r .exp)"
+          days=$(( (exp - $(date +%s)) / 86400 ))
+          echo "refresh token expires in ${days} days ($(date -u -d "@$exp" +%F))"
+          if [ "$days" -lt 0 ]; then echo "::error::CURSOR_AUTH_JSON expired; re-export it"; exit 1; fi
+          if [ "$days" -lt 14 ]; then echo "::warning::CURSOR_AUTH_JSON expires in ${days} days; re-export it"; fi
           echo "restored $(jq -r 'keys|join(",")' "$dir/auth.json") to $dir/auth.json"
 
       - name: Confirm CLI recognizes the account
