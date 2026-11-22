@@ -58,9 +58,19 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq gnome-keyring libsecret-tools dbus-x11 >/dev/null
           eval "$(dbus-launch --sh-syntax)"
-          # Empty-password "login" collection, unlocked for this job only.
-          printf '' | gnome-keyring-daemon --unlock --replace --daemonize --components=secrets >/dev/null
+          # Throwaway "login" collection with a random password, unlocked for
+          # this job only (an empty password does not create the collection).
+          pw="$(openssl rand -hex 24)"; echo "::add-mask::$pw"
+          mkdir -p ~/.local/share/keyrings
+          printf '%s' "$pw" | gnome-keyring-daemon --unlock --replace --daemonize --components=secrets >/dev/null
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> "$GITHUB_ENV"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if printf probe | secret-tool store --label=probe service probe username probe 2>/dev/null; then
+              secret-tool clear service probe username probe; echo "Secret Service ready"; exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Secret Service not usable"; exit 1
 
       - name: Restore subscription sign-in from secret
         if: env.STORE == 'keyring'
