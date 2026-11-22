@@ -1,0 +1,134 @@
+name: Antigravity Agent
+
+# Phase 2: subscription-auth smoke test for Google Antigravity CLI (`agy`).
+# agy keeps its Google sign-in via go-keyring (service "gemini", user
+# "antigravity"). On Linux that is the freedesktop Secret Service, so we
+# start a throwaway gnome-keyring on the runner and restore the same entry.
+# No GEMINI_API_KEY, no AGY_ADC_AUTH / service accounts / Vertex billing.
+on:
+  workflow_dispatch:
+    inputs:
+      store:
+        description: Where to restore the sign-in
+        type: choice
+        options: [keyring, none]
+        default: keyring
+  push:
+    branches: [ci/agent-auth-smoke]
+    paths: [.github/workflows/antigravity.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: antigravity-auth-smoke
+  cancel-in-progress: false
+
+jobs:
+  auth-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED: WECHATY_AUTH_OK
+      STORE: ${{ inputs.store || 'keyring' }}
+      AGY_CLI_DISABLE_AUTO_UPDATE: '1'
+    steps:
+      - name: Assert clean runner (no prior Antigravity state)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for p in ~/.gemini ~/.local/bin/agy; do
+            if [ -e "$p" ]; then echo "::error::unexpected prior state: $p"; exit 1; fi
+          done
+          echo "runner: $(uname -srm), image ${ImageOS:-?}/${ImageVersion:-?}"
+
+      - name: Install Antigravity CLI (official installer)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://antigravity.google/cli/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/agy" --version
+
+      - name: Start ephemeral Secret Service (gnome-keyring)
+        if: env.STORE == 'keyring'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gnome-keyring libsecret-tools dbus-x11 >/dev/null
+          eval "$(dbus-launch --sh-syntax)"
+          # Empty-password "login" collection, unlocked for this job only.
+          printf '' | gnome-keyring-daemon --unlock --replace --daemonize --components=secrets >/dev/null
+          echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> "$GITHUB_ENV"
+
+      - name: Restore subscription sign-in from secret
+        if: env.STORE == 'keyring'
+        shell: bash
+        env:
+          ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ANTIGRAVITY_AUTH_JSON:-}" ]; then echo "::error::secret ANTIGRAVITY_AUTH_JSON missing"; exit 1; fi
+          # Validate shape without printing values.
+          jq -e '(.token.refresh_token|type=="string") and (.auth_method|type=="string")' <<<"$ANTIGRAVITY_AUTH_JSON" >/dev/null \
+            || { echo "::error::ANTIGRAVITY_AUTH_JSON has unexpected shape"; exit 1; }
+          printf '%s' "$ANTIGRAVITY_AUTH_JSON" \
+            | secret-tool store --label='gemini:antigravity' service gemini username antigravity
+          secret-tool lookup service gemini username antigravity | sha256sum | cut -c1-12 > "$RUNNER_TEMP/auth.before"
+          echo "restored keyring item service=gemini username=antigravity ($(jq -r 'keys|join(",")' <<<"$ANTIGRAVITY_AUTH_JSON"))"
+
+      - name: Real headless model invocation
+        id: invoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"; cd "$work"; git init -q
+          set +e
+          timeout 300 agy --print-timeout 240s --output-format json \
+            -p "Reply exactly ${EXPECTED}. No other text." > "$RUNNER_TEMP/out.json" 2> "$RUNNER_TEMP/err.txt"
+          rc=$?
+          set -e
+          redact() { sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/<redacted-email>/g; s/(ya29|1\/\/)[A-Za-z0-9._-]+/<redacted-token>/g'; }
+          redact < "$RUNNER_TEMP/err.txt" | tail -n 40
+          jq -c '{status,response,duration_seconds,conversation_id,usage}' "$RUNNER_TEMP/out.json" \
+            || { echo "::error::non-JSON output (rc=$rc)"; head -c 2000 "$RUNNER_TEMP/out.json" | redact; exit 1; }
+          result="$(jq -r '.response // empty' "$RUNNER_TEMP/out.json" | tr -d '[:space:]')"
+          if [ "$rc" -ne 0 ] || [ "$result" != "$EXPECTED" ]; then
+            echo "::error::unexpected response (rc=$rc): $result"; exit 1
+          fi
+          echo "conversation_id=$(jq -r .conversation_id "$RUNNER_TEMP/out.json")" >> "$GITHUB_OUTPUT"
+
+      - name: Diagnostics (redacted)
+        if: always()
+        shell: bash
+        run: |
+          redact() { sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/<redacted-email>/g; s/(ya29|1\/\/)[A-Za-z0-9._-]+/<redacted-token>/g; s/("(access|refresh|id)_token"[[:space:]]*:[[:space:]]*")[^"]+/\1<redacted>/g'; }
+          echo "--- files under ~/.gemini (names only)"
+          find ~/.gemini -maxdepth 4 -type f 2>/dev/null | grep -vE '/(builtin|bin)/' | sed "s|$HOME|~|" | head -n 60
+          echo "--- auth-related CLI log lines"
+          grep -rhiE 'auth|sign.?in|keyring|keychain|credential|token|store' ~/.gemini/antigravity/log 2>/dev/null | redact | tail -n 40 || true
+          if [ "$STORE" = keyring ] && [ -f "$RUNNER_TEMP/auth.before" ]; then
+            after="$(secret-tool lookup service gemini username antigravity 2>/dev/null | sha256sum | cut -c1-12)"
+            [ "$after" = "$(cat "$RUNNER_TEMP/auth.before")" ] && echo "keyring item unchanged" \
+              || echo "keyring item changed during run (access token refreshed)"
+          fi
+
+      - name: Summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "### Antigravity subscription auth: OK"
+            echo "- CLI: \`$(agy --version)\`, store: \`${STORE}\`"
+            echo "- Response: \`${EXPECTED}\`"
+            echo "- Conversation: \`${{ steps.invoke.outputs.conversation_id }}\`"
+            echo "- Usage: \`$(jq -c .usage "$RUNNER_TEMP/out.json")\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Shred credentials
+        if: always()
+        shell: bash
+        run: |
+          secret-tool clear service gemini username antigravity 2>/dev/null || true
+          rm -rf ~/.gemini ~/.local/share/keyrings

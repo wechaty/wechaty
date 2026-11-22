@@ -1,0 +1,124 @@
+name: Cursor Agent
+
+# Phase 2: subscription-auth smoke test for Cursor CLI (`agent`).
+# Restores a browser-login session (access + refresh token) from a secret
+# into the Linux file store (~/.config/cursor/auth.json). No CURSOR_API_KEY.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/agent-auth-smoke]
+    paths: [.github/workflows/cursor.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cursor-auth-smoke
+  cancel-in-progress: false
+
+jobs:
+  auth-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED: WECHATY_AUTH_OK
+    steps:
+      - name: Assert clean runner (no prior Cursor state)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for p in ~/.cursor ~/.config/cursor ~/.local/bin/agent; do
+            if [ -e "$p" ]; then echo "::error::unexpected prior state: $p"; exit 1; fi
+          done
+          if command -v secret-tool >/dev/null; then
+            echo "secret-tool present: CLI may probe Secret Service before falling back to file"
+          else
+            echo "secret-tool absent: CLI uses file store"
+          fi
+          echo "runner: $(uname -srm), image ${ImageOS:-?}/${ImageVersion:-?}"
+
+      - name: Install Cursor CLI (official installer)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS https://cursor.com/install | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Restore subscription session from secret
+        shell: bash
+        env:
+          CURSOR_AUTH_JSON: ${{ secrets.CURSOR_AUTH_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [ -z "${CURSOR_AUTH_JSON:-}" ]; then echo "::error::secret CURSOR_AUTH_JSON missing"; exit 1; fi
+          dir="${XDG_CONFIG_HOME:-$HOME/.config}/cursor"
+          mkdir -p "$dir"
+          printf '%s' "$CURSOR_AUTH_JSON" > "$dir/auth.json"
+          # Validate shape without printing values.
+          jq -e '(.accessToken|type=="string") and (.refreshToken|type=="string") and (has("apiKey")|not)' "$dir/auth.json" >/dev/null \
+            || { echo "::error::auth.json must hold accessToken/refreshToken only"; exit 1; }
+          sha256sum "$dir/auth.json" | cut -c1-12 > "$RUNNER_TEMP/auth.before"
+          echo "restored $(jq -r 'keys|join(",")' "$dir/auth.json") to $dir/auth.json"
+
+      - name: Confirm CLI recognizes the account
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset CURSOR_API_KEY
+          agent --version
+          out="$(agent status 2>&1 || true)"
+          # Redact e-mail addresses: workflow logs of this repo are public.
+          printf '%s\n' "$out" | sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/<redacted-email>/g'
+          grep -q 'Logged in' <<<"$out" || { echo "::error::Cursor CLI is not logged in"; exit 1; }
+
+      - name: Real headless model invocation
+        id: invoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset CURSOR_API_KEY
+          work="$(mktemp -d)"; cd "$work"
+          set +e
+          timeout 300 agent -p --trust --mode ask --output-format json \
+            "Reply exactly ${EXPECTED}. No other text." > "$RUNNER_TEMP/out.json" 2> "$RUNNER_TEMP/err.txt"
+          rc=$?
+          set -e
+          sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/<redacted-email>/g' "$RUNNER_TEMP/err.txt" | tail -n 40
+          jq -c '{type,subtype,is_error,duration_ms,result,request_id,usage}' "$RUNNER_TEMP/out.json" \
+            || { echo "::error::non-JSON output (rc=$rc)"; head -c 2000 "$RUNNER_TEMP/out.json"; exit 1; }
+          result="$(jq -r '.result // empty' "$RUNNER_TEMP/out.json" | tr -d '[:space:]')"
+          if [ "$rc" -ne 0 ] || [ "$result" != "$EXPECTED" ]; then
+            echo "::error::unexpected response (rc=$rc): $result"; exit 1
+          fi
+          echo "request_id=$(jq -r .request_id "$RUNNER_TEMP/out.json")" >> "$GITHUB_OUTPUT"
+
+      - name: Report session rotation (no values)
+        if: always()
+        shell: bash
+        run: |
+          f="${XDG_CONFIG_HOME:-$HOME/.config}/cursor/auth.json"
+          [ -f "$f" ] || { echo "auth.json gone (logged out?)"; exit 0; }
+          after="$(sha256sum "$f" | cut -c1-12)"
+          if [ "$after" = "$(cat "$RUNNER_TEMP/auth.before" 2>/dev/null)" ]; then
+            echo "auth.json unchanged: no token refresh/rotation during run"
+          else
+            echo "::warning::auth.json changed during run (token refreshed); the stored secret may go stale"
+          fi
+
+      - name: Summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "### Cursor subscription auth: OK"
+            echo "- CLI: \`$(agent --version)\`"
+            echo "- Response: \`${EXPECTED}\`"
+            echo "- Request ID: \`${{ steps.invoke.outputs.request_id }}\` (match in cursor.com/dashboard → Usage)"
+            echo "- Usage: \`$(jq -c .usage "$RUNNER_TEMP/out.json")\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Shred credentials
+        if: always()
+        shell: bash
+        run: rm -rf "${XDG_CONFIG_HOME:-$HOME/.config}/cursor" ~/.cursor
