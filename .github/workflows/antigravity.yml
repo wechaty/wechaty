@@ -85,7 +85,7 @@ jobs:
             || { echo "::error::ANTIGRAVITY_AUTH_JSON has unexpected shape"; exit 1; }
           printf '%s' "$ANTIGRAVITY_AUTH_JSON" \
             | secret-tool store --label='gemini:antigravity' service gemini username antigravity
-          secret-tool lookup service gemini username antigravity | sha256sum | cut -c1-12 > "$RUNNER_TEMP/auth.before"
+          secret-tool lookup service gemini username antigravity | jq -r .token.refresh_token | sha256sum | cut -c1-12 > "$RUNNER_TEMP/auth.before"
           echo "restored keyring item service=gemini username=antigravity ($(jq -r 'keys|join(",")' <<<"$ANTIGRAVITY_AUTH_JSON"))"
 
       - name: Real headless model invocation
@@ -117,11 +117,11 @@ jobs:
           echo "--- files under ~/.gemini (names only)"
           find ~/.gemini -maxdepth 4 -type f 2>/dev/null | grep -vE '/(builtin|bin)/' | sed "s|$HOME|~|" | head -n 60
           echo "--- auth-related CLI log lines"
-          grep -rhiE 'auth|sign.?in|keyring|keychain|credential|token|store' ~/.gemini/antigravity/log 2>/dev/null | redact | tail -n 40 || true
+          grep -rhiE 'auth|sign.?in|keyring|keychain|credential|token|store' ~/.gemini/antigravity-cli/log 2>/dev/null | redact | tail -n 40 || true
           if [ "$STORE" = keyring ] && [ -f "$RUNNER_TEMP/auth.before" ]; then
-            after="$(secret-tool lookup service gemini username antigravity 2>/dev/null | sha256sum | cut -c1-12)"
-            [ "$after" = "$(cat "$RUNNER_TEMP/auth.before")" ] && echo "keyring item unchanged" \
-              || echo "keyring item changed during run (access token refreshed)"
+            after="$(secret-tool lookup service gemini username antigravity 2>/dev/null | jq -r .token.refresh_token | sha256sum | cut -c1-12)"
+            [ "$after" = "$(cat "$RUNNER_TEMP/auth.before")" ] && echo "refresh token unchanged (access token may have been refreshed)" \
+              || echo "::warning::refresh token rotated during run; stored secret may go stale"
           fi
 
       - name: Summary
