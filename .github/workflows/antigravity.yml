@@ -402,7 +402,10 @@ jobs:
                 const m = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(l)
                 if (m) { n = Number(m[1]); continue }
                 if (l.startsWith('-') || l.startsWith('\\')) continue
-                lines.add(n++)
+                // Only added HEAD lines are valid review targets; context
+                // lines still advance the HEAD counter.
+                if (l.startsWith('+')) lines.add(n)
+                if (l.startsWith('+') || l.startsWith(' ')) n++
               }
               return lines
             }
