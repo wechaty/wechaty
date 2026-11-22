@@ -127,7 +127,7 @@ function onError (e: Error) {
 /**
  *
  * 6. The most important handler is for:
- *    dealing with Messages.
+ *    handling incoming messages.
  *
  */
 async function onMessage (msg: Message) {
@@ -157,7 +157,7 @@ async function onMessage (msg: Message) {
   console.info('REPLY: dong')
 
   /**
-   * 2. reply image(qrcode image)
+   * 2. reply with a QR-code image
    */
   const fileBox = FileBox.fromUrl('https://wechaty.github.io/wechaty/images/bot-qr-code.png')
 
@@ -165,7 +165,7 @@ async function onMessage (msg: Message) {
   console.info('REPLY: %s', fileBox.toString())
 
   /**
-   * 3. reply 'scan now!'
+   * 3. reply with the 'scan now!' invitation
    */
   await msg.say([
     'Join Wechaty Developers Community\n\n',
