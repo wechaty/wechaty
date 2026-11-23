@@ -60,7 +60,7 @@ permissions: {}
 
 env:
   # Install the latest CLI on each new job; prevent mid-job self-replacement.
-  AGY_CLI_DISABLE_AUTO_UPDATE: 'true'
+  AGY_CLI_DISABLE_AUTO_UPDATE: '1'
 
 jobs:
   smoke:
@@ -373,8 +373,7 @@ jobs:
           name: agent-result
           path: ${{ runner.temp }}/out
 
-      - &scan-result
-        name: Refuse results containing session material
+      - name: Refuse results containing session material
         if: steps.existing.outputs.reused != 'true'
         shell: bash
         env:
@@ -454,7 +453,8 @@ jobs:
             assert(!validText('contains\\u0000NUL'.replace('\\u0000', String.fromCharCode(0))))
             assert(!validPath('src/file' + String.fromCharCode(10) + '.ts'))
             assert(!validPath('../secrets'))
-            assert(!validPath('src\\\\windows.ts'))
+            assert(!validPath('src' + String.fromCharCode(92) + 'windows.ts'))
+            assert(!validPath('src' + String.fromCharCode(92, 92) + 'windows.ts'))
             assert(!validFinding({ ...fixture, path: '/etc/passwd' }))
             assert(validFinding({ ...fixture, path: process.env.GITHUB_WORKSPACE + '/src/README2.ts' }))
             assert(validText('Very long report ' + 'x'.repeat(5000)))
@@ -497,7 +497,11 @@ jobs:
               else general.push(`- \`${safe(path, 300)}${line ? `:${line}` : ''}\` ${text.replace(/\n\n/, ' — ')}`)
             }
             const count = out.findings.length
-            const body = [
+            // GitHub review bodies have a finite size. An excessive number
+            // of valid general findings must not prevent publication.
+            const capBody = value => value.length <= 60000 ? value :
+              value.slice(0, 59000) + '\n\n_Review text truncated for GitHub; check the workflow run for diagnostics._'
+            const body = capBody([
               `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`,
               `## ${who} review`, '',
               safe(out.summary), '',
@@ -506,7 +510,7 @@ jobs:
               ...(out.not_assessed ? ['', `_Not assessed:_ ${safe(out.not_assessed, 2000)}`] : []),
               '', `Reviewed HEAD SHA: ${head}`,
               `<sub>${who} CLI ${cli} · BASE ${base} · [workflow run](${run})</sub>`,
-            ].join('\n')
+            ].join('\n'))
             // Recover after partial publication instead of duplicating a review.
             const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
             let review = previous.find(r => r.user?.login === 'github-actions[bot]' &&
@@ -520,7 +524,7 @@ jobs:
                 if (!inline.length || e.status !== 422) throw e
                 core.warning(`GitHub rejected inline anchors (${e.message}); posting findings in the body`)
                 const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/, ' — ')}`)
-                ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: body.replace('Reviewed HEAD SHA', `${all.join('\n')}\n\nReviewed HEAD SHA`) }))
+                ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: capBody(body.replace('Reviewed HEAD SHA', `${all.join('\n')}\n\nReviewed HEAD SHA`)) }))
               }
             } else {
               core.info(`Reusing review ${review.html_url} already published for this revision`)
@@ -553,13 +557,13 @@ jobs:
               // A lookup outage must not prevent reporting that the run failed.
               core.warning(`Could not inspect previously published reviews: ${e.message}`)
             }
-            const title = existing
+            const title = existing && AGENT_RESULT === 'success'
               ? `### ⚠️ ${who} review published, but finalization failed`
               : AGENT_RESULT === 'cancelled'
                 ? `### ⏭️ ${who} review of #${process.env.PR_NUMBER} superseded by a newer push`
                 : `### ❌ ${who} review of #${process.env.PR_NUMBER} failed`
             await github.rest.issues.updateComment({ owner, repo, comment_id: Number(process.env.COMMENT_ID),
-              body: `<!-- ${who.toLowerCase()}-review-progress -->\n${title}\n\nHEAD \`${process.env.HEAD_SHA}\`. ${existing ? `[Review already submitted](${existing.html_url}); re-run failed jobs to finalize without agent artifacts.` : 'No completed formal review recorded.'} See the [workflow run](${run}). If it mentions an expired or invalid session, re-export the ${who} secret. ${existing ? 'Re-run failed jobs to finalize the existing review without artifacts.' : 'Re-run all jobs to regenerate the deleted agent result.'}` })
+              body: `<!-- ${who.toLowerCase()}-review-progress -->\n${title}\n\nHEAD \`${process.env.HEAD_SHA}\`. ${existing ? `[Previously submitted review](${existing.html_url}).` : 'No completed formal review recorded.'} See the [workflow run](${run}). If it mentions an expired or invalid session, re-export the ${who} secret. ${existing && AGENT_RESULT === 'success' ? 'Re-run failed jobs to finalize the existing review without artifacts.' : 'Re-run all jobs to regenerate the review attempt.'}` })
 
       - &delete-artifacts
         name: Delete handed-over artifacts
@@ -869,7 +873,26 @@ jobs:
           name: agent-context
           path: ${{ runner.temp }}/ctx
 
-      - *scan-result
+      - name: Refuse results containing session material
+        shell: bash
+        env:
+          ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [ -d "$RUNNER_TEMP/out" ] || { echo "no agent result to scan"; exit 0; }
+          pat="$RUNNER_TEMP/session-fragments"
+          jq -r '.token.refresh_token, .token.access_token' <<<"$ANTIGRAVITY_AUTH_JSON" | awk 'length($0) >= 20 { print substr($0, length($0) - 19) }' > "$pat"
+          [ -s "$pat" ] || { echo "::error::could not derive session fragments"; exit 1; }
+          # Scan saved files (no pipeline), so a short-circuiting grep cannot fail open.
+          if grep -rqF -f "$pat" "$RUNNER_TEMP/out"; then
+            rm -rf "$RUNNER_TEMP/out" "$pat"
+            echo "::error::agent result contains session material; nothing was published. Revoke and re-export ANTIGRAVITY_AUTH_JSON."
+            exit 1
+          fi
+          rm -f "$pat"
+          echo "no session material found"
+
 
       - name: Publish changes
         if: needs.task.result == 'success'
