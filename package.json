@@ -14,7 +14,7 @@
     "build": "npm run build --workspaces",
     "dist": "npm run dist --workspaces",
     "lint": "npm run lint:root && npm run lint --workspaces",
-    "lint:root": "biome lint scripts && tsc -p tsconfig.json --noEmit && bash -n scripts/*.sh && markdownlint packages/*/README.md",
+    "lint:root": "biome lint scripts && tsc -p tsconfig.json --noEmit && bash -n scripts/*.sh && markdownlint README.md packages/*/README.md",
     "test": "npm run lint && npm run test:unit",
     "test:unit": "node --test scripts && npm run test:unit --workspaces",
     "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=. --allow-run=git scripts && npm run test:unit:deno --workspaces",
