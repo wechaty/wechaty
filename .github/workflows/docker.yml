@@ -44,13 +44,15 @@ jobs:
 
       # Check the root and the packages in the root `workspaces` list. Packages
       # imported into packages/ join that list only once modernized (#3054).
+      # wechaty-grpc's polyglot/ and openapi/ generators stay dormant, unbuilt
+      # and unchecked, until the protocol freezes at 2.0.0 (#3053).
       - name: Check shell scripts for problems
         run: |
           workspaces=$(node -p "require('./package.json').workspaces.join(' ')")
           {
             git ls-files -- '*.sh' ':(exclude)packages/*'
             for workspace in $workspaces; do
-              git ls-files -- "$workspace/*.sh"
+              git ls-files -- "$workspace/*.sh" ":(exclude)$workspace/polyglot/*" ":(exclude)$workspace/openapi/*"
             done
           } | sort -u | tr '\n' '\0' | xargs -0 -r shellcheck --external-sources
 
