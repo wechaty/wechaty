@@ -19,6 +19,11 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
   package scripts. Today there are two: `packages/wechaty-token` and
   `packages/wechaty`.
 - A package joins the root `workspaces` list only after it follows these rules.
+- A package's `exports` may add a `wechaty-source` condition that points at
+  `src/`, for workspace development only: Node.js refuses to strip types from
+  files under `node_modules`, so an installed package must never be loaded
+  through it. Published packages still ship `src/` (and `bin/`) so their
+  source and declaration maps resolve.
 - Dependencies install once at the root (`npm ci`). Run a package script from
   its folder, or from the root with `--workspace`, for example
   `npm run test:unit:file --workspace wechaty -- src/plugin.test.ts`.

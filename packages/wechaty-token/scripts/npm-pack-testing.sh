@@ -9,7 +9,10 @@ set -euo pipefail
 PACKAGE_DIR=$(pwd)
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-trap 'rm -rf "$TMPDIR"; git -C "$PACKAGE_DIR" checkout -- src/version.ts' EXIT
+# generate-version.sh rewrites src/version.ts; put back exactly what was there,
+# including uncommitted edits, instead of the committed copy.
+cp src/version.ts "$TMPDIR/version.ts.orig"
+trap 'cp "$TMPDIR/version.ts.orig" "$PACKAGE_DIR/src/version.ts"; rm -rf "$TMPDIR"' EXIT
 
 ./scripts/generate-version.sh
 npm run dist

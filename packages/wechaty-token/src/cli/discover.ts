@@ -11,6 +11,10 @@ import {
 
 import { WechatyToken } from '../wechaty-token.ts'
 
+/**
+ * Prints the discovered address as JSON, or a `NotFound` message on stderr.
+ * Exits the process with code 1 when discovery throws or finds nothing.
+ */
 async function handler (args: any) {
   let address
 
@@ -47,6 +51,7 @@ async function handler (args: any) {
 
 }
 
+/** The `discover <token>` subcommand. */
 const discover = command({
   name: 'discover',
   description: 'Wechaty TOKEN Service Discovery',

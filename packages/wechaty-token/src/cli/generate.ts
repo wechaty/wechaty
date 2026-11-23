@@ -11,6 +11,10 @@ import {
 
 import { WechatyToken } from '../wechaty-token.ts'
 
+/**
+ * Prints a new token of the requested type (default `uuid`). It writes to
+ * stderr (`console.error`), as the 1.x CLI did.
+ */
 async function handler (args: any) {
   try {
     const result = await WechatyToken.generate(args.type)
@@ -20,6 +24,7 @@ async function handler (args: any) {
   }
 }
 
+/** The `generate [--type <sni>]` subcommand. */
 const generate = command({
   name: 'generate',
   description: 'Generate a new Wechaty Token',

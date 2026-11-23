@@ -17,8 +17,9 @@ VERSION=$(node -p "require('./package.json').version")
 
 cat <<_SRC_ > "${SRC_VERSION_TS_FILE}"
 /**
- * The package version, written by scripts/generate-version.sh before packing.
- * The source in git keeps the 0.0.0 placeholder.
+ * The package version. Git keeps the \`0.0.0\` placeholder (checked by
+ * \`version.test.ts\`); \`scripts/generate-version.sh\` overwrites this file from
+ * \`package.json\` before packing.
  */
 export const VERSION: string = '${VERSION}'
 _SRC_
