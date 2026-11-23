@@ -1,0 +1,106 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package="io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+import "google/protobuf/wrappers.proto";
+import "wechaty/puppet/referrer.proto";
+
+enum FriendshipType {
+  FRIENDSHIP_TYPE_UNSPECIFIED = 0;
+  FRIENDSHIP_TYPE_CONFIRM     = 1;
+  FRIENDSHIP_TYPE_RECEIVE     = 2;
+  FRIENDSHIP_TYPE_VERIFY      = 3;
+}
+
+enum FriendshipSceneType {
+  FRIENDSHIP_SCENE_TYPE_UNSPECIFIED = 0;
+
+  FRIENDSHIP_SCENE_TYPE_QQ       = 1;
+  FRIENDSHIP_SCENE_TYPE_EMAIL    = 2;
+  FRIENDSHIP_SCENE_TYPE_WEIXIN   = 3;
+  FRIENDSHIP_SCENE_TYPE_QQTBD    = 12;
+  FRIENDSHIP_SCENE_TYPE_ROOM     = 14;
+  FRIENDSHIP_SCENE_TYPE_PHONE    = 15;
+  FRIENDSHIP_SCENE_TYPE_CARD     = 17;
+  FRIENDSHIP_SCENE_TYPE_LOCATION = 18;
+  FRIENDSHIP_SCENE_TYPE_BOTTLE   = 25;
+  FRIENDSHIP_SCENE_TYPE_SHAKING  = 29;
+  FRIENDSHIP_SCENE_TYPE_QRCODE   = 30;
+}
+
+message FriendshipPayloadRequest {
+  string                      id      = 1;
+  /**
+   * Huan(202003):
+   *  What's the reason we need belowing payload?
+   *  We should remove it if possible.
+   */
+  google.protobuf.StringValue payload_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string payload = 3;
+}
+message FriendshipPayloadResponse {
+  string              id         = 1;
+  string              contact_id = 2;
+  string              hello      = 3;
+  FriendshipType      type       = 4;
+  string              stranger   = 5;
+  string              ticket     = 6;
+  FriendshipSceneType scene      = 7;
+}
+
+message FriendshipSearchPhoneRequest {
+  string phone = 1;
+}
+message FriendshipSearchPhoneResponse {
+  // nullable
+  google.protobuf.StringValue contact_id_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string contact_id = 2;
+}
+
+/**
+ * Huan(202003): we just rename the payload message because gRPC only care about the message structure
+ *  (and as long as we keep consistent with the old structure).
+ *
+ *  @link https://github.com/wechaty/grpc/pull/173
+ *
+ * Rename:
+ *  1. `FriendshipSearchWeixinRequest`    -> `FriendshipSearchHandleRequest`
+ *  2. `FriendshipSearchWeixinReqsponse`  -> `FriendshipSearchHandleResponse`
+ */
+message FriendshipSearchHandleRequest {
+  /**
+   * Huan(202203): in gRPC, we can freely rename the field name as long as the number keep consistent.
+   *  so we can just rename `weixin` to `handle` here.
+   *
+   * (Huan(20220329): use `weixin` for now, until we upgrade to v2.0
+   *  the `wechaty-grpc@1.0.0` will use the latest v1.x automatically when running `npm install`
+   *    which will causing a breaking change.
+   *  @link https://github.com/wechaty/getting-started/issues/254
+   *
+   * TODO: rename `weixin` to `handle` in v2.0.0
+   */
+  string weixin = 1;
+}
+message FriendshipSearchHandleResponse {
+  // nullable
+  google.protobuf.StringValue contact_id_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string contact_id = 2;
+}
+
+message FriendshipAddRequest {
+  string contact_id = 1;
+  string hello = 2;
+  google.protobuf.StringValue source_room_id_string_value_deprecated = 3 [deprecated = true]; // Deprecated: will be removed after Dec 31, 2022
+  google.protobuf.StringValue source_contact_id_string_value_deprecated = 4 [deprecated = true];  // Deprecated: will be removed after Dec 31, 2022
+  Referrer referrer = 5;
+}
+
+message FriendshipAddResponse {}
+
+message FriendshipAcceptRequest {
+  string id = 1;
+}
+message FriendshipAcceptResponse {}

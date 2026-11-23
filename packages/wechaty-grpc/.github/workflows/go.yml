@@ -1,0 +1,71 @@
+name: Go
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'polyglot/go/**'
+      - 'proto/**'
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.17
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+      id: go
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v1
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: |
+        cd polyglot/go
+        make install
+
+    - name: Build
+      run: |
+        cd polyglot/go
+        make generate
+        WECHATY_GRPC="$(go env GOPATH)/src/github.com/wechaty/go-grpc"
+        rm -rf "$WECHATY_GRPC/wechaty"
+        [ -e "$WECHATY_GRPC" ] || mkdir -p "$WECHATY_GRPC"
+        ln -s "$(pwd)/out/wechaty/" "$WECHATY_GRPC/wechaty"
+
+        make build_test
+
+  publish:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
+    name: Publish
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.17
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v1
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Deploy
+      run: |
+        cd polyglot/go
+        make install
+        # https://stackoverflow.com/a/4565746/1123955
+        # https://stackoverflow.com/a/46253163/1123955
+        ssh-agent bash -c "\
+          echo '${SSH_PRIVATE_KEY}' | ssh-add - ;\
+          make publish ;\
+        "
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

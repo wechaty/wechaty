@@ -1,0 +1,14 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package       = "github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package     = "io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+message LocationPayload {
+  float  accuracy  = 1;
+  string address   = 2;
+  double latitude  = 3;
+  double longitude = 4;
+  string name      = 5;
+}

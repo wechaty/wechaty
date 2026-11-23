@@ -1,0 +1,24 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Version>0.20.4</Version>
+    <authors>Wechaty</authors>
+    <owners>Wechaty</owners>
+    <description>.NET Wechaty Grpc</description>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <PackageIcon>wechaty.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/wechaty/grpc</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/wechaty/grpc</RepositoryUrl>
+  </PropertyGroup>
+  <!--set  grpc proto only client-->
+  <ItemGroup>
+    <Protobuf Include="proto\wechaty\**\*.proto" GrpcServices="Client" ProtoRoot="proto\" />
+    <!--<Protobuf Include="proto\google\**\*.proto" GrpcServices="Client" ProtoRoot="proto\" />-->
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

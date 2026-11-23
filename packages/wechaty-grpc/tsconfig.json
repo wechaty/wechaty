@@ -1,0 +1,23 @@
+{
+  "extends": "@chatie/tsconfig",
+  "compilerOptions": {
+    "outDir": "dist/esm",
+    "verbatimModuleSyntax": false,
+    // See: https://github.com/wechaty/wechaty/issues/2551
+    "ignoreDeprecations": "5.0"
+  },
+  "exclude": [
+    "node_modules/",
+    "dist/",
+    "tests/fixtures/",
+  ],
+  "include": [
+    "app/**/*.ts",
+    "bin/*.ts",
+    "bot/**/*.ts",
+    "examples/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts",
+    "tests/**/*.spec.ts", "commonjs/google.spec.ts",
+  ],
+}

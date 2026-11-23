@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <Import Project="./common.props" />
+  <ItemGroup>
+    <None Remove="proto\protoc-gen-openapiv2\options\openapiv2.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="nupkg\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wechaty.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Api.Gax.Grpc.GrpcCore" Version="3.7.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.20.0" />
+    <PackageReference Include="Grpc.Core" Version="2.45.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.45.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="proto\protoc-gen-openapiv2\options\openapiv2.proto" GrpcServices="Client">
+      <ProtoRoot>proto\</ProtoRoot>
+    </Protobuf>
+    <Protobuf Include="proto\protoc-gen-openapiv2\options\annotations.proto" GrpcServices="Client">
+      <ProtoRoot>proto\</ProtoRoot>
+    </Protobuf>
+  </ItemGroup>
+
+
+
+</Project>

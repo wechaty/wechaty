@@ -1,0 +1,13 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package       = "github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package     = "io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+message UrlLinkPayload {
+  string description   = 1;
+  string thumbnail_url = 2;
+  string title         = 3;
+  string url           = 4;
+}

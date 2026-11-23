@@ -1,0 +1,19 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+message UploadRequest {
+  bytes chunk = 1;
+}
+message UploadResponse {
+  string id = 1;
+}
+
+message DownloadRequest {
+  string id = 1;
+}
+message DownloadResponse {
+  bytes chunk = 1;
+}

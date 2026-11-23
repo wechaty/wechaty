@@ -1,0 +1,11 @@
+#
+# https://help.github.com/articles/about-codeowners/
+#
+/openapi/           @huan
+/polyglot/csharp/   @Jesn
+/polyglot/go/       @dingdayu @dchaofei
+/polyglot/java/     @diaozxin007
+/polyglot/php/      @zhangchunsheng
+/polyglot/python/   @wj-Mcat
+/proto/             @wechaty/grpc
+/src/               @huan
