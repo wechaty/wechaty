@@ -391,12 +391,21 @@ jobs:
             // The agent result is untrusted input to a privileged publisher.
             // Fail closed rather than silently truncating or coercing findings.
             const validText = (x, max) => typeof x === 'string' && x.length <= max && !/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(x)
+            // The agent may return file:// or absolute checkout paths. Only
+            // strip the exact runner workspace; reject all other absolute paths.
+            const normalizePath = rawPath => {
+              if (typeof rawPath !== 'string') return rawPath
+              let path = rawPath.startsWith('file://') ? rawPath.slice('file://'.length) : rawPath
+              const root = process.env.GITHUB_WORKSPACE
+              if (root && path.startsWith(root + '/')) path = path.slice(root.length + 1)
+              return path.startsWith('./') ? path.slice(2) : path
+            }
             const validPath = p => validText(p, 400) && p.length > 0 &&
               !p.startsWith('/') && !p.startsWith('file:') && !p.includes('\\') &&
               !p.split('/').some(segment => segment === '..' || segment === '.') &&
               !p.includes('\n') && !p.includes('\r')
             const validFinding = f => f && typeof f === 'object' && !Array.isArray(f) &&
-              validPath(f.path) && Number.isSafeInteger(f.line) && f.line > 0 &&
+              validPath(normalizePath(f.path)) && Number.isSafeInteger(f.line) && f.line > 0 &&
               ['high', 'medium', 'low'].includes(f.severity) &&
               validText(f.title, 200) && f.title.trim().length > 0 &&
               validText(f.body, 4000) && f.body.trim().length > 0
@@ -432,8 +441,8 @@ jobs:
             const icon = { high: '🔴', medium: '🟠', low: '🟡' }
             const inline = [], general = []
             for (const f of out.findings.slice(0, 30)) {
-              // Agents may report absolute runner paths; keep the repo-relative part.
-              const path = String(f.path ?? '').replace(/^file:\/\//, '').replace(/^\/home\/runner\/work\/[^/]+\/[^/]+\//, '').replace(/^\.\//, '')
+              // Use the same normalization verified before publication.
+              const path = normalizePath(f.path)
               const line = Number(f.line)
               const text = `${icon[f.severity] ?? '⚪'} **${safe(f.title ?? f.severity ?? 'Finding', 200)}**\n\n${safe(f.body)}`
               if (diffLines.get(path)?.has(line)) inline.push({ path, line, side: 'RIGHT', body: text })
