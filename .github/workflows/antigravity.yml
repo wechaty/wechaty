@@ -60,7 +60,7 @@ permissions: {}
 
 env:
   # Install the latest CLI on each new job; prevent mid-job self-replacement.
-  AGY_CLI_DISABLE_AUTO_UPDATE: '1'
+  AGY_CLI_DISABLE_AUTO_UPDATE: 'true'
 
 jobs:
   smoke:
@@ -497,21 +497,45 @@ jobs:
               else general.push(`- \`${safe(path, 300)}${line ? `:${line}` : ''}\` ${text.replace(/\n\n/, ' — ')}`)
             }
             const count = out.findings.length
-            // GitHub review bodies have a finite size. An excessive number
-            // of valid general findings must not prevent publication.
-            const capBody = value => Buffer.byteLength(value, 'utf8') <= 58000 ? value :
-              Buffer.from(value, 'utf8').subarray(0, 57000).toString('utf8') +
-              '\n\n_Review text truncated for GitHub; check the workflow run for diagnostics._'
-            const body = capBody([
-              `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`,
-              `## ${who} review`, '',
-              safe(out.summary), '',
-              count ? `${count} finding(s)${inline.length ? `, ${inline.length} inline` : ''}.` : 'No issues found.',
-              ...(general.length ? ['', ...general] : []),
-              ...(out.not_assessed ? ['', `_Not assessed:_ ${safe(out.not_assessed, 2000)}`] : []),
-              '', `Reviewed HEAD SHA: ${head}`,
-              `<sub>${who} CLI ${cli} · BASE ${base} · [workflow run](${run})</sub>`,
-            ].join('\n'))
+            // The review body has a size limit. Preserve the exact HEAD/BASE
+            // trailer and give inline findings priority when anchors are rejected.
+            // Never silently drop findings: report how many exceeded the budget.
+            const renderReviewBody = (fallbackInline = [], generalEntries = general) => {
+              const header = [
+                `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`,
+                `## ${who} review`, '', safe(out.summary), '',
+                count ? `${count} finding(s)${inline.length ? `, ${inline.length} inline` : ''}.` : 'No issues found.',
+              ]
+              const footer = [
+                '', ...(out.not_assessed ? [`_Not assessed:_ ${safe(out.not_assessed, 2000)}`, ''] : []),
+                `Reviewed HEAD SHA: ${head}`,
+                `<sub>${who} CLI ${cli} · BASE ${base} · [workflow run](${run})</sub>`,
+              ]
+              const entries = [...fallbackInline, ...generalEntries]
+              const included = []
+              let omitted = 0
+              for (const entry of entries) {
+                // Reserve space for the omission notice before adding an entry.
+                const trial = [...header, ...included, entry, '',
+                  '_Some findings omitted due to GitHub review size limits._', ...footer].join('\n')
+                if (Buffer.byteLength(trial, 'utf8') <= 57000) included.push(entry)
+                else omitted++
+              }
+              return [...header, ...included,
+                ...(omitted ? ['', `_${omitted} finding(s) omitted due to GitHub review size limits._`] : []),
+                ...footer].join('\n')
+            }
+            // Regression: a truncated fallback must retain inline findings and
+            // the revision trailer, even when many general findings overflow.
+            const cappedFixture = renderReviewBody(
+              ['INLINE_FALLBACK_SENTINEL'],
+              Array.from({ length: 30 }, (_, i) => `GENERAL_${i}: ${'x'.repeat(3500)}`),
+            )
+            assert(cappedFixture.includes('INLINE_FALLBACK_SENTINEL'))
+            assert(cappedFixture.includes('Reviewed HEAD SHA: ' + head))
+            assert(cappedFixture.includes('omitted due to GitHub review size limits'))
+            assert(Buffer.byteLength(cappedFixture, 'utf8') <= 58000)
+            const body = renderReviewBody()
             // Recover after partial publication instead of duplicating a review.
             const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
             let review = previous.find(r => r.user?.login === 'github-actions[bot]' &&
@@ -525,7 +549,7 @@ jobs:
                 if (!inline.length || e.status !== 422) throw e
                 core.warning(`GitHub rejected inline anchors (${e.message}); posting findings in the body`)
                 const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/, ' — ')}`)
-                ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: capBody(body.replace('Reviewed HEAD SHA', `${all.join('\n')}\n\nReviewed HEAD SHA`)) }))
+                ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: renderReviewBody(all) }))
               }
             } else {
               core.info(`Reusing review ${review.html_url} already published for this revision`)
