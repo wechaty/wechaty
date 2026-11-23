@@ -559,7 +559,7 @@ jobs:
                 ? `### ⏭️ ${who} review of #${process.env.PR_NUMBER} superseded by a newer push`
                 : `### ❌ ${who} review of #${process.env.PR_NUMBER} failed`
             await github.rest.issues.updateComment({ owner, repo, comment_id: Number(process.env.COMMENT_ID),
-              body: `<!-- ${who.toLowerCase()}-review-progress -->\n${title}\n\nHEAD \`${process.env.HEAD_SHA}\`. ${existing ? `[Review already submitted](${existing.html_url}); re-run failed jobs to finalize without agent artifacts.` : 'No completed formal review recorded.'} See the [workflow run](${run}). If it mentions an expired or invalid session, re-export the ${who} secret. To retry, re-run the failed jobs.` })
+              body: `<!-- ${who.toLowerCase()}-review-progress -->\n${title}\n\nHEAD \`${process.env.HEAD_SHA}\`. ${existing ? `[Review already submitted](${existing.html_url}); re-run failed jobs to finalize without agent artifacts.` : 'No completed formal review recorded.'} See the [workflow run](${run}). If it mentions an expired or invalid session, re-export the ${who} secret. ${existing ? 'Re-run failed jobs to finalize the existing review without artifacts.' : 'Re-run all jobs to regenerate the deleted agent result.'}` })
 
       - &delete-artifacts
         name: Delete handed-over artifacts
