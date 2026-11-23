@@ -1,25 +1,27 @@
+/**
+ * The retry policy for token discovery requests: up to three retries with a
+ * randomized exponential backoff, for any error. Retries and successes are
+ * logged at the `silly` level.
+ */
 import {
-  Policy,
-  RetryPolicy,
+  ExponentialBackoff,
+  handleAll,
+  retry,
+  type RetryPolicy,
 }                       from 'cockatiel'
 
 import {
   log,
-}           from './config.js'
+}           from './config.ts'
 
 /**
- * Create a retry policy that'll try whatever function we execute 3
- *  times with a randomized exponential backoff.
- *
- * https://github.com/connor4312/cockatiel#policyretry
+ * Creates the policy. See https://github.com/connor4312/cockatiel#retry
  */
-const retryPolicy = getRetryPolicy()
 function getRetryPolicy (): RetryPolicy {
-  const policy = Policy
-    .handleAll()
-    .retry()
-    .attempts(3)
-    .exponential()
+  const policy = retry(handleAll, {
+    maxAttempts : 3,
+    backoff     : new ExponentialBackoff(),
+  })
 
   policy.onRetry(reason => log.silly('wechaty-token',
     'retry-policy getRetryPolicy policy.onRetry() reason: "%s"',
@@ -31,6 +33,8 @@ function getRetryPolicy (): RetryPolicy {
   ))
   return policy
 }
+
+const retryPolicy = getRetryPolicy()
 
 export {
   retryPolicy,

@@ -1,55 +1,87 @@
+/**
+ * `WechatyResolver`: a gRPC name resolver for `wechaty://<authority>/<token>`
+ * targets. `WechatyResolver.setup()` registers it with `@grpc/grpc-js`, after
+ * which a gRPC channel to `wechaty:///<token>` asks `WechatyToken.discover()`
+ * for the puppet service address.
+ *
+ * It uses only `@grpc/grpc-js`'s public `experimental` resolver API (1.14 and
+ * later: a listener function that receives `StatusOr` endpoints). grpc-js is a
+ * peer dependency because the resolver must register with the same grpc-js
+ * instance that creates the channel.
+ */
+import {
+  experimental,
+  Metadata,
+  status as GrpcStatus,
+  type ChannelOptions,
+}                       from '@grpc/grpc-js'
+
 import {
   log,
   DEFAULT_AUTHORITY,
-}                     from './config.js'
+}                     from './config.ts'
 
-import {
-  ChannelOptions,
-  GrpcStatus,
-  GrpcUri,
-  Metadata,
-  resolverManager,
-  TcpSubchannelAddress,
-  uriToString,
-}                         from './grpc-js.js'
+import { WechatyToken } from './wechaty-token.ts'
 
-import { WechatyToken } from './wechaty-token.js'
+class WechatyResolver implements experimental.Resolver {
 
-class WechatyResolver implements resolverManager.Resolver {
-
-  private addresses: TcpSubchannelAddress[]
-
-  static getDefaultAuthority (target: GrpcUri): string {
+  /**
+   * The authority a channel reports for a target: its own, or
+   * `api.chatie.io` when the target names none (`wechaty:///<token>`).
+   */
+  static getDefaultAuthority (target: experimental.GrpcUri): string {
     log.verbose('ResolverWechaty', 'getDefaultAuthority(%s)', JSON.stringify(target))
     return target.authority || DEFAULT_AUTHORITY
   }
 
-  static setup () {
+  /**
+   * Registers this resolver for the `wechaty` scheme. Safe to call more than
+   * once: grpc-js keeps the latest registration.
+   */
+  static setup (): void {
     log.verbose('ResolverWechaty', 'setup()')
-    resolverManager.registerResolver('wechaty', WechatyResolver)
+    experimental.registerResolver('wechaty', WechatyResolver)
   }
 
+  readonly target: experimental.GrpcUri
+  readonly listener: experimental.ResolverListener
+  readonly channelOptions: ChannelOptions
+
   constructor (
-    public target: GrpcUri,
-    public listener: resolverManager.ResolverListener,
-    public channelOptions: ChannelOptions,
+    target: experimental.GrpcUri,
+    listener: experimental.ResolverListener,
+    channelOptions: ChannelOptions,
   ) {
     log.verbose('WechatyResolver', 'constructor("%s",)', JSON.stringify(target))
     log.silly('WechatyResolver', 'constructor(,,"%s")', JSON.stringify(channelOptions))
-
-    this.addresses = []
+    this.target = target
+    this.listener = listener
+    this.channelOptions = channelOptions
   }
 
-  private reportResolutionError (reason: string) {
-    this.listener.onError({
+  /**
+   * Reports the outcome to the listener on a later tick: grpc-js requires that
+   * listener calls never happen synchronously with `updateResolution()`.
+   */
+  private report (endpoints: experimental.StatusOr<experimental.Endpoint[]>): void {
+    process.nextTick(() => this.listener(endpoints, {}, null, ''))
+  }
+
+  private reportResolutionError (reason: string): void {
+    this.report(experimental.statusOrFromError({
       code: GrpcStatus.UNAVAILABLE,
-      details: `Wechaty service discovery / resolution failed for target ${uriToString(
+      details: `Wechaty service discovery / resolution failed for target ${experimental.uriToString(
         this.target,
       )}: ${reason}`,
       metadata: new Metadata(),
-    })
+    }))
   }
 
+  /**
+   * Discovers the address of the target's token and reports it as a single
+   * endpoint, or reports `UNAVAILABLE` when discovery fails or the token does
+   * not exist. Exactly one report per call.
+   */
   async updateResolution (): Promise<void> {
     log.verbose('ResolverWechaty', 'updateResolution()')
 
@@ -61,33 +93,21 @@ class WechatyResolver implements resolverManager.Resolver {
         token     : this.target.path,       // `__token__` in `wechaty://api.chatie.io/__token__`
       }).discover()
     } catch (e) {
-      log.warn('WechatyResolver', 'updateResolution() wechatyToken.discover() error for target ' + uriToString(this.target) + ' due to error ' + (e as Error).message)
-      console.error(e)
+      log.warn('WechatyResolver', 'updateResolution() wechatyToken.discover() error for target ' + experimental.uriToString(this.target) + ' due to error ' + (e as Error).message)
       this.reportResolutionError((e as Error).message)
+      return
     }
 
     if (!address || !address.port) {
-      log.warn('ResolverWechaty', 'updateResolution() address not found target ' + uriToString(this.target) + ': token does not exist')
+      log.warn('ResolverWechaty', 'updateResolution() address not found target ' + experimental.uriToString(this.target) + ': token does not exist')
       this.reportResolutionError(`token "${this.target.path}" does not exist`)
       return
     }
 
-    this.addresses = [address]
-
-    /**
-     * See: grpc-js/src/resolver-uds.ts
-     */
-    process.nextTick(
-      this.listener.onSuccessfulResolution,
-      this.addresses,
-      null,
-      null,
-      null,
-      {},
-    )
+    this.report(experimental.statusOrFromValue([ { addresses: [ address ] } ]))
   }
 
-  destroy () {
+  destroy (): void {
     log.verbose('ResolverWechaty', 'destroy()')
   }
 

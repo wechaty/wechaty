@@ -52,6 +52,8 @@ ARG NODE_OPTIONS=--disable-wasm-trap-handler
 # /wechaty is the monorepo root; the wechaty package is /wechaty/packages/wechaty.
 # Install from the root lockfile with each workspace manifest in place.
 COPY package.json package-lock.json ./
+# One line per workspace listed in the root package.json.
+COPY packages/wechaty-token/package.json ./packages/wechaty-token/
 COPY packages/wechaty/package.json ./packages/wechaty/
 RUN  npm ci \
   && rm -fr /tmp/* ~/.npm

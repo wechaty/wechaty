@@ -1,27 +1,22 @@
-#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
+/**
+ * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
+ * temporary project): the public API loads from the published `dist/` and the
+ * generated version is not the 0.0.0 source placeholder.
+ */
+import assert from 'node:assert/strict'
+
 import {
-  WechatyToken,
   VERSION,
+  WechatyResolver,
+  WechatyToken,
 }                 from 'wechaty-token'
 
-import assert from 'assert'
+const wechatyToken = new WechatyToken('SNI_UUID')
 
-async function main () {
-  const wechatyToken = new WechatyToken('SNI_UUID')
+assert.equal(wechatyToken.token, 'SNI_UUID', 'TOKEN should be SNI_UUID')
+assert.equal(wechatyToken.sni, 'sni', 'SNI should be sni')
+assert.notEqual(VERSION, '0.0.0', 'version should not be 0.0.0 when prepared for publishing')
 
-  assert(wechatyToken.token === 'SNI_UUID', 'TOKEN should be SNI_UUID')
-  assert(wechatyToken.sni === 'sni', 'SNI should be sni')
+WechatyResolver.setup()
 
-  if (VERSION === '0.0.0') {
-    throw new Error('version should not be 0.0.0 when prepare for publishing')
-  }
-
-  console.info(`Puppet v${wechatyToken.version()} smoke testing passed.`)
-  return 0
-}
-
-main()
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
+console.info(`wechaty-token v${wechatyToken.version()} smoke testing passed.`)

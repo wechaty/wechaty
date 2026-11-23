@@ -1,11 +1,15 @@
-/* eslint-disable sort-keys */
+/**
+ * `wechaty-token discover <token>`: resolves a token to its puppet service
+ * address and prints it as JSON. Exits 1 when discovery fails or the token
+ * is unknown.
+ */
 import {
   command,
   positional,
   string,
 }                 from 'cmd-ts'
 
-import { WechatyToken } from '../wechaty-token.js'
+import { WechatyToken } from '../wechaty-token.ts'
 
 async function handler (args: any) {
   let address

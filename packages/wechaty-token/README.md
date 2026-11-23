@@ -1,6 +1,6 @@
 # wechaty-token
 
-[![NPM](https://github.com/wechaty/token/actions/workflows/npm.yml/badge.svg)](https://github.com/wechaty/token/actions/workflows/npm.yml)
+[![Node.js CI](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml/badge.svg)](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml)
 [![NPM Version](https://badge.fury.io/js/wechaty-token.svg)](https://badge.fury.io/js/wechaty-token)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty-token/next.svg)](https://www.npmjs.com/package/wechaty-token?activeTab=versions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
@@ -8,6 +8,14 @@
 ![wechaty token](docs/images/wechaty-token.png)
 
 Wechaty Token Based Authentication Manager
+
+This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty) at
+`packages/wechaty-token`. It moved there from `wechaty/token` in 2.0.
+
+## Requirements
+
+- Node.js 26 or newer. The package is ESM only.
+- `@grpc/grpc-js` 1.14 or newer, as a peer dependency, when you use `WechatyResolver`.
 
 ## Install
 
@@ -115,6 +123,14 @@ See:
 
 ## History
 
+### v2.0 (unreleased)
+
+1. Moved into the Wechaty monorepo ([wechaty/wechaty#3054](https://github.com/wechaty/wechaty/issues/3054))
+1. ESM only; Node.js 26 runs the TypeScript sources directly, and only packaging compiles to `dist/`
+1. `WechatyResolver` uses the public `@grpc/grpc-js` 1.14 resolver API, with `@grpc/grpc-js` as a peer dependency, and reports a discovery error once
+1. `cockatiel` 4 for the retry policy, `crypto.randomUUID()` instead of `uuid`
+1. Tests use `node:test` and run under both Node.js and Deno
+
 ### master v1.0 (Nov 28, 2021)
 
 1. ES Module support
@@ -145,12 +161,12 @@ Inited
 
 ## Author
 
-[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)), Google Developer Expert (Machine Learning), zixia@zixia.net
+[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)), Google Developer Expert (Machine Learning), <zixia@zixia.net>
 
 [![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
 ## Copyright & License
 
-- Code & Docs © 2018-now Huan LI \<zixia@zixia.net\>
+- Code & Docs © 2018-now Huan LI <zixia@zixia.net>
 - Code released under the Apache-2.0 License
 - Docs released under Creative Commons

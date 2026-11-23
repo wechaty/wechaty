@@ -1,55 +1,38 @@
 #!/usr/bin/env bash
-set -e
+#
+# Packs wechaty-token and checks that the tarball works as a consumer sees it:
+# installs it with its @grpc/grpc-js peer in a temporary project, type-checks a
+# smoke test against the published types, and runs it with Node.js.
+#
+set -euo pipefail
 
-npm run dist
-npm pack
-
+PACKAGE_DIR=$(pwd)
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-mv ./*-*.*.*.tgz "$TMPDIR"
+trap 'rm -rf "$TMPDIR"; git -C "$PACKAGE_DIR" checkout -- src/version.ts' EXIT
+
+./scripts/generate-version.sh
+npm run dist
+npm pack --pack-destination "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
-cd $TMPDIR
-
-npm init -y
-npm install ./*-*.*.*.tgz \
-  @chatie/tsconfig \
+cd "$TMPDIR"
+npm init -y > /dev/null
+npm pkg set type=module
+npm install ./wechaty-token-*.tgz \
   @grpc/grpc-js \
+  @types/node \
+  @typescript/native@npm:typescript@^7.0.2
 
-#
-# CommonJS
-#
-./node_modules/.bin/tsc \
-  --esModuleInterop \
+npx tsc \
+  --target esnext \
+  --module nodenext \
+  --moduleResolution nodenext \
+  --verbatimModuleSyntax \
   --lib esnext \
   --noEmitOnError \
   --noImplicitAny \
   --skipLibCheck \
-  --target es5 \
-  --module CommonJS \
-  --moduleResolution node \
-  smoke-testing.ts
-
-echo
-echo "CommonJS: pack testing..."
-node smoke-testing.js
-
-#
-# ES Modules
-#
-
-# https://stackoverflow.com/a/59203952/1123955
-echo "`jq '.type="module"' package.json`" > package.json
-
-./node_modules/.bin/tsc \
-  --esModuleInterop \
-  --lib esnext \
-  --noEmitOnError \
-  --noImplicitAny \
-  --skipLibCheck \
-  --target es2020 \
-  --module es2020 \
-  --moduleResolution node \
   smoke-testing.ts
 
 echo
