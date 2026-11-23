@@ -1,3 +1,7 @@
+/**
+ * Public `wechaty-puppet/payloads` entry point: the payload and event-payload
+ * types, and the `sayablePayloads` builders.
+ */
 import type {
   ContactPayload,
   EventDirtyPayload,
@@ -36,12 +40,12 @@ import type {
   TapPayload,
   UrlLinkPayload,
   SayablePayload,
-}                           from '../schemas/mod.js'
+}                           from '../schemas/mod.ts'
 import {
   sayablePayloads,
   isPostPayloadServer,
   isPostPayloadClient,
-}                           from '../schemas/mod.js'
+}                           from '../schemas/mod.ts'
 
 export type {
   ContactPayload            as Contact,

@@ -1,15 +1,19 @@
+/**
+ * Runtime interface checks for puppets (`interfaceOfPuppet`,
+ * `looseInstanceOfPuppet`), which work across duplicate copies of this package.
+ */
 import {
-  Constructor,
+  type Constructor,
   interfaceOfClass,
   looseInstanceOfClass,
 }                         from 'clone-class'
 
 import {
   Puppet,
-}                     from './puppet-abstract.js'
+}                     from './puppet-abstract.ts'
 import type {
   PuppetInterface,
-}                     from './puppet-interface.js'
+}                     from './puppet-interface.ts'
 
 const interfaceOfPuppet     = interfaceOfClass(Puppet as any as Constructor<Puppet>)<PuppetInterface>()
 const looseInstanceOfPuppet = looseInstanceOfClass(Puppet as any as Constructor<Puppet>)

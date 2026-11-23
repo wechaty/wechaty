@@ -1,16 +1,20 @@
-import type { DirtyType } from './dirty.js'
+/**
+ * Event schema: the `ScanStatus` map and the payload of every puppet event.
+ */
+import type { DirtyType } from './dirty.ts'
 
 /**
  * The event `scan` status number.
  */
-export enum ScanStatus {
-  Unknown   = 0,
-  Cancel    = 1,
-  Waiting   = 2,
-  Scanned   = 3,
-  Confirmed = 4,
-  Timeout   = 5,
-}
+export const ScanStatus = {
+  Unknown   : 0,
+  Cancel    : 1,
+  Waiting   : 2,
+  Scanned   : 3,
+  Confirmed : 4,
+  Timeout   : 5,
+} as const
+export type ScanStatus = typeof ScanStatus[keyof typeof ScanStatus]
 
 export interface EventFriendshipPayload {
   friendshipId: string,

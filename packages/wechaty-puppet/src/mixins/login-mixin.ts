@@ -1,10 +1,15 @@
+/**
+ * Login mixin: tracks the logged-in user (`currentUserId`, `isLoggedIn`) from
+ * `login` and `logout` events, and offers `login()`, `logout()` and the
+ * `selfId()` shortcut.
+ */
 import {
   log,
-}           from '../config.js'
+}           from '../config.ts'
 
-import type { PuppetScanListener }  from '../puppet/events.js'
-import type { PuppetSkeleton }      from '../puppet/puppet-skeleton.js'
-import { ScanStatus }               from '../schemas/event.js'
+import type { PuppetScanListener }  from '../puppet/events.ts'
+import type { PuppetSkeleton }      from '../puppet/puppet-skeleton.ts'
+import { ScanStatus }               from '../schemas/event.ts'
 
 const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 

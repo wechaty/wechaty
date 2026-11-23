@@ -1,16 +1,20 @@
+/**
+ * Friendship mixin: the friendship API (payload, accept, add, search by phone
+ * or handle). Provider puppets implement the raw methods.
+ */
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 import type {
   FriendshipAddOptions,
   FriendshipPayload,
   FriendshipSearchQueryFilter,
-}                                 from '../schemas/friendship.js'
+}                                 from '../schemas/friendship.ts'
 
-import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
-import { DirtyType }              from '../schemas/dirty.js'
+import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.ts'
+import { DirtyType }              from '../schemas/dirty.ts'
 
-import type { CacheMixin }  from './cache-mixin.js'
+import type { CacheMixin }  from './cache-mixin.ts'
 
 const friendshipMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(mixinBase: MixinBase) => {
 

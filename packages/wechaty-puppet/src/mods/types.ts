@@ -1,3 +1,8 @@
+/**
+ * Public `wechaty-puppet/types` entry point: the `const` type maps (`Message`,
+ * `Contact`, `Dirty`, …) and event-name types. Use `helpers.typeName()` for a
+ * value's name.
+ */
 import {
   type FriendshipAddOptions,
   type PuppetEventName,
@@ -18,7 +23,7 @@ import {
 
   ScanStatus,
   YOU,
-}                       from '../schemas/mod.js'
+}                       from '../schemas/mod.ts'
 
 export {
   type PuppetEventName,

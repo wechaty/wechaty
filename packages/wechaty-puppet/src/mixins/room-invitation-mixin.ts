@@ -1,13 +1,17 @@
+/**
+ * Room-invitation mixin: the room-invitation API (payload and accept).
+ * Provider puppets implement the raw methods.
+ */
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 
 import type {
   RoomInvitationPayload,
-}                                 from '../schemas/room-invitation.js'
+}                                 from '../schemas/room-invitation.ts'
 
-import type { PuppetSkeleton }        from '../puppet/puppet-skeleton.js'
-import type { CacheMixin } from './cache-mixin.js'
+import type { PuppetSkeleton }        from '../puppet/puppet-skeleton.ts'
+import type { CacheMixin } from './cache-mixin.ts'
 
 const roomInvitationMixin = <MixinBase extends typeof PuppetSkeleton & CacheMixin>(mixinBase: MixinBase) => {
 

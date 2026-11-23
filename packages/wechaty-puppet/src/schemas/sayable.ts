@@ -1,15 +1,19 @@
+/**
+ * Sayable schema: `sayablePayloads` builders for every message type that can
+ * be sent, and the `SayablePayload` union they produce.
+ */
 /* eslint-disable sort-keys */
 import { createAction } from 'typesafe-actions'
 import type { FileBoxInterface } from 'file-box'
 
-import { MessageType }              from './message.js'
-import type { LocationPayload }     from './location.js'
-import type { UrlLinkPayload }      from './url-link.js'
-import type { MiniProgramPayload }  from './mini-program.js'
+import { MessageType }              from './message.ts'
+import type { LocationPayload }     from './location.ts'
+import type { UrlLinkPayload }      from './url-link.ts'
+import type { MiniProgramPayload }  from './mini-program.ts'
 import type {
   PostPayload,
   SayablePayloadPost,
-}                                     from './post.js'
+}                                     from './post.ts'
 
 const payloadContact     = (contactId: string)                      => ({ contactId })
 const payloadFilebox     = (filebox: string | FileBoxInterface)     => ({ filebox })

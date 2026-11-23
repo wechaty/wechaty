@@ -1,4 +1,4 @@
-import * as PUPPET from '../../../src/mods/mod.js'
+import * as PUPPET from '../../../src/mods/mod.ts'
 import type {
   FileBoxInterface,
 }                           from 'file-box'
@@ -6,10 +6,10 @@ import type {
 /**
  * expose to public for internal methods:
  */
-import type { MessagePayloadFilterFunction }  from '../../../src/schemas/message.js'
-import type { RoomPayloadFilterFunction }     from '../../../src/schemas/room.js'
-import type { ContactPayloadFilterFunction }  from '../../../src/schemas/contact.js'
-import type { FriendshipAddOptions }          from '../../../src/schemas/friendship.js'
+import type { MessagePayloadFilterFunction }  from '../../../src/schemas/message.ts'
+import type { RoomPayloadFilterFunction }     from '../../../src/schemas/room.ts'
+import type { ContactPayloadFilterFunction }  from '../../../src/schemas/contact.ts'
+import type { FriendshipAddOptions }          from '../../../src/schemas/friendship.ts'
 
 class PuppetTest extends PUPPET.Puppet {
 

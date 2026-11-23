@@ -1,3 +1,8 @@
+/**
+ * Message mixin: the message API (payload, search, file, image, contact,
+ * location, mini-program, URL link, forward, recall, send). Provider puppets
+ * implement the raw and send methods.
+ */
 import {
   type FileBoxInterface,
   FileBox,
@@ -5,38 +10,38 @@ import {
 
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 
 import type {
   ImageType,
-}                                 from '../schemas/image.js'
+}                                 from '../schemas/image.ts'
 import type {
   MessagePayload,
   MessagePayloadFilterFunction,
   MessageQueryFilter,
   MessageType,
-}                                 from '../schemas/message.js'
+}                                 from '../schemas/message.ts'
 import type {
   UrlLinkPayload,
-}                                 from '../schemas/url-link.js'
+}                                 from '../schemas/url-link.ts'
 import type {
   MiniProgramPayload,
-}                                 from '../schemas/mini-program.js'
+}                                 from '../schemas/mini-program.ts'
 import type {
   LocationPayload,
-}                                 from '../schemas/location.js'
+}                                 from '../schemas/location.ts'
 import type {
   PostPayload,
-}                                 from '../schemas/post.js'
+}                                 from '../schemas/post.ts'
 
-import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
-import { DirtyType }              from '../schemas/dirty.js'
+import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.ts'
+import { DirtyType }              from '../schemas/dirty.ts'
 
-import type { CacheMixin }        from './cache-mixin.js'
+import type { CacheMixin }        from './cache-mixin.ts'
 import {
   type SayablePayload,
   sayableTypes,
-}                                 from '../schemas/sayable.js'
+}                                 from '../schemas/sayable.ts'
 
 const filebox = (filebox: string | FileBoxInterface) => typeof filebox === 'string' ? FileBox.fromJSON(filebox) : filebox
 

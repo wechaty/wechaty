@@ -1,3 +1,6 @@
+/**
+ * Mini-program schema: the payload of a WeChat mini program card.
+ */
 export interface MiniProgramPayload {
     appid?       : string,   // optional, appid, get from wechat (mp.weixin.qq.com)
     description? : string,   // optional, mini program title

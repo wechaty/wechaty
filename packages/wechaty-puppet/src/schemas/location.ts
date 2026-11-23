@@ -1,4 +1,7 @@
 /**
+ * Location schema: the payload of a location message.
+ */
+/**
  * Issue wechaty/wechaty#2250
  *  - https://github.com/wechaty/wechaty/issues/2250
  */

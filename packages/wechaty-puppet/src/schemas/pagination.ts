@@ -1,4 +1,7 @@
 /**
+ * Pagination schema: the request and response shapes for paged queries.
+ */
+/**
  * Google Cloud APIs - Common design patterns  - List Pagination
  * @see https://cloud.google.com/apis/design/design_patterns#list_pagination
  */

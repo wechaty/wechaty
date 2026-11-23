@@ -1,11 +1,15 @@
+/**
+ * Validate mixin: static `validInstance()` and `valid()` checks that an object
+ * implements the puppet interface.
+ */
 import {
   interfaceOfPuppet,
   looseInstanceOfPuppet,
-}                             from '../puppet/interface-of.js'
+}                             from '../puppet/interface-of.ts'
 
-import type { Puppet }          from '../puppet/puppet-abstract.js'
-import type { PuppetInterface } from '../puppet/puppet-interface.js'
-import type { PuppetSkeleton }   from '../puppet/puppet-skeleton.js'
+import type { Puppet }          from '../puppet/puppet-abstract.ts'
+import type { PuppetInterface } from '../puppet/puppet-interface.ts'
+import type { PuppetSkeleton }   from '../puppet/puppet-skeleton.ts'
 
 const validateMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 

@@ -1,3 +1,7 @@
+/**
+ * `throwUnsupportedError()`: the default body of puppet methods a provider has
+ * not implemented.
+ */
 /* eslint @typescript-eslint/no-unused-vars: off */
 
 export function throwUnsupportedError (..._: any): never {

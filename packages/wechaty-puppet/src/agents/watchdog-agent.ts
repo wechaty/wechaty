@@ -1,14 +1,19 @@
+/**
+ * `WatchdogAgent`: watches a running puppet's `heartbeat` events and asks it to
+ * `reset` when they stop arriving. `service-mixin.ts` starts and stops it with
+ * the puppet.
+ */
 import {
   Watchdog,
-  WatchdogFood,
+  type WatchdogFood,
 }                       from 'watchdog'
 
-import type { PuppetSkeleton } from '../puppet/mod.js'
-import type { ServiceMixin } from '../mixins/service-mixin.js'
+import type { PuppetSkeleton } from '../puppet/mod.ts'
+import type { ServiceMixin } from '../mixins/service-mixin.ts'
 
 import {
   log,
-}           from '../config.js'
+}           from '../config.ts'
 
 const DEFAULT_WATCHDOG_TIMEOUT_SECONDS  = 60
 
@@ -18,9 +23,12 @@ class WatchdogAgent {
 
   private cleanCallbackList: Function[]
 
+  protected readonly puppet: PuppetSkeleton & InstanceType<ServiceMixin>
+
   constructor (
-    protected readonly puppet: PuppetSkeleton & InstanceType<ServiceMixin>,
+    puppet: PuppetSkeleton & InstanceType<ServiceMixin>,
   ) {
+    this.puppet = puppet
     log.verbose('PuppetWatchdogAgent', 'constructor(%s)', puppet.id)
 
     this.cleanCallbackList = []

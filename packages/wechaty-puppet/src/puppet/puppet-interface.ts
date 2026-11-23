@@ -1,8 +1,12 @@
+/**
+ * The `PuppetInterface` and `PuppetConstructor` types that provider puppets
+ * implement, derived from the abstract `Puppet` class.
+ */
 import type { Constructor } from 'clone-class'
 
-import type { MixinProtectedProperty } from '../mixins/mod.js'
-import type { PuppetSkeletonProtectedProperty } from './puppet-skeleton.js'
-import type { Puppet } from './puppet-abstract.js'
+import type { MixinProtectedProperty } from '../mixins/mod.ts'
+import type { PuppetSkeletonProtectedProperty } from './puppet-skeleton.ts'
+import type { Puppet } from './puppet-abstract.ts'
 
 type PuppetProtectedProperty =
   | MixinProtectedProperty

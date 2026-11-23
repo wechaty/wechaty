@@ -1,12 +1,16 @@
+/**
+ * Memory mixin: the puppet's `MemoryCard` for persistent session data, with
+ * `setMemory()` and a guard against replacing a named memory.
+ */
 import { MemoryCard }  from 'memory-card'
 
 import type {
   PuppetSkeleton,
-}                   from '../puppet/puppet-skeleton.js'
+}                   from '../puppet/puppet-skeleton.ts'
 
 import {
   log,
-}           from '../config.js'
+}           from '../config.ts'
 
 const memoryMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 

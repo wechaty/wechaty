@@ -16,8 +16,8 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
   `npm run coverage:node`, and `npm run coverage:deno`.
 - Each package lives in `packages/<npm-name>/` with its own `package.json`,
   `tsconfig.json` (extending `../../tsconfig.base.json`), sources, tests, and
-  package scripts. Today there are two: `packages/wechaty-token` and
-  `packages/wechaty`.
+  package scripts. Today there are three: `packages/wechaty-token`,
+  `packages/wechaty-puppet` and `packages/wechaty`.
 - A package joins the root `workspaces` list only after it follows these rules.
 - A package's `exports` may add a `wechaty-source` condition that points at
   `src/`, for workspace development only: Node.js refuses to strip types from

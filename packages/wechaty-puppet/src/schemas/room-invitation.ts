@@ -1,3 +1,6 @@
+/**
+ * Room-invitation schema: the room-invitation payload.
+ */
 export interface RoomInvitationPayload {
   id           : string,
   inviterId    : string,

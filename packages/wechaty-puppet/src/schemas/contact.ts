@@ -1,18 +1,24 @@
-enum ContactGender {
-  Unknown = 0,
-  Male    = 1,
-  Female  = 2,
-}
+/**
+ * Contact schema: `ContactGender` and `ContactType` (`as const` maps whose
+ * numbers must not change), the contact payload, and its query filter.
+ */
+const ContactGender = {
+  Unknown : 0,
+  Male    : 1,
+  Female  : 2,
+} as const
+type ContactGender = typeof ContactGender[keyof typeof ContactGender]
 
 /**
  * Huan(202004) TODO: Lock the ENUM number (like protobuf) ?
  */
-enum ContactType {
-  Unknown     = 0,
-  Individual  = 1,
-  Official    = 2,
-  Corporation = 3,
-}
+const ContactType = {
+  Unknown     : 0,
+  Individual  : 1,
+  Official    : 2,
+  Corporation : 3,
+} as const
+type ContactType = typeof ContactType[keyof typeof ContactType]
 
 interface ContactQueryFilter {
   alias?:  string | RegExp,

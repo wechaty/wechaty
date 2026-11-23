@@ -1,6 +1,10 @@
-#!/usr/bin/env ts-node
-
-import assert from 'assert'
+/**
+ * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
+ * temporary ESM project): a provider puppet extends the published abstract
+ * `Puppet`, every public entry point (`types`, `payloads`, `filters`,
+ * `impls`) loads, and the embedded package.json is the real one.
+ */
+import assert from 'node:assert/strict'
 
 import * as PUPPET    from 'wechaty-puppet'
 import type {

@@ -1,4 +1,8 @@
 /**
+ * Barrel for the puppet classes: `Puppet`, `PuppetSkeleton`, their types, and
+ * `resolvePuppet()`.
+ */
+/**
  * Huan(202110): Issue #168 - ReferenceError: Cannot access 'Puppet' before initialization
  *  @see https://github.com/wechaty/puppet/issues/168
  *
@@ -13,19 +17,19 @@
 
  * This is due to the circler dependence, the deeper reason is still not clear.
  */
-import './interface-of.js'
+import './interface-of.ts'
 
-import { PuppetSkeleton } from './puppet-skeleton.js'
+import { PuppetSkeleton } from './puppet-skeleton.ts'
 import {
   Puppet,
-}                         from './puppet-abstract.js'
+}                         from './puppet-abstract.ts'
 import type {
   PuppetConstructor,
   PuppetInterface,
-}                         from './puppet-interface.js'
+}                         from './puppet-interface.ts'
 import {
   resolvePuppet,
-}                         from './puppet-resolver.js'
+}                         from './puppet-resolver.ts'
 
 export type {
   PuppetConstructor,

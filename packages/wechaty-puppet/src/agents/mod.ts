@@ -1,5 +1,9 @@
-import { CacheAgent } from './cache-agent.js'
-import { WatchdogAgent } from './watchdog-agent.js'
+/**
+ * Barrel for the puppet's helper agents: the payload `CacheAgent` and the
+ * heartbeat `WatchdogAgent`.
+ */
+import { CacheAgent } from './cache-agent.ts'
+import { WatchdogAgent } from './watchdog-agent.ts'
 
 export {
   CacheAgent,

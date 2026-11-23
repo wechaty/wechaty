@@ -5,6 +5,7 @@
   "type": "module",
   "workspaces": [
     "packages/wechaty-token",
+    "packages/wechaty-puppet",
     "packages/wechaty"
   ],
   "engines": {

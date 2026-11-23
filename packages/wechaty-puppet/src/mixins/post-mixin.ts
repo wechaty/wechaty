@@ -1,21 +1,25 @@
+/**
+ * Post mixin: the post API (payload, list, search with pagination, publish).
+ * Provider puppets implement the raw methods.
+ */
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 
 import type {
   PostPayload,
   PostQueryFilter,
-}                                 from '../schemas/post.js'
+}                                 from '../schemas/post.ts'
 
-import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
-import { DirtyType }              from '../schemas/dirty.js'
+import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.ts'
+import { DirtyType }              from '../schemas/dirty.ts'
 
 import type {
   PaginationRequest,
   PaginationResponse,
-}                                 from '../schemas/pagination.js'
+}                                 from '../schemas/pagination.ts'
 
-import type { CacheMixin }        from './cache-mixin.js'
+import type { CacheMixin }        from './cache-mixin.ts'
 
 const postMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(baseMixin: MinxinBase) => {
 

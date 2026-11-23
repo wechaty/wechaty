@@ -1,7 +1,11 @@
 /**
+ * `PuppetSkeleton`: the base every mixin extends. It owns the puppet `id`,
+ * `options`, the typed event emitter and `wrapAsync()`.
+ */
+/**
  *   Wechaty - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan Li <huan@chatie.io>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,11 +20,9 @@
  *   limitations under the License.
  *
  */
-import * as UUID from 'uuid'
-
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 /**
  * Issue #165 - ReferenceError: Cannot access 'PuppetSkeleton' before initialization
  *  @see https://github.com/wechaty/puppet/issues/165
@@ -34,15 +36,15 @@ import type {
   WrapAsync,
 }                     from 'gerror'
 
-import type { EventErrorPayload } from '../schemas/event.js'
+import type { EventErrorPayload } from '../schemas/event.ts'
 
 import type {
   PuppetOptions,
-}                                 from '../schemas/puppet.js'
+}                                 from '../schemas/puppet.ts'
 
 import {
   PuppetEventEmitter,
-}                                 from './events.js'
+}                                 from './events.ts'
 
 abstract class PuppetSkeleton extends PuppetEventEmitter {
 
@@ -83,7 +85,7 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
         : '',
     )
 
-    this.id       = UUID.v4()
+    this.id       = crypto.randomUUID()
     this.options  = args[0] || {}
 
     /**

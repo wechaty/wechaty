@@ -54,6 +54,7 @@ ARG NODE_OPTIONS=--disable-wasm-trap-handler
 COPY package.json package-lock.json ./
 # One line per workspace listed in the root package.json.
 COPY packages/wechaty-token/package.json ./packages/wechaty-token/
+COPY packages/wechaty-puppet/package.json ./packages/wechaty-puppet/
 COPY packages/wechaty/package.json ./packages/wechaty/
 RUN  npm ci \
   && rm -fr /tmp/* ~/.npm

@@ -1,20 +1,24 @@
+/**
+ * Tap mixin: the tap API (likes on posts: `tap()` and `tapSearch()`). Provider
+ * puppets implement them.
+ */
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 
 import type {
   TapPayload,
   TapQueryFilter,
   TapType,
-}                                 from '../schemas/tap.js'
+}                                 from '../schemas/tap.ts'
 
-import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
+import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.ts'
 
-import type { CacheMixin }        from './cache-mixin.js'
+import type { CacheMixin }        from './cache-mixin.ts'
 import type {
   PaginationRequest,
   PaginationResponse,
-}                           from '../schemas/pagination.js'
+}                           from '../schemas/pagination.ts'
 
 const tapMixin = <MinxinBase extends typeof PuppetSkeleton & CacheMixin>(baseMixin: MinxinBase) => {
 

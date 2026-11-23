@@ -1,16 +1,22 @@
-import { log } from '../config.js'
+/**
+ * Sayable mixin: `sayablePayload()` turns a message into a payload that can be
+ * sent again (text, file, contact, URL, mini-program, location, post), or
+ * `undefined` for types that cannot be re-sent.
+ */
+import { log } from '../config.ts'
 
-import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.js'
+import type { PuppetSkeleton }    from '../puppet/puppet-skeleton.ts'
 import {
   MessageType,
-}                                 from '../schemas/message.js'
+}                                 from '../schemas/message.ts'
 import {
-  SayablePayload,
+  type SayablePayload,
   sayablePayloads,
-}                                 from '../schemas/sayable.js'
+}                                 from '../schemas/sayable.ts'
 
-import type { MessageMixin }  from './message-mixin.js'
-import type { PostMixin }     from './post-mixin.js'
+import { typeName }           from '../schemas/type-name.ts'
+import type { MessageMixin }  from './message-mixin.ts'
+import type { PostMixin }     from './post-mixin.ts'
 
 const sayableMixin = <MixinBase extends typeof PuppetSkeleton & MessageMixin & PostMixin>(mixinBase: MixinBase) => {
 
@@ -64,7 +70,7 @@ const sayableMixin = <MixinBase extends typeof PuppetSkeleton & MessageMixin & P
         default:
           log.warn('PuppetSayableMixin',
             'sayablePayload() can not convert not re-sayable type: %s(%s) for %s\n%s',
-            MessageType[payload.type],
+            typeName(MessageType, payload.type),
             payload.type,
             sayableId,
             new Error().stack,
