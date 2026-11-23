@@ -23,6 +23,11 @@ import {
 
 import { WechatyToken } from './wechaty-token.ts'
 
+/**
+ * Resolves `wechaty://<authority>/<token>` to the puppet service address that
+ * `WechatyToken.discover()` returns. grpc-js creates one instance per channel
+ * target; register the class once with `WechatyResolver.setup()`.
+ */
 class WechatyResolver implements experimental.Resolver {
 
   /**
@@ -67,6 +72,7 @@ class WechatyResolver implements experimental.Resolver {
     process.nextTick(() => this.listener(endpoints, {}, null, ''))
   }
 
+  /** Reports `UNAVAILABLE` for this target, with the reason in its details. */
   private reportResolutionError (reason: string): void {
     this.report(experimental.statusOrFromError({
       code: GrpcStatus.UNAVAILABLE,
@@ -107,6 +113,7 @@ class WechatyResolver implements experimental.Resolver {
     this.report(experimental.statusOrFromValue([ { addresses: [ address ] } ]))
   }
 
+  /** Nothing to release: the resolver holds no connections or timers. */
   destroy (): void {
     log.verbose('ResolverWechaty', 'destroy()')
   }

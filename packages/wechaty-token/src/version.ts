@@ -1,7 +1,6 @@
-
 /**
- * This file will be overwrite when we publish NPM module
- * by scripts/generate_version.ts
+ * The package version. Git keeps the `0.0.0` placeholder (checked by
+ * `version.test.ts`); `scripts/generate-version.sh` overwrites this file from
+ * `package.json` before packing.
  */
-
-export const VERSION = '0.0.0'
+export const VERSION: string = '0.0.0'
