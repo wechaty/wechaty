@@ -383,7 +383,7 @@ Accept room invitation
 
 [![Known Vulnerabilities](https://snyk.io/test/github/Wechaty/wechaty/badge.svg)](https://snyk.io/test/github/Wechaty/wechaty)
 
-Wechaty is fully automatically tested by unit and integration tests, with Continuous Integration & Continuous Delivery (CI/CD) support powered by GitHub Actions and AppVeyor.
+Wechaty is fully automatically tested by unit and integration tests, with Continuous Integration & Continuous Delivery (CI/CD) support powered by GitHub Actions.
 
 To test Wechaty, run:
 
