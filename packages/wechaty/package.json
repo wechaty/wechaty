@@ -56,7 +56,7 @@
     "lint:biome": "biome lint bin examples src scripts tests",
     "lint:sh": "bash -n bin/*.sh",
     "lint:ts": "tsc --isolatedModules --noEmit",
-    "lint": "npm run lint:biome && npm run lint:ts && npm run lint:sh",
+    "lint": "npm run lint:biome && npm run lint:ts && npm run lint:sh && npm run lint:md",
     "puppet-install": "node bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "start": "npm run demo",
@@ -69,7 +69,8 @@
     "test:integration": "node --test --test-timeout=180000 tests/integration",
     "test:e2e": "node --test --test-timeout=180000 tests/e2e",
     "test": "npm run lint && npm run test:unit",
-    "typedoc": "bash scripts/typedoc.sh"
+    "typedoc": "bash scripts/typedoc.sh",
+    "lint:md": "markdownlint --config ../../.markdownlint.json README.md"
   },
   "repository": {
     "type": "git",

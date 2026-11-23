@@ -1,0 +1,82 @@
+{
+  "name": "wechaty-token",
+  "version": "1.1.2",
+  "description": "Wechaty Token Based Authentication Manager",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mod.js",
+      "require": "./dist/cjs/src/mod.js"
+    }
+  },
+  "typings": "./dist/esm/src/mod.d.ts",
+  "engines": {
+    "node": ">=16",
+    "npm": ">=7"
+  },
+  "bin": {
+    "wechaty-token": "dist/esm/bin/cli.js"
+  },
+  "scripts": {
+    "clean": "shx rm -fr dist/*",
+    "dist": "npm-run-all clean build dist:commonjs",
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
+    "lint": "npm-run-all lint:es lint:ts lint:md",
+    "lint:ts": "tsc --isolatedModules --noEmit",
+    "lint:md": "markdownlint README.md",
+    "lint:es": "eslint \"bin/**/*.ts\" \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
+    "test": "npm-run-all lint test:unit",
+    "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "cli": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node bin/cli.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wechaty/token.git"
+  },
+  "keywords": [
+    "wechaty",
+    "token"
+  ],
+  "author": "Huan LI <zixia@zixia.net>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wechaty/token/issues"
+  },
+  "homepage": "https://github.com/wechaty/token#readme",
+  "devDependencies": {
+    "@chatie/eslint-config": "^1.0.4",
+    "@chatie/git-scripts": "^0.6.2",
+    "@chatie/semver": "^0.4.7",
+    "@chatie/tsconfig": "^4.6.2",
+    "@grpc/grpc-js": "^1.4.4",
+    "@types/uuid": "^8.3.3",
+    "nock": "^13.2.1",
+    "pkg-jq": "^0.2.11",
+    "shx": "^0.3.3",
+    "tstest": "^1.0.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
+  "git": {
+    "scripts": {
+      "pre-push": "npx git-scripts-pre-push"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "tap": {
+    "check-coverage": false
+  },
+  "dependencies": {
+    "brolog": "^1.14.2",
+    "cmd-ts": "^0.7.0",
+    "cockatiel": "^2.0.2",
+    "uuid": "^8.3.2"
+  }
+}
