@@ -1,23 +1,20 @@
 {
-  "extends": "@chatie/tsconfig",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist/esm",
-    "verbatimModuleSyntax": false,
-    // See: https://github.com/wechaty/wechaty/issues/2551
-    "ignoreDeprecations": "5.0"
+    "types": [ "node" ]
   },
   "exclude": [
     "node_modules/",
     "dist/",
-    "tests/fixtures/",
+    "out/",
+    "tests/fixtures/smoke-testing.ts"
   ],
   "include": [
-    "app/**/*.ts",
-    "bin/*.ts",
-    "bot/**/*.ts",
+    "commonjs/**/*.ts",
     "examples/**/*.ts",
     "scripts/**/*.ts",
     "src/**/*.ts",
-    "tests/**/*.spec.ts", "commonjs/google.spec.ts",
-  ],
+    "tests/**/*.ts"
+  ]
 }

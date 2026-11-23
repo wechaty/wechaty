@@ -1,3 +1,7 @@
+/**
+ * Example: a plain HTTPS client for checking the TLS certificates of `auth/`
+ * without gRPC.
+ */
 import fs from 'fs'
 import https from 'https'
 

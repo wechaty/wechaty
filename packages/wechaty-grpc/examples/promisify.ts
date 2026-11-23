@@ -1,3 +1,7 @@
+/**
+ * Example helper: promise-returning wrappers for the callback-style generated
+ * client methods (wechaty/grpc#7).
+ */
 import { promisify } from 'util'
 
 /**

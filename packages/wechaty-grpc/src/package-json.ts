@@ -1,11 +1,7 @@
 /**
- * This file will be overwrite when we publish NPM module
- * by scripts/generate_version.ts
+ * The package's own package.json, embedded at build time. Git keeps an empty
+ * object (checked by `package-json.test.ts`); `scripts/generate-package-json.sh`
+ * writes the real manifest before packing. `config.ts` reads `version` from it,
+ * falling back to `0.0.0`.
  */
-import type { PackageJson } from 'type-fest'
-
-/**
- * Huan(202108):
- *  The below default values is only for unit testing
- */
-export const packageJson: PackageJson = {}
+export const packageJson: { name?: string, version?: string, [key: string]: unknown } = {}

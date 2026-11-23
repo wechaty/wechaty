@@ -1,5 +1,6 @@
 /**
- * A stream transformer that encodes chunks into protobufs (and vice versa)
+ * Stream transformers between raw chunks and the `UploadRequest` /
+ * `DownloadResponse` messages, for streaming files over gRPC.
  */
 import {
   Transform,

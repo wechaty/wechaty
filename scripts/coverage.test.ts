@@ -52,6 +52,16 @@ test('coverage parser rejects empty, incomplete, duplicate, and malformed LCOV',
   assert.throws(() => parseLcov(record('src/file.ts').replace('DA:1,1', 'DA:oops')), /Malformed LCOV line/)
 })
 
+test('a report without branches or functions counts them as fully covered, but one without lines fails', () => {
+  const straightLine = 'TN:\nSF:src/straight.ts\nFNF:0\nFNH:0\nBRF:0\nBRH:0\nDA:1,1\nDA:2,0\nLH:1\nLF:2\nend_of_record\n'
+  const metrics = summarizeLcov(parseLcov(straightLine))
+  assert.equal(metrics.lines.percent, 50)
+  assert.equal(metrics.functions.percent, 100)
+  assert.equal(metrics.branches.percent, 100)
+  const typeOnly = 'TN:\nSF:src/types-only.ts\nFNF:0\nFNH:0\nBRF:0\nBRH:0\nLH:3\nLF:3\nend_of_record\n'
+  assert.throws(() => summarizeLcov(parseLcov(typeOnly)), /no lines coverage data/)
+})
+
 test('a type-only module counts as an empty source', () => {
   // Node's LCOV for a file with only interfaces: summary tags, no DA/FN/BRDA.
   const [ typeOnly ] = parseLcov('TN:\nSF:src/types-only.ts\nFNF:0\nFNH:0\nBRF:0\nBRH:0\nLH:11\nLF:11\nend_of_record\n')
@@ -207,6 +217,12 @@ test('Deno permissions add each package\'s extras to the shared defaults', () =>
   assert.deepEqual(denoPermissions(loadCoverageConfig(tmpdir())), [
     '--allow-read=.,../../node_modules,/tmp',
     '--allow-write=coverage/deno,/tmp',
+    '--allow-env',
+  ])
+  assert.deepEqual(denoPermissions({ ...loadCoverageConfig(tmpdir()), deno: { allowNet: [ '127.0.0.1' ] } }), [
+    '--allow-read=.,../../node_modules,/tmp',
+    '--allow-write=coverage/deno,/tmp',
+    '--allow-net=127.0.0.1',
     '--allow-env',
   ])
   assert.deepEqual(denoPermissions(WECHATY_CONFIG), [

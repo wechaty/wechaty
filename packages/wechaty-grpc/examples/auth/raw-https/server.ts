@@ -1,3 +1,7 @@
+/**
+ * Example: a plain HTTPS server using the `auth/` certificates (`server.crt`,
+ * `server.key`), for checking the TLS setup without gRPC.
+ */
 import fs from 'fs'
 import https from 'https'
 

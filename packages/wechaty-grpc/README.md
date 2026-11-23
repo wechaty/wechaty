@@ -1,28 +1,23 @@
 <!-- markdownlint-disable MD033 MD041 -->
 
 <div align="center">
-<img src="docs/images/wechaty-grpc-logo.svg" width="400" />
+<img alt="Wechaty gRPC logo" src="docs/images/wechaty-grpc-logo.svg" width="400" />
 <br />
 <h1>Wechaty gRPC</h1>
 <p>
 gRPC Service & Protocol Buffers for Wechaty Puppet
 </p>
 <a href="https://github.com/wechaty/grpc/issues
-"><img src="https://img.shields.io/github/issues/wechaty/grpc?style=flat-square" /></a>
-<a href="https://github.com/wechaty/grpc/network/members"><img src="https://img.shields.io/github/forks/wechaty/grpc?style=flat-square" /></a>
-<a href="https://github.com/wechaty/grpc/stargazers"><img src="https://img.shields.io/github/stars/wechaty/grpc?style=flat-square" /></a>
-<a href="https://github.com/wechaty/grpc/blob/master/LICENSE"><img src="https://img.shields.io/github/license/wechaty/grpc?style=flat-square" /></a>
-<a href="https://github.com/Chatie/tsconfig/issues/16"><img src="https://img.shields.io/badge/ES-Modules-brightgreen" /></a>
+"><img alt="badge" src="https://img.shields.io/github/issues/wechaty/grpc?style=flat-square" /></a>
+<a href="https://github.com/wechaty/grpc/network/members"><img alt="badge" src="https://img.shields.io/github/forks/wechaty/grpc?style=flat-square" /></a>
+<a href="https://github.com/wechaty/grpc/stargazers"><img alt="badge" src="https://img.shields.io/github/stars/wechaty/grpc?style=flat-square" /></a>
+<a href="https://github.com/wechaty/grpc/blob/master/LICENSE"><img alt="badge" src="https://img.shields.io/github/license/wechaty/grpc?style=flat-square" /></a>
+<a href="https://github.com/Chatie/tsconfig/issues/16"><img alt="badge" src="https://img.shields.io/badge/ES-Modules-brightgreen" /></a>
 </div>
 
 <div align="center">
 
-[![Node.js NPM](https://github.com/wechaty/grpc/actions/workflows/node.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/node.yml)
-[![C# Nuget](https://github.com/wechaty/grpc/actions/workflows/csharp.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/csharp.yml)
-[![Go](https://github.com/wechaty/grpc/actions/workflows/go.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/go.yml)
-[![Java Maven](https://github.com/wechaty/grpc/actions/workflows/java.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/java.yml)
-[![PHP](https://github.com/wechaty/grpc/actions/workflows/php.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/php.yml)
-[![Python PyPI](https://github.com/wechaty/grpc/actions/workflows/python.yml/badge.svg)](https://github.com/wechaty/grpc/actions/workflows/python.yml)
+[![Node.js CI](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml/badge.svg)](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml)
 
 [![NPM Version](https://img.shields.io/npm/v/wechaty-grpc?color=brightgreen&label=NPM&style=flat-square)](https://www.npmjs.com/package/wechaty-grpc)
 [![PyPI Version](https://img.shields.io/pypi/v/chatie-grpc?color=blue&label=PyPI&style=flat-square)](https://pypi.org/project/chatie-grpc/)
@@ -67,6 +62,19 @@ gRPC Service & Protocol Buffers for Wechaty Puppet
 <li><a href="#Copyright--License">Copyright & License</a></li>
 </ol>
 
+## In the Wechaty monorepo
+
+This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty) at
+`packages/wechaty-grpc`, where it moved from `wechaty/grpc` in 2.0
+([wechaty/wechaty#3054](https://github.com/wechaty/wechaty/issues/3054)).
+
+- The Node.js package (`wechaty-grpc` on npm) is built, tested and published from here. It needs
+  Node.js 26 or newer and is ESM only.
+- The other-language packages in `polyglot/` (C#, Go, Java, PHP, Python) and the OpenAPI document
+  in `openapi/` are kept but not built or published until the protocol freezes at 2.0.0
+  ([wechaty/wechaty#3053](https://github.com/wechaty/wechaty/issues/3053)). Their old CI workflows
+  are in the history of `wechaty/grpc`.
+
 ## About
 
 gRPC is a modern open-source high-performance Remote Procedure Call (RPC) framework that can run in any environment. It can efficiently connect services in and across data centers with pluggable support for load balancing, tracing, health checking, and authentication. It is also applicable in the last mile of distributed computing to connect devices, mobile applications, and browsers to backend services.
@@ -84,7 +92,7 @@ gRPC is a modern open-source high-performance Remote Procedure Call (RPC) framew
 
 **Maintainer:**
 
-- [@huan](https://github.com/huan) - Huan LI (李卓桓)
+- [@huan](https://github.com/huan) - Huan Li <huan@chatie.io>
 
 ### Python
 
@@ -155,57 +163,31 @@ grpcc --proto ./service/myservice.proto --address 127.0.0.1:3466
 
 ### Build
 
-```shell
-./scripts/install-protoc.sh
-npm install
-```
+Install once at the monorepo root. The `grpc-tools` install script downloads `protoc`; the root
+`package.json` allows it in `allowScripts`.
 
-> <https://github.com/google/protobuf/releases/latest>
+```shell
+npm ci
+```
 
 ### Generate Stubs
 
 ```shell
-npm run generate
+npm run generate --workspace wechaty-grpc
 ```
 
-#### 1. JS for Protocol Buffer
+`scripts/generate-stub.ts` writes everything into `out/` (gitignored) using only npm packages, with
+`proto/` and the pinned files in `third-party/` (see its README) as inputs, so it works offline:
 
-```shell
-protoc \
-  --js_out="import_style=commonjs,binary:${OUT_DIR}"
-```
+1. JavaScript messages and grpc-js service stubs: `protoc` and the gRPC Node plugin from
+   [grpc-tools](https://www.npmjs.com/package/grpc-tools).
+2. Typings for the service stubs:
+   [grpc_tools_node_protoc_ts](https://github.com/agreatfool/grpc_tools_node_protoc_ts).
+3. Typings for the messages: [ts-protoc-gen](https://github.com/improbable-eng/ts-protoc-gen), which
+   declares each enum with a `XxxMap` interface, as 1.x consumers expect.
 
-> <https://github.com/google/protobuf/releases/latest>
-
-#### 2. JS for gRPC Stubs
-
-```shell
-protoc \
-  --plugin="protoc-gen-grpc=`which grpc_tools_node_protoc_plugin`" \
-  --grpc_out="${OUT_DIR}"
-```
-
-> <https://www.npmjs.com/package/grpc-tools>
-
-#### 3. TypeScript Typing Definations for Protocol Buffer & gRPC Stubs
-
-```shell
-protoc \
-  --plugin="protoc-gen-grpc=node_modules/grpc_tools_node_protoc_ts/bin/protoc-gen-ts" \
-  --grpc_out="${OUT_DIR}"
-```
-
-> <https://github.com/agreatfool/grpc_tools_node_protoc_ts>
-
-#### 4. JS & TS for gRPC Web
-
-```shell
-protoc \
-  --plugin="protoc-gen-ts=node_modules/ts-protoc-gen/bin/protoc-gen-ts" \
-  --ts_out="service=true:${OUT_DIR}"
-```
-
-> <https://github.com/improbable-eng/ts-protoc-gen>
+The lint, test, coverage and build scripts run `generate` first. grpc-web stubs and the OpenAPI
+document are no longer generated.
 
 ### Naming conventions & Style Guide
 
@@ -248,7 +230,7 @@ Thanks to the ecosystem of gRPC, we can generate OpenAPI Specification from our 
 
 We are using [gRPC to JSON proxy generator following the gRPC HTTP spec](https://github.com/grpc-ecosystem/grpc-gateway) as the OpenAPI Specification generator ([protoc-gen-openapiv2](https://github.com/grpc-ecosystem/grpc-gateway/tree/master/protoc-gen-openapiv2)), and using [Like grpc-gateway, but written in node and dynamic](https://github.com/konsumer/grpc-dynamic-gateway) project to serve an HTTP RESTful API to gRPC proxy.
 
-<div align="center"><a link="https://github.com/wechaty/openapi"><img src="https://raw.githubusercontent.com/wechaty/grpc/master/docs/images/grpc-gateway-architecture.svg" width="400" /><a></div>
+<div align="center"><a link="https://github.com/wechaty/openapi"><img alt="architecture" src="https://raw.githubusercontent.com/wechaty/grpc/master/docs/images/grpc-gateway-architecture.svg" width="400" /><a></div>
 
 > Image credit: [gRPC Gateway](https://grpc-ecosystem.github.io/grpc-gateway/)
 
@@ -258,10 +240,6 @@ See also:
 
 - [AIP-4222 - Routing headers](https://google.aip.dev/client-libraries/4222)
 - [gRPC-Gateway Official Website](https://grpc-ecosystem.github.io/grpc-gateway/)
-
-## gRPC Web
-
-- [gRPC-Web ReactJS client, Golang Server](https://github.com/longfellowone/grpcwebtest)
 
 ## Resources
 
@@ -274,6 +252,15 @@ Check out [RESOURCES.md](RESOURCES.md) file for learning resources.
 - [Google Cloud Cloud API Design Guide](https://cloud.google.com/apis/design/)
 
 ## Changelog
+
+### v2.0 (unreleased)
+
+1. Moved into the Wechaty monorepo ([wechaty/wechaty#3054](https://github.com/wechaty/wechaty/issues/3054))
+1. ESM only, Node.js 26; Node.js runs the TypeScript sources directly, and only packaging compiles to `dist/`
+1. Code generation needs only npm packages and the pinned `third-party/` protos; no system `protoc`,
+   Go or network access
+1. Breaking: the `openApi` export is removed, and grpc-web stubs are no longer generated
+1. Tests use `node:test`, run under Node.js and Deno, and close their clients and bind free ports
 
 ### master v1.0 (Mar 14, 2022)
 
@@ -333,7 +320,7 @@ Since its creation in 2016, a number of Wechaty versions have been released. For
 ## Contributors
   
 <a href="https://github.com/wechaty/grpc/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=wechaty/grpc" />
+  <img alt="contributors" src="https://contrib.rocks/image?repo=wechaty/grpc" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
