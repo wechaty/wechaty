@@ -34,15 +34,15 @@ jobs:
     - run: npm test
       env:
         CI: true
-        # Runs src/async-lifecycle/socket.integration.test.ts and
-        # src/io.integration.test.ts against real loopback sockets; they are
-        # skipped where this is unset.
+        # Runs packages/wechaty/src/async-lifecycle/socket.integration.test.ts
+        # and packages/wechaty/src/io.integration.test.ts against real loopback
+        # sockets; they are skipped where this is unset.
         ASYNC_LIFECYCLE_TCP_TEST: 1
 
     - name: Verify native test failure exit
       if: matrix.os == 'ubuntu-latest'
       run: |
-        if node --test tests/fixtures/native-test-failure.js; then
+        if node --test packages/wechaty/tests/fixtures/native-test-failure.js; then
           echo "The native test runner accepted a deliberately failing test."
           exit 1
         fi
@@ -73,7 +73,7 @@ jobs:
     - run: npm run test:unit:deno
     - name: Verify native test failure exit
       run: |
-        if deno test tests/fixtures/native-test-failure.js; then
+        if deno test packages/wechaty/tests/fixtures/native-test-failure.js; then
           echo "The native test runner accepted a deliberately failing test."
           exit 1
         fi

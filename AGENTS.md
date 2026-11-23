@@ -3,7 +3,8 @@
 - Use node:test for a shared Node.js/Deno test suite; collect coverage natively in both runtimes, publish LCOV and HTML reports as GitHub Actions artifacts, and enforce independent, measured coverage regression baselines without third-party coverage services.
 - Name all unit test files *.test.ts and colocate them with their source modules. Use *.integration.test.ts or *.e2e.test.ts only for broader tests requiring separate execution. Write portable tests using node:test and node:assert/strict, and ensure the shared unit test suite runs under both Node.js and Deno.
 - Reference GitHub Actions by version tags (for example, `@v6`), not commit hashes.
-- The package is ESM-only and needs the Node.js and npm versions in `engines`.
+- This repo is an npm workspace monorepo: each package lives in `packages/<npm-name>/`, and the private root holds shared tooling and scripts that run every workspace (see `DEVELOPMENT.md`). Keep each package's coverage floors in `.github/coverage-baselines/<runtime>.<package>[.<scope>].json`.
+- Every package is ESM-only and needs the Node.js and npm versions in `engines`.
   Node.js runs the `.ts` sources directly; only packaging compiles to `dist/`.
   Relative imports must end in `.ts`;
 - Use node:diagnostics_channel for lightweight, privacy-safe internal observability without third-party runtime dependencies. Preserve existing public events and logging; validate diagnostic and tracing channel behavior under both Node.js and Deno before relying on cross-runtime compatibility.

@@ -1,6 +1,9 @@
-dist
+# Docker matches these against paths from the build context root, so nested
+# workspace outputs need the **/ prefix.
+**/dist
+**/coverage
+**/node_modules
 docs
-node_modules
 *.memory-card.json
 t/
 t.*

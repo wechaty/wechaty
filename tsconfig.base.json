@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+    "traceResolution": false,
+    "noLib": false,
+    "resolveJsonModule": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noEmitOnError": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noUnusedParameters": true,
+    "noImplicitThis": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "verbatimModuleSyntax": true
+  }
+}

@@ -1,3 +1,12 @@
+/**
+ * Coverage runner for the `wechaty` package (`npm run coverage:node` and
+ * `coverage:deno`, run from `packages/wechaty`). It runs the unit suite under
+ * one runtime with native coverage, writes LCOV and HTML reports to
+ * `coverage/<runtime>/`, and fails when a measured metric drops below its
+ * floor. Floors are measured baselines kept at the repository root in
+ * `.github/coverage-baselines/<runtime>.wechaty[.<scope>].json`, so every
+ * package in the monorepo keeps independent floors (AGENTS.md).
+ */
 import { spawnSync } from 'node:child_process'
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -26,7 +35,12 @@ export interface CoverageBaseline {
   branches: number
 }
 
+/** The package root: `packages/wechaty`. Test and source paths are relative to it. */
 const ROOT = fileURLToPath(new URL('../', import.meta.url))
+/** The monorepo root, which holds the shared `.github/coverage-baselines/`. */
+const REPOSITORY_ROOT = fileURLToPath(new URL('../../../', import.meta.url))
+/** Prefix of this package's baseline files in `.github/coverage-baselines/`. */
+const BASELINE_PACKAGE = 'wechaty'
 const METRICS: Record<MetricName, [string, string]> = {
   lines: [ 'LH', 'LF' ],
   functions: [ 'FNH', 'FNF' ],
@@ -38,11 +52,11 @@ const SOURCE_EXCLUDES = new Set([ 'src/package-json.ts' ])
  * A part of the production tree with coverage floors of its own, checked after
  * the repo-wide floors and from the same LCOV report (AGENTS.md: independent,
  * measured baselines). Its floors live in
- * `.github/coverage-baselines/<runtime>.<name>.json`.
+ * `.github/coverage-baselines/<runtime>.wechaty.<name>.json` at the repository root.
  */
 export interface CoverageScope {
   readonly name: string
-  /** Path prefix, relative to the repository root, of the sources it covers. */
+  /** Path prefix, relative to the package root, of the sources it covers. */
   readonly include: string
   /** Path prefixes inside `include` that it leaves out. */
   readonly exclude: readonly string[]
@@ -473,8 +487,10 @@ function coverageArgs (destination: string, include = 'src/**/*.ts'): string[] {
 }
 
 function baselineFor (runtime: 'node' | 'deno', scope?: CoverageScope): CoverageBaseline {
-  const file = scope ? `${runtime}.${scope.name}.json` : `${runtime}.json`
-  return JSON.parse(readFileSync(join(ROOT, '.github', 'coverage-baselines', file), 'utf8')) as CoverageBaseline
+  const file = scope
+    ? `${runtime}.${BASELINE_PACKAGE}.${scope.name}.json`
+    : `${runtime}.${BASELINE_PACKAGE}.json`
+  return JSON.parse(readFileSync(join(REPOSITORY_ROOT, '.github', 'coverage-baselines', file), 'utf8')) as CoverageBaseline
 }
 
 function validateAndRender (runtime: 'node' | 'deno', testStatus: number, validationStatus = 0): boolean {
@@ -640,12 +656,13 @@ function denoCoverage (tests: string[]): number {
       'test',
       '--no-check',
       `--coverage=${profile}`,
-      '--allow-read=.,/tmp,/etc/alpine-release',
+      // npm workspaces hoist dependencies to the monorepo root's node_modules.
+      '--allow-read=.,../../node_modules,/tmp,/etc/alpine-release',
       '--allow-write=coverage/deno,/tmp',
       '--allow-run=git,node,deno',
       '--allow-env',
       '--allow-sys=hostname',
-      '--allow-ffi=node_modules/leveldown/prebuilds',
+      '--allow-ffi=../../node_modules/leveldown/prebuilds',
       ...tests,
     ], env)
 

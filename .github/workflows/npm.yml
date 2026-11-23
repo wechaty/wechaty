@@ -53,10 +53,14 @@ jobs:
 
       - name: Install dependencies from lockfile
         run: npm ci
+      # The published package is the packages/wechaty workspace; dependencies
+      # stay installed at the monorepo root by the step above.
       - name: Generate embedded package and commit metadata
+        working-directory: packages/wechaty
         run: ./scripts/generate-package-json.sh
       - name: Determine publish branch and npm dist-tag
         id: package_metadata
+        working-directory: packages/wechaty
         run: |
           node --input-type=commonjs <<'NODE'
           const fs = require('node:fs')
@@ -69,10 +73,12 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `package_name=${packageName}\npackage_version=${packageVersion}\nnpm_dist_tag=${npmDistTag}\nis_publish_branch=${isPublishBranch}\n`)
           NODE
       - name: Set package manifest's npm dist-tag
+        working-directory: packages/wechaty
         run: npm pkg set "publishConfig.tag=$NPM_DIST_TAG"
         env:
           NPM_DIST_TAG: ${{ steps.package_metadata.outputs.npm_dist_tag }}
       - name: Build and smoke-test npm tarball
+        working-directory: packages/wechaty
         run: ./scripts/npm-pack-testing.sh
         env:
           TESTED_PACKAGE_OUTPUT_PATH: ${{ runner.temp }}/wechaty-package.tgz

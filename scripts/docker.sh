@@ -60,8 +60,8 @@ declare -i ret=0
 
     test)
       echo "Testing the docker image behaviors to make sure it works as expected..."
-      echo "bats tests/"
-      IMAGE_NAME="$ARTIFACT_IMAGE" bats tests/
+      echo "bats packages/wechaty/tests/"
+      (cd packages/wechaty && IMAGE_NAME="$ARTIFACT_IMAGE" bats tests/)
 
       echo
       echo
@@ -75,7 +75,7 @@ declare -i ret=0
 import { readFileSync } from 'node:fs'
 import { dockerTags } from './scripts/docker-tags.ts'
 
-const { version } = JSON.parse(readFileSync('package.json', 'utf8'))
+const { version } = JSON.parse(readFileSync('packages/wechaty/package.json', 'utf8'))
 const { versionTag, channel } = dockerTags(version)
 console.log(`${versionTag} ${channel}`)
 NODE

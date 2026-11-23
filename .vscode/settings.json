@@ -1,9 +1,9 @@
 {
   "files.exclude": {
-    "dist/": true,
+    "**/dist/": true,
     "doc/": true,
-    "node_modules/": true,
-    "package/": true,
+    "**/node_modules/": true,
+    "**/package/": true,
   },
   "typescript.format.semicolons": "remove",
   "chat.tools.global.autoApprove": true,
