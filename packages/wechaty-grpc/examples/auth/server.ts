@@ -1,26 +1,26 @@
-import util from 'util'
-import fs from 'fs'
-
-import { Status as GrpcServerStatus } from '@grpc/grpc-js/build/src/constants'
+/**
+ * Example: a TLS server that checks the `Wechaty <token>` authorization
+ * metadata on every call.
+ */
+import util from 'node:util'
+import fs from 'node:fs'
 
 import {
   grpc,
   puppet,
-}                       from '../../src/mod'
+}                       from '../../src/mod.ts'
 
 import {
   puppetServerImpl,
-}                     from '../../tests/puppet-server-impl.js'
+}                     from '../../tests/fixtures/puppet-server-impl.ts'
 import {
   StatusBuilder,
   Metadata,
-  UntypedHandleCall,
+  status as GrpcServerStatus,
+  type UntypedHandleCall,
+  type sendUnaryData,
+  type ServerUnaryCall,
 }                     from '@grpc/grpc-js'
-// import { Http2SecureServer } from 'http2'
-import type {
-  sendUnaryData,
-  ServerUnaryCall,
-}                             from '@grpc/grpc-js/build/src/server-call'
 
 import type http2 from 'http2'
 
@@ -125,7 +125,7 @@ const wechatyAuthToken = (validToken: string) => (
   puppetServer: puppet.IPuppetServer,
 ) => {
   for (const [key, val] of Object.entries(puppetServer)) {
-    puppetServer[key] = authHandler(validToken, val)
+    puppetServer[key] = authHandler(validToken, val as UntypedHandleCall)
   }
   return puppetServer
 }

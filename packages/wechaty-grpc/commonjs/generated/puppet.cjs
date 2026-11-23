@@ -1,3 +1,7 @@
+/**
+ * Merges every generated `wechaty/**` stub in `out/` into one CommonJS object,
+ * which `src/cjs.ts` re-exports as the `puppet` namespace.
+ */
 const puppetFileList = [
   '../../out/wechaty/deprecated/file-box_pb.js',
 

@@ -57,6 +57,7 @@ export interface CoverageConfig {
   readonly deno: {
     readonly allowRead?: readonly string[]
     readonly allowRun?: readonly string[]
+    readonly allowNet?: readonly string[]
     readonly allowSys?: readonly string[]
     readonly allowFfi?: readonly string[]
   }
@@ -370,7 +371,14 @@ export function summarizeLcov (records: LcovRecord[]): CoverageMetrics {
   }
   for (const name of Object.keys(METRICS) as MetricName[]) {
     if (!result[name].total) {
-      throw new Error(`LCOV report has no ${name} coverage data`)
+      // No lines at all means a broken report. A package can legitimately
+      // have no functions or branches in a runtime's view (Deno reports none
+      // for straight-line modules), and then there is nothing to miss.
+      if (name === 'lines') {
+        throw new Error(`LCOV report has no ${name} coverage data`)
+      }
+      result[name].percent = 100
+      continue
     }
     result[name].percent = result[name].covered / result[name].total * 100
   }
@@ -576,7 +584,9 @@ function validateAndRender (runtime: 'node' | 'deno', testStatus: number, valida
     const renderArgs = [
       '--ignore-errors', 'inconsistent',
       '--title=Wechaty native coverage',
-      ...(runtime === 'deno' ? [ '--branch-coverage' ] : []),
+      // genhtml fails on --branch-coverage when the report has no branch
+      // records at all, as Deno's can for a straight-line package.
+      ...(runtime === 'deno' && metrics.branches.total ? [ '--branch-coverage' ] : []),
       `--output-directory=${html}`,
       renderLcovPath,
     ]
@@ -641,6 +651,8 @@ function probe (runtime: 'node' | 'deno', output: string): number {
     'test',
     '--no-check',
     `--coverage=${profile}`,
+    // Raw profiles only, as in denoCoverage(): see the comment there.
+    '--coverage-raw-data-only',
     '--allow-read=.,/tmp',
     '--allow-write=/tmp',
     '--allow-env',
@@ -707,6 +719,7 @@ export function denoPermissions (config: CoverageConfig = CONFIG): string[] {
     ...flag('read', [ '.', '../../node_modules', '/tmp', ...(config.deno.allowRead ?? []) ]),
     ...flag('write', [ 'coverage/deno', '/tmp' ]),
     ...flag('run', config.deno.allowRun),
+    ...flag('net', config.deno.allowNet),
     '--allow-env',
     ...flag('sys', config.deno.allowSys),
     ...flag('ffi', config.deno.allowFfi),
@@ -731,6 +744,10 @@ function denoCoverage (tests: string[]): number {
       'test',
       '--no-check',
       `--coverage=${profile}`,
+      // Write raw profiles only; `deno coverage` below builds the filtered
+      // reports. Deno's own end-of-run summary covers every loaded module and
+      // panics on some of them (Deno 2.9.8 with @grpc/grpc-js).
+      '--coverage-raw-data-only',
       ...denoPermissions(),
       ...tests,
     ], env)

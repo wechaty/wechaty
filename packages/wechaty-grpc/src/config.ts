@@ -1,14 +1,16 @@
-import { packageJson } from './package-json.js'
+/**
+ * Package settings: `VERSION` (from the embedded `package-json.ts`) and the
+ * `ApiStore` shape used by `proto.ts`.
+ */
+import { packageJson } from './package-json.ts'
 
 const VERSION = packageJson.version || '0.0.0'
 
-enum MajorVersionEnum {
-  v0 = 'v0',
-  // v1 = 'v1',
-}
+/** The protocol major versions an `ApiStore` holds. Only `v0` exists so far. */
+type MajorVersion = 'v0'
 
 export type ApiStore = {
-  [key in MajorVersionEnum]: {
+  [key in MajorVersion]: {
     file: string,
     data: string,
   }

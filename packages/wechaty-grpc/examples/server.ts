@@ -1,14 +1,18 @@
+/**
+ * Example: a puppet gRPC server built on the `puppet-server-impl` test fixture
+ * that answers `ding` and streams events.
+ */
 /* eslint-disable sort-keys */
 import util from 'util'
 
 import {
   grpc,
   puppet,
-}                       from '../src/mod.js'
+}                       from '../src/mod.ts'
 
 import {
   puppetServerImpl,
-}                     from '../tests/puppet-server-impl.js'
+}                     from '../tests/fixtures/puppet-server-impl.ts'
 
 let eventStream: undefined | grpc.ServerWritableStream<puppet.EventRequest, puppet.EventResponse>
 

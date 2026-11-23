@@ -1,12 +1,16 @@
+/**
+ * Example: a `PuppetClient` that calls `ding` and listens to the event stream
+ * of a local server (see `server.ts`).
+ */
 // import { Metadata } from '@grpc/grpc-js'
 // import { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
 
 import {
   grpc,
   puppet,
-}                     from '../src/mod.js'
+}                     from '../src/mod.ts'
 
-import { promisify }  from './promisify.js'
+import { promisify }  from './promisify.ts'
 
 export async function testAlias (client: puppet.PuppetClient) {
   const request = new puppet.ContactAliasRequest()

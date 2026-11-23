@@ -1,12 +1,18 @@
-import type { CallMetadataGenerator } from '@grpc/grpc-js/build/src/call-credentials'
-import fs from 'fs'
+/**
+ * Example: a client that connects over TLS and sends a token in the call
+ * metadata.
+ */
+import fs from 'node:fs'
 
 import {
   grpc,
   puppet,
-}                     from '../../src/mod.js'
+}                     from '../../src/mod.ts'
 
-import { promisify }  from '../promisify.js'
+import { promisify }  from '../promisify.ts'
+
+/** grpc-js's metadata generator callback type, taken from its public API. */
+type CallMetadataGenerator = Parameters<typeof grpc.credentials.createFromMetadataGenerator>[0]
 
 export async function testDing (client: puppet.PuppetClient) {
   const ding = promisify(client.ding.bind(client))

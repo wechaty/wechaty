@@ -1,0 +1,7 @@
+{
+  "testDirectories": [ "src", "tests/unit" ],
+  "sourceExcludes": [ "src/package-json.ts" ],
+  "deno": {
+    "allowNet": [ "127.0.0.1" ]
+  }
+}

@@ -6,6 +6,7 @@
   "workspaces": [
     "packages/wechaty-token",
     "packages/wechaty-puppet",
+    "packages/wechaty-grpc",
     "packages/wechaty"
   ],
   "engines": {
@@ -38,5 +39,8 @@
     "@types/node": "^26.6.6",
     "@typescript/native": "npm:typescript@^7.0.2",
     "markdownlint-cli": "^0.50.0"
+  },
+  "allowScripts": {
+    "grpc-tools@1.13.1": true
   }
 }

@@ -1,3 +1,7 @@
+/**
+ * Merges the generated gRPC health check stubs in `out/` into one CommonJS
+ * object, which `src/cjs.ts` re-exports as the `google` namespace.
+ */
 const googleFileList = [
   '../../out/google/api/health_check/v1/health_check_grpc_pb.js',
   '../../out/google/api/health_check/v1/health_check_pb.js',
