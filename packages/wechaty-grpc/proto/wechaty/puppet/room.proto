@@ -1,0 +1,89 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package="io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+import "google/protobuf/wrappers.proto";
+
+message RoomListRequest {}
+message RoomListResponse {
+  repeated string ids = 1;
+}
+
+message RoomPayloadRequest {
+  string id = 1;
+}
+message RoomPayloadResponse {
+  string   id               = 1;
+  string   topic            = 2;
+  string   avatar           = 3;
+  string   owner_id         = 4;
+  repeated string admin_ids  = 5;
+  repeated string member_ids = 6;
+  string   handle           = 7;
+}
+
+message RoomAddRequest {
+  string id = 1;
+  string contact_id = 2 [deprecated = true];
+  bool   invite_only = 3;
+  repeated string contact_ids = 4;
+}
+message RoomAddResponse {}
+
+message RoomAvatarRequest {
+  string id = 1;
+}
+message RoomAvatarResponse {
+  string file_box = 1;
+}
+
+message RoomCreateRequest {
+  repeated string contact_ids = 1;
+  string topic = 2;
+}
+message RoomCreateResponse {
+  string id = 1;
+}
+
+message RoomDelRequest {
+  string id = 1;
+  string contact_id = 2 [deprecated = true];
+  repeated string contact_ids = 3;
+}
+message RoomDelResponse {}
+
+message RoomQuitRequest {
+  string id = 1;
+}
+message RoomQuitResponse {}
+
+message RoomTopicRequest {
+  string id = 1;
+  google.protobuf.StringValue topic_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  optional string topic = 3;
+}
+message RoomTopicResponse {
+  google.protobuf.StringValue topic_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string topic = 2;
+}
+
+message RoomQRCodeRequest {
+  string id = 1;
+}
+message RoomQRCodeResponse {
+  string qrcode = 1;
+}
+
+message RoomAnnounceRequest {
+  string id = 1;
+  google.protobuf.StringValue text_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  optional string text = 3;
+}
+message RoomAnnounceResponse {
+  google.protobuf.StringValue text_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string text = 2;
+}
+

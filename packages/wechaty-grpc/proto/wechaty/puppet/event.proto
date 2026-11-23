@@ -1,0 +1,40 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package="io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+
+  EVENT_TYPE_HEARTBEAT = 1;
+  EVENT_TYPE_MESSAGE   = 2;
+  EVENT_TYPE_DONG      = 3;
+  EVENT_TYPE_POST      = 4;
+
+  reserved 5 to 15;
+
+  EVENT_TYPE_ERROR       = 16;
+  EVENT_TYPE_FRIENDSHIP  = 17;
+  EVENT_TYPE_ROOM_INVITE = 18;
+  EVENT_TYPE_ROOM_JOIN   = 19;
+  EVENT_TYPE_ROOM_LEAVE  = 20;
+  EVENT_TYPE_ROOM_TOPIC  = 21;
+  EVENT_TYPE_SCAN        = 22;
+  EVENT_TYPE_READY       = 23;
+  EVENT_TYPE_RESET       = 24;
+  EVENT_TYPE_LOGIN       = 25;
+  EVENT_TYPE_LOGOUT      = 26;
+  EVENT_TYPE_DIRTY       = 27;
+
+  EVENT_TYPE_ROOM_ANNOUNCE = 32;
+}
+
+message EventRequest {}
+
+message EventResponse {
+  EventType type = 1;
+  // TODO: Huan(202002) consider to use a PB Map?
+  string payload = 2; // JSON.stringify({ ... })
+}

@@ -1,0 +1,122 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package="io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+import "google/protobuf/wrappers.proto";
+
+enum ContactGender {
+  CONTACT_GENDER_UNSPECIFIED = 0;
+  CONTACT_GENDER_MALE        = 1;
+  CONTACT_GENDER_FEMALE      = 2;
+}
+
+enum ContactType {
+  CONTACT_TYPE_UNSPECIFIED = 0;
+  CONTACT_TYPE_PERSONAL    = 1;
+  CONTACT_TYPE_OFFICIAL    = 2;
+  CONTACT_TYPE_CORPORATION = 3;
+}
+
+message ContactListRequest {}
+message ContactListResponse {
+  repeated string ids = 1;
+}
+
+message ContactPayloadRequest {
+  string id = 1;
+}
+message ContactPayloadResponse {
+  string          id          = 1;
+  ContactGender   gender      = 2;
+  ContactType     type        = 3;
+  string          name        = 4;
+  string          avatar      = 5;
+  string          address     = 6;
+  string          alias       = 7;
+  string          city        = 8;
+  bool            friend      = 9;
+  string          province    = 10;
+  string          signature   = 11;
+  bool            star        = 12;
+  /**
+   * Huan(202203): in gRPC, we can freely rename the field name as long as the number keep consistent.
+   *  so we can just rename `weixin` to `handle` here.
+   *
+   * (Huan(20220329): use `weixin` for now, until we upgrade to v2.0
+   *  the `wechaty-grpc@1.0.0` will use the latest v1.x automatically when running `npm install`
+   *    which will causing a breaking change.
+   *  @link https://github.com/wechaty/getting-started/issues/254
+   *
+   * TODO: rename `weixin` to `handle` in v2.0.0
+   */
+  string          weixin      = 13;
+  string          corporation = 14;
+  string          title       = 15;
+  string          description = 16;
+  bool            coworker    = 17;
+  repeated string  phones      = 18;
+}
+
+message ContactSelfQRCodeRequest {}
+message ContactSelfQRCodeResponse {
+  string qrcode = 1;
+}
+
+message ContactSelfNameRequest {
+  string name = 1;
+}
+message ContactSelfNameResponse {}
+
+message ContactSelfSignatureRequest {
+  string signature = 1;
+}
+message ContactSelfSignatureResponse {}
+
+message ContactAliasRequest {
+  string id = 1;
+  // nullable
+  google.protobuf.StringValue alias_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  optional string alias = 3;
+}
+message ContactAliasResponse {
+  google.protobuf.StringValue alias_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string alias = 2;
+}
+
+message ContactAvatarRequest {
+  string id = 1;
+  google.protobuf.StringValue filebox_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  optional string file_box = 3;
+}
+message ContactAvatarResponse {
+  google.protobuf.StringValue filebox_string_value_deprecated = 1 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string file_box = 2;
+}
+
+message ContactPhoneRequest {
+  string contact_id = 1;
+  repeated string phones = 2;
+}
+
+message ContactPhoneResponse {
+  repeated string phones = 2;
+}
+
+message ContactCorporationRemarkRequest {
+  string contact_id = 1;
+  google.protobuf.StringValue corporation_remark_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string corporation_remark = 3;
+}
+
+message ContactCorporationRemarkResponse {}
+
+message ContactDescriptionRequest {
+  string contact_id = 1;
+  google.protobuf.StringValue description_string_value_deprecated = 2 [deprecated = true];  // DEPRECATED, will be removed after Dec 31, 2022
+  string description = 3;
+}
+
+message ContactDescriptionResponse {}

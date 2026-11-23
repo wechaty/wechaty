@@ -1,0 +1,51 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+option go_package="github.com/wechaty/go-grpc/wechaty/puppet";
+option java_package="io.github.wechaty.grpc.puppet";
+option csharp_namespace = "github.wechaty.grpc.puppet";
+
+import "google/protobuf/timestamp.proto";
+
+/**
+ * @deprecated
+ *  Huan(202109): will be removed after Dec 31, 2022
+ *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+ */
+import "google/protobuf/wrappers.proto";
+
+message RoomInvitationPayloadRequest {
+  string                      id      = 1;
+  /**
+   * Huan(202002): `payload` should be removed.
+   *  The puppet server should take the responsibilities
+   *  for storing the unaccepted friend-request payload.
+   *
+   * @deprecated: use payload instead.
+   *  Huan(202109): Wrapper types must not be used going forward.
+   *    https://cloud.google.com/apis/design/design_patterns#optional_primitive_fields
+   */
+  google.protobuf.StringValue payload_string_value_deprecated = 2 [deprecated = true];  // Deprecated: will be removed after Dec 31, 2022
+  string payload = 3;
+}
+message RoomInvitationPayloadResponse {
+  string   id                = 1;
+  string   inviter_id        = 2;
+  string   topic             = 3;
+  int32    member_count      = 4;
+  repeated string member_ids = 5;
+  /**
+   * @deprecated will be removed after Dec 31, 2022
+   *  Huan(202109): use receive_time(10) instead
+   */
+  uint64   timestamp_uint64_deprecated = 6 [deprecated = true]; // Deprecated: will be removed after Dec 31, 2022
+  string   avatar            = 7;
+  string   invitation        = 8;
+  string   receiver_id       = 9;
+  google.protobuf.Timestamp receive_time = 10;
+}
+
+message RoomInvitationAcceptRequest {
+  string id = 1;
+}
+message RoomInvitationAcceptResponse {}
