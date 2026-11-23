@@ -499,8 +499,9 @@ jobs:
             const count = out.findings.length
             // GitHub review bodies have a finite size. An excessive number
             // of valid general findings must not prevent publication.
-            const capBody = value => value.length <= 60000 ? value :
-              value.slice(0, 59000) + '\n\n_Review text truncated for GitHub; check the workflow run for diagnostics._'
+            const capBody = value => Buffer.byteLength(value, 'utf8') <= 58000 ? value :
+              Buffer.from(value, 'utf8').subarray(0, 57000).toString('utf8') +
+              '\n\n_Review text truncated for GitHub; check the workflow run for diagnostics._'
             const body = capBody([
               `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`,
               `## ${who} review`, '',
