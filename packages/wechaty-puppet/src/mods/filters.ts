@@ -1,3 +1,6 @@
+/**
+ * Public `wechaty-puppet/filters` entry point: the query filter types.
+ */
 import type {
   ContactQueryFilter,
   FriendshipSearchQueryFilter,
@@ -8,7 +11,7 @@ import type {
   RoomMemberQueryFilter,
   RoomQueryFilter,
   TapQueryFilter,
-}                           from '../schemas/mod.js'
+}                           from '../schemas/mod.ts'
 
 export type {
   ContactQueryFilter          as Contact,

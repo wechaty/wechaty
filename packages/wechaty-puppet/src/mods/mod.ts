@@ -1,7 +1,11 @@
 /**
+ * Main `wechaty-puppet` entry point: the abstract `Puppet`, `log`, `VERSION`,
+ * and the `types`, `payloads`, `filters`, `impls` and `helpers` namespaces.
+ */
+/**
  *   Wechaty - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan Li <huan@chatie.io>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -32,21 +36,21 @@
 
  * This is due to the circler dependence, the deeper reason is still not clear.
  */
-import '../puppet/interface-of.js'
+import '../puppet/interface-of.ts'
 
 import {
   VERSION,
   log,
-}                             from '../config.js'
+}                             from '../config.ts'
 import type {
   PuppetOptions,
-}                             from '../schemas/puppet.js'
+}                             from '../schemas/puppet.ts'
 import {
   Puppet,
-}                             from '../puppet/puppet-abstract.js'
+}                             from '../puppet/puppet-abstract.ts'
 import {
   throwUnsupportedError,
-}                             from '../throw-unsupported-error.js'
+}                             from '../throw-unsupported-error.ts'
 
 export type {
   PuppetOptions,
@@ -58,8 +62,8 @@ export {
   VERSION,
 }
 
-export * as filters  from './filters.js'
-export * as helpers  from './helpers.js'
-export * as impls    from './impls.js'
-export * as payloads from './payloads.js'
-export * as types    from './types.js'
+export * as filters  from './filters.ts'
+export * as helpers  from './helpers.ts'
+export * as impls    from './impls.ts'
+export * as payloads from './payloads.ts'
+export * as types    from './types.ts'

@@ -1,75 +1,64 @@
 {
   "name": "wechaty-puppet",
-  "version": "1.21.3",
+  "version": "2.0.0-alpha.0",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/esm/src/mods/mod.js",
-      "require": "./dist/cjs/src/mods/mod.js"
+      "wechaty-source": "./src/mods/mod.ts",
+      "types": "./dist/esm/src/mods/mod.d.ts",
+      "import": "./dist/esm/src/mods/mod.js"
     },
     "./filters": {
-      "import": "./dist/esm/src/mods/filters.js",
-      "require": "./dist/cjs/src/mods/filters.js"
+      "wechaty-source": "./src/mods/filters.ts",
+      "types": "./dist/esm/src/mods/filters.d.ts",
+      "import": "./dist/esm/src/mods/filters.js"
     },
     "./helpers": {
-      "import": "./dist/esm/src/mods/helpers.js",
-      "require": "./dist/cjs/src/mods/helpers.js"
+      "wechaty-source": "./src/mods/helpers.ts",
+      "types": "./dist/esm/src/mods/helpers.d.ts",
+      "import": "./dist/esm/src/mods/helpers.js"
     },
     "./impls": {
-      "import": "./dist/esm/src/mods/impls.js",
-      "require": "./dist/cjs/src/mods/impls.js"
+      "wechaty-source": "./src/mods/impls.ts",
+      "types": "./dist/esm/src/mods/impls.d.ts",
+      "import": "./dist/esm/src/mods/impls.js"
     },
     "./payloads": {
-      "import": "./dist/esm/src/mods/payloads.js",
-      "require": "./dist/cjs/src/mods/payloads.js"
+      "wechaty-source": "./src/mods/payloads.ts",
+      "types": "./dist/esm/src/mods/payloads.d.ts",
+      "import": "./dist/esm/src/mods/payloads.js"
     },
     "./types": {
-      "import": "./dist/esm/src/mods/types.js",
-      "require": "./dist/cjs/src/mods/types.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "filters": [
-        "./dist/esm/src/mods/filters.d.ts"
-      ],
-      "helpers": [
-        "./dist/esm/src/mods/helpers.d.ts"
-      ],
-      "impls": [
-        "./dist/esm/src/mods/impls.d.ts"
-      ],
-      "payloads": [
-        "./dist/esm/src/mods/payloads.d.ts"
-      ],
-      "types": [
-        "./dist/esm/src/mods/types.d.ts"
-      ]
+      "wechaty-source": "./src/mods/types.ts",
+      "types": "./dist/esm/src/mods/types.d.ts",
+      "import": "./dist/esm/src/mods/types.js"
     }
   },
   "types": "./dist/esm/src/mods/mod.d.ts",
   "engines": {
-    "node": ">=16",
-    "npm": ">=7"
+    "node": ">=26",
+    "npm": ">=10"
   },
   "scripts": {
+    "build": "tsc",
     "clean": "shx rm -fr dist/*",
-    "dist": "npm-run-all clean build dist:commonjs",
-    "build": "tsc && tsc -p tsconfig.cjs.json",
-    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
-    "lint": "npm-run-all lint:es lint:ts lint:md",
-    "lint:md": "markdownlint README.md",
+    "dist": "npm run clean && npm run build",
+    "lint": "npm run lint:biome && npm run lint:ts && npm run lint:md",
+    "lint:biome": "biome lint src tests",
     "lint:ts": "tsc --isolatedModules --noEmit",
-    "lint:es": "eslint \"src/**/*.ts\" \"tests/**/*.spec.ts\" --ignore-pattern tests/fixtures/",
-    "test": "npm-run-all lint test:unit",
+    "lint:md": "markdownlint --config ../../.markdownlint.json README.md",
+    "test:unit": "node --test src tests/unit",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,/tmp --allow-write=/tmp --allow-env src tests/unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "typedoc": "bash scripts/typedoc.sh"
+    "coverage:node": "node ../../scripts/coverage.ts node",
+    "coverage:deno": "node ../../scripts/coverage.ts deno",
+    "test": "npm run lint && npm run test:unit"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wechaty/puppet.git"
+    "url": "git+https://github.com/wechaty/wechaty.git",
+    "directory": "packages/wechaty-puppet"
   },
   "keywords": [
     "chatie",
@@ -79,26 +68,12 @@
     "bot",
     "sdk"
   ],
-  "author": "Huan LI <zixia@zixia.net>",
+  "author": "Huan Li <huan@chatie.io>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/wechaty/puppet/issues"
+    "url": "https://github.com/wechaty/wechaty/issues"
   },
-  "homepage": "https://github.com/wechaty/puppet#readme",
-  "devDependencies": {
-    "@chatie/eslint-config": "^1.0.4",
-    "@chatie/git-scripts": "^0.6.2",
-    "@chatie/semver": "^0.4.7",
-    "@chatie/tsconfig": "^4.6.2",
-    "@swc/core": "1.3.44",
-    "@swc/helpers": "^0.2.14",
-    "@types/uuid": "^8.3.3",
-    "nop": "^1.0.0",
-    "regenerator-runtime": "^0.13.9",
-    "rxjs": "^7.4.0",
-    "tstest": "^1.0.1",
-    "yocto-queue": "^1.0.0"
-  },
+  "homepage": "https://github.com/wechaty/wechaty/tree/main/packages/wechaty-puppet#readme",
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
     "brolog": "^1.14.2",
@@ -110,8 +85,13 @@
     "state-switch": "^1.7.1",
     "typed-emitter": "^1.5.0-from-event",
     "typesafe-actions": "^5.1.0",
-    "uuid": "^8.3.2",
     "watchdog": "^0.9.2"
+  },
+  "devDependencies": {
+    "nop": "^1.0.0",
+    "rxjs": "^7.4.0",
+    "shx": "^0.3.4",
+    "yocto-queue": "^1.0.0"
   },
   "files": [
     "dist/",
@@ -120,10 +100,5 @@
   "publishConfig": {
     "access": "public",
     "tag": "next"
-  },
-  "git": {
-    "scripts": {
-      "pre-push": "npx git-scripts-pre-push"
-    }
   }
 }

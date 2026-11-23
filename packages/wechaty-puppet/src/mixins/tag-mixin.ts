@@ -1,6 +1,10 @@
-import { log } from '../config.js'
+/**
+ * Tag mixin: the contact tag API (add, remove, delete and list tags), declared
+ * for provider puppets to implement.
+ */
+import { log } from '../config.ts'
 
-import type { PuppetSkeleton }   from '../puppet/puppet-skeleton.js'
+import type { PuppetSkeleton }   from '../puppet/puppet-skeleton.ts'
 
 const tagMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 

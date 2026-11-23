@@ -1,67 +1,71 @@
+/**
+ * Barrel for every puppet mixin and its `ProtectedProperty*` type, composed in
+ * this order by `puppet-abstract.ts`.
+ */
 import {
   cacheMixin,
-  ProtectedPropertyCacheMixin,
-}                                     from './cache-mixin.js'
+  type ProtectedPropertyCacheMixin,
+}                                     from './cache-mixin.ts'
 import {
   contactMixin,
-  ProtectedPropertyContactMixin,
-}                                     from './contact-mixin.js'
+  type ProtectedPropertyContactMixin,
+}                                     from './contact-mixin.ts'
 import {
   friendshipMixin,
-  ProtectedPropertyFriendshipMixin,
-}                                     from './friendship-mixin.js'
+  type ProtectedPropertyFriendshipMixin,
+}                                     from './friendship-mixin.ts'
 import {
   loginMixin,
-  ProtectedPropertyLoginMixin,
-}                                     from './login-mixin.js'
+  type ProtectedPropertyLoginMixin,
+}                                     from './login-mixin.ts'
 import {
   memoryMixin,
-  ProtectedPropertyMemoryMixin,
-}                                     from './memory-mixin.js'
+  type ProtectedPropertyMemoryMixin,
+}                                     from './memory-mixin.ts'
 import {
   messageMixin,
-  ProtectedPropertyMessageMixin,
-}                                     from './message-mixin.js'
-import { miscMixin }                  from './misc-mixin.js'
+  type ProtectedPropertyMessageMixin,
+}                                     from './message-mixin.ts'
+import { miscMixin }                  from './misc-mixin.ts'
 import {
   readyMixin,
-}                                     from './ready-mixin.js'
+}                                     from './ready-mixin.ts'
 import {
   roomInvitationMixin,
-  ProtectedPropertyRoomInvitationMixin,
-}                                     from './room-invitation-mixin.js'
+  type ProtectedPropertyRoomInvitationMixin,
+}                                     from './room-invitation-mixin.ts'
 import {
   roomMemberMixin,
-  ProtectedPropertyRoomMemberMixin,
-}                                     from './room-member-mixin.js'
+  type ProtectedPropertyRoomMemberMixin,
+}                                     from './room-member-mixin.ts'
 import {
   roomMixin,
-  ProtectedPropertyRoomMixin,
-}                                     from './room-mixin.js'
+  type ProtectedPropertyRoomMixin,
+}                                     from './room-mixin.ts'
 import {
   serviceMixin,
-  ProtectedPropertyServiceMixin,
-}                                     from './service-mixin.js'
+  type ProtectedPropertyServiceMixin,
+}                                     from './service-mixin.ts'
 import {
   tagMixin,
-  ProtectedPropertyTagMixin,
-}                                     from './tag-mixin.js'
+  type ProtectedPropertyTagMixin,
+}                                     from './tag-mixin.ts'
 import {
   tapMixin,
-  ProtectedPropertyTapMixin,
-}                                     from './tap-mixin.js'
+  type ProtectedPropertyTapMixin,
+}                                     from './tap-mixin.ts'
 import {
   postMixin,
-  ProtectedPropertyPostMixin,
-}                                     from './post-mixin.js'
+  type ProtectedPropertyPostMixin,
+}                                     from './post-mixin.ts'
 import {
   sayableMixin,
-  ProtectedPropertySayableMixin,
-}                                     from '../mixins/sayable-mixin.js'
+  type ProtectedPropertySayableMixin,
+}                                     from '../mixins/sayable-mixin.ts'
 import {
   validateMixin,
-  ProtectedPropertyValidateMixin,
-}                                     from './validate-mixin.js'
+  type ProtectedPropertyValidateMixin,
+}                                     from './validate-mixin.ts'
 
 /**
  * Issue #155 - Mixin: Property 'messageRawPayload' of exported class expression

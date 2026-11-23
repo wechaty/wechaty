@@ -209,7 +209,11 @@ function parseRecord (lines: string[]): LcovRecord {
   if (!source || fields.get('SF')?.length !== 1) {
     throw new Error('LCOV record must have exactly one source file')
   }
-  if (!lineCount) {
+  // A type-only module (only interfaces and types) has nothing to execute:
+  // Node reports it with summary tags (LF/LH) but no DA, FN or BRDA records.
+  // Count it as an empty source; reject any other record without line data.
+  const typeOnly = fields.has('LF') && !functionCounts.size && !functionHits.size && !branchCount
+  if (!lineCount && !typeOnly) {
     throw new Error(`LCOV record has no line data: ${source}`)
   }
   const functionNames = new Set([ ...functionCounts.keys(), ...functionHits.keys() ])

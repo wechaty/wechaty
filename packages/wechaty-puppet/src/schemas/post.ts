@@ -1,18 +1,23 @@
+/**
+ * Post schema: the `PostType` map and the post payloads (client and server
+ * forms) used for moments, channels and multipart messages.
+ */
 import type {
   SayablePayload,
   sayableTypes,
-}                             from './sayable.js'
-import type { TapType } from './tap.js'
+}                             from './sayable.ts'
+import type { TapType } from './tap.ts'
 
 /**
  * Huan(202201): numbers must be keep unchanged across versions
  */
-enum PostType {
-  Unspecified = 0,
-  Moment  = 1,  // <- WeChat Moments (朋友圈)
-  Channel = 2,  // <- WeChat Channel (视频号)
-  Message = 3,  // Quoted Message or Muitiplepart Message
-}
+const PostType = {
+  Unspecified : 0,
+  Moment  : 1,  // <- WeChat Moments (朋友圈)
+  Channel : 2,  // <- WeChat Channel (视频号)
+  Message : 3,  // Quoted Message or Muitiplepart Message
+} as const
+type PostType = typeof PostType[keyof typeof PostType]
 
 /**
  * Huan(202201): Error: referenced directly or indirectly in its own type annotation. ts(2502) #180

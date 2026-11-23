@@ -1,7 +1,11 @@
 /**
+ * `resolvePuppet()`: turns a puppet instance, constructor or npm package name
+ * into a puppet instance, importing the package by name when needed.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,18 +23,18 @@
  */
 import {
   log,
-}                     from '../config.js'
+}                     from '../config.ts'
 import type {
   PuppetOptions,
-}                     from '../schemas/puppet.js'
+}                     from '../schemas/puppet.ts'
 
 import {
   Puppet,
-}                     from './puppet-abstract.js'
+}                     from './puppet-abstract.ts'
 import type {
   PuppetInterface,
   PuppetConstructor,
-}                     from './puppet-interface.js'
+}                     from './puppet-interface.ts'
 
 // i.e. @juzibot/wechaty-puppet-donut
 type PuppetNpmScope = `@${string}/` | ''

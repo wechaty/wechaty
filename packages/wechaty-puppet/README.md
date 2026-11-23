@@ -4,7 +4,7 @@
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet.svg)](https://www.npmjs.com/package/wechaty-puppet)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty-puppet/next.svg)](https://www.npmjs.com/package/wechaty-puppet?activeTab=versions)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Linux/Mac Build Status](https://travis-ci.com/wechaty/wechaty-puppet.svg?branch=master)](https://travis-ci.com/wechaty/wechaty-puppet)
+[![Node.js CI](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml/badge.svg)](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml)
 [![ES Modules](https://img.shields.io/badge/ES-Modules-brightgreen)](https://github.com/Chatie/tsconfig/issues/16)
 
 ![chatie puppet](./docs/images/puppet-logo.jpg)
@@ -13,7 +13,14 @@
 
 Abstract(Base) Class of Puppet Providers for Wechaty Framework.
 
-This module is part of the [Wechaty](https://github.com/wechaty/wechaty) Framework SDK.
+This module is part of the [Wechaty](https://github.com/wechaty/wechaty) Framework SDK. It lives in the
+Wechaty monorepo at `packages/wechaty-puppet`, where it moved from `wechaty/puppet` in 2.0.
+
+## Requirements
+
+* Node.js 26 or newer. The package is ESM only.
+* The type maps in `types` (`Message`, `Contact`, `Dirty`, …) are `as const` objects, not TypeScript
+  enums. Use `helpers.typeName(types.Message, value)` to get a value's name.
 
 Learn more at:
 
@@ -119,6 +126,17 @@ Set the max size for wechaty entities in LRU Cache.
 
 ## History
 
+### v2.0 (unreleased)
+
+1. Moved into the Wechaty monorepo ([wechaty/wechaty#3054](https://github.com/wechaty/wechaty/issues/3054))
+1. ESM only; Node.js 26 runs the TypeScript sources directly, and only packaging compiles to `dist/`
+1. Breaking: the type maps are `as const` objects instead of TypeScript enums, with the same numbers.
+   Reverse lookups such as `types.Message[7]` become `helpers.typeName(types.Message, 7)`, and an
+   enum member used as a type, such as `types.Friendship.Confirm`, becomes
+   `typeof types.Friendship.Confirm`
+1. `crypto.randomUUID()` instead of `uuid`
+1. Tests use `node:test` and run under both Node.js and Deno
+
 ### master v1.0 - Initial Release
 
 ### v0.49 (Oct 2021)
@@ -146,12 +164,12 @@ Works with the following Puppet Providers:
 
 ## Author
 
-[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)) zixia@zixia.net
+[Huan Li](https://github.com/huan) <huan@chatie.io>
 
-[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
+[![Profile of Huan Li on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
 ## Copyright & License
 
-* Code & Docs © 2018-now Huan LI \<zixia@zixia.net\>
+* Code & Docs © 2018-now Huan Li <huan@chatie.io>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons

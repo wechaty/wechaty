@@ -1,10 +1,14 @@
+/**
+ * Ready mixin: a `readyIndicator` that turns on with the `ready` event and off
+ * on `logout`, on `reset`, and when the puppet stops.
+ */
 import { BooleanIndicator } from 'state-switch'
 
 import {
   log,
-} from '../config.js'
+} from '../config.ts'
 
-import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
 
 const readyMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 

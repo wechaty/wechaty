@@ -52,6 +52,20 @@ test('coverage parser rejects empty, incomplete, duplicate, and malformed LCOV',
   assert.throws(() => parseLcov(record('src/file.ts').replace('DA:1,1', 'DA:oops')), /Malformed LCOV line/)
 })
 
+test('a type-only module counts as an empty source', () => {
+  // Node's LCOV for a file with only interfaces: summary tags, no DA/FN/BRDA.
+  const [ typeOnly ] = parseLcov('TN:\nSF:src/types-only.ts\nFNF:0\nFNH:0\nBRF:0\nBRH:0\nLH:11\nLF:11\nend_of_record\n')
+  assert.deepEqual(typeOnly!.metrics, {
+    lines     : { covered: 0, total: 0, percent: 0 },
+    functions : { covered: 0, total: 0, percent: 0 },
+    branches  : { covered: 0, total: 0, percent: 0 },
+  })
+  // Without the summary tags it is still a malformed record.
+  assert.throws(() => parseLcov('SF:src/file.ts\nend_of_record\n'), /line data/)
+  // Function or branch records without lines are malformed too.
+  assert.throws(() => parseLcov('SF:src/file.ts\nFN:1,f\nFNDA:1,f\nLF:0\nend_of_record\n'), /line data/)
+})
+
 test('empty discovery fails and report success cannot erase a failing test status', () => {
   assert.throws(() => assertTestDiscovery([]), /no \*\.test\.ts files/)
   assert.doesNotThrow(() => assertTestDiscovery([ 'src/plugin.test.ts' ]))

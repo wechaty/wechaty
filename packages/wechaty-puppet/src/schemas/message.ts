@@ -1,53 +1,59 @@
 /**
+ * Message schema: `MessageType` and the WeChat-specific type maps (`as const`
+ * maps whose numbers must not change), message payloads and query filters.
+ */
+/**
  * Wechaty Puppet Unified Schema for Message
  */
-export enum MessageType {
-  Unknown = 0,
+export const MessageType = {
+  Unknown : 0,
 
-  Attachment  = 1,    // Attach(6),
-  Audio       = 2,    // Audio(1), Voice(34)
-  Contact     = 3,    // ShareCard(42)
-  ChatHistory = 4,    // ChatHistory(19)
-  Emoticon    = 5,    // Sticker: Emoticon(15), Emoticon(47)
-  Image       = 6,    // Img(2), Image(3)
-  Text        = 7,    // Text(1)
-  Location    = 8,    // Location(48)
-  MiniProgram = 9,    // MiniProgram(33)
-  GroupNote   = 10,   // GroupNote(53)
-  Transfer    = 11,   // Transfers(2000)
-  RedEnvelope = 12,   // RedEnvelopes(2001)
-  Recalled    = 13,   // Recalled(10002)
-  Url         = 14,   // Url(5)
-  Video       = 15,   // Video(4), Video(43)
-  Post        = 16,   // Moment, Channel, Tweet, etc
+  Attachment  : 1,    // Attach(6),
+  Audio       : 2,    // Audio(1), Voice(34)
+  Contact     : 3,    // ShareCard(42)
+  ChatHistory : 4,    // ChatHistory(19)
+  Emoticon    : 5,    // Sticker: Emoticon(15), Emoticon(47)
+  Image       : 6,    // Img(2), Image(3)
+  Text        : 7,    // Text(1)
+  Location    : 8,    // Location(48)
+  MiniProgram : 9,    // MiniProgram(33)
+  GroupNote   : 10,   // GroupNote(53)
+  Transfer    : 11,   // Transfers(2000)
+  RedEnvelope : 12,   // RedEnvelopes(2001)
+  Recalled    : 13,   // Recalled(10002)
+  Url         : 14,   // Url(5)
+  Video       : 15,   // Video(4), Video(43)
+  Post        : 16,   // Moment, Channel, Tweet, etc
 
-  System      = 18,   // System Message
-}
+  System      : 18,   // System Message
+} as const
+export type MessageType = typeof MessageType[keyof typeof MessageType]
 
 /**
  * Huan(202001): Wechat Server Message Type Value (to be confirmed.)
  */
-export enum WechatAppMessageType {
-  Text                  = 1,
-  Img                   = 2,
-  Audio                 = 3,
-  Video                 = 4,
-  Url                   = 5,
-  Attach                = 6,
-  Open                  = 7,
-  Emoji                 = 8,
-  VoiceRemind           = 9,
-  ScanGood              = 10,
-  Good                  = 13,
-  Emotion               = 15,
-  CardTicket            = 16,
-  RealtimeShareLocation = 17,
-  ChatHistory           = 19,
-  MiniProgram           = 33,
-  Transfers             = 2000,
-  RedEnvelopes          = 2001,
-  ReaderType            = 100001,
-}
+export const WechatAppMessageType = {
+  Text                  : 1,
+  Img                   : 2,
+  Audio                 : 3,
+  Video                 : 4,
+  Url                   : 5,
+  Attach                : 6,
+  Open                  : 7,
+  Emoji                 : 8,
+  VoiceRemind           : 9,
+  ScanGood              : 10,
+  Good                  : 13,
+  Emotion               : 15,
+  CardTicket            : 16,
+  RealtimeShareLocation : 17,
+  ChatHistory           : 19,
+  MiniProgram           : 33,
+  Transfers             : 2000,
+  RedEnvelopes          : 2001,
+  ReaderType            : 100001,
+} as const
+export type WechatAppMessageType = typeof WechatAppMessageType[keyof typeof WechatAppMessageType]
 
 /**
  * Wechat Server Message Type Value (to be confirmed)
@@ -56,31 +62,32 @@ export enum WechatAppMessageType {
  * Huan(202111): 17(RealTimeLocation) & 6 (File) ?
  *  @see https://zhuanlan.zhihu.com/p/22474033
  */
-export enum WechatMessageType {
-  Text              = 1,
-  Image             = 3,
-  Voice             = 34,
-  VerifyMsg         = 37,
-  PossibleFriendMsg = 40,
-  ShareCard         = 42,
-  Video             = 43,
-  Emoticon          = 47,
-  Location          = 48,
-  App               = 49,
-  VoipMsg           = 50,
-  StatusNotify      = 51,
-  VoipNotify        = 52,
-  VoipInvite        = 53,
-  MicroVideo        = 62,
-  Transfer          = 2000, // 转账
-  RedEnvelope       = 2001, // 红包
-  MiniProgram       = 2002, // 小程序
-  GroupInvite       = 2003, // 群邀请
-  File              = 2004, // 文件消息
-  SysNotice         = 9999,
-  Sys               = 10000,
-  Recalled          = 10002,  // NOTIFY 服务通知
-}
+export const WechatMessageType = {
+  Text              : 1,
+  Image             : 3,
+  Voice             : 34,
+  VerifyMsg         : 37,
+  PossibleFriendMsg : 40,
+  ShareCard         : 42,
+  Video             : 43,
+  Emoticon          : 47,
+  Location          : 48,
+  App               : 49,
+  VoipMsg           : 50,
+  StatusNotify      : 51,
+  VoipNotify        : 52,
+  VoipInvite        : 53,
+  MicroVideo        : 62,
+  Transfer          : 2000, // 转账
+  RedEnvelope       : 2001, // 红包
+  MiniProgram       : 2002, // 小程序
+  GroupInvite       : 2003, // 群邀请
+  File              : 2004, // 文件消息
+  SysNotice         : 9999,
+  Sys               : 10000,
+  Recalled          : 10002,  // NOTIFY 服务通知
+} as const
+export type WechatMessageType = typeof WechatMessageType[keyof typeof WechatMessageType]
 
 /** @hidden */
 export interface MessagePayloadBase {

@@ -1,3 +1,9 @@
+/**
+ * `CacheAgent`: the LRU caches for contact, friendship, message, post, room,
+ * room-invitation and room-member payloads, sized from `PuppetOptions.cache` or
+ * the `WECHATY_PUPPET_LRU_CACHE_SIZE_*` environment variables (`env-vars.ts`).
+ * `cache-mixin.ts` owns one per puppet.
+ */
 import type {
   Options as QuickLruOptions,
 }                               from '@alloc/quick-lru'
@@ -6,29 +12,29 @@ import QuickLru                 from '@alloc/quick-lru'
 import {
   envVars,
   log,
-}                         from '../config.js'
+}                         from '../config.ts'
 import type {
   ContactPayload,
-}                         from '../schemas/contact.js'
+}                         from '../schemas/contact.ts'
 import type {
   FriendshipPayload,
-}                         from '../schemas/friendship.js'
+}                         from '../schemas/friendship.ts'
 import type {
   MessagePayload,
-}                         from '../schemas/message.js'
+}                         from '../schemas/message.ts'
 import type {
   RoomMemberPayload,
   RoomPayload,
-}                         from '../schemas/room.js'
+}                         from '../schemas/room.ts'
 import type {
   RoomInvitationPayload,
-}                         from '../schemas/room-invitation.js'
+}                         from '../schemas/room-invitation.ts'
 import type {
   PuppetOptions,
-}                         from '../schemas/puppet.js'
+}                         from '../schemas/puppet.ts'
 import type {
   PostPayload,
-}                         from '../schemas/post.js'
+}                         from '../schemas/post.ts'
 
 type PayloadCacheOptions = Required<PuppetOptions>['cache']
 
@@ -46,9 +52,12 @@ class CacheAgent {
   readonly roomInvitation : QuickLru<string, RoomInvitationPayload>
   readonly roomMember     : QuickLru<string, LruRoomMemberPayload>
 
+  protected options?: PayloadCacheOptions
+
   constructor (
-    protected options?: PayloadCacheOptions,
+    options?: PayloadCacheOptions,
   ) {
+    this.options = options
     log.verbose('PuppetCacheAgent', 'constructor(%s)',
       options
         ? JSON.stringify(options)

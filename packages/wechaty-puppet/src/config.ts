@@ -1,11 +1,16 @@
+/**
+ * Package-wide settings: the logger, the package `NAME` and `VERSION` (from
+ * the embedded `package-json.ts`), and re-exports of the runtime classes the
+ * puppet API exposes (`FileBox`, `MemoryCard`, `StateSwitch`) plus `envVars`.
+ */
 import { FileBox }      from 'file-box'
 import { Brolog }       from 'brolog'
 import { MemoryCard }   from 'memory-card'
 import { StateSwitch }  from 'state-switch'
 
-import { packageJson } from './package-json.js'
+import { packageJson } from './package-json.ts'
 
-import * as envVars from './env-vars.js'
+import * as envVars from './env-vars.ts'
 
 const log = new Brolog()
 const logLevel = process.env['WECHATY_LOG']

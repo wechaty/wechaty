@@ -1,20 +1,25 @@
+/**
+ * Cache mixin: gives the puppet its `CacheAgent`, marks cached payloads dirty
+ * (`dirtyPayload()`), and clears them when a `dirty` event arrives.
+ */
 import {
   timeoutPromise,
 }                           from 'gerror'
 
-import { log }  from '../config.js'
+import { log }  from '../config.ts'
 
 import type {
   PuppetOptions,
   EventDirtyPayload,
-}                               from '../schemas/mod.js'
-import { DirtyType }          from '../schemas/mod.js'
+}                               from '../schemas/mod.ts'
+import { DirtyType }          from '../schemas/mod.ts'
+import { typeName }           from '../schemas/type-name.ts'
 
-import { CacheAgent }           from '../agents/mod.js'
+import { CacheAgent }           from '../agents/mod.ts'
 
-import type { PuppetSkeleton }   from '../puppet/mod.js'
+import type { PuppetSkeleton }   from '../puppet/mod.ts'
 
-import type { LoginMixin } from './login-mixin.js'
+import type { LoginMixin } from './login-mixin.ts'
 
 /**
  *
@@ -85,7 +90,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
       type : DirtyType,
       id   : string,
     ): void {
-      log.verbose('PuppetCacheMixin', 'dirtyPayload(%s<%s>, %s)', DirtyType[type], type, id)
+      log.verbose('PuppetCacheMixin', 'dirtyPayload(%s<%s>, %s)', typeName(DirtyType, type), type, id)
 
       /**
        * Huan(202111): we return first before emit the `dirty` event?
@@ -106,7 +111,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
         payloadId,
       }: EventDirtyPayload,
     ): void {
-      log.verbose('PuppetCacheMixin', 'onDirty(%s<%s>, %s)', DirtyType[payloadType], payloadType, payloadId)
+      log.verbose('PuppetCacheMixin', 'onDirty(%s<%s>, %s)', typeName(DirtyType, payloadType), payloadType, payloadId)
 
       const dirtyFuncMap = {
         [DirtyType.Contact]:      (id: string) => this.cache.contact.delete(id),
@@ -130,7 +135,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
       type : DirtyType,
       id   : string,
     ): Promise<void> {
-      log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait(%s<%s>, %s)', DirtyType[type], type, id)
+      log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait(%s<%s>, %s)', typeName(DirtyType, type), type, id)
 
       if (!this.__currentUserId) {
         log.verbose('PuppetCacheMixin', '__dirtyPayloadAwait() will not dirty any payload when the puppet is not logged in')
@@ -180,7 +185,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
             'error: %s',
             'stack: %s',
           ].join('\n  '),
-          DirtyType[type],
+          typeName(DirtyType, type),
           type,
           id,
           (e as Error).message,

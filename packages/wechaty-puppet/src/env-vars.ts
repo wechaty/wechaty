@@ -1,3 +1,7 @@
+/**
+ * `envVars`: readers for the `WECHATY_PUPPET_*` environment variables (LRU
+ * cache sizes), each with its default.
+ */
 const DEFAULT_LRU_CACHE_SIZE_CONTACT         = 500
 const DEFAULT_LRU_CACHE_SIZE_FRIENDSHIP      = 100
 const DEFAULT_LRU_CACHE_SIZE_MESSAGE         = 500
@@ -15,7 +19,7 @@ const getNumberEnv = (env: typeof process.env) => (
     return defaultValue
   }
 
-  const numVal = parseInt(strVal)
+  const numVal = parseInt(strVal, 10)
   if (isNaN(numVal)) {
     return defaultValue
   }

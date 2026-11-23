@@ -1,20 +1,25 @@
+/**
+ * Room mixin: the room API (payload, list, search, create, add and remove
+ * members, topic, announcement, QR code, avatar). Provider puppets implement
+ * the raw methods.
+ */
 import type {
   FileBoxInterface,
 }                       from 'file-box'
 
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 import type {
   RoomPayload,
   RoomPayloadFilterFunction,
   RoomQueryFilter,
-}                                 from '../schemas/room.js'
+}                                 from '../schemas/room.ts'
 
-import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
-import type { ContactMixin }  from './contact-mixin.js'
-import type { RoomMemberMixin } from './room-member-mixin.js'
-import { DirtyType } from '../schemas/dirty.js'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
+import type { ContactMixin }  from './contact-mixin.ts'
+import type { RoomMemberMixin } from './room-member-mixin.ts'
+import { DirtyType } from '../schemas/dirty.ts'
 
 const roomMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin & RoomMemberMixin>(mixinBase: MixinBase) => {
 

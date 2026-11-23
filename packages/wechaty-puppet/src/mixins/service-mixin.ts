@@ -1,13 +1,17 @@
+/**
+ * Service mixin: start and stop for the puppet (from `state-switch`'s
+ * `serviceCtlMixin`), plus the `WatchdogAgent` that resets a stalled puppet.
+ */
 import {
   serviceCtlMixin,
 }                   from 'state-switch'
 
 import {
   log,
-}           from '../config.js'
+}           from '../config.ts'
 
-import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
-import { WatchdogAgent }      from '../agents/watchdog-agent.js'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
+import { WatchdogAgent }      from '../agents/watchdog-agent.ts'
 
 const serviceMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 

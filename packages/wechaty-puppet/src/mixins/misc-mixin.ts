@@ -1,12 +1,16 @@
+/**
+ * Misc mixin: the puppet's `name()`, `version()`, `toString()`, `ding()`, and
+ * `wechatyVersionRange()` for the Wechaty versions it supports.
+ */
 import {
   log,
   NAME,
   VERSION,
-}                       from '../config.js'
+}                       from '../config.ts'
 
-import type { PuppetSkeleton }   from '../puppet/mod.js'
+import type { PuppetSkeleton }   from '../puppet/mod.ts'
 
-import type { MemoryMixin } from './memory-mixin.js'
+import type { MemoryMixin } from './memory-mixin.ts'
 
 const miscMixin = <MixinBase extends typeof PuppetSkeleton & MemoryMixin>(mixinBase: MixinBase) => {
 

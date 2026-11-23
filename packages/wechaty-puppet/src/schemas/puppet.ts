@@ -1,4 +1,8 @@
 /**
+ * Puppet schema: `PuppetOptions`, the `YOU` placeholder, and the chat and
+ * puppet event dictionaries.
+ */
+/**
  * This is used internally to as a placeholder for the bot name.
  *
  * For example:

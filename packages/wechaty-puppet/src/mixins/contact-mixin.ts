@@ -1,19 +1,24 @@
+/**
+ * Contact mixin: the contact API (payload, list, search, alias, avatar, phone,
+ * corporation remark, description). Public methods cache and filter payloads;
+ * provider puppets implement the `contactRaw*` and other abstract methods.
+ */
 import type {
   FileBoxInterface,
 }                       from 'file-box'
 import {
   log,
-}                       from '../config.js'
-import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
+}                       from '../config.ts'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
 
 import type {
   ContactPayload,
   ContactPayloadFilterFunction,
   ContactQueryFilter,
-}                                 from '../schemas/contact.js'
-import { DirtyType } from '../schemas/dirty.js'
+}                                 from '../schemas/contact.ts'
+import { DirtyType } from '../schemas/dirty.ts'
 
-import type { CacheMixin }    from './cache-mixin.js'
+import type { CacheMixin }    from './cache-mixin.ts'
 
 const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 

@@ -1,3 +1,6 @@
+/**
+ * Room schema: the room and room-member payloads and query filters.
+ */
 export interface RoomMemberQueryFilter {
   name?         : string,
   roomAlias?    : string,

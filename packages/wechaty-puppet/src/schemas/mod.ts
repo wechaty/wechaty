@@ -1,12 +1,16 @@
+/**
+ * Barrel for every schema: the `const` type maps, payloads, filters and event
+ * dictionaries.
+ */
 import {
   ContactGender,
   ContactType,
   type ContactPayload,
   type ContactQueryFilter,
-}                             from './contact.js'
+}                             from './contact.ts'
 import {
   ScanStatus,
-}                             from './event.js'
+}                             from './event.ts'
 import {
   type FriendshipAddOptions,
   type FriendshipPayload,
@@ -16,10 +20,10 @@ import {
   type FriendshipSearchQueryFilter,
   FriendshipType,
   FriendshipSceneType,
-}                             from './friendship.js'
+}                             from './friendship.ts'
 import {
   ImageType,
-}                             from './image.js'
+}                             from './image.ts'
 import {
   type MessagePayload,
   type MessagePayloadBase,
@@ -27,18 +31,18 @@ import {
   type MessagePayloadTo,
   type MessageQueryFilter,
   MessageType,
-}                             from './message.js'
-import { DirtyType }         from './dirty.js'
+}                             from './message.ts'
+import { DirtyType }         from './dirty.ts'
 import {
   CHAT_EVENT_DICT,
   PUPPET_EVENT_DICT,
   YOU,
-}                       from './puppet.js'
+}                       from './puppet.ts'
 import {
   type TapPayload,
   TapType,
   type TapQueryFilter,
-}                       from './tap.js'
+}                       from './tap.ts'
 import {
   type PostPayload,
   PostType,
@@ -47,7 +51,7 @@ import {
   type PostQueryFilter,
   type PostPayloadClient,
   type PostPayloadServer,
-}                         from './post.js'
+}                         from './post.ts'
 
 import type {
   EventDirtyPayload,
@@ -67,41 +71,41 @@ import type {
   EventRoomTopicPayload,
   EventRoomAnnouncePayload,
   EventScanPayload,
-}                             from './event.js'
+}                             from './event.ts'
 import type {
   RoomPayload,
   RoomQueryFilter,
   RoomMemberPayload,
   RoomMemberQueryFilter,
-}                             from './room.js'
+}                             from './room.ts'
 import type {
   RoomInvitationPayload,
-}                             from './room-invitation.js'
+}                             from './room-invitation.ts'
 import type {
   UrlLinkPayload,
-}                             from './url-link.js'
+}                             from './url-link.ts'
 import type {
   MiniProgramPayload,
-}                             from './mini-program.js'
+}                             from './mini-program.ts'
 import type {
   LocationPayload,
-}                             from './location.js'
+}                             from './location.ts'
 
 import type {
   PuppetOptions,
   PuppetEventName,
   ChatEventName,
-}                         from './puppet.js'
+}                         from './puppet.ts'
 
 import {
   sayablePayloads,
   sayableTypes,
   type SayablePayload,
-}                         from './sayable.js'
+}                         from './sayable.ts'
 import type {
   PaginationRequest,
   PaginationResponse,
-}                         from './pagination.js'
+}                         from './pagination.ts'
 
 export {
   CHAT_EVENT_DICT,
@@ -114,8 +118,8 @@ export {
   isPostPayloadClient,
   isPostPayloadServer,
   MessageType,
-  PaginationRequest,
-  PaginationResponse,
+  type PaginationRequest,
+  type PaginationResponse,
   PostType,
   PUPPET_EVENT_DICT,
   sayablePayloads,

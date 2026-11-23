@@ -1,21 +1,25 @@
+/**
+ * Room-member mixin: the room-member API (member list, member payloads,
+ * member search by name or alias). Provider puppets implement the raw methods.
+ */
 import {
   log,
-}                       from '../config.js'
+}                       from '../config.ts'
 
 import type {
   ContactQueryFilter,
-}                                 from '../schemas/contact.js'
+}                                 from '../schemas/contact.ts'
 import type {
   RoomMemberPayload,
   RoomMemberQueryFilter,
-}                                 from '../schemas/room.js'
+}                                 from '../schemas/room.ts'
 import {
   YOU,
-}                                 from '../schemas/puppet.js'
+}                                 from '../schemas/puppet.ts'
 
-import type { PuppetSkeleton } from '../puppet/puppet-skeleton.js'
-import type { ContactMixin }  from './contact-mixin.js'
-import { DirtyType } from '../schemas/dirty.js'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
+import type { ContactMixin }  from './contact-mixin.ts'
+import { DirtyType } from '../schemas/dirty.ts'
 
 const roomMemberMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin>(mixinBase: MixinBase) => {
 

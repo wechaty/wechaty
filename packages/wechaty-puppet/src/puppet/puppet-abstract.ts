@@ -1,7 +1,11 @@
 /**
+ * The abstract `Puppet` class: `PuppetSkeleton` with every mixin applied. Provider
+ * puppets extend it and implement its abstract methods.
+ */
+/**
  *   Wechaty - https://github.com/wechaty/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan Li <huan@chatie.io>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,11 +25,11 @@ import { function as FP } from 'fp-ts'
 import {
   log,
   VERSION,
-}                       from '../config.js'
+}                       from '../config.ts'
 
 import type {
   PuppetOptions,
-}                       from '../schemas/mod.js'
+}                       from '../schemas/mod.ts'
 
 import {
   cacheMixin,
@@ -45,9 +49,9 @@ import {
   postMixin,
   sayableMixin,
   tapMixin,
-}                        from '../mixins/mod.js'
+}                        from '../mixins/mod.ts'
 
-import { PuppetSkeleton } from './puppet-skeleton.js'
+import { PuppetSkeleton } from './puppet-skeleton.ts'
 
 /**
  * Mixins with Functional Programming: compose / pipe
