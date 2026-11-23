@@ -483,11 +483,18 @@ jobs:
             const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
             // A review may have been posted before status/progress failed.
             // Make that partial success visible instead of claiming no review exists.
-            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: Number(process.env.PR_NUMBER) })
-            const prior = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr.number, per_page: 100 })
-            const existing = prior.find(r => r.user?.login === 'github-actions[bot]' &&
-              r.commit_id === process.env.HEAD_SHA &&
-              r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${process.env.HEAD_SHA} base=${process.env.BASE_SHA} -->`))
+            let existing
+            try {
+              const prior = await github.paginate(github.rest.pulls.listReviews, {
+                owner, repo, pull_number: Number(process.env.PR_NUMBER), per_page: 100,
+              })
+              existing = prior.find(r => r.user?.login === 'github-actions[bot]' &&
+                r.commit_id === process.env.HEAD_SHA &&
+                r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${process.env.HEAD_SHA} base=${process.env.BASE_SHA} -->`))
+            } catch (e) {
+              // A lookup outage must not prevent reporting that the run failed.
+              core.warning(`Could not inspect previously published reviews: ${e.message}`)
+            }
             const title = existing
               ? `### ⚠️ ${who} review published, but finalization failed`
               : AGENT_RESULT === 'cancelled'
