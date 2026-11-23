@@ -135,7 +135,7 @@ jobs:
           import { appendFileSync, readFileSync } from 'node:fs'
           import { dockerTags } from './scripts/docker-tags.ts'
 
-          const { version } = JSON.parse(readFileSync('package.json', 'utf8'))
+          const { version } = JSON.parse(readFileSync('packages/wechaty/package.json', 'utf8'))
           const { versionTag, channel } = dockerTags(version)
 
           const output = process.env.GITHUB_OUTPUT

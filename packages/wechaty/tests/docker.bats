@@ -10,7 +10,7 @@ fixtures=tests/fixtures/docker
   run docker run --rm --entrypoint node "${IMAGE_NAME:-wechaty/wechaty:artifact}" \
     --input-type=module -e "console.log(import.meta.resolve('wechaty'))"
   [ "$status" -eq 0 ]
-  [ "$output" = "file:///wechaty/dist/esm/src/mods/mod.js" ]
+  [ "$output" = "file:///wechaty/packages/wechaty/dist/esm/src/mods/mod.js" ]
 }
 
 @test "should fail when using require to load ESM-only Wechaty" {

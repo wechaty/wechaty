@@ -51,20 +51,20 @@ demo.wechaty.json
 t/
 t.*
 .DS_Store
-/dist/
+dist/
 yarn.lock
 .yarn/
 .yarn-cache/
 .v8flags.*
 
 # why? forgot... 2017-05-18 by huan
-/tests/fixtures/docker/package.json
+/packages/wechaty/tests/fixtures/docker/package.json
 
 tags
 *.memory-card.json
 *.wechaty.json
-/package
-/wechaty-*.*.*.tgz
+/packages/*/package
+/packages/*/*.tgz
 *.bak
 .babel.json
 
@@ -74,3 +74,4 @@ examples/.pki
 .config/
 log
 /*.jpg
+/packages/wechaty/*.jpg

@@ -49,21 +49,26 @@ WORKDIR /wechaty
 # ARM64 QEMU. Use explicit bounds checks during the build, not at runtime.
 ARG NODE_OPTIONS=--disable-wasm-trap-handler
 
+# /wechaty is the monorepo root; the wechaty package is /wechaty/packages/wechaty.
+# Install from the root lockfile with each workspace manifest in place.
 COPY package.json package-lock.json ./
-COPY scripts/install-git-hooks.ts ./scripts/
+COPY packages/wechaty/package.json ./packages/wechaty/
 RUN  npm ci \
   && rm -fr /tmp/* ~/.npm
 
 COPY . .
 
-RUN ./scripts/generate-package-json.sh && rm -f src/package-json.test.ts
+RUN cd packages/wechaty \
+  && ./scripts/generate-package-json.sh \
+  && rm -f src/package-json.test.ts
 RUN  npm test \
   && npm run dist \
+  && cd packages/wechaty \
   && npm link
 
 # Pre-install all puppets.
 # Must be placed after `npm link`, or it will be all deleted by `npm link`
-RUN  npm run puppet-install \
+RUN  npm run puppet-install --workspace wechaty \
   && sudo rm -fr /tmp/* ~/.npm
 
 #
@@ -77,13 +82,13 @@ RUN echo '{"type": "module"}' > /package.json
 RUN  mkdir /node_modules \
   && ln -sfv /usr/lib/node_modules/*  /node_modules/ \
   && ln -sfv /wechaty/node_modules/*  /node_modules/ \
-  && ln -sfnv /wechaty /node_modules/wechaty \
-  && /wechaty/bin/clean-json.js /wechaty/tsconfig.json > /tsconfig.json \
+  && ln -sfnv /wechaty/packages/wechaty /node_modules/wechaty \
+  && /wechaty/packages/wechaty/bin/clean-json.js /wechaty/tsconfig.base.json > /tsconfig.json \
   && echo 'Linked Wechaty & tsconfig.json to Global'
 
 WORKDIR /bot
 
-ENTRYPOINT  [ "/wechaty/bin/entrypoint.sh" ]
+ENTRYPOINT  [ "/wechaty/packages/wechaty/bin/entrypoint.sh" ]
 CMD        [ "" ]
 
 #

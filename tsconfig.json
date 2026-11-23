@@ -1,48 +1,12 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "esnext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "rewriteRelativeImportExtensions": true,
-    "erasableSyntaxOnly": true,
-    "isolatedModules": true,
-    "traceResolution": false,
-    "noLib": false,
-    "resolveJsonModule": false,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "noEmitOnError": true,
-    "noUnusedLocals": true,
-    "noImplicitReturns": true,
-    "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noFallthroughCasesInSwitch": true,
-    "strictNullChecks": true,
-    "noImplicitAny": true,
-    "noUnusedParameters": true,
-    "noImplicitThis": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist/esm",
-    "lib": ["ESNext", "DOM"],
-    "verbatimModuleSyntax": true
+    "noEmit": true,
+    "types": [
+      "node"
+    ]
   },
-  "exclude": [
-    "node_modules/",
-    "dist/",
-    "tests/fixtures/",
-  ],
   "include": [
-    "app/**/*.ts",
-    "bin/*.ts",
-    "bot/**/*.ts",
-    "examples/**/*.ts",
-    "scripts/**/*.ts",
-    "src/**/*.ts",
-    "tests/**/*.test.ts",
-  ],
+    "scripts/**/*.ts"
+  ]
 }

@@ -5,7 +5,7 @@
 > current API. For example, a bot is now created with `WechatyBuilder.build()`
 > instead of `new Wechaty()`, and `logonoff()` is deprecated in favour of the
 > `isLoggedIn` property. Check the TypeScript sources in
-> [`src/`](https://github.com/wechaty/wechaty/tree/main/src) before relying on it.
+> [`packages/wechaty/src/`](https://github.com/wechaty/wechaty/tree/main/packages/wechaty/src) before relying on it.
 
 - Website - <https://wechaty.js.org>
 - Docs Site - <https://wechaty.js.org/docs/>

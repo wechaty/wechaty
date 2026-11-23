@@ -6,6 +6,24 @@ Tips:
 - [Monospaced font with programming ligatures](https://github.com/tonsky/FiraCode)
 - [Combined programming mono font with italics and font ligatures made from Fira Code and Pacifico for Italics](https://github.com/kosimst/Firicico)
 
+## Monorepo layout
+
+This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty/wechaty/issues/3053), plan in [#3054](https://github.com/wechaty/wechaty/issues/3054)):
+
+- The root `package.json` is private. It holds shared tooling (`tsconfig.base.json`,
+  `biome.json`, the lockfile, CI) and scripts that run every workspace:
+  `npm run lint`, `npm run test:unit`, `npm run test:unit:deno`,
+  `npm run coverage:node`, and `npm run coverage:deno`.
+- Each package lives in `packages/<npm-name>/` with its own `package.json`,
+  `tsconfig.json` (extending `../../tsconfig.base.json`), sources, tests, and
+  package scripts. Today there is one: `packages/wechaty`.
+- A package joins the root `workspaces` list only after it follows these rules.
+- Dependencies install once at the root (`npm ci`). Run a package script from
+  its folder, or from the root with `--workspace`, for example
+  `npm run test:unit:file --workspace wechaty -- src/plugin.test.ts`.
+
+Paths below are relative to `packages/wechaty` unless they start with `.github/`.
+
 ## TypeScript and modules
 
 Wechaty is ESM-only. Use `import` instead of `require('wechaty')`; CommonJS
@@ -73,7 +91,8 @@ the repository and `/tmp`, only the Git and Node subprocesses used by the
 fixtures, and the hostname system query required by `cuid`. The command starts
 Deno with a sanitized environment containing only `PATH`, `HOME`, `CI`, and
 `NODE_BINARY`; the broad env permission is needed by a dependency that
-enumerates `process.env`. It also allows loading the `leveldown` prebuilt native
+enumerates `process.env`. It may also read the monorepo root's `node_modules`,
+where npm workspaces install the dependencies. It also allows loading the `leveldown` prebuilt native
 modules required by the package's memory-card dependency.
 Deno uses `--no-check` because its checker cannot resolve a declaration import
 inside the `json-rpc-peer` dependency; `npm run lint:ts` remains the mandatory
@@ -95,57 +114,39 @@ LCOV tags. The renderer-only LCOV input normalizes source paths and makes
 repeated function names unique; the native reports and measured counters remain
 unchanged.
 `coverage/node/` and `coverage/deno/` are published as separate GitHub Actions
-artifacts, and each runtime is checked against its reviewed baseline in
-`.github/coverage-baselines/`.
+artifacts, and each runtime is checked against its reviewed baseline in the
+repository root's `.github/coverage-baselines/`, one file per runtime and
+package: `<runtime>.<package>.json`.
 
 The committed line/function/branch floors in
-`.github/coverage-baselines/node.json` and
-`.github/coverage-baselines/deno.json` were measured independently from the full
-shared suite at the versions above. Baseline changes require review; the
+`.github/coverage-baselines/node.wechaty.json` and
+`.github/coverage-baselines/deno.wechaty.json` were measured independently from
+the full shared suite at the versions above. Baseline changes require review; the
 workflow never lowers them automatically.
 
 Some parts of the tree also have floors of their own, checked from the same
 LCOV report after the repo-wide ones. Each is a `CoverageScope` in
 `scripts/coverage.ts`, and its floors live in
-`.github/coverage-baselines/<runtime>.<scope>.json`. Today there is one:
+`.github/coverage-baselines/<runtime>.wechaty.<scope>.json`. Today there is one:
 `async-lifecycle`, the module in `src/async-lifecycle/`, without its contract
 suite and examples. Its floors are its measured coverage minus two points, so a
 real regression fails while ordinary churn does not (wechaty/wechaty#2974).
 
 `npm run lint:ts` remains the canonical TypeScript check; the test runner does
 not replace it. Lifecycle tests register `t.after()` cleanup before starting
-bots. Windows-specific pre-push and puppet-installer exclusions remain limited
-to the existing symlink/shebang fixtures.
+bots. Windows-specific puppet-installer exclusions remain limited to the
+existing symlink/shebang fixtures.
 
-## Git hooks
+## Versioning
 
-`npm install` links `scripts/pre-push.ts` into a Git metadata directory using
-Git's required `pre-push` hook name. Node.js 26 runs the TypeScript hook
-directly.
-
-Ordinary feature-branch pushes run lint, then succeed with the same version,
-`HEAD`, and tags. Tag-only pushes and deletion-only pushes skip versioning.
-Set `NO_HOOK=1` to skip the hook.
-
-Versioning runs only when the checked-out branch is a release branch and the
-push contains one live update from that branch to an eligible release
-destination. Eligible refs use the npm publish pattern from
-`.github/workflows/npm.yml`: `^refs/heads/(main|v[0-9]+\.[0-9]+.*)$`
-(`main` and branches such as `v1.10`). Alpha prereleases bump to the next
-alpha version, and stable versions bump by patch. The bump updates
-`package-lock.json` when it is present and creates a local tag.
-
-The nested push is `git push --no-follow-tags <remote-url> <source>:<destination>`.
-The remote URL and explicit refspec publish that destination on the first
-push, before an upstream is configured, and leave every other ref unchanged.
-The original release push then exits 1 because it was prepared before the
-version commit existed. Push the local tag separately with
-`git push --no-follow-tags origin <tag>`.
-
-The hook rejects a release push before `npm version` when more than one live
-branch update includes a release branch, when a release update's source is
-not the checked-out release branch, or when the remote has more than one push
-URL. The repository is left unchanged in those cases.
+There is no Git hook. To release, bump `version` in
+`packages/wechaty/package.json` and its `packages/wechaty` entry in
+`package-lock.json` in a pull request, for example with
+`npm version prerelease --preid=alpha --workspace wechaty --no-git-tag-version`.
+After it merges to `main`, the npm workflow publishes that version if npm does
+not have it yet. Tag the release commit `v<version>` by hand. Step 8 of
+[#3054](https://github.com/wechaty/wechaty/issues/3054) replaces this with one
+lockstep release workflow for every package.
 
 ## npm publishing
 

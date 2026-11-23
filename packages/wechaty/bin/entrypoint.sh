@@ -7,7 +7,7 @@
 set -e
 
 export HOME=/bot
-export PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
+export PATH=$PATH:/wechaty/packages/wechaty/bin:/wechaty/node_modules/.bin
 
 function wechaty::banner() {
   echo
@@ -211,7 +211,7 @@ function wechaty::io-client() {
   echo "WECHATY_TOKEN=$WECHATY_TOKEN "
   echo
 
-  pushd /wechaty
+  pushd /wechaty/packages/wechaty
   npm run io-client
   popd
 }
@@ -305,7 +305,7 @@ function main() {
       if [ -f "$HOME"/package.json ]; then
         pushd "$HOME"
       else
-        pushd /wechaty
+        pushd /wechaty/packages/wechaty
       fi
       WECHATY_LOG=silent npm run test
       popd

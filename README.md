@@ -136,7 +136,7 @@ wechaty.start()
 
 After you scan the QR code and log in, this bot logs all messages to the console.
 
-You can find Wechaty's Official Examples at [examples/ding-dong-bot.ts](examples/ding-dong-bot.ts) and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
+You can find Wechaty's Official Examples at [packages/wechaty/examples/ding-dong-bot.ts](https://github.com/wechaty/wechaty/blob/main/packages/wechaty/examples/ding-dong-bot.ts) and more from our [Example Directory](https://github.com/Wechaty/wechaty-getting-started/blob/main/examples/).
 
 ## :checkered_flag: Requirements
 
@@ -228,7 +228,7 @@ Learn more about Wechaty Puppet from the Puppet Wiki:
 
 ## :guitar: API
 
-The [Wechaty API Reference](https://wechaty.github.io/wechaty/) was generated for v0.62.1 and is archived. The TypeScript sources in [`src/`](https://github.com/wechaty/wechaty/tree/main/src) are authoritative for the current API.
+The [Wechaty API Reference](https://wechaty.github.io/wechaty/) was generated for v0.62.1 and is archived. The TypeScript sources in [`packages/wechaty/src/`](https://github.com/wechaty/wechaty/tree/main/packages/wechaty/src) are authoritative for the current API.
 
 ### 1 Class `Wechaty`
 
@@ -503,7 +503,7 @@ At last, It's built for huan's personal study purpose of Automatically Testing.
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/6)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/6)
 [![contributor](https://sourcerer.io/fame/huan/wechaty/wechaty/images/7)](https://sourcerer.io/fame/huan/wechaty/wechaty/links/7)
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute. [[Contribute](https://github.com/wechaty/wechaty/blob/main/CONTRIBUTING.md)].
 
 -----
 

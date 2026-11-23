@@ -1,0 +1,175 @@
+{
+  "name": "wechaty",
+  "version": "2.0.0-alpha.18",
+  "description": "Wechaty is a RPA SDK for Chatbot Makers.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mods/mod.js"
+    },
+    "./impls": {
+      "import": "./dist/esm/src/mods/impls.js"
+    },
+    "./users": {
+      "import": "./dist/esm/src/mods/users.js"
+    },
+    "./async-lifecycle": {
+      "import": "./dist/esm/src/async-lifecycle/mod.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "users": [
+        "./dist/esm/src/mods/users.d.ts"
+      ],
+      "impls": [
+        "./dist/esm/src/mods/impls.d.ts"
+      ],
+      "async-lifecycle": [
+        "./dist/esm/src/async-lifecycle/mod.d.ts"
+      ]
+    }
+  },
+  "types": "./dist/esm/src/mods/mod.d.ts",
+  "engines": {
+    "node": ">=26",
+    "npm": ">=10"
+  },
+  "wechaty": {
+    "DEFAULT_PORT": 8080,
+    "DEFAULT_PROTOCOL": "io|0.0.1",
+    "DEFAULT_APIHOST": "api.chatie.io"
+  },
+  "scripts": {
+    "build": "tsc",
+    "changelog": "docker run -it --rm -e CHANGELOG_GITHUB_TOKEN -v \"$(pwd)\":/usr/local/src/your-app ferrarimarco/github-changelog-generator -u wechaty -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' /Snyk/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
+    "clean": "shx rm -fr dist/*",
+    "coverage": "npm run coverage:node",
+    "coverage:node": "node scripts/coverage.ts node",
+    "coverage:deno": "node scripts/coverage.ts deno",
+    "cli": "node bin/cli.ts",
+    "demo": "node examples/ding-dong-bot.ts",
+    "dist": "npm run clean && npm run build",
+    "docs": "bash -x scripts/generate-docs.sh",
+    "doctor": "node bin/doctor.ts",
+    "io-client": "node bin/io-client.ts",
+    "lint:biome": "biome lint bin examples src scripts tests",
+    "lint:sh": "bash -n bin/*.sh",
+    "lint:ts": "tsc --isolatedModules --noEmit",
+    "lint": "npm run lint:biome && npm run lint:ts && npm run lint:sh",
+    "puppet-install": "node bin/puppet-install.ts",
+    "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
+    "start": "npm run demo",
+    "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "test:shell": "shellcheck bin/*.sh scripts/*.sh",
+    "test:unit": "node --test src scripts tests/unit",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" NODE_BINARY=\"${NODE_BINARY:-$(command -v node)}\" deno test --no-check --allow-read=.,../../node_modules,/tmp,/etc/alpine-release --allow-write=/tmp --allow-run=git,node,deno --allow-env --allow-sys=hostname --allow-ffi=../../node_modules/leveldown/prebuilds src scripts tests/unit",
+    "test:unit:file": "node --test",
+    "test:unit:deno:file": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" NODE_BINARY=\"${NODE_BINARY:-$(command -v node)}\" deno test --no-check --allow-read=.,../../node_modules,/tmp,/etc/alpine-release --allow-write=/tmp --allow-run=git,node,deno --allow-env --allow-sys=hostname --allow-ffi=../../node_modules/leveldown/prebuilds",
+    "test:integration": "node --test --test-timeout=180000 tests/integration",
+    "test:e2e": "node --test --test-timeout=180000 tests/e2e",
+    "test": "npm run lint && npm run test:unit",
+    "typedoc": "bash scripts/typedoc.sh",
+    "prepack": "shx cp ../../README.md ../../LICENSE ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wechaty/wechaty.git",
+    "directory": "packages/wechaty"
+  },
+  "bin": {
+    "wechaty": "dist/esm/bin/cli.js",
+    "wechaty-doctor": "dist/esm/bin/doctor.js",
+    "wechaty-io-client": "dist/esm/bin/io-client.js",
+    "wechaty-puppet-install": "dist/esm/bin/puppet-install.js",
+    "wechaty-version": "dist/esm/bin/version.js"
+  },
+  "keywords": [
+    "ai",
+    "bot",
+    "chatbot",
+    "chatie",
+    "conversational",
+    "framework",
+    "robotics",
+    "robot",
+    "rpa",
+    "sdk",
+    "wechat",
+    "wecom",
+    "wxwork",
+    "lark",
+    "TikTok",
+    "weixin",
+    "whatsapp",
+    "微信"
+  ],
+  "author": {
+    "name": "Huan Li",
+    "email": "huan@chatie.io",
+    "url": "https://linkedin.com/in/huan42/"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wechaty/wechaty/issues"
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/wechaty"
+  },
+  "homepage": "https://github.com/wechaty/",
+  "dependencies": {
+    "brolog": "^1.14.2",
+    "clone-class": "^1.1.1",
+    "cmd-ts": "^0.10.0",
+    "cockatiel": "^4.0.0",
+    "cross-spawn": "^7.0.3",
+    "dotenv": "^16.0.0",
+    "file-box": "^1.4.15",
+    "fp-ts": "^2.11.9",
+    "gerror": "^1.0.16",
+    "get-port": "^6.1.2",
+    "json-rpc-peer": "^0.17.0",
+    "memory-card": "^1.1.2",
+    "open-graph": "^0.2.6",
+    "rx-queue": "^1.0.5",
+    "state-switch": "^1.6.3",
+    "wechaty-puppet": "^1.20.1",
+    "wechaty-puppet-service": "^1.19.8",
+    "wechaty-puppet-wechat4u": "^1.13.15",
+    "wechaty-token": "^1.1.1",
+    "ws": "^8.5.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.5",
+    "@chatie/semver": "^0.6.0",
+    "@types/cross-spawn": "^6.0.2",
+    "@types/glob": "^7.2.0",
+    "@types/open-graph": "^0.2.2",
+    "@types/qrcode-terminal": "^0.12.0",
+    "@types/ws": "^8.5.3",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "glob": "^7.2.0",
+    "jsdoc-to-markdown": "^7.1.1",
+    "qrcode-terminal": "^0.12.0",
+    "shx": "^0.3.4",
+    "sloc": "^0.2.1",
+    "tsx": "^4.23.15",
+    "typed-emitter": "^1.5.0-from-event",
+    "typedoc": "^1.0.0-dev.4",
+    "wechaty-puppet-mock": "^1.18.2"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/wechaty"
+  }
+}

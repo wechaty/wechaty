@@ -3,7 +3,7 @@ set -e
 
 VERSION=$(node --input-type=commonjs -p "require('./package.json').version")
 
-if ./node_modules/.bin/semver-is-prod "$VERSION"; then
+if npm exec --no -- semver-is-prod "$VERSION"; then
   NPM_DIST_TAG=latest
 else
   NPM_DIST_TAG=next
