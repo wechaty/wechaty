@@ -810,6 +810,12 @@ function main (): void {
     process.exitCode = 2
     return
   }
+  // The repository root has a package.json too, but it is not a package to measure.
+  if (resolve(ROOT) === resolve(REPOSITORY_ROOT) || !existsSync(join(ROOT, 'package.json'))) {
+    console.error(`${ROOT} is not a package folder. Run the coverage runner from packages/<name>, as each package's coverage:node and coverage:deno scripts do.`)
+    process.exitCode = 2
+    return
+  }
   try {
     const tests = testFiles()
     process.exitCode = runtime === 'node'

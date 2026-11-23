@@ -1,4 +1,7 @@
-/* eslint-disable sort-keys */
+/**
+ * `wechaty-token generate [--type <sni>]`: prints a new token for a puppet
+ * service, `<type>_<uuid>` (default type `uuid`).
+ */
 import {
   command,
   option,
@@ -6,7 +9,7 @@ import {
   string,
 }                 from 'cmd-ts'
 
-import { WechatyToken } from '../wechaty-token.js'
+import { WechatyToken } from '../wechaty-token.ts'
 
 async function handler (args: any) {
   try {

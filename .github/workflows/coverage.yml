@@ -31,7 +31,7 @@ jobs:
       if: always() && !cancelled()
       with:
         name: coverage-node
-        path: packages/wechaty/coverage/node/
+        path: packages/*/coverage/node/
         if-no-files-found: error
         retention-days: 14
 
@@ -61,6 +61,6 @@ jobs:
       if: always() && !cancelled()
       with:
         name: coverage-deno
-        path: packages/wechaty/coverage/deno/
+        path: packages/*/coverage/deno/
         if-no-files-found: error
         retention-days: 14

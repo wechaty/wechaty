@@ -1,14 +1,22 @@
-#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
-
-import {
-  test,
-}             from 'tstest'
+/**
+ * Unit tests for `WechatyToken`: SNI parsing, and discovery against an HTTP
+ * mock (`nock`, with real network access disabled), including the retry
+ * policy's limit of three retries and the 404 "unknown token" case.
+ */
+import assert from 'node:assert/strict'
+import { after, before, test } from 'node:test'
 
 import nock from 'nock'
 
-import { WechatyToken } from './wechaty-token.js'
+import { WechatyToken } from './wechaty-token.ts'
 
-test('WechatyToken sni() & toString()', async t  => {
+before(() => nock.disableNetConnect())
+after(() => {
+  nock.cleanAll()
+  nock.enableNetConnect()
+})
+
+test('WechatyToken sni() & toString()', async () => {
   /**
    * [token, sni]
    */
@@ -33,12 +41,12 @@ test('WechatyToken sni() & toString()', async t  => {
 
   for (const [token, sni] of FIXTURES) {
     const wechatyToken = new WechatyToken(token)
-    t.equal(wechatyToken.sni, sni, `token.sni() => ${sni}`)
-    t.equal(wechatyToken.toString(), token, `token.toString() => ${sni}`)
+    assert.equal(wechatyToken.sni, sni, `token.sni() => ${sni}`)
+    assert.equal(wechatyToken.toString(), token, `token.toString() => ${sni}`)
   }
 })
 
-test('WechatyToken.discover() resolved', async t  => {
+test('WechatyToken.discover() resolved', async () => {
   const TOKEN = '__token__'
   const EXPECTED_ADDRESS = {
     host: '1.2.3.4',
@@ -53,11 +61,11 @@ test('WechatyToken.discover() resolved', async t  => {
   const address = await token.discover()
 
   // console.info(address)
-  t.same(address, EXPECTED_ADDRESS, 'should get address')
+  assert.deepEqual(address, EXPECTED_ADDRESS, 'should get address')
   scope.done()
 })
 
-test('WechatyToken.discover() with custom authority', async t  => {
+test('WechatyToken.discover() with custom authority', async () => {
   const AUTHORITY = 'authority.com'
   const TOKEN = '__token__'
   const EXPECTED_ADDRESS = {
@@ -76,11 +84,11 @@ test('WechatyToken.discover() with custom authority', async t  => {
   const address = await wechatyToken.discover()
 
   // console.info(address)
-  t.same(address, EXPECTED_ADDRESS, `should get address from authority ${AUTHORITY}`)
+  assert.deepEqual(address, EXPECTED_ADDRESS, `should get address from authority ${AUTHORITY}`)
   scope.done()
 })
 
-test('WechatyToken.discover() retry succeed: HTTP/5XX <= 3', async t  => {
+test('WechatyToken.discover() retry succeed: HTTP/5XX <= 3', async () => {
   const TOKEN = '__token__'
   const EXPECTED_ADDRESS = {
     host: '1.2.3.4',
@@ -105,14 +113,14 @@ test('WechatyToken.discover() retry succeed: HTTP/5XX <= 3', async t  => {
   const address = await wechatyToken.discover()
 
   // console.info(address)
-  t.same(address, EXPECTED_ADDRESS, 'should get address')
+  assert.deepEqual(address, EXPECTED_ADDRESS, 'should get address')
   scope200.done()
   scope500.done()
   scope501.done()
   scope502.done()
 })
 
-test('WechatyToken.discover() retry failed: too many HTTP/500 (>3)', async t  => {
+test('WechatyToken.discover() retry failed: too many HTTP/500 (>3)', async () => {
   const TOKEN = '__token__'
   const EXPECTED_ADDRESS = {
     host: '1.2.3.4',
@@ -140,9 +148,9 @@ test('WechatyToken.discover() retry failed: too many HTTP/500 (>3)', async t  =>
   const address = await wechatyToken.discover()
 
   // console.info(address)
-  t.equal(address, undefined, 'should not get address')
+  assert.equal(address, undefined, 'should not get address')
 
-  t.equal(scope200.isDone(), false, 'should not call the 4th times')
+  assert.equal(scope200.isDone(), false, 'should not call the 4th times')
   /**
    * https://github.com/nock/nock/issues/1495#issuecomment-791079068
    */
@@ -154,7 +162,7 @@ test('WechatyToken.discover() retry failed: too many HTTP/500 (>3)', async t  =>
   scope503.done()
 })
 
-test('WechatyToken.discover() 404', async t  => {
+test('WechatyToken.discover() 404', async () => {
   const TOKEN = '__token__'
 
   const scope = nock('https://api.chatie.io')
@@ -165,6 +173,6 @@ test('WechatyToken.discover() 404', async t  => {
   const address = await wechatyToken.discover()
 
   // console.info(address)
-  t.equal(address, undefined, 'should get undefined for 404 NotFound')
+  assert.equal(address, undefined, 'should get undefined for 404 NotFound')
   scope.done()
 })

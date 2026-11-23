@@ -1,18 +1,24 @@
-import https from 'https'
-import http from 'http'
-
-import { v4 } from 'uuid'
+/**
+ * `WechatyToken`: a Wechaty puppet service token (`<sni>_<uuid>`) and its
+ * service discovery. `discover()` asks the discovery authority
+ * (`https://<authority>/v0/hosties/<token>`, default `api.chatie.io`) for the
+ * service's host and port, retrying transient failures (`retry-policy.ts`).
+ * It resolves `undefined`, never rejects, when the token is unknown or the
+ * service cannot be reached.
+ */
+import https from 'node:https'
+import http from 'node:http'
 
 import {
   DEFAULT_AUTHORITY,
   log,
-}                     from './config.js'
+}                     from './config.ts'
 import {
   VERSION,
-}                     from './version.js'
+}                     from './version.ts'
 import {
   retryPolicy,
-}                     from './retry-policy.js'
+}                     from './retry-policy.ts'
 
 interface PuppetServiceAddress {
   host: string,
@@ -50,7 +56,7 @@ class WechatyToken {
    */
   static generate (type: WechatyTokenType = 'uuid'): string {
     log.verbose('WechatyToken', 'generate(%s)', type)
-    return type + '_' + v4()
+    return type + '_' + crypto.randomUUID()
   }
 
   /**
