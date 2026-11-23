@@ -53,13 +53,13 @@ on:
         type: string
         default: ''
   schedule:
-    # Weekly canary: catches an expired/revoked session or CLI storage change.
+    # Production credential-health probe: catches expired/revoked sessions or CLI storage changes.
     - cron: '47 3 * * 1'
 
 permissions: {}
 
 env:
-  # The installer's binary must not replace itself mid-job.
+  # Install the latest CLI on each new job; prevent mid-job self-replacement.
   AGY_CLI_DISABLE_AUTO_UPDATE: '1'
 
 jobs:
@@ -220,6 +220,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '26'
+          cache: npm
 
       - name: Prepare review context
         shell: bash
@@ -238,7 +239,7 @@ jobs:
 
       - *install
 
-      - name: Run Antigravity review (read-only)
+      - name: Run Antigravity PR review (no GitHub write token)
         shell: bash
         env:
           ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
@@ -339,15 +340,41 @@ jobs:
       REACTION_ID: ${{ needs.review-start.outputs.reaction_id }}
       AGENT_RESULT: ${{ needs.review.result }}
     steps:
-      - name: Receive result
+      - name: Finalize an already-published review
+        id: existing
         if: needs.review.result == 'success'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            const pr = Number(process.env.PR_NUMBER)
+            const { HEAD_SHA: head, BASE_SHA: base, PROVIDER: who, STATUS_PREFIX } = process.env
+            const { data: current } = await github.rest.pulls.get({ owner, repo, pull_number: pr })
+            if (current.head.sha !== head || current.base.sha !== base) return
+            const marker = `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`
+            const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
+            const prior = reviews.find(r => r.user?.login === 'github-actions[bot]' &&
+              r.commit_id === head && r.body?.startsWith(marker))
+            if (!prior) return
+            // Finalization needs only a real existing review, not agent artifacts.
+            // This works after the previous publisher deleted its handoff files.
+            const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
+            await github.rest.issues.updateComment({ owner, repo, comment_id: Number(process.env.COMMENT_ID),
+              body: `<!-- ${who.toLowerCase()}-review-progress -->\n### ✅ ${who} review of #${pr} complete\n\n[Existing formal review](${prior.html_url}) finalized for HEAD \`${head}\` · BASE \`${base}\`. · [workflow run](${run})` })
+            await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success',
+              context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: prior.html_url })
+            core.setOutput('reused', 'true')
+            await core.summary.addRaw(`Finalized previously published ${who} review: ${prior.html_url}`).write()
+
+      - name: Receive result
+        if: needs.review.result == 'success' && steps.existing.outputs.reused != 'true'
         uses: actions/download-artifact@v4
         with:
           name: agent-result
           path: ${{ runner.temp }}/out
 
-      - &scan-result
-        name: Refuse results containing session material
+      - name: Refuse results containing session material
+        if: steps.existing.outputs.reused != 'true'
         shell: bash
         env:
           ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
@@ -368,7 +395,7 @@ jobs:
           echo "no session material found"
 
       - name: Publish formal review
-        if: needs.review.result == 'success'
+        if: needs.review.result == 'success' && steps.existing.outputs.reused != 'true'
         uses: actions/github-script@v8
         with:
           script: |
@@ -383,10 +410,55 @@ jobs:
             const safe = (t, max = 4000) => String(t ?? '').replace(/(^|[^\w`])@(?=[A-Za-z0-9])/g, '$1@​').slice(0, max)
             const cli = safe(fs.readFileSync(`${RUNNER_TEMP}/out/cli.txt`, 'utf8').trim(), 80)
 
-            // Parse the agent's JSON leniently: strip fences, take the outer object.
-            const raw = fs.readFileSync(`${RUNNER_TEMP}/out/result.txt`, 'utf8').replace(/```(?:json)?/g, '')
-            const out = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1))
-            if (typeof out.summary !== 'string' || !Array.isArray(out.findings)) throw new Error('agent output does not match the review schema')
+            // The CLI is configured for structured JSON output: reject malformed
+            // output instead of heuristically extracting a JSON-shaped substring.
+            const raw = fs.readFileSync(`${RUNNER_TEMP}/out/result.txt`, 'utf8').trim()
+            const out = JSON.parse(raw)
+            // The agent result is untrusted input to a privileged publisher.
+            // Fail closed rather than silently truncating or coercing findings.
+            // Structural and control-character validation; presentation text is
+            // capped by safe() only when posting to GitHub.
+            const validText = x => typeof x === 'string' && !/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(x)
+            // The agent may return file:// or absolute checkout paths. Only
+            // strip the exact runner workspace; reject all other absolute paths.
+            const normalizePath = rawPath => {
+              if (typeof rawPath !== 'string') return rawPath
+              let path = rawPath.startsWith('file://') ? rawPath.slice('file://'.length) : rawPath
+              const root = process.env.GITHUB_WORKSPACE
+              if (root && path.startsWith(root + '/')) path = path.slice(root.length + 1)
+              return path.startsWith('./') ? path.slice(2) : path
+            }
+            const validPath = p => validText(p) && p.length > 0 && p.length <= 400 &&
+              !p.startsWith('/') && !p.startsWith('file:') && !p.includes('\\') &&
+              !p.split('/').some(segment => segment === '..' || segment === '.') &&
+              !p.includes('\n') && !p.includes('\r')
+            const validFinding = f => f && typeof f === 'object' && !Array.isArray(f) &&
+              validPath(normalizePath(f.path)) && Number.isSafeInteger(f.line) && f.line >= 0 &&
+              ['high', 'medium', 'low'].includes(f.severity) &&
+              validText(f.title) && f.title.trim().length > 0 &&
+              validText(f.body) && f.body.trim().length > 0
+            if (!out || !validText(out.summary) || !out.summary.trim() ||
+                !Array.isArray(out.findings) || out.findings.length > 30 ||
+                !out.findings.every(validFinding) ||
+                !validText(out.not_assessed))
+              throw new Error('agent output does not match the review schema')
+
+            // Inline regression fixtures execute the actual validator code,
+            // including YAML literal-block JS escapes (the source of #3050's P1).
+            const assert = require('node:assert/strict')
+            const fixture = { path: 'src/README2.ts', line: 42, severity: 'medium',
+              title: 'Fix API 2', body: 'A legitimate finding with Uppercase and numbers 42' }
+            assert(validFinding(fixture))
+            assert(validFinding({ ...fixture, line: 0 })) // file-level finding
+            assert(!validText('contains\\u0000NUL'.replace('\\u0000', String.fromCharCode(0))))
+            assert(!validPath('src/file' + String.fromCharCode(10) + '.ts'))
+            assert(!validPath('../secrets'))
+            assert(!validPath('src' + String.fromCharCode(92) + 'windows.ts'))
+            assert(!validPath('src' + String.fromCharCode(92, 92) + 'windows.ts'))
+            assert(!validFinding({ ...fixture, path: '/etc/passwd' }))
+            assert(validFinding({ ...fixture, path: process.env.GITHUB_WORKSPACE + '/src/README2.ts' }))
+            assert(validText('Very long report ' + 'x'.repeat(5000)))
+            assert(validFinding({ ...fixture, body: 'x'.repeat(6000) }))
 
             // A review is only valid for the revision it read.
             const { data: cur } = await github.rest.pulls.get({ owner, repo, pull_number: pr })
@@ -402,24 +474,35 @@ jobs:
                 const m = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(l)
                 if (m) { n = Number(m[1]); continue }
                 if (l.startsWith('-') || l.startsWith('\\')) continue
-                lines.add(n++)
+                // Only added HEAD lines are valid review targets; context
+                // lines still advance the HEAD counter.
+                if (l.startsWith('+')) lines.add(n)
+                if (l.startsWith('+') || l.startsWith(' ')) n++
               }
               return lines
             }
+            const patchFixture = '@@ -1,2 +1,2 @@\n-old\n+new\n context\n@@ -8,1 +8,2 @@\n+second\n+third'
+            assert.deepEqual([...rightLines(patchFixture)].sort((a,b) => a-b), [1, 8, 9])
+            assert.equal(rightLines('@@ -1,1 +0,0 @@\n-old').size, 0)
             const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr, per_page: 100 })
             const diffLines = new Map(files.map(f => [f.filename, rightLines(f.patch)]))
             const icon = { high: '🔴', medium: '🟠', low: '🟡' }
             const inline = [], general = []
             for (const f of out.findings.slice(0, 30)) {
-              // Agents may report absolute runner paths; keep the repo-relative part.
-              const path = String(f.path ?? '').replace(/^file:\/\//, '').replace(/^\/home\/runner\/work\/[^/]+\/[^/]+\//, '').replace(/^\.\//, '')
+              // Use the same normalization verified before publication.
+              const path = normalizePath(f.path)
               const line = Number(f.line)
               const text = `${icon[f.severity] ?? '⚪'} **${safe(f.title ?? f.severity ?? 'Finding', 200)}**\n\n${safe(f.body)}`
               if (diffLines.get(path)?.has(line)) inline.push({ path, line, side: 'RIGHT', body: text })
               else general.push(`- \`${safe(path, 300)}${line ? `:${line}` : ''}\` ${text.replace(/\n\n/, ' — ')}`)
             }
             const count = out.findings.length
-            const body = [
+            // GitHub review bodies have a finite size. An excessive number
+            // of valid general findings must not prevent publication.
+            const capBody = value => Buffer.byteLength(value, 'utf8') <= 58000 ? value :
+              Buffer.from(value, 'utf8').subarray(0, 57000).toString('utf8') +
+              '\n\n_Review text truncated for GitHub; check the workflow run for diagnostics._'
+            const body = capBody([
               `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`,
               `## ${who} review`, '',
               safe(out.summary), '',
@@ -428,17 +511,29 @@ jobs:
               ...(out.not_assessed ? ['', `_Not assessed:_ ${safe(out.not_assessed, 2000)}`] : []),
               '', `Reviewed HEAD SHA: ${head}`,
               `<sub>${who} CLI ${cli} · BASE ${base} · [workflow run](${run})</sub>`,
-            ].join('\n')
-            let review
-            try {
-              ({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body, comments: inline }))
-            } catch (e) {
-              core.warning(`inline review failed (${e.message}); posting findings in the body`)
-              const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/, ' — ')}`)
-              ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: body.replace('Reviewed HEAD SHA', `${all.join('\n')}\n\nReviewed HEAD SHA`) }))
+            ].join('\n'))
+            // Recover after partial publication instead of duplicating a review.
+            const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
+            let review = previous.find(r => r.user?.login === 'github-actions[bot]' &&
+              r.commit_id === head && r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`))
+            if (!review) {
+              try {
+                ({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body, comments: inline }))
+              } catch (e) {
+                // Retry without inline anchors only on a GitHub validation error.
+                // Retrying a timeout/5xx could duplicate an already-posted review.
+                if (!inline.length || e.status !== 422) throw e
+                core.warning(`GitHub rejected inline anchors (${e.message}); posting findings in the body`)
+                const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/, ' — ')}`)
+                ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: capBody(body.replace('Reviewed HEAD SHA', `${all.join('\n')}\n\nReviewed HEAD SHA`)) }))
+              }
+            } else {
+              core.info(`Reusing review ${review.html_url} already published for this revision`)
             }
-            await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success', context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: run })
+            // Set the success status last; the finalize-only step can retry
+            // without agent-result after cleanup on a previous attempt.
             await progress(`### ✅ ${who} review of #${pr} complete\n\n${count ? `${count} finding(s)` : 'No issues found'} — [view review](${review.html_url})\n\nHEAD \`${head}\` · BASE \`${base}\` · [workflow run](${run})`)
+            await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success', context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: run })
             await core.summary.addRaw(`${who} review posted: ${review.html_url}`).write()
 
       - name: Report review failure
@@ -449,9 +544,27 @@ jobs:
             const { owner, repo } = context.repo
             const { PROVIDER: who, AGENT_RESULT } = process.env
             const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
-            const title = AGENT_RESULT === 'cancelled' ? `### ⏭️ ${who} review of #${process.env.PR_NUMBER} superseded by a newer push` : `### ❌ ${who} review of #${process.env.PR_NUMBER} failed`
+            // A review may have been posted before status/progress failed.
+            // Make that partial success visible instead of claiming no review exists.
+            let existing
+            try {
+              const prior = await github.paginate(github.rest.pulls.listReviews, {
+                owner, repo, pull_number: Number(process.env.PR_NUMBER), per_page: 100,
+              })
+              existing = prior.find(r => r.user?.login === 'github-actions[bot]' &&
+                r.commit_id === process.env.HEAD_SHA &&
+                r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${process.env.HEAD_SHA} base=${process.env.BASE_SHA} -->`))
+            } catch (e) {
+              // A lookup outage must not prevent reporting that the run failed.
+              core.warning(`Could not inspect previously published reviews: ${e.message}`)
+            }
+            const title = existing && AGENT_RESULT === 'success'
+              ? `### ⚠️ ${who} review published, but finalization failed`
+              : AGENT_RESULT === 'cancelled'
+                ? `### ⏭️ ${who} review of #${process.env.PR_NUMBER} superseded by a newer push`
+                : `### ❌ ${who} review of #${process.env.PR_NUMBER} failed`
             await github.rest.issues.updateComment({ owner, repo, comment_id: Number(process.env.COMMENT_ID),
-              body: `<!-- ${who.toLowerCase()}-review-progress -->\n${title}\n\nHEAD \`${process.env.HEAD_SHA}\`. See the [workflow run](${run}). If it mentions an expired or invalid session, re-export the ${who} secret. To retry, re-run the failed jobs.` })
+              body: `<!-- ${who.toLowerCase()}-review-progress -->\n${title}\n\nHEAD \`${process.env.HEAD_SHA}\`. ${existing ? `[Previously submitted review](${existing.html_url}).` : 'No completed formal review recorded.'} See the [workflow run](${run}). If it mentions an expired or invalid session, re-export the ${who} secret. ${existing && AGENT_RESULT === 'success' ? 'Re-run failed jobs to finalize the existing review without artifacts.' : 'Re-run all jobs to regenerate the review attempt.'}` })
 
       - &delete-artifacts
         name: Delete handed-over artifacts
@@ -761,7 +874,26 @@ jobs:
           name: agent-context
           path: ${{ runner.temp }}/ctx
 
-      - *scan-result
+      - name: Refuse results containing session material
+        shell: bash
+        env:
+          ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [ -d "$RUNNER_TEMP/out" ] || { echo "no agent result to scan"; exit 0; }
+          pat="$RUNNER_TEMP/session-fragments"
+          jq -r '.token.refresh_token, .token.access_token' <<<"$ANTIGRAVITY_AUTH_JSON" | awk 'length($0) >= 20 { print substr($0, length($0) - 19) }' > "$pat"
+          [ -s "$pat" ] || { echo "::error::could not derive session fragments"; exit 1; }
+          # Scan saved files (no pipeline), so a short-circuiting grep cannot fail open.
+          if grep -rqF -f "$pat" "$RUNNER_TEMP/out"; then
+            rm -rf "$RUNNER_TEMP/out" "$pat"
+            echo "::error::agent result contains session material; nothing was published. Revoke and re-export ANTIGRAVITY_AUTH_JSON."
+            exit 1
+          fi
+          rm -f "$pat"
+          echo "no session material found"
+
 
       - name: Publish changes
         if: needs.task.result == 'success'
