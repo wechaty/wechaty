@@ -3,7 +3,7 @@
  * The `wechaty-token` command line: `generate` and `discover` subcommands
  * (see `src/cli/`). Published as the package's `wechaty-token` bin.
  *
- * Author: Huan <zixia@zixia.net>
+ * Author: Huan Li <huan@chatie.io>
  * License: Apache-2.0
  *
  * CLI Apps in TypeScript with `cmd-ts` (Part 1)

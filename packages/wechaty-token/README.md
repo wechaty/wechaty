@@ -161,12 +161,12 @@ Inited
 
 ## Author
 
-[Huan LI](https://github.com/huan) ([李卓桓](http://linkedin.com/in/zixia)), Google Developer Expert (Machine Learning), <zixia@zixia.net>
+[Huan Li](https://github.com/huan), Google Developer Expert (Machine Learning), <huan@chatie.io>
 
-[![Profile of Huan LI (李卓桓) on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
+[![Profile of Huan Li on StackOverflow](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
 ## Copyright & License
 
-- Code & Docs © 2018-now Huan LI <zixia@zixia.net>
+- Code & Docs © 2018-now Huan Li <huan@chatie.io>
 - Code released under the Apache-2.0 License
 - Docs released under Creative Commons
