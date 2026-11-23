@@ -1,18 +1,31 @@
+/**
+ * Unit tests for the shared coverage runner (`scripts/coverage.ts`): LCOV
+ * parsing and validation, baselines, scopes, and the per-package
+ * `coverage.json` settings. They run at the repository root under Node and
+ * Deno, so they read the `wechaty` package's settings by path.
+ */
 import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { test } from 'node:test'
+import { fileURLToPath } from 'node:url'
 
 import {
   assertTestDiscovery,
   assertBaseline,
-  COVERAGE_SCOPES,
   coverageExitCode,
   coveragePassed,
+  denoPermissions,
+  loadCoverageConfig,
   mergeUnloadedSources,
   normalizeLcovForRenderer,
   parseLcov,
   scopeRecords,
   summarizeLcov,
 } from './coverage.ts'
+
+const WECHATY_CONFIG = loadCoverageConfig(fileURLToPath(new URL('../packages/wechaty/', import.meta.url)))
 
 const record = (source: string, lineHits = 1) => `TN:
 SF:${source}
@@ -142,7 +155,7 @@ end_of_record
 })
 
 test('a coverage scope keeps its own sources and leaves out its excluded prefixes', () => {
-  const scope = COVERAGE_SCOPES.find(candidate => candidate.name === 'async-lifecycle')!
+  const scope = WECHATY_CONFIG.scopes.find(candidate => candidate.name === 'async-lifecycle')!
   const records = parseLcov([
     record('src/async-lifecycle/engine.ts'),
     record('src/async-lifecycle/companions/listen.ts', 0),
@@ -157,4 +170,37 @@ test('a coverage scope keeps its own sources and leaves out its excluded prefixe
   const metrics = summarizeLcov(scoped)
   assert.equal(metrics.lines.percent, 50)
   assert.throws(() => assertBaseline(metrics, { lines: 60, functions: 0, branches: 0 }), /below/)
+})
+
+test('a package without coverage.json gets the defaults', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'wechaty-coverage-config-'))
+  try {
+    assert.deepEqual(loadCoverageConfig(directory), {
+      testDirectories : [ 'src' ],
+      sourceExcludes  : [],
+      scopes          : [],
+      deno            : {},
+    })
+    writeFileSync(join(directory, 'coverage.json'), JSON.stringify({ sourceExcludes: [ 'src/generated.ts' ] }))
+    assert.deepEqual(loadCoverageConfig(directory).sourceExcludes, [ 'src/generated.ts' ])
+    assert.deepEqual(loadCoverageConfig(directory).testDirectories, [ 'src' ])
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})
+
+test('Deno permissions add each package\'s extras to the shared defaults', () => {
+  assert.deepEqual(denoPermissions(loadCoverageConfig(tmpdir())), [
+    '--allow-read=.,../../node_modules,/tmp',
+    '--allow-write=coverage/deno,/tmp',
+    '--allow-env',
+  ])
+  assert.deepEqual(denoPermissions(WECHATY_CONFIG), [
+    '--allow-read=.,../../node_modules,/tmp,/etc/alpine-release',
+    '--allow-write=coverage/deno,/tmp',
+    '--allow-run=git,node,deno',
+    '--allow-env',
+    '--allow-sys=hostname',
+    '--allow-ffi=../../node_modules/leveldown/prebuilds',
+  ])
 })
