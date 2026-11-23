@@ -390,11 +390,11 @@ jobs:
             const out = JSON.parse(raw)
             // The agent result is untrusted input to a privileged publisher.
             // Fail closed rather than silently truncating or coercing findings.
-            const validText = (x, max) => typeof x === 'string' && x.length <= max && !/[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f]/.test(x)
+            const validText = (x, max) => typeof x === 'string' && x.length <= max && !/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(x)
             const validPath = p => validText(p, 400) && p.length > 0 &&
-              !p.startsWith('/') && !p.startsWith('file:') && !p.includes('\\\\') &&
+              !p.startsWith('/') && !p.startsWith('file:') && !p.includes('\\') &&
               !p.split('/').some(segment => segment === '..' || segment === '.') &&
-              !p.includes('\\n') && !p.includes('\\r')
+              !p.includes('\n') && !p.includes('\r')
             const validFinding = f => f && typeof f === 'object' && !Array.isArray(f) &&
               validPath(f.path) && Number.isSafeInteger(f.line) && f.line > 0 &&
               ['high', 'medium', 'low'].includes(f.severity) &&
