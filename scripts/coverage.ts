@@ -1,11 +1,17 @@
 /**
- * Coverage runner for the `wechaty` package (`npm run coverage:node` and
- * `coverage:deno`, run from `packages/wechaty`). It runs the unit suite under
- * one runtime with native coverage, writes LCOV and HTML reports to
- * `coverage/<runtime>/`, and fails when a measured metric drops below its
- * floor. Floors are measured baselines kept at the repository root in
- * `.github/coverage-baselines/<runtime>.wechaty[.<scope>].json`, so every
- * package in the monorepo keeps independent floors (AGENTS.md).
+ * Shared native-coverage runner for every package in the monorepo. A package
+ * runs it from its own folder (`node ../../scripts/coverage.ts <node|deno>`,
+ * wired as its `coverage:node` and `coverage:deno` scripts). It runs that
+ * package's unit suite under one runtime with native coverage, writes LCOV and
+ * HTML reports to `coverage/<runtime>/` in the package, and fails when a
+ * measured metric drops below its floor.
+ *
+ * Package-specific settings (test folders, excluded sources, coverage scopes,
+ * extra Deno permissions) come from the package's `coverage.json`
+ * (`CoverageConfig`). Floors are measured baselines kept at the repository
+ * root in `.github/coverage-baselines/<runtime>.<package>[.<scope>].json`, so
+ * every package keeps independent floors (AGENTS.md). The runtime self-check
+ * fixtures live in the repository root's `tests/fixtures/`.
  */
 import { spawnSync } from 'node:child_process'
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
@@ -35,18 +41,56 @@ export interface CoverageBaseline {
   branches: number
 }
 
-/** The package root: `packages/wechaty`. Test and source paths are relative to it. */
-const ROOT = fileURLToPath(new URL('../', import.meta.url))
-/** The monorepo root, which holds the shared `.github/coverage-baselines/`. */
-const REPOSITORY_ROOT = fileURLToPath(new URL('../../../', import.meta.url))
-/** Prefix of this package's baseline files in `.github/coverage-baselines/`. */
-const BASELINE_PACKAGE = 'wechaty'
+/**
+ * Per-package settings, read from `coverage.json` in the package root. Every
+ * field is optional; the defaults suit a package whose production code is the
+ * TypeScript under `src/`, with colocated `*.test.ts` files.
+ */
+export interface CoverageConfig {
+  /** Folders searched for `*.test.ts` files. Default: `[ 'src' ]`. */
+  readonly testDirectories: readonly string[]
+  /** Production sources, relative to the package root, left out of coverage (generated files). */
+  readonly sourceExcludes: readonly string[]
+  /** Parts of the production tree with floors of their own. */
+  readonly scopes: readonly CoverageScope[]
+  /** Deno permissions on top of the defaults (read `.`, the root `node_modules` and `/tmp`; write `coverage/deno` and `/tmp`; env). */
+  readonly deno: {
+    readonly allowRead?: readonly string[]
+    readonly allowRun?: readonly string[]
+    readonly allowSys?: readonly string[]
+    readonly allowFfi?: readonly string[]
+  }
+}
+
+/** The package being measured: the working directory, as `npm run` sets it. */
+const ROOT = process.cwd()
+/** The monorepo root, which holds the baselines and the self-check fixtures. */
+const REPOSITORY_ROOT = fileURLToPath(new URL('../', import.meta.url))
+
+/**
+ * Reads `coverage.json` from a package root, falling back to the defaults when
+ * the file is absent (as when this module's own tests import it at the root).
+ */
+export function loadCoverageConfig (root: string): CoverageConfig {
+  const path = join(root, 'coverage.json')
+  const raw = existsSync(path)
+    ? JSON.parse(readFileSync(path, 'utf8')) as Partial<CoverageConfig>
+    : {}
+  return {
+    testDirectories : raw.testDirectories ?? [ 'src' ],
+    sourceExcludes  : raw.sourceExcludes ?? [],
+    scopes          : raw.scopes ?? [],
+    deno            : raw.deno ?? {},
+  }
+}
+
+const CONFIG = loadCoverageConfig(ROOT)
 const METRICS: Record<MetricName, [string, string]> = {
   lines: [ 'LH', 'LF' ],
   functions: [ 'FNH', 'FNF' ],
   branches: [ 'BRH', 'BRF' ],
 }
-const SOURCE_EXCLUDES = new Set([ 'src/package-json.ts' ])
+const SOURCE_EXCLUDES: ReadonlySet<string> = new Set(CONFIG.sourceExcludes)
 
 /**
  * A part of the production tree with coverage floors of its own, checked after
@@ -62,17 +106,8 @@ export interface CoverageScope {
   readonly exclude: readonly string[]
 }
 
-/**
- * The scoped floors. `async-lifecycle` is the module's own code: its contract
- * suite and its runnable examples are test code here (wechaty/wechaty#2974).
- */
-export const COVERAGE_SCOPES: readonly CoverageScope[] = [
-  {
-    name    : 'async-lifecycle',
-    include : 'src/async-lifecycle/',
-    exclude : [ 'src/async-lifecycle/contract/', 'src/async-lifecycle/examples/' ],
-  },
-]
+/** The scoped floors of the package being measured, from its `coverage.json`. */
+export const COVERAGE_SCOPES: readonly CoverageScope[] = CONFIG.scopes
 
 function metric (covered: number, total: number): Metric {
   return {
@@ -442,7 +477,7 @@ export function assertCoverageProbe (lcov: string, sourceName: string, root = RO
 
 function testFiles (root = ROOT): string[] {
   const files: string[] = []
-  for (const directory of [ 'src', 'scripts', 'tests/unit' ]) {
+  for (const directory of CONFIG.testDirectories) {
     const visit = (path: string) => {
       for (const entry of readdirSync(path, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
         const child = join(path, entry.name)
@@ -459,8 +494,8 @@ function testFiles (root = ROOT): string[] {
   return files
 }
 
-function run (command: string, args: string[], env?: NodeJS.ProcessEnv): number {
-  const result = spawnSync(command, args, { cwd: ROOT, env, stdio: 'inherit' })
+function run (command: string, args: string[], env?: NodeJS.ProcessEnv, cwd = ROOT): number {
+  const result = spawnSync(command, args, { cwd, env, stdio: 'inherit' })
   if (result.error) {
     console.error(`${command} failed: ${result.error.message}`)
     return 1
@@ -477,7 +512,7 @@ function coverageArgs (destination: string, include = 'src/**/*.ts'): string[] {
     '--test-coverage-exclude=**/*.test.ts',
     '--test-coverage-exclude=**/*.d.ts',
     '--test-coverage-exclude=src/**/fixtures/**/*.ts',
-    '--test-coverage-exclude=src/package-json.ts',
+    ...[ ...SOURCE_EXCLUDES ].map(source => `--test-coverage-exclude=${source}`),
     '--test-coverage-include-all',
     '--test-reporter=spec',
     '--test-reporter-destination=stdout',
@@ -486,10 +521,15 @@ function coverageArgs (destination: string, include = 'src/**/*.ts'): string[] {
   ]
 }
 
+/** The npm name of the package being measured; it names its baseline files. */
+function packageName (): string {
+  return (JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as { name: string }).name
+}
+
 function baselineFor (runtime: 'node' | 'deno', scope?: CoverageScope): CoverageBaseline {
   const file = scope
-    ? `${runtime}.${BASELINE_PACKAGE}.${scope.name}.json`
-    : `${runtime}.${BASELINE_PACKAGE}.json`
+    ? `${runtime}.${packageName()}.${scope.name}.json`
+    : `${runtime}.${packageName()}.json`
   return JSON.parse(readFileSync(join(REPOSITORY_ROOT, '.github', 'coverage-baselines', file), 'utf8')) as CoverageBaseline
 }
 
@@ -574,13 +614,21 @@ function validateAndRender (runtime: 'node' | 'deno', testStatus: number, valida
   }
 }
 
+/** The runtime self-check fixture, relative to the repository root. */
+const PROBE_SOURCE = 'tests/fixtures/coverage-probe.ts'
+
+/**
+ * Checks that the runtime's native coverage still reports an uncovered
+ * TypeScript line and branch, using a fixture at the repository root. It runs
+ * from the repository root so the fixture paths stay package-independent.
+ */
 function probe (runtime: 'node' | 'deno', output: string): number {
   const test = 'tests/fixtures/coverage-probe.test.ts'
   if (runtime === 'node') {
     return run(process.execPath, [
-      ...coverageArgs(output, 'tests/fixtures/coverage-probe.ts'),
+      ...coverageArgs(output, PROBE_SOURCE),
       test,
-    ])
+    ], undefined, REPOSITORY_ROOT)
   }
   const profile = join(tmpdir(), `wechaty-${runtime}-coverage-probe-${process.pid}`)
   rmSync(profile, { recursive: true, force: true })
@@ -593,14 +641,14 @@ function probe (runtime: 'node' | 'deno', output: string): number {
     '--allow-write=/tmp',
     '--allow-env',
     test,
-  ], env)
+  ], env, REPOSITORY_ROOT)
   const coverageStatus = run(denoBinary(), [
     'coverage',
     profile,
     '--include=coverage-probe.ts',
     '--lcov',
     `--output=${output}`,
-  ], env)
+  ], env, REPOSITORY_ROOT)
   rmSync(profile, { recursive: true, force: true })
   return testStatus || coverageStatus
 }
@@ -614,7 +662,7 @@ function nodeRuntimeCoverage (tests: string[]): number {
   const probeOutput = join(tmpdir(), `wechaty-node-coverage-probe-${process.pid}.lcov`)
   try {
     probeStatus = probe('node', probeOutput)
-    assertCoverageProbe(readFileSync(probeOutput, 'utf8'), 'tests/fixtures/coverage-probe.ts')
+    assertCoverageProbe(readFileSync(probeOutput, 'utf8'), PROBE_SOURCE, REPOSITORY_ROOT)
   } catch (error) {
     console.error(error instanceof Error ? error.message : error)
     probeStatus ||= 1
@@ -638,6 +686,29 @@ function denoEnvironment (): NodeJS.ProcessEnv {
   }
 }
 
+/** Escapes a path for use inside a regular expression, as `deno coverage --exclude` expects. */
+function escapeRegExp (text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * The Deno permissions for the package's suite: the defaults every package
+ * needs, plus the extras in its `coverage.json`. npm workspaces install
+ * dependencies in the monorepo root's `node_modules`, so Deno may read it.
+ */
+export function denoPermissions (config: CoverageConfig = CONFIG): string[] {
+  const flag = (name: string, values: readonly string[] = []) =>
+    values.length ? [ `--allow-${name}=${values.join(',')}` ] : []
+  return [
+    ...flag('read', [ '.', '../../node_modules', '/tmp', ...(config.deno.allowRead ?? []) ]),
+    ...flag('write', [ 'coverage/deno', '/tmp' ]),
+    ...flag('run', config.deno.allowRun),
+    '--allow-env',
+    ...flag('sys', config.deno.allowSys),
+    ...flag('ffi', config.deno.allowFfi),
+  ]
+}
+
 function denoCoverage (tests: string[]): number {
   const output = join(ROOT, 'coverage', 'deno')
   const profile = join(output, 'raw')
@@ -656,13 +727,7 @@ function denoCoverage (tests: string[]): number {
       'test',
       '--no-check',
       `--coverage=${profile}`,
-      // npm workspaces hoist dependencies to the monorepo root's node_modules.
-      '--allow-read=.,../../node_modules,/tmp,/etc/alpine-release',
-      '--allow-write=coverage/deno,/tmp',
-      '--allow-run=git,node,deno',
-      '--allow-env',
-      '--allow-sys=hostname',
-      '--allow-ffi=../../node_modules/leveldown/prebuilds',
+      ...denoPermissions(),
       ...tests,
     ], env)
 
@@ -671,7 +736,7 @@ function denoCoverage (tests: string[]): number {
       '--exclude=\\.test\\.ts$',
       '--exclude=\\.d\\.ts$',
       '--exclude=fixtures/',
-      '--exclude=src/package-json\\.ts$',
+      ...[ ...SOURCE_EXCLUDES ].map(source => `--exclude=${escapeRegExp(source)}$`),
     ]
     if (existsSync(profile)) {
       reportStatus = run(denoBinary(), [
@@ -704,11 +769,11 @@ function denoCoverage (tests: string[]): number {
 
     denominatorStatus = run(process.execPath, [
       ...coverageArgs(denominator),
-      'tests/fixtures/coverage-empty.test.ts',
+      relative(ROOT, join(REPOSITORY_ROOT, 'tests/fixtures/coverage-empty.test.ts')),
     ])
     probeStatus = probe('deno', probeOutput)
     try {
-      assertCoverageProbe(readFileSync(probeOutput, 'utf8'), 'tests/fixtures/coverage-probe.ts')
+      assertCoverageProbe(readFileSync(probeOutput, 'utf8'), PROBE_SOURCE, REPOSITORY_ROOT)
       if (existsSync(nativeLcov) && existsSync(denominator)) {
         const merged = mergeUnloadedSources(
           readFileSync(nativeLcov, 'utf8'),
@@ -741,7 +806,7 @@ function denoCoverage (tests: string[]): number {
 function main (): void {
   const runtime = process.argv[2]
   if (runtime !== 'node' && runtime !== 'deno') {
-    console.error('Usage: node scripts/coverage.ts <node|deno>')
+    console.error('Usage: node ../../scripts/coverage.ts <node|deno> (run from a package folder)')
     process.exitCode = 2
     return
   }

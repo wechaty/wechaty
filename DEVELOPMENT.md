@@ -73,6 +73,13 @@ build. Run one Node test file with
 `npm run test:unit:file -- src/plugin.test.ts`.
 For Deno, use
 `NODE_BINARY="$(command -v node)" npm run test:unit:deno:file -- src/plugin.test.ts`.
+Every package measures coverage with the shared runner in the root
+`scripts/coverage.ts`, which its `coverage:node` and `coverage:deno` scripts
+call from the package folder. The package's `coverage.json` sets its test
+folders, generated sources to leave out, scoped floors, and extra Deno
+permissions; the runner's self-check fixtures live in the root
+`tests/fixtures/`.
+
 `npm run coverage` (or `npm run coverage:node`) collects Node.js native
 coverage for the complete `src/**/*.ts` production scope and writes LCOV,
 totals, and navigable HTML under `coverage/node/`. It requires Node.js 26.13.0
@@ -125,8 +132,8 @@ the full shared suite at the versions above. Baseline changes require review; th
 workflow never lowers them automatically.
 
 Some parts of the tree also have floors of their own, checked from the same
-LCOV report after the repo-wide ones. Each is a `CoverageScope` in
-`scripts/coverage.ts`, and its floors live in
+LCOV report after the package-wide ones. Each is a scope in the package's
+`coverage.json`, and its floors live in
 `.github/coverage-baselines/<runtime>.wechaty.<scope>.json`. Today there is one:
 `async-lifecycle`, the module in `src/async-lifecycle/`, without its contract
 suite and examples. Its floors are its measured coverage minus two points, so a

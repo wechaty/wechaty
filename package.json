@@ -17,7 +17,7 @@
     "lint:root": "biome lint scripts && tsc -p tsconfig.json --noEmit && bash -n scripts/*.sh && markdownlint README.md packages/*/README.md",
     "test": "npm run lint && npm run test:unit",
     "test:unit": "node --test scripts && npm run test:unit --workspaces",
-    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=. --allow-run=git scripts && npm run test:unit:deno --workspaces",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,/tmp --allow-write=/tmp --allow-env=TMPDIR,TMP,TEMP --allow-run=git scripts && npm run test:unit:deno --workspaces",
     "test:integration": "npm run test:integration --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
     "test:pack": "npm run test:pack --workspaces --if-present",

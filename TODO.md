@@ -14,7 +14,7 @@ Paths in this file are relative to `packages/wechaty/` unless they start with `.
 | Module | `packages/wechaty/src/async-lifecycle/`, published as `wechaty/async-lifecycle` and marked **experimental**. It has no runtime dependencies and imports nothing outside its directory |
 | Contract | [`packages/wechaty/src/async-lifecycle/README.md`](packages/wechaty/src/async-lifecycle/README.md): every rule has an ID (`C-CMD-04`, …) that the tests and the TSDoc cite |
 | Tests | The contract suite (`src/async-lifecycle/contract/`), unit tests, and examples that run as tests (`examples/io`, `puppet`, `wechaty`), all under both Node.js and Deno. The loopback socket tests run only with `ASYNC_LIFECYCLE_TCP_TEST=1`, which CI sets |
-| Coverage | The module has its own floors in `.github/coverage-baselines/{node,deno}.wechaty.async-lifecycle.json`, enforced by `packages/wechaty/scripts/coverage.ts` |
+| Coverage | The module has its own floors in `.github/coverage-baselines/{node,deno}.wechaty.async-lifecycle.json`, enforced by the root `scripts/coverage.ts` from the scope in `packages/wechaty/coverage.json` |
 | Adopters | `Io` (`src/io.ts`, a subclass of `AsyncLifecycle`) and `IoClient` (`src/io-client.ts`, built with `createLifecycle`), migrated in [#3022](https://github.com/wechaty/wechaty/issues/3022) / PR #3026 |
 | Still on `state-switch` | `Wechaty` (`src/wechaty/wechaty-base.ts`, `src/wechaty-mixins/`), the Puppet base (`wechaty-puppet` repo), and PuppetService / PuppetServer (`wechaty-puppet-service` repo) |
 
