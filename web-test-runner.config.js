@@ -58,10 +58,11 @@ function browserShimsPlugin () {
 }
 
 export default {
-  // Test files targeted for in-browser execution
   files: [
     'tests/browser-shims/shims.test.ts',
-    'packages/wechaty-puppet/src/puppet/puppet-abstract.test.ts',
+    'packages/wechaty-puppet/{src,tests/unit}/**/*.test.ts',
+    // This suite looks up installed ESM providers by package name using the native module loader.
+    '!packages/wechaty-puppet/src/puppet/puppet-resolver.test.ts',
   ],
 
   nodeResolve: {

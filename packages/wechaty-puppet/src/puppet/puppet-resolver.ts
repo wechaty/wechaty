@@ -1,6 +1,5 @@
 /**
- * `resolvePuppet()`: turns a puppet instance, constructor or npm package name
- * into a puppet instance, importing the package by name when needed.
+ * Resolves an existing Puppet instance or an installed ESM provider package.
  */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -46,12 +45,11 @@ interface ResolveOptions {
 }
 
 /**
- * Resolves a puppet instance, constructor, or npm package name into an instantiated
- * `PuppetInterface` instance.
+ * Resolves a puppet instance or npm package name into a `PuppetInterface` instance.
  *
- * @param options - Configuration options containing the puppet instance, constructor, or package name and optional puppet options
- * @returns An initialized `PuppetInterface` instance
- * @throws `Error` if the provided puppet is neither a valid `PuppetInterface` nor a valid puppet package name string
+ * @param options - A puppet instance or package name and optional puppet options
+ * @returns The supplied instance or a newly constructed provider instance
+ * @throws `Error` if the puppet is neither a valid instance nor a package name, or if the provider cannot be loaded
  */
 async function resolvePuppet (
   options: ResolveOptions,
@@ -117,7 +115,7 @@ async function resolvePuppetName (
 ): Promise<PuppetConstructor> {
   log.verbose('Puppet', 'resolvePuppetName(%s)', puppetName)
 
-  let puppetModule
+  let puppetModule: { default?: unknown }
 
   try {
     puppetModule = await import(puppetName)

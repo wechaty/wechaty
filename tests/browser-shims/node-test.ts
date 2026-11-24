@@ -54,6 +54,11 @@ export interface MockFunction<T extends (...args: any[]) => any = (...args: any[
 
 const originalMethods: { obj: any, orig: any, prop: string }[] = []
 
+/** Fails consistently for mock timer operations the browser adapter cannot perform. */
+function unsupportedMockTimers (): never {
+  throw new Error('mock.timers is not supported in the browser test environment. Use standard browser timers.')
+}
+
 /**
  * Mocking utilities matching the `node:test` mock interface.
  */
@@ -175,16 +180,12 @@ export const mock = {
   },
 
   /**
-   * Fake timer stubs. Fails explicitly since fake timers in browser runner require userland clock.
+   * Fail explicitly until the browser adapter provides a mock clock.
    */
   timers: {
-    enable: (): never => {
-      throw new Error('mock.timers is not supported in the browser test environment. Use standard browser timers.')
-    },
-    reset: (): void => {},
-    tick: (): never => {
-      throw new Error('mock.timers is not supported in the browser test environment. Use standard browser timers.')
-    },
+    enable: unsupportedMockTimers,
+    reset: unsupportedMockTimers,
+    tick: unsupportedMockTimers,
   },
 }
 
@@ -231,6 +232,7 @@ export interface TestOptions {
 function createTestContext (mochaCtx?: any, isSubtest = false): TestContext {
   const afterHooks: (() => Promise<void> | void)[] = []
   const beforeHooks: (() => Promise<void> | void)[] = []
+  let beforeHooksRun: Promise<void> | undefined
   const contextMocks: { restore: () => void }[] = []
 
   const scopedMock = {
@@ -278,10 +280,13 @@ function createTestContext (mochaCtx?: any, isSubtest = false): TestContext {
       }
     },
     test: async (subName: string, subFn: (t: TestContext) => Promise<void> | void) => {
-      // Execute any registered before hooks on the parent context
-      for (const beforeHook of beforeHooks) {
-        await beforeHook()
-      }
+      // The first subtest starts the parent's setup. Siblings share that result.
+      beforeHooksRun ??= (async () => {
+        for (const hook of beforeHooks) {
+          await hook()
+        }
+      })()
+      await beforeHooksRun
 
       const subContext = createTestContext(mochaCtx, true)
       try {
@@ -322,27 +327,17 @@ function createTestContext (mochaCtx?: any, isSubtest = false): TestContext {
     writable: true,
   })
 
-  Object.defineProperty(context, '_beforeHooks', {
-    configurable: true,
-    enumerable: false,
-    value: beforeHooks,
-    writable: true,
-  })
-
   return context
 }
 
 export type TestFunction = (t: TestContext) => Promise<void> | void
 
 /**
- * Runs a test function within an isolated context and invokes all registered lifecycle hooks.
+ * Runs a test function within an isolated context and tears it down after the test.
  */
 async function runWithContext (fn: TestFunction, mochaCtx: any): Promise<void> {
   const context = createTestContext(mochaCtx, false)
   try {
-    for (const hook of (context as any)._beforeHooks) {
-      await hook()
-    }
     await fn(context)
   } finally {
     try {
