@@ -27,21 +27,22 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
   const endpoint = `127.0.0.1:${port}`
 
   const mocker = new mockModule.Mocker()
-  let puppet: PuppetMock | undefined
-  let puppetServer: PuppetServer | undefined
-  let puppetService: PuppetService | undefined
+  const cleanup: Array<() => Promise<void>> = []
 
   try {
-    puppet = new PuppetMock({ mocker })
-    puppetServer = new PuppetServer({
+    const puppet = new PuppetMock({ mocker })
+    cleanup.unshift(() => puppet.stop())
+    const puppetServer = new PuppetServer({
       endpoint,
       puppet,
       token,
     } as PuppetServerOptions)
-    puppetService = new PuppetService({
+    cleanup.unshift(() => puppetServer.stop())
+    const puppetService = new PuppetService({
       endpoint,
       token,
     } as PuppetOptions)
+    cleanup.unshift(() => puppetService.stop())
 
     await puppetServer.start()
     await puppetService.start()
@@ -154,8 +155,8 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
     })
   } finally {
     mock.restoreAll()
-    await puppetService?.stop().catch(() => {})
-    await puppetServer?.stop().catch(() => {})
-    await puppet?.stop().catch(() => {})
+    for (const stop of cleanup) {
+      await stop().catch(() => {})
+    }
   }
 })

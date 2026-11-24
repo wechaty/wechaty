@@ -27,43 +27,39 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
   const token = `insecure_${NIL_UUID_V4}`
   const endpoint = `127.0.0.1:${port}`
 
-  let puppet: PuppetMock | undefined
-  let puppetServer: PuppetServer | undefined
-  let puppetService: PuppetService | undefined
-
-  /**
-   * Waits for a specific event to be emitted on `puppetService`.
-   *
-   * @param eventName - The puppet event name to listen for once.
-   * @returns A promise that resolves with the event's payload, or rejects after a 5s timeout.
-   */
-  function waitForEvent<T> (eventName: PUPPET.types.PuppetEventName): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        reject(new Error(`Timeout waiting for event: ${String(eventName)}`))
-      }, 5000)
-
-      puppetService!.once(eventName, (payload: any) => {
-        clearTimeout(timer)
-        resolve(payload)
-      })
-    })
-  }
+  const cleanup: Array<() => Promise<void>> = []
 
   try {
-    puppet = new PuppetMock()
-    puppetServer = new PuppetServer({
+    const puppet = new PuppetMock()
+    cleanup.unshift(() => puppet.stop())
+    const puppetServer = new PuppetServer({
       endpoint,
       puppet,
       token,
     } as PuppetServerOptions)
-    puppetService = new PuppetService({
+    cleanup.unshift(() => puppetServer.stop())
+    const puppetService = new PuppetService({
       endpoint,
       token,
     } as PUPPET.PuppetOptions)
+    cleanup.unshift(() => puppetService.stop())
 
     await puppetServer.start()
     await puppetService.start()
+
+    /** Resolves with the next payload for the requested event, or rejects after five seconds. */
+    function waitForEvent<T> (eventName: PUPPET.types.PuppetEventName): Promise<T> {
+      return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(() => {
+          reject(new Error(`Timeout waiting for event: ${String(eventName)}`))
+        }, 5000)
+
+        puppetService.once(eventName, (payload: any) => {
+          clearTimeout(timer)
+          resolve(payload)
+        })
+      })
+    }
 
     await t.test('streams "scan" event with qrcode and status', async () => {
       const expected = {
@@ -192,8 +188,8 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
       assert.ok(received.gerror && received.gerror.includes('simulated puppet error'), 'error payload should contain error message')
     })
   } finally {
-    await puppetService?.stop().catch(() => {})
-    await puppetServer?.stop().catch(() => {})
-    await puppet?.stop().catch(() => {})
+    for (const stop of cleanup) {
+      await stop().catch(() => {})
+    }
   }
 })

@@ -129,7 +129,8 @@ See:
 1. ESM only; Node.js 26 runs the TypeScript sources directly, and only packaging compiles to `dist/`
 1. `WechatyResolver` uses the public `@grpc/grpc-js` 1.14 resolver API, with `@grpc/grpc-js` as a peer dependency, and reports a discovery error once
 1. `cockatiel` 4 for the retry policy, `crypto.randomUUID()` instead of `uuid`
-1. Tests use `node:test` and run under both Node.js and Deno
+1. Token discovery uses standard Fetch. Cross-origin browser requests require CORS support from the discovery authority.
+1. Tests use `node:test`. The token and version tests run in Node.js, Deno, and Chromium.
 
 ### master v1.0 (Nov 28, 2021)
 
