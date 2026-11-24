@@ -58,10 +58,10 @@ jobs:
         id: release_metadata
         run: |
           node scripts/lockstep.ts check
-          node --input-type=commonjs <<'NODE'
-          const fs = require('node:fs')
-          const { execFileSync } = require('node:child_process')
-          const { SemVer } = require('@chatie/semver')
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'
+          import { execFileSync } from 'node:child_process'
+          import { SemVer } from '@chatie/semver'
           const releaseVersion = execFileSync('node', [ 'scripts/lockstep.ts', 'version' ], { encoding: 'utf8' }).trim()
           // Project policy: prereleases and odd-minor versions use next.
           const npmDistTag = new SemVer(releaseVersion).isProd ? 'latest' : 'next'
@@ -104,7 +104,7 @@ jobs:
         run: |
           NPM_VERSION=$(npm --version)
           echo "npm $NPM_VERSION"
-          node --input-type=commonjs - "$NPM_VERSION" <<'NODE'
+          node --input-type=module - "$NPM_VERSION" <<'NODE'
           const npmVersion = process.argv[2]
           const versionMatch = /^(\d+)\.(\d+)\.(\d+)(?:\+[\w.-]+)?$/.exec(npmVersion)
           if (!versionMatch) throw new Error(`Unsupported npm version: ${npmVersion}`)
