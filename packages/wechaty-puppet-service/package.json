@@ -1,0 +1,103 @@
+{
+  "name": "wechaty-puppet-service",
+  "version": "1.19.9",
+  "description": "Puppet Service for Wechaty",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/src/mod.js",
+      "require": "./dist/cjs/src/mod.js"
+    }
+  },
+  "typings": "./dist/esm/src/mod.d.ts",
+  "engines": {
+    "node": ">=16",
+    "npm": ">=7"
+  },
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "clean": "shx rm -fr dist/*",
+    "dist": "npm-run-all clean build dist:commonjs",
+    "dist:commonjs": "jq -n \"{ type: \\\"commonjs\\\" }\" > dist/cjs/package.json",
+    "lint": "npm-run-all lint:es lint:ts lint:md",
+    "lint:md": "markdownlint README.md",
+    "lint:ts": "tsc --isolatedModules --noEmit",
+    "start": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" node examples/ding-dong-bot.ts",
+    "test": "npm run lint && npm run test:unit",
+    "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "test:unit": "cross-env NODE_OPTIONS=\"--no-warnings --loader=ts-node/esm\" TAP_TIMEOUT=60 tap \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "lint:es": "eslint --ignore-pattern fixtures/ \"src/**/*.ts\" \"tests/**/*.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wechaty/wechaty-puppet-service.git"
+  },
+  "keywords": [
+    "chatie",
+    "wechaty",
+    "chatbot",
+    "bot",
+    "grpc",
+    "wechat",
+    "sdk"
+  ],
+  "author": "Huan LI <zixia@zixia.net>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wechaty/wechaty-puppet-service/issues"
+  },
+  "homepage": "https://github.com/wechaty/wechaty-puppet-service#readme",
+  "devDependencies": {
+    "@chatie/eslint-config": "^1.0.4",
+    "@chatie/git-scripts": "^0.6.2",
+    "@chatie/semver": "^0.4.7",
+    "@chatie/tsconfig": "^4.6.3",
+    "@types/google-protobuf": "^3.15.5",
+    "@types/lru-cache": "^7.5.0",
+    "@types/semver": "^7.3.9",
+    "@types/temp": "^0.9.1",
+    "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.3",
+    "get-port": "^6.1.2",
+    "temp": "^0.9.4",
+    "typed-emitter": "^1.5.0-from-event",
+    "utility-types": "^3.10.0",
+    "wechaty-puppet-mock": "^1.18.2",
+    "why-is-node-running": "^2.2.1"
+  },
+  "peerDependencies": {
+    "wechaty-puppet": "^1.19.1"
+  },
+  "dependencies": {
+    "clone-class": "^1.1.1",
+    "ducks": "^1.0.2",
+    "file-box": "^1.5.5",
+    "flash-store": "^1.3.4",
+    "gerror": "^1.0.16",
+    "redux-observable": "^2.0.0",
+    "rxjs": "^7.5.5",
+    "semver": "^7.3.5",
+    "stronger-typed-streams": "^0.2.0",
+    "uuid": "^8.3.2",
+    "wechaty-grpc": "^1.5.2",
+    "wechaty-redux": "^1.20.2",
+    "wechaty-token": "^1.0.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/"
+  ],
+  "tap": {
+    "check-coverage": false
+  },
+  "git": {
+    "scripts": {
+      "pre-push": "npx git-scripts-pre-push"
+    }
+  }
+}
