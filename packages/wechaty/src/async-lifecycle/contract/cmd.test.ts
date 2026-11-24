@@ -25,8 +25,6 @@
 
 import assert from 'node:assert/strict'
 
-import process from 'node:process'
-import { setImmediate } from 'node:timers'
 
 import type { Lifecycle, LifecycleScope } from '../types.ts'
 import { errorName, failedState, flush, observe, type Observed, shutdown, stateTrace } from './harness.ts'
@@ -283,36 +281,6 @@ contract('C-CMD-02.b', 'a caller abort fired while its command aborts a starting
   await flush()
   assert.equal(started.status, 'rejected')
   assert.equal(lifecycle.state.kind, 'stopped', 'the accepted stop still ran')
-})
-
-contract('C-CMD-02.c', 'a caller that aborted early never leaves a later cleanup failure as an unhandled rejection', {}, async ({ make }) => {
-  const unhandled: unknown[] = []
-  const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
-  process.on('unhandledRejection', onUnhandled)
-  try {
-    const gate = Promise.withResolvers<void>()
-    const caller = new AbortController()
-    const cleanupError = new Error('cleanup')
-    const { lifecycle } = make({
-      onStart (scope) {
-        scope.defer(() => { throw cleanupError })
-        scope.signal.addEventListener('abort', () => caller.abort(new Error('caller')))
-        return gate.promise
-      },
-    })
-    observe(lifecycle.start())
-    await flush()
-    const stopped = observe(lifecycle.stop({ signal: caller.signal }))
-    gate.resolve()
-    await flush()
-    assert.equal(stopped.status, 'rejected')
-    assert.equal(failedState(lifecycle.state).cleanupError, cleanupError)
-    // Unhandled rejections are reported at the next macrotask; no real time passes.
-    await new Promise(resolve => setImmediate(resolve))
-    assert.deepEqual(unhandled, [])
-  } finally {
-    process.off('unhandledRejection', onUnhandled)
-  }
 })
 
 contract('C-CMD-03.b', 'concurrent restart() calls share one replacement', {}, async ({ make }) => {

@@ -1,7 +1,7 @@
 /**
  * Wechaty over `PuppetMock` with a `Mocker`: the user modules find and load
- * contacts and rooms that the mocker creates, and the bot receives a message
- * a mock contact sends.
+ * contacts and rooms that the mocker creates. A bot starts, becomes ready,
+ * receives and replies to a mock contact, and stops.
  *
  * Ported from wechaty-puppet-mock's former `tests/integration.spec.ts`, which
  * left the mock in wechaty/wechaty#3069 because the mock must not depend on
@@ -12,10 +12,8 @@ import { test, type TestContext } from 'node:test'
 
 import { PuppetMock, mock } from 'wechaty-puppet-mock'
 
-import {
-  WechatyBuilder,
-  type Message,
-}                     from '../../src/mods/mod.ts'
+import type { Message } from '../../src/mods/mod.ts'
+import { WechatyBuilder } from '../../src/wechaty-builder.ts'
 
 /** Starts a bot over a fresh mocker and stops it when the test `t` ends. */
 async function startBot (t: TestContext) {
@@ -26,7 +24,7 @@ async function startBot (t: TestContext) {
   await wechaty.start()
   t.after(() => wechaty.stop())
 
-  return { mocker, wechaty }
+  return { mocker, puppet, wechaty }
 }
 
 test('Contact.find() mocker.createContacts()', async t => {
@@ -90,12 +88,16 @@ test('Room.find() by id loads a mocker room', async t => {
   assert.equal(await room.topic(), starbucks.payload.topic, 'should match the payload topic of the mock room')
 })
 
-test('the bot receives a message sent from the mocker', async t => {
-  const { mocker, wechaty } = await startBot(t)
+test('a mock bot starts, becomes ready, replies, and stops', { timeout: 10_000 }, async t => {
+  const { mocker, puppet, wechaty } = await startBot(t)
 
   const bot    = mocker.createContact({ name: 'Bot' })
   const player = mocker.createContact({ name: 'Player' })
   mocker.login(bot)
+
+  const ready = wechaty.ready()
+  puppet.emit('ready', { data: 'mocker' })
+  await ready
 
   const message = await new Promise<Message>(resolve => {
     wechaty.currentUser.once('message', resolve)
@@ -103,4 +105,13 @@ test('the bot receives a message sent from the mocker', async t => {
   })
   assert.equal(message.text(), 'ding', 'should receive the text the player said')
   assert.equal(message.talker().id, player.id, 'should come from the player')
+
+  const reply = new Promise<mock.MessageMock>(resolve => player.once('message', resolve))
+  await message.say('pong')
+  const received = await reply
+  assert.equal(received.text(), 'pong')
+  assert.equal(received.talker().id, bot.id)
+
+  await wechaty.stop()
+  assert.ok(puppet.state.inactive())
 })

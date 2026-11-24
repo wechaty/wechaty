@@ -1,3 +1,4 @@
+/** Loads the Node Open Graph adapter when a caller requests URL metadata. */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -17,11 +18,13 @@
  *   limitations under the License.
  *
  */
-import og from 'open-graph'
+import type og from 'open-graph'
 
+/** Fetches the Open Graph metadata for a URL through the Node adapter. */
 export async function openGraph (url: string): Promise<og.Data> {
+  const { default: getOpenGraph } = await import('open-graph')
   return new Promise((resolve, reject) => {
-    og(url, (err, meta) => {
+    getOpenGraph(url, (err, meta) => {
       if (err) {
         reject(err)
       } else if (!meta) {

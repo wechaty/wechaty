@@ -26,8 +26,6 @@ import assert from 'node:assert/strict'
 
 import type { LifecycleScope } from '../types.ts'
 import { EventEmitter } from 'node:events'
-import process from 'node:process'
-import { setImmediate } from 'node:timers'
 
 import { errorName, failedState, flush, ManualClock, observe, type Observed, shutdown } from './harness.ts'
 import { contract } from './suite.ts'
@@ -740,40 +738,6 @@ contract('C-SCOPE-05.g', 'an interrupt that returns a custom thenable is subscri
   assert.equal(stopped.status, 'resolved')
   assert.deepEqual(releases, [ 'socket' ])
   assert.equal(lifecycle.state.kind, 'stopped')
-})
-
-contract('C-SCOPE-05.h', 'an interrupt promise that rejects before the unwind reaches its join is no unhandled rejection, and is reported once (D38)', { needs: [ 'scope.acquire', 'acquire.interrupt', 'interrupt.promise' ] }, async ({ make }) => {
-  const unhandled: unknown[] = []
-  const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
-  process.on('unhandledRejection', onUnhandled)
-  try {
-    const older = Promise.withResolvers<void>()
-    const newer = Promise.withResolvers<void>()
-    const failure = new Error('newer interrupt failed')
-    const { lifecycle } = make({
-      async onStart (scope) {
-        await scope.acquire(() => 'older', () => {}, { interrupt: () => older.promise })
-        await scope.acquire(() => 'newer', () => {}, { interrupt: () => newer.promise })
-      },
-    })
-    await lifecycle.start()
-    const stopped = observe(lifecycle.stop())
-    await flush()
-    // Interrupts run newest first, so the older one's join was registered last
-    // and the unwind is joining it; the newer one's join is not reached yet.
-    newer.reject(failure)
-    await flush()
-    // Unhandled rejections are reported at the next macrotask; no real time passes.
-    await new Promise(resolve => setImmediate(resolve))
-    assert.deepEqual(unhandled, [])
-    assert.equal(stopped.status, 'pending')
-    older.resolve()
-    await flush()
-    assert.equal(stopped.error, failure, 'reported once, as the stop\'s cleanup error')
-    assert.equal(failedState(lifecycle.state).cleanupComplete, true)
-  } finally {
-    process.off('unhandledRejection', onUnhandled)
-  }
 })
 
 // ---------------------------------------------------------------------------

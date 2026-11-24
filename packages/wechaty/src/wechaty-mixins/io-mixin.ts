@@ -1,5 +1,9 @@
+/**
+ * Connects bots that opt into Wechaty Io. Loads the server-side transport at
+ * startup so local bots can use the shared lifecycle without importing it.
+ */
 import { log }        from 'wechaty-puppet'
-import { Io } from '../io.ts'
+import type { Io } from '../io.ts'
 import type { WechatyOptions } from '../wechaty-builder.ts'
 
 import type { WechatySkeleton }      from '../wechaty/mod.ts'
@@ -61,6 +65,7 @@ const ioMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin> (mixinB
       /**
        * Initialize IO instance
        */
+      const { Io } = await import('../io.ts')
       this.__io = new Io({
         token   : this.__ioToken,
         wechaty : this as any,  // <- FIXME: remove any, Huan(202111)

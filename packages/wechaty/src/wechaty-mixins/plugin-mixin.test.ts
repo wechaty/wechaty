@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+/** Exercises plugin registration and cleanup using an explicitly supplied Puppet. */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import { function as FP } from 'fp-ts'
+import { PuppetMock } from 'wechaty-puppet-mock'
 
 /**
  * Huan(202201): must import `./wechaty-impl.js` first
@@ -64,7 +66,7 @@ test('PluginMixin smoke testing', async t => {
     return () => wechaty.counter--
   }
 
-  const pluginMixinTest = new PluginMixinTest({ puppet: 'wechaty-puppet-mock' })
+  const pluginMixinTest = new PluginMixinTest({ puppet: new PuppetMock() })
   let started = false
   t.after(async () => {
     if (started) {

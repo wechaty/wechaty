@@ -1,3 +1,4 @@
+/** Owns shared bot identity, memory, options, and event-emitter behavior. */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -17,7 +18,6 @@
  *   limitations under the License.
  *
  */
-import { randomUUID }     from 'node:crypto'
 import { MemoryCard }     from 'memory-card'
 import { log }            from 'wechaty-puppet'
 import type { Loggable }  from 'brolog'
@@ -54,7 +54,7 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     log.verbose('WechatySkeleton', 'constructor()')
     super()
 
-    this.id = randomUUID()
+    this.id = crypto.randomUUID()
     this.__options = args[0] || {} as WechatyOptions
 
     /**
