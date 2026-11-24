@@ -49,6 +49,10 @@ while IFS= read -r name; do
   PACKAGES+=("$name")
 done < <(node scripts/lockstep.ts order)
 
+# The tarballs of this run. The smoke test installs exactly these, not every
+# *.tgz in <output-dir>, which may hold older releases.
+TARBALLS=()
+
 for name in "${PACKAGES[@]}"; do
   dir="$ROOT/packages/$name"
   if [ -x "$dir/scripts/generate-version.sh" ]; then
@@ -65,6 +69,12 @@ for name in "${PACKAGES[@]}"; do
   (cd "$dir" && "./$generator")
   npm run dist --workspace "$name"
   npm pack --workspace "$name" --pack-destination "$OUT"
+  tarball="$OUT/$name-$VERSION.tgz"
+  if [ ! -f "$tarball" ]; then
+    echo "npm pack did not produce $tarball" >&2
+    exit 1
+  fi
+  TARBALLS+=("$tarball")
 done
 
 # release.json: what the publish job publishes, in this order.
@@ -87,7 +97,7 @@ cp scripts/fixtures/release-smoke.ts "$SMOKE"
 cd "$SMOKE"
 npm init -y > /dev/null
 npm pkg set type=module
-npm install "$OUT"/*.tgz \
+npm install "${TARBALLS[@]}" \
   @types/node \
   @typescript/native@npm:typescript@^7.0.2
 
