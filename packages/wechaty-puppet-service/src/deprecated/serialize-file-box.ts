@@ -1,3 +1,8 @@
+/**
+ * `serializeFileBox()`: JSON for the deprecated `StringValue` file box
+ * fields that old servers read. File boxes that cannot be serialized as they
+ * are (buffers, streams, local files) are converted to base64 first.
+ */
 import {
   FileBox,
   FileBoxType,

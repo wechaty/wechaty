@@ -16,13 +16,16 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
   `npm run coverage:node`, and `npm run coverage:deno`.
 - Each package lives in `packages/<npm-name>/` with its own `package.json`,
   `tsconfig.json` (extending `../../tsconfig.base.json`), sources, tests, and
-  package scripts. Today there are five: `packages/wechaty-token`,
+  package scripts. Today there are six: `packages/wechaty-token`,
   `packages/wechaty-puppet`, `packages/wechaty-puppet-mock`,
-  `packages/wechaty-grpc` and `packages/wechaty`.
+  `packages/wechaty-grpc`, `packages/wechaty-puppet-service` and
+  `packages/wechaty`.
 - A package joins the root `workspaces` list only after it follows these rules.
 - npm runs a dependency's install script only when the root `package.json`
   lists it in `allowScripts`. Today that is `grpc-tools`, whose install
   script downloads the `protoc` that `wechaty-grpc` generates its stubs with.
+  `wechaty-grpc`'s own `prepare` script generates them during `npm ci`, so
+  packages that import it from source (`wechaty-puppet-service`) find them.
 - A package's `exports` may add a `wechaty-source` condition that points at
   `src/`, for workspace development only. `tsconfig.base.json` sets it as a
   `customConditions` entry, and test commands and the coverage runner pass

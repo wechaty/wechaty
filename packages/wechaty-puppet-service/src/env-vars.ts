@@ -1,3 +1,11 @@
+/**
+ * Readers for the connection environment variables: token, endpoint and
+ * discovery authority. Each prefers the explicit option, then the
+ * environment, then the deprecated `WECHATY_PUPPET_HOSTIE_*` or
+ * `WECHATY_SERVICE_DISCOVERY_ENDPOINT` names (with a warning). They read the
+ * environment when called, so tests and late configuration take effect. A
+ * missing token throws.
+ */
 import { log } from 'wechaty-puppet'
 
 // Huan(202011): use a function to return the value in time.

@@ -1,7 +1,14 @@
 /**
+ * `PayloadStore`: a LevelDB cache (via `flash-store`) of contact, room and
+ * room member payloads that `PuppetService` keeps across restarts, under
+ * `~/.wechaty/wechaty-puppet-service/<token>/v<major>.<minor>/<accountId>/`.
+ * `PuppetService` starts it on `login` and stops it on `logout` and in
+ * `onStop()`; the payloads are only a cache of what the server returns.
+ */
+/**
  *   Wechaty Open Source Software - https://github.com/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +37,7 @@ import { FlashStore } from 'flash-store'
 import {
   VERSION,
   log,
-}             from '../config.js'
+}             from '../config.ts'
 
 const { major, minor } = semverPkg
 
@@ -53,7 +60,27 @@ class PayloadStore {
   protected storeDir:   string
   protected accountId?: string
 
-  constructor (private options: PayloadStoreOptions) {
+  /**
+   * The tail of the lifecycle queue: `start()`'s open, `stop()`'s close and
+   * `destroy()`'s removal run one after another, in call order. Login and
+   * logout drive the store from event listeners that nobody awaits, so these
+   * calls overlap; the queue keeps a LevelDB folder from being reopened
+   * before its previous close finished. Settles (never rejects) after the
+   * last queued step.
+   */
+  private lifecycle: Promise<void> = Promise.resolve()
+
+  /**
+   * Counts `stop()` calls. A queued open compares it with the count its
+   * `start()` saw and skips opening when a `stop()` came in between, so a
+   * finished `stop()` never leaves stores open.
+   */
+  private stopCount = 0
+
+  private options: PayloadStoreOptions
+
+  constructor (options: PayloadStoreOptions) {
+    this.options = options
     log.verbose('PayloadStore', 'constructor(%s)', JSON.stringify(options))
 
     this.storeDir = path.join(
@@ -67,8 +94,20 @@ class PayloadStore {
   }
 
   /**
-   * When starting the store, we need to know the accountId
-   *  so that we can save the payloads under a specific account folder.
+   * Queues `step` after every earlier lifecycle step. The returned promise
+   * reports the step's own outcome; the queue itself keeps going.
+   */
+  private enqueue (step: () => Promise<void>): Promise<void> {
+    const run = this.lifecycle.then(step)
+    this.lifecycle = run.catch(() => undefined)
+    return run
+  }
+
+  /**
+   * Opens the stores of `accountId` (the payloads are kept per account).
+   * Throws at once when the store is already started. The open waits for
+   * earlier lifecycle steps, such as the close of a previous `stop()`, and is
+   * skipped when `stop()` is called before it runs.
    */
   async start (accountId: string): Promise<void> {
     log.verbose('PayloadStore', 'start(%s)', accountId)
@@ -77,16 +116,26 @@ class PayloadStore {
       throw new Error('PayloadStore should be stop() before start() again.')
     }
     this.accountId = accountId
+    const stopCount = this.stopCount
 
-    const accountDir = path.join(this.storeDir, accountId)
+    await this.enqueue(async () => {
+      if (stopCount !== this.stopCount) {
+        log.verbose('PayloadStore', 'start(%s) skipped: stop() was called first', accountId)
+        return
+      }
 
-    if (!fs.existsSync(accountDir)) {
-      fs.mkdirSync(accountDir, { recursive: true })
-    }
+      const accountDir = path.join(this.storeDir, accountId)
 
-    this.contact    = new FlashStore(path.join(accountDir, 'contact-payload'))
-    this.roomMember = new FlashStore(path.join(accountDir, 'room-member-payload'))
-    this.room       = new FlashStore(path.join(accountDir, 'room-payload'))
+      if (!fs.existsSync(accountDir)) {
+        fs.mkdirSync(accountDir, { recursive: true })
+      }
+
+      // No await from here on: stop() detaches whatever this step has opened,
+      // so the three stores must appear together.
+      this.contact    = new FlashStore(path.join(accountDir, 'contact-payload'))
+      this.roomMember = new FlashStore(path.join(accountDir, 'room-member-payload'))
+      this.room       = new FlashStore(path.join(accountDir, 'room-payload'))
+    })
 
     /**
      * LRU
@@ -106,8 +155,19 @@ class PayloadStore {
     // this.message = new LRU(lruOptions)
   }
 
+  /**
+   * Detaches the stores at once and cancels a `start()` whose open has not
+   * run yet, then resolves when every earlier lifecycle step, including the
+   * close of the detached stores, has finished. Safe to call more than once:
+   * a call that finds nothing to detach still waits for the closes in
+   * flight. `PuppetService` stops the store both from its `logout` listener,
+   * which nothing awaits, and from `onStop()`, which relies on this wait.
+   * Rejects when closing one of its own stores fails.
+   */
   async stop (): Promise<void> {
     log.verbose('PayloadStore', 'stop()')
+
+    this.stopCount++
 
     const contactStore    = this.contact
     const roomMemberStore = this.roomMember
@@ -127,25 +187,29 @@ class PayloadStore {
     // clear accountId
     this.accountId  = undefined
 
-    await contactStore?.close()
-    await roomMemberStore?.close()
-    await roomStore?.close()
+    await this.enqueue(async () => {
+      await Promise.all([
+        contactStore?.close(),
+        roomMemberStore?.close(),
+        roomStore?.close(),
+      ])
+    })
   }
 
+  /**
+   * Removes the token's store folder, after earlier lifecycle steps finish.
+   * Throws when the store is started.
+   */
   async destroy (): Promise<void> {
     log.verbose('PayloadStore', 'destroy()')
     if (this.accountId) {
       throw new Error('Can not destroy() a start()-ed store. Call stop() to stop it first')
     }
 
-    /**
-     * Huan(202108): `fs.rm` was introduced from Node.js v14.14
-     *  https://nodejs.org/api/fs.html#fs_fspromises_rm_path_options
-     */
-    await fs.promises.rmdir(this.storeDir, {
-      // force: true,
-      recursive: true,
-    })
+    await this.enqueue(() => fs.promises.rm(this.storeDir, {
+      force     : true,
+      recursive : true,
+    }))
   }
 
 }

@@ -1,7 +1,14 @@
 /**
+ * `puppetImplementation()`: the handlers of the Wechaty puppet gRPC service,
+ * each mapping a request onto the served puppet's API. It replays the last
+ * `scan` payload to a client that connects before login, re-sends the last
+ * `ready` 5 seconds after a login, and serves the deprecated streaming file
+ * RPCs through `deprecated/`.
+ */
+/**
  *   Wechaty Open Source Software - https://github.com/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,17 +43,17 @@ import { timeoutPromise }   from 'gerror'
 import {
   packFileBoxToPb,
   unpackConversationIdFileBoxArgsFromPb,
-}                                         from '../deprecated/mod.js'
+}                                         from '../deprecated/mod.ts'
 
 import {
   timestampFromMilliseconds,
-}                             from '../pure-functions/timestamp.js'
+}                             from '../pure-functions/timestamp.ts'
 import {
   normalizeFileBoxUuid,
-}                             from '../file-box-helper/mod.js'
-import { log } from '../config.js'
-import { grpcError }          from './grpc-error.js'
-import { EventStreamManager } from './event-stream-manager.js'
+}                             from '../file-box-helper/mod.ts'
+import { log } from '../config.ts'
+import { grpcError }          from './grpc-error.ts'
+import { EventStreamManager } from './event-stream-manager.ts'
 
 function puppetImplementation (
   puppet      : PUPPET.impls.PuppetInterface,
@@ -732,6 +739,27 @@ function puppetImplementation (
 
       } catch (e) {
         return grpcError('messagePayload', e, callback)
+      }
+    },
+
+    conversationRead: async (call, callback) => {
+      log.verbose('PuppetServiceImpl', 'conversationRead()')
+
+      try {
+        const conversationId = call.request.getConversationId()
+        const hasRead = call.request.getHasRead()
+
+        const result = await puppet.conversationReadMark(conversationId, hasRead)
+
+        // The puppet answers with the new state when it knows it; otherwise
+        // report the state that was requested.
+        const response = new grpcPuppet.ConversationReadResponse()
+        response.setHasRead(typeof result === 'boolean' ? result : hasRead)
+
+        return callback(null, response)
+
+      } catch (e) {
+        return grpcError('conversationRead', e, callback)
       }
     },
 

@@ -1,63 +1,43 @@
 #!/usr/bin/env bash
-set -e
+#
+# Packs wechaty-puppet-service and checks that the tarball works as a consumer
+# sees it: installs it in a temporary ESM project together with the workspace
+# packages it needs (wechaty-puppet, wechaty-grpc, wechaty-token, and
+# wechaty-puppet-mock for the smoke test), packed from the workspace as 2.0 is
+# not on npm yet. Then it type-checks a smoke test against the published types
+# and runs a gRPC round trip between the packed client and server.
+#
+set -euo pipefail
 
-VERSION=$(npx pkg-jq -r .version)
-
-if npx --package @chatie/semver semver-is-prod "$VERSION"; then
-  NPM_TAG=latest
-else
-  NPM_TAG=next
-fi
-
-npm run dist
-npm pack
-
+PACKAGE_DIR=$(pwd)
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-trap "rm -fr '$TMPDIR'" EXIT
+# generate-package-json.sh rewrites src/package-json.ts; put back exactly what
+# was there, including uncommitted edits.
+cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
+trap 'cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
 
-mv ./*-*.*.*.tgz "$TMPDIR"
+./scripts/generate-package-json.sh
+npm run dist
+npm pack --pack-destination "$TMPDIR"
+for workspace in wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-mock; do
+  npm run dist --workspace "$workspace"
+  npm pack --workspace "$workspace" --pack-destination "$TMPDIR"
+done
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
-cd $TMPDIR
-
-npm init -y
-npm install --production ./*-*.*.*.tgz \
-  @chatie/tsconfig@$NPM_TAG \
-  pkg-jq \
-  "wechaty-puppet@$NPM_TAG" \
-  "wechaty@$NPM_TAG" \
-
-#
-# CommonJS
-#
-npx tsc \
-  --target es6 \
-  --module CommonJS \
-  \
-  --moduleResolution node \
-  --esModuleInterop \
-  --lib esnext \
-  --noEmitOnError \
-  --noImplicitAny \
-  --skipLibCheck \
-  smoke-testing.ts
-
-echo
-echo "CommonJS: pack testing..."
-node smoke-testing.js
-
-#
-# ES Modules
-#
-npx pkg-jq -i '.type="module"'
+cd "$TMPDIR"
+npm init -y > /dev/null
+npm pkg set type=module
+npm install ./wechaty-*.tgz \
+  @types/node \
+  @typescript/native@npm:typescript@^7.0.2
 
 npx tsc \
-  --target es2020 \
-  --module es2020 \
-  \
-  --moduleResolution node \
-  --esModuleInterop \
+  --target esnext \
+  --module nodenext \
+  --moduleResolution nodenext \
+  --verbatimModuleSyntax \
   --lib esnext \
   --noEmitOnError \
   --noImplicitAny \

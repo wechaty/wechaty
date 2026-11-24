@@ -1,10 +1,17 @@
+/**
+ * Compatibility patch for clients from v0.26 and earlier, which send their
+ * token as the HTTP/2 `:authority` instead of an `authorization` header.
+ * `monkeyPatchMetadataFromHttp2Headers()` makes grpc-js copy `:authority` into
+ * `authorization: Wechaty <authority>` when the header is missing, and returns
+ * a function that restores the original. It changes grpc-js globally.
+ */
 import type http2 from 'http2'
 
 import { log } from 'wechaty-puppet'
 
 import type {
   Metadata,
-}             from './grpc-js.js'
+}             from './grpc-js.ts'
 
 /**
  * Huan(202108): This is for compatible with old clients (version v0.26 or before)

@@ -1,34 +1,39 @@
-#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
+/**
+ * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
+ * temporary ESM project): a PuppetServer serves a PuppetMock over gRPC on a
+ * loopback port, a PuppetService client connects with an insecure token and
+ * gets `dong` back for its `ding`, and the embedded version is the real one.
+ */
+import assert from 'node:assert/strict'
+import net from 'node:net'
+
+import { PuppetMock } from 'wechaty-puppet-mock'
 import {
-  VERSION,
+  PuppetServer,
   PuppetService,
-}                       from 'wechaty-puppet-service'
+  VERSION,
+}                 from 'wechaty-puppet-service'
 
-async function main () {
-  const puppetService = new PuppetService()
+assert.notEqual(VERSION, '0.0.0', 'version should not be 0.0.0 when prepared for publishing')
 
-  // try {
-  //   await bot.start()
-  //   console.info(`Wechaty v${bot.version()} smoking test passed.`)
-  // } catch (e) {
-  //   console.error(e)
-  //   // Error!
-  //   return 1
-  // } finally {
-  //   await bot.stop()
-  // }
+const probe = net.createServer()
+await new Promise<void>(resolve => probe.listen(0, '127.0.0.1', resolve))
+const { port } = probe.address() as net.AddressInfo
+await new Promise<void>(resolve => probe.close(() => resolve()))
 
-  if (VERSION === '0.0.0') {
-    throw new Error('version should be set before publishing')
-  }
+const endpoint = `127.0.0.1:${port}`
+const token    = 'insecure_00000000-0000-0000-0000-000000000000'
 
-  console.info('Wechaty Puppet Service v' + puppetService.version() + ' passed.')
-  return 0
-}
+const server = new PuppetServer({ endpoint, puppet: new PuppetMock(), token })
+await server.start()
 
-main()
-  .then(process.exit)
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
+const service = new PuppetService({ endpoint, token })
+await service.start()
+
+const dong = new Promise<string | undefined>(resolve => service.once('dong', payload => resolve(payload.data)))
+service.ding('smoke')
+assert.equal(await dong, 'smoke', 'should get dong back from the server over gRPC')
+
+await service.stop()
+await server.stop()
+console.info(`PuppetService v${service.version()} smoke testing passed.`)

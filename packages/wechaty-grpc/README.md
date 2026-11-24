@@ -186,7 +186,8 @@ npm run generate --workspace wechaty-grpc
 3. Typings for the messages: [ts-protoc-gen](https://github.com/improbable-eng/ts-protoc-gen), which
    declares each enum with a `XxxMap` interface, as 1.x consumers expect.
 
-The lint, test, coverage and build scripts run `generate` first. grpc-web stubs and the OpenAPI
+`npm ci` runs it through the package's `prepare` script, and the lint, test, coverage and build
+scripts run it again first. grpc-web stubs and the OpenAPI
 document are no longer generated.
 
 ### Naming conventions & Style Guide

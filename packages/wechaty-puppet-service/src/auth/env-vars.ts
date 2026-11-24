@@ -1,4 +1,11 @@
 /**
+ * Readers for the TLS environment variables (CA cert, server cert and key,
+ * server name, and the two `NO_TLS_INSECURE_*` switches). Each returns the
+ * explicit option when given, otherwise the environment value read at call
+ * time. PEM values may encode newlines as the two characters `\n`; those
+ * become real newlines.
+ */
+/**
  * Environment variables containing newlines in Node?
  *  `replace(/\\n/g, '\n')`
  *    https://stackoverflow.com/a/36439803/1123955

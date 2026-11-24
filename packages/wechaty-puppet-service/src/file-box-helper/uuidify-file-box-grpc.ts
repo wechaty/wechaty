@@ -1,3 +1,9 @@
+/**
+ * `uuidifyFileBoxGrpc()`: the client's `FileBox` class whose UUIDs live on
+ * the server. Saving uploads the stream with the `upload` RPC; loading
+ * downloads it with `download`. It is a clone of `FileBox`, so the global
+ * class is not changed.
+ */
 import type {
   Readable,
   Writable,
@@ -5,8 +11,8 @@ import type {
 
 import {
   FileBox,
-  UuidLoader,
-  UuidSaver,
+  type UuidLoader,
+  type UuidSaver,
 }                         from 'file-box'
 import {
   chunkDecoder,
@@ -15,7 +21,7 @@ import {
 }                         from 'wechaty-grpc'
 import {
   cloneClass,
-  Constructor,
+  type Constructor,
 }                         from 'clone-class'
 
 const uuidResolverGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidLoader = (

@@ -1,3 +1,7 @@
+/**
+ * `grpcError()`: logs a handler failure and returns it to the gRPC callback
+ * as a `GError`, so the client gets the code and message.
+ */
 import type { grpc }  from 'wechaty-grpc'
 import { log }        from 'wechaty-puppet'
 import { GError }     from 'gerror'

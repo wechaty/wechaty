@@ -1,7 +1,17 @@
 /**
+ * `PuppetService`: the client puppet. It implements the `wechaty-puppet` API
+ * by calling a remote `PuppetServer` over gRPC (through `GrpcManager`) and
+ * turns the server's event stream back into puppet events. File boxes go
+ * over the wire as JSON; large or local ones are first uploaded and sent as
+ * UUID file boxes. Calls that the old streaming RPCs served fall back to
+ * them when the newer RPC fails (those fallbacks are marked deprecated).
+ * `tap()`, `tapSearch()` and `conversationReadMark()` are not in the gRPC
+ * protocol and throw.
+ */
+/**
  *   Wechaty Open Source Software - https://github.com/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,16 +39,6 @@ import {
   StringValue,
   puppet as grpcPuppet,
 }                         from 'wechaty-grpc'
-import {
-  puppet$,
-  Duck as PuppetDuck,
-}                         from 'wechaty-redux'
-import {
-  Ducks,
-  // Bundle,
-}                         from 'ducks'
-import type { Store }     from 'redux'
-// import type { Subscription }  from 'rxjs'
 
 /**
  * Deprecated. Will be removed after Dec 31, 2022
@@ -46,27 +46,27 @@ import type { Store }     from 'redux'
 import {
   packConversationIdFileBoxToPb,
   unpackFileBoxFromPb,
-}                                     from '../deprecated/mod.js'
-import { serializeFileBox }           from '../deprecated/serialize-file-box.js'
+}                                     from '../deprecated/mod.ts'
+import { serializeFileBox }           from '../deprecated/serialize-file-box.ts'
 
-import { millisecondsFromTimestamp }  from '../pure-functions/timestamp.js'
+import { millisecondsFromTimestamp }  from '../pure-functions/timestamp.ts'
 
 import {
   uuidifyFileBoxGrpc,
   normalizeFileBoxUuid,
-}                       from '../file-box-helper/mod.js'
+}                       from '../file-box-helper/mod.ts'
 import {
   envVars,
   log,
   VERSION,
-}                       from '../config.js'
+}                       from '../config.ts'
 import {
   EventTypeRev,
-}                       from '../event-type-rev.js'
-import { packageJson }  from '../package-json.js'
+}                       from '../event-type-rev.ts'
+import { packageJson }  from '../package-json.ts'
 
-import { GrpcManager }  from './grpc-manager.js'
-import { PayloadStore } from './payload-store.js'
+import { GrpcManager }  from './grpc-manager.ts'
+import { PayloadStore } from './payload-store.ts'
 
 export type PuppetServiceOptions = PUPPET.PuppetOptions & {
   authority?  : string
@@ -88,12 +88,6 @@ class PuppetService extends PUPPET.Puppet {
   protected _cleanupCallbackList: (() => void)[]
   protected _payloadStore: PayloadStore
 
-  /**
-   * Wechaty Redux
-   */
-  protected _ducks: Ducks<{ puppet: typeof PuppetDuck }>
-  protected _store: Store
-
   protected _grpcManager?: GrpcManager
   get grpcManager (): GrpcManager {
     if (!this._grpcManager) {
@@ -109,8 +103,11 @@ class PuppetService extends PUPPET.Puppet {
    */
   protected FileBoxUuid: typeof FileBox
 
+  // `declare`: Puppet's constructor stores `options`; this only narrows its type.
+  declare options: PuppetServiceOptions
+
   constructor (
-    public override options: PuppetServiceOptions = {},
+    options: PuppetServiceOptions = {},
   ) {
     super(options)
     this._payloadStore = new PayloadStore({
@@ -118,9 +115,6 @@ class PuppetService extends PUPPET.Puppet {
     })
 
     this.hookPayloadStore()
-
-    this._ducks = new Ducks({ puppet: PuppetDuck })
-    this._store = this._ducks.configureStore()
 
     this._cleanupCallbackList = []
 
@@ -173,16 +167,6 @@ class PuppetService extends PUPPET.Puppet {
     await grpcManager.start()
     log.verbose('PuppetService', 'start() starting grpc manager... done')
 
-    /**
-     * Ducks management
-     */
-    const subscription = puppet$(this)
-      .subscribe(this._store.dispatch)
-
-    this._cleanupCallbackList.push(
-      () => subscription.unsubscribe(),
-    )
-
     log.verbose('PuppetService', 'onStart() ... done')
   }
 
@@ -199,6 +183,12 @@ class PuppetService extends PUPPET.Puppet {
       await grpcManager.stop()
       log.verbose('PuppetService', 'onStop() stopping grpc manager ... done')
     }
+
+    // stop() emits `logout` first, and the `logout` listener in
+    // hookPayloadStore() starts closing the store without anyone awaiting it.
+    // Wait for that close here so stop() resolves only after LevelDB is
+    // released (Deno crashes if the process ends with the close pending).
+    await this._payloadStore.stop()
 
     log.verbose('PuppetService', 'onStop() ... done')
   }
@@ -430,7 +420,7 @@ class PuppetService extends PUPPET.Puppet {
       payloadId,
     }: PUPPET.payloads.EventDirty,
   ): void {
-    log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.types.Dirty[payloadType], payloadType, payloadId)
+    log.verbose('PuppetService', 'onDirty(%s<%s>, %s)', PUPPET.helpers.typeName(PUPPET.types.Dirty, payloadType), payloadType, payloadId)
 
     const dirtyMap = {
       [PUPPET.types.Dirty.Contact]:      async (id: string) => this._payloadStore.contact?.delete(id),
@@ -671,7 +661,7 @@ class PuppetService extends PUPPET.Puppet {
       coworker    : response.getCoworker(),
       description : response.getDescription(),
       friend      : response.getFriend(),
-      gender      : response.getGender() as number,
+      gender      : response.getGender() as number as PUPPET.types.ContactGender,
       /**
        * Huan(202203): rename `getWeixin()` to `getHandle()` in v2.0.0
        *  @link https://github.com/wechaty/grpc/issues/174
@@ -684,7 +674,7 @@ class PuppetService extends PUPPET.Puppet {
       signature   : response.getSignature(),
       star        : response.getStar(),
       title       : response.getTitle(),
-      type        : response.getType() as number,
+      type        : response.getType() as number as PUPPET.types.Contact,
       /**
        * `weixin` is deprecated, will be removed after Dec 31, 2022
        * use `handle` instead.
@@ -737,6 +727,38 @@ class PuppetService extends PUPPET.Puppet {
       this.grpcManager.client.contactSelfSignature
         .bind(this.grpcManager.client),
     )(request)
+  }
+
+  /**
+   *
+   * Tap
+   *
+   */
+
+  /**
+   * Not available over gRPC: `puppet.proto` has no tap call yet. Throws the
+   * puppet's unsupported-API error.
+   */
+  override tap (
+    postId : string,
+    type?  : PUPPET.types.Tap,
+    tap?   : boolean,
+  ): Promise<void | boolean> {
+    log.verbose('PuppetService', 'tap(%s, %s, %s)', postId, type, tap)
+    return PUPPET.throwUnsupportedError('tap() is not in the gRPC protocol')
+  }
+
+  /**
+   * Not available over gRPC: `puppet.proto` has no tap call yet. Throws the
+   * puppet's unsupported-API error.
+   */
+  override tapSearch (
+    postId      : string,
+    query?      : PUPPET.filters.Tap,
+    pagination? : PUPPET.filters.PaginationRequest,
+  ): Promise<PUPPET.filters.PaginationResponse<PUPPET.payloads.Tap>> {
+    log.verbose('PuppetService', 'tapSearch(%s, %s, %s)', postId, JSON.stringify(query), JSON.stringify(pagination))
+    return PUPPET.throwUnsupportedError('tapSearch() is not in the gRPC protocol')
   }
 
   /**
@@ -819,7 +841,7 @@ class PuppetService extends PUPPET.Puppet {
     log.verbose('PuppetService', 'messageImage(%s, %s[%s])',
       messageId,
       imageType,
-      PUPPET.types.Image[imageType],
+      PUPPET.helpers.typeName(PUPPET.types.Image, imageType),
     )
 
     try {
@@ -1074,7 +1096,7 @@ class PuppetService extends PUPPET.Puppet {
       talkerId      : response.getTalkerId(),
       text          : response.getText(),
       timestamp,
-      type          : response.getType() as number,
+      type          : response.getType() as number as PUPPET.types.Message,
     }
 
     // log.silly('PuppetService', 'messageRawPayload(%s) cache SET', id)

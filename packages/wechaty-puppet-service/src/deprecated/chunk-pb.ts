@@ -1,8 +1,14 @@
+/**
+ * Legacy file streaming, layer 2: wraps a stream of `FileBoxChunk`s into
+ * the protobuf messages of the old streaming RPCs (and back). The newer RPCs
+ * send file boxes as JSON; these stay only for servers and clients that
+ * still use the streaming RPCs, and are deprecated with them.
+ */
 import type { puppet } from 'wechaty-grpc'
 import { Readable, Transform } from 'stronger-typed-streams'
 import { PassThrough } from 'stream'
 
-import type { FileBoxPb } from './file-box-pb.type.js'
+import type { FileBoxPb } from './file-box-pb.type.ts'
 
 /**
  * Wrap FileBoxChunk

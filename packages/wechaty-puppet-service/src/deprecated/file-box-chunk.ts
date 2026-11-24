@@ -1,3 +1,8 @@
+/**
+ * Legacy file streaming, layer 1: a file box as a stream of `FileBoxChunk`s
+ * (the name first, then the data), and back. Deprecated with the streaming
+ * RPCs.
+ */
 import { FileBox }      from 'file-box'
 import type { FileBoxInterface } from 'file-box'
 import { PassThrough }  from 'stream'
@@ -8,7 +13,7 @@ import {
 
 import { puppet } from 'wechaty-grpc'
 
-import { nextData } from './next-data.js'
+import { nextData } from './next-data.ts'
 
 /**
  * @deprecated Will be removed after Dec 31, 2022

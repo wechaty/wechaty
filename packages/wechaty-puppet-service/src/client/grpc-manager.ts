@@ -1,7 +1,17 @@
 /**
+ * `GrpcManager`: the client side of one puppet gRPC connection, owned by
+ * `PuppetService`. It resolves the endpoint (`WECHATY_PUPPET_SERVICE_ENDPOINT`
+ * or, when unset, `wechaty://<authority>/<token>` discovered through
+ * `wechaty-token`), sets up TLS with the token's SNI and the token call
+ * credentials (or plain HTTP/2 when TLS is disabled), creates the
+ * `PuppetClient`, and opens the server's event stream. It re-emits the
+ * stream's `data`, `error` and other events for `PuppetService` to translate.
+ * Importing it registers the `wechaty` resolver scheme with grpc-js.
+ */
+/**
  *   Wechaty Open Source Software - https://github.com/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,16 +47,16 @@ import {
 import {
   GRPC_OPTIONS,
   envVars,
-}                   from '../config.js'
+}                   from '../config.ts'
 
-import { callCredToken }  from '../auth/mod.js'
-import { GrpcStatus }     from '../auth/grpc-js.js'
+import { callCredToken }  from '../auth/mod.ts'
+import { GrpcStatus }     from '../auth/grpc-js.ts'
 import {
   TLS_CA_CERT,
   TLS_INSECURE_SERVER_CERT_COMMON_NAME,
-}                                         from '../auth/ca.js'
+}                                         from '../auth/ca.ts'
 
-import type { PuppetServiceOptions } from './puppet-service.js'
+import type { PuppetServiceOptions } from './puppet-service.ts'
 
 /**
  * Huan(202108): register `wechaty` schema for gRPC service discovery
@@ -77,8 +87,11 @@ class GrpcManager extends EventEmitter {
   serverName : string
   token      : WechatyToken
 
-  constructor (private options: PuppetServiceOptions) {
+  private options: PuppetServiceOptions
+
+  constructor (options: PuppetServiceOptions) {
     super()
+    this.options = options
     log.verbose('GrpcManager', 'constructor(%s)', JSON.stringify(options))
 
     this.caCert = Buffer.from(

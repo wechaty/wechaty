@@ -1,7 +1,13 @@
 /**
+ * `EventStreamManager`: forwards the served puppet's events to the one
+ * client event stream a server accepts at a time. On connect it sends a
+ * heartbeat (clients wait for it) and, when the puppet is already logged in,
+ * a `login` event; it removes its puppet listeners when the stream ends.
+ */
+/**
  *   Wechaty Open Source Software - https://github.com/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,10 +30,10 @@ import {
 
 import * as PUPPET from 'wechaty-puppet'
 
-import { log } from '../config.js'
+import { log } from '../config.ts'
 import {
   EventTypeRev,
-}                     from '../event-type-rev.js'
+}                     from '../event-type-rev.ts'
 
 class EventStreamManager {
 
@@ -35,9 +41,12 @@ class EventStreamManager {
 
   private puppetListening = false
 
+  puppet: PUPPET.impls.PuppetInterface
+
   constructor (
-    public puppet: PUPPET.impls.PuppetInterface,
+    puppet: PUPPET.impls.PuppetInterface,
   ) {
+    this.puppet = puppet
     log.verbose('EventStreamManager', 'constructor(%s)', puppet)
   }
 
@@ -314,9 +323,11 @@ class EventStreamManager {
      * EventStreamManager this.onStreamingCallEnd() this.eventStream.on(cancelled) eventStream is undefined
      * GrpcClient stop() stop client ... done
      */
-    this.eventStream.on('cancelled', () => {
+    // Rest parameters, not `arguments`: in an arrow function `arguments` is
+    // the enclosing method's, not the event's.
+    this.eventStream.on('cancelled', (...args: unknown[]) => {
       log.verbose('EventStreamManager', 'this.onStreamingCallEnd() this.eventStream.on(cancelled) fired with arguments: %s',
-        JSON.stringify(arguments),
+        JSON.stringify(args),
       )
 
       if (this.puppetListening) {

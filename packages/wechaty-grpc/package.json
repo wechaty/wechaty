@@ -36,7 +36,8 @@
     "coverage:node": "node ../../scripts/coverage.ts node",
     "precoverage:deno": "npm run generate",
     "coverage:deno": "node ../../scripts/coverage.ts deno",
-    "test": "npm run lint && npm run test:unit"
+    "test": "npm run lint && npm run test:unit",
+    "prepare": "npm run generate"
   },
   "repository": {
     "type": "git",

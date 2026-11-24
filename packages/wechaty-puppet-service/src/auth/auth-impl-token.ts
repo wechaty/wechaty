@@ -1,16 +1,25 @@
+/**
+ * Server-side token check for the puppet gRPC service. `authImplToken(token)`
+ * wraps every handler of a service implementation (in place) so a call runs
+ * only when its `authorization` metadata is `Wechaty <token>`. Other calls get
+ * `UNAUTHENTICATED`: through the callback for unary and client-streaming
+ * calls, as an `error` event for server and bidi streams. Importing this
+ * module installs the `:authority` fallback of
+ * `mokey-patch-header-authorization.ts` on grpc-js `Metadata`.
+ */
 import { log } from 'wechaty-puppet'
 
 import {
   StatusBuilder,
-  UntypedHandleCall,
-  sendUnaryData,
+  type UntypedHandleCall,
+  type sendUnaryData,
   Metadata,
-  ServerUnaryCall,
+  type ServerUnaryCall,
   GrpcStatus,
-  UntypedServiceImplementation,
-}                                 from './grpc-js.js'
+  type UntypedServiceImplementation,
+}                                 from './grpc-js.ts'
 
-import { monkeyPatchMetadataFromHttp2Headers }  from './mokey-patch-header-authorization.js'
+import { monkeyPatchMetadataFromHttp2Headers }  from './mokey-patch-header-authorization.ts'
 
 /**
  * Huan(202108): Monkey patch to support

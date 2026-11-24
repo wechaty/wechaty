@@ -1,7 +1,14 @@
 /**
+ * `PuppetServer`: serves any `wechaty-puppet` puppet over gRPC. `start()`
+ * binds the endpoint with the puppet service (behind the token check) and the
+ * health service, over TLS with the configured or bundled insecure
+ * certificate unless TLS is disabled. It owns the local UUID registry used by
+ * `upload` and `download`.
+ */
+/**
  *   Wechaty Open Source Software - https://github.com/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,25 +43,25 @@ import {
   envVars,
   VERSION,
   GRPC_OPTIONS,
-}                             from '../config.js'
+}                             from '../config.ts'
 
 import {
   authImplToken,
-}                             from '../auth/mod.js'
+}                             from '../auth/mod.ts'
 import {
   TLS_INSECURE_SERVER_CERT,
   TLS_INSECURE_SERVER_KEY,
-}                             from '../auth/ca.js'
+}                             from '../auth/ca.ts'
 
 import {
   puppetImplementation,
-}                             from './puppet-implementation.js'
+}                             from './puppet-implementation.ts'
 import {
   healthImplementation,
-}                             from './health-implementation.js'
+}                             from './health-implementation.ts'
 import {
   uuidifyFileBoxLocal,
-}                             from '../file-box-helper/uuidify-file-box-local.js'
+}                             from '../file-box-helper/uuidify-file-box-local.ts'
 
 export interface PuppetServerOptions {
   endpoint : string,
@@ -72,9 +79,12 @@ export class PuppetServer {
   protected grpcServer?  : grpc.Server
   protected urnRegistry? : UniformResourceNameRegistry
 
+  readonly options: PuppetServerOptions
+
   constructor (
-    public readonly options: PuppetServerOptions,
+    options: PuppetServerOptions,
   ) {
+    this.options = options
     log.verbose('PuppetServer',
       'constructor({endpoint: "%s", puppet: "%s", token: "%s"})',
       options.endpoint,
@@ -188,7 +198,8 @@ export class PuppetServer {
       throw new Error('grpc server bind fail!')
     }
 
-    this.grpcServer.start()
+    // grpc-js (^1.14, via wechaty-grpc) serves as soon as bindAsync()
+    // completes; its start() is deprecated and only prints a warning.
     log.verbose('PuppetServer', 'start() gRPC server starting ... done')
   }
 

@@ -1,11 +1,16 @@
+/**
+ * Package-wide settings: the version embedded from `package.json`, the
+ * shared logger, the merged environment variable readers (`envVars`) and the
+ * default gRPC channel options.
+ */
 /// <reference path="./typings.d.ts" />
 
 import { log } from 'wechaty-puppet'
 
-import { packageJson } from './package-json.js'
+import { packageJson } from './package-json.ts'
 
-import * as rootEnvVars from './env-vars.js'
-import * as authEnvVars from './auth/env-vars.js'
+import * as rootEnvVars from './env-vars.ts'
+import * as authEnvVars from './auth/env-vars.ts'
 
 const VERSION = packageJson.version || '0.0.0'
 

@@ -8,6 +8,7 @@
     "packages/wechaty-puppet",
     "packages/wechaty-puppet-mock",
     "packages/wechaty-grpc",
+    "packages/wechaty-puppet-service",
     "packages/wechaty"
   ],
   "engines": {
