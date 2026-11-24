@@ -1,7 +1,8 @@
 # wechaty-puppet-service
 
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet-service.svg)](https://www.npmjs.com/package/wechaty-puppet-service)
-[![NPM](https://github.com/wechaty/wechaty-puppet-service/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty-puppet-service/actions?query=workflow%3ANPM)
+[![npm (tag)](https://img.shields.io/npm/v/wechaty-puppet-service/next.svg)](https://www.npmjs.com/package/wechaty-puppet-service?activeTab=versions)
+[![Node.js CI](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml/badge.svg)](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml)
 [![ES Modules](https://img.shields.io/badge/ES-Modules-brightgreen)](https://github.com/Chatie/tsconfig/issues/16)
 
 ![Wechaty Service](https://wechaty.github.io/wechaty-puppet-service/images/hostie.png)
@@ -17,12 +18,23 @@ we have a blog post to explain them in details at
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
 
+This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty) at
+`packages/wechaty-puppet-service`, where it moved from `wechaty/puppet-service` in 2.0.
+
 ## Features
 
-1. Consume Wechaty Puppet Service
-1. Provide Wechaty Puppet Service
+1. Consume Wechaty Puppet Service: `PuppetService` is a puppet that calls a
+   remote puppet over gRPC.
+1. Provide Wechaty Puppet Service: `PuppetServer` serves any puppet over gRPC.
+
+## Requirements
+
+- Node.js 26 or newer. The package is ESM only.
+- `wechaty-puppet` 2.0 as a peer dependency.
 
 ## Usage
+
+### Consume a puppet service
 
 ```ts
 import { WechatyBuilder } from 'wechaty'
@@ -38,6 +50,27 @@ wechaty.start()
 ```
 
 Learn more about Wechaty Puppet Token from our official website: <http://wechaty.js.org/docs/puppet-services/>
+
+### Provide a puppet service
+
+```ts
+import { PuppetServer } from 'wechaty-puppet-service'
+import { PuppetMock }   from 'wechaty-puppet-mock'
+
+const server = new PuppetServer({
+  endpoint : '0.0.0.0:8788',
+  puppet   : new PuppetMock(),
+  token    : 'insecure_00000000-0000-0000-0000-000000000000',
+})
+
+await server.start()
+```
+
+The part of the token before its last `_` is the TLS server name (SNI).
+Without `tls` options the server uses the bundled `insecure` certificate,
+whose private key is public: set your own with
+`WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT` and `WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY`
+(see below) for production.
 
 ## Environment Variables
 
@@ -93,7 +126,7 @@ See:
 
 <!-- markdownlint-disable MD013 -->
 
-1. `WECHATY_PUPPET_SERVICE_TLS_CA_CERT`: can be overwrite by `options.tlsRootCert`. Set Root CA Cert to verify the server or client.
+1. `WECHATY_PUPPET_SERVICE_TLS_CA_CERT`: can be overwritten by `options.tls.caCert`. Set Root CA Cert to verify the server or client.
 
 For Puppet Server:
 
@@ -108,11 +141,24 @@ For Puppet Client:
 | Environment Variable | Options | Description |
 | -------------------- | ------- | ----------- |
 | `WECHATY_PUPPET_SERVICE_AUTHORITY` | `options.authority` | Service discovery host, default: `api.chatie.io` |
-| `WECHATY_PUPPET_SERVICE_TLS_CA_CERT` | `options.caCert` | Certification Authority Root Cert, default is using Wechaty Community root cert |
-| `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME` | `options.serverName` | Server Name (mast match for SNI) |
+| `WECHATY_PUPPET_SERVICE_TLS_CA_CERT` | `options.tls.caCert` | Certification Authority Root Cert, default is using Wechaty Community root cert |
+| `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME` | `options.tls.serverName` | Server Name (must match for SNI) |
 | `WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT` | `options.tls.disable` | Set `true` to disable client TLS |
 
 ## Changelog
+
+### v2.0 (unreleased)
+
+1. Moved into the Wechaty monorepo and built on the 2.0 `wechaty-puppet`,
+   `wechaty-grpc` and `wechaty-token` workspace packages.
+1. ESM only, Node.js 26 or newer; the CommonJS build is gone.
+1. The redux store that mirrored puppet events (`wechaty-redux`, `ducks`) is
+   removed, together with the unused `client/duck` folder.
+1. The server answers `conversationRead` by calling the served puppet's
+   `conversationReadMark()`. `tap()` and `tapSearch()` are not in the gRPC
+   protocol: the client throws an unsupported error for them.
+1. `PuppetService.stop()` resolves only after the local payload cache has
+   closed its LevelDB files.
 
 ### main v1.0 (Oct 29, 2021)
 
@@ -161,6 +207,6 @@ Designing the puppet hostie with the following protocols:
 
 ## Copyright & License
 
-- Code & Docs © 2018-now Huan LI \<zixia@zixia.net\>
+- Code & Docs © 2018-now Huan Li <huan@chatie.io>
 - Code released under the Apache-2.0 License
 - Docs released under Creative Commons

@@ -1,15 +1,19 @@
+/**
+ * Legacy file streaming, both layers together: a file box to a stream of
+ * protobuf messages and back. Deprecated with the streaming RPCs.
+ */
 import type { FileBoxInterface }      from 'file-box'
 import type { Readable }     from 'stronger-typed-streams'
 
 import {
   packFileBoxToChunk,
   unpackFileBoxFromChunk,
-}                           from './file-box-chunk.js'
+}                           from './file-box-chunk.ts'
 import {
   packFileBoxChunkToPb,
   unpackFileBoxChunkFromPb,
-}                           from './chunk-pb.js'
-import type { FileBoxPb }        from './file-box-pb.type.js'
+}                           from './chunk-pb.ts'
+import type { FileBoxPb }        from './file-box-pb.type.ts'
 
 /**
  * @deprecated Will be removed after Dec 31, 2022

@@ -1,8 +1,13 @@
+/**
+ * Client-side token credentials: `callCredToken(token)` adds
+ * `authorization: Wechaty <token>` to the metadata of every call, the header
+ * `auth-impl-token.ts` checks on the server.
+ */
 import {
   credentials,
-  CallMetadataGenerator,
+  type CallMetadataGenerator,
   Metadata,
-}                         from './grpc-js.js'
+}                         from './grpc-js.ts'
 
 /**
  * With server authentication SSL/TLS and a custom header with token

@@ -56,7 +56,11 @@ COPY package.json package-lock.json ./
 COPY packages/wechaty-token/package.json ./packages/wechaty-token/
 COPY packages/wechaty-puppet/package.json ./packages/wechaty-puppet/
 COPY packages/wechaty-puppet-mock/package.json ./packages/wechaty-puppet-mock/
-COPY packages/wechaty-grpc/package.json ./packages/wechaty-grpc/
+# wechaty-grpc generates its stubs in its `prepare` script during `npm ci`,
+# so it needs its whole folder (proto/, third-party/, scripts/), not only
+# package.json.
+COPY packages/wechaty-grpc ./packages/wechaty-grpc/
+COPY packages/wechaty-puppet-service/package.json ./packages/wechaty-puppet-service/
 COPY packages/wechaty/package.json ./packages/wechaty/
 RUN  npm ci \
   && rm -fr /tmp/* ~/.npm

@@ -1,7 +1,13 @@
+/**
+ * Example bot on `PuppetService`: replies `dong` and an image to `ding`,
+ * and logs the payloads of every message. It needs a
+ * puppet service token (`WECHATY_PUPPET_SERVICE_TOKEN`) and runs with
+ * `npm start`.
+ */
 import * as PUPPET  from 'wechaty-puppet'
 import { FileBox } from 'file-box'
 
-import { PuppetService } from '../src/mod.js'
+import { PuppetService } from '../src/mod.ts'
 
 /**
  *
@@ -55,7 +61,7 @@ function onScan (payload: PUPPET.payloads.EventScan) {
 
     console.info(`[${payload.status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
   } else {
-    console.info(`[${payload.status}] `, PUPPET.types.ScanStatus[payload.status])
+    console.info(`[${payload.status}] `, PUPPET.helpers.typeName(PUPPET.types.ScanStatus, payload.status))
   }
 }
 

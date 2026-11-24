@@ -1,3 +1,8 @@
+/**
+ * `nextData()`: reads one item from a stream, then lets it flow again. It
+ * rejects on a stream error or after 60 seconds, as generating a file on the
+ * server can be slow.
+ */
 import type {
   Readable,
 }           from 'stronger-typed-streams'

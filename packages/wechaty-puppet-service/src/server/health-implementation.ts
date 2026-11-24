@@ -1,3 +1,9 @@
+/**
+ * The standard gRPC health service for a served puppet. Status follows the
+ * puppet's `heartbeat` events: unknown before the first one, serving within
+ * 60 seconds of the last one, not serving after that. `watch` polls every 5
+ * seconds and sends only changes.
+ */
 /* eslint-disable sort-keys */
 import {
   google as grpcGoogle,

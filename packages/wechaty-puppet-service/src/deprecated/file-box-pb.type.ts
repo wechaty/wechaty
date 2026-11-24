@@ -1,3 +1,7 @@
+/**
+ * Structural types for the protobuf messages that carry a `FileBoxChunk`
+ * (and a conversation id), so the legacy helpers work with any of them.
+ */
 import type { puppet } from 'wechaty-grpc'
 
 /**

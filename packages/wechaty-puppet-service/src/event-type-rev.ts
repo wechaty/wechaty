@@ -1,3 +1,7 @@
+/**
+ * `EventTypeRev`: event type number → name, for logging. The generated
+ * `EventTypeMap` has no reverse mapping, so it is built here once.
+ */
 import {
   puppet,
 }               from 'wechaty-grpc'

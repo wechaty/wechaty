@@ -1,4 +1,12 @@
 /**
+ * The TLS material that puppet service clients and servers use by default:
+ * the Wechaty community root CA, plus a server key and certificate (common
+ * name `insecure`) signed by it. The key is public, so the default TLS only
+ * protects the transport format, not the traffic: production servers set
+ * their own certificate and key through `WECHATY_PUPPET_SERVICE_TLS_*`
+ * (see `auth/env-vars.ts`).
+ */
+/**
  * Wechaty Certificate Authority Repo:
  *  https://github.com/wechaty/dotenv/tree/main/ca
  *

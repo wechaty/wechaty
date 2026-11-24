@@ -1,7 +1,14 @@
 /**
+ * `PayloadStore`: a LevelDB cache (via `flash-store`) of contact, room and
+ * room member payloads that `PuppetService` keeps across restarts, under
+ * `~/.wechaty/wechaty-puppet-service/<token>/v<major>.<minor>/<accountId>/`.
+ * `PuppetService` starts it on `login` and stops it on `logout` and in
+ * `onStop()`; the payloads are only a cache of what the server returns.
+ */
+/**
  *   Wechaty Open Source Software - https://github.com/wechaty
  *
- *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *   @copyright 2016 Huan Li <huan@chatie.io>, and
  *                   Wechaty Contributors <https://github.com/wechaty>.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +37,7 @@ import { FlashStore } from 'flash-store'
 import {
   VERSION,
   log,
-}             from '../config.js'
+}             from '../config.ts'
 
 const { major, minor } = semverPkg
 
@@ -53,7 +60,17 @@ class PayloadStore {
   protected storeDir:   string
   protected accountId?: string
 
-  constructor (private options: PayloadStoreOptions) {
+  /**
+   * Settles (never rejects) when every store that `stop()` has detached has
+   * finished closing. `stop()` and `start()` await it, so a caller never runs
+   * ahead of a LevelDB close that is still in flight.
+   */
+  private closing: Promise<void> = Promise.resolve()
+
+  private options: PayloadStoreOptions
+
+  constructor (options: PayloadStoreOptions) {
+    this.options = options
     log.verbose('PayloadStore', 'constructor(%s)', JSON.stringify(options))
 
     this.storeDir = path.join(
@@ -77,6 +94,10 @@ class PayloadStore {
       throw new Error('PayloadStore should be stop() before start() again.')
     }
     this.accountId = accountId
+
+    // A quick logout and login must not reopen the LevelDB folders before the
+    // previous stop() has released them.
+    await this.closing
 
     const accountDir = path.join(this.storeDir, accountId)
 
@@ -106,6 +127,13 @@ class PayloadStore {
     // this.message = new LRU(lruOptions)
   }
 
+  /**
+   * Detaches the stores at once, then resolves when they and any stores an
+   * earlier `stop()` detached are closed. Safe to call more than once: a call
+   * that finds nothing to detach still waits for the closes in flight.
+   * `PuppetService` stops the store both from its `logout` listener, which
+   * nothing awaits, and from `onStop()`, which relies on this wait.
+   */
   async stop (): Promise<void> {
     log.verbose('PayloadStore', 'stop()')
 
@@ -127,9 +155,15 @@ class PayloadStore {
     // clear accountId
     this.accountId  = undefined
 
-    await contactStore?.close()
-    await roomMemberStore?.close()
-    await roomStore?.close()
+    const closed = Promise.all([
+      contactStore?.close(),
+      roomMemberStore?.close(),
+      roomStore?.close(),
+    ]).then(() => undefined)
+    // Later waiters only need the close to finish; this call reports its
+    // errors, so a failed close cannot make every later start() reject.
+    this.closing = Promise.all([ this.closing, closed.catch(() => undefined) ]).then(() => undefined)
+    await Promise.all([ this.closing, closed ])
   }
 
   async destroy (): Promise<void> {
@@ -138,13 +172,9 @@ class PayloadStore {
       throw new Error('Can not destroy() a start()-ed store. Call stop() to stop it first')
     }
 
-    /**
-     * Huan(202108): `fs.rm` was introduced from Node.js v14.14
-     *  https://nodejs.org/api/fs.html#fs_fspromises_rm_path_options
-     */
-    await fs.promises.rmdir(this.storeDir, {
-      // force: true,
-      recursive: true,
+    await fs.promises.rm(this.storeDir, {
+      force     : true,
+      recursive : true,
     })
   }
 

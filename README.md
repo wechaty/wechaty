@@ -38,12 +38,12 @@ Docker, puppet providers and the API. New to Wechaty? Start from the
 | [`wechaty-grpc`](packages/wechaty-grpc/) | [![npm](https://img.shields.io/npm/v/wechaty-grpc?color=brightgreen)](https://www.npmjs.com/package/wechaty-grpc) | The gRPC protocol (`.proto` files) and its generated Node.js stubs, used between puppet services and their clients |
 | [`wechaty-puppet`](packages/wechaty-puppet/) | [![npm](https://img.shields.io/npm/v/wechaty-puppet?color=brightgreen)](https://www.npmjs.com/package/wechaty-puppet) | The abstract `Puppet` that every provider implements, with the shared payload types |
 | [`wechaty-puppet-mock`](packages/wechaty-puppet-mock/) | [![npm](https://img.shields.io/npm/v/wechaty-puppet-mock?color=brightgreen)](https://www.npmjs.com/package/wechaty-puppet-mock) | A puppet with no IM behind it: an in-memory `Mocker` for tests and examples |
+| [`wechaty-puppet-service`](packages/wechaty-puppet-service/) | [![npm](https://img.shields.io/npm/v/wechaty-puppet-service?color=brightgreen)](https://www.npmjs.com/package/wechaty-puppet-service) | Puppets over gRPC: `PuppetService` calls a remote puppet, `PuppetServer` serves any puppet |
 | [`wechaty-token`](packages/wechaty-token/) | [![npm](https://img.shields.io/npm/v/wechaty-token?color=brightgreen)](https://www.npmjs.com/package/wechaty-token) | Puppet service tokens: discovery, the `wechaty://` gRPC resolver and the `wechaty-token` CLI |
 
-The last core library that `wechaty` builds on, `wechaty-puppet-service`, is
-moving into this repository ([#3054](https://github.com/wechaty/wechaty/issues/3054)).
-Until it arrives, it lives in its own repository under
-[github.com/wechaty](https://github.com/wechaty).
+All the core libraries that `wechaty` builds on now live here; `wechaty`
+itself switches to these workspace packages next
+([#3054](https://github.com/wechaty/wechaty/issues/3054)).
 
 ## Repository layout
 

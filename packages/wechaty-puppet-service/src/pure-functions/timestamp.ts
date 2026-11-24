@@ -1,3 +1,7 @@
+/**
+ * Conversions between milliseconds and `google.protobuf.Timestamp`, used for
+ * message receive times on both sides of the wire.
+ */
 import { Timestamp } from 'wechaty-grpc'
 
 /**

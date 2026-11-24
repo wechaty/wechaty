@@ -1,10 +1,16 @@
+/**
+ * `uuidifyFileBoxLocal()`: the server's `FileBox` class whose UUIDs live in
+ * a local `UniformResourceNameRegistry`, which backs the `upload` and
+ * `download` RPCs. It is a clone of `FileBox`, so the global class is not
+ * changed.
+ */
 import {
   FileBox,
   UniformResourceNameRegistry,
 }                               from 'file-box'
 import {
   cloneClass,
-  Constructor,
+  type Constructor,
 }                               from 'clone-class'
 
 type UuidifyFileBoxLocalFactory = (urnRegistry: UniformResourceNameRegistry) => typeof FileBox

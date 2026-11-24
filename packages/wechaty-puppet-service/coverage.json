@@ -1,0 +1,10 @@
+{
+  "testDirectories": [ "src", "tests/unit" ],
+  "sourceExcludes": [ "src/package-json.ts" ],
+  "deno": {
+    "allowRead": [ "../wechaty-grpc", "/etc/alpine-release" ],
+    "allowNet": [ "127.0.0.1", "localhost", "0.0.0.0" ],
+    "allowSys": [ "hostname" ],
+    "allowFfi": [ "../../node_modules/leveldown/prebuilds" ]
+  }
+}

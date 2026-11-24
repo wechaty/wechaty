@@ -1,15 +1,20 @@
+/**
+ * Legacy file streaming for `messageSendFileStream`: a conversation id
+ * message followed by the file box chunks, packed on the client and unpacked
+ * on the server. Deprecated with the streaming RPCs.
+ */
 import type {
   FileBoxInterface,
 }                               from 'file-box'
 import { PassThrough }          from 'stream'
 import type { Readable }             from 'stronger-typed-streams'
 
-import { nextData }                 from './next-data.js'
+import { nextData }                 from './next-data.ts'
 import {
   packFileBoxToPb,
   unpackFileBoxFromPb,
-}                                  from './file-box-pb.js'
-import type { ConversationIdFileBoxPb } from './file-box-pb.type.js'
+}                                  from './file-box-pb.ts'
+import type { ConversationIdFileBoxPb } from './file-box-pb.type.ts'
 
 interface ConversationIdFileBoxArgs {
   conversationId: string,

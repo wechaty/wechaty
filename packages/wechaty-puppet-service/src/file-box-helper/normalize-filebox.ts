@@ -1,9 +1,15 @@
+/**
+ * Decides whether a file box can go over gRPC as JSON as it is.
+ * URL, UUID and QR code boxes can; buffer and base64 boxes can when they are
+ * at most 20KB; streams and local files cannot. `normalizeFileBoxUuid()`
+ * uploads the others and returns a UUID file box in their place.
+ */
 import type {
   FileBox,
 }                     from 'file-box'
 import {
   FileBoxType,
-  FileBoxInterface,
+  type FileBoxInterface,
 }                     from 'file-box'
 
 /**
