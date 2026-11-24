@@ -25,7 +25,7 @@ function healthImplementation (
 
   const getStatus = (): ServingStatus => {
     if (lastHeartbeatTimestamp < 0 || lastHeartbeatTimestamp > Date.now()) {
-      return ServingStatus.SERVICE_UNKNOWN
+      return ServingStatus.UNKNOWN
     } else if (Date.now() - lastHeartbeatTimestamp < HEARTBEAT_TIMEOUT_SECONDS * 1000) {
       return ServingStatus.SERVING
     } else {
@@ -49,7 +49,13 @@ function healthImplementation (
       yield create(HealthCheckResponseSchema, { status: currentStatus })
 
       while (!ctx?.signal?.aborted) {
-        await new Promise(resolve => setTimeout(resolve, 5000))
+        await new Promise<void>(resolve => {
+          const timer = setTimeout(resolve, 5000)
+          ctx?.signal?.addEventListener('abort', () => {
+            clearTimeout(timer)
+            resolve()
+          }, { once: true })
+        })
         if (ctx?.signal?.aborted) {
           break
         }

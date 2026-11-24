@@ -671,17 +671,23 @@ export function puppetImplementation (
         throw new ConnectError('empty stream', Code.InvalidArgument)
       }
       const conversationId = first.value.conversationId || ''
-      async function* toChunks () {
-        if (first.value.fileBoxChunk?.data) {
-          yield first.value.fileBoxChunk.data
-        }
-        for await (const req of { [Symbol.asyncIterator]: () => iterator }) {
-          if (req.fileBoxChunk?.data) {
-            yield req.fileBoxChunk.data
+      const initialName = first.value.fileBoxChunk?.name || ''
+      const streamChunks: AsyncIterable<Uint8Array> = {
+        async *[Symbol.asyncIterator] () {
+          if (first.value.fileBoxChunk?.data) {
+            yield first.value.fileBoxChunk.data
           }
-        }
+          for await (const req of { [Symbol.asyncIterator]: () => iterator }) {
+            if (req.fileBoxChunk?.name) {
+              ;(fileBox as { name: string }).name = req.fileBoxChunk.name
+            }
+            if (req.fileBoxChunk?.data) {
+              yield req.fileBoxChunk.data
+            }
+          }
+        },
       }
-      const fileBox = FileBox.fromStream(Readable.from(toChunks()), 'stream.dat')
+      const fileBox = FileBox.fromStream(Readable.from(streamChunks), initialName || 'stream.dat')
       const id = await puppet.messageSendFile(conversationId, fileBox)
       return id ? { id } : { id: '' }
     },

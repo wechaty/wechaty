@@ -28,6 +28,7 @@ import {
 } from '@connectrpc/connect'
 import {
   createGrpcTransport,
+  Http2SessionManager,
 } from '@connectrpc/connect-node'
 
 import {
@@ -48,6 +49,7 @@ WechatyResolver.setup()
 class GrpcManager extends EventEmitter {
 
   protected _client?: Client<typeof Puppet>
+  protected sessionManager?: Http2SessionManager
   get client (): Client<typeof Puppet> {
     if (!this._client) {
       throw new Error('NO CLIENT')
@@ -198,16 +200,21 @@ class GrpcManager extends EventEmitter {
     const baseUrl = `${protocol}://${target}`
     log.verbose('GrpcManager', 'initClient() baseUrl: %s', baseUrl)
 
+    const nodeOptions = {
+      ca: this.caCert,
+      rejectUnauthorized: !this.disableTls,
+      servername: this.serverName,
+    }
+
+    this.sessionManager = new Http2SessionManager(baseUrl, undefined, nodeOptions)
+
     const transport = createGrpcTransport({
       baseUrl,
+      sessionManager: this.sessionManager,
       interceptors: [
         callCredToken(this.token.token),
       ],
-      nodeOptions: {
-        ca: this.caCert,
-        rejectUnauthorized: !this.disableTls,
-        servername: this.serverName,
-      },
+      nodeOptions,
     })
 
     this._client = createClient(Puppet, transport)
@@ -216,6 +223,12 @@ class GrpcManager extends EventEmitter {
 
   protected destroyClient (): void {
     log.verbose('GrpcManager', 'destroyClient()')
+    if (this.sessionManager) {
+      try {
+        this.sessionManager.abort()
+      } catch {}
+      this.sessionManager = undefined
+    }
     this._client = undefined
   }
 

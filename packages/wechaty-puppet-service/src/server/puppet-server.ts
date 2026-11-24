@@ -61,6 +61,7 @@ export class PuppetServer {
 
   protected server?: HttpServer | Http2Server | Http2SecureServer
   protected urnRegistry?: UniformResourceNameRegistry
+  protected shutdownController?: AbortController
 
   readonly options: PuppetServerOptions
 
@@ -103,8 +104,11 @@ export class PuppetServer {
       this.options.puppet,
     )
 
+    this.shutdownController = new AbortController()
+
     const handler = connectNodeAdapter({
       readMaxBytes: 4 * 1024 * 1024,
+      shutdownSignal: this.shutdownController.signal,
       routes: (router) => {
         router.service(PuppetServiceDefinition, puppetImpl as any, {
           interceptors: [
@@ -160,23 +164,34 @@ export class PuppetServer {
     })
     ;(this as any)._sessions = sessions
 
-    await new Promise<void>((resolve, reject) => {
-      this.server!.once('error', reject)
-      this.server!.listen(parsedPort, parsedHost, () => {
-        this.server!.removeListener('error', reject)
-        const addr = this.server!.address() as AddressInfo
-        if (addr) {
-          log.verbose('PuppetServer', 'start() listening on %s:%s', addr.address, addr.port)
-        }
-        resolve()
+    try {
+      await new Promise<void>((resolve, reject) => {
+        this.server!.once('error', reject)
+        this.server!.listen(parsedPort, parsedHost, () => {
+          this.server!.removeListener('error', reject)
+          const addr = this.server!.address() as AddressInfo
+          if (addr) {
+            log.verbose('PuppetServer', 'start() listening on %s:%s', addr.address, addr.port)
+          }
+          resolve()
+        })
       })
-    })
+    } catch (e) {
+      this.server = undefined
+      this.shutdownController = undefined
+      throw e
+    }
 
     log.verbose('PuppetServer', 'start() server starting ... done')
   }
 
   public async stop (): Promise<void> {
     log.verbose('PuppetServer', 'stop()')
+
+    if (this.shutdownController) {
+      this.shutdownController.abort()
+      this.shutdownController = undefined
+    }
 
     const sessions: Set<http2.ServerHttp2Session> | undefined = (this as any)._sessions
     if (sessions) {
@@ -185,15 +200,31 @@ export class PuppetServer {
           session.close()
         }
       }
-      sessions.clear()
     }
 
     if (this.server) {
       const s = this.server
       this.server = undefined
       await new Promise<void>((resolve) => {
-        s.close(() => resolve())
+        const timer = setTimeout(() => {
+          if (sessions) {
+            for (const session of sessions) {
+              if (!session.destroyed) {
+                try {
+                  session.destroy()
+                } catch {}
+              }
+            }
+          }
+        }, 1000)
+        s.close(() => {
+          clearTimeout(timer)
+          resolve()
+        })
       })
+      if (sessions) {
+        sessions.clear()
+      }
       log.verbose('PuppetServer', 'stop() server shutdown ... done')
     }
 
