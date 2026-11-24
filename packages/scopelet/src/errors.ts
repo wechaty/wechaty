@@ -20,7 +20,7 @@
 
 /**
  * The error types of the async lifecycle module (decision D13 in
- * wechaty/wechaty#2968; contract in `./README.md` §Errors).
+ * wechaty/wechaty#2968; contract in `../README.md` §Errors).
  *
  * Every error the module creates extends {@link LifecycleError} and carries a
  * stable string `code`. Callers should branch on `code` (or use

@@ -53,6 +53,7 @@ ARG NODE_OPTIONS=--disable-wasm-trap-handler
 # Install from the root lockfile with each workspace manifest in place.
 COPY package.json package-lock.json ./
 # One line per workspace listed in the root package.json.
+COPY packages/scopelet/package.json ./packages/scopelet/
 COPY packages/wechaty-token/package.json ./packages/wechaty-token/
 COPY packages/wechaty-puppet/package.json ./packages/wechaty-puppet/
 COPY packages/wechaty-puppet-mock/package.json ./packages/wechaty-puppet-mock/

@@ -26,7 +26,7 @@
  * subscriber is attached (wechaty/wechaty#2883, wechaty/wechaty#2905 invariant
  * 13). Records carry structural metadata only, never `error` / `cleanupError`.
  *
- * A single channel, `wechaty.async-lifecycle.state` (D23), carries every
+ * A single channel, `scopelet.state` (D44), carries every
  * record; subscribers filter on `state.kind` and `name`. Record types live in
  * `types.ts`, as part of the public contract. The channel is cross-runtime:
  * Deno implements `node:diagnostics_channel` and behaves as Node.js does here
@@ -48,8 +48,8 @@ import type {
   LifecycleState,
 }                           from './types.ts'
 
-/** The single diagnostics channel for every lifecycle instance (D23, C-OBS-04). */
-const CHANNEL_NAME = 'wechaty.async-lifecycle.state'
+/** The single diagnostics channel for every lifecycle instance (D44, C-OBS-04). */
+const CHANNEL_NAME = 'scopelet.state'
 
 /**
  * The runtime's `node:diagnostics_channel`, or `undefined` where the runtime

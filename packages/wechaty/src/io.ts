@@ -55,7 +55,7 @@ import {
   type LifecycleScope,
   type LifecycleState,
   type LifecycleStop,
-}                     from './async-lifecycle/mod.ts'
+}                     from 'scopelet'
 import type {
   MessageInterface,
 }                     from './user-modules/mod.ts'

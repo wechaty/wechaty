@@ -68,6 +68,10 @@ function browserShimsPlugin () {
 export default {
   files: [
     'tests/browser-shims/shims.test.ts',
+    'packages/scopelet/src/**/*.test.ts',
+    '!packages/scopelet/src/**/*.{native,integration}.test.ts',
+    // These suites use the filesystem and subprocesses.
+    '!packages/scopelet/src/{diagnostics,generation}.test.ts',
     'packages/wechaty-grpc/src/google.test.ts',
     'packages/wechaty-puppet-service/src/auth/auth-impl-token.test.ts',
     'packages/wechaty-puppet/{src,tests/unit}/**/*.test.ts',
@@ -81,8 +85,8 @@ export default {
     // Native test cases in mixed suites are colocated separately. Integration
     // tests exercise real TCP and WebSocket servers.
     '!packages/wechaty/src/**/*.{native,integration}.test.ts',
-    // These suites use filesystem metadata, subprocesses, or process diagnostics.
-    '!packages/wechaty/src/{async-lifecycle/{diagnostics,generation},cli/gateway,puppet-config}.test.ts',
+    // These suites use filesystem metadata or subprocesses.
+    '!packages/wechaty/src/{cli/gateway,puppet-config}.test.ts',
     // The legacy Io transport and public entry that exports it are server-side.
     '!packages/wechaty/src/{io,io-client,io-peer/io-peer,mods/mod}.test.ts',
   ],

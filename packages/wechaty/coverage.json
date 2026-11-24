@@ -1,13 +1,6 @@
 {
   "testDirectories": [ "src", "scripts", "tests/unit" ],
   "sourceExcludes": [ "src/package-json.ts" ],
-  "scopes": [
-    {
-      "name": "async-lifecycle",
-      "include": "src/async-lifecycle/",
-      "exclude": [ "src/async-lifecycle/contract/", "src/async-lifecycle/examples/" ]
-    }
-  ],
   "deno": {
     "allowRead": [ "../wechaty-grpc", "/etc/alpine-release" ],
     "allowRun": [ "git", "node", "deno" ],

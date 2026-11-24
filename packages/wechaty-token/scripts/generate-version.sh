@@ -13,7 +13,7 @@ SRC_VERSION_TS_FILE='src/version.ts'
   exit 1
 }
 
-VERSION=$(node -p "require('./package.json').version")
+VERSION=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('package.json', 'utf8')).version)")
 
 cat <<_SRC_ > "${SRC_VERSION_TS_FILE}"
 /**

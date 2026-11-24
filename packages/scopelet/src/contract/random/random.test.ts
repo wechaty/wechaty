@@ -33,9 +33,9 @@
  *   the implementation is fixed (see `expectFailure()` in `harness.ts`).
  *
  * Environment variables, for local soak runs:
- * - `ASYNC_LIFECYCLE_SEEDS`: seeds per run (default 100);
- * - `ASYNC_LIFECYCLE_SEED`: the first seed (default 1);
- * - `ASYNC_LIFECYCLE_STEPS`: steps per schedule (default 30).
+ * - `SCOPELET_SEEDS`: seeds per run (default 100);
+ * - `SCOPELET_SEED`: the first seed (default 1);
+ * - `SCOPELET_STEPS`: steps per schedule (default 30).
  */
 
 import assert from 'node:assert/strict'
@@ -44,9 +44,9 @@ import process from 'node:process'
 import { contract } from '../suite.ts'
 import { generate, run, type Schedule, shrink, type Violation } from './runner.ts'
 
-const SEEDS = Number(process.env['ASYNC_LIFECYCLE_SEEDS'] ?? 100)
-const FIRST = Number(process.env['ASYNC_LIFECYCLE_SEED'] ?? 1)
-const STEPS = Number(process.env['ASYNC_LIFECYCLE_STEPS'] ?? 30)
+const SEEDS = Number(process.env['SCOPELET_SEEDS'] ?? 100)
+const FIRST = Number(process.env['SCOPELET_SEED'] ?? 1)
+const STEPS = Number(process.env['SCOPELET_STEPS'] ?? 30)
 
 contract('S3.random', `${SEEDS} seeded schedules of ${STEPS} steps break no invariant`, {}, async ({ make, impl }) => {
   const waived = (violation: Violation) => `S3.${violation.invariant}` in impl.knownFailures

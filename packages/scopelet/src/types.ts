@@ -30,7 +30,7 @@
  *   tasks, children and conditions, or to report failure and ask for recovery.
  *   The owner of a composed lifecycle also holds a {@link LifecycleController}.
  *
- * This file is type-only. The normative behavior is `./README.md`; the `C-…`
+ * This file is type-only. The normative behavior is `../README.md`; the `C-…`
  * IDs in this file point at its clauses. The kernel that implements them lands
  * in wechaty/wechaty#2972, behind two entry points with identical behavior:
  * `createLifecycle(hooks, options)` and `abstract class AsyncLifecycle`.
@@ -464,7 +464,7 @@ type LifecycleDiagnosticState =
     }
 
 /**
- * A record on the `wechaty.async-lifecycle.state` diagnostics channel (D23,
+ * A record on the `scopelet.state` diagnostics channel (D44,
  * C-OBS-04), published after each commit and only when the channel has
  * subscribers.
  */
