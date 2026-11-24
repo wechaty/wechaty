@@ -1,4 +1,10 @@
 /**
+ * `MessageImpl`: the message user module. It wraps a puppet message payload
+ * and offers the talker, room, listener, text, mentions, files and other
+ * typed contents, and `say()`/`forward()`/`recall()`, plus static
+ * `find()` and `findAll()`.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -214,7 +220,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
     const msgStrList = [
       'Message',
-      `#${PUPPET.types.Message[this.type()]}`,
+      `#${PUPPET.helpers.typeName(PUPPET.types.Message, this.type())}`,
       '[',
       '🗣',
       talker,
@@ -229,7 +235,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     ) {
       msgStrList.push(`\t${this.text().substr(0, 70)}`)
     } else {
-      log.silly('Message', 'toString() for message type: %s(%s)', PUPPET.types.Message[this.type()], this.type())
+      log.silly('Message', 'toString() for message type: %s(%s)', PUPPET.helpers.typeName(PUPPET.types.Message, this.type()), this.type())
       // if (!this.#payload) {
       //   throw new Error('no payload')
       // }

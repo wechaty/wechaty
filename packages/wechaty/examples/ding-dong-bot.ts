@@ -20,6 +20,7 @@
 import {
   WechatyBuilder,
   ScanStatus,
+  helpers,
   type Message,
   type Contact,
 }                     from '../src/mods/mod.ts' // from 'wechaty'
@@ -99,9 +100,9 @@ function onScan (qrcode: string, status: ScanStatus) {
       encodeURIComponent(qrcode),
     ].join('')
 
-    console.info('onScan: %s(%s) - %s', ScanStatus[status], status, qrcodeImageUrl)
+    console.info('onScan: %s(%s) - %s', helpers.typeName(ScanStatus, status), status, qrcodeImageUrl)
   } else {
-    console.info('onScan: %s(%s)', ScanStatus[status], status)
+    console.info('onScan: %s(%s)', helpers.typeName(ScanStatus, status), status)
   }
 
   // console.info(`[${ScanStatus[status]}(${status})] ${qrcodeImageUrl}\nScan QR Code above to log in: `)

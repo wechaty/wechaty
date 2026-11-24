@@ -124,7 +124,7 @@ Wechaty has hosted many talks and inspired many blog posts over the years. Here 
 
 import { WechatyBuilder } from 'wechaty'
 
-const wechaty = WechatyBuilder.build() // get a Wechaty instance
+const wechaty = WechatyBuilder.build() // the puppet comes from WECHATY_PUPPET
 wechaty
   .on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
   .on('login',            user => console.log(`User ${user} logged in`))
@@ -132,7 +132,10 @@ wechaty
 wechaty.start()
 ```
 
-> **Notice: Wechaty requires Node.js version >= 16**
+> **Notice:** Wechaty 2.0 requires Node.js 26 or newer and has no default puppet.
+> Set one with the `WECHATY_PUPPET` environment variable (see
+> [Switch Protocol](#3-switch-protocolpuppet)), or pass it to the builder:
+> `WechatyBuilder.build({ puppet: 'wechaty-puppet-service', puppetOptions: { token } })`.
 
 After you scan the QR code and log in, this bot logs all messages to the console.
 
@@ -140,9 +143,9 @@ You can find Wechaty's Official Examples at [packages/wechaty/examples/ding-dong
 
 ## :checkered_flag: Requirements
 
-1. Node.js version 16+
-1. NPM version 7+
-1. TypeScript version 4.4+
+1. Node.js 26 or newer
+1. npm 10 or newer
+1. ES modules: Wechaty 2.0 is ESM only
 
 ## Getting Started
 
@@ -201,6 +204,7 @@ docker run -ti --rm --volume="$(pwd)":/bot wechaty/wechaty bot.ts
 ### 3. Switch Protocol(Puppet)
 
 Wechaty is very powerful that it can run over different protocols. You can specify the protocol by setting the environment variable `WECHATY_PUPPET` to different puppet provider.
+Wechaty 2.0 has no default puppet: starting a bot without one fails with a message that explains how to set it.
 
 If you cannot use Web protocol, you can apply other protocols following the instruction here: <https://github.com/wechaty/wechaty/wiki/Support-Developers> We provide free token to support developers build a valuable WeChat chatbot.
 

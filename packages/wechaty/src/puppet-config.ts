@@ -1,3 +1,10 @@
+/**
+ * The puppet providers Wechaty knows by npm name, with the version ranges
+ * that `bin/puppet-install.ts` installs (the Docker image no longer runs it),
+ * and the message for starting without a puppet. Wechaty 2.0 has no default puppet
+ * (wechaty/wechaty#3054): a bot names one in its options or in
+ * `WECHATY_PUPPET`.
+ */
 /* eslint-disable sort-keys */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -37,16 +44,12 @@ const OFFICIAL_PUPPET_DEPENDENCIES = {
   //    'wechaty-puppet-hostie'    : '*',       // https://www.npmjs.com/package/wechaty-puppet-hostie
 
   /**
-   * Wechaty Internal Puppets: dependency by package.json
-   *
-   *  Huan(202108): DO NOT REMOVE THE SPECIFIC VERSIONS BELOW
-   *    All the internal puppets which have already depended in package.json
-   *    MUST be listed below with their correct version number (ranges)
-   *    because the `bin/puppet-install.ts` will use those version
-   *    to install all them inside the Docker
+   * Wechaty internal puppets: workspace packages of this monorepo, which
+   * wechaty's package.json depends on. Their ranges must match package.json
+   * (`puppet-config.test.ts` checks it).
    */
-  'wechaty-puppet-service' : '^1.19.8',  // https://www.npmjs.com/package/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '^1.18.2',  // https://www.npmjs.com/package/wechaty-puppet-mock
+  'wechaty-puppet-service' : '^2.0.0-alpha.0',  // packages/wechaty-puppet-service
+  'wechaty-puppet-mock'    : '^2.0.0-alpha.0',  // packages/wechaty-puppet-mock
 
   /**
    * WeChat Puppets
@@ -78,12 +81,16 @@ type OfficialPuppetNpmName = keyof typeof OFFICIAL_PUPPET_DEPENDENCIES
 const isPuppetModuleName = (name: string): name is OfficialPuppetNpmName => name in OFFICIAL_PUPPET_DEPENDENCIES
 
 /**
- * Updates:
- *  - Huan(202004): we change default puppet from puppet-service -> puppet-wechat (with UOS support)
- *  - Huan(202009): use puppet service as default
- *  - Huan(202201): use puppet-wechat4u as default
+ * Why a bot cannot start without a puppet, and how to name one. Wechaty 1.x
+ * fell back to a default puppet (`wechaty-puppet-wechat4u` last); 2.0 has
+ * none, so the choice is always explicit.
  */
-const OFFICIAL_PUPPET_DEFAULT: OfficialPuppetNpmName = 'wechaty-puppet-wechat4u'
+const NO_PUPPET_MESSAGE = [
+  'No puppet is set: Wechaty 2.0 has no default puppet. Name one of:',
+  '  - in code:  WechatyBuilder.build({ puppet: \'wechaty-puppet-service\', puppetOptions: { token } })',
+  '  - or in the environment:  WECHATY_PUPPET=wechaty-puppet-service',
+  'Puppet providers: https://wechaty.js.org/docs/puppet-providers/',
+].join('\n')
 
 // i.e. @juzibot/wechaty-puppet-donut
 type PuppetNpmScope = `@${string}/` | ''
@@ -99,6 +106,6 @@ export {
   type PuppetNpmName,
   type PuppetModuleName, // DEPRECATED
   OFFICIAL_PUPPET_DEPENDENCIES,
-  OFFICIAL_PUPPET_DEFAULT,
+  NO_PUPPET_MESSAGE,
   isPuppetModuleName,
 }

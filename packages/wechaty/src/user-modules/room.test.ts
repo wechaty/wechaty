@@ -48,6 +48,9 @@ test('findAll()', async t => {
   await wechaty.start()
 
   t.mock.method(puppet, 'roomSearch', async () => EXPECTED_ROOM_ID_LIST)
+  // Room.ready() also loads the member list, which the 2.0 mock reads from its
+  // Mocker; this room exists only in the stubbed payload.
+  t.mock.method(puppet, 'roomMemberList', async () => [])
   t.mock.method(puppet, 'roomPayload', async () => {
     await new Promise(resolve => setImmediate(resolve))
     return {
@@ -106,6 +109,7 @@ test('room.say() smoke testing', async t => {
       topic: EXPECTED_ROOM_TOPIC,
     } as PUPPET.payloads.Room
   })
+  t.mock.method(puppet, 'roomMemberList', async () => [ EXPECTED_CONTACT_1_ID, EXPECTED_CONTACT_2_ID ])
   t.mock.method(puppet, 'contactPayload', async (contactId: string) => {
     await new Promise(resolve => setImmediate(resolve))
     return {

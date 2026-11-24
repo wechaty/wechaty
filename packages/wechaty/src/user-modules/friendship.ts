@@ -1,4 +1,10 @@
 /**
+ * `FriendshipImpl`: the friend request user module. It wraps a puppet
+ * friendship payload (receive, confirm, verify) and offers `accept()`,
+ * `hello()`, `contact()` and `type()`, plus static `add()` and
+ * `search()`.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -193,7 +199,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
 
     return [
       'Friendship#',
-      PUPPET.types.Friendship[this.payload.type],
+      PUPPET.helpers.typeName(PUPPET.types.Friendship, this.payload.type),
       '<',
       this.payload.contactId,
       '>',
@@ -260,7 +266,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
     }
 
     if (this.payload.type !== PUPPET.types.Friendship.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + FriendshipImpl.Type[this.payload.type])
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + PUPPET.helpers.typeName(FriendshipImpl.Type, this.payload.type))
     }
 
     log.silly('Friendship', 'accept() to %s', this.payload.contactId)

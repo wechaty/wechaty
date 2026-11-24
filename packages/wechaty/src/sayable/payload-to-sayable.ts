@@ -1,3 +1,8 @@
+/**
+ * `payloadToSayableWechaty()`: turns a puppet sayable payload (a `Post`
+ * item, for example) into a Wechaty sayable bound to the bot's user
+ * modules: text, contact, file box, URL link, mini program, location or post.
+ */
 import * as PUPPET from 'wechaty-puppet'
 import { log }  from 'wechaty-puppet'
 
@@ -10,10 +15,8 @@ import type {
 const payloadToSayableWechaty: (w: WechatyInterface) => (p: PUPPET.payloads.Sayable) => Promise<undefined | Sayable> = (wechaty: WechatyInterface) => async (
   sayable: PUPPET.payloads.Sayable,
 ) => {
-  log.verbose('Wechaty', 'payloadToSayable({type: %s(%s)})',
-    PUPPET.types.Message[sayable.type],
-    sayable.type,
-  )
+  // Sayable types are already names (for example `Text`).
+  log.verbose('Wechaty', 'payloadToSayable({type: %s})', sayable.type)
 
   switch (sayable.type) {
     case PUPPET.types.Sayable.Text:

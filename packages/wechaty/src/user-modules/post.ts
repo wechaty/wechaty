@@ -1,4 +1,10 @@
 /**
+ * `PostImpl` and `PostBuilder`: the post user module (moments, feeds and
+ * other posts, wechaty/wechaty#2245). A post holds sayables and child posts,
+ * and supports tapping (like) through `tap()`; the builder assembles a post
+ * to publish.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -474,7 +480,7 @@ class PostMixin extends wechatifyMixinBase() {
     status? : boolean,
   ): Promise<void | boolean> {
     log.verbose('Post', 'tap(%s%s)',
-      PUPPET.types.Tap[type],
+      PUPPET.helpers.typeName(PUPPET.types.Tap, type),
       typeof status === 'undefined'
         ? ''
         : ', ' + status,

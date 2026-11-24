@@ -1,4 +1,12 @@
 /**
+ * Process-wide settings: the `config` singleton reads the environment
+ * (`WECHATY_APIHOST`, `WECHATY_TOKEN`, `WECHATY_NAME`, `WECHATY_DEBUG`,
+ * `WECHATY_DOCKER`, `PORT`, and `WECHATY_PUPPET` through
+ * `systemPuppetName()`), next to the package version, the Chatie QR code and
+ * the mention separator constants. `systemPuppetName()` has no fallback:
+ * Wechaty 2.0 has no default puppet.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -26,10 +34,7 @@ import { FileBox } from 'file-box'
 import type {
   FileBoxInterface,
 }                   from 'file-box'
-import {
-  type OfficialPuppetNpmName,
-  OFFICIAL_PUPPET_DEFAULT,
-}                      from './puppet-config.ts'
+import type { OfficialPuppetNpmName } from './puppet-config.ts'
 import {
   packageJson,
   GIT_COMMIT_HASH,
@@ -91,10 +96,12 @@ export class Config {
 
   serviceIp = process.env['WECHATY_PUPPET_SERVICE_IP'] || ''
 
-  systemPuppetName (): OfficialPuppetNpmName {
-    return (
-      process.env['WECHATY_PUPPET'] || OFFICIAL_PUPPET_DEFAULT
-    ).toLowerCase() as OfficialPuppetNpmName
+  /**
+   * The puppet named by `WECHATY_PUPPET`, lowercased, read at call time.
+   * `undefined` when it is unset: Wechaty 2.0 has no default puppet.
+   */
+  systemPuppetName (): undefined | OfficialPuppetNpmName {
+    return process.env['WECHATY_PUPPET']?.toLowerCase() as undefined | OfficialPuppetNpmName
   }
 
   name = process.env['WECHATY_NAME']

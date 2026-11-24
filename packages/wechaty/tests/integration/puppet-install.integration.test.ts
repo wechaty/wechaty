@@ -30,6 +30,7 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
 `, { mode: 0o755 })
 
       const result = spawnSync(nodeExecutable, [
+        '--conditions=wechaty-source', // the installer imports workspace packages from source
         fileURLToPath(new URL('../../bin/puppet-install.ts', import.meta.url)),
       ], {
         encoding: 'utf8',

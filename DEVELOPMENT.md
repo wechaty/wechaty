@@ -28,8 +28,9 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
   packages that import it from source (`wechaty-puppet-service`) find them.
 - A package's `exports` may add a `wechaty-source` condition that points at
   `src/`, for workspace development only. `tsconfig.base.json` sets it as a
-  `customConditions` entry, and test commands and the coverage runner pass
-  `--conditions=wechaty-source`, so a package that depends on another
+  `customConditions` entry, and test commands, the coverage runner and the
+  `wechaty` scripts that run sources (`cli`, `demo`, `doctor`, `io-client`,
+  `puppet-install`) pass `--conditions=wechaty-source`, so a package that depends on another
   workspace package uses its sources without building `dist/`. This is for
   workspace use only: Node.js refuses to strip types from
   files under `node_modules`, so an installed package must never be loaded

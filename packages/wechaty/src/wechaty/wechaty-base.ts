@@ -1,4 +1,10 @@
 /**
+ * `WechatyBase`: the bot class, composed from the Wechaty mixins (puppet,
+ * login, plugins, I/O, user modules and more). It adds the bot's lifecycle
+ * logging, `say()` to the bot itself, and the `init()`/`start()`/`stop()`
+ * order. `WechatyBuilder` and `WechatyImpl` build on it.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -107,7 +113,7 @@ const mixinBase = FP.pipe(
  *
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
  * import { WechatyBuilder } from 'wechaty'
- * const bot = WechatyBuilder.build()
+ * const bot = WechatyBuilder.build() // the puppet comes from WECHATY_PUPPET
  * bot.on('scan',    (qrCode, status) => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(qrcode)))
  * bot.on('login',   user => console.log(`User ${user} logged in`))
  * bot.on('message', message => console.log(`Message: ${message}`))
@@ -130,11 +136,10 @@ class WechatyBase extends mixinBase implements SayableSayer {
    * - [PuppetWeChat](https://github.com/wechaty/puppet-service):
    * - [PuppetXP](https://github.com/wechaty/puppet-xp)
    *
+   * There is no default puppet: name one in the `puppet` option or in the
+   * `WECHATY_PUPPET` environment variable.
+   *
    * @typedef    PuppetModuleName
-   * @property   {string}  PUPPET_DEFAULT
-   * The default puppet.
-   * @property   {string}  wechaty-puppet-wechat4u
-   * The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
    * @property   {string}  wechaty-puppet-service
    * - Using the gRPC protocol to connect with a Protocol Server for controlling the any protocol of any IM  program.
    * @property   {string}  wechaty-puppet-wechat

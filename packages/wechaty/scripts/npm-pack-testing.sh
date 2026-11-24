@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
+#
+# Packs wechaty and checks that the tarball works as a consumer sees it:
+# installs it in a temporary ESM project together with the workspace
+# packages it needs (wechaty-puppet, wechaty-grpc, wechaty-token,
+# wechaty-puppet-service and wechaty-puppet-mock), packed from the workspace
+# into deps/ because 2.0 is not on npm yet. Then it type-checks and runs
+# tests/fixtures/smoke-testing.ts. With TESTED_PACKAGE_OUTPUT_PATH set, it
+# copies the tested wechaty tarball there (the npm workflow publishes it).
+#
 set -e
 
-VERSION=$(node --input-type=commonjs -p "require('./package.json').version")
-
-if npm exec --no -- semver-is-prod "$VERSION"; then
-  NPM_DIST_TAG=latest
-else
-  NPM_DIST_TAG=next
-fi
-
 TMPDIR="/tmp/npm-pack-testing.$$"
-mkdir "$TMPDIR"
+DEPS_DIR="$TMPDIR/deps"
+mkdir -p "$DEPS_DIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
 npm run dist
@@ -22,18 +24,18 @@ if [ "${#PACK_FILES[@]}" -ne 1 ]; then
   exit 1
 fi
 PACK_FILE="${PACK_FILES[0]##*/}"
+for workspace in wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-service wechaty-puppet-mock; do
+  npm run dist --workspace "$workspace"
+  npm pack --workspace "$workspace" --pack-destination "$DEPS_DIR"
+done
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
 cd "$TMPDIR"
 
 npm init -y
-npm install --production "./$PACK_FILE" \
+npm install --production "./$PACK_FILE" ./deps/*.tgz \
   @types/node \
-  @typescript/native@npm:typescript@^7.0.2 \
-  file-box@"$NPM_DIST_TAG" \
-  wechaty-puppet-mock@"$NPM_DIST_TAG" \
-  wechaty-puppet-padlocal@"$NPM_DIST_TAG" \
-  wechaty-puppet-service@"$NPM_DIST_TAG" \
+  @typescript/native@npm:typescript@^7.0.2
 
 #
 # ES Modules

@@ -1,3 +1,9 @@
+/**
+ * The `wechaty gateway` command: serves a puppet as a Wechaty Puppet
+ * Service under a token, through `IoClient`. The puppet comes from
+ * `--puppet` or `WECHATY_PUPPET` and must be a known puppet name; without
+ * one the command prints how to set it and exits 1 (2.0 has no default).
+ */
 /* eslint-disable sort-keys */
 import {
   command,
@@ -24,7 +30,6 @@ import { WechatyBuilder }   from '../wechaty-builder.ts'
 import {
   isPuppetModuleName,
   OFFICIAL_PUPPET_DEPENDENCIES,
-  OFFICIAL_PUPPET_DEFAULT,
 }                           from '../puppet-config.ts'
 
 async function onError (
@@ -103,8 +108,10 @@ const gateway = command({
       log.info('Gateway', 'no `--puppet` specified, reading from environment variable `WECHATY_PUPPET` for Wechaty Puppet Provider ...')
       puppet = process.env['WECHATY_PUPPET']
       if (!puppet) {
-        log.info('Gateway', `environment variable "WECHATY_PUPPET" is not available. Using system default puppet "${OFFICIAL_PUPPET_DEFAULT}"`)
-        puppet = OFFICIAL_PUPPET_DEFAULT
+        // 2.0 has no default puppet: the gateway must be told which to serve.
+        console.error('No puppet is set: pass `--puppet <npm-name>` or set the WECHATY_PUPPET environment variable.')
+        console.error(`Valid puppet names are: ${Object.keys(OFFICIAL_PUPPET_DEPENDENCIES).join(', ')}`)
+        return 1
       }
     }
     if (!isPuppetModuleName(puppet)) {
