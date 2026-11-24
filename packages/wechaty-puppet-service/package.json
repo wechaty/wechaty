@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-service",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.0-alpha.19",
   "description": "Puppet Service for Wechaty",
   "type": "module",
   "exports": {
@@ -59,19 +59,19 @@
     "gerror": "^1.0.16",
     "semver": "^7.3.5",
     "stronger-typed-streams": "^0.2.0",
-    "wechaty-grpc": "^2.0.0-alpha.0",
-    "wechaty-token": "^2.0.0-alpha.0"
+    "wechaty-grpc": "^2.0.0-alpha.19",
+    "wechaty-token": "^2.0.0-alpha.19"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^2.0.0-alpha.0"
+    "wechaty-puppet": "^2.0.0-alpha.19"
   },
   "devDependencies": {
     "@types/semver": "^7.3.9",
     "@types/temp": "^0.9.1",
     "shx": "^0.3.4",
     "temp": "^0.9.4",
-    "wechaty-puppet": "^2.0.0-alpha.0",
-    "wechaty-puppet-mock": "^2.0.0-alpha.0"
+    "wechaty-puppet": "^2.0.0-alpha.19",
+    "wechaty-puppet-mock": "^2.0.0-alpha.19"
   },
   "files": [
     "dist/",

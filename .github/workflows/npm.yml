@@ -37,10 +37,9 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     outputs:
-      is_publish_branch: ${{ steps.package_metadata.outputs.is_publish_branch }}
-      package_name: ${{ steps.package_metadata.outputs.package_name }}
-      package_version: ${{ steps.package_metadata.outputs.package_version }}
-      npm_dist_tag: ${{ steps.package_metadata.outputs.npm_dist_tag }}
+      is_publish_branch: ${{ steps.release_metadata.outputs.is_publish_branch }}
+      release_version: ${{ steps.release_metadata.outputs.release_version }}
+      npm_dist_tag: ${{ steps.release_metadata.outputs.npm_dist_tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -53,40 +52,32 @@ jobs:
 
       - name: Install dependencies from lockfile
         run: npm ci
-      # The published package is the packages/wechaty workspace; dependencies
-      # stay installed at the monorepo root by the step above.
-      - name: Generate embedded package and commit metadata
-        working-directory: packages/wechaty
-        run: ./scripts/generate-package-json.sh
-      - name: Determine publish branch and npm dist-tag
-        id: package_metadata
-        working-directory: packages/wechaty
+      # Every workspace package publishes the same version (lockstep,
+      # wechaty/wechaty#3054); `lockstep.ts check` fails the run otherwise.
+      - name: Determine release version, publish branch and npm dist-tag
+        id: release_metadata
         run: |
+          node scripts/lockstep.ts check
           node --input-type=commonjs <<'NODE'
           const fs = require('node:fs')
+          const { execFileSync } = require('node:child_process')
           const { SemVer } = require('@chatie/semver')
-          const { name: packageName, version: packageVersion } = require('./package.json')
+          const releaseVersion = execFileSync('node', [ 'scripts/lockstep.ts', 'version' ], { encoding: 'utf8' }).trim()
           // Project policy: prereleases and odd-minor versions use next.
-          const npmDistTag = new SemVer(packageVersion).isProd ? 'latest' : 'next'
+          const npmDistTag = new SemVer(releaseVersion).isProd ? 'latest' : 'next'
           // Publish from main or version branches such as v1.10.
           const isPublishBranch = /^refs\/heads\/(main|v[0-9]+\.[0-9]+.*)$/.test(process.env.GITHUB_REF)
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `package_name=${packageName}\npackage_version=${packageVersion}\nnpm_dist_tag=${npmDistTag}\nis_publish_branch=${isPublishBranch}\n`)
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_version=${releaseVersion}\nnpm_dist_tag=${npmDistTag}\nis_publish_branch=${isPublishBranch}\n`)
           NODE
-      - name: Set package manifest's npm dist-tag
-        working-directory: packages/wechaty
-        run: npm pkg set "publishConfig.tag=$NPM_DIST_TAG"
-        env:
-          NPM_DIST_TAG: ${{ steps.package_metadata.outputs.npm_dist_tag }}
-      - name: Build and smoke-test npm tarball
-        working-directory: packages/wechaty
-        run: ./scripts/npm-pack-testing.sh
-        env:
-          TESTED_PACKAGE_OUTPUT_PATH: ${{ runner.temp }}/wechaty-package.tgz
-      - name: Upload tested npm tarball
+      # Builds every package's tarball in dependency order, installs them all
+      # into a fresh project and runs the ding-dong smoke test.
+      - name: Build and smoke-test the release tarballs
+        run: scripts/pack-release.sh "$RUNNER_TEMP/release"
+      - name: Upload tested release tarballs
         uses: actions/upload-artifact@v6
         with:
-          name: npm-package
-          path: ${{ runner.temp }}/wechaty-package.tgz
+          name: npm-release
+          path: ${{ runner.temp }}/release
           if-no-files-found: error
           retention-days: 1
 
@@ -96,9 +87,14 @@ jobs:
     needs: [validate, pack]
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      # contents: write creates the v<version> release tag.
+      contents: write
       id-token: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Set up Node.js 26 and npm registry
         uses: actions/setup-node@v5
         with:
@@ -117,33 +113,31 @@ jobs:
             throw new Error('npm Trusted Publishing requires npm 11.5.1 or newer.')
           }
           NODE
-      - name: Download verified npm tarball
+      - name: Download tested release tarballs
         uses: actions/download-artifact@v7
         with:
-          name: npm-package
-          path: ${{ runner.temp }}/npm-package
-      - name: Check whether package version exists on npm
-        id: version_lookup
-        run: |
-          npm view "$PACKAGE_NAME" versions --json > "$RUNNER_TEMP/npm-versions.json"
-          node --input-type=commonjs <<'NODE'
-          const fs = require('node:fs')
-          const versions = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/npm-versions.json`, 'utf8'))
-          const alreadyPublished = (Array.isArray(versions) ? versions : [versions]).includes(process.env.PACKAGE_VERSION)
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `already_published=${alreadyPublished}\n`)
-          NODE
-        env:
-          PACKAGE_NAME: ${{ needs.pack.outputs.package_name }}
-          PACKAGE_VERSION: ${{ needs.pack.outputs.package_version }}
-      # Publish the same tarball that passed the package smoke test.
-      - name: Publish tested tarball to npm
-        if: steps.version_lookup.outputs.already_published == 'false'
-        run: npm publish "$RUNNER_TEMP/npm-package/wechaty-package.tgz" --tag "$NPM_DIST_TAG"
+          name: npm-release
+          path: ${{ runner.temp }}/release
+      # Publishes the tarballs that passed the smoke test, dependencies first,
+      # skipping versions already on npm (a re-run finishes a partial release).
+      # Each package must allow this repository and workflow as an npm
+      # Trusted Publisher.
+      - name: Publish the release to npm
+        run: scripts/publish-release.sh "$RUNNER_TEMP/release" "$NPM_DIST_TAG"
         env:
           NPM_DIST_TAG: ${{ needs.pack.outputs.npm_dist_tag }}
-      - name: Report already-published version
-        if: steps.version_lookup.outputs.already_published == 'true'
-        run: echo "$PACKAGE_NAME@$PACKAGE_VERSION already exists on npm; skipping."
+      - name: Tag the release
+        run: |
+          TAG="v$RELEASE_VERSION"
+          if EXISTING=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null); then
+            if [ "$EXISTING" = "$GITHUB_SHA" ]; then
+              echo "$TAG already points at $GITHUB_SHA."
+            else
+              echo "::warning::$TAG already exists at $EXISTING, not $GITHUB_SHA; leaving it."
+            fi
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$TAG" -f "sha=$GITHUB_SHA" --jq .ref
+          fi
         env:
-          PACKAGE_NAME: ${{ needs.pack.outputs.package_name }}
-          PACKAGE_VERSION: ${{ needs.pack.outputs.package_version }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.pack.outputs.release_version }}
