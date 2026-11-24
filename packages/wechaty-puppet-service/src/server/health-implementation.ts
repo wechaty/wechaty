@@ -5,7 +5,9 @@
  * seconds and yields changes.
  */
 import { create } from '@bufbuild/protobuf'
+import type { ServiceImpl } from '@connectrpc/connect'
 import {
+  Health,
   HealthCheckResponseSchema,
   ServingStatus,
   type HealthCheckRequest,
@@ -20,7 +22,8 @@ const HEARTBEAT_TIMEOUT_SECONDS = 60
 
 function healthImplementation (
   puppet: Puppet,
-) {
+  signal?: AbortSignal,
+): ServiceImpl<typeof Health> {
   let lastHeartbeatTimestamp = -1
 
   const getStatus = (): ServingStatus => {
@@ -33,9 +36,16 @@ function healthImplementation (
     }
   }
 
-  puppet.on('heartbeat', () => {
+  const onHeartbeat = () => {
     lastHeartbeatTimestamp = Date.now()
-  })
+  }
+  puppet.on('heartbeat', onHeartbeat)
+
+  if (signal) {
+    signal.addEventListener('abort', () => {
+      puppet.off('heartbeat', onHeartbeat)
+    }, { once: true })
+  }
 
   return {
     check: async (req: HealthCheckRequest): Promise<HealthCheckResponse> => {

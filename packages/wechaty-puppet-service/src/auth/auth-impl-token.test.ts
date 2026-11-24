@@ -77,3 +77,30 @@ test('authImplToken() with legacy :authority header', async () => {
   assert.equal(nextCalled, true, 'next handler should have been called with authority header')
   assert.equal((res as any).ok, true)
 })
+
+test('authImplToken() rejects empty configured token or empty credentials', async () => {
+  const emptyTokenInterceptor = authImplToken('')
+  const next = async (req: any) => ({ ok: true, req })
+  const emptyReq = { header: new Headers() }
+
+  await assert.rejects(
+    async () => emptyTokenInterceptor(next as any)(emptyReq as any),
+    (err: any) => {
+      assert.ok(err instanceof ConnectError)
+      assert.equal(err.code, Code.Unauthenticated)
+      return true
+    },
+    'empty server token must reject immediately',
+  )
+
+  const validInterceptor = authImplToken('configured-secret')
+  await assert.rejects(
+    async () => validInterceptor(next as any)(emptyReq as any),
+    (err: any) => {
+      assert.ok(err instanceof ConnectError)
+      assert.equal(err.code, Code.Unauthenticated)
+      return true
+    },
+    'empty request credentials must reject immediately',
+  )
+})

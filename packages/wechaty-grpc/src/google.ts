@@ -1,8 +1,17 @@
 /**
  * Pure ESM TypeScript implementations of standard Google Protocol Buffer wrappers:
  * `StringValue` and `Timestamp`. Replaces the legacy `google-protobuf` CommonJS classes
- * with zero runtime dependencies.
+ * with Protobuf-ES v2 well-known schemas.
  */
+import {
+  create,
+  toBinary,
+  fromBinary,
+} from '@bufbuild/protobuf'
+import {
+  StringValueSchema,
+  TimestampSchema,
+} from '@bufbuild/protobuf/wkt'
 
 /**
  * Pure ESM implementation of `google.protobuf.StringValue` wrapper message.
@@ -20,6 +29,24 @@ class StringValue {
    */
   constructor (value?: string) {
     this._value = value
+  }
+
+  /**
+   * Serializes instance to standard protobuf binary wire format.
+   */
+  serializeBinary (): Uint8Array {
+    const msg = create(StringValueSchema, { value: this._value ?? '' })
+    return toBinary(StringValueSchema, msg)
+  }
+
+  /**
+   * Deserializes standard protobuf binary wire format into a new StringValue instance.
+   *
+   * @param bytes Serialized protobuf binary payload.
+   */
+  static deserializeBinary (bytes: Uint8Array): StringValue {
+    const msg = fromBinary(StringValueSchema, bytes)
+    return new StringValue(msg.value)
   }
 
   /**
@@ -168,6 +195,27 @@ class Timestamp {
    */
   toDate (): Date {
     return new Date(this._seconds * 1000 + Math.floor(this._nanos / 1e6))
+  }
+
+  /**
+   * Serializes instance to standard protobuf binary wire format.
+   */
+  serializeBinary (): Uint8Array {
+    const msg = create(TimestampSchema, {
+      seconds: BigInt(this._seconds),
+      nanos: this._nanos,
+    })
+    return toBinary(TimestampSchema, msg)
+  }
+
+  /**
+   * Deserializes standard protobuf binary wire format into a new Timestamp instance.
+   *
+   * @param bytes Serialized protobuf binary payload.
+   */
+  static deserializeBinary (bytes: Uint8Array): Timestamp {
+    const msg = fromBinary(TimestampSchema, bytes)
+    return new Timestamp(Number(msg.seconds), msg.nanos)
   }
 
 }

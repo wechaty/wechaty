@@ -37,7 +37,13 @@ const puppetProtoFile = getProtoPath(
  */
 const puppet: ApiStore = {
   v0: {
-    data: fs.readFileSync(puppetProtoFile, 'utf8'),
+    get data () {
+      try {
+        return fs.readFileSync(puppetProtoFile, 'utf8')
+      } catch {
+        return ''
+      }
+    },
     file: puppetProtoFile,
   },
 }

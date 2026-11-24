@@ -95,28 +95,30 @@ export class PuppetServer {
       log.verbose('PuppetServer', 'start() initializing FileBox UUID URN Registry ... done')
     }
 
+    this.shutdownController = new AbortController()
+
     const FileBoxUuid = uuidifyFileBoxLocal(this.urnRegistry)
     const puppetImpl = puppetImplementation(
       this.options.puppet,
       FileBoxUuid,
+      this.shutdownController.signal,
     )
     const healthImpl = healthImplementation(
       this.options.puppet,
+      this.shutdownController.signal,
     )
-
-    this.shutdownController = new AbortController()
 
     const handler = connectNodeAdapter({
       readMaxBytes: 4 * 1024 * 1024,
       shutdownSignal: this.shutdownController.signal,
       routes: (router) => {
-        router.service(PuppetServiceDefinition, puppetImpl as any, {
+        router.service(PuppetServiceDefinition, puppetImpl, {
           interceptors: [
             authImplToken(this.options.token),
             serverErrorInterceptor(),
           ],
         })
-        router.service(HealthServiceDefinition, healthImpl as any, {
+        router.service(HealthServiceDefinition, healthImpl, {
           interceptors: [serverErrorInterceptor()],
         })
       },
@@ -133,18 +135,31 @@ export class PuppetServer {
 
     let parsedHost = '0.0.0.0'
     let parsedPort = 8788
-    const endpoint = this.options.endpoint
-    if (endpoint.includes(':')) {
-      const lastColon = endpoint.lastIndexOf(':')
-      const hostPart = endpoint.slice(0, lastColon).replace(/^\[|\]$/g, '')
-      const portPart = endpoint.slice(lastColon + 1)
-      parsedHost = hostPart || '0.0.0.0'
-      const p = parseInt(portPart, 10)
-      if (!isNaN(p)) {
+    const endpoint = (this.options.endpoint || '').trim()
+    if (endpoint) {
+      if (endpoint.includes(':')) {
+        const lastColon = endpoint.lastIndexOf(':')
+        const hostPart = endpoint.slice(0, lastColon).replace(/^\[|\]$/g, '')
+        const portPart = endpoint.slice(lastColon + 1)
+        if (!/^\d+$/.test(portPart)) {
+          throw new Error(`Invalid endpoint port "${portPart}" in "${endpoint}"`)
+        }
+        const p = Number(portPart)
+        if (p < 0 || p > 65535) {
+          throw new Error(`Endpoint port "${portPart}" out of range (0-65535) in "${endpoint}"`)
+        }
+        parsedHost = hostPart || '0.0.0.0'
         parsedPort = p
+      } else if (/^\d+$/.test(endpoint)) {
+        const p = Number(endpoint)
+        if (p < 0 || p > 65535) {
+          throw new Error(`Endpoint port "${endpoint}" out of range (0-65535)`)
+        }
+        parsedPort = p
+      } else {
+        parsedHost = endpoint
+        parsedPort = 8788
       }
-    } else if (!isNaN(Number(endpoint))) {
-      parsedPort = parseInt(endpoint, 10)
     }
 
     if (disableTls) {
@@ -164,6 +179,17 @@ export class PuppetServer {
     })
     ;(this as any)._sessions = sessions
 
+    const sockets = new Set<import('node:net').Socket>()
+    this.server.on('connection', (socket) => {
+      sockets.add(socket)
+      socket.once('close', () => sockets.delete(socket))
+    })
+    this.server.on('secureConnection', (socket) => {
+      sockets.add(socket)
+      socket.once('close', () => sockets.delete(socket))
+    })
+    ;(this as any)._sockets = sockets
+
     try {
       await new Promise<void>((resolve, reject) => {
         this.server!.once('error', reject)
@@ -177,8 +203,11 @@ export class PuppetServer {
         })
       })
     } catch (e) {
+      if (this.shutdownController) {
+        this.shutdownController.abort()
+        this.shutdownController = undefined
+      }
       this.server = undefined
-      this.shutdownController = undefined
       throw e
     }
 
@@ -194,6 +223,7 @@ export class PuppetServer {
     }
 
     const sessions: Set<http2.ServerHttp2Session> | undefined = (this as any)._sessions
+    const sockets: Set<import('node:net').Socket> | undefined = (this as any)._sockets
     if (sessions) {
       for (const session of sessions) {
         if (!session.destroyed && !session.closed) {
@@ -216,6 +246,15 @@ export class PuppetServer {
               }
             }
           }
+          if (sockets) {
+            for (const socket of sockets) {
+              if (!socket.destroyed) {
+                try {
+                  socket.destroy()
+                } catch {}
+              }
+            }
+          }
         }, 1000)
         s.close(() => {
           clearTimeout(timer)
@@ -224,6 +263,9 @@ export class PuppetServer {
       })
       if (sessions) {
         sessions.clear()
+      }
+      if (sockets) {
+        sockets.clear()
       }
       log.verbose('PuppetServer', 'stop() server shutdown ... done')
     }

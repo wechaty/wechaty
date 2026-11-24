@@ -20,7 +20,6 @@ import {
 } from 'gerror'
 import {
   WechatyToken,
-  WechatyResolver,
 } from 'wechaty-token'
 import {
   createClient,
@@ -43,8 +42,6 @@ import {
 } from '../auth/ca.ts'
 
 import type { PuppetServiceOptions } from './puppet-service.ts'
-
-WechatyResolver.setup()
 
 class GrpcManager extends EventEmitter {
 
@@ -184,20 +181,20 @@ class GrpcManager extends EventEmitter {
       const parsed = new URL(target)
       const tokenStr = (parsed.pathname || '').replace(/^\//, '')
       const authority = parsed.host || parsed.hostname || undefined
+      let address
       try {
-        const address = await new WechatyToken({
+        address = await new WechatyToken({
           authority,
           token: tokenStr,
         }).discover()
-        if (address && address.host && address.port) {
-          target = formatHostPort(address.host, address.port)
-        } else {
-          target = formatHostPort(parsed.hostname || '127.0.0.1', parsed.port || '8788')
-        }
       } catch (e) {
         log.warn('GrpcManager', 'initClient() token discovery failed: %s', (e as Error).message)
-        target = formatHostPort(parsed.hostname || '127.0.0.1', parsed.port || '8788')
+        throw new Error(`Token discovery failed for ${target}: ${(e as Error).message}`)
       }
+      if (!address || !address.host || !address.port) {
+        throw new Error(`Token discovery failed: invalid or unknown address for ${target}`)
+      }
+      target = formatHostPort(address.host, address.port)
     } else if (target.startsWith('http://') || target.startsWith('https://')) {
       const parsed = new URL(target)
       target = parsed.host

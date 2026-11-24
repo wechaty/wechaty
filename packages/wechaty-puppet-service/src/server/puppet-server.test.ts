@@ -99,3 +99,62 @@ test('failed listen() clears server state allowing retry', async () => {
     await puppet.stop().catch(() => {})
   }
 })
+
+test('PuppetServer rejects malformed endpoints', async () => {
+  const puppet = new PuppetMock()
+  const invalidPortServer = new PuppetServer({
+    endpoint: '127.0.0.1:abc',
+    puppet,
+    token: 'insecure_token',
+  } as PuppetServerOptions)
+
+  await assert.rejects(
+    async () => invalidPortServer.start(),
+    /Invalid endpoint port "abc"/,
+    'should reject non-numeric port',
+  )
+
+  const outOfRangeServer = new PuppetServer({
+    endpoint: '127.0.0.1:99999',
+    puppet,
+    token: 'insecure_token',
+  } as PuppetServerOptions)
+
+  await assert.rejects(
+    async () => outOfRangeServer.start(),
+    /out of range/,
+    'should reject port out of range',
+  )
+})
+
+test('PuppetServer stops cleanly when lingering raw connection is unclosed', async () => {
+  const port = await freePort()
+  const token = `insecure_${NIL_UUID_V4}`
+  const endpoint = `127.0.0.1:${port}`
+
+  const puppet = new PuppetMock()
+  const puppetServer = new PuppetServer({
+    endpoint,
+    puppet,
+    token,
+  } as PuppetServerOptions)
+
+  await puppetServer.start()
+
+  // Open a raw TCP connection without completing any HTTP/2 or HTTP/1 transaction
+  const net = await import('node:net')
+  const clientSocket = net.connect(port, '127.0.0.1')
+  await new Promise<void>((resolve) => clientSocket.once('connect', () => resolve()))
+
+  try {
+    const stopPromise = puppetServer.stop()
+    const timeout = new Promise<string>((_, reject) =>
+      setTimeout(() => reject(new Error('puppetServer.stop() timed out with lingering socket')), 4000),
+    )
+    await assert.doesNotReject(Promise.race([stopPromise, timeout]))
+  } finally {
+    clientSocket.destroy()
+    await puppetServer.stop().catch(() => {})
+    await puppet.stop().catch(() => {})
+  }
+})

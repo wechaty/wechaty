@@ -15,6 +15,10 @@ export function authImplToken (validToken: string): Interceptor {
   log.verbose('wechaty-puppet-service', 'auth/auth-impl-token.ts authImplToken(%s)', validToken)
 
   return (next) => async (req) => {
+    if (!validToken || validToken.trim() === '') {
+      throw new ConnectError('unauthenticated: server token is not configured', Code.Unauthenticated)
+    }
+
     const authHeader = req.header.get('authorization')
     let token = ''
 
@@ -33,7 +37,7 @@ export function authImplToken (validToken: string): Interceptor {
       }
     }
 
-    if (token !== validToken) {
+    if (!token || token.trim() === '' || token !== validToken) {
       throw new ConnectError('unauthenticated', Code.Unauthenticated)
     }
 

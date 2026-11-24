@@ -30,4 +30,34 @@ test('StringValue', async _t => {
   assert.equal(stringVal.getValue(), 'test-val')
   stringVal.setValue('new-val')
   assert.equal(stringVal.getValue(), 'new-val')
+
+  stringVal.value = 'property-val'
+  assert.equal(stringVal.value, 'property-val')
+
+  const bytes = stringVal.serializeBinary()
+  assert.ok(bytes instanceof Uint8Array)
+  const deserialized = StringValue.deserializeBinary(bytes)
+  assert.equal(deserialized.getValue(), 'property-val')
+})
+
+test('Timestamp serializeBinary and deserializeBinary', async _t => {
+  const date = new Date('2026-11-24T12:00:00.123Z')
+  const ts = Timestamp.fromDate(date)
+
+  ts.setSeconds(12345)
+  ts.setNanos(67890)
+  assert.equal(ts.getSeconds(), 12345)
+  assert.equal(ts.getNanos(), 67890)
+
+  ts.seconds = 54321n
+  ts.nanos = 98765
+  assert.equal(ts.seconds, 54321n)
+  assert.equal(ts.nanos, 98765)
+
+  const bytes = ts.serializeBinary()
+  assert.ok(bytes instanceof Uint8Array)
+
+  const deserialized = Timestamp.deserializeBinary(bytes)
+  assert.equal(deserialized.getSeconds(), ts.getSeconds())
+  assert.equal(deserialized.getNanos(), ts.getNanos())
 })

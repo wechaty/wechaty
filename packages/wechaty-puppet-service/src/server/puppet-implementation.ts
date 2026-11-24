@@ -5,6 +5,7 @@
 import { Readable } from 'node:stream'
 import {
   EventType,
+  Puppet,
   VERSION,
   type EventResponse,
 } from 'wechaty-grpc'
@@ -14,7 +15,11 @@ import {
 } from 'file-box'
 import * as PUPPET from 'wechaty-puppet'
 import { timeoutPromise } from 'gerror'
-import { ConnectError, Code } from '@connectrpc/connect'
+import {
+  ConnectError,
+  Code,
+  type ServiceImpl,
+} from '@connectrpc/connect'
 
 import { normalizeFileBoxUuid } from '../file-box-helper/mod.ts'
 import { log } from '../config.ts'
@@ -24,27 +29,47 @@ import { timestampFromMilliseconds } from '../pure-functions/timestamp.ts'
 export function puppetImplementation (
   puppet      : PUPPET.impls.PuppetInterface,
   FileBoxUuid : typeof FileBox,
-) {
+  signal?     : AbortSignal,
+): ServiceImpl<typeof Puppet> {
   let scanPayload: undefined  | PUPPET.payloads.EventScan
   let readyPayload: undefined | PUPPET.payloads.EventReady
   let readyTimeout: undefined | ReturnType<typeof setTimeout>
 
-  puppet.on('scan', payload  => { scanPayload = payload })
-  puppet.on('ready', payload => { readyPayload = payload })
-  puppet.on('logout', _      => {
+  const onScan = (payload: any) => { scanPayload = payload }
+  const onReady = (payload: any) => { readyPayload = payload }
+  const onLogout = () => {
     readyPayload = undefined
     if (readyTimeout) {
       clearTimeout(readyTimeout)
+      readyTimeout = undefined
     }
-  })
-  puppet.on('login', _       => {
+  }
+  const onLogin = () => {
     scanPayload = undefined
     readyTimeout = setTimeout(() => {
       if (readyPayload) {
         eventStreamManager.grpcEmit(EventType.READY, readyPayload)
       }
     }, 5 * 1000)
-  })
+  }
+
+  puppet.on('scan', onScan)
+  puppet.on('ready', onReady)
+  puppet.on('logout', onLogout)
+  puppet.on('login', onLogin)
+
+  if (signal) {
+    signal.addEventListener('abort', () => {
+      puppet.off('scan', onScan)
+      puppet.off('ready', onReady)
+      puppet.off('logout', onLogout)
+      puppet.off('login', onLogin)
+      if (readyTimeout) {
+        clearTimeout(readyTimeout)
+        readyTimeout = undefined
+      }
+    }, { once: true })
+  }
 
   const eventStreamManager = new EventStreamManager(puppet)
 
@@ -352,28 +377,61 @@ export function puppetImplementation (
       return id ? { id } : {}
     },
 
-    messageSendLocation: async (req: { conversationId: string; location?: any }) => {
+    messageSendLocation: async (req) => {
       log.verbose('PuppetServiceImpl', 'messageSendLocation()')
-      const id = await puppet.messageSendLocation(req.conversationId, req.location)
+      if (!req.location) {
+        throw new ConnectError('Location payload missing', Code.InvalidArgument)
+      }
+      const payload: PUPPET.payloads.Location = {
+        accuracy  : req.location.accuracy,
+        address   : req.location.address || 'NOADDRESS',
+        latitude  : req.location.latitude,
+        longitude : req.location.longitude,
+        name      : req.location.name || 'NONAME',
+      }
+      const id = await puppet.messageSendLocation(req.conversationId, payload)
       return id ? { id } : {}
     },
 
-    messageSendMiniProgram: async (req: { conversationId: string; miniProgram?: any }) => {
+    messageSendMiniProgram: async (req) => {
       log.verbose('PuppetServiceImpl', 'messageSendMiniProgram()')
-      const id = await puppet.messageSendMiniProgram(req.conversationId, req.miniProgram)
+      if (!req.miniProgram) {
+        throw new ConnectError('MiniProgram payload missing', Code.InvalidArgument)
+      }
+      const payload: PUPPET.payloads.MiniProgram = {
+        ...(req.miniProgram.appid ? { appid: req.miniProgram.appid } : {}),
+        ...(req.miniProgram.description ? { description: req.miniProgram.description } : {}),
+        ...(req.miniProgram.pagePath ? { pagePath: req.miniProgram.pagePath } : {}),
+        ...(req.miniProgram.iconUrl ? { iconUrl: req.miniProgram.iconUrl } : {}),
+        ...(req.miniProgram.shareId ? { shareId: req.miniProgram.shareId } : {}),
+        ...(req.miniProgram.thumbUrl ? { thumbUrl: req.miniProgram.thumbUrl } : {}),
+        ...(req.miniProgram.title ? { title: req.miniProgram.title } : {}),
+        ...(req.miniProgram.username ? { username: req.miniProgram.username } : {}),
+        ...(req.miniProgram.thumbKey ? { thumbKey: req.miniProgram.thumbKey } : {}),
+      }
+      const id = await puppet.messageSendMiniProgram(req.conversationId, payload)
       return id ? { id } : {}
     },
 
-    messageSendText: async (req: { conversationId: string; text: string; mentionIds?: string[]; mentionalIds?: string[] }) => {
+    messageSendText: async (req) => {
       log.verbose('PuppetServiceImpl', 'messageSendText()')
-      const mentionIds = req.mentionalIds ?? req.mentionIds
+      const mentionIds = req.mentionalIds
       const id = await puppet.messageSendText(req.conversationId, req.text, mentionIds)
       return id ? { id } : {}
     },
 
-    messageSendUrl: async (req: { conversationId: string; urlLink?: any }) => {
+    messageSendUrl: async (req) => {
       log.verbose('PuppetServiceImpl', 'messageSendUrl()')
-      const id = await puppet.messageSendUrl(req.conversationId, req.urlLink)
+      if (!req.urlLink) {
+        throw new ConnectError('UrlLink payload missing', Code.InvalidArgument)
+      }
+      const payload: PUPPET.payloads.UrlLink = {
+        title: req.urlLink.title || 'NOTITLE',
+        url: req.urlLink.url || 'NOURL',
+        ...(req.urlLink.description ? { description: req.urlLink.description } : {}),
+        ...(req.urlLink.thumbnailUrl ? { thumbnailUrl: req.urlLink.thumbnailUrl } : {}),
+      }
+      const id = await puppet.messageSendUrl(req.conversationId, payload)
       return id ? { id } : {}
     },
 
@@ -519,11 +577,12 @@ export function puppetImplementation (
       return {}
     },
 
-    friendshipAdd: async (req: { contactId: string; hello?: string; referrer?: any }) => {
+    friendshipAdd: async (req) => {
       log.verbose('PuppetServiceImpl', 'friendshipAdd()')
       const options: PUPPET.types.FriendshipAddOptions = {
-        hello: req.hello,
-        ...req.referrer,
+        ...(req.hello ? { hello: req.hello } : {}),
+        ...(req.referrer?.contactId ? { contactId: req.referrer.contactId } : {}),
+        ...(req.referrer?.roomId ? { roomId: req.referrer.roomId } : {}),
       }
       await puppet.friendshipAdd(req.contactId, options)
       return {}

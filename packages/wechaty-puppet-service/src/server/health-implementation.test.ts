@@ -25,12 +25,12 @@ test('healthImplementation() check() lifecycle and status transitions', async ()
   const req = create(HealthCheckRequestSchema, { service: 'wechaty.puppet.Puppet' })
 
   // 1. Initial status before any heartbeat should be UNKNOWN
-  const initial = await health.check(req)
+  const initial = await health.check(req, {} as any)
   assert.equal(initial.status, ServingStatus.UNKNOWN, 'initial status before heartbeat should be UNKNOWN')
 
   // 2. Status after heartbeat should be SERVING
   puppetEmitter.emit('heartbeat', { data: 'alive' })
-  const serving = await health.check(req)
+  const serving = await health.check(req, {} as any)
   assert.equal(serving.status, ServingStatus.SERVING, 'status after heartbeat should be SERVING')
 })
 
@@ -42,12 +42,12 @@ test('healthImplementation() watch() yields status and terminates on abort witho
   const abortController = new AbortController()
 
   const responses: ServingStatus[] = []
-  const watchStream = health.watch(req, { signal: abortController.signal })
+  const watchStream = health.watch(req, { signal: abortController.signal } as any)
 
   const iterator = watchStream[Symbol.asyncIterator]()
   const first = await iterator.next()
   assert.equal(first.done, false, 'first response should not be done')
-  if (first.value) {
+  if (first.value?.status !== undefined) {
     responses.push(first.value.status)
   }
   assert.equal(responses[0], ServingStatus.UNKNOWN, 'first response should be UNKNOWN')
