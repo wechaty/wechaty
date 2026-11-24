@@ -14,6 +14,12 @@ import nodePolyfills from 'rollup-plugin-node-polyfills'
 
 const poly = nodePolyfills()
 
+/** Maps a resolved dependency file to its URL under the test server root. */
+function browserModuleUrl (specifier) {
+  const filePath = fileURLToPath(import.meta.resolve(specifier))
+  return '/' + path.relative(process.cwd(), filePath).replace(/\\/g, '/')
+}
+
 /**
  * Custom dev-server plugin resolving Node test, assert, and runtime built-in specifiers
  * to browser shims.
@@ -34,9 +40,11 @@ function browserShimsPlugin () {
         return '/tests/browser-shims/assert.ts'
       }
       if (source === 'events/base') {
-        const url = import.meta.resolve('rollup-plugin-node-polyfills/polyfills/events.js')
-        const filePath = fileURLToPath(url)
-        return '/' + path.relative(process.cwd(), filePath).replace(/\\/g, '/')
+        return browserModuleUrl('rollup-plugin-node-polyfills/polyfills/events.js')
+      }
+      if (source === 'ix/asynciterable/index.js') {
+        // rx-queue names the .js entry. Ix publishes this same API as ESM.
+        return browserModuleUrl('ix/asynciterable/index.mjs')
       }
       if (source === 'mime') {
         return '/tests/browser-shims/mime.ts'
@@ -64,6 +72,14 @@ export default {
     // This suite looks up installed ESM providers by package name using the native module loader.
     '!packages/wechaty-puppet/src/puppet/puppet-resolver.test.ts',
     'packages/wechaty-puppet-mock/src/**/*.test.ts',
+    'packages/wechaty/{src,scripts,tests/unit}/**/*.test.ts',
+    // Native test cases in mixed suites are colocated separately. Integration
+    // tests exercise real TCP and WebSocket servers.
+    '!packages/wechaty/src/**/*.{native,integration}.test.ts',
+    // These suites use filesystem metadata, subprocesses, or process diagnostics.
+    '!packages/wechaty/src/{async-lifecycle/{diagnostics,generation},cli/gateway,puppet-config}.test.ts',
+    // The legacy Io transport and public entry that exports it are server-side.
+    '!packages/wechaty/src/{io,io-client,io-peer/io-peer,mods/mod}.test.ts',
   ],
 
   nodeResolve: {
