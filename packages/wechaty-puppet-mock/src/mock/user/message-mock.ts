@@ -1,15 +1,19 @@
-// import { Attachment } from './types'
+/**
+ * `MessageMock`: a mocked message with its talker, listener or room, and a
+ * `to()` that delivers it through the `Mocker`. `mockerifyMessageMock()` binds
+ * the class to one Mocker.
+ */
 import * as PUPPET from 'wechaty-puppet'
 import type {
   FileBoxInterface,
 }           from 'file-box'
 
-import { log } from '../../config.js'
+import { log } from '../../config.ts'
 
-import type { Mocker }        from '../mocker.js'
+import type { Mocker }        from '../mocker.ts'
 
-import type { RoomMock }         from './room-mock.js'
-import type { ContactMock } from './contact-mock.js'
+import type { RoomMock }         from './room-mock.ts'
+import type { ContactMock } from './contact-mock.ts'
 
 const POOL = Symbol('pool')
 // const ATTACHMENT = Symbol('attachment')
@@ -110,9 +114,12 @@ class MessageMock {
 
   get id () { return this.payload.id }
 
+  payload: PUPPET.payloads.Message
+
   constructor (
-    public payload: PUPPET.payloads.Message,
+    payload: PUPPET.payloads.Message,
   ) {
+    this.payload = payload
     log.silly('MockMessage', 'constructor(%s)', JSON.stringify(payload))
   }
 

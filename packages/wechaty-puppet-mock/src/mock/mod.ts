@@ -1,13 +1,17 @@
-import { Mocker } from './mocker.js'
+/**
+ * The `mock` namespace: `Mocker`, `SimpleEnvironment`, and the contact, room
+ * and message mocks.
+ */
+import { Mocker } from './mocker.ts'
 import {
-  EnvironmentMock,
+  type EnvironmentMock,
   SimpleEnvironment,
-}                     from './environment.js'
+}                     from './environment.ts'
 import {
   ContactMock,
   RoomMock,
   MessageMock,
-}                     from './user/mod.js'
+}                     from './user/mod.ts'
 
 export type {
   EnvironmentMock,

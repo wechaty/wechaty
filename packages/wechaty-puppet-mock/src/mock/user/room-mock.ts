@@ -1,11 +1,15 @@
+/**
+ * `RoomMock`: a mocked room whose `say()` sends messages through its `Mocker`.
+ * `mockerifyRoomMock()` binds the class to one Mocker.
+ */
 import type * as PUPPET from 'wechaty-puppet'
 
-import type { Mocker } from '../mocker.js'
-import { log } from '../../config.js'
+import type { Mocker } from '../mocker.ts'
+import { log } from '../../config.ts'
 
-import type { ContactMock } from './contact-mock.js'
+import type { ContactMock } from './contact-mock.ts'
 
-import { RoomEventEmitter } from '../events/room-events.js'
+import { RoomEventEmitter } from '../events/room-events.ts'
 
 interface By {
   by: (contact?: ContactMock) => void
@@ -73,10 +77,13 @@ class RoomMock extends RoomEventEmitter {
 
   get id () { return this.payload.id }
 
+  payload: PUPPET.payloads.Room
+
   constructor (
-    public payload: PUPPET.payloads.Room,
+    payload: PUPPET.payloads.Room,
   ) {
     super()
+    this.payload = payload
     log.silly('MockRoom', 'constructor(%s)', JSON.stringify(payload))
     this.mocker.roomPayload(payload.id, payload)
   }

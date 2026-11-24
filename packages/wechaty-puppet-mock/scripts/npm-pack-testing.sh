@@ -1,63 +1,39 @@
 #!/usr/bin/env bash
-set -e
+#
+# Packs wechaty-puppet-mock and checks that the tarball works as a consumer
+# sees it: installs it in a temporary ESM project together with its
+# wechaty-puppet peer (packed from the workspace, as 2.0 is not on npm yet),
+# type-checks a smoke test against the published types, and runs it.
+#
+set -euo pipefail
 
-VERSION=$(npx pkg-jq -r .version)
-
-if npx --package @chatie/semver semver-is-prod "$VERSION"; then
-  NPM_TAG=latest
-else
-  NPM_TAG=next
-fi
-
-npm run dist
-npm pack
-
+PACKAGE_DIR=$(pwd)
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
-mv ./*-*.*.*.tgz "$TMPDIR"
+# generate-package-json.sh rewrites src/package-json.ts; put back exactly what
+# was there, including uncommitted edits.
+cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
+trap 'cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
+
+./scripts/generate-package-json.sh
+npm run dist
+npm pack --pack-destination "$TMPDIR"
+npm run dist --workspace wechaty-puppet
+npm pack --workspace wechaty-puppet --pack-destination "$TMPDIR"
 cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 
-cd $TMPDIR
-
-npm init -y
-npm install --production ./*-*.*.*.tgz \
+cd "$TMPDIR"
+npm init -y > /dev/null
+npm pkg set type=module
+npm install ./wechaty-puppet-mock-*.tgz ./wechaty-puppet-2*.tgz \
   @types/node \
-  @chatie/tsconfig@$NPM_TAG \
-  "wechaty-puppet@$NPM_TAG" \
-  "wechaty@$NPM_TAG" \
+  @typescript/native@npm:typescript@^7.0.2
 
-#
-# CommonJS
-#
-./node_modules/.bin/tsc \
-  --target es6 \
-  --module CommonJS \
-  \
-  --moduleResolution node \
-  --esModuleInterop \
-  --lib esnext \
-  --noEmitOnError \
-  --noImplicitAny \
-  --skipLibCheck \
-  smoke-testing.ts
-
-echo
-echo "CommonJS: pack testing..."
-node smoke-testing.js
-
-#
-# ES Modules
-#
-
-# https://stackoverflow.com/a/59203952/1123955
-echo "`jq '.type="module"' package.json`" > package.json
-
-./node_modules/.bin/tsc \
-  --target es2020 \
-  --module es2020 \
-  \
-  --moduleResolution node \
-  --esModuleInterop \
+npx tsc \
+  --target esnext \
+  --module nodenext \
+  --moduleResolution nodenext \
+  --verbatimModuleSyntax \
   --lib esnext \
   --noEmitOnError \
   --noImplicitAny \

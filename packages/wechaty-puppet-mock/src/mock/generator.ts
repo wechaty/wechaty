@@ -1,5 +1,8 @@
-import faker from 'faker'
-import cuid  from 'cuid'
+/**
+ * Fake payload generators for the mocker: contacts, rooms, messages, images
+ * and sentences, built with `@faker-js/faker` and `crypto.randomUUID()` IDs.
+ */
+import { faker } from '@faker-js/faker'
 
 import * as PUPPET from 'wechaty-puppet'
 import {
@@ -7,18 +10,18 @@ import {
 }               from 'file-box'
 
 const generateContactPayload = (): PUPPET.payloads.Contact => ({
-  address   : faker.address.streetAddress(),
+  address   : faker.location.streetAddress(),
   alias     : undefined,
   avatar    : faker.image.avatar(),
-  city      : faker.address.city(),
+  city      : faker.location.city(),
   friend    : true,
   gender    : PUPPET.types.ContactGender.Male,
-  id        : cuid(),
-  name      : faker.name.findName(),
+  id        : crypto.randomUUID(),
+  name      : faker.person.fullName(),
   phone     : [
-    faker.phone.phoneNumber(),
+    faker.phone.number(),
   ],
-  province  : faker.address.state(),
+  province  : faker.location.state(),
   signature : faker.lorem.sentence(),
   star      : false,
   type      : PUPPET.types.Contact.Individual,
@@ -37,7 +40,7 @@ const generateRoomPayload = (...contactIdList: string[]): PUPPET.payloads.Room =
   const payload: PUPPET.payloads.Room = {
     adminIdList  : [],
     avatar       : faker.image.avatar(),
-    id           : cuid() + '@chatroom',
+    id           : crypto.randomUUID() + '@chatroom',
     memberIdList,
     ownerId      : undefined,
     topic        : faker.lorem.word(),
@@ -46,19 +49,19 @@ const generateRoomPayload = (...contactIdList: string[]): PUPPET.payloads.Room =
 }
 
 const generateMessagePayloadTo = (): PUPPET.payloads.MessageBase & PUPPET.payloads.MessageTo => ({
-  id         : cuid(),
-  listenerId : cuid(),
-  talkerId   : cuid(),
+  id         : crypto.randomUUID(),
+  listenerId : crypto.randomUUID(),
+  talkerId   : crypto.randomUUID(),
   text       : faker.lorem.sentence(),
   timestamp  : Date.now(),
   type       : PUPPET.types.Message.Text,
 })
 
 const generateMessagePayloadRoom = (): PUPPET.payloads.MessageBase & PUPPET.payloads.MessageRoom => ({
-  id            : cuid(),
+  id            : crypto.randomUUID(),
   mentionIdList : [],
-  roomId        : cuid() + '@chatroom',
-  talkerId      : cuid(),
+  roomId        : crypto.randomUUID() + '@chatroom',
+  talkerId      : crypto.randomUUID(),
   text          : faker.lorem.sentence(),
   timestamp     : Date.now(),
   type          : PUPPET.types.Message.Text,

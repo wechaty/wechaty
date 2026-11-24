@@ -1,7 +1,13 @@
 /**
+ * `PuppetMock`: a Wechaty puppet provider with no IM behind it. Every puppet
+ * method answers from an in-memory `Mocker` (contacts, rooms, messages), so
+ * tests and examples can drive a bot without a real account. Methods with
+ * nothing to mock log their call and return an empty result.
+ */
+/**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan Li <huan@chatie.io>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,7 +27,7 @@ import path from 'path'
 import * as PUPPET  from 'wechaty-puppet'
 import {
   FileBox,
-  FileBoxInterface,
+  type FileBoxInterface,
 }                     from 'file-box'
 
 import {
@@ -30,14 +36,13 @@ import {
   VERSION,
   NAME,
   log,
-}                                   from './config.js'
+}                                   from './config.ts'
 
-// import { Attachment } from './mock/user/types'
 
 import {
   Mocker,
   // ContactMock,
-}                     from './mock/mod.js'
+}                     from './mock/mod.ts'
 
 export type PuppetMockOptions = PUPPET.PuppetOptions & {
   mocker?: Mocker,
@@ -51,8 +56,11 @@ class PuppetMock extends PUPPET.Puppet {
 
   mocker: Mocker
 
+  // `declare`: Puppet's constructor stores `options`; this only narrows its type.
+  declare options: PuppetMockOptions
+
   constructor (
-    public override options: PuppetMockOptions = {},
+    options: PuppetMockOptions = {},
   ) {
     super(options)
     log.verbose('PuppetMock', 'constructor()')
@@ -211,7 +219,7 @@ class PuppetMock extends PUPPET.Puppet {
     log.verbose('PuppetMock', 'messageImage(%s, %s[%s])',
       messageId,
       imageType,
-      PUPPET.types.Image[imageType],
+      PUPPET.helpers.typeName(PUPPET.types.Image, imageType),
     )
     // const attachment = this.mocker.MockMessage.loadAttachment(messageId)
     // if (attachment instanceof FileBox) {
@@ -509,6 +517,13 @@ class PuppetMock extends PUPPET.Puppet {
     return null
   }
 
+  override async friendshipSearchHandle (
+    handle: string,
+  ): Promise<null | string> {
+    log.verbose('PuppetMock', 'friendshipSearchHandle(%s)', handle)
+    return null
+  }
+
   override async friendshipSearchWeixin (
     weixin: string,
   ): Promise<null | string> {
@@ -578,9 +593,7 @@ class PuppetMock extends PUPPET.Puppet {
 
   override async postPublish (payload: PUPPET.payloads.Post): Promise<void | string> {
     log.verbose('PuppetMock', 'postPublish({type: %s})',
-      PUPPET.types.Post[
-        payload.type || PUPPET.types.Post.Unspecified
-      ],
+      PUPPET.helpers.typeName(PUPPET.types.Post, payload.type || PUPPET.types.Post.Unspecified),
     )
   }
 
@@ -610,9 +623,7 @@ class PuppetMock extends PUPPET.Puppet {
   ): Promise<void | boolean> {
     log.verbose('PuppetMock', 'tap(%s, %s%s)',
       postId,
-      PUPPET.types.Tap[
-        type || PUPPET.types.Tap.Unspecified
-      ],
+      PUPPET.helpers.typeName(PUPPET.types.Tap, type || PUPPET.types.Tap.Unspecified),
       typeof tap === 'undefined' ? '' : `, ${tap}`,
     )
   }

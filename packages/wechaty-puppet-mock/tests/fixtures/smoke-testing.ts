@@ -1,25 +1,26 @@
-#!/usr/bin/env -S node --no-warnings --loader ts-node/esm
+/**
+ * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
+ * temporary ESM project): a PuppetMock with a Mocker logs in a mocked user and
+ * reports it, and the embedded version is the real one.
+ */
+import assert from 'node:assert/strict'
 
 import {
+  mock,
   PuppetMock,
   VERSION,
 }                 from 'wechaty-puppet-mock'
 
-async function main () {
-  const puppet = new PuppetMock()
+assert.notEqual(VERSION, '0.0.0', 'version should not be 0.0.0 when prepared for publishing')
 
-  if (VERSION === '0.0.0') {
-    throw new Error('version should not be 0.0.0 when prepare for publishing')
-  }
+const mocker = new mock.Mocker()
+const puppet = new PuppetMock({ mocker })
+await puppet.start()
 
-  console.info(`Puppet v${puppet.version()} smoke testing passed.`)
+const user = mocker.createContact({ name: 'smoke' })
+const login = new Promise<string>(resolve => puppet.once('login', payload => resolve(payload.contactId)))
+mocker.login(user)
+assert.equal(await login, user.id, 'should log in the mocked user')
 
-  return 0
-}
-
-main()
-  .then(process.exit)
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
+await puppet.stop()
+console.info(`PuppetMock v${puppet.version()} smoke testing passed.`)
