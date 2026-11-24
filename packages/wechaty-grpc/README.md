@@ -75,6 +75,17 @@ This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty)
   ([wechaty/wechaty#3053](https://github.com/wechaty/wechaty/issues/3053)). Their old CI workflows
   are in the history of `wechaty/grpc`.
 
+## Test runtimes
+
+From the workspace root, `npm run test:unit:browser` runs the shared descriptor, binary and
+JSON serialization, nullable field, and health contract tests in Chromium. These tests use the
+committed Protobuf-ES descriptors.
+
+`src/proto.test.ts` reads local `.proto` files and `src/chunk-transformer.test.ts` exercises
+Node object-mode streams. Both suites run in Node.js and Deno. `npm run generate --workspace
+wechaty-grpc` runs Buf and `protoc-gen-es` locally. The native gRPC transport tests live in
+`wechaty-puppet-service` alongside the ConnectRPC client and server.
+
 ## About
 
 gRPC is a modern open-source high-performance Remote Procedure Call (RPC) framework that can run in any environment. It can efficiently connect services in and across data centers with pluggable support for load balancing, tracing, health checking, and authentication. It is also applicable in the last mile of distributed computing to connect devices, mobile applications, and browsers to backend services.

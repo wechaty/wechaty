@@ -72,7 +72,9 @@ export default {
     '!packages/scopelet/src/**/*.{native,integration}.test.ts',
     // These suites use the filesystem and subprocesses.
     '!packages/scopelet/src/{diagnostics,generation}.test.ts',
-    'packages/wechaty-grpc/src/google.test.ts',
+    'packages/wechaty-grpc/{src,tests/unit}/**/*.test.ts',
+    // Raw .proto reads and the chunk adapters use local files and native Node streams.
+    '!packages/wechaty-grpc/src/{proto,chunk-transformer}.test.ts',
     'packages/wechaty-puppet-service/src/auth/auth-impl-token.test.ts',
     'packages/wechaty-puppet/{src,tests/unit}/**/*.test.ts',
     // This suite looks up installed ESM providers by package name using the native module loader.
