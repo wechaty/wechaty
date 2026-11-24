@@ -1,14 +1,11 @@
 /**
  * `WechatyToken`: a Wechaty puppet service token (`<sni>_<uuid>`) and its
- * service discovery. `discover()` asks the discovery authority
+ * service discovery. `discover()` uses Fetch to ask the discovery authority
  * (`https://<authority>/v0/hosties/<token>`, default `api.chatie.io`) for the
  * service's host and port, retrying transient failures (`retry-policy.ts`).
  * It resolves `undefined`, never rejects, when the token is unknown or the
  * service cannot be reached.
  */
-import https from 'node:https'
-import http from 'node:http'
-
 import {
   DEFAULT_AUTHORITY,
   log,
@@ -93,39 +90,31 @@ class WechatyToken {
 
   toString () { return this.token }
 
-  private discoverApi (url: string): Promise<undefined | string> {
-    return new Promise<undefined | string>((resolve, reject) => {
-      const httpClient = /^https:\/\//.test(url) ? https : http
-      httpClient.get(url, function (res) {
-        if (/^4/.test('' + res.statusCode)) {
-          /**
-            * 4XX Not Found: Token service discovery fail: not exist
-            */
-          return resolve(undefined)  // 4XX NotFound
-        } else if (!/^2/.test(String(res.statusCode))) {
-          /**
-           * Non-2XX: unknown error
-           */
-          const e = new Error(`Unknown error: HTTP/${res.statusCode}`)
-          log.warn('WechatyToken', 'discoverApi() httpClient.get() %s', e.message)
-          return reject(e)
-        }
-
-        let body = ''
-        res.on('data', function (chunk) {
-          body += chunk
-        })
-        res.on('end', function () {
-          resolve(body)
-        })
-
-      }).on('error', function (e) {
-        console.error(e)
-        reject(new Error(`WechatyToken discover() endpoint<${url}> rejection: ${e}`))
-      })
+  /** Reads the discovery response, treating 4xx responses as terminal misses. */
+  private async discoverApi (url: string): Promise<undefined | string> {
+    // Each lookup goes to the named authority without cookies, redirects, or cached addresses.
+    const response = await fetch(url, {
+      cache       : 'no-store',
+      credentials : 'omit',
+      redirect    : 'manual',
     })
+
+    if (response.ok) {
+      return response.text()
+    }
+
+    // A failed request needs no response body. Cancel it to release the connection.
+    void response.body?.cancel().catch(() => {})
+    if (response.status >= 400 && response.status < 500) {
+      return undefined
+    }
+
+    const error = new Error(`Unknown error: HTTP/${response.status}`)
+    log.warn('WechatyToken', 'discoverApi() %s', error.message)
+    throw error
   }
 
+  /** Resolves the service address when discovery returns a usable response. */
   async discover (): Promise<undefined | PuppetServiceAddress> {
     log.verbose('WechatyToken', 'discover() for "%s"', this.token)
 
