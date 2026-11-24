@@ -4,6 +4,7 @@
   "description": "The Wechaty monorepo: the wechaty package and its core libraries, one npm workspace per package under packages/.",
   "type": "module",
   "workspaces": [
+    "packages/scopelet",
     "packages/wechaty-token",
     "packages/wechaty-puppet",
     "packages/wechaty-puppet-mock",

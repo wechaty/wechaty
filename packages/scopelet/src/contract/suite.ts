@@ -31,7 +31,7 @@
  * which declares every capability and has no known failures. The S2 comparison
  * implementations were deleted then; `INVENTORY.md` records where their tests
  * went. The machinery below stays so another implementation, such as the
- * module once it moves to its own package (D20), can run the same suite.
+ * module in its own package (D20), can run the same suite.
  *
  * For each implementation and entry point the case is:
  * - **skipped**, with the reason, when the implementation lacks a capability
@@ -43,7 +43,7 @@
  *
  * To run the suite against a new implementation, add it to {@link IMPLEMENTATIONS}.
  *
- * To see why a known failure fails, set `ASYNC_LIFECYCLE_SHOW_KNOWN_FAILURES=1`:
+ * To see why a known failure fails, set `SCOPELET_SHOW_KNOWN_FAILURES=1`:
  * known failures then run as ordinary tests and report their real assertion.
  * An expected failure only proves that something failed, so check this when
  * adding or changing a `knownFailures` entry.
@@ -65,7 +65,7 @@ import type {
 const IMPLEMENTATIONS: readonly Implementation[] = [ final ]
 
 /** Run known failures as ordinary tests, to see their real assertion. */
-const SHOW_KNOWN_FAILURES = process.env['ASYNC_LIFECYCLE_SHOW_KNOWN_FAILURES'] === '1'
+const SHOW_KNOWN_FAILURES = process.env['SCOPELET_SHOW_KNOWN_FAILURES'] === '1'
 
 const SHELLS: readonly ShellName[] = [ 'createLifecycle', 'AsyncLifecycle' ]
 

@@ -42,7 +42,7 @@ import { CHANNEL_NAME } from './diagnostics.ts'
 
 /** Run `source` as a module in a child process of this runtime; returns its stdout. */
 function runChild (source: string): string {
-  const dir = mkdtempSync(join(tmpdir(), 'async-lifecycle-diagnostics-'))
+  const dir = mkdtempSync(join(tmpdir(), 'scopelet-diagnostics-'))
   try {
     const script = join(dir, 'probe.ts')
     writeFileSync(script, source)
@@ -60,8 +60,8 @@ function runChild (source: string): string {
   }
 }
 
-test('the channel is wechaty.async-lifecycle.state (D23)', () => {
-  assert.equal(CHANNEL_NAME, 'wechaty.async-lifecycle.state')
+test('the channel is scopelet.state (D44)', () => {
+  assert.equal(CHANNEL_NAME, 'scopelet.state')
 })
 
 test('a throwing subscriber never changes an outcome; the runtime reports it later as uncaughtException, under Node.js and Deno (C-OBS-04)', () => {
@@ -95,7 +95,7 @@ test('without getBuiltinModule, as in a browser, the module loads and works and 
 import diagnosticsChannel from 'node:diagnostics_channel'
 import process from 'node:process'
 const records = []
-diagnosticsChannel.subscribe('wechaty.async-lifecycle.state', record => records.push(record))
+diagnosticsChannel.subscribe('scopelet.state', record => records.push(record))
 // The runtime looks like a browser to the module: no getBuiltinModule.
 process.getBuiltinModule = undefined
 const { createLifecycle } = await import('${mod}')

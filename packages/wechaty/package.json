@@ -12,9 +12,6 @@
     },
     "./users": {
       "import": "./dist/esm/src/mods/users.js"
-    },
-    "./async-lifecycle": {
-      "import": "./dist/esm/src/async-lifecycle/mod.js"
     }
   },
   "typesVersions": {
@@ -24,9 +21,6 @@
       ],
       "impls": [
         "./dist/esm/src/mods/impls.d.ts"
-      ],
-      "async-lifecycle": [
-        "./dist/esm/src/async-lifecycle/mod.d.ts"
       ]
     }
   },
@@ -133,6 +127,7 @@
     "memory-card": "^1.1.2",
     "open-graph": "^0.2.6",
     "rx-queue": "^1.0.5",
+    "scopelet": "^2.0.0-alpha.19",
     "state-switch": "^2.0.0",
     "wechaty-puppet": "^2.0.0-alpha.19",
     "wechaty-puppet-service": "^2.0.0-alpha.19",

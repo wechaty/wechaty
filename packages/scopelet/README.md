@@ -1,10 +1,22 @@
-# AsyncLifecycle: the contract
+# scopelet
+
+Scoped ownership for reliable asynchronous lifecycles.
+
+```sh
+npm install scopelet@next
+```
+
+```ts
+import { createLifecycle } from 'scopelet'
+```
+
+Node.js 26 or newer, ESM only, no runtime dependencies. The package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty) at `packages/scopelet` and releases in lockstep with it. The rest of this file is its contract.
 
 One lifecycle module for every async layer of Wechaty: `Wechaty`, `Puppet`, `PuppetService`, `PuppetServer` and `Io`. It replaces `state-switch` and hand-written `start` / `stop` / `reset` (#2905).
 
-**Status: implemented and validated** through stage S5 of the convergence plan in [#2968](https://github.com/wechaty/wechaty/issues/2968): the kernel (S4, [#2972](https://github.com/wechaty/wechaty/issues/2972)) passes this contract under Node.js and Deno, and the `Io`, `Puppet` and `Wechaty` examples run on it (S5, [#2973](https://github.com/wechaty/wechaty/issues/2973)). It is published as `import { createLifecycle } from 'wechaty/async-lifecycle'` (D20). It has no runtime dependency and no runtime import outside this directory, so it can move to a standalone package unchanged; that move is planned before `wechaty-puppet` adopts it.
+**Status: implemented and validated** through stage S5 of the convergence plan in [#2968](https://github.com/wechaty/wechaty/issues/2968): the kernel (S4, [#2972](https://github.com/wechaty/wechaty/issues/2972)) passes this contract under Node.js and Deno, and the `Io`, `Puppet` and `Wechaty` examples run on it (S5, [#2973](https://github.com/wechaty/wechaty/issues/2973)). It moved out of `wechaty` (where it was `wechaty/async-lifecycle`) into this package in [#3021](https://github.com/wechaty/wechaty/issues/3021) (D20, D44), so that `wechaty-puppet` can adopt it.
 
-> **Experimental.** The API of `wechaty/async-lifecycle` may still change in a breaking way before Wechaty 2.0 is final; do not depend on it outside Wechaty yet. Its only adopters are `Io` and `IoClient` ([#3022](https://github.com/wechaty/wechaty/issues/3022)). Migrating the other layers ([#2905](https://github.com/wechaty/wechaty/issues/2905)) is paused, to see how the module holds up in `Io` first; [`TODO.md`](https://github.com/wechaty/wechaty/blob/main/TODO.md) at the repository root records the state and how to resume.
+> **Experimental.** The API of `scopelet` may still change in a breaking way before Wechaty 2.0 is final; do not depend on it outside Wechaty yet. Its only adopters are `Io` and `IoClient` ([#3022](https://github.com/wechaty/wechaty/issues/3022)). Migrating the other layers ([#2905](https://github.com/wechaty/wechaty/issues/2905)) comes next; [`TODO.md`](https://github.com/wechaty/wechaty/blob/main/TODO.md) at the repository root records the state.
 
 **How to read this file.** Each rule has an ID such as `C-CMD-04`. Tests cite these IDs, and so does the TSDoc in `types.ts`. To change a rule, change it here, give it a decision ID in #2968 §6, and update the tests that cite it. `D…` IDs refer to the decision log in #2968.
 
@@ -56,7 +68,7 @@ function operation<T> (scope: LifecycleScope, work: (signal: AbortSignal) => T |
 function watchdog (scope: LifecycleScope, options: { timeoutMs: number, onTimeout: 'fail' | 'recover', clock?: LifecycleClock }): { feed (): void, disarm (): void }
 ```
 
-`types.ts` has the full signatures with TSDoc. `examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them, and each runs as a test (`examples/*.test.ts`) under Node.js and Deno.
+`src/types.ts` has the full signatures with TSDoc. `src/examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them, and each runs as a test (`src/examples/*.test.ts`) under Node.js and Deno.
 
 ## 3. State
 
@@ -192,7 +204,7 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 ## 10. Children
 
 - **C-CHILD-01** `scope.start(child)` needs only the `Lifecycle` interface. The child must be `stopped` or cleanly `failed` and not owned by another scope. Otherwise it rejects with `LifecycleUnsafeStateError` and does not touch the child. Whether a child can be claimed is decided by its public `state` alone, which is all a child from another installed copy of the module exposes. A child whose `start()` was accepted but has not committed yet still reads `stopped`, so it can be claimed, and the claim joins that start (D33).
-- **C-CHILD-02** Ownership is recorded before `child.start()` is called, and released only after this scope's `child.stop()` succeeds. Until then no other scope can own the child, including a scope from another installed copy of the module: every copy in a JS realm shares one ownership registry, kept on `globalThis` under `Symbol.for('wechaty.async-lifecycle.owned-children')` (D21). The registry is per realm: a child passed into another realm, such as a Node.js `vm` context or a same-origin frame, could be claimed by a parent in each, so cross-realm ownership is unsupported. On a frozen `globalThis` each copy keeps its own registry.
+- **C-CHILD-02** Ownership is recorded before `child.start()` is called, and released only after this scope's `child.stop()` succeeds. Until then no other scope can own the child, including a scope from another installed copy of the module: every copy in a JS realm shares one ownership registry, kept on `globalThis` under `Symbol.for('scopelet.owned-children')` (D21). The registry is per realm: a child passed into another realm, such as a Node.js `vm` context or a same-origin frame, could be claimed by a parent in each, so cross-realm ownership is unsupported. On a frozen `globalThis` each copy keeps its own registry.
 - **C-CHILD-03** `scope.start(child)` waits for the child with the parent's `scope.signal` as its caller signal. When the parent retires while the child is still starting, the wait rejects with the abort reason at retirement step 3, so the parent's `onStart` can settle (step 5). Ownership is kept, and the child is stopped in step 7. Without this, a parent waiting on a child that keeps retrying, such as an offline `Io`, would hold its own retirement until the stop deadline.
 - **C-CHILD-04** Children start in the order the hook starts them, and stop in retirement step 7, newest first, together with resources.
 - **C-CHILD-05** When a child commits `failed`, or commits `stopped` without the parent asking, the parent generation fails with `LifecycleChildFailureError`; its `cause` is the child's error, or `undefined` for an unrequested stop. A child that restarts or recovers itself (`stopping → starting`) is not escalated. Escalation applies only while the parent generation is live: once it is retiring, a child that stops or fails unasked is not escalated, and step 7 stops it as usual. A clean `failed` child then commits `stopped` (C-CMD-09), a dirty one has its cleanup retried (C-CMD-10), and a failure to stop it is a cleanup error of the parent (D39).
@@ -209,16 +221,17 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 - **C-COND-06** `isSet` is `true` only while the current live generation has the condition set (D23).
 
 Usage notes, not rules:
+
 - A wait created before `start()` rejects if that start fails, so give it a handler at once, for example `await Promise.all([ bot.ready(), bot.start() ])`. Awaiting `start()` first leaves the wait unhandled when `start()` throws.
 - To expose a child's condition, delegate to the child (`ready () { return this.puppet.ready() }`) rather than mirroring it into a condition of your own. A mirror would also have to be cleared whenever the child's generation retires, which no child event reports.
-- A delegated wait is bound to the child, so on its own it does not reject when the parent stops or fails before it ever owned the child. Pass the child a signal that the parent aborts when it accepts `stop()` or fails, as `examples/wechaty.example.ts` does.
+- A delegated wait is bound to the child, so on its own it does not reject when the parent stops or fails before it ever owned the child. Pass the child a signal that the parent aborts when it accepts `stop()` or fails, as `src/examples/wechaty.example.ts` does.
 
 ## 12. Observers and diagnostics
 
 - **C-OBS-01** Each commit runs in this order: freeze the snapshot; settle the outcomes of attempts, stops and condition waits; resolve `whenState` waiters; publish diagnostics; call `onStateChange`.
 - **C-OBS-02** A throwing `onStateChange` or diagnostics subscriber is isolated and never changes an outcome. A throwing `whenState` predicate rejects only its own wait.
 - **C-OBS-03** Observers may call commands. There is only ever one reconciler per instance, and a command from an observer is accepted like any other.
-- **C-OBS-04** After each commit, and only when the channel has subscribers, a `LifecycleDiagnosticRecord` is published on the `node:diagnostics_channel` channel `wechaty.async-lifecycle.state` (D23). The module looks the channel module up at runtime with `process.getBuiltinModule`; where the runtime has none, as in a browser, nothing is published (D43). A record holds the `name` option and the structural fields of the previous and current snapshots (`kind`, `generation`, and for `failed`, `phase` and `cleanupComplete`). It never holds errors or application data.
+- **C-OBS-04** After each commit, and only when the channel has subscribers, a `LifecycleDiagnosticRecord` is published on the `node:diagnostics_channel` channel `scopelet.state` (D23). The module looks the channel module up at runtime with `process.getBuiltinModule`; where the runtime has none, as in a browser, nothing is published (D43). A record holds the `name` option and the structural fields of the previous and current snapshots (`kind`, `generation`, and for `failed`, `phase` and `cleanupComplete`). It never holds errors or application data.
 
 ## 13. Entry points
 
@@ -273,9 +286,9 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D13 | Errors share `LifecycleError` with a stable `ERR_LIFECYCLE_*` `code`; `isLifecycleError()` checks by shape |
 | D17 | `listen` and `watchdog` are companions, not scope members |
 | D18 | `onStop` receives `{ generation, reason, signal }` |
-| D20 | Published as `wechaty/async-lifecycle`; zero-dependency, to move into a standalone package before `wechaty-puppet` adopts it |
+| D20 | Zero-dependency; moved into a standalone package, `scopelet`, before `wechaty-puppet` adopts it (D44) |
 | D21 | Child ownership is one registry per JS realm, shared by every installed copy of the module (C-CHILD-02) |
-| D23 | `condition.isSet` exists; options type is `LifecycleWaitOptions`; diagnostics channel is `wechaty.async-lifecycle.state` |
+| D23 | `condition.isSet` exists; options type is `LifecycleWaitOptions`; the diagnostics channel name is amended by D44 |
 | D24 | In-flight operations use the `operation` companion (C-COMP-03); the `reset()` / `state.active()` shims and the legacy `'start'` / `'stop'` / `'error'` events live in the integration layer, not the module |
 | D25 | `scope.start(child)` returns `Promise<void>` and takes a child, not a factory |
 | D26 | Companion signatures land with their implementation (S4), not in S1: §15, C-COMP-01 to C-COMP-03 |
@@ -295,16 +308,17 @@ The full log, with sources and history, is #2968 §6. This file follows these:
 | D41 | A late acquisition's `acquire()` rejects at once, without waiting for its release (C-SCOPE-04) |
 | D42 | `scope.recover()` returns its decision synchronously, `'accepted' \| 'superseded' \| 'failed'`; the replacement's outcome is read from the lifecycle. A task requesting recovery cannot deadlock, without async context, on every runtime (C-REC-03, C-REC-05; replaces D19 and D22) |
 | D43 | `node:diagnostics_channel` is looked up at runtime with `process.getBuiltinModule`; without it, as in a browser, diagnostics are a no-op (C-OBS-04) |
+| D44 | The package is `scopelet`, in `packages/scopelet`, in lockstep with the other Wechaty packages. Its runtime identifiers follow the name: the diagnostics channel is `scopelet.state` and the child-ownership key is `Symbol.for('scopelet.owned-children')`. API names and `ERR_LIFECYCLE_*` codes are unchanged (#3021) |
 
 ## 17. Not in this module
 
 - **Retry, backoff, budgets and supervision policy** (D7). Write them in hooks, or later as companions.
-- **Legacy compatibility:** today's `reset()`, `state.active()` / `state.inactive()` and the `'start'` / `'stop'` / `'error'` events. They live in the integration layer (D24); `examples/wechaty.example.ts` shows the mapping and its test pins it. An in-flight operation such as `messageSend` during `stop()` uses the `operation` companion (C-COMP-03).
+- **Legacy compatibility:** today's `reset()`, `state.active()` / `state.inactive()` and the `'start'` / `'stop'` / `'error'` events. They live in the integration layer (D24); `src/examples/wechaty.example.ts` shows the mapping and its test pins it. An in-flight operation such as `messageSend` during `stop()` uses the `operation` companion (C-COMP-03).
 - **Proof that a remote peer stopped.** Cancelling a gRPC call does not prove the server released anything; PuppetService needs its own session protocol.
 
 ## 18. Internal components
 
-The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues/2911#issuecomment-6873515089). It started from Claude's comparison implementation (D40) and is changed in S4 (#2972) only through the contract suite. These boundaries are part of the design: keep them when changing the code.
+The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues/2911#issuecomment-6873515089). It started from Claude's comparison implementation (D40) and is changed in S4 (#2972) only through the contract suite. These boundaries are part of the design: keep them when changing the code. Files are relative to `src/`.
 
 | Component | File | Owns |
 | --- | --- | --- |
@@ -315,12 +329,13 @@ The kernel follows the [v1 design §5](https://github.com/wechaty/wechaty/issues
 | Ledger | `ledger.ts` | A generation's obligations with per-entry status: task joins (interrupt promises included, D38) before everything else, then releases newest first, a failed entry retried, a running one joined. It knows nothing about state |
 | Conditions | `condition.ts` | Declared conditions, waits bound to a generation, and each live generation's set flags |
 | Clock | `clock.ts` | The default `LifecycleClock` (global timers, and `performance.now()`), and the deadline-length check the engine and the watchdog share (C-TIME-01) |
-| Diagnostics | `diagnostics.ts` | Publishing on `wechaty.async-lifecycle.state`, after commit and only when subscribed, with the channel module looked up at runtime (D43) |
+| Diagnostics | `diagnostics.ts` | Publishing on `scopelet.state`, after commit and only when subscribed, with the channel module looked up at runtime (D43) |
 | Entry points | `create-lifecycle.ts`, `async-lifecycle.ts` | Delegation to the engine; the class adds only the override guard (C-SHELL-02) |
 | Companions | `companions/` | `listen`, `operation` and `watchdog` (§15), built only on the public scope |
 | Module | `mod.ts` | Public exports |
 
 Rules the engine keeps, from its own header:
+
 - **Commands only record intent.** `start`, `stop`, `restart`, `fail` and `recover` change intent synchronously. They never commit state and never run hooks.
 - **One writer.** Only the reconciler commits snapshots, one step at a time, so a reentrant command only changes what the next step is.
 - **Attempts drive starting.** A generation starts only for a pending attempt; a failed attempt ends, and nothing retries it.
