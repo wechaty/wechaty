@@ -54,7 +54,7 @@
   "homepage": "https://github.com/wechaty/wechaty/tree/main/packages/wechaty-puppet-mock#readme",
   "dependencies": {
     "@faker-js/faker": "^10.6.0",
-    "file-box": "^1.4.15",
+    "file-box": "^2.0.0",
     "typed-emitter": "^1.5.0-from-event"
   },
   "peerDependencies": {

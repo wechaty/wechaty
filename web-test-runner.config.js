@@ -32,14 +32,8 @@ function browserShimsPlugin () {
       ) {
         return '/tests/browser-shims/assert.ts'
       }
-      if (source.endsWith('/qrcode.js') || source === './qrcode.js') {
-        return '/tests/browser-shims/qrcode.ts'
-      }
       if (source === 'mime') {
         return '/tests/browser-shims/mime.ts'
-      }
-      if (source === '@pipeletteio/nop') {
-        return '/tests/browser-shims/nop.ts'
       }
 
       const cleanSource = source.startsWith('node:') ? source.slice(5) : source

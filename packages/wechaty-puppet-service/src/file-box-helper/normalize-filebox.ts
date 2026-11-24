@@ -22,7 +22,7 @@ const PASS_THROUGH_THRESHOLD_BYTES = 20 * 1024 // 20KB
  * 1. Green:
  *  Can be serialized directly
  */
-const greenFileBoxTypes = [
+const greenFileBoxTypes: readonly FileBoxType[] = [
   FileBoxType.Url,
   FileBoxType.Uuid,
   FileBoxType.QRCode,
@@ -33,7 +33,7 @@ const greenFileBoxTypes = [
  *  if it's bigger than the threshold,
  *  then it should be convert to a UUID file box before send out
  */
-const yellowFileBoxTypes = [
+const yellowFileBoxTypes: readonly FileBoxType[] = [
   FileBoxType.Buffer,
   FileBoxType.Base64,
 ]
