@@ -50,7 +50,7 @@
   },
   "homepage": "https://github.com/wechaty/wechaty/tree/main/packages/wechaty-token#readme",
   "dependencies": {
-    "brolog": "^1.14.2",
+    "brolog": "^2.0.0",
     "cmd-ts": "^0.10.2",
     "cockatiel": "^4.0.0"
   },

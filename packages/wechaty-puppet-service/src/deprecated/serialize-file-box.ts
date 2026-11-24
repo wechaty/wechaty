@@ -15,7 +15,7 @@ import type {
  * @deprecated Will be removed after Dec 31, 2022
  */
 export const serializeFileBox = async (fileBox: FileBoxInterface): Promise<string> => {
-  const serializableFileBoxTypes = [
+  const serializableFileBoxTypes: readonly FileBoxType[] = [
     FileBoxType.Base64,
     FileBoxType.Url,
     FileBoxType.QRCode,

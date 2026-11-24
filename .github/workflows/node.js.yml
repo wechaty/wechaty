@@ -77,3 +77,23 @@ jobs:
           echo "The native test runner accepted a deliberately failing test."
           exit 1
         fi
+
+  browser:
+    name: Browser test (Chromium, experimental)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Use Node.js 26
+      uses: actions/setup-node@v5
+      with:
+        node-version: 26
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - run: npm ci
+    - name: Install Playwright Chromium
+      run: npx playwright install --with-deps chromium
+    - run: npm run test:unit:browser

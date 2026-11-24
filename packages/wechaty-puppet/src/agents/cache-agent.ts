@@ -6,8 +6,8 @@
  */
 import type {
   Options as QuickLruOptions,
-}                               from '@alloc/quick-lru'
-import QuickLru                 from '@alloc/quick-lru'
+}                               from 'quick-lru'
+import QuickLru                 from 'quick-lru'
 
 import {
   envVars,
