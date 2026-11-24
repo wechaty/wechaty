@@ -111,12 +111,16 @@ const gateway = command({
         // 2.0 has no default puppet: the gateway must be told which to serve.
         console.error('No puppet is set: pass `--puppet <npm-name>` or set the WECHATY_PUPPET environment variable.')
         console.error(`Valid puppet names are: ${Object.keys(OFFICIAL_PUPPET_DEPENDENCIES).join(', ')}`)
+        // cmd-ts returns the handler's value without exiting, and bin/cli.ts
+        // ignores it: set the exit status here.
+        process.exitCode = 1
         return 1
       }
     }
     if (!isPuppetModuleName(puppet)) {
       console.error(`The puppet name "${puppet}" is not a valid puppet name.`)
       console.error(`Valid puppet names are: ${Object.keys(OFFICIAL_PUPPET_DEPENDENCIES).join(', ')}`)
+      process.exitCode = 1
       return 1
     }
     log.info('Gateway', 'Wechaty Puppet Provider: %s', puppet)

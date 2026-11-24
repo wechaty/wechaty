@@ -141,8 +141,11 @@ test('GrpcClient with invalid token', async _t => {
   try {
     await assert.rejects(invalidTokenPuppet.start(), 'should throw for invalid random token')
   } finally {
+    // The stop RPC fails with the invalid token, and stop() re-emits that as
+    // an `error` nobody listens for, which throws here.
     try { await invalidTokenPuppet.stop() } catch (_) {}
   }
+  assert.throws(() => invalidTokenPuppet.client, /NO CLIENT/, 'should close the gRPC client even when stopping reports an error')
 
   await puppetServer.stop()
 })

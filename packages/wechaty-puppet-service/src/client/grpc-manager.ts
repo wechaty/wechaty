@@ -199,6 +199,7 @@ class GrpcManager extends EventEmitter {
     /**
      * 2. Stop the puppet
      */
+    let stopError: unknown
     try {
       log.verbose('GrpcManager', 'stop() stop client ...')
       await util.promisify(
@@ -207,11 +208,15 @@ class GrpcManager extends EventEmitter {
       )(new puppet.StopRequest())
       log.verbose('GrpcManager', 'stop() stop client ... done')
     } catch (e) {
-      this.emit('error', e)
+      stopError = e
     }
 
     /**
      * 3. Destroy grpc client
+     *
+     * Always, and before reporting the stop error: emitting `error` with no
+     * listener throws, which used to skip this step and leave the channel
+     * open (a rejected token makes the stop RPC fail, for example).
      */
     try {
       log.verbose('GrpcManager', 'stop() destroy client ...')
@@ -219,6 +224,10 @@ class GrpcManager extends EventEmitter {
       log.verbose('GrpcManager', 'stop() destroy client ... done')
     } catch (e) {
       this.emit('error', e)
+    }
+
+    if (stopError) {
+      this.emit('error', stopError)
     }
 
     log.verbose('GrpcManager', 'stop() ... done')
