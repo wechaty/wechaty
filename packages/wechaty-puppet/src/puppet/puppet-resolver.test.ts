@@ -1,3 +1,4 @@
+/** Native-runtime unit tests for loading installed ESM Puppet providers by name. */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -38,8 +39,9 @@ test('resolvePuppetName() for ESM', async _t => {
   assert.equal(PuppetConstructor.name, 'Queue', 'should return a valid puppet name')
 })
 
-test('resolvePuppetName() for CJS', async _t => {
-  const PuppetConstructor = await resolvePuppetName('nop' as any)
-  assert.equal(typeof PuppetConstructor, 'function', 'should get the puppet class function')
-  assert.ok(PuppetConstructor.name === 'nop', 'should return a valid puppet name')
+test('resolvePuppetName() requires a direct default constructor', async () => {
+  const source = encodeURIComponent('export default { default: class Puppet {} }')
+  const specifier = `data:text/javascript,${source}` as Parameters<typeof resolvePuppetName>[0]
+
+  await assert.rejects(() => resolvePuppetName(specifier), /must export a default constructor/)
 })

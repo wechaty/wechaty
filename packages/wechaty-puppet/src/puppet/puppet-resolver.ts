@@ -1,6 +1,5 @@
 /**
- * `resolvePuppet()`: turns a puppet instance, constructor or npm package name
- * into a puppet instance, importing the package by name when needed.
+ * Resolves an existing Puppet instance or an installed ESM provider package.
  */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -45,6 +44,7 @@ interface ResolveOptions {
   puppetOptions?: PuppetOptions,
 }
 
+/** Returns the supplied Puppet or constructs one from an installed provider. */
 async function resolvePuppet (
   options: ResolveOptions,
 ): Promise<PuppetInterface> {
@@ -93,16 +93,16 @@ async function resolvePuppet (
   return puppetInstance
 }
 
+/** Loads the provider's default constructor from its ESM entry point. */
 async function resolvePuppetName (
   puppetName: PuppetNpmName,
 ): Promise<PuppetConstructor> {
   log.verbose('Puppet', 'resolvePuppetName(%s)', puppetName)
 
-  let puppetModule
+  let puppetModule: { default?: unknown }
 
   try {
     puppetModule = await import(puppetName)
-    // console.info('puppetModule', puppetModule)
   } catch (e) {
     log.error('Puppet', 'resolvePuppetName %s', [
       '',
@@ -118,35 +118,11 @@ async function resolvePuppetName (
     throw e
   }
 
-  /**
-   * Huan(202110): Issue wechaty/wechaty-getting-started#203
-   *  TypeError: MyPuppet is not a constructor
-   *  https://github.com/wechaty/wechaty-getting-started/issues/203
-   */
-  let retry = 0
-  while (typeof puppetModule.default !== 'function') {
-    if (!puppetModule || retry++ > 3) {
-      throw new Error(`Puppet(${puppetName}) has not provided the default export`)
-    }
-    /**
-     * CommonJS Module: puppetModule.default.default is the expoerted Puppet
-     */
-    puppetModule = puppetModule.default
+  if (typeof puppetModule.default !== 'function') {
+    throw new Error(`Puppet(${puppetName}) must export a default constructor`)
   }
 
-  if (retry === 0) {
-    /**
-     * ES Module: default is the exported Puppet
-     */
-    log.verbose('Puppet', 'resolvePuppetName(%s): ESM resolved', puppetName)
-  } else {
-    log.verbose('Puppet', 'resolvePuppetName(%s): CJS resolved, retry times: %s', puppetName, retry)
-  }
-
-  // console.info(puppetModule)
-  const MyPuppet = puppetModule.default as PuppetConstructor
-
-  return MyPuppet
+  return puppetModule.default as PuppetConstructor
 }
 
 export {

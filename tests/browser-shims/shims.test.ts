@@ -108,15 +108,26 @@ test('test() accepts options in test(name, options, fn) signature', { timeout: 1
   ok(t, 'options overload accepted')
 })
 
-test('TestContext before hook executes before subtests', async (t) => {
-  let beforeHookRan = false
-  t.before(() => {
-    beforeHookRan = true
+test('TestContext before hook executes once before sibling subtests', async (t) => {
+  let beforeHookCalls = 0
+  t.before(async () => {
+    await Promise.resolve()
+    beforeHookCalls++
   })
 
-  await t.test('child subtest', async () => {
-    ok(beforeHookRan, 'before hook ran prior to subtest')
+  await t.test('first child', () => {
+    strictEqual(beforeHookCalls, 1)
   })
+  await t.test('second child', () => {
+    strictEqual(beforeHookCalls, 1)
+  })
+  strictEqual(beforeHookCalls, 1)
+})
+
+test('unsupported mock timer operations fail explicitly', () => {
+  throws(() => mock.timers.enable(), /mock\.timers is not supported/)
+  throws(() => mock.timers.tick(1), /mock\.timers is not supported/)
+  throws(() => mock.timers.reset(), /mock\.timers is not supported/)
 })
 
 test('subtest skip does not abort sibling subtests in the parent', async (t) => {
