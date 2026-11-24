@@ -33,3 +33,21 @@ test('PuppetMock toString()', async _t => {
   assert.doesNotThrow(() => puppet.toString(), 'should not throw')
   assert.ok(REGEXP.test(puppet.toString()), 'should be PuppetMock')
 })
+
+test('PuppetMock supplies an in-memory PNG contact avatar', async () => {
+  const puppet = new PuppetMock()
+  const contact = puppet.mocker.createContact()
+
+  const avatar = await puppet.contactAvatar(contact.id)
+
+  assert.equal(avatar.name, 'wechaty-icon.png')
+  assert.equal(avatar.mediaType, 'image/png')
+  assert.ok(atob(await avatar.toBase64()).startsWith('\x89PNG\r\n\x1a\n'))
+  assert.equal(await puppet.contactAvatar(contact.id, avatar), undefined)
+})
+
+test('PuppetMock rejects a file request for an unknown message', async () => {
+  const puppet = new PuppetMock()
+
+  await assert.rejects(() => puppet.messageFile('missing-message'), /no filebox cache/)
+})

@@ -63,6 +63,7 @@ export default {
     'packages/wechaty-puppet/{src,tests/unit}/**/*.test.ts',
     // This suite looks up installed ESM providers by package name using the native module loader.
     '!packages/wechaty-puppet/src/puppet/puppet-resolver.test.ts',
+    'packages/wechaty-puppet-mock/src/**/*.test.ts',
   ],
 
   nodeResolve: {

@@ -22,8 +22,6 @@
  *   limitations under the License.
  *
  */
-import path from 'path'
-
 import * as PUPPET  from 'wechaty-puppet'
 import {
   FileBox,
@@ -37,6 +35,7 @@ import {
   NAME,
   log,
 }                                   from './config.ts'
+import { WECHATY_ICON_PNG_BASE64 } from './mock/default-avatar.ts'
 
 
 import {
@@ -161,24 +160,19 @@ class PuppetMock extends PUPPET.Puppet {
     return [...this.mocker.cacheContactPayload.keys()]
   }
 
+  /** Returns the default PNG for a contact avatar read. */
   override async contactAvatar (contactId: string)                : Promise<FileBoxInterface>
+  /** Acknowledges an avatar write in the mock. */
   override async contactAvatar (contactId: string, file: FileBoxInterface) : Promise<void>
 
   override async contactAvatar (contactId: string, file?: FileBoxInterface): Promise<void | FileBoxInterface> {
     log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
 
-    /**
-     * 1. set
-     */
     if (file) {
       return
     }
 
-    /**
-     * 2. get
-     */
-    const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    return FileBox.fromFile(WECHATY_ICON_PNG)
+    return FileBox.fromBase64(WECHATY_ICON_PNG_BASE64, 'wechaty-icon.png')
   }
 
   override async contactRawPayloadParser (payload: PUPPET.payloads.Contact) { return payload }
