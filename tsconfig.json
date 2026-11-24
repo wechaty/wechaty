@@ -8,5 +8,11 @@
   },
   "include": [
     "scripts/**/*.ts"
+  ],
+  // The release smoke test imports the published packages: scripts/pack-release.sh
+  // type-checks it against the release tarballs, where `wechaty` has types
+  // (here they would need a built dist/).
+  "exclude": [
+    "scripts/fixtures/release-smoke.ts"
   ]
 }

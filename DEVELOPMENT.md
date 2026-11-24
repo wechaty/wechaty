@@ -164,21 +164,40 @@ existing symlink/shebang fixtures.
 
 ## Versioning
 
-There is no Git hook. To release, bump `version` in
-`packages/wechaty/package.json` and its `packages/wechaty` entry in
-`package-lock.json` in a pull request, for example with
-`npm version prerelease --preid=alpha --workspace wechaty --no-git-tag-version`.
-After it merges to `main`, the npm workflow publishes that version if npm does
-not have it yet. Tag the release commit `v<version>` by hand. Step 8 of
-[#3054](https://github.com/wechaty/wechaty/issues/3054) replaces this with one
-lockstep release workflow for every package.
+All six packages release together at one version (lockstep,
+[#3054](https://github.com/wechaty/wechaty/issues/3054)), and each depends on
+the others at `^<version>`. `node scripts/lockstep.ts check` (also a unit test
+in `scripts/`) fails when a version or range drifts, or when the root
+`workspaces` list stops being a valid build order.
+
+There is no Git hook. To release, bump every package in a pull request:
+
+```sh
+node scripts/lockstep.ts set 2.0.0-alpha.20
+```
+
+It rewrites each `package.json`, the internal ranges in source code
+(`scripts/lockstep.ts` lists those files) and the lockfile. After the pull
+request merges to `main`, the npm workflow publishes the version and tags the
+commit `v<version>`.
 
 ## npm publishing
 
-The npm workflow publishes the same tarball that passes the package smoke
-test. It uses npm Trusted Publishing with GitHub OIDC instead of an npm
-publish token; the trusted publisher must allow direct publishing from
-`npm.yml`. Publishing requires npm 11.5.1 or newer.
+The npm workflow's Pack job runs `scripts/pack-release.sh`: it builds every
+package's tarball in dependency order, installs all of them into a fresh
+project and runs `scripts/fixtures/release-smoke.ts` (every package reports
+the release version, and a bot over `wechaty-puppet-mock` answers `ding`
+with `dong`). The Publish job, on pushes to `main` or version branches, runs
+`scripts/publish-release.sh` on exactly those tarballs: dependencies first,
+skipping versions npm already has, so re-running a failed job finishes a
+partial release. Then it creates the `v<version>` tag. Prereleases go to the
+`next` dist-tag.
+
+Publishing uses npm Trusted Publishing with GitHub OIDC instead of an npm
+token: every package must list this repository and `npm.yml` as a trusted
+publisher. Publishing requires npm 11.5.1 or newer. To try the release
+locally, run `scripts/pack-release.sh <dir>`, then
+`DRY_RUN=1 scripts/publish-release.sh <dir> next`.
 
 ## Docker image publishing
 
