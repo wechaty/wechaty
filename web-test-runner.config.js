@@ -41,9 +41,6 @@ function browserShimsPlugin () {
       if (source === '@pipeletteio/nop') {
         return '/tests/browser-shims/nop.ts'
       }
-      if (source === '@alloc/quick-lru') {
-        return '/tests/browser-shims/quick-lru.ts'
-      }
 
       const cleanSource = source.startsWith('node:') ? source.slice(5) : source
       if (cleanSource === 'events') {
