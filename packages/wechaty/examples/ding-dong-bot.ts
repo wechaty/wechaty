@@ -20,6 +20,7 @@
 import {
   WechatyBuilder,
   ScanStatus,
+  helpers,
   type Message,
   type Contact,
 }                     from '../src/mods/mod.ts' // from 'wechaty'
@@ -39,7 +40,7 @@ const options = {
    * You can specify different puppet for different IM protocols.
    * Learn more from https://wechaty.js.org/docs/puppet-providers/
    */
-  // puppet: 'wechaty-puppet-whatsapp'
+  // puppet: 'wechaty-puppet-neo'
 
   /**
    * You can use wechaty puppet provider 'wechaty-puppet-service'
@@ -99,9 +100,9 @@ function onScan (qrcode: string, status: ScanStatus) {
       encodeURIComponent(qrcode),
     ].join('')
 
-    console.info('onScan: %s(%s) - %s', ScanStatus[status], status, qrcodeImageUrl)
+    console.info('onScan: %s(%s) - %s', helpers.typeName(ScanStatus, status), status, qrcodeImageUrl)
   } else {
-    console.info('onScan: %s(%s)', ScanStatus[status], status)
+    console.info('onScan: %s(%s)', helpers.typeName(ScanStatus, status), status)
   }
 
   // console.info(`[${ScanStatus[status]}(${status})] ${qrcodeImageUrl}\nScan QR Code above to log in: `)

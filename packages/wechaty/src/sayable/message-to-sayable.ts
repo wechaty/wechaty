@@ -1,3 +1,8 @@
+/**
+ * `messageToSayable()`: turns a received `Message` into something the bot
+ * can say again (text, contact, file, URL link, mini program, location or
+ * post). Types that cannot be re-said log a warning and give `undefined`.
+ */
 import * as PUPPET from 'wechaty-puppet'
 import { log } from 'wechaty-puppet'
 
@@ -43,7 +48,7 @@ async function messageToSayable (
     default:
       log.warn('Wechaty',
         'toSayable() can not convert not re-sayable type: %s(%s) for %s\n%s',
-        PUPPET.types.Message[type],
+        PUPPET.helpers.typeName(PUPPET.types.Message, type),
         type,
         message,
         new Error().stack,

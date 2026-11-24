@@ -41,8 +41,8 @@ Docker, puppet providers and the API. New to Wechaty? Start from the
 | [`wechaty-puppet-service`](packages/wechaty-puppet-service/) | [![npm](https://img.shields.io/npm/v/wechaty-puppet-service?color=brightgreen)](https://www.npmjs.com/package/wechaty-puppet-service) | Puppets over gRPC: `PuppetService` calls a remote puppet, `PuppetServer` serves any puppet |
 | [`wechaty-token`](packages/wechaty-token/) | [![npm](https://img.shields.io/npm/v/wechaty-token?color=brightgreen)](https://www.npmjs.com/package/wechaty-token) | Puppet service tokens: discovery, the `wechaty://` gRPC resolver and the `wechaty-token` CLI |
 
-All the core libraries that `wechaty` builds on now live here; `wechaty`
-itself switches to these workspace packages next
+All the core libraries that `wechaty` builds on live here, and `wechaty`
+uses them as workspace packages
 ([#3054](https://github.com/wechaty/wechaty/issues/3054)).
 
 ## Repository layout

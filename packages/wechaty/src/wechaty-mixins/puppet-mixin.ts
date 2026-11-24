@@ -1,3 +1,10 @@
+/**
+ * `puppetMixin`: owns the bot's puppet. `init()` resolves it from the
+ * options or `WECHATY_PUPPET` (2.0 has no default puppet and throws
+ * `NO_PUPPET_MESSAGE` without one), plugs in the bot's memory and bridges the
+ * puppet's events to the bot. `start()`, `stop()` and `ready()` follow
+ * the puppet's lifecycle and readiness.
+ */
 import * as PUPPET      from 'wechaty-puppet'
 import { log }          from 'wechaty-puppet'
 import {
@@ -12,6 +19,7 @@ import type {
 }                       from 'state-switch'
 
 import { config }               from '../config.ts'
+import { NO_PUPPET_MESSAGE }    from '../puppet-config.ts'
 import type {
   ContactImpl,
   RoomImpl,
@@ -157,6 +165,13 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.silly('WechatyPuppetMixin', 'ready() this.readyState.stable(on) resolved')
     }
 
+    /**
+     * Resolves the puppet from the options, or else from `WECHATY_PUPPET`,
+     * and wires it to the bot. Throws `NO_PUPPET_MESSAGE` when neither names
+     * one (2.0 has no default puppet); that check runs before the mixin
+     * marks itself initialized, so a later `start()` can succeed once a
+     * puppet is set.
+     */
     override async init (): Promise<void> {
       log.verbose('WechatyPuppetMixin', 'init()')
       await super.init()
@@ -165,11 +180,16 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         log.verbose('WechatyPuppetMixin', 'init() skipped because this puppet has already been inited before.')
         return
       }
+
+      const puppet = this.__options.puppet || config.systemPuppetName()
+      if (!puppet) {
+        throw new Error(NO_PUPPET_MESSAGE)
+      }
       this.__puppetMixinInited = true
 
       log.verbose('WechatyPuppetMixin', 'init() instanciating puppet instance ...')
       const puppetInstance = await PUPPET.helpers.resolvePuppet({
-        puppet: this.__options.puppet || config.systemPuppetName(),
+        puppet,
         puppetOptions: 'puppetOptions' in this.__options
           ? this.__options.puppetOptions
           : undefined,

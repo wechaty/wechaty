@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 /**
+ * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
+ * temporary ESM project): the public entry points type-check, the
+ * async-lifecycle entry works, a bot over `wechaty-puppet-mock` (resolved by
+ * name) starts and stops, and VERSION is set. With
+ * WECHATY_PUPPET_SERVICE_TOKEN set, a `wechaty-puppet-service` bot starts too.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -56,21 +63,12 @@ void publicTypeContract
 function getBotList (): Wechaty[] {
   const botList = [
     WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' }),
-    // new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
-    // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
   ]
 
   if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
     botList.push(
       WechatyBuilder.build({
         puppet: 'wechaty-puppet-service',
-      })
-    )
-  }
-  if (process.env.WECHATY_PUPPET_PADLOCAL_TOKEN) {
-    botList.push(
-      WechatyBuilder.build({
-        puppet: 'wechaty-puppet-padlocal',
       })
     )
   }

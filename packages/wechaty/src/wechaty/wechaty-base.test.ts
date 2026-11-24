@@ -52,6 +52,7 @@ import type {
   WechatyInterface,
 }                           from '../wechaty/wechaty-impl.ts'
 import { WechatySkeleton }  from './wechaty-skeleton.ts'
+import { NO_PUPPET_MESSAGE } from '../puppet-config.ts'
 
 class WechatyTest extends WechatyBase {
 }
@@ -235,11 +236,13 @@ test('use plugin', async t => {
 
 })
 
-test('wechatifyUserModules init()', async _t => {
-  const wechatyTest = new WechatyTest()
+test('wechatifyUserModules init()', async t => {
+  // 2.0 has no default puppet, so the bot needs one to init().
+  const wechatyTest = new WechatyTest({ puppet: new PuppetMock() })
+  t.after(() => wechatyTest.stop())
 
-  assert.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 1st time init')
-  assert.doesNotThrow(() => wechatyTest.init(), 'should not throw for the 2nd time init (silence skip)')
+  await assert.doesNotReject(wechatyTest.init(), 'should not throw for the 1st time init')
+  await assert.doesNotReject(wechatyTest.init(), 'should not throw for the 2nd time init (silence skip)')
 })
 
 test('lifecycle order and restart', async t => {
@@ -283,6 +286,31 @@ test('lifecycle order and restart', async t => {
   ], 'should preserve lifecycle ordering across restarts')
   assert.equal(startPuppet.mock.callCount(), 2, 'should start the puppet once per lifecycle')
   assert.equal(stopPuppet.mock.callCount(), 2, 'should stop the puppet once per lifecycle')
+})
+
+test('init() without a puppet explains how to set one', async t => {
+  const original = process.env['WECHATY_PUPPET']
+  t.after(() => {
+    if (original === undefined) {
+      delete process.env['WECHATY_PUPPET']
+    } else {
+      process.env['WECHATY_PUPPET'] = original
+    }
+  })
+  delete process.env['WECHATY_PUPPET']
+
+  const bot = new WechatyBase({})
+  await assert.rejects(bot.init(), { message: NO_PUPPET_MESSAGE }, 'should reject: 2.0 has no default puppet')
+  assert.match(NO_PUPPET_MESSAGE, /WECHATY_PUPPET=/, 'should name the environment variable')
+
+  // The failed init() must not mark the puppet as set up.
+  process.env['WECHATY_PUPPET'] = 'wechaty-puppet-mock'
+  try {
+    await bot.init()
+    assert.ok(bot.puppet, 'should resolve the puppet from WECHATY_PUPPET on a later init()')
+  } finally {
+    await bot.stop()
+  }
 })
 
 test('puppet and user modules initialize once', async () => {
@@ -376,7 +404,8 @@ test('startup puppet failure rejects consistently (#2855)', async t => {
     `try { await bot.start(); process.exitCode = 1 } catch { process.exit(0) }`,
   ].join(';')
   const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
-  const result = spawnSync(nodeExecutable, [ '--input-type=module', '-e', script ], {
+  // The child imports workspace packages from source, like the test runner.
+  const result = spawnSync(nodeExecutable, [ '--conditions=wechaty-source', '--input-type=module', '-e', script ], {
     encoding: 'utf8',
     timeout: 30_000,
   })

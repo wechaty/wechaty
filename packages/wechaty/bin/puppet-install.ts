@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 /**
+ * Installs the known puppet providers (`OFFICIAL_PUPPET_DEPENDENCIES`) with
+ * `npm install --no-save`, one at a time and keeping the earlier ones, for
+ * the Docker image. It stops at the first failed install and exits 1. It
+ * skips the puppets that wechaty's own package.json declares: `npm ci`
+ * installs those, and in the monorepo they are workspace packages that npm
+ * may not have yet. Today that leaves `wechaty-puppet-neo`.
+ */
+/**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
  *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
@@ -18,6 +26,8 @@
  *   limitations under the License.
  *
  */
+import { readFileSync } from 'node:fs'
+
 import spawn from 'cross-spawn'
 
 import { log } from 'wechaty-puppet'
@@ -33,24 +43,32 @@ import {
 async function main (): Promise<void> {
   log.info('PuppetInstall', 'main() installing ...')
 
-  const skipList = [
-    '@juzibot/wechaty-puppet-donut',  // windows puppet
-    '@juzibot/wechaty-puppet-wxwork', // wxwork puppet
-    'wechaty-puppet-xp',             // Frida 15 does not build on Node.js 26
-  ]
+  const packageJson: {
+    dependencies?    : Record<string, string>,
+    devDependencies? : Record<string, string>,
+  } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  const declared = new Set([
+    ...Object.keys(packageJson.dependencies ?? {}),
+    ...Object.keys(packageJson.devDependencies ?? {}),
+  ])
 
   const moduleList: string[] = []
 
   for (const puppetModuleName of Object.keys(OFFICIAL_PUPPET_DEPENDENCIES)) {
     const version = OFFICIAL_PUPPET_DEPENDENCIES[puppetModuleName as OfficialPuppetNpmName]
 
-    if (version === '0.0.0' || skipList.includes(puppetModuleName)) {
+    if (declared.has(puppetModuleName)) {
       continue
     }
 
     const module = `${puppetModuleName}@${version}`
     moduleList.push(module)
-    const args = [ 'install', '--no-save', ...moduleList ]
+    // wechaty-puppet-neo 0.1.x declares exactly wechaty-puppet 1.20.2 as its
+    // peer, which the workspace's 2.0 does not satisfy: without
+    // --legacy-peer-deps npm stops with ERESOLVE. It loads the workspace
+    // wechaty-puppet 2.0 at runtime (its PuppetNeo is a 2.0 Puppet). Drop the
+    // flag once neo's peer range accepts 2.0.
+    const args = [ 'install', '--no-save', '--legacy-peer-deps', ...moduleList ]
     log.info('PuppetInstall', 'installing %s', module)
 
     await new Promise<void>((resolve, reject) => {

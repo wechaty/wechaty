@@ -1,3 +1,11 @@
+/**
+ * The puppet providers Wechaty knows by npm name (the names
+ * `wechaty gateway` accepts), with the version ranges `bin/puppet-install.ts`
+ * installs in the Docker image, and the message for starting without a
+ * puppet. Wechaty 2.0 has no default puppet
+ * (wechaty/wechaty#3054): a bot names one in its options or in
+ * `WECHATY_PUPPET`.
+ */
 /* eslint-disable sort-keys */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -20,57 +28,23 @@
  */
 const OFFICIAL_PUPPET_DEPENDENCIES = {
   /**
-   * The following puppets were DEPRECATED before 2020
+   * Wechaty internal puppets: workspace packages of this monorepo, which
+   * wechaty's package.json depends on. Their ranges must match package.json
+   * (`puppet-config.test.ts` checks it); `bin/puppet-install.ts` skips them,
+   * as `npm ci` already installs them.
    */
-  // 'wechaty-puppet-ioscat'    : '^0.5.22',   // https://www.npmjs.com/package/wechaty-puppet-ioscat
-  // 'wechaty-puppet-padchat'   : '^0.19.3',   // https://www.npmjs.com/package/wechaty-puppet-padchat
-  // 'wechaty-puppet-padpro'    : '^0.3.21',   // https://www.npmjs.com/package/wechaty-puppet-padpro
+  'wechaty-puppet-service' : '^2.0.0-alpha.0',  // packages/wechaty-puppet-service
+  'wechaty-puppet-mock'    : '^2.0.0-alpha.0',  // packages/wechaty-puppet-mock
 
   /**
-   * Deprecated History:
-   *  https://github.com/wechaty/puppet-service-providers/issues/11
+   * External puppets, installed in the Docker image by `bin/puppet-install.ts`.
+   * 2.0 lists only providers known to load with wechaty-puppet 2.0: today
+   * wechaty-puppet-neo, whose peer dependency still names wechaty-puppet
+   * 1.20.2 (see the installer). The 1.x providers (wechat4u, padlocal, xp,
+   * whatsapp, ...) and the deprecated ones are gone (wechaty/wechaty#3054).
+   * Providers reached over gRPC still work through `wechaty-puppet-service`.
    */
-  // Dec 2020
-  //  - https://github.com/wechaty/puppet-services/issues/61
-  //    'wechaty-puppet-padplus'   : '^0.7.30',   // https://www.npmjs.com/package/wechaty-puppet-padplus
-  // Sep 2021:
-  //    'wechaty-puppet-hostie'    : '*',       // https://www.npmjs.com/package/wechaty-puppet-hostie
-
-  /**
-   * Wechaty Internal Puppets: dependency by package.json
-   *
-   *  Huan(202108): DO NOT REMOVE THE SPECIFIC VERSIONS BELOW
-   *    All the internal puppets which have already depended in package.json
-   *    MUST be listed below with their correct version number (ranges)
-   *    because the `bin/puppet-install.ts` will use those version
-   *    to install all them inside the Docker
-   */
-  'wechaty-puppet-service' : '^1.19.8',  // https://www.npmjs.com/package/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '^1.18.2',  // https://www.npmjs.com/package/wechaty-puppet-mock
-
-  /**
-   * WeChat Puppets
-   */
-  'wechaty-puppet-wechat'           : '>=1.18.4', // https://www.npmjs.com/package/wechaty-puppet-wechat
-  'wechaty-puppet-wechat4u'         : '^1.13.15', // https://www.npmjs.com/package/wechaty-puppet-wechat4u
-  'wechaty-puppet-padlocal'         : '>=1.11.13',  // https://www.npmjs.com/package/wechaty-puppet-padlocal
-  'wechaty-puppet-xp'               : '>=1.10.2',  // https://www.npmjs.com/package/wechaty-puppet-xp
-  'wechaty-puppet-oicq'             : '>=1.10.2',  // https://www.npmjs.com/package/wechaty-puppet-oicq
-  'wechaty-puppet-official-account' : '>=1.10.2',    // https://www.npmjs.com/package/wechaty-puppet-official-account
-
-  /**
-   * Non-WeChat External Puppets
-   */
-  'wechaty-puppet-gitter'   : '>=1.10.1',   // https://www.npmjs.com/package/wechaty-puppet-gitter
-  'wechaty-puppet-lark'     : '>=0.4.5',   // https://www.npmjs.com/package/wechaty-puppet-lark
-  'wechaty-puppet-whatsapp' : '>=1.10.4',   // https://www.npmjs.com/package/wechaty-puppet-whatsapp
-  'wechaty-puppet-walnut'   : '>=0.1.41',  // https://www.npmjs.com/package/wechaty-puppet-walnut
-
-  /**
-   * Scoped puppets (private)
-   */
-  '@juzibot/wechaty-puppet-donut'  : '*',   // https://www.npmjs.com/package/wechaty-puppet-donut (to be published)
-  '@juzibot/wechaty-puppet-wxwork' : '*',   // https://www.npmjs.com/package/wechaty-puppet-wxwork (to be published)
+  'wechaty-puppet-neo' : '^0.1.1',  // https://www.npmjs.com/package/wechaty-puppet-neo
 }
 
 type OfficialPuppetNpmName = keyof typeof OFFICIAL_PUPPET_DEPENDENCIES
@@ -78,12 +52,16 @@ type OfficialPuppetNpmName = keyof typeof OFFICIAL_PUPPET_DEPENDENCIES
 const isPuppetModuleName = (name: string): name is OfficialPuppetNpmName => name in OFFICIAL_PUPPET_DEPENDENCIES
 
 /**
- * Updates:
- *  - Huan(202004): we change default puppet from puppet-service -> puppet-wechat (with UOS support)
- *  - Huan(202009): use puppet service as default
- *  - Huan(202201): use puppet-wechat4u as default
+ * Why a bot cannot start without a puppet, and how to name one. Wechaty 1.x
+ * fell back to a default puppet (`wechaty-puppet-wechat4u` last); 2.0 has
+ * none, so the choice is always explicit.
  */
-const OFFICIAL_PUPPET_DEFAULT: OfficialPuppetNpmName = 'wechaty-puppet-wechat4u'
+const NO_PUPPET_MESSAGE = [
+  'No puppet is set: Wechaty 2.0 has no default puppet. Name one of:',
+  '  - in code:  WechatyBuilder.build({ puppet: \'wechaty-puppet-service\', puppetOptions: { token } })',
+  '  - or in the environment:  WECHATY_PUPPET=wechaty-puppet-service',
+  'Puppet providers: https://wechaty.js.org/docs/puppet-providers/',
+].join('\n')
 
 // i.e. @juzibot/wechaty-puppet-donut
 type PuppetNpmScope = `@${string}/` | ''
@@ -99,6 +77,6 @@ export {
   type PuppetNpmName,
   type PuppetModuleName, // DEPRECATED
   OFFICIAL_PUPPET_DEPENDENCIES,
-  OFFICIAL_PUPPET_DEFAULT,
+  NO_PUPPET_MESSAGE,
   isPuppetModuleName,
 }

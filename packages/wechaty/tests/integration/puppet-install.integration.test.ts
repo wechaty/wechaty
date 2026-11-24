@@ -9,6 +9,16 @@ import assert from 'node:assert/strict'
 
 import { OFFICIAL_PUPPET_DEPENDENCIES } from '../../src/puppet-config.ts'
 
+// The installer skips the puppets that package.json declares (workspace packages).
+const packageJson: {
+  dependencies?    : Record<string, string>,
+  devDependencies? : Record<string, string>,
+} = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))
+const declared = new Set([
+  ...Object.keys(packageJson.dependencies ?? {}),
+  ...Object.keys(packageJson.devDependencies ?? {}),
+])
+
 const testInstaller = process.platform === 'win32' ? test.skip : test
 const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
 
@@ -17,9 +27,13 @@ for (const fail of [ false, true ]) {
     const directory = mkdtempSync(join(tmpdir(), 'wechaty-puppet-install-'))
     const calls = join(directory, 'calls.jsonl')
     const providers = Object.entries(OFFICIAL_PUPPET_DEPENDENCIES)
-      .filter(([ name, version ]) => version !== '0.0.0' && !name.startsWith('@juzibot/') && name !== 'wechaty-puppet-xp')
+      .filter(([ name ]) => !declared.has(name))
       .map(([ name, version ]) => `${name}@${version}`)
-    const failedProvider = providers[1]!
+    assert.ok(providers.some(provider => provider.startsWith('wechaty-puppet-neo@')), 'should install wechaty-puppet-neo')
+    // Fail at the second provider when there is one, to check that earlier
+    // installs are kept and later ones are not attempted.
+    const failIndex = Math.min(1, providers.length - 1)
+    const failedProvider = providers[failIndex]!
 
     try {
       writeFileSync(join(directory, 'package.json'), JSON.stringify({ type: 'commonjs' }))
@@ -30,6 +44,7 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
 `, { mode: 0o755 })
 
       const result = spawnSync(nodeExecutable, [
+        '--conditions=wechaty-source', // the installer imports workspace packages from source
         fileURLToPath(new URL('../../bin/puppet-install.ts', import.meta.url)),
       ], {
         encoding: 'utf8',
@@ -42,12 +57,12 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
         timeout: 60_000,
       })
       const output = result.stdout + result.stderr
-      const expected = fail ? providers.slice(0, 2) : providers
+      const expected = fail ? providers.slice(0, failIndex + 1) : providers
       assert.ifError(result.error)
       assert.equal(result.status, fail ? 1 : 0, `installation failures propagate: ${output}`)
       assert.deepStrictEqual(
         readFileSync(calls, 'utf8').trim().split('\n').map(line => JSON.parse(line)),
-        expected.map((_, index) => [ 'install', '--no-save', ...providers.slice(0, index + 1) ]),
+        expected.map((_, index) => [ 'install', '--no-save', '--legacy-peer-deps', ...providers.slice(0, index + 1) ]),
         'adds one provider at a time, retaining earlier providers, and stops on failure',
       )
       for (const provider of expected) {

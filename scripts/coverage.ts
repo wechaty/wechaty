@@ -506,11 +506,23 @@ function testFiles (root = ROOT): string[] {
   return files
 }
 
+/**
+ * Runs `command` with inherited output and returns its exit status (1 when
+ * it could not start or was killed). It reports a failure on stderr, so a
+ * crashed test run is not mistaken for low coverage of the partial report.
+ */
 function run (command: string, args: string[], env?: NodeJS.ProcessEnv, cwd = ROOT): number {
   const result = spawnSync(command, args, { cwd, env, stdio: 'inherit' })
   if (result.error) {
     console.error(`${command} failed: ${result.error.message}`)
     return 1
+  }
+  if (result.signal) {
+    console.error(`${command} ${args[0] ?? ''} was killed by ${result.signal}`)
+    return 1
+  }
+  if (result.status !== 0) {
+    console.error(`${command} ${args[0] ?? ''} exited with status ${result.status}`)
   }
   return result.status ?? 1
 }
