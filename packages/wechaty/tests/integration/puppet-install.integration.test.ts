@@ -36,9 +36,9 @@ for (const fail of [ false, true ]) {
     const failedProvider = providers[failIndex]!
 
     try {
-      writeFileSync(join(directory, 'package.json'), JSON.stringify({ type: 'commonjs' }))
+      writeFileSync(join(directory, 'package.json'), JSON.stringify({ type: 'module' }))
       writeFileSync(join(directory, 'npm'), `#!${nodeExecutable}
-const { appendFileSync } = require('node:fs')
+import { appendFileSync } from 'node:fs'
 appendFileSync(process.env.INSTALL_CALLS, JSON.stringify(process.argv.slice(2)) + '\\n')
 if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
 `, { mode: 0o755 })

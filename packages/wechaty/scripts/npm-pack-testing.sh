@@ -40,7 +40,7 @@ npm install --production "./$PACK_FILE" ./deps/*.tgz \
 #
 # ES Modules
 #
-node --input-type=commonjs -e "const fs = require('node:fs'); const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')); packageJson.type = 'module'; fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2))"
+npm pkg set type=module
 
 npx tsc \
   --target esnext \

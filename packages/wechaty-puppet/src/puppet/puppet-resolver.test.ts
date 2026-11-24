@@ -33,7 +33,7 @@ test('resolvePuppet() for supported/unsupported name', async _t => {
   await assert.doesNotReject(() =>  resolvePuppet({ puppet: 'yocto-queue' as any }), 'should resolve a valid npm package as puppet name')
 })
 
-test('resolvePuppetName() for ESM', async _t => {
+test('resolvePuppetName() for ESM default constructor', async _t => {
   const PuppetConstructor = await resolvePuppetName('yocto-queue' as any)
   assert.equal(typeof PuppetConstructor, 'function', 'should get the puppet class function')
   assert.equal(PuppetConstructor.name, 'Queue', 'should return a valid puppet name')
@@ -43,5 +43,13 @@ test('resolvePuppetName() requires a direct default constructor', async () => {
   const source = encodeURIComponent('export default { default: class Puppet {} }')
   const specifier = `data:text/javascript,${source}` as Parameters<typeof resolvePuppetName>[0]
 
-  await assert.rejects(() => resolvePuppetName(specifier), /must export a default constructor/)
+  await assert.rejects(() => resolvePuppetName(specifier), /has not provided a valid default export constructor/)
+})
+
+test('resolvePuppetName() rejects package without default function export', async _t => {
+  await assert.rejects(
+    () => resolvePuppetName('@chatie/semver' as any),
+    /has not provided a valid default export constructor/,
+    'should reject when package lacks default function export',
+  )
 })

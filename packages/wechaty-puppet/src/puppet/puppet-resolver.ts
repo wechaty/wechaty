@@ -44,7 +44,13 @@ interface ResolveOptions {
   puppetOptions?: PuppetOptions,
 }
 
-/** Returns the supplied Puppet or constructs one from an installed provider. */
+/**
+ * Resolves a puppet instance or npm package name into a `PuppetInterface` instance.
+ *
+ * @param options - A puppet instance or package name and optional puppet options
+ * @returns The supplied instance or a newly constructed provider instance
+ * @throws `Error` if the puppet is neither a valid instance nor a package name, or if the provider cannot be loaded
+ */
 async function resolvePuppet (
   options: ResolveOptions,
 ): Promise<PuppetInterface> {
@@ -93,7 +99,17 @@ async function resolvePuppet (
   return puppetInstance
 }
 
-/** Loads the provider's default constructor from its ESM entry point. */
+/**
+ * Dynamically imports an ESM Wechaty Puppet Provider (WPP) package and extracts its
+ * default export constructor.
+ *
+ * In pure ECMAScript (ESM), compliant puppet providers export their `PuppetConstructor`
+ * as their primary `default` export.
+ *
+ * @param puppetName - The npm package name of the Wechaty Puppet Provider
+ * @returns The resolved `PuppetConstructor`
+ * @throws `Error` if the package cannot be imported or does not provide a constructor function as default export
+ */
 async function resolvePuppetName (
   puppetName: PuppetNpmName,
 ): Promise<PuppetConstructor> {
@@ -118,11 +134,14 @@ async function resolvePuppetName (
     throw e
   }
 
-  if (typeof puppetModule.default !== 'function') {
-    throw new Error(`Puppet(${puppetName}) must export a default constructor`)
+  const MyPuppet = puppetModule.default as PuppetConstructor
+
+  if (typeof MyPuppet !== 'function') {
+    throw new Error(`Puppet(${puppetName}) has not provided a valid default export constructor`)
   }
 
-  return puppetModule.default as PuppetConstructor
+  log.verbose('Puppet', 'resolvePuppetName(%s): ESM resolved', puppetName)
+  return MyPuppet
 }
 
 export {
