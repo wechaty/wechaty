@@ -529,7 +529,7 @@ class PuppetService extends PUPPET.Puppet {
       roomId: res.roomId || undefined,
       talkerId: res.talkerId,
       text: res.text || undefined,
-      timestamp: res.receiveTime ? millisecondsFromTimestamp(res.receiveTime) : Date.now(),
+      timestamp: res.receiveTime ? millisecondsFromTimestamp(res.receiveTime) : Number(res.timestampDeprecated || 0n),
       toId: res.listenerId || undefined,
       type: res.type as PUPPET.types.Message,
     } as PUPPET.payloads.Message
@@ -620,7 +620,7 @@ class PuppetService extends PUPPET.Puppet {
       memberCount: res.memberCount,
       memberIdList: res.memberIds,
       receiverId: res.receiverId,
-      timestamp: res.receiveTime ? millisecondsFromTimestamp(res.receiveTime) : Date.now(),
+      timestamp: res.receiveTime ? millisecondsFromTimestamp(res.receiveTime) : Number(res.timestampUint64Deprecated || 0n),
       topic: res.topic,
     }
   }

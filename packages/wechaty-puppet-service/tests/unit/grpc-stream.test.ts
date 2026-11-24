@@ -72,14 +72,18 @@ test('gRPC client breaks', async t => {
   puppetService.on('error', console.error)
 
   /**
-   * mock grpcClient break
+   * Mock remote Stop RPC failure while event stream is still open
    */
-  ;(puppetService.grpcManager as any).stopStream()
+  if (puppetService.grpcManager) {
+    (puppetService.grpcManager.client as any).stop = async () => {
+      throw new Error('mock remote stop RPC rejection')
+    }
+  }
 
   await puppetService.stop()
 
   // get eventStream status
-  assert.throws(() => puppetService.grpcManager, 'should clean grpc after stop()')
+  assert.throws(() => puppetService.grpcManager, 'should clean grpc after stop() even when remote Stop RPC fails')
 
   // setTimeout(() => whyIsNodeRunning(), 1000)
   await puppetServer.stop()

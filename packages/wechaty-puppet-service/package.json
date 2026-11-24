@@ -55,7 +55,6 @@
     "@bufbuild/protobuf": "^2.17.0",
     "@connectrpc/connect": "^2.3.0",
     "@connectrpc/connect-node": "^2.3.0",
-    "@grpc/grpc-js": "^1.14.7",
     "clone-class": "^1.1.1",
     "file-box": "^2.0.0",
     "flash-store": "^1.3.4",

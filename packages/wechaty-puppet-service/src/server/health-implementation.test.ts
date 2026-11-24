@@ -32,6 +32,25 @@ test('healthImplementation() check() lifecycle and status transitions', async ()
   puppetEmitter.emit('heartbeat', { data: 'alive' })
   const serving = await health.check(req, {} as any)
   assert.equal(serving.status, ServingStatus.SERVING, 'status after heartbeat should be SERVING')
+
+  // 3. Status after 61 seconds without heartbeat should be NOT_SERVING
+  const realNow = Date.now
+  try {
+    Date.now = () => realNow() + 61_000
+    const expired = await health.check(req, {} as any)
+    assert.equal(expired.status, ServingStatus.NOT_SERVING, 'status after heartbeat timeout should be NOT_SERVING')
+  } finally {
+    Date.now = realNow
+  }
+})
+
+test('healthImplementation() unregisters heartbeat listener on signal abort', () => {
+  const puppetEmitter = new EventEmitter() as unknown as Puppet
+  const abortController = new AbortController()
+  healthImplementation(puppetEmitter, abortController.signal)
+  assert.equal(puppetEmitter.listenerCount('heartbeat'), 1, 'heartbeat listener should be registered')
+  abortController.abort()
+  assert.equal(puppetEmitter.listenerCount('heartbeat'), 0, 'heartbeat listener should be removed on signal abort')
 })
 
 test('healthImplementation() watch() yields status and terminates on abort without timer leaks', async () => {

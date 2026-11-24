@@ -1,11 +1,25 @@
 /**
  * `toConnectError()` / `grpcError()`: logs a handler failure and returns a ConnectError
- * with Code.Internal and the original error details.
+ * preserving valid non-OK gRPC status codes (e.g. Code.DeadlineExceeded, Code.InvalidArgument),
+ * falling back to Code.Internal.
  */
 import type { Interceptor } from '@connectrpc/connect'
 import { ConnectError, Code } from '@connectrpc/connect'
 import { log } from 'wechaty-puppet'
 import { GError } from 'gerror'
+
+function mapGrpcCode (code: unknown): Code {
+  if (typeof code === 'number' && code >= 1 && code <= 16 && code !== 2) {
+    return code as Code
+  }
+  if (typeof code === 'string' && code in Code && typeof Code[code as keyof typeof Code] === 'number') {
+    const val = Code[code as keyof typeof Code] as number
+    if (val !== 2) {
+      return val as Code
+    }
+  }
+  return Code.Internal
+}
 
 export function toConnectError (
   method : string,
@@ -18,7 +32,9 @@ export function toConnectError (
     gerr.stack,
   )
 
-  return new ConnectError(gerr.message, Code.Internal)
+  const rawCode = (error as any)?.code ?? gerr.code
+  const code = mapGrpcCode(rawCode)
+  return new ConnectError(gerr.message, code)
 }
 
 export const grpcError = toConnectError

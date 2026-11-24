@@ -18,6 +18,16 @@ test('toConnectError() wraps plain errors in Code.Internal ConnectError', () => 
   assert.equal(connectErr.rawMessage, 'database connection lost', 'error message should match')
 })
 
+test('toConnectError() preserves valid gRPC status codes from GError', () => {
+  const deadlineError = Object.assign(new Error('timeout exceeded'), { code: 4 })
+  const deadlineConnectErr = toConnectError('testTimeout', deadlineError)
+  assert.equal(deadlineConnectErr.code, Code.DeadlineExceeded, 'error code should preserve DeadlineExceeded')
+
+  const invalidArgError = Object.assign(new Error('invalid argument'), { code: 'InvalidArgument' })
+  const invalidArgConnectErr = toConnectError('testArg', invalidArgError)
+  assert.equal(invalidArgConnectErr.code, Code.InvalidArgument, 'error code should preserve InvalidArgument')
+})
+
 test('serverErrorInterceptor() converts unary thrown error to Code.Internal', async () => {
   const interceptor = serverErrorInterceptor()
   const mockNext = async () => {
