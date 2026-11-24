@@ -2,7 +2,6 @@
  * Unit tests for `mocker.ts`.
  */
 import assert from 'node:assert/strict'
-import util from 'node:util'
 import { mock, test } from 'node:test'
 
 import * as PUPPET  from 'wechaty-puppet'
@@ -87,7 +86,7 @@ test('Mocker.scan()', async _t => {
   mocker.scan(QR_CODE, PUPPET.types.ScanStatus.Waiting)
 
   assert.ok(spy.mock.callCount() === 1, 'should received the scan event')
-  assert.ok(util.isDeepStrictEqual(spy.mock.calls[0]?.arguments[0], EXPECTED_PAYLOAD), 'should received expected QR CODE')
+  assert.deepStrictEqual(spy.mock.calls[0]?.arguments[0], EXPECTED_PAYLOAD, 'should receive the expected QR code')
 
   await puppet.stop()
 })
@@ -110,7 +109,7 @@ test('Mocker.login()', async _t => {
   mocker.login(user)
 
   assert.ok(spy.mock.callCount() === 1, 'should received the login event')
-  assert.ok(util.isDeepStrictEqual(spy.mock.calls[0]?.arguments[0], EXPECTED_PAYLOAD), 'should received expected login payload')
+  assert.deepStrictEqual(spy.mock.calls[0]?.arguments[0], EXPECTED_PAYLOAD, 'should receive the expected login payload')
 
   await puppet.stop()
 })
@@ -279,7 +278,7 @@ test('Multiple Mockers with their MockContact(s)', async _t => {
 //   await puppet.stop()
 // })
 
-test.skip('MockContact.say(fileBox).to(contact)', async _t => {
+test('MockContact.say(fileBox).to(contact) delivers in-memory media', async t => {
   const {
     user,
     mary,
@@ -287,21 +286,29 @@ test.skip('MockContact.say(fileBox).to(contact)', async _t => {
   }         = createFixture()
 
   await puppet.start()
+  t.after(() => puppet.stop())
 
-  let receive
-  mary.on('message', async message => {
-    receive = await message.toFileBox()
-  })
+  const cases = [
+    [ 'image.png', PUPPET.types.Message.Image ],
+    [ 'photo.jpg', PUPPET.types.Message.Image ],
+    [ 'movie.mp4', PUPPET.types.Message.Video ],
+    [ 'voice.sil', PUPPET.types.Message.Audio ],
+    [ 'file.bin', PUPPET.types.Message.Unknown ],
+  ] as const
 
-  const fileBox = FileBox.fromBase64(
-    'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
-    'mock-file.txt',
-  )
-  user.say(fileBox).to(mary)
+  for (const [name, type] of cases) {
+    const contents = btoa(`Mock contents for ${name}`)
+    const fileBox = FileBox.fromBase64(contents, name)
+    const incoming = new Promise<MessageMock>(resolve => mary.once('message', resolve))
+    user.say(fileBox).to(mary)
 
-  await sleep()
-  assert.deepEqual(receive, fileBox, 'should received the expected fileBox message payload')
-  await puppet.stop()
+    const message = await incoming
+    const received = await message.toFileBox()
+
+    assert.equal(message.type(), type, name)
+    assert.equal(received.name, name)
+    assert.equal(await received.toBase64(), contents)
+  }
 })
 
 // test.skip('MockContact.say(miniprogram).to(contact)', async t => {
