@@ -107,3 +107,45 @@ test('TestContext provides scoped mock and registers after hooks', async (t) => 
 test('test() accepts options in test(name, options, fn) signature', { timeout: 15000 }, (t) => {
   ok(t, 'options overload accepted')
 })
+
+test('TestContext before hook executes before subtests', async (t) => {
+  let beforeHookRan = false
+  t.before(() => {
+    beforeHookRan = true
+  })
+
+  await t.test('child subtest', async () => {
+    ok(beforeHookRan, 'before hook ran prior to subtest')
+  })
+})
+
+test('subtest skip does not abort sibling subtests in the parent', async (t) => {
+  let siblingExecuted = false
+
+  await t.test('first child skips', (subT) => {
+    subT.skip('skipping first child')
+  })
+
+  await t.test('second child runs', () => {
+    siblingExecuted = true
+  })
+
+  ok(siblingExecuted, 'sibling subtest executed successfully despite first child skip')
+})
+
+test('t.mock.method isolates and restores mocked methods after execution', async (t) => {
+  const service = {
+    getValue () {
+      return 'original'
+    },
+  }
+
+  await t.test('subtest modifies service', (subT) => {
+    subT.mock.method(service, 'getValue', () => 'mocked')
+    strictEqual(service.getValue(), 'mocked')
+  })
+
+  // After subtest completes, subtest-scoped mock is restored
+  strictEqual(service.getValue(), 'original', 'scoped mock was restored after subtest')
+})
+

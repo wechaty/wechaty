@@ -6,6 +6,7 @@
  * polyfilling Node standard built-ins without modifying source test files.
  */
 import path from 'path'
+import { fileURLToPath } from 'node:url'
 import { esbuildPlugin } from '@web/dev-server-esbuild'
 import { playwrightLauncher } from '@web/test-runner-playwright'
 import { fromRollup } from '@web/dev-server-rollup'
@@ -34,7 +35,8 @@ function browserShimsPlugin () {
       }
       if (source === 'events/base') {
         const url = import.meta.resolve('rollup-plugin-node-polyfills/polyfills/events.js')
-        return '/' + path.relative(process.cwd(), new URL(url).pathname).replace(/\\/g, '/')
+        const filePath = fileURLToPath(url)
+        return '/' + path.relative(process.cwd(), filePath).replace(/\\/g, '/')
       }
       if (source === 'mime') {
         return '/tests/browser-shims/mime.ts'

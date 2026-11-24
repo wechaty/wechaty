@@ -189,6 +189,17 @@ export const mock = {
 }
 
 /**
+ * Sentinel error thrown when an individual subtest is skipped.
+ * Caught by `t.test()` to prevent aborting the parent Mocha execution.
+ */
+class SubtestSkipError extends Error {
+  constructor (message?: string) {
+    super(message || 'Subtest skipped')
+    this.name = 'SubtestSkipError'
+  }
+}
+
+/**
  * Context passed to individual test executions and subtests, conforming to `node:test` TestContext.
  */
 export interface TestContext {
@@ -212,42 +223,91 @@ export interface TestOptions {
 }
 
 /**
- * Creates an isolated subtest execution context.
+ * Creates an isolated execution context for a test or subtest.
+ *
+ * Mocks created via `context.mock` are scoped to this context and automatically restored
+ * upon context teardown.
  */
-function createTestContext (mochaCtx?: any): TestContext {
+function createTestContext (mochaCtx?: any, isSubtest = false): TestContext {
   const afterHooks: (() => Promise<void> | void)[] = []
+  const beforeHooks: (() => Promise<void> | void)[] = []
+  const contextMocks: { restore: () => void }[] = []
+
+  const scopedMock = {
+    fn: mock.fn,
+    method: <T extends Record<string, any>, K extends keyof T>(
+      object: T,
+      property: K,
+      implementation?: T[K],
+    ): MockFunction<T[K]> => {
+      const mocked = mock.method(object, property, implementation)
+      contextMocks.push({ restore: () => mocked.mock.restore() })
+      return mocked
+    },
+    resetCalls: (): void => {
+      // No-op for scoped tracker; individual function calls are reset on the MockFunction
+    },
+    restoreAll: (): void => {
+      while (contextMocks.length > 0) {
+        const entry = contextMocks.pop()!
+        entry.restore()
+      }
+    },
+    timers: mock.timers,
+  }
 
   const context: TestContext = {
     after: (fn: () => Promise<void> | void) => {
       afterHooks.push(fn)
     },
-    before: (_fn: () => Promise<void> | void) => {
-      // Lifecycle hook for subtest initialization
+    before: (fn: () => Promise<void> | void) => {
+      beforeHooks.push(fn)
     },
     diagnostic: (message: string) => {
       console.log(`[test:diagnostic] ${message}`)
     },
-    mock,
+    mock: scopedMock,
     skip: (message?: string) => {
-      if (typeof mochaCtx?.skip === 'function') {
+      if (isSubtest) {
+        console.log(`[test:skip:subtest] ${message || ''}`)
+        throw new SubtestSkipError(message)
+      } else if (typeof mochaCtx?.skip === 'function') {
         mochaCtx.skip()
       } else {
         console.log(`[test:skip] ${message || ''}`)
       }
     },
-    test: async (_subName: string, subFn: (t: TestContext) => Promise<void> | void) => {
-      const subContext = createTestContext(mochaCtx)
+    test: async (subName: string, subFn: (t: TestContext) => Promise<void> | void) => {
+      // Execute any registered before hooks on the parent context
+      for (const beforeHook of beforeHooks) {
+        await beforeHook()
+      }
+
+      const subContext = createTestContext(mochaCtx, true)
       try {
         await subFn(subContext)
+      } catch (err) {
+        if (err instanceof SubtestSkipError) {
+          console.log(`[test:subtest:skipped] ${subName}: ${err.message}`)
+          return
+        }
+        throw err
       } finally {
-        const hooks = (subContext as any)._afterHooks || []
-        for (const hook of hooks) {
-          await hook()
+        try {
+          const hooks = (subContext as any)._afterHooks || []
+          for (const hook of hooks) {
+            await hook()
+          }
+        } finally {
+          subContext.mock.restoreAll()
         }
       }
     },
     todo: (message?: string) => {
-      if (typeof mochaCtx?.skip === 'function') {
+      if (isSubtest) {
+        console.log(`[test:todo:subtest] ${message || ''}`)
+        throw new SubtestSkipError(`[TODO] ${message || ''}`)
+      } else if (typeof mochaCtx?.skip === 'function') {
         mochaCtx.skip()
       } else {
         console.log(`[test:todo] ${message || ''}`)
@@ -262,22 +322,36 @@ function createTestContext (mochaCtx?: any): TestContext {
     writable: true,
   })
 
+  Object.defineProperty(context, '_beforeHooks', {
+    configurable: true,
+    enumerable: false,
+    value: beforeHooks,
+    writable: true,
+  })
+
   return context
 }
 
 export type TestFunction = (t: TestContext) => Promise<void> | void
 
 /**
- * Runs a test function within an isolated context and invokes all registered after hooks.
+ * Runs a test function within an isolated context and invokes all registered lifecycle hooks.
  */
 async function runWithContext (fn: TestFunction, mochaCtx: any): Promise<void> {
-  const context = createTestContext(mochaCtx)
+  const context = createTestContext(mochaCtx, false)
   try {
+    for (const hook of (context as any)._beforeHooks) {
+      await hook()
+    }
     await fn(context)
   } finally {
-    const hooks = (context as any)._afterHooks || []
-    for (const hook of hooks) {
-      await hook()
+    try {
+      const hooks = (context as any)._afterHooks || []
+      for (const hook of hooks) {
+        await hook()
+      }
+    } finally {
+      context.mock.restoreAll()
     }
   }
 }
@@ -329,7 +403,7 @@ test.skip = (name: string, _optionsOrFn?: TestOptions | TestFunction, _maybeFn?:
 }
 
 /**
- * Marks a test case as the only one to run, preserving after hooks.
+ * Marks a test case as the only one to run, preserving after hooks and mock restoration.
  */
 test.only = (name: string, optionsOrFn?: TestOptions | TestFunction, maybeFn?: TestFunction): void => {
   const fn = typeof optionsOrFn === 'function' ? optionsOrFn : maybeFn
@@ -360,10 +434,35 @@ test.todo = (name: string): void => {
 }
 
 export const it = test
-export const describe = (globalThis as any).describe || ((name: string, fn: () => void) => fn())
+
+/**
+ * Suite declaration bridging `node:test` describe to the in-page Mocha runner.
+ * If running outside an active suite runner, executes `fn()` synchronously as a fallback.
+ */
+export const describe = (globalThis as any).describe || ((_name: string, fn: () => void) => fn())
+
+/**
+ * Suite-level setup hook executed once before all tests in the current suite.
+ * Delegates to Mocha's global `before` or `beforeAll`.
+ */
 export const before = (globalThis as any).before || (globalThis as any).beforeAll
+
+/**
+ * Suite-level teardown hook executed once after all tests in the current suite.
+ * Delegates to Mocha's global `after` or `afterAll`.
+ */
 export const after = (globalThis as any).after || (globalThis as any).afterAll
+
+/**
+ * Per-test setup hook executed before each individual test in the current suite.
+ * Delegates to Mocha's global `beforeEach`.
+ */
 export const beforeEach = (globalThis as any).beforeEach
+
+/**
+ * Per-test teardown hook executed after each individual test in the current suite.
+ * Delegates to Mocha's global `afterEach`.
+ */
 export const afterEach = (globalThis as any).afterEach
 
 export default test
