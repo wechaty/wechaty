@@ -2,7 +2,7 @@
  * Browser adapter bridging `node:test` APIs to the in-page Mocha test harness
  * provided by `@web/test-runner`.
  *
- * This module allows unit tests written with standard `import { test } from 'node:test'`
+ * This module allows unit tests written with standard `import { test, mock } from 'node:test'`
  * to execute natively inside browser window contexts without test source modifications.
  */
 
@@ -28,7 +28,168 @@ if (typeof (globalThis as any).process === 'undefined') {
 }
 
 /**
- * Context passed to individual test executions and subtests.
+ * Record describing an individual mock invocation, matching `node:test` MockFunctionCall.
+ */
+export interface MockCall {
+  arguments: unknown[]
+  error?: unknown
+  result?: unknown
+  target?: unknown
+  this?: unknown
+}
+
+/**
+ * Mock function returned by `mock.fn` and `mock.method`.
+ */
+export interface MockFunction<T extends (...args: any[]) => any = (...args: any[]) => any> {
+  (...args: Parameters<T>): ReturnType<T>
+  mock: {
+    callCount: () => number
+    calls: MockCall[]
+    mockImplementation: (fn: T) => void
+    resetCalls: () => void
+    restore: () => void
+  }
+}
+
+const originalMethods: { obj: any, orig: any, prop: string }[] = []
+
+/**
+ * Mocking utilities matching the `node:test` mock interface.
+ */
+export const mock = {
+  /**
+   * Spies on or stubs a function, recording calls in `mock.calls`.
+   */
+  fn: <T extends (...args: any[]) => any = (...args: any[]) => any>(
+    implementation?: T,
+  ): MockFunction<T> => {
+    let currentImpl = implementation
+    const calls: MockCall[] = []
+
+    const mocked = function (this: unknown, ...args: unknown[]) {
+      let result: unknown
+      let error: unknown
+      try {
+        result = currentImpl ? currentImpl.apply(this, args) : undefined
+        return result
+      } catch (err) {
+        error = err
+        throw err
+      } finally {
+        calls.push({
+          arguments: args,
+          error,
+          result,
+          target: currentImpl,
+          this: this,
+        })
+      }
+    } as MockFunction<T>
+
+    Object.defineProperty(mocked, 'mock', {
+      value: {
+        callCount: () => calls.length,
+        calls,
+        mockImplementation: (newImpl: T) => {
+          currentImpl = newImpl
+        },
+        resetCalls: () => {
+          calls.length = 0
+        },
+        restore: () => {},
+      },
+    })
+
+    return mocked
+  },
+
+  /**
+   * Spies on or mocks an object method, restoring original behavior on restore.
+   */
+  method: <T extends Record<string, any>, K extends keyof T>(
+    object: T,
+    property: K,
+    implementation?: T[K],
+  ): MockFunction<T[K]> => {
+    const orig = object[property]
+    originalMethods.push({ obj: object, orig, prop: property as string })
+
+    let currentImpl = implementation
+    const calls: MockCall[] = []
+
+    const mocked = function (this: unknown, ...args: unknown[]) {
+      let result: unknown
+      let error: unknown
+      try {
+        if (currentImpl) {
+          result = currentImpl.apply(this, args)
+        } else if (typeof orig === 'function') {
+          result = orig.apply(this, args)
+        }
+        return result
+      } catch (err) {
+        error = err
+        throw err
+      } finally {
+        calls.push({
+          arguments: args,
+          error,
+          result,
+          target: currentImpl || orig,
+          this: this,
+        })
+      }
+    } as unknown as MockFunction<T[K]>
+
+    const restoreFn = () => {
+      object[property] = orig
+    }
+
+    Object.defineProperty(mocked, 'mock', {
+      value: {
+        callCount: () => calls.length,
+        calls,
+        mockImplementation: (newImpl: T[K]) => {
+          currentImpl = newImpl
+        },
+        resetCalls: () => {
+          calls.length = 0
+        },
+        restore: restoreFn,
+      },
+    })
+
+    object[property] = mocked as unknown as T[K]
+    return mocked
+  },
+
+  /**
+   * Restores all mocked methods tracked by this module.
+   */
+  restoreAll: (): void => {
+    while (originalMethods.length > 0) {
+      const entry = originalMethods.pop()!
+      entry.obj[entry.prop] = entry.orig
+    }
+  },
+
+  /**
+   * Fake timer stubs. Fails explicitly since fake timers in browser runner require userland clock.
+   */
+  timers: {
+    enable: (): never => {
+      throw new Error('mock.timers is not supported in the browser test environment. Use standard browser timers.')
+    },
+    reset: (): void => {},
+    tick: (): never => {
+      throw new Error('mock.timers is not supported in the browser test environment. Use standard browser timers.')
+    },
+  },
+}
+
+/**
+ * Context passed to individual test executions and subtests, conforming to `node:test` TestContext.
  */
 export interface TestContext {
   test: (name: string, fn: (t: TestContext) => Promise<void> | void) => Promise<void>
@@ -37,12 +198,23 @@ export interface TestContext {
   diagnostic: (message: string) => void
   skip: (message?: string) => void
   todo: (message?: string) => void
+  mock: typeof mock
+}
+
+/**
+ * Options accepted by test() matching `node:test`.
+ */
+export interface TestOptions {
+  only?: boolean
+  skip?: boolean | string
+  timeout?: number
+  todo?: boolean | string
 }
 
 /**
  * Creates an isolated subtest execution context.
  */
-function createTestContext (): TestContext {
+function createTestContext (mochaCtx?: any): TestContext {
   const afterHooks: (() => Promise<void> | void)[] = []
 
   const context: TestContext = {
@@ -55,11 +227,16 @@ function createTestContext (): TestContext {
     diagnostic: (message: string) => {
       console.log(`[test:diagnostic] ${message}`)
     },
+    mock,
     skip: (message?: string) => {
-      console.log(`[test:skip] ${message || ''}`)
+      if (typeof mochaCtx?.skip === 'function') {
+        mochaCtx.skip()
+      } else {
+        console.log(`[test:skip] ${message || ''}`)
+      }
     },
     test: async (_subName: string, subFn: (t: TestContext) => Promise<void> | void) => {
-      const subContext = createTestContext()
+      const subContext = createTestContext(mochaCtx)
       try {
         await subFn(subContext)
       } finally {
@@ -70,7 +247,11 @@ function createTestContext (): TestContext {
       }
     },
     todo: (message?: string) => {
-      console.log(`[test:todo] ${message || ''}`)
+      if (typeof mochaCtx?.skip === 'function') {
+        mochaCtx.skip()
+      } else {
+        console.log(`[test:todo] ${message || ''}`)
+      }
     },
   }
 
@@ -84,39 +265,61 @@ function createTestContext (): TestContext {
   return context
 }
 
-type TestFunction = (t: TestContext) => Promise<void> | void
+export type TestFunction = (t: TestContext) => Promise<void> | void
+
+/**
+ * Runs a test function within an isolated context and invokes all registered after hooks.
+ */
+async function runWithContext (fn: TestFunction, mochaCtx: any): Promise<void> {
+  const context = createTestContext(mochaCtx)
+  try {
+    await fn(context)
+  } finally {
+    const hooks = (context as any)._afterHooks || []
+    for (const hook of hooks) {
+      await hook()
+    }
+  }
+}
 
 /**
  * Defines a test case compatible with node:test.
  */
-export function test (name: string, fn?: TestFunction): void {
+export function test (
+  name: string,
+  optionsOrFn?: TestOptions | TestFunction,
+  maybeFn?: TestFunction,
+): void {
+  const fn = typeof optionsOrFn === 'function' ? optionsOrFn : maybeFn
+  const options = typeof optionsOrFn === 'object' ? optionsOrFn : undefined
+
   const runner = (globalThis as any).it || (globalThis as any).test
   if (!runner) {
     throw new Error('No in-browser test runner (it/test) found on globalThis')
   }
 
-  if (!fn) {
-    runner.skip(name)
+  if (!fn || options?.skip) {
+    runner.skip(name, () => {})
     return
   }
 
-  runner(name, async function (this: unknown) {
-    const context = createTestContext()
-    try {
-      await fn(context)
-    } finally {
-      const hooks = (context as any)._afterHooks || []
-      for (const hook of hooks) {
-        await hook()
-      }
+  if (options?.only) {
+    test.only(name, fn)
+    return
+  }
+
+  runner(name, async function (this: any) {
+    if (options?.timeout && typeof this?.timeout === 'function') {
+      this.timeout(options.timeout)
     }
+    await runWithContext(fn, this)
   })
 }
 
 /**
  * Marks a test case as skipped.
  */
-test.skip = (name: string, _fn?: TestFunction): void => {
+test.skip = (name: string, _optionsOrFn?: TestOptions | TestFunction, _maybeFn?: TestFunction): void => {
   const runner = (globalThis as any).it || (globalThis as any).test
   if (runner?.skip) {
     runner.skip(name, () => {})
@@ -126,14 +329,26 @@ test.skip = (name: string, _fn?: TestFunction): void => {
 }
 
 /**
- * Marks a test case as the only one to run.
+ * Marks a test case as the only one to run, preserving after hooks.
  */
-test.only = (name: string, fn: TestFunction): void => {
+test.only = (name: string, optionsOrFn?: TestOptions | TestFunction, maybeFn?: TestFunction): void => {
+  const fn = typeof optionsOrFn === 'function' ? optionsOrFn : maybeFn
+  const options = typeof optionsOrFn === 'object' ? optionsOrFn : undefined
+
+  if (!fn) {
+    return
+  }
+
   const runner = (globalThis as any).it || (globalThis as any).test
   if (runner?.only) {
-    runner.only(name, async () => fn(createTestContext()))
+    runner.only(name, async function (this: any) {
+      if (options?.timeout && typeof this?.timeout === 'function') {
+        this.timeout(options.timeout)
+      }
+      await runWithContext(fn, this)
+    })
   } else {
-    test(name, fn)
+    test(name, optionsOrFn as any, maybeFn)
   }
 }
 
@@ -150,62 +365,5 @@ export const before = (globalThis as any).before || (globalThis as any).beforeAl
 export const after = (globalThis as any).after || (globalThis as any).afterAll
 export const beforeEach = (globalThis as any).beforeEach
 export const afterEach = (globalThis as any).afterEach
-
-const originalMethods: { obj: any, orig: any, prop: string }[] = []
-
-/**
- * Mocking utilities matching the `node:test` mock interface.
- */
-export const mock = {
-  fn: (implementation?: (...args: unknown[]) => unknown) => {
-    let callCount = 0
-    const calls: unknown[][] = []
-    const mocked = (...args: unknown[]) => {
-      callCount++
-      calls.push(args)
-      return implementation ? implementation(...args) : undefined
-    }
-    Object.defineProperty(mocked, 'mock', {
-      get: () => ({
-        callCount: () => callCount,
-        calls,
-      }),
-    })
-    return mocked
-  },
-  method: (object: any, property: string, implementation?: (...args: unknown[]) => unknown) => {
-    const orig = object[property]
-    originalMethods.push({ obj: object, orig, prop: property })
-    let callCount = 0
-    const calls: unknown[][] = []
-    const mocked = function (this: unknown, ...args: unknown[]) {
-      callCount++
-      calls.push(args)
-      return implementation ? implementation.apply(this, args) : (orig ? orig.apply(this, args) : undefined)
-    }
-    Object.defineProperty(mocked, 'mock', {
-      get: () => ({
-        callCount: () => callCount,
-        calls,
-        restore: () => {
-          object[property] = orig
-        },
-      }),
-    })
-    object[property] = mocked
-    return mocked
-  },
-  restoreAll: () => {
-    while (originalMethods.length > 0) {
-      const entry = originalMethods.pop()!
-      entry.obj[entry.prop] = entry.orig
-    }
-  },
-  timers: {
-    enable: (_opts?: unknown) => {},
-    reset: () => {},
-    tick: (_ms?: number) => {},
-  },
-}
 
 export default test

@@ -32,6 +32,10 @@ function browserShimsPlugin () {
       ) {
         return '/tests/browser-shims/assert.ts'
       }
+      if (source === 'events/base') {
+        const url = import.meta.resolve('rollup-plugin-node-polyfills/polyfills/events.js')
+        return '/' + path.relative(process.cwd(), new URL(url).pathname).replace(/\\/g, '/')
+      }
       if (source === 'mime') {
         return '/tests/browser-shims/mime.ts'
       }
@@ -54,6 +58,7 @@ function browserShimsPlugin () {
 export default {
   // Test files targeted for in-browser execution
   files: [
+    'tests/browser-shims/shims.test.ts',
     'packages/wechaty-puppet/src/puppet/puppet-abstract.test.ts',
   ],
 

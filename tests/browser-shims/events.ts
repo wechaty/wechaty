@@ -4,7 +4,7 @@
  * Provides the EventEmitter class with modern Node.js methods such as `.off()`
  * for in-browser execution.
  */
-import EventEmitter from '../../node_modules/rollup-plugin-node-polyfills/polyfills/events.js'
+import EventEmitter from 'events/base'
 
 if (!(EventEmitter.prototype as any).off) {
   ;(EventEmitter.prototype as any).off = EventEmitter.prototype.removeListener
