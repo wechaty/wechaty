@@ -45,6 +45,14 @@ interface ResolveOptions {
   puppetOptions?: PuppetOptions,
 }
 
+/**
+ * Resolves a puppet instance, constructor, or npm package name into an instantiated
+ * `PuppetInterface` instance.
+ *
+ * @param options - Configuration options containing the puppet instance, constructor, or package name and optional puppet options
+ * @returns An initialized `PuppetInterface` instance
+ * @throws `Error` if the provided puppet is neither a valid `PuppetInterface` nor a valid puppet package name string
+ */
 async function resolvePuppet (
   options: ResolveOptions,
 ): Promise<PuppetInterface> {
@@ -93,6 +101,17 @@ async function resolvePuppet (
   return puppetInstance
 }
 
+/**
+ * Dynamically imports an ESM Wechaty Puppet Provider (WPP) package and extracts its
+ * default export constructor.
+ *
+ * In pure ECMAScript (ESM), compliant puppet providers export their `PuppetConstructor`
+ * as their primary `default` export.
+ *
+ * @param puppetName - The npm package name of the Wechaty Puppet Provider
+ * @returns The resolved `PuppetConstructor`
+ * @throws `Error` if the package cannot be imported or does not provide a constructor function as default export
+ */
 async function resolvePuppetName (
   puppetName: PuppetNpmName,
 ): Promise<PuppetConstructor> {
@@ -102,7 +121,6 @@ async function resolvePuppetName (
 
   try {
     puppetModule = await import(puppetName)
-    // console.info('puppetModule', puppetModule)
   } catch (e) {
     log.error('Puppet', 'resolvePuppetName %s', [
       '',
@@ -118,34 +136,13 @@ async function resolvePuppetName (
     throw e
   }
 
-  /**
-   * Huan(202110): Issue wechaty/wechaty-getting-started#203
-   *  TypeError: MyPuppet is not a constructor
-   *  https://github.com/wechaty/wechaty-getting-started/issues/203
-   */
-  let retry = 0
-  while (typeof puppetModule.default !== 'function') {
-    if (!puppetModule || retry++ > 3) {
-      throw new Error(`Puppet(${puppetName}) has not provided the default export`)
-    }
-    /**
-     * CommonJS Module: puppetModule.default.default is the expoerted Puppet
-     */
-    puppetModule = puppetModule.default
-  }
-
-  if (retry === 0) {
-    /**
-     * ES Module: default is the exported Puppet
-     */
-    log.verbose('Puppet', 'resolvePuppetName(%s): ESM resolved', puppetName)
-  } else {
-    log.verbose('Puppet', 'resolvePuppetName(%s): CJS resolved, retry times: %s', puppetName, retry)
-  }
-
-  // console.info(puppetModule)
   const MyPuppet = puppetModule.default as PuppetConstructor
 
+  if (typeof MyPuppet !== 'function') {
+    throw new Error(`Puppet(${puppetName}) has not provided a valid default export constructor`)
+  }
+
+  log.verbose('Puppet', 'resolvePuppetName(%s): ESM resolved', puppetName)
   return MyPuppet
 }
 

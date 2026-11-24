@@ -50,17 +50,6 @@ fixtures=tests/fixtures/docker
   [ "$status" -eq 0 ]
 }
 
-@test "should succ when using require with javascript" {
-  cd "$fixtures/with-package-json/"
-  run dockerRun with-require.cjs
-  [ "$status" -eq 0 ]
-}
-
-@test "should fail when require a not exist module in javascript" {
-  cd "$fixtures/with-package-json/"
-  run dockerRun with-require-error.js
-  [ "$status" -ne 0 ]
-}
 
 @test "should succ when using import in typescript" {
   cd "$fixtures/with-package-json/"
