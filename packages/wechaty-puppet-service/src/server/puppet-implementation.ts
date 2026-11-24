@@ -19,6 +19,7 @@ import { ConnectError, Code } from '@connectrpc/connect'
 import { normalizeFileBoxUuid } from '../file-box-helper/mod.ts'
 import { log } from '../config.ts'
 import { EventStreamManager, type EventStreamSink } from './event-stream-manager.ts'
+import { timestampFromMilliseconds } from '../pure-functions/timestamp.ts'
 
 export function puppetImplementation (
   puppet      : PUPPET.impls.PuppetInterface,
@@ -97,6 +98,9 @@ export function puppetImplementation (
     // Event Stream
     event: async function* (_req: unknown, ctx?: { signal?: AbortSignal }) {
       log.verbose('PuppetServiceImpl', 'event()')
+      if (ctx?.signal?.aborted) {
+        return
+      }
       if (eventStreamManager.busy()) {
         throw new ConnectError('GrpcServerImpl.event() can not call twice.', Code.AlreadyExists)
       }
@@ -321,6 +325,7 @@ export function puppetImplementation (
         id: payload.id,
         listenerId: payload.listenerId || payload.toId || '',
         mentionIds: mentionIdList,
+        receiveTime: payload.timestamp ? timestampFromMilliseconds(payload.timestamp) : undefined,
         roomId: payload.roomId || '',
         talkerId: payload.talkerId || payload.fromId || '',
         text: payload.text || '',
@@ -359,9 +364,10 @@ export function puppetImplementation (
       return id ? { id } : {}
     },
 
-    messageSendText: async (req: { conversationId: string; text: string; mentionIds?: string[] }) => {
+    messageSendText: async (req: { conversationId: string; text: string; mentionIds?: string[]; mentionalIds?: string[] }) => {
       log.verbose('PuppetServiceImpl', 'messageSendText()')
-      const id = await puppet.messageSendText(req.conversationId, req.text, req.mentionIds)
+      const mentionIds = req.mentionalIds ?? req.mentionIds
+      const id = await puppet.messageSendText(req.conversationId, req.text, mentionIds)
       return id ? { id } : {}
     },
 
@@ -393,7 +399,7 @@ export function puppetImplementation (
 
     roomAnnounce: async (req: { id: string; text?: string }) => {
       log.verbose('PuppetServiceImpl', 'roomAnnounce()')
-      if (typeof req.text === 'string' && req.text.length > 0) {
+      if (typeof req.text === 'string') {
         await puppet.roomAnnounce(req.id, req.text)
         return {}
       }
@@ -441,6 +447,7 @@ export function puppetImplementation (
         memberCount: payload.memberCount,
         memberIds: payload.memberIdList,
         receiverId: payload.receiverId,
+        receiveTime: payload.timestamp ? timestampFromMilliseconds(payload.timestamp) : undefined,
         topic: payload.topic,
       }
     },
@@ -648,12 +655,17 @@ export function puppetImplementation (
 
     messageSendFileStream: async (reqStream: AsyncIterable<any>) => {
       log.verbose('PuppetServiceImpl', 'messageSendFileStream()')
-      let conversationId = ''
+      const iterator = reqStream[Symbol.asyncIterator]()
+      const first = await iterator.next()
+      if (first.done || !first.value) {
+        throw new ConnectError('empty stream', Code.InvalidArgument)
+      }
+      const conversationId = first.value.conversationId || ''
       async function* toChunks () {
-        for await (const req of reqStream) {
-          if (req.conversationId) {
-            conversationId = req.conversationId
-          }
+        if (first.value.fileBoxChunk?.data) {
+          yield first.value.fileBoxChunk.data
+        }
+        for await (const req of { [Symbol.asyncIterator]: () => iterator }) {
           if (req.fileBoxChunk?.data) {
             yield req.fileBoxChunk.data
           }

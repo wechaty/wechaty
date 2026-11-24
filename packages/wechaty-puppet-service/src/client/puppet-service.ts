@@ -29,6 +29,7 @@ import { packageJson } from '../package-json.ts'
 
 import { GrpcManager } from './grpc-manager.ts'
 import { PayloadStore } from './payload-store.ts'
+import { millisecondsFromTimestamp } from '../pure-functions/timestamp.ts'
 
 export type PuppetServiceOptions = PUPPET.PuppetOptions & {
   authority?  : string
@@ -338,28 +339,40 @@ class PuppetService extends PUPPET.Puppet {
 
   override async contactRawPayload (id: string): Promise<PUPPET.payloads.Contact> {
     log.verbose('PuppetService', 'contactRawPayload(%s)', id)
+
+    const cachedPayload = await this._payloadStore.contact?.get(id)
+    if (cachedPayload) {
+      log.silly('PuppetService', 'contactRawPayload(%s) cache HIT', id)
+      return cachedPayload
+    }
+
     const res = await this.grpcManager.client.contactPayload({ id })
-    return {
+    const payload: PUPPET.payloads.Contact = {
       address: res.address || undefined,
       alias: res.alias || undefined,
       avatar: res.avatar,
       city: res.city || undefined,
       corporation: res.corporation || undefined,
-      coworker: res.coworker || undefined,
+      coworker: res.coworker,
       description: res.description || undefined,
-      friend: res.friend || undefined,
+      friend: res.friend,
       gender: res.gender as unknown as PUPPET.types.ContactGender,
       id: res.id,
       name: res.name,
       phone: res.phones,
       province: res.province || undefined,
       signature: res.signature || undefined,
-      star: res.star || undefined,
+      star: res.star,
       title: res.title || undefined,
       type: res.type as unknown as PUPPET.types.Contact,
       weixin: res.weixin || undefined,
       handle: res.weixin || undefined,
     }
+
+    await this._payloadStore.contact?.set(id, payload)
+    log.silly('PuppetService', 'contactRawPayload(%s) cache SET', id)
+
+    return payload
   }
 
   override async contactRawPayloadParser (payload: PUPPET.payloads.Contact): Promise<PUPPET.payloads.Contact> {
@@ -516,7 +529,7 @@ class PuppetService extends PUPPET.Puppet {
       roomId: res.roomId || undefined,
       talkerId: res.talkerId,
       text: res.text || undefined,
-      timestamp: Date.now(),
+      timestamp: res.receiveTime ? millisecondsFromTimestamp(res.receiveTime) : Date.now(),
       toId: res.listenerId || undefined,
       type: res.type as PUPPET.types.Message,
     } as PUPPET.payloads.Message
@@ -607,7 +620,7 @@ class PuppetService extends PUPPET.Puppet {
       memberCount: res.memberCount,
       memberIdList: res.memberIds,
       receiverId: res.receiverId,
-      timestamp: Date.now(),
+      timestamp: res.receiveTime ? millisecondsFromTimestamp(res.receiveTime) : Date.now(),
       topic: res.topic,
     }
   }
@@ -630,14 +643,30 @@ class PuppetService extends PUPPET.Puppet {
 
   override async roomMemberRawPayload (roomId: string, memberId: string): Promise<PUPPET.payloads.RoomMember> {
     log.verbose('PuppetService', 'roomMemberRawPayload(%s, %s)', roomId, memberId)
+
+    const cachedPayload = await this._payloadStore.roomMember?.get(roomId)
+    const cachedRoomMemberPayload = cachedPayload && cachedPayload[memberId]
+    if (cachedRoomMemberPayload) {
+      log.silly('PuppetService', 'roomMemberRawPayload(%s, %s) cache HIT', roomId, memberId)
+      return cachedRoomMemberPayload
+    }
+
     const res = await this.grpcManager.client.roomMemberPayload({ id: roomId, memberId })
-    return {
+    const payload: PUPPET.payloads.RoomMember = {
       avatar: res.avatar,
       id: res.id,
       inviterId: res.inviterId || undefined,
       name: res.name,
       roomAlias: res.roomAlias || undefined,
     }
+
+    await this._payloadStore.roomMember?.set(roomId, {
+      ...cachedPayload,
+      [memberId]: payload,
+    })
+    log.silly('PuppetService', 'roomMemberRawPayload(%s, %s) cache SET', roomId, memberId)
+
+    return payload
   }
 
   override async roomMemberRawPayloadParser (payload: PUPPET.payloads.RoomMember): Promise<PUPPET.payloads.RoomMember> {
@@ -646,8 +675,15 @@ class PuppetService extends PUPPET.Puppet {
 
   override async roomRawPayload (id: string): Promise<PUPPET.payloads.Room> {
     log.verbose('PuppetService', 'roomRawPayload(%s)', id)
+
+    const cachedPayload = await this._payloadStore.room?.get(id)
+    if (cachedPayload) {
+      log.silly('PuppetService', 'roomRawPayload(%s) cache HIT', id)
+      return cachedPayload
+    }
+
     const res = await this.grpcManager.client.roomPayload({ id })
-    return {
+    const payload: PUPPET.payloads.Room = {
       adminIdList: res.adminIds,
       avatar: res.avatar || undefined,
       handle: res.handle || undefined,
@@ -656,6 +692,11 @@ class PuppetService extends PUPPET.Puppet {
       ownerId: res.ownerId || undefined,
       topic: res.topic,
     }
+
+    await this._payloadStore.room?.set(id, payload)
+    log.silly('PuppetService', 'roomRawPayload(%s) cache SET', id)
+
+    return payload
   }
 
   override async roomRawPayloadParser (payload: PUPPET.payloads.Room): Promise<PUPPET.payloads.Room> {

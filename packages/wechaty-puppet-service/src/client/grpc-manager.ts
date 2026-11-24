@@ -16,6 +16,7 @@ import {
 } from 'wechaty-grpc'
 import {
   timeoutPromise,
+  TimeoutPromiseGError,
 } from 'gerror'
 import {
   WechatyToken,
@@ -170,7 +171,22 @@ class GrpcManager extends EventEmitter {
 
     if (target.startsWith('wechaty://')) {
       const parsed = new URL(target)
-      target = `${parsed.hostname || '127.0.0.1'}:${parsed.port || '8788'}`
+      const tokenStr = (parsed.pathname || '').replace(/^\//, '')
+      const authority = parsed.hostname || parsed.host || undefined
+      try {
+        const address = await new WechatyToken({
+          authority,
+          token: tokenStr,
+        }).discover()
+        if (address && address.host && address.port) {
+          target = `${address.host}:${address.port}`
+        } else {
+          target = `${parsed.hostname || '127.0.0.1'}:${parsed.port || '8788'}`
+        }
+      } catch (e) {
+        log.warn('GrpcManager', 'initClient() token discovery failed: %s', (e as Error).message)
+        target = `${parsed.hostname || '127.0.0.1'}:${parsed.port || '8788'}`
+      }
     } else if (target.startsWith('http://') || target.startsWith('https://')) {
       const parsed = new URL(target)
       target = parsed.host
@@ -216,17 +232,20 @@ class GrpcManager extends EventEmitter {
 
     let peekedData: EventResponse | undefined
 
-    const future = iterator.next().then(res => {
-      if (!res.done) {
-        peekedData = res.value
-      }
-    })
+    const firstResultPromise: Promise<IteratorResult<EventResponse>> = iterator.next()
 
     log.verbose('GrpcManager', 'startStream() waiting for initial heartbeat...')
     try {
-      await timeoutPromise(future, 5 * 1000)
-    } catch (_) {
-      log.verbose('GrpcManager', 'startStream() initial heartbeat timeout, proceeding')
+      const first = await timeoutPromise(firstResultPromise, 5 * 1000) as IteratorResult<EventResponse>
+      if (!first.done) {
+        peekedData = first.value
+      }
+    } catch (err) {
+      if (err instanceof TimeoutPromiseGError) {
+        log.verbose('GrpcManager', 'startStream() initial heartbeat timeout, proceeding')
+      } else {
+        throw err
+      }
     }
 
     // Start background event loop
@@ -234,6 +253,13 @@ class GrpcManager extends EventEmitter {
       try {
         if (peekedData) {
           this.emit('data', peekedData)
+        } else {
+          const first = await firstResultPromise
+          if (first.done) {
+            this.emit('end')
+            return
+          }
+          this.emit('data', first.value)
         }
         while (!signal.aborted) {
           const res = await iterator.next()

@@ -10,6 +10,7 @@
  */
 class StringValue {
 
+  readonly $typeName = 'google.protobuf.StringValue' as const
   private _value?: string
 
   /**
@@ -61,6 +62,7 @@ class StringValue {
  */
 class Timestamp {
 
+  readonly $typeName = 'google.protobuf.Timestamp' as const
   private _seconds = 0
   private _nanos = 0
 

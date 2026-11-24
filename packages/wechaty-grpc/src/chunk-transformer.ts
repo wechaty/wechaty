@@ -3,6 +3,9 @@
  * `DownloadResponse` messages, for streaming files over gRPC.
  */
 import {
+  create,
+}                 from '@bufbuild/protobuf'
+import {
   Transform,
 }                 from 'stronger-typed-streams'
 
@@ -27,15 +30,19 @@ const chunkEncoder = <T extends ChunkPb> (
   transform: (chunk: Chunk, _: any, callback: (error: Error | null, pb?: T) => void) => {
     const bytes = typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk
     let pb: any
-    try {
-      pb = new PbConstructor()
-    } catch {
-      pb = typeof PbConstructor === 'function' ? PbConstructor({ chunk: bytes }) : { chunk: bytes }
-    }
-    if (typeof pb.setChunk === 'function') {
-      pb.setChunk(chunk)
+    if (PbConstructor && typeof PbConstructor === 'object' && '$typeName' in PbConstructor) {
+      pb = create(PbConstructor, { chunk: bytes })
     } else {
-      pb.chunk = bytes
+      try {
+        pb = new PbConstructor()
+      } catch {
+        pb = typeof PbConstructor === 'function' ? PbConstructor({ chunk: bytes }) : { chunk: bytes }
+      }
+      if (typeof pb.setChunk === 'function') {
+        pb.setChunk(bytes)
+      } else {
+        pb.chunk = bytes
+      }
     }
     callback(null, pb)
   },
