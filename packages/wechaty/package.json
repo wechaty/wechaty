@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "2.0.0-alpha.19",
+  "version": "2.0.0-alpha.20",
   "description": "Wechaty is a RPA SDK for Chatbot Makers.",
   "type": "module",
   "exports": {
@@ -127,11 +127,11 @@
     "memory-card": "^1.1.2",
     "open-graph": "^0.2.6",
     "rx-queue": "^1.0.5",
-    "scopelet": "^2.0.0-alpha.19",
+    "scopelet": "^2.0.0-alpha.20",
     "state-switch": "^2.0.0",
-    "wechaty-puppet": "^2.0.0-alpha.19",
-    "wechaty-puppet-service": "^2.0.0-alpha.19",
-    "wechaty-token": "^2.0.0-alpha.19",
+    "wechaty-puppet": "^2.0.0-alpha.20",
+    "wechaty-puppet-service": "^2.0.0-alpha.20",
+    "wechaty-token": "^2.0.0-alpha.20",
     "ws": "^8.5.0"
   },
   "devDependencies": {
@@ -151,7 +151,7 @@
     "tsx": "^4.23.15",
     "typed-emitter": "^1.5.0-from-event",
     "typedoc": "^1.0.0-dev.4",
-    "wechaty-puppet-mock": "^2.0.0-alpha.19"
+    "wechaty-puppet-mock": "^2.0.0-alpha.20"
   },
   "files": [
     "bin/",

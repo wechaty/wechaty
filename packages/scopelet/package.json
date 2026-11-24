@@ -1,6 +1,6 @@
 {
   "name": "scopelet",
-  "version": "2.0.0-alpha.19",
+  "version": "2.0.0-alpha.20",
   "description": "Scoped ownership for reliable asynchronous lifecycles",
   "type": "module",
   "exports": {

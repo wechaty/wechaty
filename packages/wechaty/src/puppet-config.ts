@@ -33,8 +33,8 @@ const OFFICIAL_PUPPET_DEPENDENCIES = {
    * (`puppet-config.test.ts` checks it); `bin/puppet-install.ts` skips them,
    * as `npm ci` already installs them.
    */
-  'wechaty-puppet-service' : '^2.0.0-alpha.19',  // packages/wechaty-puppet-service
-  'wechaty-puppet-mock'    : '^2.0.0-alpha.19',  // packages/wechaty-puppet-mock
+  'wechaty-puppet-service' : '^2.0.0-alpha.20',  // packages/wechaty-puppet-service
+  'wechaty-puppet-mock'    : '^2.0.0-alpha.20',  // packages/wechaty-puppet-mock
 
   /**
    * External puppets, installed in the Docker image by `bin/puppet-install.ts`.
