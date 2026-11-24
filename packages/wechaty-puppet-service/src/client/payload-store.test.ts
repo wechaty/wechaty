@@ -1,6 +1,7 @@
 /**
- * Unit tests for `PayloadStore`: repeated start and stop, and that `stop()`
- * and `start()` wait for a LevelDB close already in flight.
+ * Unit tests for `PayloadStore`: repeated start and stop, that `stop()` and
+ * `start()` wait for a LevelDB close already in flight, and that a `stop()`
+ * cancels a `start()` whose open has not run yet.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -83,5 +84,47 @@ test('PayloadStore start() reopens only after a pending close', async t => {
   assert.equal(started, true, 'should reopen after the close')
 
   await store.stop()
+  await store.destroy()
+})
+
+test('PayloadStore stop() right after start() leaves no store open', async t => {
+  useTempHome(t)
+  const store = new PayloadStore({ token: Math.random().toString(36) })
+
+  // A login immediately followed by a logout, both from unawaited listeners.
+  const started = store.start('account')
+  await store.stop()
+  await started
+  assert.equal(store.contact, undefined, 'should not open the stores after stop() resolved')
+
+  await store.start('account')
+  assert.ok(store.contact, 'should start again')
+  await store.stop()
+  await store.destroy()
+})
+
+test('PayloadStore stop() cancels a start() that waits for a close', async t => {
+  useTempHome(t)
+  const store = new PayloadStore({ token: Math.random().toString(36) })
+  await store.start('account')
+
+  let releaseClose!: () => void
+  const closeGate = new Promise<void>(resolve => { releaseClose = resolve })
+  const contact = store.contact!
+  const close = contact.close.bind(contact)
+  t.mock.method(contact, 'close', async () => {
+    await closeGate
+    await close()
+  })
+
+  // Logout, login and logout again while the first close is still running.
+  const firstStop = store.stop()
+  const restarted = store.start('account')
+  const secondStop = store.stop()
+
+  releaseClose()
+  await Promise.all([ firstStop, restarted, secondStop ])
+  assert.equal(store.contact, undefined, 'should leave no store open after the last stop()')
+
   await store.destroy()
 })

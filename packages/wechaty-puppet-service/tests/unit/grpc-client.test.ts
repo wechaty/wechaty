@@ -96,11 +96,10 @@ test('GrpcClient with invalid TLS options', async _t => {
   const level = log.level()
   log.level('silent')
 
+  // assert.rejects, not assert.fail inside try: a catch would swallow the
+  // failure and let a regression pass.
   try {
-    await grpcClient.start()
-    assert.fail('should throw for no-tls client to tls-server instead of not running to here')
-  } catch (e) {
-    assert.ok(true, 'should throw for non-tls client to tls-server with noTlsInsecure: true')
+    await assert.rejects(grpcClient.start(), 'should throw for non-tls client to tls-server with noTlsInsecure: true')
   } finally {
     log.level(level)
     try { await grpcClient.stop() } catch (_) {}
@@ -140,10 +139,7 @@ test('GrpcClient with invalid token', async _t => {
   const invalidTokenPuppet = new GrpcManager(puppetOptions)
 
   try {
-    await invalidTokenPuppet.start()
-    assert.fail('should throw for invalid token instead of not running to here')
-  } catch (e) {
-    assert.ok(true, 'should throw for invalid random token')
+    await assert.rejects(invalidTokenPuppet.start(), 'should throw for invalid random token')
   } finally {
     try { await invalidTokenPuppet.stop() } catch (_) {}
   }

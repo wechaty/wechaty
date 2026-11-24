@@ -146,15 +146,14 @@ test('unpackFileBoxChunkFromPb(): should emit error in the output stream', async
 
   const outStream = packFileBoxChunkToPb(puppet.MessageFileStreamResponse)(stream)
 
-  try {
-    await new Promise((resolve, reject) => {
+  await assert.rejects(
+    new Promise((resolve, reject) => {
       outStream.on('error', reject)
       outStream.on('end', resolve)
-    })
-    assert.fail('should reject the promise')
-  } catch (e) {
-    assert.equal((e as Error).message, errorMessage, 'should get the expected rejection error message')
-  }
+    }),
+    { message: errorMessage },
+    'should get the expected rejection error message',
+  )
 })
 
 async function getTestChunkStream (options: {
