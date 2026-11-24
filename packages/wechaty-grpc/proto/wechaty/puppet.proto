@@ -69,9 +69,7 @@ service Puppet {
   }
 
   rpc ContactAlias (puppet.ContactAliasRequest) returns (puppet.ContactAliasResponse);
-  rpc ContactAvatar (puppet.ContactAvatarRequest) returns (puppet.ContactAvatarResponse) {
-    option idempotency_level = NO_SIDE_EFFECTS;
-  }
+  rpc ContactAvatar (puppet.ContactAvatarRequest) returns (puppet.ContactAvatarResponse);
   rpc ContactPhone (puppet.ContactPhoneRequest) returns (puppet.ContactPhoneResponse);
   rpc ContactCorporationRemark (puppet.ContactCorporationRemarkRequest) returns (puppet.ContactCorporationRemarkResponse);
   rpc ContactDescription (puppet.ContactDescriptionRequest) returns (puppet.ContactDescriptionResponse);

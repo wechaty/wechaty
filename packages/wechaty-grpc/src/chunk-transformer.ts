@@ -30,7 +30,7 @@ const chunkEncoder = <T extends ChunkPb> (
   transform: (chunk: Chunk, _: any, callback: (error: Error | null, pb?: T) => void) => {
     const bytes = typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk
     let pb: any
-    if (PbConstructor && typeof PbConstructor === 'object' && '$typeName' in PbConstructor) {
+    if (PbConstructor && typeof PbConstructor === 'object' && ('kind' in PbConstructor || '$typeName' in PbConstructor)) {
       pb = create(PbConstructor, { chunk: bytes })
     } else {
       try {

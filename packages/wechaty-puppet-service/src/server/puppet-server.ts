@@ -104,6 +104,7 @@ export class PuppetServer {
     )
 
     const handler = connectNodeAdapter({
+      readMaxBytes: 4 * 1024 * 1024,
       routes: (router) => {
         router.service(PuppetServiceDefinition, puppetImpl as any, {
           interceptors: [
@@ -117,27 +118,47 @@ export class PuppetServer {
       },
     })
 
+    const requestListener = (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => {
+      if (req.headers[':authority'] && !req.headers['authority']) {
+        req.headers['authority'] = req.headers[':authority']
+      }
+      return handler(req, res)
+    }
+
     const disableTls = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER(this.options.tls?.disable)
 
     let parsedHost = '0.0.0.0'
     let parsedPort = 8788
-    if (this.options.endpoint.includes(':')) {
-      const parts = this.options.endpoint.split(':')
-      parsedHost = parts[0] || '0.0.0.0'
-      parsedPort = parseInt(parts[1] || '8788', 10)
-    } else if (!isNaN(Number(this.options.endpoint))) {
-      parsedPort = parseInt(this.options.endpoint, 10)
+    const endpoint = this.options.endpoint
+    if (endpoint.includes(':')) {
+      const lastColon = endpoint.lastIndexOf(':')
+      const hostPart = endpoint.slice(0, lastColon).replace(/^\[|\]$/g, '')
+      const portPart = endpoint.slice(lastColon + 1)
+      parsedHost = hostPart || '0.0.0.0'
+      const p = parseInt(portPart, 10)
+      if (!isNaN(p)) {
+        parsedPort = p
+      }
+    } else if (!isNaN(Number(endpoint))) {
+      parsedPort = parseInt(endpoint, 10)
     }
 
     if (disableTls) {
       log.warn('PuppetServer', 'start() TLS disabled: INSECURE!')
-      this.server = http2.createServer(handler)
+      this.server = http2.createServer(requestListener)
     } else {
       log.verbose('PuppetServer', 'start() TLS enabled.')
       const cert = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT(this.options.tls?.serverCert) || TLS_INSECURE_SERVER_CERT
       const key = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey) || TLS_INSECURE_SERVER_KEY
-      this.server = http2.createSecureServer({ allowHTTP1: true, cert, key }, handler)
+      this.server = http2.createSecureServer({ allowHTTP1: true, cert, key }, requestListener)
     }
+
+    const sessions = new Set<http2.ServerHttp2Session>()
+    this.server.on('session', (session) => {
+      sessions.add(session)
+      session.once('close', () => sessions.delete(session))
+    })
+    ;(this as any)._sessions = sessions
 
     await new Promise<void>((resolve, reject) => {
       this.server!.once('error', reject)
@@ -156,6 +177,16 @@ export class PuppetServer {
 
   public async stop (): Promise<void> {
     log.verbose('PuppetServer', 'stop()')
+
+    const sessions: Set<http2.ServerHttp2Session> | undefined = (this as any)._sessions
+    if (sessions) {
+      for (const session of sessions) {
+        if (!session.destroyed && !session.closed) {
+          session.close()
+        }
+      }
+      sessions.clear()
+    }
 
     if (this.server) {
       const s = this.server

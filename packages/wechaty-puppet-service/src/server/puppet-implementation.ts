@@ -504,7 +504,7 @@ export function puppetImplementation (
 
     roomTopic: async (req: { id: string; topic?: string }) => {
       log.verbose('PuppetServiceImpl', 'roomTopic()')
-      if (typeof req.topic === 'string' && req.topic.length > 0) {
+      if (typeof req.topic === 'string') {
         await puppet.roomTopic(req.id, req.topic)
         return {}
       }
@@ -628,6 +628,11 @@ export function puppetImplementation (
     messageFileStream: async function* (req: { id: string }) {
       log.verbose('PuppetServiceImpl', 'messageFileStream()')
       const fileBox = await puppet.messageFile(req.id)
+      yield {
+        fileBoxChunk: {
+          name: fileBox.name,
+        },
+      }
       const stream = await fileBox.toStream()
       for await (const chunk of stream) {
         const bytes = typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk
@@ -642,6 +647,11 @@ export function puppetImplementation (
     messageImageStream: async function* (req: { id: string; type: number }) {
       log.verbose('PuppetServiceImpl', 'messageImageStream()')
       const fileBox = await puppet.messageImage(req.id, req.type as PUPPET.types.Image)
+      yield {
+        fileBoxChunk: {
+          name: fileBox.name,
+        },
+      }
       const stream = await fileBox.toStream()
       for await (const chunk of stream) {
         const bytes = typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk

@@ -7,6 +7,7 @@ import { test } from 'node:test'
 /** Type-level equality check, as tstest's `AssertEqual` did. */
 type AssertEqual<T, Expected> = T extends Expected ? (Expected extends T ? true : false) : false
 
+import { isMessage } from '@bufbuild/protobuf'
 import {
   chunkEncoder,
   chunkDecoder,
@@ -33,6 +34,7 @@ test('chunkEncoder and chunkDecoder roundtrip with Protobuf-ES schema', async ()
     encoder.write(rawChunk)
   })
 
+  assert.ok(isMessage(encoded, UploadRequestSchema), 'encoded object must have Protobuf-ES message identity')
   assert.deepEqual(encoded.chunk, rawChunk)
 
   const decoded = await new Promise<Uint8Array>((resolve, reject) => {

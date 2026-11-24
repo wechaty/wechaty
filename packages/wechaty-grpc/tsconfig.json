@@ -8,6 +8,7 @@
     "node_modules/",
     "dist/",
     "out/",
+    "examples/",
     "tests/fixtures/smoke-testing.ts"
   ],
   "include": [
