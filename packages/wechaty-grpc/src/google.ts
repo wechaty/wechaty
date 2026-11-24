@@ -118,9 +118,47 @@ class Timestamp {
    * @returns Current instance for chaining.
    */
   fromDate (date: Date): this {
-    this._seconds = Math.floor(date.getTime() / 1000)
-    this._nanos = (date.getTime() % 1000) * 1e6
+    const ms = date.getTime()
+    this._seconds = Math.floor(ms / 1000)
+    this._nanos = Math.round((ms - this._seconds * 1000) * 1e6)
     return this
+  }
+
+  /**
+   * Creates a new Timestamp instance from a JavaScript Date object.
+   *
+   * @param date Source Date instance.
+   */
+  static fromDate (date: Date): Timestamp {
+    return new Timestamp().fromDate(date)
+  }
+
+  /**
+   * Property getter for seconds component.
+   */
+  get seconds (): bigint {
+    return BigInt(this._seconds)
+  }
+
+  /**
+   * Property setter for seconds component.
+   */
+  set seconds (val: bigint | number) {
+    this._seconds = Number(val)
+  }
+
+  /**
+   * Property getter for nanoseconds component.
+   */
+  get nanos (): number {
+    return this._nanos
+  }
+
+  /**
+   * Property setter for nanoseconds component.
+   */
+  set nanos (val: number) {
+    this._nanos = val
   }
 
   /**

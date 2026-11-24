@@ -27,9 +27,9 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
   const token = `insecure_${NIL_UUID_V4}`
   const endpoint = `127.0.0.1:${port}`
 
-  let puppet: PuppetMock | undefined
-  let puppetServer: PuppetServer | undefined
-  let puppetService: PuppetService | undefined
+  let puppet!: PuppetMock
+  let puppetServer!: PuppetServer
+  let puppetService!: PuppetService
 
   /**
    * Waits for a specific event to be emitted on `puppetService`.
@@ -43,7 +43,7 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
         reject(new Error(`Timeout waiting for event: ${String(eventName)}`))
       }, 5000)
 
-      puppetService!.once(eventName, (payload: any) => {
+      puppetService.once(eventName, (payload: any) => {
         clearTimeout(timer)
         resolve(payload)
       })

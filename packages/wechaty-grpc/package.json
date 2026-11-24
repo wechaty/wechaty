@@ -17,7 +17,7 @@
   },
   "scripts": {
     "generate": "buf generate",
-    "clean": "shx rm -fr dist/* src/generated/*",
+    "clean": "shx rm -fr dist/*",
     "prebuild": "npm run generate",
     "build": "tsc",
     "dist": "npm run clean && npm run build && npm run dist:copy",

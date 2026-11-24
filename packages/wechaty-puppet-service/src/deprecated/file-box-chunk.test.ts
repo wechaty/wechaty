@@ -28,8 +28,8 @@ import { PassThrough }  from 'stream'
 import type { Duplex }       from 'stronger-typed-streams'
 import { FileBox }      from 'file-box'
 
-import {
-  puppet,
+import type {
+  FileBoxChunk,
 }                 from 'wechaty-grpc'
 
 import {
@@ -64,17 +64,17 @@ test('packFileBoxToChunk()', async _t => {
   const stream = await packFileBoxToChunk(fileBox)
 
   const fileBoxChunk = await nextData(stream)
-  assert.ok(fileBoxChunk.hasName(), 'has name')
+  assert.ok(fileBoxChunk.name, 'has name')
 
-  const fileName = fileBoxChunk.getName()
+  const fileName = fileBoxChunk.name
   assert.equal(fileName, FILE_BOX_NAME, 'should get name')
 
   let data = ''
-  stream.on('data', (chunk: puppet.FileBoxChunk) => {
-    if (!chunk.hasData()) {
+  stream.on('data', (chunk: FileBoxChunk) => {
+    if (!chunk.data) {
       throw new Error('no data')
     }
-    data += chunk.getData()
+    data += Buffer.from(chunk.data).toString()
   })
 
   await new Promise(resolve => stream.on('end', resolve))
@@ -138,7 +138,7 @@ async function getFileBoxStreamStub (
     name,
   )
 
-  const stream: Duplex<puppet.FileBoxChunk, puppet.FileBoxChunk> = new PassThrough({ objectMode: true })
+  const stream: Duplex<FileBoxChunk, FileBoxChunk> = new PassThrough({ objectMode: true })
 
   if (firstException) {
     stream.pause()
@@ -147,10 +147,7 @@ async function getFileBoxStreamStub (
       stream.resume()
     })
   } else {
-    const chunk1 = new puppet.FileBoxChunk()
-    if (!noname) {
-      chunk1.setName(fileBox.name)
-    }
+    const chunk1 = (noname ? {} : { name: fileBox.name }) as FileBoxChunk
     setTimeout(() => stream.write(chunk1), 10)
   }
 
@@ -162,8 +159,7 @@ async function getFileBoxStreamStub (
 
   const fileBoxStream = await fileBox.toStream()
   fileBoxStream.on('data', chunk => {
-    const fileBoxChunk = new puppet.FileBoxChunk()
-    fileBoxChunk.setData(chunk)
+    const fileBoxChunk = { data: chunk } as FileBoxChunk
     setTimeout(() => stream.write(fileBoxChunk), 200)
   })
   fileBoxStream.on('end', () => setTimeout(() => stream.end(), 250))

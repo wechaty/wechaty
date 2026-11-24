@@ -5,15 +5,17 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import { FileBox } from 'file-box'
-
-import {
-  puppet,
-}                                 from 'wechaty-grpc'
+import type { FileBoxChunk } from 'wechaty-grpc'
 
 import {
   packFileBoxToPb,
   unpackFileBoxFromPb,
 }                             from './file-box-pb.ts'
+import type { FileBoxPb } from './file-box-pb.type.ts'
+
+class MessageFileStreamResponse implements FileBoxPb {
+  fileBoxChunk?: FileBoxChunk
+}
 
 test('packFileBoxToPb()', async _t => {
   const FILE_BOX_DATA = 'test'
@@ -24,7 +26,7 @@ test('packFileBoxToPb()', async _t => {
     FILE_BOX_NAME,
   )
 
-  const pb = await packFileBoxToPb(puppet.MessageFileStreamResponse)(fileBox)
+  const pb = await packFileBoxToPb(MessageFileStreamResponse)(fileBox)
   const restoredFileBox = await unpackFileBoxFromPb(pb)
   assert.ok(restoredFileBox instanceof FileBox, 'should get an instance of FileBOX')
 

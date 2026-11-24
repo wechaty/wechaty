@@ -4,78 +4,62 @@
  * downloads it with `download`. It is a clone of `FileBox`, so the global
  * class is not changed.
  */
-import type {
-  Readable,
-  Writable,
-}                       from 'stream'
+import { Readable } from 'node:stream'
 
 import {
   FileBox,
   type UuidLoader,
   type UuidSaver,
-}                         from 'file-box'
-import {
-  chunkDecoder,
-  chunkEncoder,
-  puppet as pbPuppet,
-}                         from 'wechaty-grpc'
+} from 'file-box'
 import {
   cloneClass,
   type Constructor,
-}                         from 'clone-class'
+} from 'clone-class'
+import type { Client } from '@connectrpc/connect'
+import type { Puppet } from 'wechaty-grpc'
 
-const uuidResolverGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidLoader = (
-  grpcClient,
-) => async function uuidResolver (
+const uuidResolverGrpc = (
+  grpcClient: () => Client<typeof Puppet>,
+): UuidLoader => async function uuidResolver (
   this : FileBox,
   uuid : string,
 ) {
-  const request = new pbPuppet.DownloadRequest()
-  request.setId(uuid)
+  const responseStream = grpcClient().download({ id: uuid })
 
-  const response = grpcClient().download(request)
+  async function* toChunks () {
+    for await (const res of responseStream) {
+      if (res.chunk && res.chunk.length > 0) {
+        yield res.chunk
+      }
+    }
+  }
 
-  const stream = response
-    .pipe(chunkDecoder())
-
-  return stream
+  return Readable.from(toChunks())
 }
 
-const uuidRegisterGrpc: (grpcClient: () => pbPuppet.PuppetClient) => UuidSaver = (
-  grpcClient,
-) => async function uuidRegister (
+const uuidRegisterGrpc = (
+  grpcClient: () => Client<typeof Puppet>,
+): UuidSaver => async function uuidRegister (
   this   : FileBox,
   stream : Readable,
 ) {
-  const response = await new Promise<pbPuppet.UploadResponse>((resolve, reject) => {
-    const request = grpcClient().upload((err, response) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(response)
+  async function* toRequests () {
+    for await (const chunk of stream) {
+      yield {
+        chunk: typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk,
       }
-    }) as unknown as Writable  // Huan(202203) FIXME: as unknown as
+    }
+  }
 
-    stream
-      .pipe(chunkEncoder(pbPuppet.UploadRequest))
-      .pipe(request)
-  })
-
-  const uuid = response.getId()
-  return uuid
+  const response = await grpcClient().upload(toRequests())
+  return response.id
 }
 
-type UuidifyFileBoxGrpcFactory = (grpcClient: () => pbPuppet.PuppetClient) => typeof FileBox
+type UuidifyFileBoxGrpcFactory = (grpcClient: () => Client<typeof Puppet>) => typeof FileBox
 
 const uuidifyFileBoxGrpc: UuidifyFileBoxGrpcFactory = (
   grpcClient,
 ) => {
-  /**
-   * `as any`:
-   *
-   * Huan(202110): TypeError: Cannot read property 'valueDeclaration' of undefined #58
-   *  https://github.com/huan/clone-class/issues/58
-   */
   const FileBoxUuid: typeof FileBox = cloneClass(FileBox as any as Constructor<FileBox>) as any
 
   FileBoxUuid.setUuidLoader(uuidResolverGrpc(grpcClient))

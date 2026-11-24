@@ -1,23 +1,32 @@
 /**
- * Unit test for `metaGeneratorToken()`: it yields metadata with
- * `authorization: Wechaty <token>`.
+ * Unit test for `callCredToken()`: verifies that the client interceptor
+ * injects `authorization: Wechaty <token>` into outgoing request headers.
  */
 import assert from 'node:assert/strict'
-import { mock, test } from 'node:test'
+import { test } from 'node:test'
 
-import { metaGeneratorToken } from './call-cred.ts'
+import { callCredToken } from './call-cred.ts'
 
-test('metaGeneratorToken()', async _t => {
+test('callCredToken() sets authorization header', async () => {
   const TOKEN = 'UUIDv4'
-  const EXPECTED_AUTHORIZATION = `Wechaty ${TOKEN}`
-  const spy = mock.fn()
+  const interceptor = callCredToken(TOKEN)
 
-  const metaGenerator = metaGeneratorToken(TOKEN)
+  const headers = new Headers()
+  const req = {
+    header: headers,
+  }
 
-  metaGenerator({} as any, spy)
-  assert.equal(spy.mock.calls[0]!.arguments[0], null, 'should no error')
+  let capturedReq: any
+  const next = async (r: any) => {
+    capturedReq = r
+    return { ok: true }
+  }
 
-  const metadata = spy.mock.calls[0]!.arguments[1]
-  const authorization = metadata.get('Authorization')[0]
-  assert.equal(authorization, EXPECTED_AUTHORIZATION, 'should generate authorization in metadata')
+  await interceptor(next as any)(req as any)
+
+  assert.equal(
+    capturedReq.header.get('authorization'),
+    `Wechaty ${TOKEN}`,
+    'should generate authorization in headers',
+  )
 })

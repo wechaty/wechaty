@@ -21,9 +21,13 @@
  *   limitations under the License.
  *
  */
-import {
-  puppet,
-}                                       from 'wechaty-grpc'
+import type { FileBoxChunk } from 'wechaty-grpc'
+import type { ConversationIdFileBoxPb } from './file-box-pb.type.ts'
+
+class MessageSendFileStreamRequest implements ConversationIdFileBoxPb {
+  conversationId?: string
+  fileBoxChunk?: FileBoxChunk
+}
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -48,22 +52,18 @@ test('unpackConversationIdFileBoxArgsFromPb()', async _t => {
 
   const stream = new PassThrough({ objectMode: true })
 
-  const req1 = new puppet.MessageSendFileStreamRequest()
-  req1.setConversationId(CONVERSATION_ID)
+  const req1 = new MessageSendFileStreamRequest()
+  req1.conversationId = CONVERSATION_ID
   stream.write(req1)
 
-  const req2 = new puppet.MessageSendFileStreamRequest()
-  const chunk1 = new puppet.FileBoxChunk()
-  chunk1.setName(fileBox.name)
-  req2.setFileBoxChunk(chunk1)
+  const req2 = new MessageSendFileStreamRequest()
+  req2.fileBoxChunk = { name: fileBox.name } as FileBoxChunk
   stream.write(req2)
 
   const fileBoxStream = await fileBox.toStream()
   fileBoxStream.on('data', chunk => {
-    const fileBoxChunk = new puppet.FileBoxChunk()
-    fileBoxChunk.setData(chunk)
-    const req3 = new puppet.MessageSendFileStreamRequest()
-    req3.setFileBoxChunk(fileBoxChunk)
+    const req3 = new MessageSendFileStreamRequest()
+    req3.fileBoxChunk = { data: chunk } as FileBoxChunk
     stream.write(req3)
   })
   fileBoxStream.on('end', () => stream.end())
@@ -86,28 +86,28 @@ test('packConversationIdFileBoxToPb()', async _t => {
     FILE_BOX_NAME,
   )
 
-  const stream = await packConversationIdFileBoxToPb(puppet.MessageSendFileStreamRequest)(
+  const stream = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(
     CONVERSATION_ID,
     fileBox,
   )
 
   const data1 = await nextData(stream)
-  assert.equal(data1.getConversationId(), CONVERSATION_ID, 'match conversation id')
+  assert.equal(data1.conversationId, CONVERSATION_ID, 'match conversation id')
 
   const data2 = await nextData(stream)
-  assert.ok(data2.hasFileBoxChunk(), 'has file box chunk')
-  assert.ok(data2.getFileBoxChunk()!.hasName(), 'has file box name')
-  assert.equal(data2.getFileBoxChunk()!.getName(), FILE_BOX_NAME, 'match file box name')
+  assert.ok(data2.fileBoxChunk, 'has file box chunk')
+  assert.ok(data2.fileBoxChunk.name, 'has file box name')
+  assert.equal(data2.fileBoxChunk.name, FILE_BOX_NAME, 'match file box name')
 
   let data = ''
-  stream.on('data', (chunk: puppet.MessageSendFileStreamRequest) => {
-    if (!chunk.hasFileBoxChunk()) {
+  stream.on('data', (chunk: MessageSendFileStreamRequest) => {
+    if (!chunk.fileBoxChunk) {
       throw new Error('no file box chunk')
     }
-    if (!chunk.getFileBoxChunk()!.hasData()) {
+    if (!chunk.fileBoxChunk.data) {
       throw new Error('no file box chunk data')
     }
-    data += chunk.getFileBoxChunk()!.getData()
+    data += Buffer.from(chunk.fileBoxChunk.data).toString()
   })
 
   await new Promise(resolve => stream.on('end', resolve))
@@ -125,7 +125,7 @@ test('unpackConversationIdFileBoxArgsFromPb() <-> packConversationIdFileBoxToPb(
     FILE_BOX_NAME,
   )
 
-  const stream = await packConversationIdFileBoxToPb(puppet.MessageSendFileStreamRequest)(CONVERSATION_ID, fileBox)
+  const stream = await packConversationIdFileBoxToPb(MessageSendFileStreamRequest)(CONVERSATION_ID, fileBox)
   const args = await unpackConversationIdFileBoxArgsFromPb(stream)
 
   assert.equal(args.conversationId, CONVERSATION_ID, 'should match conversation id')

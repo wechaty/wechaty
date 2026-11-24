@@ -9,9 +9,7 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import util from 'node:util'
 
-import { puppet as grpcPuppet } from 'wechaty-grpc'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
 import { GrpcManager } from '../../src/client/grpc-manager.ts'
@@ -65,12 +63,7 @@ test('conversationRead RPC', async t => {
   })
 
   const conversationRead = (conversationId: string, hasRead: boolean) => {
-    const request = new grpcPuppet.ConversationReadRequest()
-    request.setConversationId(conversationId)
-    request.setHasRead(hasRead)
-    return util.promisify(
-      grpcManager.client.conversationRead.bind(grpcManager.client),
-    )(request)
+    return grpcManager.client.conversationRead({ conversationId, hasRead })
   }
 
   await t.test('passes the request to the puppet and returns its answer', async () => {
@@ -78,14 +71,14 @@ test('conversationRead RPC', async t => {
     const response = await conversationRead('room_id', true)
 
     assert.deepEqual(puppet.calls, [ [ 'room_id', true ] ], 'should call conversationReadMark() once with the conversation id and state')
-    assert.equal(response.getHasRead(), true, 'should return the puppet answer')
+    assert.equal(response.hasRead, true, 'should return the puppet answer')
   })
 
   await t.test('returns the requested state when the puppet returns nothing', async () => {
     puppet.answer = async () => undefined
     const response = await conversationRead('contact_id', false)
 
-    assert.equal(response.getHasRead(), false, 'should echo the requested state')
+    assert.equal(response.hasRead, false, 'should echo the requested state')
   })
 
   await t.test('reports a puppet failure as a gRPC error', async () => {

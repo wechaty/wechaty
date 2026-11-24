@@ -40,6 +40,33 @@ import {
 } from './chunk-transformer.ts'
 
 /**
+ * Aggregated `EventType` supporting both modern Protobuf-ES v2 names (e.g. `EventType.DONG`)
+ * and backwards-compatible legacy enum aliases (e.g. `EventType.EVENT_TYPE_DONG`).
+ */
+const EventType = {
+  ...event.EventType,
+  EVENT_TYPE_UNSPECIFIED: event.EventType.UNSPECIFIED,
+  EVENT_TYPE_HEARTBEAT: event.EventType.HEARTBEAT,
+  EVENT_TYPE_MESSAGE: event.EventType.MESSAGE,
+  EVENT_TYPE_DONG: event.EventType.DONG,
+  EVENT_TYPE_POST: event.EventType.POST,
+  EVENT_TYPE_ERROR: event.EventType.ERROR,
+  EVENT_TYPE_FRIENDSHIP: event.EventType.FRIENDSHIP,
+  EVENT_TYPE_ROOM_INVITE: event.EventType.ROOM_INVITE,
+  EVENT_TYPE_ROOM_JOIN: event.EventType.ROOM_JOIN,
+  EVENT_TYPE_ROOM_LEAVE: event.EventType.ROOM_LEAVE,
+  EVENT_TYPE_ROOM_TOPIC: event.EventType.ROOM_TOPIC,
+  EVENT_TYPE_SCAN: event.EventType.SCAN,
+  EVENT_TYPE_READY: event.EventType.READY,
+  EVENT_TYPE_RESET: event.EventType.RESET,
+  EVENT_TYPE_LOGIN: event.EventType.LOGIN,
+  EVENT_TYPE_LOGOUT: event.EventType.LOGOUT,
+  EVENT_TYPE_DIRTY: event.EventType.DIRTY,
+  EVENT_TYPE_ROOM_ANNOUNCE: event.EventType.ROOM_ANNOUNCE,
+} as const
+type EventType = event.EventType
+
+/**
  * Aggregated `puppet` namespace preserving familiar grouped access to schemas,
  * enums, and the core Puppet service definition.
  */
@@ -49,6 +76,7 @@ const puppet = {
   ...conversation,
   ...downloadUpload,
   ...event,
+  EventType,
   ...friendship,
   ...image,
   ...location,
@@ -75,6 +103,9 @@ const google = {
   ServingStatus: health.HealthCheckResponse_ServingStatus,
 }
 
+const Health = health.Health
+const HealthService = health.Health
+const PuppetService = Puppet
 const ServingStatus = health.HealthCheckResponse_ServingStatus
 type ServingStatus = health.HealthCheckResponse_ServingStatus
 
@@ -90,11 +121,15 @@ export {
   chunkEncoder,
   chunkDecoder,
   codeRoot,
+  EventType,
   getProtoPath,
   google,
+  Health,
+  HealthService,
   proto,
   puppet,
   Puppet,
+  PuppetService,
   ServingStatus,
   StringValue,
   Timestamp,

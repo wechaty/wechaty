@@ -27,9 +27,9 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
   const endpoint = `127.0.0.1:${port}`
 
   const mocker = new mockModule.Mocker()
-  let puppet: PuppetMock | undefined
-  let puppetServer: PuppetServer | undefined
-  let puppetService: PuppetService | undefined
+  let puppet!: PuppetMock
+  let puppetServer!: PuppetServer
+  let puppetService!: PuppetService
 
   try {
     puppet = new PuppetMock({ mocker })

@@ -1,76 +1,35 @@
 /**
- * `puppetImplementation()`: the handlers of the Wechaty puppet gRPC service,
- * each mapping a request onto the served puppet's API. It replays the last
- * `scan` payload to a client that connects before login, re-sends the last
- * `ready` 5 seconds after a login, and serves the deprecated streaming file
- * RPCs through `deprecated/`.
+ * `puppetImplementation()`: ConnectRPC service handlers for the Wechaty Puppet service,
+ * mapping incoming requests to the underlying `wechaty-puppet` implementation.
  */
-/**
- *   Wechaty Open Source Software - https://github.com/wechaty
- *
- *   @copyright 2016 Huan Li <huan@chatie.io>, and
- *                   Wechaty Contributors <https://github.com/wechaty>.
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
- */
-/* eslint-disable sort-keys */
-import type { Writable }    from 'stream'
+import { Readable } from 'node:stream'
 import {
-  chunkDecoder,
-  chunkEncoder,
-  StringValue,
-  grpc,
-  puppet as grpcPuppet,
-}                           from 'wechaty-grpc'
-import type {
-  FileBoxInterface,
+  EventType,
+  VERSION,
+  type EventResponse,
+} from 'wechaty-grpc'
+import {
   FileBox,
-}                           from 'file-box'
-import * as PUPPET          from 'wechaty-puppet'
-import { timeoutPromise }   from 'gerror'
+  type FileBoxInterface,
+} from 'file-box'
+import * as PUPPET from 'wechaty-puppet'
+import { timeoutPromise } from 'gerror'
+import { ConnectError, Code } from '@connectrpc/connect'
 
-import {
-  packFileBoxToPb,
-  unpackConversationIdFileBoxArgsFromPb,
-}                                         from '../deprecated/mod.ts'
-
-import {
-  timestampFromMilliseconds,
-}                             from '../pure-functions/timestamp.ts'
-import {
-  normalizeFileBoxUuid,
-}                             from '../file-box-helper/mod.ts'
+import { normalizeFileBoxUuid } from '../file-box-helper/mod.ts'
 import { log } from '../config.ts'
-import { grpcError }          from './grpc-error.ts'
-import { EventStreamManager } from './event-stream-manager.ts'
+import { EventStreamManager, type EventStreamSink } from './event-stream-manager.ts'
 
-function puppetImplementation (
+export function puppetImplementation (
   puppet      : PUPPET.impls.PuppetInterface,
   FileBoxUuid : typeof FileBox,
-): grpcPuppet.IPuppetServer {
-
-  /**
-   * Save scan payload to send it to the puppet-service right after connected (if needed)
-   *
-   * TODO: clean the listeners if necessary
-   */
+) {
   let scanPayload: undefined  | PUPPET.payloads.EventScan
   let readyPayload: undefined | PUPPET.payloads.EventReady
   let readyTimeout: undefined | ReturnType<typeof setTimeout>
 
-  puppet.on('scan', payload  => { scanPayload = payload    })
-  puppet.on('ready', payload => { readyPayload = payload   })
+  puppet.on('scan', payload  => { scanPayload = payload })
+  puppet.on('ready', payload => { readyPayload = payload })
   puppet.on('logout', _      => {
     readyPayload = undefined
     if (readyTimeout) {
@@ -80,1488 +39,630 @@ function puppetImplementation (
   puppet.on('login', _       => {
     scanPayload = undefined
     readyTimeout = setTimeout(() => {
-      // Huan(202110): should we emit ready event here?
-      readyPayload && eventStreamManager.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_READY, readyPayload)
+      if (readyPayload) {
+        eventStreamManager.grpcEmit(EventType.READY, readyPayload)
+      }
     }, 5 * 1000)
   })
 
   const eventStreamManager = new EventStreamManager(puppet)
 
   const serializeFileBox = async (fileBox: FileBoxInterface) => {
-    /**
-     * 1. if the fileBox is one of type `Url`, `QRCode`, `Uuid`, etc,
-     *  then it can be serialized by `fileBox.toString()`
-     * 2. if the fileBox is one of type `Stream`, `Buffer`, `File`, etc,
-     *  then it need to be convert to type `Uuid`
-     *  before serialized by `fileBox.toString()`
-     */
     const normalizedFileBox = await normalizeFileBoxUuid(FileBoxUuid)(fileBox)
     return JSON.stringify(normalizedFileBox)
   }
 
-  const puppetServerImpl: grpcPuppet.IPuppetServer = {
+  return {
 
-    contactAlias: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactAlias()')
-
-      const id = call.request.getId()
-
-      /**
-       * Set
-       */
-      if (call.request.hasAlias()) {
-        try {
-          await puppet.contactAlias(id, call.request.getAlias())
-          return callback(null, new  grpcPuppet.ContactAliasResponse())
-        } catch (e) {
-          return grpcError('contactAlias', e, callback)
-        }
-      }
-
-      /**
-       * Get
-       */
-      try {
-        const alias = await puppet.contactAlias(id)
-
-        const response = new grpcPuppet.ContactAliasResponse()
-        response.setAlias(alias)
-
-        return callback(null, response)
-      } catch (e) {
-        return grpcError('contactAlias', e, callback)
-      }
-
-    },
-
-    contactAvatar: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactAvatar()')
-
-      const id = call.request.getId()
-
-      /**
-       * Set
-       */
-      try {
-        if (call.request.hasFileBox()) {
-
-          const fileBox = FileBoxUuid.fromJSON(
-            call.request.getFileBox(),
-          )
-          await puppet.contactAvatar(id, fileBox)
-
-          return callback(null, new grpcPuppet.ContactAvatarResponse())
-        }
-      } catch (e) {
-        return grpcError('contactAvatar', e, callback)
-      }
-
-      /**
-       * Get
-       */
-      try {
-        const fileBox           = await puppet.contactAvatar(id)
-        const serializedFileBox = await serializeFileBox(fileBox)
-
-        const response  = new grpcPuppet.ContactAvatarResponse()
-        response.setFileBox(serializedFileBox)
-
-        return callback(null, response)
-      } catch (e) {
-        return grpcError('contactAvatar', e, callback)
-      }
-    },
-
-    contactCorporationRemark: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactCorporationRemark()')
-
-      const contactId = call.request.getContactId()
-      try {
-        await puppet.contactCorporationRemark(
-          contactId,
-          call.request.getCorporationRemark() || null,
-        )
-        return callback(null, new grpcPuppet.ContactCorporationRemarkResponse())
-      } catch (e) {
-        return grpcError('contactCorporationRemark', e, callback)
-      }
-    },
-
-    contactDescription: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactDescription()')
-
-      const contactId = call.request.getContactId()
-
-      try {
-        const description = call.request.getDescription()
-        await puppet.contactDescription(contactId, description || null)
-        return callback(null, new grpcPuppet.ContactDescriptionResponse())
-      } catch (e) {
-        return grpcError('contactDescription', e, callback)
-      }
-    },
-
-    contactList: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactList()')
-
-      void call // empty request
-
-      try {
-        const idList = await puppet.contactList()
-        const response = new grpcPuppet.ContactListResponse()
-        response.setIdsList(idList)
-
-        return callback(null, response)
-      } catch (e) {
-        return grpcError('contactList', e, callback)
-      }
-    },
-
-    contactPayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactPayload()')
-
-      const id = call.request.getId()
-
-      try {
-        const payload = await puppet.contactPayload(id)
-
-        const response = new grpcPuppet.ContactPayloadResponse()
-        response.setAddress(payload.address || '')
-        response.setAlias(payload.alias || '')
-        response.setAvatar(payload.avatar)
-        response.setCity(payload.city || '')
-        response.setFriend(payload.friend || false)
-        response.setGender(payload.gender)
-        response.setId(payload.id)
-        response.setName(payload.name)
-        response.setProvince(payload.province || '')
-        response.setSignature(payload.signature || '')
-        response.setStar(payload.star || false)
-        response.setType(payload.type)
-        /**
-         * @deprecated `payload.weixin` will be removed in v2.0
-         *  @link https://github.com/wechaty/grpc/issues/174
-         */
-        response.setWeixin(payload.handle || payload.weixin || '')
-        response.setPhonesList(payload.phone)
-        response.setCoworker(payload.coworker || false)
-        response.setCorporation(payload.corporation || '')
-        response.setTitle(payload.title || '')
-        response.setDescription(payload.description || '')
-
-        return callback(null, response)
-      } catch (e) {
-        return grpcError('contactPayload', e, callback)
-      }
-    },
-
-    contactPhone: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactPhone()')
-
-      try {
-        const contactId = call.request.getContactId()
-        const phoneList = call.request.getPhonesList()
-
-        await puppet.contactPhone(contactId, phoneList)
-        return callback(null, new grpcPuppet.ContactPhoneResponse())
-      } catch (e) {
-        return grpcError('contactPhone', e, callback)
-      }
-    },
-
-    contactSelfName: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactSelfName()')
-
-      try {
-        const name = call.request.getName()
-        await puppet.contactSelfName(name)
-
-        return callback(null, new grpcPuppet.ContactSelfNameResponse())
-
-      } catch (e) {
-        return grpcError('contactSelfName', e, callback)
-      }
-    },
-
-    contactSelfQRCode: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactSelfName()')
-      void call
-
-      try {
-        const qrcode = await puppet.contactSelfQRCode()
-
-        const response = new grpcPuppet.ContactSelfQRCodeResponse()
-        response.setQrcode(qrcode)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('contactSelfQRCode', e, callback)
-      }
-
-    },
-
-    contactSelfSignature: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'contactSelfSignature()')
-
-      try {
-        const signature = call.request.getSignature()
-        await puppet.contactSelfSignature(signature)
-
-        return callback(null, new grpcPuppet.ContactSelfSignatureResponse())
-
-      } catch (e) {
-        return grpcError('contactSelfSignature', e, callback)
-      }
-
-    },
-
-    ding: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'ding()')
-
-      try {
-        const data = call.request.getData()
-        await puppet.ding(data)
-        return callback(null, new grpcPuppet.DingResponse())
-
-      } catch (e) {
-        return grpcError('ding', e, callback)
-      }
-    },
-
-    dirtyPayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'dirtyPayload()')
-
-      try {
-        const id = call.request.getId()
-        const type: PUPPET.types.Dirty = call.request.getType()
-
-        await puppet.dirtyPayload(type, id)
-        return callback(null, new grpcPuppet.DirtyPayloadResponse())
-      } catch (e) {
-        return grpcError('puppet.dirtyPayload() rejection: ', e, callback)
-      }
-    },
-
-    /**
-     *
-     * Bridge Event Emitter Events
-     *
-     */
-    event: (streamingCall) => {
-      log.verbose('PuppetServiceImpl', 'event()')
-
-      if (eventStreamManager.busy()) {
-        log.error('PuppetServiceImpl', 'event() there is another event() call not end when receiving a new one.')
-
-        const error: grpc.ServiceError = {
-          ...new Error('GrpcServerImpl.event() can not call twice.'),
-          code: grpc.status.ALREADY_EXISTS,
-          details: 'GrpcServerImpl.event() can not call twice.',
-          metadata: streamingCall.metadata,
-        }
-
-        /**
-          * Send error from gRPC server stream:
-          *  https://github.com/grpc/grpc-node/issues/287#issuecomment-383218225
-          *
-          * Streaming RPCs
-          *  - https://grpc.io/docs/tutorials/basic/node/
-          *    Only one of 'error' or 'end' will be emitted. Finally, the 'status' event fires when the server sends the status.
-          */
-        streamingCall.emit('error', error)
-        return
-      }
-
-      eventStreamManager.start(streamingCall)
-
-      /**
-       * If `scanPayload` is not undefined, then we emit it to downstream immediatelly
-       */
-      if (scanPayload) {
-        eventStreamManager.grpcEmit(grpcPuppet.EventType.EVENT_TYPE_SCAN, scanPayload)
-      }
-    },
-
-    friendshipAccept: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipAccept()')
-
-      try {
-        const id = call.request.getId()
-        await puppet.friendshipAccept(id)
-        return callback(null, new grpcPuppet.FriendshipAcceptResponse())
-
-      } catch (e) {
-        return grpcError('friendshipAccept', e, callback)
-      }
-    },
-
-    friendshipAdd: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipAdd()')
-
-      try {
-        const contactId = call.request.getContactId()
-        // FIXME: for backward compatibility, need to be removed after all puppet has updated.
-        const hello = call.request.getHello()
-
-        const referrer = call.request.getReferrer()
-        const friendshipAddOptions: PUPPET.types.FriendshipAddOptions = {
-          hello,
-          ...referrer,
-        }
-
-        {
-          // Deprecated: will be removed after Dec 31, 2022
-          const sourceContactId = call.request.getSourceContactIdStringValueDeprecated()?.getValue()
-          const sourceRoomId    = call.request.getSourceRoomIdStringValueDeprecated()?.getValue()
-          if (sourceContactId)  { friendshipAddOptions['contactId'] = sourceContactId }
-          if (sourceRoomId)     { friendshipAddOptions['roomId']    = sourceRoomId }
-        }
-
-        await puppet.friendshipAdd(contactId, friendshipAddOptions)
-        return callback(null, new grpcPuppet.FriendshipAddResponse())
-
-      } catch (e) {
-        return grpcError('friendshipAdd', e, callback)
-      }
-    },
-
-    friendshipPayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipPayload()')
-
-      try {
-        const id = call.request.getId()
-        const payload = await puppet.friendshipPayload(id)
-        const payloadReceive = payload as PUPPET.payloads.FriendshipReceive
-
-        const response = new grpcPuppet.FriendshipPayloadResponse()
-
-        response.setContactId(payload.contactId)
-        response.setHello(payload.hello || '')
-        response.setId(payload.id)
-        response.setScene(payloadReceive.scene || PUPPET.types.FriendshipScene.Unknown)
-        response.setStranger(payloadReceive.stranger || '')
-        response.setTicket(payloadReceive.ticket)
-        response.setType(payload.type)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('friendshipPayload', e, callback)
-      }
-    },
-
-    friendshipSearchPhone: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipSearchPhone()')
-
-      try {
-        const phone = call.request.getPhone()
-        const contactId = await puppet.friendshipSearchPhone(phone)
-
-        const response = new grpcPuppet.FriendshipSearchPhoneResponse()
-
-        if (contactId) {
-          response.setContactId(contactId)
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('friendshipSearchPhone', e, callback)
-      }
-    },
-    /**
-     * @deprecated use `friendshipSearchHandle()` instead, will be removed in v3.0
-     */
-    friendshipSearchWeixin: async (call, callback) => {
-      log.warn('PuppetServiceImpl', 'friendshipSearchWeixin() is deprecated, use friendshipSearchHandle() instead. %s', new Error().stack)
-      return puppetServerImpl.friendshipSearchHandle(call, callback)
-    },
-
-    friendshipSearchHandle: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'friendshipSearchHandle()')
-
-      try {
-        /**
-         * Huan(202203): rename `getWeixin()` to `getHandle()` in v2.0.0
-         *  @link https://github.com/wechaty/grpc/issues/174
-         */
-        const handle = call.request.getWeixin()
-        const contactId = await puppet.friendshipSearchHandle(handle)
-
-        const response = new grpcPuppet.FriendshipSearchHandleResponse()
-
-        if (contactId) {
-          response.setContactId(contactId)
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('friendshipSearchHandle', e, callback)
-      }
-    },
-
-    logout: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'logout()')
-      void call // empty arguments
-
-      try {
-        await puppet.logout()
-
-        return callback(null, new grpcPuppet.LogoutResponse())
-
-      } catch (e) {
-        return grpcError('logout', e, callback)
-      }
-    },
-
-    messageContact: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageContact()')
-
-      try {
-        const id = call.request.getId()
-
-        const contactId = await puppet.messageContact(id)
-
-        const response = new grpcPuppet.MessageContactResponse()
-        response.setId(contactId)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageContact', e, callback)
-      }
-    },
-
-    messageFile: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageFile()')
-
-      try {
-        const id = call.request.getId()
-
-        const fileBox           = await puppet.messageFile(id)
-        const serializedFileBox = await serializeFileBox(fileBox)
-
-        const response = new grpcPuppet.MessageFileResponse()
-        response.setFileBox(serializedFileBox)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageFile', e, callback)
-      }
-    },
-
-    /**
-     * @deprecated will be removed after Dec 31, 2022
-     */
-    messageFileStream: async (call) => {
-      log.verbose('PuppetServiceImpl', 'messageFileStream()')
-
-      try {
-        const id = call.request.getId()
-
-        const fileBox  = await puppet.messageFile(id)
-        const response = await packFileBoxToPb(grpcPuppet.MessageFileStreamResponse)(fileBox)
-
-        response.on('error', e => call.destroy(e as Error))
-        response.pipe(call as unknown as Writable) // Huan(202203): FIXME: as unknown as
-
-      } catch (e) {
-        log.error('PuppetServiceImpl', 'grpcError() messageFileStream() rejection: %s', e && (e as Error).message)
-        call.destroy(e as Error)
-      }
-    },
-
-    messageForward: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageForward()')
-
-      try {
-        const conversationId = call.request.getConversationId()
-        const messageId = call.request.getMessageId()
-
-        const id = await puppet.messageForward(conversationId, messageId)
-
-        const response = new grpcPuppet.MessageForwardResponse()
-        if (id) {
-          response.setId(id)
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const idWrapper = new StringValue()
-            idWrapper.setValue(id)
-            response.setIdStringValueDeprecated(idWrapper)
-          }
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageForward', e, callback)
-      }
-    },
-
-    messageImage: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageImage()')
-
-      try {
-        const id    = call.request.getId()
-        const type  = call.request.getType()
-
-        const fileBox           = await puppet.messageImage(id, type)
-        const serializedFileBox = await serializeFileBox(fileBox)
-
-        const response = new grpcPuppet.MessageImageResponse()
-        response.setFileBox(serializedFileBox)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageImage', e, callback)
-      }
-    },
-
-    /**
-     * @deprecated will be removed after Dec 31, 2022
-     */
-    messageImageStream: async (call) => {
-      log.verbose('PuppetServiceImpl', 'messageImageStream()')
-
-      try {
-        const id    = call.request.getId()
-        const type  = call.request.getType()
-
-        const fileBox  = await puppet.messageImage(id, type) //  as number as PUPPET.types.Image
-        const response = await packFileBoxToPb(grpcPuppet.MessageImageStreamResponse)(fileBox)
-
-        response.on('error', e => call.destroy(e as Error))
-        response.pipe(call as unknown as Writable)  // Huan(202203) FIXME: as unknown as
-
-      } catch (e) {
-        log.error('PuppetServiceImpl', 'grpcError() messageImageStream() rejection: %s', (e as Error).message)
-        call.destroy(e as Error)
-      }
-    },
-
-    messageLocation: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageLocation()')
-
-      try {
-        const id = call.request.getId()
-
-        const payload = await puppet.messageLocation(id)
-
-        const response = new grpcPuppet.MessageLocationResponse()
-
-        const pbLocationPayload = new grpcPuppet.LocationPayload()
-        pbLocationPayload.setLatitude(payload.latitude)
-        pbLocationPayload.setLongitude(payload.longitude)
-        pbLocationPayload.setAccuracy(payload.accuracy)
-        pbLocationPayload.setAddress(payload.address)
-        pbLocationPayload.setName(payload.name)
-        response.setLocation(pbLocationPayload)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageLocation', e, callback)
-      }
-    },
-
-    messageMiniProgram: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageMiniProgram()')
-
-      try {
-        const id = call.request.getId()
-
-        const payload = await puppet.messageMiniProgram(id)
-
-        const response = new grpcPuppet.MessageMiniProgramResponse()
-
-        const pbMiniProgramPayload = new grpcPuppet.MiniProgramPayload()
-        if (payload.appid)       { pbMiniProgramPayload.setAppid(payload.appid) }
-        if (payload.description) { pbMiniProgramPayload.setDescription(payload.description) }
-        if (payload.iconUrl)     { pbMiniProgramPayload.setIconUrl(payload.iconUrl) }
-        if (payload.pagePath)    { pbMiniProgramPayload.setPagePath(payload.pagePath) }
-        if (payload.shareId)     { pbMiniProgramPayload.setShareId(payload.shareId) }
-        if (payload.thumbKey)    { pbMiniProgramPayload.setThumbKey(payload.thumbKey) }
-        if (payload.thumbUrl)    { pbMiniProgramPayload.setThumbUrl(payload.thumbUrl) }
-        if (payload.title)       { pbMiniProgramPayload.setTitle(payload.title) }
-        if (payload.username)    { pbMiniProgramPayload.setUsername(payload.username) }
-        response.setMiniProgram(pbMiniProgramPayload)
-
-        // Deprecated after Dec 31, 2022
-        response.setMiniProgramDeprecated(JSON.stringify(payload))
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageMiniProgram', e, callback)
-      }
-    },
-
-    messagePayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messagePayload()')
-
-      try {
-        const id = call.request.getId()
-
-        const payload = await puppet.messagePayload(id)
-
-        const mentionIdList = ('mentionIdList' in payload)
-          ? payload.mentionIdList || []
-          : []
-
-        const response = new grpcPuppet.MessagePayloadResponse()
-        response.setFilename(payload.filename || '')
-        /**
-         * Huan(202203):`payload.fromId` is deprecated, will be removed in v2.0
-         */
-        response.setTalkerId(payload.talkerId || payload.fromId || '')
-        response.setId(payload.id)
-        response.setMentionIdsList(mentionIdList)
-        response.setRoomId(payload.roomId || '')
-        response.setText(payload.text || '')
-
-        response.setReceiveTime(timestampFromMilliseconds(payload.timestamp))
-        // Deprecated: will be removed after Dec 31, 2022
-        response.setTimestampDeprecated(Math.floor(payload.timestamp))
-
-        /**
-         * Huan(202203):`payload.toId` is deprecated, will be removed in v2.0
-         */
-        response.setListenerId(payload.listenerId || payload.toId || '')
-        response.setType(payload.type as grpcPuppet.MessageTypeMap[keyof grpcPuppet.MessageTypeMap])
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messagePayload', e, callback)
-      }
-    },
-
-    conversationRead: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'conversationRead()')
-
-      try {
-        const conversationId = call.request.getConversationId()
-        const hasRead = call.request.getHasRead()
-
-        const result = await puppet.conversationReadMark(conversationId, hasRead)
-
-        // The puppet answers with the new state when it knows it; otherwise
-        // report the state that was requested.
-        const response = new grpcPuppet.ConversationReadResponse()
-        response.setHasRead(typeof result === 'boolean' ? result : hasRead)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('conversationRead', e, callback)
-      }
-    },
-
-    messageRecall: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageRecall()')
-
-      try {
-        const id = call.request.getId()
-
-        const success = await puppet.messageRecall(id)
-
-        const response = new grpcPuppet.MessageRecallResponse()
-        response.setSuccess(success)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageRecall', e, callback)
-      }
-    },
-
-    messageSendContact: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageSendContact()')
-
-      try {
-        const conversationId = call.request.getConversationId()
-        const contactId = call.request.getContactId()
-
-        const messageId = await puppet.messageSendContact(conversationId, contactId)
-
-        const response = new grpcPuppet.MessageSendContactResponse()
-
-        if (messageId) {
-          response.setId(messageId)
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const idWrapper = new StringValue()
-            idWrapper.setValue(messageId)
-            response.setIdStringValueDeprecated(idWrapper)
-          }
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageSendContact', e, callback)
-      }
-    },
-
-    messageSendFile: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageSendFile()')
-
-      try {
-        const conversationId  = call.request.getConversationId()
-        const jsonText        = call.request.getFileBox()
-
-        const fileBox = FileBoxUuid.fromJSON(jsonText)
-
-        const messageId = await puppet.messageSendFile(conversationId, fileBox)
-
-        const response = new grpcPuppet.MessageSendFileResponse()
-
-        if (messageId) {
-          response.setId(messageId)
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const idWrapper = new StringValue()
-            idWrapper.setValue(messageId)
-            response.setIdStringValueDeprecated(idWrapper)
-          }
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageSendFile', e, callback)
-      }
-    },
-
-    /**
-     * @deprecated will be removed after Dec 31, 2022
-     */
-    messageSendFileStream: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageSendFileStream()')
-
-      try {
-        const requestArgs = await unpackConversationIdFileBoxArgsFromPb(call)
-        const conversationId = requestArgs.conversationId
-        const fileBox = requestArgs.fileBox
-
-        const messageId = await puppet.messageSendFile(conversationId, fileBox)
-
-        const response = new grpcPuppet.MessageSendFileStreamResponse()
-
-        if (messageId) {
-          response.setId(messageId)
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const idWrapper = new StringValue()
-            idWrapper.setValue(messageId)
-            response.setIdStringValueDeprecated(idWrapper)
-          }
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageSendFileStream', e, callback)
-      }
-    },
-
-    messageSendLocation: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageSendLocation()')
-
-      try {
-        const conversationId    = call.request.getConversationId()
-        const pbLocationPayload = call.request.getLocation()
-
-        const payload: PUPPET.payloads.Location = {
-          accuracy  : 0,
-          address   : 'NOADDRESS',
-          latitude  : 0,
-          longitude : 0,
-          name      : 'NONAME',
-          ...pbLocationPayload,
-        }
-
-        const messageId = await puppet.messageSendLocation(conversationId, payload)
-
-        const response = new grpcPuppet.MessageSendLocationResponse()
-
-        if (messageId) {
-          response.setId(messageId)
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageSendLocation', e, callback)
-      }
-    },
-
-    messageSendMiniProgram: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageSendMiniProgram()')
-
-      try {
-        const conversationId      = call.request.getConversationId()
-        let pbMiniProgramPayload  = call.request.getMiniProgram()?.toObject()
-        if (!pbMiniProgramPayload) {
-          // Deprecated: will be removed after Dec 31, 2022
-          const jsonText = call.request.getMiniProgramDeprecated()
-          pbMiniProgramPayload = JSON.parse(jsonText)
-        }
-
-        const payload: PUPPET.payloads.MiniProgram = {
-          ...pbMiniProgramPayload,
-        }
-
-        const messageId = await puppet.messageSendMiniProgram(conversationId, payload)
-
-        const response = new grpcPuppet.MessageSendMiniProgramResponse()
-
-        if (messageId) {
-          response.setId(messageId)
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const idWrapper = new StringValue()
-            idWrapper.setValue(messageId)
-            response.setIdStringValueDeprecated(idWrapper)
-          }
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageSendMiniProgram', e, callback)
-      }
-    },
-
-    messageSendText: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageSendText()')
-
-      try {
-        const conversationId = call.request.getConversationId()
-        const text = call.request.getText()
-        const mentionIdList = call.request.getMentionalIdsList()
-
-        const messageId = await puppet.messageSendText(conversationId, text, mentionIdList)
-
-        const response = new grpcPuppet.MessageSendTextResponse()
-
-        if (messageId) {
-          response.setId(messageId)
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const idWrapper = new StringValue()
-            idWrapper.setValue(messageId)
-            response.setIdStringValueDeprecated(idWrapper)
-          }
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageSendText', e, callback)
-      }
-    },
-
-    messageSendUrl: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageSendUrl()')
-
-      try {
-        const conversationId = call.request.getConversationId()
-        let pbUrlLinkPayload = call.request.getUrlLink()?.toObject()
-
-        if (!pbUrlLinkPayload) {
-          // Deprecated: will be removed after Dec 31, 2022
-          const jsonText = call.request.getUrlLinkDeprecated()
-          pbUrlLinkPayload = JSON.parse(jsonText)
-        }
-
-        const payload: PUPPET.payloads.UrlLink = {
-          title : 'NOTITLE',
-          url   : 'NOURL',
-          ...pbUrlLinkPayload,
-        }
-
-        const messageId = await puppet.messageSendUrl(conversationId, payload)
-
-        const response = new grpcPuppet.MessageSendUrlResponse()
-
-        if (messageId) {
-          response.setId(messageId)
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const idWrapper = new StringValue()
-            idWrapper.setValue(messageId)
-            response.setIdStringValueDeprecated(idWrapper)
-          }
-        }
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageSendUrl', e, callback)
-      }
-    },
-
-    messageUrl: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'messageUrl()')
-
-      try {
-        const id      = call.request.getId()
-        const payload = await puppet.messageUrl(id)
-
-        const response = new grpcPuppet.MessageUrlResponse()
-
-        const pbUrlLinkPayload = new grpcPuppet.UrlLinkPayload()
-        pbUrlLinkPayload.setTitle(payload.title)
-        pbUrlLinkPayload.setUrl(payload.url)
-        if (payload.thumbnailUrl) { pbUrlLinkPayload.setThumbnailUrl(payload.thumbnailUrl) }
-        if (payload.description)  { pbUrlLinkPayload.setDescription(payload.description) }
-        response.setUrlLink(pbUrlLinkPayload)
-
-        // Deprecated: will be removed after Dec 31, 2022
-        response.setUrlLinkDeprecated(JSON.stringify(payload))
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('messageUrl', e, callback)
-      }
-    },
-
-    roomAdd: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomAdd()')
-
-      try {
-        const roomId = call.request.getId()
-        const contactId = call.request.getContactId()
-        const inviteOnly = call.request.getInviteOnly()
-
-        await puppet.roomAdd(roomId, contactId, inviteOnly)
-
-        return callback(null, new grpcPuppet.RoomAddResponse())
-
-      } catch (e) {
-        return grpcError('roomAdd', e, callback)
-      }
-    },
-
-    roomAnnounce: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomAnnounce()')
-
-      try {
-        const roomId = call.request.getId()
-
-        /**
-         * Set
-         */
-        if (call.request.hasText()) {
-          await puppet.roomAnnounce(roomId, call.request.getText())
-          return callback(null, new grpcPuppet.RoomAnnounceResponse())
-        }
-
-        /**
-         * Get
-         */
-        const text = await puppet.roomAnnounce(roomId)
-
-        const response = new grpcPuppet.RoomAnnounceResponse()
-        response.setText(text)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomAnnounce', e, callback)
-      }
-    },
-
-    roomAvatar: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomAvatar()')
-
-      try {
-        const roomId = call.request.getId()
-
-        const fileBox           = await puppet.roomAvatar(roomId)
-        const serializedFileBox = await serializeFileBox(fileBox)
-
-        const response = new grpcPuppet.RoomAvatarResponse()
-        response.setFileBox(serializedFileBox)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomAvatar', e, callback)
-      }
-    },
-
-    roomCreate: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomCreate()')
-
-      try {
-        const contactIdList = call.request.getContactIdsList()
-        const topic = call.request.getTopic()
-
-        const roomId = await puppet.roomCreate(contactIdList, topic)
-
-        const response = new grpcPuppet.RoomCreateResponse()
-        response.setId(roomId)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomCreate', e, callback)
-      }
-    },
-
-    roomDel: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomDel()')
-
-      try {
-        const roomId = call.request.getId()
-        const contactId = call.request.getContactId()
-
-        await puppet.roomDel(roomId, contactId)
-
-        return callback(null, new grpcPuppet.RoomDelResponse())
-
-      } catch (e) {
-        return grpcError('roomDel', e, callback)
-      }
-    },
-
-    roomInvitationAccept: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomInvitationAccept()')
-
-      try {
-        const id = call.request.getId()
-
-        await puppet.roomInvitationAccept(id)
-
-        return callback(null, new grpcPuppet.RoomInvitationAcceptResponse())
-
-      } catch (e) {
-        return grpcError('roomInvitationAccept', e, callback)
-      }
-    },
-
-    roomInvitationPayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomInvitationPayload()')
-
-      try {
-        const roomInvitationId = call.request.getId()
-        /**
-          * Set
-          */
-        {
-          const jsonText = call.request.getPayload()
-
-          if (jsonText) {
-            const payload = JSON.parse(jsonText) as PUPPET.payloads.RoomInvitation
-            await puppet.roomInvitationPayload(roomInvitationId, payload)
-
-            return callback(null, new grpcPuppet.RoomInvitationPayloadResponse())
-          }
-
-          {
-            /**
-              * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-              */
-            const payloadWrapper = call.request.getPayloadStringValueDeprecated()
-
-            if (payloadWrapper) {
-              const jsonText = payloadWrapper.getValue()
-              const payload = JSON.parse(jsonText) as PUPPET.payloads.RoomInvitation
-              await puppet.roomInvitationPayload(roomInvitationId, payload)
-
-              return callback(null, new grpcPuppet.RoomInvitationPayloadResponse())
-            }
-          }
-        }
-
-        /**
-         * Get
-         */
-        const payload = await puppet.roomInvitationPayload(roomInvitationId)
-
-        const response = new grpcPuppet.RoomInvitationPayloadResponse()
-        response.setAvatar(payload.avatar)
-        response.setId(payload.id)
-        response.setInvitation(payload.invitation)
-        response.setInviterId(payload.inviterId)
-        response.setReceiverId(payload.receiverId)
-        response.setMemberCount(payload.memberCount)
-        response.setMemberIdsList(payload.memberIdList)
-
-        response.setReceiveTime(timestampFromMilliseconds(payload.timestamp))
-
-        {
-          // Deprecated: will be removed after Dec 31, 2022
-          const deprecated = true
-          void deprecated
-          response.setTimestampUint64Deprecated(Math.floor(payload.timestamp))
-        }
-
-        response.setTopic(payload.topic)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomInvitationPayload', e, callback)
-      }
-    },
-
-    roomList: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomList()')
-      void call
-
-      try {
-        const roomIdList = await puppet.roomList()
-
-        const response = new grpcPuppet.RoomListResponse()
-        response.setIdsList(roomIdList)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomList', e, callback)
-      }
-    },
-
-    roomMemberList: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomMemberList()')
-
-      try {
-        const roomId = call.request.getId()
-
-        const roomMemberIdList = await puppet.roomMemberList(roomId)
-
-        const response = new grpcPuppet.RoomMemberListResponse()
-        response.setMemberIdsList(roomMemberIdList)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomMemberList', e, callback)
-      }
-    },
-
-    roomMemberPayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomMemberPayload()')
-
-      try {
-        const roomId = call.request.getId()
-        const memberId = call.request.getMemberId()
-
-        const payload = await puppet.roomMemberPayload(roomId, memberId)
-
-        const response = new grpcPuppet.RoomMemberPayloadResponse()
-
-        response.setAvatar(payload.avatar)
-        response.setId(payload.id)
-        response.setInviterId(payload.inviterId || '')
-        response.setName(payload.name)
-        response.setRoomAlias(payload.roomAlias || '')
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomMemberPayload', e, callback)
-      }
-    },
-
-    roomPayload: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomPayload()')
-
-      try {
-        const roomId = call.request.getId()
-
-        const payload = await puppet.roomPayload(roomId)
-
-        const response = new grpcPuppet.RoomPayloadResponse()
-        response.setAdminIdsList(payload.adminIdList)
-        response.setAvatar(payload.avatar || '')
-        response.setHandle(payload.handle || '')
-        response.setId(payload.id)
-        response.setMemberIdsList(payload.memberIdList)
-        response.setOwnerId(payload.ownerId || '')
-        response.setTopic(payload.topic)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomPayload', e, callback)
-      }
-    },
-
-    roomQRCode: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomQRCode()')
-
-      try {
-        const roomId = call.request.getId()
-
-        const qrcode = await puppet.roomQRCode(roomId)
-
-        const response = new grpcPuppet.RoomQRCodeResponse()
-        response.setQrcode(qrcode)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomQRCode', e, callback)
-      }
-    },
-
-    roomQuit: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomQuit()')
-
-      try {
-        const roomId = call.request.getId()
-
-        await puppet.roomQuit(roomId)
-
-        return callback(null, new grpcPuppet.RoomQuitResponse())
-
-      } catch (e) {
-        return grpcError('roomQuit', e, callback)
-      }
-    },
-
-    roomTopic: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'roomTopic()')
-
-      try {
-        const roomId = call.request.getId()
-
-        /**
-         * Set
-         */
-        if (call.request.hasTopic()) {
-          await puppet.roomTopic(roomId, call.request.getTopic())
-
-          return callback(null, new grpcPuppet.RoomTopicResponse())
-        }
-
-        /**
-         * Get
-         */
-
-        const topic = await puppet.roomTopic(roomId)
-
-        const response = new grpcPuppet.RoomTopicResponse()
-        response.setTopic(topic)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('roomTopic', e, callback)
-      }
-    },
-
-    start: async (call, callback) => {
+    // Base RPCs
+    start: async () => {
       log.verbose('PuppetServiceImpl', 'start()')
-      void call
-
-      try {
-        await timeoutPromise(
-          puppet.start(),
-          15 * 1000,  // 15 seconds timeout
-        )
-
-        return callback(null, new grpcPuppet.StartResponse())
-
-      } catch (e) {
-        return grpcError('start', e, callback)
-      }
+      await timeoutPromise(puppet.start(), 15 * 1000)
+      return {}
     },
 
-    stop: async (call, callback) => {
+    stop: async () => {
       log.verbose('PuppetServiceImpl', 'stop()')
-      void call
+      if (eventStreamManager.busy()) {
+        eventStreamManager.stop()
+      }
+      readyPayload = undefined
+      await timeoutPromise(puppet.stop(), 15 * 1000)
+      return {}
+    },
 
-      try {
+    version: async () => {
+      log.verbose('PuppetServiceImpl', 'version() v%s', puppet.version())
+      return { version: puppet.version() || VERSION }
+    },
 
-        if (eventStreamManager.busy()) {
-          eventStreamManager.stop()
-        } else {
-          log.error('PuppetServiceImpl', 'stop() eventStreamManager is not busy?')
+    logout: async () => {
+      log.verbose('PuppetServiceImpl', 'logout()')
+      await puppet.logout()
+      return {}
+    },
+
+    ding: async (req: { data?: string }) => {
+      log.verbose('PuppetServiceImpl', 'ding()')
+      await puppet.ding(req.data)
+      return {}
+    },
+
+    dirtyPayload: async (req: { type: number; id: string }) => {
+      log.verbose('PuppetServiceImpl', 'dirtyPayload()')
+      await puppet.dirtyPayload(req.type as PUPPET.types.Dirty, req.id)
+      return {}
+    },
+
+    // Event Stream
+    event: async function* (_req: unknown, ctx?: { signal?: AbortSignal }) {
+      log.verbose('PuppetServiceImpl', 'event()')
+      if (eventStreamManager.busy()) {
+        throw new ConnectError('GrpcServerImpl.event() can not call twice.', Code.AlreadyExists)
+      }
+
+      const queue: EventResponse[] = []
+      let notify: (() => void) | null = null
+      let finished = false
+
+      const streamSink: EventStreamSink = {
+        write: (res: EventResponse) => {
+          queue.push(res)
+          if (notify) {
+            const n = notify
+            notify = null
+            n()
+          }
+        },
+        end: () => {
+          finished = true
+          if (notify) {
+            const n = notify
+            notify = null
+            n()
+          }
+        },
+      }
+
+      eventStreamManager.start(streamSink)
+      if (scanPayload) {
+        eventStreamManager.grpcEmit(EventType.SCAN, scanPayload)
+      }
+
+      const abortHandler = () => {
+        finished = true
+        eventStreamManager.stop()
+        if (notify) {
+          const n = notify
+          notify = null
+          n()
         }
-
-        readyPayload = undefined
-
-        await timeoutPromise(
-          puppet.stop(),
-          15 * 1000, // 15 seconds timeout
-        )
-
-        return callback(null, new grpcPuppet.StopResponse())
-
-      } catch (e) {
-        return grpcError('stop', e, callback)
       }
-    },
 
-    tagContactAdd: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'tagContactAdd()')
+      ctx?.signal?.addEventListener('abort', abortHandler, { once: true })
 
       try {
-        const tagId = call.request.getId()
-        const contactId = call.request.getContactId()
-
-        await puppet.tagContactAdd(tagId, contactId)
-
-        return callback(null, new grpcPuppet.TagContactAddResponse())
-
-      } catch (e) {
-        return grpcError('tagContactAdd', e, callback)
-      }
-    },
-
-    tagContactDelete: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'tagContactDelete()')
-
-      try {
-        const tagId = call.request.getId()
-
-        await puppet.tagContactDelete(tagId)
-
-        return callback(null, new grpcPuppet.TagContactDeleteResponse())
-
-      } catch (e) {
-        return grpcError('tagContactDelete', e, callback)
-      }
-    },
-
-    tagContactList: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'tagContactList()')
-
-      try {
-        const contactId = call.request.getContactId()
-
-        /**
-         * for a specific contact
-         */
-        if (contactId) {
-          const tagIdList = await puppet.tagContactList(contactId)
-
-          const response = new grpcPuppet.TagContactListResponse()
-          response.setIdsList(tagIdList)
-
-          return callback(null, new grpcPuppet.TagContactListResponse())
-        }
-
-        {
-          /**
-            * Huan(202110): Deprecated: will be removed after Dec 31, 2022
-            */
-          const contactIdWrapper = call.request.getContactIdStringValueDeprecated()
-
-          if (contactIdWrapper) {
-            const contactId = contactIdWrapper.getValue()
-
-            const tagIdList = await puppet.tagContactList(contactId)
-
-            const response = new grpcPuppet.TagContactListResponse()
-            response.setIdsList(tagIdList)
-
-            return callback(null, new grpcPuppet.TagContactListResponse())
+        while (!finished || queue.length > 0) {
+          if (queue.length === 0) {
+            await new Promise<void>((r) => { notify = r })
+          }
+          while (queue.length > 0) {
+            yield queue.shift()!
           }
         }
-
-        /**
-         * get all tags for all contact
-         */
-        const tagIdList = await puppet.tagContactList()
-
-        const response = new grpcPuppet.TagContactListResponse()
-        response.setIdsList(tagIdList)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('tagContactList', e, callback)
+      } finally {
+        ctx?.signal?.removeEventListener('abort', abortHandler)
+        eventStreamManager.stop()
       }
     },
 
-    tagContactRemove: async (call, callback) => {
+    // Contact RPCs
+    contactAlias: async (req: { id: string; alias?: string }) => {
+      log.verbose('PuppetServiceImpl', 'contactAlias()')
+      if (typeof req.alias === 'string') {
+        await puppet.contactAlias(req.id, req.alias)
+        return {}
+      }
+      const alias = await puppet.contactAlias(req.id)
+      return { alias }
+    },
+
+    contactAvatar: async (req: { id: string; fileBox?: string }) => {
+      log.verbose('PuppetServiceImpl', 'contactAvatar()')
+      if (req.fileBox) {
+        const fileBox = FileBoxUuid.fromJSON(req.fileBox)
+        await puppet.contactAvatar(req.id, fileBox)
+        return {}
+      }
+      const fileBox = await puppet.contactAvatar(req.id)
+      const serialized = await serializeFileBox(fileBox)
+      return { fileBox: serialized }
+    },
+
+    contactCorporationRemark: async (req: { contactId: string; corporationRemark?: string }) => {
+      log.verbose('PuppetServiceImpl', 'contactCorporationRemark()')
+      await puppet.contactCorporationRemark(req.contactId, req.corporationRemark || null)
+      return {}
+    },
+
+    contactDescription: async (req: { contactId: string; description?: string }) => {
+      log.verbose('PuppetServiceImpl', 'contactDescription()')
+      await puppet.contactDescription(req.contactId, req.description || null)
+      return {}
+    },
+
+    contactList: async () => {
+      log.verbose('PuppetServiceImpl', 'contactList()')
+      const ids = await puppet.contactList()
+      return { ids }
+    },
+
+    contactPayload: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'contactPayload()')
+      const payload = await puppet.contactPayload(req.id)
+      return {
+        address: payload.address || '',
+        alias: payload.alias || '',
+        avatar: payload.avatar || '',
+        city: payload.city || '',
+        corporation: payload.corporation || '',
+        coworker: payload.coworker || false,
+        description: payload.description || '',
+        friend: payload.friend || false,
+        gender: payload.gender,
+        id: payload.id,
+        name: payload.name || '',
+        phones: payload.phone || [],
+        province: payload.province || '',
+        signature: payload.signature || '',
+        star: payload.star || false,
+        title: payload.title || '',
+        type: payload.type,
+        weixin: payload.handle || payload.weixin || '',
+      }
+    },
+
+    contactPhone: async (req: { contactId: string; phones: string[] }) => {
+      log.verbose('PuppetServiceImpl', 'contactPhone()')
+      await puppet.contactPhone(req.contactId, req.phones)
+      return {}
+    },
+
+    contactSelfName: async (req: { name: string }) => {
+      log.verbose('PuppetServiceImpl', 'contactSelfName("%s")', req.name)
+      await puppet.contactSelfName(req.name)
+      return {}
+    },
+
+    contactSelfQRCode: async () => {
+      log.verbose('PuppetServiceImpl', 'contactSelfQRCode()')
+      const qrcode = await puppet.contactSelfQRCode()
+      return { qrcode }
+    },
+
+    contactSelfSignature: async (req: { signature: string }) => {
+      log.verbose('PuppetServiceImpl', 'contactSelfSignature()')
+      await puppet.contactSelfSignature(req.signature)
+      return {}
+    },
+
+    // Conversation RPCs
+    conversationRead: async (req: { conversationId: string; hasRead?: boolean }) => {
+      log.verbose('PuppetServiceImpl', 'conversationRead()')
+      const result = await puppet.conversationReadMark(req.conversationId, req.hasRead)
+      return { hasRead: typeof result === 'boolean' ? result : req.hasRead }
+    },
+
+    // Message RPCs
+    messageContact: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageContact()')
+      const id = await puppet.messageContact(req.id)
+      return { id }
+    },
+
+    messageFile: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageFile()')
+      const fileBox = await puppet.messageFile(req.id)
+      const serialized = await serializeFileBox(fileBox)
+      return { fileBox: serialized }
+    },
+
+    messageForward: async (req: { conversationId: string; messageId: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageForward()')
+      const id = await puppet.messageForward(req.conversationId, req.messageId)
+      return id ? { id } : {}
+    },
+
+    messageImage: async (req: { id: string; type: number }) => {
+      log.verbose('PuppetServiceImpl', 'messageImage()')
+      const fileBox = await puppet.messageImage(req.id, req.type as PUPPET.types.Image)
+      const serialized = await serializeFileBox(fileBox)
+      return { fileBox: serialized }
+    },
+
+    messageLocation: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageLocation()')
+      const payload = await puppet.messageLocation(req.id)
+      return {
+        location: {
+          accuracy: payload.accuracy,
+          address: payload.address,
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+          name: payload.name,
+        },
+      }
+    },
+
+    messageMiniProgram: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageMiniProgram()')
+      const payload = await puppet.messageMiniProgram(req.id)
+      return {
+        miniProgram: {
+          appid: payload.appid || '',
+          description: payload.description || '',
+          iconUrl: payload.iconUrl || '',
+          pagePath: payload.pagePath || '',
+          shareId: payload.shareId || '',
+          thumbKey: payload.thumbKey || '',
+          thumbUrl: payload.thumbUrl || '',
+          title: payload.title || '',
+          username: payload.username || '',
+        },
+      }
+    },
+
+    messagePayload: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'messagePayload()')
+      const payload = await puppet.messagePayload(req.id)
+      const mentionIdList = ('mentionIdList' in payload) ? payload.mentionIdList || [] : []
+      return {
+        filename: payload.filename || '',
+        id: payload.id,
+        listenerId: payload.listenerId || payload.toId || '',
+        mentionIds: mentionIdList,
+        roomId: payload.roomId || '',
+        talkerId: payload.talkerId || payload.fromId || '',
+        text: payload.text || '',
+        type: payload.type as any,
+      }
+    },
+
+    messageRecall: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageRecall()')
+      const success = await puppet.messageRecall(req.id)
+      return { success }
+    },
+
+    messageSendContact: async (req: { conversationId: string; contactId: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageSendContact()')
+      const id = await puppet.messageSendContact(req.conversationId, req.contactId)
+      return id ? { id } : {}
+    },
+
+    messageSendFile: async (req: { conversationId: string; fileBox: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageSendFile()')
+      const fileBox = FileBoxUuid.fromJSON(req.fileBox)
+      const id = await puppet.messageSendFile(req.conversationId, fileBox)
+      return id ? { id } : {}
+    },
+
+    messageSendLocation: async (req: { conversationId: string; location?: any }) => {
+      log.verbose('PuppetServiceImpl', 'messageSendLocation()')
+      const id = await puppet.messageSendLocation(req.conversationId, req.location)
+      return id ? { id } : {}
+    },
+
+    messageSendMiniProgram: async (req: { conversationId: string; miniProgram?: any }) => {
+      log.verbose('PuppetServiceImpl', 'messageSendMiniProgram()')
+      const id = await puppet.messageSendMiniProgram(req.conversationId, req.miniProgram)
+      return id ? { id } : {}
+    },
+
+    messageSendText: async (req: { conversationId: string; text: string; mentionIds?: string[] }) => {
+      log.verbose('PuppetServiceImpl', 'messageSendText()')
+      const id = await puppet.messageSendText(req.conversationId, req.text, req.mentionIds)
+      return id ? { id } : {}
+    },
+
+    messageSendUrl: async (req: { conversationId: string; urlLink?: any }) => {
+      log.verbose('PuppetServiceImpl', 'messageSendUrl()')
+      const id = await puppet.messageSendUrl(req.conversationId, req.urlLink)
+      return id ? { id } : {}
+    },
+
+    messageUrl: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'messageUrl()')
+      const payload = await puppet.messageUrl(req.id)
+      return {
+        urlLink: {
+          description: payload.description || '',
+          thumbnailUrl: payload.thumbnailUrl || '',
+          title: payload.title || '',
+          url: payload.url || '',
+        },
+      }
+    },
+
+    // Room RPCs
+    roomAdd: async (req: { id: string; contactId: string; inviteOnly?: boolean }) => {
+      log.verbose('PuppetServiceImpl', 'roomAdd()')
+      await puppet.roomAdd(req.id, req.contactId, req.inviteOnly)
+      return {}
+    },
+
+    roomAnnounce: async (req: { id: string; text?: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomAnnounce()')
+      if (typeof req.text === 'string' && req.text.length > 0) {
+        await puppet.roomAnnounce(req.id, req.text)
+        return {}
+      }
+      const text = await puppet.roomAnnounce(req.id)
+      return { text }
+    },
+
+    roomAvatar: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomAvatar()')
+      const fileBox = await puppet.roomAvatar(req.id)
+      const serialized = await serializeFileBox(fileBox)
+      return { fileBox: serialized }
+    },
+
+    roomCreate: async (req: { contactIds: string[]; topic: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomCreate()')
+      const id = await puppet.roomCreate(req.contactIds, req.topic)
+      return { id }
+    },
+
+    roomDel: async (req: { id: string; contactId: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomDel()')
+      await puppet.roomDel(req.id, req.contactId)
+      return {}
+    },
+
+    roomInvitationAccept: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomInvitationAccept()')
+      await puppet.roomInvitationAccept(req.id)
+      return {}
+    },
+
+    roomInvitationPayload: async (req: { id: string; payload?: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomInvitationPayload()')
+      if (req.payload) {
+        await puppet.roomInvitationPayload(req.id, JSON.parse(req.payload))
+        return {}
+      }
+      const payload = await puppet.roomInvitationPayload(req.id)
+      return {
+        avatar: payload.avatar,
+        id: payload.id,
+        invitation: payload.invitation,
+        inviterId: payload.inviterId,
+        memberCount: payload.memberCount,
+        memberIds: payload.memberIdList,
+        receiverId: payload.receiverId,
+        topic: payload.topic,
+      }
+    },
+
+    roomList: async () => {
+      log.verbose('PuppetServiceImpl', 'roomList()')
+      const ids = await puppet.roomList()
+      return { ids }
+    },
+
+    roomMemberList: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomMemberList()')
+      const memberIds = await puppet.roomMemberList(req.id)
+      return { memberIds }
+    },
+
+    roomMemberPayload: async (req: { id: string; memberId: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomMemberPayload()')
+      const payload = await puppet.roomMemberPayload(req.id, req.memberId)
+      return {
+        avatar: payload.avatar,
+        id: payload.id,
+        inviterId: payload.inviterId || '',
+        name: payload.name,
+        roomAlias: payload.roomAlias || '',
+      }
+    },
+
+    roomPayload: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomPayload()')
+      const payload = await puppet.roomPayload(req.id)
+      return {
+        adminIds: payload.adminIdList,
+        avatar: payload.avatar || '',
+        handle: payload.handle || '',
+        id: payload.id,
+        memberIds: payload.memberIdList,
+        ownerId: payload.ownerId || '',
+        topic: payload.topic,
+      }
+    },
+
+    roomQRCode: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomQRCode()')
+      const qrcode = await puppet.roomQRCode(req.id)
+      return { qrcode }
+    },
+
+    roomQuit: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomQuit()')
+      await puppet.roomQuit(req.id)
+      return {}
+    },
+
+    roomTopic: async (req: { id: string; topic?: string }) => {
+      log.verbose('PuppetServiceImpl', 'roomTopic()')
+      if (typeof req.topic === 'string' && req.topic.length > 0) {
+        await puppet.roomTopic(req.id, req.topic)
+        return {}
+      }
+      const topic = await puppet.roomTopic(req.id)
+      return { topic }
+    },
+
+    // Friendship RPCs
+    friendshipAccept: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'friendshipAccept()')
+      await puppet.friendshipAccept(req.id)
+      return {}
+    },
+
+    friendshipAdd: async (req: { contactId: string; hello?: string; referrer?: any }) => {
+      log.verbose('PuppetServiceImpl', 'friendshipAdd()')
+      const options: PUPPET.types.FriendshipAddOptions = {
+        hello: req.hello,
+        ...req.referrer,
+      }
+      await puppet.friendshipAdd(req.contactId, options)
+      return {}
+    },
+
+    friendshipPayload: async (req: { id: string; payload?: string }) => {
+      log.verbose('PuppetServiceImpl', 'friendshipPayload()')
+      if (req.payload) {
+        await puppet.friendshipPayload(req.id, JSON.parse(req.payload))
+        return {}
+      }
+      const payload = await puppet.friendshipPayload(req.id)
+      const payloadReceive = payload as PUPPET.payloads.FriendshipReceive
+      return {
+        contactId: payload.contactId,
+        hello: payload.hello || '',
+        id: payload.id,
+        scene: payloadReceive.scene || PUPPET.types.FriendshipScene.Unknown,
+        stranger: payloadReceive.stranger || '',
+        ticket: payloadReceive.ticket,
+        type: payload.type,
+      }
+    },
+
+    friendshipSearchHandle: async (req: { weixin?: string; handle?: string }) => {
+      log.verbose('PuppetServiceImpl', 'friendshipSearchHandle()')
+      const handle = req.handle || req.weixin || ''
+      const contactId = await puppet.friendshipSearchHandle(handle)
+      return contactId ? { contactId } : {}
+    },
+
+    friendshipSearchPhone: async (req: { phone: string }) => {
+      log.verbose('PuppetServiceImpl', 'friendshipSearchPhone()')
+      const contactId = await puppet.friendshipSearchPhone(req.phone)
+      return contactId ? { contactId } : {}
+    },
+
+    friendshipSearchWeixin: async (req: { weixin?: string; handle?: string }) => {
+      log.verbose('PuppetServiceImpl', 'friendshipSearchWeixin()')
+      const handle = req.handle || req.weixin || ''
+      const contactId = await puppet.friendshipSearchHandle(handle)
+      return contactId ? { contactId } : {}
+    },
+
+    // Tag RPCs
+    tagContactAdd: async (req: { id: string; contactId: string }) => {
+      log.verbose('PuppetServiceImpl', 'tagContactAdd()')
+      await puppet.tagContactAdd(req.id, req.contactId)
+      return {}
+    },
+
+    tagContactDelete: async (req: { id: string }) => {
+      log.verbose('PuppetServiceImpl', 'tagContactDelete()')
+      await puppet.tagContactDelete(req.id)
+      return {}
+    },
+
+    tagContactList: async (req: { contactId?: string }) => {
+      log.verbose('PuppetServiceImpl', 'tagContactList()')
+      if (req.contactId) {
+        const ids = await puppet.tagContactList(req.contactId)
+        return { ids }
+      }
+      const ids = await puppet.tagContactList()
+      return { ids }
+    },
+
+    tagContactRemove: async (req: { id: string; contactId: string }) => {
       log.verbose('PuppetServiceImpl', 'tagContactRemove()')
-
-      try {
-        const tagId = call.request.getId()
-        const contactId = call.request.getContactId()
-
-        await puppet.tagContactRemove(tagId, contactId)
-
-        return callback(null, new grpcPuppet.TagContactRemoveResponse())
-
-      } catch (e) {
-        return grpcError('tagContactRemove', e, callback)
-      }
+      await puppet.tagContactRemove(req.id, req.contactId)
+      return {}
     },
 
-    version: async (call, callback) => {
-      log.verbose('PuppetServiceImpl', 'version() v%s', puppet.version())
-      void call
-
-      try {
-        const version = puppet.version()
-
-        const response = new grpcPuppet.VersionResponse()
-        response.setVersion(version)
-
-        return callback(null, response)
-
-      } catch (e) {
-        return grpcError('version', e, callback)
-      }
-    },
-
-    download: async (call) => {
+    // Download / Upload RPCs
+    download: async function* (req: { id: string }) {
       log.verbose('PuppetServiceImpl', 'download()')
-
-      const uuid    = call.request.getId()
-      const fileBox = FileBoxUuid.fromUuid(uuid, { name: 'uuid.dat' })
-
-      fileBox
-        .pipe(chunkEncoder(grpcPuppet.DownloadResponse))
-        .pipe(call as unknown as Writable)  // Huan(202203) FIXME: as unknown as
+      const fileBox = FileBoxUuid.fromUuid(req.id, { name: 'uuid.dat' })
+      const stream = await fileBox.toStream()
+      for await (const chunk of stream) {
+        const bytes = typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk
+        yield {
+          chunk: bytes,
+        }
+      }
     },
 
-    upload: async (call, callback) => {
+    upload: async (reqStream: AsyncIterable<{ chunk?: Uint8Array }>) => {
       log.verbose('PuppetServiceImpl', 'upload()')
-
-      const fileBox = FileBoxUuid.fromStream(
-        call.pipe(chunkDecoder()),
-        'uuid.dat',
-      )
-
+      async function* toChunks () {
+        for await (const req of reqStream) {
+          if (req.chunk && req.chunk.length > 0) {
+            yield req.chunk
+          }
+        }
+      }
+      const fileBox = FileBoxUuid.fromStream(Readable.from(toChunks()), 'uuid.dat')
       const uuid = await fileBox.toUuid()
+      return { id: uuid }
+    },
 
-      const response = new grpcPuppet.UploadResponse()
-      response.setId(uuid)
+    // Deprecated streaming RPCs
+    messageFileStream: async function* (req: { id: string }) {
+      log.verbose('PuppetServiceImpl', 'messageFileStream()')
+      const fileBox = await puppet.messageFile(req.id)
+      const stream = await fileBox.toStream()
+      for await (const chunk of stream) {
+        const bytes = typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk
+        yield {
+          fileBoxChunk: {
+            data: bytes,
+          },
+        }
+      }
+    },
 
-      return callback(null, response)
+    messageImageStream: async function* (req: { id: string; type: number }) {
+      log.verbose('PuppetServiceImpl', 'messageImageStream()')
+      const fileBox = await puppet.messageImage(req.id, req.type as PUPPET.types.Image)
+      const stream = await fileBox.toStream()
+      for await (const chunk of stream) {
+        const bytes = typeof chunk === 'string' ? new TextEncoder().encode(chunk) : chunk
+        yield {
+          fileBoxChunk: {
+            data: bytes,
+          },
+        }
+      }
+    },
+
+    messageSendFileStream: async (reqStream: AsyncIterable<any>) => {
+      log.verbose('PuppetServiceImpl', 'messageSendFileStream()')
+      let conversationId = ''
+      async function* toChunks () {
+        for await (const req of reqStream) {
+          if (req.conversationId) {
+            conversationId = req.conversationId
+          }
+          if (req.fileBoxChunk?.data) {
+            yield req.fileBoxChunk.data
+          }
+        }
+      }
+      const fileBox = FileBox.fromStream(Readable.from(toChunks()), 'stream.dat')
+      const id = await puppet.messageSendFile(conversationId, fileBox)
+      return id ? { id } : { id: '' }
     },
 
   }
-
-  return puppetServerImpl
 }
-
-export { puppetImplementation }

@@ -1,27 +1,12 @@
 /**
- * Client-side token credentials: `callCredToken(token)` adds
- * `authorization: Wechaty <token>` to the metadata of every call, the header
- * `auth-impl-token.ts` checks on the server.
+ * Client-side token credentials: `callCredToken(token)` returns an Interceptor
+ * that injects `authorization: Wechaty <token>` into outgoing ConnectRPC requests.
  */
-import {
-  credentials,
-  type CallMetadataGenerator,
-  Metadata,
-}                         from './grpc-js.ts'
+import type { Interceptor } from '@connectrpc/connect'
 
-/**
- * With server authentication SSL/TLS and a custom header with token
- *  https://grpc.io/docs/guides/auth/#with-server-authentication-ssltls-and-a-custom-header-with-token-1
- */
-const metaGeneratorToken: (token: string) => CallMetadataGenerator = token => (_params, callback) => {
-  const meta = new Metadata()
-  meta.add('authorization', `Wechaty ${token}`)
-  callback(null, meta)
-}
-
-const callCredToken = (token: string) => credentials.createFromMetadataGenerator(metaGeneratorToken(token))
-
-export {
-  callCredToken,
-  metaGeneratorToken,
+export function callCredToken (token: string): Interceptor {
+  return (next) => async (req) => {
+    req.header.set('authorization', `Wechaty ${token}`)
+    return await next(req)
+  }
 }

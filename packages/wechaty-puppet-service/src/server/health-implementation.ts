@@ -2,83 +2,65 @@
  * The standard gRPC health service for a served puppet. Status follows the
  * puppet's `heartbeat` events: unknown before the first one, serving within
  * 60 seconds of the last one, not serving after that. `watch` polls every 5
- * seconds and sends only changes.
+ * seconds and yields changes.
  */
-/* eslint-disable sort-keys */
+import { create } from '@bufbuild/protobuf'
 import {
-  google as grpcGoogle,
-}                         from 'wechaty-grpc'
+  HealthCheckResponseSchema,
+  ServingStatus,
+  type HealthCheckRequest,
+  type HealthCheckResponse,
+} from 'wechaty-grpc'
 import {
   log,
-  Puppet,
-}                         from 'wechaty-puppet'
+  type Puppet,
+} from 'wechaty-puppet'
 
 const HEARTBEAT_TIMEOUT_SECONDS = 60
 
 function healthImplementation (
   puppet: Puppet,
-): grpcGoogle.IHealthServer {
-
+) {
   let lastHeartbeatTimestamp = -1
 
-  const healthCheckResponse = () => {
-    const response = new grpcGoogle.HealthCheckResponse()
-
+  const getStatus = (): ServingStatus => {
     if (lastHeartbeatTimestamp < 0 || lastHeartbeatTimestamp > Date.now()) {
-      response.setStatus(grpcGoogle.HealthCheckResponse.ServingStatus.SERVICE_UNKNOWN)
-
+      return ServingStatus.SERVICE_UNKNOWN
     } else if (Date.now() - lastHeartbeatTimestamp < HEARTBEAT_TIMEOUT_SECONDS * 1000) {
-      response.setStatus(grpcGoogle.HealthCheckResponse.ServingStatus.SERVING)
-
+      return ServingStatus.SERVING
     } else {
-      response.setStatus(grpcGoogle.HealthCheckResponse.ServingStatus.NOT_SERVING)
+      return ServingStatus.NOT_SERVING
     }
-
-    return response
   }
 
   puppet.on('heartbeat', () => {
     lastHeartbeatTimestamp = Date.now()
   })
 
-  const healthServerImpl: grpcGoogle.IHealthServer = {
-
-    check: async (call, callback) => {
-      log.verbose('HealthServiceImpl', 'check()')
-
-      const service = call.request.getService()
-      log.verbose('HealServiceImpl', 'check() service="%s"', service)
-
-      const response = healthCheckResponse()
-      callback(null, response)
+  return {
+    check: async (req: HealthCheckRequest): Promise<HealthCheckResponse> => {
+      log.verbose('HealthServiceImpl', 'check() service="%s"', req.service)
+      return create(HealthCheckResponseSchema, { status: getStatus() })
     },
 
-    watch: async (call) => {
+    watch: async function* (_req: HealthCheckRequest, ctx?: { signal?: AbortSignal }): AsyncIterable<HealthCheckResponse> {
       log.verbose('HealthServiceImpl', 'watch()')
+      let currentStatus = getStatus()
+      yield create(HealthCheckResponseSchema, { status: currentStatus })
 
-      const firstResponse = healthCheckResponse()
-      let currentStatus   = firstResponse.getStatus()
-
-      call.write(firstResponse)
-
-      const timer = setInterval(() => {
-        const nextResponse = healthCheckResponse()
-        if (nextResponse.getStatus() !== currentStatus) {
-          currentStatus = nextResponse.getStatus()
-          call.write(nextResponse)
+      while (!ctx?.signal?.aborted) {
+        await new Promise(resolve => setTimeout(resolve, 5000))
+        if (ctx?.signal?.aborted) {
+          break
         }
-      }, 5 * 1000)
-
-      const clear = () => clearInterval(timer)
-
-      call.on('end',    clear)
-      call.on('error',  clear)
-      call.on('close',  clear)
+        const nextStatus = getStatus()
+        if (nextStatus !== currentStatus) {
+          currentStatus = nextStatus
+          yield create(HealthCheckResponseSchema, { status: currentStatus })
+        }
+      }
     },
-
   }
-
-  return healthServerImpl
 }
 
 export { healthImplementation }

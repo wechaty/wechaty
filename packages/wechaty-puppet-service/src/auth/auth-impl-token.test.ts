@@ -1,81 +1,79 @@
 /**
- * Unit tests for `authImplToken()`: a valid token reaches the wrapped
- * handler; a missing token is rejected through the callback or, for a stream,
- * through an `error` event.
+ * Unit tests for `authImplToken()`: a valid token reaches the next handler,
+ * while a missing or invalid token is rejected with Code.Unauthenticated.
  */
 import assert from 'node:assert/strict'
-import { mock, test } from 'node:test'
-
-import {
-  GrpcStatus,
-  Metadata,
-  type UntypedServiceImplementation,
-}                                   from './grpc-js.ts'
+import { test } from 'node:test'
+import { Code, ConnectError } from '@connectrpc/connect'
 
 import { authImplToken } from './auth-impl-token.ts'
 
-test('authImplToken()', async _t => {
-  const spy = mock.fn()
+test('authImplToken() with valid token', async () => {
+  const TOKEN = 'test-token-uuid'
+  const interceptor = authImplToken(TOKEN)
 
-  const TOKEN = 'UUIDv4'
-  const IMPL: UntypedServiceImplementation = {
-    spy,
+  let nextCalled = false
+  const next = async (req: any) => {
+    nextCalled = true
+    return { ok: true, req }
   }
 
-  const implWithAuth = authImplToken(TOKEN)(IMPL)
-  const validMetadata = new Metadata()
-  validMetadata.add('Authorization', 'Wechaty ' + TOKEN)
-
-  const TEST_LIST = [
-    { // Valid Token Request
-      call: {
-        metadata: validMetadata,
-      } as any,
-      callback: mock.fn(),
-      ok: true,
-    },
-    { // Invalid request for Callback
-      call: {
-        metadata: new Metadata(),
-      } as any,
-      callback: mock.fn(),
-      ok: false,
-    },
-    { // Invalid request for Stream
-      call: {
-        emit: mock.fn(),
-        metadata: new Metadata(),
-      } as any,
-      callback: undefined,
-      ok: false,
-    },
-  ] as const
-
-  const method = implWithAuth['spy']!
-
-  for (const { call, callback, ok } of TEST_LIST) {
-    spy.mock.resetCalls()
-
-    method(call, callback as any)
-
-    if (ok) {
-      assert.equal(spy.mock.callCount(), 1, 'should call IMPL handler')
-      continue
-    }
-
-    /**
-      * not ok
-      */
-    assert.equal(spy.mock.callCount(), 0, 'should not call IMPL handler')
-    if (callback) {
-      assert.equal(callback.mock.calls[0]!.arguments[0].code, GrpcStatus.UNAUTHENTICATED, 'should return UNAUTHENTICATED')
-    } else {
-      assert.equal(call.emit.mock.calls[0]!.arguments[0], 'error', 'should emit error')
-      assert.equal(call.emit.mock.calls[0]!.arguments[1].code, GrpcStatus.UNAUTHENTICATED, 'should emit UNAUTHENTICATED')
-    }
-
-    // console.info(spy.args)
-    // console.info(callback?.args)
+  const req = {
+    header: new Headers({
+      authorization: `Wechaty ${TOKEN}`,
+    }),
   }
-  mock.restoreAll()
+
+  const res = await interceptor(next as any)(req as any)
+  assert.equal(nextCalled, true, 'next handler should have been called')
+  assert.equal((res as any).ok, true)
+})
+
+test('authImplToken() with invalid token', async () => {
+  const TOKEN = 'test-token-uuid'
+  const interceptor = authImplToken(TOKEN)
+
+  let nextCalled = false
+  const next = async (req: any) => {
+    nextCalled = true
+    return { ok: true, req }
+  }
+
+  const req = {
+    header: new Headers({
+      authorization: 'Wechaty wrong-token',
+    }),
+  }
+
+  await assert.rejects(
+    async () => interceptor(next as any)(req as any),
+    (err: any) => {
+      assert.ok(err instanceof ConnectError)
+      assert.equal(err.code, Code.Unauthenticated)
+      return true
+    },
+    'should reject with Code.Unauthenticated',
+  )
+  assert.equal(nextCalled, false, 'next handler must not be called')
+})
+
+test('authImplToken() with legacy :authority header', async () => {
+  const TOKEN = 'test-token-uuid'
+  const interceptor = authImplToken(TOKEN)
+
+  let nextCalled = false
+  const next = async (req: any) => {
+    nextCalled = true
+    return { ok: true, req }
+  }
+
+  const req = {
+    header: new Headers({
+      authority: TOKEN,
+    }),
+  }
+
+  const res = await interceptor(next as any)(req as any)
+  assert.equal(nextCalled, true, 'next handler should have been called with authority header')
+  assert.equal((res as any).ok, true)
 })

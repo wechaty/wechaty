@@ -74,7 +74,7 @@ test('gRPC client breaks', async t => {
   /**
    * mock grpcClient break
    */
-  await puppetService.grpcManager.client.close()
+  ;(puppetService.grpcManager as any).stopStream()
 
   await puppetService.stop()
 
