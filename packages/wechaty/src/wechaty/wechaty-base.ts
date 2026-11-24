@@ -99,11 +99,11 @@ const mixinBase = FP.pipe(
 /**
  * Main bot class.
  *
- * A `Bot` is a WeChat client depends on which puppet you use.
- * It may equals
- * - web-WeChat, when you use: [puppet-puppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u)
- * - ipad-WeChat, when you use: [puppet-padchat](https://github.com/wechaty/wechaty-puppet-padchat)
- * - ios-WeChat, when you use: puppet-ioscat
+ * A `Bot` is an IM client whose protocol depends on the puppet you use, for
+ * example:
+ * - WeChat, with [wechaty-puppet-neo](https://github.com/wechaty/puppet-neo)
+ * - any protocol served over gRPC, with `wechaty-puppet-service`
+ * - a mock for tests, with `wechaty-puppet-mock`
  *
  * See more:
  * - [What is a Puppet in Wechaty](https://github.com/wechaty/getting-started/wiki/FAQ#31-what-is-a-puppet-in-wechaty)
@@ -142,8 +142,8 @@ class WechatyBase extends mixinBase implements SayableSayer {
    * @typedef    PuppetModuleName
    * @property   {string}  wechaty-puppet-service
    * - Using the gRPC protocol to connect with a Protocol Server for controlling the any protocol of any IM  program.
-   * @property   {string}  wechaty-puppet-wechat
-   * - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
+   * @property   {string}  wechaty-puppet-neo
+   * - A standalone WeChat protocol puppet: [wechaty-puppet-neo](https://github.com/wechaty/puppet-neo).
    * @property   {string}  wechaty-puppet-mock
    * - Using the mock data to mock wechat operation, just for test.
    */

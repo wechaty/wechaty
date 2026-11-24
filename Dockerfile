@@ -75,10 +75,12 @@ RUN  npm test \
   && cd packages/wechaty \
   && npm link
 
-# Installing every known puppet by npm name (`npm run puppet-install`) is
-# disabled for 2.0: the external puppets on npm are built for wechaty-puppet
-# 1.x, and installing puppets by name is planned to go away. The workspace
-# puppets (wechaty-puppet-service, wechaty-puppet-mock) are already installed.
+# Pre-install the known external puppets (today wechaty-puppet-neo).
+# Must be placed after `npm link`, or it will be all deleted by `npm link`
+# The workspace puppets (wechaty-puppet-service, wechaty-puppet-mock) are
+# skipped: `npm ci` has installed them already.
+RUN  npm run puppet-install --workspace wechaty \
+  && sudo rm -fr /tmp/* ~/.npm
 
 #
 # Enable ES Modules support #2232

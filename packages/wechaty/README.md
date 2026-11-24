@@ -212,10 +212,9 @@ Currently we support the following [puppet providers](https://wechaty.js.org/doc
 
 | Protocol | Puppet Provider | Environment Variable |
 | --- | --- | --- |
-| Web | [PuppetPuppeteer](https://github.com/wechaty/wechaty-puppet-puppeteer) | `export WECHATY_PUPPET=wechaty-puppet-puppeteer` |
+| WeChat | [PuppetNeo](https://github.com/wechaty/puppet-neo) | `export WECHATY_PUPPET=wechaty-puppet-neo` |
 | Windows | [PuppetWorkPro](https://github.com/RPAChat/workpro-getting-started) | `export WECHATY_PUPPET=wechaty-puppet-service` |
-| Mock | [PuppetMock](https://github.com/wechaty/wechaty-puppet-mock) | `export WECHATY_PUPPET=wechaty-puppet-mock` |
-| Web | [PuppetWechat4u](https://github.com/wechaty/wechaty-puppet-wechat4u) | `export WECHATY_PUPPET=wechaty-puppet-wechat4u` |
+| Mock | [PuppetMock](https://github.com/wechaty/wechaty/tree/main/packages/wechaty-puppet-mock) | `export WECHATY_PUPPET=wechaty-puppet-mock` |
 | iPad | [PuppetRock](https://github.com/wechaty/puppet-service-providers) | `export WECHATY_PUPPET=wechaty-puppet-service` |
 | iPad | [PuppetPadLocal](https://github.com/wechaty/puppet-service-providers) | `export WECHATY_PUPPET=wechaty-puppet-service` |
 | Windows | [PuppetDonut](https://github.com/wechaty/puppet-service-providers) | `export WECHATY_PUPPET=wechaty-puppet-service` |
@@ -242,12 +241,10 @@ A `Bot` is a Wechaty instance that controls a specific [wechaty-puppet](https://
 
 - `WechatyBuilder.build(options?: WechatyOptions)`
     1. `options.name?: string` the name of this bot(optional)
-    2. `options.puppet?: string` select which puppet provider we want to use. must be one of the:
-        1. [wechaty-puppet-wechat](https://github.com/Wechaty/wechaty-puppet-wechat) - Angular Hook for Web Wechat
-        2. [wechaty-puppet-wechat4u](https://github.com/Wechaty/wechaty-puppet-wechat4u) - HTTP API for Web Wechat
-        3. [wechaty-puppet-padpro](https://github.com/botorange/wechaty-puppet-padpro) - iPad App Protocol
-        4. [wechaty-puppet-ioscat](https://github.com/linyimin-bupt/wechaty-puppet-ioscat) - iPhone App Hook
-        5. [wechaty-puppet-mock](https://github.com/Wechaty/wechaty-puppet-mock) - Mock for Testing
+    2. `options.puppet?: string | Puppet` the puppet provider to use, by npm name or as an instance. There is no default: without it, `WECHATY_PUPPET` names it. Known names:
+        1. [wechaty-puppet-neo](https://github.com/wechaty/puppet-neo) - standalone WeChat protocol
+        2. [wechaty-puppet-service](https://github.com/wechaty/wechaty/tree/main/packages/wechaty-puppet-service) - any puppet served over gRPC (Wechaty Puppet Services)
+        3. [wechaty-puppet-mock](https://github.com/wechaty/wechaty/tree/main/packages/wechaty-puppet-mock) - Mock for Testing
     3. `options.puppetOptions?: PuppetOptions` options for the puppet provider.
 
 | Wechaty | API | Description |

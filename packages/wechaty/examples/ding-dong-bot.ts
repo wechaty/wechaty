@@ -40,7 +40,7 @@ const options = {
    * You can specify different puppet for different IM protocols.
    * Learn more from https://wechaty.js.org/docs/puppet-providers/
    */
-  // puppet: 'wechaty-puppet-whatsapp'
+  // puppet: 'wechaty-puppet-neo'
 
   /**
    * You can use wechaty puppet provider 'wechaty-puppet-service'
