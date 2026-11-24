@@ -97,7 +97,7 @@ const SOURCE_EXCLUDES: ReadonlySet<string> = new Set(CONFIG.sourceExcludes)
  * A part of the production tree with coverage floors of its own, checked after
  * the repo-wide floors and from the same LCOV report (AGENTS.md: independent,
  * measured baselines). Its floors live in
- * `.github/coverage-baselines/<runtime>.wechaty.<name>.json` at the repository root.
+ * `.github/coverage-baselines/<runtime>.<package>.<name>.json` at the repository root.
  */
 export interface CoverageScope {
   readonly name: string

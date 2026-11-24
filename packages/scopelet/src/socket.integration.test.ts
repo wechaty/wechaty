@@ -24,7 +24,7 @@
  * (wechaty/wechaty#2974); the S5 examples use a fake socket.
  *
  * A loopback peer checks that the socket really closes, independently of the
- * task and the cleanup that share it. Opt in with `ASYNC_LIFECYCLE_TCP_TEST=1`
+ * task and the cleanup that share it. Opt in with `SCOPELET_TCP_TEST=1`
  * where the runner may bind to the loopback interface (under Deno, with
  * `--allow-net`).
  */
@@ -66,7 +66,7 @@ const entryPoints: readonly (readonly [ string, (hooks: LifecycleHooks) => Lifec
 for (const [ name, create ] of entryPoints) {
   test(`${name}: abort closes a connected socket, and the waiting task finishes before anything is released (C-RET-01)`, {
     timeout: 5_000,
-    skip: env['ASYNC_LIFECYCLE_TCP_TEST'] !== '1' && 'Set ASYNC_LIFECYCLE_TCP_TEST=1 to run the loopback test',
+    skip: env['SCOPELET_TCP_TEST'] !== '1' && 'Set SCOPELET_TCP_TEST=1 to run the loopback test',
   }, async t => {
     const accepted = Promise.withResolvers<Socket>()
     let peer: Socket | undefined

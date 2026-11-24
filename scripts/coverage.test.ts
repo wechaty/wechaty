@@ -2,7 +2,7 @@
  * Unit tests for the shared coverage runner (`scripts/coverage.ts`): LCOV
  * parsing and validation, baselines, scopes, and the per-package
  * `coverage.json` settings. They run at the repository root under Node and
- * Deno, so they read the `wechaty` package's settings by path.
+ * Deno, so they read the `wechaty` and `scopelet` packages' settings by path.
  */
 import assert from 'node:assert/strict'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
@@ -26,6 +26,7 @@ import {
 } from './coverage.ts'
 
 const WECHATY_CONFIG = loadCoverageConfig(fileURLToPath(new URL('../packages/wechaty/', import.meta.url)))
+const SCOPELET_CONFIG = loadCoverageConfig(fileURLToPath(new URL('../packages/scopelet/', import.meta.url)))
 
 const record = (source: string, lineHits = 1) => `TN:
 SF:${source}
@@ -179,21 +180,32 @@ end_of_record
 })
 
 test('a coverage scope keeps its own sources and leaves out its excluded prefixes', () => {
-  const scope = WECHATY_CONFIG.scopes.find(candidate => candidate.name === 'async-lifecycle')!
+  const scope = { name: 'part', include: 'src/part/', exclude: [ 'src/part/contract/', 'src/part/examples/' ] }
   const records = parseLcov([
-    record('src/async-lifecycle/engine.ts'),
-    record('src/async-lifecycle/companions/listen.ts', 0),
-    record('src/async-lifecycle/contract/harness.ts'),
-    record('src/async-lifecycle/examples/io.example.ts'),
+    record('src/part/engine.ts'),
+    record('src/part/companions/listen.ts', 0),
+    record('src/part/contract/harness.ts'),
+    record('src/part/examples/io.example.ts'),
     // A sibling directory sharing the scope's name prefix is not in the scope.
-    record('src/async-lifecycle-sibling/engine.ts'),
+    record('src/part-sibling/engine.ts'),
     record('src/wechaty/wechaty-base.ts'),
   ].join(''))
   const scoped = scopeRecords(records, scope)
-  assert.deepEqual(scoped.map(entry => entry.source), [ 'src/async-lifecycle/engine.ts', 'src/async-lifecycle/companions/listen.ts' ])
+  assert.deepEqual(scoped.map(entry => entry.source), [ 'src/part/engine.ts', 'src/part/companions/listen.ts' ])
   const metrics = summarizeLcov(scoped)
   assert.equal(metrics.lines.percent, 50)
   assert.throws(() => assertBaseline(metrics, { lines: 60, functions: 0, branches: 0 }), /below/)
+})
+
+test('the scopelet kernel scope leaves out its contract suite and examples', () => {
+  const scope = SCOPELET_CONFIG.scopes.find(candidate => candidate.name === 'kernel')!
+  const records = parseLcov([
+    record('src/engine.ts'),
+    record('src/companions/listen.ts'),
+    record('src/contract/harness.ts'),
+    record('src/examples/io.example.ts'),
+  ].join(''))
+  assert.deepEqual(scopeRecords(records, scope).map(entry => entry.source), [ 'src/engine.ts', 'src/companions/listen.ts' ])
 })
 
 test('a package without coverage.json gets the defaults', () => {

@@ -1,0 +1,66 @@
+{
+  "name": "scopelet",
+  "version": "2.0.0-alpha.19",
+  "description": "Scoped ownership for reliable asynchronous lifecycles",
+  "type": "module",
+  "exports": {
+    ".": {
+      "wechaty-source": "./src/mod.ts",
+      "types": "./dist/esm/src/mod.d.ts",
+      "import": "./dist/esm/src/mod.js"
+    }
+  },
+  "types": "./dist/esm/src/mod.d.ts",
+  "engines": {
+    "node": ">=26",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "shx rm -fr dist/*",
+    "dist": "npm run clean && npm run build",
+    "lint": "npm run lint:biome && npm run lint:ts && npm run lint:md",
+    "lint:biome": "biome lint src tests",
+    "lint:ts": "tsc --isolatedModules --noEmit",
+    "lint:md": "markdownlint --config ../../.markdownlint.json README.md",
+    "test:unit": "node --test src",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,/tmp --allow-write=/tmp --allow-run=deno --allow-env src",
+    "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "coverage:node": "node ../../scripts/coverage.ts node",
+    "coverage:deno": "node ../../scripts/coverage.ts deno",
+    "test": "npm run lint && npm run test:unit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wechaty/wechaty.git",
+    "directory": "packages/scopelet"
+  },
+  "keywords": [
+    "async",
+    "lifecycle",
+    "start",
+    "stop",
+    "restart",
+    "graceful-shutdown",
+    "resource-management",
+    "structured-concurrency",
+    "wechaty"
+  ],
+  "author": "Huan Li <huan@chatie.io>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wechaty/wechaty/issues"
+  },
+  "homepage": "https://github.com/wechaty/wechaty/tree/main/packages/scopelet#readme",
+  "devDependencies": {
+    "shx": "^0.3.4"
+  },
+  "files": [
+    "dist/",
+    "src/"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  }
+}

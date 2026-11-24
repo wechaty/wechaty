@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
- * temporary ESM project): the public entry points type-check, the
- * async-lifecycle entry works, a bot over `wechaty-puppet-mock` (resolved by
- * name) starts and stops, and VERSION is set. With
- * WECHATY_PUPPET_SERVICE_TOKEN set, a `wechaty-puppet-service` bot starts too.
+ * temporary ESM project): the public entry points type-check, a bot over
+ * `wechaty-puppet-mock` (resolved by name) starts and stops, and VERSION is
+ * set. With WECHATY_PUPPET_SERVICE_TOKEN set, a `wechaty-puppet-service` bot
+ * starts too.
  */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
@@ -33,12 +33,6 @@ import type { Wechaty } from 'wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'
-import {
-  createLifecycle,
-  LIFECYCLE_DIAGNOSTICS_CHANNEL,
-  operation,
-}                   from 'wechaty/async-lifecycle'
-import type { LifecycleScope } from 'wechaty/async-lifecycle'
 
 import assert from 'assert'
 
@@ -76,21 +70,7 @@ function getBotList (): Wechaty[] {
   return botList
 }
 
-/** The async-lifecycle module from its published entry point (D20). */
-async function asyncLifecycleSmoke (): Promise<void> {
-  let saved: LifecycleScope | undefined
-  const lifecycle = createLifecycle({ onStart (scope) { saved = scope } })
-  await lifecycle.start()
-  assert.strictEqual(lifecycle.state.kind, 'running')
-  assert.strictEqual(await operation(saved!, () => 42), 42)
-  await lifecycle.stop()
-  assert.strictEqual(lifecycle.state.kind, 'stopped')
-  assert.strictEqual(LIFECYCLE_DIAGNOSTICS_CHANNEL, 'wechaty.async-lifecycle.state')
-  console.info('wechaty/async-lifecycle smoking test passed.')
-}
-
 async function main () {
-  await asyncLifecycleSmoke()
   const botList = getBotList()
   try {
     await Promise.all(

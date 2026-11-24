@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Only src/ is compiled, so state the package root: the output must be
+    // dist/esm/src/, as in the other packages.
+    "rootDir": ".",
+    "outDir": "dist/esm",
+    "types": [ "node" ]
+  },
+  "exclude": [
+    "node_modules/",
+    "dist/",
+    "tests/fixtures/"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ]
+}

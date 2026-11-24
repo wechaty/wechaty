@@ -21,7 +21,7 @@
  * `Io` against a real `ws` server on the loopback interface. The unit tests
  * (`io.test.ts`) use a fake socket; this checks what a fake can get wrong, such
  * as the event shapes `ws` passes (a `ws` socket is also an `EventTarget`).
- * Opt in with `ASYNC_LIFECYCLE_TCP_TEST=1`, like the lifecycle's own loopback
+ * Opt in with `SCOPELET_TCP_TEST=1`, like the lifecycle's own loopback
  * test, where the runner may bind to the loopback interface.
  */
 import assert from 'node:assert/strict'
@@ -45,7 +45,7 @@ class LoopbackIo extends Io {
 }
 
 test('Io recovers when a real ws server drops the connection, and sends what was buffered meanwhile', {
-  skip: env['ASYNC_LIFECYCLE_TCP_TEST'] !== '1' && 'Set ASYNC_LIFECYCLE_TCP_TEST=1 to run the loopback test',
+  skip: env['SCOPELET_TCP_TEST'] !== '1' && 'Set SCOPELET_TCP_TEST=1 to run the loopback test',
 }, async () => {
   const server = new WebSocketServer({ host: '127.0.0.1', port: 0 })
   await once(server, 'listening')

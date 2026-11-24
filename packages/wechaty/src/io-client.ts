@@ -38,7 +38,7 @@ import {
   listen,
   type LifecycleController,
   type LifecycleScope,
-}                       from './async-lifecycle/mod.ts'
+}                       from 'scopelet'
 import type { MessageInterface }  from './user-modules/mod.ts'
 import type { WechatyInterface }  from './wechaty/mod.ts'
 

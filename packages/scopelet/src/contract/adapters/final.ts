@@ -19,7 +19,7 @@
  */
 
 /**
- * Contract-suite adapter for the final kernel in `src/async-lifecycle/`
+ * Contract-suite adapter for the final kernel in `src/`
  * (wechaty/wechaty#2972, S4).
  *
  * The kernel implements the S1 API itself, so this adapter translates nothing:

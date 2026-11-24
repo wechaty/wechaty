@@ -66,8 +66,8 @@ test('a rejected acquire() creation leaves no ledger entry, so a retry loop does
 
 test('two installed copies share one child-ownership registry, so only one parent can own a child (C-CHILD-02, D21)', async () => {
   // A second copy of the module's source files is a second module instance,
-  // as when `wechaty` and `wechaty-puppet` each bundle the module.
-  const dir = mkdtempSync(join(tmpdir(), 'async-lifecycle-copy-'))
+  // as when `wechaty` and `wechaty-puppet` each install their own copy.
+  const dir = mkdtempSync(join(tmpdir(), 'scopelet-copy-'))
   try {
     cpSync(import.meta.dirname!, dir, {
       recursive : true,

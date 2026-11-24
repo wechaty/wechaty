@@ -16,7 +16,7 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
   `npm run coverage:node`, and `npm run coverage:deno`.
 - Each package lives in `packages/<npm-name>/` with its own `package.json`,
   `tsconfig.json` (extending `../../tsconfig.base.json`), sources, tests, and
-  package scripts. Today there are six: `packages/wechaty-token`,
+  package scripts. Today there are seven: `packages/scopelet`, `packages/wechaty-token`,
   `packages/wechaty-puppet`, `packages/wechaty-puppet-mock`,
   `packages/wechaty-grpc`, `packages/wechaty-puppet-service` and
   `packages/wechaty`.
@@ -152,8 +152,8 @@ workflow never lowers them automatically.
 Some parts of the tree also have floors of their own, checked from the same
 LCOV report after the package-wide ones. Each is a scope in the package's
 `coverage.json`, and its floors live in
-`.github/coverage-baselines/<runtime>.wechaty.<scope>.json`. Today there is one:
-`async-lifecycle`, the module in `src/async-lifecycle/`, without its contract
+`.github/coverage-baselines/<runtime>.<package>.<scope>.json`. Today there is one:
+`kernel` in `packages/scopelet`, its `src/` without its contract
 suite and examples. Its floors are its measured coverage minus two points, so a
 real regression fails while ordinary churn does not (wechaty/wechaty#2974).
 
@@ -164,7 +164,7 @@ existing symlink/shebang fixtures.
 
 ## Versioning
 
-All six packages release together at one version (lockstep,
+All seven packages release together at one version (lockstep,
 [#3054](https://github.com/wechaty/wechaty/issues/3054)), and each depends on
 the others at `^<version>`. `node scripts/lockstep.ts check` (also a unit test
 in `scripts/`) fails when a version or range drifts, or when the root
@@ -195,7 +195,9 @@ partial release. Then it creates the `v<version>` tag. Prereleases go to the
 
 Publishing uses npm Trusted Publishing with GitHub OIDC instead of an npm
 token: every package must list this repository and `npm.yml` as a trusted
-publisher. Publishing requires npm 11.5.1 or newer. To try the release
+publisher. A new package must already exist on npm before its trusted
+publisher can be set up, so publish it once by hand first. Publishing requires
+npm 11.5.1 or newer. To try the release
 locally, run `scripts/pack-release.sh <dir>`, then
 `DRY_RUN=1 scripts/publish-release.sh <dir> next`.
 

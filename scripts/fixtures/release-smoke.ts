@@ -6,6 +6,7 @@
  */
 import assert from 'node:assert/strict'
 
+import { VERSION as SCOPELET_VERSION } from 'scopelet'
 import { VERSION as TOKEN_VERSION } from 'wechaty-token'
 import { VERSION as PUPPET_VERSION } from 'wechaty-puppet'
 import { VERSION as GRPC_VERSION } from 'wechaty-grpc'
@@ -23,6 +24,7 @@ import {
 const expected = process.env['RELEASE_VERSION']
 assert.ok(expected, 'RELEASE_VERSION must be set')
 assert.deepEqual({
+  'scopelet'               : SCOPELET_VERSION,
   'wechaty-token'          : TOKEN_VERSION,
   'wechaty-puppet'         : PUPPET_VERSION,
   'wechaty-puppet-mock'    : MOCK_VERSION,
@@ -30,6 +32,7 @@ assert.deepEqual({
   'wechaty-puppet-service' : SERVICE_VERSION,
   'wechaty'                : WECHATY_VERSION,
 }, {
+  'scopelet'               : expected,
   'wechaty-token'          : expected,
   'wechaty-puppet'         : expected,
   'wechaty-puppet-mock'    : expected,

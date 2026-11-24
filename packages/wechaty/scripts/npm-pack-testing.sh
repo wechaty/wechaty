@@ -2,7 +2,7 @@
 #
 # Packs wechaty and checks that the tarball works as a consumer sees it:
 # installs it in a temporary ESM project together with the workspace
-# packages it needs (wechaty-puppet, wechaty-grpc, wechaty-token,
+# packages it needs (scopelet, wechaty-puppet, wechaty-grpc, wechaty-token,
 # wechaty-puppet-service and wechaty-puppet-mock), packed from the workspace
 # into deps/ because 2.0 is not on npm yet. Then it type-checks and runs
 # tests/fixtures/smoke-testing.ts. With TESTED_PACKAGE_OUTPUT_PATH set, it
@@ -24,7 +24,7 @@ if [ "${#PACK_FILES[@]}" -ne 1 ]; then
   exit 1
 fi
 PACK_FILE="${PACK_FILES[0]##*/}"
-for workspace in wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-service wechaty-puppet-mock; do
+for workspace in scopelet wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-service wechaty-puppet-mock; do
   npm run dist --workspace "$workspace"
   npm pack --workspace "$workspace" --pack-destination "$DEPS_DIR"
 done

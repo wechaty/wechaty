@@ -161,12 +161,12 @@ class Generation {
 }
 
 /** Where the shared ownership registry lives on `globalThis` (D21). */
-const OWNED_CHILDREN_KEY = Symbol.for('wechaty.async-lifecycle.owned-children')
+const OWNED_CHILDREN_KEY = Symbol.for('scopelet.owned-children')
 
 /**
  * The realm's child-ownership registry, shared by every installed copy of this
- * module (C-CHILD-02, D21). Two copies, for example one bundled in `wechaty`
- * and one in `wechaty-puppet`, would otherwise each keep their own set, and two
+ * module (C-CHILD-02, D21). Two copies, for example one installed under `wechaty`
+ * and one under `wechaty-puppet`, would otherwise each keep their own set, and two
  * parents could own the same child. The first copy to load creates it under a
  * `Symbol.for` key, as a non-enumerable, non-writable property, so the child
  * object is never touched (a `createLifecycle` controller is frozen). If that

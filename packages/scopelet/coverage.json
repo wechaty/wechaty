@@ -1,0 +1,14 @@
+{
+  "testDirectories": [ "src" ],
+  "sourceExcludes": [ "src/version.ts" ],
+  "scopes": [
+    {
+      "name": "kernel",
+      "include": "src/",
+      "exclude": [ "src/contract/", "src/examples/" ]
+    }
+  ],
+  "deno": {
+    "allowRun": [ "deno" ]
+  }
+}
