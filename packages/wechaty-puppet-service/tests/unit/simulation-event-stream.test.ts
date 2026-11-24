@@ -27,19 +27,9 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
   const token = `insecure_${NIL_UUID_V4}`
   const endpoint = `127.0.0.1:${port}`
 
-  const puppet = new PuppetMock()
-  const puppetServer = new PuppetServer({
-    endpoint,
-    puppet,
-    token,
-  } as PuppetServerOptions)
-  await puppetServer.start()
-
-  const puppetService = new PuppetService({
-    endpoint,
-    token,
-  } as PUPPET.PuppetOptions)
-  await puppetService.start()
+  let puppet: PuppetMock | undefined
+  let puppetServer: PuppetServer | undefined
+  let puppetService: PuppetService | undefined
 
   /**
    * Waits for a specific event to be emitted on `puppetService`.
@@ -53,7 +43,7 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
         reject(new Error(`Timeout waiting for event: ${String(eventName)}`))
       }, 5000)
 
-      puppetService.once(eventName, (payload: any) => {
+      puppetService!.once(eventName, (payload: any) => {
         clearTimeout(timer)
         resolve(payload)
       })
@@ -61,6 +51,20 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
   }
 
   try {
+    puppet = new PuppetMock()
+    puppetServer = new PuppetServer({
+      endpoint,
+      puppet,
+      token,
+    } as PuppetServerOptions)
+    puppetService = new PuppetService({
+      endpoint,
+      token,
+    } as PUPPET.PuppetOptions)
+
+    await puppetServer.start()
+    await puppetService.start()
+
     await t.test('streams "scan" event with qrcode and status', async () => {
       const expected = {
         qrcode: 'https://wechaty.js.org/qrcode/test-scan',
@@ -188,8 +192,8 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
       assert.ok(received.gerror && received.gerror.includes('simulated puppet error'), 'error payload should contain error message')
     })
   } finally {
-    await puppetService.stop().catch(() => {})
-    await puppetServer.stop().catch(() => {})
-    await puppet.stop().catch(() => {})
+    await puppetService?.stop().catch(() => {})
+    await puppetServer?.stop().catch(() => {})
+    await puppet?.stop().catch(() => {})
   }
 })

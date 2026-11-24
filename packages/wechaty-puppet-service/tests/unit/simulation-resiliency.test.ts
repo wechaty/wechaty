@@ -29,29 +29,32 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
     const serverToken = `insecure_${VALID_TOKEN_UUID}`
     const clientToken = `insecure_${INVALID_TOKEN_UUID}`
 
-    const puppet = new PuppetMock()
-    const server = new PuppetServer({
-      endpoint,
-      puppet,
-      token: serverToken,
-    } as PuppetServerOptions)
-    await server.start()
-
-    const client = new PuppetService({
-      endpoint,
-      token: clientToken,
-    } as PuppetOptions)
+    let puppet: PuppetMock | undefined
+    let server: PuppetServer | undefined
+    let client: PuppetService | undefined
 
     try {
+      puppet = new PuppetMock()
+      server = new PuppetServer({
+        endpoint,
+        puppet,
+        token: serverToken,
+      } as PuppetServerOptions)
+      client = new PuppetService({
+        endpoint,
+        token: clientToken,
+      } as PuppetOptions)
+
+      await server.start()
       await assert.rejects(
-        async () => client.start(),
+        async () => client!.start(),
         /UNAUTHENTICATED/,
         'client should reject with UNAUTHENTICATED when token is invalid',
       )
     } finally {
-      await client.stop().catch(() => {})
-      await server.stop().catch(() => {})
-      await puppet.stop().catch(() => {})
+      await client?.stop().catch(() => {})
+      await server?.stop().catch(() => {})
+      await puppet?.stop().catch(() => {})
     }
   })
 
@@ -60,28 +63,32 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
     const endpoint = `127.0.0.1:${port}`
     const token = `insecure_${VALID_TOKEN_UUID}`
 
-    const puppet = new PuppetMock()
-    puppet.contactPayload = async () => {
-      throw new Error('simulated backend database failure')
-    }
-
-    const server = new PuppetServer({
-      endpoint,
-      puppet,
-      token,
-    } as PuppetServerOptions)
-    await server.start()
-
-    const client = new PuppetService({
-      endpoint,
-      token,
-    } as PuppetOptions)
-    await client.start()
+    let puppet: PuppetMock | undefined
+    let server: PuppetServer | undefined
+    let client: PuppetService | undefined
 
     try {
+      puppet = new PuppetMock()
+      puppet.contactPayload = async () => {
+        throw new Error('simulated backend database failure')
+      }
+
+      server = new PuppetServer({
+        endpoint,
+        puppet,
+        token,
+      } as PuppetServerOptions)
+      client = new PuppetService({
+        endpoint,
+        token,
+      } as PuppetOptions)
+
+      await server.start()
+      await client.start()
+
       // 1. First call fails as expected
       await assert.rejects(
-        async () => client.contactPayload('contact-error-id'),
+        async () => client!.contactPayload('contact-error-id'),
         /simulated backend database failure/,
         'client call should reject with the backend puppet error message',
       )
@@ -95,9 +102,9 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       const payload = await client.contactPayload('contact-recovered-id')
       assert.equal(payload.name, 'Recovered Contact', 'server should continue serving after error')
     } finally {
-      await client.stop().catch(() => {})
-      await server.stop().catch(() => {})
-      await puppet.stop().catch(() => {})
+      await client?.stop().catch(() => {})
+      await server?.stop().catch(() => {})
+      await puppet?.stop().catch(() => {})
     }
   })
 
@@ -107,53 +114,61 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
     const token = `insecure_${VALID_TOKEN_UUID}`
 
     // 1. First session: start, perform RPC, stop
-    const puppet1 = new PuppetMock()
-    const server1 = new PuppetServer({
-      endpoint,
-      puppet: puppet1,
-      token,
-    } as PuppetServerOptions)
-    await server1.start()
-
-    const client1 = new PuppetService({
-      endpoint,
-      token,
-    } as PuppetOptions)
-    await client1.start()
+    let puppet1: PuppetMock | undefined
+    let server1: PuppetServer | undefined
+    let client1: PuppetService | undefined
 
     try {
+      puppet1 = new PuppetMock()
+      server1 = new PuppetServer({
+        endpoint,
+        puppet: puppet1,
+        token,
+      } as PuppetServerOptions)
+      client1 = new PuppetService({
+        endpoint,
+        token,
+      } as PuppetOptions)
+
+      await server1.start()
+      await client1.start()
+
       assert.ok(client1.isLoggedIn === false, 'client1 should be started')
       const qrCode1 = await client1.contactSelfQRCode()
       assert.ok(typeof qrCode1 === 'string', 'client1 should be operational before stop')
     } finally {
-      await client1.stop().catch(() => {})
-      await server1.stop().catch(() => {})
-      await puppet1.stop().catch(() => {})
+      await client1?.stop().catch(() => {})
+      await server1?.stop().catch(() => {})
+      await puppet1?.stop().catch(() => {})
     }
 
     // 2. Second session: rebind to the EXACT same port to verify socket release without EADDRINUSE
-    const puppet2 = new PuppetMock()
-    const server2 = new PuppetServer({
-      endpoint,
-      puppet: puppet2,
-      token,
-    } as PuppetServerOptions)
-    await server2.start()
-
-    const client2 = new PuppetService({
-      endpoint,
-      token,
-    } as PuppetOptions)
-    await client2.start()
+    let puppet2: PuppetMock | undefined
+    let server2: PuppetServer | undefined
+    let client2: PuppetService | undefined
 
     try {
+      puppet2 = new PuppetMock()
+      server2 = new PuppetServer({
+        endpoint,
+        puppet: puppet2,
+        token,
+      } as PuppetServerOptions)
+      client2 = new PuppetService({
+        endpoint,
+        token,
+      } as PuppetOptions)
+
+      await server2.start()
+      await client2.start()
+
       assert.ok(client2.isLoggedIn === false, 'client2 should start cleanly on reused port')
       const qrCode2 = await client2.contactSelfQRCode()
       assert.ok(typeof qrCode2 === 'string', 'client2 should be operational after restart')
     } finally {
-      await client2.stop().catch(() => {})
-      await server2.stop().catch(() => {})
-      await puppet2.stop().catch(() => {})
+      await client2?.stop().catch(() => {})
+      await server2?.stop().catch(() => {})
+      await puppet2?.stop().catch(() => {})
     }
   })
 })

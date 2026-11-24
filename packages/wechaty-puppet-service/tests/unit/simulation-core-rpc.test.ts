@@ -27,22 +27,25 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
   const endpoint = `127.0.0.1:${port}`
 
   const mocker = new mockModule.Mocker()
-  const puppet = new PuppetMock({ mocker })
-
-  const puppetServer = new PuppetServer({
-    endpoint,
-    puppet,
-    token,
-  } as PuppetServerOptions)
-  await puppetServer.start()
-
-  const puppetService = new PuppetService({
-    endpoint,
-    token,
-  } as PuppetOptions)
-  await puppetService.start()
+  let puppet: PuppetMock | undefined
+  let puppetServer: PuppetServer | undefined
+  let puppetService: PuppetService | undefined
 
   try {
+    puppet = new PuppetMock({ mocker })
+    puppetServer = new PuppetServer({
+      endpoint,
+      puppet,
+      token,
+    } as PuppetServerOptions)
+    puppetService = new PuppetService({
+      endpoint,
+      token,
+    } as PuppetOptions)
+
+    await puppetServer.start()
+    await puppetService.start()
+
     // Set up mock contacts and login user
     const user = mocker.createContact({ name: 'PrimaryUser' })
     const peer = mocker.createContact({ name: 'PeerUser' })
@@ -151,8 +154,8 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
     })
   } finally {
     mock.restoreAll()
-    await puppetService.stop().catch(() => {})
-    await puppetServer.stop().catch(() => {})
-    await puppet.stop().catch(() => {})
+    await puppetService?.stop().catch(() => {})
+    await puppetServer?.stop().catch(() => {})
+    await puppet?.stop().catch(() => {})
   }
 })
