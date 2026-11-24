@@ -1,29 +1,41 @@
 /**
- * `WatchdogAgent`: watches a running puppet's `heartbeat` events and asks it to
- * `reset` when they stop arriving. `service-mixin.ts` starts and stops it with
- * the puppet.
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
+ *
+ *   @copyright 2016-2018 Huan Li <huan@chatie.io>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
  */
-import {
-  Watchdog,
-  type WatchdogFood,
-}                       from 'watchdog'
 
+/**
+ * `WatchdogAgent`: watches a running puppet's `heartbeat` events and asks it to
+ * `reset` when they stop arriving.
+ */
 import type { PuppetSkeleton } from '../puppet/mod.ts'
 import type { ServiceMixin } from '../mixins/service-mixin.ts'
 
 import {
   log,
-}           from '../config.ts'
+} from '../config.ts'
 
-const DEFAULT_WATCHDOG_TIMEOUT_SECONDS  = 60
+const DEFAULT_WATCHDOG_TIMEOUT_SECONDS = 60
 
 class WatchdogAgent {
 
-  protected readonly watchdog : Watchdog
-
-  private cleanCallbackList: Function[]
-
+  private cleanCallbackList: (() => void)[]
   protected readonly puppet: PuppetSkeleton & InstanceType<ServiceMixin>
+  private timer?: ReturnType<typeof setTimeout>
+  private readonly timeoutMs: number
 
   constructor (
     puppet: PuppetSkeleton & InstanceType<ServiceMixin>,
@@ -33,57 +45,35 @@ class WatchdogAgent {
 
     this.cleanCallbackList = []
 
-    /**
-     * 1. Setup Watchdog
-     *  puppet implementation class only need to do one thing:
-     *  feed the watchdog by `this.emit('heartbeat', ...)`
-     */
     const timeoutSeconds = puppet.options.timeoutSeconds || DEFAULT_WATCHDOG_TIMEOUT_SECONDS
     log.verbose('PuppetWatchdogAgent', 'constructor() timeout %d seconds', timeoutSeconds)
-    this.watchdog = new Watchdog(1000 * timeoutSeconds, 'Puppet')
+    this.timeoutMs = 1000 * timeoutSeconds
+  }
 
-    // /**
-    //   * 2. Setup `reset` Event via a 1 second Throttle Queue:
-    //   */
-    // this.resetThrottleQueue = new ThrottleQueue<string>(1000)
-    // this.resetThrottleQueue.subscribe(reason => {
-    //   log.silly('PuppetWatchdogAgent', 'constructor() resetThrottleQueue.subscribe() reason: "%s"', reason)
-    //   puppet.reset(reason)
-    // })
+  feed (): void {
+    if (this.timer) {
+      clearTimeout(this.timer)
+      this.timer = setTimeout(() => this.triggerReset(), this.timeoutMs)
+    }
+  }
+
+  private triggerReset (): void {
+    log.warn('PuppetWatchdogAgent', 'triggerReset() timeout %d ms', this.timeoutMs)
+    this.puppet.emit('error', new Error(
+      `WatchdogAgent reset: timeout after ${this.timeoutMs}ms`,
+    ))
+    this.puppet.wrapAsync(this.puppet.reset())
   }
 
   start (): void {
-    /**
-     * puppet event `heartbeat` to feed() watchdog
-     */
-    const feed = (food: WatchdogFood) => { this.watchdog.feed(food) }
-    this.puppet.on('heartbeat', e => feed({ data: e.data }))
+    const onHeartbeat = () => this.feed()
+    this.puppet.on('heartbeat', onHeartbeat)
     log.verbose('PuppetWatchdogAgent', 'start() "heartbeat" event listener added')
 
     this.cleanCallbackList.push(() => {
-      this.puppet.off('heartbeat', e => feed({ data: e.data }))
+      this.puppet.off('heartbeat', onHeartbeat)
       log.verbose('PuppetWatchdogAgent', 'start() "heartbeat" event listener removed')
     })
-
-    /**
-     * watchdog event `reset` to reset() puppet
-     */
-    const reset = (lastFood: WatchdogFood) => {
-      log.warn('PuppetWatchdogAgent', 'start() reset() reason: %s', JSON.stringify(lastFood))
-      this.puppet.emit('error', new Error(
-        `WatchdogAgent reset: lastFood: "${JSON.stringify(lastFood)}"`,
-      ))
-      this.puppet.wrapAsync(this.puppet.reset())
-    }
-    this.watchdog.on('reset', reset)
-    log.verbose('PuppetWatchdogAgent', 'start() "reset" event listener added')
-
-    this.cleanCallbackList.push(() => {
-      this.puppet.off('reset', e => reset({ data: e.data }))
-      log.verbose('PuppetWatchdogAgent', 'start() "reset" event listener removed')
-    })
-
-    // this.puppet.on('reset', this.throttleReset)
   }
 
   stop (): void {
@@ -93,7 +83,10 @@ class WatchdogAgent {
         callback()
       }
     }
-    this.watchdog.sleep()
+    if (this.timer) {
+      clearTimeout(this.timer)
+      this.timer = undefined
+    }
   }
 
 }

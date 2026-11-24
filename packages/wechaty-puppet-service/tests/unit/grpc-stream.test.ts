@@ -87,4 +87,5 @@ test('gRPC client breaks', async t => {
 
   // setTimeout(() => whyIsNodeRunning(), 1000)
   await puppetServer.stop()
+  await puppet.stop().catch(() => {})
 })

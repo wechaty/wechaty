@@ -1,12 +1,11 @@
 /**
  * Package-wide settings: the logger, the package `NAME` and `VERSION` (from
  * the embedded `package-json.ts`), and re-exports of the runtime classes the
- * puppet API exposes (`FileBox`, `MemoryCard`, `StateSwitch`) plus `envVars`.
+ * puppet API exposes (`FileBox`, `MemoryCard`) plus `envVars`.
  */
 import { FileBox }      from 'file-box'
 import { Brolog }       from 'brolog'
 import { MemoryCard }   from 'memory-card'
-import { StateSwitch }  from 'state-switch'
 
 import { packageJson } from './package-json.ts'
 
@@ -28,6 +27,5 @@ export {
   log,
   MemoryCard,
   NAME,
-  StateSwitch,
   VERSION,
 }

@@ -102,7 +102,7 @@ abstract class Puppet extends MixinBase {
    * Huan(202111): we must put the `VERSION` in the outter side of all the Mixins
    *  because we do not know which Mixin will override the `VERSION`
    */
-  static override readonly VERSION = VERSION
+  static readonly VERSION = VERSION
 
   constructor (
     options: PuppetOptions = {},

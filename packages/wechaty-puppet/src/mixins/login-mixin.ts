@@ -84,20 +84,29 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     }
 
     /**
-     * ref: https://github.com/wechaty/puppet/issues/184
+     * Stop the login mixin: emits a logout event if the user is currently
+     * logged in and clears the current user ID.
+     *
+     * @see https://github.com/wechaty/puppet/issues/184
+     * @see https://github.com/wechaty/puppet/issues/202
      */
     override async stop (): Promise<void> {
       log.verbose('PuppetLoginMixin', 'stop()')
       // await this.logout()
-      if (this.isLoggedIn) {
-        this.emit('logout', {
-          contactId: this.currentUserId,
-          data: 'puppet stop()',
-        })
-        await new Promise<void>(resolve => setImmediate(() => {
+      if (this.isLoggedIn || this.__currentUserId) {
+        const contactId = this.__currentUserId || ''
+        try {
+          this.emit('logout', {
+            contactId,
+            data: 'puppet stop()',
+          })
+          await new Promise<void>(resolve => setImmediate(() => {
+            this.__currentUserId = undefined
+            resolve()
+          }))
+        } finally {
           this.__currentUserId = undefined
-          resolve()
-        }))
+        }
       }
 
       await super.stop()
@@ -128,13 +137,14 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
     async logout (reason = 'logout()'): Promise<void> {
       log.verbose('PuppetLoginMixin', 'logout(%s)', reason)
 
-      if (!this.isLoggedIn) {
+      if (!this.isLoggedIn && !this.__currentUserId) {
         log.verbose('PuppetLoginMixin', 'logout() isLoggedIn === false, do nothing')
         return
       }
 
+      const contactId = this.__currentUserId || ''
       this.emit('logout', {
-        contactId : this.currentUserId,
+        contactId,
         data      : reason,
       })
 
@@ -142,10 +152,14 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
        * Huan(202111): We postpone the `this._currentUserId = undefined` to here,
        *  in case of the `logout` event listener need to check the `this.currentUserId`
        */
-      await new Promise<void>(resolve => setImmediate(() => {
+      try {
+        await new Promise<void>(resolve => setImmediate(() => {
+          this.__currentUserId = undefined
+          resolve()
+        }))
+      } finally {
         this.__currentUserId = undefined
-        resolve()
-      }))
+      }
     }
 
     /**
