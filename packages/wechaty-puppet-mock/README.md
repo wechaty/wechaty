@@ -2,7 +2,7 @@
 
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet-mock.svg)](https://badge.fury.io/js/wechaty-puppet-mock)
 [![npm (tag)](https://img.shields.io/npm/v/wechaty-puppet-mock/next.svg)](https://www.npmjs.com/package/wechaty-puppet-mock?activeTab=versions)
-[![NPM](https://github.com/wechaty/wechaty-puppet-mock/workflows/NPM/badge.svg)](https://github.com/wechaty/wechaty-puppet-mock/actions?query=workflow%3ANPM)
+[![Node.js CI](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml/badge.svg)](https://github.com/wechaty/wechaty/actions/workflows/node.js.yml)
 [![ES Modules](https://img.shields.io/badge/ES-Modules-brightgreen)](https://github.com/Chatie/tsconfig/issues/16)
 
 ![chatie puppet](https://wechaty.github.io/wechaty-puppet-mock/images/mock.png)
@@ -18,6 +18,14 @@ Puppet Mocker & Starter Template for Wechaty, it is very useful when you:
 1. You want to write your own Puppet implenmentation.
 
 Then `PuppetMock` will helps you a lot.
+
+This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty) at
+`packages/wechaty-puppet-mock`, where it moved from `wechaty/puppet-mock` in 2.0.
+
+## Requirements
+
+* Node.js 26 or newer. The package is ESM only.
+* `wechaty-puppet` 2.0 as a peer dependency.
 
 ## USAGE
 
@@ -112,6 +120,14 @@ console.log(config)
 
 ## HISTORY
 
+### v2.0 (unreleased)
+
+1. Moved into the Wechaty monorepo ([wechaty/wechaty#3054](https://github.com/wechaty/wechaty/issues/3054))
+1. ESM only, Node.js 26, built on `wechaty-puppet` 2.0; implements `friendshipSearchHandle()`
+1. `@faker-js/faker` replaces the abandoned `faker` 5.5.3, and IDs come from `crypto.randomUUID()`
+   instead of `cuid`
+1. No dependency on `wechaty` any more; tests use `node:test` under Node.js and Deno
+
 ### master v1.18 (Mar 14, 2022)
 
 Upgrade to Wechaty Puppet v1.18
@@ -145,14 +161,12 @@ Initial version.
 
 ## AUTHOR
 
-[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
+[Huan Li](https://github.com/huan) <huan@chatie.io>
 
-<a href="https://stackexchange.com/users/265499">
-  <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
-</a>
+[![Profile of Huan Li on Stack Exchange](https://stackexchange.com/users/flair/265499.png)](https://stackexchange.com/users/265499)
 
 ## COPYRIGHT & LICENSE
 
-* Code & Docs © 2018 Huan LI \<zixia@zixia.net\>
+* Code & Docs © 2018 Huan Li <huan@chatie.io>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons

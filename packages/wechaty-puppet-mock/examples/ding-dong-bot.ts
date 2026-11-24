@@ -1,7 +1,11 @@
 /**
+ * Example: a `PuppetMock` with `SimpleEnvironment` that answers `ding` with
+ * `dong`. Run it with `npm start`.
+ */
+/**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan Li <huan@chatie.io>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,7 +24,7 @@ import type * as PUPPET from 'wechaty-puppet'
 import {
   PuppetMock,
   mock,
-}               from '../src/mod.js'
+}               from '../src/mod.ts'
 
 const mocker = new mock.Mocker()
 mocker.use(mock.SimpleEnvironment())

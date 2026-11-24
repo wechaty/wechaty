@@ -6,6 +6,7 @@
   "workspaces": [
     "packages/wechaty-token",
     "packages/wechaty-puppet",
+    "packages/wechaty-puppet-mock",
     "packages/wechaty-grpc",
     "packages/wechaty"
   ],

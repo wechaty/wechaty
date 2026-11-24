@@ -1,8 +1,14 @@
-import cuid from 'cuid'
+/**
+ * `Mocker`: the in-memory world behind a `PuppetMock`. It creates contacts,
+ * rooms and messages (with fake data from `generator.ts`) and stores their
+ * payloads for the puppet to serve. `scan()` and `login()` drive the
+ * attached puppet's scan and login; a stored message is emitted as a
+ * `message` event on its room, talker and listener mocks.
+ */
 import * as PUPPET  from 'wechaty-puppet'
 
-import type { PuppetMock } from '../puppet-mock.js'
-import { log } from '../config.js'
+import type { PuppetMock } from '../puppet-mock.ts'
+import { log } from '../config.ts'
 
 import {
   ContactMock,
@@ -12,14 +18,17 @@ import {
   mockerifyContactMock,
   mockerifyMessageMock,
   mockerifyRoomMock,
-}                         from './user/mod.js'
+}                         from './user/mod.ts'
 
 import {
   generateContactPayload,
   generateRoomPayload,
-}                           from './generator.js'
-import type { EnvironmentMock } from './environment.js'
-import type { FileBoxJsonObject } from 'file-box/dist/esm/src/file-box.type.js'
+}                           from './generator.ts'
+import type { EnvironmentMock } from './environment.ts'
+import type { FileBox } from 'file-box'
+
+/** file-box's JSON form of a FileBox; file-box does not export the type itself. */
+type FileBoxJsonObject = ReturnType<FileBox['toJSON']>
 
 class Mocker {
 
@@ -60,7 +69,7 @@ class Mocker {
   constructor () {
     log.verbose('Mocker', 'constructor()')
 
-    this.id = cuid()
+    this.id = crypto.randomUUID()
 
     this.environmentList          = []
     this.cleanupFns = []

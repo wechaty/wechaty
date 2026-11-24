@@ -1,0 +1,4 @@
+{
+  "testDirectories": [ "src" ],
+  "sourceExcludes": [ "src/package-json.ts" ]
+}

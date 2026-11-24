@@ -1,15 +1,18 @@
-import cuid                             from 'cuid'
+/**
+ * `ContactMock`: a mocked contact whose `say()` sends messages through its
+ * `Mocker`. `mockerifyContactMock()` binds the class to one Mocker.
+ */
 import * as path                        from 'path'
 import * as PUPPET                      from 'wechaty-puppet'
-import { FileBox, FileBoxInterface }    from 'file-box'
+import { FileBox, type FileBoxInterface }    from 'file-box'
 
-import { log }    from '../../config.js'
+import { log }    from '../../config.ts'
 
-import { ContactEventEmitter }  from '../events/contact-events.js'
-import type { Mocker }          from '../mocker.js'
-import { generateSentence }     from '../generator.js'
+import { ContactEventEmitter }  from '../events/contact-events.ts'
+import type { Mocker }          from '../mocker.ts'
+import { generateSentence }     from '../generator.ts'
 
-import { RoomMock }    from './room-mock.js'
+import { RoomMock }    from './room-mock.ts'
 
 const POOL = Symbol('pool')
 
@@ -79,10 +82,13 @@ class ContactMock extends ContactEventEmitter {
 
   get id () { return this.payload.id }
 
+  payload: PUPPET.payloads.Contact
+
   constructor (
-    public payload: PUPPET.payloads.Contact,
+    payload: PUPPET.payloads.Contact,
   ) {
     super()
+    this.payload = payload
     log.silly('MockContact', 'constructor(%s)', JSON.stringify(payload))
     this.mocker.contactPayload(payload.id, payload)
   }
@@ -112,7 +118,7 @@ class ContactMock extends ContactEventEmitter {
       }
 
       const basePayload: PUPPET.payloads.MessageBase = {
-        id        : cuid(),
+        id        : crypto.randomUUID(),
         talkerId  : that.id,
         timestamp : Date.now(),
         type      : PUPPET.types.Message.Text,

@@ -1,11 +1,16 @@
-import { EventEmitter }   from 'events'
-import type TypedEventEmitter  from 'typed-emitter'
+/**
+ * The typed `message` event emitter that `RoomMock` extends.
+ */
+import { EventEmitter }   from 'node:events'
+// typed-emitter ships CommonJS types, so NodeNext sees its default export
+// under `.default`.
+import type * as TypedEventEmitter from 'typed-emitter'
 
 import type {
   // ContactMock,
   MessageMock,
   RoomMock,
-}                   from '../user/mod.js'
+}                   from '../user/mod.ts'
 
 // export type RoomInviteEventListener  = (this: Room, inviter: Contact, invitation: RoomInvitation)                   => void | Promise<void>
 // export type RoomJoinEventListener    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)         => void | Promise<void>
@@ -21,6 +26,6 @@ interface RoomEvents {
   // topic   : RoomTopicEventListener,
 }
 
-export const RoomEventEmitter = EventEmitter as any as new () => TypedEventEmitter<
+export const RoomEventEmitter = EventEmitter as any as new () => TypedEventEmitter.default<
   RoomEvents
 >

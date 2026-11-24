@@ -1,7 +1,12 @@
+/**
+ * Mock environments: functions that bring a `Mocker` to life. `SimpleEnvironment`
+ * scans, logs in a user, creates three contacts and a room, then has a random
+ * contact speak every five seconds until stopped.
+ */
 import * as PUPPET from 'wechaty-puppet'
-import { log } from '../config.js'
+import { log } from '../config.ts'
 
-import type { Mocker } from './mocker.js'
+import type { Mocker } from './mocker.ts'
 
 type EnvironmentStop  = () => void
 type EnvironmentStart = (mocker: Mocker) => EnvironmentStop
