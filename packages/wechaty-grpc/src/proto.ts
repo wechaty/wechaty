@@ -1,50 +1,47 @@
 /**
- * `proto.puppet.v0`: the path and text of `proto/wechaty/puppet.proto`, read
- * from the package root (`codeRoot`) when this module loads.
+ * Locates and reads raw `.proto` files on native runtimes. The schema entry
+ * can also load in browsers, where these filesystem helpers are unavailable.
  */
-import path from 'node:path'
-import fs from 'node:fs'
-import { fileURLToPath } from 'node:url'
-
 import type { ApiStore } from './config.ts'
 
 /**
- * Absolute file path to the root directory of the `wechaty-grpc` package.
+ * Absolute package root on native runtimes, or an empty string in a browser.
  */
-const codeRoot = fileURLToPath(new URL('..', import.meta.url))
+const codeRoot = globalThis.process?.getBuiltinModule?.('node:url')
+  ?.fileURLToPath(new URL('..', import.meta.url)) ?? ''
 
 /**
  * Resolves an absolute path inside the `proto/` directory of the `wechaty-grpc` package.
  *
  * @param paths Subpath segments relative to `packages/wechaty-grpc/proto/`.
  * @returns Fully qualified filesystem path.
+ * @throws If the runtime has no native path API.
  */
 function getProtoPath (...paths: string[]): string {
-  return path.join(
-    codeRoot,
-    'proto',
-    ...paths,
-  )
+  const path = globalThis.process?.getBuiltinModule?.('node:path')
+  if (!path) {
+    throw new Error('Raw protobuf files require a native filesystem')
+  }
+  return path.join(codeRoot, 'proto', ...paths)
 }
 
-const puppetProtoFile = getProtoPath(
-  'wechaty',
-  'puppet.proto',
-)
-
 /**
- * Access store for raw proto definitions and schema files.
+ * Native access to the puppet schema path and text. Unreadable files return
+ * empty text. Access from a browser throws because there is no local file.
  */
 const puppet: ApiStore = {
   v0: {
     get data () {
+      const file = getProtoPath('wechaty', 'puppet.proto')
       try {
-        return fs.readFileSync(puppetProtoFile, 'utf8')
+        return globalThis.process?.getBuiltinModule?.('node:fs')?.readFileSync(file, 'utf8') ?? ''
       } catch {
         return ''
       }
     },
-    file: puppetProtoFile,
+    get file () {
+      return getProtoPath('wechaty', 'puppet.proto')
+    },
   },
 }
 

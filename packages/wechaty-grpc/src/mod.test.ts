@@ -1,15 +1,22 @@
 /**
- * Unit tests for `mod.ts`.
+ * Verifies the public schema exports and the behavior of native helpers when
+ * the entry loads in a browser.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import {
+  chunkDecoder,
+  chunkEncoder,
+  codeRoot,
+  getProtoPath,
+  proto,
   Puppet,
   puppet,
   google,
   StringValue,
   Timestamp,
+  UploadRequestSchema,
   VERSION,
 }                   from './mod.ts'
 
@@ -36,4 +43,19 @@ test('`StringValue` and `Timestamp` are exported', async _t => {
   assert.ok(StringValue, 'should export StringValue')
   assert.ok(Timestamp, 'should export Timestamp')
   assert.ok(VERSION, 'should export VERSION')
+})
+
+test('browser rejects access to native file and stream helpers', {
+  skip: typeof document === 'undefined',
+}, () => {
+  assert.equal(codeRoot, '')
+
+  const filesystemError = /Raw protobuf files require a native filesystem/
+  assert.throws(() => getProtoPath('wechaty', 'puppet.proto'), filesystemError)
+  assert.throws(() => proto.puppet.v0.file, filesystemError)
+  assert.throws(() => proto.puppet.v0.data, filesystemError)
+
+  const streamsError = /gRPC chunk transformers require native Node streams/
+  assert.throws(() => chunkEncoder(UploadRequestSchema), streamsError)
+  assert.throws(() => chunkDecoder(), streamsError)
 })
