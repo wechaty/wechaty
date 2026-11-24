@@ -150,6 +150,18 @@ export function setLockstepVersion (version: string, root = ROOT): void {
   }
 }
 
+/**
+ * The command line: runs one command and returns the exit code (0 on
+ * success, 1 when `check` finds problems or the lockfile update fails, 2 for
+ * an unknown command). `check`, `version` and `order` only read files.
+ *
+ * `set <version>` changes files in this order: every workspace package.json,
+ * then the `VERSIONED_SOURCES` entries, then the lockfile through
+ * `npm install --package-lock-only --ignore-scripts`. An invalid version
+ * throws before anything is written. If npm fails, the package.json and
+ * source edits stay in place: fix the cause and run `set` again (it is
+ * idempotent), or discard the edits with git.
+ */
 function main (args: string[]): number {
   const [ command, version ] = args
   switch (command) {
