@@ -72,6 +72,9 @@ export default {
     // This suite looks up installed ESM providers by package name using the native module loader.
     '!packages/wechaty-puppet/src/puppet/puppet-resolver.test.ts',
     'packages/wechaty-puppet-mock/src/**/*.test.ts',
+    'packages/wechaty-token/src/**/*.test.ts',
+    // The main token entry exports the native CLI and gRPC resolver.
+    '!packages/wechaty-token/src/{mod,resolver-wechaty}.test.ts',
     'packages/wechaty/{src,scripts,tests/unit}/**/*.test.ts',
     // Native test cases in mixed suites are colocated separately. Integration
     // tests exercise real TCP and WebSocket servers.
