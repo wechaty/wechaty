@@ -169,23 +169,26 @@ class GrpcManager extends EventEmitter {
     const protocol = this.disableTls ? 'http' : 'https'
     let target = this.endpoint
 
+    const formatHostPort = (host: string, port: string | number) =>
+      host.includes(':') && !host.startsWith('[') ? `[${host}]:${port}` : `${host}:${port}`
+
     if (target.startsWith('wechaty://')) {
       const parsed = new URL(target)
       const tokenStr = (parsed.pathname || '').replace(/^\//, '')
-      const authority = parsed.hostname || parsed.host || undefined
+      const authority = parsed.host || parsed.hostname || undefined
       try {
         const address = await new WechatyToken({
           authority,
           token: tokenStr,
         }).discover()
         if (address && address.host && address.port) {
-          target = `${address.host}:${address.port}`
+          target = formatHostPort(address.host, address.port)
         } else {
-          target = `${parsed.hostname || '127.0.0.1'}:${parsed.port || '8788'}`
+          target = formatHostPort(parsed.hostname || '127.0.0.1', parsed.port || '8788')
         }
       } catch (e) {
         log.warn('GrpcManager', 'initClient() token discovery failed: %s', (e as Error).message)
-        target = `${parsed.hostname || '127.0.0.1'}:${parsed.port || '8788'}`
+        target = formatHostPort(parsed.hostname || '127.0.0.1', parsed.port || '8788')
       }
     } else if (target.startsWith('http://') || target.startsWith('https://')) {
       const parsed = new URL(target)

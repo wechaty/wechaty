@@ -325,7 +325,7 @@ export function puppetImplementation (
         id: payload.id,
         listenerId: payload.listenerId || payload.toId || '',
         mentionIds: mentionIdList,
-        receiveTime: payload.timestamp ? timestampFromMilliseconds(payload.timestamp) : undefined,
+        receiveTime: typeof payload.timestamp === 'number' ? timestampFromMilliseconds(payload.timestamp) : undefined,
         roomId: payload.roomId || '',
         talkerId: payload.talkerId || payload.fromId || '',
         text: payload.text || '',
@@ -447,7 +447,7 @@ export function puppetImplementation (
         memberCount: payload.memberCount,
         memberIds: payload.memberIdList,
         receiverId: payload.receiverId,
-        receiveTime: payload.timestamp ? timestampFromMilliseconds(payload.timestamp) : undefined,
+        receiveTime: typeof payload.timestamp === 'number' ? timestampFromMilliseconds(payload.timestamp) : undefined,
         topic: payload.topic,
       }
     },
