@@ -24,7 +24,7 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
   useTempHome(t)
   const port = await freePort()
   const token = `insecure_${NIL_UUID_V4}`
-  const endpoint = `0.0.0.0:${port}`
+  const endpoint = `127.0.0.1:${port}`
 
   const mocker = new mockModule.Mocker()
   const puppet = new PuppetMock({ mocker })
@@ -48,103 +48,111 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
     const peer = mocker.createContact({ name: 'PeerUser' })
     mocker.login(user)
 
-  await t.test('Contact domain: list, payload, self name, and self QR code', async () => {
-    const contactIds = await puppetService.contactList()
-    assert.ok(contactIds.includes(user.id), 'contactList should contain primary user id')
-    assert.ok(contactIds.includes(peer.id), 'contactList should contain peer user id')
+    await t.test('Contact domain: list, payload, self name, and self QR code', async () => {
+      const contactIds = await puppetService.contactList()
+      assert.ok(contactIds.includes(user.id), 'contactList should contain primary user id')
+      assert.ok(contactIds.includes(peer.id), 'contactList should contain peer user id')
 
-    const userPayload = await puppetService.contactPayload(user.id)
-    assert.equal(userPayload.id, user.id, 'user payload id should match')
-    assert.equal(userPayload.name, 'PrimaryUser', 'user payload name should match')
+      const userPayload = await puppetService.contactPayload(user.id)
+      assert.equal(userPayload.id, user.id, 'user payload id should match')
+      assert.equal(userPayload.name, 'PrimaryUser', 'user payload name should match')
 
-    const peerPayload = await puppetService.contactPayload(peer.id)
-    assert.equal(peerPayload.id, peer.id, 'peer payload id should match')
-    assert.equal(peerPayload.name, 'PeerUser', 'peer payload name should match')
+      const peerPayload = await puppetService.contactPayload(peer.id)
+      assert.equal(peerPayload.id, peer.id, 'peer payload id should match')
+      assert.equal(peerPayload.name, 'PeerUser', 'peer payload name should match')
 
-    // Test contactSelfName
-    await assert.doesNotReject(
-      async () => puppetService.contactSelfName('UpdatedName'),
-      'contactSelfName should succeed',
-    )
+      // Test contactSelfName with spy verification of payload delivery
+      const spySelfName = mock.method(puppet, 'contactSelfName')
+      await assert.doesNotReject(
+        async () => puppetService.contactSelfName('UpdatedName'),
+        'contactSelfName should succeed',
+      )
+      assert.equal(spySelfName.mock.callCount(), 1, 'puppet.contactSelfName should be called once')
+      assert.deepEqual(spySelfName.mock.calls[0]?.arguments, ['UpdatedName'], 'puppet.contactSelfName should receive updated name')
 
-    // Test contactSelfQRCode
-    const qrCode = await puppetService.contactSelfQRCode()
-    assert.ok(typeof qrCode === 'string', 'contactSelfQRCode should return a string')
-  })
-
-  await t.test('Room domain: create, list, payload, members, and topic', async () => {
-    const room = mocker.createRoom({
-      memberIdList: [user.id, peer.id],
-      topic: 'Safety Net Room',
+      // Test contactSelfQRCode
+      const qrCode = await puppetService.contactSelfQRCode()
+      assert.ok(typeof qrCode === 'string', 'contactSelfQRCode should return a string')
     })
 
-    const roomIds = await puppetService.roomList()
-    assert.ok(roomIds.includes(room.id), 'roomList should contain created room id')
+    await t.test('Room domain: create, list, payload, members, and topic', async () => {
+      const room = mocker.createRoom({
+        memberIdList: [user.id, peer.id],
+        topic: 'Safety Net Room',
+      })
 
-    const roomPayload = await puppetService.roomPayload(room.id)
-    assert.equal(roomPayload.id, room.id, 'room payload id should match')
-    assert.equal(roomPayload.topic, 'Safety Net Room', 'room payload topic should match')
+      const roomIds = await puppetService.roomList()
+      assert.ok(roomIds.includes(room.id), 'roomList should contain created room id')
 
-    const memberIds = await puppetService.roomMemberList(room.id)
-    assert.ok(memberIds.includes(user.id), 'roomMemberList should include user id')
-    assert.ok(memberIds.includes(peer.id), 'roomMemberList should include peer id')
+      const roomPayload = await puppetService.roomPayload(room.id)
+      assert.equal(roomPayload.id, room.id, 'room payload id should match')
+      assert.equal(roomPayload.topic, 'Safety Net Room', 'room payload topic should match')
 
-    const memberPayload = await puppetService.roomMemberPayload(room.id, user.id)
-    assert.equal(memberPayload.id, user.id, 'room member payload id should match user id')
+      const memberIds = await puppetService.roomMemberList(room.id)
+      assert.ok(memberIds.includes(user.id), 'roomMemberList should include user id')
+      assert.ok(memberIds.includes(peer.id), 'roomMemberList should include peer id')
 
-    // Test roomTopic get and set
-    const currentTopic = await puppetService.roomTopic(room.id)
-    assert.equal(currentTopic, 'mock room topic', 'roomTopic should return mock room topic from puppet')
+      const memberPayload = await puppetService.roomMemberPayload(room.id, user.id)
+      assert.equal(memberPayload.id, user.id, 'room member payload id should match user id')
 
-    const spyTopic = mock.method(puppet, 'roomTopic')
-    await puppetService.roomTopic(room.id, 'Updated Topic')
-    assert.ok(spyTopic.mock.callCount() > 0, 'puppet.roomTopic setter should have been called')
-  })
+      // Test roomTopic get and set with spy verification
+      const currentTopic = await puppetService.roomTopic(room.id)
+      assert.equal(currentTopic, 'mock room topic', 'roomTopic should return mock room topic from puppet')
 
-  await t.test('Message domain: send text, payload, and recall', async () => {
-    // Send text message from peer to user via mocker
-    const msgPromise = new Promise<string>(resolve => {
-      puppet.once('message', ({ messageId }) => resolve(messageId))
-      peer.say('RPC message test').to(user)
+      const spyTopic = mock.method(puppet, 'roomTopic')
+      await puppetService.roomTopic(room.id, 'Updated Topic')
+      assert.equal(spyTopic.mock.callCount(), 1, 'puppet.roomTopic setter should have been called once')
+      assert.deepEqual(spyTopic.mock.calls[0]?.arguments, [room.id, 'Updated Topic'], 'puppet.roomTopic should receive room id and new topic')
     })
-    const messageId = await msgPromise
-    assert.ok(messageId, 'messageId should be emitted')
 
-    // Verify messagePayload over puppetService
-    const payload = await puppetService.messagePayload(messageId)
-    assert.equal(payload.id, messageId, 'message payload id should match')
-    assert.equal(payload.talkerId, peer.id, 'message talkerId should match peer')
-    assert.equal(payload.text, 'RPC message test', 'message text should match')
+    await t.test('Message domain: send text, payload, and recall', async () => {
+      // Send text message from peer to user via mocker
+      const msgPromise = new Promise<string>(resolve => {
+        puppet.once('message', ({ messageId }) => resolve(messageId))
+        peer.say('RPC message test').to(user)
+      })
+      const messageId = await msgPromise
+      assert.ok(messageId, 'messageId should be emitted')
 
-    // Test messageRecall spy
-    const spyRecall = mock.method(puppet, 'messageRecall', async () => true)
-    const recalled = await puppetService.messageRecall(messageId)
-    assert.equal(recalled, true, 'messageRecall should return true')
-    assert.ok(spyRecall.mock.callCount() > 0, 'puppet.messageRecall should have been called')
-  })
+      // Verify messagePayload over puppetService
+      const payload = await puppetService.messagePayload(messageId)
+      assert.equal(payload.id, messageId, 'message payload id should match')
+      assert.equal(payload.talkerId, peer.id, 'message talkerId should match peer')
+      assert.equal(payload.text, 'RPC message test', 'message text should match')
 
-  await t.test('Friendship domain: payload, accept, and add', async () => {
-    const spyAdd = mock.method(puppet, 'friendshipAdd')
-    const spyAccept = mock.method(puppet, 'friendshipAccept')
+      // Test messageRecall spy
+      const spyRecall = mock.method(puppet, 'messageRecall', async () => true)
+      const recalled = await puppetService.messageRecall(messageId)
+      assert.equal(recalled, true, 'messageRecall should return true')
+      assert.equal(spyRecall.mock.callCount(), 1, 'puppet.messageRecall should have been called once')
+      assert.deepEqual(spyRecall.mock.calls[0]?.arguments, [messageId], 'puppet.messageRecall should receive message id')
+    })
 
-    await assert.doesNotReject(
-      async () => puppetService.friendshipAdd(peer.id, 'Let us connect'),
-      'friendshipAdd should succeed over gRPC',
-    )
-    assert.ok(spyAdd.mock.callCount() > 0, 'puppet.friendshipAdd should have been invoked')
+    await t.test('Friendship domain: payload, accept, and add', async () => {
+      const spyAdd = mock.method(puppet, 'friendshipAdd')
+      const spyAccept = mock.method(puppet, 'friendshipAccept')
 
-    await assert.doesNotReject(
-      async () => puppetService.friendshipAccept('test-friendship-id'),
-      'friendshipAccept should succeed over gRPC',
-    )
-    assert.ok(spyAccept.mock.callCount() > 0, 'puppet.friendshipAccept should have been invoked')
+      await assert.doesNotReject(
+        async () => puppetService.friendshipAdd(peer.id, 'Let us connect'),
+        'friendshipAdd should succeed over gRPC',
+      )
+      assert.equal(spyAdd.mock.callCount(), 1, 'puppet.friendshipAdd should have been invoked once')
+      assert.deepEqual(spyAdd.mock.calls[0]?.arguments, [peer.id, { hello: 'Let us connect' }], 'puppet.friendshipAdd arguments should match')
+
+      await assert.doesNotReject(
+        async () => puppetService.friendshipAccept('test-friendship-id'),
+        'friendshipAccept should succeed over gRPC',
+      )
+      assert.equal(spyAccept.mock.callCount(), 1, 'puppet.friendshipAccept should have been invoked once')
+      assert.deepEqual(spyAccept.mock.calls[0]?.arguments, ['test-friendship-id'], 'puppet.friendshipAccept argument should match')
 
       const friendshipPayload = await puppetService.friendshipPayload('test-friendship-id')
       assert.equal(friendshipPayload.id, 'test-friendship-id', 'friendshipPayload should return friendship with matching id')
     })
   } finally {
-    await puppetService.stop()
-    await puppetServer.stop()
-    await puppet.stop()
+    mock.restoreAll()
+    await puppetService.stop().catch(() => {})
+    await puppetServer.stop().catch(() => {})
+    await puppet.stop().catch(() => {})
   }
 })

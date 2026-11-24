@@ -25,7 +25,7 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
 
   await t.test('rejects connection with mismatched token', async () => {
     const port = await freePort()
-    const endpoint = `0.0.0.0:${port}`
+    const endpoint = `127.0.0.1:${port}`
     const serverToken = `insecure_${VALID_TOKEN_UUID}`
     const clientToken = `insecure_${INVALID_TOKEN_UUID}`
 
@@ -42,20 +42,22 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       token: clientToken,
     } as PuppetOptions)
 
-    await assert.rejects(
-      async () => client.start(),
-      /UNAUTHENTICATED/,
-      'client should reject with UNAUTHENTICATED when token is invalid',
-    )
-
-    await client.stop().catch(() => {})
-    await server.stop().catch(() => {})
-    await puppet.stop().catch(() => {})
+    try {
+      await assert.rejects(
+        async () => client.start(),
+        /UNAUTHENTICATED/,
+        'client should reject with UNAUTHENTICATED when token is invalid',
+      )
+    } finally {
+      await client.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await puppet.stop().catch(() => {})
+    }
   })
 
   await t.test('propagates backend puppet error cleanly to client without crashing server', async () => {
     const port = await freePort()
-    const endpoint = `0.0.0.0:${port}`
+    const endpoint = `127.0.0.1:${port}`
     const token = `insecure_${VALID_TOKEN_UUID}`
 
     const puppet = new PuppetMock()
@@ -76,70 +78,82 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
     } as PuppetOptions)
     await client.start()
 
-    // 1. First call fails as expected
-    await assert.rejects(
-      async () => client.contactPayload('contact-error-id'),
-      /simulated backend database failure/,
-      'client call should reject with the backend puppet error message',
-    )
+    try {
+      // 1. First call fails as expected
+      await assert.rejects(
+        async () => client.contactPayload('contact-error-id'),
+        /simulated backend database failure/,
+        'client call should reject with the backend puppet error message',
+      )
 
-    // 2. Server remains alive and serves subsequent requests
-    puppet.contactPayload = async (id: string) => ({
-      id,
-      name: 'Recovered Contact',
-    } as any)
+      // 2. Server remains alive and serves subsequent requests
+      puppet.contactPayload = async (id: string) => ({
+        id,
+        name: 'Recovered Contact',
+      } as any)
 
-    const payload = await client.contactPayload('contact-recovered-id')
-    assert.equal(payload.name, 'Recovered Contact', 'server should continue serving after error')
-
-    await client.stop()
-    await server.stop()
-    await puppet.stop()
+      const payload = await client.contactPayload('contact-recovered-id')
+      assert.equal(payload.name, 'Recovered Contact', 'server should continue serving after error')
+    } finally {
+      await client.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await puppet.stop().catch(() => {})
+    }
   })
 
-  await t.test('clean stop and restart lifecycle without socket or resource leaks', async () => {
-    const port1 = await freePort()
+  await t.test('clean stop and restart lifecycle on the same port', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
     const token = `insecure_${VALID_TOKEN_UUID}`
 
+    // 1. First session: start, perform RPC, stop
     const puppet1 = new PuppetMock()
     const server1 = new PuppetServer({
-      endpoint: `0.0.0.0:${port1}`,
+      endpoint,
       puppet: puppet1,
       token,
     } as PuppetServerOptions)
     await server1.start()
 
     const client1 = new PuppetService({
-      endpoint: `0.0.0.0:${port1}`,
+      endpoint,
       token,
     } as PuppetOptions)
     await client1.start()
 
-    // Verify first session works
-    assert.ok(client1.isLoggedIn === false, 'client1 should be started')
-    await client1.stop()
-    await server1.stop()
-    await puppet1.stop()
+    try {
+      assert.ok(client1.isLoggedIn === false, 'client1 should be started')
+      const qrCode1 = await client1.contactSelfQRCode()
+      assert.ok(typeof qrCode1 === 'string', 'client1 should be operational before stop')
+    } finally {
+      await client1.stop().catch(() => {})
+      await server1.stop().catch(() => {})
+      await puppet1.stop().catch(() => {})
+    }
 
-    // Start a second session on a new port
-    const port2 = await freePort()
+    // 2. Second session: rebind to the EXACT same port to verify socket release without EADDRINUSE
     const puppet2 = new PuppetMock()
     const server2 = new PuppetServer({
-      endpoint: `0.0.0.0:${port2}`,
+      endpoint,
       puppet: puppet2,
       token,
     } as PuppetServerOptions)
     await server2.start()
 
     const client2 = new PuppetService({
-      endpoint: `0.0.0.0:${port2}`,
+      endpoint,
       token,
     } as PuppetOptions)
     await client2.start()
 
-    assert.ok(client2.isLoggedIn === false, 'client2 should start cleanly on new port')
-    await client2.stop()
-    await server2.stop()
-    await puppet2.stop()
+    try {
+      assert.ok(client2.isLoggedIn === false, 'client2 should start cleanly on reused port')
+      const qrCode2 = await client2.contactSelfQRCode()
+      assert.ok(typeof qrCode2 === 'string', 'client2 should be operational after restart')
+    } finally {
+      await client2.stop().catch(() => {})
+      await server2.stop().catch(() => {})
+      await puppet2.stop().catch(() => {})
+    }
   })
 })
