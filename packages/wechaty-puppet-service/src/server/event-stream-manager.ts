@@ -86,8 +86,13 @@ class EventStreamManager {
     }
   }
 
-  public stop (): void {
+  public stop (expectedStream?: EventStreamSink): void {
     log.verbose('EventStreamManager', 'stop()')
+
+    if (expectedStream && this.eventStream && this.eventStream !== expectedStream) {
+      log.verbose('EventStreamManager', 'stop() ignored because active stream is not the expected stream')
+      return
+    }
 
     if (this.removeListeners) {
       this.removeListeners()

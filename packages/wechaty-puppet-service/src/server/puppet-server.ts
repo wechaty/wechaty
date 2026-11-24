@@ -208,19 +208,50 @@ export class PuppetServer {
 
         const cleartextServer = net.createServer((socket) => {
           this.sockets.add(socket)
-          socket.once('close', () => this.sockets.delete(socket))
-          socket.once('data', (chunk) => {
-            socket.unshift(chunk)
-            if (chunk.length >= 3 && chunk.toString('ascii', 0, 3) === 'PRI') {
-              const handle = (socket as any)._handle
-              if (handle) {
-                Object.defineProperty(handle, 'isStreamBase', { value: false, configurable: true })
+
+          const onPreDispatchError = (err: Error) => {
+            log.verbose('PuppetServer', 'cleartext pre-dispatch socket error: %s', err.message)
+            cleanupPreDispatch()
+            this.sockets.delete(socket)
+            socket.destroy()
+          }
+
+          const onPreDispatchClose = () => {
+            cleanupPreDispatch()
+            this.sockets.delete(socket)
+          }
+
+          let buffer = Buffer.alloc(0)
+          const onData = (chunk: Buffer) => {
+            buffer = Buffer.concat([buffer, chunk])
+            // If we have received at least 3 bytes, or if it definitely cannot be the HTTP/2 preface ('PRI')
+            if (buffer.length >= 3 || (buffer.length > 0 && !Buffer.from('PRI').subarray(0, buffer.length).equals(buffer))) {
+              cleanupPreDispatch()
+              socket.unshift(buffer)
+              socket.once('close', () => this.sockets.delete(socket))
+              if (buffer.length >= 3 && buffer.subarray(0, 3).toString('ascii') === 'PRI') {
+                const handle = (socket as any)._handle
+                if (handle) {
+                  try {
+                    Object.defineProperty(handle, 'isStreamBase', { value: false, configurable: true })
+                  } catch {}
+                }
+                h2.emit('connection', socket)
+              } else {
+                h1.emit('connection', socket)
               }
-              h2.emit('connection', socket)
-            } else {
-              h1.emit('connection', socket)
             }
-          })
+          }
+
+          function cleanupPreDispatch () {
+            socket.removeListener('data', onData)
+            socket.removeListener('error', onPreDispatchError)
+            socket.removeListener('close', onPreDispatchClose)
+          }
+
+          socket.on('error', onPreDispatchError)
+          socket.once('close', onPreDispatchClose)
+          socket.on('data', onData)
         })
         this.server = cleartextServer
       } else {

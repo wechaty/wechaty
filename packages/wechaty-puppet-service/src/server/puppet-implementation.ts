@@ -160,7 +160,7 @@ export function puppetImplementation (
 
       const abortHandler = () => {
         finished = true
-        eventStreamManager.stop()
+        eventStreamManager.stop(streamSink)
         if (notify) {
           const n = notify
           notify = null
@@ -172,6 +172,9 @@ export function puppetImplementation (
 
       try {
         while (!finished || queue.length > 0) {
+          if (ctx?.signal?.aborted) {
+            break
+          }
           if (queue.length === 0) {
             await new Promise<void>((r) => { notify = r })
           }
@@ -181,7 +184,7 @@ export function puppetImplementation (
         }
       } finally {
         ctx?.signal?.removeEventListener('abort', abortHandler)
-        eventStreamManager.stop()
+        eventStreamManager.stop(streamSink)
       }
     },
 

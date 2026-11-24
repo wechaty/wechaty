@@ -224,6 +224,41 @@ test('PuppetServer authenticates legacy HTTP/2 clients using :authority header',
   }
 })
 
+test('PuppetServer cleartext dispatcher handles socket error before data gracefully', async () => {
+  const port = await freePort()
+  const token = `insecure_${NIL_UUID_V4}`
+  const endpoint = `127.0.0.1:${port}`
+
+  const puppet = new PuppetMock()
+  const puppetServer = new PuppetServer({
+    endpoint,
+    puppet,
+    token,
+    tls: { disable: true },
+  } as PuppetServerOptions)
+
+  await puppetServer.start()
+
+  try {
+    const net = await import('node:net')
+    const socket = net.connect(port, '127.0.0.1')
+    await new Promise<void>((resolve) => socket.once('connect', () => resolve()))
+    // Destroy immediately before sending any data (simulating abort/reset/port probe)
+    socket.destroy()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    // Server should remain alive and accept subsequent requests
+    const http = await import('node:http')
+    const status = await new Promise<number>((resolve, reject) => {
+      const req = http.get(`http://127.0.0.1:${port}/`, (res) => resolve(res.statusCode || 0))
+      req.on('error', reject)
+    })
+    assert.ok(status > 0, 'server should continue serving after pre-dispatch socket destroy')
+  } finally {
+    await puppetServer.stop()
+  }
+})
+
 test('PuppetServer stops cleanly when lingering raw connection is unclosed', async () => {
   const port = await freePort()
   const token = `insecure_${NIL_UUID_V4}`

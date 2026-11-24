@@ -193,3 +193,45 @@ test('Event streaming simulation from PuppetServer to PuppetService', async t =>
     }
   }
 })
+
+test('Immediate event stream reconnect preserves new stream when previous stream aborts', async t => {
+  useTempHome(t)
+  const port = await freePort()
+  const token = `insecure_${NIL_UUID_V4}`
+  const endpoint = `127.0.0.1:${port}`
+
+  const puppet = new PuppetMock()
+  const puppetServer = new PuppetServer({
+    endpoint,
+    puppet,
+    token,
+  } as PuppetServerOptions)
+  await puppetServer.start()
+
+  const client1 = new PuppetService({ endpoint, token } as PUPPET.PuppetOptions)
+  const client2 = new PuppetService({ endpoint, token } as PUPPET.PuppetOptions)
+
+  try {
+    await client1.start()
+    // Disconnect client 1 and immediately connect client 2
+    const stopPromise = client1.stop()
+    await client2.start()
+    await stopPromise
+
+    // Client 2's stream should still be active and receive events from puppet
+    const heartbeatPromise = new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('timeout waiting for heartbeat on client2')), 4000)
+      client2.once('heartbeat', () => {
+        clearTimeout(timer)
+        resolve()
+      })
+    })
+    puppet.emit('heartbeat', { data: 'test-heartbeat' })
+    await assert.doesNotReject(heartbeatPromise, 'client2 should continue receiving events after client1 stops')
+  } finally {
+    await client2.stop().catch(() => {})
+    await client1.stop().catch(() => {})
+    await puppetServer.stop().catch(() => {})
+    await puppet.stop().catch(() => {})
+  }
+})
