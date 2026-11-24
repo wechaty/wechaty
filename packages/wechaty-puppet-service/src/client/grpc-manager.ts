@@ -1,86 +1,61 @@
 /**
- * `GrpcManager`: the client side of one puppet gRPC connection, owned by
+ * `GrpcManager`: the client side of one puppet ConnectRPC / gRPC connection, owned by
  * `PuppetService`. It resolves the endpoint (`WECHATY_PUPPET_SERVICE_ENDPOINT`
  * or, when unset, `wechaty://<authority>/<token>` discovered through
- * `wechaty-token`), sets up TLS with the token's SNI and the token call
- * credentials (or plain HTTP/2 when TLS is disabled), creates the
- * `PuppetClient`, and opens the server's event stream. It re-emits the
- * stream's `data`, `error` and other events for `PuppetService` to translate.
- * Importing it registers the `wechaty` resolver scheme with grpc-js.
+ * `wechaty-token`), sets up TLS with the token's SNI and token authorization,
+ * creates the Connect client, and opens the server's event stream. It emits the
+ * stream's `data`, `error`, and `end` events for `PuppetService` to translate.
  */
-/**
- *   Wechaty Open Source Software - https://github.com/wechaty
- *
- *   @copyright 2016 Huan Li <huan@chatie.io>, and
- *                   Wechaty Contributors <https://github.com/wechaty>.
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
- */
-import util from 'util'
-import EventEmitter from 'events'
-import crypto from 'crypto'
+import EventEmitter from 'node:events'
+import crypto from 'node:crypto'
 
 import { log } from 'wechaty-puppet'
 import {
-  grpc,
-  puppet,
-}                     from 'wechaty-grpc'
+  Puppet,
+  type EventResponse,
+} from 'wechaty-grpc'
 import {
   timeoutPromise,
-}                     from 'gerror'
+  TimeoutPromiseGError,
+} from 'gerror'
 import {
   WechatyToken,
-  WechatyResolver,
-}                     from 'wechaty-token'
+} from 'wechaty-token'
+import {
+  createClient,
+  type Client,
+} from '@connectrpc/connect'
+import {
+  createGrpcTransport,
+  Http2SessionManager,
+} from '@connectrpc/connect-node'
 
 import {
-  GRPC_OPTIONS,
   envVars,
-}                   from '../config.ts'
-
-import { callCredToken }  from '../auth/mod.ts'
-import { GrpcStatus }     from '../auth/grpc-js.ts'
+} from '../config.ts'
+import {
+  callCredToken,
+} from '../auth/mod.ts'
 import {
   TLS_CA_CERT,
   TLS_INSECURE_SERVER_CERT_COMMON_NAME,
-}                                         from '../auth/ca.ts'
+} from '../auth/ca.ts'
 
 import type { PuppetServiceOptions } from './puppet-service.ts'
 
-/**
- * Huan(202108): register `wechaty` schema for gRPC service discovery
- *  so that we can use `wechaty:///SNI_UUIDv4` for gRPC address
- *
- *  See: https://github.com/wechaty/wechaty-puppet-service/issues/155
- */
-WechatyResolver.setup()
-
 class GrpcManager extends EventEmitter {
 
-  protected _client?  : puppet.PuppetClient
-  get       client () : puppet.PuppetClient {
+  protected _client?: Client<typeof Puppet>
+  protected sessionManager?: Http2SessionManager
+  get client (): Client<typeof Puppet> {
     if (!this._client) {
       throw new Error('NO CLIENT')
     }
     return this._client
   }
 
-  eventStream? : grpc.ClientReadableStream<puppet.EventResponse>
+  protected abortController?: AbortController
 
-  /**
-   * gRPC settings
-   */
   caCert     : Buffer
   disableTls : boolean
   endpoint   : string
@@ -103,19 +78,12 @@ class GrpcManager extends EventEmitter {
         .digest('hex'),
     )
 
-    /**
-     * Token will be used in the gRPC resolver (in endpoint)
-     */
     this.token = new WechatyToken(
       envVars.WECHATY_PUPPET_SERVICE_TOKEN(this.options.token),
     )
     log.verbose('GrpcManager', 'constructor() token: "%s"', this.token)
 
     this.endpoint = envVars.WECHATY_PUPPET_SERVICE_ENDPOINT(this.options.endpoint)
-      /**
-       * Wechaty Token Discovery-able URL
-       *  See: wechaty-token / https://github.com/wechaty/wechaty-puppet-service/issues/155
-       */
       || [
         'wechaty://',
         envVars.WECHATY_PUPPET_SERVICE_AUTHORITY(this.options.authority),
@@ -124,23 +92,10 @@ class GrpcManager extends EventEmitter {
       ].join('')
     log.verbose('GrpcManager', 'constructor() endpoint: "%s"', this.endpoint)
 
-    /**
-     * Disable TLS
-     */
     this.disableTls = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_CLIENT(this.options.tls?.disable)
     log.verbose('GrpcManager', 'constructor() disableTls: "%s"', this.disableTls)
 
-    /**
-     * for Node.js TLS SNI
-     *  https://en.wikipedia.org/wiki/Server_Name_Indication
-     */
     const serverNameIndication = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME(this.options.tls?.serverName)
-      /**
-       * Huan(202108): we use SNI from token
-       *  if there is
-       *    neither override from environment variable: `WECHATY_PUPPET_SERVICE_TLS_SERVER_NAME`
-       *    nor set from: `options.tls.serverName`
-       */
       || this.token.sni
 
     if (!serverNameIndication) {
@@ -159,65 +114,45 @@ class GrpcManager extends EventEmitter {
   async start (): Promise<void> {
     log.verbose('GrpcManager', 'start()')
 
-    /**
-     * 1. Init grpc client
-     */
-    log.verbose('GrpcManager', 'start() initializing client ...')
-    await this.initClient()
-    log.verbose('GrpcManager', 'start() initializing client ... done')
+    try {
+      log.verbose('GrpcManager', 'start() initializing client ...')
+      await this.initClient()
+      log.verbose('GrpcManager', 'start() initializing client ... done')
 
-    /**
-     * 2. Connect to stream
-     */
-    log.verbose('GrpcManager', 'start() starting stream ...')
-    await this.startStream()
-    log.verbose('GrpcManager', 'start() starting stream ... done')
+      log.verbose('GrpcManager', 'start() starting stream ...')
+      await this.startStream()
+      log.verbose('GrpcManager', 'start() starting stream ... done')
 
-    /**
-     * 3. Start the puppet
-     */
-    log.verbose('GrpcManager', 'start() calling grpc server: start() ...')
-    await util.promisify(
-      this.client.start
-        .bind(this.client),
-    )(new puppet.StartRequest())
-    log.verbose('GrpcManager', 'start() calling grpc server: start() ... done')
+      log.verbose('GrpcManager', 'start() calling grpc server: start() ...')
+      await this.client.start({})
+      log.verbose('GrpcManager', 'start() calling grpc server: start() ... done')
 
-    log.verbose('GrpcManager', 'start() ... done')
+      log.verbose('GrpcManager', 'start() ... done')
+    } catch (e) {
+      this.stopStream()
+      this.destroyClient()
+      throw e
+    }
   }
 
   async stop (): Promise<void> {
     log.verbose('GrpcManager', 'stop()')
 
-    /**
-     * 1. Disconnect from stream
-     */
     log.verbose('GrpcManager', 'stop() stop stream ...')
     this.stopStream()
     log.verbose('GrpcManager', 'stop() stop stream ... done')
 
-    /**
-     * 2. Stop the puppet
-     */
     let stopError: unknown
     try {
       log.verbose('GrpcManager', 'stop() stop client ...')
-      await util.promisify(
-        this.client.stop
-          .bind(this.client),
-      )(new puppet.StopRequest())
+      if (this._client) {
+        await this._client.stop({})
+      }
       log.verbose('GrpcManager', 'stop() stop client ... done')
     } catch (e) {
       stopError = e
     }
 
-    /**
-     * 3. Destroy grpc client
-     *
-     * Always, and before reporting the stop error: emitting `error` with no
-     * listener throws, which used to skip this step and leave the channel
-     * open (a rejected token makes the stop RPC fail, for example).
-     */
     try {
       log.verbose('GrpcManager', 'stop() destroy client ...')
       this.destroyClient()
@@ -236,222 +171,138 @@ class GrpcManager extends EventEmitter {
   protected async initClient (): Promise<void> {
     log.verbose('GrpcManager', 'initClient()')
 
-    /**
-     * Huan(202108): for maximum compatible with the non-tls community servers/clients,
-     *  we introduced the WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_{SERVER,CLIENT} environment variables.
-     *  if it has been set, then we will run under HTTP instead of HTTPS
-     */
-    let credential
-    if (this.disableTls) {
-      log.warn('GrpcManager', 'initClient() TLS: disabled (INSECURE)')
-      credential = grpc.credentials.createInsecure()
-    } else {
-      log.verbose('GrpcManager', 'initClient() TLS: enabled')
-      const callCred    = callCredToken(this.token.token)
-      const channelCred = grpc.credentials.createSsl(this.caCert)
-      const combCreds   = grpc.credentials.combineChannelCredentials(channelCred, callCred)
+    const protocol = this.disableTls ? 'http' : 'https'
+    let target = this.endpoint
 
-      credential = combCreds
+    const formatHostPort = (host: string, port: string | number) =>
+      host.includes(':') && !host.startsWith('[') ? `[${host}]:${port}` : `${host}:${port}`
+
+    if (target.startsWith('wechaty://')) {
+      const parsed = new URL(target)
+      const tokenStr = (parsed.pathname || '').replace(/^\//, '')
+      const authority = parsed.host || parsed.hostname || undefined
+      let address
+      try {
+        address = await new WechatyToken({
+          authority,
+          token: tokenStr,
+        }).discover()
+      } catch (e) {
+        log.warn('GrpcManager', 'initClient() token discovery failed: %s', (e as Error).message)
+        throw new Error(`Token discovery failed for ${target}: ${(e as Error).message}`)
+      }
+      if (!address || !address.host || !address.port) {
+        throw new Error(`Token discovery failed: invalid or unknown address for ${target}`)
+      }
+      target = formatHostPort(address.host, address.port)
+    } else if (target.startsWith('http://') || target.startsWith('https://')) {
+      const parsed = new URL(target)
+      target = parsed.host
     }
 
-    const clientOptions: grpc.ChannelOptions = {
-      ...GRPC_OPTIONS,
-      'grpc.ssl_target_name_override': this.serverName,
+    const baseUrl = `${protocol}://${target}`
+    log.verbose('GrpcManager', 'initClient() baseUrl: %s', baseUrl)
+
+    const nodeOptions = {
+      ca: this.caCert,
+      rejectUnauthorized: !this.disableTls,
+      servername: this.serverName,
     }
 
-    {
-      // Deprecated: this block will be removed after Dec 21, 2022.
+    this.sessionManager = new Http2SessionManager(baseUrl, undefined, nodeOptions)
 
-      /**
-       * Huan(202108): `grpc.default_authority` is a workaround
-       *  for compatiblity with the non-tls community servers/clients.
-       *
-       * See: https://github.com/wechaty/wechaty-puppet-service/pull/78
-       */
-      const grpcDefaultAuthority = this.token.token
-      clientOptions['grpc.default_authority'] = grpcDefaultAuthority
-    }
+    const transport = createGrpcTransport({
+      baseUrl,
+      sessionManager: this.sessionManager,
+      interceptors: [
+        callCredToken(this.token.token),
+      ],
+      nodeOptions,
+    })
 
-    if (this._client) {
-      log.warn('GrpcManager', 'initClient() this.#client exists? Old client has been dropped.')
-      this._client = undefined
-    }
-
-    this._client = new puppet.PuppetClient(
-      this.endpoint,
-      credential,
-      clientOptions,
-    )
-
+    this._client = createClient(Puppet, transport)
     log.verbose('GrpcManager', 'initClient() ... done')
   }
 
   protected destroyClient (): void {
     log.verbose('GrpcManager', 'destroyClient()')
-
-    if (!this._client) {
-      log.warn('GrpcManager', 'destroyClient() this.#client not exist')
-      return
+    if (this.sessionManager) {
+      try {
+        this.sessionManager.abort()
+      } catch {}
+      this.sessionManager = undefined
     }
-
-    const client = this._client
-    /**
-      * Huan(202108): we should set `this.client` to `undefined` at the current event loop
-      *   to prevent the future usage of the old client.
-      */
     this._client = undefined
-
-    try {
-      client.close()
-    } catch (e) {
-      log.error('GrpcManager', 'destroyClient() client.close() rejection: %s\n%s', e && (e as Error).message, (e as Error).stack)
-    }
   }
 
   protected async startStream (): Promise<void> {
     log.verbose('GrpcManager', 'startStream()')
 
-    if (this.eventStream) {
-      log.verbose('GrpcManager', 'startStream() this.eventStream exists, dropped.')
-      this.eventStream = undefined
+    if (this.abortController) {
+      this.abortController.abort()
+      this.abortController = undefined
     }
 
-    log.verbose('GrpcManager', 'startStream() grpc -> event() ...')
-    const eventStream = this.client.event(new puppet.EventRequest())
-    log.verbose('GrpcManager', 'startStream() grpc -> event() ... done')
+    this.abortController = new AbortController()
+    const signal = this.abortController.signal
 
-    /**
-     * Store the event data from the stream when we test connection,
-     *  and re-emit the event data when we have finished testing the connection
-     */
-    let peekedData: undefined | puppet.EventResponse
+    const stream = this.client.event({}, { signal })
+    const iterator = stream[Symbol.asyncIterator]()
 
-    /**
-     * Huan(202108): future must be placed before other listenser registration
-     *  because the on('data') will start drain the stream
-     */
-    const future = new Promise<void>((resolve, reject) => eventStream
-      /**
-       * Huan(202108): we need a `heartbeat` event to confirm the connection is alive
-       *  for our wechaty-puppet-service server code, when the gRPC event stream is opened,
-       *  it will emit a `heartbeat` event as early as possible.
-       *
-       * However, the `heartbeat` event is not guaranteed to be emitted,
-       *  if the puppet service provider is coming from the community, like:
-       *    - paimon
-       *
-       * So we also need a timeout for compatible with those providers
-       *  in case of they are not following this special protocol.
-       */
-      .once('data', (resp: puppet.EventResponse) => {
-        peekedData = resp
-        resolve()
-      })
-      /**
-       * Any of the following events will be emitted means that there's a problem.
-       */
-      .once('cancel', reject)
-      .once('end',    reject)
-      .once('error',  reject)
-      /**
-       * The `status` event is import when we connect a gRPC stream.
-       *
-       * Huan(202108): according to the unit tests (tests/grpc-client.spec.ts)
-       *  1. If client TLS is not ok (client no-tls but server TLS is required)
-       *    then status will be:
-       *      { code: 14, details: 'Connection dropped' }
-       *  2. If client TLS is ok but the client token is invalid,
-       *    then status will be:
-       *      { code: 16, details: 'Invalid Wechaty TOKEN "0.XXX"' }
-       */
-      .once('status',   status => {
-        // console.info('once(status)', status)
-        status.code === GrpcStatus.OK
-          ? resolve()
-          : reject(new Error('once(status)'))
-      }),
-      /**
-       * Huan(202108): `metadata` event will be fired
-       *  when the TLS connection is OK
-       *    even if the token is invalid
-       *
-       * Conclusion: we MUST NOT listen on `metadata` for `resolve`.
-       */
-      // .once('metadata', (...args) => console.info('once(metadata)', ...args))
-    )
+    let peekedData: EventResponse | undefined
 
-    /**
-     * Huan(202108): the `heartbeat` event is not guaranteed to be emitted
-     *  if a puppet service provider is coming from the community, it might not follow the protocol specification.
-     * So we need a timeout for compatible with those providers
-     */
-    log.verbose('GrpcManager', 'startStream() grpc -> event peeking data or timeout ...')
+    const firstResultPromise: Promise<IteratorResult<EventResponse>> = iterator.next()
+
+    log.verbose('GrpcManager', 'startStream() waiting for initial heartbeat...')
     try {
-      await timeoutPromise(future, 5 * 1000)  // 5 seconds
-    } catch (_) {
-      log.verbose('GrpcManager', 'startStream() grpc -> event peeking data or timeout ... timeout')
+      const first = await timeoutPromise(firstResultPromise, 5 * 1000) as IteratorResult<EventResponse>
+      if (!first.done) {
+        peekedData = first.value
+      }
+    } catch (err) {
+      if (err instanceof TimeoutPromiseGError) {
+        log.verbose('GrpcManager', 'startStream() initial heartbeat timeout, proceeding')
+      } else {
+        throw err
+      }
     }
-    log.verbose('GrpcManager', 'startStream() grpc -> event peeking data or timeout ... data peeked')
 
-    /**
-     * Bridge the events
-     * Huan(202108): adding the below event listeners
-     *  must be after the `await future` above,
-     *  so that if there's any `error` event,
-     *  it will be triggered already.
-     */
-    log.verbose('GrpcManager', 'startStream() initializing event stream ...')
-    eventStream
-      .on('cancel',   (...args) => this.emit('cancel',    ...args))
-      .on('data',     (...args) => this.emit('data',      ...args))
-      .on('end',      (...args) => this.emit('end',       ...args))
-      .on('error',    (...args) => this.emit('error',     ...args))
-      .on('metadata', (...args) => this.emit('metadata',  ...args))
-      .on('status',   (...args) => this.emit('status',    ...args))
-
-    this.eventStream = eventStream
-    log.verbose('GrpcManager', 'startStream() initializing event stream ... done')
-
-    /**
-     * Re-emit the peeked data if there's any
-     */
-    if (peekedData) {
-      log.verbose('GrpcManager', 'startStream() sending back the peeked data ...')
-      this.emit('data', peekedData)
-      peekedData = undefined
-      log.verbose('GrpcManager', 'startStream() sending back the peeked data ... done')
-    }
+    // Start background event loop
+    ;(async () => {
+      try {
+        if (peekedData) {
+          this.emit('data', peekedData)
+        } else {
+          const first = await firstResultPromise
+          if (first.done) {
+            this.emit('end')
+            return
+          }
+          this.emit('data', first.value)
+        }
+        while (!signal.aborted) {
+          const res = await iterator.next()
+          if (res.done) {
+            break
+          }
+          this.emit('data', res.value)
+        }
+        this.emit('end')
+      } catch (err) {
+        if (!signal.aborted) {
+          this.emit('error', err)
+        }
+      }
+    })()
 
     log.verbose('GrpcManager', 'startStream() ... done')
   }
 
   protected stopStream (): void {
     log.verbose('GrpcManager', 'stopStream()')
-
-    if (!this.eventStream) {
-      log.verbose('GrpcManager', 'stopStream() no eventStream when stop, skip destroy.')
-      return
-    }
-    /**
-      * Huan(202108): we should set `this.eventStream` to `undefined` at the current event loop
-      *   to prevent the future usage of the old eventStream.
-      */
-    const eventStream = this.eventStream
-    this.eventStream = undefined
-
-    /**
-     * Huan(202003):
-     *  destroy() will be enough to terminate a stream call.
-     *  cancel() is not needed.
-     */
-    // this.eventStream.cancel()
-
-    try {
-      log.verbose('GrpcManager', 'stopStream() destroying event stream ...')
-      eventStream.destroy()
-      log.verbose('GrpcManager', 'stopStream() destroying event stream ... done')
-    } catch (e) {
-      this.emit('error', e)
+    if (this.abortController) {
+      this.abortController.abort()
+      this.abortController = undefined
     }
   }
 

@@ -163,8 +163,7 @@ grpcc --proto ./service/myservice.proto --address 127.0.0.1:3466
 
 ### Build
 
-Install once at the monorepo root. The `grpc-tools` install script downloads `protoc`; the root
-`package.json` allows it in `allowScripts`.
+Install once at the monorepo root:
 
 ```shell
 npm ci
@@ -176,19 +175,7 @@ npm ci
 npm run generate --workspace wechaty-grpc
 ```
 
-`scripts/generate-stub.ts` writes everything into `out/` (gitignored) using only npm packages, with
-`proto/` and the pinned files in `third-party/` (see its README) as inputs, so it works offline:
-
-1. JavaScript messages and grpc-js service stubs: `protoc` and the gRPC Node plugin from
-   [grpc-tools](https://www.npmjs.com/package/grpc-tools).
-2. Typings for the service stubs:
-   [grpc_tools_node_protoc_ts](https://github.com/agreatfool/grpc_tools_node_protoc_ts).
-3. Typings for the messages: [ts-protoc-gen](https://github.com/improbable-eng/ts-protoc-gen), which
-   declares each enum with a `XxxMap` interface, as 1.x consumers expect.
-
-`npm ci` runs it through the package's `prepare` script, and the lint, test, coverage and build
-scripts run it again first. grpc-web stubs and the OpenAPI
-document are no longer generated.
+Stubs are generated using Buf (`@bufbuild/buf`) and Protobuf-ES v2 (`@bufbuild/protoc-gen-es`) directly into `src/generated/` as pure ESM TypeScript source files with `erasable_syntax=true` and `import_extension=ts`. All legacy CommonJS shims and native C++ `grpc-tools` toolchains have been replaced with pure JavaScript/TypeScript tooling.
 
 ### Naming conventions & Style Guide
 

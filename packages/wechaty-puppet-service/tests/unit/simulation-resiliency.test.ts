@@ -48,7 +48,7 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       await server.start()
       await assert.rejects(
         async () => client!.start(),
-        /UNAUTHENTICATED/,
+        /UNAUTHENTICATED/i,
         'client should reject with UNAUTHENTICATED when token is invalid',
       )
     } finally {

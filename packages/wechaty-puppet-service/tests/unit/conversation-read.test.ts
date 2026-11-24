@@ -1,25 +1,22 @@
 /**
- * Tests the server's `conversationRead` RPC over gRPC: a `GrpcManager`
- * client calls it on a `PuppetServer` serving a `PuppetMock`. The request
- * reaches `puppet.conversationReadMark()`; the response carries the puppet's
- * answer, or the requested state when the puppet returns nothing; and a
- * puppet failure reaches the client as a gRPC error. The `PuppetService`
- * client does not call this RPC yet (wechaty/wechaty#3041), so the test uses
- * the generated client directly.
+ * Tests the server's `conversationRead` RPC over gRPC: a `PuppetService`
+ * client calls `conversationReadMark()` on a `PuppetServer` serving a `PuppetMock`.
+ * The request reaches `puppet.conversationReadMark()`; the response carries the puppet's
+ * answer, or the requested state when the puppet returns nothing; and a puppet failure
+ * reaches the client as a gRPC error.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import util from 'node:util'
 
-import { puppet as grpcPuppet } from 'wechaty-grpc'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import { GrpcManager } from '../../src/client/grpc-manager.ts'
 import {
   PuppetServer,
+  PuppetService,
   type PuppetServerOptions,
-}                               from '../../src/mod.ts'
+} from '../../src/mod.ts'
 import { freePort } from '../fixtures/free-port.ts'
+import { useTempHome } from '../fixtures/temp-home.ts'
 
 const NIL_UUID_V4 = '00000000-0000-0000-0000-000000000000'
 
@@ -43,54 +40,55 @@ class ReadMarkPuppet extends PuppetMock {
 }
 
 test('conversationRead RPC', async t => {
+  useTempHome(t)
   const PORT     = await freePort()
   const TOKEN    = `insecure_${NIL_UUID_V4}`
   const ENDPOINT = `0.0.0.0:${PORT}`
 
   const puppet = new ReadMarkPuppet()
+  const cleanup: Array<() => Promise<void>> = []
 
-  const puppetServer = new PuppetServer({
-    endpoint : ENDPOINT,
-    puppet,
-    token    : TOKEN,
-  } as PuppetServerOptions)
-  await puppetServer.start()
+  try {
+    const puppetServer = new PuppetServer({
+      endpoint : ENDPOINT,
+      puppet,
+      token    : TOKEN,
+    } as PuppetServerOptions)
+    cleanup.unshift(() => puppetServer.stop())
 
-  const grpcManager = new GrpcManager({ endpoint: ENDPOINT, token: TOKEN })
-  await grpcManager.start()
+    const puppetService = new PuppetService({ endpoint: ENDPOINT, token: TOKEN } as any)
+    cleanup.unshift(() => puppetService.stop())
 
-  t.after(async () => {
-    await grpcManager.stop()
-    await puppetServer.stop()
-  })
+    await puppetServer.start()
+    await puppetService.start()
 
-  const conversationRead = (conversationId: string, hasRead: boolean) => {
-    const request = new grpcPuppet.ConversationReadRequest()
-    request.setConversationId(conversationId)
-    request.setHasRead(hasRead)
-    return util.promisify(
-      grpcManager.client.conversationRead.bind(grpcManager.client),
-    )(request)
+    const conversationRead = (conversationId: string, hasRead: boolean) => {
+      return puppetService.conversationReadMark(conversationId, hasRead)
+    }
+
+    await t.test('passes the request to the puppet and returns its answer', async () => {
+      puppet.calls = []
+      const response = await conversationRead('room_id', true)
+
+      assert.deepEqual(puppet.calls, [ [ 'room_id', true ] ], 'should call conversationReadMark() once with the conversation id and state')
+      assert.equal(response, true, 'should return the puppet answer')
+    })
+
+    await t.test('returns the requested state when the puppet returns nothing', async () => {
+      puppet.answer = async () => undefined
+      const response = await conversationRead('contact_id', false)
+
+      assert.equal(response, false, 'should echo the requested state')
+    })
+
+    await t.test('reports a puppet failure as a gRPC error', async () => {
+      puppet.answer = async () => { throw new Error('read mark failed') }
+
+      await assert.rejects(conversationRead('room_id', true), /read mark failed/, 'should reject with the puppet error')
+    })
+  } finally {
+    for (const stop of cleanup) {
+      await stop()
+    }
   }
-
-  await t.test('passes the request to the puppet and returns its answer', async () => {
-    puppet.calls = []
-    const response = await conversationRead('room_id', true)
-
-    assert.deepEqual(puppet.calls, [ [ 'room_id', true ] ], 'should call conversationReadMark() once with the conversation id and state')
-    assert.equal(response.getHasRead(), true, 'should return the puppet answer')
-  })
-
-  await t.test('returns the requested state when the puppet returns nothing', async () => {
-    puppet.answer = async () => undefined
-    const response = await conversationRead('contact_id', false)
-
-    assert.equal(response.getHasRead(), false, 'should echo the requested state')
-  })
-
-  await t.test('reports a puppet failure as a gRPC error', async () => {
-    puppet.answer = async () => { throw new Error('read mark failed') }
-
-    await assert.rejects(conversationRead('room_id', true), /read mark failed/, 'should reject with the puppet error')
-  })
 })

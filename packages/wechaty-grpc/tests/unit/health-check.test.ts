@@ -1,106 +1,54 @@
 /**
- * Tests the generated gRPC health check service: `check` and `watch` over a loopback server.
+ * Tests the generated gRPC health check service descriptor and schemas:
+ * `Check` and `Watch` RPC schemas and `ServingStatus` enums.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { promisify } from 'util'
+import {
+  create,
+  toBinary,
+  fromBinary,
+  toJson,
+  fromJson,
+} from '@bufbuild/protobuf'
 
 import {
-  grpc,
   google,
-}             from '../../src/mod.ts'
+  HealthCheckRequestSchema,
+  HealthCheckResponseSchema,
+  ServingStatus,
+} from '../../src/mod.ts'
 
-test('HealthCheck protocol buffer', async _t => {
-  const request   = new google.HealthCheckRequest()
-  const response  = new google.HealthCheckResponse()
-  response.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
-  await assert.ok(request && response, 'should export HealCheck protobuf')
-})
-
-test('health check smoke testing', async _t => {
-
-  /**
-   * Create Server
-   */
-  const testServer = getTestServer()
-
-  const server = new grpc.Server()
-  server.addService(
-    google.HealthService,
-    testServer,
-  )
-  // Port 0: a free port, so test files never share one (Deno runs them in one process).
-  const port = await promisify(
-    server.bindAsync
-      .bind(server)
-  )(
-    '127.0.0.1:0',
-    grpc.ServerCredentials.createInsecure(),
-  ) as number
-  const ENDPOINT = `127.0.0.1:${port}`
-
-  /**
-   * Create Client
-   */
-  const client = new google.HealthClient(
-    ENDPOINT,
-    grpc.credentials.createInsecure()
-  )
-
-  const request = new google.HealthCheckRequest()
-  const response = await promisify(
-    client.check
-      .bind(client)
-  )(request) as any
-
-  assert.equal(response.getStatus(), google.HealthCheckResponse.ServingStatus.SERVING, 'should return SERVING_STATUS_SERVING for check method')
-
-  /**
-   * gRPC: Stream
-   */
-  const eventStream = client.watch(request)
-
-  let counter = 0
-  const future = new Promise<void>((resolve, reject) => {
-    eventStream
-      .on('data', (response: google.HealthCheckResponse) => {
-        assert.equal(response.getStatus(), google.HealthCheckResponse.ServingStatus.SERVING, `should return SERVING_STATUS_SERVING for watch method with counter #${counter}`)
-        counter++
-      })
-      .on('close', resolve)
-      .on('error', reject)
+test('HealthCheck protocol buffer schemas and serialization', async _t => {
+  const request = create(HealthCheckRequestSchema, {
+    service: 'wechaty.Puppet',
   })
+  assert.equal(request.service, 'wechaty.Puppet', 'request service should match')
 
-  await future
-  assert.equal(counter, 2, 'should return 2 responses')
+  const reqBytes = toBinary(HealthCheckRequestSchema, request)
+  const restoredReq = fromBinary(HealthCheckRequestSchema, reqBytes)
+  assert.equal(restoredReq.service, 'wechaty.Puppet', 'restored service should match')
 
-  // Close the client before the server, so no HTTP/2 session is left open
-  // (wechaty/grpc#130).
-  client.close()
-  await new Promise(resolve => server.tryShutdown(resolve))
+  const response = create(HealthCheckResponseSchema, {
+    status: ServingStatus.SERVING,
+  })
+  assert.equal(response.status, ServingStatus.SERVING, 'serving status should be SERVING')
+
+  const resBytes = toBinary(HealthCheckResponseSchema, response)
+  const restoredRes = fromBinary(HealthCheckResponseSchema, resBytes)
+  assert.equal(restoredRes.status, ServingStatus.SERVING, 'restored status should match')
+
+  const json = toJson(HealthCheckResponseSchema, response)
+  const fromJsonRes = fromJson(HealthCheckResponseSchema, json)
+  assert.equal(fromJsonRes.status, ServingStatus.SERVING, 'json restored status should match')
 })
 
-function getTestServer () {
-
-  const puppetTestServer: google.IHealthServer = {
-    check: (_call, callback) => {
-      const response = new google.HealthCheckResponse()
-      response.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
-      callback(null, response)
-    },
-    watch: (call) => {
-      const response1 = new google.HealthCheckResponse()
-      response1.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
-      call.write(response1)
-
-      const response2 = new google.HealthCheckResponse()
-      response2.setStatus(google.HealthCheckResponse.ServingStatus.SERVING)
-      call.write(response2)
-
-      call.end()
-    },
-  }
-
-  return puppetTestServer
-}
+test('Health service descriptor exposes check and watch RPCs', async _t => {
+  assert.ok(google.Health, 'Health service definition must exist')
+  assert.equal(google.Health.typeName, 'grpc.health.v1.Health', 'service type name should match grpc.health.v1.Health')
+  assert.ok(google.Health.method.check, 'check RPC must exist')
+  assert.ok(google.Health.method.watch, 'watch RPC must exist')
+  assert.equal(google.Health.method.check.methodKind, 'unary', 'check must be unary')
+  assert.equal(google.Health.method.watch.methodKind, 'server_streaming', 'watch must be server_streaming')
+})

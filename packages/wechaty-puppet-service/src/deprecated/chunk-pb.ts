@@ -4,23 +4,30 @@
  * send file boxes as JSON; these stay only for servers and clients that
  * still use the streaming RPCs, and are deprecated with them.
  */
-import type { puppet } from 'wechaty-grpc'
+import type { FileBoxChunk } from 'wechaty-grpc'
 import { Readable, Transform } from 'stronger-typed-streams'
-import { PassThrough } from 'stream'
+import { PassThrough } from 'node:stream'
 
 import type { FileBoxPb } from './file-box-pb.type.ts'
+
+export type PbFactory<T extends FileBoxPb> = (new () => T) | (() => T)
 
 /**
  * Wrap FileBoxChunk
  * @deprecated Will be removed after Dec 31, 2022
  */
 const encoder = <T extends FileBoxPb>(
-  PbConstructor: { new(): T },
-) => new Transform<puppet.FileBoxChunk, T>({
+  PbConstructor: PbFactory<T>,
+) => new Transform<FileBoxChunk, T>({
   objectMode: true,
-  transform: (chunk: puppet.FileBoxChunk, _: any, callback: (error: Error | null, data: T) => void) => {
-    const message = new PbConstructor()
-    message.setFileBoxChunk(chunk)
+  transform: (chunk: FileBoxChunk, _: any, callback: (error: Error | null, data?: T) => void) => {
+    let message: T
+    try {
+      message = new (PbConstructor as new () => T)()
+    } catch {
+      message = (PbConstructor as () => T)()
+    }
+    message.fileBoxChunk = chunk
     callback(null, message)
   },
 })
@@ -29,9 +36,9 @@ const encoder = <T extends FileBoxPb>(
  * @deprecated Will be removed after Dec 31, 2022
  */
 function packFileBoxChunkToPb<T extends FileBoxPb> (
-  PbConstructor: { new(): T },
+  PbConstructor: PbFactory<T>,
 ) {
-  return (stream: Readable<puppet.FileBoxChunk>): Readable<T> => {
+  return (stream: Readable<FileBoxChunk>): Readable<T> => {
     const outStream     = new PassThrough({ objectMode: true })
     const encodedStream = stream.pipe(encoder(PbConstructor))
 
@@ -47,15 +54,14 @@ function packFileBoxChunkToPb<T extends FileBoxPb> (
  * Unwrap FileBoxChunk
  * @deprecated Will be removed after Dec 31, 2022
  */
-const decoder = <T extends FileBoxPb>() => new Transform<T, puppet.FileBoxChunk>({
+const decoder = <T extends FileBoxPb>() => new Transform<T, FileBoxChunk>({
   objectMode: true,
-  transform: (chunk: T, _: any, callback: (error: Error | null, data?: puppet.FileBoxChunk) => void) => {
-    const fileBoxChunk = chunk.getFileBoxChunk()
-    if (!fileBoxChunk) {
-      callback(new Error('No FileBoxChunk'))
-    } else {
-      callback(null, fileBoxChunk)
+  transform: (message: T, _: any, callback: (error: Error | null, chunk?: FileBoxChunk) => void) => {
+    if (!message.fileBoxChunk) {
+      callback(new Error('no file box chunk'))
+      return
     }
+    callback(null, message.fileBoxChunk)
   },
 })
 
@@ -64,9 +70,9 @@ const decoder = <T extends FileBoxPb>() => new Transform<T, puppet.FileBoxChunk>
  */
 function unpackFileBoxChunkFromPb<T extends FileBoxPb> (
   stream: Readable<T>,
-): Readable<puppet.FileBoxChunk> {
+): Readable<FileBoxChunk> {
   const outStream     = new PassThrough({ objectMode: true })
-  const decodedStream = stream.pipe(decoder())
+  const decodedStream = stream.pipe(decoder<T>())
 
   stream.on('error',        e => outStream.emit('error', e))
   decodedStream.on('error', e => outStream.emit('error', e))

@@ -1,23 +1,14 @@
 /**
- * `EventTypeRev`: event type number → name, for logging. The generated
- * `EventTypeMap` has no reverse mapping, so it is built here once.
+ * `EventTypeRev`: event type number → name, for logging.
  */
 import {
-  puppet,
-}               from 'wechaty-grpc'
+  EventType,
+} from 'wechaty-grpc'
 
-/**
- * Huan(202003):
- *  @chatie/GRPC proto gen TS does not generate the ENUM type with reverse mapping.
- *  So we need to do it by ourselves:
- *    1. define the EventTypeRev, and
- *    2. loop EventType to fill it.
- */
-export const EventTypeRev = {} as {
-  [key: number]: string,
-}
+export const EventTypeRev: Record<number, string> = {}
 
-for (const key in puppet.EventType) {
-  const val = puppet.EventType[key as keyof puppet.EventTypeMap]
-  EventTypeRev[val] = key
+for (const [key, val] of Object.entries(EventType)) {
+  if (typeof val === 'number') {
+    EventTypeRev[val] = key
+  }
 }

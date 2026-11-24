@@ -130,6 +130,64 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
       assert.equal(recalled, true, 'messageRecall should return true')
       assert.equal(spyRecall.mock.callCount(), 1, 'puppet.messageRecall should have been called once')
       assert.deepEqual(spyRecall.mock.calls[0]?.arguments, [messageId], 'puppet.messageRecall should receive message id')
+
+      // Test messageSendLocation spy
+      const spyLocation = mock.method(puppet, 'messageSendLocation', async () => 'msg-loc-id')
+      const locId = await puppetService.messageSendLocation(user.id, {
+        accuracy: 15,
+        address: 'Test Address',
+        latitude: 30.5,
+        longitude: 120.5,
+        name: 'Test Place',
+      })
+      assert.equal(locId, 'msg-loc-id', 'messageSendLocation should return message id')
+      assert.equal(spyLocation.mock.callCount(), 1, 'puppet.messageSendLocation should be called once')
+      assert.deepEqual(spyLocation.mock.calls[0]?.arguments, [
+        user.id,
+        {
+          accuracy: 15,
+          address: 'Test Address',
+          latitude: 30.5,
+          longitude: 120.5,
+          name: 'Test Place',
+        },
+      ], 'puppet.messageSendLocation should receive clean location payload without $typeName')
+
+      // Test messageSendMiniProgram spy
+      const spyMini = mock.method(puppet, 'messageSendMiniProgram', async () => 'msg-mini-id')
+      const miniId = await puppetService.messageSendMiniProgram(user.id, {
+        appid: 'wx123',
+        pagePath: 'pages/index',
+        title: 'Mini App',
+      })
+      assert.equal(miniId, 'msg-mini-id', 'messageSendMiniProgram should return message id')
+      assert.equal(spyMini.mock.callCount(), 1, 'puppet.messageSendMiniProgram should be called once')
+      assert.deepEqual(spyMini.mock.calls[0]?.arguments, [
+        user.id,
+        {
+          appid: 'wx123',
+          pagePath: 'pages/index',
+          title: 'Mini App',
+        },
+      ], 'puppet.messageSendMiniProgram should receive clean miniprogram payload')
+
+      // Test messageSendUrl spy
+      const spyUrl = mock.method(puppet, 'messageSendUrl', async () => 'msg-url-id')
+      const urlId = await puppetService.messageSendUrl(user.id, {
+        description: 'Bot framework',
+        title: 'Wechaty',
+        url: 'https://wechaty.js.org',
+      })
+      assert.equal(urlId, 'msg-url-id', 'messageSendUrl should return message id')
+      assert.equal(spyUrl.mock.callCount(), 1, 'puppet.messageSendUrl should be called once')
+      assert.deepEqual(spyUrl.mock.calls[0]?.arguments, [
+        user.id,
+        {
+          description: 'Bot framework',
+          title: 'Wechaty',
+          url: 'https://wechaty.js.org',
+        },
+      ], 'puppet.messageSendUrl should receive clean urlLink payload without $typeName')
     })
 
     await t.test('Friendship domain: payload, accept, and add', async () => {
@@ -142,6 +200,21 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
       )
       assert.equal(spyAdd.mock.callCount(), 1, 'puppet.friendshipAdd should have been invoked once')
       assert.deepEqual(spyAdd.mock.calls[0]?.arguments, [peer.id, { hello: 'Let us connect' }], 'puppet.friendshipAdd arguments should match')
+
+      await assert.doesNotReject(
+        async () => puppetService.friendshipAdd(peer.id, {
+          contactId: user.id,
+          hello: 'From mutual friend',
+          roomId: 'test-room-id',
+        }),
+        'friendshipAdd with options object should succeed over gRPC',
+      )
+      assert.equal(spyAdd.mock.callCount(), 2, 'puppet.friendshipAdd should have been invoked twice')
+      assert.deepEqual(
+        spyAdd.mock.calls[1]?.arguments,
+        [peer.id, { contactId: user.id, hello: 'From mutual friend', roomId: 'test-room-id' }],
+        'puppet.friendshipAdd object options should match without proto internal fields',
+      )
 
       await assert.doesNotReject(
         async () => puppetService.friendshipAccept('test-friendship-id'),

@@ -1,150 +1,187 @@
 /**
- * Tests binary serialization and deserialization round-trips for core protobuf messages
+ * Tests binary and JSON serialization round-trips for core Protobuf-ES v2 messages
  * in `wechaty-grpc`, asserting message schema invariants and key RPC service descriptors
- * as part of the Phase 4.1 safety net suite (#3123).
+ * as part of the Phase 4.2 Protobuf modernization (#3124).
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import {
-  puppet,
+  create,
+  toBinary,
+  fromBinary,
+  toJson,
+  fromJson,
+} from '@bufbuild/protobuf'
+
+import {
+  Puppet,
   StringValue,
+  Timestamp,
+  EventRequestSchema,
+  EventResponseSchema,
+  EventType,
+  MessagePayloadResponseSchema,
+  MessageType,
+  ContactPayloadResponseSchema,
+  ContactGender,
+  ContactType,
+  RoomPayloadResponseSchema,
+  FriendshipPayloadResponseSchema,
+  FriendshipType,
 } from '../../src/mod.ts'
 
-test('EventResponse binary serialization round-trip', async _t => {
-  const event = new puppet.EventResponse()
+test('EventResponse binary and JSON serialization round-trip', async _t => {
   const payloadData = JSON.stringify({ messageId: 'msg-uuid-12345' })
+  const event = create(EventResponseSchema, {
+    type: EventType.MESSAGE,
+    payload: payloadData,
+  })
 
-  event.setType(puppet.EventType.EVENT_TYPE_MESSAGE)
-  event.setPayload(payloadData)
-
-  const bytes = event.serializeBinary()
+  // Binary round-trip
+  const bytes = toBinary(EventResponseSchema, event)
   assert.ok(bytes.length > 0, 'serialized bytes should not be empty')
 
-  const restored = puppet.EventResponse.deserializeBinary(bytes)
-  assert.equal(restored.getType(), puppet.EventType.EVENT_TYPE_MESSAGE, 'restored event type should match')
-  assert.equal(restored.getPayload(), payloadData, 'restored payload should match')
+  const restored = fromBinary(EventResponseSchema, bytes)
+  assert.equal(restored.type, EventType.MESSAGE, 'restored event type should match')
+  assert.equal(restored.payload, payloadData, 'restored payload should match')
+
+  // JSON round-trip
+  const json = toJson(EventResponseSchema, event)
+  const jsonRestored = fromJson(EventResponseSchema, json)
+  assert.equal(jsonRestored.type, EventType.MESSAGE, 'json restored event type should match')
+  assert.equal(jsonRestored.payload, payloadData, 'json restored payload should match')
 })
 
 test('EventRequest binary serialization round-trip', async _t => {
-  const request = new puppet.EventRequest()
-  const bytes = request.serializeBinary()
-  const restored = puppet.EventRequest.deserializeBinary(bytes)
-  assert.ok(restored instanceof puppet.EventRequest, 'should deserialize to EventRequest instance')
+  const request = create(EventRequestSchema, {})
+  const bytes = toBinary(EventRequestSchema, request)
+  const restored = fromBinary(EventRequestSchema, bytes)
+  assert.ok(restored, 'should deserialize to EventRequest')
 })
 
 test('MessagePayloadResponse binary serialization round-trip', async _t => {
-  const response = new puppet.MessagePayloadResponse()
-  response.setId('msg-test-id')
-  response.setTalkerId('talker-test-id')
-  response.setText('Hello from safety net')
-  response.setType(puppet.MessageType.MESSAGE_TYPE_TEXT)
-  response.setFilename('test.txt')
+  const response = create(MessagePayloadResponseSchema, {
+    id: 'msg-test-id',
+    talkerId: 'talker-test-id',
+    text: 'Hello from safety net',
+    type: MessageType.TEXT,
+    filename: 'test.txt',
+  })
 
-  const bytes = response.serializeBinary()
-  const restored = puppet.MessagePayloadResponse.deserializeBinary(bytes)
+  const bytes = toBinary(MessagePayloadResponseSchema, response)
+  const restored = fromBinary(MessagePayloadResponseSchema, bytes)
 
-  assert.equal(restored.getId(), 'msg-test-id', 'message id should round-trip')
-  assert.equal(restored.getTalkerId(), 'talker-test-id', 'talker id should round-trip')
-  assert.equal(restored.getText(), 'Hello from safety net', 'text should round-trip')
-  assert.equal(restored.getType(), puppet.MessageType.MESSAGE_TYPE_TEXT, 'message type should round-trip')
-  assert.equal(restored.getFilename(), 'test.txt', 'filename should round-trip')
+  assert.equal(restored.id, 'msg-test-id', 'message id should round-trip')
+  assert.equal(restored.talkerId, 'talker-test-id', 'talker id should round-trip')
+  assert.equal(restored.text, 'Hello from safety net', 'text should round-trip')
+  assert.equal(restored.type, MessageType.TEXT, 'message type should round-trip')
+  assert.equal(restored.filename, 'test.txt', 'filename should round-trip')
 })
 
 test('ContactPayloadResponse binary serialization round-trip', async _t => {
-  const response = new puppet.ContactPayloadResponse()
-  response.setId('contact-test-id')
-  response.setName('Wechaty User')
-  response.setAlias('Buddy')
-  response.setAvatar('https://example.com/avatar.png')
-  response.setCity('Beijing')
-  response.setProvince('Beijing')
-  response.setFriend(true)
-  response.setGender(puppet.ContactGender.CONTACT_GENDER_MALE)
-  response.setType(puppet.ContactType.CONTACT_TYPE_PERSONAL)
-  response.setStar(false)
-  response.setPhonesList(['13800138000', '13900139000'])
+  const response = create(ContactPayloadResponseSchema, {
+    id: 'contact-test-id',
+    name: 'Wechaty User',
+    alias: 'Buddy',
+    avatar: 'https://example.com/avatar.png',
+    city: 'Beijing',
+    province: 'Beijing',
+    friend: true,
+    gender: ContactGender.MALE,
+    type: ContactType.PERSONAL,
+    star: false,
+    phones: ['13800138000', '13900139000'],
+  })
 
-  const bytes = response.serializeBinary()
-  const restored = puppet.ContactPayloadResponse.deserializeBinary(bytes)
+  const bytes = toBinary(ContactPayloadResponseSchema, response)
+  const restored = fromBinary(ContactPayloadResponseSchema, bytes)
 
-  assert.equal(restored.getId(), 'contact-test-id', 'contact id should round-trip')
-  assert.equal(restored.getName(), 'Wechaty User', 'name should round-trip')
-  assert.equal(restored.getAlias(), 'Buddy', 'alias should round-trip')
-  assert.equal(restored.getAvatar(), 'https://example.com/avatar.png', 'avatar should round-trip')
-  assert.equal(restored.getCity(), 'Beijing', 'city should round-trip')
-  assert.equal(restored.getProvince(), 'Beijing', 'province should round-trip')
-  assert.equal(restored.getFriend(), true, 'friend flag should round-trip')
-  assert.equal(restored.getGender(), puppet.ContactGender.CONTACT_GENDER_MALE, 'gender should round-trip')
-  assert.equal(restored.getType(), puppet.ContactType.CONTACT_TYPE_PERSONAL, 'type should round-trip')
-  assert.deepEqual(restored.getPhonesList(), ['13800138000', '13900139000'], 'phones list should round-trip')
+  assert.equal(restored.id, 'contact-test-id', 'contact id should round-trip')
+  assert.equal(restored.name, 'Wechaty User', 'name should round-trip')
+  assert.equal(restored.alias, 'Buddy', 'alias should round-trip')
+  assert.equal(restored.avatar, 'https://example.com/avatar.png', 'avatar should round-trip')
+  assert.equal(restored.city, 'Beijing', 'city should round-trip')
+  assert.equal(restored.province, 'Beijing', 'province should round-trip')
+  assert.equal(restored.friend, true, 'friend flag should round-trip')
+  assert.equal(restored.gender, ContactGender.MALE, 'gender should round-trip')
+  assert.equal(restored.type, ContactType.PERSONAL, 'type should round-trip')
+  assert.deepEqual(restored.phones, ['13800138000', '13900139000'], 'phones list should round-trip')
 })
 
 test('RoomPayloadResponse binary serialization round-trip', async _t => {
-  const response = new puppet.RoomPayloadResponse()
-  response.setId('room-test-id')
-  response.setTopic('Wechaty Developers')
-  response.setAvatar('https://example.com/room.png')
-  response.setAdminIdsList(['admin-1', 'admin-2'])
-  response.setMemberIdsList(['member-1', 'member-2', 'member-3'])
-  response.setOwnerId('admin-1')
+  const response = create(RoomPayloadResponseSchema, {
+    id: 'room-test-id',
+    topic: 'Wechaty Developers',
+    avatar: 'https://example.com/room.png',
+    adminIds: ['admin-1', 'admin-2'],
+    memberIds: ['member-1', 'member-2', 'member-3'],
+    ownerId: 'admin-1',
+  })
 
-  const bytes = response.serializeBinary()
-  const restored = puppet.RoomPayloadResponse.deserializeBinary(bytes)
+  const bytes = toBinary(RoomPayloadResponseSchema, response)
+  const restored = fromBinary(RoomPayloadResponseSchema, bytes)
 
-  assert.equal(restored.getId(), 'room-test-id', 'room id should round-trip')
-  assert.equal(restored.getTopic(), 'Wechaty Developers', 'topic should round-trip')
-  assert.equal(restored.getAvatar(), 'https://example.com/room.png', 'avatar should round-trip')
-  assert.deepEqual(restored.getAdminIdsList(), ['admin-1', 'admin-2'], 'admin ids should round-trip')
-  assert.deepEqual(restored.getMemberIdsList(), ['member-1', 'member-2', 'member-3'], 'member ids should round-trip')
-  assert.equal(restored.getOwnerId(), 'admin-1', 'owner id should round-trip')
+  assert.equal(restored.id, 'room-test-id', 'room id should round-trip')
+  assert.equal(restored.topic, 'Wechaty Developers', 'topic should round-trip')
+  assert.equal(restored.avatar, 'https://example.com/room.png', 'avatar should round-trip')
+  assert.deepEqual(restored.adminIds, ['admin-1', 'admin-2'], 'admin ids should round-trip')
+  assert.deepEqual(restored.memberIds, ['member-1', 'member-2', 'member-3'], 'member ids should round-trip')
+  assert.equal(restored.ownerId, 'admin-1', 'owner id should round-trip')
 })
 
 test('FriendshipPayloadResponse binary serialization round-trip', async _t => {
-  const response = new puppet.FriendshipPayloadResponse()
-  response.setId('friendship-test-id')
-  response.setContactId('contact-applicant-id')
-  response.setHello('Please accept my friendship request')
-  response.setType(puppet.FriendshipType.FRIENDSHIP_TYPE_RECEIVE)
-  response.setStranger('stranger-token')
-  response.setTicket('ticket-uuid')
+  const response = create(FriendshipPayloadResponseSchema, {
+    id: 'friendship-test-id',
+    contactId: 'contact-applicant-id',
+    hello: 'Please accept my friendship request',
+    type: FriendshipType.RECEIVE,
+    stranger: 'stranger-token',
+    ticket: 'ticket-uuid',
+  })
 
-  const bytes = response.serializeBinary()
-  const restored = puppet.FriendshipPayloadResponse.deserializeBinary(bytes)
+  const bytes = toBinary(FriendshipPayloadResponseSchema, response)
+  const restored = fromBinary(FriendshipPayloadResponseSchema, bytes)
 
-  assert.equal(restored.getId(), 'friendship-test-id', 'friendship id should round-trip')
-  assert.equal(restored.getContactId(), 'contact-applicant-id', 'contact id should round-trip')
-  assert.equal(restored.getHello(), 'Please accept my friendship request', 'hello message should round-trip')
-  assert.equal(restored.getType(), puppet.FriendshipType.FRIENDSHIP_TYPE_RECEIVE, 'type should round-trip')
-  assert.equal(restored.getStranger(), 'stranger-token', 'stranger token should round-trip')
-  assert.equal(restored.getTicket(), 'ticket-uuid', 'ticket should round-trip')
+  assert.equal(restored.id, 'friendship-test-id', 'friendship id should round-trip')
+  assert.equal(restored.contactId, 'contact-applicant-id', 'contact id should round-trip')
+  assert.equal(restored.hello, 'Please accept my friendship request', 'hello message should round-trip')
+  assert.equal(restored.type, FriendshipType.RECEIVE, 'type should round-trip')
+  assert.equal(restored.stranger, 'stranger-token', 'stranger token should round-trip')
+  assert.equal(restored.ticket, 'ticket-uuid', 'ticket should round-trip')
 })
 
-test('StringValue wrapper handles nullable values', async _t => {
-  const stringVal = new StringValue()
-  stringVal.setValue('wrapped-string-payload')
+test('StringValue and Timestamp pure ESM classes', async _t => {
+  const stringVal = new StringValue('wrapped-string-payload')
+  assert.equal(stringVal.getValue(), 'wrapped-string-payload', 'StringValue should preserve string value')
+  stringVal.setValue('updated-value')
+  assert.equal(stringVal.getValue(), 'updated-value', 'StringValue should update value')
 
-  const bytes = stringVal.serializeBinary()
-  const restored = StringValue.deserializeBinary(bytes)
-  assert.equal(restored.getValue(), 'wrapped-string-payload', 'StringValue should preserve string value')
+  const ts = new Timestamp()
+  const now = new Date()
+  ts.fromDate(now)
+  assert.ok(Math.abs(ts.toDate().getTime() - now.getTime()) < 1000, 'Timestamp should convert to and from Date')
 })
 
-test('PuppetService service definition exposes essential RPC methods', async _t => {
-  const service = puppet.PuppetService
+test('Puppet GenService definition exposes essential RPC methods', async _t => {
+  assert.ok(Puppet, 'Puppet definition must exist')
+  assert.equal(Puppet.typeName, 'wechaty.Puppet', 'service type name must match wechaty.Puppet')
+  assert.ok(Puppet.method.event, 'event streaming RPC definition must exist')
+  assert.ok(Puppet.method.start, 'start RPC definition must exist')
+  assert.ok(Puppet.method.stop, 'stop RPC definition must exist')
+  assert.ok(Puppet.method.ding, 'ding RPC definition must exist')
+  assert.ok(Puppet.method.contactPayload, 'contactPayload RPC definition must exist')
+  assert.ok(Puppet.method.roomPayload, 'roomPayload RPC definition must exist')
+  assert.ok(Puppet.method.messagePayload, 'messagePayload RPC definition must exist')
+  assert.ok(Puppet.method.friendshipPayload, 'friendshipPayload RPC definition must exist')
+  assert.ok(Puppet.method.messageSendText, 'messageSendText RPC definition must exist')
+  assert.ok(Puppet.method.logout, 'logout RPC definition must exist')
 
-  assert.ok(service, 'PuppetService definition must exist')
-  assert.ok(service.event, 'event streaming RPC definition must exist')
-  assert.ok(service.start, 'start RPC definition must exist')
-  assert.ok(service.stop, 'stop RPC definition must exist')
-  assert.ok(service.ding, 'ding RPC definition must exist')
-  assert.ok(service.contactPayload, 'contactPayload RPC definition must exist')
-  assert.ok(service.roomPayload, 'roomPayload RPC definition must exist')
-  assert.ok(service.messagePayload, 'messagePayload RPC definition must exist')
-  assert.ok(service.friendshipPayload, 'friendshipPayload RPC definition must exist')
-  assert.ok(service.messageSendText, 'messageSendText RPC definition must exist')
-  assert.ok(service.logout, 'logout RPC definition must exist')
-
-  assert.equal(typeof service.event.requestSerialize, 'function', 'event.requestSerialize should be a function')
-  assert.equal(typeof service.event.responseDeserialize, 'function', 'event.responseDeserialize should be a function')
-  assert.equal(service.event.path, '/wechaty.Puppet/Event', 'event path should match gRPC service path')
+  assert.equal(Puppet.method.event.methodKind, 'server_streaming', 'event must be server_streaming')
+  assert.equal(Puppet.method.start.methodKind, 'unary', 'start must be unary')
+  assert.equal(Puppet.method.download.methodKind, 'server_streaming', 'download must be server_streaming')
+  assert.equal(Puppet.method.upload.methodKind, 'client_streaming', 'upload must be client_streaming')
+  assert.equal(Puppet.method.version.idempotency, 1, 'version must have NO_SIDE_EFFECTS idempotency')
+  assert.equal(Puppet.method.contactPayload.idempotency, 1, 'contactPayload must have NO_SIDE_EFFECTS idempotency')
+  assert.equal(Puppet.methods.length, 62, 'Puppet should define 62 RPC methods')
 })

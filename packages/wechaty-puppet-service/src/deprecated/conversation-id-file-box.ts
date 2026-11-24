@@ -6,7 +6,7 @@
 import type {
   FileBoxInterface,
 }                               from 'file-box'
-import { PassThrough }          from 'stream'
+import { PassThrough }          from 'node:stream'
 import type { Readable }             from 'stronger-typed-streams'
 
 import { nextData }                 from './next-data.ts'
@@ -14,6 +14,7 @@ import {
   packFileBoxToPb,
   unpackFileBoxFromPb,
 }                                  from './file-box-pb.ts'
+import type { PbFactory } from './chunk-pb.ts'
 import type { ConversationIdFileBoxPb } from './file-box-pb.type.ts'
 
 interface ConversationIdFileBoxArgs {
@@ -29,12 +30,11 @@ async function unpackConversationIdFileBoxArgsFromPb (
   stream: Readable<ConversationIdFileBoxPb>,
 ): Promise<ConversationIdFileBoxArgs> {
   const chunk = await nextData(stream)
-  if (!chunk.hasConversationId()) {
+  if (!chunk.conversationId) {
     throw new Error('no conversation id')
   }
-  const conversationId = chunk.getConversationId()
+  const conversationId = chunk.conversationId
 
-  // unpackFileBoxFromChunk(unpackFileBoxChunkFromPb(stream))
   const fileBox = await unpackFileBoxFromPb(stream)
 
   return {
@@ -48,7 +48,7 @@ async function unpackConversationIdFileBoxArgsFromPb (
  * @deprecated Will be removed after Dec 31, 2022
  */
 function packConversationIdFileBoxToPb<T extends ConversationIdFileBoxPb> (
-  PbConstructor: { new(): T },
+  PbConstructor: PbFactory<T>,
 ) {
   return async (
     conversationId: string,
@@ -58,14 +58,18 @@ function packConversationIdFileBoxToPb<T extends ConversationIdFileBoxPb> (
   > => {
     const stream = new PassThrough({ objectMode: true })
 
-    const first = new PbConstructor()
-    first.setConversationId(conversationId)
-    stream.write(first)
+    let firstChunk: T
+    try {
+      firstChunk = new (PbConstructor as new () => T)()
+    } catch {
+      firstChunk = (PbConstructor as () => T)()
+    }
+    firstChunk.conversationId = conversationId
 
-    // const fileBoxChunkStream = await packFileBoxToChunk(fileBox)
-    // packFileBoxChunkToPb(MessageSendFileStreamRequest)(fileBoxChunkStream)
-    const pbStream = await packFileBoxToPb(PbConstructor)(fileBox)
-    pbStream.pipe(stream)
+    stream.write(firstChunk)
+
+    const fileBoxStream = await packFileBoxToPb(PbConstructor)(fileBox)
+    fileBoxStream.pipe(stream)
 
     return stream
   }

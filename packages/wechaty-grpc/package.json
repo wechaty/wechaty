@@ -16,15 +16,15 @@
     "npm": ">=10"
   },
   "scripts": {
-    "generate": "node scripts/generate-stub.ts",
-    "clean": "shx rm -fr dist/* out/*",
+    "generate": "buf generate",
+    "clean": "shx rm -fr dist/*",
     "prebuild": "npm run generate",
     "build": "tsc",
     "dist": "npm run clean && npm run build && npm run dist:copy",
-    "dist:copy": "shx cp -R out proto commonjs dist/esm/",
+    "dist:copy": "shx cp -R proto dist/esm/",
     "prelint:ts": "npm run generate",
     "lint": "npm run lint:biome && npm run lint:ts && npm run lint:md",
-    "lint:biome": "biome lint scripts src tests commonjs examples",
+    "lint:biome": "biome lint scripts src tests examples",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:md": "markdownlint --config ../../.markdownlint.json README.md",
     "pretest:unit": "npm run generate",
@@ -59,16 +59,13 @@
   },
   "homepage": "https://github.com/wechaty/wechaty/tree/main/packages/wechaty-grpc#readme",
   "dependencies": {
-    "@grpc/grpc-js": "^1.14.7",
-    "google-protobuf": "^3.21.4",
+    "@bufbuild/protobuf": "^2.17.0",
     "stronger-typed-streams": "^0.2.0"
   },
   "devDependencies": {
-    "@types/google-protobuf": "^3.15.12",
-    "grpc_tools_node_protoc_ts": "^5.3.3",
-    "grpc-tools": "1.13.1",
-    "shx": "^0.3.4",
-    "ts-protoc-gen": "^0.15.0"
+    "@bufbuild/buf": "^1.75.0",
+    "@bufbuild/protoc-gen-es": "^2.17.0",
+    "shx": "^0.3.4"
   },
   "files": [
     "dist/",

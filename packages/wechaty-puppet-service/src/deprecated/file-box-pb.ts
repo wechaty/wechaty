@@ -12,6 +12,7 @@ import {
 import {
   packFileBoxChunkToPb,
   unpackFileBoxChunkFromPb,
+  type PbFactory,
 }                           from './chunk-pb.ts'
 import type { FileBoxPb }        from './file-box-pb.type.ts'
 
@@ -19,7 +20,7 @@ import type { FileBoxPb }        from './file-box-pb.type.ts'
  * @deprecated Will be removed after Dec 31, 2022
  */
 function packFileBoxToPb<T extends FileBoxPb> (
-  PbConstructor: { new(): T },
+  PbConstructor: PbFactory<T>,
 ) {
   return async (fileBox: FileBoxInterface) => {
     const fileBoxChunkStream = await packFileBoxToChunk(fileBox)

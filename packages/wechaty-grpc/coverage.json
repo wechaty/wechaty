@@ -1,7 +1,33 @@
 {
-  "testDirectories": [ "src", "tests/unit" ],
-  "sourceExcludes": [ "src/package-json.ts" ],
+  "testDirectories": [
+    "src",
+    "tests/unit"
+  ],
+  "sourceExcludes": [
+    "src/package-json.ts",
+    "src/generated/grpc/health/v1/health_pb.ts",
+    "src/generated/wechaty/deprecated/file-box_pb.ts",
+    "src/generated/wechaty/puppet/base_pb.ts",
+    "src/generated/wechaty/puppet/contact_pb.ts",
+    "src/generated/wechaty/puppet/conversation_pb.ts",
+    "src/generated/wechaty/puppet/download-upload_pb.ts",
+    "src/generated/wechaty/puppet/event_pb.ts",
+    "src/generated/wechaty/puppet/friendship_pb.ts",
+    "src/generated/wechaty/puppet/image_pb.ts",
+    "src/generated/wechaty/puppet/location_pb.ts",
+    "src/generated/wechaty/puppet/message_pb.ts",
+    "src/generated/wechaty/puppet/mini-program_pb.ts",
+    "src/generated/wechaty/puppet/referrer_pb.ts",
+    "src/generated/wechaty/puppet/room-invitation_pb.ts",
+    "src/generated/wechaty/puppet/room-member_pb.ts",
+    "src/generated/wechaty/puppet/room_pb.ts",
+    "src/generated/wechaty/puppet/tag_pb.ts",
+    "src/generated/wechaty/puppet/url-link_pb.ts",
+    "src/generated/wechaty/puppet_pb.ts"
+  ],
   "deno": {
-    "allowNet": [ "127.0.0.1" ]
+    "allowNet": [
+      "127.0.0.1"
+    ]
   }
 }
