@@ -1,5 +1,0 @@
-# all generated openssl files
-*.crt
-*.key
-*.csr
-*.srl

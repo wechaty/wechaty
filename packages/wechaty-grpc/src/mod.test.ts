@@ -5,28 +5,35 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import {
-  grpc,
+  Puppet,
   puppet,
   google,
+  StringValue,
+  Timestamp,
+  VERSION,
 }                   from './mod.ts'
 
-test('`grpc` is exported', async _t => {
-  assert.ok(grpc, 'should imported grpc')
+test('`Puppet` GenService is exported', async _t => {
+  assert.ok(Puppet, 'should export Puppet GenService')
+  assert.equal(Puppet.typeName, 'wechaty.Puppet', 'Puppet service type name should match')
+  assert.ok(puppet.PuppetService, 'should export PuppetService alias')
 })
 
-test('`IPuppetServer` is exported', async _t => {
-  const i: puppet.IPuppetServer = {} as any
-  assert.ok(i, 'should has typing IPuppetServer')
+test('`EventRequestSchema` and `EventResponseSchema` are exported', async _t => {
+  assert.ok(puppet.EventRequestSchema, 'should export EventRequestSchema')
+  assert.ok(puppet.EventResponseSchema, 'should export EventResponseSchema')
+  assert.ok(typeof puppet.EventType.MESSAGE === 'number', 'should export EventType numbers')
 })
 
-test('`PuppetService` is exported', async _t => {
-  assert.ok(puppet.PuppetService, 'should export PuppetSevice')
+test('`Health` service and schemas are exported', async _t => {
+  assert.ok(google.Health, 'should export Health service')
+  assert.ok(google.HealthCheckRequestSchema, 'should export HealthCheckRequestSchema')
+  assert.ok(google.HealthCheckResponseSchema, 'should export HealthCheckResponseSchema')
+  assert.equal(google.ServingStatus.SERVING, 1, 'ServingStatus.SERVING should equal 1')
 })
 
-test('CJS: HealthCheckResponse', async _t => {
-  assert.ok(google.HealthCheckResponse, 'should exists "HealthCheckResponse"')
-})
-
-test('CJS: ServingStatus.SERVING', async _t => {
-  assert.ok(google.HealthCheckResponse.ServingStatus.SERVING, 'should exists "ServingStatus.SERVING"')
+test('`StringValue` and `Timestamp` are exported', async _t => {
+  assert.ok(StringValue, 'should export StringValue')
+  assert.ok(Timestamp, 'should export Timestamp')
+  assert.ok(VERSION, 'should export VERSION')
 })

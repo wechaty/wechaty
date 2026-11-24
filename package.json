@@ -54,6 +54,6 @@
     "brolog": "^2.0.0"
   },
   "allowScripts": {
-    "grpc-tools@1.13.1": true
+    "@bufbuild/buf": true
   }
 }

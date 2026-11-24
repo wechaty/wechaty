@@ -6,15 +6,10 @@ import {
   Transform,
 }                 from 'stronger-typed-streams'
 
-import type {
-  UploadRequest,
-}                 from '../out/wechaty/puppet/download-upload_pb.js'
-
-// string | Uint8Array
-type Chunk = UploadRequest.AsObject['chunk']
+type Chunk = string | Uint8Array
 
 /**
- * the interface for satisfyign UploadRequest & DownloadResponse
+ * Interface for objects satisfying UploadRequest & DownloadResponse chunk accessors.
  */
 interface ChunkPb {
   getChunk(): Chunk

@@ -1,0 +1,9 @@
+version: v2
+clean: true
+plugins:
+  - local: protoc-gen-es
+    out: src/generated
+    opt:
+      - target=ts
+      - erasable_syntax=true
+      - import_extension=ts

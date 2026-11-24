@@ -1,37 +1,35 @@
 /**
  * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
  * temporary ESM project): the generated stubs load from the published `dist/`,
- * a client and server complete one `ding` call over loopback, the bundled
- * `puppet.proto` is readable, and the embedded version is the real one.
+ * schemas serialize and deserialize cleanly, the bundled `puppet.proto` is readable,
+ * and the embedded version is the real one.
  */
 import assert from 'node:assert/strict'
-import { promisify } from 'node:util'
+import {
+  create,
+  toBinary,
+  fromBinary,
+} from '@bufbuild/protobuf'
 
 import {
-  grpc,
+  Puppet,
   proto,
-  puppet,
+  EventResponseSchema,
+  EventType,
   VERSION,
-}                           from 'wechaty-grpc'
+} from 'wechaty-grpc'
 
 assert.notEqual(VERSION, '0.0.0', 'version should be set before publishing')
 assert.match(proto.puppet.v0.data, /service Puppet/, 'puppet.proto should be bundled')
+assert.equal(Puppet.typeName, 'wechaty.Puppet', 'Puppet service definition should be exposed')
 
-const server = new grpc.Server()
-server.addService(puppet.PuppetService, {
-  ding: (call: grpc.ServerUnaryCall<puppet.DingRequest, puppet.DingResponse>, callback: grpc.sendUnaryData<puppet.DingResponse>) => {
-    assert.equal(call.request.getData(), 'smoke')
-    callback(null, new puppet.DingResponse())
-  },
-} as any)
-const port = await promisify(server.bindAsync.bind(server))('127.0.0.1:0', grpc.ServerCredentials.createInsecure())
-
-const client = new puppet.PuppetClient(`127.0.0.1:${port}`, grpc.credentials.createInsecure())
-const request = new puppet.DingRequest()
-request.setData('smoke')
-await promisify(client.ding.bind(client))(request)
-
-client.close()
-await new Promise(resolve => server.tryShutdown(resolve))
+const event = create(EventResponseSchema, {
+  type: EventType.MESSAGE,
+  payload: '{"smoke":true}',
+})
+const bytes = toBinary(EventResponseSchema, event)
+const restored = fromBinary(EventResponseSchema, bytes)
+assert.equal(restored.type, EventType.MESSAGE, 'event type should round-trip')
+assert.equal(restored.payload, '{"smoke":true}', 'payload should round-trip')
 
 console.info(`wechaty-grpc v${VERSION} smoking test passed.`)

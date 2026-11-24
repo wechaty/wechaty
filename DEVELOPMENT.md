@@ -22,8 +22,8 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
   `packages/wechaty`.
 - A package joins the root `workspaces` list only after it follows these rules.
 - npm runs a dependency's install script only when the root `package.json`
-  lists it in `allowScripts`. Today that is `grpc-tools`, whose install
-  script downloads the `protoc` that `wechaty-grpc` generates its stubs with.
+  lists it in `allowScripts`. Today that is `@bufbuild/buf`, whose install
+  script downloads the `buf` CLI that `wechaty-grpc` generates its stubs with.
   `wechaty-grpc`'s own `prepare` script generates them during `npm ci`, so
   packages that import it from source (`wechaty-puppet-service`) find them.
 - A package's `exports` may add a `wechaty-source` condition that points at

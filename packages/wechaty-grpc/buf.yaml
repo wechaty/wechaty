@@ -1,0 +1,9 @@
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - MINIMAL
+  except:
+    - PACKAGE_SAME_DIRECTORY
+    - PACKAGE_DIRECTORY_MATCH
