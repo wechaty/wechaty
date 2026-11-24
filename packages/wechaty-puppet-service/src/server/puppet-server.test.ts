@@ -42,15 +42,15 @@ test('server-first stop() resolves promptly while a client stream is open', asyn
     puppet,
     token,
   } as PuppetServerOptions)
-  await puppetServer.start()
-
   const puppetService = new PuppetService({
     endpoint,
     token,
   } as PuppetOptions)
-  await puppetService.start()
 
   try {
+    await puppetServer.start()
+    await puppetService.start()
+
     // Stopping server before client stops must resolve promptly without hanging
     const stopPromise = puppetServer.stop()
     const timeout = new Promise<string>((_, reject) =>

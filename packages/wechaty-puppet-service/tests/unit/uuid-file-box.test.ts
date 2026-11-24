@@ -40,32 +40,32 @@ test('message file test', async t => {
   } as PuppetServerOptions
 
   const puppetServer = new PuppetServer(serverOptions)
-  await puppetServer.start()
-
-  /**
-   * Puppet Service Client
-   */
   const puppetOptions = {
     endpoint: ENDPOINT,
     token: TOKEN,
   } as PuppetOptions
-
   const puppetService = new PuppetService(puppetOptions)
-  await puppetService.start()
 
-  const file = await puppetService.messageFile('sb')
+  try {
+    await puppetServer.start()
+    await puppetService.start()
 
-  const tmpFolder = temp.mkdirSync('test')
-  const tmpFile = path.join(tmpFolder, 'uuid-file.dat')
+    const file = await puppetService.messageFile('sb')
 
-  await file.toFile(tmpFile)
-  const fileSize = fs.statSync(tmpFile).size
+    const tmpFolder = temp.mkdirSync('test')
+    const tmpFile = path.join(tmpFolder, 'uuid-file.dat')
 
-  assert.equal(fileSize, EXPECTED_SIZE, 'should save file with the correct size')
+    await file.toFile(tmpFile)
+    const fileSize = fs.statSync(tmpFile).size
 
-  fs.rmSync(tmpFile)
-  await puppetService.stop()
-  await puppetServer.stop()
+    assert.equal(fileSize, EXPECTED_SIZE, 'should save file with the correct size')
+
+    fs.rmSync(tmpFile)
+  } finally {
+    await puppetService.stop().catch(() => {})
+    await puppetServer.stop().catch(() => {})
+    await puppet.stop().catch(() => {})
+  }
 })
 
 test('messageSendFile upload streaming and file preservation test', async t => {
@@ -88,17 +88,16 @@ test('messageSendFile upload streaming and file preservation test', async t => {
   } as PuppetServerOptions
 
   const puppetServer = new PuppetServer(serverOptions)
-  await puppetServer.start()
-
   const puppetOptions = {
     endpoint: ENDPOINT,
     token: TOKEN,
   } as PuppetOptions
-
   const puppetService = new PuppetService(puppetOptions)
-  await puppetService.start()
 
   try {
+    await puppetServer.start()
+    await puppetService.start()
+
     // Send a large buffer (>25KB) to trigger client-streaming upload via ConnectRPC
     const largeContent = Buffer.alloc(30 * 1024, 0x61)
     const fileBoxToSend = FileBox.fromBuffer(largeContent, 'custom-test-file.dat')

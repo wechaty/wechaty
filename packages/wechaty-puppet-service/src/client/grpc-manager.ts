@@ -117,19 +117,25 @@ class GrpcManager extends EventEmitter {
   async start (): Promise<void> {
     log.verbose('GrpcManager', 'start()')
 
-    log.verbose('GrpcManager', 'start() initializing client ...')
-    await this.initClient()
-    log.verbose('GrpcManager', 'start() initializing client ... done')
+    try {
+      log.verbose('GrpcManager', 'start() initializing client ...')
+      await this.initClient()
+      log.verbose('GrpcManager', 'start() initializing client ... done')
 
-    log.verbose('GrpcManager', 'start() starting stream ...')
-    await this.startStream()
-    log.verbose('GrpcManager', 'start() starting stream ... done')
+      log.verbose('GrpcManager', 'start() starting stream ...')
+      await this.startStream()
+      log.verbose('GrpcManager', 'start() starting stream ... done')
 
-    log.verbose('GrpcManager', 'start() calling grpc server: start() ...')
-    await this.client.start({})
-    log.verbose('GrpcManager', 'start() calling grpc server: start() ... done')
+      log.verbose('GrpcManager', 'start() calling grpc server: start() ...')
+      await this.client.start({})
+      log.verbose('GrpcManager', 'start() calling grpc server: start() ... done')
 
-    log.verbose('GrpcManager', 'start() ... done')
+      log.verbose('GrpcManager', 'start() ... done')
+    } catch (e) {
+      this.stopStream()
+      this.destroyClient()
+      throw e
+    }
   }
 
   async stop (): Promise<void> {

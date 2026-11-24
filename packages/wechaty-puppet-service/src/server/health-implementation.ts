@@ -50,11 +50,16 @@ function healthImplementation (
 
       while (!ctx?.signal?.aborted) {
         await new Promise<void>(resolve => {
-          const timer = setTimeout(resolve, 5000)
-          ctx?.signal?.addEventListener('abort', () => {
+          let timer: ReturnType<typeof setTimeout>
+          const onAbort = () => {
             clearTimeout(timer)
             resolve()
-          }, { once: true })
+          }
+          timer = setTimeout(() => {
+            ctx?.signal?.removeEventListener('abort', onAbort)
+            resolve()
+          }, 5000)
+          ctx?.signal?.addEventListener('abort', onAbort, { once: true })
         })
         if (ctx?.signal?.aborted) {
           break

@@ -671,23 +671,38 @@ export function puppetImplementation (
         throw new ConnectError('empty stream', Code.InvalidArgument)
       }
       const conversationId = first.value.conversationId || ''
-      const initialName = first.value.fileBoxChunk?.name || ''
-      const streamChunks: AsyncIterable<Uint8Array> = {
-        async *[Symbol.asyncIterator] () {
-          if (first.value.fileBoxChunk?.data) {
-            yield first.value.fileBoxChunk.data
-          }
-          for await (const req of { [Symbol.asyncIterator]: () => iterator }) {
-            if (req.fileBoxChunk?.name) {
-              ;(fileBox as { name: string }).name = req.fileBoxChunk.name
-            }
-            if (req.fileBoxChunk?.data) {
-              yield req.fileBoxChunk.data
-            }
-          }
-        },
+      let fileName = first.value.fileBoxChunk?.name || ''
+      const bufferedData: Uint8Array[] = []
+      if (first.value.fileBoxChunk?.data) {
+        bufferedData.push(first.value.fileBoxChunk.data)
       }
-      const fileBox = FileBox.fromStream(Readable.from(streamChunks), initialName || 'stream.dat')
+
+      // Read ahead if necessary to capture the filename from metadata chunks before constructing the FileBox
+      while (!fileName) {
+        const next = await iterator.next()
+        if (next.done || !next.value) {
+          break
+        }
+        if (next.value.fileBoxChunk?.name) {
+          fileName = next.value.fileBoxChunk.name
+        }
+        if (next.value.fileBoxChunk?.data) {
+          bufferedData.push(next.value.fileBoxChunk.data)
+        }
+      }
+
+      async function* toChunks () {
+        for (const chunk of bufferedData) {
+          yield chunk
+        }
+        for await (const req of { [Symbol.asyncIterator]: () => iterator }) {
+          if (req.fileBoxChunk?.data) {
+            yield req.fileBoxChunk.data
+          }
+        }
+      }
+
+      const fileBox = FileBox.fromStream(Readable.from(toChunks()), fileName || 'stream.dat')
       const id = await puppet.messageSendFile(conversationId, fileBox)
       return id ? { id } : { id: '' }
     },
