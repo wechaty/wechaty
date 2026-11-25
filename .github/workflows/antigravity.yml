@@ -14,6 +14,15 @@ name: Antigravity Agent
 # not rotate, but a password change or revocation invalidates it.
 #
 # Trust boundaries that future edits must preserve:
+# GitHub writes use repository-scoped installation tokens for APP_CLIENT_ID_HUAN.
+# APP_PRIVATE_KEY_HUAN is exposed only to token creation in trusted start/publish
+# jobs, never to an agent runner. Each job mints its own token (1-hour lifetime,
+# revoked on completion); 5/10-minute publishers do not share the agent's wait.
+# If a publisher cannot mint its token, check its run summary. The app-owned
+# progress comment and reaction can stay stale until a retry, and artifacts
+# left behind by a failed publisher expire after one day.
+# App pushes can trigger CI. Existing bot review filters deliberately remain.
+#
 # - Each flow is split into start -> agent -> publish jobs. The agent job has
 #   only `contents: read`: the agent can run arbitrary commands (and sudo) on
 #   its runner, so anything it can reach there, including the job token in
@@ -143,10 +152,7 @@ jobs:
       github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      pull-requests: write
-      issues: write
-      statuses: read
+    permissions: {}
     env: &review-env
       PR_NUMBER: ${{ github.event.pull_request.number }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -158,10 +164,23 @@ jobs:
       comment_id: ${{ steps.start.outputs.comment_id }}
       reaction_id: ${{ steps.start.outputs.reaction_id }}
     steps:
+      - name: Create repository-scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
+          permission-pull-requests: write
+          permission-issues: write
+          permission-statuses: read
+
       - name: Check revision and post progress
         id: start
         uses: actions/github-script@v8
+        env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo
             const pr = Number(process.env.PR_NUMBER)
@@ -174,7 +193,10 @@ jobs:
               return core.setOutput('review_needed', 'false')
             }
             const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, { owner, repo, ref: head, per_page: 100 })
-            if (statuses.some(s => s.context === `${STATUS_PREFIX}/${base}` && s.state === 'success' && s.creator?.login === 'github-actions[bot]')) {
+            // Honor completed revisions from before the app migration. The app
+            // still only updates its own comments and reuses its own reviews.
+            const statusAuthors = [process.env.APP_BOT_LOGIN, 'github-actions[bot]']
+            if (statuses.some(s => s.context === `${STATUS_PREFIX}/${base}` && s.state === 'success' && statusAuthors.includes(s.creator?.login))) {
               await core.summary.addRaw(`${who} already reviewed HEAD ${head} against BASE ${base}.`).write()
               return core.setOutput('review_needed', 'false')
             }
@@ -186,7 +208,7 @@ jobs:
             const marker = `<!-- ${who.toLowerCase()}-review-progress -->`
             const body = `${marker}\n### ⏳ ${who} review of #${pr} in progress\n\nHEAD \`${head}\` · BASE \`${base}\` · [workflow run](${run})`
             const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
-            const mine = comments.find(c => c.user?.login === 'github-actions[bot]' && c.body?.startsWith(marker))
+            const mine = comments.find(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(marker))
             const { data: c } = mine
               ? await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body })
               : await github.rest.issues.createComment({ owner, repo, issue_number: pr, body })
@@ -325,11 +347,9 @@ jobs:
     if: always() && needs.review-start.outputs.review_needed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Default token is retained only for Actions artifact transport.
     permissions:
-      pull-requests: write
-      issues: write
-      statuses: write
-      actions: write
+      actions: read
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -340,11 +360,36 @@ jobs:
       REACTION_ID: ${{ needs.review-start.outputs.reaction_id }}
       AGENT_RESULT: ${{ needs.review.result }}
     steps:
+      - name: Create repository-scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
+          permission-pull-requests: write
+          permission-issues: write
+          permission-statuses: write
+          permission-actions: write
+
+      - &report-app-token-failure
+        name: Explain GitHub App token failure
+        if: failure() && steps.app-token.outcome == 'failure'
+        shell: bash
+        run: |
+          {
+            echo '### Antigravity could not authenticate to publish'
+            echo 'Check the GitHub App token step, the installation permissions, and the configured app credentials. Re-run failed jobs after fixing authentication.'
+            echo 'The progress comment and reaction may still be visible. Any remaining handoff artifacts expire after one day.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Finalize an already-published review
         id: existing
         if: needs.review.result == 'success'
         uses: actions/github-script@v8
+        env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo
             const pr = Number(process.env.PR_NUMBER)
@@ -353,7 +398,7 @@ jobs:
             if (current.head.sha !== head || current.base.sha !== base) return
             const marker = `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`
             const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
-            const prior = reviews.find(r => r.user?.login === 'github-actions[bot]' &&
+            const prior = reviews.find(r => r.user?.login === process.env.APP_BOT_LOGIN &&
               r.commit_id === head && r.body?.startsWith(marker))
             if (!prior) return
             // Finalization needs only a real existing review, not agent artifacts.
@@ -397,9 +442,12 @@ jobs:
       - name: Publish formal review
         if: needs.review.result == 'success' && steps.existing.outputs.reused != 'true'
         uses: actions/github-script@v8
+        env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
-            const fs = require('node:fs')
+            const fs = await import('node:fs')
             const { owner, repo } = context.repo
             const pr = Number(process.env.PR_NUMBER)
             const { HEAD_SHA: head, BASE_SHA: base, PROVIDER: who, STATUS_PREFIX, RUNNER_TEMP } = process.env
@@ -445,7 +493,7 @@ jobs:
 
             // Inline regression fixtures execute the actual validator code,
             // including YAML literal-block JS escapes (the source of #3050's P1).
-            const assert = require('node:assert/strict')
+            const assert = (await import('node:assert/strict')).default
             const fixture = { path: 'src/README2.ts', line: 42, severity: 'medium',
               title: 'Fix API 2', body: 'A legitimate finding with Uppercase and numbers 42' }
             assert(validFinding(fixture))
@@ -538,7 +586,7 @@ jobs:
             const body = renderReviewBody()
             // Recover after partial publication instead of duplicating a review.
             const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
-            let review = previous.find(r => r.user?.login === 'github-actions[bot]' &&
+            let review = previous.find(r => r.user?.login === process.env.APP_BOT_LOGIN &&
               r.commit_id === head && r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`))
             if (!review) {
               try {
@@ -561,9 +609,12 @@ jobs:
             await core.summary.addRaw(`${who} review posted: ${review.html_url}`).write()
 
       - name: Report review failure
-        if: failure() || needs.review.result != 'success'
+        if: (failure() || needs.review.result != 'success') && steps.app-token.outputs.token != ''
         uses: actions/github-script@v8
+        env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo
             const { PROVIDER: who, AGENT_RESULT } = process.env
@@ -575,7 +626,7 @@ jobs:
               const prior = await github.paginate(github.rest.pulls.listReviews, {
                 owner, repo, pull_number: Number(process.env.PR_NUMBER), per_page: 100,
               })
-              existing = prior.find(r => r.user?.login === 'github-actions[bot]' &&
+              existing = prior.find(r => r.user?.login === process.env.APP_BOT_LOGIN &&
                 r.commit_id === process.env.HEAD_SHA &&
                 r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${process.env.HEAD_SHA} base=${process.env.BASE_SHA} -->`))
             } catch (e) {
@@ -592,10 +643,13 @@ jobs:
 
       - &delete-artifacts
         name: Delete handed-over artifacts
-        if: always()
+        if: always() && steps.app-token.outputs.token != ''
         continue-on-error: true
         uses: actions/github-script@v8
+        env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             for (const name of ['agent-context', 'agent-result']) {
               const { data } = await github.rest.actions.listWorkflowRunArtifacts({ ...context.repo, run_id: context.runId, name })
@@ -603,10 +657,13 @@ jobs:
             }
 
       - name: Clear eyes reaction
-        if: always() && env.REACTION_ID != ''
+        if: always() && steps.app-token.outputs.token != '' && env.REACTION_ID != ''
         continue-on-error: true
         uses: actions/github-script@v8
+        env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             await github.rest.reactions.deleteForIssue({ ...context.repo, issue_number: Number(process.env.PR_NUMBER), reaction_id: Number(process.env.REACTION_ID) })
 
@@ -631,10 +688,7 @@ jobs:
        (github.event.review.body == '@antigravity' || startsWith(github.event.review.body, '@antigravity ') || startsWith(github.event.review.body, format('@antigravity{0}', fromJSON('"\n"'))) || startsWith(github.event.review.body, format('@antigravity{0}', fromJSON('"\r\n"')))))
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
+    permissions: {}
     env:
       PROVIDER: Antigravity
       TRIGGER: '@antigravity'
@@ -651,15 +705,27 @@ jobs:
       sha: ${{ steps.ctx.outputs.sha }}
       request_url: ${{ steps.ctx.outputs.request_url }}
     steps:
+      - name: Create repository-scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
+          permission-contents: read
+          permission-pull-requests: write
+          permission-issues: write
+
       - name: Authorize and collect context
         id: ctx
         uses: actions/github-script@v8
         env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
           INPUT_TASK: ${{ inputs.task }}
           INPUT_NUMBER: ${{ inputs.number }}
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
-            const fs = require('node:fs')
+            const fs = await import('node:fs')
             const { owner, repo } = context.repo
             const { PROVIDER: who, TRIGGER } = process.env
             const p = context.payload
@@ -856,11 +922,9 @@ jobs:
     if: always() && needs.task-start.outputs.authorized == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Default token is retained only for Actions artifact transport.
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-      actions: write
+      actions: read
     env:
       PROVIDER: Antigravity
       TRIGGER: '@antigravity'
@@ -876,10 +940,24 @@ jobs:
       REACTION: ${{ needs.task-start.outputs.reaction }}
       AGENT_RESULT: ${{ needs.task.result }}
     steps:
+      - name: Create repository-scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+          permission-actions: write
+
+      - *report-app-token-failure
+
       - name: Checkout task revision (fresh runner)
         if: needs.task.result == 'success'
         uses: actions/checkout@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
           ref: ${{ needs.task-start.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
@@ -924,7 +1002,13 @@ jobs:
         id: push
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+          # This step applies untrusted output with an app write token in scope.
+          # Disable hooks for all Git commands here, including future additions.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.hooksPath
+          GIT_CONFIG_VALUE_0: /dev/null
         run: |
           set -euo pipefail
           patch="$RUNNER_TEMP/out/changes.patch"
@@ -939,8 +1023,14 @@ jobs:
           fi
           git diff --cached --stat
           task_line="$(head -n1 "$RUNNER_TEMP/ctx/task.txt" | tr -d '`' | cut -c1-60)"
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -q -m "${BRANCH_PREFIX}: ${task_line}" -m "Requested by @${ACTOR}: ${REQUEST_URL}" -m "Generated by ${PROVIDER} via ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          # Explicit environment overrides set both identities, including on runners
+          # with preconfigured Git author/committer values.
+          bot_id="$(gh api "users/${APP_BOT_LOGIN}" --jq .id)"
+          [[ "$bot_id" =~ ^[0-9]+$ ]] || { echo "::error::invalid app bot ID"; exit 1; }
+          export GIT_AUTHOR_NAME="$APP_BOT_LOGIN" GIT_COMMITTER_NAME="$APP_BOT_LOGIN"
+          export GIT_AUTHOR_EMAIL="${bot_id}+${APP_BOT_LOGIN}@users.noreply.github.com"
+          export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+          git commit -q -m "${BRANCH_PREFIX}: ${task_line}" -m "Requested by @${ACTOR}: ${REQUEST_URL}" -m "Generated by ${PROVIDER} via ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           if [ "$IS_PR" = true ]; then
             # Fast-forward only: fails if the PR moved while the agent worked.
@@ -957,16 +1047,18 @@ jobs:
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Report result
-        if: always()
+        if: always() && steps.app-token.outputs.token != ''
         uses: actions/github-script@v8
         env:
+          APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
           PUSH_OUTCOME: ${{ steps.push.outcome }}
           PUSH_RESULT: ${{ steps.push.outputs.result }}
           PUSH_SHA: ${{ steps.push.outputs.sha }}
           PR_URL: ${{ steps.push.outputs.pr_url }}
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
-            const fs = require('node:fs')
+            const fs = await import('node:fs')
             const { owner, repo } = context.repo
             const e = process.env
             const who = e.PROVIDER
@@ -978,7 +1070,7 @@ jobs:
             const cli = safe(read(`${e.RUNNER_TEMP}/out/cli.txt`, 80)) || 'n/a'
             const ok = e.AGENT_RESULT === 'success' && e.PUSH_OUTCOME === 'success'
             const change = {
-              pushed: `Pushed [\`${e.PUSH_SHA?.slice(0, 7)}\`](${context.serverUrl}/${owner}/${repo}/commit/${e.PUSH_SHA}) to \`${e.REF}\`. Pushes made by this workflow do not trigger other workflows; re-run CI if needed.`,
+              pushed: `Pushed [\`${e.PUSH_SHA?.slice(0, 7)}\`](${context.serverUrl}/${owner}/${repo}/commit/${e.PUSH_SHA}) to \`${e.REF}\`. App-authenticated pushes can trigger CI; existing bot review filters still apply.`,
               pr: `Opened ${e.PR_URL}.`,
               refused: 'Changes under `.github/` were not published.',
               fork: 'Changes were made but this PR comes from a fork, so they were not pushed.',
