@@ -53,6 +53,7 @@ if (process.argv.slice(4).includes(process.env.FAIL_PROVIDER)) process.exit(7)
           INSTALL_CALLS: calls,
           PATH: `${directory}${delimiter}${process.env['PATH'] ?? ''}`,
           WECHATY_LOG: 'info',
+          ...(process.env['NODE_OPTIONS'] ? { NODE_OPTIONS: process.env['NODE_OPTIONS'] } : {}),
         },
         timeout: 60_000,
       })

@@ -22,7 +22,11 @@ function gateway (args: string[]) {
     return spawnSync(nodeExecutable, [ '--conditions=wechaty-source', CLI, 'gateway', '--port', '8788', ...args ], {
       cwd,
       encoding: 'utf8',
-      env: { PATH: process.env['PATH'] ?? '', WECHATY_LOG: 'silent' },
+      env: {
+        PATH: process.env['PATH'] ?? '',
+        WECHATY_LOG: 'silent',
+        ...(process.env['NODE_OPTIONS'] ? { NODE_OPTIONS: process.env['NODE_OPTIONS'] } : {}),
+      },
       timeout: 60_000,
     })
   } finally {
