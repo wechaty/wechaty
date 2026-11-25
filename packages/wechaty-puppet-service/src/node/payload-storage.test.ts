@@ -36,3 +36,20 @@ test('native payloadStorage keeps a version of a token in one folder under the h
 
   await assert.doesNotReject(payloadStorage.remove(root), 'should have nothing to remove')
 })
+
+test('native payloadStorage treats tokens and account ids as names, not paths', t => {
+  const home = useTempHome(t)
+  const base = path.join(home, '.wechaty', 'wechaty-puppet-service')
+  const root = payloadStorage.root('token', 'v2.0')
+
+  // remove() deletes recursively, so no other token may live under a root.
+  assert.ok(!payloadStorage.root('token/v2.0', 'v2.0').startsWith(root + path.sep))
+
+  for (const name of [ '..', '.', '../..', 'a/../..', '/etc', '..\\..' ]) {
+    const tokenRoot = payloadStorage.root(name, 'v2.0')
+    assert.equal(path.dirname(path.dirname(tokenRoot)), base, `token ${name}`)
+
+    const storePath = payloadStorage.storePath(root, name, 'contact-payload')
+    assert.equal(path.dirname(path.dirname(storePath)), root, `account ${name}`)
+  }
+})
