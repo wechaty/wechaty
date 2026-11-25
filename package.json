@@ -53,10 +53,6 @@
     "picomatch": "^4.0.7",
     "rollup-plugin-node-polyfills": "^0.2.1"
   },
-  "//overrides": "Enforces brolog 2.0 across transitive dependencies (memory-card, watchdog) that declare brolog ^1.x until they are upgraded upstream",
-  "overrides": {
-    "brolog": "^2.0.0"
-  },
   "allowScripts": {
     "@bufbuild/buf": true
   }
