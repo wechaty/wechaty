@@ -32,13 +32,19 @@ restore () {
   done < "$RESTORE_LIST"
   rm -rf "$WORK"
 }
-trap restore EXIT INT TERM
+trap restore EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 cd "$ROOT"
 
 TARBALLS_DIR="${1:-}"
 
-if [ -n "$TARBALLS_DIR" ] && [ -d "$TARBALLS_DIR" ]; then
+if [ -n "$TARBALLS_DIR" ]; then
+  if [ ! -d "$TARBALLS_DIR" ]; then
+    echo "Tarballs directory does not exist: $TARBALLS_DIR" >&2
+    exit 1
+  fi
   TARBALLS_DIR=$(cd "$TARBALLS_DIR" && pwd)
   echo "Using existing tarballs from: $TARBALLS_DIR"
   TARBALLS=()
@@ -99,6 +105,8 @@ cd "$CONSUMER"
 npm init -y > /dev/null
 npm pkg set type=module
 
+# Install the packed tarballs alongside published external dependencies from the npm
+# registry to test external consumption under real semver resolution rules.
 npm install --ignore-scripts \
   "${TARBALLS[@]}" \
   'file-box@^2.3.0' \
@@ -127,9 +135,22 @@ import 'node:fs'
 it('should fail in browser without node built-ins', () => {})
 PROBE
 
-if CONSUMER_DIR="$CONSUMER" "$ROOT/node_modules/.bin/wtr" "$CONSUMER/negative-probe.js" \
-  --config "$ROOT/scripts/fixtures/web-test-runner.consumer.config.js" > /dev/null 2>&1; then
+set +e
+PROBE_OUTPUT=$(CONSUMER_DIR="$CONSUMER" "$ROOT/node_modules/.bin/wtr" "$CONSUMER/negative-probe.js" \
+  --config "$ROOT/scripts/fixtures/web-test-runner.consumer.config.js" 2>&1)
+PROBE_STATUS=$?
+set -e
+
+if [ "$PROBE_STATUS" -eq 0 ]; then
   echo "Error: The browser runner accepted an import of a Node built-in ('node:fs')!" >&2
+  exit 1
+fi
+
+# In headless Chromium, an unresolvable Node built-in import causes the browser's dynamic import
+# to fail with 'Could not import your test module' / 'Failed to fetch dynamically imported module'.
+if ! grep -E -q '(Could not import your test module|Failed to fetch dynamically imported module)' <<< "$PROBE_OUTPUT"; then
+  echo "Error: Negative probe failed for an unexpected reason, output did not indicate module import failure:" >&2
+  echo "$PROBE_OUTPUT" >&2
   exit 1
 fi
 echo "Verified: browser consumer correctly rejects Node built-in imports."
