@@ -80,10 +80,21 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     log.verbose('WechatySkeleton', 'init()')
 
     if (!this.__memory) {
-      this.__memory = new MemoryCard(this.__options.name)
+      const isBrowser = typeof (globalThis as any).process?.cwd !== 'function'
+      if (isBrowser) {
+        this.__memory = new MemoryCard({
+          name: typeof this.__options.name === 'string' ? this.__options.name : undefined,
+          storageOptions: { type: 'nop' },
+        })
+      } else {
+        this.__memory = new MemoryCard(this.__options.name)
+      }
       try {
         await this.__memory.load()
-      } catch (_) {
+      } catch (err: any) {
+        if (!err?.message?.includes?.('already loaded')) {
+          throw err
+        }
         log.silly('WechatySkeleton', 'onStart() memory.load() had already loaded')
       }
     }

@@ -93,7 +93,12 @@ export class EventEmitter extends EventTarget {
 
     if (once) {
       const self = this
+      let fired = false
       const onceWrapper: EventListener = (event: Event) => {
+        if (fired) {
+          return
+        }
+        fired = true
         self.removeEventListener(type, listener)
         if (typeof listener === 'function') {
           listener.call(self, event)
@@ -156,6 +161,10 @@ export class EventEmitter extends EventTarget {
     options?: AddEventListenerOptions,
     prepend = false,
   ): this {
+    if (typeof listener !== 'function') {
+      throw new TypeError(`The "listener" argument must be of type Function. Received type ${typeof listener}`)
+    }
+
     const eventName = String(event)
     const once = typeof options === 'object' ? Boolean(options.once) : false
     const signal = typeof options === 'object' ? options.signal : undefined
@@ -170,8 +179,13 @@ export class EventEmitter extends EventTarget {
       this._listenersMap.set(event, list)
     }
 
+    let fired = false
     const wrapper: EventListener = (e: Event) => {
       if (once) {
+        if (fired) {
+          return
+        }
+        fired = true
         this.off(event, listener)
       }
       const detail = (e as CustomEvent).detail

@@ -90,3 +90,46 @@ test('EventEmitter prependListener and prependOnceListener', () => {
   ee.emit('test')
   assert.equal(count, 1)
 })
+
+test('EventEmitter guards once wrappers against reentrant emissions', () => {
+  const ee = new EventEmitter()
+  let onceCount = 0
+  let reentered = false
+
+  ee.on('reentrant', () => {
+    if (!reentered) {
+      reentered = true
+      ee.emit('reentrant')
+    }
+  })
+
+  ee.once('reentrant', () => {
+    onceCount++
+  })
+
+  ee.emit('reentrant')
+  assert.equal(onceCount, 1, 'once listener must only be invoked once even under reentrant emission')
+})
+
+test('EventEmitter static listenerCount, rawListeners, and setMaxListeners', () => {
+  const ee = new EventEmitter()
+  const fn = () => {}
+  assert.equal(ee.getMaxListeners(), 10)
+  ee.setMaxListeners(20)
+  assert.equal(ee.getMaxListeners(), 20)
+
+  ee.on('event', fn)
+  assert.equal(EventEmitter.listenerCount(ee, 'event'), 1)
+  assert.equal(ee.listeners('event')[0], fn)
+  assert.equal(typeof ee.rawListeners('event')[0], 'function')
+
+  // Removing once listener before firing
+  const onceFn = () => {}
+  ee.once('event', onceFn)
+  assert.equal(ee.listenerCount('event'), 2)
+  ee.off('event', onceFn)
+  assert.equal(ee.listenerCount('event'), 1)
+
+  // Invalid listener throws TypeError
+  assert.throws(() => ee.on('test', null as any), TypeError)
+})

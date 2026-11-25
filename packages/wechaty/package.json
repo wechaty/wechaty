@@ -6,7 +6,6 @@
   "exports": {
     ".": {
       "types": "./dist/esm/src/mods/mod.d.ts",
-      "browser": "./dist/esm/src/mods/browser.js",
       "import": "./dist/esm/src/mods/mod.js"
     },
     "./browser": {

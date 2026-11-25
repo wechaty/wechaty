@@ -198,7 +198,7 @@ describe('packed browser consumer smoke suite', () => {
 
     const mocker = new mock.Mocker()
     const puppet = new PuppetMock({ mocker })
-    const bot = WechatyBuilder.build({ puppet })
+    const bot = WechatyBuilder.build({ name: 'smoke-bot', puppet })
 
     const [user, player] = mocker.createContacts(2) as [any, any]
 
