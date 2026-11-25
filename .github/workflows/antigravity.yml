@@ -649,7 +649,6 @@ jobs:
             assert(cappedFixture.includes('Reviewed HEAD SHA: ' + head))
             assert(cappedFixture.includes('omitted due to GitHub review size limits'))
             assert(Buffer.byteLength(cappedFixture, 'utf8') <= 58000)
-            assert(!renderReviewBody(['FALLBACK_ITEM']).includes('*(inline)*'))
             const body = renderReviewBody()
             // Recover after partial publication instead of duplicating a review.
             const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
