@@ -217,10 +217,10 @@ jobs:
             try {
               const marker = `<!-- ${who.toLowerCase()}-review-progress -->`
               const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
-              const mine = comments.find(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(marker))
-              if (mine) {
+              const mine = comments.filter(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(marker))
+              for (const c of mine) {
                 try {
-                  await github.rest.issues.deleteComment({ owner, repo, comment_id: mine.id })
+                  await github.rest.issues.deleteComment({ owner, repo, comment_id: c.id })
                 } catch (e) { core.warning(`could not delete legacy progress comment: ${e.message}`) }
               }
             } catch (e) { core.warning(`cleanup of legacy progress comments failed: ${e.message}`) }
@@ -416,15 +416,16 @@ jobs:
             try {
               const progressMarker = `<!-- ${who.toLowerCase()}-review-progress -->`
               const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
-              const mine = comments.find(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(progressMarker))
-              if (mine) {
+              const mine = comments.filter(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(progressMarker))
+              for (const c of mine) {
                 try {
-                  await github.rest.issues.deleteComment({ owner, repo, comment_id: mine.id })
+                  await github.rest.issues.deleteComment({ owner, repo, comment_id: c.id })
                 } catch (e) { core.warning(`could not delete legacy progress comment: ${e.message}`) }
               }
             } catch (e) { core.warning(`legacy comment cleanup failed: ${e.message}`) }
             await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success',
               context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: prior.html_url })
+              .catch(e => core.warning(`finalized status update failed: ${e.message}`))
             core.setOutput('reused', 'true')
             await core.summary.addRaw(`Finalized previously published ${who} review: ${prior.html_url}`).write()
 
@@ -590,7 +591,7 @@ jobs:
                   const line = Number(f.line)
                   const isInline = !fallbackInline.length && diffLines.get(path)?.has(line)
                   const sev = `${icon[f.severity] ?? '⚪'} ${f.severity ? f.severity.charAt(0).toUpperCase() + f.severity.slice(1) : ''}`.trim()
-                  const loc = `\`${safe(path, 300)}${line ? `:${line}` : ''}\``
+                  const loc = `\`${safe(path, 300).replace(/[`|]/g, '')}${line ? `:${line}` : ''}\``
                   const title = safe(f.title ?? 'Finding', 150).replace(/[\r\n]+/g, ' ').trim().replace(/\|/g, '\\|')
                   const tag = isInline ? ' *(inline)*' : ''
                   const row = `| ${sev} | ${loc} | ${title}${tag} |`
@@ -649,6 +650,9 @@ jobs:
             assert(cappedFixture.includes('Reviewed HEAD SHA: ' + head))
             assert(cappedFixture.includes('omitted due to GitHub review size limits'))
             assert(Buffer.byteLength(cappedFixture, 'utf8') <= 58000)
+            const fallbackFixture = renderReviewBody(['FALLBACK_SENTINEL'])
+            assert(fallbackFixture.includes('### Findings Details'))
+            assert(!fallbackFixture.includes('### Details for Findings Outside Diff'))
             const body = renderReviewBody()
             // Recover after partial publication instead of duplicating a review.
             const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
@@ -662,7 +666,7 @@ jobs:
                 // Retrying a timeout/5xx could duplicate an already-posted review.
                 if (!inline.length || e.status !== 422) throw e
                 core.warning(`GitHub rejected inline anchors (${e.message}); posting findings in the body`)
-                const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/g, '\n\n  ')}`)
+                const all = inline.map(c => `- \`${safe(c.path, 300)}:${c.line}\` ${c.body.replace(/\n\n/g, '\n\n  ')}`)
                 ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: renderReviewBody(all) }))
               }
             } else {
@@ -672,14 +676,15 @@ jobs:
             try {
               const progressMarker = `<!-- ${who.toLowerCase()}-review-progress -->`
               const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
-              const mine = comments.find(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(progressMarker))
-              if (mine) {
+              const mine = comments.filter(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(progressMarker))
+              for (const c of mine) {
                 try {
-                  await github.rest.issues.deleteComment({ owner, repo, comment_id: mine.id })
+                  await github.rest.issues.deleteComment({ owner, repo, comment_id: c.id })
                 } catch (e) { core.warning(`could not delete legacy progress comment: ${e.message}`) }
               }
             } catch (e) { core.warning(`legacy comment cleanup failed: ${e.message}`) }
             await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success', context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: review.html_url })
+              .catch(e => core.warning(`review status update failed: ${e.message}`))
             await core.summary.addRaw(`${who} review posted: ${review.html_url}`).write()
 
       - name: Report review failure
