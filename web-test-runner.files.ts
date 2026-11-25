@@ -4,7 +4,7 @@
  * Defines the complete inclusion and exclusion patterns governing browser test execution
  * across all workspace packages in the Wechaty monorepo.
  */
-export const browserTestFiles = [
+export const browserTestFiles: string[] = [
   'tests/browser-shims/shims.test.ts',
   'packages/scopelet/src/**/*.test.ts',
   '!packages/scopelet/src/**/*.{native,integration}.test.ts',

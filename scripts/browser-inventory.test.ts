@@ -1,9 +1,19 @@
 /**
  * CI inventory enforcement test for Wechaty browser unit test coverage.
  *
- * Enforces that every unit test file across the monorepo is accounted for:
- * either it executes in Chromium via `web-test-runner.config.js`, or it has
- * an explicit native/integration/e2e designation or documented exclusion.
+ * Why this module exists:
+ * Guarantees that every unit test across the Wechaty monorepo is accounted for in the
+ * browser test suite. It prevents regressions where new tests are introduced without either
+ * running under Chromium or carrying an explicit native requirement.
+ *
+ * Architectural boundaries:
+ * Traverses monorepo sources, loads the canonical browser pattern list from
+ * `web-test-runner.files.ts`, and verifies that test files are properly classified
+ * without dead or obsolete exclusion patterns.
+ *
+ * Relationships:
+ * - `web-test-runner.files.ts`: Source of truth for browser test inclusion/exclusion patterns.
+ * - `.github/workflows/node.js.yml`: CI workflow executing this test under Node.js and Deno.
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -11,8 +21,21 @@ import fs from 'node:fs'
 import path from 'node:path'
 import picomatch from 'picomatch'
 
-import { browserTestFiles } from '../web-test-runner.files.js'
+import { browserTestFiles } from '../web-test-runner.files.ts'
 
+/**
+ * Recursively discovers all `*.test.ts` files under a specified directory,
+ * skipping build artifacts (`dist`), package management roots (`node_modules`),
+ * and version control directories (`.git`).
+ *
+ * Normalizes all returned paths to forward-slash, working-directory-relative paths
+ * (without leading `./`) so they match the glob pattern format used by
+ * `web-test-runner.files.ts`.
+ *
+ * @param dir - The relative or absolute directory path to scan.
+ * @returns Array of relative file paths to discovered `*.test.ts` files.
+ * @throws `NodeJS.ErrnoException` if any directory within the tree is inaccessible.
+ */
 function walkDir (dir: string): string[] {
   let results: string[] = []
   const list = fs.readdirSync(dir)
@@ -82,12 +105,12 @@ test('every test file in the monorepo is accounted for in browser inventory', ()
     unclassified,
     [],
     `Found unclassified unit test files not running in Chromium.
-Either include them in web-test-runner.files.js, name them *.native.test.ts / *.integration.test.ts, or add a documented exclusion in web-test-runner.files.js:
+Either include them in web-test-runner.files.ts, name them *.native.test.ts / *.integration.test.ts, or add a documented exclusion in web-test-runner.files.ts:
 ${unclassified.join('\n')}`,
   )
 })
 
-test('no dead exclusion patterns in web-test-runner.files.js', () => {
+test('no dead exclusion patterns in web-test-runner.files.ts', () => {
   const allTests = walkDir('.')
   const deadPatterns: string[] = []
 
@@ -106,7 +129,7 @@ test('no dead exclusion patterns in web-test-runner.files.js', () => {
   assert.deepEqual(
     deadPatterns,
     [],
-    `Found dead or obsolete exclusion patterns in web-test-runner.files.js that match 0 files:
+    `Found dead or obsolete exclusion patterns in web-test-runner.files.ts that match 0 files:
 ${deadPatterns.join('\n')}`,
   )
 })

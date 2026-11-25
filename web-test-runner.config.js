@@ -12,7 +12,7 @@ import { playwrightLauncher } from '@web/test-runner-playwright'
 import { fromRollup } from '@web/dev-server-rollup'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 
-import { browserTestFiles } from './web-test-runner.files.js'
+import { browserTestFiles } from './web-test-runner.files.ts'
 
 const poly = nodePolyfills()
 
