@@ -41,6 +41,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.5",
     "@types/node": "^26.6.6",
+    "@types/picomatch": "^4.0.3",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@web/dev-server-esbuild": "^2.0.1",
     "@web/dev-server-rollup": "^1.0.1",
@@ -48,6 +49,7 @@
     "@web/test-runner-playwright": "^1.0.2",
     "chai": "^6.3.0",
     "markdownlint-cli": "^0.50.0",
+    "picomatch": "^4.0.7",
     "rollup-plugin-node-polyfills": "^0.2.1"
   },
   "//overrides": "Enforces brolog 2.0 across transitive dependencies (memory-card, watchdog) that declare brolog ^1.x until they are upgraded upstream",

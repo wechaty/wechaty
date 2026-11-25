@@ -79,9 +79,8 @@ jobs:
         fi
 
   browser:
-    name: Browser test (Chromium, experimental)
+    name: Browser test (Chromium)
     runs-on: ubuntu-latest
-    continue-on-error: true
     permissions:
       contents: read
 
@@ -97,3 +96,9 @@ jobs:
     - name: Install Playwright Chromium
       run: npx playwright install --with-deps chromium
     - run: npm run test:unit:browser
+    - name: Verify browser test failure exit
+      run: |
+        if npx wtr packages/wechaty/tests/fixtures/native-test-failure.js --config web-test-runner.config.js; then
+          echo "The browser test runner accepted a deliberately failing test."
+          exit 1
+        fi
