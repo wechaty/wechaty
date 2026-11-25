@@ -5,6 +5,6 @@
     "allowRead": [ "../wechaty-grpc", "/etc/alpine-release" ],
     "allowNet": [ "127.0.0.1", "localhost", "0.0.0.0" ],
     "allowSys": true,
-    "allowFfi": true
+    "allowFfi": [ "../../node_modules/@lmdb" ]
   }
 }

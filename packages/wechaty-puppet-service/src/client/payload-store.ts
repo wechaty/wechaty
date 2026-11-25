@@ -6,7 +6,7 @@
  * Under Node.js and Deno, storage files are placed on disk under
  * `~/.wechaty/wechaty-puppet-service/<token>/v<major>.<minor>/<accountId>/`.
  * In browser environments, storage binds directly to origin-scoped IndexedDB
- * stores named `wechaty-puppet-service-<token>-v<major>.<minor>/<accountId>/<type>`.
+ * stores named `flash-store:wechaty-puppet-service-<token>-v<major>/<accountId>/<type>`.
  *
  * `PuppetService` starts it on `login` and stops it on `logout` and in
  * `onStop()`; the payloads are only a cache of what the server returns.
@@ -69,7 +69,7 @@ class PayloadStore {
    * The tail of the lifecycle queue: `start()`'s open, `stop()`'s close and
    * `destroy()`'s removal run one after another, in call order. Login and
    * logout drive the store from event listeners that nobody awaits, so these
-   * calls overlap; the queue keeps a LevelDB folder from being reopened
+   * calls overlap; the queue keeps a storage backend from being reopened
    * before its previous close finished. Settles (never rejects) after the
    * last queued step.
    */
@@ -232,8 +232,30 @@ class PayloadStore {
         })
       }
       if (typeof indexedDB !== 'undefined' && typeof indexedDB.deleteDatabase === 'function') {
+        const deleteDb = (dbName: string): Promise<void> =>
+          new Promise(resolve => {
+            try {
+              const request = indexedDB.deleteDatabase(dbName)
+              request.onsuccess = () => resolve()
+              request.onerror = () => resolve()
+              request.onblocked = () => resolve()
+            } catch {
+              resolve()
+            }
+          })
+
+        if (typeof indexedDB.databases === 'function') {
+          const databases = await indexedDB.databases()
+          const prefix = `flash-store:${this.storeDir}`
+          for (const db of databases) {
+            if (db.name && (db.name === prefix || db.name.startsWith(`${prefix}/`))) {
+              await deleteDb(db.name)
+            }
+          }
+        }
         for (const name of this.openedStoreNames) {
-          indexedDB.deleteDatabase(name)
+          await deleteDb(`flash-store:${name}`)
+          await deleteDb(name)
         }
         this.openedStoreNames.clear()
       }

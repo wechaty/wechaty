@@ -1,9 +1,10 @@
 /**
  * Unit tests for `PayloadStore`: repeated start and stop, that `stop()` and
- * `start()` wait for a LevelDB close already in flight, and that a `stop()`
+ * `start()` wait for a backend storage close already in flight, and that a `stop()`
  * cancels a `start()` whose open has not run yet.
  */
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import os from 'node:os'
 import { test } from 'node:test'
 
@@ -79,7 +80,7 @@ test('PayloadStore start() reopens only after a pending close', async t => {
   const restarted = store.start('account').then(() => { started = true })
 
   await new Promise(resolve => setTimeout(resolve, 50))
-  assert.equal(started, false, 'should not reopen the LevelDB folders yet')
+  assert.equal(started, false, 'should not reopen the storage folders yet')
 
   releaseClose()
   await Promise.all([ stopped, restarted ])
@@ -145,3 +146,65 @@ test('PayloadStore falls back to logical store prefix without homedir', async t 
   const [versionMajor = '0'] = VERSION.replace(/^v/, '').split('.')
   assert.equal(store.getStoreDir(), `wechaty-puppet-service-test-token-v${versionMajor}`)
 })
+
+test('PayloadStore destroy() cleans up storage on disk and IndexedDB', async (t) => {
+  useTempHome(t)
+  const token = `destroy-test-${Math.random().toString(36).slice(2)}`
+  class TestPayloadStore extends PayloadStore {
+
+    getStoreDir () { return this.storeDir }
+
+}
+  const store = new TestPayloadStore({ token })
+  await store.start('acc1')
+  await store.stop()
+
+  const storeDir = store.getStoreDir()
+  if (typeof fs?.existsSync === 'function' && typeof os?.homedir === 'function' && os.homedir()) {
+    assert.equal(fs.existsSync(storeDir), true, 'storeDir should exist before destroy')
+  }
+  if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
+    const dbsBefore = await indexedDB.databases()
+    const hasDb = dbsBefore.some(db => db.name && db.name.includes(token))
+    assert.equal(hasDb, true, 'IndexedDB database should exist before destroy')
+  }
+
+  await store.destroy()
+
+  if (typeof fs?.existsSync === 'function' && typeof os?.homedir === 'function' && os.homedir()) {
+    assert.equal(fs.existsSync(storeDir), false, 'storeDir should be removed after destroy')
+  }
+  if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
+    const dbsAfter = await indexedDB.databases()
+    const hasDb = dbsAfter.some(db => db.name && db.name.includes(token))
+    assert.equal(hasDb, false, 'IndexedDB database should be removed after destroy')
+  }
+})
+
+test('PayloadStore unstarted instance destroy() cleans up residual storage for token', async (t) => {
+  useTempHome(t)
+  const token = `unstarted-test-${Math.random().toString(36).slice(2)}`
+  class TestPayloadStore extends PayloadStore {
+
+    getStoreDir () { return this.storeDir }
+
+}
+  const originalStore = new TestPayloadStore({ token })
+  await originalStore.start('acc2')
+  await originalStore.stop()
+
+  // Create fresh, unstarted instance and destroy
+  const freshStore = new TestPayloadStore({ token })
+  await freshStore.destroy()
+
+  const storeDir = freshStore.getStoreDir()
+  if (typeof fs?.existsSync === 'function' && typeof os?.homedir === 'function' && os.homedir()) {
+    assert.equal(fs.existsSync(storeDir), false, 'storeDir should be removed by fresh instance destroy')
+  }
+  if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
+    const dbsAfter = await indexedDB.databases()
+    const hasDb = dbsAfter.some(db => db.name && db.name.includes(token))
+    assert.equal(hasDb, false, 'IndexedDB databases should be removed by fresh instance destroy')
+  }
+})
+

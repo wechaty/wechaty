@@ -10,11 +10,14 @@
 #
 set -e
 
+PACKAGE_DIR=$(pwd)
 TMPDIR="/tmp/npm-pack-testing.$$"
 DEPS_DIR="$TMPDIR/deps"
 mkdir -p "$DEPS_DIR"
-trap 'rm -rf "$TMPDIR"' EXIT
+cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
+trap 'cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
 
+./scripts/generate-package-json.sh
 npm run dist
 npm pack --pack-destination "$TMPDIR"
 shopt -s nullglob

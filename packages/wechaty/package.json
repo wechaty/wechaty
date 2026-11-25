@@ -119,7 +119,7 @@
     "cockatiel": "^4.0.0",
     "cross-spawn": "^7.0.3",
     "dotenv": "^16.0.0",
-    "file-box": "^2.1.0",
+    "file-box": "^2.3.0",
     "fp-ts": "^2.11.9",
     "gerror": "^1.0.16",
     "get-port": "^6.1.2",

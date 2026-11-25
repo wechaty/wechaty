@@ -184,4 +184,67 @@ test('stream-promises pipeline shim pipes streams and settles on completion', as
   })
 })
 
+test('stream-promises pipeline shim rejects when source stream emits error', async () => {
+  const { pipeline } = await import('./stream-promises.ts')
+  let errorHandler: ((err: Error) => void) | undefined
+  const source = {
+    pipe: (target: any) => target,
+    on: (event: string, cb: any) => {
+      if (event === 'error') errorHandler = cb
+    },
+    off: () => {},
+  }
+  const dest = {
+    on: () => {},
+    off: () => {},
+  }
+  const promise = pipeline(source, dest)
+  setTimeout(() => errorHandler?.(new Error('source error')), 0)
+  await rejects(promise, /source error/)
+})
+
+test('stream-promises pipeline shim rejects when intermediate stream emits error', async () => {
+  const { pipeline } = await import('./stream-promises.ts')
+  let intermediateErrorHandler: ((err: Error) => void) | undefined
+  const source = {
+    pipe: (target: any) => target,
+    on: () => {},
+    off: () => {},
+  }
+  const intermediate = {
+    pipe: (target: any) => target,
+    on: (event: string, cb: any) => {
+      if (event === 'error') intermediateErrorHandler = cb
+    },
+    off: () => {},
+  }
+  const dest = {
+    on: () => {},
+    off: () => {},
+  }
+  const promise = pipeline(source, intermediate, dest)
+  setTimeout(() => intermediateErrorHandler?.(new Error('transform error')), 0)
+  await rejects(promise, /transform error/)
+})
+
+test('stream-promises pipeline shim rejects on premature close before finish', async () => {
+  const { pipeline } = await import('./stream-promises.ts')
+  let closeHandler: (() => void) | undefined
+  const source = {
+    pipe: (target: any) => target,
+    on: () => {},
+    off: () => {},
+  }
+  const dest = {
+    on: (event: string, cb: any) => {
+      if (event === 'close') closeHandler = cb
+    },
+    off: () => {},
+  }
+  const promise = pipeline(source, dest)
+  setTimeout(() => closeHandler?.(), 0)
+  await rejects(promise, /Premature close/)
+})
+
+
 

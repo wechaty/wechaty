@@ -158,7 +158,7 @@ async function getFileBoxStreamStub (
   }
 
   const fileBoxStream = await fileBox.toStream()
-  fileBoxStream.on('data', chunk => {
+  fileBoxStream.on('data', (chunk: any) => {
     const fileBoxChunk = { data: chunk } as FileBoxChunk
     setTimeout(() => stream.write(fileBoxChunk), 200)
   })

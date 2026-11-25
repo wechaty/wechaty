@@ -61,7 +61,7 @@ test('unpackConversationIdFileBoxArgsFromPb()', async _t => {
   stream.write(req2)
 
   const fileBoxStream = await fileBox.toStream()
-  fileBoxStream.on('data', chunk => {
+  fileBoxStream.on('data', (chunk: any) => {
     const req3 = new MessageSendFileStreamRequest()
     req3.fileBoxChunk = { data: chunk } as FileBoxChunk
     stream.write(req3)
