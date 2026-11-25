@@ -102,3 +102,5 @@ jobs:
           echo "The browser test runner accepted a deliberately failing test."
           exit 1
         fi
+    - name: Test packed packages in browser consumer
+      run: npm run test:pack:browser
