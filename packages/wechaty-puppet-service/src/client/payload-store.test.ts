@@ -154,7 +154,7 @@ test('PayloadStore destroy() cleans up storage on disk and IndexedDB', async (t)
 
     getStoreDir () { return this.storeDir }
 
-}
+  }
   const store = new TestPayloadStore({ token })
   await store.start('acc1')
   await store.stop()
@@ -188,7 +188,7 @@ test('PayloadStore unstarted instance destroy() cleans up residual storage for t
 
     getStoreDir () { return this.storeDir }
 
-}
+  }
   const originalStore = new TestPayloadStore({ token })
   await originalStore.start('acc2')
   await originalStore.stop()
@@ -207,4 +207,3 @@ test('PayloadStore unstarted instance destroy() cleans up residual storage for t
     assert.equal(hasDb, false, 'IndexedDB databases should be removed by fresh instance destroy')
   }
 })
-

@@ -7,6 +7,9 @@
  * `~/.wechaty/wechaty-puppet-service/<token>/v<major>.<minor>/<accountId>/`.
  * In browser environments, storage binds directly to origin-scoped IndexedDB
  * stores named `flash-store:wechaty-puppet-service-<token>-v<major>/<accountId>/<type>`.
+ * The browser key uses `v<major>` rather than `v<major>.<minor>` because IndexedDB
+ * databases share a flat origin namespace without hierarchical directories,
+ * preserving cache across compatible minor releases and reducing quota fragmentation.
  *
  * `PuppetService` starts it on `login` and stops it on `logout` and in
  * `onStop()`; the payloads are only a cache of what the server returns.
@@ -237,9 +240,16 @@ class PayloadStore {
             try {
               const request = indexedDB.deleteDatabase(dbName)
               request.onsuccess = () => resolve()
-              request.onerror = () => resolve()
-              request.onblocked = () => resolve()
-            } catch {
+              request.onerror = () => {
+                log.warn('PayloadStore', 'destroy() failed to delete IndexedDB database %s: %s', dbName, request.error)
+                resolve()
+              }
+              request.onblocked = () => {
+                log.warn('PayloadStore', 'destroy() blocked deleting IndexedDB database %s (another connection is still open)', dbName)
+                resolve()
+              }
+            } catch (err) {
+              log.warn('PayloadStore', 'destroy() caught error deleting IndexedDB database %s: %s', dbName, err)
               resolve()
             }
           })
@@ -254,6 +264,7 @@ class PayloadStore {
           }
         }
         for (const name of this.openedStoreNames) {
+          // Delete both the flash-store 2.x prefixed database and any legacy un-prefixed database
           await deleteDb(`flash-store:${name}`)
           await deleteDb(name)
         }

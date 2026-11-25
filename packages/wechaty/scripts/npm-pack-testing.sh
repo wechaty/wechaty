@@ -15,7 +15,7 @@ TMPDIR="/tmp/npm-pack-testing.$$"
 DEPS_DIR="$TMPDIR/deps"
 mkdir -p "$DEPS_DIR"
 cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
-trap 'cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
+trap '[ -f "$TMPDIR/package-json.ts.orig" ] && cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
 
 ./scripts/generate-package-json.sh
 npm run dist

@@ -246,5 +246,58 @@ test('stream-promises pipeline shim rejects on premature close before finish', a
   await rejects(promise, /Premature close/)
 })
 
+test('stream-promises pipeline shim handles finish followed by close without rejecting', async () => {
+  const { pipeline } = await import('./stream-promises.ts')
+  let finishHandler: (() => void) | undefined
+  let closeHandler: (() => void) | undefined
+  const source = {
+    pipe: (target: any) => target,
+    on: () => {},
+    off: () => {},
+  }
+  const dest = {
+    on: (event: string, cb: any) => {
+      if (event === 'finish') finishHandler = cb
+      if (event === 'close') closeHandler = cb
+    },
+    off: () => {},
+  }
+  const promise = pipeline(source, dest)
+  setTimeout(() => {
+    finishHandler?.()
+    closeHandler?.()
+  }, 0)
+  await doesNotReject(promise)
+})
 
+test('stream-promises pipeline shim absorbs secondary error emitted during destroy(err) teardown', async () => {
+  const { pipeline } = await import('./stream-promises.ts')
+  let sourceErrorHandler: ((err: Error) => void) | undefined
+  let destErrorHandler: ((err: Error) => void) | undefined
+  let destDestroyCalled = false
+
+  const source = {
+    pipe: (target: any) => target,
+    on: (event: string, cb: any) => {
+      if (event === 'error') sourceErrorHandler = cb
+    },
+    off: () => {},
+  }
+  const dest = {
+    on: (event: string, cb: any) => {
+      if (event === 'error') destErrorHandler = cb
+    },
+    off: () => {},
+    destroy: (err: any) => {
+      destDestroyCalled = true
+      // Emulate streams that emit an 'error' event during or after destroy(err)
+      destErrorHandler?.(new Error(`dest destroy error: ${err.message}`))
+    },
+  }
+
+  const promise = pipeline(source, dest)
+  setTimeout(() => sourceErrorHandler?.(new Error('initial source failure')), 0)
+  await rejects(promise, /initial source failure/)
+  strictEqual(destDestroyCalled, true, 'destination stream should be destroyed with upstream error')
+})
 

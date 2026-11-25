@@ -50,20 +50,27 @@ export async function pipeline (...streams: any[]): Promise<void> {
     }
 
     const onError = (err: unknown) => {
-      if (!settled) {
-        settled = true
-        cleanup()
-        for (const s of streams) {
-          if (typeof s?.destroy === 'function' && !s.destroyed) {
-            try {
-              s.destroy(err)
-            } catch {
-              // Ignore secondary destroy failures
-            }
+      if (settled) {
+        // Suppress secondary error events emitted during or after stream destruction
+        return
+      }
+      settled = true
+      // Keep error listeners in place while destroying streams so that destroy(err)
+      // emitting an asynchronous or synchronous 'error' event does not result in
+      // an unhandled 'error' exception.
+      for (const s of streams) {
+        if (typeof s?.destroy === 'function' && !s.destroyed) {
+          try {
+            s.destroy(err)
+          } catch {
+            // Ignore synchronous destroy failures
           }
         }
-        reject(err)
       }
+      // Defer detaching event listeners until next event loop turn so secondary
+      // 'error' events emitted by stream implementations during teardown are absorbed.
+      setTimeout(cleanup, 0)
+      reject(err)
     }
 
     const onClose = () => {
