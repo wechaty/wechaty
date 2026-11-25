@@ -161,7 +161,6 @@ jobs:
       STATUS_PREFIX: antigravity-agent/review
     outputs:
       review_needed: ${{ steps.start.outputs.review_needed }}
-      comment_id: ${{ steps.start.outputs.comment_id }}
       reaction_id: ${{ steps.start.outputs.reaction_id }}
     steps:
       - name: Create repository-scoped GitHub App token
@@ -172,7 +171,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
           permission-pull-requests: write
           permission-issues: write
-          permission-statuses: read
+          permission-statuses: write
 
       - name: Check revision and post progress
         id: start
@@ -204,15 +203,27 @@ jobs:
               const { data } = await github.rest.reactions.createForIssue({ owner, repo, issue_number: pr, content: 'eyes' })
               core.setOutput('reaction_id', String(data.id))
             } catch (e) { core.warning(`eyes reaction failed: ${e.message}`) }
-            // One progress comment per PR, edited in place on every run.
-            const marker = `<!-- ${who.toLowerCase()}-review-progress -->`
-            const body = `${marker}\n### ⏳ ${who} review of #${pr} in progress\n\nHEAD \`${head}\` · BASE \`${base}\` · [workflow run](${run})`
-            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
-            const mine = comments.find(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(marker))
-            const { data: c } = mine
-              ? await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body })
-              : await github.rest.issues.createComment({ owner, repo, issue_number: pr, body })
-            core.setOutput('comment_id', String(c.id))
+            // Set commit status to pending so PR checks display review progress
+            try {
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha: head,
+                state: 'pending',
+                context: `${STATUS_PREFIX}/${base}`,
+                description: `${who} review in progress...`,
+                target_url: run,
+              })
+            } catch (e) { core.warning(`initial commit status failed: ${e.message}`) }
+            // Clean up any legacy progress comments from earlier workflow revisions.
+            try {
+              const marker = `<!-- ${who.toLowerCase()}-review-progress -->`
+              const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
+              const mine = comments.filter(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(marker))
+              for (const c of mine) {
+                try {
+                  await github.rest.issues.deleteComment({ owner, repo, comment_id: c.id })
+                } catch (e) { core.warning(`could not delete legacy progress comment: ${e.message}`) }
+              }
+            } catch (e) { core.warning(`cleanup of legacy progress comments failed: ${e.message}`) }
             core.setOutput('review_needed', 'true')
 
   review:
@@ -356,7 +367,6 @@ jobs:
       BASE_SHA: ${{ github.event.pull_request.base.sha }}
       PROVIDER: Antigravity
       STATUS_PREFIX: antigravity-agent/review
-      COMMENT_ID: ${{ needs.review-start.outputs.comment_id }}
       REACTION_ID: ${{ needs.review-start.outputs.reaction_id }}
       AGENT_RESULT: ${{ needs.review.result }}
     steps:
@@ -379,7 +389,7 @@ jobs:
           {
             echo '### Antigravity could not authenticate to publish'
             echo 'Check the GitHub App token step, the installation permissions, and the configured app credentials. Re-run failed jobs after fixing authentication.'
-            echo 'The progress comment and reaction may still be visible. Any remaining handoff artifacts expire after one day.'
+            echo 'The reaction may still be visible. Any remaining handoff artifacts expire after one day.'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Finalize an already-published review
@@ -402,12 +412,20 @@ jobs:
               r.commit_id === head && r.body?.startsWith(marker))
             if (!prior) return
             // Finalization needs only a real existing review, not agent artifacts.
-            // This works after the previous publisher deleted its handoff files.
-            const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
-            await github.rest.issues.updateComment({ owner, repo, comment_id: Number(process.env.COMMENT_ID),
-              body: `<!-- ${who.toLowerCase()}-review-progress -->\n### ✅ ${who} review of #${pr} complete\n\n[Existing formal review](${prior.html_url}) finalized for HEAD \`${head}\` · BASE \`${base}\`. · [workflow run](${run})` })
+            // Clean up any legacy progress comments if present
+            try {
+              const progressMarker = `<!-- ${who.toLowerCase()}-review-progress -->`
+              const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
+              const mine = comments.filter(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(progressMarker))
+              for (const c of mine) {
+                try {
+                  await github.rest.issues.deleteComment({ owner, repo, comment_id: c.id })
+                } catch (e) { core.warning(`could not delete legacy progress comment: ${e.message}`) }
+              }
+            } catch (e) { core.warning(`legacy comment cleanup failed: ${e.message}`) }
             await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success',
               context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: prior.html_url })
+              .catch(e => core.warning(`finalized status update failed: ${e.message}`))
             core.setOutput('reused', 'true')
             await core.summary.addRaw(`Finalized previously published ${who} review: ${prior.html_url}`).write()
 
@@ -452,8 +470,6 @@ jobs:
             const pr = Number(process.env.PR_NUMBER)
             const { HEAD_SHA: head, BASE_SHA: base, PROVIDER: who, STATUS_PREFIX, RUNNER_TEMP } = process.env
             const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
-            const marker = `<!-- ${who.toLowerCase()}-review-progress -->`
-            const progress = body => github.rest.issues.updateComment({ owner, repo, comment_id: Number(process.env.COMMENT_ID), body: `${marker}\n${body}` })
             // Agent text is untrusted: neutralize @mentions and cap lengths.
             const safe = (t, max = 4000) => String(t ?? '').replace(/(^|[^\w`])@(?=[A-Za-z0-9])/g, '$1@​').slice(0, max)
             const cli = safe(fs.readFileSync(`${RUNNER_TEMP}/out/cli.txt`, 'utf8').trim(), 80)
@@ -511,7 +527,15 @@ jobs:
             // A review is only valid for the revision it read.
             const { data: cur } = await github.rest.pulls.get({ owner, repo, pull_number: pr })
             if (cur.head.sha !== head || cur.base.sha !== base) {
-              await progress(`### ⏭️ ${who} review of #${pr} skipped\n\nThe PR moved while reviewing \`${head}\`; the newer push gets its own review. · [workflow run](${run})`)
+              core.warning('PR changed after this event; skipping stale review.')
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha: head,
+                state: 'error',
+                context: `${STATUS_PREFIX}/${base}`,
+                description: `${who} review superseded by newer revision`,
+                target_url: run,
+              }).catch(e => core.warning(`stale status update failed: ${e.message}`))
+              await core.summary.addRaw(`${who} review skipped: PR HEAD/BASE moved after this event.`).write()
               return
             }
 
@@ -540,26 +564,69 @@ jobs:
               // Use the same normalization verified before publication.
               const path = normalizePath(f.path)
               const line = Number(f.line)
-              const text = `${icon[f.severity] ?? '⚪'} **${safe(f.title ?? f.severity ?? 'Finding', 200)}**\n\n${safe(f.body)}`
-              if (diffLines.get(path)?.has(line)) inline.push({ path, line, side: 'RIGHT', body: text })
-              else general.push(`- \`${safe(path, 300)}${line ? `:${line}` : ''}\` ${text.replace(/\n\n/, ' — ')}`)
+              const sev = icon[f.severity] ?? '⚪'
+              const title = safe(f.title ?? f.severity ?? 'Finding', 200).replace(/[\r\n]+/g, ' ').trim()
+              const body = safe(f.body)
+              if (diffLines.get(path)?.has(line)) {
+                inline.push({ path, line, side: 'RIGHT', body: `${sev} **${title}**\n\n${body}` })
+              } else {
+                const indentedBody = body.replace(/\n\n/g, '\n\n  ')
+                general.push(`- \`${safe(path, 300)}${line ? `:${line}` : ''}\` ${sev} **${title}**\n\n  ${indentedBody}`)
+              }
             }
             const count = out.findings.length
             // The review body has a size limit. Preserve the exact HEAD/BASE
             // trailer and give inline findings priority when anchors are rejected.
             // Never silently drop findings: report how many exceeded the budget.
             const renderReviewBody = (fallbackInline = [], generalEntries = general) => {
+              const hasInline = !fallbackInline.length && inline.length > 0
+              const tableRows = []
+              let tableOmitted = 0
+              const TABLE_ROW_BUDGET = 10000
+              let currentTableBytes = 0
+
+              if (count) {
+                for (const f of out.findings.slice(0, 30)) {
+                  const path = normalizePath(f.path)
+                  const line = Number(f.line)
+                  const isInline = !fallbackInline.length && diffLines.get(path)?.has(line)
+                  const sev = `${icon[f.severity] ?? '⚪'} ${f.severity ? f.severity.charAt(0).toUpperCase() + f.severity.slice(1) : ''}`.trim()
+                  const loc = `\`${safe(path, 300).replace(/[`|]/g, '')}${line ? `:${line}` : ''}\``
+                  const title = safe(f.title ?? 'Finding', 150).replace(/[\r\n]+/g, ' ').trim().replace(/\|/g, '\\|')
+                  const tag = isInline ? ' *(inline)*' : ''
+                  const row = `| ${sev} | ${loc} | ${title}${tag} |`
+                  const rowBytes = Buffer.byteLength(row, 'utf8') + 1
+                  if (currentTableBytes + rowBytes <= TABLE_ROW_BUDGET) {
+                    tableRows.push(row)
+                    currentTableBytes += rowBytes
+                  } else {
+                    tableOmitted++
+                  }
+                }
+              }
+
+              const findingsTable = count ? [
+                '### Findings Summary',
+                '| Severity | Location | Issue |',
+                '| :--- | :--- | :--- |',
+                ...tableRows,
+                ...(tableOmitted ? [`| ⚪ ... | _${tableOmitted} more finding(s)_ | _omitted from summary table_ |`] : []),
+                '',
+              ] : []
+
+              const entries = [...fallbackInline, ...generalEntries]
               const header = [
                 `<!-- ${who.toLowerCase()}-review head=${head} base=${base} -->`,
                 `## ${who} review`, '', safe(out.summary), '',
-                count ? `${count} finding(s)${inline.length ? `, ${inline.length} inline` : ''}.` : 'No issues found.',
+                count ? `${count} finding(s)${hasInline ? `, ${inline.length} inline` : ''}.` : 'No issues found.',
+                '', ...findingsTable,
+                ...(entries.length > 0 ? [fallbackInline.length ? '### Findings Details' : '### Details for Findings Outside Diff', ''] : []),
               ]
               const footer = [
                 '', ...(out.not_assessed ? [`_Not assessed:_ ${safe(out.not_assessed, 2000)}`, ''] : []),
                 `Reviewed HEAD SHA: ${head}`,
                 `<sub>${who} CLI ${cli} · BASE ${base} · [workflow run](${run})</sub>`,
               ]
-              const entries = [...fallbackInline, ...generalEntries]
               const included = []
               let omitted = 0
               for (const entry of entries) {
@@ -583,6 +650,9 @@ jobs:
             assert(cappedFixture.includes('Reviewed HEAD SHA: ' + head))
             assert(cappedFixture.includes('omitted due to GitHub review size limits'))
             assert(Buffer.byteLength(cappedFixture, 'utf8') <= 58000)
+            const fallbackFixture = renderReviewBody(['FALLBACK_SENTINEL'])
+            assert(fallbackFixture.includes('### Findings Details'))
+            assert(!fallbackFixture.includes('### Details for Findings Outside Diff'))
             const body = renderReviewBody()
             // Recover after partial publication instead of duplicating a review.
             const previous = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr, per_page: 100 })
@@ -596,20 +666,29 @@ jobs:
                 // Retrying a timeout/5xx could duplicate an already-posted review.
                 if (!inline.length || e.status !== 422) throw e
                 core.warning(`GitHub rejected inline anchors (${e.message}); posting findings in the body`)
-                const all = inline.map(c => `- \`${c.path}:${c.line}\` ${c.body.replace(/\n\n/, ' — ')}`)
+                const all = inline.map(c => `- \`${safe(c.path, 300)}:${c.line}\` ${c.body.replace(/\n\n/g, '\n\n  ')}`)
                 ;({ data: review } = await github.rest.pulls.createReview({ owner, repo, pull_number: pr, commit_id: head, event: 'COMMENT', body: renderReviewBody(all) }))
               }
             } else {
               core.info(`Reusing review ${review.html_url} already published for this revision`)
             }
-            // Set the success status last; the finalize-only step can retry
-            // without agent-result after cleanup on a previous attempt.
-            await progress(`### ✅ ${who} review of #${pr} complete\n\n${count ? `${count} finding(s)` : 'No issues found'} — [view review](${review.html_url})\n\nHEAD \`${head}\` · BASE \`${base}\` · [workflow run](${run})`)
-            await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success', context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: run })
+            // Clean up any legacy progress comments if present
+            try {
+              const progressMarker = `<!-- ${who.toLowerCase()}-review-progress -->`
+              const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr, per_page: 100 })
+              const mine = comments.filter(c => c.user?.login === process.env.APP_BOT_LOGIN && c.body?.startsWith(progressMarker))
+              for (const c of mine) {
+                try {
+                  await github.rest.issues.deleteComment({ owner, repo, comment_id: c.id })
+                } catch (e) { core.warning(`could not delete legacy progress comment: ${e.message}`) }
+              }
+            } catch (e) { core.warning(`legacy comment cleanup failed: ${e.message}`) }
+            await github.rest.repos.createCommitStatus({ owner, repo, sha: head, state: 'success', context: `${STATUS_PREFIX}/${base}`, description: `${who} review completed for this HEAD/BASE`, target_url: review.html_url })
+              .catch(e => core.warning(`review status update failed: ${e.message}`))
             await core.summary.addRaw(`${who} review posted: ${review.html_url}`).write()
 
       - name: Report review failure
-        if: (failure() || needs.review.result != 'success') && steps.app-token.outputs.token != ''
+        if: (failure() || cancelled() || needs.review.result != 'success') && steps.app-token.outputs.token != ''
         uses: actions/github-script@v8
         env:
           APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
@@ -619,8 +698,7 @@ jobs:
             const { owner, repo } = context.repo
             const { PROVIDER: who, AGENT_RESULT } = process.env
             const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
-            // A review may have been posted before status/progress failed.
-            // Make that partial success visible instead of claiming no review exists.
+            // A review may have been posted before status failed.
             let existing
             try {
               const prior = await github.paginate(github.rest.pulls.listReviews, {
@@ -630,16 +708,36 @@ jobs:
                 r.commit_id === process.env.HEAD_SHA &&
                 r.body?.startsWith(`<!-- ${who.toLowerCase()}-review head=${process.env.HEAD_SHA} base=${process.env.BASE_SHA} -->`))
             } catch (e) {
-              // A lookup outage must not prevent reporting that the run failed.
               core.warning(`Could not inspect previously published reviews: ${e.message}`)
             }
-            const title = existing && AGENT_RESULT === 'success'
-              ? `### ⚠️ ${who} review published, but finalization failed`
-              : AGENT_RESULT === 'cancelled'
-                ? `### ⏭️ ${who} review of #${process.env.PR_NUMBER} superseded by a newer push`
-                : `### ❌ ${who} review of #${process.env.PR_NUMBER} failed`
-            await github.rest.issues.updateComment({ owner, repo, comment_id: Number(process.env.COMMENT_ID),
-              body: `<!-- ${who.toLowerCase()}-review-progress -->\n${title}\n\nHEAD \`${process.env.HEAD_SHA}\`. ${existing ? `[Previously submitted review](${existing.html_url}).` : 'No completed formal review recorded.'} See the [workflow run](${run}). If it mentions an expired or invalid session, re-export the ${who} secret. ${existing && AGENT_RESULT === 'success' ? 'Re-run failed jobs to finalize the existing review without artifacts.' : 'Re-run all jobs to regenerate the review attempt.'}` })
+            if (existing && AGENT_RESULT === 'success') {
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha: process.env.HEAD_SHA,
+                state: 'success',
+                context: `${process.env.STATUS_PREFIX}/${process.env.BASE_SHA}`,
+                description: `${who} review completed for this HEAD/BASE`,
+                target_url: existing.html_url,
+              }).catch(e => core.warning(`finalized status update failed: ${e.message}`))
+              await core.summary.addRaw(`Finalized existing ${who} review: ${existing.html_url}`).write()
+            } else if (AGENT_RESULT === 'cancelled') {
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha: process.env.HEAD_SHA,
+                state: 'error',
+                context: `${process.env.STATUS_PREFIX}/${process.env.BASE_SHA}`,
+                description: `${who} review cancelled or superseded`,
+                target_url: run,
+              }).catch(e => core.warning(`cancelled status update failed: ${e.message}`))
+              await core.summary.addRaw(`### ⚠️ ${who} review of #${process.env.PR_NUMBER} cancelled or superseded\n\nHEAD \`${process.env.HEAD_SHA}\`. See the [workflow run](${run}).`).write()
+            } else {
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha: process.env.HEAD_SHA,
+                state: 'failure',
+                context: `${process.env.STATUS_PREFIX}/${process.env.BASE_SHA}`,
+                description: `${who} review failed`,
+                target_url: run,
+              }).catch(e => core.warning(`failure status update failed: ${e.message}`))
+              await core.summary.addRaw(`### ❌ ${who} review of #${process.env.PR_NUMBER} failed\n\nHEAD \`${process.env.HEAD_SHA}\`. See the [workflow run](${run}).`).write()
+            }
 
       - &delete-artifacts
         name: Delete handed-over artifacts
