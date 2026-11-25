@@ -7,32 +7,38 @@
     ".": {
       "wechaty-source": "./src/mods/mod.ts",
       "types": "./dist/esm/src/mods/mod.d.ts",
-      "import": "./dist/esm/src/mods/mod.js"
+      "browser": "./dist/esm/src/mods/mod.js",
+      "default": "./dist/esm/src/mods/mod.js"
     },
     "./filters": {
       "wechaty-source": "./src/mods/filters.ts",
       "types": "./dist/esm/src/mods/filters.d.ts",
-      "import": "./dist/esm/src/mods/filters.js"
+      "browser": "./dist/esm/src/mods/filters.js",
+      "default": "./dist/esm/src/mods/filters.js"
     },
     "./helpers": {
       "wechaty-source": "./src/mods/helpers.ts",
       "types": "./dist/esm/src/mods/helpers.d.ts",
-      "import": "./dist/esm/src/mods/helpers.js"
+      "browser": "./dist/esm/src/mods/helpers.js",
+      "default": "./dist/esm/src/mods/helpers.js"
     },
     "./impls": {
       "wechaty-source": "./src/mods/impls.ts",
       "types": "./dist/esm/src/mods/impls.d.ts",
-      "import": "./dist/esm/src/mods/impls.js"
+      "browser": "./dist/esm/src/mods/impls.js",
+      "default": "./dist/esm/src/mods/impls.js"
     },
     "./payloads": {
       "wechaty-source": "./src/mods/payloads.ts",
       "types": "./dist/esm/src/mods/payloads.d.ts",
-      "import": "./dist/esm/src/mods/payloads.js"
+      "browser": "./dist/esm/src/mods/payloads.js",
+      "default": "./dist/esm/src/mods/payloads.js"
     },
     "./types": {
       "wechaty-source": "./src/mods/types.ts",
       "types": "./dist/esm/src/mods/types.d.ts",
-      "import": "./dist/esm/src/mods/types.js"
+      "browser": "./dist/esm/src/mods/types.js",
+      "default": "./dist/esm/src/mods/types.js"
     }
   },
   "types": "./dist/esm/src/mods/mod.d.ts",

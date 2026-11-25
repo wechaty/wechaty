@@ -1,4 +1,4 @@
-import type { EventEmitter }  from 'events'
+import type { EventEmitter }  from 'wechaty-puppet'
 
 import type { Constructor }           from 'clone-class'
 import type {

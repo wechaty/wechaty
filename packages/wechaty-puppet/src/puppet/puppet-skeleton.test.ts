@@ -73,6 +73,6 @@ test('wrapAsync() promise', async _t => {
   assert.equal(wrappedRejection, undefined, 'should be void and not to reject')
 
   assert.equal(spy.mock.callCount(), 0, 'should have no error before sleep')
-  await new Promise(resolve => setImmediate(resolve)) // wait async event loop task to be executed
+  await new Promise(resolve => setTimeout(resolve, 0)) // wait async event loop task to be executed
   assert.equal(spy.mock.callCount(), 1, 'should emit error when promise reject with error')
 })

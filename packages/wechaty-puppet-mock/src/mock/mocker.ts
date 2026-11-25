@@ -109,7 +109,7 @@ class Mocker {
   stop () {
     log.verbose('Mocker', 'stop()')
 
-    this.cleanupFns.forEach(setImmediate)
+    this.cleanupFns.forEach(fn => setTimeout(fn, 0))
     this.cleanupFns.length = 0
   }
 

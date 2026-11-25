@@ -84,7 +84,7 @@ class PuppetMock extends PUPPET.Puppet {
     /**
      * Start mocker after the puppet fully turned ON.
      */
-    setImmediate(() => this.mocker.start())
+    setTimeout(() => this.mocker.start(), 0)
   }
 
   override async onStop (): Promise<void> {
@@ -94,7 +94,7 @@ class PuppetMock extends PUPPET.Puppet {
       clearInterval(this.loopTimer)
     }
 
-    setImmediate(() => this.mocker.stop())
+    setTimeout(() => this.mocker.stop(), 0)
   }
 
   override ding (data?: string): void {

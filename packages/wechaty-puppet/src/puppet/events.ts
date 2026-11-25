@@ -2,7 +2,7 @@
  * The puppet's typed event emitter: every event name with its listener
  * signature, and `PuppetEventEmitter`, the class `PuppetSkeleton` extends.
  */
-import { EventEmitter }         from 'node:events'
+import { EventEmitter }         from '../events/event-emitter.ts'
 // typed-emitter ships CommonJS types, so NodeNext sees its default export
 // under `.default`, as in wechaty's own event schemas.
 import type * as TypedEventEmitter from 'typed-emitter'
@@ -80,5 +80,6 @@ export type {
   PuppetEventName,
 }
 export {
+  EventEmitter,
   PuppetEventEmitter,
 }

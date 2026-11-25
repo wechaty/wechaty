@@ -17,8 +17,6 @@
  *   limitations under the License.
  *
  */
-import Url from 'url'
-
 import type * as PUPPET     from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
@@ -82,7 +80,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
     }
 
     if (thumbnailUrl && !thumbnailUrl.startsWith('http')) {
-      const resolvedUrl = new Url.URL(thumbnailUrl, url)
+      const resolvedUrl = new URL(thumbnailUrl, url)
       thumbnailUrl = resolvedUrl.toString()
     }
 

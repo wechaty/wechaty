@@ -10,7 +10,7 @@ const DEFAULT_LRU_CACHE_SIZE_ROOM            = 100
 const DEFAULT_LRU_CACHE_SIZE_ROOM_INVITATION = 100
 const DEFAULT_LRU_CACHE_SIZE_ROOM_MEMBER     = 100
 
-const getNumberEnv = (env: typeof process.env) => (
+const getNumberEnv = (env: Record<string, string | undefined> | typeof process.env = (globalThis as any).process?.env ?? {}) => (
   varName      : string,
   defaultValue : number,
 ) => {
@@ -27,7 +27,7 @@ const getNumberEnv = (env: typeof process.env) => (
   return numVal
 }
 
-const getNumber = getNumberEnv(process.env)
+const getNumber = getNumberEnv((globalThis as any).process?.env ?? {})
 
 const WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT = (v?: number) => v ?? getNumber(
   'WECHATY_PUPPET_LRU_CACHE_SIZE_CONTACT',

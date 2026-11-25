@@ -13,7 +13,7 @@ import { packageJson } from './package-json.ts'
 import * as envVars from './env-vars.ts'
 
 const log = new Brolog()
-const logLevel = process.env['WECHATY_LOG']
+const logLevel = (globalThis as any).process?.env?.['WECHATY_LOG']
 if (logLevel) {
   log.level(logLevel.toLowerCase() as any)
   log.silly('Puppet', 'Config: WECHATY_LOG set level to %s', logLevel)
