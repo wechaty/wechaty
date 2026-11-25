@@ -1,7 +1,13 @@
 /**
- * `PayloadStore`: a LevelDB cache (via `flash-store`) of contact, room and
- * room member payloads that `PuppetService` keeps across restarts, under
+ * `PayloadStore`: a persistent cache (via `flash-store`, backed by LMDB on
+ * Node/Deno and IndexedDB in Chromium) of contact, room and room member payloads
+ * that `PuppetService` keeps across restarts.
+ *
+ * Under Node.js and Deno, storage files are placed on disk under
  * `~/.wechaty/wechaty-puppet-service/<token>/v<major>.<minor>/<accountId>/`.
+ * In browser environments, storage binds directly to origin-scoped IndexedDB
+ * stores named `wechaty-puppet-service-<token>-v<major>.<minor>/<accountId>/<type>`.
+ *
  * `PuppetService` starts it on `login` and stops it on `logout` and in
  * `onStop()`; the payloads are only a cache of what the server returns.
  */
@@ -28,8 +34,6 @@ import path from 'path'
 import os from 'os'
 import fs from 'fs'
 
-import semverPkg from 'semver'
-
 import type * as PUPPET from 'wechaty-puppet'
 
 import { FlashStore } from 'flash-store'
@@ -39,7 +43,7 @@ import {
   log,
 }             from '../config.ts'
 
-const { major, minor } = semverPkg
+const [versionMajor = '0', versionMinor = '0'] = VERSION.replace(/^v/, '').split('.')
 
 interface PayloadStoreOptions {
   token: string
@@ -59,6 +63,7 @@ class PayloadStore {
 
   protected storeDir:   string
   protected accountId?: string
+  private openedStoreNames = new Set<string>()
 
   /**
    * The tail of the lifecycle queue: `start()`'s open, `stop()`'s close and
@@ -83,13 +88,16 @@ class PayloadStore {
     this.options = options
     log.verbose('PayloadStore', 'constructor(%s)', JSON.stringify(options))
 
-    this.storeDir = path.join(
-      os.homedir(),
-      '.wechaty',
-      'wechaty-puppet-service',
-      this.options.token,
-      `v${major(VERSION)}.${minor(VERSION)}`,
-    )
+    const homedir = typeof os?.homedir === 'function' ? os.homedir() : ''
+    this.storeDir = homedir
+      ? path.join(
+          homedir,
+          '.wechaty',
+          'wechaty-puppet-service',
+          this.options.token,
+          `v${versionMajor}.${versionMinor}`,
+        )
+      : `wechaty-puppet-service-${this.options.token}-v${versionMajor}.${versionMinor}`
     log.silly('PayloadStore', 'constructor() storeDir: "%s"', this.storeDir)
   }
 
@@ -126,15 +134,25 @@ class PayloadStore {
 
       const accountDir = path.join(this.storeDir, accountId)
 
-      if (!fs.existsSync(accountDir)) {
-        fs.mkdirSync(accountDir, { recursive: true })
+      if (typeof fs?.existsSync === 'function' && typeof fs?.mkdirSync === 'function') {
+        if (!fs.existsSync(accountDir)) {
+          fs.mkdirSync(accountDir, { recursive: true })
+        }
       }
+
+      const contactPath = path.join(accountDir, 'contact-payload')
+      const roomMemberPath = path.join(accountDir, 'room-member-payload')
+      const roomPath = path.join(accountDir, 'room-payload')
+
+      this.openedStoreNames.add(contactPath)
+      this.openedStoreNames.add(roomMemberPath)
+      this.openedStoreNames.add(roomPath)
 
       // No await from here on: stop() detaches whatever this step has opened,
       // so the three stores must appear together.
-      this.contact    = new FlashStore(path.join(accountDir, 'contact-payload'))
-      this.roomMember = new FlashStore(path.join(accountDir, 'room-member-payload'))
-      this.room       = new FlashStore(path.join(accountDir, 'room-payload'))
+      this.contact    = new FlashStore(contactPath)
+      this.roomMember = new FlashStore(roomMemberPath)
+      this.room       = new FlashStore(roomPath)
     })
 
     /**
@@ -197,7 +215,7 @@ class PayloadStore {
   }
 
   /**
-   * Removes the token's store folder, after earlier lifecycle steps finish.
+   * Removes the token's store folder or IndexedDB stores, after earlier lifecycle steps finish.
    * Throws when the store is started.
    */
   async destroy (): Promise<void> {
@@ -206,10 +224,20 @@ class PayloadStore {
       throw new Error('Can not destroy() a start()-ed store. Call stop() to stop it first')
     }
 
-    await this.enqueue(() => fs.promises.rm(this.storeDir, {
-      force     : true,
-      recursive : true,
-    }))
+    await this.enqueue(async () => {
+      if (typeof fs?.promises?.rm === 'function') {
+        await fs.promises.rm(this.storeDir, {
+          force     : true,
+          recursive : true,
+        })
+      }
+      if (typeof indexedDB !== 'undefined' && typeof indexedDB.deleteDatabase === 'function') {
+        for (const name of this.openedStoreNames) {
+          indexedDB.deleteDatabase(name)
+        }
+        this.openedStoreNames.clear()
+      }
+    })
   }
 
 }

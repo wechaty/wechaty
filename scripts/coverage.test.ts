@@ -242,7 +242,7 @@ test('Deno permissions add each package\'s extras to the shared defaults', () =>
     '--allow-write=coverage/deno,/tmp',
     '--allow-run=git,node,deno',
     '--allow-env',
-    '--allow-sys=hostname',
-    '--allow-ffi=../../node_modules/leveldown/prebuilds',
+    '--allow-sys',
+    '--allow-ffi',
   ])
 })

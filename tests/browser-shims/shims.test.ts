@@ -160,3 +160,28 @@ test('t.mock.method isolates and restores mocked methods after execution', async
   strictEqual(service.getValue(), 'original', 'scoped mock was restored after subtest')
 })
 
+test('stream-promises pipeline shim pipes streams and settles on completion', async () => {
+  const { pipeline } = await import('./stream-promises.ts')
+
+  await doesNotReject(async () => {
+    await pipeline()
+    await pipeline({})
+  })
+
+  const source = {
+    pipe: (target: any) => target,
+  }
+  const dest = {
+    on: (event: string, cb: () => void) => {
+      if (event === 'finish') {
+        setTimeout(cb, 0)
+      }
+    },
+  }
+
+  await doesNotReject(async () => {
+    await pipeline(source, dest)
+  })
+})
+
+
