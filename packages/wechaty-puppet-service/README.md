@@ -158,7 +158,10 @@ For Puppet Client:
    `conversationReadMark()`. `tap()` and `tapSearch()` are not in the gRPC
    protocol: the client throws an unsupported error for them.
 1. `PuppetService.stop()` resolves only after the local payload cache has
-   closed its LevelDB files.
+   closed its stores.
+1. The local payload cache uses `flash-store` 2: LMDB on Node.js, Deno and Bun,
+   IndexedDB in a browser. It does not read an earlier LevelDB cache; the
+   payloads are fetched from the server again.
 
 ### main v1.0 (Oct 29, 2021)
 

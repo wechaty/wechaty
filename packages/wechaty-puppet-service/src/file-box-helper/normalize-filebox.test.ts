@@ -1,5 +1,6 @@
 /**
- * Unit tests for `canPassthrough()` by file box type and size.
+ * Unit tests for `canPassthrough()` by file box type and size. The local file
+ * case is native: see `normalize-filebox.native.test.ts`.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -7,9 +8,7 @@ import { FileBox } from 'file-box'
 
 import { canPassthrough } from './normalize-filebox.ts'
 
-const kbFileBox = (size: number) => FileBox.fromBuffer(Buffer.from(
-  new Int8Array(size * 1024).fill(0),
-), size + 'KB.txt')
+const kbFileBox = (size: number) => FileBox.fromBuffer(new Uint8Array(size * 1024), size + 'KB.txt')
 
 test('canPassthrough() size threshold', async _t => {
   assert.ok(canPassthrough(kbFileBox(16)),     'should passthrough 16KB')
@@ -27,18 +26,14 @@ test('canPassthrough(): always true for green types', async _t => {
 })
 
 test('canPassthrough(): always false for red types', async _t => {
-  const streamFileBox = FileBox.fromStream(
-    await FileBox.fromQRCode('qr').toStream(),
-  )
-  const localFileBox = FileBox.fromFile('tests/fixtures/smoke-testing.ts')
+  const streamFileBox = FileBox.fromStream(new Blob([ 'buf' ]).stream(), 'stream.txt')
 
   assert.ok(!(canPassthrough(streamFileBox)),  'should not passthrough Stream')
-  assert.ok(!(canPassthrough(localFileBox)),   'should not passthrough File')
 })
 
 test('canPassthrough(): will depend on the size for yellow types', async _t => {
-  const bufferFileBox = FileBox.fromBuffer(Buffer.from('buf'))
-  const base64FileBox = FileBox.fromBase64(Buffer.from('buf').toString('base64'))
+  const bufferFileBox = FileBox.fromBuffer(new TextEncoder().encode('buf'))
+  const base64FileBox = FileBox.fromBase64(btoa('buf'))
 
   assert.ok(canPassthrough(bufferFileBox), 'should not passthrough small Buffer')
   assert.ok(canPassthrough(base64FileBox), 'should not passthrough small Base64')

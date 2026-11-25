@@ -14,6 +14,9 @@ PACKAGE_DIR=$(pwd)
 TMPDIR="/tmp/npm-pack-testing.$$"
 DEPS_DIR="$TMPDIR/deps"
 mkdir -p "$DEPS_DIR"
+# The smoke test requires a real VERSION, which generate-package-json.sh embeds
+# in src/package-json.ts; put back exactly what was there, including
+# uncommitted edits.
 cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
 trap '[ -f "$TMPDIR/package-json.ts.orig" ] && cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
 

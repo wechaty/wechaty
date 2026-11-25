@@ -238,11 +238,11 @@ test('Deno permissions add each package\'s extras to the shared defaults', () =>
     '--allow-env',
   ])
   assert.deepEqual(denoPermissions(WECHATY_CONFIG), [
-    '--allow-read=.,../../node_modules,/tmp,../wechaty-grpc,/etc/alpine-release',
+    '--allow-read=.,../../node_modules,/tmp,../wechaty-grpc,/etc/alpine-release,/usr/bin/ldd',
     '--allow-write=coverage/deno,/tmp',
     '--allow-run=git,node,deno',
     '--allow-env',
-    '--allow-sys',
-    '--allow-ffi',
+    '--allow-sys=hostname',
+    '--allow-ffi=../../node_modules/@lmdb',
   ])
 })

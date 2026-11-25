@@ -1,18 +1,15 @@
 /**
- * `PayloadStore`: a persistent cache (via `flash-store`, backed by LMDB on
- * Node/Deno and IndexedDB in Chromium) of contact, room and room member payloads
- * that `PuppetService` keeps across restarts.
- *
- * Under Node.js and Deno, storage files are placed on disk under
- * `~/.wechaty/wechaty-puppet-service/<token>/v<major>.<minor>/<accountId>/`.
- * In browser environments, storage binds directly to origin-scoped IndexedDB
- * stores named `flash-store:wechaty-puppet-service-<token>-v<major>/<accountId>/<type>`.
- * The browser key uses `v<major>` rather than `v<major>.<minor>` because IndexedDB
- * databases share a flat origin namespace without hierarchical directories,
- * preserving cache across compatible minor releases and reducing quota fragmentation.
+ * `PayloadStore`: a persistent cache (via `flash-store`) of contact, room and
+ * room member payloads that `PuppetService` keeps across restarts, separate
+ * for each token, package `<major>.<minor>` and account. It owns the order of
+ * opening, closing and removing the stores; `#payload-storage` decides where
+ * they live: LMDB folders under
+ * `~/.wechaty/wechaty-puppet-service/<token>/v<major>.<minor>/<accountId>/`
+ * on Node.js, Deno and Bun, IndexedDB databases in a browser.
  *
  * `PuppetService` starts it on `login` and stops it on `logout` and in
  * `onStop()`; the payloads are only a cache of what the server returns.
+ * This module is web-platform code: keep `node:*` out of it.
  */
 /**
  *   Wechaty Open Source Software - https://github.com/wechaty
@@ -33,12 +30,9 @@
  *   limitations under the License.
  *
  */
-import path from 'path'
-import os from 'os'
-import fs from 'fs'
-
 import type * as PUPPET from 'wechaty-puppet'
 
+import { payloadStorage } from '#payload-storage'
 import { FlashStore } from 'flash-store'
 
 import {
@@ -46,7 +40,8 @@ import {
   log,
 }             from '../config.ts'
 
-const [versionMajor = '0', versionMinor = '0'] = VERSION.replace(/^v/, '').split('.')
+/** A new minor version may change the payload shape, so it starts a new cache. */
+const CACHE_VERSION = 'v' + VERSION.split('.', 2).join('.')
 
 interface PayloadStoreOptions {
   token: string
@@ -64,9 +59,8 @@ class PayloadStore {
   public roomMember? : FlashStore<string, StoreRoomMemberPayload>
   public room?       : FlashStore<string, PUPPET.payloads.Room>
 
-  protected storeDir:   string
-  protected accountId?: string
-  private openedStoreNames = new Set<string>()
+  protected storageRoot: string
+  protected accountId?:  string
 
   /**
    * The tail of the lifecycle queue: `start()`'s open, `stop()`'s close and
@@ -91,17 +85,8 @@ class PayloadStore {
     this.options = options
     log.verbose('PayloadStore', 'constructor(%s)', JSON.stringify(options))
 
-    const homedir = typeof os?.homedir === 'function' ? os.homedir() : ''
-    this.storeDir = homedir
-      ? path.join(
-          homedir,
-          '.wechaty',
-          'wechaty-puppet-service',
-          this.options.token,
-          `v${versionMajor}.${versionMinor}`,
-        )
-      : `wechaty-puppet-service-${this.options.token}-v${versionMajor}`
-    log.silly('PayloadStore', 'constructor() storeDir: "%s"', this.storeDir)
+    this.storageRoot = payloadStorage.root(this.options.token, CACHE_VERSION)
+    log.silly('PayloadStore', 'constructor() storageRoot: "%s"', this.storageRoot)
   }
 
   /**
@@ -118,7 +103,9 @@ class PayloadStore {
    * Opens the stores of `accountId` (the payloads are kept per account).
    * Throws at once when the store is already started. The open waits for
    * earlier lifecycle steps, such as the close of a previous `stop()`, and is
-   * skipped when `stop()` is called before it runs.
+   * skipped when `stop()` is called before it runs. The three stores open
+   * together or not at all: when one fails to open this rejects and leaves
+   * the store stopped, so `start()` can be called again.
    */
   async start (accountId: string): Promise<void> {
     log.verbose('PayloadStore', 'start(%s)', accountId)
@@ -135,27 +122,32 @@ class PayloadStore {
         return
       }
 
-      const accountDir = path.join(this.storeDir, accountId)
-
-      if (typeof fs?.existsSync === 'function' && typeof fs?.mkdirSync === 'function') {
-        if (!fs.existsSync(accountDir)) {
-          fs.mkdirSync(accountDir, { recursive: true })
-        }
+      const opened: { close (): Promise<void> }[] = []
+      const open = <T>(storeName: string): FlashStore<string, T> => {
+        const store = new FlashStore<string, T>(
+          payloadStorage.storePath(this.storageRoot, accountId, storeName),
+        )
+        opened.push(store)
+        return store
       }
 
-      const contactPath = path.join(accountDir, 'contact-payload')
-      const roomMemberPath = path.join(accountDir, 'room-member-payload')
-      const roomPath = path.join(accountDir, 'room-payload')
+      try {
+        // No await in here: stop() detaches whatever this step has opened,
+        // so the three stores must appear together.
+        const contact    = open<PUPPET.payloads.Contact>('contact-payload')
+        const roomMember = open<StoreRoomMemberPayload>('room-member-payload')
+        const room       = open<PUPPET.payloads.Room>('room-payload')
 
-      this.openedStoreNames.add(contactPath)
-      this.openedStoreNames.add(roomMemberPath)
-      this.openedStoreNames.add(roomPath)
-
-      // No await from here on: stop() detaches whatever this step has opened,
-      // so the three stores must appear together.
-      this.contact    = new FlashStore(contactPath)
-      this.roomMember = new FlashStore(roomMemberPath)
-      this.room       = new FlashStore(roomPath)
+        this.contact    = contact
+        this.roomMember = roomMember
+        this.room       = room
+      } catch (e) {
+        // Opening is synchronous, so no stop() ran since the check above and
+        // the account is still the one of this start().
+        this.accountId = undefined
+        await Promise.allSettled(opened.map(store => store.close()))
+        throw e
+      }
     })
 
     /**
@@ -183,7 +175,7 @@ class PayloadStore {
    * a call that finds nothing to detach still waits for the closes in
    * flight. `PuppetService` stops the store both from its `logout` listener,
    * which nothing awaits, and from `onStop()`, which relies on this wait.
-   * Rejects when closing one of its own stores fails.
+   * Rejects when closing one of its own stores fails, after the others closed.
    */
   async stop (): Promise<void> {
     log.verbose('PayloadStore', 'stop()')
@@ -209,17 +201,25 @@ class PayloadStore {
     this.accountId  = undefined
 
     await this.enqueue(async () => {
-      await Promise.all([
+      // Not Promise.all(): the next lifecycle step may reopen these stores, so
+      // one failed close must not let it overtake the closes still running.
+      const results = await Promise.allSettled([
         contactStore?.close(),
         roomMemberStore?.close(),
         roomStore?.close(),
       ])
+      const failure = results.find(result => result.status === 'rejected')
+      if (failure) {
+        throw failure.reason
+      }
     })
   }
 
   /**
-   * Removes the token's store folder or IndexedDB stores, after earlier lifecycle steps finish.
-   * Throws when the store is started.
+   * Removes the cached payloads of every account of the token, after earlier
+   * lifecycle steps finish, no matter which instance stored them. Throws when
+   * the store is started, and rejects when something could not be removed;
+   * it can then be called again.
    */
   async destroy (): Promise<void> {
     log.verbose('PayloadStore', 'destroy()')
@@ -227,50 +227,7 @@ class PayloadStore {
       throw new Error('Can not destroy() a start()-ed store. Call stop() to stop it first')
     }
 
-    await this.enqueue(async () => {
-      if (typeof fs?.promises?.rm === 'function') {
-        await fs.promises.rm(this.storeDir, {
-          force     : true,
-          recursive : true,
-        })
-      }
-      if (typeof indexedDB !== 'undefined' && typeof indexedDB.deleteDatabase === 'function') {
-        const deleteDb = (dbName: string): Promise<void> =>
-          new Promise(resolve => {
-            try {
-              const request = indexedDB.deleteDatabase(dbName)
-              request.onsuccess = () => resolve()
-              request.onerror = () => {
-                log.warn('PayloadStore', 'destroy() failed to delete IndexedDB database %s: %s', dbName, request.error)
-                resolve()
-              }
-              request.onblocked = () => {
-                log.warn('PayloadStore', 'destroy() blocked deleting IndexedDB database %s (another connection is still open)', dbName)
-                resolve()
-              }
-            } catch (err) {
-              log.warn('PayloadStore', 'destroy() caught error deleting IndexedDB database %s: %s', dbName, err)
-              resolve()
-            }
-          })
-
-        if (typeof indexedDB.databases === 'function') {
-          const databases = await indexedDB.databases()
-          const prefix = `flash-store:${this.storeDir}`
-          for (const db of databases) {
-            if (db.name && (db.name === prefix || db.name.startsWith(`${prefix}/`))) {
-              await deleteDb(db.name)
-            }
-          }
-        }
-        for (const name of this.openedStoreNames) {
-          // Delete both the flash-store 2.x prefixed database and any legacy un-prefixed database
-          await deleteDb(`flash-store:${name}`)
-          await deleteDb(name)
-        }
-        this.openedStoreNames.clear()
-      }
-    })
+    await this.enqueue(() => payloadStorage.remove(this.storageRoot))
   }
 
 }

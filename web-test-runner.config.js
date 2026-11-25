@@ -49,9 +49,6 @@ function browserShimsPlugin () {
       if (source === 'mime') {
         return '/tests/browser-shims/mime.ts'
       }
-      if (source === 'node:stream/promises' || source === 'stream/promises') {
-        return '/tests/browser-shims/stream-promises.ts'
-      }
 
       const cleanSource = source.startsWith('node:') ? source.slice(5) : source
       if (cleanSource === 'events') {
@@ -79,19 +76,22 @@ export default {
     // Raw .proto reads and the chunk adapters use local files and native Node streams.
     '!packages/wechaty-grpc/src/{proto,chunk-transformer}.test.ts',
     'packages/wechaty-puppet-service/{src,tests/unit}/**/*.test.ts',
-    // Network server, TLS sockets, and gRPC streaming require native Node environment:
-    // grpc-manager requires @connectrpc/connect-node HTTP/2 client (browser transport follow-up in #3110).
-    '!packages/wechaty-puppet-service/src/client/{grpc-manager,puppet-service}.test.ts',
-    // ca.test.ts tests https.createServer and TLS certs on Node.
+    // Native code and cases: LMDB folders, file boxes from local paths.
+    '!packages/wechaty-puppet-service/src/node/**/*.test.ts',
+    '!packages/wechaty-puppet-service/src/**/*.native.test.ts',
+    // TLS certificates and an https server.
     '!packages/wechaty-puppet-service/src/auth/ca.test.ts',
-    // normalize-filebox tests local filesystem reads and native stream buffers.
-    '!packages/wechaty-puppet-service/src/file-box-helper/normalize-filebox.test.ts',
-    // puppet-server and mod export/start Node http2 servers.
+    // GrpcManager and PuppetServer, and the package entry that exports them, need
+    // the Node.js HTTP/2 transport (browser transport: #3110).
+    '!packages/wechaty-puppet-service/src/client/{grpc-manager,puppet-service}.test.ts',
     '!packages/wechaty-puppet-service/src/{server/puppet-server,mod}.test.ts',
-    // Deprecated streaming chunk transformers rely on stronger-typed-streams (media streaming follow-up in #3111).
-    '!packages/wechaty-puppet-service/src/deprecated/**/*.test.ts',
-    // Full simulation and integration suites spin up native HTTP/2 gRPC servers over TCP ports.
-    '!packages/wechaty-puppet-service/tests/unit/**/*.test.ts',
+    // Chunk adapters over stronger-typed-streams, i.e. native Node streams (media: #3111).
+    '!packages/wechaty-puppet-service/src/deprecated/{chunk-pb,conversation-id-file-box,file-box-chunk,file-box-pb}.test.ts',
+    // Simulations that connect a PuppetService to a PuppetServer over a TCP port.
+    // Listed one by one so that a new suite runs in Chromium unless it is classified here.
+    '!packages/wechaty-puppet-service/tests/unit/{conversation-read,grpc-client,grpc-stream,integration}.test.ts',
+    '!packages/wechaty-puppet-service/tests/unit/{message-stream,performance,ready-event,uuid-file-box}.test.ts',
+    '!packages/wechaty-puppet-service/tests/unit/simulation-{core-rpc,event-stream,resiliency}.test.ts',
     'packages/wechaty-puppet/{src,tests/unit}/**/*.test.ts',
     // This suite looks up installed ESM providers by package name using the native module loader.
     '!packages/wechaty-puppet/src/puppet/puppet-resolver.test.ts',
@@ -120,6 +120,7 @@ export default {
       define: {
         'process.env.NODE_ENV': '"test"',
       },
+      // The `fs` polyfill, which test fixtures import, loads JSON modules.
       json: true,
       target: 'es2022',
       ts: true,

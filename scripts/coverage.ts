@@ -58,8 +58,8 @@ export interface CoverageConfig {
     readonly allowRead?: readonly string[]
     readonly allowRun?: readonly string[]
     readonly allowNet?: readonly string[]
-    readonly allowSys?: boolean | readonly string[]
-    readonly allowFfi?: boolean | readonly string[]
+    readonly allowSys?: readonly string[]
+    readonly allowFfi?: readonly string[]
   }
 }
 
@@ -734,15 +734,8 @@ function escapeRegExp (text: string): string {
  * dependencies in the monorepo root's `node_modules`, so Deno may read it.
  */
 export function denoPermissions (config: CoverageConfig = CONFIG): string[] {
-  const flag = (name: string, values?: boolean | readonly string[]) => {
-    if (values === true) {
-      return [ `--allow-${name}` ]
-    }
-    if (Array.isArray(values) && values.length) {
-      return [ `--allow-${name}=${values.join(',')}` ]
-    }
-    return []
-  }
+  const flag = (name: string, values: readonly string[] = []) =>
+    values.length ? [ `--allow-${name}=${values.join(',')}` ] : []
   return [
     ...flag('read', [ '.', '../../node_modules', '/tmp', ...(config.deno.allowRead ?? []) ]),
     ...flag('write', [ 'coverage/deno', '/tmp' ]),
