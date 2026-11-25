@@ -2,9 +2,9 @@
   "testDirectories": [ "src", "scripts", "tests/unit" ],
   "sourceExcludes": [ "src/package-json.ts" ],
   "deno": {
-    "allowRead": [ "../wechaty-grpc", "/etc/alpine-release" ],
+    "allowRead": [ "../wechaty-grpc", "/etc/alpine-release", "/usr/bin/ldd" ],
     "allowRun": [ "git", "node", "deno" ],
     "allowSys": [ "hostname" ],
-    "allowFfi": [ "../../node_modules/leveldown/prebuilds" ]
+    "allowFfi": [ "../../node_modules/@lmdb" ]
   }
 }

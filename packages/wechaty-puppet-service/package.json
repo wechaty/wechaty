@@ -10,6 +10,18 @@
       "import": "./dist/esm/src/mod.js"
     }
   },
+  "imports": {
+    "#payload-storage": {
+      "wechaty-source": {
+        "browser": "./src/client/payload-storage.ts",
+        "node": "./src/node/payload-storage.ts",
+        "default": "./src/client/payload-storage.ts"
+      },
+      "browser": "./dist/esm/src/client/payload-storage.js",
+      "node": "./dist/esm/src/node/payload-storage.js",
+      "default": "./dist/esm/src/client/payload-storage.js"
+    }
+  },
   "types": "./dist/esm/src/mod.d.ts",
   "engines": {
     "node": ">=26",
@@ -25,7 +37,7 @@
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:md": "markdownlint --config ../../.markdownlint.json README.md",
     "test:unit": "node --conditions=wechaty-source --test --test-timeout=60000 src tests/unit",
-    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/etc/alpine-release,/tmp --allow-write=/tmp --allow-env --allow-net=127.0.0.1,localhost,0.0.0.0 --allow-sys=hostname --allow-ffi=../../node_modules/leveldown/prebuilds --conditions=wechaty-source src tests/unit",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/etc/alpine-release,/usr/bin/ldd,/tmp --allow-write=/tmp --allow-env --allow-net=127.0.0.1,localhost,0.0.0.0 --allow-sys=hostname --allow-ffi=../../node_modules/@lmdb --conditions=wechaty-source src tests/unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "coverage:node": "node ../../scripts/coverage.ts node",
     "coverage:deno": "node ../../scripts/coverage.ts deno",
@@ -56,10 +68,9 @@
     "@connectrpc/connect": "^2.3.0",
     "@connectrpc/connect-node": "^2.3.0",
     "clone-class": "^1.1.1",
-    "file-box": "^2.0.0",
-    "flash-store": "^1.3.4",
+    "file-box": "^2.3.0",
+    "flash-store": "^2.2.0",
     "gerror": "^1.0.16",
-    "semver": "^7.3.5",
     "stronger-typed-streams": "^0.2.0",
     "wechaty-grpc": "^2.0.0-alpha.20",
     "wechaty-token": "^2.0.0-alpha.20"
@@ -68,7 +79,6 @@
     "wechaty-puppet": "^2.0.0-alpha.20"
   },
   "devDependencies": {
-    "@types/semver": "^7.3.9",
     "@types/temp": "^0.9.1",
     "shx": "^0.3.4",
     "temp": "^0.9.4",

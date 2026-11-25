@@ -117,8 +117,11 @@ fixtures, and the hostname system query required by `cuid`. The command starts
 Deno with a sanitized environment containing only `PATH`, `HOME`, `CI`, and
 `NODE_BINARY`; the broad env permission is needed by a dependency that
 enumerates `process.env`. It may also read the monorepo root's `node_modules`,
-where npm workspaces install the dependencies. It also allows loading the `leveldown` prebuilt native
-modules required by the package's memory-card dependency.
+where npm workspaces install the dependencies. The payload cache stores data in
+LMDB, so the command may load the native module under `node_modules/@lmdb` and
+read `/usr/bin/ldd`, which tells its loader whether the system uses glibc or
+musl. Without that read the loader falls back to a process report, which needs
+many more system permissions.
 Deno uses `--no-check` because its checker cannot resolve a declaration import
 inside the `json-rpc-peer` dependency; `npm run lint:ts` remains the mandatory
 canonical check.
