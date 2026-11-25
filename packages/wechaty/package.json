@@ -6,8 +6,7 @@
   "exports": {
     ".": {
       "types": "./dist/esm/src/mods/mod.d.ts",
-      "import": "./dist/esm/src/mods/mod.js",
-      "default": "./dist/esm/src/mods/mod.js"
+      "import": "./dist/esm/src/mods/mod.js"
     },
     "./browser": {
       "types": "./dist/esm/src/mods/browser.d.ts",
@@ -15,13 +14,11 @@
     },
     "./impls": {
       "types": "./dist/esm/src/mods/impls.d.ts",
-      "import": "./dist/esm/src/mods/impls.js",
-      "default": "./dist/esm/src/mods/impls.js"
+      "import": "./dist/esm/src/mods/impls.js"
     },
     "./users": {
       "types": "./dist/esm/src/mods/users.d.ts",
-      "import": "./dist/esm/src/mods/users.js",
-      "default": "./dist/esm/src/mods/users.js"
+      "import": "./dist/esm/src/mods/users.js"
     }
   },
   "typesVersions": {
