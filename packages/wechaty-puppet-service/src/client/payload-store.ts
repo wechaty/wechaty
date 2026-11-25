@@ -97,7 +97,7 @@ class PayloadStore {
           this.options.token,
           `v${versionMajor}.${versionMinor}`,
         )
-      : `wechaty-puppet-service-${this.options.token}-v${versionMajor}.${versionMinor}`
+      : `wechaty-puppet-service-${this.options.token}-v${versionMajor}`
     log.silly('PayloadStore', 'constructor() storeDir: "%s"', this.storeDir)
   }
 

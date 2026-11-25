@@ -4,9 +4,11 @@
  * cancels a `start()` whose open has not run yet.
  */
 import assert from 'node:assert/strict'
+import os from 'node:os'
 import { test } from 'node:test'
 
 import { useTempHome } from '../../tests/fixtures/temp-home.ts'
+import { VERSION } from '../config.ts'
 
 import { PayloadStore } from './payload-store.ts'
 
@@ -127,4 +129,19 @@ test('PayloadStore stop() cancels a start() that waits for a close', async t => 
   assert.equal(store.contact, undefined, 'should leave no store open after the last stop()')
 
   await store.destroy()
+})
+
+test('PayloadStore falls back to logical store prefix without homedir', async t => {
+  if (typeof os?.homedir === 'function') {
+    t.mock.method(os, 'homedir', () => '')
+  }
+  const token = 'test-token'
+  class TestPayloadStore extends PayloadStore {
+
+    getStoreDir () { return this.storeDir }
+
+  }
+  const store = new TestPayloadStore({ token })
+  const [versionMajor = '0'] = VERSION.replace(/^v/, '').split('.')
+  assert.equal(store.getStoreDir(), `wechaty-puppet-service-test-token-v${versionMajor}`)
 })
