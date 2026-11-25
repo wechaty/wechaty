@@ -28,6 +28,7 @@
     "test:integration": "npm run test:integration --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
     "test:pack": "npm run test:pack --workspaces --if-present",
+    "test:pack:browser": "scripts/pack-browser-test.sh",
     "test:shell": "shellcheck scripts/*.sh && npm run test:shell --workspaces --if-present",
     "coverage": "npm run coverage:node",
     "coverage:node": "npm run coverage:node --workspaces --if-present",

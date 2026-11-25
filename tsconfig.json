@@ -10,9 +10,10 @@
     "scripts/**/*.ts"
   ],
   // The release smoke test imports the published packages: scripts/pack-release.sh
-  // type-checks it against the release tarballs, where `wechaty` has types
-  // (here they would need a built dist/).
+  // and scripts/pack-browser-test.sh type-check them against the release tarballs,
+  // where the packages have compiled types (here they would need a built dist/).
   "exclude": [
-    "scripts/fixtures/release-smoke.ts"
+    "scripts/fixtures/release-smoke.ts",
+    "scripts/fixtures/browser-consumer-smoke.ts"
   ]
 }
