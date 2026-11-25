@@ -309,3 +309,58 @@ test('EventEmitter branch coverage edge cases: abort signal, EventListenerObject
   assert.equal(ee.listenerCount('cleanup-all'), 0)
 })
 
+test('EventEmitter preserves distinct Symbol event instances with identical descriptions', () => {
+  const ee = new EventEmitter()
+  const sym1 = Symbol('test')
+  const sym2 = Symbol('test')
+  let sym1Count = 0
+  let sym2Count = 0
+
+  ee.on(sym1, () => { sym1Count++ })
+  ee.on(sym2, () => { sym2Count++ })
+
+  ee.emit(sym1)
+  assert.equal(sym1Count, 1)
+  assert.equal(sym2Count, 0, 'sym2 listener must not fire when emitting sym1')
+
+  ee.emit(sym2)
+  assert.equal(sym1Count, 1)
+  assert.equal(sym2Count, 1)
+})
+
+test('EventEmitter distinguishes capture vs non-capture listeners', () => {
+  const ee = new EventEmitter()
+  let captureCalls = 0
+  let bubbleCalls = 0
+  const fn = () => { captureCalls++ }
+  const fnBubble = () => { bubbleCalls++ }
+
+  ee.addEventListener('custom-evt', fn, { capture: true })
+  ee.addEventListener('custom-evt', fnBubble, { capture: false })
+  assert.equal(ee.listenerCount('custom-evt'), 2)
+
+  // Duplicate registration with identical capture is ignored
+  ee.addEventListener('custom-evt', fn, { capture: true })
+  assert.equal(ee.listenerCount('custom-evt'), 2)
+
+  ee.removeEventListener('custom-evt', fn, { capture: true })
+  assert.equal(ee.listenerCount('custom-evt'), 1)
+
+  ee.removeEventListener('custom-evt', fnBubble, { capture: false })
+  assert.equal(ee.listenerCount('custom-evt'), 0)
+})
+
+test('EventEmitter logout event normalizes 1-argument emission with user detail', () => {
+  const ee = new EventEmitter()
+  let detail: any
+  ee.addEventListener('logout', (event: any) => {
+    detail = event.detail
+  })
+
+  ee.emit('logout', 'mock-user-id')
+  assert.equal(detail.user, 'mock-user-id')
+  assert.equal(detail.reason, undefined)
+  assert.equal(detail[0], 'mock-user-id')
+})
+
+

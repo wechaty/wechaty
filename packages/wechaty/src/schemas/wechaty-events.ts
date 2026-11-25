@@ -231,15 +231,15 @@ interface WechatyEventDetailMap {
   message       : MessageInterface
   post          : PostInterface
   puppet        : PUPPET.impls.PuppetInterface
-  ready         : undefined
-  reset         : string | undefined
+  ready         : undefined | null
+  reset         : string | undefined | null
   'room-invite' : RoomInvitationInterface
   'room-join'   : { room: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface, date?: Date }
   'room-leave'  : { room: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date }
   'room-topic'  : { room: RoomInterface, newTopic: string, oldTopic: string, changer: ContactInterface, date?: Date }
   scan          : { qrcode: string, status: PUPPET.types.ScanStatus, data?: string }
-  start         : undefined
-  stop          : undefined
+  start         : undefined | null
+  stop          : undefined | null
 }
 
 type WechatyCustomEvent<E extends keyof WechatyEventDetailMap> =

@@ -72,7 +72,7 @@ interface PuppetEventListener {
 
 type PuppetEventDetail<E extends keyof PuppetEventListener> =
   Parameters<PuppetEventListener[E]>[0] extends undefined
-    ? undefined
+    ? undefined | null
     : Parameters<PuppetEventListener[E]>[0]
 
 type PuppetCustomEvent<E extends keyof PuppetEventListener> =
@@ -90,11 +90,16 @@ interface PuppetEventTargetInterface {
    * @param listener - Callback receiving the CustomEvent with `event.detail`.
    * @param options - Standard AddEventListenerOptions, including native `{ signal, once }`.
    */
-  addEventListener: <E extends keyof PuppetEventListener>(
+  addEventListener<E extends keyof PuppetEventListener>(
     type: E,
     listener: PuppetEventTargetListener<E>,
     options?: boolean | AddEventListenerOptions,
-  ) => void
+  ): void
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void
 
   /**
    * Removes an event listener previously registered with `addEventListener`.
@@ -103,13 +108,18 @@ interface PuppetEventTargetInterface {
    * @param listener - Callback to remove.
    * @param options - Standard EventListenerOptions.
    */
-  removeEventListener: <E extends keyof PuppetEventListener>(
+  removeEventListener<E extends keyof PuppetEventListener>(
     type: E,
     listener: PuppetEventTargetListener<E>,
     options?: boolean | EventListenerOptions,
-  ) => void
+  ): void
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | EventListenerOptions,
+  ): void
 
-  dispatchEvent: (event: Event) => boolean
+  dispatchEvent (event: Event): boolean
 }
 
 type PuppetEventEmitterInterface = TypedEventEmitter.default<PuppetEventListener> & PuppetEventTargetInterface

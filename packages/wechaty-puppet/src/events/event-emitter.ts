@@ -18,10 +18,26 @@
  */
 
 interface ListenerEntry {
+  capture: boolean
+  once: boolean
+  options?: boolean | AddEventListenerOptions
   raw: Function | EventListenerOrEventListenerObject
   wrapped: EventListenerOrEventListenerObject
-  once?: boolean
   abortCleanup?: () => void
+}
+
+let nextSymbolId = 0
+const SYMBOL_NAME_MAP = new WeakMap<symbol, string>()
+function getEventTargetName (event: string | symbol): string {
+  if (typeof event === 'string') {
+    return event
+  }
+  let name = SYMBOL_NAME_MAP.get(event)
+  if (!name) {
+    name = `__wechaty_sym_${++nextSymbolId}__`
+    SYMBOL_NAME_MAP.set(event, name)
+  }
+  return name
 }
 
 const EVENT_ARGS_MAP = new WeakMap<Event, unknown[]>()
@@ -67,6 +83,7 @@ export class EventEmitter extends EventTarget {
       return
     }
 
+    const capture = typeof options === 'object' ? Boolean(options.capture) : Boolean(options)
     const once = typeof options === 'object' ? Boolean(options.once) : false
     const signal = typeof options === 'object' ? options.signal : undefined
 
@@ -81,13 +98,15 @@ export class EventEmitter extends EventTarget {
     }
 
     // W3C DOM EventTarget specification: duplicate listener registration is a no-op
-    const existingIndex = list.findIndex(entry => entry.raw === listener)
+    const existingIndex = list.findIndex(entry => entry.raw === listener && entry.capture === capture)
     if (existingIndex !== -1) {
       return
     }
 
     const entry: ListenerEntry = {
+      capture,
       once,
+      options,
       raw: listener,
       wrapped: listener,
     }
@@ -158,7 +177,8 @@ export class EventEmitter extends EventTarget {
       return
     }
 
-    const index = list.findIndex(entry => entry.raw === listener || entry.wrapped === listener)
+    const capture = typeof options === 'object' ? Boolean(options.capture) : Boolean(options)
+    const index = list.findIndex(entry => (entry.raw === listener || entry.wrapped === listener) && entry.capture === capture)
     if (index !== -1) {
       const [entry] = list.splice(index, 1)
       if (entry) {
@@ -190,7 +210,8 @@ export class EventEmitter extends EventTarget {
       throw new TypeError(`The "listener" argument must be of type Function. Received type ${typeof listener}`)
     }
 
-    const eventName = String(event)
+    const targetName = getEventTargetName(event)
+    const capture = typeof options === 'object' ? Boolean(options.capture) : false
     const once = typeof options === 'object' ? Boolean(options.once) : false
     const signal = typeof options === 'object' ? options.signal : undefined
 
@@ -205,7 +226,9 @@ export class EventEmitter extends EventTarget {
     }
 
     const entry: ListenerEntry = {
+      capture,
       once,
+      options,
       raw: listener,
       wrapped: null as any,
     }
@@ -218,7 +241,7 @@ export class EventEmitter extends EventTarget {
           if (list.length === 0) {
             this._listenersMap.delete(event)
           }
-          super.removeEventListener(eventName, entry.wrapped, options)
+          super.removeEventListener(targetName, entry.wrapped, options)
         }
       }
       signal.addEventListener('abort', onAbort, { once: true })
@@ -239,7 +262,7 @@ export class EventEmitter extends EventTarget {
             this._listenersMap.delete(event)
           }
           entry.abortCleanup?.()
-          super.removeEventListener(eventName, entry.wrapped, options)
+          super.removeEventListener(targetName, entry.wrapped, options)
         }
       }
       const rawArgs = EVENT_ARGS_MAP.get(e)
@@ -258,16 +281,16 @@ export class EventEmitter extends EventTarget {
 
     if (prepend && list.length > 0) {
       for (const item of list) {
-        super.removeEventListener(eventName, item.wrapped)
+        super.removeEventListener(targetName, item.wrapped, item.options)
       }
-      super.addEventListener(eventName, wrapper, options)
+      super.addEventListener(targetName, wrapper, options)
       for (const item of list) {
-        super.addEventListener(eventName, item.wrapped)
+        super.addEventListener(targetName, item.wrapped, item.options)
       }
       list.unshift(entry)
     } else {
       list.push(entry)
-      super.addEventListener(eventName, wrapper, options)
+      super.addEventListener(targetName, wrapper, options)
     }
 
     return this
@@ -304,12 +327,13 @@ export class EventEmitter extends EventTarget {
       return this
     }
 
-    const index = list.findIndex(entry => entry.raw === listener || entry.wrapped === listener)
+    const capture = typeof options === 'object' ? Boolean(options.capture) : false
+    const index = list.findIndex(entry => (entry.raw === listener || entry.wrapped === listener) && entry.capture === capture)
     if (index !== -1) {
       const [entry] = list.splice(index, 1)
       if (entry) {
         entry.abortCleanup?.()
-        super.removeEventListener(String(event), entry.wrapped, options)
+        super.removeEventListener(getEventTargetName(event), entry.wrapped, options)
       }
       if (list.length === 0) {
         this._listenersMap.delete(event)
@@ -363,17 +387,19 @@ export class EventEmitter extends EventTarget {
     if (event !== undefined) {
       const list = this._listenersMap.get(event)
       if (list) {
+        const targetName = getEventTargetName(event)
         for (const entry of [...list]) {
           entry.abortCleanup?.()
-          super.removeEventListener(String(event), entry.wrapped)
+          super.removeEventListener(targetName, entry.wrapped, entry.options)
         }
         this._listenersMap.delete(event)
       }
     } else {
       for (const [key, list] of [...this._listenersMap.entries()]) {
+        const targetName = getEventTargetName(key)
         for (const entry of list) {
           entry.abortCleanup?.()
-          super.removeEventListener(String(key), entry.wrapped)
+          super.removeEventListener(targetName, entry.wrapped, entry.options)
         }
       }
       this._listenersMap.clear()
@@ -459,39 +485,68 @@ export class EventEmitter extends EventTarget {
     }
 
     let detail: any
-    if (args.length === 0) {
+    if (eventName === 'logout') {
+      if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && 'contactId' in args[0]) {
+        detail = args[0]
+      } else {
+        detail = Object.assign([args[0], args[1]], {
+          user: args[0],
+          reason: args[1],
+        })
+      }
+    } else if (eventName === 'scan') {
+      if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && 'status' in args[0]) {
+        detail = args[0]
+      } else {
+        detail = Object.assign([args[0], args[1], args[2]], {
+          qrcode: args[0],
+          status: args[1],
+          data: args[2],
+        })
+      }
+    } else if (eventName === 'room-join') {
+      if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && 'roomId' in args[0]) {
+        detail = args[0]
+      } else {
+        detail = Object.assign([...args], {
+          room: args[0],
+          inviteeList: args[1],
+          inviter: args[2],
+          date: args[3],
+        })
+      }
+    } else if (eventName === 'room-leave') {
+      if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && 'roomId' in args[0]) {
+        detail = args[0]
+      } else {
+        detail = Object.assign([...args], {
+          room: args[0],
+          leaverList: args[1],
+          remover: args[2],
+          date: args[3],
+        })
+      }
+    } else if (eventName === 'room-topic') {
+      if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && 'roomId' in args[0]) {
+        detail = args[0]
+      } else {
+        detail = Object.assign([...args], {
+          room: args[0],
+          newTopic: args[1],
+          oldTopic: args[2],
+          changer: args[3],
+          date: args[4],
+        })
+      }
+    } else if (args.length === 0) {
       detail = undefined
     } else if (args.length === 1) {
       detail = args[0]
     } else {
       detail = [...args]
-      if (eventName === 'scan') {
-        detail.qrcode = args[0]
-        detail.status = args[1]
-        detail.data = args[2]
-      } else if (eventName === 'logout') {
-        detail.user = args[0]
-        detail.reason = args[1]
-      } else if (eventName === 'room-join') {
-        detail.room = args[0]
-        detail.inviteeList = args[1]
-        detail.inviter = args[2]
-        detail.date = args[3]
-      } else if (eventName === 'room-leave') {
-        detail.room = args[0]
-        detail.leaverList = args[1]
-        detail.remover = args[2]
-        detail.date = args[3]
-      } else if (eventName === 'room-topic') {
-        detail.room = args[0]
-        detail.newTopic = args[1]
-        detail.oldTopic = args[2]
-        detail.changer = args[3]
-        detail.date = args[4]
-      }
     }
 
-    const customEvent = new CustomEvent(eventName, {
+    const customEvent = new CustomEvent(getEventTargetName(event), {
       cancelable: true,
       detail,
     })

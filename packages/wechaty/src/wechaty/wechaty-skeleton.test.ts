@@ -2,6 +2,7 @@
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { MemoryCard } from 'memory-card'
 
 import {
   WechatySkeleton,
@@ -46,3 +47,21 @@ test('WechatySkeleton forwards options to on() and supports addEventListener wit
   skeleton.emit('heartbeat', 'data4')
   assert.equal(targetCount, 1, 'aborted listener on addEventListener() must not be called')
 })
+
+test('WechatySkeleton.init() rethrows non-"already loaded" memory load error', async t => {
+  class SkeletonTest extends WechatySkeleton {}
+  const skeleton = new SkeletonTest()
+
+  t.mock.method(MemoryCard.prototype, 'load', async () => {
+    throw new Error('database connection failed')
+  })
+
+  await assert.rejects(
+    async () => {
+      await skeleton.init()
+    },
+    /database connection failed/,
+    'init() must rethrow unexpected memory load errors',
+  )
+})
+
