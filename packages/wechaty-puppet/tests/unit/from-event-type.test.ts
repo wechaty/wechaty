@@ -22,6 +22,9 @@ import type {
 import type {
   EventScanPayload,
 }                         from '../../src/schemas/mod.ts'
+import type {
+  PuppetCustomEvent,
+}                         from '../../src/puppet/events.ts'
 import {
   ScanStatus,
 }                         from '../../src/mods/types.ts'
@@ -55,29 +58,32 @@ const fromEvent: FromEvent = rxFromEvent
 //   assert.ok(true, 'expectAssignable match listener argument typings')
 // })
 
-test('RxJS: fromEvent type inference', async _t => {
+test('RxJS: fromEvent type inference and CustomEvent delivery', async _t => {
   const puppet = new PuppetTest()
 
   /**
-   * Issue #96: Add Typing support for RxJS fromEvent
-   *  - https://github.com/wechaty/wechaty-puppet/issues/96
-   *
+   * Issue #96: Typing support for RxJS fromEvent with WinterTC EventTarget
+   * RxJS detects EventTarget and delivers CustomEvent at runtime.
    */
-  const event$ = fromEvent(puppet, 'scan')
-
-  const typeTest: AssertEqual<Observable<EventScanPayload>, typeof event$> = true
-  assert.ok(typeTest, 'should be equal type')
-
-  const future = firstValueFrom(event$)
+  const customEvent$ = fromEvent<PuppetCustomEvent<'scan'>>(puppet, 'scan')
   const payload: EventScanPayload = {
     status: ScanStatus.Unknown,
   }
+
+  const futureCustomEvent = firstValueFrom(customEvent$)
   puppet.emit('scan', payload)
+  const customEventResult = await futureCustomEvent
 
-  const result = await future
-  const typeTest2: AssertEqual<EventScanPayload, typeof result> = true
-  assert.ok(typeTest2, 'should be equal type')
+  assert.ok(customEventResult instanceof CustomEvent, 'should deliver CustomEvent from EventTarget')
+  assert.deepEqual(customEventResult.detail, payload, 'CustomEvent.detail should match payload')
 
-  const actualPayload = result instanceof CustomEvent ? result.detail : result
-  assert.deepEqual(actualPayload, payload, 'should get scan payload')
+  // Using resultSelector to map to the inner payload
+  const mapped$ = fromEvent(puppet, 'scan', (event: any) => event.detail as EventScanPayload)
+  const typeTest: AssertEqual<Observable<EventScanPayload>, typeof mapped$> = true
+  assert.ok(typeTest, 'Observable should be typed as EventScanPayload with resultSelector')
+
+  const futureMapped = firstValueFrom(mapped$)
+  puppet.emit('scan', payload)
+  const mappedResult = await futureMapped
+  assert.deepEqual(mappedResult, payload, 'mapped observable should emit unwrapped payload')
 })

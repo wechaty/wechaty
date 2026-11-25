@@ -5,6 +5,10 @@
   "type": "module",
   "exports": {
     ".": {
+      "browser": {
+        "types": "./dist/esm/src/mods/browser.d.ts",
+        "default": "./dist/esm/src/mods/browser.js"
+      },
       "types": "./dist/esm/src/mods/mod.d.ts",
       "import": "./dist/esm/src/mods/mod.js"
     },

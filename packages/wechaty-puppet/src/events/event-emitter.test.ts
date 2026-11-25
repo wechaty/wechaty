@@ -133,3 +133,64 @@ test('EventEmitter static listenerCount, rawListeners, and setMaxListeners', () 
   // Invalid listener throws TypeError
   assert.throws(() => ee.on('test', null as any), TypeError)
 })
+
+test('EventEmitter addEventListener deduplication and EventTarget methods', () => {
+  const ee = new EventEmitter()
+  let count = 0
+  const listener = () => { count++ }
+
+  // Deduplication: registering same listener twice is a no-op
+  ee.addEventListener('ping', listener)
+  ee.addEventListener('ping', listener)
+  assert.equal(ee.listenerCount('ping'), 1)
+
+  ee.dispatchEvent(new Event('ping'))
+  assert.equal(count, 1)
+
+  ee.removeEventListener('ping', listener)
+  assert.equal(ee.listenerCount('ping'), 0)
+  ee.dispatchEvent(new Event('ping'))
+  assert.equal(count, 1)
+})
+
+test('EventEmitter emit preserves single array argument', () => {
+  const ee = new EventEmitter()
+  let received: any
+
+  ee.on('array-test', arg => {
+    received = arg
+  })
+
+  ee.emit('array-test', ['first', 'second'])
+  assert.deepEqual(received, ['first', 'second'], 'single array argument must not be unpacked')
+})
+
+test('EventEmitter multi-argument custom event enrichment', () => {
+  const ee = new EventEmitter()
+  let scanDetail: any
+  ee.addEventListener('scan', (event: any) => {
+    scanDetail = event.detail
+  })
+
+  ee.emit('scan', 'https://qr.code', 2, 'scan-data')
+  assert.equal(scanDetail.qrcode, 'https://qr.code')
+  assert.equal(scanDetail.status, 2)
+  assert.equal(scanDetail.data, 'scan-data')
+})
+
+test('EventEmitter once and AbortSignal targeted cleanup with multiple listeners', () => {
+  const ee = new EventEmitter()
+  let count = 0
+  const fn = () => { count++ }
+
+  ee.on('ping', fn)
+  ee.once('ping', fn)
+  assert.equal(ee.listenerCount('ping'), 2)
+
+  ee.emit('ping')
+  assert.equal(count, 2)
+  assert.equal(ee.listenerCount('ping'), 1)
+
+  ee.emit('ping')
+  assert.equal(count, 3)
+})

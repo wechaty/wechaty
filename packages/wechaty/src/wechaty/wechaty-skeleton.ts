@@ -118,13 +118,17 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
   /**
    * @deprecated Use `addEventListener` instead. Will be removed in Wechaty v3.0.
    */
-  override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
+  override on (
+    event: WechatyEventName,
+    listener: (...args: any[]) => any,
+    options?: AddEventListenerOptions,
+  ): this {
     log.verbose('WechatySkeleton', 'on(%s, listener) registering... listenerCount: %s',
       event,
       this.listenerCount(event),
     )
 
-    return super.on(event, listener)
+    return (super.on as any)(event, listener, options)
   }
 
 }

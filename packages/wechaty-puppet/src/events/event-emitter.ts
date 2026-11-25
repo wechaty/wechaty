@@ -24,6 +24,8 @@ interface ListenerEntry {
   abortCleanup?: () => void
 }
 
+const MULTI_ARGS_SYMBOL = Symbol('multi_args')
+
 /**
  * Portable, cross-runtime EventEmitter adhering to standard WinterTC EventTarget semantics.
  *
@@ -78,6 +80,12 @@ export class EventEmitter extends EventTarget {
       this._listenersMap.set(type, list)
     }
 
+    // W3C DOM EventTarget specification: duplicate listener registration is a no-op
+    const existingIndex = list.findIndex(entry => entry.raw === listener)
+    if (existingIndex !== -1) {
+      return
+    }
+
     const entry: ListenerEntry = {
       once,
       raw: listener,
@@ -86,7 +94,16 @@ export class EventEmitter extends EventTarget {
     list.push(entry)
 
     if (signal) {
-      const onAbort = () => this.removeEventListener(type, listener)
+      const onAbort = () => {
+        const idx = list.indexOf(entry)
+        if (idx !== -1) {
+          list.splice(idx, 1)
+          if (list.length === 0) {
+            this._listenersMap.delete(type)
+          }
+          super.removeEventListener(type, entry.wrapped, options)
+        }
+      }
       signal.addEventListener('abort', onAbort, { once: true })
       entry.abortCleanup = () => signal.removeEventListener('abort', onAbort)
     }
@@ -99,7 +116,15 @@ export class EventEmitter extends EventTarget {
           return
         }
         fired = true
-        self.removeEventListener(type, listener)
+        const idx = list.indexOf(entry)
+        if (idx !== -1) {
+          list.splice(idx, 1)
+          if (list.length === 0) {
+            self._listenersMap.delete(type)
+          }
+          entry.abortCleanup?.()
+          super.removeEventListener(type, onceWrapper, options)
+        }
         if (typeof listener === 'function') {
           listener.call(self, event)
         } else if (typeof listener?.handleEvent === 'function') {
@@ -179,6 +204,27 @@ export class EventEmitter extends EventTarget {
       this._listenersMap.set(event, list)
     }
 
+    const entry: ListenerEntry = {
+      once,
+      raw: listener,
+      wrapped: null as any,
+    }
+
+    if (signal) {
+      const onAbort = () => {
+        const idx = list.indexOf(entry)
+        if (idx !== -1) {
+          list.splice(idx, 1)
+          if (list.length === 0) {
+            this._listenersMap.delete(event)
+          }
+          super.removeEventListener(eventName, entry.wrapped, options)
+        }
+      }
+      signal.addEventListener('abort', onAbort, { once: true })
+      entry.abortCleanup = () => signal.removeEventListener('abort', onAbort)
+    }
+
     let fired = false
     const wrapper: EventListener = (e: Event) => {
       if (once) {
@@ -186,10 +232,18 @@ export class EventEmitter extends EventTarget {
           return
         }
         fired = true
-        this.off(event, listener)
+        const idx = list.indexOf(entry)
+        if (idx !== -1) {
+          list.splice(idx, 1)
+          if (list.length === 0) {
+            this._listenersMap.delete(event)
+          }
+          entry.abortCleanup?.()
+          super.removeEventListener(eventName, entry.wrapped, options)
+        }
       }
       const detail = (e as CustomEvent).detail
-      if (Array.isArray(detail)) {
+      if (detail && (detail as any)[MULTI_ARGS_SYMBOL]) {
         listener.apply(this, detail)
       } else if (detail !== undefined) {
         listener.call(this, detail)
@@ -197,18 +251,7 @@ export class EventEmitter extends EventTarget {
         listener.call(this)
       }
     }
-
-    const entry: ListenerEntry = {
-      once,
-      raw: listener,
-      wrapped: wrapper,
-    }
-
-    if (signal) {
-      const onAbort = () => this.off(event, listener)
-      signal.addEventListener('abort', onAbort, { once: true })
-      entry.abortCleanup = () => signal.removeEventListener('abort', onAbort)
-    }
+    entry.wrapped = wrapper
 
     if (prepend && list.length > 0) {
       for (const item of list) {
@@ -419,6 +462,7 @@ export class EventEmitter extends EventTarget {
       detail = args[0]
     } else {
       detail = [...args]
+      ;(detail as any)[MULTI_ARGS_SYMBOL] = true
       if (eventName === 'scan') {
         detail.qrcode = args[0]
         detail.status = args[1]
