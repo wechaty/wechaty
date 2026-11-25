@@ -23,7 +23,7 @@
  *   limitations under the License.
  *
  */
-import { EventEmitter }   from 'events'
+import { EventEmitter }   from 'wechaty-puppet'
 import * as PUPPET        from 'wechaty-puppet'
 import type {
   FileBoxInterface,

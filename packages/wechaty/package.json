@@ -5,17 +5,27 @@
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/esm/src/mods/mod.d.ts",
       "import": "./dist/esm/src/mods/mod.js"
     },
+    "./browser": {
+      "types": "./dist/esm/src/mods/browser.d.ts",
+      "default": "./dist/esm/src/mods/browser.js"
+    },
     "./impls": {
+      "types": "./dist/esm/src/mods/impls.d.ts",
       "import": "./dist/esm/src/mods/impls.js"
     },
     "./users": {
+      "types": "./dist/esm/src/mods/users.d.ts",
       "import": "./dist/esm/src/mods/users.js"
     }
   },
   "typesVersions": {
     "*": {
+      "browser": [
+        "./dist/esm/src/mods/browser.d.ts"
+      ],
       "users": [
         "./dist/esm/src/mods/users.d.ts"
       ],

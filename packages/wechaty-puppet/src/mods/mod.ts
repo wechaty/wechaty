@@ -42,6 +42,9 @@ import {
   VERSION,
   log,
 }                             from '../config.ts'
+import {
+  EventEmitter,
+}                             from '../events/event-emitter.ts'
 import type {
   PuppetOptions,
 }                             from '../schemas/puppet.ts'
@@ -56,6 +59,7 @@ export type {
   PuppetOptions,
 }
 export {
+  EventEmitter,
   log,
   Puppet,
   throwUnsupportedError,

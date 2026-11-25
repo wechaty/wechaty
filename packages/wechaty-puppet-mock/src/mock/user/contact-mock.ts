@@ -2,7 +2,6 @@
  * `ContactMock`: a mocked contact whose `say()` sends messages through its
  * `Mocker`. `mockerifyContactMock()` binds the class to one Mocker.
  */
-import * as path                        from 'path'
 import * as PUPPET                      from 'wechaty-puppet'
 import { FileBox, type FileBoxInterface }    from 'file-box'
 
@@ -15,6 +14,11 @@ import { generateSentence }     from '../generator.ts'
 import { RoomMock }    from './room-mock.ts'
 
 const POOL = Symbol('pool')
+
+const extname = (filename: string): string => {
+  const dotIndex = filename.lastIndexOf('.')
+  return dotIndex !== -1 ? filename.slice(dotIndex) : ''
+}
 
 /* eslint no-use-before-define: 0 */
 interface To {
@@ -134,7 +138,7 @@ class ContactMock extends ContactEventEmitter {
 
         const type = (something.mediaType && something.mediaType !== 'application/octet-stream')
           ? something.mediaType
-          : path.extname(something.name)
+          : extname(something.name)
         switch (type) {
           case 'image/jpeg':
           case 'image/png':

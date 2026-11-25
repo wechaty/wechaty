@@ -80,10 +80,21 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     log.verbose('WechatySkeleton', 'init()')
 
     if (!this.__memory) {
-      this.__memory = new MemoryCard(this.__options.name)
+      const isBrowser = typeof (globalThis as any).process?.cwd !== 'function'
+      if (isBrowser) {
+        this.__memory = new MemoryCard({
+          name: typeof this.__options.name === 'string' ? this.__options.name : undefined,
+          storageOptions: { type: 'nop' },
+        })
+      } else {
+        this.__memory = new MemoryCard(this.__options.name)
+      }
       try {
         await this.__memory.load()
-      } catch (_) {
+      } catch (err: any) {
+        if (!err?.message?.includes?.('already loaded')) {
+          throw err
+        }
         log.silly('WechatySkeleton', 'onStart() memory.load() had already loaded')
       }
     }
@@ -104,13 +115,21 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     // no super.stop()
   }
 
-  override on (event: WechatyEventName, listener: (...args: any[]) => any): this {
+  /**
+   * @deprecated Use `addEventListener` instead. Will be removed in Wechaty v3.0.
+   */
+  override on (
+    event: WechatyEventName,
+    listener: (...args: any[]) => any,
+    options?: AddEventListenerOptions,
+    prepend = false,
+  ): this {
     log.verbose('WechatySkeleton', 'on(%s, listener) registering... listenerCount: %s',
       event,
       this.listenerCount(event),
     )
 
-    return super.on(event, listener)
+    return (super.on as any)(event, listener, options, prepend)
   }
 
 }

@@ -72,7 +72,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
       log.verbose('PuppetCacheMixin', 'stop()')
       this.cache.stop()
 
-      this.__cacheMixinCleanCallbackList.map(setImmediate)
+      this.__cacheMixinCleanCallbackList.forEach(fn => setTimeout(fn, 0))
       this.__cacheMixinCleanCallbackList.length = 0
 
       await super.stop()
@@ -95,10 +95,10 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
       /**
        * Huan(202111): we return first before emit the `dirty` event?
        */
-      setImmediate(() => this.emit('dirty', {
+      setTimeout(() => this.emit('dirty', {
         payloadId   : id,
         payloadType : type,
-      }))
+      }), 0)
     }
 
     /**
@@ -197,7 +197,7 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
        * Huan(202111): wait for all the taks in the event loop queue to be executed
        *  before we return, because there might be other `onDirty` listeners
        */
-      await new Promise(setImmediate)
+      await new Promise<void>(resolve => setTimeout(resolve, 0))
 
     }
 

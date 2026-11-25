@@ -215,7 +215,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     )
 
     // put to the end of the event loop in case of it need to be executed while stopping
-    this._stopCallbackList.map(setImmediate)
+    this._stopCallbackList.forEach(fn => setTimeout(fn, 0))
     this._stopCallbackList.length = 0
 
     this.emit('stop')

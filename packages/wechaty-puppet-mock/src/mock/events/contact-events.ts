@@ -1,7 +1,7 @@
 /**
  * The typed `message` event emitter that `ContactMock` extends.
  */
-import { EventEmitter }   from 'node:events'
+import { EventEmitter }   from 'wechaty-puppet'
 // typed-emitter ships CommonJS types, so NodeNext sees its default export
 // under `.default`.
 import type * as TypedEventEmitter from 'typed-emitter'

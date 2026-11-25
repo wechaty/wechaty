@@ -27,6 +27,12 @@ import type {
   PuppetConstructor,
   PuppetInterface,
 }                         from './puppet-interface.ts'
+import type {
+  PuppetCustomEvent,
+  PuppetEventDetail,
+  PuppetEventTargetListener,
+  PuppetEventTargetInterface,
+}                         from './events.ts'
 import {
   resolvePuppet,
 }                         from './puppet-resolver.ts'
@@ -34,6 +40,10 @@ import {
 export type {
   PuppetConstructor,
   PuppetInterface,
+  PuppetCustomEvent,
+  PuppetEventDetail,
+  PuppetEventTargetListener,
+  PuppetEventTargetInterface,
 }
 export {
   Puppet,

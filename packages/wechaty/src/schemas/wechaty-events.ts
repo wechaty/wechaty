@@ -1,4 +1,4 @@
-import { EventEmitter }         from 'events'
+import { EventEmitter }         from 'wechaty-puppet'
 import type * as TypedEventEmitter from 'typed-emitter'
 
 import type { GError }  from 'gerror'
@@ -221,13 +221,91 @@ interface WechatyEventListeners {
   stop          : WechatyEventListenerStartStop
 }
 
-const WechatyEventEmitter = EventEmitter as any as new () => TypedEventEmitter.default<
-  WechatyEventListeners
->
+interface WechatyEventDetailMap {
+  dong          : string | undefined
+  error         : GError
+  friendship    : FriendshipInterface
+  heartbeat     : any
+  login         : ContactSelfInterface
+  logout        : { user: ContactSelfInterface, reason?: string }
+  message       : MessageInterface
+  post          : PostInterface
+  puppet        : PUPPET.impls.PuppetInterface
+  ready         : undefined | null
+  reset         : string | undefined | null
+  'room-invite' : RoomInvitationInterface
+  'room-join'   : { room: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface, date?: Date }
+  'room-leave'  : { room: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date }
+  'room-topic'  : { room: RoomInterface, newTopic: string, oldTopic: string, changer: ContactInterface, date?: Date }
+  scan          : { qrcode: string, status: PUPPET.types.ScanStatus, data?: string }
+  start         : undefined | null
+  stop          : undefined | null
+}
+
+type WechatyCustomEvent<E extends keyof WechatyEventDetailMap> =
+  CustomEvent<WechatyEventDetailMap[E]>
+
+type WechatyEventTargetListener<E extends keyof WechatyEventDetailMap> =
+  | ((event: WechatyCustomEvent<E>) => void | Promise<void>)
+  | { handleEvent (event: WechatyCustomEvent<E>): void | Promise<void> }
+
+interface WechatyEventTargetInterface {
+  /**
+   * Registers an event listener on the Wechaty bot instance using the standard WinterTC EventTarget interface.
+   *
+   * @param type - Name of the Wechaty event (e.g. 'message', 'scan', 'login', 'ready', 'error').
+   * @param listener - Callback receiving the CustomEvent with `event.detail`.
+   * @param options - Standard AddEventListenerOptions, including native `{ signal: abortSignal, once: boolean }`.
+   */
+  addEventListener<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    listener: (event: WechatyCustomEvent<E>) => void | Promise<void>,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+
+  /**
+   * Removes an event listener previously registered with `addEventListener`.
+   *
+   * @param type - Name of the Wechaty event.
+   * @param listener - Listener callback to remove.
+   * @param options - Standard EventListenerOptions.
+   */
+  removeEventListener<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    listener: (event: WechatyCustomEvent<E>) => void | Promise<void>,
+    options?: boolean | EventListenerOptions,
+  ): void
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | EventListenerOptions,
+  ): void
+
+  /**
+   * Dispatches an event on the Wechaty instance.
+   *
+   * @param event - Standard Event to dispatch.
+   */
+  dispatchEvent(event: Event): boolean
+}
+
+type WechatyEventEmitterInterface = TypedEventEmitter.default<WechatyEventListeners> & WechatyEventTargetInterface
+
+const WechatyEventEmitter = EventEmitter as any as new () => WechatyEventEmitterInterface
 
 export type {
   WechatyEventName,
   WechatyEventListeners,
+  WechatyEventDetailMap,
+  WechatyCustomEvent,
+  WechatyEventTargetListener,
+  WechatyEventTargetInterface,
+  WechatyEventEmitterInterface,
 
   WechatyEventListenerDong,
   WechatyEventListenerError,

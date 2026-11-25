@@ -46,6 +46,17 @@ import {
 import { FileBox } from 'file-box'
 import { FileBox as FileBoxBrowser } from 'file-box/browser'
 
+import {
+  WechatyBuilder,
+  ScanStatus,
+  VERSION as WECHATY_VERSION,
+} from 'wechaty/browser'
+import {
+  PuppetMock,
+  mock,
+  VERSION as PUPPET_MOCK_VERSION,
+} from 'wechaty-puppet-mock'
+
 /**
  * Asserts that a condition is truthy, throwing a descriptive Error if falsy.
  *
@@ -173,9 +184,142 @@ describe('packed browser consumer smoke suite', () => {
     )
   })
 
-  it('prepares consumer test bed for wechaty/browser and PuppetMock (Stage 3 #3108)', () => {
-    // Stage 3 (#3108) will add the public `wechaty/browser` entry and wire PuppetMock.
-    // Verify that the consumer test environment stands ready to import and instantiate them.
-    assert(true, 'Consumer test bed is structured and ready for Stage 3 Wechaty bot tests')
+  it('runs a local mock bot via wechaty/browser and PuppetMock natively in Chromium (#3108)', async () => {
+    assert(Boolean(WECHATY_VERSION), 'wechaty/browser must export a non-empty VERSION')
+    assert(
+      WECHATY_VERSION !== '0.0.0',
+      'wechaty/browser VERSION must be populated with the release version, not 0.0.0',
+    )
+    assert(Boolean(PUPPET_MOCK_VERSION), 'wechaty-puppet-mock must export a non-empty VERSION')
+    assert(
+      PUPPET_MOCK_VERSION !== '0.0.0',
+      'wechaty-puppet-mock VERSION must be populated with the release version, not 0.0.0',
+    )
+
+    const mocker = new mock.Mocker()
+    const puppet = new PuppetMock({ mocker })
+    const bot = WechatyBuilder.build({ name: 'smoke-bot', puppet })
+
+    const [user, player] = mocker.createContacts(2) as [any, any]
+
+    let scanned = false as boolean
+    let loggedIn = false as boolean
+    let readyFired = false as boolean
+    let dongReceived = false as boolean
+    const replies: string[] = []
+
+    // Official Wechaty 2.0 WinterTC EventTarget interface with CustomEvent
+    bot.addEventListener('error', (event: any) => {
+      console.error('bot error:', event.detail)
+    })
+
+    bot.addEventListener('scan', (event: any) => {
+      const { qrcode, status } = event.detail
+      if (status === ScanStatus.Waiting && Boolean(qrcode)) {
+        scanned = true
+      }
+    })
+
+    bot.addEventListener('login', (event: any) => {
+      const contact = event.detail
+      if (contact.id === user.id) {
+        loggedIn = true
+      }
+    })
+
+    bot.addEventListener('ready', () => {
+      readyFired = true
+    })
+
+    bot.addEventListener('dong', (event: any) => {
+      if (event.detail === 'ping-test') {
+        dongReceived = true
+      }
+    })
+
+    bot.addEventListener('message', async (event: any) => {
+      const msg = event.detail
+      if (msg.text() === 'ding') {
+        await msg.say('dong')
+        replies.push('dong')
+      }
+    })
+
+    // Test native AbortSignal listener cancellation on standard EventTarget
+    const abortController = new AbortController()
+    let abortableCallCount = 0
+    bot.addEventListener(
+      'message',
+      (event: any) => {
+        if (event.detail?.text?.() === 'ding') {
+          abortableCallCount++
+        }
+      },
+      { signal: abortController.signal },
+    )
+
+    // 1. Start bot and verify initial state
+    await bot.start()
+    assert(!bot.isLoggedIn, 'Bot must not be logged in before login event')
+
+    // 2. Scan event propagation
+    mocker.scan('https://wechaty.js.org/qrcode/test', ScanStatus.Waiting)
+    assert(scanned, 'Scan event must be received by bot')
+
+    // 3. Login event and readiness
+    mocker.login(user)
+    for (let i = 0; i < 20 && !loggedIn; i++) {
+      await new Promise(r => setTimeout(r, 50))
+    }
+    assert(loggedIn, 'Login event must be received by bot')
+    assert(Boolean(bot.isLoggedIn), 'bot.isLoggedIn must be true after login')
+
+    puppet.emit('ready', { data: 'ready' })
+    await bot.ready()
+    assert(readyFired, 'Ready event must be fired upon bot readiness')
+
+    // 4. Ding-Dong text message round-trip
+    player.say('ding').to(user)
+    for (let i = 0; i < 20 && replies.length === 0; i++) {
+      await new Promise(r => setTimeout(r, 50))
+    }
+    assert(
+      (replies.length as number) === 1 && replies[0] === 'dong',
+      `Bot must reply "dong" to "ding", received: ${JSON.stringify(replies)}`,
+    )
+    assert(abortableCallCount === 1, 'Abortable listener must receive first message')
+
+    // Abort the message listener and verify it receives no further emissions
+    abortController.abort()
+    player.say('ding').to(user)
+    for (let i = 0; i < 20 && replies.length === 1; i++) {
+      await new Promise(r => setTimeout(r, 50))
+    }
+    assert((replies.length as number) === 2, 'Bot must reply to second message')
+    assert(abortableCallCount === 1, 'Aborted listener must not receive further messages')
+
+    // 5. Heartbeat / ping-pong via bot.ding()
+    bot.ding('ping-test')
+    for (let i = 0; i < 20 && !dongReceived; i++) {
+      await new Promise(r => setTimeout(r, 50))
+    }
+    assert(dongReceived, 'Bot must handle ding/dong ping-pong')
+
+    // 6. Stop and inspect event listener count persistence
+    const messageListenersBefore = puppet.listenerCount('message')
+    assert(messageListenersBefore > 0, 'Puppet must have message listeners attached')
+
+    await bot.stop()
+    assert(!bot.isLoggedIn, 'Bot must not be logged in after stop')
+
+    // 7. Restart and assert no duplicate listeners were registered
+    await bot.start()
+    const messageListenersAfter = puppet.listenerCount('message')
+    assert(
+      messageListenersAfter === messageListenersBefore,
+      `Listener count must not increase on restart (before: ${messageListenersBefore}, after: ${messageListenersAfter})`,
+    )
+
+    await bot.stop()
   })
 })

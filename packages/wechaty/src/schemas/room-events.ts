@@ -1,4 +1,4 @@
-import { EventEmitter }   from 'events'
+import { EventEmitter }   from 'wechaty-puppet'
 import type * as TypedEventEmitter from 'typed-emitter'
 
 import type {

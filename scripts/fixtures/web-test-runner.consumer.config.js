@@ -22,6 +22,65 @@ import { esbuildPlugin } from '@web/dev-server-esbuild'
 
 const consumerDir = process.env['CONSUMER_DIR'] || process.cwd()
 
+/**
+ * Resolves external dependency imports of event emitter and memory-card storage
+ * stubs for browser environments without injecting Node polyfills.
+ */
+function consumerBrowserPlugin () {
+  return {
+    name: 'consumer-browser-resolver',
+    resolveImport ({ source, context }) {
+      if (source === 'node:events' || source === 'events') {
+        return '/node_modules/wechaty-puppet/dist/esm/src/events/event-emitter.js'
+      }
+      if (source === '@pipeletteio/nop') {
+        return '/__browser_nop_stub__.js'
+      }
+      if (source === 'ix/asynciterable/index.js') {
+        return '/node_modules/ix/asynciterable/index.mjs'
+      }
+      if (context && context.path && context.path.includes('node_modules/memory-card/')) {
+        if (source === 'fs' || source === 'node:fs') {
+          return '/__browser_fs_stub__.js'
+        }
+        if (source === 'path' || source === 'node:path') {
+          return '/__browser_path_stub__.js'
+        }
+      }
+      return undefined
+    },
+    serve (context) {
+      if (context.path === '/__browser_nop_stub__.js' || context.path.includes('@pipeletteio/nop')) {
+        return {
+          body: 'export function nop() {} export function isNop() { return false } export default { nop, isNop }',
+          type: 'js',
+        }
+      }
+      if (context.path === '/__browser_fs_stub__.js') {
+        return {
+          body: 'export default { existsSync: () => false, readFile: () => {} }; export const existsSync = () => false; export const readFile = () => {};',
+          type: 'js',
+        }
+      }
+      if (context.path === '/__browser_path_stub__.js') {
+        return {
+          body: 'export default { isAbsolute: () => false, resolve: (...args) => args.join("/") }; export const isAbsolute = () => false; export const resolve = (...args) => args.join("/");',
+          type: 'js',
+        }
+      }
+      return undefined
+    },
+    transform (context) {
+      if (context.path && context.path.includes('xstate/es/environment.js')) {
+        return {
+          body: 'export var IS_PRODUCTION = false;',
+        }
+      }
+      return undefined
+    },
+  }
+}
+
 export default {
   files: [
     path.join(consumerDir, 'browser-consumer-smoke.js'),
@@ -34,6 +93,7 @@ export default {
   },
 
   plugins: [
+    consumerBrowserPlugin(),
     esbuildPlugin({
       target: 'es2022',
       ts: false,

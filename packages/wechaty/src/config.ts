@@ -51,27 +51,32 @@ type PackageJsonWechaty = {
 
 const VERSION = packageJson.version || '0.0.0'
 
+const getEnv = (): Record<string, string | undefined> =>
+  ((globalThis as any).process?.env ?? {})
+
+const proc = (globalThis as any).process
+
 /**
  * to handle unhandled exceptions
  */
-if (log.level() === 'verbose' || log.level() === 'silly') {
+if (proc?.on && (log.level() === 'verbose' || log.level() === 'silly')) {
   log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
 
   /**
    * Refer to https://nodejs.org/api/process.html#process_event_unhandledrejection
    * the reason is in type: Error | any
    */
-  process.on('unhandledRejection', (reason: Error | any, promise) => {
+  proc.on('unhandledRejection', (reason: Error | any, promise: any) => {
     log.error('Config', '###########################')
     log.error('Config', 'Wechaty unhandledRejection: %s %s', reason.stack || reason, promise)
     log.error('Config', '###########################')
-    promise.catch(err => {
+    promise.catch((err: any) => {
       log.error('Config', 'process.on(unhandledRejection) promise.catch(%s)', err.message)
       console.error('Config', err) // I don't know if log.error has similar full trace print support like console.error
     })
   })
 
-  process.on('uncaughtException', function (error) {
+  proc.on('uncaughtException', function (error: any) {
     const origin = arguments[1] // to compatible with node 12 or below version typings
 
     log.error('Config', '###########################')
@@ -92,30 +97,30 @@ export class Config {
 
   default = DEFAULT_SETTING
 
-  apihost = process.env['WECHATY_APIHOST'] || DEFAULT_SETTING['DEFAULT_APIHOST']
+  apihost = getEnv()['WECHATY_APIHOST'] || DEFAULT_SETTING['DEFAULT_APIHOST']
 
-  serviceIp = process.env['WECHATY_PUPPET_SERVICE_IP'] || ''
+  serviceIp = getEnv()['WECHATY_PUPPET_SERVICE_IP'] || ''
 
   /**
    * The puppet named by `WECHATY_PUPPET`, lowercased, read at call time.
    * `undefined` when it is unset: Wechaty 2.0 has no default puppet.
    */
   systemPuppetName (): undefined | OfficialPuppetNpmName {
-    return process.env['WECHATY_PUPPET']?.toLowerCase() as undefined | OfficialPuppetNpmName
+    return getEnv()['WECHATY_PUPPET']?.toLowerCase() as undefined | OfficialPuppetNpmName
   }
 
-  name = process.env['WECHATY_NAME']
+  name = getEnv()['WECHATY_NAME']
 
   // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  token   = process.env['WECHATY_TOKEN']
+  token   = getEnv()['WECHATY_TOKEN']
 
-  debug   = !!(process.env['WECHATY_DEBUG'])
+  debug   = !!(getEnv()['WECHATY_DEBUG'])
 
-  httpPort = process.env['PORT']
-    || process.env['WECHATY_PORT']
+  httpPort = getEnv()['PORT']
+    || getEnv()['WECHATY_PORT']
     || DEFAULT_SETTING['DEFAULT_PORT']
 
-  docker = !!(process.env['WECHATY_DOCKER'])
+  docker = !!(getEnv()['WECHATY_DOCKER'])
 
   constructor () {
     log.verbose('Config', 'constructor()')
@@ -152,8 +157,9 @@ export function qrcodeValueToImageUrl (qrcodeValue: string): string {
 }
 
 export function isProduction (): boolean {
-  return process.env['NODE_ENV'] === 'production'
-      || process.env['NODE_ENV'] === 'prod'
+  const env = getEnv()
+  return env['NODE_ENV'] === 'production'
+      || env['NODE_ENV'] === 'prod'
 }
 
 const config = new Config()

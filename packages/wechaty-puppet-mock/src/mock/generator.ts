@@ -8,6 +8,7 @@ import * as PUPPET from 'wechaty-puppet'
 import {
   FileBox,
 }               from 'file-box'
+import { WECHATY_ICON_PNG_BASE64 } from './default-avatar.ts'
 
 const generateContactPayload = (): PUPPET.payloads.Contact => ({
   address   : faker.location.streetAddress(),
@@ -28,7 +29,7 @@ const generateContactPayload = (): PUPPET.payloads.Contact => ({
   weixin    : undefined,
 })
 
-const generateImageFileBox = (): FileBox => FileBox.fromUrl(faker.image.avatar())
+const generateImageFileBox = (): FileBox => FileBox.fromBase64(WECHATY_ICON_PNG_BASE64, 'avatar.png')
 
 const generateRoomPayload = (...contactIdList: string[]): PUPPET.payloads.Room => {
   const maxNum = Math.max(500, contactIdList.length)
