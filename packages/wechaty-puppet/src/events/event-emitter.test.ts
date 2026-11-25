@@ -276,14 +276,15 @@ test('EventEmitter branch coverage edge cases: abort signal, EventListenerObject
   const fnList = ee.listeners('obj-event')
   assert.equal(fnList.length, 1)
   assert.equal(typeof fnList[0], 'function')
-  fnList[0]?.() // invoke fallback no-op
+  fnList[0]?.()
+  assert.equal(handleEventCalled, 1)
 
   const rawList = ee.rawListeners('obj-event')
   assert.equal(rawList.length, 1)
   assert.equal(typeof rawList[0], 'function')
 
   ee.dispatchEvent(new Event('obj-event'))
-  assert.equal(handleEventCalled, 1)
+  assert.equal(handleEventCalled, 2)
   assert.equal(ee.listenerCount('obj-event'), 0) // once consumed
 
   // 6. Direct dispatchEvent without emit (EVENT_ARGS_MAP not set)
@@ -362,5 +363,127 @@ test('EventEmitter logout event normalizes 1-argument emission with user detail'
   assert.equal(detail.reason, undefined)
   assert.equal(detail[0], 'mock-user-id')
 })
+
+test('EventEmitter supports Symbol.for registered symbols', () => {
+  const ee = new EventEmitter()
+  const sym = Symbol.for('wechaty.test.symbol')
+  let count = 0
+  ee.on(sym, () => { count++ })
+  assert.equal(ee.listenerCount(sym), 1)
+  ee.emit(sym)
+  assert.equal(count, 1)
+})
+
+test('EventEmitter handles null options without throwing', () => {
+  const ee = new EventEmitter()
+  let count = 0
+  const fn = () => { count++ }
+  ee.addEventListener('null-opts', fn, null as any)
+  ee.on('null-opts', fn, null as any)
+  assert.equal(ee.listenerCount('null-opts'), 2)
+  ee.removeEventListener('null-opts', fn, null as any)
+  assert.equal(ee.listenerCount('null-opts'), 1)
+  ee.off('null-opts', fn, null as any)
+  assert.equal(ee.listenerCount('null-opts'), 0)
+})
+
+test('EventEmitter emit synchronously rethrows error thrown by listener', () => {
+  const ee = new EventEmitter()
+  const expected = new Error('sync listener error')
+  ee.on('err-test', () => {
+    throw expected
+  })
+  assert.throws(() => {
+    ee.emit('err-test')
+  }, (err: any) => err === expected)
+})
+
+test('EventEmitter off removes most recently added listener instance (LIFO)', () => {
+  const ee = new EventEmitter()
+  const order: string[] = []
+  const fn = () => { order.push('fn') }
+  ee.on('lifo', fn)
+  ee.once('lifo', fn)
+  assert.equal(ee.listenerCount('lifo'), 2)
+  ee.off('lifo', fn)
+  assert.equal(ee.listenerCount('lifo'), 1)
+  // The remaining listener should be the first (persistent) one
+  ee.emit('lifo')
+  assert.equal(order.length, 1)
+  ee.emit('lifo')
+  assert.equal(order.length, 2)
+})
+
+test('EventEmitter prependListener called during emit does not skip remaining listeners', () => {
+  const ee = new EventEmitter()
+  const callOrder: string[] = []
+  ee.on('dyn', () => {
+    callOrder.push('first')
+    ee.prependListener('dyn', () => {
+      callOrder.push('prepended')
+    })
+  })
+  ee.on('dyn', () => {
+    callOrder.push('second')
+  })
+  ee.emit('dyn')
+  assert.deepEqual(callOrder, ['first', 'second'])
+
+  // Next emit: prepended should run first
+  callOrder.length = 0
+  ee.emit('dyn')
+  assert.deepEqual(callOrder, ['prepended', 'first', 'second'])
+})
+
+test('EventEmitter off called during emit executes snapshot listeners', () => {
+  const ee = new EventEmitter()
+  const callOrder: string[] = []
+  const secondListener = () => { callOrder.push('second') }
+  ee.on('snap', () => {
+    callOrder.push('first')
+    ee.off('snap', secondListener)
+  })
+  ee.on('snap', secondListener)
+  ee.emit('snap')
+  assert.deepEqual(callOrder, ['first', 'second'])
+
+  callOrder.length = 0
+  ee.emit('snap')
+  assert.deepEqual(callOrder, ['first'])
+})
+
+test('EventEmitter removeAllListeners called during emit executes snapshot listeners', () => {
+  const ee = new EventEmitter()
+  const callOrder: string[] = []
+  ee.on('snap-all', () => {
+    callOrder.push('first')
+    ee.removeAllListeners('snap-all')
+  })
+  ee.on('snap-all', () => {
+    callOrder.push('second')
+  })
+  ee.emit('snap-all')
+  assert.deepEqual(callOrder, ['first', 'second'])
+  assert.equal(ee.listenerCount('snap-all'), 0)
+})
+
+test('EventEmitter listeners and rawListeners wrap object listeners in callable function', () => {
+  const ee = new EventEmitter()
+  let called = 0
+  const obj = {
+    handleEvent () {
+      called++
+    },
+  }
+  ee.addEventListener('obj-call', obj)
+  const fns = ee.listeners('obj-call')
+  assert.equal(fns.length, 1)
+  fns[0]?.()
+  assert.equal(called, 1)
+
+  const rawFns = ee.rawListeners('obj-call')
+  assert.equal(rawFns.length, 1)
+})
+
 
 

@@ -19,6 +19,7 @@
 
 interface ListenerEntry {
   capture: boolean
+  fromAddEventListener?: boolean
   once: boolean
   options?: boolean | AddEventListenerOptions
   raw: Function | EventListenerOrEventListenerObject
@@ -27,10 +28,14 @@ interface ListenerEntry {
 }
 
 let nextSymbolId = 0
-const SYMBOL_NAME_MAP = new WeakMap<symbol, string>()
+const SYMBOL_NAME_MAP = new Map<symbol, string>()
 function getEventTargetName (event: string | symbol): string {
   if (typeof event === 'string') {
     return event
+  }
+  const key = Symbol.keyFor(event)
+  if (key !== undefined) {
+    return `__wechaty_sym_for_${key}__`
   }
   let name = SYMBOL_NAME_MAP.get(event)
   if (!name) {
@@ -41,6 +46,7 @@ function getEventTargetName (event: string | symbol): string {
 }
 
 const EVENT_ARGS_MAP = new WeakMap<Event, unknown[]>()
+const EMIT_CONTEXT_MAP = new WeakMap<Event, { error?: unknown, hasError: boolean }>()
 
 /**
  * Portable, cross-runtime EventEmitter adhering to standard WinterTC EventTarget semantics.
@@ -53,6 +59,8 @@ export class EventEmitter extends EventTarget {
 
   private _listenersMap: Map<string | symbol, ListenerEntry[]> = new Map()
   private _maxListeners = 10
+  private _dispatchDepth = 0
+  private _postDispatchTasks: (() => void)[] = []
 
   static defaultMaxListeners = 10
 
@@ -83,9 +91,9 @@ export class EventEmitter extends EventTarget {
       return
     }
 
-    const capture = typeof options === 'object' ? Boolean(options.capture) : Boolean(options)
-    const once = typeof options === 'object' ? Boolean(options.once) : false
-    const signal = typeof options === 'object' ? options.signal : undefined
+    const capture = typeof options === 'object' && options !== null ? Boolean(options.capture) : Boolean(options)
+    const once = typeof options === 'object' && options !== null ? Boolean(options.once) : false
+    const signal = typeof options === 'object' && options !== null ? options.signal : undefined
 
     if (signal?.aborted) {
       return
@@ -98,13 +106,14 @@ export class EventEmitter extends EventTarget {
     }
 
     // W3C DOM EventTarget specification: duplicate listener registration is a no-op
-    const existingIndex = list.findIndex(entry => entry.raw === listener && entry.capture === capture)
+    const existingIndex = list.findIndex(entry => entry.fromAddEventListener && entry.raw === listener && entry.capture === capture)
     if (existingIndex !== -1) {
       return
     }
 
     const entry: ListenerEntry = {
       capture,
+      fromAddEventListener: true,
       once,
       options,
       raw: listener,
@@ -127,10 +136,14 @@ export class EventEmitter extends EventTarget {
       entry.abortCleanup = () => signal.removeEventListener('abort', onAbort)
     }
 
+    const self = this
     if (once) {
-      const self = this
       let fired = false
       const onceWrapper: EventListener = (event: Event) => {
+        const emitRecord = EMIT_CONTEXT_MAP.get(event)
+        if (emitRecord?.hasError) {
+          return
+        }
         if (fired) {
           return
         }
@@ -144,13 +157,44 @@ export class EventEmitter extends EventTarget {
           entry.abortCleanup?.()
           super.removeEventListener(type, onceWrapper, options)
         }
-        if (typeof listener === 'function') {
-          listener.call(self, event)
-        } else if (typeof listener?.handleEvent === 'function') {
-          listener.handleEvent(event)
+        try {
+          if (typeof listener === 'function') {
+            listener.call(self, event)
+          } else if (typeof listener?.handleEvent === 'function') {
+            listener.handleEvent(event)
+          }
+        } catch (err) {
+          if (emitRecord) {
+            emitRecord.hasError = true
+            emitRecord.error = err
+            return
+          }
+          throw err
         }
       }
       entry.wrapped = onceWrapper
+    } else {
+      const eventListenerWrapper: EventListener = (event: Event) => {
+        const emitRecord = EMIT_CONTEXT_MAP.get(event)
+        if (emitRecord?.hasError) {
+          return
+        }
+        try {
+          if (typeof listener === 'function') {
+            listener.call(self, event)
+          } else if (typeof listener?.handleEvent === 'function') {
+            listener.handleEvent(event)
+          }
+        } catch (err) {
+          if (emitRecord) {
+            emitRecord.hasError = true
+            emitRecord.error = err
+            return
+          }
+          throw err
+        }
+      }
+      entry.wrapped = eventListenerWrapper
     }
 
     super.addEventListener(type, entry.wrapped, options)
@@ -177,7 +221,7 @@ export class EventEmitter extends EventTarget {
       return
     }
 
-    const capture = typeof options === 'object' ? Boolean(options.capture) : Boolean(options)
+    const capture = typeof options === 'object' && options !== null ? Boolean(options.capture) : Boolean(options)
     const index = list.findIndex(entry => (entry.raw === listener || entry.wrapped === listener) && entry.capture === capture)
     if (index !== -1) {
       const [entry] = list.splice(index, 1)
@@ -211,9 +255,9 @@ export class EventEmitter extends EventTarget {
     }
 
     const targetName = getEventTargetName(event)
-    const capture = typeof options === 'object' ? Boolean(options.capture) : false
-    const once = typeof options === 'object' ? Boolean(options.once) : false
-    const signal = typeof options === 'object' ? options.signal : undefined
+    const capture = typeof options === 'object' && options !== null ? Boolean(options.capture) : false
+    const once = typeof options === 'object' && options !== null ? Boolean(options.once) : false
+    const signal = typeof options === 'object' && options !== null ? options.signal : undefined
 
     if (signal?.aborted) {
       return this
@@ -241,7 +285,13 @@ export class EventEmitter extends EventTarget {
           if (list.length === 0) {
             this._listenersMap.delete(event)
           }
-          super.removeEventListener(targetName, entry.wrapped, options)
+          if (this._dispatchDepth > 0) {
+            this._postDispatchTasks.push(() => {
+              super.removeEventListener(targetName, entry.wrapped, options)
+            })
+          } else {
+            super.removeEventListener(targetName, entry.wrapped, options)
+          }
         }
       }
       signal.addEventListener('abort', onAbort, { once: true })
@@ -250,6 +300,10 @@ export class EventEmitter extends EventTarget {
 
     let fired = false
     const wrapper: EventListener = (e: Event) => {
+      const emitRecord = EMIT_CONTEXT_MAP.get(e)
+      if (emitRecord?.hasError) {
+        return
+      }
       if (once) {
         if (fired) {
           return
@@ -266,28 +320,44 @@ export class EventEmitter extends EventTarget {
         }
       }
       const rawArgs = EVENT_ARGS_MAP.get(e)
-      if (rawArgs !== undefined) {
-        listener.apply(this, rawArgs)
-      } else {
-        const detail = (e as CustomEvent).detail
-        if (detail !== null && detail !== undefined) {
-          listener.call(this, detail)
+      try {
+        if (rawArgs !== undefined) {
+          listener.apply(this, rawArgs)
         } else {
-          listener.call(this)
+          const detail = (e as CustomEvent).detail
+          if (detail !== null && detail !== undefined) {
+            listener.call(this, detail)
+          } else {
+            listener.call(this)
+          }
         }
+      } catch (err) {
+        if (emitRecord) {
+          emitRecord.hasError = true
+          emitRecord.error = err
+          return
+        }
+        throw err
       }
     }
     entry.wrapped = wrapper
 
     if (prepend && list.length > 0) {
-      for (const item of list) {
-        super.removeEventListener(targetName, item.wrapped, item.options)
-      }
-      super.addEventListener(targetName, wrapper, options)
-      for (const item of list) {
-        super.addEventListener(targetName, item.wrapped, item.options)
+      const applyPrepend = () => {
+        for (const item of list) {
+          super.removeEventListener(targetName, item.wrapped, item.options)
+        }
+        super.addEventListener(targetName, wrapper, options)
+        for (const item of list) {
+          super.addEventListener(targetName, item.wrapped, item.options)
+        }
       }
       list.unshift(entry)
+      if (this._dispatchDepth > 0) {
+        this._postDispatchTasks.push(applyPrepend)
+      } else {
+        applyPrepend()
+      }
     } else {
       list.push(entry)
       super.addEventListener(targetName, wrapper, options)
@@ -327,13 +397,19 @@ export class EventEmitter extends EventTarget {
       return this
     }
 
-    const capture = typeof options === 'object' ? Boolean(options.capture) : false
-    const index = list.findIndex(entry => (entry.raw === listener || entry.wrapped === listener) && entry.capture === capture)
+    const capture = typeof options === 'object' && options !== null ? Boolean(options.capture) : false
+    const index = list.findLastIndex(entry => (entry.raw === listener || entry.wrapped === listener) && entry.capture === capture)
     if (index !== -1) {
       const [entry] = list.splice(index, 1)
       if (entry) {
         entry.abortCleanup?.()
-        super.removeEventListener(getEventTargetName(event), entry.wrapped, options)
+        if (this._dispatchDepth > 0) {
+          this._postDispatchTasks.push(() => {
+            super.removeEventListener(getEventTargetName(event), entry.wrapped, options)
+          })
+        } else {
+          super.removeEventListener(getEventTargetName(event), entry.wrapped, options)
+        }
       }
       if (list.length === 0) {
         this._listenersMap.delete(event)
@@ -388,27 +464,50 @@ export class EventEmitter extends EventTarget {
       const list = this._listenersMap.get(event)
       if (list) {
         const targetName = getEventTargetName(event)
-        for (const entry of [...list]) {
+        const entriesToRemove = [...list]
+        for (const entry of entriesToRemove) {
           entry.abortCleanup?.()
-          super.removeEventListener(targetName, entry.wrapped, entry.options)
         }
         this._listenersMap.delete(event)
+        if (this._dispatchDepth > 0) {
+          this._postDispatchTasks.push(() => {
+            for (const entry of entriesToRemove) {
+              super.removeEventListener(targetName, entry.wrapped, entry.options)
+            }
+          })
+        } else {
+          for (const entry of entriesToRemove) {
+            super.removeEventListener(targetName, entry.wrapped, entry.options)
+          }
+        }
       }
     } else {
+      const allEntries: { targetName: string, entry: ListenerEntry }[] = []
       for (const [key, list] of [...this._listenersMap.entries()]) {
         const targetName = getEventTargetName(key)
         for (const entry of list) {
           entry.abortCleanup?.()
-          super.removeEventListener(targetName, entry.wrapped, entry.options)
+          allEntries.push({ targetName, entry })
         }
       }
       this._listenersMap.clear()
+      if (this._dispatchDepth > 0) {
+        this._postDispatchTasks.push(() => {
+          for (const item of allEntries) {
+            super.removeEventListener(item.targetName, item.entry.wrapped, item.entry.options)
+          }
+        })
+      } else {
+        for (const item of allEntries) {
+          super.removeEventListener(item.targetName, item.entry.wrapped, item.entry.options)
+        }
+      }
     }
     return this
   }
 
   /**
-   * Sets the maximum number of listeners allowed before warnings (kept for API parity).
+   * Sets the maximum number of listeners allowed before warnings (kept for API parity; no console warning is emitted).
    */
   setMaxListeners (n: number): this {
     this._maxListeners = n
@@ -441,7 +540,17 @@ export class EventEmitter extends EventTarget {
    */
   listeners (event: string | symbol): Function[] {
     const list = this._listenersMap.get(event)
-    return list ? list.map(entry => (typeof entry.raw === 'function' ? entry.raw : () => {})) : []
+    return list
+      ? list.map(entry => {
+        if (typeof entry.raw === 'function') {
+          return entry.raw
+        }
+        if (typeof (entry.raw as any)?.handleEvent === 'function') {
+          return (e: any) => (entry.raw as any).handleEvent(e)
+        }
+        return () => {}
+      })
+      : []
   }
 
   /**
@@ -449,7 +558,17 @@ export class EventEmitter extends EventTarget {
    */
   rawListeners (event: string | symbol): Function[] {
     const list = this._listenersMap.get(event)
-    return list ? list.map(entry => (typeof entry.wrapped === 'function' ? entry.wrapped : () => {})) : []
+    return list
+      ? list.map(entry => {
+        if (typeof entry.wrapped === 'function') {
+          return entry.wrapped
+        }
+        if (typeof (entry.wrapped as any)?.handleEvent === 'function') {
+          return (e: any) => (entry.wrapped as any).handleEvent(e)
+        }
+        return () => {}
+      })
+      : []
   }
 
   /**
@@ -552,7 +671,26 @@ export class EventEmitter extends EventTarget {
     })
     EVENT_ARGS_MAP.set(customEvent, args)
 
-    this.dispatchEvent(customEvent)
+    const emitRecord = { error: undefined as unknown, hasError: false }
+    EMIT_CONTEXT_MAP.set(customEvent, emitRecord)
+
+    this._dispatchDepth++
+    try {
+      this.dispatchEvent(customEvent)
+    } finally {
+      this._dispatchDepth--
+      if (this._dispatchDepth === 0 && this._postDispatchTasks.length > 0) {
+        const tasks = this._postDispatchTasks.splice(0)
+        for (const task of tasks) {
+          task()
+        }
+      }
+    }
+
+    if (emitRecord.hasError) {
+      throw emitRecord.error
+    }
+
     return true
   }
 
