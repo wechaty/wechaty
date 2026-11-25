@@ -18,6 +18,9 @@ name: Antigravity Agent
 # APP_PRIVATE_KEY_HUAN is exposed only to token creation in trusted start/publish
 # jobs, never to an agent runner. Each job mints its own token (1-hour lifetime,
 # revoked on completion); 5/10-minute publishers do not share the agent's wait.
+# If a publisher cannot mint its token, check its run summary. The app-owned
+# progress comment and reaction can stay stale until a retry, and artifacts
+# left behind by a failed publisher expire after one day.
 # App pushes can trigger CI. Existing bot review filters deliberately remain.
 #
 # - Each flow is split into start -> agent -> publish jobs. The agent job has
@@ -190,7 +193,10 @@ jobs:
               return core.setOutput('review_needed', 'false')
             }
             const statuses = await github.paginate(github.rest.repos.listCommitStatusesForRef, { owner, repo, ref: head, per_page: 100 })
-            if (statuses.some(s => s.context === `${STATUS_PREFIX}/${base}` && s.state === 'success' && s.creator?.login === process.env.APP_BOT_LOGIN)) {
+            // Honor completed revisions from before the app migration. The app
+            // still only updates its own comments and reuses its own reviews.
+            const statusAuthors = [process.env.APP_BOT_LOGIN, 'github-actions[bot]']
+            if (statuses.some(s => s.context === `${STATUS_PREFIX}/${base}` && s.state === 'success' && statusAuthors.includes(s.creator?.login))) {
               await core.summary.addRaw(`${who} already reviewed HEAD ${head} against BASE ${base}.`).write()
               return core.setOutput('review_needed', 'false')
             }
@@ -364,6 +370,17 @@ jobs:
           permission-issues: write
           permission-statuses: write
           permission-actions: write
+
+      - &report-app-token-failure
+        name: Explain GitHub App token failure
+        if: failure() && steps.app-token.outcome == 'failure'
+        shell: bash
+        run: |
+          {
+            echo '### Antigravity could not authenticate to publish'
+            echo 'Check the GitHub App token step, the installation permissions, and the configured app credentials. Re-run failed jobs after fixing authentication.'
+            echo 'The progress comment and reaction may still be visible. Any remaining handoff artifacts expire after one day.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Finalize an already-published review
         id: existing
@@ -592,7 +609,7 @@ jobs:
             await core.summary.addRaw(`${who} review posted: ${review.html_url}`).write()
 
       - name: Report review failure
-        if: failure() || needs.review.result != 'success'
+        if: (failure() || needs.review.result != 'success') && steps.app-token.outputs.token != ''
         uses: actions/github-script@v8
         env:
           APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
@@ -626,7 +643,7 @@ jobs:
 
       - &delete-artifacts
         name: Delete handed-over artifacts
-        if: always()
+        if: always() && steps.app-token.outputs.token != ''
         continue-on-error: true
         uses: actions/github-script@v8
         env:
@@ -640,7 +657,7 @@ jobs:
             }
 
       - name: Clear eyes reaction
-        if: always() && env.REACTION_ID != ''
+        if: always() && steps.app-token.outputs.token != '' && env.REACTION_ID != ''
         continue-on-error: true
         uses: actions/github-script@v8
         env:
@@ -934,6 +951,8 @@ jobs:
           permission-issues: write
           permission-actions: write
 
+      - *report-app-token-failure
+
       - name: Checkout task revision (fresh runner)
         if: needs.task.result == 'success'
         uses: actions/checkout@v5
@@ -985,6 +1004,11 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+          # This step applies untrusted output with an app write token in scope.
+          # Disable hooks for all Git commands here, including future additions.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.hooksPath
+          GIT_CONFIG_VALUE_0: /dev/null
         run: |
           set -euo pipefail
           patch="$RUNNER_TEMP/out/changes.patch"
@@ -1000,22 +1024,21 @@ jobs:
           git diff --cached --stat
           task_line="$(head -n1 "$RUNNER_TEMP/ctx/task.txt" | tr -d '`' | cut -c1-60)"
           # Explicit environment overrides set both identities, including on runners
-          # with preconfigured Git author/committer values. Never execute repo hooks.
+          # with preconfigured Git author/committer values.
           bot_id="$(gh api "users/${APP_BOT_LOGIN}" --jq .id)"
           [[ "$bot_id" =~ ^[0-9]+$ ]] || { echo "::error::invalid app bot ID"; exit 1; }
           export GIT_AUTHOR_NAME="$APP_BOT_LOGIN" GIT_COMMITTER_NAME="$APP_BOT_LOGIN"
           export GIT_AUTHOR_EMAIL="${bot_id}+${APP_BOT_LOGIN}@users.noreply.github.com"
           export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
-          git -c core.hooksPath=/dev/null \
-            commit -q -m "${BRANCH_PREFIX}: ${task_line}" -m "Requested by @${ACTOR}: ${REQUEST_URL}" -m "Generated by ${PROVIDER} via ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          git commit -q -m "${BRANCH_PREFIX}: ${task_line}" -m "Requested by @${ACTOR}: ${REQUEST_URL}" -m "Generated by ${PROVIDER} via ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           if [ "$IS_PR" = true ]; then
             # Fast-forward only: fails if the PR moved while the agent worked.
-            git -c core.hooksPath=/dev/null push -q "$remote" "HEAD:refs/heads/${REF}"
+            git push -q "$remote" "HEAD:refs/heads/${REF}"
             echo "result=pushed" >> "$GITHUB_OUTPUT"
           else
             branch="${BRANCH_PREFIX}/issue-${NUMBER}-${GITHUB_RUN_ID}"
-            git -c core.hooksPath=/dev/null push -q "$remote" "HEAD:refs/heads/${branch}"
+            git push -q "$remote" "HEAD:refs/heads/${branch}"
             url="$(gh pr create --head "$branch" --base "$REF" --title "${BRANCH_PREFIX}: ${task_line}" \
               --body "Refs #${NUMBER}. Requested by @${ACTOR} in ${REQUEST_URL}. Generated by ${PROVIDER}; please review before merging.")"
             echo "pr_url=$url" >> "$GITHUB_OUTPUT"
@@ -1024,7 +1047,7 @@ jobs:
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Report result
-        if: always()
+        if: always() && steps.app-token.outputs.token != ''
         uses: actions/github-script@v8
         env:
           APP_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
@@ -1069,4 +1092,3 @@ jobs:
             }
 
       - *delete-artifacts
-
