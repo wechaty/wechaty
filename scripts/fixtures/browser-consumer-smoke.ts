@@ -208,38 +208,55 @@ describe('packed browser consumer smoke suite', () => {
     let dongReceived = false as boolean
     const replies: string[] = []
 
-    bot.on('error', err => {
-      console.error('bot error:', err)
+    // Official Wechaty 2.0 WinterTC EventTarget interface with CustomEvent
+    bot.addEventListener('error', (event: any) => {
+      console.error('bot error:', event.detail)
     })
 
-    bot.on('scan', (url, status) => {
-      if (status === ScanStatus.Waiting && Boolean(url)) {
+    bot.addEventListener('scan', (event: any) => {
+      const { qrcode, status } = event.detail
+      if (status === ScanStatus.Waiting && Boolean(qrcode)) {
         scanned = true
       }
     })
 
-    bot.on('login', contact => {
+    bot.addEventListener('login', (event: any) => {
+      const contact = event.detail
       if (contact.id === user.id) {
         loggedIn = true
       }
     })
 
-    bot.on('ready', () => {
+    bot.addEventListener('ready', () => {
       readyFired = true
     })
 
-    bot.on('dong', data => {
-      if (data === 'ping-test') {
+    bot.addEventListener('dong', (event: any) => {
+      if (event.detail === 'ping-test') {
         dongReceived = true
       }
     })
 
-    bot.on('message', async msg => {
+    bot.addEventListener('message', async (event: any) => {
+      const msg = event.detail
       if (msg.text() === 'ding') {
         await msg.say('dong')
         replies.push('dong')
       }
     })
+
+    // Test native AbortSignal listener cancellation on standard EventTarget
+    const abortController = new AbortController()
+    let abortableCallCount = 0
+    bot.addEventListener(
+      'message',
+      (event: any) => {
+        if (event.detail?.text?.() === 'ding') {
+          abortableCallCount++
+        }
+      },
+      { signal: abortController.signal },
+    )
 
     // 1. Start bot and verify initial state
     await bot.start()
@@ -267,9 +284,19 @@ describe('packed browser consumer smoke suite', () => {
       await new Promise(r => setTimeout(r, 50))
     }
     assert(
-      replies.length === 1 && replies[0] === 'dong',
+      (replies.length as number) === 1 && replies[0] === 'dong',
       `Bot must reply "dong" to "ding", received: ${JSON.stringify(replies)}`,
     )
+    assert(abortableCallCount === 1, 'Abortable listener must receive first message')
+
+    // Abort the message listener and verify it receives no further emissions
+    abortController.abort()
+    player.say('ding').to(user)
+    for (let i = 0; i < 20 && replies.length === 1; i++) {
+      await new Promise(r => setTimeout(r, 50))
+    }
+    assert((replies.length as number) === 2, 'Bot must reply to second message')
+    assert(abortableCallCount === 1, 'Aborted listener must not receive further messages')
 
     // 5. Heartbeat / ping-pong via bot.ding()
     bot.ding('ping-test')

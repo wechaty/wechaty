@@ -4,7 +4,11 @@ import type { Constructor }           from 'clone-class'
 import type {
   WechatyMixinProtectedProperty,
 }                                     from '../wechaty-mixins/mod.ts'
-import type { WechatyEventListeners } from '../schemas/mod.ts'
+import type {
+  WechatyEventListeners,
+  WechatyEventDetailMap,
+  WechatyCustomEvent,
+} from '../schemas/mod.ts'
 import { validationMixin }            from '../user-mixins/mod.ts'
 
 import type {
@@ -44,9 +48,83 @@ type AllProtectedProperty =
  *    or will run into error: cyclic dependency?
  */
 interface WechatyEventEmitter {
-  on:   <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
-  off:  <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+  /**
+   * Registers an event listener on the Wechaty bot instance using the standard WinterTC EventTarget interface.
+   *
+   * @param type - Name of the Wechaty event (e.g. 'message', 'scan', 'login', 'ready', 'error').
+   * @param listener - Callback receiving the CustomEvent with `event.detail`.
+   * @param options - Standard AddEventListenerOptions, including native `{ signal: abortSignal, once: boolean }`.
+   */
+  addEventListener<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    listener: (this: WechatyInterface, event: WechatyCustomEvent<E>) => void | Promise<void>,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+
+  /**
+   * Removes an event listener previously registered with `addEventListener`.
+   *
+   * @param type - Name of the Wechaty event.
+   * @param listener - Listener callback to remove.
+   * @param options - Standard EventListenerOptions.
+   */
+  removeEventListener<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    listener: (this: WechatyInterface, event: WechatyCustomEvent<E>) => void | Promise<void>,
+    options?: boolean | EventListenerOptions,
+  ): void
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | EventListenerOptions,
+  ): void
+
+  /**
+   * Dispatches an event on the Wechaty instance.
+   *
+   * @param event - Standard Event to dispatch.
+   */
+  dispatchEvent(event: Event): boolean
+
+  /**
+   * Registers a listener callback for the specified Wechaty event.
+   *
+   * @deprecated Use `addEventListener(type, listener, options)` instead. Will be removed in Wechaty v3.0.
+   */
+  on:   <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: AddEventListenerOptions) => WechatyInterface
+
+  /**
+   * Removes a previously registered listener callback.
+   *
+   * @deprecated Use `removeEventListener(type, listener)` instead. Will be removed in Wechaty v3.0.
+   */
+  off:  <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: EventListenerOptions) => WechatyInterface
+
+  /**
+   * Registers a one-time listener callback for the specified Wechaty event.
+   *
+   * @deprecated Use `addEventListener(type, listener, { once: true })` instead. Will be removed in Wechaty v3.0.
+   */
   once: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+
+  /**
+   * Registers a listener callback for the specified Wechaty event.
+   *
+   * @deprecated Use `addEventListener(type, listener, options)` instead. Will be removed in Wechaty v3.0.
+   */
+  addListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+
+  /**
+   * Removes a previously registered listener callback.
+   *
+   * @deprecated Use `removeEventListener(type, listener)` instead. Will be removed in Wechaty v3.0.
+   */
+  removeListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
 }
 
 type WechatyInterface = Omit<WechatyImplInterface, AllProtectedProperty>

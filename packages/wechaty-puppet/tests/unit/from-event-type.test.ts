@@ -78,5 +78,6 @@ test('RxJS: fromEvent type inference', async _t => {
   const typeTest2: AssertEqual<EventScanPayload, typeof result> = true
   assert.ok(typeTest2, 'should be equal type')
 
-  assert.deepEqual(result, payload, 'should get scan payload')
+  const actualPayload = result instanceof CustomEvent ? result.detail : result
+  assert.deepEqual(actualPayload, payload, 'should get scan payload')
 })

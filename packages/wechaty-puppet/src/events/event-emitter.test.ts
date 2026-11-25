@@ -79,3 +79,14 @@ test('EventEmitter throws on unhandled error event', () => {
   assert.doesNotThrow(() => ee.emit('error', new Error('handled')))
   assert.equal(caught?.message, 'handled')
 })
+
+test('EventEmitter prependListener and prependOnceListener', () => {
+  const ee = new EventEmitter()
+  let count = 0
+  ee.prependOnceListener('test', () => {
+    count++
+  })
+  ee.emit('test')
+  ee.emit('test')
+  assert.equal(count, 1)
+})

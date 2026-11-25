@@ -70,14 +70,62 @@ interface PuppetEventListener {
   stop           : PuppetStopListener,
 }
 
-const PuppetEventEmitter = EventEmitter as unknown as new () =>
-  TypedEventEmitter.default<PuppetEventListener>
+type PuppetEventDetail<E extends keyof PuppetEventListener> =
+  Parameters<PuppetEventListener[E]>[0] extends undefined
+    ? undefined
+    : Parameters<PuppetEventListener[E]>[0]
+
+type PuppetCustomEvent<E extends keyof PuppetEventListener> =
+  CustomEvent<PuppetEventDetail<E>>
+
+type PuppetEventTargetListener<E extends keyof PuppetEventListener> =
+  | ((event: PuppetCustomEvent<E>) => void | Promise<void>)
+  | { handleEvent (event: PuppetCustomEvent<E>): void | Promise<void> }
+
+interface PuppetEventTargetInterface {
+  /**
+   * Registers an event listener on the puppet instance using the standard WinterTC EventTarget interface.
+   *
+   * @param type - Name of the puppet event.
+   * @param listener - Callback receiving the CustomEvent with `event.detail`.
+   * @param options - Standard AddEventListenerOptions, including native `{ signal, once }`.
+   */
+  addEventListener: <E extends keyof PuppetEventListener>(
+    type: E,
+    listener: PuppetEventTargetListener<E>,
+    options?: boolean | AddEventListenerOptions,
+  ) => void
+
+  /**
+   * Removes an event listener previously registered with `addEventListener`.
+   *
+   * @param type - Name of the puppet event.
+   * @param listener - Callback to remove.
+   * @param options - Standard EventListenerOptions.
+   */
+  removeEventListener: <E extends keyof PuppetEventListener>(
+    type: E,
+    listener: PuppetEventTargetListener<E>,
+    options?: boolean | EventListenerOptions,
+  ) => void
+
+  dispatchEvent: (event: Event) => boolean
+}
+
+type PuppetEventEmitterInterface = TypedEventEmitter.default<PuppetEventListener> & PuppetEventTargetInterface
+
+const PuppetEventEmitter = EventEmitter as unknown as new () => PuppetEventEmitterInterface
 
 type PuppetEventName = keyof PuppetEventListener
 
 export type {
   PuppetEventListener,
   PuppetEventName,
+  PuppetEventDetail,
+  PuppetCustomEvent,
+  PuppetEventTargetListener,
+  PuppetEventTargetInterface,
+  PuppetEventEmitterInterface,
 }
 export {
   EventEmitter,

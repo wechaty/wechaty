@@ -10,6 +10,11 @@ import {
   WechatyEventEmitter,
   type WechatyEventListeners,
   type WechatyEventName,
+  type WechatyEventDetailMap,
+  type WechatyCustomEvent,
+  type WechatyEventTargetListener,
+  type WechatyEventTargetInterface,
+  type WechatyEventEmitterInterface,
 }                           from './wechaty-events.ts'
 import type {
   Accepter,
@@ -21,6 +26,11 @@ export type {
   RoomEventListeners,
   WechatyEventListeners,
   WechatyEventName,
+  WechatyEventDetailMap,
+  WechatyCustomEvent,
+  WechatyEventTargetListener,
+  WechatyEventTargetInterface,
+  WechatyEventEmitterInterface,
 }
 export {
   ContactEventEmitter,
