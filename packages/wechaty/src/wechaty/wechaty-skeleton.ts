@@ -122,13 +122,14 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     event: WechatyEventName,
     listener: (...args: any[]) => any,
     options?: AddEventListenerOptions,
+    prepend = false,
   ): this {
     log.verbose('WechatySkeleton', 'on(%s, listener) registering... listenerCount: %s',
       event,
       this.listenerCount(event),
     )
 
-    return (super.on as any)(event, listener, options)
+    return (super.on as any)(event, listener, options, prepend)
   }
 
 }

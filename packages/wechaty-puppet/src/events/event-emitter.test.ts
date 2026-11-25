@@ -214,3 +214,98 @@ test('EventEmitter once and AbortSignal targeted cleanup with multiple listeners
   ee.emit('ping')
   assert.equal(count, 3)
 })
+
+test('EventEmitter prependListener does not break existing once or signal listeners', () => {
+  const ee = new EventEmitter()
+  const ac = new AbortController()
+  let onceRan = 0
+  let abortRan = 0
+  let prependedRan = 0
+
+  ee.once('test', () => { onceRan++ })
+  ee.on('test', () => { abortRan++ }, { signal: ac.signal })
+  ee.prependListener('test', () => { prependedRan++ })
+
+  ee.emit('test')
+  assert.equal(prependedRan, 1)
+  assert.equal(onceRan, 1)
+  assert.equal(abortRan, 1)
+
+  // Second emission: once listener should not run again
+  ee.emit('test')
+  assert.equal(onceRan, 1, 'once listener must not run again after prepend')
+  assert.equal(abortRan, 2)
+
+  // Abort signal: abort listener should not run
+  ac.abort()
+  ee.emit('test')
+  assert.equal(abortRan, 2, 'aborted listener must not run after prepend')
+})
+
+test('EventEmitter branch coverage edge cases: abort signal, EventListenerObject, direct dispatchEvent', () => {
+  const ee = new EventEmitter()
+
+  // 1. Static listenerCount fallback
+  assert.equal(EventEmitter.listenerCount({} as any, 'foo'), 0)
+
+  // 2. addEventListener / on with pre-aborted signal
+  const preAbortedAc = new AbortController()
+  preAbortedAc.abort()
+  ee.addEventListener('preabort', () => {}, { signal: preAbortedAc.signal })
+  assert.equal(ee.listenerCount('preabort'), 0)
+  ee.on('preabort', () => {}, { signal: preAbortedAc.signal })
+  assert.equal(ee.listenerCount('preabort'), 0)
+
+  // 3. addEventListener with null / falsy listener
+  ee.addEventListener('null-test', null)
+  assert.equal(ee.listenerCount('null-test'), 0)
+
+  // 4. removeEventListener with null or non-existent event
+  ee.removeEventListener('null-test', null)
+  ee.removeEventListener('non-existent', () => {})
+
+  // 5. EventListenerObject support and listeners()/rawListeners() fallback
+  let handleEventCalled = 0
+  const listenerObj = {
+    handleEvent (_evt: Event) {
+      handleEventCalled++
+    },
+  }
+  ee.addEventListener('obj-event', listenerObj, { once: true })
+  assert.equal(ee.listenerCount('obj-event'), 1)
+  const fnList = ee.listeners('obj-event')
+  assert.equal(fnList.length, 1)
+  assert.equal(typeof fnList[0], 'function')
+  fnList[0]?.() // invoke fallback no-op
+
+  const rawList = ee.rawListeners('obj-event')
+  assert.equal(rawList.length, 1)
+  assert.equal(typeof rawList[0], 'function')
+
+  ee.dispatchEvent(new Event('obj-event'))
+  assert.equal(handleEventCalled, 1)
+  assert.equal(ee.listenerCount('obj-event'), 0) // once consumed
+
+  // 6. Direct dispatchEvent without emit (EVENT_ARGS_MAP not set)
+  let receivedArgs: any[] = []
+  ee.on('direct', (...args: any[]) => {
+    receivedArgs = args
+  })
+  ee.dispatchEvent(new CustomEvent('direct', { detail: { value: 42 } }))
+  assert.deepEqual(receivedArgs, [{ value: 42 }])
+
+  ee.dispatchEvent(new Event('direct'))
+  assert.deepEqual(receivedArgs, [])
+
+  // 7. removeAllListeners with active AbortSignal listener cleanup
+  const ac1 = new AbortController()
+  const ac2 = new AbortController()
+  ee.on('cleanup-single', () => {}, { signal: ac1.signal })
+  ee.removeAllListeners('cleanup-single')
+  assert.equal(ee.listenerCount('cleanup-single'), 0)
+
+  ee.on('cleanup-all', () => {}, { signal: ac2.signal })
+  ee.removeAllListeners()
+  assert.equal(ee.listenerCount('cleanup-all'), 0)
+})
+
