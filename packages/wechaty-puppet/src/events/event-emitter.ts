@@ -24,7 +24,7 @@ interface ListenerEntry {
   abortCleanup?: () => void
 }
 
-const MULTI_ARGS_SYMBOL = Symbol('multi_args')
+const EVENT_ARGS_MAP = new WeakMap<Event, unknown[]>()
 
 /**
  * Portable, cross-runtime EventEmitter adhering to standard WinterTC EventTarget semantics.
@@ -242,13 +242,16 @@ export class EventEmitter extends EventTarget {
           super.removeEventListener(eventName, entry.wrapped, options)
         }
       }
-      const detail = (e as CustomEvent).detail
-      if (detail && (detail as any)[MULTI_ARGS_SYMBOL]) {
-        listener.apply(this, detail)
-      } else if (detail !== undefined) {
-        listener.call(this, detail)
+      const rawArgs = EVENT_ARGS_MAP.get(e)
+      if (rawArgs !== undefined) {
+        listener.apply(this, rawArgs)
       } else {
-        listener.call(this)
+        const detail = (e as CustomEvent).detail
+        if (detail !== null && detail !== undefined) {
+          listener.call(this, detail)
+        } else {
+          listener.call(this)
+        }
       }
     }
     entry.wrapped = wrapper
@@ -462,7 +465,6 @@ export class EventEmitter extends EventTarget {
       detail = args[0]
     } else {
       detail = [...args]
-      ;(detail as any)[MULTI_ARGS_SYMBOL] = true
       if (eventName === 'scan') {
         detail.qrcode = args[0]
         detail.status = args[1]
@@ -493,6 +495,7 @@ export class EventEmitter extends EventTarget {
       cancelable: true,
       detail,
     })
+    EVENT_ARGS_MAP.set(customEvent, args)
 
     this.dispatchEvent(customEvent)
     return true

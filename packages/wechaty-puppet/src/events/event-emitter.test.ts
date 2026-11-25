@@ -153,16 +153,36 @@ test('EventEmitter addEventListener deduplication and EventTarget methods', () =
   assert.equal(count, 1)
 })
 
-test('EventEmitter emit preserves single array argument', () => {
+test('EventEmitter emit preserves single array argument and 0-argument emissions', () => {
   const ee = new EventEmitter()
   let received: any
+  let argCount = -1
 
-  ee.on('array-test', arg => {
-    received = arg
+  ee.on('array-test', (...args) => {
+    received = args[0]
+    argCount = args.length
   })
 
   ee.emit('array-test', ['first', 'second'])
-  assert.deepEqual(received, ['first', 'second'], 'single array argument must not be unpacked')
+  assert.equal(argCount, 1, 'single array argument must not be unpacked')
+  assert.deepEqual(received, ['first', 'second'])
+
+  let zeroArgCount = -1
+  ee.on('zero-arg', (...args) => {
+    zeroArgCount = args.length
+  })
+  ee.emit('zero-arg')
+  assert.equal(zeroArgCount, 0, '0-arg emission must invoke listener with 0 arguments, not null')
+
+  let undefinedArgCount = -1
+  let undefinedVal: any = 'not-set'
+  ee.on('undefined-arg', (...args) => {
+    undefinedArgCount = args.length
+    undefinedVal = args[0]
+  })
+  ee.emit('undefined-arg', undefined)
+  assert.equal(undefinedArgCount, 1)
+  assert.equal(undefinedVal, undefined)
 })
 
 test('EventEmitter multi-argument custom event enrichment', () => {
