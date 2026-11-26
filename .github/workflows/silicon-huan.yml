@@ -481,9 +481,17 @@ jobs:
               const progressBody = comment.body
               const intent = `<!-- huan-verdict-intent head=${HEAD_SHA} base=${BASE_SHA} -->`
               // Persist the write intent before POST so a lost response cannot trigger a blind repeat.
-              await github.rest.issues.updateComment({ ...progress, body: `${progressBody}\n\n${intent}` })
-              if (!await isCurrent()) {
-                await github.rest.issues.updateComment({ ...progress, body: progressBody })
+              const clearIntent = () => github.rest.issues.updateComment({ ...progress, body: progressBody })
+              let current
+              try {
+                await github.rest.issues.updateComment({ ...progress, body: `${progressBody}\n\n${intent}` })
+                current = await isCurrent()
+              } catch (error) {
+                await clearIntent()
+                throw error
+              }
+              if (!current) {
+                await clearIntent()
                 return partial('skipped')
               }
               try {
@@ -494,7 +502,7 @@ jobs:
               } catch (error) {
                 if ([400, 401, 403, 404, 422].includes(error.status)) {
                   // GitHub rejected the write. A rerun may proceed once the intent is cleared.
-                  await github.rest.issues.updateComment({ ...progress, body: progressBody })
+                  await clearIntent()
                   throw error
                 }
                 partial('unconfirmed')
