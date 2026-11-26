@@ -8,6 +8,7 @@ import {
   Puppet,
   PuppetImpl,
   type PuppetProtectedProperty,
+  type PuppetState,
 } from './puppet-abstract.ts'
 
 /**
@@ -21,6 +22,7 @@ export type {
   PuppetProtectedProperty,
   PuppetConstructor,
   PuppetInterface,
+  PuppetState,
 }
 export {
   Puppet,

@@ -66,7 +66,7 @@ function validateExpectedError (
   assertionMessage?: string,
 ): void {
   if (expected instanceof RegExp) {
-    const msg = thrownError instanceof Error ? thrownError.message : String(thrownError)
+    const msg = thrownError instanceof Error ? `${thrownError.name}: ${thrownError.message}` : String(thrownError)
     chaiAssert.match(msg, expected, assertionMessage)
   } else if (typeof expected === 'function') {
     if ((expected as any).prototype instanceof Error || expected === Error) {

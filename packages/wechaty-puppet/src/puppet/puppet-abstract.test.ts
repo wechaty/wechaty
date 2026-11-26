@@ -845,6 +845,53 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
   assert.equal(failingStopPuppet.state.inactive(), true)
 })
 
+test('start() failure teardown, error identity without error listeners, and retry safety', async _t => {
+  const puppet = new PuppetTest()
+  let attempts = 0
+  mock.method(puppet, 'onStart', async () => {
+    attempts++
+    if (attempts === 1) {
+      throw new Error('boom onStart')
+    }
+  })
+
+  // 1. Verify exact error thrown without wrapping in unhandled error
+  await assert.rejects(async () => puppet.start(), (err: any) => {
+    assert.equal(err.message, 'boom onStart')
+    return true
+  })
+
+  // 2. State settles to inactive/failed with complete cleanup
+  assert.equal(puppet.state.inactive(), true)
+  assert.equal((puppet.state as any).kind, 'failed')
+  assert.equal(puppet.authQrCode, undefined)
+  assert.equal(puppet.isLoggedIn, false)
+
+  // 3. Retry start succeeds cleanly without duplicate listeners or leaked resources
+  await puppet.start()
+  assert.equal((puppet.state as any).kind, 'running')
+
+  // 4. Test restart and reset
+  await puppet.restart()
+  assert.equal((puppet.state as any).kind, 'running')
+
+  await puppet.reset('watchdog test')
+  assert.equal((puppet.state as any).kind, 'running')
+
+  await puppet.stop()
+  assert.equal((puppet.state as any).kind, 'stopped')
+})
+
+test('Symbol.asyncDispose stops puppet when leaving scope', async _t => {
+  const puppet = new PuppetTest()
+  {
+    await using p = puppet
+    await p.start()
+    assert.equal(p.state.active(), true)
+  }
+  assert.equal(puppet.state.inactive(), true)
+})
+
 test('roomMemberPayload caches by memberId and stop() resets authQrCode', async _t => {
   const puppet = new PuppetTest()
   await puppet.start()
@@ -868,5 +915,254 @@ test('roomMemberPayload caches by memberId and stop() resets authQrCode', async 
   await puppet.stop()
   assert.equal(puppet.authQrCode, undefined, 'authQrCode must be cleared after stop()')
 })
+
+test('stop-time logout event fires, clears currentUserId, and allows subsequent login', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+
+  let logoutFired = false
+  let logoutContactId: string | undefined
+  puppet.on('logout', (payload: any) => {
+    logoutFired = true
+    logoutContactId = payload?.contactId ?? payload?.detail?.contactId
+  })
+
+  puppet.login('user-123')
+  assert.equal(puppet.isLoggedIn, true)
+  assert.equal(puppet.currentUserId, 'user-123')
+
+  await puppet.stop()
+
+  assert.equal(logoutFired, true, 'logout event must fire on stop()')
+  assert.equal(logoutContactId, 'user-123', 'logout event must have contactId')
+  assert.equal(puppet.isLoggedIn, false, 'isLoggedIn must be false after stop()')
+  assert.equal(puppet.__currentUserId, undefined, '__currentUserId must be cleared after stop()')
+
+  // Subsequent start allows login without error
+  await puppet.start()
+  assert.doesNotThrow(() => puppet.login('user-456'), 'subsequent start allows login without throwing')
+  assert.equal(puppet.isLoggedIn, true)
+  assert.equal(puppet.currentUserId, 'user-456')
+  await puppet.stop()
+})
+
+test('logout() listener observes isLoggedIn === true and currentUserId during dispatch, and false after settlement', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+  puppet.login('user-observer')
+
+  let listenerSawLoggedIn: boolean | undefined
+  let listenerSawUserId: string | undefined
+
+  puppet.on('logout', (payload: any) => {
+    listenerSawLoggedIn = puppet.isLoggedIn
+    listenerSawUserId = puppet.currentUserId
+    assert.equal(payload?.contactId ?? payload?.detail?.contactId, 'user-observer')
+  })
+
+  await puppet.logout('user requested')
+
+  assert.equal(listenerSawLoggedIn, true, 'isLoggedIn must remain true during synchronous logout event dispatch')
+  assert.equal(listenerSawUserId, 'user-observer', 'currentUserId must remain defined during synchronous logout event dispatch')
+  assert.equal(puppet.isLoggedIn, false, 'isLoggedIn must become false after logout settles')
+  assert.equal(puppet.__currentUserId, undefined, '__currentUserId must become undefined after logout settles')
+  assert.throws(() => puppet.currentUserId, /not logged in/)
+
+  await puppet.stop()
+})
+
+test('puppet.isLoggedIn is true inside onStop() and stop-time logout listener', async _t => {
+  let onStopSawLoggedIn: boolean | undefined
+  let onStopSawUserId: string | undefined
+  let logoutSawLoggedIn: boolean | undefined
+
+  class OnStopCheckingPuppet extends PuppetTest {
+    override async onStop (): Promise<void> {
+      onStopSawLoggedIn = this.isLoggedIn
+      onStopSawUserId = this.currentUserId
+    }
+  }
+
+  const puppet = new OnStopCheckingPuppet()
+  await puppet.start()
+  puppet.login('user-onstop')
+
+  puppet.on('logout', () => {
+    logoutSawLoggedIn = puppet.isLoggedIn
+  })
+
+  await puppet.stop()
+
+  assert.equal(onStopSawLoggedIn, true, 'isLoggedIn must be true inside onStop()')
+  assert.equal(onStopSawUserId, 'user-onstop', 'currentUserId must be defined inside onStop()')
+  assert.equal(logoutSawLoggedIn, true, 'isLoggedIn must be true inside stop-time logout listener')
+  assert.equal(puppet.isLoggedIn, false, 'isLoggedIn must be false after stop completes')
+})
+
+test('concurrent logout() and stop() dispatches logout exactly once without duplicates', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+  puppet.login('user-unique')
+
+  let logoutCount = 0
+  puppet.on('logout', () => {
+    logoutCount++
+  })
+
+  // Trigger logout and stop concurrently
+  await Promise.all([
+    puppet.logout('user requested'),
+    puppet.stop(),
+  ])
+
+  assert.equal(logoutCount, 1, 'logout event must only fire once')
+  assert.equal(puppet.isLoggedIn, false)
+})
+
+test('void puppet.logout() followed by await puppet.stop() clears login state and allows login on next start', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+  puppet.login('user-fast-stop')
+
+  // void logout and immediately stop in microtasks before setTimeout settles
+  void puppet.logout('fast stop')
+  await puppet.stop()
+
+  assert.equal(puppet.isLoggedIn, false, 'puppet must be logged out after stop')
+  assert.equal(puppet.__currentUserId, undefined, '__currentUserId must be cleared after stop')
+  assert.throws(() => puppet.currentUserId, /not logged in/)
+
+  // Subsequent start allows login without error
+  await puppet.start()
+  assert.doesNotThrow(() => puppet.login('user-fresh'), 'subsequent start allows login without throwing')
+  assert.equal(puppet.isLoggedIn, true)
+  assert.equal(puppet.currentUserId, 'user-fresh')
+  await puppet.stop()
+})
+
+test('void puppet.logout() followed by await puppet.restart() clears login state and allows login', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+  puppet.login('user-fast-restart')
+
+  void puppet.logout('fast restart')
+  await puppet.restart()
+
+  assert.equal(puppet.isLoggedIn, false, 'puppet must be logged out after restart')
+  assert.equal(puppet.__currentUserId, undefined, '__currentUserId must be cleared after restart')
+  assert.doesNotThrow(() => puppet.login('user-restarted'), 'restarted puppet allows clean login')
+  assert.equal(puppet.isLoggedIn, true)
+  await puppet.stop()
+})
+
+test('provider-emitted logout event followed by re-login does not wipe login or ready state', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+  puppet.login('user-prov-1')
+  puppet.readyIndicator.value(true)
+
+  // Provider emits logout directly
+  puppet.emit('logout', { contactId: 'user-prov-1', data: 'session expired' })
+  await new Promise<void>(resolve => setTimeout(resolve, 10))
+
+  assert.equal(puppet.isLoggedIn, false, 'isLoggedIn must become false after provider logout settles')
+  assert.equal(puppet.__currentUserId, undefined, 'currentUserId must be cleared after provider logout settles')
+
+  // Re-login with new user
+  puppet.login('user-prov-2')
+  puppet.readyIndicator.value(true)
+
+  // Wait for timers in next tick
+  await new Promise<void>(resolve => setTimeout(resolve, 50))
+
+  assert.equal(puppet.isLoggedIn, true, 'isLoggedIn must remain true after re-login')
+  assert.equal(puppet.currentUserId, 'user-prov-2', 'currentUserId must reflect the new login')
+  assert.equal(puppet.readyIndicator.value(), true, 'readyIndicator must remain true after re-login')
+
+  await puppet.stop()
+})
+
+test('stop-while-starting (padlocal#116) triggers onStop and settles start cleanly', async _t => {
+  let onStopCalled = false
+  const stopped = Promise.withResolvers<void>()
+
+  class HangingStartPuppet extends PuppetTest {
+    override async onStart (): Promise<void> {
+      // Hangs until onStop is called (padlocal#116 pattern)
+      await stopped.promise
+    }
+    override async onStop (): Promise<void> {
+      onStopCalled = true
+      stopped.resolve()
+    }
+  }
+
+  const puppet = new HangingStartPuppet()
+  const startPromise = puppet.start()
+  const startRejection = assert.rejects(startPromise, /LifecycleSupersededError/)
+
+  // Give start a microtick to enter onStart
+  await new Promise<void>(resolve => setTimeout(resolve, 50))
+  assert.equal(puppet.state.kind, 'starting')
+
+  // Stop while starting
+  await puppet.stop()
+  await startRejection
+
+  assert.equal(onStopCalled, true, 'onStop must be called when stopped during startup')
+  assert.equal(puppet.state.inactive(), true, 'puppet must be inactive after stop')
+})
+
+test('inactive reset does not start puppet', async _t => {
+  const puppet = new PuppetTest()
+  assert.equal(puppet.state.inactive(), true)
+
+  await puppet.reset('reset inactive')
+  assert.equal(puppet.state.inactive(), true, 'reset on inactive puppet must not start it')
+  assert.equal((puppet.state as any).kind, 'stopped')
+})
+
+test('executeOperation drains in-flight work on retirement and runs cleanly', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+
+  let workCompleted = false
+  let signalObserved: AbortSignal | undefined
+
+  const opPromise = puppet.executeOperation(async signal => {
+    signalObserved = signal
+    await new Promise<void>(resolve => setTimeout(resolve, 50))
+    workCompleted = true
+    return 'done'
+  })
+
+  // Concurrently stop while operation is in-flight
+  await puppet.stop()
+  const result = await opPromise
+
+  assert.equal(result, 'done')
+  assert.equal(workCompleted, true, 'in-flight operation must complete before stop returns')
+  assert.ok(signalObserved?.aborted, 'operation signal should be aborted during retirement')
+})
+
+test('cross-generation ready condition wait binds to next generation', async _t => {
+  const puppet = new PuppetTest()
+  assert.equal(puppet.state.inactive(), true)
+
+  let readyResolved = false
+  const readyFuture = puppet.ready().then(() => {
+    readyResolved = true
+  })
+
+  assert.equal(readyResolved, false, 'ready future must not resolve before start')
+
+  await puppet.start()
+  puppet.emit('ready')
+  await readyFuture
+
+  assert.equal(readyResolved, true, 'ready future should resolve when started generation emits ready')
+  await puppet.stop()
+})
+
 
 
