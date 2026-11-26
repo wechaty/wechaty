@@ -12,6 +12,9 @@ jobs:
       github.event_name == 'push' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
        (github.event.action != 'edited' || github.event.changes.base != null))
+    concurrency:
+      group: huan-reconcile-${{ github.event.pull_request.number || 'main' }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -51,7 +54,7 @@ jobs:
             }
 
             /** Reflect the withdrawal on the original progress comment and clear its success reaction. */
-            const updateProgress = async (number, runId) => {
+            const updateProgress = async (number, runId, request) => {
               const marker = `<!-- antigravity-next-progress run=${runId} -->`
               const comments = github.paginate.iterator(github.rest.issues.listComments, {
                 ...repository, issue_number: number, per_page: 100,
@@ -66,13 +69,14 @@ jobs:
                 if (!body.includes(result)) {
                   await github.rest.issues.updateComment({ ...repository, comment_id: progress.id, body: `${body}\n\n${result}` })
                 }
-                const reactions = { ...repository, comment_id: progress.id }
-                for await (const page of github.paginate.iterator(github.rest.reactions.listForIssueComment, {
-                  ...reactions, content: 'hooray', per_page: 100,
+                const target = request ?? `issues/comments/${progress.id}`
+                const endpoint = `/repos/${owner}/${repo}/${target}/reactions`
+                for await (const page of github.paginate.iterator(`GET ${endpoint}`, {
+                  content: 'hooray', per_page: 100,
                 })) {
                   for (const { id } of page.data.filter(reaction => reaction.user?.login === app)) {
                     try {
-                      await github.rest.reactions.deleteForIssueComment({ ...reactions, reaction_id: id })
+                      await github.request(`DELETE ${endpoint}/${id}`)
                     } catch (error) {
                       if (error.status !== 404) throw error
                     }
@@ -82,11 +86,31 @@ jobs:
               }
             }
 
+            const { action, before, changes } = context.payload
+            const lagDeadline = Date.now() + 12000
+            /** Detect pre-event metadata without using an old event as the current comparison. */
+            const stillBeforeEvent = pr => {
+              if (context.eventName === 'push') return Boolean(before) && pr.base.sha === before
+              if (action === 'synchronize') return Boolean(before) && pr.head.sha === before
+              if (action !== 'edited') return false
+              const previous = changes?.base
+              return previous?.sha?.from ? pr.base.sha === previous.sha.from
+                : Boolean(previous?.ref?.from) && pr.base.ref === previous.ref.from
+            }
+
             /** Withdraw only this app's formal verdicts for comparisons that are no longer current. */
             const reconcile = async number => {
               const pull = { ...repository, pull_number: number }
-              const { data: pr } = await github.rest.pulls.get(pull)
+              let { data: pr } = await github.rest.pulls.get(pull)
+              while (pr.state === 'open' && stillBeforeEvent(pr) && Date.now() < lagDeadline) {
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                pr = (await github.rest.pulls.get(pull)).data
+              }
               if (pr.state !== 'open' || pr.head.repo?.full_name !== `${owner}/${repo}`) return
+              if (stillBeforeEvent(pr)) {
+                core.warning(`PR #${number} still reports the pre-event revision. Reconciliation deferred.`)
+                return
+              }
               const reviews = await github.paginate(github.rest.pulls.listReviews, { ...pull, per_page: 100 })
               for (const review of reviews) {
                 const reviewed = revision(review)
@@ -103,11 +127,13 @@ jobs:
                 } catch (error) {
                   const { data } = await github.rest.pulls.getReview(target)
                   if (data.state !== 'DISMISSED') throw error
+                  continue
                 }
                 core.info(`Withdrew stale Huan verdict ${review.id} on PR #${number}.`)
                 if (reviewed.runId) {
                   try {
-                    await updateProgress(number, reviewed.runId)
+                    const request = /^<!-- huan-review-request target=((?:issues|pulls)\/comments\/\d+) -->\r?$/m.exec(review.body)?.[1]
+                    await updateProgress(number, reviewed.runId, request)
                   } catch (error) {
                     core.warning(`Verdict withdrawn, but progress cleanup on PR #${number} failed: ${error.message}`)
                   }

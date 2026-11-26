@@ -428,6 +428,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
+          REACTION_ENDPOINT: ${{ steps.reactions.outputs.endpoint }}
           RECOVERY: ${{ steps.progress.outputs.recovery }}
           NUMBER: ${{ needs.authorize.outputs.number }}
           HEAD_SHA: ${{ needs.authorize.outputs.sha }}
@@ -456,6 +457,8 @@ jobs:
               BASE_SHA = intent[2]
             }
             const runMarker = `<!-- huan-verdict run=${context.runId} head=${HEAD_SHA} base=${BASE_SHA} -->`
+            const request = /\/((?:issues|pulls)\/comments\/\d+)\/reactions$/.exec(process.env.REACTION_ENDPOINT)?.[1]
+            const requestMarker = request ? `\n<!-- huan-review-request target=${request} -->` : ''
             const pairMarker = `<!-- huan-review-pair head=${HEAD_SHA} base=${BASE_SHA} -->`
             const isCurrent = async () => {
               const { data } = await github.rest.pulls.get(pull)
@@ -513,7 +516,7 @@ jobs:
               }
               try {
                 const result = await github.rest.pulls.createReview({
-                  ...pull, commit_id: HEAD_SHA, event, body: `${body.trim()}\n\n— Huanˢⁱ ⚡\n\n${runMarker}`,
+                  ...pull, commit_id: HEAD_SHA, event, body: `${body.trim()}\n\n— Huanˢⁱ ⚡\n\n${runMarker}${requestMarker}`,
                 })
                 verdict = result.data
               } catch (error) {
@@ -535,6 +538,7 @@ jobs:
               await new Promise(resolve => setTimeout(resolve, 8000))
               current = await isCurrent()
             }
+            verdict = (await github.rest.pulls.getReview(target)).data
             if (verdict.state === 'DISMISSED') {
               return partial('dismissed')
             }
@@ -553,6 +557,7 @@ jobs:
             if (context.eventName === 'pull_request_target' && !verdict.body.endsWith(pairMarker)) {
               await github.rest.pulls.updateReview({ ...target, body: `${verdict.body}\n\n${pairMarker}` })
             }
+            core.setOutput('review_id', String(verdict.id))
             partial('')
 
       - name: Finalize progress
@@ -561,6 +566,8 @@ jobs:
         uses: actions/github-script@v8
         env:
           COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
+          REVIEW_ID: ${{ steps.verdict.outputs.review_id }}
+          NUMBER: ${{ needs.authorize.outputs.number }}
           RUN_STATUS: ${{ job.status }}
           PARTIAL: ${{ steps.verdict.outputs.partial }}
           DUPLICATE: ${{ steps.pair.outputs.duplicate }}
@@ -570,12 +577,21 @@ jobs:
           script: |
             const comment = { ...context.repo, comment_id: Number(process.env.COMMENT_ID) }
             const { data } = await github.rest.issues.getComment(comment)
+            const withdrawn = '**Review partial. The PR changed and the verdict was withdrawn.**'
+            if (data.body.includes(withdrawn)) return
+            let reason = process.env.PARTIAL
+            if (!reason && process.env.REVIEW_ID) {
+              const { data: verdict } = await github.rest.pulls.getReview({
+                ...context.repo, pull_number: Number(process.env.NUMBER), review_id: Number(process.env.REVIEW_ID),
+              })
+              if (verdict.state === 'DISMISSED') reason = 'dismissed'
+            }
             const partial = {
               skipped: 'partial. The PR changed and the verdict was skipped',
               withdrawn: 'partial. The PR changed and the verdict was withdrawn',
               dismissed: 'partial. The verdict had already been dismissed',
               unconfirmed: 'partial. Verdict publication or withdrawal could not be confirmed. Inspect the PR before retrying',
-            }[process.env.PARTIAL]
+            }[reason]
             const outcome = partial ?? (process.env.RUN_STATUS === 'success' && process.env.DUPLICATE === 'true'
                 ? 'skipped. An automatic review and verdict already exist for this HEAD and BASE'
                 : { success: 'completed', cancelled: 'cancelled' }[process.env.RUN_STATUS] ?? 'failed')
@@ -598,6 +614,8 @@ jobs:
           EYES_ID: ${{ steps.reactions.outputs.eyes_id }}
           ROCKET_ID: ${{ steps.rocket.outputs.rocket_id }}
           JOB_STATUS: ${{ job.status }}
+          REVIEW_ID: ${{ steps.verdict.outputs.review_id }}
+          NUMBER: ${{ needs.authorize.outputs.number }}
           AGENT_OUTCOME: ${{ steps.agent.outcome }}
           RECOVERY: ${{ steps.progress.outputs.recovery }}
           VERDICT_OUTCOME: ${{ steps.verdict.outcome }}
@@ -617,5 +635,16 @@ jobs:
             const completed = AGENT_OUTCOME === 'success' ||
               (RECOVERY === 'true' && VERDICT_OUTCOME === 'success')
             if (JOB_STATUS === 'success' && completed && !PARTIAL && DUPLICATE !== 'true') {
-              await github.request(`POST ${ENDPOINT}`, { content: 'hooray' })
+              const reviewId = Number(process.env.REVIEW_ID)
+              const isActive = async () => {
+                const { data } = await github.rest.pulls.getReview({
+                  ...context.repo, pull_number: Number(process.env.NUMBER), review_id: reviewId,
+                })
+                return data.state === 'APPROVED' || data.state === 'CHANGES_REQUESTED'
+              }
+              if (reviewId && !await isActive()) return
+              const { status, data } = await github.request(`POST ${ENDPOINT}`, { content: 'hooray' })
+              if (reviewId && status === 201 && !await isActive()) {
+                await github.request(`DELETE ${ENDPOINT}/${data.id}`)
+              }
             }
