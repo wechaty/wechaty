@@ -28,6 +28,7 @@
  * Owned by `Wechaty`. Internal to `packages/wechaty/src/components/`.
  */
 import { log } from 'wechaty-puppet'
+import { GError } from 'gerror'
 import type { Io } from '../io.ts'
 import type { WechatyOptions } from '../schemas/wechaty-options.ts'
 import type { Wechaty } from '../wechaty/wechaty.ts'
@@ -62,6 +63,8 @@ export class IoManager {
         await this.#io.stop()
       } catch (e) {
         this.#wechaty.emitError(e)
+      } finally {
+        this.#io = undefined
       }
     }
 
@@ -76,7 +79,9 @@ export class IoManager {
       await io.start()
       this.#io = io
     } catch (e) {
+      this.#io = undefined
       this.#wechaty.emitError(e)
+      throw GError.from(e)
     }
   }
 

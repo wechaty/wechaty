@@ -153,7 +153,7 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
   // --- Core State & Subsystem Getters ---
   get memory (): MemoryCard {
     if (!this.#memory) {
-      this.#memory = new MemoryCard({ name: this.#options.name || 'wechaty' })
+      throw new Error('NOMEMORY')
     }
     return this.#memory
   }
@@ -204,18 +204,36 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
   // --- Bot Lifecycle ---
   async init (): Promise<void> {
     log.verbose('Wechaty', 'init()')
-    const memory = this.memory
-    await memory.load().catch((e: unknown) => {
-      if (!(e instanceof Error && e.message.includes('already loaded'))) {
-        throw e
+    if (!this.#memory) {
+      const isBrowser = typeof (globalThis as any).process?.cwd !== 'function'
+      if (isBrowser) {
+        this.#memory = new MemoryCard({
+          name: typeof this.#options.name === 'string' ? this.#options.name : undefined,
+          storageOptions: { type: 'nop' },
+        })
+      } else {
+        this.#memory = new MemoryCard(this.#options.name)
       }
-    })
+    }
+    try {
+      await this.#memory.load()
+    } catch (err: any) {
+      if (!err?.message?.includes?.('already loaded')) {
+        throw err
+      }
+      log.silly('Wechaty', 'init() memory.load() had already loaded')
+    }
     await this.#puppetManager.init()
   }
 
   async start (): Promise<void> {
     log.verbose('Wechaty', 'start()')
 
+    if (this.#state.active() === 'pending') {
+      log.verbose('Wechaty', 'start() active is pending, waiting for stable...')
+      await this.#state.stable('active')
+      return
+    }
     if (this.#state.active()) {
       log.verbose('Wechaty', 'start() already active')
       return
@@ -229,21 +247,19 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
       const lifeTimer = setInterval(() => {
         log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
       }, 1000 * 60 * 60)
-      if (typeof (lifeTimer as any)?.unref === 'function') {
-        (lifeTimer as any).unref()
-      }
       this.#stopCallbackList.push(() => clearInterval(lifeTimer))
 
-      await this.#puppetManager.start()
       await this.#ioManager.start()
+      await this.#puppetManager.start()
 
       this.dispatchEvent(new WechatyEvent('start'))
       this.#state.active(true)
       log.verbose('Wechaty', 'start() ... done')
     } catch (e) {
-      this.#stopCallbackList.forEach(fn => fn())
-      this.#stopCallbackList.length = 0
-      this.#state.inactive(true)
+      log.error('Wechaty', 'start() exception: %s', (e as Error).message)
+      await this.stop().catch(stopErr => {
+        log.error('Wechaty', 'start() stop cleanup exception: %s', (stopErr as Error).message)
+      })
       this.emitError(e)
       throw GError.from(e)
     }
@@ -252,6 +268,11 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
   async stop (): Promise<void> {
     log.verbose('Wechaty', 'stop()')
 
+    if (this.#state.inactive() === 'pending') {
+      log.verbose('Wechaty', 'stop() inactive is pending, waiting for stable...')
+      await this.#state.stable('inactive')
+      return
+    }
     if (this.#state.inactive()) {
       log.verbose('Wechaty', 'stop() already inactive')
       this.#stopCallbackList.forEach(fn => fn())
@@ -265,8 +286,8 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
       this.#stopCallbackList.forEach(fn => fn())
       this.#stopCallbackList.length = 0
 
-      await this.#ioManager.stop()
       await this.#puppetManager.stop()
+      await this.#ioManager.stop()
 
       this.dispatchEvent(new WechatyEvent('stop'))
       this.#state.inactive(true)

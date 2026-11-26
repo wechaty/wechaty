@@ -54,13 +54,9 @@ export class PluginManager {
 
     for (const plugin of pluginList) {
       log.verbose('PluginManager', 'use(%s)', plugin.name)
-      try {
-        const uninstaller = plugin(this.#wechaty)
-        if (isWechatyPluginUninstaller(uninstaller)) {
-          uninstallerList.push(uninstaller)
-        }
-      } catch (e) {
-        this.#wechaty.emitError(e)
+      const uninstaller = plugin(this.#wechaty)
+      if (isWechatyPluginUninstaller(uninstaller)) {
+        uninstallerList.push(uninstaller)
       }
     }
 

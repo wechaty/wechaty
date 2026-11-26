@@ -144,20 +144,24 @@ export class PuppetManager {
 
   async stop (): Promise<void> {
     log.verbose('PuppetManager', 'stop()')
+    if (!this.#puppet) {
+      log.verbose('PuppetManager', 'stop() skipped: no puppet instantiated.')
+      return
+    }
     try {
       log.verbose('PuppetManager', 'stop() stopping puppet ...')
       await timeoutPromise(
-        this.puppet.stop(),
+        this.#puppet.stop(),
         15 * 1000,
       )
       log.verbose('PuppetManager', 'stop() stopping puppet ... done')
     } catch (e) {
       if (e instanceof TimeoutPromiseGError) {
         log.warn('PuppetManager', 'stop() stopping puppet ... timeout')
-        log.warn('PuppetManager', 'stop() puppet info: %s', this.puppet)
+        log.warn('PuppetManager', 'stop() puppet info: %s', this.#puppet)
       } else {
         log.error('PuppetManager', 'stop() exception: %s', (e as Error).message)
-        throw GError.from(e)
+        this.#wechaty.emitError(e)
       }
     }
   }

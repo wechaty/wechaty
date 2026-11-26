@@ -260,8 +260,8 @@ test('Wechaty init() loads default MemoryCard when options.memory is omitted', a
   const puppet = new PuppetMock()
   const bot = new Wechaty({ puppet })
 
-  assert.ok(bot.memory, 'bot.memory should be accessible')
   await bot.init()
+  assert.ok(bot.memory, 'bot.memory should be accessible after init()')
   // Loading an already loaded memory card throws 'already loaded'
   await assert.rejects(
     async () => bot.memory.load(),
