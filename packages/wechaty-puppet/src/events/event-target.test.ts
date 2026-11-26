@@ -328,3 +328,166 @@ test('WechatyEventTarget legacy compatibility methods (on, off, once, removeAllL
   assert.equal(target.getMaxListeners(), Infinity)
   assert.equal(target.setMaxListeners(10), target)
 })
+
+test('WechatyEvent fallback ID generation when crypto.randomUUID is absent', () => {
+  const originalCrypto = globalThis.crypto
+  try {
+    Object.defineProperty(globalThis, 'crypto', {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    })
+    const event = new WechatyEvent('test-fallback')
+    assert.ok(event.id.startsWith('evt-'))
+  } finally {
+    Object.defineProperty(globalThis, 'crypto', {
+      value: originalCrypto,
+      configurable: true,
+      writable: true,
+    })
+  }
+})
+
+test('WechatyEventTarget edge cases: null listeners, already aborted signals, and object listeners', () => {
+  const target = new WechatyEventTarget()
+
+  // Null listeners
+  target.addEventListener('dummy', null)
+  target.removeEventListener('dummy', null)
+  target.removeEventListener('non-existent', () => {})
+  assert.equal(target.listenerCount('dummy'), 0)
+
+  // Pre-aborted signal
+  const abortedSignal = AbortSignal.abort(new Error('already aborted'))
+  let called = false
+  target.addEventListener('pre-aborted', () => { called = true }, { signal: abortedSignal })
+  target.dispatchEvent(new WechatyEvent('pre-aborted'))
+  assert.equal(called, false)
+
+  // Once with object listener having handleEvent
+  let objFired = 0
+  const objListener = {
+    handleEvent () { objFired++ },
+  }
+  target.addEventListener('once-obj', objListener, { once: true })
+  assert.equal(target.listeners('once-obj').length, 1)
+  assert.equal(target.rawListeners('once-obj').length, 1)
+  target.dispatchEvent(new WechatyEvent('once-obj'))
+  target.dispatchEvent(new WechatyEvent('once-obj'))
+  assert.equal(objFired, 1)
+  assert.equal(target.listeners('empty').length, 0)
+  assert.equal(target.rawListeners('empty').length, 0)
+})
+
+test('WechatyEventTarget legacy multi-argument emit payload mappings', () => {
+  const target = new WechatyEventTarget()
+
+  let logoutDetail: any
+  let joinDetail: any
+  let leaveDetail: any
+  let topicDetail: any
+
+  target.addEventListener('logout', (e: Event) => { logoutDetail = (e as CustomEvent).detail })
+  target.addEventListener('room-join', (e: Event) => { joinDetail = (e as CustomEvent).detail })
+  target.addEventListener('room-leave', (e: Event) => { leaveDetail = (e as CustomEvent).detail })
+  target.addEventListener('room-topic', (e: Event) => { topicDetail = (e as CustomEvent).detail })
+
+  target.emit('logout', 'user1', 'logout-reason')
+  assert.equal(logoutDetail.user, 'user1')
+  assert.equal(logoutDetail.reason, 'logout-reason')
+
+  target.emit('room-join', 'room1', ['invitee'], 'inviter', new Date(1000))
+  assert.equal(joinDetail.room, 'room1')
+  assert.deepEqual(joinDetail.inviteeList, ['invitee'])
+
+  target.emit('room-leave', 'room1', ['leaver'], 'remover', new Date(1000))
+  assert.equal(leaveDetail.room, 'room1')
+  assert.deepEqual(leaveDetail.leaverList, ['leaver'])
+
+  target.emit('room-topic', 'room1', 'new-topic', 'old-topic', 'changer', new Date(1000))
+  assert.equal(topicDetail.room, 'room1')
+  assert.equal(topicDetail.newTopic, 'new-topic')
+})
+
+test('WechatyEventTarget next() edge cases: pre-aborted signal, abort during wait, bare Event', async () => {
+  const target = new WechatyEventTarget()
+
+  // Pre-aborted signal
+  const preAborted = AbortSignal.abort(new Error('pre-aborted-reason'))
+  await assert.rejects(
+    async () => target.next('msg', { signal: preAborted }),
+    /pre-aborted-reason/,
+  )
+
+  // Abort during wait
+  const controller = new AbortController()
+  const nextPromise = target.next('msg', { signal: controller.signal })
+  controller.abort(new Error('aborted-during-wait'))
+  await assert.rejects(async () => nextPromise, /aborted-during-wait/)
+
+  // Bare Event without detail
+  const barePromise = target.next('bare')
+  const bareEvent = new Event('bare')
+  target.dispatchEvent(bareEvent)
+  const result = await barePromise
+  assert.equal(result, bareEvent)
+})
+
+test('WechatyEventTarget events() edge cases: return(), throw(), closed iteration, and pending resolve/reject', async () => {
+  const target = new WechatyEventTarget()
+  const iter = target.events('test-iter')[Symbol.asyncIterator]()
+
+  // Pending return()
+  const returnPromise = iter.return()
+  const returnResult = await returnPromise
+  assert.deepEqual(returnResult, { done: true, value: undefined })
+
+  // Closed iteration returns done
+  const afterClosed = await iter.next()
+  assert.deepEqual(afterClosed, { done: true, value: undefined })
+
+  // Throw
+  const iter2 = target.events('test-throw')[Symbol.asyncIterator]()
+  const throwPromise = iter2.throw(new Error('iter-error'))
+  await assert.rejects(async () => throwPromise, /iter-error/)
+
+  // Return while waiting next()
+  const iter3 = target.events('test-waiting')[Symbol.asyncIterator]()
+  const waitingNext = iter3.next()
+  await iter3.return()
+  const waitingResult = await waitingNext
+  assert.deepEqual(waitingResult, { done: true, value: undefined })
+
+  // Throw while waiting next()
+  const iter4 = target.events('test-waiting-throw')[Symbol.asyncIterator]()
+  const waitingNextThrow = iter4.next()
+  await Promise.all([
+    assert.rejects(async () => waitingNextThrow, /thrown-while-waiting/),
+    assert.rejects(async () => iter4.throw(new Error('thrown-while-waiting')), /thrown-while-waiting/),
+  ])
+})
+
+test('WechatyEventTarget legacy on/once with array and null details', () => {
+  const target = new WechatyEventTarget()
+  let onArgs: any[] = []
+  let onceArgs: any[] = []
+
+  target.on('arr', (...args: any[]) => { onArgs = args })
+  target.once('arr-once', (...args: any[]) => { onceArgs = args })
+
+  target.dispatchEvent(new WechatyEvent('arr', { detail: [10, 20, 30] }))
+  target.dispatchEvent(new WechatyEvent('arr-once', { detail: [40, 50] }))
+  assert.deepEqual(onArgs, [10, 20, 30])
+  assert.deepEqual(onceArgs, [40, 50])
+
+  // Void/null detail
+  let onVoidCalled = false
+  let onceVoidCalled = false
+  target.on('void-test', () => { onVoidCalled = true })
+  target.once('void-once-test', () => { onceVoidCalled = true })
+
+  target.dispatchEvent(new Event('void-test'))
+  target.dispatchEvent(new Event('void-once-test'))
+  assert.equal(onVoidCalled, true)
+  assert.equal(onceVoidCalled, true)
+})
