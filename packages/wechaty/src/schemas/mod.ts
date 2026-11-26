@@ -13,8 +13,10 @@ import {
   type WechatyEventDetailMap,
   type WechatyCustomEvent,
   type WechatyEventTargetListener,
+  type WechatyEventTarget,
   type WechatyEventTargetInterface,
   type WechatyEventEmitterInterface,
+  type WechatyEventEmitterInstance,
 }                           from './wechaty-events.ts'
 import type {
   Accepter,
@@ -29,8 +31,10 @@ export type {
   WechatyEventDetailMap,
   WechatyCustomEvent,
   WechatyEventTargetListener,
+  WechatyEventTarget,
   WechatyEventTargetInterface,
   WechatyEventEmitterInterface,
+  WechatyEventEmitterInstance,
 }
 export {
   ContactEventEmitter,

@@ -249,7 +249,7 @@ type WechatyEventTargetListener<E extends keyof WechatyEventDetailMap> =
   | ((event: WechatyCustomEvent<E>) => void | Promise<void>)
   | { handleEvent (event: WechatyCustomEvent<E>): void | Promise<void> }
 
-interface WechatyEventTargetInterface {
+interface WechatyEventTarget {
   /**
    * Registers an event listener on the Wechaty bot instance using the standard WinterTC EventTarget interface.
    *
@@ -294,9 +294,24 @@ interface WechatyEventTargetInterface {
   dispatchEvent(event: Event): boolean
 }
 
-type WechatyEventEmitterInterface = TypedEventEmitter.default<WechatyEventListeners> & WechatyEventTargetInterface
+/**
+ * @deprecated Use `WechatyEventTarget` instead. `WechatyEventTargetInterface` is retained for backwards compatibility.
+ */
+type WechatyEventTargetInterface = WechatyEventTarget
 
-const WechatyEventEmitter = EventEmitter as any as new () => WechatyEventEmitterInterface
+type WechatyEventEmitter = TypedEventEmitter.default<WechatyEventListeners> & WechatyEventTarget
+
+/**
+ * @deprecated Use `WechatyEventEmitter` instead. `WechatyEventEmitterInterface` is retained for backwards compatibility.
+ */
+type WechatyEventEmitterInterface = WechatyEventEmitter
+
+/**
+ * Alias for `WechatyEventEmitter` instance type.
+ */
+type WechatyEventEmitterInstance = WechatyEventEmitter
+
+const WechatyEventEmitter = EventEmitter as any as new () => WechatyEventEmitter
 
 export type {
   WechatyEventName,
@@ -304,8 +319,10 @@ export type {
   WechatyEventDetailMap,
   WechatyCustomEvent,
   WechatyEventTargetListener,
+  WechatyEventTarget,
   WechatyEventTargetInterface,
   WechatyEventEmitterInterface,
+  WechatyEventEmitterInstance,
 
   WechatyEventListenerDong,
   WechatyEventListenerError,
