@@ -36,7 +36,7 @@ class LocationMixin extends wechatifyMixinBase() {
    * @param poi string A point of interest (POI) is a specific point location that someone may find useful or interesting.
    *  See: https://en.wikipedia.org/wiki/Point_of_interest
    */
-  static async create (poi: string): Promise<LocationInterface> {
+  static async create (poi: string): Promise<Location> {
     log.verbose('Location', 'create(%s)', poi)
 
     const payload: PUPPET.payloads.Location = {
@@ -89,15 +89,21 @@ class LocationMixin extends wechatifyMixinBase() {
 
 }
 
-class LocationImpl extends validationMixin(LocationMixin)<LocationInterface>() {}
-interface LocationInterface extends LocationImpl {}
+class LocationImpl extends validationMixin(LocationMixin)<Location>() {}
+interface Location extends LocationImpl {}
+
+/**
+ * @deprecated Use `Location` instead. `LocationInterface` is retained for backwards compatibility.
+ */
+type LocationInterface = Location
 
 type LocationConstructor = Constructor<
-  LocationInterface,
+  Location,
   typeof LocationImpl
 >
 
 export type {
+  Location,
   LocationConstructor,
   LocationInterface,
 }

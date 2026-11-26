@@ -53,9 +53,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
   abstract class PuppetMixin extends mixinBase {
 
-    __puppet?: PUPPET.impls.PuppetInterface
+    __puppet?: PUPPET.Puppet
 
-    get puppet (): PUPPET.impls.PuppetInterface {
+    get puppet (): PUPPET.Puppet {
       if (!this.__puppet) {
 
         throw new Error('NOPUPPET')
@@ -223,7 +223,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       this.__puppet = puppetInstance
     }
 
-    __setupPuppetEvents (puppet: PUPPET.impls.PuppetInterface): void {
+    __setupPuppetEvents (puppet: PUPPET.Puppet): void {
       log.verbose('WechatyPuppetMixin', '__setupPuppetEvents(%s)', puppet)
 
       registerPuppetEventBridge(puppet, {

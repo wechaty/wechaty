@@ -28,7 +28,7 @@ class DelayMixin extends wechatifyMixinBase() {
 
   public milliseconds: number
 
-  static create (milliseconds: number): DelayInterface {
+  static create (milliseconds: number): Delay {
     return new DelayImpl(milliseconds)
   }
 
@@ -47,15 +47,21 @@ class DelayMixin extends wechatifyMixinBase() {
 
 }
 
-class DelayImpl extends validationMixin(DelayMixin)<DelayInterface>() {}
-interface DelayInterface extends DelayImpl {}
+class DelayImpl extends validationMixin(DelayMixin)<Delay>() {}
+interface Delay extends DelayImpl {}
+
+/**
+ * @deprecated Use `Delay` instead. `DelayInterface` is retained for backwards compatibility.
+ */
+type DelayInterface = Delay
 
 type DelayConstructor = Constructor<
-  DelayInterface,
+  Delay,
   typeof DelayImpl
 >
 
 export type {
+  Delay,
   DelayConstructor,
   DelayInterface,
 }

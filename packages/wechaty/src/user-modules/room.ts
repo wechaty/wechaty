@@ -52,11 +52,11 @@ import type {
 import { stringifyFilter }              from '../helper-functions/stringify-filter.ts'
 
 import {
-  type ContactInterface,
+  type Contact,
   ContactImpl,
 }                       from './contact.ts'
 import type {
-  MessageInterface,
+  Message,
 }                       from './message.ts'
 
 const MixinBase = wechatifyMixin(
@@ -79,9 +79,9 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * Create a new room.
    *
    * @static
-   * @param {ContactInterface[]} contactList
+   * @param {Contact[]} contactList
    * @param {string} [topic]
-   * @returns {Promise<RoomInterface>}
+   * @returns {Promise<Room>}
    * @example <caption>Creat a room with 'lijiarui' and 'huan', the room topic is 'ding - created'</caption>
    * const helperContactA = await Contact.find({ name: 'lijiarui' })  // change 'lijiarui' to any contact in your WeChat
    * const helperContactB = await Contact.find({ name: 'huan' })  // change 'huan' to any contact in your WeChat
@@ -93,9 +93,9 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * await room.say('ding - created')
    */
   static async create (
-    contactList : ContactInterface[],
+    contactList : Contact[],
     topic?      : string,
-  ): Promise<RoomInterface> {
+  ): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
     if (contactList.length < 2) {
@@ -131,7 +131,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *
    * @static
    * @param {RoomQueryFilter} [query]
-   * @returns {Promise<RoomInterface[]>}
+   * @returns {Promise<Room[]>}
    * @example
    * const bot = WechatyBuilder.build()
    * await bot.start()
@@ -141,7 +141,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    */
   static async findAll (
     query? : PUPPET.filters.Room,
-  ): Promise<RoomInterface[]> {
+  ): Promise<Room[]> {
     log.verbose('Room', 'findAll(%s)', JSON.stringify(query, stringifyFilter) || '')
 
     try {
@@ -157,7 +157,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       const CONCURRENCY = 17
       const roomIterator = concurrencyExecuter(CONCURRENCY)(idToRoom)(roomIdList)
 
-      const roomList: RoomInterface[] = []
+      const roomList: Room[] = []
 
       for await (const room of roomIterator) {
         if (room) {
@@ -170,7 +170,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
     } catch (e) {
       this.wechaty.emitError(e)
       log.verbose('Room', 'findAll() rejected: %s', (e as Error).message)
-      return [] as RoomInterface[] // fail safe
+      return [] as Room[] // fail safe
     }
   }
 
@@ -183,7 +183,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * after a log-in.
    *
    * @param {RoomQueryFilter} query
-   * @returns {Promise<undefined | RoomInterface>} If can find the room, return Room, or return null
+   * @returns {Promise<undefined | Room>} If can find the room, return Room, or return null
    * @example
    * const bot = WechatyBuilder.build()
    * await bot.start()
@@ -194,7 +194,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
   static async find (
     query : string | PUPPET.filters.Room,
-  ): Promise<undefined | RoomInterface> {
+  ): Promise<undefined | Room> {
     log.silly('Room', 'find(%s)', JSON.stringify(query, stringifyFilter))
 
     if (typeof query === 'string') {
@@ -241,8 +241,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
     return undefined
   }
 
-  /**      const roomList: RoomInterface[] = []
-
+  /**
    * @ignore
    *
    * Instance Properties
@@ -275,7 +274,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
     return `Room<${this.payload.topic || 'loading...'}>`
   }
 
-  async * [Symbol.asyncIterator] (): AsyncIterableIterator<ContactInterface> {
+  async * [Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
     const memberList = await this.memberList()
     for (const contact of memberList) {
       yield contact
@@ -354,9 +353,9 @@ class RoomMixin extends MixinBase implements SayableSayer {
     return !!(this.payload)
   }
 
-  say (sayable:  Sayable)                                 : Promise<void | MessageInterface>
-  say (text:     string, ...mentionList: ContactInterface[])       : Promise<void | MessageInterface>
-  say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | MessageInterface>
+  say (sayable:  Sayable)                                 : Promise<void | Message>
+  say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
+  say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
 
   // Huan(202006): allow fall down to the defination to get more flexibility.
   // public say (...args: never[]): never
@@ -366,10 +365,10 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | ContactInterface | FileBox)} textOrContactOrFileOrUrlOrMini - Send `text` or `media file` inside Room. <br>
+   * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrlOrMini - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
-   * @param {(ContactInterface | ContactInterface[])} [mention] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
-   * @returns {Promise<void | MessageInterface>}
+   * @param {(Contact | Contact[])} [mention] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
+   * @returns {Promise<void | Message>}
    *
    * @example
    * const bot = WechatyBuilder.build()
@@ -444,7 +443,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   async say (
     sayable    : Sayable | TemplateStringsArray,
     ...varList : unknown[]
-  ): Promise<void | MessageInterface> {
+  ): Promise<void | Message> {
 
     log.verbose('Room', 'say(%s, %s)',
       sayable,
@@ -463,7 +462,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       /**
        * 1. string
        */
-      let mentionList: ContactInterface[] = []
+      let mentionList: Contact[] = []
 
       if (varList.length > 0) {
         const allIsContact = varList.every(c => ContactImpl.valid(c))
@@ -506,7 +505,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
     textList: TemplateStringsArray,
     ...varList: unknown[]
   ) {
-    const mentionList = varList.filter(c => ContactImpl.valid(c)) as ContactInterface[]
+    const mentionList = varList.filter(c => ContactImpl.valid(c)) as Contact[]
 
     // const receiver = {
     //   contactId : (mentionList.length && mentionList[0].id) || undefined,
@@ -549,7 +548,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       let i = 0
       for (; i < varListLength; i++) {
         if (ContactImpl.valid(varList[i])) {
-          const mentionContact: ContactInterface = varList[i] as any
+          const mentionContact: Contact = varList[i] as any
           const mentionName = await this.alias(mentionContact) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
         } else {
@@ -660,7 +659,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * >
    * > see {@link https://github.com/wechaty/wechaty/issues/1441|Web version of WeChat closed group interface}
    *
-   * @param {ContactInterface} contact
+   * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
    * const bot = WechatyBuilder.build()
@@ -676,7 +675,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   }
    * }
    */
-  async add (contact: ContactInterface): Promise<void> {
+  async add (contact: Contact): Promise<void> {
     log.verbose('Room', 'add(%s)', contact)
     await this.wechaty.puppet.roomAdd(this.id, contact.id)
   }
@@ -690,7 +689,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * >
    * > see {@link https://github.com/wechaty/wechaty/issues/1441|Web version of WeChat closed group interface}
    *
-   * @param {ContactInterface} contact
+   * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
    * const bot = WechatyBuilder.build()
@@ -706,7 +705,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   }
    * }
    */
-  async remove (contact: ContactInterface): Promise<void> {
+  async remove (contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
     await this.wechaty.puppet.roomDel(this.id, contact.id)
     // this.delLocal(contact)
@@ -801,7 +800,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
           .map(id => this.wechaty.Contact.find({ id }))
 
         const memberList = (await Promise.all(memberListFuture))
-          .filter(Boolean) as ContactInterface[]
+          .filter(Boolean) as Contact[]
 
         let defaultTopic = (memberList[0] && memberList[0].name()) || ''
         for (let i = 1; i < 3 && memberList[i]; i++) {
@@ -881,7 +880,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
   /**
    * Return contact's roomAlias in the room
-   * @param {ContactInterface} contact
+   * @param {Contact} contact
    * @returns {Promise<string | null>} - If a contact has an alias in room, return string, otherwise return null
    * @example
    * const bot = WechatyBuilder.build()
@@ -896,7 +895,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
-  async alias (contact: ContactInterface): Promise<undefined | string> {
+  async alias (contact: Contact): Promise<undefined | string> {
     const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
 
     if (memberPayload.roomAlias) {
@@ -934,7 +933,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   /**
    * Check if the room has member `contact`, the return is a Promise and must be `await`-ed
    *
-   * @param {ContactInterface} contact
+   * @param {Contact} contact
    * @returns {Promise<boolean>} Return `true` if has contact, else return `false`.
    * @example <caption>Check whether 'lijiarui' is in the room 'wechaty'</caption>
    * const bot = WechatyBuilder.build()
@@ -950,7 +949,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   }
    * }
    */
-  async has (contact: ContactInterface): Promise<boolean> {
+  async has (contact: Contact): Promise<boolean> {
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
 
     // if (!memberIdList) {
@@ -962,9 +961,9 @@ class RoomMixin extends MixinBase implements SayableSayer {
       .length > 0
   }
 
-  async memberAll ()                                : Promise<ContactInterface[]>
-  async memberAll (name: string)                    : Promise<ContactInterface[]>
-  async memberAll (filter: PUPPET.filters.RoomMember) : Promise<ContactInterface[]>
+  async memberAll ()                                : Promise<Contact[]>
+  async memberAll (name: string)                    : Promise<Contact[]>
+  async memberAll (filter: PUPPET.filters.RoomMember) : Promise<Contact[]>
 
   /**
    * The way to search member by Room.member()
@@ -984,7 +983,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * - `roomAlias`            the name-string set by user-self in the room, should be called roomAlias
    * - `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
    * @param {(RoomMemberQueryFilter | string)} [query] -Optional parameter, When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
-   * @returns {Promise<ContactInterface[]>}
+   * @returns {Promise<Contact[]>}
    * @example
    * const roomList:Contact[] | null = await room.findAll()
    * if(roomList)
@@ -994,7 +993,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    */
   async memberAll (
     query?: string | PUPPET.filters.RoomMember,
-  ): Promise<ContactInterface[]> {
+  ): Promise<Contact[]> {
     log.silly('Room', 'memberAll(%s)',
       JSON.stringify(query) || '',
     )
@@ -1008,18 +1007,18 @@ class RoomMixin extends MixinBase implements SayableSayer {
       contactIdList.map(id => this.wechaty.Contact.find({ id })),
     )
 
-    const contactList = contactListAll.filter(c => !!c) as ContactInterface[]
+    const contactList = contactListAll.filter(c => !!c) as Contact[]
     return contactList
   }
 
-  async member (name  : string)                 : Promise<undefined | ContactInterface>
-  async member (filter: PUPPET.filters.RoomMember): Promise<undefined | ContactInterface>
+  async member (name  : string)                 : Promise<undefined | Contact>
+  async member (filter: PUPPET.filters.RoomMember): Promise<undefined | Contact>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
    *
    * @param {(RoomMemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
-   * @returns {Promise<undefined | ContactInterface>}
+   * @returns {Promise<undefined | Contact>}
    *
    * @example <caption>Find member by name</caption>
    * const bot = WechatyBuilder.build()
@@ -1045,10 +1044,10 @@ class RoomMixin extends MixinBase implements SayableSayer {
    */
   async member (
     queryArg: string | PUPPET.filters.RoomMember,
-  ): Promise<undefined | ContactInterface> {
+  ): Promise<undefined | Contact> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
-    let memberList: ContactInterface[]
+    let memberList: Contact[]
     // ISSUE #622
     // error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' #622
     if (typeof queryArg === 'string') {
@@ -1074,11 +1073,11 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *
    * Get all room member from the room
    *
-   * @returns {Promise<ContactInterface[]>}
+   * @returns {Promise<Contact[]>}
    * @example
    * await room.memberList()
    */
-  protected async memberList (): Promise<ContactInterface[]> {
+  protected async memberList (): Promise<Contact[]> {
     log.verbose('Room', 'memberList()')
 
     const memberIdList = await this.wechaty.puppet.roomMemberList(this.id)
@@ -1094,7 +1093,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       ),
     )
 
-    const contactList = contactListAll.filter(c => !!c) as ContactInterface[]
+    const contactList = contactListAll.filter(c => !!c) as Contact[]
     return contactList
   }
 
@@ -1102,11 +1101,11 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * Get room's owner from the room.
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   * @returns {(ContactInterface | undefined)}
+   * @returns {(Contact | undefined)}
    * @example
    * const owner = room.owner()
    */
-  owner (): undefined | ContactInterface {
+  owner (): undefined | Contact {
     log.verbose('Room', 'owner()')
 
     const ownerId = this.payload && this.payload.ownerId
@@ -1140,7 +1139,12 @@ interface RoomImplInterface extends RoomImpl {}
 type RoomProtectedProperty =
   | 'ready'
 
-type RoomInterface = Omit<RoomImplInterface, RoomProtectedProperty>
+type Room = Omit<RoomImplInterface, RoomProtectedProperty>
+
+/**
+ * @deprecated Use `Room` instead. `RoomInterface` is retained for backwards compatibility.
+ */
+type RoomInterface = Room
 
 type RoomConstructor = Constructor<
   RoomImplInterface,
@@ -1148,6 +1152,7 @@ type RoomConstructor = Constructor<
 >
 
 export type {
+  Room,
   RoomConstructor,
   RoomProtectedProperty,
   RoomInterface,

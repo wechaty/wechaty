@@ -7,13 +7,13 @@ import {
 } from 'wechaty-puppet'
 
 import type {
-  ContactInterface,
-  FriendshipInterface,
-  MessageInterface,
+  Contact,
+  Friendship,
+  Message,
 } from '../user-modules/mod.ts'
 
-export type ContactEventListenerMessage    = (this: ContactInterface, message: MessageInterface, date?: Date)  => void | Promise<void>
-export type ContactEventListenerFriendship = (friendship: FriendshipInterface)                                 => void | Promise<void>
+export type ContactEventListenerMessage    = (this: Contact, message: Message, date?: Date)  => void | Promise<void>
+export type ContactEventListenerFriendship = (friendship: Friendship)                        => void | Promise<void>
 
 export interface ContactEventListeners {
   friendship : ContactEventListenerFriendship
@@ -21,8 +21,8 @@ export interface ContactEventListeners {
 }
 
 export interface ContactEventDetailMap {
-  friendship : FriendshipInterface
-  message    : MessageInterface
+  friendship : Friendship
+  message    : Message
 }
 
 export type ContactEventName = keyof ContactEventDetailMap
@@ -92,5 +92,11 @@ export interface ContactEventTargetInterface {
   ): AsyncIterable<T>
 }
 
-export type ContactEventEmitterInterface = ContactEventEmitterMethods & ContactEventTargetInterface & EventEmitter
-export const ContactEventEmitter = EventEmitter as unknown as new () => ContactEventEmitterInterface
+export type ContactEventTarget = ContactEventTargetInterface
+export type ContactEventEmitter = ContactEventEmitterMethods & ContactEventTarget & EventEmitter
+
+/**
+ * @deprecated Use `ContactEventEmitter` instead. `ContactEventEmitterInterface` is retained for backwards compatibility.
+ */
+export type ContactEventEmitterInterface = ContactEventEmitter
+export const ContactEventEmitter = EventEmitter as unknown as new () => ContactEventEmitter

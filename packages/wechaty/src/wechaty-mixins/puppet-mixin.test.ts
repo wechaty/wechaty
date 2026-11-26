@@ -54,7 +54,7 @@ test('__setupPuppetEvents() should reject unsupported puppet events', async _t =
     on: () => fakePuppet,
     roomMemberPayloadDirty: async () => {},
     roomPayloadDirty: async () => {},
-  } as any as PUPPET.impls.PuppetInterface
+  } as any as PUPPET.Puppet
 
   const eventDict = PUPPET.types.PUPPET_EVENT_DICT as unknown as Record<string, unknown>
   const unknownEventName = '__future-unknown-event__'

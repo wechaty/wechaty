@@ -24,6 +24,10 @@ import {
   Wechaty,
 }                     from './wechaty/mod.ts'
 
+/**
+ * @deprecated Use `Wechaty` class constructor or `Wechaty.singleton()` instead.
+ * `BuilderInterface` is retained for backwards compatibility with Wechaty 1.x.
+ */
 interface BuilderInterface {
   build (options?: WechatyOptions): Wechaty
 }

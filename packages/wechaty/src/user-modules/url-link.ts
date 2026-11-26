@@ -42,7 +42,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
         'url'
       >
     >,
-  ): Promise<UrlLinkInterface> {
+  ): Promise<UrlLink> {
     log.verbose('UrlLink', 'create(%s)', url)
 
     const meta = await openGraph(url)
@@ -129,15 +129,21 @@ class UrlLinkMixin extends wechatifyMixinBase() {
 
 }
 
-class UrlLinkImpl extends validationMixin(UrlLinkMixin)<UrlLinkInterface>() {}
-interface UrlLinkInterface extends UrlLinkImpl {}
+class UrlLinkImpl extends validationMixin(UrlLinkMixin)<UrlLink>() {}
+interface UrlLink extends UrlLinkImpl {}
+
+/**
+ * @deprecated Use `UrlLink` instead. `UrlLinkInterface` is retained for backwards compatibility.
+ */
+type UrlLinkInterface = UrlLink
 
 type UrlLinkConstructor = Constructor<
-  UrlLinkInterface,
+  UrlLink,
   typeof UrlLinkImpl
 >
 
 export type {
+  UrlLink,
   UrlLinkConstructor,
   UrlLinkInterface,
 }

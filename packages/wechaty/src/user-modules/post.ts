@@ -49,11 +49,11 @@ import {
 }                       from '../sayable/mod.ts'
 
 import { ContactImpl } from './contact.ts'
-import type { ContactInterface } from './contact.ts'
+import type { Contact } from './contact.ts'
 import { concurrencyExecuter } from 'rx-queue'
 
 interface Tap {
-  contact: ContactInterface
+  contact: Contact
   type: PUPPET.types.Tap,
   date: Date
 }
@@ -93,7 +93,7 @@ class PostBuilder {
     return this
   }
 
-  reply (post: PostInterface): this {
+  reply (post: Post): this {
     if (!post.id) {
       throw new Error('can not link to a post without id: ' + JSON.stringify(post))
     }
@@ -104,7 +104,7 @@ class PostBuilder {
     return this
   }
 
-  async build (): Promise<PostInterface> {
+  async build (): Promise<Post> {
     const sayablePayloadListNested = await Promise.all(
       this.sayableList.map(sayableToPayload),
     )
@@ -126,13 +126,13 @@ class PostMixin extends wechatifyMixinBase() {
    */
   static create (
     payload: PUPPET.payloads.PostClient,
-  ): PostInterface {
+  ): Post {
     log.verbose('Post', 'create()')
 
     return new this(payload)
   }
 
-  static load (id: string): PostInterface {
+  static load (id: string): Post {
     log.verbose('Post', 'static load(%s)', id)
 
     /**
@@ -148,7 +148,7 @@ class PostMixin extends wechatifyMixinBase() {
 
   static async find (
     filter: PUPPET.filters.Post,
-  ): Promise<undefined | PostInterface> {
+  ): Promise<undefined | Post> {
     log.verbose('Post', 'find(%s)',
       JSON.stringify(filter),
     )
@@ -170,7 +170,7 @@ class PostMixin extends wechatifyMixinBase() {
     filter      : PUPPET.filters.Post,
     pagination? : PUPPET.filters.PaginationRequest,
   ): Promise<[
-    postList       : PostInterface[],
+    postList       : Post[],
     nextPageToken? : string,
   ]> {
     log.verbose('Post', 'findAll(%s%s)',
@@ -196,7 +196,7 @@ class PostMixin extends wechatifyMixinBase() {
     const CONCURRENCY = 17
     const postIterator = concurrencyExecuter(CONCURRENCY)(idToPost)(postIdList)
 
-    const postList: PostInterface[] = []
+    const postList: Post[] = []
     for await (const post of postIterator) {
       if (post) {
         postList.push(post)
@@ -246,7 +246,7 @@ class PostMixin extends wechatifyMixinBase() {
     }
   }
 
-  async author (): Promise<ContactInterface> {
+  async author (): Promise<Contact> {
     log.silly('Post', 'author()')
 
     if (PUPPET.payloads.isPostClient(this.payload)) {
@@ -260,7 +260,7 @@ class PostMixin extends wechatifyMixinBase() {
     return author
   }
 
-  async root (): Promise<undefined | PostInterface> {
+  async root (): Promise<undefined | Post> {
     log.silly('Post', 'root()')
 
     if (!this.payload.rootId) {
@@ -272,7 +272,7 @@ class PostMixin extends wechatifyMixinBase() {
     return post
   }
 
-  async parent (): Promise<undefined | PostInterface> {
+  async parent (): Promise<undefined | Post> {
     log.silly('Post', 'parent()')
     if (!this.payload.parentId) {
       return undefined
@@ -335,7 +335,7 @@ class PostMixin extends wechatifyMixinBase() {
 
   async * children (
     filter: PUPPET.filters.Post = {},
-  ): AsyncIterableIterator<PostInterface> {
+  ): AsyncIterableIterator<Post> {
     log.verbose('Post', '*children(%s)', Object.keys(filter).length ? JSON.stringify(filter) : '')
 
     const pagination: PUPPET.filters.PaginationRequest = {
@@ -372,7 +372,7 @@ class PostMixin extends wechatifyMixinBase() {
 
   async * descendants (
     filter: PUPPET.filters.Post = {},
-  ): AsyncIterableIterator<PostInterface> {
+  ): AsyncIterableIterator<Post> {
     log.verbose('Post', '*descendants(%s)', Object.keys(filter).length ? JSON.stringify(filter) : '')
 
     for await (const post of this.children(filter)) {
@@ -420,9 +420,9 @@ class PostMixin extends wechatifyMixinBase() {
 
   async reply (
     sayable:
-      | Exclude<Sayable, PostInterface>
-      | Exclude<Sayable, PostInterface>[],
-  ): Promise<void | PostInterface> {
+      | Exclude<Sayable, Post>
+      | Exclude<Sayable, Post>[],
+  ): Promise<void | Post> {
     log.verbose('Post', 'reply(%s)', sayable)
 
     if (!this.id) {
@@ -540,15 +540,21 @@ class PostMixin extends wechatifyMixinBase() {
 
 }
 
-class PostImpl extends validationMixin(PostMixin)<PostInterface>() {}
-interface PostInterface extends PostImpl {}
+class PostImpl extends validationMixin(PostMixin)<Post>() {}
+interface Post extends PostImpl {}
+
+/**
+ * @deprecated Use `Post` instead. `PostInterface` is retained for backwards compatibility.
+ */
+type PostInterface = Post
 
 type PostConstructor = Constructor<
-  PostInterface,
+  Post,
   typeof PostImpl
 >
 
 export type {
+  Post,
   PostConstructor,
   PostInterface,
 }

@@ -2,7 +2,7 @@ import { log }      from 'wechaty-puppet'
 
 import type {
   ContactSelfImpl,
-  ContactSelfInterface,
+  ContactSelf,
 }                               from '../user-modules/mod.ts'
 import type { WechatySkeleton } from '../wechaty/mod.ts'
 
@@ -21,12 +21,12 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
     /**
      * The current user
      *
-     * @returns {ContactSelfInterface}
+     * @returns {ContactSelf}
      * @example
      * const contact = bot.currentUser
      * console.log(`Bot is ${contact.name()}`)
      */
-    get currentUser (): ContactSelfInterface {
+    get currentUser (): ContactSelf {
       return (this.ContactSelf as typeof ContactSelfImpl)
         .load(this.puppet.currentUserId)
     }

@@ -20,7 +20,7 @@
 import { log } from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import type { ContactInterface } from './contact.ts'
+import type { Contact } from './contact.ts'
 import { validationMixin } from '../user-mixins/validation.ts'
 import {
   wechatifyMixinBase,
@@ -32,7 +32,7 @@ class MomentMixin extends wechatifyMixinBase() {
     // post new moment
   }
 
-  static timeline (contact: ContactInterface): MomentImpl[] {
+  static timeline (contact: Contact): MomentImpl[] {
     // list all moment
     void contact
     return []
@@ -48,14 +48,21 @@ class MomentMixin extends wechatifyMixinBase() {
 
 }
 
-class MomentImpl extends validationMixin(MomentMixin)<MomentInterface>() {}
-interface MomentInterface extends MomentImpl {}
+class MomentImpl extends validationMixin(MomentMixin)<Moment>() {}
+interface Moment extends MomentImpl {}
+
+/**
+ * @deprecated Use `Moment` instead. `MomentInterface` is retained for backwards compatibility.
+ */
+type MomentInterface = Moment
+
 type MomentConstructor = Constructor<
-  MomentInterface,
+  Moment,
   typeof MomentImpl
 >
 
 export type {
+  Moment,
   MomentConstructor,
   MomentInterface,
 }

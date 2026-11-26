@@ -59,7 +59,7 @@ import type {
 import type {
   WechatyOptions,
 }                             from '../schemas/wechaty-options.ts'
-import type { PostInterface } from '../user-modules/post.ts'
+import type { Post } from '../user-modules/post.ts'
 
 const mixinBase = FP.pipe(
   WechatySkeleton,
@@ -285,8 +285,8 @@ class WechatyBase extends mixinBase implements SayableSayer {
   }
 
   async publish (
-    post: PostInterface,
-  ): Promise<void | PostInterface> {
+    post: Post,
+  ): Promise<void | Post> {
     log.verbose('Wechaty', 'publish(%s)',
       (post.payload.sayableList as PUPPET.payloads.Sayable[])
         .map(s => s.type).join(','),

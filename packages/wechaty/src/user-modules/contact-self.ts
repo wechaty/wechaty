@@ -39,7 +39,7 @@ import { poolifyMixin } from '../user-mixins/poolify.ts'
 
 const MixinBase = poolifyMixin(
   ContactImpl,
-)<ContactSelfInterface>()
+)<ContactSelf>()
 
 /**
  * Bot itself will be encapsulated as a ContactSelf.
@@ -56,7 +56,7 @@ class ContactSelfMixin extends MixinBase {
 
   static override async find (
     query : string | PUPPET.filters.Contact,
-  ): Promise<undefined | ContactSelfInterface> {
+  ): Promise<undefined | ContactSelf> {
     if (!this.wechaty.isLoggedIn) {
       return undefined
     }
@@ -64,7 +64,7 @@ class ContactSelfMixin extends MixinBase {
     try {
       const contact = await super.find(query)
       if (contact && contact.id === this.wechaty.puppet.currentUserId) {
-        return contact as ContactSelfInterface
+        return contact as ContactSelf
       }
     } catch (e) {
       log.silly('ContactSelf', 'find() exception: %s', (e as Error).message)
@@ -201,14 +201,20 @@ class ContactSelfMixin extends MixinBase {
 
 }
 
-class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelfInterface>() {}
-interface ContactSelfInterface extends ContactSelfImpl {}
+class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelf>() {}
+interface ContactSelf extends ContactSelfImpl {}
+
+/**
+ * @deprecated Use `ContactSelf` instead. `ContactSelfInterface` is retained for backwards compatibility.
+ */
+type ContactSelfInterface = ContactSelf
 type ContactSelfConstructor = Constructor<
-  ContactSelfInterface,
+  ContactSelf,
   Omit<typeof ContactSelfImpl, 'load'>
 >
 
 export type {
+  ContactSelf,
   ContactSelfConstructor,
   ContactSelfInterface,
 }

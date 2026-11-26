@@ -19,15 +19,16 @@
  */
 
 /**
- * Huan(202111): We export all names with specific postfix to make it easier to be recongnized
- *  with less misunderstandings.
+ * @fileoverview Legacy Hungarian export facade (`*Impl`, `*Interface`, `*Constructor`).
  *
- * Postfixes:
- *  - Interface:    type, the `interface
- *  - Constructor:  type, the `Constructor<interface>`
- *  - Impl:         value, the `class`
+ * @deprecated The Hungarian notation export facade (`wechaty/impls`) is retained
+ * for backwards compatibility with Wechaty 1.x and will be retired in Wechaty 3.0.
  *
- *  - no postfix:  value, the `class`
+ * Please import domain classes and types directly from canonical entrypoints:
+ * - `import { Contact, Message, Room, Wechaty } from 'wechaty'`
+ *
+ * With TypeScript Declaration Merging, domain entities represent both the instance
+ * type and the constructable class value under standard Web Platform naming conventions.
  */
 
 export {

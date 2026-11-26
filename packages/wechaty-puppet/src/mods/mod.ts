@@ -39,26 +39,46 @@
 import '../puppet/interface-of.ts'
 
 import {
-  VERSION,
   log,
+  VERSION,
 }                             from '../config.ts'
 import {
+  EventEmitter,
   WechatyEvent,
   WechatyEventTarget,
-  EventEmitter,
-  type EventIteratorOptions,
+}                             from '../events/event-target.ts'
+import type {
+  EventIteratorOptions,
 }                             from '../events/event-target.ts'
 import type {
   PuppetOptions,
 }                             from '../schemas/puppet.ts'
 import {
   Puppet,
+  PuppetImpl,
 }                             from '../puppet/puppet-abstract.ts'
+import type {
+  PuppetInterface,
+  PuppetProtectedProperty,
+}                             from '../puppet/puppet-interface.ts'
+import type {
+  PuppetEventTarget,
+  PuppetEventTargetInterface,
+  PuppetEventEmitterInterface,
+}                             from '../puppet/events.ts'
+import {
+  PuppetEventEmitter,
+}                             from '../puppet/events.ts'
 import {
   throwUnsupportedError,
 }                             from '../throw-unsupported-error.ts'
 
 export type {
+  PuppetInterface,
+  PuppetProtectedProperty,
+  PuppetEventTarget,
+  PuppetEventTargetInterface,
+  PuppetEventEmitterInterface,
   PuppetOptions,
   EventIteratorOptions,
 }
@@ -68,6 +88,8 @@ export {
   WechatyEventTarget,
   log,
   Puppet,
+  PuppetImpl,
+  PuppetEventEmitter,
   throwUnsupportedError,
   VERSION,
 }

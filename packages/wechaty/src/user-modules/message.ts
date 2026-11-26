@@ -51,28 +51,28 @@ import {
 }                       from '../user-mixins/wechatify.ts'
 
 import type {
-  ContactInterface,
+  Contact,
   ContactImpl,
 }                       from './contact.ts'
 import type {
-  RoomInterface,
+  Room,
   RoomImpl,
 }                       from './room.ts'
 import type {
-  UrlLinkInterface,
+  UrlLink,
 }                       from './url-link.ts'
 import type {
-  MiniProgramInterface,
+  MiniProgram,
 }                       from './mini-program.ts'
 import type {
-  ImageInterface,
+  Image,
 }                       from './image.ts'
 import {
-  type PostInterface,
+  type Post,
   PostImpl,
 }                       from './post.ts'
 import {
-  type LocationInterface,
+  type Location,
   LocationImpl,
 }                       from './location.ts'
 
@@ -108,7 +108,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   static async find (
     query : string | PUPPET.filters.Message,
-  ): Promise<undefined | MessageInterface> {
+  ): Promise<undefined | Message> {
     log.verbose('Message', 'find(%s)', JSON.stringify(query))
 
     if (typeof query === 'string') {
@@ -132,7 +132,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   static async findAll (
     query? : PUPPET.filters.Message,
-  ): Promise<MessageInterface[]> {
+  ): Promise<Message[]> {
     log.verbose('Message', 'findAll(%s)', JSON.stringify(query) || '')
 
     // Huan(202111): { id } query has been optimized in the PuppetAbstract class
@@ -244,7 +244,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     return msgStrList.join('')
   }
 
-  conversation (): ContactInterface | RoomInterface {
+  conversation (): Contact | Room {
     if (this.room()) {
       return this.room()!
     } else {
@@ -254,7 +254,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
   /**
    * Get the talker of a message.
-   * @returns {ContactInterface}
+   * @returns {Contact}
    * @example
    * const bot = WechatyBuilder.build()
    * bot
@@ -271,7 +271,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
-  talker (): ContactInterface {
+  talker (): Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -305,7 +305,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @depreacated Use `message.talker()` to replace `message.from()`
    *  https://github.com/wechaty/wechaty/issues/2094
    */
-  from (): undefined | ContactInterface {
+  from (): undefined | Contact {
     log.warn('Message', 'from() is deprecated, use talker() instead. Call stack: %s',
       new Error().stack,
     )
@@ -320,10 +320,10 @@ class MessageMixin extends MixinBase implements SayableSayer {
   /**
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
-   * @returns {(ContactInterface|null)}
+   * @returns {(Contact|null)}
    * @deprecated use `listener()` instead
    */
-  to (): undefined | ContactInterface {
+  to (): undefined | Contact {
     // Huan(202108): I want to deprecate this method name in the future,
     //  and use `message.listener()` to replace it.
     return this.listener()
@@ -333,9 +333,9 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Get the destination of the message
    * Message.listener() will return null if a message is in a room,
    * use Message.room() to get the room.
-   * @returns {(undefined | ContactInterface)}
+   * @returns {(undefined | Contact)}
    */
-  listener (): undefined | ContactInterface {
+  listener (): undefined | Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -370,7 +370,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Get the room from the message.
    * If the message is not in a room, then will return `null`
    *
-   * @returns {(RoomInterface | null)}
+   * @returns {(Room | null)}
    * @example
    * const bot = WechatyBuilder.build()
    * bot
@@ -387,7 +387,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
-  room (): undefined | RoomInterface {
+  room (): undefined | Room {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -442,7 +442,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
-  async toRecalled (): Promise<undefined | MessageInterface> {
+  async toRecalled (): Promise<undefined | Message> {
     if (this.type() !== PUPPET.types.Message.Recalled) {
       throw new Error('Can not call toRecalled() on message which is not recalled type.')
     }
@@ -473,12 +473,12 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @see {@link https://github.com/wechaty/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | ContactInterface | FileBox | UrlLinkInterface | MiniProgramInterface | LocationInterface)} textOrContactOrFile
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
-   * @param {(ContactInterface|ContactInterface[])} [mention]
+   * @param {(Contact|Contact[])} [mention]
    * If this is a room message, when you set mention param, you can `@` Contact in the room.
-   * @returns {Promise<void | MessageInterface>}
+   * @returns {Promise<void | Message>}
    *
    * @example
    * import { FileBox }  from 'file-box'
@@ -558,7 +558,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   async say (
     sayable: Sayable,
-  ): Promise<void | MessageInterface> {
+  ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', sayable)
 
     const talker  = this.talker()
@@ -654,13 +654,13 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
    * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
    *
-   * @returns {Promise<ContactInterface[]>} - Return message mentioned contactList
+   * @returns {Promise<Contact[]>} - Return message mentioned contactList
    *
    * @example
    * const contactList = await message.mentionList()
    * console.log(contactList)
    */
-  async mentionList (): Promise<ContactInterface[]> {
+  async mentionList (): Promise<Contact[]> {
     log.verbose('Message', 'mentionList()')
 
     const room = this.room()
@@ -681,7 +681,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
           .map(idToContact),
       )
       // remove `undefined` types because we use a `filter(Boolean)`
-      return allContact.filter(Boolean) as ContactInterface[]
+      return allContact.filter(Boolean) as Contact[]
     }
 
     /**
@@ -735,7 +735,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
       ),
     )
 
-    let contactList: ContactInterface[] = []
+    let contactList: Contact[] = []
     contactList = contactList.concat.apply([], contactListNested)
 
     if (contactList.length === 0) {
@@ -747,7 +747,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
   /**
    * @deprecated mention() DEPRECATED. use mentionList() instead.
    */
-  async mention (): Promise<ContactInterface[]> {
+  async mention (): Promise<Contact[]> {
     log.warn('Message', 'mention() DEPRECATED. use mentionList() instead. Call stack: %s',
       new Error().stack,
     )
@@ -764,7 +764,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
       return text
     }
 
-    const toAliasName = async (member: ContactInterface) => {
+    const toAliasName = async (member: Contact) => {
       const alias = await room.alias(member)
       const name = member.name()
       return alias || name
@@ -909,7 +909,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
-  async forward (to: RoomInterface | ContactInterface): Promise<void | MessageInterface> {
+  async forward (to: Room | Contact): Promise<void | Message> {
     log.verbose('Message', 'forward(%s)', to)
 
     // let roomId
@@ -983,7 +983,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @returns {ImageInterface}
+   * @returns {Image}
    *
    * @example <caption>Save image file from a message</caption>
    * const image = message.toImage()
@@ -991,7 +991,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * const fileName = fileBox.name
    * fileBox.toFile(fileName)
    */
-  toImage (): ImageInterface {
+  toImage (): Image {
     log.verbose('Message', 'toImage() for message id: %s', this.id)
     if (this.type() !== PUPPET.types.Message.Image) {
       throw new Error(`not a image type message. type: ${this.type()}`)
@@ -1004,9 +1004,9 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Extract the Contact Card from the Message, and encapsulate it into Contact class
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
-   * @returns {Promise<ContactInterface>}
+   * @returns {Promise<Contact>}
    */
-  async toContact (): Promise<ContactInterface> {
+  async toContact (): Promise<Contact> {
     log.verbose('Message', 'toContact()')
 
     if (this.type() !== PUPPET.types.Message.Contact) {
@@ -1027,7 +1027,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     return contact
   }
 
-  async toUrlLink (): Promise<UrlLinkInterface> {
+  async toUrlLink (): Promise<UrlLink> {
     log.verbose('Message', 'toUrlLink()')
 
     if (!this.payload) {
@@ -1043,7 +1043,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     return new this.wechaty.UrlLink(urlPayload)
   }
 
-  async toMiniProgram (): Promise<MiniProgramInterface> {
+  async toMiniProgram (): Promise<MiniProgram> {
     log.verbose('Message', 'toMiniProgram()')
 
     if (!this.payload) {
@@ -1059,7 +1059,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     return new this.wechaty.MiniProgram(miniProgramPayload)
   }
 
-  async toLocation (): Promise<LocationInterface> {
+  async toLocation (): Promise<Location> {
     log.verbose('Message', 'toLocation()')
 
     if (!this.payload) {
@@ -1075,7 +1075,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
     return new LocationImpl(locationPayload)
   }
 
-  public async toPost (): Promise<PostInterface> {
+  public async toPost (): Promise<Post> {
     log.verbose('Message', 'toPost()')
 
     if (!this.payload) {
@@ -1104,15 +1104,21 @@ interface MessageImplInterface extends MessageImplBase {}
 type MessageProtectedProperty =
   | 'ready'
 
-type MessageInterface = Omit<MessageImplInterface, MessageProtectedProperty>
-class MessageImpl extends validationMixin(MessageImplBase)<MessageInterface>() {}
+type Message = Omit<MessageImplInterface, MessageProtectedProperty>
+
+/**
+ * @deprecated Use `Message` instead. `MessageInterface` is retained for backwards compatibility.
+ */
+type MessageInterface = Message
+class MessageImpl extends validationMixin(MessageImplBase)<Message>() {}
 
 type MessageConstructor = Constructor<
-  MessageInterface,
+  Message,
   Omit<typeof MessageImpl, 'load'>
 >
 
 export type {
+  Message,
   MessageInterface,
   MessageProtectedProperty,
   MessageConstructor,

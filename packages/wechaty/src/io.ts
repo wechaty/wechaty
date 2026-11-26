@@ -57,7 +57,7 @@ import {
   type LifecycleStop,
 }                     from 'scopelet'
 import type {
-  MessageInterface,
+  Message,
 }                     from './user-modules/mod.ts'
 import type { Wechaty } from './wechaty/mod.ts'
 
@@ -383,7 +383,6 @@ export class Io extends AsyncLifecycle {
       this.scanPayload = { ...this.scanPayload, qrcode, status }
       forward({ name: 'scan', payload: { qrcode, status } } as IoEventScan)
     }) as EventListener, { signal })
-
     return () => {
       abortController.abort()
     }
@@ -868,7 +867,7 @@ export class Io extends AsyncLifecycle {
    * Prepare to be overwritten by server setting
    *
    */
-  private async ioMessage (m: MessageInterface): Promise<void> {
+  private async ioMessage (m: Message): Promise<void> {
     log.silly('Io', 'ioMessage() is a nop function before be overwritten from cloud')
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)
@@ -879,7 +878,7 @@ export class Io extends AsyncLifecycle {
    * Send a message the bot received to the server as a `message` event, with
    * the puppet's payload. Buffered while not connected.
    */
-  protected async syncMessage (m: MessageInterface): Promise<void> {
+  protected async syncMessage (m: Message): Promise<void> {
     log.silly('Io', 'syncMessage(%s)', m)
 
     const messageEvent: IoEvent = {

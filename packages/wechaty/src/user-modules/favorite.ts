@@ -24,11 +24,11 @@ import { validationMixin } from '../user-mixins/validation.ts'
 import {
   wechatifyMixinBase,
 }                       from '../user-mixins/wechatify.ts'
-import type { TagInterface } from './tag.ts'
+import type { Tag } from './tag.ts'
 
 class FavoriteMixin extends wechatifyMixinBase() {
 
-  static list (): FavoriteInterface[] {
+  static list (): Favorite[] {
     return []
   }
 
@@ -36,11 +36,11 @@ class FavoriteMixin extends wechatifyMixinBase() {
    * Get tags for all favorites
    *
    * @static
-   * @returns {Promise<TagInterface[]>}
+   * @returns {Promise<Tag[]>}
    * @example
    * const tags = await wechaty.Favorite.tags()
    */
-  static async tags (): Promise<TagInterface[]> {
+  static async tags (): Promise<Tag[]> {
     log.verbose('Favorite', 'static tags() for %s', this)
 
     // TODO:
@@ -62,7 +62,7 @@ class FavoriteMixin extends wechatifyMixinBase() {
     super()
   }
 
-  async tags (): Promise<TagInterface[]> {
+  async tags (): Promise<Tag[]> {
     // TODO: implmente this method
     return []
   }
@@ -73,14 +73,21 @@ class FavoriteMixin extends wechatifyMixinBase() {
 
 }
 
-class FavoriteImpl extends validationMixin(FavoriteMixin)<FavoriteInterface>() {}
-interface FavoriteInterface extends FavoriteImpl {}
+class FavoriteImpl extends validationMixin(FavoriteMixin)<Favorite>() {}
+interface Favorite extends FavoriteImpl {}
+
+/**
+ * @deprecated Use `Favorite` instead. `FavoriteInterface` is retained for backwards compatibility.
+ */
+type FavoriteInterface = Favorite
+
 type FavoriteConstructor = Constructor<
-  FavoriteInterface,
+  Favorite,
   typeof FavoriteImpl
 >
 
 export type {
+  Favorite,
   FavoriteConstructor,
   FavoriteInterface,
 }

@@ -7,10 +7,10 @@ import {
 } from 'wechaty-puppet'
 
 import type {
-  ContactInterface,
-  MessageInterface,
-  RoomInterface,
-  RoomInvitationInterface,
+  Contact,
+  Message,
+  Room,
+  RoomInvitation,
 } from '../user-modules/mod.ts'
 
 export const ROOM_EVENT_DICT = {
@@ -23,11 +23,11 @@ export const ROOM_EVENT_DICT = {
 
 export type RoomEventName = keyof typeof ROOM_EVENT_DICT
 
-export type RoomEventListenerInvite  = (this: RoomInterface, inviter: ContactInterface, invitation: RoomInvitationInterface)           => void | Promise<void>
-export type RoomEventListenerJoin    = (this: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface,  date?: Date) => void | Promise<void>
-export type RoomEventListenerLeave   = (this: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date)  => void | Promise<void>
-export type RoomEventListenerMessage = (this: RoomInterface, message: MessageInterface, date?: Date)                                   => void | Promise<void>
-export type RoomEventListenerTopic   = (this: RoomInterface, topic: string, oldTopic: string, changer: ContactInterface, date?: Date)  => void | Promise<void>
+export type RoomEventListenerInvite  = (this: Room, inviter: Contact, invitation: RoomInvitation)           => void | Promise<void>
+export type RoomEventListenerJoin    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void | Promise<void>
+export type RoomEventListenerLeave   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)  => void | Promise<void>
+export type RoomEventListenerMessage = (this: Room, message: Message, date?: Date)                           => void | Promise<void>
+export type RoomEventListenerTopic   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date)  => void | Promise<void>
 
 export interface RoomEventListeners {
   invite  : RoomEventListenerInvite
@@ -38,11 +38,11 @@ export interface RoomEventListeners {
 }
 
 export interface RoomEventDetailMap {
-  invite  : { inviter: ContactInterface, invitation: RoomInvitationInterface }
-  join    : { inviteeList: ContactInterface[], inviter: ContactInterface, date?: Date }
-  leave   : { leaverList: ContactInterface[], remover?: ContactInterface, date?: Date }
-  message : MessageInterface
-  topic   : { topic: string, oldTopic: string, changer: ContactInterface, date?: Date }
+  invite  : { inviter: Contact, invitation: RoomInvitation }
+  join    : { inviteeList: Contact[], inviter: Contact, date?: Date }
+  leave   : { leaverList: Contact[], remover?: Contact, date?: Date }
+  message : Message
+  topic   : { topic: string, oldTopic: string, changer: Contact, date?: Date }
 }
 
 export interface RoomEventEmitterMethods {
@@ -110,5 +110,11 @@ export interface RoomEventTargetInterface {
   ): AsyncIterable<T>
 }
 
-export type RoomEventEmitterInterface = RoomEventEmitterMethods & RoomEventTargetInterface & EventEmitter
-export const RoomEventEmitter = EventEmitter as unknown as new () => RoomEventEmitterInterface
+export type RoomEventTarget = RoomEventTargetInterface
+export type RoomEventEmitter = RoomEventEmitterMethods & RoomEventTarget & EventEmitter
+
+/**
+ * @deprecated Use `RoomEventEmitter` instead. `RoomEventEmitterInterface` is retained for backwards compatibility.
+ */
+export type RoomEventEmitterInterface = RoomEventEmitter
+export const RoomEventEmitter = EventEmitter as unknown as new () => RoomEventEmitter

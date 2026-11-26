@@ -19,26 +19,27 @@
  */
 
 /**
- * Huan(202111): we export all `interface` from this file, as the most convenience class name.
+ * Modern user module types.
  *
- *  since they are `interface`s, so they are `type`-only.
+ * Exports canonical domain nouns (Contact, Message, Room, etc.) representing
+ * pure doc-typed bot-bound instance types.
  */
 
 export type {
-  ContactInterface        as Contact,
-  ContactSelfInterface    as ContactSelf,
-  DelayInterface          as Delay,
-  FavoriteInterface       as Favorite,
-  FriendshipInterface     as Friendship,
-  ImageInterface          as Image,
-  LocationInterface       as Location,
-  MessageInterface        as Message,
-  MiniProgramInterface    as MiniProgram,
-  MomentInterface         as Moment,
-  MoneyInterface          as Money,
-  PostInterface           as Post,
-  RoomInterface           as Room,
-  RoomInvitationInterface as RoomInvitation,
-  TagInterface            as Tag,
-  UrlLinkInterface        as UrlLink,
+  Contact,
+  ContactSelf,
+  Delay,
+  Favorite,
+  Friendship,
+  Image,
+  Location,
+  Message,
+  MiniProgram,
+  Moment,
+  Money,
+  Post,
+  Room,
+  RoomInvitation,
+  Tag,
+  UrlLink,
 }                                               from '../user-modules/mod.ts'

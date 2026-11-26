@@ -7,9 +7,8 @@ import {
   looseInstanceOfPuppet,
 }                             from '../puppet/interface-of.ts'
 
-import type { Puppet }          from '../puppet/puppet-abstract.ts'
-import type { PuppetInterface } from '../puppet/puppet-interface.ts'
-import type { PuppetSkeleton }   from '../puppet/puppet-skeleton.ts'
+import type { Puppet }        from '../puppet/puppet-abstract.ts'
+import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
 
 const validateMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 
@@ -18,7 +17,7 @@ const validateMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: Mixin
     /**
      * Check if obj satisfy Puppet interface
      */
-    static validInterface (target: any): target is PuppetInterface {
+    static validInterface (target: any): target is Puppet {
       return interfaceOfPuppet(target)
     }
 
@@ -34,7 +33,7 @@ const validateMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: Mixin
      *  because it will check `instanceof` first, which I believe it will be the most case
      *  and it will be faster than `interfaceOfPuppet()`
      */
-    static valid (target: any): target is PuppetInterface {
+    static valid (target: any): target is Puppet {
       if (this.validInstance(target) || this.validInterface(target)) {
         return true
       }

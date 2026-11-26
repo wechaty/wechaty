@@ -27,7 +27,7 @@ import { EventStreamManager, type EventStreamSink } from './event-stream-manager
 import { timestampFromMilliseconds } from '../pure-functions/timestamp.ts'
 
 export function puppetImplementation (
-  puppet      : PUPPET.impls.PuppetInterface,
+  puppet      : PUPPET.Puppet,
   FileBoxUuid : typeof FileBox,
   signal?     : AbortSignal,
 ): ServiceImpl<typeof Puppet> {
