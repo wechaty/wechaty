@@ -2,13 +2,13 @@ import { EventEmitter }   from 'wechaty-puppet'
 import type * as TypedEventEmitter from 'typed-emitter'
 
 import type {
-  ContactInterface,
-  FriendshipInterface,
-  MessageInterface,
+  Contact,
+  Friendship,
+  Message,
 }                   from '../user-modules/mod.ts'
 
-type ContactEventListenerMessage    = (this: ContactInterface, message: MessageInterface, date?: Date)  => void | Promise<void>
-type ContactEventListenerFriendship = (friendship: FriendshipInterface)                                 => void | Promise<void>
+type ContactEventListenerMessage    = (this: Contact, message: Message, date?: Date)  => void | Promise<void>
+type ContactEventListenerFriendship = (friendship: Friendship)                        => void | Promise<void>
 
 interface ContactEventListeners {
   friendship : ContactEventListenerFriendship,

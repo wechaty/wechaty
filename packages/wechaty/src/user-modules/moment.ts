@@ -20,7 +20,7 @@
 import { log } from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
 
-import type { ContactInterface } from './contact.ts'
+import type { Contact } from './contact.ts'
 import { validationMixin } from '../user-mixins/validation.ts'
 import {
   wechatifyMixinBase,
@@ -32,7 +32,7 @@ class MomentMixin extends wechatifyMixinBase() {
     // post new moment
   }
 
-  static timeline (contact: ContactInterface): MomentImpl[] {
+  static timeline (contact: Contact): MomentImpl[] {
     // list all moment
     void contact
     return []

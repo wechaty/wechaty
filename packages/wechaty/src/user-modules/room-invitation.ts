@@ -30,7 +30,7 @@ import {
 }                     from '../pure-functions/timestamp-to-date.ts'
 
 import type {
-  ContactInterface,
+  Contact,
 }               from './contact.ts'
 import {
   wechatifyMixinBase,
@@ -47,7 +47,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
 
   static load (
     id   : string,
-  ): RoomInvitationInterface {
+  ): RoomInvitation {
     const newRoomInvitation = new this(id)
     return newRoomInvitation
   }
@@ -129,7 +129,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
   /**
    * Get the inviter from room invitation
    *
-   * @returns {ContactInterface}
+   * @returns {Contact}
    * @example
    * const bot = WechatyBuilder.build()
    * bot.on('room-invite', async roomInvitation => {
@@ -139,7 +139,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    * }
    * .start()
    */
-  async inviter (): Promise<ContactInterface> {
+  async inviter (): Promise<Contact> {
     log.verbose('RoomInvitation', 'inviter()')
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
@@ -181,7 +181,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    * List of Room Members that you known(is friend)
     * @ignore
    */
-  async memberList (): Promise<ContactInterface[]> {
+  async memberList (): Promise<Contact[]> {
     log.verbose('RoomInvitation', 'roomMemberList()')
 
     const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
@@ -194,7 +194,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
       ),
     )
 
-    const contactList = contactListAll.filter(c => !!c) as ContactInterface[]
+    const contactList = contactListAll.filter(c => !!c) as Contact[]
     return contactList
   }
 
@@ -230,7 +230,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
   /**
    * Load the room invitation info from disk
    *
-   * @returns {RoomInvitationInterface}
+   * @returns {RoomInvitation}
    * @example
    * const bot = WechatyBuilder.build()
    * const dataFromDisk // get the room invitation info data from disk
@@ -239,7 +239,7 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    */
   static async fromJSON (
     payload: string | PUPPET.payloads.RoomInvitation,
-  ): Promise<RoomInvitationInterface> {
+  ): Promise<RoomInvitation> {
     log.verbose('RoomInvitation', 'fromJSON(%s)',
       typeof payload === 'string'
         ? payload

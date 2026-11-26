@@ -48,8 +48,8 @@ import type {
 }                                     from '../sayable/mod.ts'
 import { stringifyFilter }            from '../helper-functions/stringify-filter.ts'
 
-import type { MessageInterface }  from './message.ts'
-import type { TagInterface }      from './tag.ts'
+import type { Message }       from './message.ts'
+import type { Tag }           from './tag.ts'
 import type { ContactSelfImpl }   from './contact-self.ts'
 
 const MixinBase = wechatifyMixin(
@@ -88,7 +88,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    *
    * @static
    * @param {string | ContactQueryFilter} query `string` will search `name` & `alias`
-   * @returns {(Promise<undefined | ContactInterface>)} If can find the contact, return Contact, or return null
+   * @returns {(Promise<undefined | Contact>)} If can find the contact, return Contact, or return null
    * @example
    * const bot = WechatyBuilder.build()
    * await bot.start()
@@ -97,7 +97,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    */
   static async find (
     query : string | PUPPET.filters.Contact,
-  ): Promise<undefined | ContactInterface> {
+  ): Promise<undefined | Contact> {
     log.silly('Contact', 'find(%s)', JSON.stringify(query, stringifyFilter))
 
     if (typeof query === 'object' && query.id) {
@@ -161,7 +161,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    *
    * @static
    * @param {string | ContactQueryFilter} [queryArg] `string` will search `name` & `alias`
-   * @returns {Promise<ContactInterface[]>}
+   * @returns {Promise<Contact[]>}
    * @example
    * const bot = WechatyBuilder.build()
    * await bot.start()
@@ -171,7 +171,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    */
   static async findAll (
     query? : string | PUPPET.filters.Contact,
-  ): Promise<ContactInterface[]> {
+  ): Promise<Contact[]> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query, stringifyFilter) || '')
 
     try {
@@ -185,7 +185,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
       const CONCURRENCY = 17
       const contactIterator = concurrencyExecuter(CONCURRENCY)(idToContact)(contactIdList)
 
-      const contactList: ContactInterface[] = []
+      const contactList: Contact[] = []
 
       for await (const contact of contactIterator) {
         if (contact) {
@@ -204,7 +204,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
   // TODO
   // eslint-disable-next-line no-use-before-define
-  static async delete (contact: ContactInterface): Promise<void> {
+  static async delete (contact: Contact): Promise<void> {
     log.verbose('Contact', 'static delete(%s)', contact.id)
   }
 
@@ -212,11 +212,11 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * Get tags for all contact
    *
    * @static
-   * @returns {Promise<TagInterface[]>}
+   * @returns {Promise<Tag[]>}
    * @example
    * const tags = await wechaty.Contact.tags()
    */
-  static async tags (): Promise<TagInterface[]> {
+  static async tags (): Promise<Tag[]> {
     log.verbose('Contact', 'static tags() for %s', this)
 
     try {
@@ -269,10 +269,10 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * > Tips:
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
-   * @param {(string | ContactInterface | FileBox | UrlLink | MiniProgram | Location)} sayable
+   * @param {(string | Contact | FileBox | UrlLink | MiniProgram | Location)} sayable
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
-   * @returns {Promise<void | MessageInterface>}
+   * @returns {Promise<void | Message>}
    * @example
    * const bot = WechatyBuilder.build()
    * await bot.start()
@@ -335,7 +335,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    */
   async say (
     sayable: Sayable,
-  ): Promise<void | MessageInterface> {
+  ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayable)
 
     const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
@@ -650,11 +650,11 @@ class ContactMixin extends MixinBase implements SayableSayer {
   /**
    * Get all tags of contact
    *
-   * @returns {Promise<TagInterface[]>}
+   * @returns {Promise<Tag[]>}
    * @example
    * const tags = await contact.tags()
    */
-  async tags (): Promise<TagInterface[]> {
+  async tags (): Promise<Tag[]> {
     log.verbose('Contact', 'tags() for %s', this)
 
     try {

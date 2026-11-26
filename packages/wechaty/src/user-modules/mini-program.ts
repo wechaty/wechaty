@@ -37,7 +37,7 @@ class MiniProgramMixin extends wechatifyMixinBase() {
    * Create
    *
    */
-  static async create (): Promise<MiniProgramInterface> {
+  static async create (): Promise<MiniProgram> {
     log.verbose('MiniProgram', 'create()')
 
     // TODO: get appid and username from wechat

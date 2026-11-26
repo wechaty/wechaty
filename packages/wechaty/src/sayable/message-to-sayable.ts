@@ -7,13 +7,13 @@ import * as PUPPET from 'wechaty-puppet'
 import { log } from 'wechaty-puppet'
 
 import type {
-  MessageInterface,
+  Message,
 }                   from '../user-modules/mod.ts'
 
 import type { Sayable } from './types.ts'
 
 async function messageToSayable (
-  message: MessageInterface,
+  message: Message,
 ): Promise<undefined | Sayable> {
   log.verbose('Wechaty', 'toSayable(%s)', message)
 

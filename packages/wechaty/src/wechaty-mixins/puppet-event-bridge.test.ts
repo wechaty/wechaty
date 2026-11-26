@@ -9,12 +9,12 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import type {
-  ContactInterface,
-  ContactSelfInterface,
-  FriendshipInterface,
-  MessageInterface,
-  RoomInvitationInterface,
-  RoomInterface,
+  Contact,
+  ContactSelf,
+  Friendship,
+  Message,
+  RoomInvitation,
+  Room,
 }                                             from '../user-modules/mod.ts'
 import type {
   WechatyEventListeners,
@@ -42,11 +42,11 @@ function createBridgeTestContext (
     contactFind: async () => undefined,
     contactReady: async () => {},
     contactSelfFind: async () => undefined,
-    friendshipLoad: () => ({} as unknown as FriendshipInterface),
+    friendshipLoad: () => ({} as unknown as Friendship),
     messageFind: async () => undefined,
     postFind: async () => undefined,
     roomFind: async () => undefined,
-    roomInvitationLoad: () => ({} as unknown as RoomInvitationInterface),
+    roomInvitationLoad: () => ({} as unknown as RoomInvitation),
     roomReady: async () => {},
     setReady: state => trace.push(`ready:${state}`),
     emit: function <EventName extends WechatyEventName> (
@@ -96,11 +96,11 @@ test('message event hydrates then forwards the same object in order', async () =
   const context = createBridgeTestContext()
   const room = {
     emit: (event: string) => context.trace.push(`room:${event}`),
-  } as unknown as RoomInterface
+  } as unknown as Room
   const message = {
     room: () => room,
     listener: () => undefined,
-  } as unknown as MessageInterface
+  } as unknown as Message
   context.dependencies.messageFind = async () => message
 
   registerPuppetEventBridge(puppet, context.dependencies)
@@ -116,11 +116,11 @@ test('message event forwards to a listener contact when it has no room', async (
   const context = createBridgeTestContext()
   const listener = {
     emit: (event: string) => context.trace.push(`contact:${event}`),
-  } as unknown as ContactInterface
+  } as unknown as Contact
   const message = {
     room: () => undefined,
     listener: () => listener,
-  } as unknown as MessageInterface
+  } as unknown as Message
   context.dependencies.messageFind = async () => message
 
   registerPuppetEventBridge(puppet, context.dependencies)
@@ -156,16 +156,16 @@ test('login, friendship, and room-join handlers preserve their event forwarding'
   const context = createBridgeTestContext()
   const contact = {
     emit: (event: string) => context.trace.push(`contact:${event}`),
-  } as unknown as ContactInterface
-  const contactSelf = {} as ContactSelfInterface
+  } as unknown as Contact
+  const contactSelf = {} as ContactSelf
   const friendship = {
     ready: async () => {},
     contact: () => contact,
-  } as unknown as FriendshipInterface
+  } as unknown as Friendship
   const room = {
     sync: async () => {},
     emit: (event: string) => context.trace.push(`room:${event}`),
-  } as unknown as RoomInterface
+  } as unknown as Room
   context.dependencies.contactSelfFind = async () => contactSelf
   context.dependencies.friendshipLoad = () => friendship
   context.dependencies.roomFind = async () => room

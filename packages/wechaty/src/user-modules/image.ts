@@ -33,7 +33,7 @@ class ImageMixin extends wechatifyMixinBase() {
 
   public id: string
 
-  static create (id: string): ImageInterface {
+  static create (id: string): Image {
     log.verbose('Image', 'static create(%s)', id)
 
     const image = new this(id)
