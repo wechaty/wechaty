@@ -289,7 +289,7 @@ jobs:
             cat > "$private_dir/prompt.md" <<EOF
           You are a senior engineer and principle architect. Understand the code base first, then do a deep review on $TARGET_URL - think hard, 3-pass.
 
-          Check existing inline threads. Add new evidence to the matching thread or link to it if replies are unavailable. Post new findings inline.
+          Check existing inline threads. Refresh them immediately before posting to catch findings added during this review. Add new evidence to the matching thread or link to it if replies are unavailable. Post only distinct new findings inline.
 
           Submit a formal GitHub pull request review as Comment, with a summary headed "## Antigravity Next review". Anchor actionable findings to the relevant diff lines. Submit the summary even if there are no findings.
 
