@@ -29,12 +29,7 @@
  */
 import * as PUPPET from 'wechaty-puppet'
 import { log, WechatyEvent } from 'wechaty-puppet'
-import {
-  GError,
-  timeoutPromise,
-  TimeoutPromiseGError,
-} from 'gerror'
-import { StateSwitch, type StateSwitchInterface } from 'state-switch'
+import type { LifecycleWaitOptions } from 'scopelet'
 
 import { config } from '../config.ts'
 import { NO_PUPPET_MESSAGE } from '../puppet-config.ts'
@@ -49,15 +44,14 @@ export class PuppetManager {
 
   readonly #wechaty: Wechaty
   readonly #options: WechatyOptions
-  readonly #readyState: StateSwitchInterface
 
   #puppet?: PUPPET.Puppet
   #initialized = false
+  readonly #puppetInitResolvers: Array<(puppet: PUPPET.Puppet) => void> = []
 
   constructor (wechaty: Wechaty, options: WechatyOptions) {
     this.#wechaty = wechaty
     this.#options = options
-    this.#readyState = new StateSwitch('WechatyReady', { log })
   }
 
   get puppet (): PUPPET.Puppet {
@@ -71,10 +65,33 @@ export class PuppetManager {
     return this.#initialized
   }
 
-  async ready (): Promise<void> {
+  getPuppetOrWait (signal?: AbortSignal): Promise<PUPPET.Puppet> {
+    if (this.#puppet) {
+      return Promise.resolve(this.#puppet)
+    }
+    return new Promise<PUPPET.Puppet>((resolve, reject) => {
+      if (signal?.aborted) {
+        return reject(signal.reason)
+      }
+      const onAbort = () => {
+        const idx = this.#puppetInitResolvers.indexOf(resolve)
+        if (idx >= 0) {
+          this.#puppetInitResolvers.splice(idx, 1)
+        }
+        reject(signal!.reason)
+      }
+      signal?.addEventListener('abort', onAbort, { once: true })
+      this.#puppetInitResolvers.push(puppet => {
+        signal?.removeEventListener('abort', onAbort)
+        resolve(puppet)
+      })
+    })
+  }
+
+  async ready (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('PuppetManager', 'ready()')
-    await this.#readyState.stable('active')
-    log.silly('PuppetManager', 'ready() this.readyState.stable(active) resolved')
+    const puppet = await this.getPuppetOrWait(options?.signal)
+    return puppet.ready(options)
   }
 
   async init (): Promise<void> {
@@ -116,30 +133,13 @@ export class PuppetManager {
 
     this.#puppet = puppetInstance
     this.#initialized = true
+    this.#puppetInitResolvers.forEach(resolve => resolve(puppetInstance))
+    this.#puppetInitResolvers.length = 0
   }
 
   async start (): Promise<void> {
     log.verbose('PuppetManager', 'start()')
-
-    if (this.#readyState.active()) {
-      this.#readyState.inactive(true)
-    }
-
-    try {
-      log.verbose('PuppetManager', 'start() starting puppet ...')
-      await timeoutPromise(
-        this.puppet.start(),
-        15 * 1000,
-      )
-      log.verbose('PuppetManager', 'start() starting puppet ... done')
-    } catch (e) {
-      if (e instanceof TimeoutPromiseGError) {
-        log.warn('PuppetManager', 'start() starting puppet ... timeout')
-        log.warn('PuppetManager', 'start() puppet info: %s', this.puppet)
-      } else {
-        throw GError.from(e)
-      }
-    }
+    await this.puppet.start()
   }
 
   async stop (): Promise<void> {
@@ -148,22 +148,7 @@ export class PuppetManager {
       log.verbose('PuppetManager', 'stop() skipped: no puppet instantiated.')
       return
     }
-    try {
-      log.verbose('PuppetManager', 'stop() stopping puppet ...')
-      await timeoutPromise(
-        this.#puppet.stop(),
-        15 * 1000,
-      )
-      log.verbose('PuppetManager', 'stop() stopping puppet ... done')
-    } catch (e) {
-      if (e instanceof TimeoutPromiseGError) {
-        log.warn('PuppetManager', 'stop() stopping puppet ... timeout')
-        log.warn('PuppetManager', 'stop() puppet info: %s', this.#puppet)
-      } else {
-        log.error('PuppetManager', 'stop() exception: %s', (e as Error).message)
-        this.#wechaty.emitError(e)
-      }
-    }
+    await this.#puppet.stop()
   }
 
   #setupPuppetEvents (puppet: PUPPET.Puppet): void {
@@ -182,13 +167,6 @@ export class PuppetManager {
       roomReady: async id => {
         const room = await this.#wechaty.Room.find({ id }) as unknown as undefined | RoomImpl
         await room?.ready(true)
-      },
-      setReady: state => {
-        if (state === 'active') {
-          this.#readyState.active(true)
-        } else {
-          this.#readyState.inactive(true)
-        }
       },
       dispatchEvent: this.#wechaty.dispatchEvent.bind(this.#wechaty),
       emitError: error => this.#wechaty.emitError(error),

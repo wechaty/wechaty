@@ -109,6 +109,9 @@ export type {
 
 export {
   WechatyImpl,
+  type WechatyState,
+  type LegacyStateView,
+  legacyStateView,
 }                         from '../wechaty/mod.ts'
 export type {
   WechatyInterface,

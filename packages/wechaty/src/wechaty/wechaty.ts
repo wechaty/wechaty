@@ -25,7 +25,7 @@
  * composition architecture instead of legacy functional mixin inheritance towers.
  * Directly inherits from pure WinterTC `WechatyEventTarget`, encapsulating subsystems
  * with native ECMAScript `#private` fields (`#options`, `#puppetManager`, `#authManager`,
- * `#pluginManager`, `#userModuleManager`, `#ioManager`, `#state`).
+ * `#pluginManager`, `#userModuleManager`, `#ioManager`, `#lifecycle`).
  *
  * Architectural boundaries:
  * Part of `packages/wechaty`. Exports canonical concrete `Wechaty` class.
@@ -44,7 +44,17 @@ import {
   type WrapAsync,
   wrapAsyncError,
 } from 'gerror'
-import { StateSwitch } from 'state-switch'
+import type {
+  Lifecycle,
+  LifecycleController,
+  LifecycleScope,
+  LifecycleState,
+  LifecycleWaitOptions,
+} from 'scopelet'
+import {
+  createLifecycle,
+  LifecycleSupersededError,
+} from 'scopelet'
 
 import { VERSION } from '../config.ts'
 import type { WechatyOptions } from '../schemas/wechaty-options.ts'
@@ -88,7 +98,53 @@ import { IoManager } from '../components/io-manager.ts'
 
 let _singletonInstance: Wechaty | undefined
 
-export class Wechaty extends WechatyEventTarget implements AsyncDisposable, SayableSayer {
+/**
+ * `state-switch`'s read side, which today's `Wechaty` calls as
+ * `state.active()` / `state.inactive()`: `true` when settled in that state,
+ * `'pending'` while moving towards it, `false` otherwise.
+ */
+export interface LegacyStateView {
+  active (): boolean | 'pending'
+  inactive (): boolean | 'pending'
+}
+
+/**
+ * Derive the `state-switch` view from a lifecycle's state (D24, integration
+ * layer). Read live, so it can never drift from `state`:
+ *
+ * | `state.kind` | `active()` | `inactive()` |
+ * | --- | --- | --- |
+ * | `starting` | `'pending'` | `false` |
+ * | `running` | `true` | `false` |
+ * | `stopping` | `false` | `'pending'` |
+ * | `stopped`, `failed` | `false` | `true` |
+ */
+export function legacyStateView (lifecycle: Pick<Lifecycle, 'state'>): LegacyStateView {
+  return {
+    active: () => {
+      const kind = lifecycle.state.kind
+      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
+    },
+    inactive: () => {
+      const kind = lifecycle.state.kind
+      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
+    },
+  }
+}
+
+/**
+ * Dynamic state view exposed via `wechaty.state`, combining modern `LifecycleState`
+ * properties with backwards-compatible `StateSwitch` query methods.
+ */
+export type WechatyState = LifecycleState & {
+  active (val?: boolean | 'pending'): boolean | 'pending'
+  inactive (val?: boolean | 'pending'): boolean | 'pending'
+  on (val?: boolean | 'pending'): boolean | 'pending'
+  off (val?: boolean | 'pending'): boolean | 'pending'
+  stable (expected?: 'active' | 'inactive'): Promise<void>
+}
+
+export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDisposable, SayableSayer {
 
   // --- Static Members ---
   static readonly VERSION: string = VERSION
@@ -132,8 +188,13 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
   readonly #pluginManager: PluginManager
   readonly #userModuleManager: UserModuleManager
   readonly #ioManager: IoManager
-  readonly #state: StateSwitch
-  readonly #stopCallbackList: (() => void)[] = []
+  readonly #lifecycle: LifecycleController
+
+  /**
+   * Cancels delegated `ready()` waits created before it. Aborted and replaced
+   * when this bot accepts `stop()` or fails.
+   */
+  #readyWaits = new AbortController()
 
   #memory?: MemoryCard
 
@@ -141,13 +202,57 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
     super()
     this.#options = options
     this.#memory = options.memory
-    this.#state = new StateSwitch('Wechaty', { log })
 
     this.#puppetManager = new PuppetManager(this, options)
     this.#authManager = new AuthManager(this, this.#puppetManager)
     this.#pluginManager = new PluginManager(this)
     this.#userModuleManager = new UserModuleManager(this)
     this.#ioManager = new IoManager(this, options)
+
+    this.#lifecycle = createLifecycle({
+      onStart: scope => this.#lifecycleStart(scope),
+      onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
+    }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
+  }
+
+  async #lifecycleStart (scope: LifecycleScope): Promise<void> {
+    log.verbose('Wechaty', 'lifecycle onStart()')
+
+    await this.init()
+
+    const lifeTimer = setInterval(() => {
+      log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
+    }, 1000 * 60 * 60)
+    if (typeof (lifeTimer as any)?.unref === 'function') {
+      (lifeTimer as any).unref()
+    }
+    scope.defer(() => clearInterval(lifeTimer))
+
+    // Children start in order and stop in reverse (C-CHILD-04).
+    // Puppet starts first:
+    await scope.start(this.puppet)
+
+    // Optional Io client starts second:
+    if (this.#ioManager.hasIo) {
+      await this.#ioManager.start(scope)
+    }
+  }
+
+  #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {
+    if (state.kind === 'running' && previous.kind !== 'running') {
+      this.dispatchEvent(new WechatyEvent('start'))
+    } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {
+      this.dispatchEvent(new WechatyEvent('stop'))
+    } else if (state.kind === 'failed') {
+      this.#cancelReadyWaits(new LifecycleSupersededError('the bot failed before the puppet was ready', { cause: state.error }))
+      const err = (state.error as any)?.cause ?? state.error
+      this.emitError(err)
+    }
+  }
+
+  #cancelReadyWaits (reason: unknown): void {
+    this.#readyWaits.abort(reason)
+    this.#readyWaits = new AbortController()
   }
 
   // --- Core State & Subsystem Getters ---
@@ -158,8 +263,38 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
     return this.#memory
   }
 
-  get state (): StateSwitch {
-    return this.#state
+  get state (): WechatyState {
+    const lifecycle = this.#lifecycle
+    const active = (): boolean | 'pending' => {
+      const kind = lifecycle.state.kind
+      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
+    }
+    const inactive = (): boolean | 'pending' => {
+      const kind = lifecycle.state.kind
+      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
+    }
+    const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
+      if (expected === 'active') {
+        await lifecycle.whenState(st => st.kind === 'running')
+      } else if (expected === 'inactive') {
+        await lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
+      } else {
+        await lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
+      }
+    }
+    const current = lifecycle.state
+    return Object.freeze({
+      ...current,
+      active,
+      inactive,
+      on: active,
+      off: inactive,
+      stable,
+    })
+  }
+
+  get legacyState (): LegacyStateView {
+    return legacyStateView(this.#lifecycle)
   }
 
   get puppet (): PUPPET.Puppet {
@@ -226,107 +361,78 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
     await this.#puppetManager.init()
   }
 
-  async start (): Promise<void> {
+  start (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'start()')
-
-    if (this.#state.active() === 'pending') {
-      log.verbose('Wechaty', 'start() active is pending, waiting for stable...')
-      await this.#state.stable('active')
-      return
-    }
-    if (this.#state.active()) {
-      log.verbose('Wechaty', 'start() already active')
-      return
-    }
-
-    this.#state.active('pending')
-
-    try {
-      await this.init()
-
-      const lifeTimer = setInterval(() => {
-        log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
-      }, 1000 * 60 * 60)
-      this.#stopCallbackList.push(() => clearInterval(lifeTimer))
-
-      await this.#ioManager.start()
-      await this.#puppetManager.start()
-
-      this.dispatchEvent(new WechatyEvent('start'))
-      this.#state.active(true)
-      log.verbose('Wechaty', 'start() ... done')
-    } catch (e) {
-      log.error('Wechaty', 'start() exception: %s', (e as Error).message)
-      await this.stop().catch(stopErr => {
-        log.error('Wechaty', 'start() stop cleanup exception: %s', (stopErr as Error).message)
-      })
-      this.emitError(e)
-      throw GError.from(e)
-    }
+    return this.#lifecycle.start(options)
   }
 
-  async stop (): Promise<void> {
+  stop (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'stop()')
-
-    if (this.#state.inactive() === 'pending') {
-      log.verbose('Wechaty', 'stop() inactive is pending, waiting for stable...')
-      await this.#state.stable('inactive')
-      return
+    if (!options?.signal?.aborted) {
+      this.#cancelReadyWaits(new LifecycleSupersededError('the bot was stopped before the puppet was ready'))
     }
-    if (this.#state.inactive()) {
-      log.verbose('Wechaty', 'stop() already inactive')
-      this.#stopCallbackList.forEach(fn => fn())
-      this.#stopCallbackList.length = 0
-      return
-    }
-
-    this.#state.inactive('pending')
-
-    try {
-      this.#stopCallbackList.forEach(fn => fn())
-      this.#stopCallbackList.length = 0
-
-      await this.#puppetManager.stop()
-      await this.#ioManager.stop()
-
-      this.dispatchEvent(new WechatyEvent('stop'))
-      this.#state.inactive(true)
-      log.verbose('Wechaty', 'stop() ... done')
-    } catch (e) {
-      this.#state.inactive(true)
-      this.emitError(e)
-      throw GError.from(e)
-    }
+    return this.#lifecycle.stop(options)
   }
 
-  async reset (): Promise<void> {
+  restart (options?: LifecycleWaitOptions): Promise<void> {
+    log.verbose('Wechaty', 'restart()')
+    return this.#lifecycle.restart(options)
+  }
+
+  reset (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'reset()')
-    await this.stop()
-    await this.start()
+    return this.restart(options)
   }
 
-  async ready (): Promise<void> {
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> {
+    return this.#lifecycle.whenState(predicate, options)
+  }
+
+  async ready (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'ready()')
-    await this.#puppetManager.ready()
+    const signal = options?.signal
+      ? AbortSignal.any([ options.signal, this.#readyWaits.signal ])
+      : this.#readyWaits.signal
+    if (signal.aborted) {
+      throw signal.reason
+    }
+    const puppet = await this.#puppetManager.getPuppetOrWait(signal)
+    return puppet.ready({ signal })
   }
 
-  async [Symbol.asyncDispose] (): Promise<void> {
+  [Symbol.asyncDispose] (): Promise<void> {
     log.verbose('Wechaty', '[Symbol.asyncDispose]()')
-    await this.stop()
+    return this.stop()
   }
 
   // --- Operations & Facades ---
-  async say (sayable: Sayable): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', sayable)
-    await this.currentUser.say(sayable)
+  say (conversationId: string, text: string): Promise<string>
+  say (sayable: Sayable): Promise<void>
+  async say (conversationOrSayable: string | Sayable, text?: string): Promise<void | string> {
+    log.verbose('Wechaty', 'say(%s%s)', conversationOrSayable, text ? `, ${text}` : '')
+    if (typeof conversationOrSayable === 'string' && typeof text === 'string') {
+      return this.puppet.operation(async () => {
+        const msgId = await this.puppet.messageSendText(conversationOrSayable, text)
+        return msgId || undefined
+      })
+    }
+    return this.puppet.operation(async () => {
+      await this.currentUser.say(conversationOrSayable as Sayable)
+    })
   }
 
   async publish (post: Post): Promise<void | Post> {
     log.verbose('Wechaty', 'publish(%s)', post)
-    const postId = await this.puppet.postPublish(post.payload)
-    if (postId) {
-      return this.Post.find({ id: postId })
-    }
+    return this.puppet.operation(async () => {
+      const postId = await this.puppet.postPublish(post.payload)
+      if (postId) {
+        return this.Post.find({ id: postId })
+      }
+      return undefined
+    })
   }
 
   async logout (): Promise<void> {
@@ -369,7 +475,7 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
   }
 
   /**
-   * Internal emit compatibility required by state-switch ServiceCtl.
+   * Internal emit compatibility required by legacy callers.
    * Routes 'error' events with GError normalization. Throws a descriptive migration hint for others.
    * @internal
    */

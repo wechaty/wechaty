@@ -29,6 +29,7 @@
  */
 import { log } from 'wechaty-puppet'
 import { GError } from 'gerror'
+import type { LifecycleScope } from 'scopelet'
 import type { Io } from '../io.ts'
 import type { WechatyOptions } from '../schemas/wechaty-options.ts'
 import type { Wechaty } from '../wechaty/wechaty.ts'
@@ -51,7 +52,11 @@ export class IoManager {
     return this.#io
   }
 
-  async start (): Promise<void> {
+  get hasIo (): boolean {
+    return !!this.#ioToken
+  }
+
+  async start (scope?: LifecycleScope): Promise<void> {
     log.verbose('IoManager', 'start()')
     if (!this.#ioToken) {
       return
@@ -76,8 +81,13 @@ export class IoManager {
     })
 
     try {
-      await io.start()
       this.#io = io
+      if (scope) {
+        scope.defer(() => { this.#io = undefined })
+        await scope.start(io)
+      } else {
+        await io.start()
+      }
     } catch (e) {
       this.#io = undefined
       this.#wechaty.emitError(e)

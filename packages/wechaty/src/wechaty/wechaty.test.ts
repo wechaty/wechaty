@@ -37,6 +37,10 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
+import {
+  LifecycleSupersededError,
+  LifecycleUnsafeStateError,
+} from 'scopelet'
 
 import { Wechaty } from './wechaty-impl.ts'
 import { WechatyBuilder } from '../wechaty-builder.ts'
@@ -291,5 +295,158 @@ test('Wechaty ding() routes errors through error event when puppet ding throws',
   assert.ok(receivedError, 'error should have been routed through error event')
   assert.match(String(receivedError), /deliberate ding error/)
 })
+
+test('Wechaty lifecycle: legacy events follow state transitions across start, reset, and stop', async () => {
+  const puppet = new PuppetMock()
+  const bot = new Wechaty({ puppet })
+  const events: string[] = []
+
+  bot.addEventListener('start', () => events.push('start'))
+  bot.addEventListener('stop', () => events.push('stop'))
+
+  assert.equal(bot.state.active(), false)
+  assert.equal(bot.state.inactive(), true)
+  assert.equal(bot.legacyState.active(), false)
+  assert.equal(bot.legacyState.inactive(), true)
+
+  await bot.start()
+  assert.deepEqual(events, [ 'start' ])
+  assert.equal(bot.state.active(), true)
+  assert.equal(bot.state.inactive(), false)
+  assert.equal(bot.state.generation, 1)
+
+  await bot.reset()
+  assert.deepEqual(events, [ 'start', 'start' ], "'start' fires on every generation that commits running")
+  assert.equal(bot.state.generation, 2)
+  assert.equal(bot.state.active(), true)
+  assert.equal(bot.state.inactive(), false)
+
+  await bot.stop()
+  assert.deepEqual(events, [ 'start', 'start', 'stop' ])
+  assert.equal(bot.state.active(), false)
+  assert.equal(bot.state.inactive(), true)
+})
+
+test('Wechaty state-switch view: active, inactive, on, off, and stable()', async () => {
+  const puppet = new PuppetMock()
+  const bot = new Wechaty({ puppet })
+
+  assert.equal(bot.state.active(), false)
+  assert.equal(bot.state.inactive(), true)
+  assert.equal(bot.state.on(), false)
+  assert.equal(bot.state.off(), true)
+
+  await bot.start()
+  assert.equal(bot.state.active(), true)
+  assert.equal(bot.state.inactive(), false)
+  assert.equal(bot.state.on(), true)
+  assert.equal(bot.state.off(), false)
+
+  await bot.state.stable('active')
+
+  await bot.stop()
+  assert.equal(bot.state.active(), false)
+  assert.equal(bot.state.inactive(), true)
+  assert.equal(bot.state.on(), false)
+  assert.equal(bot.state.off(), true)
+
+  await bot.state.stable('inactive')
+})
+
+test('Wechaty ready(): delegates to puppet ready condition and rejects on early stop', async () => {
+  const puppet = new PuppetMock()
+  const bot = new Wechaty({ puppet })
+
+  const readyPromise = bot.ready()
+  let readyResolved = false
+  readyPromise.then(() => { readyResolved = true }).catch(() => {})
+
+  await bot.start()
+  assert.equal(readyResolved, false, 'bot should not be ready immediately after start if puppet is not ready')
+
+  puppet.emit('ready', { data: 'test' })
+  await readyPromise
+  assert.equal(readyResolved, true, 'bot.ready() should resolve when puppet emits ready')
+
+  await bot.stop()
+
+  // Stopping before puppet is ready rejects pending ready()
+  const bot2 = new Wechaty({ puppet: new PuppetMock() })
+  const earlyReady = bot2.ready()
+  await bot2.stop()
+  await assert.rejects(earlyReady, (err: unknown) => {
+    assert.ok(err instanceof LifecycleSupersededError)
+    return true
+  })
+})
+
+test('Wechaty startup failure: emits error event and rejects ready() waits', async () => {
+  class FailPuppet extends PuppetMock {
+    override async onStart (): Promise<void> {
+      throw new Error('deliberate startup failure')
+    }
+  }
+
+  const bot = new Wechaty({ puppet: new FailPuppet() })
+  let receivedError: Error | undefined
+  bot.addEventListener('error', (event) => {
+    receivedError = (event.detail as any)?.gerror || event.detail
+  })
+
+  const readyPromise = bot.ready()
+  await assert.rejects(bot.start(), /deliberate startup failure/)
+
+  assert.ok(receivedError, 'should emit startup error to error listener')
+  assert.match(String(receivedError), /deliberate startup failure/)
+
+  await assert.rejects(readyPromise, (err: unknown) => {
+    assert.ok(err instanceof LifecycleSupersededError)
+    return true
+  })
+})
+
+test('Wechaty say(): stop() waits for in-flight send, and say() while stopped rejects', async () => {
+  let resolveWire!: () => void
+  const wirePromise = new Promise<void>(resolve => {
+    resolveWire = resolve
+  })
+
+  class SlowPuppet extends PuppetMock {
+    override async messageSendText (_conversationId: string, _text: string): Promise<void> {
+      await wirePromise
+    }
+  }
+
+  const puppet = new SlowPuppet()
+  const bot = new Wechaty({ puppet })
+  await bot.start()
+
+  let saidResolved = false
+  const sendPromise = bot.say('conversation-1', 'hello slow world').then(() => {
+    saidResolved = true
+  })
+
+  let stopResolved = false
+  const stopPromise = bot.stop().then(() => {
+    stopResolved = true
+  })
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+  assert.equal(saidResolved, false, 'say() should still be pending')
+  assert.equal(stopResolved, false, 'stop() must wait for in-flight say()')
+
+  resolveWire()
+  await sendPromise
+  assert.equal(saidResolved, true)
+  await stopPromise
+  assert.equal(stopResolved, true, 'stop() resolves after in-flight say() drains')
+
+  // Calling say while stopped should reject
+  await assert.rejects(
+    () => bot.say('conversation-1', 'after stop'),
+    (err: unknown) => err instanceof LifecycleUnsafeStateError,
+  )
+})
+
 
 

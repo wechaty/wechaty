@@ -6,17 +6,13 @@
  * the puppet's lifecycle and readiness.
  */
 import * as PUPPET      from 'wechaty-puppet'
-import { log }          from 'wechaty-puppet'
+import { log, WechatyEvent } from 'wechaty-puppet'
+import type { LifecycleWaitOptions } from 'scopelet'
 import {
   GError,
   timeoutPromise,
   TimeoutPromiseGError,
 }                       from 'gerror'
-
-import { StateSwitch }  from 'state-switch'
-import type {
-  StateSwitchInterface,
-}                       from 'state-switch'
 
 import { config }               from '../config.ts'
 import { NO_PUPPET_MESSAGE }    from '../puppet-config.ts'
@@ -35,6 +31,16 @@ import type { GErrorMixin } from './gerror-mixin.ts'
 import type { IoMixin }     from './io-mixin.ts'
 
 const PUPPET_MEMORY_NAME = 'puppet'
+const puppetInitResolversMap = new WeakMap<object, Array<(puppet: PUPPET.Puppet) => void>>()
+
+function getResolvers (target: object): Array<(puppet: PUPPET.Puppet) => void> {
+  let list = puppetInitResolversMap.get(target)
+  if (!list) {
+    list = []
+    puppetInitResolversMap.set(target, list)
+  }
+  return list
+}
 
 /**
  * Huan(202111): the `wechaty-redux` plugin need to be installed before
@@ -57,21 +63,24 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
     get puppet (): PUPPET.Puppet {
       if (!this.__puppet) {
-
         throw new Error('NOPUPPET')
       }
       return this.__puppet
     }
 
-    readonly __readyState : StateSwitchInterface
+    readonly __readyState = {
+      active: () => this.__puppet?.state.active() === true,
+      inactive: () => this.__puppet?.state.inactive() === true,
+      stable: async (_expected?: 'active' | 'inactive') => {
+        await this.ready()
+      },
+    }
 
     __puppetMixinInited = false
 
     constructor (...args: any[]) {
       log.verbose('WechatyPuppetMixin', 'construct()')
       super(...args)
-
-      this.__readyState = new StateSwitch('WechatyReady', { log })
     }
 
     override async start (): Promise<void> {
@@ -82,14 +91,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.verbose('WechatyPuppetMixin', 'start() super.start() ... done')
 
       try {
-        /**
-         * reset the `wechaty.ready()` state
-         *  if it was previous set to `active`
-         */
-        if (this.__readyState.active()) {
-          this.__readyState.inactive(true)
-        }
-
         try {
           log.verbose('WechatyPuppetMixin', 'start() starting puppet ...')
           await timeoutPromise(
@@ -99,16 +100,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
           log.verbose('WechatyPuppetMixin', 'start() starting puppet ... done')
         } catch (e) {
           if (e instanceof TimeoutPromiseGError) {
-            /**
-             * Huan(202111):
-             *
-             *  We should throw the Timeout error when the puppet.start() can not be finished in time.
-             *  However, we need to compatible with some buggy puppet implementations which will not resolve the promise.
-             *
-             * TODO: throw the Timeout error when the puppet.start() can not be finished in time.
-             *
-             * e.g. after resolve @issue https://github.com/padlocal/wechaty-puppet-padlocal/issues/116
-             */
             log.warn('WechatyPuppetMixin', 'start() starting puppet ... timeout')
             log.warn('WechatyPuppetMixin', 'start() puppet info: %s', this.puppet)
           } else {
@@ -117,21 +108,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         }
 
       } catch (e) {
-        /**
-         * A failed puppet start must reject `start()` consistently,
-         *  whether or not an `error` listener is registered.
-         *
-         * Re-throw so the outermost `serviceCtlMixin.start()` rejects consistently.
-         * With a non-throwing `error` listener, it also runs `stop()` and leaves
-         *  the state `inactive`. Without a listener, error emission interrupts
-         *  cleanup and leaves the state `pending`.
-         *
-         * Previously this called `this.emitError(e)`, which swallowed the failure:
-         *  with a listener the bot wrongly reported itself active, and without a
-         *  listener the synchronous EventEmitter throw left the state `pending`.
-         *
-         * @see https://github.com/wechaty/wechaty/issues/2855
-         */
         throw GError.from(e)
       }
     }
@@ -159,10 +135,34 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.verbose('WechatyPuppetMixin', 'stop() super.stop() ... done')
     }
 
-    async ready (): Promise<void> {
+    __getPuppetOrWait (signal?: AbortSignal): Promise<PUPPET.Puppet> {
+      if (this.__puppet) {
+        return Promise.resolve(this.__puppet)
+      }
+      return new Promise<PUPPET.Puppet>((resolve, reject) => {
+        if (signal?.aborted) {
+          return reject(signal.reason)
+        }
+        const resolvers = getResolvers(this)
+        const onAbort = () => {
+          const idx = resolvers.indexOf(resolve)
+          if (idx >= 0) {
+            resolvers.splice(idx, 1)
+          }
+          reject(signal!.reason)
+        }
+        signal?.addEventListener('abort', onAbort, { once: true })
+        resolvers.push(puppet => {
+          signal?.removeEventListener('abort', onAbort)
+          resolve(puppet)
+        })
+      })
+    }
+
+    async ready (options?: LifecycleWaitOptions): Promise<void> {
       log.verbose('WechatyPuppetMixin', 'ready()')
-      await this.__readyState.stable('active')
-      log.silly('WechatyPuppetMixin', 'ready() this.readyState.stable(on) resolved')
+      const puppet = await this.__getPuppetOrWait(options?.signal)
+      return puppet.ready(options)
     }
 
     /**
@@ -174,27 +174,29 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
      */
     override async init (): Promise<void> {
       log.verbose('WechatyPuppetMixin', 'init()')
+
       await super.init()
 
       if (this.__puppetMixinInited) {
-        log.verbose('WechatyPuppetMixin', 'init() skipped because this puppet has already been inited before.')
+        log.verbose('WechatyPuppetMixin', 'init() skipped: already initialized.')
         return
       }
+
+      log.verbose('WechatyPuppetMixin', 'init() initializing %s ...', this.__options.puppet)
 
       const puppet = this.__options.puppet || config.systemPuppetName()
       if (!puppet) {
         throw new Error(NO_PUPPET_MESSAGE)
       }
-      this.__puppetMixinInited = true
 
-      log.verbose('WechatyPuppetMixin', 'init() instanciating puppet instance ...')
+      log.verbose('WechatyPuppetMixin', 'init() instanciate puppet instance ...')
       const puppetInstance = await PUPPET.helpers.resolvePuppet({
         puppet,
         puppetOptions: 'puppetOptions' in this.__options
           ? this.__options.puppetOptions
           : undefined,
       })
-      log.verbose('WechatyPuppetMixin', 'init() instanciating puppet instance ... done')
+      log.verbose('WechatyPuppetMixin', 'init() instanciate puppet instance ... done')
 
       /**
        * Plug the Memory Card to Puppet
@@ -205,22 +207,26 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.verbose('WechatyPuppetMixin', 'init() setting memory ... done')
 
       /**
-       * Propagate Puppet Events to Wechaty
+       * Setup the events for the Puppet
        */
       log.verbose('WechatyPuppetMixin', 'init() setting up events ...')
       this.__setupPuppetEvents(puppetInstance)
       log.verbose('WechatyPuppetMixin', 'init() setting up events ... done')
 
       /**
-        * Private Event
-        *   - Huan(202005): emit puppet when set
-        *   - Huan(202110): @see https://github.com/wechaty/redux/blob/16af0ae01f72e37f0ee286b49fa5ccf69850323d/src/wechaty-redux.ts#L82-L98
-        */
+       * Emit `puppet` event before assigning public getter
+       */
       log.verbose('WechatyPuppetMixin', 'init() emitting "puppet" event ...')
-      this.dispatchEvent(new PUPPET.WechatyEvent('puppet', { detail: puppetInstance }))
+      this.dispatchEvent(new WechatyEvent('puppet', { detail: puppetInstance }))
       log.verbose('WechatyPuppetMixin', 'init() emitting "puppet" event ... done')
 
       this.__puppet = puppetInstance
+      this.__puppetMixinInited = true
+      const resolvers = getResolvers(this)
+      resolvers.forEach(resolve => resolve(puppetInstance))
+      resolvers.length = 0
+
+      log.verbose('WechatyPuppetMixin', 'init() done')
     }
 
     __setupPuppetEvents (puppet: PUPPET.Puppet): void {
@@ -242,13 +248,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
           const room = await this.Room.find({ id }) as unknown as undefined | RoomImpl
           await room?.ready(true)
         },
-        setReady: state => {
-          if (state === 'active') {
-            this.__readyState.active(true)
-          } else {
-            this.__readyState.inactive(true)
-          }
-        },
+        setReady: () => {},
         dispatchEvent: this.dispatchEvent.bind(this),
         emitError: error => this.emitError(error),
       })
@@ -263,8 +263,11 @@ type PuppetMixin = ReturnType<typeof puppetMixin>
 
 type ProtectedPropertyPuppetMixin =
   | '__puppet'
+  | '__puppetMixinInited'
   | '__readyState'
   | '__setupPuppetEvents'
+  | 'puppet'
+  | 'ready'
 
 export type {
   PuppetMixin,

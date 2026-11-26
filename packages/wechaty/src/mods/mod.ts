@@ -25,6 +25,9 @@
 export {
   Wechaty,
   type WechatyOptions,
+  type WechatyState,
+  type LegacyStateView,
+  legacyStateView,
 }                               from '../wechaty/mod.ts'
 export {
   WechatyBuilder,

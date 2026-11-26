@@ -29,6 +29,7 @@ import {
   createLifecycle,
   listen,
   operation,
+  LifecycleUnsafeStateError,
 }                       from 'scopelet'
 
 /**
@@ -497,6 +498,20 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * Provider-specific teardown logic. Called when stopping or aborting.
    */
   abstract onStop  (): Promise<void>
+
+  /**
+   * Executes an asynchronous domain operation bound to the active puppet generation (C-COMP-03).
+   * Retirement waits for all active operations to finish under stop timeout.
+   *
+   * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
+   * @returns Result of work.
+   */
+  operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    if (this.#scope) {
+      return operation(this.#scope, signal => work(signal))
+    }
+    throw new LifecycleUnsafeStateError('operation requested when puppet is not running')
+  }
 
   /**
    * Executes an asynchronous domain operation bound to the active puppet generation.

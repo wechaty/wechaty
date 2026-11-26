@@ -74,6 +74,7 @@ test('Wechaty interface', async _t => {
     abstract init        : WechatyInterface['init']
     abstract io          : WechatyInterface['io']
     abstract isLoggedIn  : WechatyInterface['isLoggedIn']
+    abstract legacyState : WechatyInterface['legacyState']
     abstract log         : WechatyInterface['log']
     abstract logout      : WechatyInterface['logout']
     abstract memory      : WechatyInterface['memory']
@@ -82,6 +83,7 @@ test('Wechaty interface', async _t => {
     abstract puppet      : WechatyInterface['puppet']
     abstract ready       : WechatyInterface['ready']
     abstract reset       : WechatyInterface['reset']
+    abstract restart     : WechatyInterface['restart']
     abstract say         : WechatyInterface['say']
     abstract sleep       : WechatyInterface['sleep']
     abstract start       : WechatyInterface['start']
@@ -90,6 +92,7 @@ test('Wechaty interface', async _t => {
     abstract use         : WechatyInterface['use']
     abstract version     : WechatyInterface['version']
     abstract wechaty     : WechatyInterface['wechaty']
+    abstract whenState   : WechatyInterface['whenState']
     abstract wrapAsync   : WechatyInterface['wrapAsync']
 
     messages: Wechaty['messages'] = this.events as any

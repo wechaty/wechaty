@@ -51,7 +51,7 @@ interface PuppetEventBridgeDependencies {
   roomFind: (id: string) => Promise<undefined | Room>
   roomInvitationLoad: (id: string) => RoomInvitation
   roomReady: (id: string) => Promise<void>
-  setReady: (state: 'active' | 'inactive') => void
+  setReady?: (state: 'active' | 'inactive') => void
   dispatchEvent: (event: Event) => boolean
   emit?: PuppetEventBridgeEmit
   emitError: (error: GError) => void
@@ -169,7 +169,7 @@ function registerPuppetEventBridge (
       case 'logout':
         addListener(async (payload: PUPPET.payloads.EventLogout) => {
           try {
-            dependencies.setReady('inactive')
+            dependencies.setReady?.('inactive')
             const contact = await dependencies.contactSelfFind(payload.contactId)
             if (contact) {
               dispatchBridgeEvent(dependencies, 'logout', { contact, data: payload.data, reason: payload.data }, [ contact, payload.data ])
@@ -233,7 +233,7 @@ function registerPuppetEventBridge (
           log.silly('PuppetEventBridge', 'registerPuppetEventBridge() puppet ready')
 
           dispatchBridgeEvent(dependencies, 'ready', null)
-          dependencies.setReady('active')
+          dependencies.setReady?.('active')
         })
         break
 
@@ -337,7 +337,7 @@ function registerPuppetEventBridge (
 
       case 'scan':
         addListener(async (payload: PUPPET.payloads.EventScan) => {
-          dependencies.setReady('inactive')
+          dependencies.setReady?.('inactive')
           const scanDetail = { qrcode: payload.qrcode || '', status: payload.status, data: payload.data }
           dispatchBridgeEvent(dependencies, 'scan', scanDetail, [ payload.qrcode || '', payload.status, payload.data ])
         })
