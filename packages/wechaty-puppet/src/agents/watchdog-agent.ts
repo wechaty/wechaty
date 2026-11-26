@@ -9,7 +9,6 @@ import {
 }                       from 'watchdog'
 
 import type { PuppetSkeleton } from '../puppet/mod.ts'
-import type { ServiceMixin } from '../mixins/service-mixin.ts'
 
 import {
   log,
@@ -18,16 +17,20 @@ import { WechatyEvent } from '../events/event-target.ts'
 
 const DEFAULT_WATCHDOG_TIMEOUT_SECONDS  = 60
 
+export interface PuppetServiceController extends PuppetSkeleton {
+  reset (reason?: string): Promise<void>
+}
+
 class WatchdogAgent {
 
   protected readonly watchdog : Watchdog
 
   private cleanCallbackList: Function[]
 
-  protected readonly puppet: PuppetSkeleton & InstanceType<ServiceMixin>
+  protected readonly puppet: PuppetServiceController
 
   constructor (
-    puppet: PuppetSkeleton & InstanceType<ServiceMixin>,
+    puppet: PuppetServiceController,
   ) {
     this.puppet = puppet
     log.verbose('PuppetWatchdogAgent', 'constructor(%s)', puppet.id)

@@ -12,8 +12,18 @@ import {
   Puppet,
 }                     from './puppet-abstract.ts'
 
-const interfaceOfPuppet     = interfaceOfClass(Puppet as any as Constructor<Puppet>)<Puppet>()
-const looseInstanceOfPuppet = looseInstanceOfClass(Puppet as any as Constructor<Puppet>)
+let _interfaceOfPuppet: ((target: unknown) => boolean) | undefined
+let _looseInstanceOfPuppet: ((target: unknown) => boolean) | undefined
+
+function interfaceOfPuppet (target: unknown): target is Puppet {
+  _interfaceOfPuppet ??= interfaceOfClass(Puppet as any as Constructor<Puppet>)<Puppet>()
+  return _interfaceOfPuppet(target)
+}
+
+function looseInstanceOfPuppet (target: unknown): target is Puppet {
+  _looseInstanceOfPuppet ??= looseInstanceOfClass(Puppet as any as Constructor<Puppet>)
+  return _looseInstanceOfPuppet(target)
+}
 
 export {
   interfaceOfPuppet,

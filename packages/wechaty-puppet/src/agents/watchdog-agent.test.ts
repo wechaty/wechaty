@@ -8,13 +8,13 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
-import { serviceMixin } from '../mixins/service-mixin.ts'
-import { WatchdogAgent } from './watchdog-agent.ts'
+import { WatchdogAgent, type PuppetServiceController } from './watchdog-agent.ts'
 
-class TestPuppet extends serviceMixin(PuppetSkeleton) {
+class TestPuppet extends PuppetSkeleton implements PuppetServiceController {
 
-  override async onStart (): Promise<void> {}
-  override async onStop (): Promise<void> {}
+  async reset (): Promise<void> {}
+  async onStart (): Promise<void> {}
+  async onStop (): Promise<void> {}
 
 }
 

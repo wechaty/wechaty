@@ -84,7 +84,6 @@
     "brolog": "^2.0.0",
     "clone-class": "^2.0.0",
     "file-box": "^2.3.0",
-    "fp-ts": "^2.11.5",
     "gerror": "^1.0.16",
     "memory-card": "^2.0.1",
     "quick-lru": "^8.0.0",
