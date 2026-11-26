@@ -21,49 +21,51 @@ import { log } from 'wechaty-puppet'
 
 import {
   type WechatyInterface,
-  WechatyImpl,
   type WechatyOptions,
+  Wechaty,
 }                     from './wechaty/mod.ts'
 
 interface BuilderInterface {
   build (options?: WechatyOptions): WechatyInterface
 }
 
+/**
+ * @deprecated Wechaty 2.0 recommends using `new Wechaty(options)` directly.
+ * `WechatyBuilder` is retained for backwards compatibility with Wechaty 1.x.
+ */
 class WechatyBuilder implements BuilderInterface {
 
-  private static _instance?: WechatyInterface
-
   static valid (target: any): target is WechatyInterface {
-    return WechatyImpl.valid(target)
+    return Wechaty.valid(target)
   }
 
   /**
    * Create an instance of Wechaty
    *
+   * @deprecated Use `new Wechaty(options)` instead.
+   *
    * @param {WechatyOptions} [options={}]
    *
    * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
-   * import { WechatyBuilder } from 'wechaty'
+   * import { Wechaty } from 'wechaty'
    *
-   * WechatyBuilder.build(options) // instance() for singleton mode
+   * const bot = new Wechaty(options)
+   * bot
    *  .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
    *  .on('login',       user => console.log(`User ${user} logged in`))
    *  .on('message',  message => console.log(`Message: ${message}`))
    *  .start()
    */
   static build (options?: WechatyOptions): WechatyInterface {
-    return WechatyBuilder.new().options(options).build()
+    return new Wechaty(options)
   }
 
   /**
+   * @deprecated Use `Wechaty.singleton(options)` instead.
    * @param options is a `WechatyOptions` object, it can only be set once
    */
   static singleton (options?: WechatyOptions): WechatyInterface {
-    const builder = new WechatyBuilder()
-    if (options) {
-      builder.options(options)
-    }
-    return builder.singleton().build()
+    return Wechaty.singleton(options)
   }
 
   protected static new (): WechatyBuilder { return new this() }
@@ -79,7 +81,7 @@ class WechatyBuilder implements BuilderInterface {
   }
 
   protected options (options?: WechatyOptions): WechatyBuilder {
-    log.verbose('WechatyBuilder', 'singleton()')
+    log.verbose('WechatyBuilder', 'options()')
     if (Object.keys(this._options).length > 0) {
       throw new Error([
         'WechatyBuilder options() can only be set once',
@@ -103,15 +105,12 @@ class WechatyBuilder implements BuilderInterface {
 
   protected singletonInstance (): WechatyInterface {
     log.verbose('WechatyBuilder', 'singletonInstance()')
-    if (!WechatyBuilder._instance) {
-      WechatyBuilder._instance = this.newInstance()
-    }
-    return WechatyBuilder._instance
+    return Wechaty.singleton(this._options)
   }
 
   protected newInstance (): WechatyInterface {
     log.verbose('WechatyBuilder', 'newInstance()')
-    return new WechatyImpl(this._options)
+    return new Wechaty(this._options)
   }
 
 }

@@ -18,9 +18,11 @@
  * - Issue #3108: Run a local Wechaty bot natively in the browser (Stage 3 under Epic #3104).
  */
 
-export type {
-  WechatyOptions,
-  WechatyInterface as Wechaty,
+export {
+  Wechaty,
+  type WechatyOptions,
+  type WechatyInterface,
+  type WechatyConstructor,
 } from '../wechaty/mod.ts'
 export {
   WechatyBuilder,

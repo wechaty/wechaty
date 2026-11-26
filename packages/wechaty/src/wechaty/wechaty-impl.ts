@@ -1,6 +1,5 @@
 import type { EventEmitter }  from 'wechaty-puppet'
 
-import type { Constructor }           from 'clone-class'
 import type {
   WechatyMixinProtectedProperty,
 }                                     from '../wechaty-mixins/mod.ts'
@@ -9,6 +8,7 @@ import type {
   WechatyEventDetailMap,
   WechatyCustomEvent,
 } from '../schemas/mod.ts'
+import type { WechatyOptions }        from '../schemas/wechaty-options.ts'
 import { validationMixin }            from '../user-mixins/mod.ts'
 
 import type {
@@ -130,14 +130,37 @@ interface WechatyEventEmitter {
 type WechatyInterface = Omit<WechatyImplInterface, AllProtectedProperty>
   & WechatyEventEmitter
 
-type WechatyConstructor = Constructor<
-  WechatyInterface,
-  typeof WechatyImpl
->
+interface WechatyStatic {
+  singleton (options?: WechatyOptions): WechatyInterface
+  valid (target: unknown): target is WechatyInterface
+}
+
+type WechatyConstructor = {
+  new (options?: WechatyOptions): WechatyInterface
+} & Omit<typeof WechatyImpl, 'new'> & WechatyStatic
+
+let _singletonInstance: WechatyInterface | undefined
+
+Object.defineProperty(WechatyImpl, 'singleton', {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  value: function singleton (options?: WechatyOptions): WechatyInterface {
+    if (!_singletonInstance) {
+      _singletonInstance = new WechatyImpl(options)
+    }
+    return _singletonInstance
+  },
+})
+
+const Wechaty = WechatyImpl as unknown as WechatyConstructor
+type Wechaty = WechatyInterface
 
 export  {
+  Wechaty,
   type WechatyInterface,
   type WechatyConstructor,
+  type WechatyStatic,
   type AllProtectedProperty,
   WechatyImpl,
 }

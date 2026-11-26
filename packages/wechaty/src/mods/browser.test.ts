@@ -20,6 +20,7 @@ import assert from 'node:assert/strict'
 import * as BROWSER from './browser.ts'
 
 test('wechaty/browser exports browser-safe SDK components', () => {
+  assert.ok(typeof BROWSER.Wechaty === 'function', 'Wechaty constructor must be exported')
   assert.ok(typeof BROWSER.WechatyBuilder.build === 'function', 'WechatyBuilder.build must be exported')
   assert.ok(BROWSER.ScanStatus, 'ScanStatus must be exported')
   assert.ok(BROWSER.VERSION, 'VERSION must be exported')
@@ -29,4 +30,10 @@ test('wechaty/browser exports browser-safe SDK components', () => {
   assert.ok(BROWSER.impls, 'impls must be exported')
   assert.ok(BROWSER.log, 'log must be exported')
   assert.equal((BROWSER as any).IoClient, undefined, 'IoClient must not be exported in browser entry')
+})
+
+test('wechaty/browser allows new Wechaty(options) instantiation', () => {
+  const bot = new BROWSER.Wechaty()
+  assert.ok(bot, 'new Wechaty() must succeed in browser export')
+  assert.ok(BROWSER.Wechaty.valid(bot), 'Wechaty.valid(bot) must return true in browser export')
 })

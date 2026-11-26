@@ -1,0 +1,96 @@
+#!/usr/bin/env node
+/**
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
+ *
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+
+import { PuppetMock } from 'wechaty-puppet-mock'
+
+import { Wechaty } from './wechaty-impl.ts'
+import { WechatyBuilder } from '../wechaty-builder.ts'
+
+test('new Wechaty() constructor creates distinct instances', async () => {
+  const wechaty1 = new Wechaty()
+  const wechaty2 = new Wechaty()
+
+  assert.ok(wechaty1, 'wechaty1 should be instantiated')
+  assert.ok(wechaty2, 'wechaty2 should be instantiated')
+  assert.notStrictEqual(wechaty1, wechaty2, 'should instantiate two distinct Wechaty instances')
+  assert.ok(wechaty1.id, 'wechaty1 should have an id')
+  assert.ok(wechaty2.id, 'wechaty2 should have an id')
+  assert.notStrictEqual(wechaty1.id, wechaty2.id, 'distinct instances should have distinct ids')
+})
+
+test('Wechaty.valid() type guard', async () => {
+  const wechaty = new Wechaty()
+
+  assert.ok(Wechaty.valid(wechaty), 'Wechaty.valid should return true for Wechaty instance')
+  assert.equal(Wechaty.valid(null), false, 'Wechaty.valid should return false for null')
+  assert.equal(Wechaty.valid(undefined), false, 'Wechaty.valid should return false for undefined')
+  assert.equal(Wechaty.valid({}), false, 'Wechaty.valid should return false for plain object')
+})
+
+test('Wechaty.singleton() returns identical shared instance', async () => {
+  const singleton1 = Wechaty.singleton()
+  const singleton2 = Wechaty.singleton()
+
+  assert.ok(singleton1, 'singleton1 should be defined')
+  assert.strictEqual(singleton1, singleton2, 'Wechaty.singleton() calls must return the same instance')
+})
+
+test('WechatyBuilder.singleton() and Wechaty.singleton() share the exact same instance', async () => {
+  const builderSingleton = WechatyBuilder.singleton()
+  const constructorSingleton = Wechaty.singleton()
+
+  assert.strictEqual(
+    builderSingleton,
+    constructorSingleton,
+    'WechatyBuilder.singleton() and Wechaty.singleton() must share the same singleton instance',
+  )
+})
+
+test('new Wechaty(options) accepts Puppet and runs start/stop cycle', async t => {
+  const puppet = new PuppetMock()
+  const wechaty = new Wechaty({ puppet })
+
+  let started = false
+  t.after(async () => {
+    if (started) {
+      await wechaty.stop()
+    }
+  })
+
+  started = true
+  await wechaty.start()
+  assert.ok(PuppetMock.validInstance(wechaty.puppet), 'should set options.puppet to mock')
+  await wechaty.stop()
+  started = false
+})
+
+test('Wechaty type doc-typing check', async () => {
+  // Verifies that Wechaty can be used as a type annotation
+  const bot: Wechaty = new Wechaty()
+
+  assert.ok(typeof bot.start === 'function', 'bot must have start method')
+  assert.ok(typeof bot.stop === 'function', 'bot must have stop method')
+  assert.ok(typeof bot.on === 'function', 'bot must have on method')
+  assert.ok(typeof bot.say === 'function', 'bot must have say method')
+})
