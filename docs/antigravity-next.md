@@ -1,6 +1,6 @@
 # Silicon Huan experiment
 
-Implements the approved experimental direction in RFC #3157; The live pilot and its remaining evaluation work are tracked in #3162. Existing `antigravity.yml` remains unchanged.
+Implements the approved experimental direction in RFC #3157. The live pilot and its remaining evaluation work are tracked in #3162. Existing `antigravity.yml` remains unchanged.
 
 ## Approved decisions
 
