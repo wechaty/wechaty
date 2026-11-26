@@ -120,7 +120,6 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
 
   readonly #lifecycle: LifecycleController
   #readyWaits = new AbortController()
-  #startFailureEmitted = false
 
   /**
    * The term [Puppet](https://wechaty.js.org/docs/specs/puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
@@ -168,12 +167,12 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
         }, 1000 * 60 * 60)
         scope.defer(() => clearInterval(lifeTimer))
 
-        await super.start()
         scope.defer(async () => {
           this._stopCallbackList.forEach(fn => fn())
           this._stopCallbackList.length = 0
           await super.stop()
         })
+        await super.start()
         await this.onStart()
       },
       onStop: async () => {
@@ -186,12 +185,12 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
           const err = (state.error instanceof LifecycleChildFailureError && state.error.cause !== undefined)
             ? state.error.cause
             : state.error
-          const puppetState = this.__puppet ? this.__puppet.state : undefined
-          const isPuppetFailure = puppetState?.kind === 'failed' && (err === puppetState.error || puppetState.error === undefined)
-          if (!isPuppetFailure && !this.#startFailureEmitted) {
+          const isPuppetFailure = this.__hasEmittedPuppetError(err) ||
+            this.__hasEmittedPuppetError(state.error) ||
+            state.error instanceof LifecycleChildFailureError
+          if (!isPuppetFailure) {
             this.emitError(err)
           }
-          this.#startFailureEmitted = false
         }
       },
     }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
@@ -205,20 +204,9 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
     return legacyStateView(this.#lifecycle)
   }
 
-  override async start (options?: LifecycleWaitOptions): Promise<void> {
+  override start (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'start()')
-    this.#startFailureEmitted = false
-    try {
-      return await this.#lifecycle.start(options)
-    } catch (e) {
-      const puppetState = this.__puppet ? this.__puppet.state : undefined
-      const isPuppetFailure = puppetState?.kind === 'failed' && (e === puppetState.error || (e as any)?.cause === puppetState.error)
-      if (!isPuppetFailure) {
-        this.#startFailureEmitted = true
-        this.emitError(e)
-      }
-      throw e
-    }
+    return this.#lifecycle.start(options)
   }
 
   override async ready (options?: LifecycleWaitOptions): Promise<void> {

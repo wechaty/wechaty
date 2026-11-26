@@ -55,6 +55,7 @@ interface PuppetEventBridgeDependencies {
   dispatchEvent: (event: Event) => boolean
   emit?: PuppetEventBridgeEmit
   emitError: (error: GError) => void
+  recordPuppetError?: (error: unknown) => void
 }
 
 /**
@@ -125,7 +126,11 @@ function registerPuppetEventBridge (
            *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
            *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
            */
-          dependencies.emitError(GError.from(payload.gerror || (payload as any).data || payload))
+          const raw = payload.gerror || (payload as any).data || payload
+          const gerror = GError.from(raw)
+          dependencies.recordPuppetError?.(raw)
+          dependencies.recordPuppetError?.(gerror)
+          dependencies.emitError(gerror)
         })
         break
 

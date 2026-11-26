@@ -233,7 +233,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   #readyWaits = new AbortController()
 
   #memory?: MemoryCard
-  #startFailureEmitted = false
 
   constructor (options: WechatyOptions = {}) {
     super()
@@ -281,12 +280,12 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
       const err = (state.error instanceof LifecycleChildFailureError && state.error.cause !== undefined)
         ? state.error.cause
         : state.error
-      const puppetState = this.#puppetManager.hasPuppet ? this.puppet.state : undefined
-      const isPuppetFailure = puppetState?.kind === 'failed' && (err === puppetState.error || puppetState.error === undefined)
-      if (!isPuppetFailure && !this.#startFailureEmitted) {
+      const isPuppetFailure = this.#puppetManager.hasEmittedPuppetError(err) ||
+        this.#puppetManager.hasEmittedPuppetError(state.error) ||
+        state.error instanceof LifecycleChildFailureError
+      if (!isPuppetFailure) {
         this.emitError(err)
       }
-      this.#startFailureEmitted = false
     }
   }
 
@@ -382,20 +381,9 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     await this.#puppetManager.init()
   }
 
-  async start (options?: LifecycleWaitOptions): Promise<void> {
+  start (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'start()')
-    this.#startFailureEmitted = false
-    try {
-      return await this.#lifecycle.start(options)
-    } catch (e) {
-      const puppetState = this.#puppetManager.hasPuppet ? this.puppet.state : undefined
-      const isPuppetFailure = puppetState?.kind === 'failed' && (e === puppetState.error || (e as any)?.cause === puppetState.error)
-      if (!isPuppetFailure) {
-        this.#startFailureEmitted = true
-        this.emitError(e)
-      }
-      throw e
-    }
+    return this.#lifecycle.start(options)
   }
 
   stop (options?: LifecycleWaitOptions): Promise<void> {
@@ -442,6 +430,9 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
 
   /**
    * Resolves when the bot's puppet is fully initialized, started, and ready to handle operations.
+   *
+   * Note: Calling ready() before init() awaits indefinitely until the bot is initialized and
+   * its puppet is assigned, unless an abort signal is provided in options.
    *
    * @param options - Optional wait options (signal, timeout).
    * @returns Promise resolving when ready.

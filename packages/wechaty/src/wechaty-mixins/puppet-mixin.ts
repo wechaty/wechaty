@@ -32,6 +32,16 @@ import type { IoMixin }     from './io-mixin.ts'
 
 const PUPPET_MEMORY_NAME = 'puppet'
 const puppetInitResolversMap = new WeakMap<object, Array<(puppet: PUPPET.Puppet) => void>>()
+const lastPuppetErrorsMap = new WeakMap<object, Set<unknown>>()
+
+function getPuppetErrors (target: object): Set<unknown> {
+  let errors = lastPuppetErrorsMap.get(target)
+  if (!errors) {
+    errors = new Set<unknown>()
+    lastPuppetErrorsMap.set(target, errors)
+  }
+  return errors
+}
 
 function getResolvers (target: object): Array<(puppet: PUPPET.Puppet) => void> {
   let list = puppetInitResolversMap.get(target)
@@ -115,7 +125,9 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         }
 
       } catch (e) {
-        throw GError.from(e)
+        const gerror = GError.from(e)
+        gerror.cause = e
+        throw gerror
       }
     }
 
@@ -237,6 +249,39 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
       log.verbose('WechatyPuppetMixin', 'init() done')
     }
 
+    __recordPuppetError (error: unknown): void {
+      const set = getPuppetErrors(this)
+      set.add(error)
+      if (error && typeof error === 'object') {
+        if ('cause' in error && (error as any).cause) {
+          set.add((error as any).cause)
+        }
+        if ('message' in error && (error as Error).message) {
+          set.add((error as Error).message)
+        }
+      }
+      if (set.size > 20) {
+        const first = set.values().next().value
+        set.delete(first)
+      }
+    }
+
+    __hasEmittedPuppetError (error: unknown): boolean {
+      const set = getPuppetErrors(this)
+      if (set.has(error)) {
+        return true
+      }
+      if (error && typeof error === 'object') {
+        if ('cause' in error && set.has((error as any).cause)) {
+          return true
+        }
+        if ('message' in error && set.has((error as Error).message)) {
+          return true
+        }
+      }
+      return false
+    }
+
     __setupPuppetEvents (puppet: PUPPET.Puppet): void {
       log.verbose('WechatyPuppetMixin', '__setupPuppetEvents(%s)', puppet)
 
@@ -258,6 +303,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         },
         dispatchEvent: this.dispatchEvent.bind(this),
         emitError: error => this.emitError(error),
+        recordPuppetError: error => this.__recordPuppetError(error),
       })
     }
 
@@ -269,9 +315,11 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 type PuppetMixin = ReturnType<typeof puppetMixin>
 
 type ProtectedPropertyPuppetMixin =
+  | '__hasEmittedPuppetError'
   | '__puppet'
   | '__puppetMixinInited'
   | '__readyState'
+  | '__recordPuppetError'
   | '__setupPuppetEvents'
   | 'puppet'
   | 'ready'

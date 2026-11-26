@@ -558,18 +558,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    */
   override async stop (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Puppet', 'stop()')
-    try {
-      await this.#lifecycle.stop(options)
-    } catch (e) {
-      if (options?.signal?.aborted || (e as Error)?.name === 'LifecycleSupersededError') {
-        throw e
-      }
-      if (this.listenerCount('error') > 0) {
-        // Error was already dispatched to 'error' listener via #onLifecycleStateChange
-        return
-      }
-      throw e
-    }
+    await this.#lifecycle.stop(options)
   }
 
   /**

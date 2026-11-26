@@ -48,6 +48,7 @@ export class PuppetManager {
   #puppet?: PUPPET.Puppet
   #initialized = false
   readonly #puppetInitResolvers: Array<(puppet: PUPPET.Puppet) => void> = []
+  readonly #lastPuppetErrors = new Set<unknown>()
 
   constructor (wechaty: Wechaty, options: WechatyOptions) {
     this.#wechaty = wechaty
@@ -164,6 +165,37 @@ export class PuppetManager {
     await this.#puppet.stop()
   }
 
+  recordPuppetError (error: unknown): void {
+    this.#lastPuppetErrors.add(error)
+    if (error && typeof error === 'object') {
+      if ('cause' in error && (error as any).cause) {
+        this.#lastPuppetErrors.add((error as any).cause)
+      }
+      if ('message' in error && (error as Error).message) {
+        this.#lastPuppetErrors.add((error as Error).message)
+      }
+    }
+    if (this.#lastPuppetErrors.size > 20) {
+      const first = this.#lastPuppetErrors.values().next().value
+      this.#lastPuppetErrors.delete(first)
+    }
+  }
+
+  hasEmittedPuppetError (error: unknown): boolean {
+    if (this.#lastPuppetErrors.has(error)) {
+      return true
+    }
+    if (error && typeof error === 'object') {
+      if ('cause' in error && this.#lastPuppetErrors.has((error as any).cause)) {
+        return true
+      }
+      if ('message' in error && this.#lastPuppetErrors.has((error as Error).message)) {
+        return true
+      }
+    }
+    return false
+  }
+
   #setupPuppetEvents (puppet: PUPPET.Puppet): void {
     registerPuppetEventBridge(puppet, {
       contactFind: id => this.#wechaty.Contact.find({ id }),
@@ -183,6 +215,7 @@ export class PuppetManager {
       },
       dispatchEvent: this.#wechaty.dispatchEvent.bind(this.#wechaty),
       emitError: error => this.#wechaty.emitError(error),
+      recordPuppetError: error => this.recordPuppetError(error),
     })
   }
 

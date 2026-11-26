@@ -842,7 +842,7 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
   mock.method(failingStopPuppet, 'onStop', async () => {
     throw new Error('boom onStop')
   })
-  await failingStopPuppet.stop()
+  await assert.rejects(async () => failingStopPuppet.stop(), /boom onStop/)
   assert.equal(failingStopPuppet.state.inactive(), true)
 })
 

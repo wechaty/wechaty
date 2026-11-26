@@ -524,5 +524,91 @@ test('Wechaty say(): stop() waits for in-flight send, and say() while stopped re
   )
 })
 
+test('Wechaty startup failure in init(): emits single error event and rejects start()', async () => {
+  const bot = new Wechaty({ puppet: 'non-existent-puppet-module' as any })
+  const errors: any[] = []
+  bot.addEventListener('error', event => {
+    errors.push((event.detail as any)?.gerror || event.detail)
+  })
+
+  await assert.rejects(bot.start())
+  await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
+  assert.equal(errors.length, 1, 'should emit init failure error exactly once')
+})
+
+test('Wechaty startup failure in Io: emits single error event and rejects start()', async t => {
+  if (typeof (globalThis as any).process?.cwd !== 'function') {
+    return
+  }
+  const { Io } = await import('../io.ts')
+  t.mock.method(Io.prototype as any, 'onStart', async () => {
+    throw new Error('io connection refused')
+  })
+
+  const bot = new Wechaty({
+    puppet: new PuppetMock(),
+    ioToken: 'fake-token-for-test',
+  })
+  const errors: any[] = []
+  bot.addEventListener('error', event => {
+    errors.push((event.detail as any)?.gerror || event.detail)
+  })
+
+  await assert.rejects(bot.start(), /io connection refused/)
+  await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
+  assert.equal(errors.length, 1, 'should emit io startup failure exactly once')
+})
+
+test('Wechaty start() cancellation does not emit error event', async () => {
+  let resolvePuppetStart!: () => void
+  const puppetStartGate = new Promise<void>(resolve => {
+    resolvePuppetStart = resolve
+  })
+
+  class SlowStartPuppet extends PuppetMock {
+    override async onStart (): Promise<void> {
+      await puppetStartGate
+    }
+  }
+
+  const bot = new Wechaty({ puppet: new SlowStartPuppet() })
+  const errors: any[] = []
+  bot.addEventListener('error', event => {
+    errors.push((event.detail as any)?.gerror || event.detail)
+  })
+
+  const startPromise = bot.start()
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  const stopPromise = bot.stop()
+  resolvePuppetStart()
+
+  await assert.rejects(startPromise, (err: unknown) => {
+    assert.ok(err instanceof LifecycleSupersededError)
+    return true
+  })
+  await stopPromise
+
+  assert.equal(errors.length, 0, 'normal cancellation must not emit error events')
+})
+
+test('Wechaty concurrent start() calls on failure emit error exactly once', async () => {
+  class FailPuppet extends PuppetMock {
+    override async onStart (): Promise<void> {
+      throw new Error('concurrent deliberate failure')
+    }
+  }
+
+  const bot = new Wechaty({ puppet: new FailPuppet() })
+  const errors: any[] = []
+  bot.addEventListener('error', event => {
+    errors.push((event.detail as any)?.gerror || event.detail)
+  })
+
+  await Promise.allSettled([ bot.start(), bot.start() ])
+  assert.equal(errors.length, 1, 'concurrent start() failures must emit error exactly once')
+})
+
+
 
 

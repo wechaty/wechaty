@@ -356,12 +356,62 @@ test('startup puppet failure rejects with an error listener (#2855)', async t =>
       /puppet start failed/,
       'should reject start() when the puppet fails to start, even with an error listener',
     )
+    await handledBot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
     assert.equal(handledBot.state.active(), false, 'should not report active after a failed puppet start')
     assert.equal(errors.length, 1, 'should emit the startup failure to an error listener exactly once')
     assert.equal(errors[0]?.message, expectedError.message, 'should preserve the startup failure message')
   } finally {
     await handledBot.stop()
   }
+})
+
+test('WechatyBase with real failing Puppet.onStart() emits single error event', async () => {
+  class FailingRealPuppet extends PuppetMock {
+    override async onStart (): Promise<void> {
+      throw new Error('real puppet onStart failure')
+    }
+  }
+
+  const bot = new WechatyBase({ puppet: new FailingRealPuppet() })
+  const errors: any[] = []
+  bot.addEventListener('error', ((event: any) => errors.push(event.detail)) as EventListener)
+
+  await assert.rejects(bot.start(), /real puppet onStart failure/)
+  await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
+  assert.equal(errors.length, 1, 'real onStart failure must emit error exactly once')
+  await bot.stop()
+})
+
+test('WechatyBase partial startup failure cleans up Io via super.stop()', async t => {
+  if (typeof (globalThis as any).process?.cwd !== 'function') {
+    return
+  }
+  const { Io } = await import('../io.ts')
+  let ioStarted = false
+  let ioStopped = false
+
+  t.mock.method(Io.prototype as any, 'onStart', async function (this: any) {
+    ioStarted = true
+  })
+  t.mock.method(Io.prototype as any, 'onStop', async function (this: any) {
+    ioStopped = true
+  })
+
+  class FailAfterIoPuppet extends PuppetMock {
+    override async onStart (): Promise<void> {
+      throw new Error('fail after io')
+    }
+  }
+
+  const bot = new WechatyBase({
+    puppet: new FailAfterIoPuppet(),
+    ioToken: 'fake-token-for-partial-cleanup',
+  })
+
+  await assert.rejects(bot.start(), /fail after io/)
+  await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
+  assert.equal(ioStarted, true, 'io must have started')
+  assert.equal(ioStopped, true, 'io must be stopped during teardown of failed start')
 })
 
 // The real Puppet startup deadline is 15 seconds, also the browser runner's default.
