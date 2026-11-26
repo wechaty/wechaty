@@ -916,4 +916,117 @@ test('roomMemberPayload caches by memberId and stop() resets authQrCode', async 
   assert.equal(puppet.authQrCode, undefined, 'authQrCode must be cleared after stop()')
 })
 
+test('stop-time logout event fires, clears currentUserId, and allows subsequent login', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+
+  let logoutFired = false
+  let logoutContactId: string | undefined
+  puppet.on('logout', (payload: any) => {
+    logoutFired = true
+    logoutContactId = payload?.contactId ?? payload?.detail?.contactId
+  })
+
+  puppet.login('user-123')
+  assert.equal(puppet.isLoggedIn, true)
+  assert.equal(puppet.currentUserId, 'user-123')
+
+  await puppet.stop()
+
+  assert.equal(logoutFired, true, 'logout event must fire on stop()')
+  assert.equal(logoutContactId, 'user-123', 'logout event must have contactId')
+  assert.equal(puppet.isLoggedIn, false, 'isLoggedIn must be false after stop()')
+  assert.equal(puppet.__currentUserId, undefined, '__currentUserId must be cleared after stop()')
+
+  // Subsequent start allows login without error
+  await puppet.start()
+  assert.doesNotThrow(() => puppet.login('user-456'), 'subsequent start allows login without throwing')
+  assert.equal(puppet.isLoggedIn, true)
+  assert.equal(puppet.currentUserId, 'user-456')
+  await puppet.stop()
+})
+
+test('stop-while-starting (padlocal#116) triggers onStop and settles start cleanly', async _t => {
+  let onStopCalled = false
+  const stopped = Promise.withResolvers<void>()
+
+  class HangingStartPuppet extends PuppetTest {
+    override async onStart (): Promise<void> {
+      // Hangs until onStop is called (padlocal#116 pattern)
+      await stopped.promise
+    }
+    override async onStop (): Promise<void> {
+      onStopCalled = true
+      stopped.resolve()
+    }
+  }
+
+  const puppet = new HangingStartPuppet()
+  const startPromise = puppet.start()
+  const startRejection = assert.rejects(startPromise, /LifecycleSupersededError/)
+
+  // Give start a microtick to enter onStart
+  await new Promise<void>(resolve => setTimeout(resolve, 50))
+  assert.equal(puppet.state.kind, 'starting')
+
+  // Stop while starting
+  await puppet.stop()
+  await startRejection
+
+  assert.equal(onStopCalled, true, 'onStop must be called when stopped during startup')
+  assert.equal(puppet.state.inactive(), true, 'puppet must be inactive after stop')
+})
+
+test('inactive reset does not start puppet', async _t => {
+  const puppet = new PuppetTest()
+  assert.equal(puppet.state.inactive(), true)
+
+  await puppet.reset('reset inactive')
+  assert.equal(puppet.state.inactive(), true, 'reset on inactive puppet must not start it')
+  assert.equal((puppet.state as any).kind, 'stopped')
+})
+
+test('executeOperation drains in-flight work on retirement and runs cleanly', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+
+  let workCompleted = false
+  let signalObserved: AbortSignal | undefined
+
+  const opPromise = puppet.executeOperation(async signal => {
+    signalObserved = signal
+    await new Promise<void>(resolve => setTimeout(resolve, 50))
+    workCompleted = true
+    return 'done'
+  })
+
+  // Concurrently stop while operation is in-flight
+  await puppet.stop()
+  const result = await opPromise
+
+  assert.equal(result, 'done')
+  assert.equal(workCompleted, true, 'in-flight operation must complete before stop returns')
+  assert.ok(signalObserved?.aborted, 'operation signal should be aborted during retirement')
+})
+
+test('cross-generation ready condition wait binds to next generation', async _t => {
+  const puppet = new PuppetTest()
+  assert.equal(puppet.state.inactive(), true)
+
+  let readyResolved = false
+  const readyFuture = puppet.ready().then(() => {
+    readyResolved = true
+  })
+
+  assert.equal(readyResolved, false, 'ready future must not resolve before start')
+
+  await puppet.start()
+  puppet.emit('ready')
+  await readyFuture
+
+  assert.equal(readyResolved, true, 'ready future should resolve when started generation emits ready')
+  await puppet.stop()
+})
+
+
 

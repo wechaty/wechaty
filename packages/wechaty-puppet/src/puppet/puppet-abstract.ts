@@ -16,7 +16,6 @@ import {
 import { MemoryCard }   from 'memory-card'
 import {
   BooleanIndicator,
-  BusyIndicator,
 }                       from 'state-switch'
 import type {
   Lifecycle,
@@ -141,7 +140,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   readonly #readyIndicator: BooleanIndicator
   #scope: LifecycleScope | undefined
 
-  readonly #resettingIndicator: BusyIndicator
   readonly #watchdog: WatchdogAgent
   readonly #cache: CacheAgent
   readonly #cacheCleanCallbackList: (() => void)[] = []
@@ -162,14 +160,29 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     this.#counter = PUPPET_COUNTER++
     this.#memory = new MemoryCard()
     this.#cache = new CacheAgent(options.cache)
-    this.#resettingIndicator = new BusyIndicator('PuppetReset', { log })
     this.#watchdog = new WatchdogAgent(this)
     this.#readyIndicator = new BooleanIndicator()
+
+    const origValue = this.#readyIndicator.value.bind(this.#readyIndicator)
+    this.#readyIndicator.value = ((val?: boolean): any => {
+      if (val === undefined) {
+        return this.#scope ? this.#ready.isSet : origValue()
+      }
+      origValue(val)
+      if (this.#scope) {
+        if (val) {
+          this.#scope.set(this.#ready)
+        } else {
+          this.#scope.clear(this.#ready)
+        }
+      }
+      return val
+    }) as BooleanIndicator['value']
 
     this.#lifecycle = createLifecycle({
       onStart: scope => this.#lifecycleStart(scope),
       onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
-    }, { name: 'Puppet', startTimeoutMs: 15_000, stopTimeoutMs: 15_000 })
+    }, { name: 'Puppet' })
     this.#login = this.#lifecycle.condition('login')
     this.#ready = this.#lifecycle.condition('ready')
   }
@@ -330,13 +343,15 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   onDirty (
     arg: EventDirtyPayload | CustomEvent<EventDirtyPayload>,
   ): void {
-    const payload = (arg as any)?.detail ?? arg
+    const payload = ((arg instanceof CustomEvent)
+      ? arg.detail
+      : ((arg as { detail?: EventDirtyPayload })?.detail ?? arg)) as EventDirtyPayload | undefined
     const {
       payloadType,
       payloadId,
-    } = (payload ?? {}) as EventDirtyPayload
-    log.verbose('Puppet', 'onDirty(%s<%s>, %s)', typeName(DirtyType, payloadType), payloadType, payloadId)
-    const dirtyFuncMap = {
+    } = payload ?? {}
+    log.verbose('Puppet', 'onDirty(%s<%s>, %s)', payloadType !== undefined ? typeName(DirtyType, payloadType) : 'undefined', payloadType, payloadId)
+    const dirtyFuncMap: Partial<Record<DirtyType, (id: string) => void>> = {
       [DirtyType.Contact]:      (id: string) => this.#cache.contact.delete(id),
       [DirtyType.Friendship]:   (id: string) => this.#cache.friendship.delete(id),
       [DirtyType.Message]:      (id: string) => this.#cache.message.delete(id),
@@ -345,10 +360,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       [DirtyType.RoomMember]:   (id: string) => this.#cache.roomMember.delete(id),
       [DirtyType.Unspecified]:  (id: string) => { throw new Error('Unspecified type with id: ' + id) },
     }
-    const dirtyFunc = dirtyFuncMap[payloadType]
-    if (typeof dirtyFunc === 'function') {
-      dirtyFunc(payloadId)
+    const dirtyFunc = payloadType !== undefined ? dirtyFuncMap[payloadType] : undefined
+    if (!dirtyFunc || payloadId === undefined) {
+      throw new Error(`Unknown or invalid dirty payloadType: ${String(payloadType)} with id: ${String(payloadId)}`)
     }
+    dirtyFunc(payloadId)
   }
 
   async __dirtyPayloadAwait (
@@ -415,19 +431,27 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * properties (.kind, .generation) alongside legacy StateSwitch methods (.active(), .inactive()).
    */
   get state (): PuppetState {
-    const s = this.#lifecycle.state
-    const active = (): boolean | 'pending' => (s.kind === 'running' ? true : s.kind === 'starting' ? 'pending' : false)
-    const inactive = (): boolean | 'pending' => (s.kind === 'stopped' || s.kind === 'failed' ? true : s.kind === 'stopping' ? 'pending' : false)
+    const lifecycle = this.#lifecycle
+    const active = (): boolean | 'pending' => {
+      const kind = lifecycle.state.kind
+      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
+    }
+    const inactive = (): boolean | 'pending' => {
+      const kind = lifecycle.state.kind
+      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
+    }
     const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
       if (expected === 'active') {
-        await this.#lifecycle.whenState(st => st.kind === 'running')
+        await lifecycle.whenState(st => st.kind === 'running')
       } else if (expected === 'inactive') {
-        await this.#lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
+        await lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
       } else {
-        await this.#lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
+        await lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
       }
     }
-    return Object.assign(Object.create(s), {
+    const current = lifecycle.state
+    return Object.freeze({
+      ...current,
       active,
       inactive,
       on: active,
@@ -440,28 +464,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * Compatibility indicator for legacy consumers, bound to the generation-scoped ready condition.
    */
   get readyIndicator (): BooleanIndicator {
-    return {
-      value: (val?: boolean): any => {
-        if (val === undefined) {
-          return this.#scope ? this.#ready.isSet : this.#readyIndicator.value()
-        }
-        this.#readyIndicator.value(val)
-        if (this.#scope) {
-          if (val) {
-            this.#scope.set(this.#ready)
-          } else {
-            this.#scope.clear(this.#ready)
-          }
-        }
-        return val
-      },
-      ready: (val: boolean, noCross?: boolean): Promise<void> => {
-        if (val && this.#scope) {
-          return this.#ready.wait()
-        }
-        return this.#readyIndicator.ready(val, noCross)
-      },
-    } as BooleanIndicator
+    return this.#readyIndicator
   }
 
   get __counter (): number {
@@ -470,14 +473,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   get __watchdog (): WatchdogAgent {
     return this.#watchdog
-  }
-
-  get __serviceCtlResettingIndicator (): BusyIndicator {
-    return this.#resettingIndicator
-  }
-
-  get __serviceCtlLogger () {
-    return log
   }
 
   get puppetOptions (): PuppetOptions {
@@ -518,7 +513,15 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     try {
       await this.#lifecycle.start(options)
     } catch (error) {
-      await this.#lifecycle.whenState(s => s.kind === 'failed' || s.kind === 'stopped').catch(() => {})
+      if (options?.signal?.aborted || (error as Error)?.name === 'LifecycleSupersededError') {
+        throw error
+      }
+      if (this.#lifecycle.state.kind === 'stopping') {
+        await this.#lifecycle.whenState(
+          s => s.kind === 'failed' || s.kind === 'stopped',
+          { signal: options?.signal },
+        ).catch(() => {})
+      }
       throw error
     }
   }
@@ -533,11 +536,14 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     try {
       await this.#lifecycle.stop(options)
     } catch (e) {
-      if (this.listenerCount('error') > 0) {
-        this.emit('error', e)
-      } else {
+      if (options?.signal?.aborted || (e as Error)?.name === 'LifecycleSupersededError') {
         throw e
       }
+      if (this.listenerCount('error') > 0) {
+        // Error was already dispatched to 'error' listener via #onLifecycleStateChange
+        return
+      }
+      throw e
     }
   }
 
@@ -553,10 +559,16 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   /**
    * Restarts the puppet lifecycle atomically or resets with an optional reason string.
+   * No-op if puppet is not currently running or starting.
    */
   async reset (options?: LifecycleWaitOptions | string): Promise<void> {
     log.verbose('Puppet', 'reset(%s)', typeof options === 'string' ? options : '')
-    await this.restart(typeof options === 'object' ? options : undefined)
+    const kind = this.#lifecycle.state.kind
+    if (kind === 'running' || kind === 'starting') {
+      await this.restart(typeof options === 'object' ? options : undefined)
+    } else {
+      log.verbose('Puppet', 'reset() called on inactive puppet (%s), doing nothing', kind)
+    }
   }
 
   /**
@@ -580,41 +592,31 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     let stopping: Promise<void> | undefined
     const stopProvider = (): Promise<void> => (stopping ??= (async () => this.onStop())())
 
-    // 0. Deferred super.stop():
+    // 1. Retirement cleanup: Clear scope reference
+    scope.defer(() => {
+      this.#scope = undefined
+    })
+
+    // 2. super.stop()
     scope.defer(async () => {
       await super.stop()
     })
 
-    // 1. Deferred provider onStop:
-    // Runs when scope retires or is cancelled.
-    scope.defer(async () => {
-      try {
-        await stopProvider()
-      } catch (error) {
-        stopping = undefined
-        throw error
-      }
-    })
-
-    // 2. Abort listener during startup:
-    // Some providers only settle onStart once onStop is called.
-    let started = false
-    scope.signal.addEventListener('abort', () => {
-      if (!started) {
-        stopProvider().catch(() => {})
-      }
-    }, { once: true })
-
-    // 3. Deferred logout:
-    scope.defer(async () => {
-      if (this.isLoggedIn) {
-        this.dispatchEvent(new WechatyEvent('logout', {
-          detail: {
-            contactId: this.#currentUserId ?? '',
-            data: 'puppet stop()',
-          },
-        }))
-        this.#currentUserId = undefined
+    // 3. Clear auth QR code & login clean callbacks:
+    const cleanAuthQrCode = () => {
+      this.#authQrCode = undefined
+    }
+    scope.defer(() => { cleanAuthQrCode() })
+    scope.defer(() => {
+      while (this.#loginCleanCallbackList.length) {
+        const fn = this.#loginCleanCallbackList.shift()
+        if (fn) {
+          try {
+            fn()
+          } catch (err) {
+            log.error('Puppet', 'loginCleanCallback error: %s', err)
+          }
+        }
       }
     })
 
@@ -640,21 +642,53 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       this.#watchdog.stop()
     })
 
-    // 6. Memory loading:
+    // 6. Deferred logout (fires while cache and currentUserId are still available):
+    scope.defer(async () => {
+      const userId = this.#currentUserId
+      if (userId) {
+        this.#currentUserId = undefined
+        this.dispatchEvent(new WechatyEvent('logout', {
+          detail: {
+            contactId: userId,
+            data: 'puppet stop()',
+          },
+        }))
+      }
+    })
+
+    // 7. Deferred provider onStop (runs first on retirement in LIFO order):
+    scope.defer(async () => {
+      try {
+        await stopProvider()
+      } catch (error) {
+        stopping = undefined
+        throw error
+      }
+    })
+
+    // 8. Abort listener during startup:
+    let started = false
+    scope.signal.addEventListener('abort', () => {
+      if (!started) {
+        stopProvider().catch(() => {})
+      }
+    }, { once: true })
+
+    // 9. Memory loading:
     try {
       await this.#memory.load()
     } catch (_) {
       log.silly('Puppet', 'start() memory has already been loaded before')
     }
 
-    // 7. Event listeners bound to this generation:
-    listen(scope, this, 'dirty', (e: any) => this.onDirty((e as any)?.detail ?? e))
+    // 10. Event listeners bound to this generation:
+    listen(scope, this, 'dirty', (e: any) => {
+      const payload = (e instanceof CustomEvent) ? e.detail : (e?.detail ?? e)
+      this.onDirty(payload)
+    })
 
-    const cleanAuthQrCode = () => {
-      this.#authQrCode = undefined
-    }
     const onScan = (event: any) => {
-      const payload = event?.detail ?? event
+      const payload = (event instanceof CustomEvent) ? event.detail : (event?.detail ?? event)
       const qrcode = payload?.qrcode
       const status = payload?.status
       switch (status) {
@@ -675,9 +709,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     listen(scope, this, 'scan', onScan)
     listen(scope, this, 'login', cleanAuthQrCode)
     listen(scope, this, 'stop', cleanAuthQrCode)
-    scope.defer(() => { cleanAuthQrCode() })
 
-    // 8. Conditions tracking:
+    // 11. Conditions tracking & pre-start state synchronization:
+    if (this.#currentUserId) {
+      scope.set(this.#login)
+    }
     if (this.#readyIndicator.value()) {
       scope.set(this.#ready)
     }
@@ -687,7 +723,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
     listen(scope, this, 'login', (e: any) => {
       scope.set(this.#login)
-      const payload = (e as any)?.detail ?? e
+      const payload = (e instanceof CustomEvent) ? e.detail : (e?.detail ?? e)
       if (payload?.contactId) {
         this.#currentUserId = payload.contactId
       }
@@ -710,23 +746,12 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       this.#readyIndicator.value(false)
     })
 
-    scope.defer(() => {
-      while (this.#loginCleanCallbackList.length) {
-        const fn = this.#loginCleanCallbackList.shift()
-        if (fn) {
-          try {
-            fn()
-          } catch (err) {
-            log.error('Puppet', 'loginCleanCallback error: %s', err)
-          }
-        }
-      }
-    })
+    // 12. Set #scope BEFORE onStart() so domain calls and readyIndicator work during onStart():
+    this.#scope = scope
 
     await super.start()
     await this.onStart()
     started = true
-    this.#scope = scope
   }
 
   #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {
@@ -734,29 +759,12 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       this.dispatchEvent(new WechatyEvent('start'))
     } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {
       this.dispatchEvent(new WechatyEvent('stop'))
-    } else if (state.kind === 'failed') {
+    } else if (state.kind === 'failed' && previous.kind !== 'failed') {
       if (this.listenerCount('error') > 0) {
         this.emit('error', state.error)
       } else {
         log.error('Puppet', 'Lifecycle failure: %s', (state.error as Error)?.message || state.error)
       }
-    }
-  }
-
-  async __serviceCtlShutdown (): Promise<unknown[]> {
-    const errors: unknown[] = []
-    try {
-      await this.onStop()
-    } catch (e) {
-      log.error('Puppet', 'stop() onStop() exception: %s', (e as Error).message)
-      errors.push(e)
-    }
-    return errors
-  }
-
-  __serviceCtlEmitErrors (errors: readonly unknown[]): void {
-    for (const e of errors) {
-      this.emit('error', e)
     }
   }
 
@@ -1706,8 +1714,6 @@ type PuppetProtectedProperty =
   | 'messageRawPayloadParser'
   | '__counter'
   | '__watchdog'
-  | '__serviceCtlResettingIndicator'
-  | '__serviceCtlLogger'
   | 'postPayloadCache'
   | 'postRawPayload'
   | 'postRawPayloadParser'
