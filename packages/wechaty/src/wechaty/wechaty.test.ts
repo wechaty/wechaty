@@ -93,4 +93,24 @@ test('Wechaty type doc-typing check', async () => {
   assert.ok(typeof bot.stop === 'function', 'bot must have stop method')
   assert.ok(typeof bot.on === 'function', 'bot must have on method')
   assert.ok(typeof bot.say === 'function', 'bot must have say method')
+  assert.ok(bot.id, 'bot should have id')
+
+  // @ts-expect-error _stopCallbackList is protected and omitted from Wechaty doc-typing
+  void bot._stopCallbackList
+  // @ts-expect-error __options is protected and omitted from Wechaty doc-typing
+  void bot.__options
+})
+
+test('Wechaty.valid() and WechatyBuilder.valid() consistency', async () => {
+  const bot = new Wechaty()
+  assert.equal(Wechaty.valid(bot), true, 'Wechaty.valid should accept Wechaty instance')
+  assert.equal(WechatyBuilder.valid(bot), true, 'WechatyBuilder.valid should delegate and accept Wechaty instance')
+  assert.equal(WechatyBuilder.valid(null), false, 'WechatyBuilder.valid should reject null')
+  assert.equal(WechatyBuilder.valid({}), false, 'WechatyBuilder.valid should reject plain object')
+})
+
+test('Wechaty.singleton(options) returns existing singleton when options are passed subsequently', async () => {
+  const singletonA = Wechaty.singleton({ name: 'initial' })
+  const singletonB = Wechaty.singleton({ name: 'subsequent' })
+  assert.strictEqual(singletonA, singletonB, 'subsequent singleton calls should return the same instance')
 })

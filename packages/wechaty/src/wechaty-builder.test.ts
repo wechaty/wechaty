@@ -72,6 +72,35 @@ test('throw when set options twice', async _t => {
   assert.throws(() => builder.options(options), 'should throw for setting non-empty `options` again')
 })
 
+test('WechatyBuilder instance build() and singleton().build() execution', async _t => {
+  class WechatyBuilderTest extends WechatyBuilder {
+
+    constructor () { super() }
+
+    static override new () { return new this() }
+
+    override options (...args: any[]) {
+      super.options(...args)
+      return this
+    }
+
+    override singleton () {
+      super.singleton()
+      return this
+    }
+
+  }
+
+  const b1 = WechatyBuilderTest.new()
+  const instance1 = b1.build()
+  assert.ok(instance1, 'instance build() should produce a Wechaty instance')
+  assert.ok(WechatyBuilder.valid(instance1), 'WechatyBuilder.valid() should be true for instance')
+
+  const b2 = WechatyBuilderTest.new()
+  const singletonFromBuilder = b2.singleton().build()
+  assert.strictEqual(singletonFromBuilder, WechatyBuilder.singleton(), 'singleton().build() should return singleton instance')
+})
+
 test('WechatyBuilder class static', async t => {
   const wechaty1 = WechatyBuilder.build()
   const wechaty2 = WechatyBuilder.build()

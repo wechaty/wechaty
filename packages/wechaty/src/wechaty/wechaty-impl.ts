@@ -1,4 +1,26 @@
-import type { EventEmitter }  from 'wechaty-puppet'
+/**
+ *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
+ *
+ *   @copyright 2016 Huan LI (李卓桓) <https://github.com/huan>, and
+ *                   Wechaty Contributors <https://github.com/wechaty>.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+import {
+  log,
+  type EventEmitter,
+}                          from 'wechaty-puppet'
 
 import type {
   WechatyMixinProtectedProperty,
@@ -138,29 +160,59 @@ type WechatyInterface = Wechaty
 /** Internal alias for the instance type when distinguishing from the constructor */
 type WechatyInstance = Wechaty
 
+/**
+ * Static methods exposed on the `Wechaty` constructor namespace.
+ */
 interface WechatyStatic {
+  /**
+   * Returns a shared singleton instance of `Wechaty`.
+   *
+   * @param options - Initialization options for the singleton (only applied on the first call).
+   */
   singleton (options?: WechatyOptions): Wechaty
+  /**
+   * Type guard to verify whether an unknown target is a valid Wechaty instance.
+   */
   valid (target: unknown): target is Wechaty
 }
 
+/**
+ * Type representing the constructible `Wechaty` class constructor with attached static methods.
+ */
 type WechatyConstructor = {
   new (options?: WechatyOptions): Wechaty
 } & Omit<typeof WechatyImpl, 'new'> & WechatyStatic
 
 let _singletonInstance: Wechaty | undefined
 
+/**
+ * Attaches the `singleton` static factory method to `WechatyImpl`.
+ * Using `Object.defineProperty` avoids TypeScript static typing collision with the underlying
+ * mixin inheritance chain while maintaining runtime availability.
+ */
 Object.defineProperty(WechatyImpl, 'singleton', {
   configurable: true,
   enumerable: true,
   writable: true,
   value: function singleton (options?: WechatyOptions): Wechaty {
-    if (!_singletonInstance) {
-      _singletonInstance = new WechatyImpl(options)
+    if (_singletonInstance) {
+      if (options && Object.keys(options).length > 0) {
+        log.warn('Wechaty', 'singleton() options were passed but a singleton instance already exists; existing instance returned.')
+      }
+      return _singletonInstance
     }
+    _singletonInstance = new WechatyImpl(options)
     return _singletonInstance
   },
 })
 
+/**
+ * Modern Wechaty bot constructor and canonical instance type.
+ *
+ * Implements TypeScript Type-Value Declaration Merging:
+ * - As a value: constructible via `new Wechaty(options)` with static methods `singleton()` and `valid()`.
+ * - As a type: represents the pure doc-typed bot instance with all protected and mixin internals omitted.
+ */
 const Wechaty = WechatyImpl as unknown as WechatyConstructor
 
 export  {
