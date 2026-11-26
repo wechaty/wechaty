@@ -159,55 +159,28 @@ jobs:
           # Empty permissions inherit the app's existing grants for requested tasks.
           permission-contents: ${{ github.event_name == 'pull_request_target' && 'read' || '' }}
           permission-pull-requests: ${{ github.event_name == 'pull_request_target' && 'write' || '' }}
-      - name: Start request reactions
-        id: reactions
-        if: github.event_name == 'issues' || github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
-        continue-on-error: true
-        uses: actions/github-script@v8
-        env:
-          APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
-        with:
-          github-token: ${{ steps.app-token.outputs.token }}
-          script: |
-            const { owner, repo } = context.repo
-            const p = context.payload
-            const target = context.eventName === 'issues' ? `issues/${p.issue.number}`
-              : context.eventName === 'issue_comment' ? `issues/comments/${p.comment.id}`
-              : `pulls/comments/${p.comment.id}`
-            const endpoint = `/repos/${owner}/${repo}/${target}/reactions`
-            core.setOutput('endpoint', endpoint)
-            try {
-              for await (const page of github.paginate.iterator(`GET ${endpoint}`, { content: 'hooray', per_page: 100 })) {
-                for (const reaction of page.data.filter(r => r.user?.login === process.env.APP_LOGIN)) {
-                  await github.request(`DELETE ${endpoint}/${reaction.id}`)
-                }
-              }
-            } catch (error) {
-              core.warning(`Could not clear previous completion reaction: ${error.message}`)
-            }
-            const { status, data } = await github.request(`POST ${endpoint}`, { content: 'eyes' })
-            // A 200 reuses an existing reaction, which this run does not own.
-            if (status === 201) core.setOutput('eyes_id', String(data.id))
-      - name: Open or reuse review progress comment
+      - name: Open or reuse progress comment
         id: progress
-        if: needs.authorize.outputs.mode == 'review'
+        if: needs.authorize.outputs.mode == 'review' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request_review'
         continue-on-error: true
         uses: actions/github-script@v8
         env:
-          PR_NUMBER: ${{ needs.authorize.outputs.number }}
+          TARGET_NUMBER: ${{ needs.authorize.outputs.number }}
+          MODE: ${{ needs.authorize.outputs.mode }}
           APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo
-            const pr = { owner, repo, issue_number: Number(process.env.PR_NUMBER) }
+            const target = { owner, repo, issue_number: Number(process.env.TARGET_NUMBER) }
             const marker = `<!-- antigravity-next-progress run=${context.runId} -->`
             const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
-            const body = `${marker}\n### Silicon Huan · Review started\n\n[Actions run](${run})`
+            const activity = process.env.MODE === 'review' ? 'Review' : 'Task'
+            const body = `${marker}\n### Silicon Huan · ${activity} started\n\n[Actions run](${run})`
 
             // Reruns keep the same run ID. Reuse only this app's comment for that run.
             if (process.env.GITHUB_RUN_ATTEMPT !== '1') {
-              for await (const page of github.paginate.iterator(github.rest.issues.listComments, { ...pr, per_page: 100 })) {
+              for await (const page of github.paginate.iterator(github.rest.issues.listComments, { ...target, per_page: 100 })) {
                 const previous = page.data.find(comment =>
                   comment.user?.login === process.env.APP_LOGIN && comment.body?.includes(marker))
                 if (!previous) continue
@@ -217,9 +190,56 @@ jobs:
                 return
               }
             }
-            const { data } = await github.rest.issues.createComment({ ...pr, body })
+            const { data } = await github.rest.issues.createComment({ ...target, body })
             core.setOutput('url', data.html_url)
             core.setOutput('comment_id', String(data.id))
+      - name: Create automatic review reaction token
+        id: reaction-token
+        if: github.event_name == 'pull_request_target' && steps.progress.outputs.comment_id != ''
+        continue-on-error: true
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          # Reactions on PR conversation comments use the Issues permission.
+          permission-issues: write
+      - name: Start request reactions
+        id: reactions
+        if: github.event_name == 'issues' || github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment' || steps.progress.outputs.comment_id != ''
+        continue-on-error: true
+        uses: actions/github-script@v8
+        env:
+          PROGRESS_ID: ${{ steps.progress.outputs.comment_id }}
+          APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+        with:
+          github-token: ${{ steps.reaction-token.outputs.token || steps.app-token.outputs.token }}
+          script: |
+            const { owner, repo } = context.repo
+            const p = context.payload
+            const usesProgress = !['issues', 'issue_comment', 'pull_request_review_comment'].includes(context.eventName)
+            const target = context.eventName === 'issues' ? `issues/${p.issue.number}`
+              : context.eventName === 'issue_comment' ? `issues/comments/${p.comment.id}`
+              : context.eventName === 'pull_request_review_comment' ? `pulls/comments/${p.comment.id}`
+              : `issues/comments/${process.env.PROGRESS_ID}`
+            const endpoint = `/repos/${owner}/${repo}/${target}/reactions`
+            core.setOutput('endpoint', endpoint)
+            try {
+              // A progress comment belongs to one run, so a rerun can clear abandoned progress there.
+              const stale = usesProgress ? ['hooray', 'eyes', 'rocket'] : ['hooray']
+              const filters = usesProgress ? {} : { content: 'hooray' }
+              for await (const page of github.paginate.iterator(`GET ${endpoint}`, { ...filters, per_page: 100 })) {
+                for (const reaction of page.data.filter(r => r.user?.login === process.env.APP_LOGIN && stale.includes(r.content))) {
+                  await github.request(`DELETE ${endpoint}/${reaction.id}`)
+                }
+              }
+            } catch (error) {
+              core.warning(`Could not clear previous run reactions: ${error.message}`)
+            }
+            const { status, data } = await github.request(`POST ${endpoint}`, { content: 'eyes' })
+            // A 200 reuses an existing reaction, which this run does not own.
+            if (status === 201) core.setOutput('eyes_id', String(data.id))
       - uses: actions/checkout@v5
         with:
           # Automatic reviews inspect the PR through GitHub from a trusted checkout.
@@ -243,6 +263,28 @@ jobs:
           sudo apt-get install -y -qq gnome-keyring libsecret-tools dbus-x11 >/dev/null
           gh --version
           docker pull ghcr.io/github/github-mcp-server
+      - name: Mark Silicon Huan as running
+        id: rocket
+        if: steps.reactions.outputs.endpoint != ''
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.reaction-token.outputs.token || steps.app-token.outputs.token }}
+          ENDPOINT: ${{ steps.reactions.outputs.endpoint }}
+          EYES_ID: ${{ steps.reactions.outputs.eyes_id }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$EYES_ID" ]]; then
+            gh api --method DELETE "$ENDPOINT/$EYES_ID" --silent ||
+              echo '::warning::Could not remove preparation reaction; cleanup will retry.'
+          fi
+          # Keep the reaction credential in this step and track only a rocket created by this attempt.
+          response="$(gh api --include --method POST "$ENDPOINT" -f content=rocket --jq .id)"
+          read -r _ status _ <<< "$response"
+          rocket_id="$(tail -n 1 <<< "$response")"
+          if [[ "$status" == 201 && "$rocket_id" =~ ^[0-9]+$ ]]; then
+            echo "rocket_id=$rocket_id" >> "$GITHUB_OUTPUT"
+          fi
       - name: Run Silicon Huan
         id: agent
         shell: bash
@@ -254,8 +296,6 @@ jobs:
           TARGET_URL: ${{ needs.authorize.outputs.target_url }}
           REQUEST_URL: ${{ needs.authorize.outputs.request_url }}
           TASK: ${{ needs.authorize.outputs.task }}
-          REACTION_ENDPOINT: ${{ steps.reactions.outputs.endpoint }}
-          EYES_ID: ${{ steps.reactions.outputs.eyes_id }}
           MODE: ${{ needs.authorize.outputs.mode }}
           PROGRESS_URL: ${{ steps.progress.outputs.url }}
         run: |
@@ -315,22 +355,6 @@ jobs:
             printf 'Work on %s and sign your reply "— Silicon Huan".\n\n%s\n' "$TARGET_URL" "$TASK" > "$private_dir/prompt.md"
           fi
           model=(); [ -z "${ANTIGRAVITY_MODEL:-}" ] || model=(--model "$ANTIGRAVITY_MODEL")
-          if [[ -n "$REACTION_ENDPOINT" ]]; then
-            if [[ -n "$EYES_ID" ]]; then
-              gh api --method DELETE "$REACTION_ENDPOINT/$EYES_ID" --silent ||
-                echo '::warning::Could not remove preparation reaction; cleanup will retry.'
-            fi
-            # Only record a rocket created by this attempt (HTTP 201).
-            if gh api --include --method POST "$REACTION_ENDPOINT" -f content=rocket --jq .id > "$private_dir/rocket"; then
-              read -r _ status _ < "$private_dir/rocket"
-              rocket_id="$(tail -n 1 "$private_dir/rocket")"
-              if [[ "$status" == 201 && "$rocket_id" =~ ^[0-9]+$ ]]; then
-                echo "rocket_id=$rocket_id" >> "$GITHUB_OUTPUT"
-              fi
-            else
-              echo '::warning::Could not add agent-running reaction.'
-            fi
-          fi
           # Default effort; no output schema, publisher, or raw public agent logs/artifacts.
           if timeout 40m agy --dangerously-skip-permissions --print-timeout 39m "${model[@]}" \
             -p "$(cat "$private_dir/prompt.md")" > "$private_dir/agent.out" 2> "$private_dir/agent.err"; then
@@ -340,23 +364,25 @@ jobs:
             exit 1
           fi
 
-      - name: Mark interrupted review progress
-        if: (failure() || cancelled()) && steps.progress.outputs.comment_id != ''
+      - name: Finalize progress after interruption or interaction
+        if: always() && steps.progress.outputs.comment_id != '' && (failure() || cancelled() || (needs.authorize.outputs.mode == 'interaction' && steps.agent.outcome == 'success'))
         continue-on-error: true
         uses: actions/github-script@v8
         env:
           COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
-          REVIEW_STATUS: ${{ job.status }}
+          RUN_STATUS: ${{ job.status }}
+          MODE: ${{ needs.authorize.outputs.mode }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const comment = { ...context.repo, comment_id: Number(process.env.COMMENT_ID) }
             const { data } = await github.rest.issues.getComment(comment)
-            const outcome = process.env.REVIEW_STATUS === 'cancelled' ? 'cancelled' : 'failed'
+            const outcome = { success: 'completed', cancelled: 'cancelled' }[process.env.RUN_STATUS] ?? 'failed'
+            const activity = process.env.MODE === 'review' ? 'Review' : 'Task'
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             await github.rest.issues.updateComment({
               ...comment,
-              body: `${data.body}\n\n**Review ${outcome}.** See the [Actions run](${run}).`,
+              body: `${data.body}\n\n**${activity} ${outcome}.** See the [Actions run](${run}).`,
             })
 
       - name: Finish request reactions
@@ -366,11 +392,11 @@ jobs:
         env:
           ENDPOINT: ${{ steps.reactions.outputs.endpoint }}
           EYES_ID: ${{ steps.reactions.outputs.eyes_id }}
-          ROCKET_ID: ${{ steps.agent.outputs.rocket_id }}
+          ROCKET_ID: ${{ steps.rocket.outputs.rocket_id }}
           JOB_STATUS: ${{ job.status }}
           AGENT_OUTCOME: ${{ steps.agent.outcome }}
         with:
-          github-token: ${{ steps.app-token.outputs.token }}
+          github-token: ${{ steps.reaction-token.outputs.token || steps.app-token.outputs.token }}
           script: |
             const { ENDPOINT, EYES_ID, ROCKET_ID, JOB_STATUS, AGENT_OUTCOME } = process.env
             for (const id of [EYES_ID, ROCKET_ID].filter(Boolean)) {
