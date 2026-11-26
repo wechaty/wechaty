@@ -28,7 +28,7 @@ import {
 class WechatyImplBase extends validationMixin(WechatyBase)<WechatyImplInterface>() {}
 interface WechatyImplInterface extends WechatyImplBase {}
 
-class WechatyImpl extends validationMixin(WechatyImplBase)<WechatyInterface>() {}
+class WechatyImpl extends validationMixin(WechatyImplBase)<Wechaty>() {}
 
 /**
  * ^ The above code will make a ready-to-use class: `WechatyImpl`
@@ -57,7 +57,7 @@ interface WechatyEventEmitter {
    */
   addEventListener<E extends keyof WechatyEventDetailMap>(
     type: E,
-    listener: (this: WechatyInterface, event: WechatyCustomEvent<E>) => void | Promise<void>,
+    listener: (this: Wechaty, event: WechatyCustomEvent<E>) => void | Promise<void>,
     options?: boolean | AddEventListenerOptions,
   ): void
   addEventListener(
@@ -75,7 +75,7 @@ interface WechatyEventEmitter {
    */
   removeEventListener<E extends keyof WechatyEventDetailMap>(
     type: E,
-    listener: (this: WechatyInterface, event: WechatyCustomEvent<E>) => void | Promise<void>,
+    listener: (this: Wechaty, event: WechatyCustomEvent<E>) => void | Promise<void>,
     options?: boolean | EventListenerOptions,
   ): void
   removeEventListener(
@@ -96,56 +96,64 @@ interface WechatyEventEmitter {
    *
    * @deprecated Use `addEventListener(type, listener, options)` instead. Will be removed in Wechaty v3.0.
    */
-  on:   <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: AddEventListenerOptions) => WechatyInterface
+  on:   <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: AddEventListenerOptions) => Wechaty
 
   /**
    * Removes a previously registered listener callback.
    *
    * @deprecated Use `removeEventListener(type, listener)` instead. Will be removed in Wechaty v3.0.
    */
-  off:  <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: EventListenerOptions) => WechatyInterface
+  off:  <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: EventListenerOptions) => Wechaty
 
   /**
    * Registers a one-time listener callback for the specified Wechaty event.
    *
    * @deprecated Use `addEventListener(type, listener, { once: true })` instead. Will be removed in Wechaty v3.0.
    */
-  once: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+  once: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => Wechaty
 
   /**
    * Registers a listener callback for the specified Wechaty event.
    *
    * @deprecated Use `addEventListener(type, listener, options)` instead. Will be removed in Wechaty v3.0.
    */
-  addListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+  addListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => Wechaty
 
   /**
    * Removes a previously registered listener callback.
    *
    * @deprecated Use `removeEventListener(type, listener)` instead. Will be removed in Wechaty v3.0.
    */
-  removeListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => WechatyInterface
+  removeListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => Wechaty
 }
 
-type WechatyInterface = Omit<WechatyImplInterface, AllProtectedProperty>
+type Wechaty = Omit<WechatyImplInterface, AllProtectedProperty>
   & WechatyEventEmitter
 
+/**
+ * @deprecated Use `Wechaty` instead. `WechatyInterface` is retained for backwards compatibility.
+ */
+type WechatyInterface = Wechaty
+
+/** Internal alias for the instance type when distinguishing from the constructor */
+type WechatyInstance = Wechaty
+
 interface WechatyStatic {
-  singleton (options?: WechatyOptions): WechatyInterface
-  valid (target: unknown): target is WechatyInterface
+  singleton (options?: WechatyOptions): Wechaty
+  valid (target: unknown): target is Wechaty
 }
 
 type WechatyConstructor = {
-  new (options?: WechatyOptions): WechatyInterface
+  new (options?: WechatyOptions): Wechaty
 } & Omit<typeof WechatyImpl, 'new'> & WechatyStatic
 
-let _singletonInstance: WechatyInterface | undefined
+let _singletonInstance: Wechaty | undefined
 
 Object.defineProperty(WechatyImpl, 'singleton', {
   configurable: true,
   enumerable: true,
   writable: true,
-  value: function singleton (options?: WechatyOptions): WechatyInterface {
+  value: function singleton (options?: WechatyOptions): Wechaty {
     if (!_singletonInstance) {
       _singletonInstance = new WechatyImpl(options)
     }
@@ -154,11 +162,11 @@ Object.defineProperty(WechatyImpl, 'singleton', {
 })
 
 const Wechaty = WechatyImpl as unknown as WechatyConstructor
-type Wechaty = WechatyInterface
 
 export  {
   Wechaty,
   type WechatyInterface,
+  type WechatyInstance,
   type WechatyConstructor,
   type WechatyStatic,
   type AllProtectedProperty,

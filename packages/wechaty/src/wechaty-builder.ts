@@ -20,13 +20,12 @@
 import { log } from 'wechaty-puppet'
 
 import {
-  type WechatyInterface,
   type WechatyOptions,
   Wechaty,
 }                     from './wechaty/mod.ts'
 
 interface BuilderInterface {
-  build (options?: WechatyOptions): WechatyInterface
+  build (options?: WechatyOptions): Wechaty
 }
 
 /**
@@ -35,7 +34,7 @@ interface BuilderInterface {
  */
 class WechatyBuilder implements BuilderInterface {
 
-  static valid (target: any): target is WechatyInterface {
+  static valid (target: any): target is Wechaty {
     return Wechaty.valid(target)
   }
 
@@ -56,7 +55,7 @@ class WechatyBuilder implements BuilderInterface {
    *  .on('message',  message => console.log(`Message: ${message}`))
    *  .start()
    */
-  static build (options?: WechatyOptions): WechatyInterface {
+  static build (options?: WechatyOptions): Wechaty {
     return new Wechaty(options)
   }
 
@@ -64,7 +63,7 @@ class WechatyBuilder implements BuilderInterface {
    * @deprecated Use `Wechaty.singleton(options)` instead.
    * @param options is a `WechatyOptions` object, it can only be set once
    */
-  static singleton (options?: WechatyOptions): WechatyInterface {
+  static singleton (options?: WechatyOptions): Wechaty {
     return Wechaty.singleton(options)
   }
 
@@ -96,19 +95,19 @@ class WechatyBuilder implements BuilderInterface {
     return this
   }
 
-  build (): WechatyInterface {
+  build (): Wechaty {
     if (this._singleton) {
       return this.singletonInstance()
     }
     return this.newInstance()
   }
 
-  protected singletonInstance (): WechatyInterface {
+  protected singletonInstance (): Wechaty {
     log.verbose('WechatyBuilder', 'singletonInstance()')
     return Wechaty.singleton(this._options)
   }
 
-  protected newInstance (): WechatyInterface {
+  protected newInstance (): Wechaty {
     log.verbose('WechatyBuilder', 'newInstance()')
     return new Wechaty(this._options)
   }

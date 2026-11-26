@@ -32,7 +32,7 @@ import type {
 }                           from '../user-modules/mod.ts'
 
 import type {
-  WechatyInterface,
+  Wechaty,
 }                           from '../wechaty/mod.ts'
 
 type Sayable =
@@ -49,7 +49,7 @@ type Sayable =
 
 interface SayableSayer {
   id      : string,
-  wechaty : WechatyInterface,
+  wechaty : Wechaty,
   say (
     sayable  : Sayable,
     replyTo? : ContactInterface | ContactInterface[]

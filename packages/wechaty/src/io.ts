@@ -59,7 +59,7 @@ import {
 import type {
   MessageInterface,
 }                     from './user-modules/mod.ts'
-import type { WechatyInterface } from './wechaty/mod.ts'
+import type { Wechaty } from './wechaty/mod.ts'
 
 import {
   log,
@@ -73,7 +73,7 @@ import {
 
 /** What an {@link Io} connects with, and for which bot. */
 export interface IoOptions {
-  wechaty      : WechatyInterface,
+  wechaty      : Wechaty,
   token        : string,
   apihost?     : string,
   protocol?    : string,
