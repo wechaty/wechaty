@@ -1,0 +1,131 @@
+# Reconcile Huan verdicts from GitHub metadata without checking out or executing PR code.
+name: Reconcile Huanˢⁱ ⚡ verdicts
+on:
+  pull_request_target:
+    types: [synchronize, edited, reopened]
+  push:
+    branches: [main]
+permissions: {}
+jobs:
+  reconcile:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       (github.event.action != 'edited' || github.event.changes.base != null))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Create repository-scoped Huan installation token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-pull-requests: write
+          permission-issues: write
+      - name: Dismiss verdicts on superseded comparisons
+        uses: actions/github-script@v8
+        env:
+          APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const { owner, repo } = context.repo
+            const repository = { owner, repo }
+            const app = process.env.APP_LOGIN
+            const active = new Set(['APPROVED', 'CHANGES_REQUESTED'])
+
+            /** Read the exact comparison from trusted workflow markers on bot-authored verdicts. */
+            const revision = review => {
+              if (review.user?.login !== app || !active.has(review.state)) return
+              const lines = (review.body ?? '').split(/\r?\n/)
+              const run = lines.map(line =>
+                /^<!-- huan-verdict run=(\d+) head=([0-9a-f]{40}) base=([0-9a-f]{40}) -->$/.exec(line)).find(Boolean)
+              const pair = lines.map(line =>
+                /^<!-- huan-review-pair head=([0-9a-f]{40}) base=([0-9a-f]{40}) -->$/.exec(line)).find(Boolean)
+              const { runId, head, base } = run ? { runId: run[1], head: run[2], base: run[3] }
+                : { head: pair?.[1], base: pair?.[2] }
+              if (head && head === review.commit_id) return { runId, head, base }
+            }
+
+            /** Reflect the withdrawal on the original progress comment and clear its success reaction. */
+            const updateProgress = async (number, runId) => {
+              const marker = `<!-- antigravity-next-progress run=${runId} -->`
+              const comments = github.paginate.iterator(github.rest.issues.listComments, {
+                ...repository, issue_number: number, per_page: 100,
+              })
+              for await (const { data } of comments) {
+                const progress = data.find(comment => comment.user?.login === app && comment.body?.includes(marker))
+                if (!progress) continue
+                const result = '**Review partial. The PR changed and the verdict was withdrawn.**'
+                const body = progress.body
+                  .replace(/^### Huanˢⁱ ⚡ · .*$/m, '### Huanˢⁱ ⚡ · Partial review')
+                  .replace(/\n\n\*\*Review completed\.\*\* See the \[Actions run\]\([^\n]+\)\.?\s*$/, '')
+                if (!body.includes(result)) {
+                  await github.rest.issues.updateComment({ ...repository, comment_id: progress.id, body: `${body}\n\n${result}` })
+                }
+                const reactions = { ...repository, comment_id: progress.id }
+                for await (const page of github.paginate.iterator(github.rest.reactions.listForIssueComment, {
+                  ...reactions, content: 'hooray', per_page: 100,
+                })) {
+                  for (const { id } of page.data.filter(reaction => reaction.user?.login === app)) {
+                    try {
+                      await github.rest.reactions.deleteForIssueComment({ ...reactions, reaction_id: id })
+                    } catch (error) {
+                      if (error.status !== 404) throw error
+                    }
+                  }
+                }
+                return
+              }
+            }
+
+            /** Withdraw only this app's formal verdicts for comparisons that are no longer current. */
+            const reconcile = async number => {
+              const pull = { ...repository, pull_number: number }
+              const { data: pr } = await github.rest.pulls.get(pull)
+              if (pr.state !== 'open' || pr.head.repo?.full_name !== `${owner}/${repo}`) return
+              const reviews = await github.paginate(github.rest.pulls.listReviews, { ...pull, per_page: 100 })
+              for (const review of reviews) {
+                const reviewed = revision(review)
+                if (!reviewed || (reviewed.head === pr.head.sha && reviewed.base === pr.base.sha)) continue
+                const target = { ...pull, review_id: review.id }
+                try {
+                  // Compare against live metadata again in case the branch returned to this revision.
+                  const { data: current } = await github.rest.pulls.get(pull)
+                  if (current.state !== 'open') return
+                  if (reviewed.head === current.head.sha && reviewed.base === current.base.sha) continue
+                  await github.rest.pulls.dismissReview({
+                    ...target, message: 'Huanˢⁱ ⚡ withdrew this verdict because the reviewed HEAD or BASE changed.',
+                  })
+                } catch (error) {
+                  const { data } = await github.rest.pulls.getReview(target)
+                  if (data.state !== 'DISMISSED') throw error
+                }
+                core.info(`Withdrew stale Huan verdict ${review.id} on PR #${number}.`)
+                if (reviewed.runId) {
+                  try {
+                    await updateProgress(number, reviewed.runId)
+                  } catch (error) {
+                    core.warning(`Verdict withdrawn, but progress cleanup on PR #${number} failed: ${error.message}`)
+                  }
+                }
+              }
+            }
+
+            if (context.eventName === 'push') {
+              // Advancing main changes BASE SHA without a pull_request synchronize event.
+              const prs = await github.paginate(github.rest.pulls.list, { ...repository, state: 'open', base: 'main', per_page: 100 })
+              for (const pr of prs) {
+                if (pr.head.repo?.full_name !== `${owner}/${repo}`) continue
+                try {
+                  await reconcile(pr.number)
+                } catch (error) {
+                  core.setFailed(`Could not reconcile PR #${pr.number}: ${error.message}`)
+                }
+              }
+            } else {
+              await reconcile(context.payload.pull_request.number)
+            }

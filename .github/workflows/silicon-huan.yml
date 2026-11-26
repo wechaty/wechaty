@@ -277,7 +277,7 @@ jobs:
           if gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/reviews?per_page=100" |
             jq -e --arg login "$APP_LOGIN" --arg sha "$HEAD_SHA" --arg marker "$marker" '
               any(.[][]; .user.login == $login and .commit_id == $sha
-                and (.state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED")
+                and (.state == "APPROVED" or .state == "CHANGES_REQUESTED")
                 and ((.body // "") | endswith($marker)))
             ' >/dev/null; then
             echo 'duplicate=true' >> "$GITHUB_OUTPUT"
@@ -529,7 +529,12 @@ jobs:
 
             partial('unconfirmed')
             const target = { ...pull, review_id: verdict.id }
-            const current = await isCurrent()
+            let current = await isCurrent()
+            if (current) {
+              // A ref update near the POST may take time to reach the PR metadata API.
+              await new Promise(resolve => setTimeout(resolve, 8000))
+              current = await isCurrent()
+            }
             if (verdict.state === 'DISMISSED') {
               return partial('dismissed')
             }
@@ -544,7 +549,7 @@ jobs:
               }
               return partial('withdrawn')
             }
-            // Only a confirmed automatic verdict completes a pair. Withdrawn verdicts never get this marker.
+            // Only an active, confirmed automatic verdict completes a pair.
             if (context.eventName === 'pull_request_target' && !verdict.body.endsWith(pairMarker)) {
               await github.rest.pulls.updateReview({ ...target, body: `${verdict.body}\n\n${pairMarker}` })
             }
