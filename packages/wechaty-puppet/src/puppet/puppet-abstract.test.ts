@@ -23,6 +23,7 @@ import type {
 }                                 from '../schemas/room.ts'
 
 import * as PUPPET from '../mods/mod.ts'
+import { LifecycleUnsafeStateError } from 'scopelet'
 import { PuppetSkeleton } from './puppet-skeleton.ts'
 
 /**
@@ -841,7 +842,7 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
   mock.method(failingStopPuppet, 'onStop', async () => {
     throw new Error('boom onStop')
   })
-  await failingStopPuppet.stop()
+  await assert.rejects(async () => failingStopPuppet.stop(), /boom onStop/)
   assert.equal(failingStopPuppet.state.inactive(), true)
 })
 
@@ -1163,6 +1164,23 @@ test('cross-generation ready condition wait binds to next generation', async _t 
   assert.equal(readyResolved, true, 'ready future should resolve when started generation emits ready')
   await puppet.stop()
 })
+
+test('operation() returns a rejected promise when puppet is idle', async () => {
+  const puppet = new PuppetTest()
+  assert.equal(puppet.state.kind, 'stopped')
+
+  // Calling operation() when not running must return a Promise rejecting with LifecycleUnsafeStateError
+  // rather than throwing synchronously, allowing non-async callers to chain .catch() safely.
+  let rejected = false
+  const p = puppet.operation(async () => 'not executed').catch(err => {
+    rejected = true
+    assert.ok(err instanceof LifecycleUnsafeStateError)
+  })
+
+  await p
+  assert.equal(rejected, true, 'operation() promise must reject with LifecycleUnsafeStateError when idle')
+})
+
 
 
 

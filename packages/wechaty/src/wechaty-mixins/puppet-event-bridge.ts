@@ -51,10 +51,11 @@ interface PuppetEventBridgeDependencies {
   roomFind: (id: string) => Promise<undefined | Room>
   roomInvitationLoad: (id: string) => RoomInvitation
   roomReady: (id: string) => Promise<void>
-  setReady: (state: 'active' | 'inactive') => void
+  setReady?: (state: 'active' | 'inactive') => void
   dispatchEvent: (event: Event) => boolean
   emit?: PuppetEventBridgeEmit
   emitError: (error: GError) => void
+  recordPuppetError?: (error: unknown) => void
 }
 
 /**
@@ -125,7 +126,11 @@ function registerPuppetEventBridge (
            *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
            *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
            */
-          dependencies.emitError(GError.from(payload.gerror || (payload as any).data || payload))
+          const raw = payload.gerror || (payload as any).data || payload
+          const gerror = GError.from(raw)
+          dependencies.recordPuppetError?.(raw)
+          dependencies.recordPuppetError?.(gerror)
+          dependencies.emitError(gerror)
         })
         break
 
@@ -169,7 +174,7 @@ function registerPuppetEventBridge (
       case 'logout':
         addListener(async (payload: PUPPET.payloads.EventLogout) => {
           try {
-            dependencies.setReady('inactive')
+            dependencies.setReady?.('inactive')
             const contact = await dependencies.contactSelfFind(payload.contactId)
             if (contact) {
               dispatchBridgeEvent(dependencies, 'logout', { contact, data: payload.data, reason: payload.data }, [ contact, payload.data ])
@@ -233,7 +238,7 @@ function registerPuppetEventBridge (
           log.silly('PuppetEventBridge', 'registerPuppetEventBridge() puppet ready')
 
           dispatchBridgeEvent(dependencies, 'ready', null)
-          dependencies.setReady('active')
+          dependencies.setReady?.('active')
         })
         break
 
@@ -337,7 +342,7 @@ function registerPuppetEventBridge (
 
       case 'scan':
         addListener(async (payload: PUPPET.payloads.EventScan) => {
-          dependencies.setReady('inactive')
+          dependencies.setReady?.('inactive')
           const scanDetail = { qrcode: payload.qrcode || '', status: payload.status, data: payload.data }
           dispatchBridgeEvent(dependencies, 'scan', scanDetail, [ payload.qrcode || '', payload.status, payload.data ])
         })

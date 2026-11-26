@@ -138,7 +138,6 @@
     "open-graph": "^0.2.6",
     "rx-queue": "^2.0.0",
     "scopelet": "^2.0.0-alpha.20",
-    "state-switch": "^2.0.0",
     "wechaty-puppet": "^2.0.0-alpha.20",
     "wechaty-puppet-service": "^2.0.0-alpha.20",
     "wechaty-token": "^2.0.0-alpha.20",

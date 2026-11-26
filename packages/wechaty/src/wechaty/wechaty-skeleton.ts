@@ -167,7 +167,7 @@ abstract class WechatySkeleton extends WechatyEventTarget {
   }
 
   /**
-   * Internal emit compatibility required by state-switch ServiceCtl.
+   * Internal emit compatibility required by legacy callers.
    * Dispatches a WechatyEvent with GError normalization for error events.
    * Throws if invoked for unsupported events to prevent legacy EventEmitter usage.
    * @internal

@@ -29,6 +29,7 @@ import {
   createLifecycle,
   listen,
   operation,
+  LifecycleUnsafeStateError,
 }                       from 'scopelet'
 
 /**
@@ -499,6 +500,21 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   abstract onStop  (): Promise<void>
 
   /**
+   * Executes an asynchronous domain operation bound to the active puppet generation (C-COMP-03).
+   * Retirement waits for all active operations to finish under stop timeout.
+   *
+   * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
+   * @returns Promise resolving to the result of `work`, or rejected with `LifecycleUnsafeStateError`
+   *          if the puppet is not currently running.
+   */
+  async operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    if (this.#scope) {
+      return operation(this.#scope, signal => work(signal))
+    }
+    throw new LifecycleUnsafeStateError('operation requested when puppet is not running')
+  }
+
+  /**
    * Executes an asynchronous domain operation bound to the active puppet generation.
    * Retirement waits for all active operations to finish under stop timeout.
    *
@@ -542,18 +558,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    */
   override async stop (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Puppet', 'stop()')
-    try {
-      await this.#lifecycle.stop(options)
-    } catch (e) {
-      if (options?.signal?.aborted || (e as Error)?.name === 'LifecycleSupersededError') {
-        throw e
-      }
-      if (this.listenerCount('error') > 0) {
-        // Error was already dispatched to 'error' listener via #onLifecycleStateChange
-        return
-      }
-      throw e
-    }
+    await this.#lifecycle.stop(options)
   }
 
   /**
