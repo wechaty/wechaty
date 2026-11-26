@@ -136,10 +136,13 @@ stateDiagram-v2
   running --> stopping: stop, restart, recover, fail
   stopping --> stopped: released, no replacement wanted
   stopping --> starting: released, replacement wanted
-  stopping --> failed: failure, retirement failed, or late release failure
+  stopping --> failed: failure, retirement failed, or a late release ends on a failed instance
   failed --> starting: start / restart (only if cleanupComplete)
-  failed --> stopping: stop (retries incomplete cleanup)
+  failed --> stopping: stop (only if not cleanupComplete: retry cleanup)
   failed --> stopped: stop (if cleanupComplete)
+  stopped --> stopping: a late release starts (C-SCOPE-11)
+  failed --> stopping: a late release starts on a clean failure (C-SCOPE-11)
+  failed --> failed: late releases left by a failure's retirement end (C-SCOPE-11)
 ```
 
 - **Idempotence**: Calling `start()` while already `running` resolves immediately and does not duplicate work.
@@ -318,7 +321,14 @@ await worker.stop()
 
 ```ts
 import { EventEmitter } from 'node:events'
-import { createLifecycle, type Lifecycle, type LifecycleController, type LifecycleScope } from 'scopelet'
+import {
+  createLifecycle,
+  type Lifecycle,
+  type LifecycleController,
+  type LifecycleScope,
+  type LifecycleState,
+  type LifecycleWaitOptions,
+} from 'scopelet'
 
 export class DatabaseService extends EventEmitter implements Lifecycle {
 
@@ -335,10 +345,12 @@ export class DatabaseService extends EventEmitter implements Lifecycle {
 
   // Delegate the public Lifecycle contract
   get state () { return this.#lifecycle.state }
-  start () { return this.#lifecycle.start() }
-  stop () { return this.#lifecycle.stop() }
-  restart () { return this.#lifecycle.restart() }
-  whenState (pred: any) { return this.#lifecycle.whenState(pred) }
+  start (options?: LifecycleWaitOptions) { return this.#lifecycle.start(options) }
+  stop (options?: LifecycleWaitOptions) { return this.#lifecycle.stop(options) }
+  restart (options?: LifecycleWaitOptions) { return this.#lifecycle.restart(options) }
+  whenState (predicate: (state: LifecycleState) => boolean, options?: LifecycleWaitOptions) {
+    return this.#lifecycle.whenState(predicate, options)
+  }
   [Symbol.asyncDispose] () { return this.#lifecycle[Symbol.asyncDispose]() }
 
   async #onStart (scope: LifecycleScope): Promise<void> {
@@ -444,7 +456,7 @@ export abstract class Puppet extends EventEmitter implements Lifecycle {
   async #start (scope: LifecycleScope): Promise<void> {
     await this.onStart()
     this.#scope = scope
-    this.#ready.set()
+    scope.set(this.#ready)
   }
 
   /** Send message protected by the operation companion */
