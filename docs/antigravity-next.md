@@ -18,7 +18,7 @@ Silicon Huan also reviews automatically when a non-draft, same-repository PR tar
 
 Requested reviews and interactions retain their existing authorization and token grants. Bot comments and fork PRs are excluded. GitHub runs comment triggers from the default branch. The original workflow also runs its automatic reviews, so an eligible PR can receive both review headings.
 
-Every authorized run clears the Huan app's previous 🎉 on its reaction target and adds 👀 during setup. After setup, it switches to 🚀 as the agent step starts. Cleanup attempts to remove this run's progress reactions and adds 🎉 only on success. When there is no reactable issue or comment, the target is the run's own editable progress comment. This covers automatic PR reviews, submitted review bodies, and manual dispatch. Automatic reviews use a separate Issues-write token for workflow reaction calls. The agent's existing review token keeps its current scope.
+Every authorized run clears the Huan app's previous 🎉 on its reaction target and adds 👀 during setup. After setup, it switches to 🚀 as the agent step starts. Cleanup attempts to remove this run's progress reactions and adds 🎉 only on success. When there is no reactable issue or comment, the target is the run's own editable progress comment. This covers automatic PR reviews, submitted review bodies, and manual dispatch. Automatic reviews use a separate token with Issues write and Pull requests write for workflow reaction calls. The agent's existing review token keeps its current scope.
 
 ## Baseline
 
