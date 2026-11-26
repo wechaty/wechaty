@@ -53,8 +53,8 @@ jobs:
               if (head && head === review.commit_id) return { runId, head, base }
             }
 
-            /** Reflect the withdrawal on the original progress comment and clear its success reaction. */
-            const updateProgress = async (number, runId, request) => {
+            /** Reflect the withdrawal on the original progress comment and return its reaction target. */
+            const updateProgress = async (number, runId) => {
               const marker = `<!-- antigravity-next-progress run=${runId} -->`
               const comments = github.paginate.iterator(github.rest.issues.listComments, {
                 ...repository, issue_number: number, per_page: 100,
@@ -69,20 +69,23 @@ jobs:
                 if (!body.includes(result)) {
                   await github.rest.issues.updateComment({ ...repository, comment_id: progress.id, body: `${body}\n\n${result}` })
                 }
-                const target = request ?? `issues/comments/${progress.id}`
-                const endpoint = `/repos/${owner}/${repo}/${target}/reactions`
-                for await (const page of github.paginate.iterator(`GET ${endpoint}`, {
-                  content: 'hooray', per_page: 100,
-                })) {
-                  for (const { id } of page.data.filter(reaction => reaction.user?.login === app)) {
-                    try {
-                      await github.request(`DELETE ${endpoint}/${id}`)
-                    } catch (error) {
-                      if (error.status !== 404) throw error
-                    }
+                return `issues/comments/${progress.id}`
+              }
+            }
+
+            /** Remove only the Huan app's success reaction from this review's target. */
+            const clearSuccess = async target => {
+              const endpoint = `/repos/${owner}/${repo}/${target}/reactions`
+              for await (const page of github.paginate.iterator(`GET ${endpoint}`, {
+                content: 'hooray', per_page: 100,
+              })) {
+                for (const { id } of page.data.filter(reaction => reaction.user?.login === app)) {
+                  try {
+                    await github.request(`DELETE ${endpoint}/${id}`)
+                  } catch (error) {
+                    if (error.status !== 404) throw error
                   }
                 }
-                return
               }
             }
 
@@ -108,8 +111,7 @@ jobs:
               }
               if (pr.state !== 'open' || pr.head.repo?.full_name !== `${owner}/${repo}`) return
               if (stillBeforeEvent(pr)) {
-                core.warning(`PR #${number} still reports the pre-event revision. Reconciliation deferred.`)
-                return
+                throw new Error(`PR #${number} still reports the pre-event revision after the wait.`)
               }
               const reviews = await github.paginate(github.rest.pulls.listReviews, { ...pull, per_page: 100 })
               for (const review of reviews) {
@@ -131,11 +133,19 @@ jobs:
                 }
                 core.info(`Withdrew stale Huan verdict ${review.id} on PR #${number}.`)
                 if (reviewed.runId) {
+                  let target = /^<!-- huan-review-request target=((?:issues|pulls)\/comments\/\d+) -->\r?$/m.exec(review.body)?.[1]
                   try {
-                    const request = /^<!-- huan-review-request target=((?:issues|pulls)\/comments\/\d+) -->\r?$/m.exec(review.body)?.[1]
-                    await updateProgress(number, reviewed.runId, request)
+                    const progressTarget = await updateProgress(number, reviewed.runId)
+                    target ??= progressTarget
                   } catch (error) {
-                    core.warning(`Verdict withdrawn, but progress cleanup on PR #${number} failed: ${error.message}`)
+                    core.warning(`Verdict withdrawn, but progress update on PR #${number} failed: ${error.message}`)
+                  }
+                  if (target) {
+                    try {
+                      await clearSuccess(target)
+                    } catch (error) {
+                      core.warning(`Verdict withdrawn, but reaction cleanup on PR #${number} failed: ${error.message}`)
+                    }
                   }
                 }
               }
