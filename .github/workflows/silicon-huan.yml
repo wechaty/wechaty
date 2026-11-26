@@ -159,6 +159,7 @@ jobs:
             const { owner, repo } = context.repo
             const target = { owner, repo, issue_number: Number(process.env.TARGET_NUMBER) }
             const marker = `<!-- antigravity-next-progress run=${context.runId} -->`
+            const recoveryMarker = '<!-- huan-verdict-recovery-required -->'
             const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
             const activity = process.env.MODE === 'review' ? 'Review' : 'Task'
             const body = `${marker}\n### Huanˢⁱ ⚡ · ${activity} started\n\n[Actions run](${run})`
@@ -171,7 +172,7 @@ jobs:
                 if (!previous) continue
                 const intent = previous.body.split(/\r?\n/).find(line =>
                   /^<!-- huan-verdict-intent head=[0-9a-f]{40} base=[0-9a-f]{40} -->$/.test(line))
-                if (process.env.MODE === 'review' && intent) {
+                if (process.env.MODE === 'review' && (intent || previous.body.split(/\r?\n/).includes(recoveryMarker))) {
                   core.setOutput('recovery', 'true')
                 } else {
                   await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body })
@@ -181,11 +182,12 @@ jobs:
                 return
               }
             }
-            if (process.env.MODE === 'review' && process.env.GITHUB_RUN_ATTEMPT !== '1') {
-              // No prior comment means we cannot prove the previous write was never attempted.
-              core.setOutput('recovery', 'true')
-            }
-            const { data } = await github.rest.issues.createComment({ ...target, body })
+            const needsRecovery = process.env.MODE === 'review' && process.env.GITHUB_RUN_ATTEMPT !== '1'
+            // Retain recovery mode across all retries when the original intent may have been deleted.
+            if (needsRecovery) core.setOutput('recovery', 'true')
+            const { data } = await github.rest.issues.createComment({
+              ...target, body: needsRecovery ? `${body}\n\n${recoveryMarker}` : body,
+            })
             core.setOutput('url', data.html_url)
             core.setOutput('comment_id', String(data.id))
       - name: Verify review revision is still current
