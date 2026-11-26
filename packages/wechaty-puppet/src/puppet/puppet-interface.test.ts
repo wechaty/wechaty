@@ -61,9 +61,14 @@ test('Puppet value and type declaration merging', async _t => {
 test('instanceof Puppet preserves pure doc-typing in narrowing', async () => {
   const puppet: unknown = {}
   if (puppet instanceof PUPPET.Puppet) {
-    // @ts-expect-error __options is protected and omitted from Puppet prototype doc-typing
-    puppet.__options
-    // @ts-expect-error _stopCallbackList is protected and omitted from Puppet prototype doc-typing
-    puppet._stopCallbackList
+    // @ts-expect-error __cacheMixinCleanCallbackList is protected and omitted from Puppet prototype doc-typing
+    puppet.__cacheMixinCleanCallbackList
+    // @ts-expect-error __memory is protected and omitted from Puppet prototype doc-typing
+    puppet.__memory
   }
+})
+
+test('Puppet runtime class name is Puppet for looseInstanceOfClass', async () => {
+  assert.equal(PUPPET.Puppet.name, 'Puppet', 'PUPPET.Puppet.name must be "Puppet"')
+  assert.equal(PUPPET.PuppetImpl.name, 'Puppet', 'PUPPET.PuppetImpl.name must be "Puppet"')
 })

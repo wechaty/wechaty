@@ -31,7 +31,8 @@ npx tsc \
   --module nodenext \
   --moduleResolution nodenext \
   --verbatimModuleSyntax \
-  --lib esnext \
+  --lib esnext,dom \
+  --types node \
   --noEmitOnError \
   --noImplicitAny \
   --skipLibCheck \

@@ -132,6 +132,15 @@ abstract class PuppetImpl extends MixinBase {
 }
 
 /**
+ * Preserves canonical class name `Puppet` for runtime reflection and `looseInstanceOfClass`
+ * compatibility across duplicate package installations.
+ */
+Object.defineProperty(PuppetImpl, 'name', {
+  configurable: true,
+  value: 'Puppet',
+})
+
+/**
  * Union of protected and internal properties across mixins and PuppetSkeleton
  * that are omitted from the canonical doc-typed `Puppet` interface.
  */

@@ -173,13 +173,15 @@ async function main () {
 
   const payload: PAYLOADS.EventHeartbeat = { data: 'payload' }
   const type: TYPES.ContactGender        = TYPES.ContactGender.Male
-  const filter: FILTERS.Contact          = { id: 'id' }
-  const puppet: IMPLS.PuppetAbstract     = puppetInstance
+  const filter: FILTERS.Contact              = { id: 'id' }
+  const puppet: IMPLS.Puppet                 = puppetInstance
+  const puppetAbstract: IMPLS.PuppetAbstract = new PuppetTest()
 
-  assert.ok(payload,  'should get valid PAYLOADS')
-  assert.ok(type,     'should get valid TYPES')
-  assert.ok(filter,   'should get valid FilTERS')
-  assert.ok(puppet,   'should get valid IMPLS')
+  assert.ok(payload,        'should get valid PAYLOADS')
+  assert.ok(type,           'should get valid TYPES')
+  assert.ok(filter,         'should get valid FilTERS')
+  assert.ok(puppet,         'should get valid IMPLS.Puppet')
+  assert.ok(puppetAbstract, 'should get valid IMPLS.PuppetAbstract')
 
   if (PUPPET.VERSION === '0.0.0' || puppetInstance.name() === 'NONAME') {
     throw new Error('the `src/package-json.ts` has not been generated correctly.')
