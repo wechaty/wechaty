@@ -203,8 +203,9 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
-          # Reactions on PR conversation comments use the Issues permission.
+          # Live API probe: PR conversation reactions require both grants.
           permission-issues: write
+          permission-pull-requests: write
       - name: Start request reactions
         id: reactions
         if: github.event_name == 'issues' || github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment' || steps.progress.outputs.comment_id != ''
