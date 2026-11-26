@@ -1,4 +1,4 @@
-# Experimental agent-centric launcher; see docs/antigravity-next.md and RFC #3157.
+# Experimental agent-centric launcher; see docs/silicon-huan.md and RFC #3157.
 # Requested tasks inherit Huan permissions. Automatic reviews use a limited token.
 # PEM is used only by the token action, never passed to agy or MCP.
 name: Huanˢⁱ ⚡
@@ -312,7 +312,7 @@ jobs:
             if gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/reviews?per_page=100" |
               jq -e --arg login "$APP_LOGIN" --arg sha "$HEAD_SHA" --arg marker "$marker" '
                 any(.[][]; .user.login == $login and .commit_id == $sha
-                  and (.state == "APPROVED" or .state == "CHANGES_REQUESTED")
+                  and (.state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED")
                   and ((.body // "") | endswith($marker)))
               ' >/dev/null; then
               echo 'duplicate=true' >> "$GITHUB_OUTPUT"
