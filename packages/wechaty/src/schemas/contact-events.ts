@@ -4,7 +4,6 @@
 import {
   EventEmitter,
   type EventIteratorOptions,
-  type WechatyEventTarget,
 } from 'wechaty-puppet'
 
 import type {
@@ -93,5 +92,5 @@ export interface ContactEventTargetInterface {
   ): AsyncIterable<T>
 }
 
-export type ContactEventEmitterInterface = ContactEventEmitterMethods & ContactEventTargetInterface & WechatyEventTarget
+export type ContactEventEmitterInterface = ContactEventEmitterMethods & ContactEventTargetInterface & EventEmitter
 export const ContactEventEmitter = EventEmitter as unknown as new () => ContactEventEmitterInterface

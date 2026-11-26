@@ -128,11 +128,11 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
   const wechaty = new WechatyBase()
 
   const EXPECTED_ERROR = new Error('testing123')
-  wechaty.on('message', () => { throw EXPECTED_ERROR })
+  wechaty.addEventListener('message', () => { throw EXPECTED_ERROR })
   // wechaty.on('scan',    () => 42)
-  wechaty.on('error',   spy)
+  wechaty.addEventListener('error', (e: any) => spy(e.detail))
 
-  const messageFuture  = new Promise(resolve => wechaty.once('message', resolve))
+  const messageFuture  = new Promise(resolve => wechaty.addEventListener('message', resolve, { once: true }))
   wechaty.emit('message', {} as any)
 
   await messageFuture

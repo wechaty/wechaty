@@ -4,7 +4,6 @@
 import {
   EventEmitter,
   type EventIteratorOptions,
-  type WechatyEventTarget,
 } from 'wechaty-puppet'
 
 import type {
@@ -111,5 +110,5 @@ export interface RoomEventTargetInterface {
   ): AsyncIterable<T>
 }
 
-export type RoomEventEmitterInterface = RoomEventEmitterMethods & RoomEventTargetInterface & WechatyEventTarget
+export type RoomEventEmitterInterface = RoomEventEmitterMethods & RoomEventTargetInterface & EventEmitter
 export const RoomEventEmitter = EventEmitter as unknown as new () => RoomEventEmitterInterface

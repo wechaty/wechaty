@@ -1,4 +1,18 @@
-/** Owns shared bot identity, memory, options, and event-target behavior. */
+/**
+ * Abstract Wechaty skeleton defining bot identity, memory card, and pure WinterTC EventTarget foundation.
+ *
+ * Why this module exists:
+ * Provides the foundational abstract base class for Wechaty bot implementations, establishing
+ * a pure WinterTC `EventTarget` without legacy Node.js EventEmitter surface (`on`, `off`, `once`),
+ * managing unique bot identity (`id`), persistent `MemoryCard` lifecycle, and start/stop/init hooks.
+ *
+ * Architectural boundaries:
+ * Extended by the bot mixin hierarchy (`WechatyBase`).
+ *
+ * Key relationships:
+ * - `wechaty-puppet`: Provides `WechatyEventTarget`.
+ * - `wechaty-base.ts`: Inherits from `WechatySkeleton` through functional mixin composition.
+ */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -150,31 +164,15 @@ abstract class WechatySkeleton extends WechatyEventTarget {
     // no super.stop()
   }
 
-}
+  /**
+   * Internal emit compatibility required by state-switch ServiceCtl.
+   * Dispatches a CustomEvent on this EventTarget.
+   * @internal
+   */
+  emit (event: string, ...args: any[]): boolean {
+    return this.dispatchEvent(new CustomEvent(event, { detail: args[0] }))
+  }
 
-// Clean-slate: Remove legacy EventEmitter methods from runtime prototype
-for (const legacyMethod of [
-  'on',
-  'off',
-  'once',
-  'addListener',
-  'removeListener',
-  'prependListener',
-  'prependOnceListener',
-  'removeAllListeners',
-  'setMaxListeners',
-  'getMaxListeners',
-  'listenerCount',
-  'rawListeners',
-  'listeners',
-  'eventNames',
-  'emit',
-]) {
-  Object.defineProperty(WechatySkeleton.prototype, legacyMethod, {
-    configurable: true,
-    value: undefined,
-    writable: true,
-  })
 }
 
 type WechatySkeletonProtectedProperty =

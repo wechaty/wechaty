@@ -42,7 +42,23 @@ test('WechatyEvent creates standard CustomEvent with frozen detail and metadata'
 test('WechatyEventTarget is an instance of globalThis.EventTarget', () => {
   const target = new WechatyEventTarget()
   assert.ok(target instanceof EventTarget, 'must be an instance of EventTarget')
-  assert.equal(EventEmitter, WechatyEventTarget, 'EventEmitter must be an alias for WechatyEventTarget')
+  assert.equal((target as any).on, undefined, 'WechatyEventTarget must not have legacy on()')
+  assert.equal((target as any).off, undefined, 'WechatyEventTarget must not have legacy off()')
+  assert.equal((target as any).once, undefined, 'WechatyEventTarget must not have legacy once()')
+  assert.equal((target as any).emit, undefined, 'WechatyEventTarget must not have legacy emit()')
+  assert.equal((target as any).listenerCount, undefined, 'WechatyEventTarget must not have legacy listenerCount()')
+})
+
+test('EventEmitter extends WechatyEventTarget and provides legacy EventEmitter methods', () => {
+  const emitter = new EventEmitter()
+  assert.ok(emitter instanceof WechatyEventTarget, 'EventEmitter must extend WechatyEventTarget')
+  assert.ok(emitter instanceof EventTarget, 'EventEmitter must be an instance of EventTarget')
+  assert.equal(typeof emitter.on, 'function')
+  assert.equal(typeof emitter.off, 'function')
+  assert.equal(typeof emitter.once, 'function')
+  assert.equal(typeof emitter.emit, 'function')
+  assert.equal(typeof emitter.listenerCount, 'function')
+  assert.equal(typeof emitter.eventNames, 'function')
 })
 
 test('WechatyEventTarget standard addEventListener, removeEventListener, and dispatchEvent', () => {
@@ -54,19 +70,14 @@ test('WechatyEventTarget standard addEventListener, removeEventListener, and dis
   }
 
   target.addEventListener('msg', listener)
-  assert.equal(target.listenerCount('msg'), 1)
-  assert.deepEqual(target.eventNames(), ['msg'])
 
   // Duplicate registration is a no-op per W3C specification
   target.addEventListener('msg', listener)
-  assert.equal(target.listenerCount('msg'), 1)
 
   target.dispatchEvent(new WechatyEvent('msg', { detail: 'first' }))
   assert.deepEqual(received, ['first'])
 
   target.removeEventListener('msg', listener)
-  assert.equal(target.listenerCount('msg'), 0)
-  assert.deepEqual(target.eventNames(), [])
 
   target.dispatchEvent(new WechatyEvent('msg', { detail: 'second' }))
   assert.deepEqual(received, ['first'], 'removed listener must not receive further events')
@@ -93,7 +104,7 @@ test('WechatyEventTarget supports EventListenerObject with handleEvent()', () =>
 })
 
 test('WechatyEventTarget handles options: { once: true }', () => {
-  const target = new WechatyEventTarget()
+  const target = new EventEmitter()
   let callCount = 0
 
   target.addEventListener('once-test', () => {
@@ -110,7 +121,7 @@ test('WechatyEventTarget handles options: { once: true }', () => {
 })
 
 test('WechatyEventTarget handles options: { signal: AbortSignal }', () => {
-  const target = new WechatyEventTarget()
+  const target = new EventEmitter()
   const controller = new AbortController()
   let callCount = 0
 
@@ -137,7 +148,7 @@ test('WechatyEventTarget handles options: { signal: AbortSignal }', () => {
 })
 
 test('WechatyEventTarget next() resolves on next event and handles signal cancellation', async () => {
-  const target = new WechatyEventTarget()
+  const target = new EventEmitter()
 
   // Normal resolution
   const nextPromise = target.next<{ value: number }>('num')
@@ -160,7 +171,7 @@ test('WechatyEventTarget next() resolves on next event and handles signal cancel
 })
 
 test('WechatyEventTarget events() consumes stream with for-await and handles early break', async () => {
-  const target = new WechatyEventTarget()
+  const target = new EventEmitter()
   const received: number[] = []
 
   // Dispatch events asynchronously
@@ -240,7 +251,7 @@ test('WechatyEventTarget events() respects highWaterMark and overflow strategies
 })
 
 test('WechatyEventTarget events() terminates on AbortSignal', async () => {
-  const target = new WechatyEventTarget()
+  const target = new EventEmitter()
   const controller = new AbortController()
 
   const received: number[] = []
@@ -258,8 +269,8 @@ test('WechatyEventTarget events() terminates on AbortSignal', async () => {
   assert.equal(target.listenerCount('sig'), 0)
 })
 
-test('WechatyEventTarget emit() dispatches event and handles unhandled error', () => {
-  const target = new WechatyEventTarget()
+test('EventEmitter emit() dispatches event and handles unhandled error', () => {
+  const target = new EventEmitter()
 
   // Unhandled error throws
   assert.throws(() => {
@@ -286,8 +297,8 @@ test('WechatyEventTarget emit() dispatches event and handles unhandled error', (
   assert.equal(messagePayload, 'welcome')
 })
 
-test('WechatyEventTarget legacy compatibility methods (on, off, once, removeAllListeners)', () => {
-  const target = new WechatyEventTarget()
+test('EventEmitter legacy compatibility methods (on, off, once, removeAllListeners)', () => {
+  const target = new EventEmitter()
   const events: string[] = []
 
   const onListener = (val: string) => {
@@ -348,8 +359,8 @@ test('WechatyEvent fallback ID generation when crypto.randomUUID is absent', () 
   }
 })
 
-test('WechatyEventTarget edge cases: null listeners, already aborted signals, and object listeners', () => {
-  const target = new WechatyEventTarget()
+test('EventEmitter edge cases: null listeners, already aborted signals, and object listeners', () => {
+  const target = new EventEmitter()
 
   // Null listeners
   target.addEventListener('dummy', null)
@@ -379,8 +390,8 @@ test('WechatyEventTarget edge cases: null listeners, already aborted signals, an
   assert.equal(target.rawListeners('empty').length, 0)
 })
 
-test('WechatyEventTarget legacy multi-argument emit payload mappings', () => {
-  const target = new WechatyEventTarget()
+test('EventEmitter legacy multi-argument emit payload mappings', () => {
+  const target = new EventEmitter()
 
   let logoutDetail: any
   let joinDetail: any
@@ -467,8 +478,8 @@ test('WechatyEventTarget events() edge cases: return(), throw(), closed iteratio
   ])
 })
 
-test('WechatyEventTarget legacy on/once with array and null details', () => {
-  const target = new WechatyEventTarget()
+test('EventEmitter legacy on/once with array and null details', () => {
+  const target = new EventEmitter()
   let onArgs: any[] = []
   let onceArgs: any[] = []
 
@@ -492,8 +503,8 @@ test('WechatyEventTarget legacy on/once with array and null details', () => {
   assert.equal(onceVoidCalled, true)
 })
 
-test('WechatyEventTarget tracks wrappers per event type and returns original callbacks from listeners()', () => {
-  const target = new WechatyEventTarget()
+test('EventEmitter tracks wrappers per event type and returns original callbacks from listeners()', () => {
+  const target = new EventEmitter()
   const sharedCallback = () => {}
 
   target.on('eventA', sharedCallback)
@@ -512,8 +523,8 @@ test('WechatyEventTarget tracks wrappers per event type and returns original cal
   assert.equal(target.listenerCount('eventB'), 0)
 })
 
-test('WechatyEventTarget preserves single array payloads without spreading in on()', () => {
-  const target = new WechatyEventTarget()
+test('EventEmitter preserves single array payloads without spreading in on()', () => {
+  const target = new EventEmitter()
   let receivedPayload: any
 
   target.on('single-arr', (data) => {

@@ -14,7 +14,7 @@
  * - `ContactMock`: User mock class extending `ContactEventEmitter`.
  */
 import {
-  WechatyEventTarget,
+  EventEmitter,
   WechatyEvent,
   type EventIteratorOptions,
 }                         from 'wechaty-puppet'
@@ -105,6 +105,6 @@ export interface ContactEventEmitterMethods {
   setMaxListeners (maxListeners: number): this
 }
 
-export type ContactEventEmitterInterface = ContactEventEmitterMethods & ContactEventTargetInterface & WechatyEventTarget
+export type ContactEventEmitterInterface = ContactEventEmitterMethods & ContactEventTargetInterface & EventEmitter
 
-export const ContactEventEmitter = WechatyEventTarget as unknown as new () => ContactEventEmitterInterface
+export const ContactEventEmitter = EventEmitter as unknown as new () => ContactEventEmitterInterface

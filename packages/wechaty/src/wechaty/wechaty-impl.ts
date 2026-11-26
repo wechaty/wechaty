@@ -76,22 +76,8 @@ class WechatyImpl extends validationMixin(WechatyImplBase)<Wechaty>() {}
  *  without any cyclic dependency problem.
  */
 
-type LegacyEventEmitterProperty =
+type InternalEventProperty =
   | 'emit'
-  | 'on'
-  | 'off'
-  | 'once'
-  | 'addListener'
-  | 'removeListener'
-  | 'prependListener'
-  | 'prependOnceListener'
-  | 'removeAllListeners'
-  | 'setMaxListeners'
-  | 'getMaxListeners'
-  | 'listenerCount'
-  | 'rawListeners'
-  | 'listeners'
-  | 'eventNames'
   | 'addEventListener'
   | 'removeEventListener'
   | 'dispatchEvent'
@@ -99,7 +85,7 @@ type LegacyEventEmitterProperty =
   | 'events'
 
 type AllProtectedProperty =
-  | LegacyEventEmitterProperty
+  | InternalEventProperty
   | WechatyMixinProtectedProperty
   | WechatyBaseProtectedProperty
   | WechatySkeletonProtectedProperty
@@ -301,31 +287,6 @@ Object.defineProperty(WechatyImpl, 'start', {
  * and `prototype: Wechaty` intentionally omit to ensure 100% pure doc-typing.
  */
 const Wechaty = WechatyImpl as unknown as WechatyConstructor
-
-// Clean-slate: Ensure legacy EventEmitter methods are undefined on WechatyImpl runtime prototype
-for (const legacyMethod of [
-  'on',
-  'off',
-  'once',
-  'addListener',
-  'removeListener',
-  'prependListener',
-  'prependOnceListener',
-  'removeAllListeners',
-  'setMaxListeners',
-  'getMaxListeners',
-  'listenerCount',
-  'rawListeners',
-  'listeners',
-  'eventNames',
-  'emit',
-]) {
-  Object.defineProperty(WechatyImpl.prototype, legacyMethod, {
-    configurable: true,
-    value: undefined,
-    writable: true,
-  })
-}
 
 export  {
   Wechaty,
