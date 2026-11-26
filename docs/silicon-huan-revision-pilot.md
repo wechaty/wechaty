@@ -1,0 +1,4 @@
+# Silicon Huan revision pilot
+
+This disposable PR checks which revision an automatic review covers when the
+branch changes while the review is running. Do not merge this fixture.
