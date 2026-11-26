@@ -18,6 +18,20 @@
  *   limitations under the License.
  *
  */
+/**
+ * Unit tests for Wechaty constructor, singleton, type guard, and doc-typing.
+ *
+ * Why this module exists:
+ * Verifies that `new Wechaty()`, `Wechaty.singleton()`, and `Wechaty.valid()` behave correctly
+ * at runtime and preserve pure doc-typing without leaking internal mixin members.
+ *
+ * Architectural boundaries:
+ * Part of `wechaty` unit test suite.
+ *
+ * Key relationships:
+ * - `wechaty-impl.ts`: Primary subject under test.
+ * - `wechaty-builder.ts`: Verified for shared singleton and type-guard delegation.
+ */
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -113,4 +127,17 @@ test('Wechaty.singleton(options) returns existing singleton when options are pas
   const singletonA = Wechaty.singleton({ name: 'initial' })
   const singletonB = Wechaty.singleton({ name: 'subsequent' })
   assert.strictEqual(singletonA, singletonB, 'subsequent singleton calls should return the same instance')
+})
+
+test('instanceof Wechaty preserves pure doc-typing in narrowing', async () => {
+  const bot: unknown = new Wechaty()
+  if (bot instanceof Wechaty) {
+    assert.ok(bot.id, 'bot should have id')
+    assert.ok(typeof bot.start === 'function', 'bot should have start')
+
+    // @ts-expect-error _stopCallbackList is protected and omitted from Wechaty prototype doc-typing
+    void bot._stopCallbackList
+    // @ts-expect-error __options is protected and omitted from Wechaty prototype doc-typing
+    void bot.__options
+  }
 })

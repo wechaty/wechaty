@@ -17,6 +17,25 @@
  *   limitations under the License.
  *
  */
+/**
+ * Core Wechaty implementation and public constructor/type declaration merging.
+ *
+ * Why this module exists:
+ * Assembles the full bot class from the mixin hierarchy (`WechatyBase` -> `validationMixin`)
+ * without cyclic dependencies, and exports the unified `Wechaty` symbol via TypeScript
+ * Type-Value Declaration Merging:
+ * - As a type: Pure doc-typing (`Wechaty`), stripping all internal mixin and protected fields.
+ * - As a value: Constructible class (`new Wechaty(options)`) with attached static methods (`singleton()`, `valid()`).
+ *
+ * Architectural boundaries:
+ * Part of `wechaty`. Exports the constructible `Wechaty` value and instance type.
+ * Internal mixin properties (`_stopCallbackList`, `__options`, etc.) are hidden from public doc-typing.
+ *
+ * Key relationships:
+ * - `wechaty-base.ts`: Base mixin pipeline providing core lifecycle and services.
+ * - `wechaty-builder.ts`: Backwards-compatible factory delegating to `new Wechaty()` and `Wechaty.singleton()`.
+ * - `mods/mod.ts`: Public package root entry point re-exporting `Wechaty`.
+ */
 import {
   log,
   type EventEmitter,
@@ -157,9 +176,6 @@ type Wechaty = Omit<WechatyImplInterface, AllProtectedProperty>
  */
 type WechatyInterface = Wechaty
 
-/** Internal alias for the instance type when distinguishing from the constructor */
-type WechatyInstance = Wechaty
-
 /**
  * Static methods exposed on the `Wechaty` constructor namespace.
  */
@@ -178,10 +194,15 @@ interface WechatyStatic {
 
 /**
  * Type representing the constructible `Wechaty` class constructor with attached static methods.
+ *
+ * Explicitly declares `readonly prototype: Wechaty` while omitting `prototype` from `WechatyImpl`.
+ * This guarantees that `instanceof Wechaty` type-narrowing resolves strictly to the pure doc-typed
+ * `Wechaty` interface without leaking protected or internal properties from `WechatyImpl`.
  */
 type WechatyConstructor = {
   new (options?: WechatyOptions): Wechaty
-} & Omit<typeof WechatyImpl, 'new'> & WechatyStatic
+  readonly prototype: Wechaty
+} & Omit<typeof WechatyImpl, 'prototype'> & WechatyStatic
 
 let _singletonInstance: Wechaty | undefined
 
@@ -189,6 +210,11 @@ let _singletonInstance: Wechaty | undefined
  * Attaches the `singleton` static factory method to `WechatyImpl`.
  * Using `Object.defineProperty` avoids TypeScript static typing collision with the underlying
  * mixin inheritance chain while maintaining runtime availability.
+ *
+ * Singleton contract:
+ * - Options are applied on the first invocation to create the singleton instance.
+ * - Subsequent calls return the existing singleton instance (shared with `WechatyBuilder.singleton()`).
+ * - If non-empty options are provided to subsequent calls, a warning is logged.
  */
 Object.defineProperty(WechatyImpl, 'singleton', {
   configurable: true,
@@ -212,15 +238,18 @@ Object.defineProperty(WechatyImpl, 'singleton', {
  * Implements TypeScript Type-Value Declaration Merging:
  * - As a value: constructible via `new Wechaty(options)` with static methods `singleton()` and `valid()`.
  * - As a type: represents the pure doc-typed bot instance with all protected and mixin internals omitted.
+ *
+ * Note on `as unknown as WechatyConstructor`:
+ * The cast is necessary because the underlying runtime class `WechatyImpl` contains internal mixin
+ * implementation details, protected properties, and private methods that the public `Wechaty` interface
+ * and `prototype: Wechaty` intentionally omit to ensure 100% pure doc-typing.
  */
 const Wechaty = WechatyImpl as unknown as WechatyConstructor
 
 export  {
   Wechaty,
   type WechatyInterface,
-  type WechatyInstance,
   type WechatyConstructor,
-  type WechatyStatic,
   type AllProtectedProperty,
   WechatyImpl,
 }
