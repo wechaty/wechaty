@@ -31,7 +31,7 @@ function consumerBrowserPlugin () {
     name: 'consumer-browser-resolver',
     resolveImport ({ source, context }) {
       if (source === 'node:events' || source === 'events') {
-        return '/node_modules/wechaty-puppet/dist/esm/src/events/event-emitter.js'
+        return '/node_modules/wechaty-puppet/dist/esm/src/events/event-target.js'
       }
       if (source === '@pipeletteio/nop') {
         return '/__browser_nop_stub__.js'
