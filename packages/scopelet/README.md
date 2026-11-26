@@ -825,9 +825,8 @@ src/
 
 **Scopelet** is designed and created by:
 
-- **Huan LI (李卓桓)**
-  - GitHub: [@huan](https://github.com/huan)
-  - Personal Website: <https://huan.dev>
+- **[Huan LI (李卓桓)](https://github.com/huan)**
+  - GitHub: <https://github.com/huan>
   - Creator of Wechaty and open-source distributed systems contributor
 
 Special thanks to the **Wechaty Contributors** and the architectural contributions recorded in the Wechaty 2.0 AsyncLifecycle design RFCs ([#2905](https://github.com/wechaty/wechaty/issues/2905), [#2911](https://github.com/wechaty/wechaty/issues/2911), [#2968](https://github.com/wechaty/wechaty/issues/2968)).
