@@ -7,6 +7,7 @@
 - This repo is an npm workspace monorepo: each package lives in `packages/<npm-name>/`, and the private root holds shared tooling and scripts that run every workspace (see `DEVELOPMENT.md`). Keep each package's coverage floors in `.github/coverage-baselines/<runtime>.<package>[.<scope>].json`.
 - Eliminate all CommonJS: every workspace package, build script, test fixture, and CI workflow must be pure native ESM. Do not author `.cjs` files, CommonJS syntax (`require`, `module.exports`), or CJS wrapper fallbacks (`puppetModule.default.default`). Every package requires the Node.js and npm versions in `engines`. Node.js runs `.ts` sources directly; only packaging compiles to `dist/`. All relative imports must end with `.ts`, and inline scripts must use `node --input-type=module`.
 - Use node:diagnostics_channel for lightweight, privacy-safe internal observability without third-party runtime dependencies. Preserve existing public events and logging; validate diagnostic and tracing channel behavior under both Node.js and Deno before relying on cross-runtime compatibility.
+- When running a background task, do not wait forever. Predict a reasonal time like 30 seconds or 3 minutes, check the output after timeout and make sure it's not stuck there forever.
 
 ### Source Code Documentation (AI-First)
 
