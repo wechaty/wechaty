@@ -1,12 +1,18 @@
-import { EventEmitter }   from 'wechaty-puppet'
-import type * as TypedEventEmitter from 'typed-emitter'
+/**
+ * Room event emitter and event target interfaces and method declarations.
+ */
+import {
+  EventEmitter,
+  type EventIteratorOptions,
+  type WechatyEventTarget,
+} from 'wechaty-puppet'
 
 import type {
   ContactInterface,
   MessageInterface,
   RoomInterface,
   RoomInvitationInterface,
-}                   from '../user-modules/mod.ts'
+} from '../user-modules/mod.ts'
 
 export const ROOM_EVENT_DICT = {
   invite  : 'tbw',
@@ -14,96 +20,17 @@ export const ROOM_EVENT_DICT = {
   leave   : 'tbw',
   message : 'message that received in this room',
   topic   : 'tbw',
-}
+} as const
+
 export type RoomEventName = keyof typeof ROOM_EVENT_DICT
 
-/**
- * @desc       Room Class Event Type
- * @typedef    RoomEventName
- * @property   {string}  join  - Emit when anyone join any room.
- * @property   {string}  topic - Get topic event, emitted when someone change room topic.
- * @property   {string}  leave - Emit when anyone leave the room.<br>
- *                               If someone leaves the room by themselves, WeChat will not notice other people in the room, so the bot will never get the "leave" event.
- */
+export type RoomEventListenerInvite  = (this: RoomInterface, inviter: ContactInterface, invitation: RoomInvitationInterface)           => void | Promise<void>
+export type RoomEventListenerJoin    = (this: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface,  date?: Date) => void | Promise<void>
+export type RoomEventListenerLeave   = (this: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date)  => void | Promise<void>
+export type RoomEventListenerMessage = (this: RoomInterface, message: MessageInterface, date?: Date)                                   => void | Promise<void>
+export type RoomEventListenerTopic   = (this: RoomInterface, topic: string, oldTopic: string, changer: ContactInterface, date?: Date)  => void | Promise<void>
 
-/**
- * @desc       Room Class Event Function
- * @typedef    RoomEventFunction
- * @property   {Function} room-join       - (this: Room, inviteeList: Contact[] , inviter: Contact)  => void
- * @property   {Function} room-topic      - (this: Room, topic: string, oldTopic: string, changer: Contact) => void
- * @property   {Function} room-leave      - (this: Room, leaver: Contact) => void
- */
-
-/**
- * @listens Room
- * @param   {RoomEventName}      event      - Emit WechatyEvent
- * @param   {RoomEventFunction}  listener   - Depends on the WechatyEvent
- * @return  {this}                          - this for chain
- *
- * @example <caption>Event:join </caption>
- * const bot = WechatyBuilder.build()
- * await bot.start()
- * // after logged in...
- * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
- * if (room) {
- *   room.on('join', (room, inviteeList, inviter) => {
- *     const nameList = inviteeList.map(c => c.name()).join(',')
- *     console.log(`Room got new member ${nameList}, invited by ${inviter}`)
- *   })
- * }
- *
- * @example <caption>Event:leave </caption>
- * const bot = WechatyBuilder.build()
- * await bot.start()
- * // after logged in...
- * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
- * if (room) {
- *   room.on('leave', (room, leaverList) => {
- *     const nameList = leaverList.map(c => c.name()).join(',')
- *     console.log(`Room lost member ${nameList}`)
- *   })
- * }
- *
- * @example <caption>Event:message </caption>
- * const bot = WechatyBuilder.build()
- * await bot.start()
- * // after logged in...
- * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
- * if (room) {
- *   room.on('message', (message) => {
- *     console.log(`Room received new message: ${message}`)
- *   })
- * }
- *
- * @example <caption>Event:topic </caption>
- * const bot = WechatyBuilder.build()
- * await bot.start()
- * // after logged in...
- * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
- * if (room) {
- *   room.on('topic', (room, topic, oldTopic, changer) => {
- *     console.log(`Room topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
- *   })
- * }
- *
- * @example <caption>Event:invite </caption>
- * const bot = WechatyBuilder.build()
- * await bot.start()
- * // after logged in...
- * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
- * if (room) {
- *   room.on('invite', roomInvitation => roomInvitation.accept())
- * }
- *
- */
-
-type RoomEventListenerInvite  = (this: RoomInterface, inviter: ContactInterface, invitation: RoomInvitationInterface)           => void | Promise<void>
-type RoomEventListenerJoin    = (this: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface,  date?: Date) => void | Promise<void>
-type RoomEventListenerLeave   = (this: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date)  => void | Promise<void>
-type RoomEventListenerMessage = (this: RoomInterface, message: MessageInterface, date?: Date)                                   => void | Promise<void>
-type RoomEventListenerTopic   = (this: RoomInterface, topic: string, oldTopic: string, changer: ContactInterface, date?: Date)  => void | Promise<void>
-
-interface RoomEventListeners {
+export interface RoomEventListeners {
   invite  : RoomEventListenerInvite
   join    : RoomEventListenerJoin
   leave   : RoomEventListenerLeave
@@ -111,18 +38,78 @@ interface RoomEventListeners {
   topic   : RoomEventListenerTopic
 }
 
-const RoomEventEmitter = EventEmitter as any as new () => TypedEventEmitter.default<
-  RoomEventListeners
->
+export interface RoomEventDetailMap {
+  invite  : { inviter: ContactInterface, invitation: RoomInvitationInterface }
+  join    : { inviteeList: ContactInterface[], inviter: ContactInterface, date?: Date }
+  leave   : { leaverList: ContactInterface[], remover?: ContactInterface, date?: Date }
+  message : MessageInterface
+  topic   : { topic: string, oldTopic: string, changer: ContactInterface, date?: Date }
+}
 
-export type {
-  RoomEventListeners,
-  RoomEventListenerInvite,
-  RoomEventListenerJoin,
-  RoomEventListenerLeave,
-  RoomEventListenerMessage,
-  RoomEventListenerTopic,
+export interface RoomEventEmitterMethods {
+  addListener<E extends keyof RoomEventListeners> (event: E, listener: RoomEventListeners[E]): this
+  on<E extends keyof RoomEventListeners> (event: E, listener: RoomEventListeners[E]): this
+  once<E extends keyof RoomEventListeners> (event: E, listener: RoomEventListeners[E]): this
+  prependListener<E extends keyof RoomEventListeners> (event: E, listener: RoomEventListeners[E]): this
+  prependOnceListener<E extends keyof RoomEventListeners> (event: E, listener: RoomEventListeners[E]): this
+
+  off<E extends keyof RoomEventListeners> (event: E, listener: RoomEventListeners[E]): this
+  removeAllListeners<E extends keyof RoomEventListeners> (event?: E): this
+  removeListener<E extends keyof RoomEventListeners> (event: E, listener: RoomEventListeners[E]): this
+
+  emit<E extends keyof RoomEventListeners> (event: E, ...args: Parameters<RoomEventListeners[E]>): boolean
+  eventNames (): (keyof RoomEventListeners | string | symbol)[]
+  rawListeners<E extends keyof RoomEventListeners> (event: E): Function[]
+  listeners<E extends keyof RoomEventListeners> (event: E): Function[]
+  listenerCount<E extends keyof RoomEventListeners> (event: E): number
+
+  getMaxListeners (): number
+  setMaxListeners (maxListeners: number): this
 }
-export {
-  RoomEventEmitter,
+
+export interface RoomEventTargetInterface {
+  addEventListener<E extends RoomEventName>(
+    type: E,
+    listener: (event: CustomEvent<RoomEventDetailMap[E]>) => void | Promise<void>,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+
+  removeEventListener<E extends RoomEventName>(
+    type: E,
+    listener: (event: CustomEvent<RoomEventDetailMap[E]>) => void | Promise<void>,
+    options?: boolean | EventListenerOptions,
+  ): void
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | EventListenerOptions,
+  ): void
+
+  dispatchEvent(event: Event): boolean
+
+  next<E extends RoomEventName>(
+    type: E,
+    options?: { signal?: AbortSignal },
+  ): Promise<RoomEventDetailMap[E]>
+  next<T = unknown>(
+    type: string,
+    options?: { signal?: AbortSignal },
+  ): Promise<T>
+
+  events<E extends RoomEventName>(
+    type: E,
+    options?: EventIteratorOptions,
+  ): AsyncIterable<RoomEventDetailMap[E]>
+  events<T = unknown>(
+    type: string,
+    options?: EventIteratorOptions,
+  ): AsyncIterable<T>
 }
+
+export type RoomEventEmitterInterface = RoomEventEmitterMethods & RoomEventTargetInterface & WechatyEventTarget
+export const RoomEventEmitter = EventEmitter as unknown as new () => RoomEventEmitterInterface

@@ -217,7 +217,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
         *   - Huan(202110): @see https://github.com/wechaty/redux/blob/16af0ae01f72e37f0ee286b49fa5ccf69850323d/src/wechaty-redux.ts#L82-L98
         */
       log.verbose('WechatyPuppetMixin', 'init() emitting "puppet" event ...')
-      ;(this.emit as any)('puppet', puppetInstance)
+      this.dispatchEvent(new PUPPET.WechatyEvent('puppet', { detail: puppetInstance }))
       log.verbose('WechatyPuppetMixin', 'init() emitting "puppet" event ... done')
 
       this.__puppet = puppetInstance
@@ -249,8 +249,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
             this.__readyState.inactive(true)
           }
         },
-        // Preserve GErrorMixin's error-event conversion for bridge emissions.
-        emit: this.emit.bind(this),
+        dispatchEvent: this.dispatchEvent.bind(this),
         emitError: error => this.emitError(error),
       })
     }

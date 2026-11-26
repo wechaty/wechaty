@@ -1,4 +1,4 @@
-/** Owns shared bot identity, memory, options, and event-emitter behavior. */
+/** Owns shared bot identity, memory, options, and event-target behavior. */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,17 +19,17 @@
  *
  */
 import { MemoryCard }     from 'memory-card'
-import { log }            from 'wechaty-puppet'
+import {
+  log,
+  type EventIteratorOptions,
+  WechatyEventTarget,
+}                         from 'wechaty-puppet'
 import type { Loggable }  from 'brolog'
 
-import {
-  WechatyEventEmitter,
-  type WechatyEventName,
-}                               from '../schemas/mod.ts'
-
+import type { MessageInterface } from '../user-modules/mod.ts'
 import type { WechatyOptions }  from '../schemas/wechaty-options.ts'
 
-abstract class WechatySkeleton extends WechatyEventEmitter {
+abstract class WechatySkeleton extends WechatyEventTarget {
 
   static readonly log: Loggable = log
   readonly log: Loggable = log
@@ -56,17 +56,52 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
 
     this.id = crypto.randomUUID()
     this.__options = args[0] || {} as WechatyOptions
+  }
 
-    /**
-     * Huan(202008):
-     *
-     * Set max listeners to 1K, so that we can add lots of listeners without the warning message.
-     * The listeners might be one of the following functionilities:
-     *  1. Plugins
-     *  2. Redux Observables
-     *  3. etc...
-     */
-    super.setMaxListeners(1024)
+  /**
+   * Async iterator yielding hydrated incoming messages for AI Agent loops.
+   *
+   * @param options - EventIteratorOptions with backpressure and AbortSignal.
+   * @returns AsyncIterable yielding hydrated Message entities.
+   */
+  messages (options?: EventIteratorOptions): AsyncIterable<MessageInterface> {
+    return this.events('message', options)
+  }
+
+  /**
+   * WHATWG ReadableStream yielding hydrated incoming messages.
+   *
+   * @param options - Options with AbortSignal.
+   * @returns ReadableStream of Message entities.
+   */
+  messageStream (options?: { signal?: AbortSignal }): ReadableStream<MessageInterface> {
+    const iterator = this.messages(options)[Symbol.asyncIterator]()
+    return new ReadableStream<MessageInterface>({
+      async pull (controller) {
+        try {
+          const { done, value } = await iterator.next()
+          if (done) {
+            controller.close()
+          } else {
+            controller.enqueue(value)
+          }
+        } catch (error) {
+          controller.error(error)
+        }
+      },
+      async cancel (reason) {
+        if (iterator.return) {
+          await iterator.return(reason)
+        }
+      },
+    })
+  }
+
+  /**
+   * Standard AsyncDisposable implementation for `await using bot = ...`.
+   */
+  async [Symbol.asyncDispose] (): Promise<void> {
+    await this.stop()
   }
 
   /**
@@ -115,27 +150,34 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
     // no super.stop()
   }
 
-  /**
-   * @deprecated Use `addEventListener` instead. Will be removed in Wechaty v3.0.
-   */
-  override on (
-    event: WechatyEventName,
-    listener: (...args: any[]) => any,
-    options?: AddEventListenerOptions,
-    prepend = false,
-  ): this {
-    log.verbose('WechatySkeleton', 'on(%s, listener) registering... listenerCount: %s',
-      event,
-      this.listenerCount(event),
-    )
+}
 
-    return (super.on as any)(event, listener, options, prepend)
-  }
-
+// Clean-slate: Remove legacy EventEmitter methods from runtime prototype
+for (const legacyMethod of [
+  'on',
+  'off',
+  'once',
+  'addListener',
+  'removeListener',
+  'prependListener',
+  'prependOnceListener',
+  'removeAllListeners',
+  'setMaxListeners',
+  'getMaxListeners',
+  'listenerCount',
+  'rawListeners',
+  'listeners',
+  'eventNames',
+  'emit',
+]) {
+  Object.defineProperty(WechatySkeleton.prototype, legacyMethod, {
+    configurable: true,
+    value: undefined,
+    writable: true,
+  })
 }
 
 type WechatySkeletonProtectedProperty =
-  | '__events'
   | '__memory'
   | '__options'
   | 'memory'

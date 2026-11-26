@@ -47,7 +47,7 @@ const loginMixin = <MixinBase extends typeof WechatySkeleton & PuppetMixin & GEr
         // the `this.puppet` might not be initialized yet
         return this.puppet.isLoggedIn
       } catch (e) {
-        this.emit('error', e)
+        this.emitError(e)
 
         log.warn('WechatyLoginMixin', 'get isLoggedIn puppet instance is not ready yet')
         // https://github.com/wechaty/wechaty/issues/1878

@@ -1,8 +1,12 @@
-import { EventEmitter }         from 'wechaty-puppet'
-import type * as TypedEventEmitter from 'typed-emitter'
-
-import type { GError }  from 'gerror'
-import * as PUPPET      from 'wechaty-puppet'
+/**
+ * Wechaty event schemas, detail maps, and event target interfaces.
+ */
+import {
+  type EventIteratorOptions,
+  WechatyEventTarget,
+} from 'wechaty-puppet'
+import type { GError } from 'gerror'
+import * as PUPPET from 'wechaty-puppet'
 
 import type {
   FriendshipInterface,
@@ -12,7 +16,7 @@ import type {
   ContactInterface,
   MessageInterface,
   PostInterface,
-}                       from '../user-modules/mod.ts'
+} from '../user-modules/mod.ts'
 
 const WECHATY_EVENT_DICT = {
   ...PUPPET.types.CHAT_EVENT_DICT,
@@ -25,19 +29,19 @@ const WECHATY_EVENT_DICT = {
   stop      : 'Will be emitted after the Wechaty had been stopped.',
 } as const
 
-type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
+type WechatyEventName = keyof typeof WECHATY_EVENT_DICT
 
 /**
- * Wechaty Event Listener Interfaces
+ * Wechaty Event Listener Interfaces (legacy compatibility signatures)
  */
 type WechatyEventListenerDong       = (data?: string)                                                                                   => void | Promise<void>
-type WechatyEventListenerError      = (error: GError)                                                                     => void | Promise<void>
+type WechatyEventListenerError      = (error: GError)                                                                                   => void | Promise<void>
 type WechatyEventListenerFriendship = (friendship: FriendshipInterface)                                                                 => void | Promise<void>
 type WechatyEventListenerHeartbeat  = (data: any)                                                                                       => void | Promise<void>
 type WechatyEventListenerLogin      = (user: ContactSelfInterface)                                                                      => void | Promise<void>
 type WechatyEventListenerLogout     = (user: ContactSelfInterface, reason?: string)                                                     => void | Promise<void>
 type WechatyEventListenerMessage    = (message: MessageInterface)                                                                       => void | Promise<void>
-type WechatyEventListenerPost       = (post: PostInterface)                                                                       => void | Promise<void>
+type WechatyEventListenerPost       = (post: PostInterface)                                                                             => void | Promise<void>
 type WechatyEventListenerPuppet     = (puppet: PUPPET.impls.PuppetInterface)                                                             => void | Promise<void>
 type WechatyEventListenerReady      = ()                                                                                                => void | Promise<void>
 type WechatyEventListenerRoomInvite = (roomInvitation: RoomInvitationInterface)                                                         => void | Promise<void>
@@ -47,160 +51,6 @@ type WechatyEventListenerRoomTopic  = (room: RoomInterface, newTopic: string, ol
 type WechatyEventListenerScan       = (qrcode: string, status: PUPPET.types.ScanStatus, data?: string)                                   => void | Promise<void>
 type WechatyEventListenerStartStop  = ()                                                                                                => void | Promise<void>
 
-/**
- * @desc       Wechaty Class Event Type
- * @typedef    WechatyEventName
- * @property   {string}  error       - When the bot get error, there will be a Wechaty error event fired.
- * @property   {string}  login       - After the bot login full successful, the event login will be emitted, with a Contact of current logged in user.
- * @property   {string}  logout      - Logout will be emitted when bot detected log out, with a Contact of the current login user.
- * @property   {string}  heartbeat   - Get heartbeat of the bot.
- * @property   {string}  friendship  - When someone sends you a friend request, there will be a Wechaty friendship event fired.
- * @property   {string}  message     - Emit when there's a new message.
- * @property   {string}  ready       - Emit when all data has load completed, in wechaty-puppet-padchat, it means it has sync Contact and Room completed
- * @property   {string}  room-join   - Emit when anyone join any room.
- * @property   {string}  room-topic  - Get topic event, emitted when someone change room topic.
- * @property   {string}  room-leave  - Emit when anyone leave the room.<br>
- *                                   - If someone leaves the room by themselves, WeChat will not notice other people in the room, so the bot will never get the "leave" event.
- * @property   {string}  room-invite - Emit when there is a room invitation, see more in  {@link RoomInvitation}
- * @property   {string}  scan        - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
- *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
- */
-
-/**
- * @desc       Wechaty Class Event Function
- * @typedef    WechatyEventFunction
- * @property   {Function} error           -(this: Wechaty, error: Error) => void | Promise<void> callback function
- * @property   {Function} login           -(this: Wechaty, user: ContactSelf)=> void
- * @property   {Function} logout          -(this: Wechaty, user: ContactSelf) => void | Promise<void>
- * @property   {Function} scan            -(this: Wechaty, url: string, code: number) => void | Promise<void> <br>
- * <ol>
- * <li>URL: {String} the QR code image URL</li>
- * <li>code: {Number} the scan status code. some known status of the code list here is:</li>
- * </ol>
- * <ul>
- * <li>0 initial_</li>
- * <li>200 login confirmed</li>
- * <li>201 scanned, wait for confirm</li>
- * <li>408 waits for scan</li>
- * </ul>
- * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void | Promise<void>
- * @property   {Function} friendship      -(this: Wechaty, friendship: Friendship) => void | Promise<void>
- * @property   {Function} message         -(this: Wechaty, message: Message) => void | Promise<void>
- * @property   {Function} ready           -(this: Wechaty) => void | Promise<void>
- * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void | Promise<void>
- * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void | Promise<void>
- * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void | Promise<void>
- * @property   {Function} room-invite     -(this: Wechaty, room: Room, roomInvitation: RoomInvitation) => void | Promise<void> <br>
- *                                        see more in  {@link RoomInvitation}
- */
-
-/**
- * @listens Wechaty
- * @param   {WechatyEventName}      event      - Emit WechatyEvent
- * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
- *
- * @return  {Wechaty}                          - this for chaining,
- * see advanced {@link https://github.com/wechaty/getting-started/wiki/FAQ#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
- *
- * @desc
- * When the bot get message, it will emit the following Event.
- *
- * You can do anything you want when in these events functions.
- * The main Event name as follows:
- * - **scan**: Emit when the bot needs to show you a QR Code for scanning. After scan the qrcode, you can login
- * - **login**: Emit when bot login full successful.
- * - **logout**: Emit when bot detected log out.
- * - **message**: Emit when there's a new message.
- *
- * see more in {@link WechatyEventName}
- *
- * @example <caption>Event:scan</caption>
- * // Scan Event will emit when the bot needs to show you a QR Code for scanning
- *
- * bot.on('scan', (url, status) => {
- *   console.log(`[${status}] Scan ${url} to login.` )
- * })
- *
- * @example <caption>Event:login </caption>
- * // Login Event will emit when bot login full successful.
- *
- * bot.on('login', (user) => {
- *   console.log(`user ${user} login`)
- * })
- *
- * @example <caption>Event:logout </caption>
- * // Logout Event will emit when bot detected log out.
- *
- * bot.on('logout', (user) => {
- *   console.log(`user ${user} logout`)
- * })
- *
- * @example <caption>Event:message </caption>
- * // Message Event will emit when there's a new message.
- *
- * wechaty.on('message', (message) => {
- *   console.log(`message ${message} received`)
- * })
- *
- * @example <caption>Event:friendship </caption>
- * // Friendship Event will emit when got a new friend request, or friendship is confirmed.
- *
- * bot.on('friendship', (friendship) => {
- *   if(friendship.type() === Friendship.Type.Receive){ // 1. receive new friendship request from new contact
- *     const contact = friendship.contact()
- *     let result = await friendship.accept()
- *       if(result){
- *         console.log(`Request from ${contact.name()} is accept successfully!`)
- *       } else{
- *         console.log(`Request from ${contact.name()} failed to accept!`)
- *       }
- *  } else if (friendship.type() === Friendship.Type.Confirm) { // 2. confirm friendship
- *       console.log(`new friendship confirmed with ${contact.name()}`)
- *    }
- *  })
- *
- * @example <caption>Event:room-join </caption>
- * // room-join Event will emit when someone join the room.
- *
- * bot.on('room-join', (room, inviteeList, inviter) => {
- *   const nameList = inviteeList.map(c => c.name()).join(',')
- *   console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
- * })
- *
- * @example <caption>Event:room-leave </caption>
- * // room-leave Event will emit when someone leave the room.
- *
- * bot.on('room-leave', (room, leaverList) => {
- *   const nameList = leaverList.map(c => c.name()).join(',')
- *   console.log(`Room ${room.topic()} lost member ${nameList}`)
- * })
- *
- * @example <caption>Event:room-topic </caption>
- * // room-topic Event will emit when someone change the room's topic.
- *
- * bot.on('room-topic', (room, topic, oldTopic, changer) => {
- *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
- * })
- *
- * @example <caption>Event:room-invite, RoomInvitation has been encapsulated as a RoomInvitation Class. </caption>
- * // room-invite Event will emit when there's an room invitation.
- *
- * bot.on('room-invite', async roomInvitation => {
- *   try {
- *     console.log(`received room-invite event.`)
- *     await roomInvitation.accept()
- *   } catch (e) {
- *     console.error(e)
- *   }
- * })
- *
- * @example <caption>Event:error </caption>
- * // error Event will emit when there's an error occurred.
- *
- * bot.on('error', (error) => {
- *   console.error(error)
- * })
- */
 interface WechatyEventListeners {
   'room-invite' : WechatyEventListenerRoomInvite
   'room-join'   : WechatyEventListenerRoomJoin
@@ -221,13 +71,16 @@ interface WechatyEventListeners {
   stop          : WechatyEventListenerStartStop
 }
 
+/**
+ * Single-payload Event Detail Map for all Wechaty events in EventTarget.
+ */
 interface WechatyEventDetailMap {
   dong          : string | undefined
   error         : GError
   friendship    : FriendshipInterface
   heartbeat     : any
   login         : ContactSelfInterface
-  logout        : { user: ContactSelfInterface, reason?: string }
+  logout        : { contact: ContactSelfInterface, data?: string, reason?: string }
   message       : MessageInterface
   post          : PostInterface
   puppet        : PUPPET.impls.PuppetInterface
@@ -250,13 +103,6 @@ type WechatyEventTargetListener<E extends keyof WechatyEventDetailMap> =
   | { handleEvent (event: WechatyCustomEvent<E>): void | Promise<void> }
 
 interface WechatyEventTargetInterface {
-  /**
-   * Registers an event listener on the Wechaty bot instance using the standard WinterTC EventTarget interface.
-   *
-   * @param type - Name of the Wechaty event (e.g. 'message', 'scan', 'login', 'ready', 'error').
-   * @param listener - Callback receiving the CustomEvent with `event.detail`.
-   * @param options - Standard AddEventListenerOptions, including native `{ signal: abortSignal, once: boolean }`.
-   */
   addEventListener<E extends keyof WechatyEventDetailMap>(
     type: E,
     listener: (event: WechatyCustomEvent<E>) => void | Promise<void>,
@@ -268,13 +114,6 @@ interface WechatyEventTargetInterface {
     options?: boolean | AddEventListenerOptions,
   ): void
 
-  /**
-   * Removes an event listener previously registered with `addEventListener`.
-   *
-   * @param type - Name of the Wechaty event.
-   * @param listener - Listener callback to remove.
-   * @param options - Standard EventListenerOptions.
-   */
   removeEventListener<E extends keyof WechatyEventDetailMap>(
     type: E,
     listener: (event: WechatyCustomEvent<E>) => void | Promise<void>,
@@ -286,17 +125,52 @@ interface WechatyEventTargetInterface {
     options?: boolean | EventListenerOptions,
   ): void
 
-  /**
-   * Dispatches an event on the Wechaty instance.
-   *
-   * @param event - Standard Event to dispatch.
-   */
   dispatchEvent(event: Event): boolean
+
+  next<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    options?: { signal?: AbortSignal },
+  ): Promise<WechatyEventDetailMap[E]>
+  next<T = unknown>(
+    type: string,
+    options?: { signal?: AbortSignal },
+  ): Promise<T>
+
+  events<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    options?: EventIteratorOptions,
+  ): AsyncIterable<WechatyEventDetailMap[E]>
+  events<T = unknown>(
+    type: string,
+    options?: EventIteratorOptions,
+  ): AsyncIterable<T>
 }
 
-type WechatyEventEmitterInterface = TypedEventEmitter.default<WechatyEventListeners> & WechatyEventTargetInterface
+interface WechatyEventEmitterMethods {
+  addListener<E extends keyof WechatyEventListeners> (event: E, listener: WechatyEventListeners[E]): this
+  on<E extends keyof WechatyEventListeners> (event: E, listener: WechatyEventListeners[E]): this
+  once<E extends keyof WechatyEventListeners> (event: E, listener: WechatyEventListeners[E]): this
+  prependListener<E extends keyof WechatyEventListeners> (event: E, listener: WechatyEventListeners[E]): this
+  prependOnceListener<E extends keyof WechatyEventListeners> (event: E, listener: WechatyEventListeners[E]): this
 
-const WechatyEventEmitter = EventEmitter as any as new () => WechatyEventEmitterInterface
+  off<E extends keyof WechatyEventListeners> (event: E, listener: WechatyEventListeners[E]): this
+  removeAllListeners<E extends keyof WechatyEventListeners> (event?: E): this
+  removeListener<E extends keyof WechatyEventListeners> (event: E, listener: WechatyEventListeners[E]): this
+
+  emit<E extends keyof WechatyEventListeners> (event: E, ...args: Parameters<WechatyEventListeners[E]>): boolean
+  emit (event: string | symbol, ...args: any[]): boolean
+  eventNames (): (keyof WechatyEventListeners | string | symbol)[]
+  rawListeners<E extends keyof WechatyEventListeners> (event: E): Function[]
+  listeners<E extends keyof WechatyEventListeners> (event: E): Function[]
+  listenerCount<E extends keyof WechatyEventListeners> (event: E): number
+
+  getMaxListeners (): number
+  setMaxListeners (maxListeners: number): this
+}
+
+type WechatyEventEmitterInterface = WechatyEventEmitterMethods & WechatyEventTargetInterface & WechatyEventTarget
+
+const WechatyEventEmitter = WechatyEventTarget as unknown as new () => WechatyEventEmitterInterface
 
 export type {
   WechatyEventName,
@@ -305,6 +179,7 @@ export type {
   WechatyCustomEvent,
   WechatyEventTargetListener,
   WechatyEventTargetInterface,
+  WechatyEventEmitterMethods,
   WechatyEventEmitterInterface,
 
   WechatyEventListenerDong,
@@ -325,5 +200,6 @@ export type {
   WechatyEventListenerStartStop,
 }
 export {
+  WECHATY_EVENT_DICT,
   WechatyEventEmitter,
 }

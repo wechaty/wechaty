@@ -28,6 +28,7 @@ import {
 }                       from 'state-switch'
 import { function as FP } from 'fp-ts'
 import type * as PUPPET from 'wechaty-puppet'
+import { WechatyEvent } from 'wechaty-puppet'
 
 import {
   config,
@@ -178,7 +179,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     log.verbose('Wechaty', 'constructor()')
 
     this.__memory = this.__options.memory
-    this.wechaty  = this
+    this.wechaty  = this as unknown as Wechaty
   }
 
   override async start (): Promise<void> {
@@ -202,7 +203,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     }, 1000 * 60 * 60)
     this._stopCallbackList.push(() => clearInterval(lifeTimer))
 
-    this.emit('start')
+    this.dispatchEvent(new WechatyEvent('start'))
     log.verbose('Wechaty', 'onStart() ... done')
   }
 
@@ -218,7 +219,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
     this._stopCallbackList.forEach(fn => setTimeout(fn, 0))
     this._stopCallbackList.length = 0
 
-    this.emit('stop')
+    this.dispatchEvent(new WechatyEvent('stop'))
     log.verbose('Wechaty', 'onStop() ... done')
   }
 
@@ -294,6 +295,16 @@ class WechatyBase extends mixinBase implements SayableSayer {
 
     if (postId) {
       return this.Post.find({ id: postId })
+    }
+  }
+
+  /**
+   * Overrides `ServiceCtl.__serviceCtlEmitErrors` to dispatch single-payload
+   * WechatyEvent('error') on native EventTarget instead of calling legacy `this.emit()`.
+   */
+  override __serviceCtlEmitErrors (errors: readonly (Error | unknown)[]): void {
+    for (const e of errors) {
+      this.emitError(e)
     }
   }
 

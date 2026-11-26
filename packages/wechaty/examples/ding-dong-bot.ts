@@ -61,19 +61,19 @@ const bot = WechatyBuilder.build(options)
  * 2. Register event handlers for Bot
  *
  */
-bot
-  .on('logout', onLogout)
-  .on('login',  onLogin)
-  .on('scan',   onScan)
-  .on('error',  onError)
-  .on('message', onMessage)
+bot.addEventListener('logout', event => onLogout(event.detail.contact))
+bot.addEventListener('login',  event => onLogin(event.detail))
+bot.addEventListener('scan',   event => onScan(event.detail.qrcode, event.detail.status))
+bot.addEventListener('error',  event => onError(event.detail))
+bot.addEventListener('message', event => onMessage(event.detail))
+
 /**
  *
  * 3. Start the bot!
  *
  */
-  .start()
-  .catch(async e => {
+bot.start()
+  .catch(async (e: any) => {
     console.error('Bot start() fail:', e)
     await bot.stop()
     process.exit(-1)

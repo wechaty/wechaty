@@ -19,7 +19,6 @@ import type {
   DelayConstructor,
   TagConstructor,
   UrlLinkConstructor,
-  MessageInterface,
 }                             from '../user-modules/mod.ts'
 
 import {
@@ -90,14 +89,18 @@ test('Wechaty interface', async _t => {
     abstract version     : Wechaty['version']
     abstract wrapAsync   : Wechaty['wrapAsync']
 
+    messages: Wechaty['messages'] = this.events as any
+    messageStream: Wechaty['messageStream'] = (() => {}) as any
+    [Symbol.asyncDispose] = async () => {}
+
   }
 
   const WechatyTest = WechatyImplementation as unknown as WechatyConstructor
   const w: Wechaty = new WechatyTest()
   // Backwards compatibility verification: WechatyInterface should be an alias of Wechaty
   const wDeprecated: WechatyInterface = w
-  wDeprecated.on('message', (msg: MessageInterface) => {
-    msg.say('ok').catch(console.error)
+  wDeprecated.addEventListener('message', (event) => {
+    event.detail.say('ok').catch(console.error)
   })
 
   assert.ok(typeof WechatyImplementation, 'should no typing error')

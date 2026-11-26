@@ -38,17 +38,17 @@
  */
 import {
   log,
-  type EventEmitter,
+  type EventIteratorOptions,
 }                          from 'wechaty-puppet'
 
 import type {
   WechatyMixinProtectedProperty,
 }                                     from '../wechaty-mixins/mod.ts'
 import type {
-  WechatyEventListeners,
   WechatyEventDetailMap,
   WechatyCustomEvent,
 } from '../schemas/mod.ts'
+import type { MessageInterface }     from '../user-modules/mod.ts'
 import type { WechatyOptions }        from '../schemas/wechaty-options.ts'
 import { validationMixin }            from '../user-mixins/mod.ts'
 
@@ -76,19 +76,36 @@ class WechatyImpl extends validationMixin(WechatyImplBase)<Wechaty>() {}
  *  without any cyclic dependency problem.
  */
 
+type LegacyEventEmitterProperty =
+  | 'emit'
+  | 'on'
+  | 'off'
+  | 'once'
+  | 'addListener'
+  | 'removeListener'
+  | 'prependListener'
+  | 'prependOnceListener'
+  | 'removeAllListeners'
+  | 'setMaxListeners'
+  | 'getMaxListeners'
+  | 'listenerCount'
+  | 'rawListeners'
+  | 'listeners'
+  | 'eventNames'
+  | 'addEventListener'
+  | 'removeEventListener'
+  | 'dispatchEvent'
+  | 'next'
+  | 'events'
+
 type AllProtectedProperty =
-  | Exclude<keyof EventEmitter, symbol | 'next' | 'events'>  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
+  | LegacyEventEmitterProperty
   | WechatyMixinProtectedProperty
   | WechatyBaseProtectedProperty
   | WechatySkeletonProtectedProperty
   | `_${string}`// remove all property from interface which is start with `_`
 
-/**
- * Huan(202111):
- * `on`/`off`/`once` must use TypedEventEmitter<WechatyEventListeners> instead of WechatyImpl
- *    or will run into error: cyclic dependency?
- */
-interface WechatyEventEmitter {
+interface WechatyEventTargetMethods {
   /**
    * Registers an event listener on the Wechaty bot instance using the standard WinterTC EventTarget interface.
    *
@@ -133,43 +150,61 @@ interface WechatyEventEmitter {
   dispatchEvent(event: Event): boolean
 
   /**
-   * Registers a listener callback for the specified Wechaty event.
+   * Resolves the next occurrence of a typed Wechaty event as a single promise.
    *
-   * @deprecated Use `addEventListener(type, listener, options)` instead. Will be removed in Wechaty v3.0.
+   * @param type - Name of the event to await.
+   * @param options - Optional signal to cancel waiting.
+   * @returns Promise resolving to `event.detail`.
    */
-  on:   <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: AddEventListenerOptions) => Wechaty
+  next<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    options?: { signal?: AbortSignal },
+  ): Promise<WechatyEventDetailMap[E]>
+  next<T = unknown>(
+    type: string,
+    options?: { signal?: AbortSignal },
+  ): Promise<T>
 
   /**
-   * Removes a previously registered listener callback.
+   * Returns an async iterable yielding typed event details for AI agent loops.
    *
-   * @deprecated Use `removeEventListener(type, listener)` instead. Will be removed in Wechaty v3.0.
+   * @param type - Name of the event stream.
+   * @param options - Backpressure, highWaterMark, and signal options.
+   * @returns AsyncIterable yielding `event.detail`.
    */
-  off:  <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E], options?: EventListenerOptions) => Wechaty
+  events<E extends keyof WechatyEventDetailMap>(
+    type: E,
+    options?: EventIteratorOptions,
+  ): AsyncIterable<WechatyEventDetailMap[E]>
+  events<T = unknown>(
+    type: string,
+    options?: EventIteratorOptions,
+  ): AsyncIterable<T>
 
   /**
-   * Registers a one-time listener callback for the specified Wechaty event.
+   * Primary AI Agent message stream loop yielding hydrated Message entities.
    *
-   * @deprecated Use `addEventListener(type, listener, { once: true })` instead. Will be removed in Wechaty v3.0.
+   * @param options - Options controlling backpressure buffer and signal cancellation.
+   * @returns AsyncIterable yielding hydrated Message entities.
    */
-  once: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => Wechaty
+  messages (options?: EventIteratorOptions): AsyncIterable<MessageInterface>
 
   /**
-   * Registers a listener callback for the specified Wechaty event.
+   * Reactive message stream using native WHATWG Streams.
    *
-   * @deprecated Use `addEventListener(type, listener, options)` instead. Will be removed in Wechaty v3.0.
+   * @param options - Optional AbortSignal.
+   * @returns ReadableStream of hydrated Message entities.
    */
-  addListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => Wechaty
+  messageStream (options?: { signal?: AbortSignal }): ReadableStream<MessageInterface>
 
   /**
-   * Removes a previously registered listener callback.
-   *
-   * @deprecated Use `removeEventListener(type, listener)` instead. Will be removed in Wechaty v3.0.
+   * Standard AsyncDisposable implementation for `await using bot = ...`.
    */
-  removeListener: <E extends keyof WechatyEventListeners>(event: E, listener: WechatyEventListeners[E]) => Wechaty
+  [Symbol.asyncDispose] (): Promise<void>
 }
 
 type Wechaty = Omit<WechatyImplInterface, AllProtectedProperty>
-  & WechatyEventEmitter
+  & WechatyEventTargetMethods
 
 /**
  * @deprecated Use `Wechaty` instead. `WechatyInterface` is retained for backwards compatibility.
@@ -190,6 +225,13 @@ interface WechatyStatic {
    * Type guard to verify whether an unknown target is a valid Wechaty instance.
    */
   valid (target: unknown): target is Wechaty
+  /**
+   * Asynchronously creates and starts a Wechaty bot instance, designed for `await using bot = await Wechaty.start()`.
+   *
+   * @param options - Bot options.
+   * @returns Promise resolving to the running Wechaty bot instance.
+   */
+  start (options?: WechatyOptions): Promise<Wechaty>
 }
 
 /**
@@ -227,8 +269,22 @@ Object.defineProperty(WechatyImpl, 'singleton', {
       }
       return _singletonInstance
     }
-    _singletonInstance = new WechatyImpl(options)
+    _singletonInstance = new WechatyImpl(options) as unknown as Wechaty
     return _singletonInstance
+  },
+})
+
+/**
+ * Attaches the `start` static factory method to `WechatyImpl`.
+ */
+Object.defineProperty(WechatyImpl, 'start', {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  value: async function start (options?: WechatyOptions): Promise<Wechaty> {
+    const bot = new WechatyImpl(options) as unknown as Wechaty
+    await bot.start()
+    return bot
   },
 })
 
@@ -245,6 +301,31 @@ Object.defineProperty(WechatyImpl, 'singleton', {
  * and `prototype: Wechaty` intentionally omit to ensure 100% pure doc-typing.
  */
 const Wechaty = WechatyImpl as unknown as WechatyConstructor
+
+// Clean-slate: Ensure legacy EventEmitter methods are undefined on WechatyImpl runtime prototype
+for (const legacyMethod of [
+  'on',
+  'off',
+  'once',
+  'addListener',
+  'removeListener',
+  'prependListener',
+  'prependOnceListener',
+  'removeAllListeners',
+  'setMaxListeners',
+  'getMaxListeners',
+  'listenerCount',
+  'rawListeners',
+  'listeners',
+  'eventNames',
+  'emit',
+]) {
+  Object.defineProperty(WechatyImpl.prototype, legacyMethod, {
+    configurable: true,
+    value: undefined,
+    writable: true,
+  })
+}
 
 export  {
   Wechaty,

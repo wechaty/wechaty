@@ -25,7 +25,8 @@ async function testVideoPost () {
 
   await bot.say(post)
 
-  bot.on('message', async message => {
+  bot.addEventListener('message', async (event: any) => {
+    const message = event.detail
 
     // if (message.type() !== message.type.Post) {
     //   return

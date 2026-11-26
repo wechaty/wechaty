@@ -37,7 +37,7 @@ async function withImmediateTimers<T> (
 test('accept retries contact synchronization without repeating provider acceptance', async () => {
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
-  wechaty.on('error', () => {})
+  wechaty.addEventListener('error', () => {})
 
   const mockContact = puppet.mocker.createContact({ name: 'Friend' })
   await wechaty.start()
@@ -88,8 +88,8 @@ test('accept emits the final synchronization error and still syncs the contact',
   const puppet = new PuppetMock()
   const wechaty = WechatyBuilder.build({ puppet })
   const emittedErrors: unknown[] = []
-  wechaty.on('error', error => {
-    emittedErrors.push(error)
+  wechaty.addEventListener('error', (event: any) => {
+    emittedErrors.push(event.detail)
   })
 
   const mockContact = puppet.mocker.createContact({ name: 'Friend' })
