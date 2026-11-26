@@ -21,8 +21,6 @@
 export {
   Wechaty,
   type WechatyOptions,
-  type WechatyInterface,
-  type WechatyConstructor,
 } from '../wechaty/mod.ts'
 export {
   WechatyBuilder,
