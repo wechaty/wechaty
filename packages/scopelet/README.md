@@ -197,12 +197,45 @@ export class DatabaseService implements Lifecycle {
 In `Io` (the network gateway of Wechaty), network disconnections must recover cleanly without leaking background timers or hanging ungracefully:
 
 ```ts
+import { AsyncLifecycle, listen, type LifecycleScope } from 'scopelet'
+
+interface SocketLike {
+  on (event: 'close', listener: () => void): void
+  off (event: 'close', listener: () => void): void
+  ping (): void
+  terminate (): void
+  close (): Promise<void>
+}
+
+export interface IoOptions {
+  readonly url: string
+  readonly openSocket: (url: string, signal: AbortSignal) => Promise<SocketLike>
+}
+
+function delay (ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return Promise.reject(signal.reason)
+  if (ms <= 0) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve(), ms)
+    signal?.addEventListener('abort', () => {
+      clearTimeout(timer)
+      reject(signal.reason)
+    }, { once: true })
+  })
+}
+
+function backoffMs (failures: number): number {
+  return failures === 0 ? 0 : Math.min(30_000, 1_000 * 2 ** (failures - 1))
+}
+
 export class Io extends AsyncLifecycle {
 
+  readonly #options: IoOptions
   #failures = 0
 
   constructor (options: IoOptions) {
     super({ name: 'Io', stopTimeoutMs: 5_000 })
+    this.#options = options
   }
 
   protected override async onStart (scope: LifecycleScope): Promise<void> {
@@ -216,7 +249,7 @@ export class Io extends AsyncLifecycle {
     })
 
     // Background keepalive ping cancelled automatically on abort
-    scope.spawn(async (signal) => {
+    scope.spawn(async (signal: AbortSignal) => {
       while (!signal.aborted) {
         socket.ping()
         await delay(10_000, signal)
@@ -231,9 +264,9 @@ export class Io extends AsyncLifecycle {
       await delay(backoffMs(this.#failures), scope.signal)
       try {
         return await scope.acquire(
-          (signal) => openSocket(url, signal),
-          (socket) => socket.close(),
-          { interrupt: (socket) => socket.terminate() },
+          (signal: AbortSignal) => this.#options.openSocket(this.#options.url, signal),
+          (socket: SocketLike) => socket.close(),
+          { interrupt: (socket: SocketLike) => socket.terminate() },
         )
       } catch (error) {
         if (scope.signal.aborted) throw error
@@ -249,9 +282,23 @@ export class Io extends AsyncLifecycle {
 
 *Adoption status: Planned in [#3024](https://github.com/wechaty/wechaty/issues/3024).*
 
-`Puppet` wraps provider drivers that authenticate asynchronously and send messages. It leverages generation-bound conditions (`ready`, `login`) and wraps in-flight calls with `operation`:
+`Puppet` wraps provider drivers that authenticate asynchronously and send messages. It leverages generation-bound conditions (`ready`, `login`), wraps in-flight calls with `operation`, and manages provider shutdown via `scope.defer()` and abort listeners:
 
 ```ts
+import { EventEmitter } from 'node:events'
+import {
+  createLifecycle,
+  listen,
+  operation,
+  LifecycleUnsafeStateError,
+  type Lifecycle,
+  type LifecycleController,
+  type LifecycleScope,
+  type LifecycleState,
+  type LifecycleWaitOptions,
+  type LifecycleCondition,
+} from 'scopelet'
+
 export abstract class Puppet extends EventEmitter implements Lifecycle {
 
   readonly #lifecycle: LifecycleController
@@ -261,28 +308,73 @@ export abstract class Puppet extends EventEmitter implements Lifecycle {
   constructor () {
     super()
     this.#lifecycle = createLifecycle({
-      onStart: async (scope) => {
-        await this.onStartHook()
-        this.#scope = scope
-        scope.set(this.#ready)
+      onStart: (scope: LifecycleScope) => this.#start(scope),
+      onStateChange: (state: LifecycleState) => {
+        if (state.kind === 'failed' && this.listenerCount('error') > 0) {
+          this.emit('error', state.error)
+        }
       },
-    })
+    }, { name: 'Puppet', startTimeoutMs: 15_000, stopTimeoutMs: 15_000 })
     this.#ready = this.#lifecycle.condition('ready')
+  }
+
+  protected abstract onStart (): Promise<void>
+  protected abstract onStop (): Promise<void>
+  protected abstract messageSendText (conversationId: string, text: string, signal: AbortSignal): Promise<string>
+
+  async #start (scope: LifecycleScope): Promise<void> {
+    let stopping: Promise<void> | undefined
+    const stopProvider = (): Promise<void> => (stopping ??= (async () => this.onStop())())
+
+    // Roll back provider on failure via deferred cleanup (C-RET-03)
+    scope.defer(async () => {
+      try {
+        await stopProvider()
+      } catch (error) {
+        stopping = undefined
+        throw error
+      }
+    })
+
+    // Early-abort handling if startup is aborted
+    let started = false
+    scope.signal.addEventListener('abort', () => {
+      if (!started) {
+        stopProvider().catch(() => {})
+      }
+    }, { once: true })
+
+    listen(scope, this, 'ready', () => scope.set(this.#ready))
+
+    await this.onStart()
+    started = true
+    this.#scope = scope
   }
 
   ready (options?: LifecycleWaitOptions): Promise<void> {
     return this.#ready.wait(options)
   }
 
-  // Operation is joined during shutdown before resources are released
+  // Guarded in-flight operation: awaited before provider shutdown (C-COMP-03, D24)
   send (conversationId: string, text: string): Promise<string> {
     if (!this.#scope) {
       return Promise.reject(new LifecycleUnsafeStateError('Puppet not started'))
     }
-    return operation(this.#scope, (signal) =>
+    return operation(this.#scope, (signal: AbortSignal) =>
       this.messageSendText(conversationId, text, signal),
     )
   }
+
+  // Composed Lifecycle interface members
+  get state (): LifecycleState { return this.#lifecycle.state }
+  start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
+  stop (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.stop(options) }
+  restart (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.restart(options) }
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> { return this.#lifecycle.whenState(predicate, options) }
+  [Symbol.asyncDispose] (): Promise<void> { return this.stop() }
 
 }
 ```
@@ -291,25 +383,81 @@ export abstract class Puppet extends EventEmitter implements Lifecycle {
 
 *Adoption status: Planned in [#3023](https://github.com/wechaty/wechaty/issues/3023).*
 
-`Wechaty` manages its underlying `Puppet` and `Io` as owned children with hierarchical supervision:
+`Wechaty` manages its underlying `Puppet` and `Io` as owned children with hierarchical supervision, delegating readiness while handling parent cancellation (§11, §13):
 
 ```ts
-export class Wechaty extends AsyncLifecycle {
+import { EventEmitter } from 'node:events'
+import {
+  createLifecycle,
+  listen,
+  LifecycleSupersededError,
+  type Lifecycle,
+  type LifecycleController,
+  type LifecycleScope,
+  type LifecycleState,
+  type LifecycleWaitOptions,
+} from 'scopelet'
+
+export class Wechaty extends EventEmitter implements Lifecycle {
 
   readonly puppet: Puppet
   readonly io?: Io
+  readonly #lifecycle: LifecycleController
+  #readyWaits = new AbortController()
 
-  protected override async onStart (scope: LifecycleScope): Promise<void> {
-    // Children start in sequence and stop in LIFO reverse order
+  constructor (puppet: Puppet, io?: Io) {
+    super()
+    this.puppet = puppet
+    this.io = io
+    this.#lifecycle = createLifecycle({
+      onStart: (scope: LifecycleScope) => this.#start(scope),
+      onStateChange: (state: LifecycleState) => {
+        if (state.kind === 'failed') {
+          this.#cancelReadyWaits(state.error)
+        }
+      },
+    }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
+  }
+
+  async #start (scope: LifecycleScope): Promise<void> {
+    // Forward ready event
+    listen(scope, this.puppet, 'ready', () => this.emit('ready'))
+
+    // Children start in sequence and stop in LIFO reverse order (C-CHILD-04)
     await scope.start(this.puppet)
     if (this.io) {
       await scope.start(this.io)
     }
   }
 
-  ready (options?: LifecycleWaitOptions): Promise<void> {
-    return this.puppet.ready(options)
+  #cancelReadyWaits (reason: unknown): void {
+    this.#readyWaits.abort(reason)
+    this.#readyWaits = new AbortController()
   }
+
+  // Delegated ready wait: rejects if parent stops or fails before puppet is ready (§11)
+  ready (options?: LifecycleWaitOptions): Promise<void> {
+    const signal = options?.signal
+      ? AbortSignal.any([ options.signal, this.#readyWaits.signal ])
+      : this.#readyWaits.signal
+    return this.puppet.ready({ signal })
+  }
+
+  // Composed Lifecycle interface members
+  get state (): LifecycleState { return this.#lifecycle.state }
+  start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
+  stop (options?: LifecycleWaitOptions): Promise<void> {
+    if (!options?.signal?.aborted) {
+      this.#cancelReadyWaits(new LifecycleSupersededError('Wechaty stopped before puppet ready'))
+    }
+    return this.#lifecycle.stop(options)
+  }
+  restart (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.restart(options) }
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> { return this.#lifecycle.whenState(predicate, options) }
+  [Symbol.asyncDispose] (): Promise<void> { return this.stop() }
 
 }
 
