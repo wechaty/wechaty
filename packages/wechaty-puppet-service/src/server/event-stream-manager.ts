@@ -25,10 +25,10 @@ class EventStreamManager {
   protected eventStream?: EventStreamSink
   private removeListeners?: () => void
 
-  puppet: PUPPET.impls.PuppetInterface
+  puppet: PUPPET.Puppet
 
   constructor (
-    puppet: PUPPET.impls.PuppetInterface,
+    puppet: PUPPET.Puppet,
   ) {
     this.puppet = puppet
     log.verbose('EventStreamManager', 'constructor(%s)', puppet)

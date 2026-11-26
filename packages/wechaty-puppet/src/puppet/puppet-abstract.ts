@@ -49,9 +49,13 @@ import {
   postMixin,
   sayableMixin,
   tapMixin,
+  type MixinProtectedProperty,
 }                        from '../mixins/mod.ts'
 
-import { PuppetSkeleton } from './puppet-skeleton.ts'
+import {
+  PuppetSkeleton,
+  type PuppetSkeletonProtectedProperty,
+}                        from './puppet-skeleton.ts'
 
 /**
  * Mixins with Functional Programming: compose / pipe
@@ -94,7 +98,7 @@ const MixinBase = validateMixin(PipedBase)
  * See: https://github.com/wechaty/wechaty/wiki/Puppet
  *
  */
-abstract class Puppet extends MixinBase {
+abstract class PuppetImpl extends MixinBase {
 
   /**
    * Must overwrite by child class to identify their version
@@ -127,6 +131,60 @@ abstract class Puppet extends MixinBase {
 
 }
 
+/**
+ * Preserves canonical class name `Puppet` for runtime reflection and `looseInstanceOfClass`
+ * compatibility across duplicate package installations.
+ */
+Object.defineProperty(PuppetImpl, 'name', {
+  configurable: true,
+  value: 'Puppet',
+})
+
+/**
+ * Union of protected and internal properties across mixins and PuppetSkeleton
+ * that are omitted from the canonical doc-typed `Puppet` interface.
+ */
+type PuppetProtectedProperty =
+  | MixinProtectedProperty
+  | PuppetSkeletonProtectedProperty
+
+/**
+ * Pure doc-typed interface contract for puppet instances, omitting all internal
+ * mixin state, protected properties, and private members prefixed with `_`.
+ *
+ * @see https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
+ */
+type Puppet = Omit<
+  PuppetImpl,
+  PuppetProtectedProperty | `_${string}`
+>
+
+/**
+ * Abstract class constructor type for `Puppet`.
+ *
+ * Explicitly declares `readonly prototype: Puppet` while omitting `prototype` from `PuppetImpl`.
+ * This guarantees that `instanceof Puppet` type-narrowing resolves strictly to the pure doc-typed
+ * `Puppet` interface without leaking protected or internal properties from `PuppetImpl`, while
+ * allowing puppet providers to extend `Puppet` and access protected implementation methods.
+ */
+type PuppetAbstractConstructor = (abstract new (...args: any[]) => PuppetImpl) & {
+  readonly prototype: Puppet
+} & Omit<typeof PuppetImpl, 'prototype'>
+
+/**
+ * Modern Puppet abstract base class and canonical instance type.
+ *
+ * Implements TypeScript Type-Value Declaration Merging:
+ * - As a value: constructible abstract class constructor for provider subclasses (`class PuppetMock extends Puppet`).
+ * - As a type: represents the pure doc-typed puppet instance with all protected and mixin internals omitted.
+ *
+ * The cast is necessary because runtime class `PuppetImpl` contains mixin implementation details
+ * and protected methods that the public `Puppet` interface and `prototype: Puppet` omit for 100% doc-typing.
+ */
+const Puppet = PuppetImpl as unknown as PuppetAbstractConstructor
+
 export {
   Puppet,
+  PuppetImpl,
+  type PuppetProtectedProperty,
 }

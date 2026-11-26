@@ -141,7 +141,7 @@ export interface PuppetEventListener {
 /**
  * WinterTC EventTarget interface contract for puppet instances.
  */
-export interface PuppetEventTargetInterface {
+export interface PuppetEventTarget {
   /**
    * Registers a typed event listener using standard DOM/WinterTC EventTarget semantics.
    *
@@ -220,6 +220,11 @@ export interface PuppetEventTargetInterface {
 }
 
 /**
+ * @deprecated Use `PuppetEventTarget` instead. `PuppetEventTargetInterface` is retained for backwards compatibility.
+ */
+export type PuppetEventTargetInterface = PuppetEventTarget
+
+/**
  * Pure TypeScript single-payload emitter methods replacing legacy `typed-emitter`.
  */
 export interface PuppetEventEmitterMethods {
@@ -250,9 +255,14 @@ export interface PuppetEventEmitterMethods {
  * Combined interface for PuppetEventEmitter implementing typed EventTarget, WechatyEventTarget,
  * and strongly-typed single-payload emitter methods without third-party dependencies.
  */
-export type PuppetEventEmitterInterface = PuppetEventEmitterMethods & PuppetEventTargetInterface & WechatyEventTarget
+export type PuppetEventEmitter = PuppetEventEmitterMethods & PuppetEventTarget & WechatyEventTarget
 
-export const PuppetEventEmitter = WechatyEventTarget as unknown as new () => PuppetEventEmitterInterface
+/**
+ * @deprecated Use `PuppetEventEmitter` instead. `PuppetEventEmitterInterface` is retained for backwards compatibility.
+ */
+export type PuppetEventEmitterInterface = PuppetEventEmitter
+
+export const PuppetEventEmitter = WechatyEventTarget as unknown as new () => PuppetEventEmitter
 
 export {
   WechatyEventTarget,

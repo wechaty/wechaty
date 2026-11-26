@@ -15,7 +15,7 @@ import type {
 }                             from '../puppet-config.ts'
 
 interface OptionsPuppetInstance {
-  puppet?: PUPPET.impls.PuppetInterface,
+  puppet?: PUPPET.Puppet,
 }
 
 interface OptionsPuppetName {

@@ -11,11 +11,8 @@ import {
 import {
   Puppet,
 }                     from './puppet-abstract.ts'
-import type {
-  PuppetInterface,
-}                     from './puppet-interface.ts'
 
-const interfaceOfPuppet     = interfaceOfClass(Puppet as any as Constructor<Puppet>)<PuppetInterface>()
+const interfaceOfPuppet     = interfaceOfClass(Puppet as any as Constructor<Puppet>)<Puppet>()
 const looseInstanceOfPuppet = looseInstanceOfClass(Puppet as any as Constructor<Puppet>)
 
 export {
