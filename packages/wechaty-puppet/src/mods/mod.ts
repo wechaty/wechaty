@@ -42,6 +42,7 @@ import {
 import type {
   PuppetInterface,
   PuppetProtectedProperty,
+  PuppetState,
 }                             from '../puppet/puppet-interface.ts'
 import type {
   PuppetEventTarget,
@@ -58,6 +59,7 @@ import {
 export type {
   PuppetInterface,
   PuppetProtectedProperty,
+  PuppetState,
   PuppetEventTarget,
   PuppetEventTargetInterface,
   PuppetEventEmitterInterface,

@@ -946,6 +946,51 @@ test('stop-time logout event fires, clears currentUserId, and allows subsequent 
   await puppet.stop()
 })
 
+test('logout() listener observes isLoggedIn === true and currentUserId during dispatch, and false after settlement', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+  puppet.login('user-observer')
+
+  let listenerSawLoggedIn: boolean | undefined
+  let listenerSawUserId: string | undefined
+
+  puppet.on('logout', (payload: any) => {
+    listenerSawLoggedIn = puppet.isLoggedIn
+    listenerSawUserId = puppet.currentUserId
+    assert.equal(payload?.contactId ?? payload?.detail?.contactId, 'user-observer')
+  })
+
+  await puppet.logout('user requested')
+
+  assert.equal(listenerSawLoggedIn, true, 'isLoggedIn must remain true during synchronous logout event dispatch')
+  assert.equal(listenerSawUserId, 'user-observer', 'currentUserId must remain defined during synchronous logout event dispatch')
+  assert.equal(puppet.isLoggedIn, false, 'isLoggedIn must become false after logout settles')
+  assert.equal(puppet.__currentUserId, undefined, '__currentUserId must become undefined after logout settles')
+  assert.throws(() => puppet.currentUserId, /not logged in/)
+
+  await puppet.stop()
+})
+
+test('concurrent logout() and stop() dispatches logout exactly once without duplicates', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+  puppet.login('user-unique')
+
+  let logoutCount = 0
+  puppet.on('logout', () => {
+    logoutCount++
+  })
+
+  // Trigger logout and stop concurrently
+  await Promise.all([
+    puppet.logout('user requested'),
+    puppet.stop(),
+  ])
+
+  assert.equal(logoutCount, 1, 'logout event must only fire once')
+  assert.equal(puppet.isLoggedIn, false)
+})
+
 test('stop-while-starting (padlocal#116) triggers onStop and settles start cleanly', async _t => {
   let onStopCalled = false
   const stopped = Promise.withResolvers<void>()

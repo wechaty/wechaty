@@ -14,6 +14,7 @@ import type {
   PuppetConstructor,
   PuppetInterface,
   PuppetProtectedProperty,
+  PuppetState,
 }                               from '../puppet/mod.ts'
 import {
   Puppet,
@@ -24,6 +25,7 @@ export type {
   PuppetConstructor,
   PuppetInterface,
   PuppetProtectedProperty,
+  PuppetState,
 }
 export {
   Puppet,
