@@ -188,7 +188,7 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY" --jq .full_name
           gh auth setup-git
           if [[ "$MODE" == review ]]; then
-            objective='Review the PR diff at the specified HEAD and BASE. Submit an evidence-based GitHub COMMENT review on that HEAD, even if there are no findings. Leave the PR and its code unchanged.'
+            objective='Review the PR diff at the specified HEAD and BASE. Submit an evidence-based GitHub COMMENT review on that HEAD, even if there are no findings. Start the review body with the Markdown heading "## Antigravity Next review". Leave the PR and its code unchanged.'
             task_label='Optional review focus from the requester'
           else
             objective='Carry out the requested task and reply on the issue or PR.'
