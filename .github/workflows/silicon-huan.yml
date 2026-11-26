@@ -98,12 +98,12 @@ jobs:
             if (issue.pull_request) {
               const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: number })
               if (pr.head.repo?.full_name !== `${owner}/${repo}`) throw new Error('Fork PRs are excluded')
-              if (eventPR && (pr.state !== 'open' || pr.draft || pr.head.sha !== eventPR.head.sha || pr.base.sha !== eventPR.base.sha)) {
+              if (eventPR && process.env.GITHUB_RUN_ATTEMPT === '1' && (pr.state !== 'open' || pr.draft || pr.head.sha !== eventPR.head.sha || pr.base.sha !== eventPR.base.sha)) {
                 core.notice('Automatic review skipped because the PR changed since the event.')
                 return
               }
-              sha = pr.head.sha
-              base = pr.base.sha
+              sha = eventPR?.head.sha ?? pr.head.sha
+              base = eventPR?.base.sha ?? pr.base.sha
             } else {
               const { data: repository } = await github.rest.repos.get({ owner, repo })
               sha = (await github.rest.repos.getBranch({ owner, repo, branch: repository.default_branch })).data.commit.sha
@@ -133,21 +133,6 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - name: Verify review revision is still current
-        if: needs.authorize.outputs.mode == 'review'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          NUMBER: ${{ needs.authorize.outputs.number }}
-          HEAD_SHA: ${{ needs.authorize.outputs.sha }}
-          BASE_SHA: ${{ needs.authorize.outputs.base }}
-        run: |
-          set -euo pipefail
-          current="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq '.head.sha + " " + .base.sha')"
-          if [[ "$current" != "$HEAD_SHA $BASE_SHA" ]]; then
-            echo '::error::PR revision changed. Request a review of the current revision.'
-            exit 1
-          fi
       - name: Create repository-scoped Huan installation token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -184,15 +169,40 @@ jobs:
                 const previous = page.data.find(comment =>
                   comment.user?.login === process.env.APP_LOGIN && comment.body?.includes(marker))
                 if (!previous) continue
-                await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body })
+                const intent = previous.body.split(/\r?\n/).find(line =>
+                  /^<!-- huan-verdict-intent head=[0-9a-f]{40} base=[0-9a-f]{40} -->$/.test(line))
+                if (process.env.MODE === 'review' && intent) {
+                  core.setOutput('recovery', 'true')
+                } else {
+                  await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body })
+                }
                 core.setOutput('url', previous.html_url)
                 core.setOutput('comment_id', String(previous.id))
                 return
               }
             }
+            if (process.env.MODE === 'review' && process.env.GITHUB_RUN_ATTEMPT !== '1') {
+              // No prior comment means we cannot prove the previous write was never attempted.
+              core.setOutput('recovery', 'true')
+            }
             const { data } = await github.rest.issues.createComment({ ...target, body })
             core.setOutput('url', data.html_url)
             core.setOutput('comment_id', String(data.id))
+      - name: Verify review revision is still current
+        if: needs.authorize.outputs.mode == 'review' && steps.progress.outputs.recovery != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ needs.authorize.outputs.number }}
+          HEAD_SHA: ${{ needs.authorize.outputs.sha }}
+          BASE_SHA: ${{ needs.authorize.outputs.base }}
+        run: |
+          set -euo pipefail
+          current="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq '.head.sha + " " + .base.sha')"
+          if [[ "$current" != "$HEAD_SHA $BASE_SHA" ]]; then
+            echo '::error::PR revision changed. Request a review of the current revision.'
+            exit 1
+          fi
       - name: Create automatic review reaction token
         id: reaction-token
         if: github.event_name == 'pull_request_target' && steps.progress.outputs.comment_id != ''
@@ -243,7 +253,7 @@ jobs:
             if (status === 201) core.setOutput('eyes_id', String(data.id))
       - name: Check for a completed automatic review pair
         id: pair
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request_target' && steps.progress.outputs.recovery != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -270,22 +280,22 @@ jobs:
             fi
           fi
       - uses: actions/checkout@v5
-        if: steps.pair.outputs.duplicate != 'true'
+        if: steps.pair.outputs.duplicate != 'true' && steps.progress.outputs.recovery != 'true'
         with:
           # Automatic reviews inspect the PR through GitHub from a trusted checkout.
           ref: ${{ github.event_name == 'pull_request_target' && github.workflow_sha || needs.authorize.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v5
-        if: steps.pair.outputs.duplicate != 'true'
+        if: steps.pair.outputs.duplicate != 'true' && steps.progress.outputs.recovery != 'true'
         with:
           node-version: '26'
       - uses: denoland/setup-deno@v2
-        if: steps.pair.outputs.duplicate != 'true'
+        if: steps.pair.outputs.duplicate != 'true' && steps.progress.outputs.recovery != 'true'
         with:
           deno-version: v2.x
       - name: Install engineering tools
-        if: steps.pair.outputs.duplicate != 'true'
+        if: steps.pair.outputs.duplicate != 'true' && steps.progress.outputs.recovery != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -298,7 +308,7 @@ jobs:
           docker pull ghcr.io/github/github-mcp-server
       - name: Mark Huanˢⁱ ⚡ as running
         id: rocket
-        if: steps.reactions.outputs.endpoint != '' && steps.pair.outputs.duplicate != 'true'
+        if: steps.reactions.outputs.endpoint != '' && steps.pair.outputs.duplicate != 'true' && steps.progress.outputs.recovery != 'true'
         continue-on-error: true
         shell: bash
         env:
@@ -319,7 +329,7 @@ jobs:
             echo "rocket_id=$rocket_id" >> "$GITHUB_OUTPUT"
           fi
       - name: Run Huanˢⁱ ⚡
-        if: steps.pair.outputs.duplicate != 'true'
+        if: steps.pair.outputs.duplicate != 'true' && steps.progress.outputs.recovery != 'true'
         id: agent
         shell: bash
         env:
@@ -407,6 +417,8 @@ jobs:
         if: needs.authorize.outputs.mode == 'review' && steps.pair.outputs.duplicate != 'true'
         uses: actions/github-script@v8
         env:
+          COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
+          RECOVERY: ${{ steps.progress.outputs.recovery }}
           NUMBER: ${{ needs.authorize.outputs.number }}
           HEAD_SHA: ${{ needs.authorize.outputs.sha }}
           BASE_SHA: ${{ needs.authorize.outputs.base }}
@@ -416,8 +428,23 @@ jobs:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { readFile } = await import('node:fs/promises')
-            const { HEAD_SHA, BASE_SHA, APP_LOGIN, VERDICT_FILE } = process.env
+            const { APP_LOGIN, VERDICT_FILE, RECOVERY } = process.env
+            let { HEAD_SHA, BASE_SHA } = process.env
             const pull = { ...context.repo, pull_number: Number(process.env.NUMBER) }
+            const progress = { ...context.repo, comment_id: Number(process.env.COMMENT_ID) }
+            const partial = reason => core.setOutput('partial', reason)
+            if (!progress.comment_id) {
+              partial('unconfirmed')
+              throw new Error('A progress comment is required to track verdict publication.')
+            }
+            if (RECOVERY === 'true') {
+              partial('unconfirmed')
+              const { data } = await github.rest.issues.getComment(progress)
+              const intent = data.body.match(/^<!-- huan-verdict-intent head=([0-9a-f]{40}) base=([0-9a-f]{40}) -->$/m)
+              if (!intent) throw new Error('No saved verdict intent. Inspect the PR before requesting a fresh review.')
+              HEAD_SHA = intent[1]
+              BASE_SHA = intent[2]
+            }
             const runMarker = `<!-- huan-verdict run=${context.runId} head=${HEAD_SHA} base=${BASE_SHA} -->`
             const pairMarker = `<!-- huan-review-pair head=${HEAD_SHA} base=${BASE_SHA} -->`
             const isCurrent = async () => {
@@ -430,11 +457,9 @@ jobs:
                 && ['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(review.state)
                 && review.body?.split(/\r?\n/).includes(runMarker))
             }
-            const partial = reason => core.setOutput('partial', reason)
-
             // Reruns and ambiguous POST failures recover a specific verdict without replaying the write.
             let verdict
-            if (process.env.GITHUB_RUN_ATTEMPT !== '1') {
+            if (RECOVERY === 'true') {
               verdict = await findVerdict()
               if (!verdict) {
                 partial('unconfirmed')
@@ -452,7 +477,15 @@ jobs:
                 || !review.body.split(/\r?\n/).includes(`<!-- huan-reviewed-base base=${BASE_SHA} -->`)) {
                 throw new Error('Verdict handoff does not identify the formal review for this HEAD and BASE')
               }
-              if (!await isCurrent()) return partial('skipped')
+              const { data: comment } = await github.rest.issues.getComment(progress)
+              const progressBody = comment.body
+              const intent = `<!-- huan-verdict-intent head=${HEAD_SHA} base=${BASE_SHA} -->`
+              // Persist the write intent before POST so a lost response cannot trigger a blind repeat.
+              await github.rest.issues.updateComment({ ...progress, body: `${progressBody}\n\n${intent}` })
+              if (!await isCurrent()) {
+                await github.rest.issues.updateComment({ ...progress, body: progressBody })
+                return partial('skipped')
+              }
               try {
                 const result = await github.rest.pulls.createReview({
                   ...pull, commit_id: HEAD_SHA, event, body: `${body.trim()}\n\n— Huanˢⁱ ⚡\n\n${runMarker}`,
