@@ -12,6 +12,8 @@ Antigravity Next has two paths. Use `@huan review` on a same-repository PR, opti
 
 The requester and rerun initiator need live repository write, maintain, or admin permission. Bot comments and fork PRs are excluded. The original `antigravity.yml` continues to provide automatic PR reviews and `@antigravity` interaction. Next's review requires an explicit request so ordinary PR events do not launch the unrestricted agent with the Huan installation token. GitHub runs comment triggers from the default branch.
 
+When an authorized `@huan` task or review runs, the Huan app adds 👀 to the triggering conversation comment or inline review comment before setting up the agent. The job attempts to remove only the reaction it created when it finishes, including after failures. Manual dispatch and submitted review bodies have no comment target for this indicator.
+
 ## Baseline
 
 Inspected main 904182ea5c23db344436fc1e4465216741d4ea91, `.github/workflows/antigravity.yml` (1,193 lines), AGENTS.md and RFC/M0/M1 including the M0 checkpoint. Baseline splits start/agent/publish jobs, gives agent read-only GitHub access, uses structured artifacts and trusted publishers, and restricts published patches. Experimental workflow intentionally replaces that boundary with direct installation-token access and unrestricted execution. Baseline remains available for comparison and rollback.
