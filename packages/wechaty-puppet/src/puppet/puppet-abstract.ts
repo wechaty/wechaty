@@ -131,17 +131,48 @@ abstract class PuppetImpl extends MixinBase {
 
 }
 
+/**
+ * Union of protected and internal properties across mixins and PuppetSkeleton
+ * that are omitted from the canonical doc-typed `Puppet` interface.
+ */
 type PuppetProtectedProperty =
   | MixinProtectedProperty
   | PuppetSkeletonProtectedProperty
 
-// https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
+/**
+ * Pure doc-typed interface contract for puppet instances, omitting all internal
+ * mixin state, protected properties, and private members prefixed with `_`.
+ *
+ * @see https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
+ */
 type Puppet = Omit<
   PuppetImpl,
   PuppetProtectedProperty | `_${string}`
 >
 
-const Puppet = PuppetImpl as unknown as (abstract new (...args: any[]) => PuppetImpl) & typeof PuppetImpl
+/**
+ * Abstract class constructor type for `Puppet`.
+ *
+ * Explicitly declares `readonly prototype: Puppet` while omitting `prototype` from `PuppetImpl`.
+ * This guarantees that `instanceof Puppet` type-narrowing resolves strictly to the pure doc-typed
+ * `Puppet` interface without leaking protected or internal properties from `PuppetImpl`, while
+ * allowing puppet providers to extend `Puppet` and access protected implementation methods.
+ */
+type PuppetAbstractConstructor = (abstract new (...args: any[]) => PuppetImpl) & {
+  readonly prototype: Puppet
+} & Omit<typeof PuppetImpl, 'prototype'>
+
+/**
+ * Modern Puppet abstract base class and canonical instance type.
+ *
+ * Implements TypeScript Type-Value Declaration Merging:
+ * - As a value: constructible abstract class constructor for provider subclasses (`class PuppetMock extends Puppet`).
+ * - As a type: represents the pure doc-typed puppet instance with all protected and mixin internals omitted.
+ *
+ * The cast is necessary because runtime class `PuppetImpl` contains mixin implementation details
+ * and protected methods that the public `Puppet` interface and `prototype: Puppet` omit for 100% doc-typing.
+ */
+const Puppet = PuppetImpl as unknown as PuppetAbstractConstructor
 
 export {
   Puppet,

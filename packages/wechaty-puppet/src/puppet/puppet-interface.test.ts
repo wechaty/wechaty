@@ -57,3 +57,13 @@ test('Puppet value and type declaration merging', async _t => {
   const dummy: PUPPET.Puppet = {} as unknown as PUPPET.Puppet
   assert.ok(dummy !== undefined, 'PUPPET.Puppet type annotation must be valid')
 })
+
+test('instanceof Puppet preserves pure doc-typing in narrowing', async () => {
+  const puppet: unknown = {}
+  if (puppet instanceof PUPPET.Puppet) {
+    // @ts-expect-error __options is protected and omitted from Puppet prototype doc-typing
+    puppet.__options
+    // @ts-expect-error _stopCallbackList is protected and omitted from Puppet prototype doc-typing
+    puppet._stopCallbackList
+  }
+})
