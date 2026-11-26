@@ -67,7 +67,7 @@ jobs:
                 const result = '**Review partial. The PR changed and the verdict was withdrawn.**'
                 const body = progress.body
                   .replace(/^### Huanˢⁱ ⚡ · .*$/m, '### Huanˢⁱ ⚡ · Partial review')
-                  .replace(/\n\n\*\*Review completed\.\*\* See the \[Actions run\]\([^\n]+\)\.?\s*$/, '')
+                  .replace(/\n\n\*\*Review (?:completed|partial\. The verdict had already been dismissed)\.\*\* See the \[Actions run\]\([^\n]+\)\.?\s*$/, '')
                 if (!body.includes(result)) {
                   await github.rest.issues.updateComment({ ...repository, comment_id: progress.id, body: `${body}\n\n${result}` })
                 }
@@ -92,16 +92,14 @@ jobs:
             }
 
             const { action, before, changes } = context.payload
-            // Share the wait budget across the entire main-branch sweep.
             const lagDeadline = Date.now() + 12000
             /** Detect pre-event metadata without using an old event as the current comparison. */
             const stillBeforeEvent = pr => {
-              if (context.eventName === 'push') return Boolean(before) && pr.base.sha === before
               if (action === 'synchronize') return Boolean(before) && pr.head.sha === before
               if (action !== 'edited') return false
               const previous = changes?.base
-              return previous?.sha?.from ? pr.base.sha === previous.sha.from
-                : Boolean(previous?.ref?.from) && pr.base.ref === previous.ref.from
+              if (previous?.ref?.from && pr.base.ref !== previous.ref.from) return false
+              return previous?.sha?.from ? pr.base.sha === previous.sha.from : Boolean(previous?.ref?.from)
             }
 
             /** Withdraw only this app's formal verdicts for comparisons that are no longer current. */
@@ -155,7 +153,8 @@ jobs:
             }
 
             if (context.eventName === 'push') {
-              // Automatic reviews target main. A push can advance their BASE without a PR event.
+              // Recheck PR comparisons when main advances. GitHub may retain a PR's pinned BASE
+              // across a main push; a branch-tip SHA is not evidence that the reviewed comparison changed.
               const prs = await github.paginate(github.rest.pulls.list, { ...repository, state: 'open', base: 'main', per_page: 100 })
               for (const pr of prs) {
                 if (pr.head.repo?.full_name !== `${owner}/${repo}`) continue

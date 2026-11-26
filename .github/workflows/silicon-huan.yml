@@ -646,6 +646,10 @@ jobs:
               if (reviewId && !await isActive()) return
               const { status, data } = await github.request(`POST ${ENDPOINT}`, { content: 'hooray' })
               if (reviewId && status === 201 && !await isActive()) {
-                await github.request(`DELETE ${ENDPOINT}/${data.id}`)
+                try {
+                  await github.request(`DELETE ${ENDPOINT}/${data.id}`)
+                } catch (error) {
+                  if (error.status !== 404) throw error
+                }
               }
             }
