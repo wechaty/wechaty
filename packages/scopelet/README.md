@@ -1,17 +1,38 @@
 # scopelet
 
-> Scoped ownership for reliable, resilient asynchronous lifecycles. Built on WinterTC, ESM, and TypeScript standards.
+> Stop wrestling with boolean flags and dangling timers — **scopelet** brings structured concurrency and transactional lifecycle management to JavaScript and TypeScript services.
 
 [![NPM Version](https://img.shields.io/npm/v/scopelet?color=blue)](https://www.npmjs.com/package/scopelet)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![WinterTC Compatible](https://img.shields.io/badge/Runtime-Node.js%20%7C%20Deno%20%7C%20Bun%20%7C%20Browser-success)](https://wintertc.org/)
 
-One unified, zero-dependency lifecycle engine for modern asynchronous systems. Designed from first principles to retire mutable boolean flags (`state-switch`) and hand-written `start` / `stop` / `restart` loops in favor of structured concurrency, generational fencing, transactional resource ledgers, and cooperative cancellation.
+## The 30-Second Elevator Pitch
+
+Every backend and frontend engineer has fought this bug: a network socket drops, a background reconnect loop starts, listeners accumulate, and when you call `stop()`, a stray timer still wakes up in the background — or a delayed callback from a dead connection fires late and corrupts your new one.
+
+We usually patch this with boolean flags (`isStarting`, `isRunning`). But **boolean flags do not manage ownership, cannot cancel in-flight async operations, and cannot roll back partially acquired resources when startup fails halfway through.**
+
+**Enter Scopelet (The Aha Moment):**
+Think of `scopelet` as a desired-state reconciler combined with transactional resource scoping for Node.js, Deno, Bun, and modern browsers:
+
+- **Declarative Intent**: Callers state intent (`start()`, `stop()`, `restart()`). Scopelet ensures operations are idempotent and race-free.
+- **Generational Fencing**: Every run is an isolated generation ($G_1, G_2, \dots$) with its own immutable `LifecycleScope`. When a run retires, its scope is permanently sealed — late callbacks from dead connections are fenced out and cannot touch your app.
+- **Transactional Ownership Ledger**: Every socket, ping loop, listener, and child lifecycle registered via `scope.acquire()`, `scope.spawn()`, or `scope.start()` is tracked and **guaranteed to unwind in strict reverse order (LIFO)** upon retirement.
+- **Cooperative Cancellation**: Built on native Web Platform standards (`AbortSignal`, `AsyncDisposable`). No lingering timers, no zombie listeners, and zero runtime dependencies.
+
+```sh
+npm install scopelet
+```
+
+```ts
+import { AsyncLifecycle, createLifecycle } from 'scopelet'
+```
 
 ---
 
 ## Table of Contents
 
+- [The 30-Second Elevator Pitch](#the-30-second-elevator-pitch)
 - [Overview](#overview)
 - [The Problem: Why State Flags Fail](#the-problem-why-state-flags-fail)
 - [Design Patterns and Core Mechanisms](#design-patterns-and-core-mechanisms)
@@ -49,6 +70,8 @@ One unified, zero-dependency lifecycle engine for modern asynchronous systems. D
   - [Companions Contract (C-COMP)](#companions-contract-c-comp)
 - [Decision Log](#decision-log)
 - [Internal Architecture](#internal-architecture)
+- [Author and Credits](#author-and-credits)
+- [License](#license)
 
 ---
 
@@ -786,6 +809,31 @@ src/
 
 ---
 
+## Author and Credits
+
+**Scopelet** is designed and created by:
+
+- **Huan LI (李卓桓)**
+  - GitHub: [@huan](https://github.com/huan)
+  - Personal Website: <https://huan.dev>
+  - Creator of Wechaty and open-source distributed systems contributor
+
+Special thanks to the **Wechaty Contributors** and the architectural contributions recorded in the Wechaty 2.0 AsyncLifecycle design RFCs ([#2905](https://github.com/wechaty/wechaty/issues/2905), [#2911](https://github.com/wechaty/wechaty/issues/2911), [#2968](https://github.com/wechaty/wechaty/issues/2968)).
+
+---
+
 ## License
 
-[Apache-2.0](LICENSE) © 2016–present Huan LI (李卓桓) and Wechaty Contributors.
+Apache License 2.0
+
+Copyright (c) 2016–present Huan LI (李卓桓) <huan@chatie.io> and Wechaty Contributors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at <http://www.apache.org/licenses/LICENSE-2.0>.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
