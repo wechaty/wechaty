@@ -22,10 +22,12 @@ import './interface-of.ts'
 import { PuppetSkeleton } from './puppet-skeleton.ts'
 import {
   Puppet,
+  PuppetImpl,
 }                         from './puppet-abstract.ts'
 import type {
   PuppetConstructor,
   PuppetInterface,
+  PuppetProtectedProperty,
 }                         from './puppet-interface.ts'
 import type {
   PuppetCustomEvent,
@@ -33,7 +35,12 @@ import type {
   PuppetEventDetailMap,
   PuppetEventName,
   PuppetEventTargetListener,
+  PuppetEventTarget,
   PuppetEventTargetInterface,
+  PuppetEventEmitterInterface,
+}                         from './events.ts'
+import {
+  PuppetEventEmitter,
 }                         from './events.ts'
 import {
   resolvePuppet,
@@ -42,15 +49,20 @@ import {
 export type {
   PuppetConstructor,
   PuppetInterface,
+  PuppetProtectedProperty,
   PuppetCustomEvent,
   PuppetEventDetail,
   PuppetEventDetailMap,
   PuppetEventName,
   PuppetEventTargetListener,
+  PuppetEventTarget,
   PuppetEventTargetInterface,
+  PuppetEventEmitterInterface,
 }
 export {
   Puppet,
+  PuppetImpl,
   PuppetSkeleton,
+  PuppetEventEmitter,
   resolvePuppet,
 }

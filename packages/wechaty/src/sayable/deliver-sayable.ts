@@ -16,7 +16,7 @@ import type { Sayable } from './types.ts'
 /**
  * TODO: add unit test to ensure the interface validation code works
  */
-const deliverSayableConversationPuppet = (puppet: PUPPET.impls.PuppetInterface) => (conversationId: string) => async (sayable: Sayable) => {
+const deliverSayableConversationPuppet = (puppet: PUPPET.Puppet) => (conversationId: string) => async (sayable: Sayable) => {
   // if we don't do this, we'll get a TS2454 error:
   // src/sayable/deliver-sayable.ts:102:10 - error TS2454: Variable 'msgId' is used before being assigned.
   /* eslint-disable no-undef-init */

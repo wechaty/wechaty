@@ -4,24 +4,25 @@
  */
 import type { Constructor } from 'clone-class'
 
-import type { MixinProtectedProperty } from '../mixins/mod.ts'
-import type { PuppetSkeletonProtectedProperty } from './puppet-skeleton.ts'
-import type { Puppet } from './puppet-abstract.ts'
-
-type PuppetProtectedProperty =
-  | MixinProtectedProperty
-  | PuppetSkeletonProtectedProperty
-
-// https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
-type PuppetInterface = Omit<
+import {
   Puppet,
-  PuppetProtectedProperty | `_${string}`
->
+  PuppetImpl,
+  type PuppetProtectedProperty,
+} from './puppet-abstract.ts'
 
-type PuppetConstructor = Constructor<PuppetInterface>
+/**
+ * @deprecated Use `Puppet` instead. `PuppetInterface` is retained for backwards compatibility.
+ */
+type PuppetInterface = Puppet
+
+type PuppetConstructor = Constructor<Puppet>
 
 export type {
   PuppetProtectedProperty,
   PuppetConstructor,
   PuppetInterface,
+}
+export {
+  Puppet,
+  PuppetImpl,
 }

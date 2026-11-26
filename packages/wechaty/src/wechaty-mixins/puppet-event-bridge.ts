@@ -68,7 +68,7 @@ interface PuppetEventBridgeDependencies {
  * @throws If listener registration fails or the dictionary contains an unknown event.
  */
 function registerPuppetEventBridge (
-  puppet: PUPPET.impls.PuppetInterface,
+  puppet: PUPPET.Puppet,
   dependencies: PuppetEventBridgeDependencies,
 ): void {
   const eventNameList: PUPPET.types.PuppetEventName[] = Object.keys(PUPPET.types.PUPPET_EVENT_DICT) as PUPPET.types.PuppetEventName[]

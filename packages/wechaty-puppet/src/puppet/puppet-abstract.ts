@@ -49,9 +49,13 @@ import {
   postMixin,
   sayableMixin,
   tapMixin,
+  type MixinProtectedProperty,
 }                        from '../mixins/mod.ts'
 
-import { PuppetSkeleton } from './puppet-skeleton.ts'
+import {
+  PuppetSkeleton,
+  type PuppetSkeletonProtectedProperty,
+}                        from './puppet-skeleton.ts'
 
 /**
  * Mixins with Functional Programming: compose / pipe
@@ -94,7 +98,7 @@ const MixinBase = validateMixin(PipedBase)
  * See: https://github.com/wechaty/wechaty/wiki/Puppet
  *
  */
-abstract class Puppet extends MixinBase {
+abstract class PuppetImpl extends MixinBase {
 
   /**
    * Must overwrite by child class to identify their version
@@ -127,6 +131,20 @@ abstract class Puppet extends MixinBase {
 
 }
 
+type PuppetProtectedProperty =
+  | MixinProtectedProperty
+  | PuppetSkeletonProtectedProperty
+
+// https://stackoverflow.com/questions/44983560/how-to-exclude-a-key-from-an-interface-in-typescript
+type Puppet = Omit<
+  PuppetImpl,
+  PuppetProtectedProperty | `_${string}`
+>
+
+const Puppet = PuppetImpl as unknown as (abstract new (...args: any[]) => PuppetImpl) & typeof PuppetImpl
+
 export {
   Puppet,
+  PuppetImpl,
+  type PuppetProtectedProperty,
 }

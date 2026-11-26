@@ -31,7 +31,6 @@ import {
   Puppet,
 }                     from './puppet-abstract.ts'
 import type {
-  PuppetInterface,
   PuppetConstructor,
 }                     from './puppet-interface.ts'
 
@@ -40,12 +39,12 @@ type PuppetNpmScope = `@${string}/` | ''
 type PuppetNpmName  = `${PuppetNpmScope}wechaty-puppet-${string}`
 
 interface ResolveOptions {
-  puppet: PuppetNpmName | PuppetInterface,
+  puppet: PuppetNpmName | Puppet,
   puppetOptions?: PuppetOptions,
 }
 
 /**
- * Resolves a puppet instance or npm package name into a `PuppetInterface` instance.
+ * Resolves a puppet instance or npm package name into a `Puppet` instance.
  *
  * @param options - A puppet instance or package name and optional puppet options
  * @returns The supplied instance or a newly constructed provider instance
@@ -53,7 +52,7 @@ interface ResolveOptions {
  */
 async function resolvePuppet (
   options: ResolveOptions,
-): Promise<PuppetInterface> {
+): Promise<Puppet> {
   log.verbose('Puppet', 'resolvePuppet({puppet: %s, puppetOptions: %s})',
     options.puppet,
     JSON.stringify(options.puppetOptions || {}),

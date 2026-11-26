@@ -38,7 +38,7 @@ type WechatyEventListenerLogin      = (user: ContactSelf)                       
 type WechatyEventListenerLogout     = (user: ContactSelf, reason?: string)                                                              => void | Promise<void>
 type WechatyEventListenerMessage    = (message: Message)                                                                                => void | Promise<void>
 type WechatyEventListenerPost       = (post: Post)                                                                                      => void | Promise<void>
-type WechatyEventListenerPuppet     = (puppet: PUPPET.impls.PuppetInterface)                                                             => void | Promise<void>
+type WechatyEventListenerPuppet     = (puppet: PUPPET.Puppet)                                                             => void | Promise<void>
 type WechatyEventListenerReady      = ()                                                                                                => void | Promise<void>
 type WechatyEventListenerRoomInvite = (roomInvitation: RoomInvitation)                                                                 => void | Promise<void>
 type WechatyEventListenerRoomJoin   = (room: Room, inviteeList: Contact[], inviter: Contact,  date?: Date)                               => void | Promise<void>
@@ -230,7 +230,7 @@ interface WechatyEventDetailMap {
   logout        : { user: ContactSelf, reason?: string }
   message       : Message
   post          : Post
-  puppet        : PUPPET.impls.PuppetInterface
+  puppet        : PUPPET.Puppet
   ready         : undefined | null
   reset         : string | undefined | null
   'room-invite' : RoomInvitation
