@@ -357,6 +357,13 @@ class PuppetMock extends PUPPET.Puppet {
     // return this.messageSend(conversationId, miniProgram)
   }
 
+  override async messageSendPost (
+    conversationId: string,
+    postPayload: PUPPET.payloads.Post,
+  ): Promise<void> {
+    log.verbose('PuppetMock', 'messageSendPost(%s, %s)', conversationId, JSON.stringify(postPayload))
+  }
+
   override async messageForward (
     conversationId: string,
     messageId : string,

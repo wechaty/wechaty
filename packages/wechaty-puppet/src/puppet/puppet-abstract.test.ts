@@ -22,6 +22,7 @@ import type {
   RoomPayload,
 }                                 from '../schemas/room.ts'
 
+import * as PUPPET from '../mods/mod.ts'
 import { PuppetSkeleton } from './puppet-skeleton.ts'
 
 /**
@@ -481,3 +482,366 @@ test('PuppetSkeleton: super.{start,stop}()', async _t => {
 
   mock.restoreAll()
 })
+
+test('payload retrieval and caching for contacts, rooms, friendships, messages, posts, invitations', async _t => {
+  const puppet = new PuppetTest()
+
+  // Contact payload
+  assert.equal(puppet.contactPayloadCache('c1'), undefined)
+  const contact = await puppet.contactPayload('c1')
+  assert.ok(contact)
+  assert.equal(puppet.contactPayloadCache('c1'), contact)
+
+  // Room payload
+  assert.equal(puppet.roomPayloadCache('r1'), undefined)
+  const room = await puppet.roomPayload('r1')
+  assert.ok(room)
+  assert.equal(puppet.roomPayloadCache('r1'), room)
+
+  // Room member payload
+  const member = await puppet.roomMemberPayload('r1', 'm1')
+  assert.ok(member)
+
+  // Friendship payload
+  assert.equal(puppet.friendshipPayloadCache('f1'), undefined)
+  const friendship = await puppet.friendshipPayload('f1')
+  assert.ok(friendship)
+  assert.equal(puppet.friendshipPayloadCache('f1'), friendship)
+
+  // Room invitation payload
+  assert.equal(puppet.roomInvitationPayloadCache('i1'), undefined)
+  const invitation = await puppet.roomInvitationPayload('i1')
+  assert.ok(invitation)
+  await puppet.roomInvitationPayload('i1', invitation)
+  assert.equal(puppet.roomInvitationPayloadCache('i1'), invitation)
+
+  // Message payload
+  assert.equal(puppet.messagePayloadCache('m1'), undefined)
+  const message = await puppet.messagePayload('m1')
+  assert.ok(message)
+  assert.equal(puppet.messagePayloadCache('m1'), message)
+
+  // Post payload
+  assert.equal(puppet.postPayloadCache('p1'), undefined)
+  const post = await puppet.postPayload('p1')
+  assert.ok(post)
+  assert.equal(puppet.postPayloadCache('p1'), post)
+})
+
+test('validations, dirty cache invalidation, and helpers', async _t => {
+  const puppet = new PuppetTest()
+
+  assert.equal(await puppet.contactValidate('c1'), true)
+  assert.equal(await puppet.roomValidate('r1'), true)
+  assert.equal(puppet.wechatyVersionRange(), '*')
+  assert.equal(puppet.wechatyVersionRange(true), '^0.16.0')
+  assert.match(puppet.toString(), /^Puppet<PuppetTest>\(/)
+
+  // Test dirty cache invalidation
+  await puppet.contactPayload('c1')
+  assert.ok(puppet.contactPayloadCache('c1'))
+  puppet.onDirty({ payloadId: 'c1', payloadType: PUPPET.types.Dirty.Contact })
+  assert.equal(puppet.contactPayloadCache('c1'), undefined)
+
+  await puppet.roomPayload('r1')
+  assert.ok(puppet.roomPayloadCache('r1'))
+  puppet.onDirty({ payloadId: 'r1', payloadType: PUPPET.types.Dirty.Room })
+  assert.equal(puppet.roomPayloadCache('r1'), undefined)
+
+  await puppet.friendshipPayload('f1')
+  assert.ok(puppet.friendshipPayloadCache('f1'))
+  puppet.onDirty({ payloadId: 'f1', payloadType: PUPPET.types.Dirty.Friendship })
+  assert.equal(puppet.friendshipPayloadCache('f1'), undefined)
+
+  await puppet.messagePayload('m1')
+  assert.ok(puppet.messagePayloadCache('m1'))
+  puppet.onDirty({ payloadId: 'm1', payloadType: PUPPET.types.Dirty.Message })
+  assert.equal(puppet.messagePayloadCache('m1'), undefined)
+
+  await puppet.postPayload('p1')
+  assert.ok(puppet.postPayloadCache('p1'))
+  puppet.onDirty({ payloadId: 'p1', payloadType: PUPPET.types.Dirty.Post })
+  assert.equal(puppet.postPayloadCache('p1'), undefined)
+
+  // Puppet static validation
+  assert.ok(PUPPET.Puppet.valid(puppet))
+  assert.ok(PUPPET.Puppet.validInstance(puppet))
+  assert.ok(PUPPET.Puppet.validInterface(puppet))
+  assert.equal(PUPPET.Puppet.valid({}), false)
+})
+
+test('sayablePayload() and messageSend() conversions', async _t => {
+  const puppet = new PuppetTest()
+
+  // sayablePayload
+  mock.method(puppet, 'messagePayload', async () => ({
+    id: 'm1',
+    type: PUPPET.types.Message.Text,
+    text: 'hello world',
+  }))
+  const sayable = await puppet.sayablePayload('m1')
+  assert.ok(sayable)
+  assert.equal(sayable.type, PUPPET.types.Sayable.Text)
+
+  // messageSend
+  const sendResult = await puppet.messageSend('conv1', sayable)
+  assert.deepEqual(sendResult, { conversationId: 'conv1', text: 'hello world' } as any)
+})
+
+test('auth, scan, and login lifecycle', async _t => {
+  const puppet = new PuppetTest()
+
+  assert.equal(puppet.isLoggedIn, false)
+  assert.equal(puppet.authQrCode, undefined)
+  assert.throws(() => puppet.currentUserId, /not logged in/)
+  assert.equal(puppet.logonoff(), false)
+
+  await puppet.start()
+
+  // Scan events
+  puppet.emit('scan', { qrcode: 'https://qrcode.com', status: PUPPET.types.ScanStatus.Waiting })
+  assert.equal(puppet.authQrCode, 'https://qrcode.com')
+
+  puppet.emit('scan', { qrcode: '', status: PUPPET.types.ScanStatus.Confirmed })
+  assert.equal(puppet.authQrCode, undefined)
+
+  puppet.emit('scan', { qrcode: 'https://timeout.com', status: PUPPET.types.ScanStatus.Timeout })
+  assert.equal(puppet.authQrCode, 'https://timeout.com')
+
+  puppet.emit('scan', { qrcode: '', status: PUPPET.types.ScanStatus.Cancel })
+  assert.equal(puppet.authQrCode, undefined)
+
+  puppet.emit('scan', { qrcode: '', status: PUPPET.types.ScanStatus.Scanned })
+  assert.equal(puppet.authQrCode, undefined)
+
+  puppet.emit('scan', { qrcode: '', status: PUPPET.types.ScanStatus.Unknown })
+  assert.equal(puppet.authQrCode, undefined)
+
+  // Login
+  puppet.login('user-123')
+  assert.equal(puppet.isLoggedIn, true)
+  assert.equal(puppet.currentUserId, 'user-123')
+  assert.equal(puppet.selfId(), 'user-123')
+  assert.equal(puppet.logonoff(), true)
+  assert.throws(() => puppet.login('user-456'), /must logout first/)
+
+  // Idempotent start
+  await puppet.start()
+
+  // Logout
+  await puppet.logout()
+  assert.equal(puppet.isLoggedIn, false)
+
+  // Idempotent logout
+  await puppet.logout()
+
+  await puppet.stop()
+  // Idempotent stop
+  await puppet.stop()
+
+  // Reset when inactive
+  await puppet.reset()
+})
+
+test('searches for contacts, room members, rooms, and friendships', async _t => {
+  const puppet = new PuppetTest()
+
+  mock.method(puppet, 'contactList', async () => ['c1', 'c2'])
+  mock.method(puppet, 'contactPayload', async (id: string) => {
+    if (id === 'non-existent') {
+      throw new Error('not found')
+    }
+    return {
+      id,
+      name: id === 'c1' ? 'Alice' : 'Bob',
+      alias: id === 'c1' ? 'Ally' : 'Bobby',
+      gender: ContactGender.Unknown,
+      type: ContactType.Individual,
+      phone: [],
+      avatar: 'avatar',
+    }
+  })
+
+  // Contact search by string
+  const foundByName = await puppet.contactSearch('Alice')
+  assert.deepEqual(foundByName, ['c1'])
+
+  // Contact search with explicit searchIdList and undefined query
+  const foundWithExplicitList = await puppet.contactSearch('Alice', ['c1', 'c2'])
+  assert.deepEqual(foundWithExplicitList, ['c1'])
+  const allContacts = await puppet.contactSearch()
+  assert.deepEqual(allContacts, ['c1', 'c2'])
+
+  // Contact search by id
+  const foundById = await puppet.contactSearch({ id: 'c1' })
+  assert.deepEqual(foundById, ['c1'])
+
+  const notFoundContact = await puppet.contactSearch({ id: 'non-existent' })
+  assert.deepEqual(notFoundContact, [])
+
+  // Contact filter factory with weixin
+  const wxFilter = puppet.contactQueryFilterFactory({ weixin: 'alice_wx' })
+  assert.equal(typeof wxFilter, 'function')
+
+  // Room search by id
+  mock.method(puppet, 'roomPayload', async (id: string) => {
+    if (id === 'non-existent') {
+      throw new Error('not found')
+    }
+    return {
+      id,
+      topic: 'Test Topic',
+      adminIdList: [],
+      memberIdList: ['c1', 'c2'],
+    }
+  })
+  mock.method(puppet, 'roomList', async () => ['r1'])
+  const foundRoomById = await puppet.roomSearch({ id: 'r1' })
+  assert.deepEqual(foundRoomById, ['r1'])
+
+  const notFoundRoom = await puppet.roomSearch({ id: 'non-existent' })
+  assert.deepEqual(notFoundRoom, [])
+
+  // Room search with undefined query and regex topic
+  const allRooms = await puppet.roomSearch()
+  assert.deepEqual(allRooms, ['r1'])
+  const roomByRegex = await puppet.roomSearch({ topic: /Test/ })
+  assert.deepEqual(roomByRegex, ['r1'])
+
+  // Room member search
+  puppet.login('c1')
+  mock.method(puppet, 'roomMemberList', async () => ['c1', 'c2'])
+  mock.method(puppet, 'roomMemberPayload', async (roomId: string, memberId: string) => ({
+    id: memberId,
+    roomId,
+    name: memberId === 'c1' ? 'Alice' : 'Bob',
+    roomAlias: memberId === 'c1' ? 'Chief' : 'Member',
+    avatar: 'avatar',
+  }))
+
+  const foundYou = await puppet.roomMemberSearch('r1', PUPPET.types.YOU)
+  assert.deepEqual(foundYou, ['c1'])
+
+  const foundMemberByAlias = await puppet.roomMemberSearch('r1', { roomAlias: 'Chief' })
+  assert.deepEqual(foundMemberByAlias, ['c1'])
+
+  const foundMemberByName = await puppet.roomMemberSearch('r1', { name: 'Alice' })
+  assert.deepEqual(foundMemberByName, ['c1'])
+
+  // Room member search with explicit memberIdList and text
+  const foundMemberByText = await puppet.roomMemberSearch('r1', 'Alice', ['c1', 'c2'])
+  assert.deepEqual(foundMemberByText, ['c1'])
+
+  await assert.rejects(async () => puppet.roomMemberSearch('r1', Symbol('unknown')), /unknown symbol/)
+
+  // Friendship search
+  assert.equal(await puppet.friendshipSearch({ phone: '12345' }), '12345')
+  assert.equal(await puppet.friendshipSearch({ handle: 'weixin_handle' }), 'weixin_handle')
+  assert.equal(await puppet.friendshipSearch({ weixin: 'weixin_handle' }), 'weixin_handle')
+  await assert.rejects(async () => puppet.friendshipSearch({} as any), /should only include one key/)
+
+  // Lists
+  assert.ok(Array.isArray(puppet.messageList()))
+  assert.ok(Array.isArray(puppet.postList()))
+
+  // Message search by id, empty query, and regex
+  mock.method(puppet, 'messagePayload', async (id: string) => {
+    if (id === 'm-not-found') {
+      throw new Error('not found')
+    }
+    return { id, type: MessageType.Text, text: 'hello' } as any
+  })
+  assert.deepEqual(await puppet.messageSearch({ id: 'm1' }), ['m1'])
+  assert.deepEqual(await puppet.messageSearch({ id: 'm-not-found' }), [])
+  assert.ok(Array.isArray(await puppet.messageSearch()))
+  assert.ok(Array.isArray(await puppet.messageSearch({ text: /hello/ })))
+})
+
+test('sayablePayload() and messageSend() for all sayable variants', async _t => {
+  const puppet = new PuppetTest()
+
+  // Sayable variants
+  mock.method(puppet, 'messagePayload', async (id: string) => {
+    switch (id) {
+      case 'm-contact':
+        return { id, type: PUPPET.types.Message.Contact }
+      case 'm-location':
+        return { id, type: PUPPET.types.Message.Location }
+      case 'm-url':
+        return { id, type: PUPPET.types.Message.Url }
+      case 'm-mini':
+        return { id, type: PUPPET.types.Message.MiniProgram }
+      case 'm-post':
+        return { id, type: PUPPET.types.Message.Post }
+      case 'm-image':
+        return { id, type: PUPPET.types.Message.Image }
+      default:
+        return { id, type: PUPPET.types.Message.Unknown }
+    }
+  })
+  mock.method(puppet, 'messageContact', async () => 'c1')
+  mock.method(puppet, 'messageLocation', async () => ({ address: 'Beijing' } as any))
+  mock.method(puppet, 'messageUrl', async () => ({ url: 'https://wechaty.js.org' } as any))
+  mock.method(puppet, 'messageMiniProgram', async () => ({ appid: 'mini1' } as any))
+  mock.method(puppet, 'postPayload', async () => ({ id: 'p1' } as any))
+  mock.method(puppet, 'messageFile', async () => ({ name: 'test.png' } as any))
+
+  const sContact = await puppet.sayablePayload('m-contact')
+  assert.equal(sContact?.type, PUPPET.types.Sayable.Contact)
+
+  const sLocation = await puppet.sayablePayload('m-location')
+  assert.equal(sLocation?.type, PUPPET.types.Sayable.Location)
+
+  const sUrl = await puppet.sayablePayload('m-url')
+  assert.equal(sUrl?.type, PUPPET.types.Sayable.Url)
+
+  const sMini = await puppet.sayablePayload('m-mini')
+  assert.equal(sMini?.type, PUPPET.types.Sayable.MiniProgram)
+
+  const sPost = await puppet.sayablePayload('m-post')
+  assert.equal(sPost?.type, PUPPET.types.Sayable.Post)
+
+  const sImage = await puppet.sayablePayload('m-image')
+  assert.equal(sImage?.type, PUPPET.types.Sayable.Attachment)
+
+  const sUnknown = await puppet.sayablePayload('m-unknown')
+  assert.equal(sUnknown, undefined)
+
+  // messageSend variants
+  assert.ok(await puppet.messageSend('conv1', sContact!))
+  assert.ok(await puppet.messageSend('conv1', sLocation!))
+  assert.ok(await puppet.messageSend('conv1', sUrl!))
+  assert.ok(await puppet.messageSend('conv1', sMini!))
+  assert.ok(await puppet.messageSend('conv1', sPost!))
+
+  // Audio / Video / Emoticon sayablePayload
+  for (const type of [PUPPET.types.Message.Audio, PUPPET.types.Message.Video, PUPPET.types.Message.Emoticon]) {
+    mock.method(puppet, 'messagePayload', async () => ({ id: 'm-media', type }))
+    const sMedia = await puppet.sayablePayload('m-media')
+    assert.equal(sMedia?.type, PUPPET.types.Sayable.Attachment)
+  }
+})
+
+test('dirty Unspecified and start/stop failure handling', async _t => {
+  const puppet = new PuppetTest()
+  assert.throws(() => puppet.onDirty({ payloadId: 'x', payloadType: PUPPET.types.Dirty.Unspecified }), /Unspecified type/)
+
+  // Test start exception handling
+  const failingPuppet = new PuppetTest()
+  mock.method(failingPuppet, 'onStart', async () => {
+    throw new Error('boom onStart')
+  })
+  await assert.rejects(async () => failingPuppet.start(), /boom onStart/)
+  assert.equal(failingPuppet.state.inactive(), true)
+
+  // Test stop exception handling
+  const failingStopPuppet = new PuppetTest()
+  failingStopPuppet.on('error', () => {})
+  await failingStopPuppet.start()
+  mock.method(failingStopPuppet, 'onStop', async () => {
+    throw new Error('boom onStop')
+  })
+  await failingStopPuppet.stop()
+  assert.equal(failingStopPuppet.state.inactive(), true)
+})
+

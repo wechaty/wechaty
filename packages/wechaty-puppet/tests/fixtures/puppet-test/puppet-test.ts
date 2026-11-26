@@ -25,7 +25,7 @@ class PuppetTest extends PUPPET.Puppet {
   override async onStop ()  : Promise<void> { }
 
   override async ding (data?: string)   : Promise<void> { return data as any as void }
-  override async logout () : Promise<void> { return {} as any }
+  override async logout (reason?: string) : Promise<void> { return super.logout(reason) }
 
   /**
    *
