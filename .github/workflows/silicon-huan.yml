@@ -241,6 +241,13 @@ jobs:
             const { status, data } = await github.request(`POST ${endpoint}`, { content: 'eyes' })
             // A 200 reuses an existing reaction, which this run does not own.
             if (status === 201) core.setOutput('eyes_id', String(data.id))
+      - name: Pilot fixture fail during setup
+        if: github.event_name == 'workflow_dispatch' && inputs.task == 'pilot-setup-failure'
+        shell: bash
+        run: |
+          sleep 25
+          echo '::error::Intentional setup failure for pilot #3162'
+          exit 1
       - uses: actions/checkout@v5
         with:
           # Automatic reviews inspect the PR through GitHub from a trusted checkout.
@@ -290,6 +297,7 @@ jobs:
         id: agent
         shell: bash
         env:
+          PILOT_TASK: ${{ inputs.task }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_PERSONAL_ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
           ANTIGRAVITY_AUTH_JSON: ${{ secrets.ANTIGRAVITY_AUTH_JSON }}
@@ -301,6 +309,11 @@ jobs:
           PROGRESS_URL: ${{ steps.progress.outputs.url }}
         run: |
           set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch && "$PILOT_TASK" == pilot-agent-cancellation ]]; then
+            echo 'Waiting for the pilot cancellation before invoking the model.'
+            sleep 300
+            exit 1
+          fi
           umask 077
           private_dir="$(mktemp -d "$RUNNER_TEMP/antigravity-next.XXXXXX")"
           cleanup() {
