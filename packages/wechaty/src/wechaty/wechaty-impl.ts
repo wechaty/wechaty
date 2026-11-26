@@ -36,7 +36,7 @@ class WechatyImpl extends validationMixin(WechatyImplBase)<WechatyInterface>() {
  */
 
 type AllProtectedProperty =
-  | Exclude<keyof EventEmitter, symbol>  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
+  | Exclude<keyof EventEmitter, symbol | 'next' | 'events'>  // Huan(202110): remove all EventEmitter first, and added typed event emitter later: or will get error
   | WechatyMixinProtectedProperty
   | WechatyBaseProtectedProperty
   | WechatySkeletonProtectedProperty

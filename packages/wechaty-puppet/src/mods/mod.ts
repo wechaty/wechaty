@@ -43,8 +43,10 @@ import {
   log,
 }                             from '../config.ts'
 import {
+  WechatyEvent,
+  WechatyEventTarget,
   EventEmitter,
-}                             from '../events/event-emitter.ts'
+}                             from '../events/event-target.ts'
 import type {
   PuppetOptions,
 }                             from '../schemas/puppet.ts'
@@ -60,6 +62,8 @@ export type {
 }
 export {
   EventEmitter,
+  WechatyEvent,
+  WechatyEventTarget,
   log,
   Puppet,
   throwUnsupportedError,

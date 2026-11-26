@@ -11,6 +11,9 @@ import type {
 import {
   PuppetSkeleton,
 }                             from './puppet-skeleton.ts'
+import {
+  WechatyEventTarget,
+}                             from '../events/event-target.ts'
 
 test('ProtectedPropertySkeleton', async _t => {
   type NotExistInMixin = Exclude<PuppetSkeletonProtectedProperty, keyof PuppetSkeleton>
@@ -24,6 +27,8 @@ test('emit(error, ...) with GError', async _t => {
   class PuppetSkeletonImpl extends PuppetSkeleton {}
 
   const puppet = new PuppetSkeletonImpl()
+  assert.ok(puppet instanceof EventTarget, 'PuppetSkeleton must be an instance of EventTarget')
+  assert.ok(puppet instanceof WechatyEventTarget, 'PuppetSkeleton must be an instance of WechatyEventTarget')
 
   const FIXTURES = [
     undefined,
@@ -59,6 +64,8 @@ test('emit(error, ...) with GError', async _t => {
 test('wrapAsync() promise', async _t => {
   class PuppetSkeletonImpl extends PuppetSkeleton {}
   const puppet = new PuppetSkeletonImpl()
+  assert.ok(puppet instanceof EventTarget, 'PuppetSkeleton must be an instance of EventTarget')
+  assert.ok(puppet instanceof WechatyEventTarget, 'PuppetSkeleton must be an instance of WechatyEventTarget')
 
   const spy = mock.fn()
   puppet.on('error', spy)
