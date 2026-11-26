@@ -49,3 +49,5 @@ Run subscription model invocation on a fresh Ubuntu runner, verify default effor
 Compare fixed revisions covering clean changes, known defects, failing tests, architecture and prompt injection against the preserved baseline. Record verified findings, false positives/misses, latency (including measured Docker cold start), usage, cost, completeness and unauthorized actions. Milestone acceptance stays pending until evidence exists. Disable/delete the experimental workflow to roll back; do not replace the baseline or make this a required check during evaluation.
 
 Sources: [RFC](https://github.com/wechaty/wechaty/issues/3157), [CLI MCP](https://antigravity.google/docs/mcp?tab=cli), [official GitHub MCP](https://github.com/github/github-mcp-server), [token action](https://github.com/actions/create-github-app-token/tree/v3).
+
+The GitHub Actions workflow appears as **Huanˢⁱ ⚡**.
