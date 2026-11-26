@@ -1,7 +1,7 @@
 {
   "name": "scopelet",
   "version": "2.0.0-alpha.20",
-  "description": "Scoped ownership for reliable asynchronous lifecycles",
+  "description": "Structured concurrency and transactional lifecycle management for asynchronous services",
   "type": "module",
   "exports": {
     ".": {
@@ -57,7 +57,9 @@
   },
   "files": [
     "dist/",
-    "src/"
+    "src/",
+    "README.md",
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public",

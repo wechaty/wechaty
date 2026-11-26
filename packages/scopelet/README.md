@@ -1,24 +1,516 @@
 # scopelet
 
-Scoped ownership for reliable asynchronous lifecycles.
+> Stop wrestling with boolean flags and dangling timers — **scopelet** brings structured concurrency and transactional lifecycle management to JavaScript and TypeScript services.
+
+[![npm version](https://img.shields.io/npm/v/scopelet/next.svg)](https://www.npmjs.com/package/scopelet)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/wechaty/wechaty/blob/main/LICENSE)
+[![Runtime](https://img.shields.io/badge/runtime-Node.js%20%7C%20Deno-brightgreen.svg)](https://nodejs.org)
 
 ```sh
 npm install scopelet@next
 ```
 
 ```ts
-import { createLifecycle } from 'scopelet'
+import { createLifecycle, AsyncLifecycle } from 'scopelet'
 ```
 
 Node.js 26 or newer, ESM only, no runtime dependencies. The package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty) at `packages/scopelet` and releases in lockstep with it. The rest of this file is its contract.
 
-One lifecycle module for every async layer of Wechaty: `Wechaty`, `Puppet`, `PuppetService`, `PuppetServer` and `Io`. It replaces `state-switch` and hand-written `start` / `stop` / `reset` (#2905).
+One lifecycle module for every async layer of Wechaty: `Wechaty`, `Puppet`, `PuppetService`, `PuppetServer` and `Io`. It replaces `state-switch` and hand-written `start` / `stop` / `reset` ([#2905](https://github.com/wechaty/wechaty/issues/2905)).
 
 **Status: implemented and validated** through stage S5 of the convergence plan in [#2968](https://github.com/wechaty/wechaty/issues/2968): the kernel (S4, [#2972](https://github.com/wechaty/wechaty/issues/2972)) passes this contract under Node.js and Deno, and the `Io`, `Puppet` and `Wechaty` examples run on it (S5, [#2973](https://github.com/wechaty/wechaty/issues/2973)). It moved out of `wechaty` (where it was `wechaty/async-lifecycle`) into this package in [#3021](https://github.com/wechaty/wechaty/issues/3021) (D20, D44), so that `wechaty-puppet` can adopt it.
 
 > **Experimental.** The API of `scopelet` may still change in a breaking way before Wechaty 2.0 is final; do not depend on it outside Wechaty yet. Its only adopters are `Io` and `IoClient` ([#3022](https://github.com/wechaty/wechaty/issues/3022)). Migrating the other layers ([#2905](https://github.com/wechaty/wechaty/issues/2905)) comes next; [`TODO.md`](https://github.com/wechaty/wechaty/blob/main/TODO.md) at the repository root records the state.
 
-**How to read this file.** Each rule has an ID such as `C-CMD-04`. Tests cite these IDs, and so does the TSDoc in `types.ts`. To change a rule, change it here, give it a decision ID in #2968 §6, and update the tests that cite it. `D…` IDs refer to the decision log in #2968.
+## Why Your Async Services Leak (And How to Fix Them)
+
+Every developer building background daemons, long-lived clients, or bot frameworks in JavaScript and TypeScript eventually encounters the same subtle production failures:
+
+- **The Zombie Callback:** An asynchronous reconnect callback fires 30 seconds after a service was "stopped", creating a dangling connection that leaks memory and corrupts data.
+- **The Teardown Race:** A rapid `start() -> stop() -> start()` sequence executes concurrently, causing two generations of the service to interleave and bind to the same resources.
+- **The Half-Closed Socket:** Sockets and intervals remain active during process shutdown because cleanup logic was skipped or failed partway through.
+- **The Brittle Boolean Flag:** Managing `this.isStarting`, `this.isStarted`, and `this.isStopping` booleans quickly degenerates into an unmaintainable distributed state machine.
+
+### The Solution: Structured Lifecycle Concurrency
+
+`scopelet` solves these challenges by treating service lifecycles like database transactions with structured concurrency:
+
+1. **Intent-Driven Reconciler:** Callers only express high-level *intent* (`start()`, `stop()`, `restart()`). A single internal reconciler engine processes commands sequentially, guaranteeing that conflicting commands never race or overlap.
+2. **Generational Scoping:** Every start attempt creates a unique *generation number* and an isolated, frozen `LifecycleScope`. Callbacks from past generations hold sealed scopes and are physically prevented from mutating newer generations.
+3. **Deterministic LIFO Ownership Ledger:** Resources acquired through `scope.acquire()`, `scope.use()`, or `scope.defer()` are tracked in an ownership ledger and automatically torn down in strict reverse (LIFO) order upon shutdown.
+4. **Cooperative Cancellation:** Every generation provides a standard `AbortSignal` that cancels background tasks and in-flight operations gracefully during retirement.
+5. **Hierarchical Supervision:** Parents can safely supervise children via `scope.start(child)`. If a child fails or ungracefully stops, the failure automatically escalates to the parent.
+
+## Table of Contents
+
+- [Why Your Async Services Leak (And How to Fix Them)](#why-your-async-services-leak-and-how-to-fix-them)
+  - [The Solution: Structured Lifecycle Concurrency](#the-solution-structured-lifecycle-concurrency)
+- [Quick Start](#quick-start)
+  - [Pattern A: Inheritance (`AsyncLifecycle`)](#pattern-a-inheritance-asynclifecycle)
+  - [Pattern B: Composition (`createLifecycle`)](#pattern-b-composition-createlifecycle)
+- [Real-World Case Studies](#real-world-case-studies)
+  - [Case Study 1: Resilient WebSocket Client (`Io`)](#case-study-1-resilient-websocket-client-io)
+  - [Case Study 2: Service Provider with Conditions and In-Flight Operations (`Puppet`)](#case-study-2-service-provider-with-conditions-and-in-flight-operations-puppet)
+  - [Case Study 3: Bot Supervisor with Owned Children (`Wechaty`)](#case-study-3-bot-supervisor-with-owned-children-wechaty)
+- [Installation and Runtime Support](#installation-and-runtime-support)
+- [1. Model in one paragraph](#1-model-in-one-paragraph)
+- [2. API at a glance](#2-api-at-a-glance)
+- [3. State](#3-state)
+- [4. Commands](#4-commands)
+- [5. Promise contracts](#5-promise-contracts)
+- [6. Scope](#6-scope)
+- [7. Retirement](#7-retirement)
+- [8. Deadlines](#8-deadlines)
+- [9. Failure and recovery](#9-failure-and-recovery)
+- [10. Children](#10-children)
+- [11. Conditions](#11-conditions)
+- [12. Observers and diagnostics](#12-observers-and-diagnostics)
+- [13. Entry points](#13-entry-points)
+- [14. Errors](#14-errors)
+- [15. Companions](#15-companions)
+- [16. Decisions in this document](#16-decisions-in-this-document)
+- [17. Not in this module](#17-not-in-this-module)
+- [18. Internal components](#18-internal-components)
+- [Author and Credits](#author-and-credits)
+- [License](#license)
+
+## Quick Start
+
+### Pattern A: Inheritance (`AsyncLifecycle`)
+
+Extend `AsyncLifecycle` when your class does not already extend another base class:
+
+```ts
+import { AsyncLifecycle, listen, type LifecycleScope } from 'scopelet'
+
+// Helper: cancellable sleep timer
+function delay (ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.reject(signal.reason)
+  if (ms <= 0) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer)
+      reject(signal.reason)
+    }
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+
+export class MetricCollector extends AsyncLifecycle {
+
+  #server?: SomeServer
+
+  constructor () {
+    super({
+      name: 'MetricCollector',
+      startTimeoutMs: 5_000,
+      stopTimeoutMs: 5_000,
+    })
+  }
+
+  protected override async onStart (scope: LifecycleScope): Promise<void> {
+    // 1. Acquire resource with deterministic teardown and interrupt
+    this.#server = await scope.acquire(
+      async () => startServer(8080),
+      async (server) => server.close(),
+      { interrupt: (server) => server.terminate() },
+    )
+
+    // 2. Attach auto-cleaned event listeners
+    listen(scope, this.#server, 'error', (err) => {
+      scope.fail(err)
+    })
+
+    // 3. Spawn cancellable background tasks
+    scope.spawn(async (signal) => {
+      while (!signal.aborted) {
+        await reportMetrics(signal)
+        await delay(10_000, signal)
+      }
+    })
+  }
+
+}
+```
+
+### Pattern B: Composition (`createLifecycle`)
+
+Use `createLifecycle` when your class extends another class (such as `EventEmitter`):
+
+```ts
+import {
+  createLifecycle,
+  type Lifecycle,
+  type LifecycleController,
+  type LifecycleScope,
+  type LifecycleState,
+  type LifecycleWaitOptions,
+} from 'scopelet'
+
+export class DatabaseService implements Lifecycle {
+
+  readonly #lifecycle: LifecycleController
+  #pool?: ConnectionPool
+
+  constructor () {
+    this.#lifecycle = createLifecycle({
+      onStart: async (scope: LifecycleScope) => {
+        this.#pool = await scope.acquire(
+          async () => ConnectionPool.connect({ max: 10 }),
+          async (pool) => pool.drain(),
+          { interrupt: (pool) => pool.destroy() },
+        )
+      },
+      onStop: async () => {
+        this.#pool = undefined
+      },
+    }, {
+      name: 'DatabaseService',
+      startTimeoutMs: 10_000,
+      stopTimeoutMs: 5_000,
+    })
+  }
+
+  get pool (): ConnectionPool | undefined {
+    return this.#pool
+  }
+
+  get state (): LifecycleState {
+    return this.#lifecycle.state
+  }
+
+  start (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#lifecycle.start(options)
+  }
+
+  stop (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#lifecycle.stop(options)
+  }
+
+  restart (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#lifecycle.restart(options)
+  }
+
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> {
+    return this.#lifecycle.whenState(predicate, options)
+  }
+
+  [Symbol.asyncDispose] (): Promise<void> {
+    return this.#lifecycle[Symbol.asyncDispose]()
+  }
+
+}
+```
+
+## Real-World Case Studies
+
+### Case Study 1: Resilient WebSocket Client (`Io`)
+
+*Adoption status: Migrated in [#3022](https://github.com/wechaty/wechaty/issues/3022).*
+
+In `Io` (the network gateway of Wechaty), network disconnections must recover cleanly without leaking background timers or hanging ungracefully:
+
+```ts
+import { AsyncLifecycle, listen, type LifecycleScope } from 'scopelet'
+
+interface SocketLike {
+  on (event: 'close', listener: () => void): void
+  off (event: 'close', listener: () => void): void
+  ping (): void
+  terminate (): void
+  close (): Promise<void>
+}
+
+export interface IoOptions {
+  readonly url: string
+  readonly openSocket: (url: string, signal: AbortSignal) => Promise<SocketLike>
+}
+
+function delay (ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.reject(signal.reason)
+  if (ms <= 0) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer)
+      reject(signal.reason)
+    }
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+
+function backoffMs (failures: number): number {
+  return failures === 0 ? 0 : Math.min(30_000, 1_000 * 2 ** (failures - 1))
+}
+
+export class Io extends AsyncLifecycle {
+
+  readonly #options: IoOptions
+  #failures = 0
+
+  constructor (options: IoOptions) {
+    super({ name: 'Io', stopTimeoutMs: 5_000 })
+    this.#options = options
+  }
+
+  protected override async onStart (scope: LifecycleScope): Promise<void> {
+    const socket = await this.#connect(scope)
+
+    // Detached automatically on retirement
+    listen(scope, socket, 'close', () => {
+      this.#failures++
+      // Triggers generation recovery without leaking old callbacks
+      scope.recover(new Error('socket closed'))
+    })
+
+    // Background keepalive ping cancelled automatically on abort
+    scope.spawn(async (signal: AbortSignal) => {
+      while (!signal.aborted) {
+        socket.ping()
+        await delay(10_000, signal)
+      }
+    })
+
+    this.#failures = 0
+  }
+
+  async #connect (scope: LifecycleScope): Promise<SocketLike> {
+    for (;;) {
+      await delay(backoffMs(this.#failures), scope.signal)
+      try {
+        return await scope.acquire(
+          (signal: AbortSignal) => this.#options.openSocket(this.#options.url, signal),
+          (socket: SocketLike) => socket.close(),
+          { interrupt: (socket: SocketLike) => socket.terminate() },
+        )
+      } catch (error) {
+        if (scope.signal.aborted) throw error
+        this.#failures++
+      }
+    }
+  }
+
+}
+```
+
+### Case Study 2: Service Provider with Conditions and In-Flight Operations (`Puppet`)
+
+*Adoption status: Planned in [#3024](https://github.com/wechaty/wechaty/issues/3024).*
+
+`Puppet` wraps provider drivers that authenticate asynchronously and send messages. It leverages the generation-bound `ready` condition, wraps in-flight calls with `operation`, and manages provider shutdown via `scope.defer()` and abort listeners:
+
+```ts
+import { EventEmitter } from 'node:events'
+import {
+  createLifecycle,
+  listen,
+  operation,
+  LifecycleUnsafeStateError,
+  type Lifecycle,
+  type LifecycleController,
+  type LifecycleScope,
+  type LifecycleState,
+  type LifecycleWaitOptions,
+  type LifecycleCondition,
+} from 'scopelet'
+
+export abstract class Puppet extends EventEmitter implements Lifecycle {
+
+  readonly #lifecycle: LifecycleController
+  readonly #ready: LifecycleCondition
+  #scope?: LifecycleScope
+
+  constructor () {
+    super()
+    this.#lifecycle = createLifecycle({
+      onStart: (scope: LifecycleScope) => this.#start(scope),
+      onStateChange: (state: LifecycleState) => {
+        if (state.kind === 'failed' && this.listenerCount('error') > 0) {
+          this.emit('error', state.error)
+        }
+      },
+    }, { name: 'Puppet', startTimeoutMs: 15_000, stopTimeoutMs: 15_000 })
+    this.#ready = this.#lifecycle.condition('ready')
+  }
+
+  protected abstract onStart (): Promise<void>
+  protected abstract onStop (): Promise<void>
+  protected abstract messageSendText (conversationId: string, text: string, signal: AbortSignal): Promise<string>
+
+  async #start (scope: LifecycleScope): Promise<void> {
+    let stopping: Promise<void> | undefined
+    const stopProvider = (): Promise<void> => (stopping ??= (async () => this.onStop())())
+
+    // Roll back provider on failure via deferred cleanup (C-RET-03)
+    scope.defer(async () => {
+      try {
+        await stopProvider()
+      } catch (error) {
+        stopping = undefined
+        throw error
+      }
+    })
+
+    // Early-abort handling if startup is aborted
+    let started = false
+    scope.signal.addEventListener('abort', () => {
+      if (!started) {
+        stopProvider().catch(() => {})
+      }
+    }, { once: true })
+
+    listen(scope, this, 'ready', () => scope.set(this.#ready))
+
+    await this.onStart()
+    started = true
+    this.#scope = scope
+  }
+
+  ready (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#ready.wait(options)
+  }
+
+  // Guarded in-flight operation: awaited before provider shutdown (C-COMP-03, D24)
+  send (conversationId: string, text: string): Promise<string> {
+    if (!this.#scope) {
+      return Promise.reject(new LifecycleUnsafeStateError('Puppet not started'))
+    }
+    return operation(this.#scope, (signal: AbortSignal) =>
+      this.messageSendText(conversationId, text, signal),
+    )
+  }
+
+  // Composed Lifecycle interface members
+  get state (): LifecycleState { return this.#lifecycle.state }
+  start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
+  stop (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.stop(options) }
+  restart (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.restart(options) }
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> { return this.#lifecycle.whenState(predicate, options) }
+  [Symbol.asyncDispose] (): Promise<void> { return this.stop() }
+
+}
+```
+
+### Case Study 3: Bot Supervisor with Owned Children (`Wechaty`)
+
+*Adoption status: Planned in [#3023](https://github.com/wechaty/wechaty/issues/3023).*
+
+`Wechaty` manages its underlying `Puppet` and `Io` as owned children with hierarchical supervision, delegating readiness while handling parent cancellation (§11, §13):
+
+```ts
+import { EventEmitter } from 'node:events'
+import {
+  createLifecycle,
+  listen,
+  LifecycleSupersededError,
+  type Lifecycle,
+  type LifecycleController,
+  type LifecycleScope,
+  type LifecycleState,
+  type LifecycleWaitOptions,
+} from 'scopelet'
+
+export class Wechaty extends EventEmitter implements Lifecycle {
+
+  readonly puppet: Puppet
+  readonly io?: Io
+  readonly #lifecycle: LifecycleController
+  #readyWaits = new AbortController()
+
+  constructor (puppet: Puppet, io?: Io) {
+    super()
+    this.puppet = puppet
+    this.io = io
+    this.#lifecycle = createLifecycle({
+      onStart: (scope: LifecycleScope) => this.#start(scope),
+      onStateChange: (state: LifecycleState) => {
+        if (state.kind === 'failed') {
+          this.#cancelReadyWaits(
+            new LifecycleSupersededError('the bot failed before the puppet was ready', { cause: state.error }),
+          )
+        }
+      },
+    }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
+  }
+
+  async #start (scope: LifecycleScope): Promise<void> {
+    // Forward ready event
+    listen(scope, this.puppet, 'ready', () => this.emit('ready'))
+
+    // Children start in sequence and stop in LIFO reverse order (C-CHILD-04)
+    await scope.start(this.puppet)
+    if (this.io) {
+      await scope.start(this.io)
+    }
+  }
+
+  #cancelReadyWaits (reason: unknown): void {
+    this.#readyWaits.abort(reason)
+    this.#readyWaits = new AbortController()
+  }
+
+  // Delegated ready wait: rejects if parent stops or fails before puppet is ready (§11)
+  ready (options?: LifecycleWaitOptions): Promise<void> {
+    const signal = options?.signal
+      ? AbortSignal.any([ options.signal, this.#readyWaits.signal ])
+      : this.#readyWaits.signal
+    return this.puppet.ready({ signal })
+  }
+
+  // Composed Lifecycle interface members
+  get state (): LifecycleState { return this.#lifecycle.state }
+  start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
+  stop (options?: LifecycleWaitOptions): Promise<void> {
+    if (!options?.signal?.aborted) {
+      this.#cancelReadyWaits(new LifecycleSupersededError('Wechaty stopped before puppet ready'))
+    }
+    return this.#lifecycle.stop(options)
+  }
+  restart (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.restart(options) }
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> { return this.#lifecycle.whenState(predicate, options) }
+  [Symbol.asyncDispose] (): Promise<void> { return this.stop() }
+
+}
+
+// Usage with standard Symbol.asyncDispose
+export async function main (bot: Wechaty): Promise<void> {
+  await using activeBot = bot
+  await Promise.all([ activeBot.ready(), activeBot.start() ])
+  // Automatically stopped when block exits, even on unexpected throw!
+}
+```
+
+## Installation and Runtime Support
+
+```sh
+npm install scopelet@next
+```
+
+### Runtime Support
+
+- **Node.js**: Version 26 or newer (requires native ESM and modern timer and diagnostics APIs).
+- **Deno**: Experimental compatibility (validated against Deno 2.x in CI).
+- **Single-Realm Protection**: Within a JavaScript realm, child lifecycle ownership is guarded by a shared registry on `globalThis` under `Symbol.for('scopelet.owned-children')` (C-CHILD-02).
+- **Cross-Realm Boundaries**: Cross-realm ownership (e.g. crossing Node.js `node:vm` contexts or iframes) is explicitly unsupported per C-CHILD-02.
+- **Zero Dependencies**: Pure standard JavaScript and TypeScript with zero external runtime dependencies.
+
+**How to read this contract.** Each rule has an ID such as `C-CMD-04`. Tests cite these IDs, and so does the TSDoc in `types.ts`. To change a rule, change it here, give it a decision ID in #2968 §6, and update the tests that cite it. `D…` IDs refer to the decision log in #2968.
 
 ## 1. Model in one paragraph
 
@@ -342,3 +834,12 @@ Rules the engine keeps, from its own header:
 - **One retirement path.** Stop, restart, recover, failure and cleanup retry all go through the same retirement, which settles caller waits before observers see the new snapshot.
 - **Cleanup truth.** Completion is read back from the ledgers and the hook promises, never inferred from "no error" or from a deadline.
 - **Deadlines are judged by the clock.** A deadline's timer only wakes the reconciler; every commit of an outcome a deadline bounds first checks `clock.now()` against it (C-TIME-05, D30).
+
+## Author and Credits
+
+- **Huan Li** ([@huan](https://github.com/huan)), Wechaty Project Author.
+- Based on the Wechaty AsyncLifecycle architecture and structured concurrency convergence plan ([#2968](https://github.com/wechaty/wechaty/issues/2968)).
+
+## License
+
+Apache-2.0
