@@ -10,20 +10,15 @@ type AssertEqual<T, Expected> = T extends Expected ? (Expected extends T ? true 
 import {
   Observable,
   firstValueFrom,
-  fromEvent as rxFromEvent,
+  fromEvent,
 }                             from 'rxjs'
-import type {
-  FromEvent,
-}                             from 'typed-emitter/rxjs/index.js'
-// import type {
-//   JQueryStyleEventEmitter,
-// } from 'rxjs/internal/observable/fromEvent.js'
 
 import type {
   EventScanPayload,
 }                         from '../../src/schemas/mod.ts'
-import type {
-  PuppetCustomEvent,
+import {
+  type PuppetCustomEvent,
+  WechatyEvent,
 }                         from '../../src/puppet/events.ts'
 import {
   ScanStatus,
@@ -31,11 +26,7 @@ import {
 
 import { PuppetTest } from '../fixtures/puppet-test/puppet-test.ts'
 
-/**
- * Huan(202111): fromEvent + typed-emitter/rxjs
- * @see https://github.com/andywer/typed-emitter/pull/19
- */
-const fromEvent: FromEvent = rxFromEvent
+// Standard RxJS fromEvent supports WinterTC EventTarget directly
 
 // test('Puppet satisfy DOM EventTarget: HasEventTargetAddRemove', async t => {
 //   const puppet = new PuppetTest()
@@ -71,7 +62,7 @@ test('RxJS: fromEvent type inference and CustomEvent delivery', async _t => {
   }
 
   const futureCustomEvent = firstValueFrom(customEvent$)
-  puppet.emit('scan', payload)
+  puppet.dispatchEvent(new WechatyEvent('scan', { detail: payload }))
   const customEventResult = await futureCustomEvent
 
   assert.ok(customEventResult instanceof CustomEvent, 'should deliver CustomEvent from EventTarget')
@@ -83,7 +74,7 @@ test('RxJS: fromEvent type inference and CustomEvent delivery', async _t => {
   assert.ok(typeTest, 'Observable should be typed as EventScanPayload with resultSelector')
 
   const futureMapped = firstValueFrom(mapped$)
-  puppet.emit('scan', payload)
+  puppet.dispatchEvent(new WechatyEvent('scan', { detail: payload }))
   const mappedResult = await futureMapped
   assert.deepEqual(mappedResult, payload, 'mapped observable should emit unwrapped payload')
 })

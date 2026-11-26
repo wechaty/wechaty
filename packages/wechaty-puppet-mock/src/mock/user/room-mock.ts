@@ -2,7 +2,7 @@
  * `RoomMock`: a mocked room whose `say()` sends messages through its `Mocker`.
  * `mockerifyRoomMock()` binds the class to one Mocker.
  */
-import type * as PUPPET from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
 
 import type { Mocker } from '../mocker.ts'
 import { log } from '../../config.ts'
@@ -111,7 +111,9 @@ class RoomMock extends RoomEventEmitter {
         roomId    : that.payload.id,
         timestamp : Date.now(),
       }
-      that.mocker.puppet.emit('room-topic', payload)
+      that.mocker.puppet.dispatchEvent(new PUPPET.WechatyEvent('room-topic', {
+        detail: payload,
+      }))
       that.payload.topic = text
     }
   }
@@ -140,7 +142,9 @@ class RoomMock extends RoomEventEmitter {
         timestamp     : Date.now(),
       }
 
-      that.mocker.puppet.emit('room-join', payload)
+      that.mocker.puppet.dispatchEvent(new PUPPET.WechatyEvent('room-join', {
+        detail: payload,
+      }))
     }
   }
 
@@ -174,7 +178,9 @@ class RoomMock extends RoomEventEmitter {
         timestamp     : Date.now(),
       }
 
-      that.mocker.puppet.emit('room-leave', payload)
+      that.mocker.puppet.dispatchEvent(new PUPPET.WechatyEvent('room-leave', {
+        detail: payload,
+      }))
     }
 
   }

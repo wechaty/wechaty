@@ -384,7 +384,7 @@ export class WechatyEventTarget extends EventTarget {
         if (signal) {
           signal.removeEventListener('abort', onAbort)
         }
-        const detail = (event as CustomEvent<T>).detail !== undefined
+        const detail = 'detail' in event
           ? (event as CustomEvent<T>).detail
           : (event as any)
         resolve(detail)
@@ -440,7 +440,7 @@ export class WechatyEventTarget extends EventTarget {
 
     const onEvent = (event: Event) => {
       if (closed) return
-      const detail: T = (event as CustomEvent<T>).detail !== undefined
+      const detail: T = 'detail' in event
         ? (event as CustomEvent<T>).detail
         : (event as any)
 

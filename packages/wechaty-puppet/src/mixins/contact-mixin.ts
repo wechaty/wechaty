@@ -17,6 +17,7 @@ import type {
   ContactQueryFilter,
 }                                 from '../schemas/contact.ts'
 import { DirtyType } from '../schemas/dirty.ts'
+import { WechatyEvent } from '../events/event-target.ts'
 
 import type { CacheMixin }    from './cache-mixin.ts'
 
@@ -159,7 +160,7 @@ const contactMixin = <MixinBase extends CacheMixin & typeof PuppetSkeleton>(mixi
           }
 
         } catch (e) {
-          this.emit('error', e)
+          this.dispatchEvent(new WechatyEvent('error', { detail: e }))
           await this.contactPayloadDirty(id)
         }
         return undefined

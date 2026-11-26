@@ -9,6 +9,7 @@ import {
 
 import type { PuppetScanListener }  from '../puppet/events.ts'
 import type { PuppetSkeleton }      from '../puppet/puppet-skeleton.ts'
+import { WechatyEvent }             from '../events/event-target.ts'
 import { ScanStatus }               from '../schemas/event.ts'
 
 const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
@@ -90,10 +91,12 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
       log.verbose('PuppetLoginMixin', 'stop()')
       // await this.logout()
       if (this.isLoggedIn) {
-        this.emit('logout', {
-          contactId: this.currentUserId,
-          data: 'puppet stop()',
-        })
+        this.dispatchEvent(new WechatyEvent('logout', {
+          detail: {
+            contactId: this.currentUserId,
+            data: 'puppet stop()',
+          },
+        }))
         await new Promise<void>(resolve => setTimeout(() => {
           this.__currentUserId = undefined
           resolve()
@@ -116,7 +119,9 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
       }
       this.__currentUserId = userId
 
-      this.emit('login', { contactId: userId })
+      this.dispatchEvent(new WechatyEvent('login', {
+        detail: { contactId: userId },
+      }))
     }
 
     /**
@@ -133,10 +138,12 @@ const loginMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBas
         return
       }
 
-      this.emit('logout', {
-        contactId : this.currentUserId,
-        data      : reason,
-      })
+      this.dispatchEvent(new WechatyEvent('logout', {
+        detail: {
+          contactId : this.currentUserId,
+          data      : reason,
+        },
+      }))
 
       /**
        * Huan(202111): We postpone the `this._currentUserId = undefined` to here,
