@@ -537,6 +537,7 @@ jobs:
               // A ref update near the POST may take time to reach the PR metadata API.
               await new Promise(resolve => setTimeout(resolve, 8000))
               current = await isCurrent()
+              if (!current) core.notice('Delayed postflight detected a revision change.')
             }
             verdict = (await github.rest.pulls.getReview(target)).data
             if (verdict.state === 'DISMISSED') {
