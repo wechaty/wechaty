@@ -193,6 +193,10 @@ abstract class PuppetImpl extends PuppetSkeleton {
     return this.#authQrCode
   }
 
+  set __authQrCode (code: string | undefined) {
+    this.#authQrCode = code
+  }
+
   login (userId: string): void {
     log.verbose('Puppet', 'login(%s)', userId)
     if (this.#currentUserId) {
@@ -522,6 +526,7 @@ abstract class PuppetImpl extends PuppetSkeleton {
         fn()
       }
     }
+    this.#authQrCode = undefined
 
     try {
       await super.stop()
@@ -898,7 +903,7 @@ abstract class PuppetImpl extends PuppetSkeleton {
 
     this.#cache.roomMember.set(roomId, {
       ...cachedPayload,
-      memberId: payload,
+      [memberId]: payload,
     })
     return payload
   }

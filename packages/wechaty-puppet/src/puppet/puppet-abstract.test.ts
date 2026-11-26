@@ -845,3 +845,28 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
   assert.equal(failingStopPuppet.state.inactive(), true)
 })
 
+test('roomMemberPayload caches by memberId and stop() resets authQrCode', async _t => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+
+  // Verify roomMemberPayload caching by memberId
+  mock.method(puppet, 'roomMemberRawPayload', async () => ({ id: 'c1', name: 'Member One' }))
+  mock.method(puppet, 'roomMemberRawPayloadParser', async (raw: any) => ({
+    avatar: 'avatar1',
+    id: raw.id,
+    name: raw.name,
+  }))
+
+  const memberPayload = await puppet.roomMemberPayload('room1', 'c1')
+  assert.equal(memberPayload.name, 'Member One')
+  const cached = puppet.cache.roomMember.get('room1')
+  assert.deepEqual(cached?.['c1'], memberPayload, 'roomMember cache should hit using computed memberId key')
+
+  // Verify authQrCode set via scan and reset on stop()
+  puppet.emit('scan', { qrcode: 'https://login-qrcode', status: PUPPET.types.ScanStatus.Waiting })
+  assert.equal(puppet.authQrCode, 'https://login-qrcode')
+  await puppet.stop()
+  assert.equal(puppet.authQrCode, undefined, 'authQrCode must be cleared after stop()')
+})
+
+
