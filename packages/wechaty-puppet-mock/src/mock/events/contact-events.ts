@@ -40,7 +40,7 @@ export interface ContactEvents {
   message: ContactMessageEventListener
 }
 
-export interface ContactEventEmitterInterface extends WechatyEventTarget {
+export interface ContactEventTargetInterface {
   addEventListener<E extends ContactEventName>(
     type: E,
     listener: ContactEventTargetListener<E>,
@@ -83,5 +83,28 @@ export interface ContactEventEmitterInterface extends WechatyEventTarget {
     options?: EventIteratorOptions,
   ): AsyncIterable<T>
 }
+
+export interface ContactEventEmitterMethods {
+  addListener<E extends keyof ContactEvents> (event: E, listener: ContactEvents[E]): this
+  on<E extends keyof ContactEvents> (event: E, listener: ContactEvents[E]): this
+  once<E extends keyof ContactEvents> (event: E, listener: ContactEvents[E]): this
+  prependListener<E extends keyof ContactEvents> (event: E, listener: ContactEvents[E]): this
+  prependOnceListener<E extends keyof ContactEvents> (event: E, listener: ContactEvents[E]): this
+
+  off<E extends keyof ContactEvents> (event: E, listener: ContactEvents[E]): this
+  removeAllListeners<E extends keyof ContactEvents> (event?: E): this
+  removeListener<E extends keyof ContactEvents> (event: E, listener: ContactEvents[E]): this
+
+  emit (event: 'message', message: MessageMock, date?: Date): boolean
+  eventNames (): (keyof ContactEvents | string | symbol)[]
+  rawListeners<E extends keyof ContactEvents> (event: E): Function[]
+  listeners<E extends keyof ContactEvents> (event: E): Function[]
+  listenerCount<E extends keyof ContactEvents> (event: E): number
+
+  getMaxListeners (): number
+  setMaxListeners (maxListeners: number): this
+}
+
+export type ContactEventEmitterInterface = ContactEventEmitterMethods & ContactEventTargetInterface & WechatyEventTarget
 
 export const ContactEventEmitter = WechatyEventTarget as unknown as new () => ContactEventEmitterInterface

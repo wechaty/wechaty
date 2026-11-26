@@ -47,6 +47,29 @@ import {
   WechatyEvent,
 }                                 from './events.ts'
 
+/**
+ * Normalizes an arbitrary error value or error payload into an `EventErrorPayload`
+ * containing a stringified GError JSON object.
+ *
+ * @param error - Error instance, existing EventErrorPayload, or arbitrary error value.
+ * @returns Canonical EventErrorPayload containing serialized GError.
+ */
+function normalizeErrorPayload (error: unknown): EventErrorPayload {
+  let gerr: GError
+
+  if (error instanceof GError) {
+    gerr = error
+  } else if (error && typeof error === 'object' && 'gerror' in error) {
+    gerr = GError.from((error as any).gerror)
+  } else {
+    gerr = GError.from(error)
+  }
+
+  return {
+    gerror: JSON.stringify(gerr),
+  }
+}
+
 abstract class PuppetSkeleton extends PuppetEventEmitter {
 
   /**
@@ -112,33 +135,28 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
   }
 
   /**
-   * Dispatches an event, normalizing any error payloads to standard GError JSON structure.
+   * Dispatches an event, normalizing any error payloads to standard GError JSON structure
+   * while preserving event cancellation flags and propagating cancellation state.
    */
   override dispatchEvent (event: Event): boolean {
     if (event.type === 'error' && event instanceof CustomEvent) {
-      const detail = event.detail
-      let gerr: GError
-
-      if (detail instanceof GError) {
-        gerr = detail
-      } else if (detail && typeof detail === 'object' && 'gerror' in detail) {
-        gerr = GError.from((detail as any).gerror)
-      } else {
-        gerr = GError.from(detail)
-      }
-
-      const payload: EventErrorPayload = {
-        gerror: JSON.stringify(gerr),
-      }
+      const payload = normalizeErrorPayload(event.detail)
 
       const normalizedEvent = new WechatyEvent('error', {
+        bubbles: event.bubbles,
+        cancelable: event.cancelable,
+        composed: event.composed,
         detail: payload,
         id: (event as any).id,
         source: (event as any).source,
         traceId: (event as any).traceId,
       })
 
-      return super.dispatchEvent(normalizedEvent)
+      const notCancelled = super.dispatchEvent(normalizedEvent)
+      if (normalizedEvent.defaultPrevented && !event.defaultPrevented && event.cancelable) {
+        event.preventDefault()
+      }
+      return notCancelled
     }
 
     return super.dispatchEvent(event)
@@ -146,15 +164,16 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
 
   /**
    * Convert any error payload to GError,
-   * and re-emit an `error` event with EventErrorPayload(GError)
+   * and emit an `error` event with EventErrorPayload(GError) via legacy EventEmitter adapter,
+   * preserving unhandled error throw semantics when no error listener is attached.
    */
   override emit (event: any, ...args: any): boolean {
     if (event !== 'error') {
       return super.emit(event, ...args)
     }
 
-    const arg0 = args[0]
-    return this.dispatchEvent(new WechatyEvent('error', { detail: arg0 }))
+    const payload = normalizeErrorPayload(args[0])
+    return super.emit('error', payload)
   }
 
 }

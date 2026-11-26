@@ -66,8 +66,8 @@ export interface PuppetEventDetailMap {
   'room-topic'   : EventRoomTopicPayload
   'room-announce': EventRoomAnnouncePayload
   scan           : EventScanPayload
-  start          : undefined
-  stop           : undefined
+  start          : undefined | null
+  stop           : undefined | null
 }
 
 /**
@@ -109,8 +109,8 @@ export type PuppetRoomLeaveListener    = (payload: EventRoomLeavePayload)    => 
 export type PuppetRoomTopicListener    = (payload: EventRoomTopicPayload)    => void | Promise<void>
 export type PuppetRoomAnnounceListener = (payload: EventRoomAnnouncePayload) => void | Promise<void>
 export type PuppetScanListener         = (payload: EventScanPayload)         => void | Promise<void>
-export type PuppetStartListener        = () => void | Promise<void>
-export type PuppetStopListener         = () => void | Promise<void>
+export type PuppetStartListener        = (payload?: undefined | null)        => void | Promise<void>
+export type PuppetStopListener         = (payload?: undefined | null)        => void | Promise<void>
 
 /**
  * Legacy mapping interface retained for backwards-compatible type references.
@@ -235,7 +235,7 @@ export interface PuppetEventEmitterMethods {
 
   emit<E extends keyof PuppetEventListener> (
     event: E,
-    ...args: [PuppetEventDetailMap[E]] extends [undefined] ? [] : [PuppetEventDetailMap[E]]
+    ...args: [PuppetEventDetailMap[E]] extends [undefined | null] ? [] | [PuppetEventDetailMap[E]?] : [PuppetEventDetailMap[E]]
   ): boolean
   eventNames (): (keyof PuppetEventListener | string | symbol)[]
   rawListeners<E extends keyof PuppetEventListener> (event: E): Function[]

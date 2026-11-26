@@ -40,7 +40,7 @@ export interface RoomEvents {
   message: RoomMessageEventListener
 }
 
-export interface RoomEventEmitterInterface extends WechatyEventTarget {
+export interface RoomEventTargetInterface {
   addEventListener<E extends RoomEventName>(
     type: E,
     listener: RoomEventTargetListener<E>,
@@ -83,5 +83,28 @@ export interface RoomEventEmitterInterface extends WechatyEventTarget {
     options?: EventIteratorOptions,
   ): AsyncIterable<T>
 }
+
+export interface RoomEventEmitterMethods {
+  addListener<E extends keyof RoomEvents> (event: E, listener: RoomEvents[E]): this
+  on<E extends keyof RoomEvents> (event: E, listener: RoomEvents[E]): this
+  once<E extends keyof RoomEvents> (event: E, listener: RoomEvents[E]): this
+  prependListener<E extends keyof RoomEvents> (event: E, listener: RoomEvents[E]): this
+  prependOnceListener<E extends keyof RoomEvents> (event: E, listener: RoomEvents[E]): this
+
+  off<E extends keyof RoomEvents> (event: E, listener: RoomEvents[E]): this
+  removeAllListeners<E extends keyof RoomEvents> (event?: E): this
+  removeListener<E extends keyof RoomEvents> (event: E, listener: RoomEvents[E]): this
+
+  emit (event: 'message', message: MessageMock, date?: Date): boolean
+  eventNames (): (keyof RoomEvents | string | symbol)[]
+  rawListeners<E extends keyof RoomEvents> (event: E): Function[]
+  listeners<E extends keyof RoomEvents> (event: E): Function[]
+  listenerCount<E extends keyof RoomEvents> (event: E): number
+
+  getMaxListeners (): number
+  setMaxListeners (maxListeners: number): this
+}
+
+export type RoomEventEmitterInterface = RoomEventEmitterMethods & RoomEventTargetInterface & WechatyEventTarget
 
 export const RoomEventEmitter = WechatyEventTarget as unknown as new () => RoomEventEmitterInterface

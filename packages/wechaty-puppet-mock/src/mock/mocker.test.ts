@@ -347,6 +347,26 @@ test('MockContact and MockRoom EventTarget addEventListener, next(), and events(
     assert.equal(roomDetail.payload.text, TEXT, 'roomDetail should match')
     assert.equal(userNextMsg.payload.text, TEXT, 'userNextMsg should match')
     assert.equal(roomNextMsg.payload.text, TEXT, 'roomNextMsg should match')
+
+    // Exercise .events() async iterator with early break cleanup on user, room, and puppet
+    const userEvents = user.events('message')
+    const roomEvents = room.events('message')
+    const puppetEvents = puppet.events('message')
+
+    user.say('stream message').to(room)
+
+    for await (const msg of userEvents) {
+      assert.equal(msg.payload.text, 'stream message', 'user.events() yields message')
+      break
+    }
+    for await (const msg of roomEvents) {
+      assert.equal(msg.payload.text, 'stream message', 'room.events() yields message')
+      break
+    }
+    for await (const payload of puppetEvents) {
+      assert.ok(payload.messageId, 'puppet.events() yields message payload')
+      break
+    }
   } finally {
     await puppet.stop()
   }

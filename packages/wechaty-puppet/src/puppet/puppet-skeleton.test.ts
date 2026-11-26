@@ -83,3 +83,36 @@ test('wrapAsync() promise', async _t => {
   await new Promise(resolve => setTimeout(resolve, 0)) // wait async event loop task to be executed
   assert.equal(spy.mock.callCount(), 1, 'should emit error when promise reject with error')
 })
+
+test('emit(error, ...) throws unhandled error when no listener attached', async _t => {
+  class PuppetSkeletonImpl extends PuppetSkeleton {}
+  const puppet = new PuppetSkeletonImpl()
+  assert.throws(
+    () => puppet.emit('error', new Error('boom')),
+    /boom/,
+    'should throw unhandled error when no error listener attached',
+  )
+})
+
+test('dispatchEvent("error") normalizes payload, preserves cancelable, and propagates cancellation', async _t => {
+  class PuppetSkeletonImpl extends PuppetSkeleton {}
+  const puppet = new PuppetSkeletonImpl()
+
+  let receivedDetail: any
+  puppet.addEventListener('error', ((event: CustomEvent) => {
+    receivedDetail = event.detail
+    event.preventDefault()
+  }) as EventListener)
+
+  const rawEvent = new CustomEvent('error', {
+    cancelable: true,
+    detail: new Error('test-cancelable'),
+  })
+
+  const notCancelled = puppet.dispatchEvent(rawEvent)
+  assert.equal(notCancelled, false, 'dispatchEvent should return false when default is prevented')
+  assert.equal(rawEvent.defaultPrevented, true, 'raw event defaultPrevented should be true')
+  assert.ok(receivedDetail, 'detail should be received')
+  assert.equal(typeof receivedDetail.gerror, 'string', 'normalized detail should contain gerror JSON string')
+})
+
