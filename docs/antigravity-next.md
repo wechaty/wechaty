@@ -40,6 +40,8 @@ This is not a credential-isolation guarantee: unrestricted code, sudo, Docker, s
 
 ## Runtime test plan
 
+To verify the automatic reaction lifecycle, open a fresh same-repository PR and identify its Silicon Huan run. Watch the reactions from `huan[bot]` on that run's progress comment through setup, agent execution, and completion. Record the comment ID for all three stages. The original Antigravity review may show a separate reaction on the PR itself.
+
 After review, use a disposable same-repository issue/PR and an explicitly chosen test ref. Confirm unauthorized human, bot, fork, embedded mention and prefix-collision rejection; confirm mixed-case, whitespace, review and dispatch acceptance. Check reruns under an unauthorized initiator fail. Confirm token repository scope and effective installation permissions without logging credentials.
 
 First test gh repository read and a disposable comment; then MCP initialization/list-tools and representative repository read, comment, review and check operations. Some tools (user identity, personal resources, organization resources, remote-only tools) can fail despite all toolsets; record errors without raw session output. Confirm both interfaces use the Huan app identity. Never supply PEM to MCP or switch to a PAT to hide incompatibility.
