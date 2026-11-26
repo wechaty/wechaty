@@ -2,10 +2,10 @@ import { EventEmitter }   from 'wechaty-puppet'
 import type * as TypedEventEmitter from 'typed-emitter'
 
 import type {
-  ContactInterface,
-  MessageInterface,
-  RoomInterface,
-  RoomInvitationInterface,
+  Contact,
+  Message,
+  Room,
+  RoomInvitation,
 }                   from '../user-modules/mod.ts'
 
 export const ROOM_EVENT_DICT = {
@@ -97,11 +97,11 @@ export type RoomEventName = keyof typeof ROOM_EVENT_DICT
  *
  */
 
-type RoomEventListenerInvite  = (this: RoomInterface, inviter: ContactInterface, invitation: RoomInvitationInterface)           => void | Promise<void>
-type RoomEventListenerJoin    = (this: RoomInterface, inviteeList: ContactInterface[], inviter: ContactInterface,  date?: Date) => void | Promise<void>
-type RoomEventListenerLeave   = (this: RoomInterface, leaverList: ContactInterface[], remover?: ContactInterface, date?: Date)  => void | Promise<void>
-type RoomEventListenerMessage = (this: RoomInterface, message: MessageInterface, date?: Date)                                   => void | Promise<void>
-type RoomEventListenerTopic   = (this: RoomInterface, topic: string, oldTopic: string, changer: ContactInterface, date?: Date)  => void | Promise<void>
+type RoomEventListenerInvite  = (this: Room, inviter: Contact, invitation: RoomInvitation)           => void | Promise<void>
+type RoomEventListenerJoin    = (this: Room, inviteeList: Contact[], inviter: Contact,  date?: Date) => void | Promise<void>
+type RoomEventListenerLeave   = (this: Room, leaverList: Contact[], remover?: Contact, date?: Date)  => void | Promise<void>
+type RoomEventListenerMessage = (this: Room, message: Message, date?: Date)                           => void | Promise<void>
+type RoomEventListenerTopic   = (this: Room, topic: string, oldTopic: string, changer: Contact, date?: Date)  => void | Promise<void>
 
 interface RoomEventListeners {
   invite  : RoomEventListenerInvite

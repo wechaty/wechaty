@@ -22,13 +22,13 @@ import type {
 }                       from 'file-box'
 
 import type {
-  ContactInterface,
-  DelayInterface,
-  LocationInterface,
-  MessageInterface,
-  MiniProgramInterface,
-  PostInterface,
-  UrlLinkInterface,
+  Contact,
+  Delay,
+  Location,
+  Message,
+  MiniProgram,
+  Post,
+  UrlLink,
 }                           from '../user-modules/mod.ts'
 
 import type {
@@ -36,24 +36,24 @@ import type {
 }                           from '../wechaty/mod.ts'
 
 type Sayable =
-  | ContactInterface
-  | DelayInterface
+  | Contact
+  | Delay
   | FileBoxInterface
-  | LocationInterface
-  | MessageInterface
-  | MiniProgramInterface
+  | Location
+  | Message
+  | MiniProgram
   | number
-  | PostInterface
+  | Post
   | string
-  | UrlLinkInterface
+  | UrlLink
 
 interface SayableSayer {
   id      : string,
   wechaty : Wechaty,
   say (
     sayable  : Sayable,
-    replyTo? : ContactInterface | ContactInterface[]
-  ): Promise<void | MessageInterface>
+    replyTo? : Contact | Contact[]
+  ): Promise<void | Message>
 }
 
 export type {

@@ -28,7 +28,7 @@ class DelayMixin extends wechatifyMixinBase() {
 
   public milliseconds: number
 
-  static create (milliseconds: number): DelayInterface {
+  static create (milliseconds: number): Delay {
     return new DelayImpl(milliseconds)
   }
 

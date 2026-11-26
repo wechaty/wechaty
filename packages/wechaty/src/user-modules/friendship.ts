@@ -37,11 +37,11 @@ import type {
 }                   from '../schemas/acceptable.ts'
 
 import type {
-  ContactInterface,
+  Contact,
   ContactImpl,
 }                       from './contact.ts'
 import type {
-  RoomInterface,
+  Room,
 }                       from './room.ts'
 import {
   wechatifyMixin,
@@ -49,8 +49,8 @@ import {
 import { validationMixin } from '../user-mixins/validation.ts'
 
 interface FriendshipAddOptionsObject {
-  room?: RoomInterface,
-  contact?: ContactInterface,
+  room?: Room,
+  contact?: Contact,
   hello?: string,
 }
 
@@ -80,7 +80,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    */
   static load (
     id   : string,
-  ): FriendshipInterface {
+  ): Friendship {
     const newFriendship = new this(id)
     return newFriendship
   }
@@ -92,7 +92,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * Remember not to do this too frequently, or your account may be blocked.
    *
    * @param {FriendshipSearchCondition} condition - Search friend by phone or weixin.
-   * @returns {Promise<ContactInterface>}
+   * @returns {Promise<Contact>}
    *
    * @example
    * const friend_phone = await bot.Friendship.search({phone: '13112341234'})
@@ -104,7 +104,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    */
   static async search (
     queryFilter : PUPPET.filters.Friendship,
-  ): Promise<undefined | ContactInterface> {
+  ): Promise<undefined | Contact> {
     log.verbose('Friendship', 'static search("%s")',
       JSON.stringify(queryFilter),
     )
@@ -124,7 +124,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * The best practice is to send friend request once per minute.
    * Remeber not to do this too frequently, or your account may be blocked.
    *
-   * @param {ContactInterface} contact - Send friend request to contact
+   * @param {Contact} contact - Send friend request to contact
    * @param {FriendshipAddOptions} options - The friend request content
    * @returns {Promise<void>}
    *
@@ -142,7 +142,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    *
    */
   static async add (
-    contact : ContactInterface,
+    contact : Contact,
     options  : FriendshipAddOptions,
   ): Promise<void> {
     log.verbose('Friendship', 'static add(%s, %s)',
@@ -164,7 +164,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
   }
 
   static async del (
-    contact: ContactInterface,
+    contact: Contact,
   ): Promise<void> {
     log.verbose('Friendship', 'static del(%s)', contact.id)
     throw new Error('to be implemented')
@@ -324,7 +324,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
   /**
    * Get the contact from friendship
    *
-   * @returns {ContactInterface}
+   * @returns {Contact}
    * @example
    * const bot = WechatyBuilder.build()
    * bot.on('friendship', async friendship => {
@@ -334,7 +334,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * }
    * .start()
    */
-  contact (): ContactInterface {
+  contact (): Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -409,7 +409,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    */
   static async fromJSON (
     payload: string | PUPPET.payloads.Friendship,
-  ): Promise<FriendshipInterface> {
+  ): Promise<Friendship> {
     log.verbose('Friendship', 'static fromJSON(%s)',
       typeof payload === 'string'
         ? payload

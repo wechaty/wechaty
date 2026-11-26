@@ -19,7 +19,7 @@ import type {
   DelayConstructor,
   TagConstructor,
   UrlLinkConstructor,
-  MessageInterface,
+  Message,
 }                             from '../user-modules/mod.ts'
 
 import {
@@ -96,7 +96,7 @@ test('Wechaty interface', async _t => {
   const w: Wechaty = new WechatyTest()
   // Backwards compatibility verification: WechatyInterface should be an alias of Wechaty
   const wDeprecated: WechatyInterface = w
-  wDeprecated.on('message', (msg: MessageInterface) => {
+  wDeprecated.on('message', (msg: Message) => {
     msg.say('ok').catch(console.error)
   })
 

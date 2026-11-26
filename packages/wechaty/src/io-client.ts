@@ -39,7 +39,7 @@ import {
   type LifecycleController,
   type LifecycleScope,
 }                       from 'scopelet'
-import type { MessageInterface }  from './user-modules/mod.ts'
+import type { Message }           from './user-modules/mod.ts'
 import type { Wechaty }           from './wechaty/mod.ts'
 
 import {
@@ -157,7 +157,7 @@ export class IoClient {
 
     listen(scope, wechaty, 'login',   (user: { name (): string }) => log.info('IoClient', `${user.name()} logged in`))
     listen(scope, wechaty, 'logout',  (user: { name (): string }) => log.info('IoClient', `${user.name()} logged out`))
-    listen(scope, wechaty, 'message', (msg: MessageInterface) => {
+    listen(scope, wechaty, 'message', (msg: Message) => {
       this.onMessage(msg).catch(e => log.warn('IoClient', 'onMessage() failed: %s', (e as Error).message))
     })
     listen(scope, wechaty, 'scan',    (url: string, code: number) => {
@@ -168,7 +168,7 @@ export class IoClient {
     })
   }
 
-  private async onMessage (msg: MessageInterface) {
+  private async onMessage (msg: Message) {
     log.verbose('IoClient', 'onMessage(%s)', msg)
 
     // const from = m.from()

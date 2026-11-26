@@ -42,7 +42,7 @@ class UrlLinkMixin extends wechatifyMixinBase() {
         'url'
       >
     >,
-  ): Promise<UrlLinkInterface> {
+  ): Promise<UrlLink> {
     log.verbose('UrlLink', 'create(%s)', url)
 
     const meta = await openGraph(url)

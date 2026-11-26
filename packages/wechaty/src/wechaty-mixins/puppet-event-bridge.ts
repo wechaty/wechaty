@@ -11,13 +11,13 @@ import {
 }                   from 'gerror'
 
 import type {
-  FriendshipInterface,
-  ContactSelfInterface,
-  RoomInvitationInterface,
-  ContactInterface,
-  MessageInterface,
-  PostInterface,
-  RoomInterface,
+  Friendship,
+  ContactSelf,
+  RoomInvitation,
+  Contact,
+  Message,
+  Post,
+  Room,
 }                   from '../user-modules/mod.ts'
 import type {
   WechatyEventListeners,
@@ -38,14 +38,14 @@ type PuppetEventBridgeEmit = <EventName extends WechatyEventName> (
  * Entity operations and bot callbacks the event bridge needs from its owner.
  */
 interface PuppetEventBridgeDependencies {
-  contactFind: (id: string) => Promise<undefined | ContactInterface>
+  contactFind: (id: string) => Promise<undefined | Contact>
   contactReady: (id: string) => Promise<void>
-  contactSelfFind: (id: string) => Promise<undefined | ContactSelfInterface>
-  friendshipLoad: (id: string) => FriendshipInterface
-  messageFind: (id: string) => Promise<undefined | MessageInterface>
-  postFind: (id: string) => Promise<undefined | PostInterface>
-  roomFind: (id: string) => Promise<undefined | RoomInterface>
-  roomInvitationLoad: (id: string) => RoomInvitationInterface
+  contactSelfFind: (id: string) => Promise<undefined | ContactSelf>
+  friendshipLoad: (id: string) => Friendship
+  messageFind: (id: string) => Promise<undefined | Message>
+  postFind: (id: string) => Promise<undefined | Post>
+  roomFind: (id: string) => Promise<undefined | Room>
+  roomInvitationLoad: (id: string) => RoomInvitation
   roomReady: (id: string) => Promise<void>
   setReady: (state: 'active' | 'inactive') => void
   emit: PuppetEventBridgeEmit
@@ -225,7 +225,7 @@ function registerPuppetEventBridge (
             const inviteeListAll = await Promise.all(
               validInviteeIdList.map(id => dependencies.contactFind(id)),
             )
-            const inviteeList = inviteeListAll.filter(c => !!c) as ContactInterface[]
+            const inviteeList = inviteeListAll.filter(c => !!c) as Contact[]
 
             const inviter = await dependencies.contactFind(payload.inviterId)
             if (!inviter) {
@@ -258,7 +258,7 @@ function registerPuppetEventBridge (
             const leaverListAll = await Promise.all(
               payload.removeeIdList.map(id => dependencies.contactFind(id)),
             )
-            const leaverList = leaverListAll.filter(c => !!c) as ContactInterface[]
+            const leaverList = leaverListAll.filter(c => !!c) as Contact[]
 
             const remover = await dependencies.contactFind(payload.removerId)
             if (!remover) {
