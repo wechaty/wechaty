@@ -438,7 +438,7 @@ test('WechatyEventTarget events() edge cases: return(), throw(), closed iteratio
   const iter = target.events('test-iter')[Symbol.asyncIterator]()
 
   // Pending return()
-  const returnPromise = iter.return()
+  const returnPromise = iter.return!()
   const returnResult = await returnPromise
   assert.deepEqual(returnResult, { done: true, value: undefined })
 
@@ -448,13 +448,13 @@ test('WechatyEventTarget events() edge cases: return(), throw(), closed iteratio
 
   // Throw
   const iter2 = target.events('test-throw')[Symbol.asyncIterator]()
-  const throwPromise = iter2.throw(new Error('iter-error'))
+  const throwPromise = iter2.throw!(new Error('iter-error'))
   await assert.rejects(async () => throwPromise, /iter-error/)
 
   // Return while waiting next()
   const iter3 = target.events('test-waiting')[Symbol.asyncIterator]()
   const waitingNext = iter3.next()
-  await iter3.return()
+  await iter3.return!()
   const waitingResult = await waitingNext
   assert.deepEqual(waitingResult, { done: true, value: undefined })
 
@@ -463,7 +463,7 @@ test('WechatyEventTarget events() edge cases: return(), throw(), closed iteratio
   const waitingNextThrow = iter4.next()
   await Promise.all([
     assert.rejects(async () => waitingNextThrow, /thrown-while-waiting/),
-    assert.rejects(async () => iter4.throw(new Error('thrown-while-waiting')), /thrown-while-waiting/),
+    assert.rejects(async () => iter4.throw!(new Error('thrown-while-waiting')), /thrown-while-waiting/),
   ])
 })
 
