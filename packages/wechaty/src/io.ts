@@ -349,30 +349,42 @@ export class Io extends AsyncLifecycle {
       this.send(ioEvent).catch(e => log.warn('Io', 'hookWechaty() send(%s) failed: %s', ioEvent.name, (e as Error).message))
     }
 
-    const listeners: Record<string, (...args: any[]) => void> = {
-      error     : (error: unknown) => forward({ name: 'error', payload: error }),
-      heartbeat : (data: unknown) => forward({ name: 'heartbeat', payload: { cuid: this.id, data } }),
-      login     : (user: { id: string }) => {
-        this.scanPayload = undefined
-        forward({ name: 'login', payload: wechaty.puppet.contactPayload(user.id) })
-      },
-      logout    : (user: { id: string }) => forward({ name: 'logout', payload: wechaty.puppet.contactPayload(user.id) }),
-      message   : (message: Message) => {
-        this.ioMessage(message).catch(e => log.warn('Io', 'hookWechaty() ioMessage() failed: %s', (e as Error).message))
-      },
-      // FIXME: payload schema need to be defined universal
-      scan      : (qrcode: string, status: PUPPET.types.ScanStatus) => {
-        this.scanPayload = { ...this.scanPayload, qrcode, status }
-        forward({ name: 'scan', payload: { qrcode, status } } as IoEventScan)
-      },
-    }
-    for (const [ event, listener ] of Object.entries(listeners)) {
-      wechaty.on(event as any, listener)
-    }
+    const abortController = new AbortController()
+    const { signal } = abortController
+
+    wechaty.addEventListener('error', ((event: any) => {
+      const error = event.detail ?? event
+      forward({ name: 'error', payload: error })
+    }) as EventListener, { signal })
+
+    wechaty.addEventListener('heartbeat', ((event: any) => {
+      const data = event.detail ?? event
+      forward({ name: 'heartbeat', payload: { cuid: this.id, data } })
+    }) as EventListener, { signal })
+
+    wechaty.addEventListener('login', ((event: any) => {
+      this.scanPayload = undefined
+      const user = event.detail ?? event
+      forward({ name: 'login', payload: wechaty.puppet.contactPayload(user.id) })
+    }) as EventListener, { signal })
+
+    wechaty.addEventListener('logout', ((event: any) => {
+      const user = event.detail?.contact ?? event.detail ?? event
+      forward({ name: 'logout', payload: wechaty.puppet.contactPayload(user.id) })
+    }) as EventListener, { signal })
+
+    wechaty.addEventListener('message', ((event: any) => {
+      const message = event.detail ?? event
+      this.ioMessage(message).catch(e => log.warn('Io', 'hookWechaty() ioMessage() failed: %s', (e as Error).message))
+    }) as EventListener, { signal })
+
+    wechaty.addEventListener('scan', ((event: any) => {
+      const { qrcode, status } = event.detail ?? event
+      this.scanPayload = { ...this.scanPayload, qrcode, status }
+      forward({ name: 'scan', payload: { qrcode, status } } as IoEventScan)
+    }) as EventListener, { signal })
     return () => {
-      for (const [ event, listener ] of Object.entries(listeners)) {
-        wechaty.off(event as any, listener)
-      }
+      abortController.abort()
     }
   }
 

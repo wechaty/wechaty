@@ -10,13 +10,13 @@ import type { ContactImpl } from './impls.ts'
 import type { WechatyImpl } from './impls.ts'
 
 function publicTypeContract (bot: WECHATY.Wechaty, contact: Contact) {
-  bot.on('message', message => {
-    const messageId: string = message.id
-    void message.say('hello')
+  bot.addEventListener('message', event => {
+    const messageId: string = event.detail.id
+    void event.detail.say('hello')
     void messageId
   })
-  bot.on('login', loggedInContact => {
-    const contactId: string = loggedInContact.id
+  bot.addEventListener('login', event => {
+    const contactId: string = event.detail.id
     void contactId
   })
 

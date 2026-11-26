@@ -255,14 +255,14 @@ export interface PuppetEventEmitterMethods {
  * Combined interface for PuppetEventEmitter implementing typed EventTarget, WechatyEventTarget,
  * and strongly-typed single-payload emitter methods without third-party dependencies.
  */
-export type PuppetEventEmitter = PuppetEventEmitterMethods & PuppetEventTarget & WechatyEventTarget
+export type PuppetEventEmitter = PuppetEventEmitterMethods & PuppetEventTarget & EventEmitter
 
 /**
  * @deprecated Use `PuppetEventEmitter` instead. `PuppetEventEmitterInterface` is retained for backwards compatibility.
  */
 export type PuppetEventEmitterInterface = PuppetEventEmitter
 
-export const PuppetEventEmitter = WechatyEventTarget as unknown as new () => PuppetEventEmitter
+export const PuppetEventEmitter = EventEmitter as unknown as new () => PuppetEventEmitter
 
 export {
   WechatyEventTarget,

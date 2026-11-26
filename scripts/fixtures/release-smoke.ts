@@ -43,7 +43,8 @@ assert.deepEqual({
 
 const mocker = new mock.Mocker()
 const bot = WechatyBuilder.build({ puppet: new PuppetMock({ mocker }) })
-bot.on('message', async message => {
+bot.addEventListener('message', async (event: any) => {
+  const message = event.detail
   if (message.text() === 'ding') {
     await message.say('dong')
   }

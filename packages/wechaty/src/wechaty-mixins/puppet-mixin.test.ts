@@ -48,6 +48,7 @@ test('__setupPuppetEvents() should reject unsupported puppet events', async _t =
   const wechaty = new PuppetMixinTest({ puppet: 'wechaty-puppet-mock' })
 
   const fakePuppet = {
+    addEventListener: () => fakePuppet,
     currentUserId: 'test-user',
     listenerCount: () => 0,
     on: () => fakePuppet,
@@ -81,7 +82,8 @@ test('puppet event registration stays single across init and service cycles', as
   const bot = new WechatyBase({ puppet })
   let puppetEventBeforeGetterAssignment = false
 
-  bot.on('puppet', eventPuppet => {
+  bot.addEventListener('puppet', (event: any) => {
+    const eventPuppet = event.detail
     assert.equal(eventPuppet, puppet, 'should emit the resolved puppet')
     assert.throws(() => bot.puppet, 'should emit puppet before assigning the public getter')
     puppetEventBeforeGetterAssignment = true

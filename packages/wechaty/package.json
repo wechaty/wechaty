@@ -159,7 +159,6 @@
     "shx": "^0.3.4",
     "sloc": "^0.2.1",
     "tsx": "^4.23.15",
-    "typed-emitter": "^1.5.0-from-event",
     "typedoc": "^1.0.0-dev.4",
     "wechaty-puppet-mock": "^2.0.0-alpha.20"
   },

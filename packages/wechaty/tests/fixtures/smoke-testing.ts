@@ -37,7 +37,8 @@ import * as IMPLS from 'wechaty/impls'
 import assert from 'assert'
 
 function publicTypeContract (bot: Wechaty, contact: USERS.Contact) {
-  bot.on('message', message => {
+  bot.addEventListener('message', (event: any) => {
+    const message = event.detail
     const messageId: string = message.id
     void message.say('hello')
     void messageId

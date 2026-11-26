@@ -113,15 +113,15 @@ export interface TrackedListenerEntry {
   rawListener?: Function
 }
 
-const LISTENERS_MAP = new WeakMap<WechatyEventTarget, Map<string, TrackedListenerEntry[]>>()
+const LISTENERS_MAP = new WeakMap<EventTarget, Map<string, TrackedListenerEntry[]>>()
 
 /**
- * Retrieves or initializes the active listener map for the given WechatyEventTarget instance.
+ * Retrieves or initializes the active listener map for the given EventTarget instance.
  *
  * @param target - EventTarget instance.
  * @returns Map from event type name to array of tracked listener entries.
  */
-function getListenersMap (target: WechatyEventTarget): Map<string, TrackedListenerEntry[]> {
+function getListenersMap (target: EventTarget): Map<string, TrackedListenerEntry[]> {
   let map = LISTENERS_MAP.get(target)
   if (!map) {
     map = new Map()
@@ -136,26 +136,7 @@ function getListenersMap (target: WechatyEventTarget): Map<string, TrackedListen
  * Provides native `addEventListener`, `removeEventListener`, `dispatchEvent`, one-shot `next()`,
  * and bounded async iteration `events()` for modern AI agent message consumption.
  */
-export class WechatyEventTarget extends EventTarget {
-
-  /**
-   * Returns the count of active listeners registered for the specified event type.
-   *
-   * @param type - Event name string.
-   * @returns Number of registered active listeners.
-   */
-  listenerCount (type: string): number {
-    return getListenersMap(this).get(type)?.length ?? 0
-  }
-
-  /**
-   * Returns an array listing the event names for which the target has registered listeners.
-   *
-   * @returns Array of event name strings.
-   */
-  eventNames (): string[] {
-    return [...getListenersMap(this).keys()]
-  }
+class WechatyEventTarget extends EventTarget {
 
   /**
    * Registers an event listener on the standard WinterTC EventTarget.
@@ -278,85 +259,6 @@ export class WechatyEventTarget extends EventTarget {
    */
   override dispatchEvent (event: Event): boolean {
     return super.dispatchEvent(event)
-  }
-
-  /**
-   * Synchronously dispatches a WechatyEvent across registered listeners.
-   *
-   * @param type - Event type name.
-   * @param args - Single payload or legacy argument list.
-   * @returns `true` if event had listeners and was not cancelled.
-   */
-  emit (type: string, ...args: any[]): boolean {
-    const count = this.listenerCount(type)
-
-    if (count === 0 && type === 'error') {
-      const raw = args[0]
-      if (raw instanceof Error) {
-        throw raw
-      }
-      let detail = ''
-      try {
-        detail = typeof raw === 'object' && raw !== null ? JSON.stringify(raw) : String(raw)
-      } catch {
-        detail = String(raw)
-      }
-      const err = new Error(`Unhandled error. (${detail})`)
-      ;(err as any).code = 'ERR_UNHANDLED_ERROR'
-      ;(err as any).context = raw
-      throw err
-    }
-
-    let payload: any
-    if (args.length > 1) {
-      if (type === 'scan') {
-        payload = Object.assign([...args], {
-          [MULTI_ARG_SYMBOL]: true,
-          qrcode: args[0],
-          status: args[1],
-          data: args[2],
-        })
-      } else if (type === 'logout') {
-        payload = Object.assign([...args], {
-          [MULTI_ARG_SYMBOL]: true,
-          user: args[0],
-          reason: args[1],
-        })
-      } else if (type === 'room-join') {
-        payload = Object.assign([...args], {
-          [MULTI_ARG_SYMBOL]: true,
-          room: args[0],
-          inviteeList: args[1],
-          inviter: args[2],
-          date: args[3],
-        })
-      } else if (type === 'room-leave') {
-        payload = Object.assign([...args], {
-          [MULTI_ARG_SYMBOL]: true,
-          room: args[0],
-          leaverList: args[1],
-          remover: args[2],
-          date: args[3],
-        })
-      } else if (type === 'room-topic') {
-        payload = Object.assign([...args], {
-          [MULTI_ARG_SYMBOL]: true,
-          room: args[0],
-          newTopic: args[1],
-          oldTopic: args[2],
-          changer: args[3],
-          date: args[4],
-        })
-      } else {
-        payload = Object.assign([...args], { [MULTI_ARG_SYMBOL]: true })
-      }
-    } else {
-      payload = args[0]
-    }
-
-    const event = new WechatyEvent(type, { detail: payload })
-    const dispatched = this.dispatchEvent(event)
-    return count > 0 && dispatched
   }
 
   /**
@@ -518,9 +420,114 @@ export class WechatyEventTarget extends EventTarget {
     }
   }
 
-  // =========================================================================
-  // Legacy EventEmitter compatibility adapters (slated for complete removal in v3.0)
-  // =========================================================================
+}
+
+/**
+ * Compatibility adapter extending `WechatyEventTarget` with legacy Node.js EventEmitter
+ * method signatures (`on`, `off`, `once`, `emit`, `listenerCount`, etc.).
+ *
+ * Preserves backwards compatibility for puppet implementations and tests.
+ * Slated for complete removal in v3.0.
+ */
+class EventEmitter extends WechatyEventTarget {
+
+  /**
+   * Returns the count of active listeners registered for the specified event type.
+   *
+   * @param type - Event name string.
+   * @returns Number of registered active listeners.
+   */
+  listenerCount (type: string): number {
+    return getListenersMap(this).get(type)?.length ?? 0
+  }
+
+  /**
+   * Returns an array listing the event names for which the target has registered listeners.
+   *
+   * @returns Array of event name strings.
+   */
+  eventNames (): string[] {
+    return [...getListenersMap(this).keys()]
+  }
+
+  /**
+   * Synchronously dispatches a WechatyEvent across registered listeners.
+   *
+   * @param type - Event type name.
+   * @param args - Single payload or legacy argument list.
+   * @returns `true` if event had listeners and was not cancelled.
+   */
+  emit (type: string, ...args: any[]): boolean {
+    const count = this.listenerCount(type)
+
+    if (count === 0 && type === 'error') {
+      const raw = args[0]
+      if (raw instanceof Error) {
+        throw raw
+      }
+      let detail = ''
+      try {
+        detail = typeof raw === 'object' && raw !== null ? JSON.stringify(raw) : String(raw)
+      } catch {
+        detail = String(raw)
+      }
+      const err = new Error(`Unhandled error. (${detail})`)
+      ;(err as any).code = 'ERR_UNHANDLED_ERROR'
+      ;(err as any).context = raw
+      throw err
+    }
+
+    let payload: any
+    if (args.length > 1) {
+      if (type === 'scan') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          qrcode: args[0],
+          status: args[1],
+          data: args[2],
+        })
+      } else if (type === 'logout') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          user: args[0],
+          reason: args[1],
+        })
+      } else if (type === 'room-join') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          room: args[0],
+          inviteeList: args[1],
+          inviter: args[2],
+          date: args[3],
+        })
+      } else if (type === 'room-leave') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          room: args[0],
+          leaverList: args[1],
+          remover: args[2],
+          date: args[3],
+        })
+      } else if (type === 'room-topic') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          room: args[0],
+          newTopic: args[1],
+          oldTopic: args[2],
+          changer: args[3],
+          date: args[4],
+        })
+      } else {
+        payload = Object.assign([...args], { [MULTI_ARG_SYMBOL]: true })
+      }
+    } else {
+      payload = args[0]
+    }
+
+    const event = new WechatyEvent(type, { detail: payload })
+    const dispatched = this.dispatchEvent(event)
+    return count > 0 && dispatched
+  }
 
   /**
    * Registers a listener callback using legacy EventEmitter syntax.
@@ -637,5 +644,6 @@ export class WechatyEventTarget extends EventTarget {
 }
 
 export {
-  WechatyEventTarget as EventEmitter,
+  WechatyEventTarget,
+  EventEmitter,
 }

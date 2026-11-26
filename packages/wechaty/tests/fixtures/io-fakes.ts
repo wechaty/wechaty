@@ -163,6 +163,61 @@ export class FakeWechaty extends EventEmitter {
     messagePayload : async (id: string) => ({ id }),
   }
 
+  readonly #eventListeners = new Map<EventListenerOrEventListenerObject, { wrapper: (...args: unknown[]) => void, signal?: AbortSignal, abortListener?: () => void }>()
+
+  addEventListener (
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    if (!listener) {
+      return
+    }
+    const signal = typeof options === 'object' ? options?.signal : undefined
+    if (signal?.aborted) {
+      return
+    }
+
+    const callback = typeof listener === 'function' ? listener : (ev: Event) => listener.handleEvent(ev)
+    const wrapper = (...args: unknown[]) => {
+      const detail = args.length <= 1 ? args[0] : args
+      callback(new CustomEvent(type, { detail }))
+    }
+
+    let abortListener: (() => void) | undefined
+    if (signal) {
+      abortListener = () => {
+        this.removeEventListener(type, listener)
+      }
+      signal.addEventListener('abort', abortListener, { once: true })
+    }
+
+    this.#eventListeners.set(listener, { wrapper, signal, abortListener })
+    this.on(type, wrapper)
+  }
+
+  removeEventListener (
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+  ): void {
+    if (!listener) {
+      return
+    }
+    const entry = this.#eventListeners.get(listener)
+    if (entry) {
+      this.#eventListeners.delete(listener)
+      if (entry.signal && entry.abortListener) {
+        entry.signal.removeEventListener('abort', entry.abortListener)
+      }
+      this.off(type, entry.wrapper)
+    }
+  }
+
+  dispatchEvent (event: Event): boolean {
+    const detail = (event as CustomEvent).detail
+    return this.emit(event.type, detail !== undefined ? detail : event)
+  }
+
   version (): string { return '0.0.0-test' }
   emitError (error: unknown): void { this.errors.push(error) }
   async reset (): Promise<void> { this.log.push('reset') }

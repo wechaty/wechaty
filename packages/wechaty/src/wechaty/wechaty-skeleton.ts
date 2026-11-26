@@ -1,4 +1,18 @@
-/** Owns shared bot identity, memory, options, and event-emitter behavior. */
+/**
+ * Abstract Wechaty skeleton defining bot identity, memory card, and pure WinterTC EventTarget foundation.
+ *
+ * Why this module exists:
+ * Provides the foundational abstract base class for Wechaty bot implementations, establishing
+ * a pure WinterTC `EventTarget` without legacy Node.js EventEmitter surface (`on`, `off`, `once`),
+ * managing unique bot identity (`id`), persistent `MemoryCard` lifecycle, and start/stop/init hooks.
+ *
+ * Architectural boundaries:
+ * Extended by the bot mixin hierarchy (`WechatyBase`).
+ *
+ * Key relationships:
+ * - `wechaty-puppet`: Provides `WechatyEventTarget`.
+ * - `wechaty-base.ts`: Inherits from `WechatySkeleton` through functional mixin composition.
+ */
 /**
  *   Wechaty Chatbot SDK - https://github.com/wechaty/wechaty
  *
@@ -19,17 +33,17 @@
  *
  */
 import { MemoryCard }     from 'memory-card'
-import { log }            from 'wechaty-puppet'
+import {
+  log,
+  type EventIteratorOptions,
+  WechatyEventTarget,
+}                         from 'wechaty-puppet'
 import type { Loggable }  from 'brolog'
 
-import {
-  WechatyEventEmitter,
-  type WechatyEventName,
-}                               from '../schemas/mod.ts'
-
+import type { MessageInterface } from '../user-modules/mod.ts'
 import type { WechatyOptions }  from '../schemas/wechaty-options.ts'
 
-abstract class WechatySkeleton extends WechatyEventEmitter {
+abstract class WechatySkeleton extends WechatyEventTarget {
 
   static readonly log: Loggable = log
   readonly log: Loggable = log
@@ -56,17 +70,52 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
 
     this.id = crypto.randomUUID()
     this.__options = args[0] || {} as WechatyOptions
+  }
 
-    /**
-     * Huan(202008):
-     *
-     * Set max listeners to 1K, so that we can add lots of listeners without the warning message.
-     * The listeners might be one of the following functionilities:
-     *  1. Plugins
-     *  2. Redux Observables
-     *  3. etc...
-     */
-    super.setMaxListeners(1024)
+  /**
+   * Async iterator yielding hydrated incoming messages for AI Agent loops.
+   *
+   * @param options - EventIteratorOptions with backpressure and AbortSignal.
+   * @returns AsyncIterable yielding hydrated Message entities.
+   */
+  messages (options?: EventIteratorOptions): AsyncIterable<MessageInterface> {
+    return this.events('message', options)
+  }
+
+  /**
+   * WHATWG ReadableStream yielding hydrated incoming messages.
+   *
+   * @param options - Options with AbortSignal.
+   * @returns ReadableStream of Message entities.
+   */
+  messageStream (options?: { signal?: AbortSignal }): ReadableStream<MessageInterface> {
+    const iterator = this.messages(options)[Symbol.asyncIterator]()
+    return new ReadableStream<MessageInterface>({
+      async pull (controller) {
+        try {
+          const { done, value } = await iterator.next()
+          if (done) {
+            controller.close()
+          } else {
+            controller.enqueue(value)
+          }
+        } catch (error) {
+          controller.error(error)
+        }
+      },
+      async cancel (reason) {
+        if (iterator.return) {
+          await iterator.return(reason)
+        }
+      },
+    })
+  }
+
+  /**
+   * Standard AsyncDisposable implementation for `await using bot = ...`.
+   */
+  async [Symbol.asyncDispose] (): Promise<void> {
+    await this.stop()
   }
 
   /**
@@ -116,26 +165,17 @@ abstract class WechatySkeleton extends WechatyEventEmitter {
   }
 
   /**
-   * @deprecated Use `addEventListener` instead. Will be removed in Wechaty v3.0.
+   * Internal emit compatibility required by state-switch ServiceCtl.
+   * Dispatches a CustomEvent on this EventTarget.
+   * @internal
    */
-  override on (
-    event: WechatyEventName,
-    listener: (...args: any[]) => any,
-    options?: AddEventListenerOptions,
-    prepend = false,
-  ): this {
-    log.verbose('WechatySkeleton', 'on(%s, listener) registering... listenerCount: %s',
-      event,
-      this.listenerCount(event),
-    )
-
-    return (super.on as any)(event, listener, options, prepend)
+  emit (event: string, ...args: any[]): boolean {
+    return this.dispatchEvent(new CustomEvent(event, { detail: args[0] }))
   }
 
 }
 
 type WechatySkeletonProtectedProperty =
-  | '__events'
   | '__memory'
   | '__options'
   | 'memory'

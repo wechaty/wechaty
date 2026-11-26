@@ -69,8 +69,8 @@ test('event:start/stop', async t => {
     }
   })
 
-  wechaty.on('start', startSpy)
-  wechaty.on('stop',  stopSpy)
+  wechaty.addEventListener('start', startSpy)
+  wechaty.addEventListener('stop',  stopSpy)
 
   started = true
   await wechaty.start()
@@ -128,11 +128,11 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. on(event, Function)', asyn
   const wechaty = new WechatyBase()
 
   const EXPECTED_ERROR = new Error('testing123')
-  wechaty.on('message', () => { throw EXPECTED_ERROR })
+  wechaty.addEventListener('message', () => { throw EXPECTED_ERROR })
   // wechaty.on('scan',    () => 42)
-  wechaty.on('error',   spy)
+  wechaty.addEventListener('error', (e: any) => spy(e.detail))
 
-  const messageFuture  = new Promise(resolve => wechaty.once('message', resolve))
+  const messageFuture  = new Promise(resolve => wechaty.addEventListener('message', resolve, { once: true }))
   wechaty.emit('message', {} as any)
 
   await messageFuture
@@ -173,14 +173,14 @@ test.skip('SKIP DEALING WITH THE LISTENER EXCEPTIONS. test async error', async t
     })
   }
 
-  bot.on('message', async () => {
+  bot.addEventListener('message', async () => {
     await asyncErrorFunction()
   })
-  bot.on('error', (e) => {
-    assert.ok(e.message === EXPECTED_ERROR.message)
+  bot.addEventListener('error', (event: any) => {
+    assert.ok(event.detail.message === EXPECTED_ERROR.message)
   })
 
-  bot.emit('message', {} as any)
+  bot.dispatchEvent(new CustomEvent('message', { detail: {} as any }))
 
   await bot.stop()
 })
@@ -200,7 +200,7 @@ test('use plugin', async t => {
 
   const myPlugin = function () {
     return function (bot: Wechaty) {
-      bot.on('message', () => { result += 'FROM_MY_PLUGIN:' })
+      bot.addEventListener('message', () => { result += 'FROM_MY_PLUGIN:' })
     }
   }
 
@@ -221,9 +221,9 @@ test('use plugin', async t => {
   started = true
   await bot.start()
 
-  bot.on('message', () => (result += 'FROM_BOT'))
+  bot.addEventListener('message', () => (result += 'FROM_BOT'))
 
-  bot.emit('message', {} as any)
+  bot.dispatchEvent(new CustomEvent('message', { detail: {} as any }))
 
   await bot.stop()
   started = false
@@ -264,8 +264,8 @@ test('lifecycle order and restart', async t => {
   const startPuppet = t.mock.method(puppet, 'start', async () => { trace.push('puppet.start') })
   const stopPuppet = t.mock.method(puppet, 'stop', async () => { trace.push('puppet.stop') })
   const bot = new LifecycleWechaty({ puppet })
-  bot.on('start', () => trace.push('start'))
-  bot.on('stop', () => trace.push('stop'))
+  bot.addEventListener('start', () => trace.push('start'))
+  bot.addEventListener('stop', () => trace.push('stop'))
 
   try {
     await bot.start()
@@ -291,11 +291,11 @@ test('puppet and user modules initialize once', async () => {
   let puppetEvents = 0
   assert.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'puppet getter should be guarded before init')
   assert.throws(() => bot.Contact, /can not be used before wechaty\.start\(\)/, 'user module getter should be guarded before init')
-  bot.on('puppet', candidate => {
+  bot.addEventListener('puppet', ((event: any) => {
     puppetEvents++
-    assert.equal(candidate, puppet, 'should emit the resolved puppet')
+    assert.equal(event.detail, puppet, 'should emit the resolved puppet')
     assert.throws(() => bot.puppet, { message: 'NOPUPPET' }, 'should not assign the puppet during the event')
-  })
+  }) as EventListener)
 
   try {
     await bot.init()
@@ -349,7 +349,7 @@ test('startup puppet failure rejects with an error listener (#2855)', async t =>
   t.mock.method(handledPuppet, 'start', async () => { throw expectedError })
 
   const errors: Error[] = []
-  handledBot.on('error', error => errors.push(error))
+  handledBot.addEventListener('error', ((event: any) => errors.push(event.detail)) as EventListener)
   try {
     await assert.rejects(
       handledBot.start(),
@@ -374,7 +374,7 @@ test('puppet startup timeout is tolerated', { timeout: 25_000 }, async t => {
     })
   })
   const bot = new WechatyBase({ puppet })
-  bot.on('error', error => assert.fail('timeout should not emit error: ' + error))
+  bot.addEventListener('error', ((event: any) => assert.fail('timeout should not emit error: ' + event.detail)) as EventListener)
 
   try {
     const start = bot.start()
@@ -426,7 +426,7 @@ test('@event ready', async t => {
     }
   })
 
-  wechaty.on('ready', spy)
+  wechaty.addEventListener('ready', spy)
   assert.equal(spy.mock.callCount(), 0, 'should no ready event with new wechaty instance')
 
   started = true
@@ -492,18 +492,20 @@ test('ready()', async t => {
   started = false
 })
 
-test('on/off event listener management', async _t => {
+test('addEventListener/removeEventListener event listener management', async _t => {
   const puppet = new PuppetMock()
   const wechaty = new WechatyBase({ puppet })
 
-  const onMessage = (_: any) => {}
-  assert.equal(wechaty.listenerCount('message'), 0, 'should no listener after initializing')
+  let count = 0
+  const onMessage = () => { count++ }
 
-  wechaty.on('message', onMessage)
-  assert.equal(wechaty.listenerCount('message'), 1, 'should +1 listener after on(message)')
+  wechaty.addEventListener('message', onMessage)
+  wechaty.dispatchEvent(new CustomEvent('message'))
+  assert.equal(count, 1, 'should invoke listener after addEventListener(message)')
 
-  wechaty.off('message', onMessage)
-  assert.equal(wechaty.listenerCount('message'), 0, 'should -1 listener after off(message)')
+  wechaty.removeEventListener('message', onMessage)
+  wechaty.dispatchEvent(new CustomEvent('message'))
+  assert.equal(count, 1, 'should not invoke listener after removeEventListener(message)')
 })
 
 test('wrapAsync() async function', async t => {
@@ -511,7 +513,7 @@ test('wrapAsync() async function', async t => {
   const wechaty = new WechatyBase({ puppet })
 
   const spy = t.mock.fn()
-  wechaty.on('error', spy)
+  wechaty.addEventListener('error', spy)
 
   const DATA = 'test'
   const asyncFunc = async () => DATA
@@ -532,7 +534,7 @@ test('wrapAsync() promise', async t => {
   const wechaty = new WechatyBase({ puppet })
 
   const spy = t.mock.fn()
-  wechaty.on('error', spy)
+  wechaty.addEventListener('error', spy)
 
   const DATA = 'test'
   const promise = Promise.resolve(DATA)

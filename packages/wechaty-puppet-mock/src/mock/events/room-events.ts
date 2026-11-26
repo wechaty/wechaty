@@ -14,7 +14,7 @@
  * - `RoomMock`: Room mock class extending `RoomEventEmitter`.
  */
 import {
-  WechatyEventTarget,
+  EventEmitter,
   WechatyEvent,
   type EventIteratorOptions,
 }                         from 'wechaty-puppet'
@@ -105,6 +105,6 @@ export interface RoomEventEmitterMethods {
   setMaxListeners (maxListeners: number): this
 }
 
-export type RoomEventEmitterInterface = RoomEventEmitterMethods & RoomEventTargetInterface & WechatyEventTarget
+export type RoomEventEmitterInterface = RoomEventEmitterMethods & RoomEventTargetInterface & EventEmitter
 
-export const RoomEventEmitter = WechatyEventTarget as unknown as new () => RoomEventEmitterInterface
+export const RoomEventEmitter = EventEmitter as unknown as new () => RoomEventEmitterInterface

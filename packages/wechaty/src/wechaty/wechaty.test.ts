@@ -105,8 +105,13 @@ test('Wechaty type doc-typing check', async () => {
 
   assert.ok(typeof bot.start === 'function', 'bot must have start method')
   assert.ok(typeof bot.stop === 'function', 'bot must have stop method')
-  assert.ok(typeof bot.on === 'function', 'bot must have on method')
+  assert.ok(typeof bot.addEventListener === 'function', 'bot must have addEventListener method')
+  assert.ok(typeof bot.messages === 'function', 'bot must have messages method')
+  assert.ok(typeof bot.messageStream === 'function', 'bot must have messageStream method')
+  assert.ok(typeof bot.next === 'function', 'bot must have next method')
   assert.ok(typeof bot.say === 'function', 'bot must have say method')
+  assert.equal((bot as any).on, undefined, 'bot must not have legacy on method')
+  assert.equal((bot as any).off, undefined, 'bot must not have legacy off method')
   assert.ok(bot.id, 'bot should have id')
 
   // @ts-expect-error _stopCallbackList is protected and omitted from Wechaty doc-typing
@@ -141,3 +146,59 @@ test('instanceof Wechaty preserves pure doc-typing in narrowing', async () => {
     void bot.__options
   }
 })
+
+test('Wechaty messages() async iteration and messageStream() pipeline', async () => {
+  const puppet = new PuppetMock()
+  const bot = new Wechaty({ puppet })
+  await bot.start()
+
+  const botContact = puppet.mocker.createContact({ name: 'BotUser' })
+  await puppet.mocker.login(botContact)
+
+  const mockUser = puppet.mocker.createContact()
+  const mockRoom = puppet.mocker.createRoom()
+
+  const receivedMessages: string[] = []
+
+  // Test messages()
+  const messageLoopPromise = (async () => {
+    for await (const message of bot.messages()) {
+      receivedMessages.push(message.text())
+      if (receivedMessages.length === 2) {
+        break
+      }
+    }
+  })()
+
+  // Wait a microtask then send messages through mocker
+  await new Promise(resolve => setTimeout(resolve, 10))
+  mockUser.say('hello from user').to(mockRoom)
+  mockUser.say('second message').to(mockRoom)
+
+  await messageLoopPromise
+  assert.equal(receivedMessages.length, 2)
+  assert.equal(receivedMessages[0], 'hello from user')
+  assert.equal(receivedMessages[1], 'second message')
+
+  // Test messageStream()
+  const stream = bot.messageStream()
+  assert.ok(stream instanceof ReadableStream, 'messageStream should return a ReadableStream')
+
+  await bot.stop()
+})
+
+test('Wechaty Symbol.asyncDispose via Wechaty.start() and await using', async () => {
+  let stopped = false
+  {
+    await using bot = await Wechaty.start({ puppet: new PuppetMock() })
+    assert.equal(bot.isLoggedIn, false)
+    assert.equal(typeof bot[Symbol.asyncDispose], 'function', 'bot must implement Symbol.asyncDispose')
+    const originalStop = bot.stop.bind(bot)
+    bot.stop = async () => {
+      stopped = true
+      await originalStop()
+    }
+  }
+  assert.equal(stopped, true, 'bot must be automatically disposed and stopped via Symbol.asyncDispose')
+})
+
