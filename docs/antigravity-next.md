@@ -18,7 +18,7 @@ Next also reviews automatically when a non-draft, same-repository PR targeting `
 
 Requested reviews and interactions retain their existing authorization and token grants. Bot comments and fork PRs are excluded. GitHub runs comment triggers from the default branch. The original workflow also runs its automatic reviews, so an eligible PR can receive both review headings.
 
-When an authorized `@huan` task or review runs, the Huan app adds 👀 to the triggering conversation comment or inline review comment before setting up the agent. The job attempts to remove only the reaction it created when it finishes, including after failures. Manual dispatch and submitted review bodies have no comment target for this indicator.
+On an authorized issue or comment trigger, the Huan app clears its previous 🎉 and adds 👀 during setup. Immediately before invoking Antigravity, it switches to 🚀. Cleanup attempts to remove this run's progress reactions and adds 🎉 only on success. This also applies to inline review comments. Automatic PR reviews, submitted review bodies, and manual dispatch have no reaction in this lifecycle. The editable review progress comment remains available for review runs.
 
 ## Baseline
 
