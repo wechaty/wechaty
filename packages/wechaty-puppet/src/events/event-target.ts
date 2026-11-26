@@ -35,7 +35,15 @@ export interface WechatyEventInit<T = any> extends EventInit {
 }
 
 let nextEventSequence = 0
+const MULTI_ARG_SYMBOL = Symbol('wechaty.multi_arg')
 
+/**
+ * Type guard checking whether a value is a plain JavaScript object record.
+ * Used to ensure only plain objects are shallowly frozen in WechatyEvent payloads.
+ *
+ * @param val - Value to inspect.
+ * @returns `true` if `val` is a non-null object with Object.prototype or null prototype.
+ */
 function isPlainObject (val: unknown): val is Record<string, any> {
   if (val === null || typeof val !== 'object') {
     return false
@@ -44,6 +52,12 @@ function isPlainObject (val: unknown): val is Record<string, any> {
   return proto === Object.prototype || proto === null
 }
 
+/**
+ * Generates a unique event identifier for distributed tracing.
+ * Falls back to monotonic timestamp-sequence format if crypto.randomUUID is absent.
+ *
+ * @returns Unique event ID string.
+ */
 function generateEventId (): string {
   if (typeof globalThis.crypto?.randomUUID === 'function') {
     return globalThis.crypto.randomUUID()
@@ -96,25 +110,22 @@ export interface TrackedListenerEntry {
   signal?: AbortSignal
   wrapped: EventListenerOrEventListenerObject
   abortCleanup?: () => void
+  rawListener?: Function
 }
 
 const LISTENERS_MAP = new WeakMap<WechatyEventTarget, Map<string, TrackedListenerEntry[]>>()
-const LEGACY_WRAPPER_MAP = new WeakMap<WechatyEventTarget, WeakMap<Function, EventListener>>()
 
+/**
+ * Retrieves or initializes the active listener map for the given WechatyEventTarget instance.
+ *
+ * @param target - EventTarget instance.
+ * @returns Map from event type name to array of tracked listener entries.
+ */
 function getListenersMap (target: WechatyEventTarget): Map<string, TrackedListenerEntry[]> {
   let map = LISTENERS_MAP.get(target)
   if (!map) {
     map = new Map()
     LISTENERS_MAP.set(target, map)
-  }
-  return map
-}
-
-function getLegacyWrapperMap (target: WechatyEventTarget): WeakMap<Function, EventListener> {
-  let map = LEGACY_WRAPPER_MAP.get(target)
-  if (!map) {
-    map = new WeakMap()
-    LEGACY_WRAPPER_MAP.set(target, map)
   }
   return map
 }
@@ -152,11 +163,13 @@ export class WechatyEventTarget extends EventTarget {
    * @param type - Event name string.
    * @param listener - Callback receiving the Event or CustomEvent, or EventListenerObject.
    * @param options - Standard AddEventListenerOptions, including native `{ signal, once, capture }`.
+   * @param rawListener - Optional original legacy callback when wrapped by `on()` or `once()`.
    */
   override addEventListener (
     type: string,
     listener: EventListenerOrEventListenerObject | null,
     options?: boolean | AddEventListenerOptions,
+    rawListener?: Function,
   ): void {
     if (!listener) {
       return
@@ -178,7 +191,7 @@ export class WechatyEventTarget extends EventTarget {
     }
 
     // W3C DOM EventTarget specification: duplicate listener registration is a no-op
-    const existingIndex = list.findIndex(entry => entry.listener === listener && entry.capture === capture)
+    const existingIndex = list.findIndex(entry => (entry.listener === listener || (rawListener && entry.rawListener === rawListener)) && entry.capture === capture)
     if (existingIndex !== -1) {
       return
     }
@@ -187,6 +200,7 @@ export class WechatyEventTarget extends EventTarget {
       capture,
       listener,
       once,
+      rawListener,
       signal,
       wrapped: listener,
     }
@@ -243,7 +257,7 @@ export class WechatyEventTarget extends EventTarget {
     }
 
     const capture = typeof options === 'object' && options !== null ? Boolean(options.capture) : Boolean(options)
-    const index = list.findIndex(entry => (entry.listener === listener || entry.wrapped === listener) && entry.capture === capture)
+    const index = list.findIndex(entry => (entry.listener === listener || entry.wrapped === listener || (typeof listener === 'function' && entry.rawListener === listener)) && entry.capture === capture)
     if (index !== -1) {
       const [entry] = list.splice(index, 1)
       if (entry) {
@@ -294,41 +308,50 @@ export class WechatyEventTarget extends EventTarget {
     }
 
     let payload: any
-    if (type === 'scan' && args.length > 1) {
-      payload = Object.assign([...args], {
-        qrcode: args[0],
-        status: args[1],
-        data: args[2],
-      })
-    } else if (type === 'logout' && args.length > 1) {
-      payload = Object.assign([...args], {
-        user: args[0],
-        reason: args[1],
-      })
-    } else if (type === 'room-join' && args.length > 1) {
-      payload = Object.assign([...args], {
-        room: args[0],
-        inviteeList: args[1],
-        inviter: args[2],
-        date: args[3],
-      })
-    } else if (type === 'room-leave' && args.length > 1) {
-      payload = Object.assign([...args], {
-        room: args[0],
-        leaverList: args[1],
-        remover: args[2],
-        date: args[3],
-      })
-    } else if (type === 'room-topic' && args.length > 1) {
-      payload = Object.assign([...args], {
-        room: args[0],
-        newTopic: args[1],
-        oldTopic: args[2],
-        changer: args[3],
-        date: args[4],
-      })
+    if (args.length > 1) {
+      if (type === 'scan') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          qrcode: args[0],
+          status: args[1],
+          data: args[2],
+        })
+      } else if (type === 'logout') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          user: args[0],
+          reason: args[1],
+        })
+      } else if (type === 'room-join') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          room: args[0],
+          inviteeList: args[1],
+          inviter: args[2],
+          date: args[3],
+        })
+      } else if (type === 'room-leave') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          room: args[0],
+          leaverList: args[1],
+          remover: args[2],
+          date: args[3],
+        })
+      } else if (type === 'room-topic') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          room: args[0],
+          newTopic: args[1],
+          oldTopic: args[2],
+          changer: args[3],
+          date: args[4],
+        })
+      } else {
+        payload = Object.assign([...args], { [MULTI_ARG_SYMBOL]: true })
+      }
     } else {
-      payload = args.length <= 1 ? args[0] : args
+      payload = args[0]
     }
 
     const event = new WechatyEvent(type, { detail: payload })
@@ -393,26 +416,26 @@ export class WechatyEventTarget extends EventTarget {
 
     const self = this
     const queue: T[] = []
-    let pendingResolve: ((result: IteratorResult<T>) => void) | null = null
-    let pendingReject: ((err: any) => void) | null = null
+    const pendingResolvers: Array<{
+      resolve: (result: IteratorResult<T>) => void
+      reject: (err: any) => void
+    }> = []
     let closed = false
     let streamError: any = null
 
     const cleanup = () => {
       if (closed) return
       closed = true
+      queue.length = 0
       self.removeEventListener(type, onEvent)
       signal?.removeEventListener('abort', onAbort)
+      while (pendingResolvers.length > 0) {
+        pendingResolvers.shift()!.resolve({ done: true, value: undefined })
+      }
     }
 
     const onAbort = () => {
       cleanup()
-      if (pendingResolve) {
-        const resolve = pendingResolve
-        pendingResolve = null
-        pendingReject = null
-        resolve({ done: true, value: undefined })
-      }
     }
 
     const onEvent = (event: Event) => {
@@ -421,11 +444,9 @@ export class WechatyEventTarget extends EventTarget {
         ? (event as CustomEvent<T>).detail
         : (event as any)
 
-      if (pendingResolve) {
-        const resolve = pendingResolve
-        pendingResolve = null
-        pendingReject = null
-        resolve({ done: false, value: detail })
+      if (pendingResolvers.length > 0) {
+        const resolver = pendingResolvers.shift()!
+        resolver.resolve({ done: false, value: detail })
         return
       }
 
@@ -444,11 +465,8 @@ export class WechatyEventTarget extends EventTarget {
               'QuotaExceededError',
             )
             cleanup()
-            if (pendingReject) {
-              const reject = pendingReject
-              pendingResolve = null
-              pendingReject = null
-              reject(streamError)
+            while (pendingResolvers.length > 0) {
+              pendingResolvers.shift()!.reject(streamError)
             }
             break
         }
@@ -469,36 +487,26 @@ export class WechatyEventTarget extends EventTarget {
         if (streamError) {
           throw streamError
         }
+        if (closed || signal?.aborted) {
+          return { done: true, value: undefined }
+        }
         if (queue.length > 0) {
           const value = queue.shift()!
           return { done: false, value }
         }
-        if (closed || signal?.aborted) {
-          return { done: true, value: undefined }
-        }
         return new Promise<IteratorResult<T>>((resolve, reject) => {
-          pendingResolve = resolve
-          pendingReject = reject
+          pendingResolvers.push({ resolve, reject })
         })
       },
       async return (): Promise<IteratorResult<T>> {
         cleanup()
-        if (pendingResolve) {
-          const resolve = pendingResolve
-          pendingResolve = null
-          pendingReject = null
-          resolve({ done: true, value: undefined })
-        }
         return { done: true, value: undefined }
       },
       async throw (err?: any): Promise<IteratorResult<T>> {
-        cleanup()
-        if (pendingReject) {
-          const reject = pendingReject
-          pendingResolve = null
-          pendingReject = null
-          reject(err)
+        while (pendingResolvers.length > 0) {
+          pendingResolvers.shift()!.reject(err)
         }
+        cleanup()
         throw err
       },
     }
@@ -520,21 +528,17 @@ export class WechatyEventTarget extends EventTarget {
    * @deprecated Use `addEventListener(type, listener, options)` or `events()` instead.
    */
   on (type: string, listener: (...args: any[]) => void, options?: AddEventListenerOptions): this {
-    const legacyMap = getLegacyWrapperMap(this)
     const wrapper: EventListener = (event: Event) => {
       const detail = (event as CustomEvent).detail
-      if (detail !== undefined && detail !== null) {
-        if (Array.isArray(detail)) {
-          listener.apply(this, detail)
-        } else {
-          listener.call(this, detail)
-        }
+      if (Array.isArray(detail) && (detail as any)[MULTI_ARG_SYMBOL]) {
+        listener.apply(this, detail)
+      } else if (detail !== undefined) {
+        listener.call(this, detail)
       } else {
         listener.call(this)
       }
     }
-    legacyMap.set(listener, wrapper)
-    this.addEventListener(type, wrapper, options)
+    this.addEventListener(type, wrapper, options, listener)
     return this
   }
 
@@ -544,22 +548,17 @@ export class WechatyEventTarget extends EventTarget {
    * @deprecated Use `addEventListener(type, listener, { once: true })` or `next()` instead.
    */
   once (type: string, listener: (...args: any[]) => void, options?: AddEventListenerOptions): this {
-    const legacyMap = getLegacyWrapperMap(this)
     const wrapper: EventListener = (event: Event) => {
-      legacyMap.delete(listener)
       const detail = (event as CustomEvent).detail
-      if (detail !== undefined && detail !== null) {
-        if (Array.isArray(detail)) {
-          listener.apply(this, detail)
-        } else {
-          listener.call(this, detail)
-        }
+      if (Array.isArray(detail) && (detail as any)[MULTI_ARG_SYMBOL]) {
+        listener.apply(this, detail)
+      } else if (detail !== undefined) {
+        listener.call(this, detail)
       } else {
         listener.call(this)
       }
     }
-    legacyMap.set(listener, wrapper)
-    this.addEventListener(type, wrapper, { ...options, once: true })
+    this.addEventListener(type, wrapper, { ...options, once: true }, listener)
     return this
   }
 
@@ -569,10 +568,7 @@ export class WechatyEventTarget extends EventTarget {
    * @deprecated Use `removeEventListener(type, listener)` instead.
    */
   off (type: string, listener: (...args: any[]) => void, options?: EventListenerOptions): this {
-    const legacyMap = getLegacyWrapperMap(this)
-    const wrapper = legacyMap.get(listener) ?? (listener as any as EventListener)
-    this.removeEventListener(type, wrapper, options)
-    legacyMap.delete(listener)
+    this.removeEventListener(type, listener, options)
     return this
   }
 
@@ -629,7 +625,7 @@ export class WechatyEventTarget extends EventTarget {
   /** @deprecated Returns unwrapped listener callbacks. */
   listeners (type: string): Function[] {
     const list = getListenersMap(this).get(type)
-    return list ? list.map(e => (typeof e.listener === 'function' ? e.listener : (ev: any) => (e.listener as any).handleEvent(ev))) : []
+    return list ? list.map(e => (e.rawListener ?? (typeof e.listener === 'function' ? e.listener : (ev: any) => (e.listener as any).handleEvent(ev)))) : []
   }
 
   /** @deprecated Returns wrapped listener functions. */

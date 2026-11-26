@@ -477,8 +477,8 @@ test('WechatyEventTarget legacy on/once with array and null details', () => {
 
   target.dispatchEvent(new WechatyEvent('arr', { detail: [10, 20, 30] }))
   target.dispatchEvent(new WechatyEvent('arr-once', { detail: [40, 50] }))
-  assert.deepEqual(onArgs, [10, 20, 30])
-  assert.deepEqual(onceArgs, [40, 50])
+  assert.deepEqual(onArgs, [[10, 20, 30]])
+  assert.deepEqual(onceArgs, [[40, 50]])
 
   // Void/null detail
   let onVoidCalled = false
@@ -490,4 +490,74 @@ test('WechatyEventTarget legacy on/once with array and null details', () => {
   target.dispatchEvent(new Event('void-once-test'))
   assert.equal(onVoidCalled, true)
   assert.equal(onceVoidCalled, true)
+})
+
+test('WechatyEventTarget tracks wrappers per event type and returns original callbacks from listeners()', () => {
+  const target = new WechatyEventTarget()
+  const sharedCallback = () => {}
+
+  target.on('eventA', sharedCallback)
+  target.on('eventB', sharedCallback)
+
+  assert.equal(target.listenerCount('eventA'), 1)
+  assert.equal(target.listenerCount('eventB'), 1)
+  assert.equal(target.listeners('eventA')[0], sharedCallback, 'listeners() must return original callback')
+  assert.equal(target.listeners('eventB')[0], sharedCallback, 'listeners() must return original callback')
+
+  target.off('eventA', sharedCallback)
+  assert.equal(target.listenerCount('eventA'), 0)
+  assert.equal(target.listenerCount('eventB'), 1, 'off(eventA) must not affect eventB with shared listener')
+
+  target.off('eventB', sharedCallback)
+  assert.equal(target.listenerCount('eventB'), 0)
+})
+
+test('WechatyEventTarget preserves single array payloads without spreading in on()', () => {
+  const target = new WechatyEventTarget()
+  let receivedPayload: any
+
+  target.on('single-arr', (data) => {
+    receivedPayload = data
+  })
+
+  // Single argument that is an array
+  target.emit('single-arr', ['item1', 'item2'])
+  assert.deepEqual(receivedPayload, ['item1', 'item2'], 'Single array payload must not be spread into multiple arguments')
+
+  // Multiple arguments
+  let multiArgs: any[] = []
+  target.on('multi-args', (...args) => {
+    multiArgs = args
+  })
+  target.emit('multi-args', 'arg1', 'arg2', 'arg3')
+  assert.deepEqual(multiArgs, ['arg1', 'arg2', 'arg3'], 'Multi-argument emit must be passed as separate arguments')
+})
+
+test('WechatyEventTarget events() discard buffered queue on return() and supports concurrent next() reads', async () => {
+  const target = new WechatyEventTarget()
+  const iter = target.events('test-queue')[Symbol.asyncIterator]()
+
+  // Buffer events
+  target.dispatchEvent(new WechatyEvent('test-queue', { detail: 'buffered-1' }))
+  target.dispatchEvent(new WechatyEvent('test-queue', { detail: 'buffered-2' }))
+
+  const returnResult = await iter.return!()
+  assert.deepEqual(returnResult, { done: true, value: undefined })
+
+  // Calling next() after return must return done: true, not buffered items
+  const afterReturn = await iter.next()
+  assert.deepEqual(afterReturn, { done: true, value: undefined })
+
+  // Concurrent next() calls
+  const iterConcurrent = target.events('test-concurrent')[Symbol.asyncIterator]()
+  const next1 = iterConcurrent.next()
+  const next2 = iterConcurrent.next()
+
+  target.dispatchEvent(new WechatyEvent('test-concurrent', { detail: 'c1' }))
+  target.dispatchEvent(new WechatyEvent('test-concurrent', { detail: 'c2' }))
+
+  const [r1, r2] = await Promise.all([next1, next2])
+  assert.deepEqual(r1, { done: false, value: 'c1' })
+  assert.deepEqual(r2, { done: false, value: 'c2' })
+  await iterConcurrent.return!()
 })
