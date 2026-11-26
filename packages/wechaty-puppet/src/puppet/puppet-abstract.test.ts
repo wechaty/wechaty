@@ -971,6 +971,34 @@ test('logout() listener observes isLoggedIn === true and currentUserId during di
   await puppet.stop()
 })
 
+test('puppet.isLoggedIn is true inside onStop() and stop-time logout listener', async _t => {
+  let onStopSawLoggedIn: boolean | undefined
+  let onStopSawUserId: string | undefined
+  let logoutSawLoggedIn: boolean | undefined
+
+  class OnStopCheckingPuppet extends PuppetTest {
+    override async onStop (): Promise<void> {
+      onStopSawLoggedIn = this.isLoggedIn
+      onStopSawUserId = this.currentUserId
+    }
+  }
+
+  const puppet = new OnStopCheckingPuppet()
+  await puppet.start()
+  puppet.login('user-onstop')
+
+  puppet.on('logout', () => {
+    logoutSawLoggedIn = puppet.isLoggedIn
+  })
+
+  await puppet.stop()
+
+  assert.equal(onStopSawLoggedIn, true, 'isLoggedIn must be true inside onStop()')
+  assert.equal(onStopSawUserId, 'user-onstop', 'currentUserId must be defined inside onStop()')
+  assert.equal(logoutSawLoggedIn, true, 'isLoggedIn must be true inside stop-time logout listener')
+  assert.equal(puppet.isLoggedIn, false, 'isLoggedIn must be false after stop completes')
+})
+
 test('concurrent logout() and stop() dispatches logout exactly once without duplicates', async _t => {
   const puppet = new PuppetTest()
   await puppet.start()

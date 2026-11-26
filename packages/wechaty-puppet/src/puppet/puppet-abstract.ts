@@ -222,7 +222,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   }
 
   get isLoggedIn (): boolean {
-    return this.#scope ? (this.#login.isSet && !!this.#currentUserId) : !!this.#currentUserId
+    return !!this.#currentUserId
   }
 
   /**
