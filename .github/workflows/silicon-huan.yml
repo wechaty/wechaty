@@ -241,19 +241,51 @@ jobs:
             const { status, data } = await github.request(`POST ${endpoint}`, { content: 'eyes' })
             // A 200 reuses an existing reaction, which this run does not own.
             if (status === 201) core.setOutput('eyes_id', String(data.id))
+      - name: Check for a completed automatic review pair
+        id: pair
+        if: github.event_name == 'pull_request_target'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          NUMBER: ${{ needs.authorize.outputs.number }}
+          HEAD_SHA: ${{ needs.authorize.outputs.sha }}
+          BASE_SHA: ${{ needs.authorize.outputs.base }}
+          APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+        run: |
+          set -euo pipefail
+          marker="<!-- huan-review-pair head=$HEAD_SHA base=$BASE_SHA -->"
+          if gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/reviews?per_page=100" |
+            jq -e --arg login "$APP_LOGIN" --arg sha "$HEAD_SHA" --arg marker "$marker" '
+              any(.[][]; .user.login == $login and .commit_id == $sha
+                and (.state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED")
+                and ((.body // "") | endswith($marker)))
+            ' >/dev/null; then
+            echo 'duplicate=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          else
+            status=("${PIPESTATUS[@]}")
+            if [[ "${status[0]}" != 0 || "${status[1]}" != 1 ]]; then
+              echo '::error::Could not check for an existing automatic review.'
+              exit 1
+            fi
+          fi
       - uses: actions/checkout@v5
+        if: steps.pair.outputs.duplicate != 'true'
         with:
           # Automatic reviews inspect the PR through GitHub from a trusted checkout.
           ref: ${{ github.event_name == 'pull_request_target' && github.workflow_sha || needs.authorize.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v5
+        if: steps.pair.outputs.duplicate != 'true'
         with:
           node-version: '26'
       - uses: denoland/setup-deno@v2
+        if: steps.pair.outputs.duplicate != 'true'
         with:
           deno-version: v2.x
       - name: Install engineering tools
+        if: steps.pair.outputs.duplicate != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -266,7 +298,7 @@ jobs:
           docker pull ghcr.io/github/github-mcp-server
       - name: Mark Huanˢⁱ ⚡ as running
         id: rocket
-        if: steps.reactions.outputs.endpoint != ''
+        if: steps.reactions.outputs.endpoint != '' && steps.pair.outputs.duplicate != 'true'
         continue-on-error: true
         shell: bash
         env:
@@ -287,6 +319,7 @@ jobs:
             echo "rocket_id=$rocket_id" >> "$GITHUB_OUTPUT"
           fi
       - name: Run Huanˢⁱ ⚡
+        if: steps.pair.outputs.duplicate != 'true'
         id: agent
         shell: bash
         env:
@@ -299,32 +332,12 @@ jobs:
           TASK: ${{ needs.authorize.outputs.task }}
           MODE: ${{ needs.authorize.outputs.mode }}
           PROGRESS_URL: ${{ steps.progress.outputs.url }}
-          NUMBER: ${{ needs.authorize.outputs.number }}
           HEAD_SHA: ${{ needs.authorize.outputs.sha }}
           BASE_SHA: ${{ needs.authorize.outputs.base }}
-          APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
           VERDICT_FILE: ${{ runner.temp }}/huan-verdict.json
         run: |
           set -euo pipefail
           umask 077
-          if [[ "$GITHUB_EVENT_NAME" == pull_request_target ]]; then
-            marker="<!-- huan-review-pair head=$HEAD_SHA base=$BASE_SHA -->"
-            if gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/reviews?per_page=100" |
-              jq -e --arg login "$APP_LOGIN" --arg sha "$HEAD_SHA" --arg marker "$marker" '
-                any(.[][]; .user.login == $login and .commit_id == $sha
-                  and (.state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED")
-                  and ((.body // "") | endswith($marker)))
-              ' >/dev/null; then
-              echo 'duplicate=true' >> "$GITHUB_OUTPUT"
-              exit 0
-            else
-              status=("${PIPESTATUS[@]}")
-              if [[ "${status[0]}" != 0 || "${status[1]}" != 1 ]]; then
-                echo '::error::Could not check for an existing automatic review.'
-                exit 1
-              fi
-            fi
-          fi
           if [[ "$MODE" == review ]]; then rm -f "$VERDICT_FILE"; fi
           private_dir="$(mktemp -d "$RUNNER_TEMP/antigravity-next.XXXXXX")"
           cleanup() {
@@ -391,7 +404,7 @@ jobs:
 
       - name: Publish revision-checked verdict
         id: verdict
-        if: needs.authorize.outputs.mode == 'review' && steps.agent.outputs.duplicate != 'true'
+        if: needs.authorize.outputs.mode == 'review' && steps.pair.outputs.duplicate != 'true'
         uses: actions/github-script@v8
         env:
           NUMBER: ${{ needs.authorize.outputs.number }}
@@ -420,7 +433,7 @@ jobs:
               || typeof body !== 'string' || !body.trim()) throw new Error('Invalid review verdict handoff')
             const { data: review } = await github.rest.pulls.getReview({ ...pull, review_id: reviewId })
             if (review.user?.login !== APP_LOGIN || review.commit_id !== HEAD_SHA
-              || review.state !== 'COMMENTED' || !review.body?.startsWith('## Huanˢⁱ ⚡ review\n')
+              || review.state !== 'COMMENTED' || !/^## Huanˢⁱ ⚡ review[ \t]*\r?\n/.test(review.body ?? '')
               || !review.body.split(/\r?\n/).includes(`<!-- huan-reviewed-base base=${BASE_SHA} -->`)) {
               throw new Error('Verdict handoff does not identify the formal review for this HEAD and BASE')
             }
@@ -442,7 +455,7 @@ jobs:
           COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
           RUN_STATUS: ${{ job.status }}
           PARTIAL: ${{ steps.verdict.outputs.partial }}
-          DUPLICATE: ${{ steps.agent.outputs.duplicate }}
+          DUPLICATE: ${{ steps.pair.outputs.duplicate }}
           MODE: ${{ needs.authorize.outputs.mode }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
@@ -456,9 +469,9 @@ jobs:
                 : { success: 'completed', cancelled: 'cancelled' }[process.env.RUN_STATUS] ?? 'failed'
             const activity = process.env.MODE === 'review' ? 'Review' : 'Task'
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            const body = process.env.PARTIAL === 'true'
-              ? data.body.replace(/^### Huanˢⁱ ⚡ · .*$/m, '### Huanˢⁱ ⚡ · Partial review')
-              : data.body
+            const heading = outcome.startsWith('partial.') ? 'Partial review'
+              : `${activity} ${outcome.split('.')[0]}`
+            const body = data.body.replace(/^### Huanˢⁱ ⚡ · .*$/m, `### Huanˢⁱ ⚡ · ${heading}`)
             await github.rest.issues.updateComment({
               ...comment,
               body: `${body}\n\n**${activity} ${outcome}.** See the [Actions run](${run}).`,
@@ -475,7 +488,7 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           AGENT_OUTCOME: ${{ steps.agent.outcome }}
           PARTIAL: ${{ steps.verdict.outputs.partial }}
-          DUPLICATE: ${{ steps.agent.outputs.duplicate }}
+          DUPLICATE: ${{ steps.pair.outputs.duplicate }}
         with:
           github-token: ${{ steps.reaction-token.outputs.token || steps.app-token.outputs.token }}
           script: |
