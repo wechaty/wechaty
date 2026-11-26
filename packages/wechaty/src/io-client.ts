@@ -155,17 +155,30 @@ export class IoClient {
   private hookWechaty (scope: LifecycleScope, wechaty: Wechaty): void {
     log.verbose('IoClient', 'hookWechaty()')
 
-    listen(scope, wechaty, 'login',   (user: { name (): string }) => log.info('IoClient', `${user.name()} logged in`))
-    listen(scope, wechaty, 'logout',  (user: { name (): string }) => log.info('IoClient', `${user.name()} logged out`))
-    listen(scope, wechaty, 'message', (msg: MessageInterface) => {
+    listen(scope, wechaty, 'login',   ((event: any) => {
+      const user = event.detail ?? event
+      log.info('IoClient', `${user.name()} logged in`)
+    }) as any)
+
+    listen(scope, wechaty, 'logout',  ((event: any) => {
+      const user = event.detail?.contact ?? event.detail ?? event
+      log.info('IoClient', `${user.name()} logged out`)
+    }) as any)
+
+    listen(scope, wechaty, 'message', ((event: any) => {
+      const msg = event.detail ?? event
       this.onMessage(msg).catch(e => log.warn('IoClient', 'onMessage() failed: %s', (e as Error).message))
-    })
-    listen(scope, wechaty, 'scan',    (url: string, code: number) => {
+    }) as any)
+
+    listen(scope, wechaty, 'scan',    ((event: any) => {
+      const detail = event.detail ?? event
+      const url = detail?.qrcode || (typeof detail === 'string' ? detail : '')
+      const code = detail?.status ?? (typeof detail === 'number' ? detail : 0)
       log.info('IoClient', [
         `[${code}] ${url}`,
         `Online QR Code Image: https://wechaty.js.org/qrcode/${encodeURIComponent(url)}`,
       ].join('\n'))
-    })
+    }) as any)
   }
 
   private async onMessage (msg: MessageInterface) {

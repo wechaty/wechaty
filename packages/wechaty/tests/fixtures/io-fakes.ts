@@ -213,6 +213,11 @@ export class FakeWechaty extends EventEmitter {
     }
   }
 
+  dispatchEvent (event: Event): boolean {
+    const detail = (event as CustomEvent).detail
+    return this.emit(event.type, detail !== undefined ? detail : event)
+  }
+
   version (): string { return '0.0.0-test' }
   emitError (error: unknown): void { this.errors.push(error) }
   async reset (): Promise<void> { this.log.push('reset') }

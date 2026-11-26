@@ -131,3 +131,21 @@ test('the Io link reconnecting on its own does not stop the client', async () =>
   await client.stop()
   assert.equal(io.state.kind, 'stopped')
 })
+
+test('hookWechaty handles CustomEvents for scan, login, message, and logout without throwing', async () => {
+  const bot = new FakeWechaty()
+  const client = new TestIoClient(bot)
+  await client.start()
+
+  const fakeUser = { name: () => 'TestBot' }
+  const fakeMessage = { text: () => 'hello', self: () => false }
+
+  assert.doesNotThrow(() => {
+    bot.dispatchEvent(new CustomEvent('scan', { detail: { qrcode: 'https://scan', status: 2 } }))
+    bot.dispatchEvent(new CustomEvent('login', { detail: fakeUser }))
+    bot.dispatchEvent(new CustomEvent('message', { detail: fakeMessage }))
+    bot.dispatchEvent(new CustomEvent('logout', { detail: { contact: fakeUser, data: 'logout' } }))
+  })
+
+  await client.stop()
+})
