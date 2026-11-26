@@ -1140,7 +1140,12 @@ interface RoomImplInterface extends RoomImpl {}
 type RoomProtectedProperty =
   | 'ready'
 
-type RoomInterface = Omit<RoomImplInterface, RoomProtectedProperty>
+type Room = Omit<RoomImplInterface, RoomProtectedProperty>
+
+/**
+ * @deprecated Use `Room` instead. `RoomInterface` is retained for backwards compatibility.
+ */
+type RoomInterface = Room
 
 type RoomConstructor = Constructor<
   RoomImplInterface,
@@ -1148,6 +1153,7 @@ type RoomConstructor = Constructor<
 >
 
 export type {
+  Room,
   RoomConstructor,
   RoomProtectedProperty,
   RoomInterface,

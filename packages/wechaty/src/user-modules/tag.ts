@@ -188,15 +188,21 @@ class TagMixin extends MixinBase {
 
 }
 
-class TagImpl extends validationMixin(TagMixin)<TagInterface>() {}
-interface TagInterface extends TagImpl {}
+class TagImpl extends validationMixin(TagMixin)<Tag>() {}
+interface Tag extends TagImpl {}
+
+/**
+ * @deprecated Use `Tag` instead. `TagInterface` is retained for backwards compatibility.
+ */
+type TagInterface = Tag
 
 type TagConstructor = Constructor<
-  TagInterface,
+  Tag,
   typeof TagImpl
 >
 
 export type {
+  Tag,
   TagConstructor,
   TagInterface,
 }

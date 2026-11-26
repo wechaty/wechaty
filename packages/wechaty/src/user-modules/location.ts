@@ -89,15 +89,21 @@ class LocationMixin extends wechatifyMixinBase() {
 
 }
 
-class LocationImpl extends validationMixin(LocationMixin)<LocationInterface>() {}
-interface LocationInterface extends LocationImpl {}
+class LocationImpl extends validationMixin(LocationMixin)<Location>() {}
+interface Location extends LocationImpl {}
+
+/**
+ * @deprecated Use `Location` instead. `LocationInterface` is retained for backwards compatibility.
+ */
+type LocationInterface = Location
 
 type LocationConstructor = Constructor<
-  LocationInterface,
+  Location,
   typeof LocationImpl
 >
 
 export type {
+  Location,
   LocationConstructor,
   LocationInterface,
 }

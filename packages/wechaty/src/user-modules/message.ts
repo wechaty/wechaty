@@ -1104,15 +1104,21 @@ interface MessageImplInterface extends MessageImplBase {}
 type MessageProtectedProperty =
   | 'ready'
 
-type MessageInterface = Omit<MessageImplInterface, MessageProtectedProperty>
-class MessageImpl extends validationMixin(MessageImplBase)<MessageInterface>() {}
+type Message = Omit<MessageImplInterface, MessageProtectedProperty>
+
+/**
+ * @deprecated Use `Message` instead. `MessageInterface` is retained for backwards compatibility.
+ */
+type MessageInterface = Message
+class MessageImpl extends validationMixin(MessageImplBase)<Message>() {}
 
 type MessageConstructor = Constructor<
-  MessageInterface,
+  Message,
   Omit<typeof MessageImpl, 'load'>
 >
 
 export type {
+  Message,
   MessageInterface,
   MessageProtectedProperty,
   MessageConstructor,

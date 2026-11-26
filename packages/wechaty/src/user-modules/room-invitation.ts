@@ -276,15 +276,21 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
 
 }
 
-class RoomInvitationImpl extends validationMixin(RoomInvitationMixin)<RoomInvitationInterface>() {}
-interface RoomInvitationInterface extends RoomInvitationImpl {}
+class RoomInvitationImpl extends validationMixin(RoomInvitationMixin)<RoomInvitation>() {}
+interface RoomInvitation extends RoomInvitationImpl {}
+
+/**
+ * @deprecated Use `RoomInvitation` instead. `RoomInvitationInterface` is retained for backwards compatibility.
+ */
+type RoomInvitationInterface = RoomInvitation
 
 type RoomInvitationConstructor = Constructor<
-  RoomInvitationInterface,
+  RoomInvitation,
   typeof RoomInvitationImpl
 >
 
 export type {
+  RoomInvitation,
   RoomInvitationConstructor,
   RoomInvitationInterface,
 }

@@ -433,15 +433,21 @@ class FriendshipMixin extends MixinBase implements Accepter {
 
 }
 
-class FriendshipImpl extends validationMixin(FriendshipMixin)<FriendshipInterface>() {}
-interface FriendshipInterface extends FriendshipImpl {}
+class FriendshipImpl extends validationMixin(FriendshipMixin)<Friendship>() {}
+interface Friendship extends FriendshipImpl {}
+
+/**
+ * @deprecated Use `Friendship` instead. `FriendshipInterface` is retained for backwards compatibility.
+ */
+type FriendshipInterface = Friendship
 
 type FriendshipConstructor = Constructor<
-  FriendshipInterface,
+  Friendship,
   typeof FriendshipImpl
 >
 
 export type {
+  Friendship,
   FriendshipConstructor,
   FriendshipInterface,
 }
