@@ -84,8 +84,8 @@ Extend `AsyncLifecycle` when your class does not already extend another base cla
 import { AsyncLifecycle, listen, type LifecycleScope } from 'scopelet'
 
 // Helper: cancellable sleep timer
-function delay (ms: number, signal?: AbortSignal): Promise<void> {
-  if (signal?.aborted) return Promise.reject(signal.reason)
+function delay (ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.reject(signal.reason)
   if (ms <= 0) return Promise.resolve()
   return new Promise((resolve, reject) => {
     const onAbort = () => {
@@ -93,10 +93,10 @@ function delay (ms: number, signal?: AbortSignal): Promise<void> {
       reject(signal.reason)
     }
     const timer = setTimeout(() => {
-      signal?.removeEventListener('abort', onAbort)
+      signal.removeEventListener('abort', onAbort)
       resolve()
     }, ms)
-    signal?.addEventListener('abort', onAbort, { once: true })
+    signal.addEventListener('abort', onAbort, { once: true })
   })
 }
 
@@ -175,6 +175,10 @@ export class DatabaseService implements Lifecycle {
     })
   }
 
+  get pool (): ConnectionPool | undefined {
+    return this.#pool
+  }
+
   get state (): LifecycleState {
     return this.#lifecycle.state
   }
@@ -229,8 +233,8 @@ export interface IoOptions {
   readonly openSocket: (url: string, signal: AbortSignal) => Promise<SocketLike>
 }
 
-function delay (ms: number, signal?: AbortSignal): Promise<void> {
-  if (signal?.aborted) return Promise.reject(signal.reason)
+function delay (ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.reject(signal.reason)
   if (ms <= 0) return Promise.resolve()
   return new Promise((resolve, reject) => {
     const onAbort = () => {
@@ -238,10 +242,10 @@ function delay (ms: number, signal?: AbortSignal): Promise<void> {
       reject(signal.reason)
     }
     const timer = setTimeout(() => {
-      signal?.removeEventListener('abort', onAbort)
+      signal.removeEventListener('abort', onAbort)
       resolve()
     }, ms)
-    signal?.addEventListener('abort', onAbort, { once: true })
+    signal.addEventListener('abort', onAbort, { once: true })
   })
 }
 
