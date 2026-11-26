@@ -31,7 +31,7 @@ import {
 }                       from './wechaty-impl.ts'
 
 test('Wechaty interface', async _t => {
-  abstract class WechatyImplementation extends WechatyEventEmitter implements Wechaty {
+  abstract class WechatyImplementation extends WechatyEventEmitter implements WechatyInterface {
 
     Contact        : ContactConstructor
     ContactSelf    : ContactSelfConstructor
@@ -69,25 +69,28 @@ test('Wechaty interface', async _t => {
     abstract authQrCode  : Wechaty['authQrCode']
     abstract currentUser : Wechaty['currentUser']
     abstract ding        : Wechaty['ding']
-    abstract emitError   : Wechaty['emitError']
-    abstract id          : Wechaty['id']
-    abstract init        : Wechaty['init']
-    abstract isLoggedIn  : Wechaty['isLoggedIn']
-    abstract log         : Wechaty['log']
-    abstract logout      : Wechaty['logout']
-    abstract name        : Wechaty['name']
-    abstract publish     : Wechaty['publish']
-    abstract puppet      : Wechaty['puppet']
-    abstract ready       : Wechaty['ready']
-    abstract reset       : Wechaty['reset']
-    abstract say         : Wechaty['say']
-    abstract sleep       : Wechaty['sleep']
-    abstract start       : Wechaty['start']
-    abstract state       : Wechaty['state']
-    abstract stop        : Wechaty['stop']
-    abstract use         : Wechaty['use']
-    abstract version     : Wechaty['version']
-    abstract wrapAsync   : Wechaty['wrapAsync']
+    abstract emitError   : WechatyInterface['emitError']
+    abstract id          : WechatyInterface['id']
+    abstract init        : WechatyInterface['init']
+    abstract io          : WechatyInterface['io']
+    abstract isLoggedIn  : WechatyInterface['isLoggedIn']
+    abstract log         : WechatyInterface['log']
+    abstract logout      : WechatyInterface['logout']
+    abstract memory      : WechatyInterface['memory']
+    abstract name        : WechatyInterface['name']
+    abstract publish     : WechatyInterface['publish']
+    abstract puppet      : WechatyInterface['puppet']
+    abstract ready       : WechatyInterface['ready']
+    abstract reset       : WechatyInterface['reset']
+    abstract say         : WechatyInterface['say']
+    abstract sleep       : WechatyInterface['sleep']
+    abstract start       : WechatyInterface['start']
+    abstract state       : WechatyInterface['state']
+    abstract stop        : WechatyInterface['stop']
+    abstract use         : WechatyInterface['use']
+    abstract version     : WechatyInterface['version']
+    abstract wechaty     : WechatyInterface['wechaty']
+    abstract wrapAsync   : WechatyInterface['wrapAsync']
 
     messages: Wechaty['messages'] = this.events as any
     messageStream: Wechaty['messageStream'] = (() => {}) as any

@@ -33,10 +33,12 @@
  *
  */
 import { MemoryCard }     from 'memory-card'
+import { GError }         from 'gerror'
 import {
   log,
   type EventIteratorOptions,
   WechatyEventTarget,
+  WechatyEvent,
 }                         from 'wechaty-puppet'
 import type { Loggable }  from 'brolog'
 
@@ -166,11 +168,16 @@ abstract class WechatySkeleton extends WechatyEventTarget {
 
   /**
    * Internal emit compatibility required by state-switch ServiceCtl.
-   * Dispatches a CustomEvent on this EventTarget.
+   * Dispatches a WechatyEvent with GError normalization for error events.
+   * Throws if invoked for unsupported events to prevent legacy EventEmitter usage.
    * @internal
    */
   emit (event: string, ...args: any[]): boolean {
-    return this.dispatchEvent(new CustomEvent(event, { detail: args[0] }))
+    if (event === 'error') {
+      const error = GError.from(args[0])
+      return this.dispatchEvent(new WechatyEvent('error', { detail: error }))
+    }
+    throw new Error(`Wechaty.emit() is not supported in Wechaty 2.0. Use bot.dispatchEvent() instead.`)
   }
 
 }

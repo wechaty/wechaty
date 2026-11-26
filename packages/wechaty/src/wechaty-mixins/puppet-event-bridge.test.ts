@@ -36,6 +36,7 @@ function createBridgeTestContext (
 ) {
   const trace: string[] = []
   const eventList: { event: WechatyEventName, args: unknown[] }[] = []
+  const dispatchedList: CustomEvent[] = []
   const errorList: Error[] = []
 
   const dependencies: Dependencies = {
@@ -49,11 +50,15 @@ function createBridgeTestContext (
     roomInvitationLoad: () => ({} as unknown as RoomInvitation),
     roomReady: async () => {},
     setReady: state => trace.push(`ready:${state}`),
+    dispatchEvent: (event: Event) => {
+      trace.push(`bot:${event.type}`)
+      dispatchedList.push(event as CustomEvent)
+      return true
+    },
     emit: function <EventName extends WechatyEventName> (
       event: EventName,
       ...args: Parameters<WechatyEventListeners[EventName]>
     ) {
-      trace.push(`bot:${event}`)
       eventList.push({ event, args })
       return true
     },

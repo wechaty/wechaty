@@ -52,12 +52,11 @@ class WechatyBuilder implements BuilderInterface {
    * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
    * import { Wechaty } from 'wechaty'
    *
-   * const bot = new Wechaty(options)
-   * bot
-   *  .on('scan', (url, status) => console.log(`Scan QR Code to login: ${status}\n${url}`))
-   *  .on('login',       user => console.log(`User ${user} logged in`))
-   *  .on('message',  message => console.log(`Message: ${message}`))
-   *  .start()
+   * const bot = WechatyBuilder.build()
+   * bot.addEventListener('scan', e => console.log(`Scan QR Code to login: ${e.detail.status}\n${e.detail.qrcode}`))
+   * bot.addEventListener('login', e => console.log(`User ${e.detail} logged in`))
+   * bot.addEventListener('message', e => console.log(`Message: ${e.detail}`))
+   * await bot.start()
    */
   static build (options?: WechatyOptions): Wechaty {
     return new Wechaty(options)
