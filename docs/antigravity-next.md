@@ -4,7 +4,7 @@ Implements the approved experimental direction in RFC #3157; relates to M0 #3158
 
 ## Approved decisions
 
-Minimum prompt, maximum capability, maximum autonomy, maximum privilege **within the existing repository-scoped Huan installation**. Use the existing APP_CLIENT_ID_HUAN and APP_PRIVATE_KEY_HUAN bootstrap; omit permission overrides to inherit every existing permission, without changing app registration or requesting organization-wide repository access. Both gh and official Docker GitHub MCP receive the same installation token. Enable all local toolsets and Insiders. This does not imply remote-only tools or APIs unsupported by installation tokens will work.
+Minimum prompt, maximum capability, maximum autonomy, maximum privilege **within the existing repository-scoped Huan installation**. Use the existing APP_CLIENT_ID_HUAN and APP_PRIVATE_KEY_HUAN bootstrap; inherit existing permissions for requested tasks and narrow them for automatic reviews, within this repository. Both gh and official Docker GitHub MCP receive the same installation token. Enable all local toolsets and Insiders. This does not imply remote-only tools or APIs unsupported by installation tokens will work.
 
 Use unrestricted `agy --dangerously-skip-permissions`, default effort (no effort flag), optional existing ANTIGRAVITY_MODEL, a minimal senior engineer/principal architect three-pass objective, and native GitHub communication. No mandatory output schema, artifact publisher, or raw public session logs. The agent decides how to investigate and communicate. Process success is execution success only, not proof of review publication or code quality. No mandatory evaluation check or required merge gate is introduced.
 
@@ -12,7 +12,9 @@ Antigravity Next has two paths. Use `@huan review` on a same-repository PR, opti
 
 The review prompt links to the PR and includes any requested focus. The interactive prompt points to the original comment or submitted review so the agent can read the request directly. Manual interaction includes the issue or PR link and the dispatch task. The launcher still uses the resolved commit for checkout and review freshness checks. Those hashes stay out of the prompt.
 
-The requester and rerun initiator need live repository write, maintain, or admin permission. Bot comments and fork PRs are excluded. The original `antigravity.yml` continues to provide automatic PR reviews and `@antigravity` interaction. Next's review requires an explicit request so ordinary PR events do not launch the unrestricted agent with the Huan installation token. GitHub runs comment triggers from the default branch.
+Next also reviews automatically when a non-draft, same-repository PR targeting `main` opens, reopens, becomes ready, or receives new commits. The PR author and event sender must be human accounts with repository write, maintain, or admin access. The rerun initiator also needs that access. Automatic reviews use a trusted checkout and a Huan token limited to contents read and pull requests write. They inspect PR changes through GitHub. Automatic runs and requested runs have separate queues so incoming pushes do not displace pending requests.
+
+Requested reviews and interactions retain their existing authorization and token grants. Bot comments and fork PRs are excluded. GitHub runs comment triggers from the default branch. The original workflow also runs its automatic reviews, so an eligible PR can receive both review headings.
 
 When an authorized `@huan` task or review runs, the Huan app adds 👀 to the triggering conversation comment or inline review comment before setting up the agent. The job attempts to remove only the reaction it created when it finishes, including after failures. Manual dispatch and submitted review bodies have no comment target for this indicator.
 
