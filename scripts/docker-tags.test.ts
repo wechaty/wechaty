@@ -8,6 +8,7 @@ import { dockerTags } from './docker-tags.ts'
 test('Docker rolling tags preserve prerelease stages and discard patch and counters', async _t => {
   const cases = [
     [ '2.0.1', '2.0', 'latest' ],
+    [ '3.2.1-rc.2', '3.2-rc', 'latest' ],
     [ '2.0.9', '2.0', 'latest' ],
     [ '2.1.9', '2.1', 'next' ],
     [ '2.2.9', '2.2', 'latest' ],
