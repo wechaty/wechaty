@@ -109,18 +109,27 @@ jobs:
       id: progress
       if: needs.authorize.outputs.mode == 'review' || github.event_name == 'workflow_dispatch'
         || github.event_name == 'pull_request_review'
-      continue-on-error: true
+      continue-on-error: "${{ needs.authorize.outputs.mode != 'review' }}"
       uses: actions/github-script@v8
       env:
         TARGET_NUMBER: "${{ needs.authorize.outputs.number }}"
         MODE: "${{ needs.authorize.outputs.mode }}"
+        HEAD_SHA: "${{ needs.authorize.outputs.sha }}"
+        BASE_SHA: "${{ needs.authorize.outputs.base }}"
         APP_LOGIN: "${{ steps.app-token.outputs.app-slug }}[bot]"
       with:
         github-token: "${{ steps.app-token.outputs.token }}"
         script: |
           const { owner, repo } = context.repo
           const target = { owner, repo, issue_number: Number(process.env.TARGET_NUMBER) }
+          if (process.env.MODE === 'review' && process.env.GITHUB_RUN_ATTEMPT === '1') {
+            const { data } = await github.rest.pulls.get({ owner, repo, pull_number: target.issue_number })
+            if (data.state !== 'open' || data.head.sha !== process.env.HEAD_SHA || data.base.sha !== process.env.BASE_SHA) {
+              throw new Error('PR revision changed before review preparation.')
+            }
+          }
           const marker = `<!-- antigravity-next-progress run=${context.runId} -->`
+          const recoveryMarker = '<!-- huan-verdict-recovery-required -->'
           const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
           const activity = process.env.MODE === 'review' ? 'Review' : 'Task'
           const body = `${marker}\n### Huanˢⁱ ⚡ · ${activity} started\n\n[Actions run](${run})`
@@ -133,7 +142,7 @@ jobs:
               if (!previous) continue
               const intent = previous.body.split(/\r?\n/).find(line =>
                 /^<!-- huan-verdict-intent head=[0-9a-f]{40} base=[0-9a-f]{40} -->$/.test(line))
-              if (process.env.MODE === 'review' && intent) {
+              if (process.env.MODE === 'review' && (intent || previous.body.split(/\r?\n/).includes(recoveryMarker))) {
                 core.setOutput('recovery', 'true')
               } else {
                 await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body })
@@ -143,11 +152,12 @@ jobs:
               return
             }
           }
-          if (process.env.MODE === 'review' && process.env.GITHUB_RUN_ATTEMPT !== '1') {
-            // No prior comment means we cannot prove the previous write was never attempted.
-            core.setOutput('recovery', 'true')
-          }
-          const { data } = await github.rest.issues.createComment({ ...target, body })
+          const needsRecovery = process.env.MODE === 'review' && process.env.GITHUB_RUN_ATTEMPT !== '1'
+          // Retain recovery mode across all retries when the original intent may have been deleted.
+          if (needsRecovery) core.setOutput('recovery', 'true')
+          const { data } = await github.rest.issues.createComment({
+            ...target, body: needsRecovery ? `${body}\n\n${recoveryMarker}` : body,
+          })
           core.setOutput('url', data.html_url)
           core.setOutput('comment_id', String(data.id))
     - name: Verify review revision is still current
@@ -321,7 +331,7 @@ jobs:
           if (RECOVERY === 'true') {
             partial('unconfirmed')
             const { data } = await github.rest.issues.getComment(progress)
-            const intent = data.body.match(/^<!-- huan-verdict-intent head=([0-9a-f]{40}) base=([0-9a-f]{40}) -->$/m)
+            const intent = data.body.match(/^<!-- huan-verdict-intent head=([0-9a-f]{40}) base=([0-9a-f]{40}) -->\r?$/m)
             if (!intent) throw new Error('No saved verdict intent. Inspect the PR before requesting a fresh review.')
             HEAD_SHA = intent[1]
             BASE_SHA = intent[2]
@@ -362,9 +372,24 @@ jobs:
             const progressBody = comment.body
             const intent = `<!-- huan-verdict-intent head=${HEAD_SHA} base=${BASE_SHA} -->`
             // Persist the write intent before POST so a lost response cannot trigger a blind repeat.
-            await github.rest.issues.updateComment({ ...progress, body: `${progressBody}\n\n${intent}` })
-            if (!await isCurrent()) {
-              await github.rest.issues.updateComment({ ...progress, body: progressBody })
+            const clearIntent = () => github.rest.issues.updateComment({ ...progress, body: progressBody })
+            const failBeforeWrite = async error => {
+              try {
+                await clearIntent()
+              } catch (cleanupError) {
+                core.warning(`Could not clear the saved verdict intent: ${cleanupError.message}`)
+              }
+              throw error
+            }
+            let current
+            try {
+              await github.rest.issues.updateComment({ ...progress, body: `${progressBody}\n\n${intent}` })
+              current = await isCurrent()
+            } catch (error) {
+              await failBeforeWrite(error)
+            }
+            if (!current) {
+              await clearIntent()
               return partial('skipped')
             }
             try {
@@ -386,8 +411,7 @@ jobs:
             } catch (error) {
               if ([400, 401, 403, 404, 422].includes(error.status)) {
                 // GitHub rejected the write. A rerun may proceed once the intent is cleared.
-                await github.rest.issues.updateComment({ ...progress, body: progressBody })
-                throw error
+                await failBeforeWrite(error)
               }
               partial('unconfirmed')
               verdict = await findVerdict()
@@ -460,13 +484,15 @@ jobs:
         ROCKET_ID: "${{ steps.rocket.outputs.rocket_id }}"
         JOB_STATUS: "${{ job.status }}"
         AGENT_OUTCOME: "${{ steps.agent.outcome }}"
+        RECOVERY: "${{ steps.progress.outputs.recovery }}"
+        VERDICT_OUTCOME: "${{ steps.verdict.outcome }}"
         PARTIAL: "${{ steps.verdict.outputs.partial }}"
         DUPLICATE: "${{ steps.pair.outputs.duplicate }}"
       with:
         github-token: "${{ steps.reaction-token.outputs.token || steps.app-token.outputs.token
           }}"
         script: |
-          const { ENDPOINT, EYES_ID, ROCKET_ID, JOB_STATUS, AGENT_OUTCOME, PARTIAL, DUPLICATE } = process.env
+          const { ENDPOINT, EYES_ID, ROCKET_ID, JOB_STATUS, AGENT_OUTCOME, RECOVERY, VERDICT_OUTCOME, PARTIAL, DUPLICATE } = process.env
           for (const id of [EYES_ID, ROCKET_ID].filter(Boolean)) {
             try {
               await github.request(`DELETE ${ENDPOINT}/${id}`)
@@ -474,7 +500,9 @@ jobs:
               if (error.status !== 404) core.warning(`Could not remove progress reaction: ${error.message}`)
             }
           }
-          if (JOB_STATUS === 'success' && AGENT_OUTCOME === 'success' && !PARTIAL && DUPLICATE !== 'true') {
+          const completed = AGENT_OUTCOME === 'success' ||
+            (RECOVERY === 'true' && VERDICT_OUTCOME === 'success')
+          if (JOB_STATUS === 'success' && completed && !PARTIAL && DUPLICATE !== 'true') {
             await github.request(`POST ${ENDPOINT}`, { content: 'hooray' })
           }
 'on':
