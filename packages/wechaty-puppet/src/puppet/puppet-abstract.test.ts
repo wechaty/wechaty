@@ -845,6 +845,53 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
   assert.equal(failingStopPuppet.state.inactive(), true)
 })
 
+test('start() failure teardown, error identity without error listeners, and retry safety', async _t => {
+  const puppet = new PuppetTest()
+  let attempts = 0
+  mock.method(puppet, 'onStart', async () => {
+    attempts++
+    if (attempts === 1) {
+      throw new Error('boom onStart')
+    }
+  })
+
+  // 1. Verify exact error thrown without wrapping in unhandled error
+  await assert.rejects(async () => puppet.start(), (err: any) => {
+    assert.equal(err.message, 'boom onStart')
+    return true
+  })
+
+  // 2. State settles to inactive/failed with complete cleanup
+  assert.equal(puppet.state.inactive(), true)
+  assert.equal((puppet.state as any).kind, 'failed')
+  assert.equal(puppet.authQrCode, undefined)
+  assert.equal(puppet.isLoggedIn, false)
+
+  // 3. Retry start succeeds cleanly without duplicate listeners or leaked resources
+  await puppet.start()
+  assert.equal((puppet.state as any).kind, 'running')
+
+  // 4. Test restart and reset
+  await puppet.restart()
+  assert.equal((puppet.state as any).kind, 'running')
+
+  await puppet.reset('watchdog test')
+  assert.equal((puppet.state as any).kind, 'running')
+
+  await puppet.stop()
+  assert.equal((puppet.state as any).kind, 'stopped')
+})
+
+test('Symbol.asyncDispose stops puppet when leaving scope', async _t => {
+  const puppet = new PuppetTest()
+  {
+    await using p = puppet
+    await p.start()
+    assert.equal(p.state.active(), true)
+  }
+  assert.equal(puppet.state.inactive(), true)
+})
+
 test('roomMemberPayload caches by memberId and stop() resets authQrCode', async _t => {
   const puppet = new PuppetTest()
   await puppet.start()

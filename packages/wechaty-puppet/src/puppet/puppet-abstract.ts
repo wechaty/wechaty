@@ -17,8 +17,32 @@ import { MemoryCard }   from 'memory-card'
 import {
   BooleanIndicator,
   BusyIndicator,
-  StateSwitch,
 }                       from 'state-switch'
+import type {
+  Lifecycle,
+  LifecycleCondition,
+  LifecycleController,
+  LifecycleScope,
+  LifecycleState,
+  LifecycleWaitOptions,
+}                       from 'scopelet'
+import {
+  createLifecycle,
+  listen,
+  operation,
+}                       from 'scopelet'
+
+/**
+ * Combined lifecycle state interface exposing modern LifecycleState properties
+ * alongside legacy StateSwitch methods for backwards compatibility.
+ */
+export type PuppetState = LifecycleState & {
+  active (): boolean | 'pending'
+  inactive (): boolean | 'pending'
+  on (): boolean | 'pending'
+  off (): boolean | 'pending'
+  stable (expected?: 'active' | 'inactive'): Promise<void>
+}
 
 import {
   log,
@@ -35,7 +59,6 @@ import {
   interfaceOfPuppet,
   looseInstanceOfPuppet,
 }                       from './interface-of.ts'
-import type { PuppetScanListener } from './events.ts'
 import { PuppetSkeleton }          from './puppet-skeleton.ts'
 
 import type {
@@ -106,16 +129,20 @@ let PUPPET_COUNTER = 0
  * Implements the full provider puppet contract with unified internal services
  * and native private brand state.
  */
-abstract class PuppetImpl extends PuppetSkeleton {
+abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   static readonly VERSION = VERSION
 
   // --- ECMAScript Hard Private Brands (Node 26+ / TS 7+) ---
   readonly #options: PuppetOptions
-  readonly #state: StateSwitch
+  readonly #lifecycle: LifecycleController
+  readonly #login: LifecycleCondition
+  readonly #ready: LifecycleCondition
+  readonly #readyIndicator: BooleanIndicator
+  #scope: LifecycleScope | undefined
+
   readonly #resettingIndicator: BusyIndicator
   readonly #watchdog: WatchdogAgent
-  readonly #readyIndicator: BooleanIndicator
   readonly #cache: CacheAgent
   readonly #cacheCleanCallbackList: (() => void)[] = []
   readonly #loginCleanCallbackList: (() => void)[] = []
@@ -135,10 +162,16 @@ abstract class PuppetImpl extends PuppetSkeleton {
     this.#counter = PUPPET_COUNTER++
     this.#memory = new MemoryCard()
     this.#cache = new CacheAgent(options.cache)
-    this.#state = new StateSwitch('Puppet', { log })
     this.#resettingIndicator = new BusyIndicator('PuppetReset', { log })
     this.#watchdog = new WatchdogAgent(this)
     this.#readyIndicator = new BooleanIndicator()
+
+    this.#lifecycle = createLifecycle({
+      onStart: scope => this.#lifecycleStart(scope),
+      onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
+    }, { name: 'Puppet', startTimeoutMs: 15_000, stopTimeoutMs: 15_000 })
+    this.#login = this.#lifecycle.condition('login')
+    this.#ready = this.#lifecycle.condition('ready')
   }
 
   // ==========================================
@@ -174,7 +207,18 @@ abstract class PuppetImpl extends PuppetSkeleton {
   }
 
   get isLoggedIn (): boolean {
-    return !!this.#currentUserId
+    return this.#scope ? (this.#login.isSet && !!this.#currentUserId) : !!this.#currentUserId
+  }
+
+  /**
+   * Resolves when the puppet's active, or next, generation becomes ready.
+   *
+   * @param options - Optional wait options (signal, timeout).
+   * @returns Promise resolving when ready.
+   * @throws {LifecycleSupersededError} If retirement occurs before reaching ready.
+   */
+  ready (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#ready.wait(options)
   }
 
   get authQrCode (): string | undefined {
@@ -203,6 +247,9 @@ abstract class PuppetImpl extends PuppetSkeleton {
       throw new Error('must logout first before login again!')
     }
     this.#currentUserId = userId
+    if (this.#scope) {
+      this.#scope.set(this.#login)
+    }
     this.dispatchEvent(new WechatyEvent('login', {
       detail: { contactId: userId },
     }))
@@ -213,6 +260,11 @@ abstract class PuppetImpl extends PuppetSkeleton {
     if (!this.isLoggedIn) {
       log.verbose('Puppet', 'logout() isLoggedIn === false, do nothing')
       return
+    }
+
+    if (this.#scope) {
+      this.#scope.clear(this.#login)
+      this.#scope.clear(this.#ready)
     }
 
     this.dispatchEvent(new WechatyEvent('logout', {
@@ -269,12 +321,20 @@ abstract class PuppetImpl extends PuppetSkeleton {
     })), 0)
   }
 
+  /**
+   * Purges cached payload entries corresponding to a dirty payload notification.
+   * Handles either a bare {@link EventDirtyPayload} or a {@link CustomEvent}.
+   *
+   * @param arg - Dirty payload or custom event containing payloadType and payloadId.
+   */
   onDirty (
-    {
+    arg: EventDirtyPayload | CustomEvent<EventDirtyPayload>,
+  ): void {
+    const payload = (arg as any)?.detail ?? arg
+    const {
       payloadType,
       payloadId,
-    }: EventDirtyPayload,
-  ): void {
+    } = (payload ?? {}) as EventDirtyPayload
     log.verbose('Puppet', 'onDirty(%s<%s>, %s)', typeName(DirtyType, payloadType), payloadType, payloadId)
     const dirtyFuncMap = {
       [DirtyType.Contact]:      (id: string) => this.#cache.contact.delete(id),
@@ -286,7 +346,9 @@ abstract class PuppetImpl extends PuppetSkeleton {
       [DirtyType.Unspecified]:  (id: string) => { throw new Error('Unspecified type with id: ' + id) },
     }
     const dirtyFunc = dirtyFuncMap[payloadType]
-    dirtyFunc(payloadId)
+    if (typeof dirtyFunc === 'function') {
+      dirtyFunc(payloadId)
+    }
   }
 
   async __dirtyPayloadAwait (
@@ -348,12 +410,58 @@ abstract class PuppetImpl extends PuppetSkeleton {
   // Lifecycle & State Management
   // ==========================================
 
-  get state (): StateSwitch {
-    return this.#state
+  /**
+   * Current lifecycle state of the puppet, providing unified modern LifecycleState
+   * properties (.kind, .generation) alongside legacy StateSwitch methods (.active(), .inactive()).
+   */
+  get state (): PuppetState {
+    const s = this.#lifecycle.state
+    const active = (): boolean | 'pending' => (s.kind === 'running' ? true : s.kind === 'starting' ? 'pending' : false)
+    const inactive = (): boolean | 'pending' => (s.kind === 'stopped' || s.kind === 'failed' ? true : s.kind === 'stopping' ? 'pending' : false)
+    const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
+      if (expected === 'active') {
+        await this.#lifecycle.whenState(st => st.kind === 'running')
+      } else if (expected === 'inactive') {
+        await this.#lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
+      } else {
+        await this.#lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
+      }
+    }
+    return Object.assign(Object.create(s), {
+      active,
+      inactive,
+      on: active,
+      off: inactive,
+      stable,
+    })
   }
 
+  /**
+   * Compatibility indicator for legacy consumers, bound to the generation-scoped ready condition.
+   */
   get readyIndicator (): BooleanIndicator {
-    return this.#readyIndicator
+    return {
+      value: (val?: boolean): any => {
+        if (val === undefined) {
+          return this.#scope ? this.#ready.isSet : this.#readyIndicator.value()
+        }
+        this.#readyIndicator.value(val)
+        if (this.#scope) {
+          if (val) {
+            this.#scope.set(this.#ready)
+          } else {
+            this.#scope.clear(this.#ready)
+          }
+        }
+        return val
+      },
+      ready: (val: boolean, noCross?: boolean): Promise<void> => {
+        if (val && this.#scope) {
+          return this.#ready.wait()
+        }
+        return this.#readyIndicator.ready(val, noCross)
+      },
+    } as BooleanIndicator
   }
 
   get __counter (): number {
@@ -376,201 +484,262 @@ abstract class PuppetImpl extends PuppetSkeleton {
     return this.#options
   }
 
+  /**
+   * Provider-specific startup logic. Called during puppet startup after core infrastructure is ready.
+   */
   abstract onStart (): Promise<void>
+
+  /**
+   * Provider-specific teardown logic. Called when stopping or aborting.
+   */
   abstract onStop  (): Promise<void>
 
-  override async start (): Promise<void> {
+  /**
+   * Executes an asynchronous domain operation bound to the active puppet generation.
+   * Retirement waits for all active operations to finish under stop timeout.
+   *
+   * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
+   * @returns Result of work.
+   */
+  executeOperation<T> (work: (signal?: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+    if (this.#scope) {
+      return operation(this.#scope, signal => work(signal))
+    }
+    return Promise.resolve(work())
+  }
+
+  /**
+   * Starts the puppet lifecycle.
+   *
+   * @param options - Optional start wait options.
+   */
+  override async start (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Puppet', 'start()')
-    if (this.#state.active()) {
-      log.warn('Puppet', 'start() found that is starting/started ...')
-      await this.#state.stable('active')
-      log.warn('Puppet', 'start() found that is starting/started ... done')
-      return
-    }
-
-    if (this.#state.inactive() === 'pending') {
-      log.warn('Puppet', 'start() found that is stopping, waiting stable ...')
-      try {
-        await timeoutPromise(this.#state.stable('inactive'), 15 * 1000)
-        log.warn('Puppet', 'start() found that is stopping, waiting stable ... done')
-      } catch (e) {
-        this.emit('error', e)
-        log.warn('Puppet', 'start() found that is stopping, waiting stable ... timeout')
-      }
-    }
-
-    this.#state.active('pending')
-
     try {
-      await super.start()
-
-      try {
-        await this.#memory.load()
-      } catch (_) {
-        log.silly('Puppet', 'start() memory has already been loaded before')
-      }
-
-      this.#cache.start()
-      const onDirty = this.onDirty.bind(this)
-      this.on('dirty', onDirty)
-      this.#cacheCleanCallbackList.push(() => {
-        this.off('dirty', onDirty)
-      })
-
-      const cleanAuthQrCode = () => {
-        this.#authQrCode = undefined
-      }
-      const onScan: PuppetScanListener = ({ qrcode, status }) => {
-        switch (status) {
-          case ScanStatus.Cancel:
-          case ScanStatus.Confirmed:
-          case ScanStatus.Scanned:
-            cleanAuthQrCode()
-            break
-          case ScanStatus.Timeout:
-          case ScanStatus.Waiting:
-            this.#authQrCode = qrcode
-            break
-          case ScanStatus.Unknown:
-          default:
-            break
-        }
-      }
-      this.addListener('scan', onScan)
-      this.addListener('login', cleanAuthQrCode)
-      this.addListener('stop', cleanAuthQrCode)
-      this.#loginCleanCallbackList.push(() => {
-        this.removeListener('scan', onScan)
-        this.removeListener('login', cleanAuthQrCode)
-        this.removeListener('stop', cleanAuthQrCode)
-      })
-
-      const onReady = () => this.#readyIndicator.value(true)
-      const onLogout = () => this.#readyIndicator.value(false)
-      const onReset = () => this.#readyIndicator.value(false)
-      this.on('ready', onReady)
-      this.on('logout', onLogout)
-      this.on('reset', onReset)
-      this.#loginCleanCallbackList.push(() => {
-        this.off('ready', onReady)
-        this.off('logout', onLogout)
-        this.off('reset', onReset)
-      })
-
-      this.#watchdog.start()
-
-      await this.onStart()
-
-      this.dispatchEvent(new WechatyEvent('start'))
-      this.#state.active(true)
-    } catch (e: any) {
-      log.error('Puppet', 'start() exception: %s', e.message)
-      const cleanupErrors = await this.__serviceCtlShutdown()
-      this.#state.inactive(true)
-      this.__serviceCtlEmitErrors([e, ...cleanupErrors])
-      throw e
+      await this.#lifecycle.start(options)
+    } catch (error) {
+      await this.#lifecycle.whenState(s => s.kind === 'failed' || s.kind === 'stopped').catch(() => {})
+      throw error
     }
   }
 
-  override async stop (): Promise<void> {
+  /**
+   * Stops the puppet lifecycle, gracefully unwinding resources in LIFO order.
+   *
+   * @param options - Optional stop wait options.
+   */
+  override async stop (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Puppet', 'stop()')
-    if (this.#state.inactive()) {
-      log.warn('Puppet', 'stop() found that is stopping/stopped ...')
-      await this.#state.stable('inactive')
-      log.warn('Puppet', 'stop() found that is stopping/stopped ... done')
-      return
-    }
-
-    if (this.#state.active() === 'pending') {
-      log.warn('Puppet', 'stop() found that is starting, waiting stable ...')
-      try {
-        await timeoutPromise(this.#state.stable('active'), 15 * 1000)
-        log.warn('Puppet', 'stop() found that is starting, waiting stable ... done')
-      } catch (e) {
-        this.emit('error', e)
-        log.warn('Puppet', 'stop() found that is starting, waiting stable ... timeout')
-      }
-    }
-
-    this.#state.inactive('pending')
-
-    this.#readyIndicator.value(false)
-    this.#watchdog.stop()
-
-    const cleanupErrors = await this.__serviceCtlShutdown()
-
-    if (this.isLoggedIn) {
-      this.dispatchEvent(new WechatyEvent('logout', {
-        detail: {
-          contactId: this.currentUserId,
-          data: 'puppet stop()',
-        },
-      }))
-      await new Promise<void>(resolve => setTimeout(() => {
-        this.#currentUserId = undefined
-        resolve()
-      }, 0))
-    }
-
-    this.#cache.stop()
-    while (this.#cacheCleanCallbackList.length) {
-      const fn = this.#cacheCleanCallbackList.shift()
-      if (fn) {
-        setTimeout(fn, 0)
-      }
-    }
-
-    while (this.#loginCleanCallbackList.length) {
-      const fn = this.#loginCleanCallbackList.shift()
-      if (fn) {
-        fn()
-      }
-    }
-    this.#authQrCode = undefined
-
     try {
-      await super.stop()
+      await this.#lifecycle.stop(options)
     } catch (e) {
-      cleanupErrors.push(e)
-    }
-
-    this.dispatchEvent(new WechatyEvent('stop'))
-    this.#state.inactive(true)
-    this.__serviceCtlEmitErrors(cleanupErrors)
-  }
-
-  async reset (): Promise<void> {
-    log.verbose('Puppet', 'reset()')
-    if (this.#resettingIndicator.busy()) {
-      log.warn('Puppet', 'reset() found that is resetting, waiting idle ...')
-      try {
-        await timeoutPromise(this.#resettingIndicator.idle(), 15 * 1000)
-        log.warn('Puppet', 'reset() found that is resetting, waiting idle ... done')
-      } catch (e) {
-        log.error('Puppet', 'reset() timeout: %s', (e as Error).message)
+      if (this.listenerCount('error') > 0) {
         this.emit('error', e)
+      } else {
         throw e
       }
-      return
     }
+  }
 
-    if (this.#state.inactive()) {
-      log.warn('Puppet', 'reset() found that is NOT active, doing nothing')
-      return
-    }
+  /**
+   * Restarts the puppet lifecycle atomically.
+   *
+   * @param options - Optional wait options.
+   */
+  async restart (options?: LifecycleWaitOptions): Promise<void> {
+    log.verbose('Puppet', 'restart()')
+    await this.#lifecycle.restart(options)
+  }
 
-    this.#resettingIndicator.busy(true)
-    try {
+  /**
+   * Restarts the puppet lifecycle atomically or resets with an optional reason string.
+   */
+  async reset (options?: LifecycleWaitOptions | string): Promise<void> {
+    log.verbose('Puppet', 'reset(%s)', typeof options === 'string' ? options : '')
+    await this.restart(typeof options === 'object' ? options : undefined)
+  }
+
+  /**
+   * Waits for the puppet to enter a lifecycle state matching predicate.
+   */
+  async whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> {
+    return this.#lifecycle.whenState(predicate, options)
+  }
+
+  /**
+   * Implements AsyncDisposable: stops the puppet when leaving scope.
+   */
+  async [Symbol.asyncDispose] (): Promise<void> {
+    await this.stop()
+  }
+
+  async #lifecycleStart (scope: LifecycleScope): Promise<void> {
+    let stopping: Promise<void> | undefined
+    const stopProvider = (): Promise<void> => (stopping ??= (async () => this.onStop())())
+
+    // 0. Deferred super.stop():
+    scope.defer(async () => {
+      await super.stop()
+    })
+
+    // 1. Deferred provider onStop:
+    // Runs when scope retires or is cancelled.
+    scope.defer(async () => {
       try {
-        await timeoutPromise(this.#state.stable(), 45 * 1000)
-      } catch (e) {
-        this.emit('error', e)
-        log.warn('Puppet', 'reset() wait stable timeout: %s', (e as Error).message)
+        await stopProvider()
+      } catch (error) {
+        stopping = undefined
+        throw error
       }
-      await this.stop()
-      await this.start()
-    } finally {
-      this.#resettingIndicator.busy(false)
+    })
+
+    // 2. Abort listener during startup:
+    // Some providers only settle onStart once onStop is called.
+    let started = false
+    scope.signal.addEventListener('abort', () => {
+      if (!started) {
+        stopProvider().catch(() => {})
+      }
+    }, { once: true })
+
+    // 3. Deferred logout:
+    scope.defer(async () => {
+      if (this.isLoggedIn) {
+        this.dispatchEvent(new WechatyEvent('logout', {
+          detail: {
+            contactId: this.#currentUserId ?? '',
+            data: 'puppet stop()',
+          },
+        }))
+        this.#currentUserId = undefined
+      }
+    })
+
+    // 4. Cache lifecycle:
+    this.#cache.start()
+    scope.defer(async () => {
+      this.#cache.stop()
+      while (this.#cacheCleanCallbackList.length) {
+        const fn = this.#cacheCleanCallbackList.shift()
+        if (fn) {
+          try {
+            fn()
+          } catch (err) {
+            log.error('Puppet', 'cacheCleanCallback error: %s', err)
+          }
+        }
+      }
+    })
+
+    // 5. Watchdog lifecycle:
+    this.#watchdog.start()
+    scope.defer(() => {
+      this.#watchdog.stop()
+    })
+
+    // 6. Memory loading:
+    try {
+      await this.#memory.load()
+    } catch (_) {
+      log.silly('Puppet', 'start() memory has already been loaded before')
+    }
+
+    // 7. Event listeners bound to this generation:
+    listen(scope, this, 'dirty', (e: any) => this.onDirty((e as any)?.detail ?? e))
+
+    const cleanAuthQrCode = () => {
+      this.#authQrCode = undefined
+    }
+    const onScan = (event: any) => {
+      const payload = event?.detail ?? event
+      const qrcode = payload?.qrcode
+      const status = payload?.status
+      switch (status) {
+        case ScanStatus.Cancel:
+        case ScanStatus.Confirmed:
+        case ScanStatus.Scanned:
+          cleanAuthQrCode()
+          break
+        case ScanStatus.Timeout:
+        case ScanStatus.Waiting:
+          this.#authQrCode = qrcode
+          break
+        case ScanStatus.Unknown:
+        default:
+          break
+      }
+    }
+    listen(scope, this, 'scan', onScan)
+    listen(scope, this, 'login', cleanAuthQrCode)
+    listen(scope, this, 'stop', cleanAuthQrCode)
+    scope.defer(() => { cleanAuthQrCode() })
+
+    // 8. Conditions tracking:
+    if (this.#readyIndicator.value()) {
+      scope.set(this.#ready)
+    }
+    scope.defer(() => {
+      this.#readyIndicator.value(false)
+    })
+
+    listen(scope, this, 'login', (e: any) => {
+      scope.set(this.#login)
+      const payload = (e as any)?.detail ?? e
+      if (payload?.contactId) {
+        this.#currentUserId = payload.contactId
+      }
+    })
+    listen(scope, this, 'logout', () => {
+      scope.clear(this.#login)
+      scope.clear(this.#ready)
+      this.#readyIndicator.value(false)
+    })
+    listen(scope, this, 'ready', () => {
+      scope.set(this.#ready)
+      this.#readyIndicator.value(true)
+    })
+    listen(scope, this, 'scan', () => {
+      scope.clear(this.#ready)
+      this.#readyIndicator.value(false)
+    })
+    listen(scope, this, 'reset', () => {
+      scope.clear(this.#ready)
+      this.#readyIndicator.value(false)
+    })
+
+    scope.defer(() => {
+      while (this.#loginCleanCallbackList.length) {
+        const fn = this.#loginCleanCallbackList.shift()
+        if (fn) {
+          try {
+            fn()
+          } catch (err) {
+            log.error('Puppet', 'loginCleanCallback error: %s', err)
+          }
+        }
+      }
+    })
+
+    await super.start()
+    await this.onStart()
+    started = true
+    this.#scope = scope
+  }
+
+  #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {
+    if (state.kind === 'running' && previous.kind !== 'running') {
+      this.dispatchEvent(new WechatyEvent('start'))
+    } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {
+      this.dispatchEvent(new WechatyEvent('stop'))
+    } else if (state.kind === 'failed') {
+      if (this.listenerCount('error') > 0) {
+        this.emit('error', state.error)
+      } else {
+        log.error('Puppet', 'Lifecycle failure: %s', (state.error as Error)?.message || state.error)
+      }
     }
   }
 
@@ -789,19 +958,21 @@ abstract class PuppetImpl extends PuppetSkeleton {
   }
 
   async contactPayload (contactId: string): Promise<ContactPayload> {
-    if (!contactId) {
-      throw new Error('no id')
-    }
+    return this.executeOperation(async () => {
+      if (!contactId) {
+        throw new Error('no id')
+      }
 
-    const cachedPayload = this.contactPayloadCache(contactId)
-    if (cachedPayload) {
-      return cachedPayload
-    }
+      const cachedPayload = this.contactPayloadCache(contactId)
+      if (cachedPayload) {
+        return cachedPayload
+      }
 
-    const rawPayload = await this.contactRawPayload(contactId)
-    const payload    = await this.contactRawPayloadParser(rawPayload)
-    this.#cache.contact.set(contactId, payload)
-    return payload
+      const rawPayload = await this.contactRawPayload(contactId)
+      const payload    = await this.contactRawPayloadParser(rawPayload)
+      this.#cache.contact.set(contactId, payload)
+      return payload
+    })
   }
 
   async contactPayloadDirty (id: string): Promise<void> {
@@ -883,29 +1054,31 @@ abstract class PuppetImpl extends PuppetSkeleton {
     roomId   : string,
     memberId : string,
   ): Promise<RoomMemberPayload> {
-    log.verbose('Puppet', 'roomMemberPayload(roomId=%s, memberId=%s)', roomId, memberId)
+    return this.executeOperation(async () => {
+      log.verbose('Puppet', 'roomMemberPayload(roomId=%s, memberId=%s)', roomId, memberId)
 
-    if (!roomId || !memberId) {
-      throw new Error('no id')
-    }
+      if (!roomId || !memberId) {
+        throw new Error('no id')
+      }
 
-    const cachedPayload = this.#cache.roomMember.get(roomId)
-    const memberPayload = cachedPayload && cachedPayload[memberId]
-    if (memberPayload) {
-      return memberPayload
-    }
+      const cachedPayload = this.#cache.roomMember.get(roomId)
+      const memberPayload = cachedPayload && cachedPayload[memberId]
+      if (memberPayload) {
+        return memberPayload
+      }
 
-    const rawPayload = await this.roomMemberRawPayload(roomId, memberId)
-    if (!rawPayload) {
-      throw new Error('contact(' + memberId + ') is not in the Room(' + roomId + ')')
-    }
-    const payload = await this.roomMemberRawPayloadParser(rawPayload)
+      const rawPayload = await this.roomMemberRawPayload(roomId, memberId)
+      if (!rawPayload) {
+        throw new Error('contact(' + memberId + ') is not in the Room(' + roomId + ')')
+      }
+      const payload = await this.roomMemberRawPayloadParser(rawPayload)
 
-    this.#cache.roomMember.set(roomId, {
-      ...cachedPayload,
-      [memberId]: payload,
+      this.#cache.roomMember.set(roomId, {
+        ...cachedPayload,
+        [memberId]: payload,
+      })
+      return payload
     })
-    return payload
   }
 
   async roomMemberPayloadDirty (id: string): Promise<void> {
@@ -1029,20 +1202,22 @@ abstract class PuppetImpl extends PuppetSkeleton {
   }
 
   async roomPayload (roomId: string): Promise<RoomPayload> {
-    log.verbose('Puppet', 'roomPayload(%s)', roomId)
-    if (!roomId) {
-      throw new Error('no id')
-    }
+    return this.executeOperation(async () => {
+      log.verbose('Puppet', 'roomPayload(%s)', roomId)
+      if (!roomId) {
+        throw new Error('no id')
+      }
 
-    const cachedPayload = this.roomPayloadCache(roomId)
-    if (cachedPayload) {
-      return cachedPayload
-    }
+      const cachedPayload = this.roomPayloadCache(roomId)
+      if (cachedPayload) {
+        return cachedPayload
+      }
 
-    const rawPayload = await this.roomRawPayload(roomId)
-    const payload    = await this.roomRawPayloadParser(rawPayload)
-    this.#cache.room.set(roomId, payload)
-    return payload
+      const rawPayload = await this.roomRawPayload(roomId)
+      const payload    = await this.roomRawPayloadParser(rawPayload)
+      this.#cache.room.set(roomId, payload)
+      return payload
+    })
   }
 
   async roomPayloadDirty (id: string): Promise<void> {
@@ -1100,22 +1275,24 @@ abstract class PuppetImpl extends PuppetSkeleton {
     friendshipId : string,
     newPayload?  : FriendshipPayload,
   ): Promise<void | FriendshipPayload> {
-    log.verbose('Puppet', 'friendshipPayload(%s)', friendshipId, newPayload ? ',' + JSON.stringify(newPayload) : '')
+    return this.executeOperation(async () => {
+      log.verbose('Puppet', 'friendshipPayload(%s)', friendshipId, newPayload ? ',' + JSON.stringify(newPayload) : '')
 
-    if (typeof newPayload === 'object') {
-      await this.#cache.friendship.set(friendshipId, newPayload)
-      return
-    }
+      if (typeof newPayload === 'object') {
+        await this.#cache.friendship.set(friendshipId, newPayload)
+        return
+      }
 
-    const cachedPayload = this.friendshipPayloadCache(friendshipId)
-    if (cachedPayload) {
-      return cachedPayload
-    }
+      const cachedPayload = this.friendshipPayloadCache(friendshipId)
+      if (cachedPayload) {
+        return cachedPayload
+      }
 
-    const rawPayload = await this.friendshipRawPayload(friendshipId)
-    const payload    = await this.friendshipRawPayloadParser(rawPayload)
-    this.#cache.friendship.set(friendshipId, payload)
-    return payload
+      const rawPayload = await this.friendshipRawPayload(friendshipId)
+      const payload    = await this.friendshipRawPayloadParser(rawPayload)
+      this.#cache.friendship.set(friendshipId, payload)
+      return payload
+    })
   }
 
   async friendshipPayloadDirty (id: string): Promise<void> {
@@ -1155,21 +1332,24 @@ abstract class PuppetImpl extends PuppetSkeleton {
     roomInvitationId: string,
     newPayload?: RoomInvitationPayload,
   ): Promise<void | RoomInvitationPayload> {
-    log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
+    return this.executeOperation(async () => {
+      log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
 
-    if (typeof newPayload === 'object') {
-      this.#cache.roomInvitation.set(roomInvitationId, newPayload)
-      return
-    }
+      if (typeof newPayload === 'object') {
+        this.#cache.roomInvitation.set(roomInvitationId, newPayload)
+        return
+      }
 
-    const cachedPayload = this.roomInvitationPayloadCache(roomInvitationId)
-    if (cachedPayload) {
-      return cachedPayload
-    }
+      const cachedPayload = this.roomInvitationPayloadCache(roomInvitationId)
+      if (cachedPayload) {
+        return cachedPayload
+      }
 
-    const rawPayload = await this.roomInvitationRawPayload(roomInvitationId)
-    const payload    = await this.roomInvitationRawPayloadParser(rawPayload)
-    return payload
+      const rawPayload = await this.roomInvitationRawPayload(roomInvitationId)
+      const payload    = await this.roomInvitationRawPayloadParser(rawPayload)
+      this.#cache.roomInvitation.set(roomInvitationId, payload)
+      return payload
+    })
   }
 
   // ==========================================
@@ -1212,20 +1392,22 @@ abstract class PuppetImpl extends PuppetSkeleton {
   }
 
   async messagePayload (messageId: string): Promise<MessagePayload> {
-    log.verbose('Puppet', 'messagePayload(%s)', messageId)
-    if (!messageId) {
-      throw new Error('no id')
-    }
+    return this.executeOperation(async () => {
+      log.verbose('Puppet', 'messagePayload(%s)', messageId)
+      if (!messageId) {
+        throw new Error('no id')
+      }
 
-    const cachedPayload = this.messagePayloadCache(messageId)
-    if (cachedPayload) {
-      return cachedPayload
-    }
+      const cachedPayload = this.messagePayloadCache(messageId)
+      if (cachedPayload) {
+        return cachedPayload
+      }
 
-    const rawPayload = await this.messageRawPayload(messageId)
-    const payload    = await this.messageRawPayloadParser(rawPayload)
-    this.#cache.message.set(messageId, payload)
-    return payload
+      const rawPayload = await this.messageRawPayload(messageId)
+      const payload    = await this.messageRawPayloadParser(rawPayload)
+      this.#cache.message.set(messageId, payload)
+      return payload
+    })
   }
 
   messageList (): string[] {
@@ -1303,28 +1485,30 @@ abstract class PuppetImpl extends PuppetSkeleton {
   ): Promise<void | string> {
     log.verbose('Puppet', 'messageSend(%s, {type:%s})', conversationId, sayable.type)
 
-    switch (sayable.type) {
-      case sayableTypes.Attachment:
-      case sayableTypes.Audio:
-      case sayableTypes.Emoticon:
-      case sayableTypes.Image:
-      case sayableTypes.Video:
-        return this.messageSendFile(conversationId, filebox(sayable.payload.filebox))
-      case sayableTypes.Contact:
-        return this.messageSendContact(conversationId, sayable.payload.contactId)
-      case sayableTypes.Location:
-        return this.messageSendLocation(conversationId, sayable.payload)
-      case sayableTypes.MiniProgram:
-        return this.messageSendMiniProgram(conversationId, sayable.payload)
-      case sayableTypes.Url:
-        return this.messageSendUrl(conversationId, sayable.payload)
-      case sayableTypes.Text:
-        return this.messageSendText(conversationId, sayable.payload.text, sayable.payload.mentions)
-      case sayableTypes.Post:
-        return this.messageSendPost(conversationId, sayable.payload)
-      default:
-        throw new Error('unsupported sayable payload: ' + JSON.stringify(sayable))
-    }
+    return this.executeOperation(async () => {
+      switch (sayable.type) {
+        case sayableTypes.Attachment:
+        case sayableTypes.Audio:
+        case sayableTypes.Emoticon:
+        case sayableTypes.Image:
+        case sayableTypes.Video:
+          return this.messageSendFile(conversationId, filebox(sayable.payload.filebox))
+        case sayableTypes.Contact:
+          return this.messageSendContact(conversationId, sayable.payload.contactId)
+        case sayableTypes.Location:
+          return this.messageSendLocation(conversationId, sayable.payload)
+        case sayableTypes.MiniProgram:
+          return this.messageSendMiniProgram(conversationId, sayable.payload)
+        case sayableTypes.Url:
+          return this.messageSendUrl(conversationId, sayable.payload)
+        case sayableTypes.Text:
+          return this.messageSendText(conversationId, sayable.payload.text, sayable.payload.mentions)
+        case sayableTypes.Post:
+          return this.messageSendPost(conversationId, sayable.payload)
+        default:
+          throw new Error('unsupported sayable payload: ' + JSON.stringify(sayable))
+      }
+    })
   }
 
   // ==========================================
@@ -1366,20 +1550,22 @@ abstract class PuppetImpl extends PuppetSkeleton {
   }
 
   async postPayload (postId: string): Promise<PostPayload> {
-    log.verbose('Puppet', 'postPayload(%s)', postId)
-    if (!postId) {
-      throw new Error('no id')
-    }
+    return this.executeOperation(async () => {
+      log.verbose('Puppet', 'postPayload(%s)', postId)
+      if (!postId) {
+        throw new Error('no id')
+      }
 
-    const cachedPayload = this.postPayloadCache(postId)
-    if (cachedPayload) {
-      return cachedPayload
-    }
+      const cachedPayload = this.postPayloadCache(postId)
+      if (cachedPayload) {
+        return cachedPayload
+      }
 
-    const rawPayload = await this.postRawPayload(postId)
-    const payload    = await this.postRawPayloadParser(rawPayload)
-    this.#cache.post.set(postId, payload)
-    return payload
+      const rawPayload = await this.postRawPayload(postId)
+      const payload    = await this.postRawPayloadParser(rawPayload)
+      this.#cache.post.set(postId, payload)
+      return payload
+    })
   }
 
   postList (): string[] {
@@ -1525,6 +1711,8 @@ type PuppetProtectedProperty =
   | 'postPayloadCache'
   | 'postRawPayload'
   | 'postRawPayloadParser'
+  | 'puppetOptions'
+  | 'executeOperation'
 
 /**
  * Pure doc-typed interface contract for puppet instances, omitting all internal
