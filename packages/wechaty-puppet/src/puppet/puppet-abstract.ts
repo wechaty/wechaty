@@ -150,6 +150,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   #currentUserId?: string
   #authQrCode?: string
   #loggedOut = false
+  #loginToken = 0
 
   constructor (
     options: PuppetOptions = {},
@@ -260,6 +261,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     if (this.#currentUserId) {
       throw new Error('must logout first before login again!')
     }
+    ++this.#loginToken
     this.#loggedOut = false
     this.#currentUserId = userId
     if (this.#scope) {
@@ -278,6 +280,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }
 
     this.#loggedOut = true
+    const currentToken = this.#loginToken
 
     this.dispatchEvent(new WechatyEvent('logout', {
       detail: {
@@ -287,12 +290,14 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }))
 
     await new Promise<void>(resolve => setTimeout(() => {
-      if (this.#scope) {
-        this.#scope.clear(this.#login)
-        this.#scope.clear(this.#ready)
+      if (this.#loginToken === currentToken) {
+        if (this.#scope) {
+          this.#scope.clear(this.#login)
+          this.#scope.clear(this.#ready)
+        }
+        this.#currentUserId = undefined
+        this.#loggedOut = false
       }
-      this.#currentUserId = undefined
-      this.#loggedOut = false
       resolve()
     }, 0))
   }
@@ -649,16 +654,23 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     // 6. Deferred logout (fires while cache and currentUserId are still available):
     scope.defer(async () => {
       const userId = this.#currentUserId
-      if (userId && !this.#loggedOut) {
-        this.#loggedOut = true
-        this.dispatchEvent(new WechatyEvent('logout', {
-          detail: {
-            contactId: userId,
-            data: 'puppet stop()',
-          },
-        }))
-        this.#currentUserId = undefined
-        this.#loggedOut = false
+      const shouldEmit = userId && !this.#loggedOut
+      try {
+        if (shouldEmit) {
+          this.#loggedOut = true
+          this.dispatchEvent(new WechatyEvent('logout', {
+            detail: {
+              contactId: userId,
+              data: 'puppet stop()',
+            },
+          }))
+        }
+      } finally {
+        if (userId) {
+          this.#currentUserId = undefined
+          this.#loggedOut = false
+          this.#loginToken++
+        }
       }
     })
 
@@ -735,12 +747,16 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       }
     })
     listen(scope, this, 'logout', () => {
+      const currentToken = this.#loginToken
       setTimeout(() => {
-        try {
-          scope.clear(this.#login)
-          scope.clear(this.#ready)
-        } catch (_) {}
-        this.#readyIndicator.value(false)
+        if (this.#scope === scope && this.#loginToken === currentToken) {
+          try {
+            scope.clear(this.#login)
+            scope.clear(this.#ready)
+          } catch (_) {}
+          this.#readyIndicator.value(false)
+          this.#currentUserId = undefined
+        }
       }, 0)
     })
     listen(scope, this, 'ready', () => {
